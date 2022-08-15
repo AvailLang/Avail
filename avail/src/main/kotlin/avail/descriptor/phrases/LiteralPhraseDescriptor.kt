@@ -33,6 +33,9 @@ package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
+import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
@@ -57,6 +60,8 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
@@ -65,11 +70,11 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
-import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelOne.L1Decompiler
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
+import java.math.BigInteger
 import java.util.IdentityHashMap
 
 /**
@@ -146,16 +151,6 @@ class LiteralPhraseDescriptor(
 					//  they tend to get embedded inside phrases produced by
 					//  macros, so we can let the specific macros decide on
 					//  styling.
-					null
-				}
-				literal.isInstanceOf(TupleTypeDescriptor.stringType) ->
-				{
-					// Exclude synthetic string literal tokens, since those
-					// can't have their lexeme re-parsed to show escapes.
-					if (token.start() != 0)
-					{
-						context.loader.styleStringLiteral(token)
-					}
 					null
 				}
 				literal.isInstanceOf(CHARACTER.o) ->
@@ -318,6 +313,14 @@ class LiteralPhraseDescriptor(
 			}
 		}
 
+		private val safePrintRange = run {
+			val googol =
+				fromBigInteger(
+					BigInteger("1" + String.format("%0100d", 0))
+				).makeShared()
+			inclusive(zero.minusCanDestroy(googol, false), googol).makeShared()
+		}
+
 		/**
 		 * Create a literal phrase from an [AvailObject], the literal value
 		 * itself.  Automatically wrap the value inside a synthetic literal
@@ -335,13 +338,24 @@ class LiteralPhraseDescriptor(
 		 */
 		fun syntheticLiteralNodeFor(
 			literalValue: A_BasicObject,
-			literalAsString: A_String =
-				if (literalValue.isString) literalValue as A_String
-				else stringFrom(literalValue.toString()),
+			literalAsString: A_String = when
+				{
+					literalValue.isString -> literalValue as A_String
+					literalValue.isInstanceOf(safePrintRange) ->
+						stringFrom(literalValue.toString())
+					literalValue.isInstanceOf(integers) ->
+						stringFrom("(a big integer)")
+					else -> stringFrom(literalValue.toString())
+				},
 			optionalGeneratingPhrase: A_Phrase = nil
 		): A_Phrase = literalNodeFromToken(
 			literalToken(
-				literalAsString, 0, 0, literalValue, optionalGeneratingPhrase))
+				literalAsString,
+				0,
+				0,
+				literalValue,
+				nil,
+				optionalGeneratingPhrase))
 
 		/** The mutable [LiteralPhraseDescriptor]. */
 		private val mutable = LiteralPhraseDescriptor(Mutability.MUTABLE)

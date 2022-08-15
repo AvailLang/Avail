@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.phrases
 
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
@@ -92,6 +93,7 @@ object P_CreateLiteralToken : Primitive(5, CanFold, CanInline)
 				start.extractInt,
 				line.extractInt,
 				value,
+				interpreter.fiber().currentLexer,
 				generatingPhrase))
 	}
 

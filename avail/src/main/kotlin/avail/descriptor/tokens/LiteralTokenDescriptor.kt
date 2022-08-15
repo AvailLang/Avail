@@ -32,6 +32,7 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -44,6 +45,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.START
+import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.GENERATING_LEXER
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.GENERATING_PHRASE
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.LITERAL
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
@@ -158,21 +160,26 @@ class LiteralTokenDescriptor private constructor(
 		 * The [A_Phrase] that produced this literal token, if known, otherwise
 		 * [nil].
 		 */
-		GENERATING_PHRASE;
+		GENERATING_PHRASE,
+
+		/**
+		 * The [A_Lexer] responsible for creating this token, or [nil] if the
+		 * token was not constructed by a lexer.
+		 */
+		GENERATING_LEXER;
 
 		companion object
 		{
 			init
 			{
-				assert(
-					TokenDescriptor.ObjectSlots.STRING.ordinal
-						== STRING.ordinal)
-				assert(
-					TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
-						== NEXT_LEXING_STATE_POJO.ordinal)
-				assert(
-					TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
-						== ORIGINATING_MODULE.ordinal)
+				assert(TokenDescriptor.ObjectSlots.STRING.ordinal
+					== STRING.ordinal)
+				assert(TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
+					== NEXT_LEXING_STATE_POJO.ordinal)
+				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+					== ORIGINATING_MODULE.ordinal)
+				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+					== ORIGINATING_MODULE.ordinal)
 			}
 		}
 	}
@@ -275,6 +282,9 @@ class LiteralTokenDescriptor private constructor(
 		 *   The literal value.
 		 * @param generatingPhrase
 		 *   Either [nil] or the phrase that generated this token.
+		 * @param generatingLexer
+		 *   The [A_Lexer] responsible for creating this token, or nil if the
+		 *   token was not constructed by a lexer.
 		 * @return
 		 *   The new literal token.
 		 */
@@ -283,6 +293,7 @@ class LiteralTokenDescriptor private constructor(
 			start: Int,
 			lineNumber: Int,
 			literal: A_BasicObject,
+			generatingLexer: A_Lexer,
 			generatingPhrase: A_Phrase = nil
 		): AvailObject = mutable.createShared {
 			setSlot(STRING, string)
@@ -290,6 +301,7 @@ class LiteralTokenDescriptor private constructor(
 			setSlot(LINE_NUMBER, lineNumber)
 			setSlot(LITERAL, literal)
 			setSlot(GENERATING_PHRASE, generatingPhrase)
+			setSlot(GENERATING_LEXER, generatingLexer)
 			if (literal.isInstanceOfKind(TOKEN.o))
 			{
 				val nextStatePojo = (literal as A_Token).nextLexingStatePojo()

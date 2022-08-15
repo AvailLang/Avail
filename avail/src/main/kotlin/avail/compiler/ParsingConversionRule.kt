@@ -46,6 +46,7 @@ import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiter
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -107,6 +108,7 @@ enum class ParsingConversionRule constructor(val number: Int)
 				stringFrom(count.toString()),
 				lexingState.position,
 				lexingState.lineNumber,
+				nil,
 				count)
 			continuation(literalNodeFromToken(token))
 		}

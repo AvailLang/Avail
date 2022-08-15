@@ -54,6 +54,7 @@ import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
@@ -63,6 +64,8 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.functionType
+import avail.descriptor.types.A_Type.Companion.instance
+import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -72,6 +75,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
+import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1OperationDispatcher
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
@@ -286,15 +290,31 @@ constructor(
 				).typeIntersection(calledCode.functionType().returnType)
 			else -> calledCode.functionType().returnType
 		}
-		instructions.add(
-			L2Simple_Invoke(
-				stackp,
-				pc,
-				instructions.size + 1,
-				registerIndices,
-				expectedType,
-				!guaranteedReturnType.isSubtypeOf(expectedType),
-				calledFunction))
+		if (guaranteedReturnType.instanceCount.equalsInt(1)
+			&& !guaranteedReturnType.isInstanceMeta
+			&& prim != null
+			&& prim.hasFlag(CanFold)
+			&& guaranteedReturnType.isSubtypeOf(expectedType))
+		{
+			// The primitive has no side-effects, and returns a constant, and
+			// that constant complies with the expectedType.
+			instructions.add(
+				L2Simple_MoveConstant(
+					guaranteedReturnType.instance,
+					stackp))
+		}
+		else
+		{
+			instructions.add(
+				L2Simple_Invoke(
+					stackp,
+					pc,
+					instructions.size + 1,
+					registerIndices,
+					expectedType,
+					!guaranteedReturnType.isSubtypeOf(expectedType),
+					calledFunction))
+		}
 		return restrictionForType(
 			guaranteedReturnType.typeIntersection(expectedType), BOXED_FLAG)
 	}

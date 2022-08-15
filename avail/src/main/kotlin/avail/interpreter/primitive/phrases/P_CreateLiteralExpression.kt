@@ -32,11 +32,13 @@
 
 package avail.interpreter.primitive.phrases
 
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.literalType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
@@ -60,6 +62,14 @@ object P_CreateLiteralExpression : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val token = interpreter.argument(0)
 		return interpreter.primitiveSuccess(literalNodeFromToken(token))
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>): A_Type
+	{
+		val tokenType = argumentTypes[0]
+		return LITERAL_PHRASE.create(tokenType.literalType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -37,14 +37,17 @@ import avail.compiler.AvailRejectedParseException
 import avail.compiler.CompilationContext
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.RUNNING_LEXER
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.methods.A_Method.Companion.chooseBundle
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -54,6 +57,7 @@ import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
@@ -196,7 +200,7 @@ class LexingState constructor(
 			// The end of the source code.  Produce an end-of-file token.
 			assert(position == source.tupleSize + 1)
 			val endOfFileToken = newToken(
-				endOfFileLexeme, position, lineNumber, END_OF_FILE)
+				endOfFileLexeme, position, lineNumber, END_OF_FILE, nil)
 			theTokens.add(endOfFileToken)
 			actions.forEach { action ->
 				workUnitDo { action(theTokens) }
@@ -291,16 +295,16 @@ class LexingState constructor(
 		val fiber = newLoaderFiber(lexerBodyFunctionType().returnType, loader)
 		{
 			formatString(
-				"Lexing %s:%d (%s)",
+				"Lexing %s:%d (%s in %s)",
 				compilationContext.module.shortModuleNameNative,
 				lineNumber,
-				lexer)
+				lexer,
+				loader.module.shortModuleNameNative)
 		}
-		// TODO MvG - Set up fiber variables for lexing?
-		//		A_Map fiberGlobals = fiber.fiberGlobals();
-		//		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-		//			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
-		//		fiber.fiberGlobals(fiberGlobals);
+		fiber.heritableFiberGlobals =
+			fiber.heritableFiberGlobals.mapAtPuttingCanDestroy(
+				RUNNING_LEXER.atom, lexer, true
+			).makeShared()
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		setFiberContinuationsTrackingWork(
 			fiber,

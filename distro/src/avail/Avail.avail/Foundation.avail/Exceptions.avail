@@ -2361,25 +2361,20 @@ privateAccept ::=
 [
 	Primitive AcceptParsing (
 		failureCode : untimely-parse-acceptance code's type);
-	Crash: "Unable to accept parse here; must be running semantic restriction."
+	Crash: "Unable to accept parse here; must be running \
+			\|semantic restriction or macro."
 ] : ⊥;
 
 /**
- * Unwind the stack safely, then accept the current parse, terminating the
- * fiber.
- *
- * This is equivalent to returning a type from the outermost stack frame of the
- * fiber, but has the advantage that the body of the semantic restriction can be
- * typed as ⊥, allowing the parser to know that the potential call being parsed
- * won't have its type strengthened (by this semantic restriction).  This is
- * expected to improve performance and diagnostics related to some ⊤-valued
- * statements, as they won't be nestable except within macros.
- *
- * This function may only be invoked from the body of a semantic restriction
- * function.  It should only be invoked by the Avail compiler, never by a
- * semantically valid Avail program.
+ * Replace the acceptance function with one that unwinds the stack safely, then
+ * uses the primitive to accept the current parse, terminating the fiber.
  */
-Public method "Accept parse" is
+oldAcceptanceFunction ::= Replace parse acceptance function with
 [
 	Unwind fiber and run privateAccept
-] : ⊥;
+];
+
+After the current module is unloaded, do
+[
+	Ignore: Replace parse acceptance function with oldAcceptanceFunction;
+];

@@ -65,6 +65,7 @@ import avail.environment.actions.ExamineCompilationAction
 import avail.environment.actions.ExamineModuleManifest
 import avail.environment.actions.ExamineRepositoryAction
 import avail.environment.actions.ExamineSerializedPhrasesAction
+import avail.environment.actions.ExamineStylingAction
 import avail.environment.actions.FindAction
 import avail.environment.actions.GenerateDocumentationAction
 import avail.environment.actions.GenerateGraphAction
@@ -481,6 +482,9 @@ class AvailWorkbench internal constructor (
 	private val examinePhrasesAction =
 		ExamineSerializedPhrasesAction(this, runtime)
 
+	private val examineStylingAction =
+		ExamineStylingAction(this, runtime)
+
 	/** The [ExamineModuleManifest]. */
 	private val examineModuleManifestAction =
 		ExamineModuleManifest(this, runtime)
@@ -893,6 +897,8 @@ class AvailWorkbench internal constructor (
 		examineCompilationAction.isEnabled =
 			!busy && selectedModule() !== null
 		examinePhrasesAction.isEnabled =
+			!busy && selectedModule() !== null
+		examineStylingAction.isEnabled =
 			!busy && selectedModule() !== null
 		examineModuleManifestAction.isEnabled =
 			!busy && selectedModule() !== null
@@ -1649,6 +1655,7 @@ class AvailWorkbench internal constructor (
 					item(examineRepositoryAction)
 					item(examineCompilationAction)
 					item(examinePhrasesAction)
+					item(examineStylingAction)
 					item(examineModuleManifestAction)
 					separator()
 					item(graphAction)

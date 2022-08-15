@@ -36,8 +36,11 @@ import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import avail.descriptor.character.CharacterDescriptor
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
@@ -76,7 +79,11 @@ object P_BootstrapLexerStringBody
 		val startPosition = sourcePositionInteger.extractInt
 		val startLineNumber = lineNumberInteger.extractInt
 
-		val token = parseString(source, startPosition, startLineNumber)
+		val token = parseString(
+			source,
+			startPosition,
+			startLineNumber,
+			interpreter.fiber().currentLexer)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 
@@ -90,6 +97,8 @@ object P_BootstrapLexerStringBody
 	 *   The one-based position at which to start parsing.
 	 * @param startLineNumber
 	 *   What line to treat the first character as occurring on.
+	 * @param lexer
+	 *   The [A_Lexer] responsible for creating this token, otherwise [nil].
 	 * @return
 	 *   The resulting token, if successful.  Note that the size of the token's
 	 *   lexeme ([A_Token.string]) accurately conveys how many codepoints were
@@ -101,7 +110,8 @@ object P_BootstrapLexerStringBody
 	fun parseString (
 		source: A_String,
 		startPosition: Int,
-		startLineNumber: Int
+		startLineNumber: Int,
+		lexer: A_Lexer
 	): A_Token
 	{
 		val scanner = Scanner(source, startPosition + 1, startLineNumber)
@@ -120,7 +130,8 @@ object P_BootstrapLexerStringBody
 							startPosition, scanner.position - 1, false),
 						startPosition,
 						startLineNumber,
-						stringFrom(builder.toString()))
+						stringFrom(builder.toString()),
+						lexer)
 				}
 				'\\' ->
 				{

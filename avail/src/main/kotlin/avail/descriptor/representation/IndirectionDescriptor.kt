@@ -89,6 +89,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.captureInDebugger
 import avail.descriptor.fiber.A_Fiber.Companion.clearGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.clearTraceFlag
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.fiber.A_Fiber.Companion.debugLog
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.failureContinuation
@@ -351,6 +352,7 @@ import avail.descriptor.numbers.A_Number.Companion.subtractFromInfinityCanDestro
 import avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.trimExcessInts
+import avail.descriptor.numbers.A_Number.Companion.whichPowerOfTwo
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.objects.ObjectLayoutVariant
@@ -607,7 +609,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
@@ -3922,6 +3924,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase =
 		self .. { generatingPhrase }
 
+	override fun o_GeneratingLexer(self: AvailObject): A_Lexer =
+		self .. { generatingLexer }
+
 	override fun o_IsInCurrentModule(
 		self: AvailObject,
 		currentModule: A_Module
@@ -3938,4 +3943,10 @@ class IndirectionDescriptor private constructor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit
 	): Unit = self .. { applyStylesThen(context, visitedSet, then) }
+
+	override fun o_CurrentLexer(self: AvailObject): A_Lexer =
+		self .. { currentLexer }
+
+	override fun o_WhichPowerOfTwo(self: AvailObject): Int =
+		self .. { whichPowerOfTwo }
 }

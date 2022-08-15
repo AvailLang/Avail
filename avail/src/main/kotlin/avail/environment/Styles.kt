@@ -35,12 +35,14 @@ package avail.environment
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.environment.AdaptiveColor.Companion.blend
 import avail.environment.BoundStyle.Companion.defaultStyle
+import avail.environment.StyleFlag.*
 import avail.environment.streams.StreamStyle
 import avail.persistence.cache.StyleRun
 import java.awt.Color
 import javax.swing.SwingUtilities
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
+import javax.swing.text.StyleConstants.CharacterConstants
 import javax.swing.text.StyleContext
 import javax.swing.text.StyledDocument
 
@@ -119,391 +121,373 @@ interface BoundStyle
 	}
 }
 
+/** A builder for DefaultBoundSystemStyle. */
+class DefaultBoundSystemStyleBuilder(private val flags: MutableSet<StyleFlag>)
+{
+	var family: String = "Monospaced"
+	var foreground: ((SystemColors)->Color) = SystemColors::baseCode
+	var background: ((SystemColors)->Color) = SystemColors::codeBackground
+	fun bold() { flags.add(Bold) }
+	fun italic() { flags.add(Italic) }
+	fun underline() { flags.add(Underline) }
+	fun superscript() { flags.add(Superscript) }
+	fun subscript() { flags.add(Subscript) }
+}
+
 /**
  * Default [style&#32;bindings][BoundStyle] for all
  * [system&#32;styles][SystemStyle]. Constructor capabilities are not intended
  * to cover Swing's styling capabilities comprehensively, only to provide those
  * options that will be exercised by one or more system styles.
  *
- * @property family
- *   The font family.
- * @property foreground
- *   How to obtain a [system&#32;color][SystemColors] for the foreground. May be
- *   `null`, to use the default foreground. Defaults to `null`.
- * @property background
- *   How to obtain a [system&#32;color][SystemColors] for the background. May be
- *   `null`, to use the default background. Defaults to `null`.
- * @property bold
- *   Whether to use bold font weight.
- * @property italic
- *   Whether to use italic font style.
- * @property italic
- *   Whether to use underline font decoration.
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * 
- * @constructor
- * Create a [DefaultBoundSystemStyle] for the specified [SystemStyle].
- * 
- * @param systemStyle
- *   The target system style.
- * @param family
- *   The font family. Defaults to `"Monospaced"`.
- * @param foreground
- *   How to obtain a [system&#32;color][SystemColors] for the foreground.
- *   Defaults to [SystemColors.baseCode].
- * @param background
- *   How to obtain a [system&#32;color][SystemColors] for the background.
- *   Defaults to [SystemColors.codeBackground].
- * @param bold
- *   Whether to use bold font weight. Defaults to `false`.
- * @param italic
- *   Whether to use italic font style. Defaults to `false`.
- * @param italic
- *   Whether to use underline font decoration. Defaults to `false`.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-enum class DefaultBoundSystemStyle(
-	systemStyle: SystemStyle,
-	private val family: String = "Monospaced",
-	private val foreground: ((SystemColors)->Color) = SystemColors::baseCode,
-	private val background: ((SystemColors)->Color) =
-		SystemColors::codeBackground,
-	private val bold: Boolean = false,
-	private val italic: Boolean = false,
-	private val underline: Boolean = false
-): BoundStyle
+enum class DefaultBoundSystemStyle: BoundStyle
 {
 	/** Default style for [SystemStyle.BLOCK]. */
-	BLOCK(
-		SystemStyle.BLOCK,
-		foreground = SystemColors::mustard
-	),
+	BLOCK(SystemStyle.BLOCK, { foreground = SystemColors::mustard }),
 
 	/** Default style for [SystemStyle.METHOD_DEFINITION]. */
-	METHOD_DEFINITION(
-		SystemStyle.METHOD_DEFINITION,
+	METHOD_DEFINITION(SystemStyle.METHOD_DEFINITION, {
 		foreground = SystemColors::rose
-	),
+	}),
 
 	/** Default style for [SystemStyle.METHOD_NAME]. */
-	METHOD_NAME(
-		SystemStyle.METHOD_NAME,
-		foreground = SystemColors::mango,
-		bold = true
-	),
+	METHOD_NAME(SystemStyle.METHOD_NAME, {
+		foreground = SystemColors::mango
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.PARAMETER_DEFINITION]. */
-	PARAMETER_DEFINITION(
-		SystemStyle.PARAMETER_DEFINITION,
-		foreground = SystemColors::transparentMagenta,
-		bold = true
-	),
+	PARAMETER_DEFINITION(SystemStyle.PARAMETER_DEFINITION, {
+		foreground = SystemColors::transparentMagenta
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.PARAMETER_USE]. */
-	PARAMETER_USE(
-		SystemStyle.PARAMETER_USE,
-		foreground = SystemColors::magenta,
-		bold = true
-	),
+	PARAMETER_USE(SystemStyle.PARAMETER_USE, {
+		foreground = SystemColors::magenta
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.METHOD_SEND]. */
-	METHOD_SEND(SystemStyle.METHOD_SEND),
+	METHOD_SEND(SystemStyle.METHOD_SEND, {}),
 
 	/** Default style for [SystemStyle.MACRO_SEND]. */
-	MACRO_SEND(SystemStyle.MACRO_SEND),
+	MACRO_SEND(SystemStyle.MACRO_SEND, {}),
 
 	/** Default style for [SystemStyle.STATEMENT]. */
-	STATEMENT(SystemStyle.STATEMENT, bold = true),
+	STATEMENT(SystemStyle.STATEMENT, { bold() }),
 
 	/** Default style for [SystemStyle.TYPE]. */
-	TYPE(
-		SystemStyle.TYPE,
-		foreground = SystemColors::blue
-	),
+	TYPE(SystemStyle.TYPE, {
+		foreground = SystemColors::blue}),
 
 	/** Default style for [SystemStyle.METATYPE]. */
-	METATYPE(
-		SystemStyle.METATYPE,
-		foreground = SystemColors::blue,
-		italic = true
-	),
+	METATYPE(SystemStyle.METATYPE, {
+		foreground = SystemColors::blue
+		italic()
+	}),
 
 	/** Default style for [SystemStyle.PHRASE_TYPE]. */
-	PHRASE_TYPE(
-		SystemStyle.PHRASE_TYPE,
-		foreground = SystemColors::lilac,
-		italic = true
-	),
+	PHRASE_TYPE(SystemStyle.PHRASE_TYPE, {
+		foreground = SystemColors::lilac
+		italic()
+	}),
 
 	/** Default style for [SystemStyle.MODULE_HEADER]. */
-	MODULE_HEADER(
-		SystemStyle.MODULE_HEADER,
+	MODULE_HEADER(SystemStyle.MODULE_HEADER, {
 		foreground = SystemColors::transparentRose
-	),
+	}),
 
 	/** Default style for [SystemStyle.VERSION]. */
-	VERSION(
-		SystemStyle.VERSION,
+	VERSION(SystemStyle.VERSION, {
 		foreground = SystemColors::rose
-	),
+	}),
 
 	/** Default style for [SystemStyle.IMPORT]. */
-	IMPORT(
-		SystemStyle.IMPORT,
+	IMPORT(SystemStyle.IMPORT, {
 		foreground = SystemColors::rose
-	),
+	}),
 
 	/** Default style for [SystemStyle.EXPORT]. */
-	EXPORT(
-		SystemStyle.EXPORT,
+	EXPORT(SystemStyle.EXPORT, {
 		foreground = SystemColors::rose
-	),
+	}),
 
 	/** Default style for [SystemStyle.ENTRY_POINT]. */
-	ENTRY_POINT(
-		SystemStyle.ENTRY_POINT,
-		foreground = SystemColors::rose,
-		bold = true
-	),
+	ENTRY_POINT(SystemStyle.ENTRY_POINT, {
+		foreground = SystemColors::rose
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.COMMENT]. */
-	COMMENT(
-		SystemStyle.COMMENT,
+	COMMENT(SystemStyle.COMMENT, {
 		foreground = SystemColors::weakGray
-	),
+	}),
 
 	/** Default style for [SystemStyle.DOCUMENTATION]. */
-	DOCUMENTATION(
-		SystemStyle.DOCUMENTATION,
+	DOCUMENTATION(SystemStyle.DOCUMENTATION, {
 		foreground = SystemColors::strongGray
-	),
+	}),
 
 	/** Default style for [SystemStyle.DOCUMENTATION_TAG]. */
-	DOCUMENTATION_TAG(
-		SystemStyle.DOCUMENTATION_TAG,
-		foreground = SystemColors::strongGray,
-		bold = true
-	),
+	DOCUMENTATION_TAG(SystemStyle.DOCUMENTATION_TAG, {
+		foreground = SystemColors::strongGray
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.MODULE_CONSTANT_DEFINITION]. */
-	MODULE_CONSTANT_DEFINITION(
-		SystemStyle.MODULE_CONSTANT_DEFINITION,
-		foreground = SystemColors::transparentMagenta,
-		bold = true
-	),
+	MODULE_CONSTANT_DEFINITION(SystemStyle.MODULE_CONSTANT_DEFINITION, {
+		foreground = SystemColors::transparentMagenta
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.MODULE_CONSTANT_USE]. */
-	MODULE_CONSTANT_USE(
-		SystemStyle.MODULE_CONSTANT_USE,
-		foreground = SystemColors::magenta,
-		italic = true
-	),
+	MODULE_CONSTANT_USE(SystemStyle.MODULE_CONSTANT_USE, {
+		foreground = SystemColors::magenta
+		italic()
+	}),
 
 	/** Default style for [SystemStyle.MODULE_VARIABLE_DEFINITION]. */
-	MODULE_VARIABLE_DEFINITION(
-		SystemStyle.MODULE_VARIABLE_DEFINITION,
-		foreground = SystemColors::transparentMagenta,
-		bold = true
-	),
+	MODULE_VARIABLE_DEFINITION(SystemStyle.MODULE_VARIABLE_DEFINITION, {
+		foreground = SystemColors::transparentMagenta
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.MODULE_VARIABLE_USE]. */
-	MODULE_VARIABLE_USE(
-		SystemStyle.MODULE_VARIABLE_USE,
-		foreground = SystemColors::magenta,
-		italic = true,
-		underline = true
-	),
+	MODULE_VARIABLE_USE(SystemStyle.MODULE_VARIABLE_USE, {
+		foreground = SystemColors::magenta
+		italic()
+		underline()
+	}),
 
 	/** Default style for [SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION]. */
 	PRIMITIVE_FAILURE_REASON_DEFINITION(
 		SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION,
-		foreground = SystemColors::transparentMagenta,
-		bold = true
-	),
+		{
+			foreground = SystemColors::transparentMagenta
+			bold()
+		}),
 
 	/** Default style for [SystemStyle.PRIMITIVE_FAILURE_REASON_USE]. */
-	PRIMITIVE_FAILURE_REASON_USE(
-		SystemStyle.PRIMITIVE_FAILURE_REASON_USE,
+	PRIMITIVE_FAILURE_REASON_USE(SystemStyle.PRIMITIVE_FAILURE_REASON_USE, {
 		foreground = SystemColors::transparentMagenta
-	),
+	}),
 
 	/** Default style for [SystemStyle.LOCAL_CONSTANT_DEFINITION]. */
-	LOCAL_CONSTANT_DEFINITION(
-		SystemStyle.LOCAL_CONSTANT_DEFINITION,
-		foreground = SystemColors::transparentMagenta,
-		bold = true
-	),
+	LOCAL_CONSTANT_DEFINITION(SystemStyle.LOCAL_CONSTANT_DEFINITION, {
+		foreground = SystemColors::transparentMagenta
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.LOCAL_CONSTANT_USE]. */
-	LOCAL_CONSTANT_USE(
-		SystemStyle.LOCAL_CONSTANT_USE,
+	LOCAL_CONSTANT_USE(SystemStyle.LOCAL_CONSTANT_USE, {
 		foreground = SystemColors::magenta
-	),
+	}),
 
 	/** Default style for [SystemStyle.LOCAL_VARIABLE_DEFINITION]. */
-	LOCAL_VARIABLE_DEFINITION(
-		SystemStyle.LOCAL_VARIABLE_DEFINITION,
-		foreground = SystemColors::transparentMagenta,
-		bold = true
-	),
+	LOCAL_VARIABLE_DEFINITION(SystemStyle.LOCAL_VARIABLE_DEFINITION, {
+		foreground = SystemColors::transparentMagenta
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.LOCAL_VARIABLE_USE]. */
-	LOCAL_VARIABLE_USE(
-		SystemStyle.LOCAL_VARIABLE_USE,
-		foreground = SystemColors::magenta,
-		underline = true
-	),
+	LOCAL_VARIABLE_USE(SystemStyle.LOCAL_VARIABLE_USE, {
+		foreground = SystemColors::magenta
+		underline()
+	}),
 
 	/** Default style for [SystemStyle.LABEL_DEFINITION]. */
-	LABEL_DEFINITION(
-		SystemStyle.LABEL_DEFINITION,
-		foreground = SystemColors::mustard,
+	LABEL_DEFINITION(SystemStyle.LABEL_DEFINITION, {
+		foreground = SystemColors::mustard
 		background = SystemColors::transparentMustard
-	),
+	}),
 
 	/** Default style for [SystemStyle.LABEL_USE]. */
-	LABEL_USE(
-		SystemStyle.LABEL_USE,
+	LABEL_USE(SystemStyle.LABEL_USE, {
 		foreground = SystemColors::mustard
-	),
+	}),
 
 	/** Default style for [SystemStyle.STRING_LITERAL]. */
-	STRING_LITERAL(
-		SystemStyle.STRING_LITERAL,
+	STRING_LITERAL(SystemStyle.STRING_LITERAL, {
 		foreground = SystemColors::green
-	),
+	}),
 
 	/** Default style for [SystemStyle.STRING_ESCAPE_SEQUENCE]. */
-	STRING_ESCAPE_SEQUENCE(
-		SystemStyle.STRING_ESCAPE_SEQUENCE,
-		foreground = SystemColors::transparentGreen,
-		bold = true
-	),
+	STRING_ESCAPE_SEQUENCE(SystemStyle.STRING_ESCAPE_SEQUENCE, {
+		foreground = SystemColors::transparentGreen
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.NUMERIC_LITERAL]. */
-	NUMERIC_LITERAL(
-		SystemStyle.NUMERIC_LITERAL,
+	NUMERIC_LITERAL(SystemStyle.NUMERIC_LITERAL, {
 		foreground = SystemColors::green
-	),
+	}),
 
 	/** Default style for [SystemStyle.BOOLEAN_LITERAL]. */
-	BOOLEAN_LITERAL(
-		SystemStyle.BOOLEAN_LITERAL,
+	BOOLEAN_LITERAL(SystemStyle.BOOLEAN_LITERAL, {
 		foreground = SystemColors::green
-	),
+	}),
 
 	/** Default style for [SystemStyle.TUPLE_CONSTRUCTOR]. */
-	TUPLE_CONSTRUCTOR(
-		SystemStyle.TUPLE_CONSTRUCTOR,
+	TUPLE_CONSTRUCTOR(SystemStyle.TUPLE_CONSTRUCTOR, {
 		foreground = SystemColors::green
-	),
+	}),
 
 	/** Default style for [SystemStyle.SET_CONSTRUCTOR]. */
-	SET_CONSTRUCTOR(
-		SystemStyle.SET_CONSTRUCTOR,
+	SET_CONSTRUCTOR(SystemStyle.SET_CONSTRUCTOR, {
 		foreground = SystemColors::green
-	),
+	}),
 
 	/** Default style for [SystemStyle.MAP_CONSTRUCTOR]. */
-	MAP_CONSTRUCTOR(
-		SystemStyle.MAP_CONSTRUCTOR,
+	MAP_CONSTRUCTOR(SystemStyle.MAP_CONSTRUCTOR, {
 		foreground = SystemColors::green
-	),
+	}),
 
 	/** Default style for [SystemStyle.CHARACTER_LITERAL]. */
-	CHARACTER_LITERAL(
-		SystemStyle.CHARACTER_LITERAL,
+	CHARACTER_LITERAL(SystemStyle.CHARACTER_LITERAL, {
 		foreground = SystemColors::green
-	),
+	}),
 
 	/** Default style for [SystemStyle.ATOM_LITERAL]. */
-	ATOM_LITERAL(
-		SystemStyle.ATOM_LITERAL,
+	ATOM_LITERAL(SystemStyle.ATOM_LITERAL, {
 		foreground = SystemColors::green
-	),
+	}),
 
 	/** Default style for [SystemStyle.CONDITIONAL]. */
-	CONDITIONAL(
-		SystemStyle.CONDITIONAL,
+	CONDITIONAL(SystemStyle.CONDITIONAL, {
 		foreground = SystemColors::mustard
-	),
+	}),
 
 	/** Default style for [SystemStyle.LOOP]. */
-	LOOP(
-		SystemStyle.LOOP,
+	LOOP(SystemStyle.LOOP, {
 		foreground = SystemColors::mustard
-	),
+	}),
 
 	/** Default style for [SystemStyle.LEXER_DEFINITION]. */
-	LEXER_DEFINITION(
-		SystemStyle.LEXER_DEFINITION,
+	LEXER_DEFINITION(SystemStyle.LEXER_DEFINITION, {
 		foreground = SystemColors::rose
-	),
+	}),
 
 	/** Default style for [SystemStyle.MACRO_DEFINITION]. */
-	MACRO_DEFINITION(
-		SystemStyle.MACRO_DEFINITION,
+	MACRO_DEFINITION(SystemStyle.MACRO_DEFINITION, {
 		foreground = SystemColors::rose
-	),
+	}),
 
 	/** Default style for [SystemStyle.SEMANTIC_RESTRICTION_DEFINITION]. */
 	SEMANTIC_RESTRICTION_DEFINITION(
 		SystemStyle.SEMANTIC_RESTRICTION_DEFINITION,
-		foreground = SystemColors::rose
-	),
+		{
+			foreground = SystemColors::rose
+		}),
 
 	/** Default style for [SystemStyle.GRAMMATICAL_RESTRICTION_DEFINITION]. */
 	GRAMMATICAL_RESTRICTION_DEFINITION(
 		SystemStyle.GRAMMATICAL_RESTRICTION_DEFINITION,
-		foreground = SystemColors::rose
-	),
+		{
+			foreground = SystemColors::rose
+		}),
 
 	/** Default style for [SystemStyle.SEAL_DEFINITION]. */
-	SEAL_DEFINITION(
-		SystemStyle.SEAL_DEFINITION,
+	SEAL_DEFINITION(SystemStyle.SEAL_DEFINITION, {
 		foreground = SystemColors::rose
-	),
+	}),
 
 	/** Default style for [SystemStyle.OBJECT_TYPE_DEFINITION]. */
-	OBJECT_TYPE_DEFINITION(
-		SystemStyle.OBJECT_TYPE_DEFINITION,
+	OBJECT_TYPE_DEFINITION(SystemStyle.OBJECT_TYPE_DEFINITION, {
 		foreground = SystemColors::blue
-	),
+	}),
 
 	/** Default style for [SystemStyle.SPECIAL_OBJECT]. */
-	SPECIAL_OBJECT(
-		SystemStyle.SPECIAL_OBJECT,
+	SPECIAL_OBJECT(SystemStyle.SPECIAL_OBJECT, {
 		foreground = SystemColors::rose
-	),
+	}),
 
 	/** Default style for [SystemStyle.PRIMITIVE_NAME]. */
-	PRIMITIVE_NAME(
-		SystemStyle.PRIMITIVE_NAME,
-		foreground = SystemColors::rose,
-		bold = true
-	),
+	PRIMITIVE_NAME(SystemStyle.PRIMITIVE_NAME, {
+		foreground = SystemColors::rose
+		bold()
+	}),
 
 	/** Default style for [SystemStyle.PHRASE]. */
-	PHRASE(
-		SystemStyle.PHRASE,
+	PHRASE(SystemStyle.PHRASE, {
 		foreground = SystemColors::lilac
-	),
+	}),
 
 	/** Default style for [SystemStyle.RETURN_VALUE]. */
-	RETURN_VALUE(
-		SystemStyle.RETURN_VALUE,
-		foreground = SystemColors::mustard,
+	RETURN_VALUE(SystemStyle.RETURN_VALUE, {
+		foreground = SystemColors::mustard
 		background = SystemColors::transparentMustard
-	),
+	}),
 
 	/** Default style for [SystemStyle.NONLOCAL_CONTROL]. */
-	NONLOCAL_CONTROL(
-		SystemStyle.NONLOCAL_CONTROL,
-		foreground = SystemColors::mustard,
+	NONLOCAL_CONTROL(SystemStyle.NONLOCAL_CONTROL, {
+		foreground = SystemColors::mustard
 		background = SystemColors::transparentMustard
-	);
+	}),
 
-	override val styleName = systemStyle.kotlinString
+	MATH_EXPONENT(SystemStyle.MATH_EXPONENT, {
+		superscript()
+	}),
+
+	DEEMPHASIZE(SystemStyle.DEEMPHASIZE, {
+		foreground = SystemColors::deemphasize
+	});
+
+	/**
+	 * Create a [DefaultBoundSystemStyle] for the specified [SystemStyle].  The
+	 * [setup] function is given a [DefaultBoundSystemStyleBuilder] as an
+	 * implicit receiver.
+	 */
+	@Suppress("ConvertSecondaryConstructorToPrimary")
+	constructor(
+		systemStyle: SystemStyle,
+		setup: DefaultBoundSystemStyleBuilder.()->Unit)
+	{
+		this.systemStyle = systemStyle
+		styleName = systemStyle.kotlinString
+		booleanFlags = mutableSetOf()
+		val builder = DefaultBoundSystemStyleBuilder(booleanFlags)
+		builder.setup()
+		family = builder.family
+		foreground = builder.foreground
+		background = builder.background
+	}
+
+	/**
+	 * The [SystemStyle] that should have this [DefaultBoundSystemStyle] applied
+	 * to it.
+	 */
+	private val systemStyle: SystemStyle
+
+	/** The name of this style.  Should begin with '#'. */
+	override val styleName: String
+
+	/** The font family name.  Defaults to `"Monospaced"`. */
+	private val family: String
+
+	/**
+	 * How to obtain a [system&#32;color][SystemColors] for the foreground. May
+	 * be `null`, to use the default foreground. Defaults to `null`.
+	 */
+	private val foreground: ((SystemColors)->Color)
+
+	/**
+	 * How to obtain a [system&#32;color][SystemColors] for the background. May
+	 * be `null`, to use the default background. Defaults to `null`.
+	 */
+	private val background: ((SystemColors)->Color)
+
+	/**
+	 * Extract the [CharacterConstants] provided as varargs in the constructor.
+	 * If any argument is not a [CharacterConstants], fail right away.  The
+	 * idiotic API of Swing *goes out of its way* to throw away all of the
+	 * useful type information for no reason at all.
+	 */
+	private val booleanFlags: Set<StyleFlag>
 
 	override fun lightStyle(doc: StyledDocument): Style
 	{
@@ -511,9 +495,9 @@ enum class DefaultBoundSystemStyle(
 		StyleConstants.setFontFamily(style, family)
 		StyleConstants.setForeground(style, foreground(LightColors))
 		StyleConstants.setBackground(style, background(LightColors))
-		StyleConstants.setBold(style, bold)
-		StyleConstants.setItalic(style, italic)
-		StyleConstants.setUnderline(style, underline)
+		booleanFlags.forEach {
+			style.addAttribute(it.styleConstants, true)
+		}
 		return style
 	}
 
@@ -523,9 +507,9 @@ enum class DefaultBoundSystemStyle(
 		StyleConstants.setFontFamily(style, family)
 		StyleConstants.setForeground(style, foreground(DarkColors))
 		StyleConstants.setBackground(style, background(DarkColors))
-		StyleConstants.setBold(style, bold)
-		StyleConstants.setItalic(style, italic)
-		StyleConstants.setUnderline(style, underline)
+		booleanFlags.forEach {
+			style.addAttribute(it.styleConstants, true)
+		}
 		return style
 	}
 }
@@ -633,8 +617,7 @@ object StyleApplicator
 						range.first - 1,
 						range.last - range.first + 1,
 						style,
-						false
-					)
+						false)
 				}
 			}
 			else
@@ -656,11 +639,24 @@ object StyleApplicator
 					range.first - 1,
 					range.last - range.first + 1,
 					style,
-					false
-				)
+					false)
 			}
 		}
 	}
+}
+
+/** Styles that are on/off. */
+enum class StyleFlag
+constructor(styleConstantsObject: Any)
+{
+	Bold(StyleConstants.Bold),
+	Italic(StyleConstants.Italic),
+	Underline(StyleConstants.Underline),
+	Superscript(StyleConstants.Superscript),
+	Subscript(StyleConstants.Subscript);
+
+	/** Undo the idiotic type-erasure to Object. */
+	val styleConstants = styleConstantsObject as StyleConstants
 }
 
 /**
@@ -703,9 +699,7 @@ private data class StyleAspects constructor(
 	val fontFamily: String,
 	val foreground: Color,
 	val background: Color,
-	val bold: Boolean,
-	val italic: Boolean,
-	val underline: Boolean)
+	val flags: Set<StyleFlag>)
 {
 	/**
 	 * Construct an instance by summarizing the supported style attributes of
@@ -718,10 +712,10 @@ private data class StyleAspects constructor(
 		StyleConstants.getFontFamily(style),
 		StyleConstants.getForeground(style),
 		StyleConstants.getBackground(style),
-		StyleConstants.isBold(style),
-		StyleConstants.isItalic(style),
-		StyleConstants.isUnderline(style)
-	)
+		StyleFlag.values().filterTo(mutableSetOf()) {
+			@Suppress("IMPLICIT_BOXING_IN_IDENTITY_EQUALS")
+			style.getAttribute(it.styleConstants) === java.lang.Boolean.TRUE
+		})
 
 	/**
 	 * Derive an instance by compositing the receiver and the argument,
@@ -762,10 +756,7 @@ private data class StyleAspects constructor(
 			other.background == SystemColors.active.codeBackground -> background
 			else -> blend(background, other.background, 0.15f)
 		},
-		bold || other.bold,
-		italic || other.italic,
-		underline || other.underline
-	)
+		flags.union(other.flags))
 
 	/**
 	 * Apply the consolidated aspects to the specified [style], i.e., for
@@ -779,8 +770,8 @@ private data class StyleAspects constructor(
 		StyleConstants.setFontFamily(style, fontFamily)
 		StyleConstants.setForeground(style, foreground)
 		StyleConstants.setBackground(style, background)
-		StyleConstants.setBold(style, bold)
-		StyleConstants.setItalic(style, italic)
-		StyleConstants.setUnderline(style, underline)
+		flags.forEach { flag ->
+			style.addAttribute(flag.styleConstants, true)
+		}
 	}
 }

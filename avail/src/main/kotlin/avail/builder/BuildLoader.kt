@@ -640,23 +640,23 @@ internal class BuildLoader constructor(
 		val converter = context.surrogateIndexConverter
 		val styleRanges = loader.lockStyles {
 			map { (start, pastEnd, style) ->
-				val utf16Start = converter
-					.availIndexToJavaIndex(start.toInt())
-				val utf16PastEnd = converter
-					.availIndexToJavaIndex(pastEnd.toInt())
+				val utf16Start =
+					converter.availIndexToJavaIndex(start.toInt())
+				val utf16PastEnd =
+					converter.availIndexToJavaIndex(pastEnd.toInt())
 				(utf16Start until utf16PastEnd) to style
 			}
 		}
 		val uses = loader.lockUsesToDefinitions {
 			map { (useStart, usePastEnd, defRange) ->
-				val utf16UseStart = converter.availIndexToJavaIndex(
-					useStart.toInt())
-				val utf16UsePastEnd = converter.availIndexToJavaIndex(
-					usePastEnd.toInt())
-				val utf16DefStart = converter.availIndexToJavaIndex(
-					defRange.first.toInt())
-				val utf16DefEnd = converter.availIndexToJavaIndex(
-					defRange.last.toInt())
+				val utf16UseStart =
+					converter.availIndexToJavaIndex(useStart.toInt())
+				val utf16UsePastEnd =
+					converter.availIndexToJavaIndex(usePastEnd.toInt())
+				val utf16DefStart =
+					converter.availIndexToJavaIndex(defRange.first.toInt())
+				val utf16DefEnd =
+					converter.availIndexToJavaIndex(defRange.last.toInt())
 				Pair(
 					(utf16UseStart until utf16UsePastEnd),
 					(utf16DefStart .. utf16DefEnd))

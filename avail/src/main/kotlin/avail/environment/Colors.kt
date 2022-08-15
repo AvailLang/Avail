@@ -100,6 +100,9 @@ sealed class SystemColors
 	/** A blue color. */
 	abstract val blue: Color
 
+	/** A color that almost hides something. */
+	abstract val deemphasize: Color
+
 	companion object
 	{
 		/** The active palette. */
@@ -135,6 +138,7 @@ object LightColors: SystemColors()
 	override val green = Color(0x4C, 0x85, 0x3E, 0xFF)
 	override val transparentGreen = Color(0x4C, 0x85, 0x3E, 0x88)
 	override val blue = Color(0x22, 0x94, 0xC6, 0xFF)
+	override val deemphasize = Color(0x80, 0x80, 0x80, 0x80)
 }
 
 /**
@@ -164,4 +168,5 @@ object DarkColors: SystemColors()
 	override val green = Color(0x78, 0xB6, 0x69, 0xFF)
 	override val transparentGreen = Color(0x78, 0xB6, 0x69, 0x88)
 	override val blue = Color(0x38, 0xB1, 0xE5, 0xFF)
+	override val deemphasize = Color(0x60, 0x60, 0x60, 0x80)
 }

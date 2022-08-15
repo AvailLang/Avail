@@ -32,6 +32,7 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -42,6 +43,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.START
+import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.GENERATING_LEXER
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.STRING
@@ -100,8 +102,10 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 
 			init
 			{
-				assert(TokenDescriptor.IntegerSlots
-					.TOKEN_TYPE_AND_START_AND_LINE.ordinal == START_AND_LINE.ordinal)
+				assert(
+					TokenDescriptor.IntegerSlots.TOKEN_TYPE_AND_START_AND_LINE
+						.ordinal
+					== START_AND_LINE.ordinal)
 				assert(TokenDescriptor.IntegerSlots.START.isSamePlaceAs(START))
 				assert(TokenDescriptor.IntegerSlots.LINE_NUMBER
 					.isSamePlaceAs(LINE_NUMBER))
@@ -132,20 +136,13 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		 * may be either the module that it's a part of or nil.  The serializer
 		 * makes no effort to reconstruct this field.
 		 */
-		ORIGINATING_MODULE;
+		ORIGINATING_MODULE,
 
-		companion object
-		{
-			init
-			{
-				assert(TokenDescriptor.ObjectSlots.STRING.ordinal
-					== STRING.ordinal)
-				assert(TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
-					== NEXT_LEXING_STATE_POJO.ordinal)
-				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
-					== ORIGINATING_MODULE.ordinal)
-			}
-		}
+		/**
+		 * The [A_Lexer] responsible for creating this token, or [nil] if the
+		 * token was not constructed by a lexer.
+		 */
+		GENERATING_LEXER
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(
@@ -190,12 +187,17 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		 *   The token's starting character position in the file.
 		 * @param lineNumber
 		 *   The line number on which the token occurred.
+		 * @param generatingLexer
+		 *   The [A_Lexer] responsible for creating this token, or nil if the
+		 *   token was not constructed by a lexer.
 		 * @return The new comment token.
 		 */
 		fun newCommentToken(
 			string: A_String?,
 			start: Int,
-			lineNumber: Int): A_Token
+			lineNumber: Int,
+			generatingLexer: A_Lexer
+		): A_Token
 		{
 			return mutable.createShared {
 				setSlot(STRING, string!!)
@@ -203,6 +205,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 				setSlot(LINE_NUMBER, lineNumber)
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
 				setSlot(ORIGINATING_MODULE, nil)
+				setSlot(GENERATING_LEXER, generatingLexer)
 			}
 		}
 

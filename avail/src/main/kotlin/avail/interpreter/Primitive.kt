@@ -834,11 +834,14 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			resultTypeCheckingNanos.record(deltaNanoseconds, interpreterIndex)
 
 	/**
-	 * The primitive couldn't be folded out, so see if alternative instructions
-	 * can be generated for its invocation.  If so, answer `true`, ensure
-	 * control flow will go to the appropriate [CallSiteHelper] exit point,
-	 * and leave the translator NOT at a currentReachable() point.  If
-	 * the alternative instructions could not be generated for this primitive,
+	 * The primitive couldn't be folded out, and the primitive failed to produce
+	 * specialized L2 instructions for itself.  If the primitive is still known
+	 * to be infallible (and does not affect the continuation stack) at this
+	 * site, generate an [L2_RUN_INFALLIBLE_PRIMITIVE] for it and answer `true`,
+	 * ensuring control flow will go to the appropriate [CallSiteHelper] exit
+	 * point, and leave the translator NOT at a currentReachable() point.
+	 *
+	 * If the primitive might fail for this site, do not generate anything,
 	 * answer `false`, and generate nothing.
 	 *
 	 * @param functionToCallReg
@@ -859,7 +862,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   if nothing was emitted and the general mechanism should be used
 	 *   instead.
 	 */
-	open fun tryToGenerateSpecialPrimitiveInvocation(
+	fun tryToGenerateGeneralPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
@@ -922,6 +925,44 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			callSiteHelper.useAnswer(translator.readBoxed(writer))
 		}
 		return true
+	}
+
+
+	/**
+	 * The primitive couldn't be folded out, so see if alternative instructions
+	 * can be generated for its invocation.  If so, answer `true`, ensure
+	 * control flow will go to the appropriate [CallSiteHelper] exit point,
+	 * and leave the translator NOT at a currentReachable() point.  If
+	 * the alternative instructions could not be generated for this primitive,
+	 * answer `false`, and generate nothing.
+	 *
+	 * @param functionToCallReg
+	 *   The [L2ReadBoxedOperand] register that holds the function being
+	 *   invoked.  The function's primitive is known to be the receiver.
+	 * @param rawFunction
+	 *   The primitive raw function whose invocation is being generated.
+	 * @param arguments
+	 *   The argument [L2ReadBoxedOperand]s supplied to the function.
+	 * @param argumentTypes
+	 *   The list of [A_Type]s of the arguments.
+	 * @param translator
+	 *   The [L1Translator] on which to emit code, if possible.
+	 * @param callSiteHelper
+	 *   Information about the call site being generated.
+	 * @return
+	 *   `true` if a specialized [L2Instruction] sequence was generated, `false`
+	 *   if nothing was emitted and the general mechanism should be used
+	 *   instead.
+	 */
+	open fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: CallSiteHelper): Boolean
+	{
+		return false
 	}
 
 	/**

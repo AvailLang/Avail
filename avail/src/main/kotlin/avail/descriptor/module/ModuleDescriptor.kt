@@ -171,16 +171,15 @@ import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.persistence.cache.Repository
-import avail.persistence.cache.Repository.*
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.Deserializer
 import avail.serialization.SerializerOperation
 import avail.utility.safeWrite
 import avail.utility.structures.BloomFilter
 import org.availlang.json.JSONWriter
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
-import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
@@ -530,7 +529,7 @@ class ModuleDescriptor private constructor(
 		moduleHeader: ModuleHeader): String?
 	{
 		assertState(Loading)
-		val runtime = AvailRuntime.currentRuntime()
+		val runtime = loader.runtime
 		val resolver = runtime.moduleNameResolver
 		versions = setFromCollection(moduleHeader.versions).makeShared()
 		val newAtoms = moduleHeader.exportedNames.fold(emptySet) { set, name ->
@@ -679,13 +678,10 @@ class ModuleDescriptor private constructor(
 			}
 
 			// Actually make the atoms available in this module.
-			if (moduleImport.isExtension)
+			when
 			{
-				self.addImportedNames(atomsToImport)
-			}
-			else
-			{
-				self.addPrivateNames(atomsToImport)
+				moduleImport.isExtension -> self.addImportedNames(atomsToImport)
+				else -> self.addPrivateNames(atomsToImport)
 			}
 		}
 
@@ -711,8 +707,7 @@ class ModuleDescriptor private constructor(
 						MessageSplitter(name)
 						trueName = trueNames.single()
 					}
-					else -> return (
-						"entry point $name to be unambiguous")
+					else -> return ("entry point $name to be unambiguous")
 				}
 				entryPoints = entryPoints.mapAtPuttingCanDestroy(
 					name, trueName, true
@@ -1162,7 +1157,7 @@ class ModuleDescriptor private constructor(
 				reopenIfNecessary()
 				lock.withLock { repository!![stylingRecordIndex] }
 			}
-			StylingRecord(DataInputStream(ByteArrayInputStream(bytes)))
+			StylingRecord(bytes)
 		}
 		return stylingRecord!!
 	}
@@ -1411,7 +1406,7 @@ class ModuleDescriptor private constructor(
 				}
 			}
 		}
-		val lexicalScanner = LexicalScanner()
+		val lexicalScanner = LexicalScanner { shortModuleNameNative }
 		lexers.forEach(lexicalScanner::addLexer)
 		return lexicalScanner
 	}

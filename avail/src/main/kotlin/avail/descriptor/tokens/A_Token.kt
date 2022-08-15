@@ -33,6 +33,7 @@ package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
 import avail.descriptor.module.A_Module
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
@@ -62,6 +63,13 @@ interface A_Token : A_BasicObject
 	 */
 	val generatingPhrase: A_Phrase
 		get() = dispatch { o_GeneratingPhrase(it) }
+
+	/**
+	 * Extract from this literal token the [A_Lexer] responsible for its
+	 * production, or [nil] if it was not created that way.
+	 */
+	val generatingLexer: A_Lexer
+		get() = dispatch { o_GeneratingLexer(it) }
 
 	/**
 	 * Given a module in the process of being compiled, answer whether this

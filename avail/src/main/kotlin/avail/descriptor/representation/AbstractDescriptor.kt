@@ -157,7 +157,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
@@ -3980,6 +3980,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_GeneratingPhrase(self: AvailObject): A_Phrase
 
+	abstract fun o_GeneratingLexer(self: AvailObject): A_Lexer
+
 	abstract fun o_IsInCurrentModule(
 		self: AvailObject,
 		currentModule: A_Module
@@ -3994,6 +3996,10 @@ abstract class AbstractDescriptor protected constructor (
 		context: CompilationContext,
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
+
+	abstract fun o_CurrentLexer(self: AvailObject): A_Lexer
+
+	abstract fun o_WhichPowerOfTwo(self: AvailObject): Int
 
 	companion object
 	{

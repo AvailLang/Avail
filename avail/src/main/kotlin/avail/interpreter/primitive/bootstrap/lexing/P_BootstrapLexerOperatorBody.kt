@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.bootstrap.lexing
 
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -89,7 +90,8 @@ object P_BootstrapLexerOperatorBody
 				startPosition, startPosition, false),
 			startPosition,
 			lineNumberInteger.extractInt,
-			OPERATOR)
+			OPERATOR,
+			interpreter.fiber().currentLexer)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 

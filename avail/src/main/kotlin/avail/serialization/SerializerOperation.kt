@@ -1588,7 +1588,8 @@ enum class SerializerOperation constructor(
 				string,
 				start.extractInt,
 				lineNumber.extractInt,
-				lookupTokenType(tokenTypeOrdinal.extractInt))
+				lookupTokenType(tokenTypeOrdinal.extractInt),
+				nil)
 		}
 	},
 
@@ -1619,7 +1620,7 @@ enum class SerializerOperation constructor(
 		{
 			val (string, literal, start, lineNumber) = subobjects
 			return literalToken(
-				string, start.extractInt, lineNumber.extractInt, literal)
+				string, start.extractInt, lineNumber.extractInt, literal, nil)
 		}
 	},
 
@@ -1648,7 +1649,7 @@ enum class SerializerOperation constructor(
 		{
 			val (string, start, lineNumber) = subobjects
 			return newCommentToken(
-				string, start.extractInt, lineNumber.extractInt)
+				string, start.extractInt, lineNumber.extractInt, nil)
 		}
 	},
 

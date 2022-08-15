@@ -97,7 +97,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.execution.AvailLoader
+import avail.interpreter.execution.LexicalScanner
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.beans.MethodDescriptor
@@ -627,8 +627,8 @@ private constructor(
 		 * [Tokens][TokenDescriptor] all have the same kind, except for
 		 * [literal&#32;tokens][LiteralTokenDescriptor], which are
 		 * parametrically typed by the type of value they contain.  They are
-		 * produced by a [lexical&#32;scanner][AvailLoader.LexicalScanner] and
-		 * are consumed by the [parser][AvailCompiler].
+		 * produced by a [LexicalScanner] and are consumed by the
+		 * [AvailCompiler].
 		 */
 		TOKEN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.TOKEN_TAG),
 

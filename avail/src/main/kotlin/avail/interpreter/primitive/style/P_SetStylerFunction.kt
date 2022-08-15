@@ -32,18 +32,22 @@
 
 package avail.interpreter.primitive.style
 
+import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import avail.descriptor.atoms.A_Atom
+import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -68,7 +72,7 @@ object P_SetStylerFunction : Primitive(2, CanSuspend, Unknown)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val bundle: A_Bundle = interpreter.argument(0)
+		val atom: A_Atom = interpreter.argument(0)
 		val function: A_Function = interpreter.argument(1)
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -76,6 +80,17 @@ object P_SetStylerFunction : Primitive(2, CanSuspend, Unknown)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
+		}
+		val bundle = try
+		{
+			atom.bundleOrCreate()
+		}
+		catch (e: AvailException)
+		{
+			// MalformedMessageException
+			// SignatureException
+			// AmbiguousNameException
+			return interpreter.primitiveFailure(e)
 		}
 		return interpreter.suspendInSafePointThen {
 			try
@@ -94,7 +109,7 @@ object P_SetStylerFunction : Primitive(2, CanSuspend, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				MESSAGE_BUNDLE.o,
+				ATOM.o,
 				stylerFunctionType),
 			TOP.o)
 
@@ -103,5 +118,6 @@ object P_SetStylerFunction : Primitive(2, CanSuspend, Unknown)
 			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
-				E_STYLER_ALREADY_SET_BY_THIS_MODULE))
+				E_STYLER_ALREADY_SET_BY_THIS_MODULE
+			).setUnionCanDestroy(possibleErrors, true))
 }

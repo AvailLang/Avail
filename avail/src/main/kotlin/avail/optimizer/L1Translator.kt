@@ -1684,13 +1684,25 @@ class L1Translator private constructor(
 			narrowedArgTypes.add(argument.restriction().type)
 			narrowedArguments.add(argument)
 		}
-		val generated = primitive.tryToGenerateSpecialPrimitiveInvocation(
+		// Let the primitive generate specialized code if possible.
+		var generated = primitive.tryToGenerateSpecialPrimitiveInvocation(
 			functionToCallReg,
 			rawFunction,
 			narrowedArguments,
 			narrowedArgTypes,
 			this,
 			callSiteHelper)
+		if (!generated)
+		{
+			// Try a general infallible invocation, if possible.
+			generated = primitive.tryToGenerateGeneralPrimitiveInvocation(
+				functionToCallReg,
+				rawFunction,
+				narrowedArguments,
+				narrowedArgTypes,
+				this,
+				callSiteHelper)
+		}
 		if (generated && generator.currentlyReachable())
 		{
 			// The top-of-stack was replaced, but it wasn't convenient to do

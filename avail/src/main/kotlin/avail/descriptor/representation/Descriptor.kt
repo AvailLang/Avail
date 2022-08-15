@@ -99,7 +99,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
@@ -2724,6 +2724,8 @@ protected constructor (
 
 	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase = unsupported
 
+	override fun o_GeneratingLexer(self: AvailObject): A_Lexer = unsupported
+
 	override fun o_IsInCurrentModule(
 		self: AvailObject,
 		currentModule: A_Module
@@ -2740,4 +2742,8 @@ protected constructor (
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit
 	): Unit = unsupported
+
+	override fun o_CurrentLexer(self: AvailObject): A_Lexer = unsupported
+
+	override fun o_WhichPowerOfTwo(self: AvailObject): Int = unsupported
 }

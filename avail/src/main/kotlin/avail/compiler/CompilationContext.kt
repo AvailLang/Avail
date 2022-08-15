@@ -1066,7 +1066,8 @@ class CompilationContext constructor(
 		val ancestorModules = module.allAncestors
 		val eligibleStylers = bundle.bundleMethod.methodStylers
 			.filter {
-				it.module.equals(module)
+				it.module.isNil
+					|| it.module.equals(module)
 					|| it.module in ancestorModules
 			}
 		val mostSpecificStylers = when (eligibleStylers.size)

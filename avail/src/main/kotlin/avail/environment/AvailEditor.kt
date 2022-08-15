@@ -52,8 +52,6 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
 import java.util.TimerTask
 import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
@@ -193,11 +191,8 @@ constructor(
 						if (compilation !== null)
 						{
 							val index = compilation.recordNumberOfStyling
-							val stylingRecordBytes =
-								repository.repository!![index]
-							val inputStream = DataInputStream(
-								ByteArrayInputStream(stylingRecordBytes))
-							val stylingRecord = StylingRecord(inputStream)
+							val stylingRecord = StylingRecord(
+								repository.repository!![index])
 							return@digestForFile onSuccess(stylingRecord)
 						}
 					}

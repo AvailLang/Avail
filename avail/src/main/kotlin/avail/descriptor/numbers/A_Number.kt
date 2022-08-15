@@ -1153,6 +1153,13 @@ interface A_Number : A_BasicObject
 		fun A_Number.equalsInteger(anAvailInteger: AvailObject) =
 			dispatch { o_EqualsInteger(it, anAvailInteger) }
 
+		/**
+		 * Given an Avail [integer][IntegerDescriptor], answer which power of
+		 * two it is.  1->0, 2->1, 4->2, 8->3, etc.  If the number is not a
+		 * power of two, answer -1.
+		 */
+		val A_Number.whichPowerOfTwo: Int
+			get() = dispatch { o_WhichPowerOfTwo(it) }
 
 		@ReferencedInGeneratedCode
 		@JvmStatic

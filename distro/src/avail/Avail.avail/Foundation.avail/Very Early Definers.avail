@@ -37,6 +37,7 @@ Uses
 	"Bootstrap"
 Names
 	"<«_‡,»>",
+	"Accept parse",
 	"Assert:_",
 	"Assert:_(_)",
 	"Method_is_«styled by_»?",
@@ -44,6 +45,7 @@ Names
 	"Reject parse(confidence=_),expected:_",
 	"Replace assertion failure function with_",
 	"Replace parse rejection function with_",
+	"Replace parse acceptance function with_",
 	"Shouldn't happen",
 	"Shouldn't happen(_)"
 Body
@@ -286,6 +288,15 @@ parseRejectionFunction : parseRejectionFunctionType :=
 	Crash: failureCode
 ] : ⊥;
 
+/*parseAcceptanceArgumentsType ::= <<>, ⊥… |0's type>;*/
+parseAcceptanceFunctionType ::=
+	function accepting <> and returning ⊥;
+
+parseAcceptanceFunction : parseAcceptanceFunctionType :=
+[
+	Immediately accept parse
+];
+
 /*
  * Define a bootstrap function invoker, needed by the parse rejection method,
  * below.
@@ -322,6 +333,19 @@ Method "Replace parse rejection function with_" is
 	parseRejectionFunction := newFunction;
 	temp
 ] : parseRejectionFunctionType;
+
+/**
+ * Install a parse acceptance function, answering the prior value.
+ */
+Method "Replace parse acceptance function with_" is
+[
+	newFunction : parseAcceptanceFunctionType
+|
+	temp ::= parseAcceptanceFunction;
+	parseAcceptanceFunction := newFunction;
+	temp
+] : parseAcceptanceFunctionType;
+
 
 /**
  * Reject the current parse. This causes the compiler to reject the
@@ -377,6 +401,17 @@ Method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_" is
  */
 Alias "Reject parse(confidence=_),expected:_" to
 	atom for "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_";
+
+/**
+ * Inside a semantic restriction, accept the send phrase under consideration
+ * without strengthening its return type.  Inside a macro execution, accept the
+ * original send phrase as the result of the macro.
+ */
+Method "Accept parse" is
+[
+	private invoke parseAcceptanceFunction with <>
+] : ⊥;
+
 
 /**
  * Ensure semantic restriction bodies accept only types.  The primitive would

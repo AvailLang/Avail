@@ -251,7 +251,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 									}
 								},
 								this::indicateTraceCompleted)
-						compiler.parseModuleHeader {
+						compiler.parseModuleHeader { _, _ ->
 							val header = compiler.compilationContext.moduleHeader!!
 							val importNames = header.importedModuleNames
 							val entryPoints = header.entryPointNames

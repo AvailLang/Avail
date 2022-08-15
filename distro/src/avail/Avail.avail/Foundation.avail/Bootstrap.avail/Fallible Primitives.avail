@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/19/22, 4:17 PM
+ * * Last Generated: 8/15/22, 1:34 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -75,6 +75,8 @@ Uses
 		"Seal method_at_",
 		"Seal method|methods_at existing definitions",
 		"Semantic restriction_is_",
+		"Style span of_with_«overwriting»?",
+		"Style token_as_«overwriting»?",
 		"Style_with_",
 		"_'s⁇_field",
 		"_'s⁇initializing expression",
@@ -145,7 +147,6 @@ Uses
 		"send_with_:_",
 		"seq`«_`»",
 		"static method_._,⁇parameterized by_",
-		"style token_as_«overwriting»?",
 		"↓_"
 	)
 Names
@@ -3740,32 +3741,98 @@ Primitive "_[_]:=_" is
 ] : ⊤;
 
 /**
- * Associate a styler function with this bundle's method. The styling mechanism
- * is applied to each top-level phrase of a module to style its tokens. Of the
- * stylers from visible modules, choose the styler of the most specific
- * module.
+ * Associate a styler function with this atom's bundle's method. The styling
+ * mechanism is applied to each top-level phrase of a module to style its
+ * tokens. Of the stylers from visible modules, choose the styler of the most
+ * specific module.
  *
  * If there is no most specific module, a special conflict style will be
  * produced instead, to indicate this conflict.
  *
  * @category "Primitives"
  * @method "Style_with_"
- * @param "bundle" "message bundle"
+ * @param "anAtom" "atom"
  *        The bundle for which invocations should be styled.
- * @param "function" "[send phrase⇒⊤, phrase⇒⊤]→⊤"
+ * @param "aFunction" "[send phrase⇒⊤, phrase⇒⊤]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
+ * @raises "incorrect-argument-type exception"
  * @raises "styler-already-set-by-this-module exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Style_with_" is
 [
-	bundle : message bundle,
-	function : styler function
+	anAtom : atom,
+	aFunction : styler function
 |
 	Primitive SetStylerFunction (failureCode : {
+		incorrect-argument-type code,
 		styler-already-set-by-this-module code,
+		incorrect-type-for-group code,
+		exclamation-mark-must-follow-an-alternation-group code,
+		incorrect-type-for-complex-group code,
+		incorrect-use-of-double-dagger code,
+		unbalanced-guillemets code,
+		method-name-is-not-canonical code,
+		expected-operator-after-backquote code,
+		incorrect-type-for-boolean-group code,
+		incorrect-type-for-counting-group code,
+		octothorp-must-follow-a-simple-group-or-ellipsis code,
+		question-mark-must-follow-a-simple-group code,
+		case-insensitive-expression-canonization code,
+		double-question-mark-must-follow-a-token-or-simple-group code,
+		alternative-must-not-contain-arguments code,
+		vertical-bar-must-separate-tokens-or-simple-groups code,
+		incorrect-type-for-numbered-choice code,
+		cannot-define-during-compilation code,
+		loading-is-over code,
+		up-arrow-must-follow-argument code,
+		inconsistent-argument-reordering code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Apply the given style to the contiguous span of source bounded by all tokens
+ * within the given phrase and its constituents.
+ *
+ * @category "Primitives"
+ * @method "Style span of_with_«overwriting»?"
+ * @param "phrase" "phrase⇒⊤"
+ *        The phrase to style.
+ * @param "styleName" "string"
+ *        The name of the style to apply.
+ * @param "overwriting" "boolean"
+ *        Whether to overwrite existing styles in this span.
+ * @returns "⊤"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ */
+Primitive "Style span of_with_«overwriting»?" is
+[
+	phrase : phrase,
+	styleName : string,
+	overwriting : boolean
+|
+	Primitive StyleSpanOfPhrase (failureCode : {
 		cannot-define-during-compilation code,
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -3777,7 +3844,7 @@ Primitive "Style_with_" is
  * region, otherwise merge the style with the existing styles in that region.
  *
  * @category "Primitives"
- * @method "style token_as_«overwriting»?"
+ * @method "Style token_as_«overwriting»?"
  * @param "token" "token"
  *        The token to style.
  * @param "styleName" "string"
@@ -3788,7 +3855,7 @@ Primitive "Style_with_" is
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  */
-Primitive "style token_as_«overwriting»?" is
+Primitive "Style token_as_«overwriting»?" is
 [
 	token : token,
 	styleName : string,

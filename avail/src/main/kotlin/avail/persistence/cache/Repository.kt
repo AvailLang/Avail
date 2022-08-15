@@ -1021,8 +1021,6 @@ class Repository constructor(
 		 * The record number at which a [ByteArray] was recorded for this
 		 * module. That record should be fetched as needed and decoded into a
 		 * [StylingRecord].
-		 * array of module manifest [entries][ModuleManifestEntry] and stored
-		 * in the [A_Module]'s [ModuleDescriptor.o_ManifestEntries].
 		 */
 		val recordNumberOfStyling: Long
 
@@ -1252,14 +1250,15 @@ class Repository constructor(
 		 * Reconstruct a `ModuleCompilation`, having previously been written via
 		 * [write].
 		 *
-		 * @param binaryStream
-		 *   Where to read the key from.
+		 * @param bytes
+		 *   Where to read the [StylingRecord] from.
 		 * @throws IOException
 		 *   If I/O fails.
 		 */
 		@Throws(IOException::class)
-		internal constructor(binaryStream: DataInputStream)
+		internal constructor(bytes: ByteArray)
 		{
+			val binaryStream = DataInputStream(ByteArrayInputStream(bytes))
 			val styles = Array(binaryStream.unvlqInt()) {
 				binaryStream.decodeString()
 			}
@@ -1600,7 +1599,6 @@ class Repository constructor(
 		 * @param args
 		 *   The format arguments.
 		 */
-		@Suppress("ConstantConditionIf")
 		fun log(level: Level, format: String, vararg args: Any)
 		{
 			if (DEBUG_REPOSITORY)
@@ -1625,7 +1623,6 @@ class Repository constructor(
 		 * @param args
 		 *   The format arguments.
 		 */
-		@Suppress("ConstantConditionIf")
 		fun log(
 			level: Level,
 			exception: Throwable,

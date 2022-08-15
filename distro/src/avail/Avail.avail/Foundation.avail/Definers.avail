@@ -244,11 +244,21 @@ Private method "extract constant value from_" is
 ];
 
 
-/* These methods are needed for autogeneration of stable method restrictions. */
+/*
+ * These methods are needed for auto-generation of stable method restrictions.
+ */
 stabilityBodyAtom ::=
 	atom for "stability body for_with(«_‡,»)«evaluating with_»?";
 
 zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
+
+/*
+ * Integers with a bigger magnitude than this should not have their print
+ * representation used as their lexeme in synthetic literals.
+ */
+googol ::=
+	100000000000000000000000000000000000000000000000000 ×
+	100000000000000000000000000000000000000000000000000;
 
 Private method stabilityBodyAtom is
 [
@@ -271,7 +281,19 @@ Private method stabilityBodyAtom is
 			|
 				f ::= cast d's function into [f1 : […]→any | f1];
 				value ::= invoke f with argValues;
-				simple ::= if value ∈ string then [true] else [value ∈ number];
+				simple ::=
+					cast value into
+					[
+						intValue : integer
+					|
+						/* We don't have "_∨_" bootstrapped at this point. */
+						{0 - googol < intValue, intValue < googol} = {true}
+					]
+					else
+					[
+						/* We don't have "_∨_" bootstrapped at this point. */
+						true ∈ {value ∈ string, value ∈ number}
+					];
 				name ::= if simple then
 				[
 					/* Simple constants should look like themselves. */
@@ -290,12 +312,12 @@ Private method stabilityBodyAtom is
 		]
 		with
 		[
-			bootstrap restricted send methodName with argumentList : any
+			Accept parse
 		]
 	]
 	else
 	[
-		bootstrap restricted send methodName with argumentList : any
+		Accept parse
 	]
 ];
 

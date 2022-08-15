@@ -38,10 +38,12 @@ import avail.AvailTask
 import avail.annotations.HideFieldJustForPrinting
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.RUNNING_LEXER
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.CONTINUATION
@@ -59,6 +61,7 @@ import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor
@@ -1013,6 +1016,9 @@ class FiberDescriptor private constructor(
 		helper.debuggerRunCondition = null
 		runtime.resumeIfPausedByDebugger(self)
 	}
+
+	override fun o_CurrentLexer(self: AvailObject): A_Lexer =
+		self.heritableFiberGlobals.mapAtOrNull(RUNNING_LEXER.atom) ?: nil
 
 	override fun <T> o_Lock(self: AvailObject, body: ()->T): T =
 		when (val interpreter = Interpreter.currentOrNull()) {

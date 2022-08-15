@@ -42,7 +42,6 @@ import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 
@@ -216,7 +215,7 @@ enum class PragmaKind constructor(val lexeme: String)
 				{
 					val atom = atoms.single()
 					val send = newSendNode(
-						emptyTuple,
+						tuple(pragmaToken),
 						DECLARE_STRINGIFIER.bundle,
 						newListNode(tuple(syntheticLiteralNodeFor(atom))),
 						TOP.o)

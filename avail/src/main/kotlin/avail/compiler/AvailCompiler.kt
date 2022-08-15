@@ -282,6 +282,7 @@ import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import avail.interpreter.execution.AvailLoader.Phase.STYLING_HEADER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
@@ -2450,11 +2451,8 @@ class AvailCompiler constructor(
 					bundle,
 					consumedTokens,
 					macro,
-					expectedYieldType
-				) { endState, macroPhrase ->
-					assert(macroPhrase.isMacroSubstitutionNode)
-					continuation(endState, macroPhrase)
-				}
+					expectedYieldType,
+					continuation)
 			}
 		}
 	}
@@ -2671,7 +2669,7 @@ class AvailCompiler constructor(
 	 *   returned by the macro body, although if it's not a send phrase then the
 	 *   resulting phrase is *checked* against this expected yield type instead.
 	 * @param continuation
-	 *   What to do with the resulting send phrase solution.
+	 *   What to do with the resulting macro substitution phrase or send phrase.
 	 */
 	private fun completedSendNodeForMacro(
 		stateAfterCall: ParserState,
@@ -2736,12 +2734,22 @@ class AvailCompiler constructor(
 						return@evaluateMacroFunctionThen
 					}
 					replacement.phraseKindIsUnder(SEND_PHRASE) ->
+					{
+						// If the replacement has any static tokens in it, use
+						// them in the adjusted replacement.  Otherwise use the
+						// static tokens that were actually parsed.
+						var tokens = replacement.tokens
+						if (tokens.tupleSize == 0)
+						{
+							tokens = tupleFromList(consumedTokens)
+						}
 						newSendNode(
-							replacement.tokens,
+							tokens,
 							replacement.bundle,
 							replacement.argumentsListNode,
 							replacement.phraseExpressionType
 								.typeIntersection(expectedYieldType))
+					}
 					replacement.phraseExpressionType
 							.isSubtypeOf(expectedYieldType) ->
 						replacement
@@ -2768,7 +2776,9 @@ class AvailCompiler constructor(
 					tupleFromList(consumedTokens),
 					bundle,
 					argumentsListNode,
-					macroDefinitionToInvoke.bodySignature().returnType)
+					macroDefinitionToInvoke.bodySignature().returnType
+						.phraseTypeExpressionType
+						.typeIntersection(expectedYieldType))
 				val substitution =
 					newMacroSubstitution(original, adjustedReplacement)
 				if (AvailRuntimeConfiguration.debugMacroExpansions)
@@ -2786,12 +2796,39 @@ class AvailCompiler constructor(
 			{ e ->
 				when (e)
 				{
-					is AvailAcceptedParseException -> stateAfterCall.expected(
-						STRONG,
-						"macro body to reject the parse or produce "
-							+ "a replacement expression, not merely "
-							+ "accept its phrases like a semantic "
-							+ "restriction")
+					is AvailAcceptedParseException ->
+					{
+						// The macro said to accept the parse, which is a
+						// convenient way of allowing the underlying machinery
+						// to construct a regular send node instead what the
+						// macro would have produced.  Note that we have to do
+						// another validateArgumentTypes() to determine what the
+						// *methods* indicate for an expected type, since the
+						// first time through we only checked the macros.
+						validateArgumentTypes(
+							bundle,
+							argumentsListNode.expressionsTuple
+								.map { it.phraseExpressionType },
+							nil,
+							stateAfterCall
+						) { newExpectedYieldType ->
+							val strongType =
+								macroDefinitionToInvoke.bodySignature()
+									.returnType
+									.phraseTypeExpressionType
+									.typeIntersection(expectedYieldType)
+									.typeIntersection(newExpectedYieldType)
+							val sendNode = newSendNode(
+								tupleFromList(consumedTokens),
+								bundle,
+								argumentsListNode,
+								strongType)
+							// Accept this answer.
+							stateAfterCall.workUnitDo {
+								continuation(stateAfterCall, sendNode)
+							}
+						}
+					}
 					is AvailRejectedParseException ->
 					{
 						stateAfterCall.expected(
@@ -2920,7 +2957,7 @@ class AvailCompiler constructor(
 					syntheticLiteralNodeFor(stylerFunction)))
 		}
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			METHOD_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3003,7 +3040,7 @@ class AvailCompiler constructor(
 				tuple(syntheticLiteralNodeFor(stylerFunction)))
 		}
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			MACRO_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3124,7 +3161,7 @@ class AvailCompiler constructor(
 
 		// Build a phrase to define the lexer.
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			LEXER_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3211,36 +3248,46 @@ class AvailCompiler constructor(
 	 */
 	private fun parseModuleCompletely()
 	{
-		parseModuleHeader { afterHeader ->
+		val size = source.tupleSize.toLong()
+		compilationContext.progressReporter(moduleName, size, 0, 1) { null }
+		parseModuleHeader { headerPhrase, afterHeader ->
 			compilationContext.progressReporter(
 				moduleName,
-				source.tupleSize.toLong(),
+				size,
 				afterHeader.position.toLong(),
 				afterHeader.lineNumber
 			) { null }
-			// Run any side effects implied by this module header against
-			// the module.
+			// Run any side effects implied by this module header against the
+			// module.
 			val errorString = moduleHeader.applyToModule(
 				compilationContext.loader)
 			if (errorString !== null)
 			{
 				compilationContext.progressReporter(
 					moduleName,
-					source.tupleSize.toLong(),
-					source.tupleSize.toLong(),
+					size,
+					size,
 					afterHeader.lineNumber
 				) { null }
 				afterHeader.expected(STRONG, errorString)
 				compilationContext.diagnostics.reportError()
 				return@parseModuleHeader
 			}
-			compilationContext.loader.prepareForCompilingModuleBody()
-			applyPragmasThen(afterHeader.lexingState) {
-				compilationContext.diagnostics.run {
-					positionsToTrack = 3
-					silentPositionsToTrack = 3
+			// Style the header.
+			compilationContext.loader.setPhase(STYLING_HEADER)
+			assert(headerPhrase.isMacroSubstitutionNode)
+			compilationContext.styleSendThen(
+				headerPhrase.macroOriginalSendNode,
+				headerPhrase.outputPhrase
+			) {
+				compilationContext.loader.prepareForCompilingModuleBody()
+				applyPragmasThen(afterHeader.lexingState) {
+					compilationContext.diagnostics.run {
+						positionsToTrack = 3
+						silentPositionsToTrack = 3
+					}
+					parseAndExecuteOutermostStatements(afterHeader)
 				}
-				parseAndExecuteOutermostStatements(afterHeader)
 			}
 		}
 	}
@@ -3283,8 +3330,7 @@ class AvailCompiler constructor(
 			// base statements individually.
 			val simpleStatements = mutableListOf<A_Phrase>()
 			unambiguousStatement.statementsDo { simpleStatement ->
-				assert(
-					simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
+				assert(simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
 				simpleStatements.add(simpleStatement)
 			}
 
@@ -3761,9 +3807,10 @@ class AvailCompiler constructor(
 	 * @param onSuccess
 	 *   What to do after successfully parsing the header.  The compilation
 	 *   context's header will have been updated, and the continuation will be
-	 *   passed the [ParserState] after the header.
+	 *   passed the [ParserState] after the header.  The phrase that was parsed
+	 *   and already processed is also passed, to apply styling.
 	 */
-	fun parseModuleHeader(onSuccess: (ParserState)->Unit)
+	fun parseModuleHeader(onSuccess: (A_Phrase, ParserState)->Unit)
 	{
 		// Create the initial parser state: no tokens have been seen, and no
 		// names are in scope.
@@ -3817,12 +3864,11 @@ class AvailCompiler constructor(
 			{
 				if (processHeaderMacro(headerPhrase.expression, endState))
 				{
-					onSuccess(endState)
+					onSuccess(headerPhrase, endState)
 				}
 			}
 			catch (e: Exception)
 			{
-				// TODO we don't know which thing failed here?
 				compilationContext.diagnostics.reportError(
 					endState.lexingState,
 					"Unexpected exception encountered while processing "

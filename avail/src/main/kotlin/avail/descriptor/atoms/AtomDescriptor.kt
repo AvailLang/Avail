@@ -356,7 +356,9 @@ open class AtomDescriptor protected constructor (
 	 *   The actual [A_Atom] to be held by this [SpecialAtom].
 	 */
 	enum class SpecialAtom
-	constructor (val atom: A_Atom)
+	constructor (
+		val atom: A_Atom,
+		val heritable: Boolean = false)
 	{
 		/** The atom representing the Avail concept "true". */
 		TRUE(
@@ -416,6 +418,14 @@ open class AtomDescriptor protected constructor (
 		MACRO_BUNDLE_KEY("Macro bundle"),
 
 		/**
+		 * A heritable atom (has [HERITABLE_KEY] -> [trueObject] as a property)
+		 * which, when present in as [A_Fiber]'s [heritableFiberGlobals],
+		 * indicates that the fiber was launched to run a lexer to produce a
+		 * token (or multiple).  Not serializable.
+		 */
+		RUNNING_LEXER("running lexer", heritable = true),
+
+		/**
 		 * The atom used as a key in a [fiber's][A_Fiber] global map to
 		 * extract the current [ParserState]'s
 		 * [ParserState.clientDataMap].
@@ -458,11 +468,11 @@ open class AtomDescriptor protected constructor (
 		 * a way to mark fibers launched by the debugger itself, or forked by
 		 * such a fiber, say for stringification.
 		 *
-		 * Note that a fibers aren't currently (2022.05.02) serializable, and if
+		 * Note that fibers aren't currently (2022.05.02) serializable, and if
 		 * they were, we still wouldn't want to serialize one launched from a
 		 * debugger, so this atom itself doesn't need to be serializable.
 		 */
-		DONT_DEBUG_KEY("don't debug");
+		DONT_DEBUG_KEY("don't debug", heritable = true);
 
 		/**
 		 * Create a `SpecialAtom` to hold a new atom constructed with the given
@@ -470,14 +480,22 @@ open class AtomDescriptor protected constructor (
 		 *
 		 * @param name The name of the atom to be created.
 		 */
-		constructor (name: String) : this(createSpecialAtom(name))
+		constructor (
+			name: String,
+			heritable: Boolean = false
+		) : this(createSpecialAtom(name), heritable)
 
 		companion object
 		{
 			init
 			{
-				DONT_DEBUG_KEY.atom.setAtomProperty(
-					HERITABLE_KEY.atom, trueObject)
+				SpecialAtom.values().forEach { specialAtom ->
+					if (specialAtom.heritable)
+					{
+						specialAtom.atom.setAtomProperty(
+							HERITABLE_KEY.atom, trueObject)
+					}
+				}
 			}
 		}
 	}

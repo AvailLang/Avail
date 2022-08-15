@@ -33,17 +33,21 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.methods.A_Styler
-import avail.descriptor.methods.StylerDescriptor.SystemStyle
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.SPECIAL_OBJECT
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
-import avail.descriptor.representation.NilDescriptor
-import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.Bootstrap
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -55,10 +59,10 @@ import avail.interpreter.execution.Interpreter
 object P_SpecialObjectStyler :
 	Primitive(
 		2,
-		Flag.CanInline,
-		Flag.Bootstrap,
-		Flag.ReadsFromHiddenGlobalState,
-		Flag.WritesToHiddenGlobalState
+		CanInline,
+		Bootstrap,
+		ReadsFromHiddenGlobalState,
+		WritesToHiddenGlobalState
 	)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -72,24 +76,21 @@ object P_SpecialObjectStyler :
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION
-			)
+				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		loader.styleTokens(sendPhrase.tokens, SystemStyle.SPECIAL_OBJECT)
+		loader.styleTokens(sendPhrase.tokens, SPECIAL_OBJECT)
 
-		return interpreter.primitiveSuccess(NilDescriptor.nil)
+		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateFailureVariableType(): A_Type =
-		AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION
-			)
+				E_CANNOT_DEFINE_DURING_COMPILATION)
 		)
 
-	override fun privateBlockTypeRestriction(): A_Type =
-		A_Styler.stylerFunctionType
+	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }
 

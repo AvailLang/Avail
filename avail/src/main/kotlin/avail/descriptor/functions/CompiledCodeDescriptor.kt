@@ -608,7 +608,7 @@ open class CompiledCodeDescriptor protected constructor(
 				val token = try
 				{
 					P_BootstrapLexerStringBody.parseString(
-						packedDeclarationNames, position, 1)
+						packedDeclarationNames, position, 1, nil)
 				}
 				catch (e: AvailRejectedParseException)
 				{

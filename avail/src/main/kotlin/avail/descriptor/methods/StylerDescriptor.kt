@@ -436,7 +436,15 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 * The fixed syntax used to express a nonlocal control action, e.g.,
 		 * raising an exception, restarting or exiting a continuation, etc.
 		 */
-		NONLOCAL_CONTROL("#nonlocal-control");
+		NONLOCAL_CONTROL("#nonlocal-control"),
+
+		/**
+		 * The exponent in an exponential expression like `b` in `a^b`.
+		 */
+		MATH_EXPONENT("#math-exponent"),
+
+		/** The token should be visually ignored. */
+		DEEMPHASIZE("#deemphasize");
 
 		val string = stringFrom(kotlinString).makeShared()
 	}
