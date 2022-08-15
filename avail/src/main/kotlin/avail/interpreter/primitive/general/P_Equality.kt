@@ -112,7 +112,10 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 	{
 		val (firstReg, secondReg) = arguments
 
-		if (firstReg.register() === secondReg.register())
+		val manifest = callSiteHelper.generator().currentManifest
+		if (manifest.synonymsForRegister(firstReg.register())
+			.intersect(manifest.synonymsForRegister((secondReg.register())))
+			.isNotEmpty())
 		{
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.

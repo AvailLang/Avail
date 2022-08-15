@@ -128,7 +128,7 @@ import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Suppress("unused", "GrazieInspection")
+@Suppress("unused")
 object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 {
 	/** The key to the client parsing data in the fiber's environment. */

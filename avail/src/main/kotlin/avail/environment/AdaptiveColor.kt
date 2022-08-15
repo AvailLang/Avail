@@ -45,8 +45,8 @@ import java.awt.Color
  * Construct a new `AdaptiveColor`.
  */
 data class AdaptiveColor constructor(
-	private val light: Color,
-	private val dark: Color)
+	val light: Color,
+	val dark: Color)
 {
 	val color: Color get() = if (AvailWorkbench.darkMode) dark else light
 
@@ -84,11 +84,9 @@ data class AdaptiveColor constructor(
 			val otherWeight = 1.0f - selfWeight
 			val vector = selfColor.getRGBComponents(null)
 				.zip(otherColor.getRGBComponents(null))
-				.map { (a, b) ->
-					a * selfWeight + b * otherWeight
-				}
+				.map { (a, b) -> a * selfWeight + b * otherWeight }
 				.toFloatArray()
-			return Color(vector[0], vector[1], vector[2])
+			return Color(vector[0], vector[1], vector[2], vector[3])
 		}
 	}
 }

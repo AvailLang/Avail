@@ -365,7 +365,7 @@ enum class L1Operation constructor(
 	L1Ext_doSetLocalSlot(22, LOCAL)
 	{
 		override fun dispatch(operationDispatcher: L1OperationDispatcher) =
-			operationDispatcher.L1Ext_doSetSlot()
+			operationDispatcher.L1Ext_doSetLocalSlot()
 	};
 
 	/** This operation's collection of [operand types][L1OperandType]. */

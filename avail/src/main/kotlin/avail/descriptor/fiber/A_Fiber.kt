@@ -41,6 +41,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.maps.A_Map
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
@@ -383,5 +384,8 @@ interface A_Fiber : A_BasicObject
 		 */
 		fun A_Fiber.releaseFromDebugger() =
 			dispatch { o_ReleaseFromDebugger(it) }
+
+		val A_Fiber.currentLexer: A_Lexer
+			get() = dispatch { o_CurrentLexer(it) }
 	}
 }

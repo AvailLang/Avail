@@ -115,7 +115,17 @@ Method "_^_" is
 |
 	/* Uses the identity: a^b = exp(ln(a^b)) = exp(b*ln(a)). */
 	Euler's number ^ (exponent × ln (base→double))
-] : number;
+] : number
+styled by
+[
+	original : send phrase,
+	transformed : phrase
+|
+	Style token original's tokens[1] as #deemphasize;
+	exponent ::= original's arguments's expressions[2];
+	Style span of exponent with #math-exponent;
+];
+
 
 /**
  * Construct and answer a function that affects type promotions for the various
@@ -262,19 +272,14 @@ Private method "_simple^_onto_" is
 	exponent : whole number,
 	accumulator : integer
 |
-	$loop : extended integer;
-	newProduct ::= if exponent bit∧ 1 = 0 then
-	[
-		accumulator
-	]
-	else
-	[
-		accumulator × base
-	];
-	Exit loop with newProduct if exponent ≤ 1;
-	baseSquared ::= base × base;
-	Restart loop with <baseSquared, exponent >> 1, newProduct>
-] : extended integer;
+	$loop : integer;
+	Exit loop with accumulator if exponent = 0;
+	newAccumulatorIfOdd ::= accumulator × base;
+	newAccumulator ::= if exponent is odd
+		then [newAccumulatorIfOdd]
+		else [accumulator];
+	Restart loop with <base × base, exponent >> 1, newAccumulator>
+] : integer;
 
 Method "_^_" is
 [
@@ -305,10 +310,7 @@ Method "_^_" is
 	]
 	else
 	[
-		integerBase ::= base ?→ integer;
-		(integerBase × integerBase)
-			simple^ (exponent >> 1)
-			onto if exponent is odd then [integerBase] else [1]
+		(base ?→ integer) simple^ exponent onto 1
 	]
 ] : extended integer;
 
@@ -318,12 +320,19 @@ Method "_^_" is
 	exponent : whole number
 |
 	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then [1.0f]
-	else
 	[
-		intermediate ::= (base × base) ^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base ] else [ intermediate ]
-	]
+		squarer : float,
+		residue : whole number,
+		accumulator : float
+	|
+		$loop : float;
+		Exit loop with accumulator if residue = 0;
+		newAccumulatorIfOdd ::= accumulator × squarer;
+		newAccumulator ::= if residue is odd
+			then [newAccumulatorIfOdd]
+			else [accumulator];
+		Restart loop with <squarer × squarer, residue >> 1, newAccumulator>
+	](base, exponent, 1.0f)
 ] : float;
 
 Method "_^_" is
@@ -332,15 +341,19 @@ Method "_^_" is
 	exponent : whole number
 |
 	/*  Uses the identities: b^(2x) = (b^2)^x; and: b^(2x+1) = (b^2)^x*b. */
-	if exponent = 0 then
 	[
-		1.0
-	]
-	else
-	[
-		intermediate ::= (base × base) ^ (exponent ÷ 2);
-		if exponent is odd then [ intermediate × base ] else [ intermediate ]
-	]
+		squarer : double,
+		residue : whole number,
+		accumulator : double
+	|
+		$loop : double;
+		Exit loop with accumulator if residue = 0;
+		newAccumulatorIfOdd ::= accumulator × squarer;
+		newAccumulator ::= if residue is odd
+			then [newAccumulatorIfOdd]
+			else [accumulator];
+		Restart loop with <squarer × squarer, residue >> 1, newAccumulator>
+	](base, exponent, 1.0)
 ] : double;
 
 /**
@@ -903,7 +916,7 @@ Public stable method "_^_mod_" is
 	result : whole number := 1;
 	Until exponentRemaining = 0 do
 	[
-		If exponentRemaining bit∧ 1 = 1 then
+		If exponentRemaining is odd then
 		[
 			result := (result × moddedBase) mod modulus;
 		];
@@ -1016,15 +1029,16 @@ Public method "_is a perfect square" is
 ];
 
 // The first 31 primes, i.e. all 7-bit primes (actually covering [0..130])
-smallPrimes ::= {
+smallPrimes ::= <
 	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
 	73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127
-};
+>;
 
 /**
  * Attempt to use trial division within the given range to find a pair of
- * nontrivial factors <p, q> such that p×q = n. If no such pair can be found,
- * return the sentinel value <0, 0>.
+ * nontrivial factors <p, q> such that p×q = n.  In addition, if n is known not
+ * to contain any factors smaller than start, q will be the smallest prime
+ * factor of n. If no such pair can be found, return the sentinel value <0, 0>.
  *
  * If bounds are provided, the algorithm will guarantee all values within are
  * tested before returning a failure, but due to its naive windowing it does NOT
@@ -1051,11 +1065,14 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
 	// default behavior.
 	stop ::= min end ++ <⌊√n⌋>;
 
-	// Might as well check our list of small primes since we have it
+	Exit body with <0, 0> if i > stop;
+
+	// Might as well check our list of small primes since we have it.
 	If i < 120 ∧ i ≤ stop then
 	[
 		For each p in smallPrimes do
 		[
+			Exit body with <0, 0> if p > stop;
 			Exit body with <n ÷ p, p> if p|n;
 		];
 		i := 120;
@@ -1220,7 +1237,8 @@ Private method "factor_by hybrid-fermat" is
 */
 
 /**
- * Fully factor the given number into a tuple of its nontrivial prime divisors.
+ * Fully factor the given number into a tuple of its nontrivial prime divisors,
+ * in ascending order.
  *
  * @method "factor_"
  * @category "Integers"
@@ -1231,28 +1249,20 @@ Method "factor_" is
 [
 	n : natural number
 |
-	found : natural number+ := <n>;
-	i : natural number := 1;
-	knownFactors : {natural number → <whole number…|2>|0..} := {};
-	While i ≤ |found| do
 	[
-		target ::= found[i];
-		knownFactors :=
-			knownFactors + target → (trial division factorization of target);
-		Cast knownFactors[target] into
-		[
-			pair : <[2..∞)…|2>
-		|
-			// We found non-trivial factors, splice them in place of the target
-			found := found[i..i] → pair;
-		]
-		else
-		[
-			// Only trivial factors found, move to the next possible dividend
-			i++;
-		];
-	];
-	found
+		residue : natural number,
+		start : natural number,
+		found : natural number*
+	|
+		$loop : natural number+;
+		pair ::= trial division factorization of residue from start;
+		Exit loop with found ++ <residue> if pair = <0, 0>;
+		prime ::= pair[2] ?→ natural number;
+		Restart loop with <
+			pair[1] ?→ natural number,
+			prime,
+			found ++ <prime>>
+	](n, 2, <>)
 ];
 
 /**

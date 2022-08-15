@@ -37,13 +37,11 @@ import avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToRe
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Chunk.Companion.countdownForNewlyOptimizedCode
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.optimizer.L1Translator
-import avail.optimizer.L2Generator.OptimizationLevel.Companion.optimizationLevel
+import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
@@ -99,36 +97,31 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 	 * producing a new chunk.  Return whether the chunk was replaced.
 	 *
 	 * @param interpreter
-	 * The interpreter for the current thread.
+	 *   The interpreter for the current thread.
 	 * @param targetOptimizationLevel
-	 * What level of optimization to apply if reoptimization occurs.
+	 *   What level of optimization to apply if reoptimization occurs.
 	 * @return
-	 * Whether a new chunk was created.
+	 *   Whether a new chunk was activated, whether or not the optimization was
+	 *   due to this fiber.
 	 */
 	@ReferencedInGeneratedCode
 	@JvmStatic
 	fun decrement(
 		interpreter: Interpreter,
-		targetOptimizationLevel: Int): Boolean
+		targetOptimizationLevel: Int
+	): Boolean
 	{
-		val function = interpreter.function!!
-		val code = function.code()
-		var chunkChanged = false
-		code.decrementCountdownToReoptimize { optimize: Boolean ->
+		val code = interpreter.function!!.code()
+		return code.decrementCountdownToReoptimize { optimize: Boolean ->
 			if (optimize)
 			{
-				code.countdownToReoptimize(countdownForNewlyOptimizedCode)
-				L1Translator.translateToLevelTwo(
-					code,
-					optimizationLevel(targetOptimizationLevel),
-					interpreter)
+				OptimizationLevel.optimizationLevel(targetOptimizationLevel)
+					.optimize(code, interpreter)
 			}
 			val chunk = code.startingChunk
 			interpreter.chunk = chunk
-			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive())
-			chunkChanged = true
+			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive)
 		}
-		return chunkChanged
 	}
 
 	/**

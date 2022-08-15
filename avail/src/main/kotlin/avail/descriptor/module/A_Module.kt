@@ -59,7 +59,7 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.primitive.modules.P_PublishName
 import avail.persistence.cache.Repository.StylingRecord
 

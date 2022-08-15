@@ -69,21 +69,18 @@ import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.A_Method.Companion.methodStylers
 import avail.descriptor.methods.A_Styler.Companion.function
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.allAncestors
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
+import avail.descriptor.phrases.A_Phrase.Companion.allTokens
+import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
-import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
-import avail.descriptor.phrases.A_Phrase.Companion.declaration
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
-import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
-import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -93,16 +90,10 @@ import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.A_Type.Companion.systemStyleForType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.effects.LoadingEffect
@@ -113,9 +104,10 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
 import avail.serialization.Serializer
-import avail.utility.StackPrinter.Companion.trace
+import avail.utility.trace
 import org.availlang.persistence.IndexedFile
 import java.lang.String.format
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
@@ -288,39 +280,6 @@ class CompilationContext constructor(
 
 	/** The current number of work units that have been completed. */
 	val workUnitsCompleted get() = atomicWorkUnitsCompleted.get()
-
-	/**
-	 * The map from phrases to styles, updated after a top-level phrase runs.
-	 */
-	val phraseStyles = newVariableWithContentType(
-		mapTypeForSizesKeyTypeValueType(
-			wholeNumbers, SEND_PHRASE.mostGeneralType, stringType)
-	).run {
-		setValue(emptyMap)
-		makeShared()
-	}
-
-	/**
-	 * The map from tokens to styles, updated after a top-level phrase runs.
-	 */
-	val tokenStyles = newVariableWithContentType(
-		mapTypeForSizesKeyTypeValueType(wholeNumbers, TOKEN.o, stringType)
-	).run {
-		setValue(emptyMap)
-		makeShared()
-	}
-
-	/**
-	 * The map from tokens within variable uses to tokens within the
-	 * corresponding variable declarations.
-	 */
-	val variableUsesMap = newVariableWithContentType(
-		mapTypeForSizesKeyTypeValueType(wholeNumbers, TOKEN.o, TOKEN.o)
-	).run {
-		setValue(emptyMap)
-		makeShared()
-	}
-
 
 	/**
 	 * Record the fact that this token was encountered while parsing the current
@@ -1007,73 +966,32 @@ class CompilationContext constructor(
 	 * @param phrase
 	 *   The phrase to recursively visit with the [AvailRuntime.executor], from
 	 *   the bottom up.
+	 * @param visitedSet
+	 *   The optional [Set] of [A_Phrase]s that should not be traversed again.
 	 * @param then
 	 *   The action to perform after styling has been applied within the given
 	 *   phrase.
 	 */
-	fun applyAllStylesThen(phrase: A_Phrase, then: ()->Unit)
+	fun applyAllStylesThen(
+		phrase: A_Phrase,
+		visitedSet: MutableSet<A_Phrase> = ConcurrentHashMap.newKeySet(),
+		then: ()->Unit)
 	{
-		when
+		if (!visitedSet.add(phrase))
 		{
-			phrase.isMacroSubstitutionNode ->
-			{
-				val originalSend = phrase.macroOriginalSendNode
-				val arguments = originalSend.argumentsListNode.expressionsTuple
-				runtime.execute(compilerPriority) {
-					visitAll(arguments.iterator()) {
-						// Style the original send, since that's what the tokens
-						// are definitely a part of.
-						styleSendThen(originalSend, then)
-					}
-				}
-			}
-			phrase.phraseKindIsUnder(SEND_PHRASE) ->
-			{
-				// Process the children, then the send phrase.
-				val arguments = phrase.argumentsListNode.expressionsTuple
-				runtime.execute(compilerPriority) {
-					visitAll(arguments.iterator()) {
-						styleSendThen(phrase, then)
-					}
-				}
-			}
-			phrase.phraseKindIsUnder(LITERAL_PHRASE) ->
-			{
-				// When a macro name includes "_!", a call site will wrap that
-				// argument *phrase* inside a synthetic literal (i.e., the value
-				// of that literal will be a phrase.  We should traverse into
-				// such a phrase.
-				val literal = phrase.token.literal()
-				if (literal.isInstanceOfKind(PARSE_PHRASE.mostGeneralType))
-				{
-					runtime.execute(compilerPriority) {
-						applyAllStylesThen(literal, then)
-					}
-				}
-				else
-				{
-					// We can ignore any other literal.
-					runtime.execute(compilerPriority, then)
-				}
-			}
-			phrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) ->
-			{
-				// Record the link between the variable use and its declaration.
-				val useToken = phrase.token
-				val declarationToken = phrase.declaration.token
-				variableUsesMap.atomicAddToMap(useToken, declarationToken)
-				runtime.execute(compilerPriority, then)
-			}
-			else ->
-			{
-				// Other types of phrases are processed recursively, such as
-				// lists and literals, since these can be generated implicitly
-				// by the compiler as children of sends/macros.
-				val children = mutableListOf<A_Phrase>()
-				phrase.childrenDo(children::add)
-				visitAll(children.iterator(), then)
-			}
+			then()
+			return
 		}
+		val ran = AtomicBoolean(false)
+		val safeThen: ()->Unit = {
+			assert(!ran.getAndSet(true))
+			then()
+		}
+		if (debugStyling)
+		{
+			println("Apply: $phrase")
+		}
+		phrase.applyStylesThen(this, visitedSet, safeThen)
 	}
 
 	/**
@@ -1082,17 +1000,22 @@ class CompilationContext constructor(
 	 *
 	 * @param phrases
 	 *   The [Iterator] of [A_Phrase]s to process.
+	 * @param visitedSet
+	 *   The [Set] of [A_Phrase]s that should not be traversed again.
 	 * @param then
 	 *   The action to invoke after the phrases have been fully processed.
 	 */
-	private fun visitAll(phrases: Iterator<A_Phrase>, then: ()->Unit)
+	fun visitAll(
+		phrases: Iterator<A_Phrase>,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
 	{
 		if (phrases.hasNext())
 		{
 			val phrase = phrases.next()
 			runtime.execute(compilerPriority) {
-				applyAllStylesThen(phrase) {
-					visitAll(phrases, then)
+				applyAllStylesThen(phrase, visitedSet) {
+					visitAll(phrases, visitedSet, then)
 				}
 			}
 		}
@@ -1105,17 +1028,46 @@ class CompilationContext constructor(
 	/**
 	 * Apply the style for a single *method* send phrase, without considering
 	 * its subphrases.
+	 *
+	 * @param originalSendPhrase
+	 *   A phrase that had been parsed from the source.
+	 * @param transformedPhrase
+	 *   The end result of applying a macro to the [originalSendPhrase], or if
+	 *   no macro was involved, the [originalSendPhrase] itself.
 	 */
-	private fun styleSendThen(sendPhrase: A_Phrase, then: ()->Unit)
+	fun styleSendThen(
+		originalSendPhrase: A_Phrase,
+		transformedPhrase: A_Phrase,
+		then: ()->Unit)
 	{
+		val bundle = originalSendPhrase.bundle
 		if (debugStyling)
 		{
-			println("style send: ${sendPhrase.bundle}")
+			println("style send: $bundle")
 		}
+
+		// First, apply basic styles to the send based on its result type, or
+		// just by virtue of it being a send.
+		val yieldType = transformedPhrase.phraseExpressionType
+		when
+		{
+			yieldType.isInstanceMeta -> loader.styleTokens(
+				originalSendPhrase.allTokens, yieldType.systemStyleForType)
+			yieldType.isInstanceOf(PARSE_PHRASE.mostGeneralType) ->
+				loader.styleTokens(
+					originalSendPhrase.allTokens, SystemStyle.PHRASE)
+			originalSendPhrase.equals(transformedPhrase) -> loader.styleTokens(
+				originalSendPhrase.tokens, SystemStyle.METHOD_SEND)
+			else -> loader.styleTokens(
+				originalSendPhrase.tokens, SystemStyle.MACRO_SEND)
+		}
+
+		// Next, give the method's styler function a chance to run.
 		val ancestorModules = module.allAncestors
-		val eligibleStylers = sendPhrase.bundle.bundleMethod.methodStylers
+		val eligibleStylers = bundle.bundleMethod.methodStylers
 			.filter {
-				it.module.equals(module)
+				it.module.isNil
+					|| it.module.equals(module)
 					|| it.module in ancestorModules
 			}
 		val mostSpecificStylers = when (eligibleStylers.size)
@@ -1142,12 +1094,11 @@ class CompilationContext constructor(
 				// TODO - Use the conflict style, which isn't coded yet.
 				runtime[DEFAULT_STYLER]
 		}
-
 		val fiber = newLoaderFiber(TOP.o, loader)
 		{
 			formatString(
 				"Style %s (%s)",
-				sendPhrase.bundle.message,
+				bundle.message,
 				stylerFn.code().methodName)
 		}
 		fiber.setSuccessAndFailure(
@@ -1157,7 +1108,7 @@ class CompilationContext constructor(
 		runtime.runOutermostFunction(
 			fiber,
 			stylerFn,
-			listOf(sendPhrase, phraseStyles, tokenStyles, variableUsesMap))
+			listOf(originalSendPhrase, transformedPhrase))
 	}
 
 	companion object

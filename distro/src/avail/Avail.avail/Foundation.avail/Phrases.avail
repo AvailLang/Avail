@@ -475,12 +475,12 @@ Public method "restricted send_with_:_" is
 	basicReturnType : type
 |
 	pair ::= restricted report and send message with args : basicReturnType;
-	optionalPhrase ::= pair[1] ?→ tuple;
-	If optionalPhrase = <> then
+	optionalSendPhrase ::= pair[1] ?→ tuple;
+	If optionalSendPhrase = <> then
 	[
 		Reject parse strongly, expected: (pair[2] ?→ string)
 	];
-	optionalPhrase[1] ?→ send phrase
+	optionalSendPhrase[1] ?→ send phrase
 ] : send phrase;
 
 /**

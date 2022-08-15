@@ -33,21 +33,22 @@
 package avail.environment.text
 
 import avail.environment.AvailWorkbench
-import avail.environment.actions.FindAction
 import javax.swing.Action
+import javax.swing.JFrame
 import javax.swing.text.StyledEditorKit
 import javax.swing.text.TextAction
 
 class AvailEditorKit constructor(
-	val workbench: AvailWorkbench
+	val workbench: AvailWorkbench,
+	val frame: JFrame
 ) : StyledEditorKit()
 {
-	private val defaultActions = arrayOf(
-		FindAction(workbench))
+	private val defaultActions = arrayOf<Action>(
+		//FindAction(workbench, frame)
+	)
 
 	override fun getActions(): Array<Action>
 	{
 		return TextAction.augmentList(super.getActions(), defaultActions)
 	}
 }
-

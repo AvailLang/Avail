@@ -437,12 +437,12 @@ Public method "bootstrap restricted send_with_:_" is
 	basicReturnType : type
 |
 	pair ::= restricted report and send message with args : basicReturnType;
-	optionalPhrase ::= pair[1] ?→ optionalSendPhraseType;
-	If optionalPhrase = <> then
+	optionalSendPhrase ::= pair[1] ?→ optionalSendPhraseType;
+	If optionalSendPhrase = <> then
 	[
 		Reject parse strongly, expected: pair[2] ?→ string
 	];
-	optionalPhrase[1] ?→ send phrase
+	optionalSendPhrase[1] ?→ send phrase
 ] : send phrase;
 
 

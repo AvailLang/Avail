@@ -36,6 +36,11 @@ import avail.descriptor.module.A_Module
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 
 /**
  * `A_Styler` is an interface that specifies the operations specific to
@@ -71,5 +76,16 @@ interface A_Styler : A_BasicObject
 		 *   The styler's defining module.
 		 */
 		val A_Styler.module: A_Module get() = dispatch { o_Module(it) }
+
+		/**
+		 * The function type for styler functions.
+		 */
+		val stylerFunctionType: A_Type = functionType(
+			tuple(
+				// The original phrase being styled.
+				PhraseKind.SEND_PHRASE.mostGeneralType,
+				// The transformed phrase which is useful to some stylers.
+				PhraseKind.PARSE_PHRASE.mostGeneralType),
+			Types.TOP.o)
 	}
 }

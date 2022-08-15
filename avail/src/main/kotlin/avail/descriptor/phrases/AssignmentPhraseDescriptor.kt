@@ -161,8 +161,8 @@ class AssignmentPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(VARIABLE).equals(aPhrase.variable)
-		&& self.slot(EXPRESSION).equals(aPhrase.expression)
+		&& self.slot(VARIABLE).equalsPhrase(aPhrase.variable)
+		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression)
 		&& self.slot(TOKENS).equals(aPhrase.tokens))
 
 	override fun o_EmitEffectOn(
@@ -204,7 +204,7 @@ class AssignmentPhraseDescriptor private constructor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) {
 		self.setSlot(EXPRESSION, transformer(self.slot(EXPRESSION)))
 		self.setSlot(VARIABLE, transformer(self.slot(VARIABLE)))
@@ -212,7 +212,7 @@ class AssignmentPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) {
 		action(self.slot(EXPRESSION))
 		action(self.slot(VARIABLE))

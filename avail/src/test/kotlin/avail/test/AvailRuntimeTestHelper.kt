@@ -262,6 +262,7 @@ class AvailRuntimeTestHelper constructor (
 		line: Int,
 		@Suppress("UNUSED_PARAMETER") phrase: ()->A_Phrase?)
 	{
+		if (builder.shouldStopBuild) return
 		// Skip non-final per-module updates if they're too frequent.
 		if (position < moduleSize
 			&& System.currentTimeMillis() - lastUpdateMillis < updateRateMillis)

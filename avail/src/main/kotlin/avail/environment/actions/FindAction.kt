@@ -32,36 +32,32 @@
 
 package avail.environment.actions
 
-import avail.environment.AdaptiveColor
 import avail.environment.AvailWorkbench
+import avail.environment.GlowHighlightPainter
 import avail.environment.showTextRange
 import java.awt.BorderLayout
 import java.awt.Color
-import java.awt.Component
 import java.awt.Dialog.ModalityType
 import java.awt.Dimension
-import java.awt.Frame
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.regex.PatternSyntaxException
-import javax.swing.Action
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.Alignment
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JDialog
+import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
-import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
-import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter
 import javax.swing.text.Highlighter.HighlightPainter
 import javax.swing.text.JTextComponent
@@ -77,7 +73,8 @@ import javax.swing.text.TextAction
  *   The owning [AvailWorkbench].
  */
 class FindAction constructor(
-	workbench: AvailWorkbench
+	workbench: AvailWorkbench,
+	val frame: JFrame
 ) : AbstractWorkbenchAction(
 	workbench,
 	"Find/Replace…",
@@ -85,7 +82,7 @@ class FindAction constructor(
 {
 	init
 	{
-		putValue(Action.SHORT_DESCRIPTION, "Find/Replace…")
+		putValue(SHORT_DESCRIPTION, "Find/Replace…")
 	}
 
 	/** The non-modal Find dialog, created lazily but cached when dismissed.  */
@@ -115,15 +112,13 @@ class FindAction constructor(
 
 	/**
 	 * The [HighlightPainter] for rendering all matches but the current one.
-	 * Initialized to a dummy value.
 	 */
-	private var allMatchesPainter = DefaultHighlightPainter(Color.BLACK)
+	private val allMatchesPainter = GlowHighlightPainter(Color.yellow)
 
 	/**
-	 * The [HighlightPainter] for rendering the current match. Initialized to a
-	 * dummy value.
+	 * The [HighlightPainter] for rendering the current match.
 	 */
-	private var currentMatchPainter = DefaultHighlightPainter(Color.BLACK)
+	private val currentMatchPainter = GlowHighlightPainter(Color.red)
 
 	/**
 	 * A [DocumentListener] that detects textual changes to in the [textPane],
@@ -145,18 +140,12 @@ class FindAction constructor(
 		{
 			createDialog()
 		}
-		var frame = event.source as Component
-		while (frame !is Frame) frame = frame.parent
-		textPane = workbench.mostRecentFocusOwner as? JTextComponent ?: return
+		textPane = frame.mostRecentFocusOwner as? JTextComponent ?: return
 		highlighter = textPane!!.highlighter
 		textPane!!.document.addDocumentListener(documentListener)
-		val selectionColor = textPane!!.selectionColor
-		val currentMatchColor = AdaptiveColor(
-			selectionColor.darker(), selectionColor.brighter())
-		allMatchesPainter = DefaultHighlightPainter(selectionColor)
-		currentMatchPainter = DefaultHighlightPainter(currentMatchColor.color)
 		updateHighlights()
 		findDialog!!.isVisible = true
+		findText.requestFocusInWindow()
 	}
 
 	/**
@@ -204,29 +193,10 @@ class FindAction constructor(
 			val pane = textPane ?: return
 			val selectionEnd = pane.selectionEnd
 			// TODO Not efficient, but good enough for now.
-			allMatches.forEachIndexed { i, (match, tag) ->
-				if (match.range.first >= selectionEnd)
+			allMatches.forEachIndexed { i, pair ->
+				if (pair.first.range.first >= selectionEnd)
 				{
-					pane.select(match.range.first, match.range.last + 1)
-					currentMatchIndex?.let { j ->
-						// Remove the current match highlighting, replacing it
-						// with the highlighting for all matches.
-						val (m, t) = allMatches[j]
-						highlighter!!.removeHighlight(t)
-						val newTag = highlighter!!.addHighlight(
-							m.range.first, m.range.last + 1,
-							allMatchesPainter)
-						allMatches[j] = m to newTag
-					}
-					// Remove the all-matches highlight for this match, and
-					// add a replacement current-match highlight.
-					currentMatchIndex = i
-					highlighter!!.removeHighlight(tag)
-					val newTag = highlighter!!.addHighlight(
-						match.range.first, match.range.last + 1,
-						currentMatchPainter)
-					allMatches[i] = match to newTag
-					pane.showTextRange(match.range.first, match.range.last + 1)
+					selectMatch(i)
 					return
 				}
 			}
@@ -247,35 +217,42 @@ class FindAction constructor(
 			val selectionStart = pane.selectionStart
 			// TODO Not efficient, but good enough for now.
 			allMatches.withIndex().reversed().forEach { (i, pair) ->
-				val (match, tag) = pair
-				if (match.range.last + 1 <= selectionStart)
+				if (pair.first.range.last + 1 <= selectionStart)
 				{
-					pane.select(match.range.first, match.range.last + 1)
-					currentMatchIndex?.let { j ->
-						// Remove the current match highlighting, replacing it
-						// with the highlighting for all matches.
-						val (m, t) = allMatches[j]
-						highlighter!!.removeHighlight(t)
-						val newTag = highlighter!!.addHighlight(
-							m.range.first, m.range.last + 1,
-							allMatchesPainter)
-						allMatches[j] = m to newTag
-					}
-					// Remove the all-matches highlight for this match, and
-					// add a replacement current-match highlight.
-					currentMatchIndex = i
-					highlighter!!.removeHighlight(tag)
-					val newTag = highlighter!!.addHighlight(
-						match.range.first, match.range.last + 1,
-						currentMatchPainter)
-					allMatches[i] = match to newTag
-					pane.showTextRange(match.range.first, match.range.last + 1)
+					selectMatch(i)
 					return
 				}
 			}
 			// Indicate there are no more matches.
 			pane.toolkit.beep()
 		}
+	}
+
+	private fun selectMatch(matchIndex: Int)
+	{
+		val (match, tag) = allMatches[matchIndex]
+		val pane = textPane ?: return
+		pane.select(match.range.first, match.range.last + 1)
+		currentMatchIndex?.let { j ->
+			// Remove the current match highlighting, replacing it
+			// with the highlighting for all matches.
+			val (m, t) = allMatches[j]
+			highlighter!!.removeHighlight(t)
+			val newTag = highlighter!!.addHighlight(
+				m.range.first, m.range.last + 1,
+				allMatchesPainter)
+			allMatches[j] = m to newTag
+		}
+		// Remove the all-matches highlight for this match, and
+		// add a replacement current-match highlight.
+		currentMatchIndex = matchIndex
+		highlighter!!.removeHighlight(tag)
+		val newTag = highlighter!!.addHighlight(
+			match.range.first, match.range.last + 1,
+			currentMatchPainter
+		)
+		allMatches[matchIndex] = match to newTag
+		pane.showTextRange(match.range.first, match.range.last + 1)
 	}
 
 	/**
@@ -342,9 +319,8 @@ class FindAction constructor(
 	private fun createDialog()
 	{
 		val panel = JPanel(BorderLayout(20, 20))
-		panel.border = EmptyBorder(10, 10, 10, 10)
-
 		panel.run {
+			border = EmptyBorder(10, 10, 10, 10)
 			add(findLabel)
 			add(replaceLabel)
 			add(findText)
@@ -400,17 +376,17 @@ class FindAction constructor(
 						.addComponent(replaceNextButton)
 						.addComponent(replaceAllButton)
 						.addComponent(closeButton)))
-			linkSize(
-				SwingConstants.HORIZONTAL,
-				findNextButton,
-				findPreviousButton,
-				replaceNextButton,
-				replaceAllButton,
-				closeButton)
+			//linkSize(
+			//	SwingConstants.HORIZONTAL,
+			//	findNextButton,
+			//	findPreviousButton,
+			//	replaceNextButton,
+			//	replaceAllButton,
+			//	closeButton)
 		}
-		findDialog = JDialog(workbench, name(), ModalityType.MODELESS)
+		findDialog = JDialog(frame, name(), ModalityType.MODELESS)
 		findDialog!!.run {
-			minimumSize = Dimension(300, 200)
+			minimumSize = Dimension(400, 200)
 			preferredSize = Dimension(600, 200)
 			contentPane.add(panel)
 			isResizable = true
@@ -420,8 +396,7 @@ class FindAction constructor(
 				topLeft.x + workbench.width - width - 100, topLeft.y + 30)
 			addWindowListener(object : WindowAdapter()
 			{
-				override fun windowClosing(e: WindowEvent) {
-					//isVisible = false
+				override fun windowClosed(e: WindowEvent) {
 					dialogWasClosed()
 				}
 			})
@@ -434,7 +409,7 @@ class FindAction constructor(
 	 */
 	private fun dialogWasClosed()
 	{
-		allMatches.forEach { highlighter?.removeHighlight(it.second) }
+		allMatches.forEach { (_, tag) -> highlighter?.removeHighlight(tag) }
 		allMatches.clear()
 		currentMatchIndex = null
 		textPane?.document?.removeDocumentListener(documentListener)

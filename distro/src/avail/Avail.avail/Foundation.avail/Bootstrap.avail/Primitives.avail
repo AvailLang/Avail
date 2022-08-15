@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/4/22, 8:34 PM
+ * * Last Generated: 8/15/22, 1:34 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -68,7 +68,7 @@ Names
 	"Invoke_with_,⁇forked at priority_",
 	"Invoke|invoke_with_",
 	"Lexer_when_is_",
-	"Macro_is«_,»_",
+	"Macro_is«_,»_«styled by_»?",
 	"Mark for_character|characters of read ahead",
 	"Park current fiber",
 	"Print:_",
@@ -83,6 +83,8 @@ Names
 	"Semantic restriction_is_",
 	"Set name of function implementation_to_",
 	"Sleep for_millisecond|milliseconds",
+	"Style span of_with_«overwriting»?",
+	"Style token_as_«overwriting»?",
 	"Style_with_",
 	"Terminate current fiber",
 	"Unname_from_",
@@ -178,6 +180,7 @@ Names
 	"_[_↔_]",
 	"_\\_",
 	"_^_",
+	"_bit test_",
 	"_bit∧_",
 	"_bit∨_",
 	"_bit⊕_",
@@ -228,7 +231,7 @@ Names
 	"_≤_",
 	"_⊆_",
 	"_⨉_^_",
-	"``_``(_)@_:_",
+	"``_``(_)@_:_«from phrase_»?",
 	"`|_'s⁇local variables`|",
 	"`|_'s⁇outer variables`|",
 	"`|_'s⁇parameters`|",

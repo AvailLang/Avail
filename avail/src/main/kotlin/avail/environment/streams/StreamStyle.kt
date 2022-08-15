@@ -32,11 +32,11 @@
 
 package avail.environment.streams
 
-import avail.environment.AdaptiveColor
+import avail.environment.BoundStyle
+import avail.environment.BoundStyle.Companion.defaultStyle
 import java.awt.Color
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
-import javax.swing.text.StyleContext
 import javax.swing.text.StyledDocument
 
 /**
@@ -53,74 +53,58 @@ import javax.swing.text.StyledDocument
  *   The color of foreground text in this style for dark mode.
  */
 enum class StreamStyle constructor(
-	private val styleName: String,
-	light: Color,
-	dark: Color)
+	override val styleName: String,
+	private val light: Color,
+	private val dark: Color
+): BoundStyle
 {
 	/** The stream style used to echo user input. */
 	IN_ECHO(
-		"input",
+		"#stream-input",
 		light = Color(32, 144, 32),
 		dark = Color(55, 156, 26)),
 
 	/** The stream style used to display normal output. */
 	OUT(
-		"output",
+		"#stream-output",
 		light = Color.BLACK,
 		dark = Color(238, 238, 238)),
 
 	/** The stream style used to display error output. */
 	ERR(
-		"error",
+		"#stream-error",
 		light = Color.RED,
 		dark = Color(255, 100, 88)),
 
 	/** The stream style used to display informational text. */
 	INFO(
-		"info",
+		"#stream-info",
 		light = Color.BLUE,
 		dark = Color(83, 148, 236)),
 
 	/** The stream style used to echo commands. */
 	COMMAND(
-		"command",
+		"#stream-command",
 		light = Color.MAGENTA,
 		dark = Color(174, 138, 190)),
 
 	/** Progress updates produced by a build. */
 	BUILD_PROGRESS(
-		"build",
+		"#stream-build",
 		light = Color(128, 96, 0),
 		dark = Color(220, 196, 87));
 
-	/** Combine the light and dark into an AdaptiveColor. */
-	private val adaptiveColor = AdaptiveColor(light, dark)
-
-	/**
-	 * Create my corresponding [Style] in the [StyledDocument].
-	 *
-	 * @param doc
-	 * The document in which to define this style.
-	 */
-	internal fun defineStyleIn(doc: StyledDocument)
+	override fun lightStyle(doc: StyledDocument): Style
 	{
-		val defaultStyle =
-			StyleContext.getDefaultStyleContext().getStyle(
-				StyleContext.DEFAULT_STYLE)
 		val style = doc.addStyle(styleName, defaultStyle)
-		StyleConstants.setForeground(style, adaptiveColor.color)
+		StyleConstants.setForeground(style, light)
+		return style
 	}
 
-	/**
-	 * Extract this style from the given [document][StyledDocument].
-	 * Look up my [styleName].
-	 *
-	 * @param doc
-	 *   The document.
-	 * @return The [Style].
-	 */
-	fun styleIn(doc: StyledDocument): Style
+	override fun darkStyle(doc: StyledDocument): Style
 	{
-		return doc.getStyle(styleName)
+		val style = doc.addStyle(styleName, defaultStyle)
+		StyleConstants.setForeground(style, dark)
+		return style
 	}
 }

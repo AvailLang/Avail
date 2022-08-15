@@ -59,6 +59,8 @@ import avail.descriptor.methods.A_Method.Companion.chooseBundle
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.A_Method.Companion.membershipChanged
 import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
+import avail.descriptor.methods.A_Method.Companion.updateStylers
+import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
@@ -71,6 +73,7 @@ import avail.descriptor.methods.MethodDescriptor.ObjectSlots.LEXER_OR_NIL
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.STYLERS
+import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.parsing.A_Lexer
@@ -905,7 +908,7 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for creating a literal token. */
 		CREATE_LITERAL_TOKEN(
-			"vm create literal token_,_,_,_",
+			"vm create literal token_,_,_,_«from phrase_»?",
 			P_CreateLiteralToken::class.java.name),
 
 		/** The special atom for declaring the stringifier atom. */
@@ -935,13 +938,13 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for defining macros. */
 		MACRO_DEFINER(
-			"vm macro_is«_,»_",
+			"vm macro_is«_,»_«styled by_»?",
 			P_SimpleMacroDeclaration::class.java.name,
 			P_SimpleMacroDefinitionForAtom::class.java.name),
 
 		/** The special atom for defining methods. */
 		METHOD_DEFINER(
-			"vm method_is_«styled by_»",
+			"vm method_is_«styled by_»?",
 			P_SimpleMethodDeclaration::class.java.name,
 			P_MethodDeclarationFromAtom::class.java.name),
 
@@ -1016,7 +1019,7 @@ class MethodDescriptor private constructor(
 			P_GetRaiseJavaExceptionInAvailFunction::class.java.name),
 
 		SET_STYLER(
-			"vm set styler of definition_to function_",
+			"vm add styler of bundle_is_",
 			P_SetStylerFunction::class.java.name),
 
 		/** The special atom for parsing module headers. */
@@ -1040,7 +1043,28 @@ class MethodDescriptor private constructor(
 				P_ModuleHeaderPrefixCheckModuleName::class.java.name,
 				P_ModuleHeaderPrefixCheckModuleVersion::class.java.name,
 				P_ModuleHeaderPrefixCheckImportVersion::class.java.name),
-			P_ModuleHeaderPseudoMacro::class.java.name);
+			P_ModuleHeaderPseudoMacro::class.java.name)
+		{
+			init
+			{
+				val stylerPrim = (bundle.bundleMethod.definitionsTuple +
+						bundle.macrosTuple)
+					.map { it.bodyBlock().code().codePrimitive()!! }
+					.mapNotNull { it.bootstrapStyler() }
+					.singleOrNull()
+				if (stylerPrim != null)
+				{
+					val stylerFunction = createFunction(
+						newPrimitiveRawFunction(stylerPrim, nil, 0),
+						emptyTuple)
+					val styler = newStyler(
+						stylerFunction, bundle.bundleMethod, nil)
+					bundle.bundleMethod.updateStylers {
+						setWithElementCanDestroy(styler, true)
+					}
+				}
+			}
+		};
 
 		/**
 		 * Define a method.  Note that another variant of this constructor
@@ -1048,11 +1072,10 @@ class MethodDescriptor private constructor(
 		 * constructed.
 		 *
 		 * @param name
-		 * The name of the method or macro being defined.
+		 *   The name of the method or macro being defined.
 		 * @param primitiveNames
-		 * The primitive to wrap into a method or macro definition.  Note
-		 * that multiple overrides may be provided in this variadic
-		 * argument.
+		 *   The primitive to wrap into a method or macro definition.  Note that
+		 *   multiple overrides may be provided in this variadic argument.
 		 */
 		constructor(
 			name: String,

@@ -35,10 +35,11 @@ package avail.interpreter.primitive.methods
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -95,16 +96,14 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 		return interpreter.suspendInSafePointThen {
 			try
 			{
-				val newDefinition = loader.addMethodBody(atom, function)
+				loader.addMethodBody(atom, function)
 				// Quote the string to make the method name.
 				val atomName = atom.atomName
 				function.code().methodName = stringFrom(atomName.toString())
 				if (optionalStylerFunction.tupleSize == 1)
 				{
 					val stylerFunction = optionalStylerFunction.tupleAt(1)
-					stylerFunction.code().methodName =
-						stringFrom("Styler for $atomName")
-					loader.addStyler(newDefinition, stylerFunction)
+					loader.addStyler(atom.bundleOrCreate(), stylerFunction)
 				}
 				succeed(nil)
 			}

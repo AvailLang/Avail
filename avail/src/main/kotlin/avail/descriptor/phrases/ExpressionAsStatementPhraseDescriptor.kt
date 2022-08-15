@@ -89,12 +89,12 @@ class ExpressionAsStatementPhraseDescriptor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(EXPRESSION))
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self.setSlot(EXPRESSION, transformer(self.slot(EXPRESSION)))
 
 	override fun o_EmitEffectOn(
@@ -112,7 +112,7 @@ class ExpressionAsStatementPhraseDescriptor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(EXPRESSION).equals(aPhrase.expression))
+		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(EXPRESSION)

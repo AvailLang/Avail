@@ -320,7 +320,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) {
 		self.argumentsTuple.forEach(action)
 		self.statementsTuple.forEach(action)
@@ -328,7 +328,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) {
 		var arguments: A_Tuple = self.slot(ARGUMENTS_TUPLE)
 		arguments = generateObjectTupleFrom(arguments.tupleSize) {
@@ -378,8 +378,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	): Boolean {
 		return (!aPhrase.isMacroSubstitutionNode
 			&& self.phraseKind == aPhrase.phraseKind
-			&& self.argumentsTuple.equals(aPhrase.argumentsTuple)
-			&& self.statementsTuple.equals(aPhrase.statementsTuple)
+			&& equalPhrases(self.argumentsTuple, aPhrase.argumentsTuple)
+			&& equalPhrases(self.statementsTuple, aPhrase.statementsTuple)
 			&& self.resultType().equals(aPhrase.resultType())
 			&& self.primitive === aPhrase.primitive)
 	}
@@ -659,12 +659,10 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 */
 		fun recursivelyValidate(blockNode: A_Phrase)
 		{
-			treeDoWithParent(
-				blockNode,
-				{ obj: A_Phrase, parent: A_Phrase? ->
+			treeDoWithParent(blockNode) {
+					obj: A_Phrase, parent: A_Phrase? ->
 					obj.validateLocally(parent)
-				},
-				null)
+			}
 			if (blockNode.neededVariables.tupleSize != 0)
 			{
 				throw AvailRuntimeException(E_BLOCK_MUST_NOT_CONTAIN_OUTERS)

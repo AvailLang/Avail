@@ -32,15 +32,31 @@
 package avail.interpreter.execution
 
 import avail.AvailRuntime
+import avail.AvailRuntimeConfiguration
 import avail.AvailThread
+import avail.annotations.ThreadSafe
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind
-import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
+import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
+import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
+import avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
+import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
+import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
+import avail.compiler.splitter.MessageSplitter.Metacharacter.EXCLAMATION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.OCTOTHORP
+import avail.compiler.splitter.MessageSplitter.Metacharacter.OPEN_GUILLEMET
+import avail.compiler.splitter.MessageSplitter.Metacharacter.QUESTION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.SECTION_SIGN
+import avail.compiler.splitter.MessageSplitter.Metacharacter.SINGLE_DAGGER
+import avail.compiler.splitter.MessageSplitter.Metacharacter.TILDE
+import avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
+import avail.compiler.splitter.MessageSplitter.Metacharacter.UP_ARROW
+import avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.AtomDescriptor
@@ -63,12 +79,12 @@ import avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
 import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
-import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import avail.descriptor.character.A_Character
+import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -76,12 +92,10 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
-import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapIterable
-import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import avail.descriptor.methods.A_GrammaticalRestriction
@@ -91,16 +105,18 @@ import avail.descriptor.methods.A_Method.Companion.bundles
 import avail.descriptor.methods.A_Method.Companion.chooseBundle
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.A_Method.Companion.includesDefinition
-import avail.descriptor.methods.A_Method.Companion.lexer
 import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
 import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.methods.A_Method.Companion.removeDefinition
+import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.methods.A_Styler.Companion.module
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.AbstractDefinitionDescriptor.Companion.newAbstractDefinition
 import avail.descriptor.methods.DefinitionDescriptor
@@ -117,8 +133,9 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_EXPLIC
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_HERITABLE_ATOM
 import avail.descriptor.methods.SemanticRestrictionDescriptor
 import avail.descriptor.methods.StylerDescriptor
+import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.addLexer
 import avail.descriptor.module.A_Module.Companion.addPrivateName
 import avail.descriptor.module.A_Module.Companion.addSeal
 import avail.descriptor.module.A_Module.Companion.buildFilteredBundleTree
@@ -129,43 +146,35 @@ import avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
-import avail.descriptor.module.A_Module.Companion.moduleState
+import avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.module.ModuleDescriptor.State.Loading
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.styleType
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
-import avail.descriptor.parsing.A_Lexer.Companion.definitionModule
-import avail.descriptor.parsing.A_Lexer.Companion.lexerApplicability
-import avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
-import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
-import avail.descriptor.parsing.A_Lexer.Companion.setLexerApplicability
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
-import avail.descriptor.representation.AvailObject
+import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.A_Set.Companion.asTuple
 import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import avail.descriptor.tokens.A_Token
+import avail.descriptor.tokens.A_Token.Companion.end
+import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -183,21 +192,17 @@ import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
 import avail.exceptions.AvailErrorCode.E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED
 import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
+import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
+import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
@@ -223,13 +228,14 @@ import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBo
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter
 import avail.interpreter.primitive.methods.P_Alias
 import avail.io.TextInterface
-import avail.utility.StackPrinter
 import avail.utility.evaluation.Combinator.recurse
+import avail.utility.safeWrite
+import avail.utility.structures.RunTree
+import avail.utility.trace
 import java.util.ArrayDeque
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicReferenceArray
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import java.util.TreeMap
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import javax.annotation.concurrent.GuardedBy
 
 /**
  * An `AvailLoader` is responsible for orchestrating module-level side-effects,
@@ -259,330 +265,6 @@ constructor(
 	val textInterface: TextInterface)
 {
 	/**
-	 * A class that tracks all visible [A_Lexer]s while compiling a module.
-	 */
-	class LexicalScanner
-	{
-		/**
-		 * The [List] of all [lexers][A_Lexer] which are visible within the
-		 * module being compiled.
-		 */
-		val allVisibleLexers = mutableListOf<A_Lexer>()
-
-		/**
-		 * When set, fail on attempts to change the lexical scanner.  This is
-		 * a safety measure.
-		 */
-		@Volatile
-		var frozen = false
-
-		/**
-		 * Ensure new [A_Lexer]s are not added after this point.  This is a
-		 * safety measure.
-		 */
-		fun freezeFromChanges()
-		{
-			assert(!frozen)
-			frozen = true
-		}
-
-		/**
-		 * A 256-way dispatch table that takes a Latin-1 character's Unicode
-		 * codepoint (which is in [0..255]) to a [tuple][A_Tuple] of
-		 * [lexers][A_Lexer].  Non-Latin1 characters (i.e., with codepoints
-		 * ≥ 256) are tracked separately in [nonLatin1Lexers].
-		 *
-		 * This array is populated lazily and incrementally, so if an entry is
-		 * null, it should be constructed by testing the character against all
-		 * visible lexers' filter functions.  Place the ones that pass into a
-		 * set, then normalize it by looking up that set in a
-		 * [map][canonicalLexerTuples] from such sets to tuples.  This causes
-		 * two equal sets of lexers to be canonicalized to the same tuple,
-		 * thereby reusing it.
-		 *
-		 * When a new lexer is defined, we null all entries of this dispatch
-		 * table and clear the supplementary map, allowing the entries to be
-		 * incrementally constructed.  We also clear the map from lexer sets to
-		 * canonical tuples.
-		 */
-		private val latin1ApplicableLexers = AtomicReferenceArray<A_Tuple>(256)
-
-		/**
-		 * A [ConcurrentHashMap] from non-Latin-1 codepoint (i.e., ≥ 256) to the
-		 * tuple of lexers that should run when that character is encountered at
-		 * a lexing point.
-		 */
-		private val nonLatin1Lexers = ConcurrentHashMap<Int, A_Tuple>()
-
-		/**
-		 * The canonical mapping from each set of lexers to a tuple of lexers.
-		 */
-		private val canonicalLexerTuples = mutableMapOf<A_Set, A_Tuple>()
-
-		/**
-		 * Add an [A_Lexer].  Update not just the current lexing information for
-		 * this loader, but also the specified atom's bundle's method and the
-		 * current module.
-		 *
-		 * This must be called as an L1-safe task, which precludes execution of
-		 * Avail code while it's running.  That does not preclude other
-		 * non-Avail code from running (i.e., other L1-safe tasks), so this
-		 * method is synchronized to achieve that safety.
-		 *
-		 * @param lexer
-		 *   The [A_Lexer] to add.
-		 */
-		@Synchronized
-		fun addLexer(lexer: A_Lexer)
-		{
-			assert(!frozen)
-			lexer.lexerMethod.lexer = lexer
-			val module: A_Module = lexer.definitionModule
-			if (module.notNil)
-			{
-				if (module.moduleState == Loading)
-				{
-					module.addLexer(lexer)
-				}
-			}
-			// Update the loader's lexing tables...
-			allVisibleLexers.add(lexer)
-			// Since the existence of at least one non-null entry in the Latin-1
-			// or non-Latin-1 tables implies there must be at least one
-			// canonical tuple of lexers, we can skip clearing the tables if the
-			// canonical map is empty.
-			if (canonicalLexerTuples.isNotEmpty())
-			{
-				for (i in 0 .. 255)
-				{
-					latin1ApplicableLexers[i] = null
-				}
-				nonLatin1Lexers.clear()
-				canonicalLexerTuples.clear()
-			}
-		}
-
-		/**
-		 * Collect the [lexers][A_Lexer] that should run when we encounter a
-		 * character with the given ([Int]) code point, then pass this tuple of
-		 * lexers to the supplied Kotlin function.
-		 *
-		 * We pass it forward rather than return it, since sometimes this
-		 * requires lexer filter functions to run, which we must not do
-		 * synchronously.  However, if the lexer filters have already run for
-		 * this code point, we *may* invoke the continuation synchronously for
-		 * performance.
-		 *
-		 * @param lexingState
-		 *   The [LexingState] at which the lexical scanning is happening.
-		 * @param codePoint
-		 *   The full Unicode code point in the range 0..1,114,111.
-		 * @param continuation
-		 *   What to invoke with the tuple of tokens at this position.
-		 * @param onFailure
-		 *   What to do if lexical scanning fails.
-		 */
-		fun getLexersForCodePointThen(
-			lexingState: LexingState,
-			codePoint: Int,
-			continuation: (A_Tuple)->Unit,
-			onFailure: (Map<A_Lexer, Throwable>)->Unit)
-		{
-			if (codePoint and 255.inv() == 0)
-			{
-				latin1ApplicableLexers[codePoint]?.let {
-					continuation(it)
-					return
-				}
-				// Run the filters to produce the set of applicable lexers, then
-				// use the canonical map to make it a tuple, then invoke the
-				// continuation with it.
-				selectLexersPassingFilterThen(lexingState, codePoint)
-				{ applicable, failures ->
-					when
-					{
-						failures.isNotEmpty() ->
-						{
-							onFailure(failures)
-							// Don't cache the successful lexer filter results,
-							// because we shouldn't continue and neither should
-							// lexing of any codePoint equal to the one that
-							// caused this trouble.
-						}
-						else ->
-						{
-							val lexers = canonicalTupleOfLexers(applicable)
-							// Just replace it, even if another thread beat us
-							// to the punch, since it's semantically idempotent.
-							latin1ApplicableLexers[codePoint] = lexers
-							continuation(lexers)
-						}
-					}
-				}
-				return
-			}
-
-			// It's non-Latin1.
-			val tuple = nonLatin1Lexers[codePoint]
-			if (tuple !== null) return continuation(tuple)
-			// Run the filters to produce the set of applicable lexers, then use
-			// the canonical map to make it a tuple, then invoke the
-			// continuation with it.
-			selectLexersPassingFilterThen(lexingState, codePoint)
-			{ applicable, failures ->
-				if (failures.isNotEmpty())
-				{
-					onFailure(failures)
-					// Don't cache the successful lexer filter results, because
-					// we shouldn't continue and neither should lexing of any
-					// codePoint equal to the one that caused this trouble.
-					return@selectLexersPassingFilterThen
-				}
-				val lexers = canonicalTupleOfLexers(applicable)
-				// Just replace it, even if another thread beat us to the punch,
-				// since it's semantically idempotent.
-				nonLatin1Lexers[codePoint] = lexers
-				continuation(lexers)
-			}
-		}
-
-		/**
-		 * Given an [A_Set] of [A_Lexer]s applicable for some character, look up
-		 * the corresponding canonical [A_Tuple], recording it if necessary.
-		 */
-		private fun canonicalTupleOfLexers(applicable: A_Set): A_Tuple =
-			synchronized(canonicalLexerTuples) {
-				canonicalLexerTuples[applicable] ?: run {
-					val tuple = applicable.asTuple.makeShared()
-					canonicalLexerTuples[applicable.makeShared()] = tuple
-					tuple
-				}
-			}
-
-		/**
-		 * Collect the lexers that should run when we encounter a character with
-		 * the given (int) code point, then pass this set of lexers to the
-		 * supplied function.
-		 *
-		 * We pass it forward rather than return it, since sometimes this
-		 * requires lexer filter functions to run, which we must not do
-		 * synchronously.  However, if the lexer filters have already run for
-		 * this code point, we *may* invoke the continuation synchronously for
-		 * performance.
-		 *
-		 * @param lexingState
-		 *   The [LexingState] at which scanning encountered this codePoint for
-		 *   the first time.
-		 * @param codePoint
-		 *   The full Unicode code point in the range 0..1114111.
-		 * @param continuation
-		 *   What to invoke with the [set][A_Set] of [lexers][A_Lexer] and a
-		 *   (normally empty) map from lexer to throwable, indicating lexer
-		 *   filter invocations that raised exceptions.
-		 */
-		private fun selectLexersPassingFilterThen(
-			lexingState: LexingState,
-			codePoint: Int,
-			continuation: (A_Set, Map<A_Lexer, Throwable>)->Unit)
-		{
-			val applicableLexers = mutableListOf<A_Lexer>()
-			val undecidedLexers = mutableListOf<A_Lexer>()
-			when (codePoint)
-			{
-				in 0 .. 255 -> allVisibleLexers.forEach {
-					when (it.lexerApplicability(codePoint))
-					{
-						null -> undecidedLexers.add(it)
-						true -> applicableLexers.add(it)
-						false -> { }
-					}
-				}
-				else -> undecidedLexers.addAll(allVisibleLexers)
-			}
-			var countdown = undecidedLexers.size
-			if (countdown == 0)
-			{
-				continuation(setFromCollection(applicableLexers), emptyMap())
-				return
-			}
-			// Initially use the immutable emptyMap for the failureMap, but
-			// replace it if/when the first error happens.
-			val argsList = listOf(fromCodePoint(codePoint))
-			val compilationContext = lexingState.compilationContext
-			val loader = compilationContext.loader
-			val joinLock = ReentrantLock()
-			val failureMap = mutableMapOf<A_Lexer, Throwable>()
-			val fibers = undecidedLexers.map { lexer ->
-				val fiber = newLoaderFiber(booleanType, loader)
-				{
-					formatString(
-						"Check lexer filter %s for U+%06x",
-						lexer.lexerMethod.chooseBundle(loader.module)
-							.message.atomName,
-						codePoint)
-				}
-				lexingState.setFiberContinuationsTrackingWork(
-					fiber,
-					{ boolObject: AvailObject ->
-						val boolValue = boolObject.extractBoolean
-						if (codePoint in 0 .. 255)
-						{
-							// Cache the filter result with the lexer
-							// itself, so other modules can reuse it.
-							lexer.setLexerApplicability(codePoint, boolValue)
-						}
-						val countdownHitZero = joinLock.withLock {
-							if (boolValue)
-							{
-								applicableLexers.add(lexer)
-							}
-							countdown--
-							assert(countdown >= 0)
-							countdown == 0
-						}
-						if (countdownHitZero)
-						{
-							// This was the fiber reporting the last result.
-							continuation(
-								setFromCollection(applicableLexers),
-								failureMap)
-						}
-					},
-					{ throwable: Throwable ->
-						val countdownHitZero = joinLock.withLock {
-							failureMap[lexer] = throwable
-							countdown--
-							assert(countdown >= 0)
-							countdown == 0
-						}
-						if (countdownHitZero)
-						{
-							// This was the fiber reporting the last result
-							// (a fiber failure).
-							continuation(
-								setFromCollection(applicableLexers),
-								failureMap)
-						}
-					})
-				fiber
-			}
-			// Launch the fibers only after they've all been created.  That's
-			// because we increment the queued count while setting the fibers'
-			// success/failure continuations, with the corresponding increments
-			// of the completed counts dealt with by wrapping the continuations.
-			// If a fiber ran to completion before we could create them all, the
-			// counters could collide, running the noMoreWorkUnits action before
-			// all fibers got a chance to run.
-			fibers.forEachIndexed { i, fiber ->
-				loader.runtime.runOutermostFunction(
-					fiber,
-					undecidedLexers[i].lexerFilterFunction,
-					argsList)
-			}
-		}
-	}
-
-	/**
 	 * The macro-state of the loader.  During compilation from a file, a loader
 	 * will ratchet between [COMPILING] while parsing a top-level statement, and
 	 * [EXECUTING_FOR_COMPILE] while executing the compiled statement.
@@ -598,6 +280,11 @@ constructor(
 	{
 		/** No statements have been loaded or compiled yet. */
 		INITIALIZING,
+
+		/**
+		 * The header has been compiled and processed, and is now being styled.
+		 */
+		STYLING_HEADER(true),
 
 		/** A top-level statement is being compiled. */
 		COMPILING,
@@ -696,8 +383,8 @@ constructor(
 	 * A stream on which to serialize each [ModuleManifestEntry] when the
 	 * definition actually occurs during compilation.  After compilation, the
 	 * bytes of this stream are written to a record whose index is captured in
-	 * the [A_Module]'s [ModuleDescriptor.ObjectSlots.ALL_MANIFEST_ENTRIES], and
-	 * fetched from the repository and decoded into a pojo array when needed.
+	 * the [A_Module]'s [manifestEntries], and fetched from the repository and
+	 * decoded into a pojo array when needed.
 	 */
 	var manifestEntries: MutableList<ModuleManifestEntry>? = null
 
@@ -736,7 +423,7 @@ constructor(
 				// Here's a good place for a breakpoint, to see why an
 				// expression couldn't be summarized.
 				val e = Throwable().fillInStackTrace()
-				println("Disabled summary:\n${StackPrinter.trace(e)}")
+				println("Disabled summary:\n${trace(e)}")
 			}
 			statementCanBeSummarized = summarizable
 		}
@@ -843,27 +530,519 @@ constructor(
 		effectsAddedByTopStatement.toList()
 
 	/**
-	 * A [variable][A_Variable] containing the current [map][A_Map] from
-	 * [token][A_Token] to [style][styleType].  The variable's map can be
-	 * examined and updated by any styling operation executed during the
-	 * compilation phase.
+	 * A lock for the [styledRanges] run tree.
 	 */
-	lateinit var tokenStyles: A_Variable
+	private val styledRangesLock = ReentrantReadWriteLock()
 
 	/**
-	 * A [variable][A_Variable] containing the current [map][A_Map] from
-	 * [phrase][A_Phrase] to [style][styleType].  The variable's map can be
-	 * examined and updated by any styling operation executed during the
-	 * compilation phase.
+	 * A [TreeMap] containing this module's styling information during
+	 * compilation.
 	 */
-	lateinit var phraseStyles: A_Variable
+	@GuardedBy("styledRangesLock")
+	private val styledRanges = RunTree<String>()
 
 	/**
-	 * A [variable][A_Variable] containing the current [map][A_Map] from
-	 * [A_Token] to [A_Token], where the key is the token for a variable usage,
-	 * and the value is the token for that variable's declaration.
+	 * Access the styledRanges in the [action] while holding the lock.
+	 *
+	 * @param action
+	 *   The action to perform with [styledRanges] while holding the lock.
 	 */
-	lateinit var usesToDefinitions: A_Variable
+	@ThreadSafe
+	fun <T> lockStyles(action: RunTree<String>.()->T): T =
+		styledRangesLock.safeWrite { styledRanges.action() }
+
+	/**
+	 * Helper method to style a token's range in a particular named style, using
+	 * the specified function to merge any style information previously attached
+	 * to all or parts of the token's range.
+	 *
+	 * @param token
+	 *   The token to style.  Only a token taken from the source of the current
+	 *   module will have its style honored.
+	 * @param style
+	 *   The [system&#32;style][SystemStyle] to apply to the token.
+	 * @param overwrite
+	 *   Whether the new style should clobber the old style.
+	 * @param editor
+	 *   How to reconcile an existing style with the new style. Applied to the
+	 *   existing style. Evaluates to the replacement style, which may be a
+	 *   comma-separated composite of styles. Defaults to style composition.
+	 */
+	@ThreadSafe
+	fun styleToken(
+		token: A_Token,
+		style: SystemStyle,
+		overwrite: Boolean = false,
+		editor: (String?)->String? = { old ->
+			when (old)
+			{
+				null -> style.kotlinString
+				else -> "$old,${style.kotlinString}"
+			}
+		})
+	{
+		if (!token.isInCurrentModule(module)) return
+		lockStyles {
+			val start = token.start().toLong()
+			val pastEnd = token.pastEnd().toLong()
+			edit(start, pastEnd) { old ->
+				when (overwrite)
+				{
+					true -> style.kotlinString
+					false -> editor(old)
+				}
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style a token's range in a particular named style, using
+	 * the specified function to merge any style information previously attached
+	 * to all or parts of the token's range.
+	 *
+	 * @param tokens
+	 *   The tokens to style.  Only tokens actually taken from the source of the
+	 *   current module will be styled.
+	 * @param style
+	 *   The [system&#32;style][SystemStyle] to apply to the token.
+	 * @param overwrite
+	 *   Whether the new style should clobber the old style.
+	 * @param editor
+	 *   How to reconcile an existing style with the new style. Applied to the
+	 *   existing style. Evaluates to the replacement style, which may be a
+	 *   comma-separated composite of styles. Defaults to style composition.
+	 */
+	@ThreadSafe
+	fun styleTokens(
+		tokens: Iterable<A_Token>,
+		style: SystemStyle,
+		overwrite: Boolean = false,
+		editor: (String?)->String? = { old ->
+			when (old)
+			{
+				null -> style.kotlinString
+				else -> "$old,${style.kotlinString}"
+			}
+		}
+	) = lockStyles {
+		tokens.forEach { token ->
+			if (token.isInCurrentModule(module))
+			{
+				val start = token.start().toLong()
+				val pastEnd = token.pastEnd().toLong()
+				edit(start, pastEnd) { old ->
+					when (overwrite)
+					{
+						true -> style.kotlinString
+						false -> editor(old)
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style a token's range in a particular named style, using
+	 * the specified function to merge any style information previously attached
+	 * to all or parts of the token's range.
+	 *
+	 * @param token
+	 *   The token to style.  Only a token taken from the source of the current
+	 *   module will have its style honored.
+	 * @param style
+	 *   The optional [system&#32;style][SystemStyle] to apply to the token. If
+	 *   `null`, then clear the style iff `overwrite` is `true`; otherwise,
+	 *   preserve the original style.
+	 * @param overwrite
+	 *   Whether the new style should clobber the old style.
+	 * @param editor
+	 *   How to reconcile an existing style with the new style. Applied to the
+	 *   existing style. Evaluates to the replacement style, which may be a
+	 *   comma-separated composite of styles. Defaults to style composition.
+	 */
+	@ThreadSafe
+	fun styleToken(
+		token: A_Token,
+		style: String?,
+		overwrite: Boolean = false,
+		editor: (String?)->String? = { old ->
+			when
+			{
+				old === null -> style
+				style === null -> old
+				else -> "$old,$style"
+			}
+		})
+	{
+		if (!token.isInCurrentModule(module)) return
+		lockStyles {
+			val start = token.start().toLong()
+			val pastEnd = token.pastEnd().toLong()
+			edit(start, pastEnd) { old ->
+				when (overwrite)
+				{
+					true -> style
+					false -> editor(old)
+				}
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style an ordinary string literal, i.e., one that is not
+	 * also a method name.
+	 *
+	 * @param stringLiteralToken
+	 *   The string literal to style.
+	 */
+	@ThreadSafe
+	fun styleStringLiteral(stringLiteralToken: A_Token)
+	{
+		if (!stringLiteralToken.isInCurrentModule(module)) return
+		lockStyles {
+			val characters = stringLiteralToken.string().iterator() as
+				ListIterator<A_Character>
+			var start = stringLiteralToken.start().toLong()
+			while (characters.hasNext())
+			{
+				var count = 0L
+				when (characters.next().codePoint)
+				{
+					'"'.code ->
+					{
+						edit(start, start + 1) {
+							SystemStyle.STRING_ESCAPE_SEQUENCE.kotlinString
+						}
+						start++
+					}
+					'\\'.code ->
+					{
+						count++
+						// We know that the string lexed correctly, so there
+						// can't be a dangling escape.
+						when (characters.next().codePoint)
+						{
+							'('.code ->
+							{
+								count++
+								// Search for the close parenthesis.
+								while (characters.hasNext())
+								{
+									count++
+									if (characters.next().codePoint == ')'.code)
+									{
+										edit(start, start + count) {
+											SystemStyle
+												.STRING_ESCAPE_SEQUENCE
+												.kotlinString
+										}
+										start += count
+										break
+									}
+								}
+							}
+							'n'.code, 'r'.code, 't'.code,
+							'\\'.code, '\"'.code, '|'.code ->
+							{
+								count++
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count
+							}
+							'\r'.code, '\n'.code ->
+							{
+								// Explicitly don't style the escaped carriage
+								// return or line feed, but do style the
+								// backslash.
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count + 1
+							}
+							// We know that the string lexed correctly, so there
+							// can't be a malformed escape.
+							else ->
+							{
+								assert(false) { "Unreachable" }
+							}
+						}
+					}
+					else ->
+					{
+						count++
+						while (characters.hasNext())
+						{
+							val c = characters.next().codePoint
+							if (c == '"'.code || c == '\\'.code)
+							{
+								edit(start, start + count) {
+									SystemStyle.STRING_LITERAL.kotlinString
+								}
+								start += count
+								characters.previous()
+								break
+							}
+							else
+							{
+								count++
+							}
+						}
+						// We know that the string lexed correctly, so there
+						// have to be more characters (because we haven't seen
+						// the closing double quote yet).
+						assert(characters.hasNext())
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style a method name.  If the [stringLiteralToken] is not
+	 * a well-formed method name, don't style it.
+	 *
+	 * @param stringLiteralToken
+	 *   The string literal to style as a method name.
+	 */
+	@ThreadSafe
+	fun styleMethodName(stringLiteralToken: A_Token)
+	{
+		if (!stringLiteralToken.isInCurrentModule(module)) return
+		try
+		{
+			MessageSplitter(stringLiteralToken.literal().literal())
+		}
+		catch (e: MalformedMessageException)
+		{
+			// This string literal is not actually a well-formed method name, so
+			// don't attempt to style it as such.
+			return
+		}
+		var start = stringLiteralToken.start().toLong()
+		lockStyles {
+			val characters =
+				stringLiteralToken.string().iterator() as ListIterator<A_Character>
+			while (characters.hasNext())
+			{
+				var count = 0L
+				when (characters.next().codePoint)
+				{
+					'"'.code ->
+					{
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						start++
+					}
+					'\\'.code ->
+					{
+						count++
+						// We know that the string lexed correctly, so there
+						// can't be a dangling escape.
+						when (characters.next().codePoint)
+						{
+							'('.code ->
+							{
+								count++
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count
+								var value = 0
+								// Process the Unicode escape sequences, looking
+								// for hidden metacharacters.
+								while (characters.hasNext())
+								{
+									when (val c = characters.next().codePoint)
+									{
+										','.code, ')'.code ->
+										{
+											edit(start, start + count) {
+												if (canBeBackQuoted(value))
+												{
+													SystemStyle
+														.METHOD_NAME
+														.kotlinString
+												}
+												else
+												{
+													SystemStyle
+														.STRING_ESCAPE_SEQUENCE
+														.kotlinString
+												}
+											}
+											start += count
+											value = 0
+											edit(start, start + 1) {
+												SystemStyle
+													.STRING_ESCAPE_SEQUENCE
+													.kotlinString
+											}
+											start++
+											break
+										}
+										in '0'.code .. '9'.code ->
+										{
+											count++
+											value = (value shl 4) + c - '0'.code
+										}
+										in 'A'.code .. 'F'.code ->
+										{
+											count++
+											value =
+												(value shl 4) + c - 'A'.code + 10
+										}
+										in 'a'.code .. 'f'.code ->
+										{
+											count++
+											value =
+												(value shl 4) + c - 'a'.code + 10
+										}
+										else ->
+										{
+											assert(false) { "Unreachable" }
+										}
+									}
+								}
+							}
+							'n'.code, 'r'.code, 't'.code,
+							'\\'.code, '\"'.code, '|'.code ->
+							{
+								count++
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count
+							}
+							'\r'.code, '\n'.code ->
+							{
+								// Explicitly don't style the escaped carriage
+								// return or line feed, but do style the backslash.
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count + 1
+							}
+							// We know that the string lexed correctly, so there
+							// can't be a malformed escape.
+							else ->
+							{
+								assert(false) { "Unreachable" }
+							}
+						}
+					}
+					BACK_QUOTE.codepoint ->
+					{
+						// We know that the message split correctly, so there can't
+						// be a dangling escape.
+						val c = characters.next().codePoint
+						assert(canBeBackQuoted(c))
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						edit(start + 1, start + 2) {
+							SystemStyle.STRING_LITERAL.kotlinString
+						}
+						start += 2
+					}
+					CLOSE_GUILLEMET.codepoint,
+					DOUBLE_DAGGER.codepoint,
+					DOUBLE_QUESTION_MARK.codepoint,
+					ELLIPSIS.codepoint,
+					EXCLAMATION_MARK.codepoint,
+					OCTOTHORP.codepoint,
+					OPEN_GUILLEMET.codepoint,
+					QUESTION_MARK.codepoint,
+					SECTION_SIGN.codepoint,
+					SINGLE_DAGGER.codepoint,
+					TILDE.codepoint,
+					UNDERSCORE.codepoint,
+					UP_ARROW.codepoint,
+					VERTICAL_BAR.codepoint ->
+					{
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						start++
+					}
+					else ->
+					{
+						count++
+						while (characters.hasNext())
+						{
+							val c = characters.next().codePoint
+							if (c == '"'.code
+								|| c == '\\'.code
+								|| canBeBackQuoted(c))
+							{
+								edit(start, start + count) {
+									SystemStyle.STRING_LITERAL.kotlinString
+								}
+								start += count
+								characters.previous()
+								break
+							}
+							else
+							{
+								count++
+							}
+						}
+						// We know that the string lexed correctly, so there have to
+						// be more characters (because we haven't seen the closing
+						// double quote yet).
+						assert(characters.hasNext())
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * A mapping from ranges where variable uses occur to ranges where the
+	 * corresponding declarations occur.
+	 */
+	@GuardedBy("styledRangesLock")
+	val usesToDefinitions = RunTree<LongRange>()
+
+	/**
+	 * Access the [usesToDefinitions] in the [action] while holding the lock.
+	 *
+	 * @param action
+	 *   The action to perform with [usesToDefinitions] while holding the lock.
+	 */
+	@ThreadSafe
+	fun <T> lockUsesToDefinitions(action: RunTree<LongRange>.()->T): T =
+		styledRangesLock.safeWrite { usesToDefinitions.action() }
+
+	/**
+	 * A [variable-use][VariableUsePhraseDescriptor] was encountered, so record
+	 * information about where it is, and where its associated definition is.
+	 */
+	fun addVariableUse(useToken: A_Token, declarationToken: A_Token)
+	{
+		if (!useToken.isInCurrentModule(module)) return
+		if (!declarationToken.isInCurrentModule(module)) return
+		val useStart = useToken.start().toLong()
+		val declarationRange = declarationToken.start().toLong() ..
+			declarationToken.end().toLong()
+		styledRangesLock.safeWrite {
+			usesToDefinitions.edit(useStart, useToken.pastEnd().toLong()) {
+				// Just overwrite it, in the unexpected case of a conflict.
+				declarationRange
+			}
+		}
+	}
 
 	/**
 	 * Set up the [rootBundleTree] and [lexicalScanner] for compiling the body
@@ -873,30 +1052,6 @@ constructor(
 	{
 		rootBundleTree = module.buildFilteredBundleTree()
 		lexicalScanner = module.createLexicalScanner()
-		tokenStyles =
-			newVariableWithContentType(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, Types.TOKEN.o, styleType)
-			).run {
-				setValueNoCheck(emptyMap)
-				makeShared()
-			}
-		phraseStyles =
-			newVariableWithContentType(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, Types.TOKEN.o, styleType)
-			).run {
-				setValueNoCheck(emptyMap)
-				makeShared()
-			}
-		usesToDefinitions =
-			newVariableWithContentType(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, Types.TOKEN.o, Types.TOKEN.o)
-			).run {
-				setValueNoCheck(emptyMap)
-				makeShared()
-			}
 	}
 
 	/**
@@ -1488,24 +1643,48 @@ constructor(
 
 	/**
 	 * Define and install a new [styler][StylerDescriptor] based on the given
-	 * [stylerFunction].  Install it for the given definition, within the
-	 * current [A_Module].
+	 * [stylerFunction].  Install it for the given [A_Bundle]'s method, within
+	 * the current [A_Module].
 	 *
-	 * @param definition
-	 *   The [A_Definition] for which the styler is to be added.
+	 * @param bundle
+	 *   The [A_Bundle] whose method will have the styler added.
 	 * @param stylerFunction
 	 *   The [A_Function], a [stylerFunctionType], which is to be executed to
-	 *   style invocations of the [definition].
+	 *   style invocations of the [bundle] or its aliases.
+	 *
+	 * @throws AvailException
+	 *   With [E_STYLER_ALREADY_SET_BY_THIS_MODULE] if this module has already
+	 *   defined a styler for this method.
 	 */
-	fun addStyler(definition: A_Definition, stylerFunction: A_Function)
+	@Throws(AvailException::class)
+	fun addStyler(bundle: A_Bundle, stylerFunction: A_Function)
 	{
-		val atomName = definition.definitionMethod.chooseBundle(module)
+		val method = bundle.bundleMethod
+		val styler = newStyler(stylerFunction, method, module)
+		var bad = false
+		method.updateStylers {
+			bad = any { it.module.equals(module) }
+			if (bad) this else setWithElementCanDestroy(styler, true)
+		}
+		if (bad)
+		{
+			throw AvailException(E_STYLER_ALREADY_SET_BY_THIS_MODULE)
+		}
+		module.moduleAddStyler(styler)
+		if (phase == EXECUTING_FOR_COMPILE)
+		{
+			recordEffect(
+				LoadingEffectToRunPrimitive(
+					SpecialMethodAtom.SET_STYLER.bundle,
+					bundle.message,
+					stylerFunction))
+		}
+		val atomName = bundle.message.atomName
 		stylerFunction.code().methodName = stringFrom("Styler for $atomName")
-		recordEffect(
-			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.SET_STYLER.bundle,
-				definition,
-				stylerFunction))
+		if (AvailRuntimeConfiguration.debugStyling)
+		{
+			println("Defined styler: ${stylerFunction.code().methodName}")
+		}
 	}
 
 	/**
@@ -1763,39 +1942,40 @@ constructor(
 		/**
 		 * The [LexicalScanner] used only for parsing module headers.
 		 */
-		private val moduleHeaderLexicalScanner = LexicalScanner().apply {
-			// Add the string literal lexer.
-			createPrimitiveLexerForHeaderParsing(
-				P_BootstrapLexerStringFilter,
-				P_BootstrapLexerStringBody,
-				"string token lexer")
+		private val moduleHeaderLexicalScanner = LexicalScanner { "(headers)" }
+			.apply {
+				// Add the string literal lexer.
+				createPrimitiveLexerForHeaderParsing(
+					P_BootstrapLexerStringFilter,
+					P_BootstrapLexerStringBody,
+					"string token lexer")
 
-			// The module header uses keywords, e.g. "Extends".
-			createPrimitiveLexerForHeaderParsing(
-				P_BootstrapLexerKeywordFilter,
-				P_BootstrapLexerKeywordBody,
-				"keyword token lexer")
+				// The module header uses keywords, e.g. "Extends".
+				createPrimitiveLexerForHeaderParsing(
+					P_BootstrapLexerKeywordFilter,
+					P_BootstrapLexerKeywordBody,
+					"keyword token lexer")
 
-			// There's also punctuation in there, like commas.
-			createPrimitiveLexerForHeaderParsing(
-				P_BootstrapLexerOperatorFilter,
-				P_BootstrapLexerOperatorBody,
-				"operator token lexer")
+				// There's also punctuation in there, like commas.
+				createPrimitiveLexerForHeaderParsing(
+					P_BootstrapLexerOperatorFilter,
+					P_BootstrapLexerOperatorBody,
+					"operator token lexer")
 
-			// It would be tricky with no whitespace!
-			createPrimitiveLexerForHeaderParsing(
-				P_BootstrapLexerWhitespaceFilter,
-				P_BootstrapLexerWhitespaceBody,
-				"whitespace lexer")
+				// It would be tricky with no whitespace!
+				createPrimitiveLexerForHeaderParsing(
+					P_BootstrapLexerWhitespaceFilter,
+					P_BootstrapLexerWhitespaceBody,
+					"whitespace lexer")
 
-			// Slash-star-star-slash comments are legal in the header.
-			createPrimitiveLexerForHeaderParsing(
-				P_BootstrapLexerSlashStarCommentFilter,
-				P_BootstrapLexerSlashStarCommentBody,
-				"comment lexer")
+				// Slash-star-star-slash comments are legal in the header.
+				createPrimitiveLexerForHeaderParsing(
+					P_BootstrapLexerSlashStarCommentFilter,
+					P_BootstrapLexerSlashStarCommentBody,
+					"comment lexer")
 
-			freezeFromChanges()
-		}
+				freezeFromChanges()
+			}
 
 		/**
 		 * Create an [A_Lexer] from the given filter and body primitives, and
@@ -1835,6 +2015,31 @@ constructor(
 			val lexer = newLexer(
 				stringLexerFilter, stringLexerBody, bundle.bundleMethod, nil)
 			addLexer(lexer)
+		}
+
+		/**
+		 * Answer a merge function that accepts an existing regional style and
+		 * clobbers it with [replacement] iff the existing style is [original].
+		 * The resultant function is suitable for use with [styleToken].
+		 *
+		 * @param original
+		 *   The [style][SystemStyle] to replace.
+		 * @param replacement
+		 *   The replacement [style][SystemStyle] to use for [original].
+		 * @return
+		 *   The requested merge function.
+		 */
+		fun overrideStyle(
+			original: SystemStyle,
+			replacement: SystemStyle
+		): (String?)->String? = { old ->
+			when (old)
+			{
+				original.kotlinString -> replacement.kotlinString
+				// Anything else was chosen for a narrower contextual reason, so
+				// honor the styling decisions already made.
+				else -> old
+			}
 		}
 	}
 }

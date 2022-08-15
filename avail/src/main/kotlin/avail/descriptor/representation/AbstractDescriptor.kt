@@ -37,6 +37,7 @@ import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
@@ -156,7 +157,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
@@ -315,7 +316,6 @@ abstract class AbstractDescriptor protected constructor (
 			if (objectSlotsEnumClass !== null)
 				objectSlotsEnumClass.enumConstants
 			else arrayOf()
-		@Suppress("ConstantConditionIf")
 		debugObjectSlots =
 			if (AvailObjectRepresentation.shouldCheckSlots)
 				arrayOfNulls(max(objectSlots.size, 1))
@@ -331,7 +331,6 @@ abstract class AbstractDescriptor protected constructor (
 				integerSlotsEnumClass.enumConstants
 			else
 				arrayOf()
-		@Suppress("ConstantConditionIf")
 		debugIntegerSlots =
 			if (AvailObjectRepresentation.shouldCheckSlots)
 				arrayOfNulls(max(integerSlots.size, 1))
@@ -435,7 +434,7 @@ abstract class AbstractDescriptor protected constructor (
 	open fun o_DescribeForDebugger (
 		self: AvailObject): Array<AvailObjectFieldHelper>
 	{
-		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast()!!
+		val cls: Class<AbstractDescriptor> = javaClass
 		val loader = cls.classLoader
 		var enumClass: Class<Enum<*>>? =
 			try
@@ -2126,7 +2125,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
-		continuation: (Boolean) -> Unit)
+		continuation: (Boolean) -> Unit
+	): Boolean
 
 	abstract fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,
@@ -2885,7 +2885,7 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	abstract fun o_ChildrenMap (
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase)
+		transformer: (A_Phrase)->A_Phrase)
 
 	/**
 	 * Visit my child phrases with aBlock.
@@ -2895,7 +2895,7 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	abstract fun o_ChildrenDo (
 		self: AvailObject,
-		action: (A_Phrase) -> Unit)
+		action: (A_Phrase)->Unit)
 
 	abstract fun o_ValidateLocally (
 		self: AvailObject,
@@ -3962,9 +3962,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ModuleNameNative(self: AvailObject): String
 
-	abstract fun o_CallDepth(self: AvailObject): Int
-
-	abstract fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
+	abstract fun o_DeoptimizeForDebugger(self: AvailObject)
 
 	abstract fun o_GetValueForDebugger (self: AvailObject): AvailObject
 
@@ -3979,6 +3977,29 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_StylingRecord(self: AvailObject): StylingRecord
 
 	abstract fun o_StylerMethod(self: AvailObject): A_Method
+
+	abstract fun o_GeneratingPhrase(self: AvailObject): A_Phrase
+
+	abstract fun o_GeneratingLexer(self: AvailObject): A_Lexer
+
+	abstract fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean
+
+	abstract fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module)
+
+	abstract fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+
+	abstract fun o_CurrentLexer(self: AvailObject): A_Lexer
+
+	abstract fun o_WhichPowerOfTwo(self: AvailObject): Int
 
 	companion object
 	{
@@ -4280,14 +4301,13 @@ abstract class AbstractDescriptor protected constructor (
 		with(builder) {
 			if (enumAnnotation !== null)
 			{
-				val describingClass: Class<Enum<*>> =
-					enumAnnotation.describedBy.java.cast()!!
+				val describingClass = enumAnnotation.describedBy.java
 				val lookupName = enumAnnotation.lookupMethodName
 				if (lookupName.isEmpty())
 				{
 					// Look it up by ordinal (must be an actual Enum).
 					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
-						describingClass.enumConstants.cast()!!
+						describingClass.enumConstants.cast()
 					if (value in allValues.indices)
 					{
 						append(allValues[value.toInt()].fieldName)

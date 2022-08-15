@@ -102,8 +102,6 @@ internal class ParsingStepState constructor(
 	 */
 	fun copy(update: ParsingStepState.()->Unit = {}): ParsingStepState
 	{
-		// TODO - When the lists are rewritten as mutable, they should be copied
-		//  here.
 		val copy = ParsingStepState(
 			start,
 			firstArgOrNull,

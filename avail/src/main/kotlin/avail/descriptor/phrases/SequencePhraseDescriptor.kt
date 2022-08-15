@@ -90,12 +90,12 @@ class SequencePhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = self.slot(STATEMENTS).forEach(action)
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self.setSlot(
 		STATEMENTS,
 		tupleFromList(self.slot(STATEMENTS).map(transformer)))
@@ -126,7 +126,7 @@ class SequencePhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(STATEMENTS).equals(aPhrase.statements))
+		&& equalPhrases(self.slot(STATEMENTS), aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)

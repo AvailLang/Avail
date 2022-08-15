@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.phrases
 
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -54,9 +55,9 @@ import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
@@ -90,7 +91,8 @@ object P_CreateToken : Primitive(4, CanFold, CanInline)
 				start.extractInt,
 				line.extractInt,
 				TokenType.lookupTokenType(
-					type.getAtomProperty(tokenTypeOrdinalKey).extractInt)))
+					type.getAtomProperty(tokenTypeOrdinalKey).extractInt),
+				interpreter.fiber().currentLexer))
 	}
 
 	override fun returnTypeGuaranteedByVM(

@@ -95,7 +95,8 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val lower = returnType.lowerBound
 		val upper = returnType.upperBound
-		when {
+		when
+		{
 			lower.equals(upper) ->
 				// If the exact size of the tuple is known, then leverage that
 				// information to produce a constant.

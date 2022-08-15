@@ -32,24 +32,39 @@
 
 package avail.environment
 
-import avail.environment.streams.StreamStyle
+import avail.environment.BoundStyle.Companion.defaultStyle
 import avail.environment.text.AvailEditorKit
 import avail.environment.text.TextLineNumber
+import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Frame
+import java.awt.Graphics
 import java.awt.Rectangle
+import java.awt.Shape
+import java.awt.event.ActionEvent
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
+import java.awt.event.WindowEvent
+import javax.swing.AbstractAction
+import javax.swing.Action
 import javax.swing.BorderFactory
+import javax.swing.JComponent
+import javax.swing.JFrame
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
+import javax.swing.KeyStroke
 import javax.swing.text.BadLocationException
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.JTextComponent
+import javax.swing.text.Position.Bias
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
-import javax.swing.text.StyleContext
 import javax.swing.text.StyledDocument
 import javax.swing.text.TabSet
 import javax.swing.text.TabStop
+import javax.swing.text.View
+import kotlin.math.max
 
 /**
  * Either places the receiver JTextArea inside a JScrollPane with line numbers
@@ -86,24 +101,26 @@ fun Component.scroll(): JScrollPane
  */
 // Set up styles for the transcript.
 fun codeSuitableTextPane(
-	workbench: AvailWorkbench
+	workbench: AvailWorkbench,
+	frame: JFrame
 ): JTextPane = JTextPane().apply {
 	border = BorderFactory.createEtchedBorder()
 	isEditable = true
 	isEnabled = true
 	isFocusable = true
 	preferredSize = Dimension(0, 500)
-	editorKit = AvailEditorKit(workbench)
+	editorKit = AvailEditorKit(workbench, frame)
+	foreground = SystemColors.active.baseCode
+	background = SystemColors.active.codeBackground
 	val attributes = SimpleAttributeSet()
 	StyleConstants.setTabSet(
 		attributes, TabSet(Array(500) { TabStop(32.0f * (it + 1)) }))
+	StyleConstants.setFontFamily(attributes, "Monospaced")
 	styledDocument.run {
 		setParagraphAttributes(0, length, attributes, false)
-		val defaultStyle = StyleContext.getDefaultStyleContext().getStyle(
-			StyleContext.DEFAULT_STYLE)
+		val defaultStyle = defaultStyle
 		defaultStyle.addAttributes(attributes)
-		StyleConstants.setFontFamily(defaultStyle, "Monospaced")
-		StreamStyle.values().forEach { style -> style.defineStyleIn(this) }
+		StyleRegistry.addAllStyles(this)
 	}
 }
 
@@ -132,5 +149,115 @@ fun JTextComponent.showTextRange(rangeStart: Int, rangeEnd: Int)
 	catch (ble: BadLocationException)
 	{
 		// Ignore text range problems.
+	}
+}
+
+class GlowHighlightPainter
+constructor (
+	color: Color
+): DefaultHighlightPainter(color)
+{
+	override fun paintLayer(
+		g: Graphics,
+		offs0: Int,
+		offs1: Int,
+		bounds: Shape,
+		c: JTextComponent,
+		view: View
+	): Shape?
+	{
+		g.color = color ?: c.selectionColor
+		val shape = try
+		{
+			view.modelToView(offs0, Bias.Backward, offs1, Bias.Forward, bounds)
+		}
+		catch (e: BadLocationException)
+		{
+			return null
+		}
+		val r = shape as? Rectangle ?: shape.bounds
+		// If we are asked to highlight, we should draw something even
+		// if the model-to-view projection is of zero width.
+		r.width = max(r.width, 1)
+		g.drawRect(r.x, r.y, r.width, r.height - 1)
+		return Rectangle(r.x - 1, r.y - 1, r.width + 3, r.height + 2)
+	}
+}
+
+/**
+ * Create a Window menu that appears suitable for the platform.  Which is
+ * only Mac at the moment, although these commands should work anywhere.
+ */
+fun MenuBarBuilder.addWindowMenu(frame: JFrame)
+{
+	menu("Window")
+	{
+		item(
+			WindowAction(
+				"Minimize",
+				frame,
+				KeyStroke.getKeyStroke(
+					KeyEvent.VK_M, AvailWorkbench.menuShortcutMask)
+			) {
+				val mask = JFrame.ICONIFIED
+				val state = frame.extendedState
+				when (state and mask)
+				{
+					0 -> frame.extendedState = state or mask
+					else -> frame.extendedState = state and (mask.inv())
+				}
+			})
+		item(
+			WindowAction(
+				"Zoom",
+				frame,
+				KeyStroke.getKeyStroke(
+					KeyEvent.VK_F,
+					AvailWorkbench.menuShortcutMask
+						or InputEvent.CTRL_DOWN_MASK)
+			) {
+				val mask = JFrame.MAXIMIZED_BOTH
+				val state = frame.extendedState
+				when (state and mask)
+				{
+					0 -> frame.extendedState = state or mask
+					else -> frame.extendedState = state and (mask.inv())
+				}
+			})
+		item(
+			WindowAction(
+				"Close",
+				frame,
+				KeyStroke.getKeyStroke(
+					KeyEvent.VK_W, AvailWorkbench.menuShortcutMask)
+			) {
+				frame.dispatchEvent(
+					WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
+			})
+	}
+}
+
+class WindowAction
+constructor(
+	name: String,
+	frame: JFrame,
+	keyStroke: KeyStroke? = null,
+	val action: ()->Unit
+): AbstractAction(name)
+{
+	init
+	{
+		val rootPane = frame.rootPane
+		rootPane.actionMap.put(this, this)
+		keyStroke?.let {
+			putValue(Action.ACCELERATOR_KEY, it)
+			rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+				it, this)
+		}
+	}
+
+	override fun actionPerformed(e: ActionEvent?)
+	{
+		action()
 	}
 }

@@ -58,6 +58,7 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
@@ -202,7 +203,7 @@ import javax.annotation.Nullable
  *
  * @param code
  *   The source [L1&#32;code][A_RawFunction], or `null` for the
- *   [unoptimized&#32;chunk][L2Chunk.unoptimizedChunk].
+ *   [unoptimized&#32;chunk][unoptimizedChunk].
  * @param chunkName
  *   The descriptive (non-unique) name of the chunk being translated.
  * @param sourceFileName
@@ -211,7 +212,7 @@ import javax.annotation.Nullable
  * @param controlFlowGraph
  *   The [L2ControlFlowGraph] which produced the sequence of instructions.
  * @param instructions
- *   The source [L2Instruction]s.
+ *   The source [L2Instruction]s to translate to JVM bytecodes.
  */
 @Suppress(
 	"PARAMETER_NAME_CHANGED_ON_OVERRIDE",
@@ -222,11 +223,8 @@ class JVMTranslator constructor(
 	private val chunkName: String,
 	private val sourceFileName: String?,
 	private val controlFlowGraph: L2ControlFlowGraph,
-	instructions: Array<L2Instruction>)
+	private val instructions: List<L2Instruction>)
 {
-	/** The array of [L2Instruction]s to translate to JVM bytecodes. */
-	val instructions: Array<L2Instruction> = instructions.clone()
-
 	/**
 	 * The [ClassWriter] responsible for writing the [JVMChunk] subclass. The
 	 * `ClassWriter` is configured to automatically compute stack map frames and

@@ -1,5 +1,5 @@
 /*
- * P_BootstrapMethodDefinitionStyler.kt
+ * P_SpecialObjectStyler.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,58 +32,65 @@
 
 package avail.interpreter.primitive.style
 
-import avail.descriptor.methods.StylerDescriptor.BaseStyle
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.SPECIAL_OBJECT
 import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
-import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
-import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.variables.A_Variable
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Apply bootstrap styling to a phrase that produces a literal.
+ * **Primitive**: Apply bootstrap styling to a phrase responsible for special
+ * object access.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
-@Suppress("unused")
-object P_BootstrapLiteralStyler :
-	Primitive(4, Bootstrap, CannotFail)
+object P_SpecialObjectStyler :
+	Primitive(
+		2,
+		CanInline,
+		Bootstrap,
+		ReadsFromHiddenGlobalState,
+		WritesToHiddenGlobalState
+	)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(4)
-		val phrase: A_Phrase = interpreter.argument(0)
-		val phraseToStyle: A_Variable = interpreter.argument(1)
-		val tokenToStyle: A_Variable = interpreter.argument(2)
-		val usesToDeclaration: A_Variable = interpreter.argument(3)
+		interpreter.checkArgumentCount(2)
+		val sendPhrase: A_Phrase = interpreter.argument(0)
+//		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
-		val literalPhrase = phrase.argumentsListNode.expressionAt(1)
-		val literal = literalPhrase.token.literal().literal()
-		val style = when
+		val loader = interpreter.fiber().availLoader
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		if (!loader.phase().isExecuting)
 		{
-			literal.isInstanceOf(stringType) -> BaseStyle.STRING_LITERAL
-			literal.isInstanceOf(Types.CHARACTER.o) ->
-				BaseStyle.CHARACTER_LITERAL
-			literal.isInstanceOf(extendedIntegers) ->
-				BaseStyle.INTEGER_LITERAL
-			literal.isInstanceOf(Types.FLOAT.o) -> BaseStyle.FLOAT_LITERAL
-			literal.isInstanceOf(Types.DOUBLE.o) -> BaseStyle.DOUBLE_LITERAL
-			// Don't apply any bootstrap style for other literal types.
-			else -> return interpreter.primitiveSuccess(nil)
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val token = phrase.argumentsListNode.expressionAt(1).token.literal()
-		tokenToStyle.atomicAddToMap(token, style.string)
+
+		loader.styleTokens(sendPhrase.tokens, SPECIAL_OBJECT)
+
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION)
+		)
+
 	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }
+

@@ -32,6 +32,7 @@
 package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
@@ -98,6 +99,20 @@ abstract class PhraseDescriptor protected constructor(
 	 */
 	override fun o_ApparentSendName(self: AvailObject): A_Atom = nil
 
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		// By default, just visit the children and do nothing else with this
+		// phrase.  Subclasses may invoke the super behavior with an altered
+		// 'then'.
+		val children = mutableListOf<A_Phrase>()
+		self.childrenDo(children::add)
+		context.visitAll(children.iterator(), visitedSet, then)
+	}
+
 	/**
 	 * Visit every phrase constituting this parse tree, invoking the passed
 	 * consumer with each.
@@ -109,7 +124,8 @@ abstract class PhraseDescriptor protected constructor(
 	 */
 	abstract override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit)
+		action: (A_Phrase)->Unit
+	)
 
 	/**
 	 * Visit and transform the direct descendants of this phrase.  Map this
@@ -123,7 +139,8 @@ abstract class PhraseDescriptor protected constructor(
 	 */
 	abstract override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase)
+		transformer: (A_Phrase)->A_Phrase
+	)
 
 	/**
 	 * If the receiver is immutable, make an equivalent mutable copy of that
@@ -187,8 +204,15 @@ abstract class PhraseDescriptor protected constructor(
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
-	): Boolean = another.equalsPhrase(self)
+	): Boolean = another.traversed().sameAddressAs(self)
 
+	/**
+	 * Note: This is only used to eliminate duplicate equivalent phrases
+	 * produced by the parallel parsing plan mechanism.  Each definition has to
+	 * be parsed as a separate potential entity in the message bundle tree, and
+	 * multiple applicable sites might be found for the same bundle, but
+	 * different definitions.
+	 */
 	abstract override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -294,24 +318,29 @@ abstract class PhraseDescriptor protected constructor(
 
 	abstract override fun shared(): PhraseDescriptor
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Visit the entire tree with the given consumer, children before
 		 * parents.  The block takes two arguments: the phrase and its parent.
 		 *
 		 * @param self
 		 *   The current [A_Phrase].
+		 * @param parentNode
+		 *   This phrase's parent, or `null`. Defaults to `null`.
 		 * @param aBlock
 		 *   What to do with each descendant.
-		 * @param parentNode
-		 *   This phrase's parent, or `null`.
 		 */
 		fun treeDoWithParent(
 			self: A_Phrase,
-			aBlock: (A_Phrase, A_Phrase?) -> Unit,
-			parentNode: A_Phrase?)
+			parentNode: A_Phrase? = null,
+			children: (A_Phrase, (A_Phrase) -> Unit) -> Unit =
+				{ phrase, withChild -> phrase.childrenDo(withChild) },
+			aBlock: (A_Phrase, A_Phrase?) -> Unit)
 		{
-			self.childrenDo { child -> treeDoWithParent(child, aBlock, self) }
+			children(self) { child ->
+				treeDoWithParent(child, self, children, aBlock)
+			}
 			aBlock(self, parentNode)
 		}
 
@@ -363,5 +392,28 @@ abstract class PhraseDescriptor protected constructor(
 			return true
 		}
 
+		/**
+		 * Given two [Iterable]s of [A_Phrase]s, check that they have the same
+		 * length, and that their corresponding elements are
+		 * [A_Phrase.equalsPhrase].
+		 *
+		 * @param phrases1
+		 *   The first source of phrases.
+		 * @param phrases2
+		 *   The other source of phrases.
+		 * @return
+		 *   Whether the phrases were all equivalent.
+		 */
+		fun equalPhrases(
+			phrases1: Iterable<A_Phrase>,
+			phrases2: Iterable<A_Phrase>): Boolean
+		{
+			val list1 = phrases1.toList()
+			val list2 = phrases2.toList()
+			if (list1.size != list2.size) return false
+			return list1.zip(list2).all { (phrase1, phrase2) ->
+				phrase1.equalsPhrase(phrase2)
+			}
+		}
 	}
 }

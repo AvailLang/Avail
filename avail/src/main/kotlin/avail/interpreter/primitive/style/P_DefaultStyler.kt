@@ -32,18 +32,19 @@
 
 package avail.interpreter.primitive.style
 
-import avail.descriptor.methods.StylerDescriptor.BaseStyle
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tokens.TokenDescriptor.TokenType
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.A_Type
-import avail.descriptor.variables.A_Variable
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.Primitive.Flag.Bootstrap
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -55,30 +56,38 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DefaultStyler : Primitive(2, CanSuspend, CannotFail, Unknown)
+object P_DefaultStyler :
+	Primitive(
+		2,
+		CanInline,
+		Bootstrap,
+		ReadsFromHiddenGlobalState,
+		WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(4)
-		val sendPhrase: A_Phrase = interpreter.argument(0)
-		val phraseStyles: A_Variable = interpreter.argument(1)
-		val tokenStyles: A_Variable = interpreter.argument(2)
-		val tokenDefinitions: A_Variable = interpreter.argument(3)
+		interpreter.checkArgumentCount(2)
+//		val sendPhrase: A_Phrase = interpreter.argument(0)
+//		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
-		// Color all keyword and operator tokens.
-		for (token in sendPhrase.tokens)
+		val loader = interpreter.fiber().availLoader
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		if (!loader.phase().isExecuting)
 		{
-			val styleString = when (token.tokenType())
-			{
-				TokenType.KEYWORD -> BaseStyle.KEYWORD.string
-				TokenType.OPERATOR -> BaseStyle.OPERATOR.string
-				// Skip other tokens... although they won't actually occur here.
-				else -> continue
-			}
-			tokenStyles.atomicAddToMap(token, styleString)
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
+
+		// Do nothing.  Fixed tokens will already have been styled as
+		// METHOD_SEND.
 		return interpreter.primitiveSuccess(nil)
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION))
 
 	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }

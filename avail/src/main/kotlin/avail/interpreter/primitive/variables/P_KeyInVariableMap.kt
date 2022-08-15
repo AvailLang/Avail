@@ -75,7 +75,7 @@ object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 		{
 			interpreter.primitiveFailure(e)
 		}
-}
+	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

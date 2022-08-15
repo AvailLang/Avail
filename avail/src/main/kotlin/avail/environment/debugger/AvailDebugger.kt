@@ -62,9 +62,9 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import avail.descriptor.functions.A_RawFunction.Companion.numNybbles
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.methods.StylerDescriptor.BaseStyle
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.stylingRecord
@@ -80,7 +80,9 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.environment.AdaptiveColor
 import avail.environment.AvailWorkbench
 import avail.environment.MenuBarBuilder
+import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
+import avail.environment.addWindowMenu
 import avail.environment.codeSuitableTextPane
 import avail.environment.scroll
 import avail.environment.scrollTextWithLineNumbers
@@ -120,7 +122,6 @@ import javax.swing.border.EmptyBorder
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter.HighlightPainter
-import javax.swing.text.StyleConstants
 
 /**
  * [AvailDebugger] presents a user interface for debugging Avail
@@ -316,10 +317,14 @@ class AvailDebugger internal constructor (
 				{ pc, line, string ->
 					val before = length
 					append("$pc. [:$line] $string")
-					val after = length
-					map[pc] = before .. after
+					map[pc] = before .. length
 					append("\n")
 				}
+				val pcPastEnd = code.numNybbles + 1
+				val returnStart = length
+				append("($pcPastEnd. return)")
+				map[pcPastEnd] = returnStart .. length
+				append("\n")
 			}
 			// Write to the cache, even if it overwrites.
 			disassemblyCache[code] = string to map
@@ -569,14 +574,16 @@ class AvailDebugger internal constructor (
 	}
 
 	/** A view of the L1 disassembly for the selected frame. */
-	private val disassemblyPane = codeSuitableTextPane(workbench).apply {
-		isEditable = false
-	}
+	private val disassemblyPane =
+		codeSuitableTextPane(workbench, workbench).apply {
+			isEditable = false
+		}
 
 	/** A view of the source code for the selected frame. */
-	private val sourcePane = codeSuitableTextPane(workbench).apply {
-		isEditable = false
-	}
+	private val sourcePane =
+		codeSuitableTextPane(workbench, workbench).apply {
+			isEditable = false
+		}
 
 	/** The list of variables in scope in the selected frame. */
 	private val variablesPane = JList(arrayOf<Variable>()).apply {
@@ -760,23 +767,10 @@ class AvailDebugger internal constructor (
 							currentSourceAndLineEndsAndStyling =
 								Triple(source, lineEnds, stylingRecord)
 							SwingUtilities.invokeLater {
-								sourcePane.text = source
 								val doc = sourcePane.styledDocument
-								//TODO Replace hack
-								BaseStyle.stylesMap.forEach { (_, baseStyle) ->
-									val style = doc.addStyle(
-										baseStyle.kotlinString, null)
-									StyleConstants.setForeground(
-										style, baseStyle.color)
-								}
-								stylingRecord.styleRuns.forEach {
-										(range, styleName) ->
-									doc.setCharacterAttributes(
-										range.first - 1,
-										range.last - range.first + 1,
-										doc.getStyle(styleName),
-										false)
-								}
+								doc.remove(0, doc.length)
+								doc.insertString(0, source, null)
+								doc.applyStyleRuns(stylingRecord.styleRuns)
 								// Setting the source does not immediately
 								// update the layout, so postpone scrolling to
 								// the selected line.
@@ -1108,8 +1102,9 @@ class AvailDebugger internal constructor (
 		jMenuBar = MenuBarBuilder.createMenuBar {
 			menu("Edit")
 			{
-				item(FindAction(workbench))
+				item(FindAction(workbench, this@AvailDebugger))
 			}
+			addWindowMenu(this@AvailDebugger)
 		}
 	}
 
@@ -1150,6 +1145,7 @@ class AvailDebugger internal constructor (
 		val semaphore = Semaphore(0)
 		debuggerModel.whenPausedActions.clear()
 		debuggerModel.releaseFibersThen { semaphore.release() }
+		semaphore.acquire()
 	}
 }
 

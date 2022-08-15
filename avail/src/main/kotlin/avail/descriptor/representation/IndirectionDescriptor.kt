@@ -33,6 +33,7 @@ package avail.descriptor.representation
 import avail.AvailDebuggerModel
 import avail.annotations.HideFieldInDebugger
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
@@ -88,6 +89,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.captureInDebugger
 import avail.descriptor.fiber.A_Fiber.Companion.clearGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.clearTraceFlag
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.fiber.A_Fiber.Companion.debugLog
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.failureContinuation
@@ -128,10 +130,9 @@ import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.adjustPcAndStackp
-import avail.descriptor.functions.A_Continuation.Companion.callDepth
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
-import avail.descriptor.functions.A_Continuation.Companion.deoptimizedForDebugger
+import avail.descriptor.functions.A_Continuation.Companion.deoptimizeForDebugger
 import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
@@ -351,6 +352,7 @@ import avail.descriptor.numbers.A_Number.Companion.subtractFromInfinityCanDestro
 import avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.trimExcessInts
+import avail.descriptor.numbers.A_Number.Companion.whichPowerOfTwo
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.objects.ObjectLayoutVariant
@@ -370,6 +372,7 @@ import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
@@ -606,7 +609,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
@@ -2063,7 +2066,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
 		continuation: (Boolean)->Unit
-	) = self .. { decrementCountdownToReoptimize(continuation) }
+	): Boolean = self .. { decrementCountdownToReoptimize(continuation) }
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,
@@ -2387,12 +2390,12 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self .. { childrenMap(transformer) }
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = self .. { childrenDo(action) }
 
 	override fun o_ValidateLocally(
@@ -3893,10 +3896,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_ReleaseFromDebugger(self: AvailObject) =
 		self .. { releaseFromDebugger() }
 
-	override fun o_CallDepth(self: AvailObject): Int = self .. { callDepth() }
-
-	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
-		self .. { deoptimizedForDebugger() }
+	override fun o_DeoptimizeForDebugger(self: AvailObject) =
+		self .. { deoptimizeForDebugger() }
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
 		self .. { getValueForDebugger() }
@@ -3919,4 +3920,33 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_StylerMethod(self: AvailObject): A_Method =
 		self .. { stylerMethod }
+
+	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase =
+		self .. { generatingPhrase }
+
+	override fun o_GeneratingLexer(self: AvailObject): A_Lexer =
+		self .. { generatingLexer }
+
+	override fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean = self .. { isInCurrentModule(currentModule) }
+
+	override fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Unit = self .. { setCurrentModule(currentModule) }
+
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit
+	): Unit = self .. { applyStylesThen(context, visitedSet, then) }
+
+	override fun o_CurrentLexer(self: AvailObject): A_Lexer =
+		self .. { currentLexer }
+
+	override fun o_WhichPowerOfTwo(self: AvailObject): Int =
+		self .. { whichPowerOfTwo }
 }

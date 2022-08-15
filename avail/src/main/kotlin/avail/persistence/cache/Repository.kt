@@ -163,7 +163,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V7")
+		"Avail compiled module repository V8")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
@@ -1021,8 +1021,6 @@ class Repository constructor(
 		 * The record number at which a [ByteArray] was recorded for this
 		 * module. That record should be fetched as needed and decoded into a
 		 * [StylingRecord].
-		 * array of module manifest [entries][ModuleManifestEntry] and stored
-		 * in the [A_Module]'s [ModuleDescriptor.o_ManifestEntries].
 		 */
 		val recordNumberOfStyling: Long
 
@@ -1130,7 +1128,6 @@ class Repository constructor(
 		}
 	}
 
-
 	/**
 	 * Styling information that was collected during compilation of a
 	 * [module][A_Module].
@@ -1141,7 +1138,7 @@ class Repository constructor(
 		 * An ascending sequence of non-overlapping, non-empty [IntRange]s, with
 		 * the style name to apply to that range.
 		 */
-		val styleRuns: List<Pair<IntRange, String>>
+		val styleRuns: List<StyleRun>
 
 		/**
 		 * Information about variable uses and definitions.  The pairs go from
@@ -1221,6 +1218,7 @@ class Repository constructor(
 				}
 				if (isCompact)
 				{
+					binaryStream.vlq(uses.size)
 					var previousUseEnd = previousDeclarationEnd
 					uses.forEach { use ->
 						binaryStream.vlq(use.first - previousUseEnd)
@@ -1229,6 +1227,9 @@ class Repository constructor(
 				}
 				else
 				{
+					// Flag to indicate it was non-compact
+					binaryStream.vlq(0)
+					binaryStream.vlq(uses.size)
 					var previousUseEnd = 0
 					uses.forEach { use ->
 						binaryStream.vlq(use.first - previousUseEnd)
@@ -1249,21 +1250,22 @@ class Repository constructor(
 		 * Reconstruct a `ModuleCompilation`, having previously been written via
 		 * [write].
 		 *
-		 * @param binaryStream
-		 *   Where to read the key from.
+		 * @param bytes
+		 *   Where to read the [StylingRecord] from.
 		 * @throws IOException
 		 *   If I/O fails.
 		 */
 		@Throws(IOException::class)
-		internal constructor(binaryStream: DataInputStream)
+		internal constructor(bytes: ByteArray)
 		{
+			val binaryStream = DataInputStream(ByteArrayInputStream(bytes))
 			val styles = Array(binaryStream.unvlqInt()) {
 				binaryStream.decodeString()
 			}
 			// Read all the spans, including unstyled ones.
 			var pos = 0
 
-			val allRuns = mutableListOf<Pair<IntRange, String>>()
+			val allRuns = mutableListOf<StyleRun>()
 			repeat(binaryStream.unvlqInt()) {
 				val styleNumber = binaryStream.unvlqInt()
 				val length = binaryStream.unvlqInt()
@@ -1325,7 +1327,7 @@ class Repository constructor(
 		 *   use to definition.
 		*/
 		constructor(
-			styleRuns: List<Pair<IntRange, String>>,
+			styleRuns: List<StyleRun>,
 			variableUses: List<Pair<IntRange, IntRange>>)
 		{
 			this.styleRuns = styleRuns
@@ -1597,7 +1599,6 @@ class Repository constructor(
 		 * @param args
 		 *   The format arguments.
 		 */
-		@Suppress("ConstantConditionIf")
 		fun log(level: Level, format: String, vararg args: Any)
 		{
 			if (DEBUG_REPOSITORY)
@@ -1622,7 +1623,6 @@ class Repository constructor(
 		 * @param args
 		 *   The format arguments.
 		 */
-		@Suppress("ConstantConditionIf")
 		fun log(
 			level: Level,
 			exception: Throwable,
@@ -1753,3 +1753,9 @@ class Repository constructor(
 		}
 	}
 }
+
+/**
+ * An [int&#32;range][IntRange] and name of the style to apply to the
+ * source characters of that range.
+ */
+typealias StyleRun = Pair<IntRange, String>

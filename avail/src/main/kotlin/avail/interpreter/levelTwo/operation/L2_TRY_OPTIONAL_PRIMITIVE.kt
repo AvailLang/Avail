@@ -35,8 +35,8 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
@@ -57,7 +57,7 @@ import org.objectweb.asm.Opcodes
  * execute a potential primitive, setting the [Interpreter.returnNow] flag and
  * [latestResult][Interpreter.setLatestResult] if successful.  The caller always
  * has the responsibility of checking the return value, if applicable at that
- * call site.  Used only by the [L2Chunk.unoptimizedChunk].
+ * call site.  Used only by the [unoptimizedChunk].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

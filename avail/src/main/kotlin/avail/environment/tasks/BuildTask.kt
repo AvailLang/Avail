@@ -37,6 +37,7 @@ import avail.descriptor.module.ModuleDescriptor
 import avail.environment.AvailWorkbench
 import avail.environment.AvailWorkbench.AbstractWorkbenchTask
 import java.awt.Cursor
+import javax.swing.SwingUtilities
 
 /**
  * A `BuildTask` launches the actual build of the target
@@ -50,10 +51,11 @@ import java.awt.Cursor
  * @param targetModuleName
  *   The resolved name of the target [module][ModuleDescriptor].
  */
-class BuildTask (
-		workbench: AvailWorkbench,
-		targetModuleName: ResolvedModuleName)
-	: AbstractWorkbenchTask(workbench, targetModuleName)
+class BuildTask
+constructor (
+	workbench: AvailWorkbench,
+	targetModuleName: ResolvedModuleName
+) : AbstractWorkbenchTask(workbench, targetModuleName)
 {
 	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
@@ -61,20 +63,20 @@ class BuildTask (
 		workbench.resolver.moduleRoots.roots.forEach { root ->
 			root.repository.reopenIfNecessary()
 		}
-		workbench.availBuilder.buildTarget(
+		workbench.availBuilder.buildTargetThen(
 			targetModuleName(),
 			workbench::eventuallyUpdatePerModuleProgress,
 			workbench::eventuallyUpdateBuildProgress,
-			workbench.availBuilder.buildProblemHandler)
-		afterExecute()
-	}
-
-	override fun done()
-	{
-		workbench.backgroundTask = null
-		reportDone()
-		workbench.availBuilder.checkStableInvariants()
-		workbench.setEnablements()
-		workbench.cursor = Cursor.getDefaultCursor()
+			workbench.availBuilder.buildProblemHandler
+		) {
+			SwingUtilities.invokeLater {
+				workbench.backgroundTask = null
+				reportDone()
+				workbench.availBuilder.checkStableInvariants()
+				workbench.setEnablements()
+				workbench.cursor = Cursor.getDefaultCursor()
+				afterExecute()
+			}
+		}
 	}
 }

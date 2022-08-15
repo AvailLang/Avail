@@ -56,13 +56,12 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
-import avail.interpreter.levelTwo.L2Chunk.Companion.unoptimizedChunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RETURN_INTO
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 
 /**
  * **Primitive:** Create a [continuation][ContinuationDescriptor]. It will
- * execute as unoptimized code via the [L2Chunk.unoptimizedChunk].  Fail if the
+ * execute as unoptimized code via the [unoptimizedChunk].  Fail if the
  * provided function is an infallible primitive.
  */
 @Suppress("unused")

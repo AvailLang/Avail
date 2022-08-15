@@ -48,6 +48,7 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
+import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticUnboxedInt
@@ -284,7 +285,7 @@ class ExampleUsage
 	fun testPrintInstruction()
 	{
 		val generator = L2Generator(
-			L2Generator.OptimizationLevel.FIRST_TRANSLATION,
+			OptimizationLevel.FIRST_JVM_TRANSLATION,
 			Frame(null, nil, "top frame"),
 			"Example code")
 		val startBlock: L2BasicBlock =

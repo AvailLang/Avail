@@ -102,12 +102,12 @@ class SequenceAsExpressionPhraseDescriptor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(SEQUENCE))
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self.updateSlot(SEQUENCE, transformer)
 
 	override fun o_EmitEffectOn(
@@ -125,7 +125,7 @@ class SequenceAsExpressionPhraseDescriptor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(SEQUENCE).equals(aPhrase.sequence))
+		&& self.slot(SEQUENCE).equalsPhrase(aPhrase.sequence))
 
 	override fun o_Sequence(self: AvailObject): A_Phrase =
 		self.slot(SEQUENCE)

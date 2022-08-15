@@ -107,6 +107,7 @@ import avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
 import avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -131,7 +132,6 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
@@ -251,13 +251,13 @@ import avail.io.TextInterface.Companion.systemTextInterface
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.utility.StackPrinter.Companion.trace
 import avail.utility.WorkStealingQueue
 import avail.utility.evaluation.OnceSupplier
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
 import avail.utility.safeWrite
 import avail.utility.structures.EnumMap.Companion.enumMap
+import avail.utility.trace
 import java.util.Collections.emptyList
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
@@ -1301,7 +1301,7 @@ class AvailRuntime constructor(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
 					stringType))
-			put(Styles.stylerFunctionType)
+			put(stylerFunctionType)
 			put(
 				enumerationWith(
 					set(
@@ -1332,8 +1332,10 @@ class AvailRuntime constructor(
 								// Wildcard.
 								booleanType)))))
 			put(PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
+			put(zeroOrOneOf(stylerFunctionType))
+			put(zeroOrOneOf(PhraseKind.PARSE_PHRASE.mostGeneralType))
 
-			at(177)
+			at(179)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
@@ -1397,6 +1399,7 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.CREATE_ATOM.atom)
 			put(SpecialMethodAtom.CREATE_HERITABLE_ATOM.atom)
 			put(SpecialMethodAtom.CREATE_EXPLICIT_SUBCLASS_ATOM.atom)
+			put(SpecialMethodAtom.SET_STYLER.atom)
 			put(Exceptions.exceptionAtom)
 			put(Exceptions.stackDumpAtom)
 			put(pojoSelfTypeAtom())
@@ -1407,12 +1410,6 @@ class AvailRuntime constructor(
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
 			put(StaticInit.tokenTypeOrdinalKey)
-			put(Styles.subclassAtom)
-			put(Styles.semanticClassifierAtom)
-			put(Styles.methodNameAtom)
-			put(Styles.sourceModuleAtom)
-			put(Styles.generatedAtom)
-			put(Styles.lineNumberAtom)
 		}.list().onEach { assert(it.isAtomSpecial) }
 	}
 
@@ -1825,7 +1822,7 @@ class AvailRuntime constructor(
 	 *   How to set up the interpreter prior to running the fiber for a
 	 *   while. Pass in the interpreter as the receiver.
 	 */
-	fun executeFiber(
+	private fun executeFiber(
 		aFiber: A_Fiber,
 		setup: Interpreter.()->Unit)
 	{
@@ -2079,7 +2076,7 @@ class AvailRuntime constructor(
 			setLatestResult(failureValue)
 			val startingChunk = code.startingChunk
 			chunk = startingChunk
-			offset = startingChunk.offsetAfterInitialTryPrimitive()
+			offset = startingChunk.offsetAfterInitialTryPrimitive
 			exitNow = false
 			returnNow = false
 		}

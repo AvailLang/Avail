@@ -125,7 +125,7 @@ class ReferencePhraseDescriptor(
 	): Boolean {
 		return (!aPhrase.isMacroSubstitutionNode
 			&& self.phraseKind == aPhrase.phraseKind
-			&& self.slot(VARIABLE).equals(aPhrase.variable))
+			&& self.slot(VARIABLE).equalsPhrase(aPhrase.variable))
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
@@ -142,12 +142,12 @@ class ReferencePhraseDescriptor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self.setSlot(VARIABLE, transformer(self.slot(VARIABLE)))
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(VARIABLE))
 
 	override fun o_StatementsDo(

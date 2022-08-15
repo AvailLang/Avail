@@ -32,7 +32,6 @@
 package avail.interpreter.primitive.tuples
 
 import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.isInt
@@ -164,14 +163,15 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		val tupleOfTuplesReg = arguments[0]
 
 		val generator = translator.generator
-		val range = tupleOfTuplesReg.type().sizeRange
+		val tupleOfTuplesType = tupleOfTuplesReg.type()
+		val range = tupleOfTuplesType.sizeRange
 		val size = range.lowerBound
 		if (!size.isInt || !range.upperBound.equals(size))
 			return false
 		val sizeInt = size.extractInt
 		var elementRegs = generator.explodeTupleIfPossible(
 			tupleOfTuplesReg,
-			tupleOfTuplesReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+			tupleOfTuplesType.tupleOfTypesFromTo(1, sizeInt).toList())
 		elementRegs ?: return false
 		// Strip out any always-empty tuples.
 		elementRegs = elementRegs.filter {
@@ -180,29 +180,25 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		// Statically concatenate adjacent constants, since tuple concatenation
 		// associates.
 
-		// Collapse together adjacent constants, dropping empties
+		// Collapse together adjacent constants.
 		var currentTuple: A_Tuple? = null
 		val adjustedSources = mutableListOf<L2ReadBoxedOperand>()
 		for (source in elementRegs)
 		{
-			val restriction = source.restriction()
-			val sizeRange = restriction.type.sizeRange
-			if (sizeRange.upperBound.equalsInt(0)) continue
-			val constant = restriction.constantOrNull
-			if (constant !== null)
+			val constant = source.restriction().constantOrNull
+			currentTuple = when
 			{
-				currentTuple =
-					if (currentTuple === null) constant
-					else currentTuple.concatenateWith(constant, false)
-			}
-			else
-			{
-				if (currentTuple !== null) {
-					adjustedSources.add(
-						translator.generator.boxedConstant(currentTuple))
-					currentTuple = null
+				constant === null ->
+				{
+					if (currentTuple !== null) {
+						adjustedSources.add(
+							translator.generator.boxedConstant(currentTuple))
+					}
+					adjustedSources.add(source)
+					null
 				}
-				adjustedSources.add(source)
+				currentTuple === null -> constant
+				else -> currentTuple.concatenateWith(constant, false)
 			}
 		}
 		if (currentTuple !== null)
@@ -211,11 +207,13 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			adjustedSources.add(
 				translator.generator.boxedConstant(currentTuple))
 		}
-		when (adjustedSources.size) {
+		when (adjustedSources.size)
+		{
 			0 -> callSiteHelper.useAnswer(
 				translator.generator.boxedConstant(emptyTuple))
 			1 -> callSiteHelper.useAnswer(adjustedSources[0])
-			else -> {
+			else ->
+			{
 				val guaranteedType = returnTypeGuaranteedByVM(
 					rawFunction, argumentTypes)
 				val writer: L2WriteBoxedOperand =

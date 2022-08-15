@@ -34,9 +34,17 @@ package avail.environment
 
 import avail.AvailRuntime
 import avail.builder.ModuleName
+import avail.builder.ResolvedModuleName
+import avail.descriptor.module.A_Module
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
+import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
 import avail.environment.editor.AbstractEditorAction
+import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ModuleCompilation
+import avail.persistence.cache.Repository.ModuleVersion
+import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.Repository.StylingRecord
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Toolkit
@@ -85,12 +93,14 @@ constructor(
 	 */
 	private var lastSaveTime = 0L
 
+	/** The [resolved][ResolvedModuleName] [module&#32;name][ModuleName]. */
+	private val resolvedName = runtime.moduleNameResolver.resolve(moduleName)
+
 	/**
-	 * The resolved reference to the module.
-	 * Only access within the Swing UI thread.
+	 * The resolved reference to the module. **Only access within the Swing UI
+	 * thread.**
 	 */
-	private val resolverReference =
-		runtime.moduleNameResolver.resolve(moduleName).resolverReference
+	private val resolverReference = resolvedName.resolverReference
 
 	/**
 	 * The [UndoManager] for supplying undo/redo for edits to the underlying
@@ -146,20 +156,86 @@ constructor(
 		}
 	}
 
+	/**
+	 * Fetch the active [StylingRecord] for the target [module][A_Module].
+	 *
+	 * @param onSuccess
+	 *   What to do with a [StylingRecord]. Might be applied to `null`, if
+	 *   nothing went wrong but no [ModuleVersion], [ModuleCompilation], or
+	 *   [StylingRecord] exists for the target module, e.g., because the module
+	 *   has never been compiled.
+	 * @param onError
+	 *   What to do when the fetch fails unexpectedly, e.g., because of a
+	 *   corrupt [Repository] or [StylingRecord].
+	 */
+	private fun getActiveStylingRecord(
+		onSuccess: (StylingRecord?)->Unit,
+		onError: (Throwable?)->Unit
+	)
+	{
+		val repository = resolvedName.repository
+		repository.reopenIfNecessary()
+		val archive = repository.getArchive(resolvedName.rootRelativeName)
+		archive.digestForFile(
+			resolvedName,
+			false,
+			withDigest = { digest ->
+				try
+				{
+					val versionKey = ModuleVersionKey(resolvedName, digest)
+					val version = archive.getVersion(versionKey)
+					if (version !== null)
+					{
+						val compilation = version.allCompilations.maxByOrNull(
+							ModuleCompilation::compilationTime)
+						if (compilation !== null)
+						{
+							val index = compilation.recordNumberOfStyling
+							val stylingRecord = StylingRecord(
+								repository.repository!![index])
+							return@digestForFile onSuccess(stylingRecord)
+						}
+					}
+					onSuccess(null)
+				}
+				catch (e: Throwable)
+				{
+					onError(e)
+				}
+			},
+			failureHandler = { _, e -> onError(e) }
+		)
+	}
+
 	/** The editor pane. */
-	private val sourcePane = codeSuitableTextPane(workbench).apply {
+	private val sourcePane = codeSuitableTextPane(workbench, this).apply {
+		var stylingRecord: StylingRecord? = null
 		val semaphore = Semaphore(0)
 		resolverReference.readFileString(
 			true,
-			{ string, _ ->
+			withContents = { string, _ ->
 				text = string
-				semaphore.release()
+				getActiveStylingRecord(
+					onSuccess = { stylingRecordOrNull ->
+						stylingRecord = stylingRecordOrNull
+						semaphore.release()
+					},
+					onError = { e ->
+						e?.let { e.printStackTrace() }
+							?: System.err.println(
+								"unable to style editor for $resolvedName")
+						semaphore.release()
+					}
+				)
 			},
-			{ code, throwable ->
+			failureHandler = { code, throwable ->
 				text = "Error reading module: $throwable, code=$code"
 				semaphore.release()
 			})
 		semaphore.acquire()
+		stylingRecord?.let {
+			styledDocument.applyStyleRuns(it.styleRuns)
+		}
 		isEditable = resolverReference.resolver.canSave
 		document.addDocumentListener(object : DocumentListener {
 			override fun insertUpdate(e: DocumentEvent) = editorChanged()
@@ -271,7 +347,7 @@ constructor(
 				createSequentialGroup()
 					.addComponent(sourcePaneScroll))
 		}
-		minimumSize = Dimension(550, 350)
+		minimumSize = Dimension(650, 350)
 		preferredSize = Dimension(800, 1000)
 		add(panel)
 		pack()
@@ -283,8 +359,9 @@ constructor(
 		jMenuBar = createMenuBar {
 			menu("Edit")
 			{
-				item(FindAction(workbench))
+				item(FindAction(workbench, this@AvailEditor))
 			}
+			addWindowMenu(this@AvailEditor)
 		}
 	}
 }

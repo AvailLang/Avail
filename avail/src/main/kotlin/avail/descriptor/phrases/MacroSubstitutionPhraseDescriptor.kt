@@ -32,8 +32,10 @@
 package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
+import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.methods.MacroDescriptor
@@ -160,6 +162,27 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
 		self.slot(MACRO_ORIGINAL_SEND).apparentSendName
 
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		val originalSend = self.macroOriginalSendNode
+		val arguments = originalSend.argumentsListNode.expressionsTuple
+		context.runtime.execute(FiberDescriptor.compilerPriority) {
+			// Process the children of the original, then this phrase.
+			context.visitAll(arguments.iterator(), visitedSet) {
+				// Now that the original has been thoroughly
+				// visited, allow the outputPhrase to override any
+				// styles that the original applied.
+				context.applyAllStylesThen(self.outputPhrase, visitedSet) {
+					context.styleSendThen(originalSend, self.outputPhrase, then)
+				}
+			}
+		}
+	}
+
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PHRASE).argumentsListNode
 
@@ -183,7 +206,8 @@ class MacroSubstitutionPhraseDescriptor(
 	 */
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase)->A_Phrase)
+		transformer: (A_Phrase)->A_Phrase
+	)
 	{
 		self.setSlot(
 			OUTPUT_PHRASE,
@@ -237,8 +261,9 @@ class MacroSubstitutionPhraseDescriptor(
 		self: AvailObject,
 		aPhrase: A_Phrase
 	): Boolean = (aPhrase.isMacroSubstitutionNode
-		&& self.slot(MACRO_ORIGINAL_SEND).equals(aPhrase.macroOriginalSendNode)
-		&& self.slot(OUTPUT_PHRASE).equals(aPhrase.outputPhrase))
+		&& self.slot(MACRO_ORIGINAL_SEND).equalsPhrase(
+			aPhrase.macroOriginalSendNode)
+		&& self.slot(OUTPUT_PHRASE).equalsPhrase(aPhrase.outputPhrase))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PHRASE).expression

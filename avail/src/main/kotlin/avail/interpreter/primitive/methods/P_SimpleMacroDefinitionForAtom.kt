@@ -41,10 +41,13 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.methods.A_Styler
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -59,9 +62,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -89,14 +93,15 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
+object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(3)
+		interpreter.checkArgumentCount(4)
 		val atom = interpreter.argument(0)
 		val prefixFunctions = interpreter.argument(1)
 		val function = interpreter.argument(2)
+		val optionalStylerFunction: A_Tuple = interpreter.argument(3)
 
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader ?:
@@ -160,12 +165,18 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			try
 			{
 				loader.addMacroBody(atom, function, prefixFunctions, false)
-				val string = atom.atomName
-				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
-					prefixFunction.code().methodName =
-						stringFrom("Macro prefix #${zeroIndex + 1} of $string")
+				val atomName = atom.atomName
+				if (optionalStylerFunction.tupleSize == 1)
+				{
+					val stylerFunction = optionalStylerFunction.tupleAt(1)
+					loader.addStyler(atom.bundleOrCreate(), stylerFunction)
 				}
-				function.code().methodName = stringFrom("Macro body of $string")
+				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
+					prefixFunction.code().methodName = stringFrom(
+						"Macro prefix #${zeroIndex + 1} of $atomName")
+				}
+				function.code().methodName = stringFrom(
+					"Macro body of $atomName")
 				succeed(nil)
 			}
 			catch (e: AvailException)
@@ -182,7 +193,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			tuple(
 				ATOM.o,
 				zeroOrMoreOf(mostGeneralFunctionType()),
-				functionTypeReturning(PARSE_PHRASE.mostGeneralType)),
+				functionTypeReturning(PARSE_PHRASE.mostGeneralType),
+				zeroOrOneOf(A_Styler.stylerFunctionType)),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =

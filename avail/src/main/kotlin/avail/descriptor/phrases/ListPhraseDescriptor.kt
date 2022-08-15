@@ -136,12 +136,12 @@ class ListPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = self.expressionsTuple.forEach(action)
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) {
 		self.setSlot(
 			EXPRESSIONS_TUPLE,
@@ -206,7 +206,7 @@ class ListPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.expressionsTuple.equals(aPhrase.expressionsTuple))
+		&& equalPhrases(self.expressionsTuple, aPhrase.expressionsTuple))
 
 	override fun o_ExpressionAt(self: AvailObject, index: Int): A_Phrase =
 		self.slot(EXPRESSIONS_TUPLE).tupleAt(index)
@@ -217,8 +217,12 @@ class ListPhraseDescriptor private constructor(
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		self.slot(EXPRESSIONS_TUPLE)
 
-	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.synchronizeIf(isShared) { expressionType(self) }
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type
+	{
+		val probe = self.mutableSlot(TUPLE_TYPE)
+		if (probe.notNil) return probe
+		return self.synchronizeIf(isShared) { expressionType(self) }
+	}
 
 	override fun o_Hash(self: AvailObject): Int =
 		combine2(self.expressionsTuple.hash(), -0x3ebc1689)
@@ -334,7 +338,8 @@ class ListPhraseDescriptor private constructor(
 		 * @return
 		 *   A type.
 		 */
-		private fun expressionType(self: AvailObject): A_Type {
+		private fun expressionType(self: AvailObject): A_Type
+		{
 			var tupleType: A_Type = self.mutableSlot(TUPLE_TYPE)
 			if (tupleType.notNil) return tupleType
 			val types = self.expressionsTuple.map {

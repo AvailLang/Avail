@@ -33,6 +33,7 @@ package avail.descriptor.representation
 
 import avail.AvailDebuggerModel
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
@@ -98,7 +99,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
@@ -989,7 +990,7 @@ protected constructor (
 	override fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
 		continuation: (Boolean)->Unit
-	): Unit = unsupported
+	): Boolean = unsupported
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
 		self: AvailObject,
 		delta: Long
@@ -1550,14 +1551,16 @@ protected constructor (
 
 	override fun o_ChildrenMap (
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase): Unit = unsupported
+		transformer: (A_Phrase)->A_Phrase
+	): Unit = unsupported
 
 	/**
 	 * Visit my child phrases with the action.
 	 */
 	override fun o_ChildrenDo (
 		self: AvailObject,
-		action: (A_Phrase) -> Unit): Unit = unsupported
+		action: (A_Phrase)->Unit
+	): Unit = unsupported
 
 	override fun o_ValidateLocally (
 		self: AvailObject,
@@ -2696,9 +2699,7 @@ protected constructor (
 
 	override fun o_ModuleNameNative(self: AvailObject): String = unsupported
 
-	override fun o_CallDepth(self: AvailObject): Int = unsupported
-
-	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
+	override fun o_DeoptimizeForDebugger(self: AvailObject): Unit =
 		unsupported
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
@@ -2720,4 +2721,29 @@ protected constructor (
 	override fun o_StylingRecord(self: AvailObject): StylingRecord = unsupported
 
 	override fun o_StylerMethod(self: AvailObject): A_Method = unsupported
+
+	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase = unsupported
+
+	override fun o_GeneratingLexer(self: AvailObject): A_Lexer = unsupported
+
+	override fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean = unsupported
+
+	override fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Unit = unsupported
+
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit
+	): Unit = unsupported
+
+	override fun o_CurrentLexer(self: AvailObject): A_Lexer = unsupported
+
+	override fun o_WhichPowerOfTwo(self: AvailObject): Int = unsupported
 }

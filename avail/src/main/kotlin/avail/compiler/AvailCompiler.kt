@@ -117,7 +117,6 @@ import avail.descriptor.methods.A_Method.Companion.bundles
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.A_Method.Companion.filterByTypes
 import avail.descriptor.methods.A_Method.Companion.semanticRestrictions
-import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
@@ -125,6 +124,7 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
@@ -137,7 +137,6 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ATOMS
 import avail.descriptor.methods.SemanticRestrictionDescriptor
-import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addConstantBinding
 import avail.descriptor.module.A_Module.Companion.addVariableBinding
@@ -145,19 +144,16 @@ import avail.descriptor.module.A_Module.Companion.constantBindings
 import avail.descriptor.module.A_Module.Companion.exportedNames
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
-import avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
-import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
@@ -167,6 +163,7 @@ import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
@@ -285,6 +282,7 @@ import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import avail.interpreter.execution.AvailLoader.Phase.STYLING_HEADER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
@@ -296,11 +294,11 @@ import avail.performance.StatisticReport.TYPE_CHECKING_FOR_PARSER
 import avail.persistence.cache.Repository
 import avail.utility.Mutable
 import avail.utility.PrefixSharingList.Companion.append
-import avail.utility.StackPrinter.Companion.trace
 import avail.utility.Strings.increaseIndentation
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
 import avail.utility.safeWrite
+import avail.utility.trace
 import java.util.Arrays
 import java.util.Collections.emptyList
 import java.util.Formatter
@@ -625,7 +623,7 @@ class AvailCompiler constructor(
 	{
 		val phrase1 = Mutable(interpretation1)
 		val phrase2 = Mutable(interpretation2)
-		if (phrase1.value.equals(phrase2.value))
+		if (phrase1.value.equalsPhrase(phrase2.value))
 		{
 			where.expected(
 				STRONG,
@@ -641,7 +639,7 @@ class AvailCompiler constructor(
 		else
 		{
 			findParseTreeDiscriminants(phrase1, phrase2)
-			val tokens = phrase1.value.tokens
+			val tokens = phrase1.value.allTokens
 			val line =
 				if (tokens.tupleSize > 0) tokens.tupleAt(1).lineNumber()
 				else 0
@@ -2453,11 +2451,8 @@ class AvailCompiler constructor(
 					bundle,
 					consumedTokens,
 					macro,
-					expectedYieldType
-				) { endState, macroPhrase ->
-					assert(macroPhrase.isMacroSubstitutionNode)
-					continuation(endState, macroPhrase)
-				}
+					expectedYieldType,
+					continuation)
 			}
 		}
 	}
@@ -2674,7 +2669,7 @@ class AvailCompiler constructor(
 	 *   returned by the macro body, although if it's not a send phrase then the
 	 *   resulting phrase is *checked* against this expected yield type instead.
 	 * @param continuation
-	 *   What to do with the resulting send phrase solution.
+	 *   What to do with the resulting macro substitution phrase or send phrase.
 	 */
 	private fun completedSendNodeForMacro(
 		stateAfterCall: ParserState,
@@ -2739,12 +2734,22 @@ class AvailCompiler constructor(
 						return@evaluateMacroFunctionThen
 					}
 					replacement.phraseKindIsUnder(SEND_PHRASE) ->
+					{
+						// If the replacement has any static tokens in it, use
+						// them in the adjusted replacement.  Otherwise use the
+						// static tokens that were actually parsed.
+						var tokens = replacement.tokens
+						if (tokens.tupleSize == 0)
+						{
+							tokens = tupleFromList(consumedTokens)
+						}
 						newSendNode(
-							replacement.tokens,
+							tokens,
 							replacement.bundle,
 							replacement.argumentsListNode,
 							replacement.phraseExpressionType
 								.typeIntersection(expectedYieldType))
+					}
 					replacement.phraseExpressionType
 							.isSubtypeOf(expectedYieldType) ->
 						replacement
@@ -2771,7 +2776,9 @@ class AvailCompiler constructor(
 					tupleFromList(consumedTokens),
 					bundle,
 					argumentsListNode,
-					macroDefinitionToInvoke.bodySignature().returnType)
+					macroDefinitionToInvoke.bodySignature().returnType
+						.phraseTypeExpressionType
+						.typeIntersection(expectedYieldType))
 				val substitution =
 					newMacroSubstitution(original, adjustedReplacement)
 				if (AvailRuntimeConfiguration.debugMacroExpansions)
@@ -2789,12 +2796,39 @@ class AvailCompiler constructor(
 			{ e ->
 				when (e)
 				{
-					is AvailAcceptedParseException -> stateAfterCall.expected(
-						STRONG,
-						"macro body to reject the parse or produce "
-							+ "a replacement expression, not merely "
-							+ "accept its phrases like a semantic "
-							+ "restriction")
+					is AvailAcceptedParseException ->
+					{
+						// The macro said to accept the parse, which is a
+						// convenient way of allowing the underlying machinery
+						// to construct a regular send node instead what the
+						// macro would have produced.  Note that we have to do
+						// another validateArgumentTypes() to determine what the
+						// *methods* indicate for an expected type, since the
+						// first time through we only checked the macros.
+						validateArgumentTypes(
+							bundle,
+							argumentsListNode.expressionsTuple
+								.map { it.phraseExpressionType },
+							nil,
+							stateAfterCall
+						) { newExpectedYieldType ->
+							val strongType =
+								macroDefinitionToInvoke.bodySignature()
+									.returnType
+									.phraseTypeExpressionType
+									.typeIntersection(expectedYieldType)
+									.typeIntersection(newExpectedYieldType)
+							val sendNode = newSendNode(
+								tupleFromList(consumedTokens),
+								bundle,
+								argumentsListNode,
+								strongType)
+							// Accept this answer.
+							stateAfterCall.workUnitDo {
+								continuation(stateAfterCall, sendNode)
+							}
+						}
+					}
 					is AvailRejectedParseException ->
 					{
 						stateAfterCall.expected(
@@ -2909,49 +2943,34 @@ class AvailCompiler constructor(
 				primitive,
 				compilationContext.module,
 				token.lineNumber()),
-			emptyTuple)
-		function.makeShared()
+			emptyTuple
+		).makeShared()
+		var optionalStyler: A_Phrase = emptyListNode()
+		primitive.bootstrapStyler()?.let { stylerPrimitive ->
+			val module = compilationContext.module
+			val stylerFunction = createFunction(
+				newPrimitiveRawFunction(
+					stylerPrimitive, module, token.lineNumber()),
+				emptyTuple)
+			optionalStyler = newListNode(
+				tuple(
+					syntheticLiteralNodeFor(stylerFunction)))
+		}
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			METHOD_DEFINER.bundle,
 			newListNode(
 				tuple(
 					nameLiteral,
 					syntheticLiteralNodeFor(function),
-					newListNode(emptyTuple))),
+					optionalStyler)),
 			TOP.o)
 		evaluateModuleStatementThen(
-			token.synthesizeCurrentLexingState(), state, send, mutableMapOf()
-		) {
-			// Create a bootstrap styler for it, if so indicated.
-			primitive.bootstrapStyler()?.let { stylerPrimitive ->
-				val module = compilationContext.module
-				val stylerFunction = createFunction(
-					newPrimitiveRawFunction(
-						stylerPrimitive,
-						module,
-						token.lineNumber()),
-					emptyTuple)
-				val atoms = module.trueNamesForStringName(availName)
-				if (atoms.setSize == 1)
-				{
-					val method = atoms.first().bundleOrNil.bundleMethod
-					val styler = newStyler(stylerFunction, method, module)
-					method.updateStylers {
-						setWithElementCanDestroy(styler, true)
-					}
-					module.moduleAddStyler(styler)
-				}
-				else
-				{
-					state.compilationContext.diagnostics.reportError(
-						token.nextLexingState(),
-						"Internal problem at %1 in pragma (line %2).",
-						"Mentioned atom $availName should have been created.")
-				}
-			}
-			success()
-		}
+			token.synthesizeCurrentLexingState(),
+			state,
+			send,
+			mutableMapOf(),
+			success)
 	}
 
 	/**
@@ -3008,48 +3027,34 @@ class AvailCompiler constructor(
 			compilationContext.diagnostics.reportError()
 			return
 		}
-
 		val bodyLiteral = functionLiterals.removeLast()
+		val macroPrimitive = primitiveByName(primitiveNames.last())!!
+		var optionalStyler: A_Phrase = emptyListNode()
+		macroPrimitive.bootstrapStyler()?.let { stylerPrimitive ->
+			val module = compilationContext.module
+			val stylerFunction = createFunction(
+				newPrimitiveRawFunction(
+					stylerPrimitive, module, token.lineNumber()),
+				emptyTuple)
+			optionalStyler = newListNode(
+				tuple(syntheticLiteralNodeFor(stylerFunction)))
+		}
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			MACRO_DEFINER.bundle,
 			newListNode(
 				tuple(
 					nameLiteral,
 					newListNode(tupleFromList(functionLiterals)),
-					bodyLiteral)),
+					bodyLiteral,
+					optionalStyler)),
 			TOP.o)
 		evaluateModuleStatementThen(
-			token.synthesizeCurrentLexingState(), state, send, mutableMapOf()
-		) {
-			// Create a bootstrap styler for it, if so indicated.
-			val bodyCode = bodyLiteral.token.literal().code()
-			bodyCode.codePrimitive()!!.bootstrapStyler()?.let { stylerPrim ->
-				val module = compilationContext.module
-				val stylerFunction = createFunction(
-					newPrimitiveRawFunction(
-						stylerPrim, module, token.lineNumber()),
-					emptyTuple)
-				val atoms = module.trueNamesForStringName(availName)
-				if (atoms.setSize == 1)
-				{
-					val method = atoms.first().bundleOrNil.bundleMethod
-					val styler = newStyler(stylerFunction, method, module)
-					method.updateStylers {
-						setWithElementCanDestroy(styler, true)
-					}
-					module.moduleAddStyler(styler)
-				}
-				else
-				{
-					state.compilationContext.diagnostics.reportError(
-						token.nextLexingState(),
-						"Internal problem at %1 in pragma (line %2).",
-						"Mentioned atom $availName should have been created.")
-				}
-			}
-			success()
-		}
+			token.synthesizeCurrentLexingState(),
+			state,
+			send,
+			mutableMapOf(),
+			success)
 	}
 
 	/**
@@ -3156,7 +3161,7 @@ class AvailCompiler constructor(
 
 		// Build a phrase to define the lexer.
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			LEXER_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3243,36 +3248,46 @@ class AvailCompiler constructor(
 	 */
 	private fun parseModuleCompletely()
 	{
-		parseModuleHeader { afterHeader ->
+		val size = source.tupleSize.toLong()
+		compilationContext.progressReporter(moduleName, size, 0, 1) { null }
+		parseModuleHeader { headerPhrase, afterHeader ->
 			compilationContext.progressReporter(
 				moduleName,
-				source.tupleSize.toLong(),
+				size,
 				afterHeader.position.toLong(),
 				afterHeader.lineNumber
 			) { null }
-			// Run any side effects implied by this module header against
-			// the module.
+			// Run any side effects implied by this module header against the
+			// module.
 			val errorString = moduleHeader.applyToModule(
 				compilationContext.loader)
 			if (errorString !== null)
 			{
 				compilationContext.progressReporter(
 					moduleName,
-					source.tupleSize.toLong(),
-					source.tupleSize.toLong(),
+					size,
+					size,
 					afterHeader.lineNumber
 				) { null }
 				afterHeader.expected(STRONG, errorString)
 				compilationContext.diagnostics.reportError()
 				return@parseModuleHeader
 			}
-			compilationContext.loader.prepareForCompilingModuleBody()
-			applyPragmasThen(afterHeader.lexingState) {
-				compilationContext.diagnostics.run {
-					positionsToTrack = 3
-					silentPositionsToTrack = 3
+			// Style the header.
+			compilationContext.loader.setPhase(STYLING_HEADER)
+			assert(headerPhrase.isMacroSubstitutionNode)
+			compilationContext.styleSendThen(
+				headerPhrase.macroOriginalSendNode,
+				headerPhrase.outputPhrase
+			) {
+				compilationContext.loader.prepareForCompilingModuleBody()
+				applyPragmasThen(afterHeader.lexingState) {
+					compilationContext.diagnostics.run {
+						positionsToTrack = 3
+						silentPositionsToTrack = 3
+					}
+					parseAndExecuteOutermostStatements(afterHeader)
 				}
-				parseAndExecuteOutermostStatements(afterHeader)
 			}
 		}
 	}
@@ -3315,8 +3330,7 @@ class AvailCompiler constructor(
 			// base statements individually.
 			val simpleStatements = mutableListOf<A_Phrase>()
 			unambiguousStatement.statementsDo { simpleStatement ->
-				assert(
-					simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
+				assert(simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
 				simpleStatements.add(simpleStatement)
 			}
 
@@ -3331,8 +3345,10 @@ class AvailCompiler constructor(
 			// their initialization expressions.
 
 			// What to do after running all these simple statements.
+			val ran = AtomicBoolean(false)
 			val resumeParsing = {
 				// Report progress.
+				assert(!ran.getAndSet(true))
 				compilationContext.progressReporter(
 					moduleName,
 					source.tupleSize.toLong(),
@@ -3352,7 +3368,7 @@ class AvailCompiler constructor(
 				if (!simpleStatementIterator.hasNext())
 				{
 					compilationContext.applyAllStylesThen(
-						unambiguousStatement, resumeParsing)
+						unambiguousStatement, then = resumeParsing)
 					return@recurse
 				}
 				val statement = simpleStatementIterator.next()
@@ -3791,9 +3807,10 @@ class AvailCompiler constructor(
 	 * @param onSuccess
 	 *   What to do after successfully parsing the header.  The compilation
 	 *   context's header will have been updated, and the continuation will be
-	 *   passed the [ParserState] after the header.
+	 *   passed the [ParserState] after the header.  The phrase that was parsed
+	 *   and already processed is also passed, to apply styling.
 	 */
-	fun parseModuleHeader(onSuccess: (ParserState)->Unit)
+	fun parseModuleHeader(onSuccess: (A_Phrase, ParserState)->Unit)
 	{
 		// Create the initial parser state: no tokens have been seen, and no
 		// names are in scope.
@@ -3847,12 +3864,11 @@ class AvailCompiler constructor(
 			{
 				if (processHeaderMacro(headerPhrase.expression, endState))
 				{
-					onSuccess(endState)
+					onSuccess(headerPhrase, endState)
 				}
 			}
 			catch (e: Exception)
 			{
-				// TODO we don't know which thing failed here?
 				compilationContext.diagnostics.reportError(
 					endState.lexingState,
 					"Unexpected exception encountered while processing "
@@ -3889,7 +3905,6 @@ class AvailCompiler constructor(
 		// The first time we parse at this position the fragmentCache will have
 		// no knowledge about it.
 		val rendezvous = fragmentCache.getRendezvous(start)
-		@Suppress("GrazieInspection")
 		if (!rendezvous.getAndSetStartedParsing())
 		{
 			// We're the (only) cause of the transition from hasn't-started to

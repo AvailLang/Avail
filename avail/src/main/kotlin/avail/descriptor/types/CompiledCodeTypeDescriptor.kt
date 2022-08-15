@@ -45,6 +45,8 @@ import avail.descriptor.types.A_Type.Companion.typeIntersectionOfCompiledCodeTyp
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.typeUnionOfCompiledCodeType
 import avail.descriptor.types.CompiledCodeTypeDescriptor.ObjectSlots.FUNCTION_TYPE
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -115,15 +117,10 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	 */
 	override fun o_EqualsCompiledCodeType(
 		self: AvailObject,
-		aCompiledCodeType: A_Type): Boolean =
-			if (self.sameAddressAs(aCompiledCodeType))
-			{
-				true
-			}
-			else
-			{
-				aCompiledCodeType.functionType.equals(self.functionType())
-			}
+		aCompiledCodeType: A_Type
+	): Boolean =
+		self.sameAddressAs(aCompiledCodeType) ||
+			aCompiledCodeType.functionType.equals(self.functionType())
 
 	override fun o_Hash(self: AvailObject): Int =
 		combine2(self.functionType().hash(), -0x5874fe3d)
@@ -148,19 +145,12 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
 		self.slot(FUNCTION_TYPE).isVacuousType
 
-	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
-		when
-		{
-			self.isSubtypeOf(another) ->
-			{
-				self
-			}
-			else -> if (another.isSubtypeOf(self))
-			{
-				another
-			}
-			else another.typeIntersectionOfCompiledCodeType(self)
-		}
+	override fun o_TypeIntersection(self: AvailObject, another: A_Type) = when
+	{
+		self.isSubtypeOf(another) -> self
+		another.isSubtypeOf(self) -> another
+		else -> another.typeIntersectionOfCompiledCodeType(self)
+	}
 
 	override fun o_TypeIntersectionOfCompiledCodeType(
 		self: AvailObject,
@@ -168,32 +158,23 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val functionType1 = self.functionType()
 		val functionType2 = aCompiledCodeType.functionType
-		return if (functionType1.equals(functionType2))
+		return when
 		{
-			self
-		}
-		else
-		{
-			compiledCodeTypeForFunctionType(
+			functionType1.equals(functionType2) -> self
+			else -> compiledCodeTypeForFunctionType(
 				functionType1.typeIntersection(functionType2))
 		}
 	}
 
 	override fun o_TypeUnion(
 		self: AvailObject,
-		another: A_Type): A_Type =
-		when
-		{
-			self.isSubtypeOf(another) ->
-			{
-				another
-			}
-			else -> if (another.isSubtypeOf(self))
-			{
-				self
-			}
-			else another.typeUnionOfCompiledCodeType(self)
-		}
+		another: A_Type
+	): A_Type = when
+	{
+		self.isSubtypeOf(another) -> another
+		another.isSubtypeOf(self) -> self
+		else -> another.typeUnionOfCompiledCodeType(self)
+	}
 
 	override fun o_TypeUnionOfCompiledCodeType(
 		self: AvailObject,
@@ -201,14 +182,11 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val functionType1 = self.functionType()
 		val functionType2 = aCompiledCodeType.functionType
-		return if (functionType1.equals(functionType2))
+		return when
 		{
 			// Optimization only
-			self
-		}
-		else
-		{
-			compiledCodeTypeForFunctionType(
+			functionType1.equals(functionType2) -> self
+			else -> compiledCodeTypeForFunctionType(
 				functionType1.typeUnion(functionType2))
 		}
 	}
@@ -273,7 +251,8 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		private val mostGeneralType: A_Type =
 			compiledCodeTypeForFunctionType(
-				FunctionTypeDescriptor.mostGeneralFunctionType()).makeShared()
+				mostGeneralFunctionType()
+			).makeShared()
 
 		/**
 		 * Answer the most general compiled code type.
@@ -289,8 +268,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		 * the [instance type][InstanceTypeDescriptor] for the
 		 * [most&#32;general&#32;compiled&#32;code&#32;type][mostGeneralType].
 		 */
-		private val meta: A_Type =
-			InstanceMetaDescriptor.instanceMeta(mostGeneralType).makeShared()
+		private val meta: A_Type = instanceMeta(mostGeneralType).makeShared()
 
 		/**
 		 * Answer the metatype for all compiled code types.

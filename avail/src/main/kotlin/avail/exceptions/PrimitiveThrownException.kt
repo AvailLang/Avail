@@ -42,4 +42,4 @@ import avail.descriptor.fiber.FiberDescriptor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-open class PrimitiveThrownException : RuntimeException()
+open class PrimitiveThrownException : RuntimeException(null, null, false, false)

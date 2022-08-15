@@ -34,14 +34,18 @@ package avail.interpreter.primitive.methods
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.compiler.splitter.MessageSplitter.Metacharacter
+import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -56,9 +60,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
@@ -85,14 +90,15 @@ import avail.interpreter.execution.Interpreter
  * constrained to answer a [method][MethodDescriptor].
  */
 @Suppress("unused")
-object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
+object P_SimpleMacroDeclaration : Primitive(4, CanSuspend, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(3)
+		interpreter.checkArgumentCount(4)
 		val string = interpreter.argument(0)
 		val prefixFunctions = interpreter.argument(1)
 		val function = interpreter.argument(2)
+		val optionalStylerFunction: A_Tuple = interpreter.argument(3)
 
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader ?:
@@ -157,6 +163,11 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 			{
 				val atom = loader.lookupName(string)
 				loader.addMacroBody(atom, function, prefixFunctions, false)
+				if (optionalStylerFunction.tupleSize == 1)
+				{
+					val stylerFunction = optionalStylerFunction.tupleAt(1)
+					loader.addStyler(atom.bundleOrCreate(), stylerFunction)
+				}
 				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
 					prefixFunction.code().methodName =
 						stringFrom("Macro prefix #${zeroIndex + 1} of $string")
@@ -179,7 +190,8 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 			tuple(
 				stringType,
 				zeroOrMoreOf(mostGeneralFunctionType()),
-				functionTypeReturning(PARSE_PHRASE.mostGeneralType)),
+				functionTypeReturning(PARSE_PHRASE.mostGeneralType),
+				zeroOrOneOf(stylerFunctionType)),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =

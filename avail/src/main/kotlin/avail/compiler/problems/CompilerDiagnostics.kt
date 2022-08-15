@@ -40,6 +40,7 @@ import avail.compiler.problems.ProblemType.PARSE
 import avail.compiler.scanning.LexingState
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
@@ -934,7 +935,8 @@ class CompilerDiagnostics constructor(
 					emptyTuple,
 					state.position,
 					state.lineNumber,
-					WHITESPACE)
+					WHITESPACE,
+					nil)
 				emptyToken.setNextLexingStateFromPrior(state)
 				continuation(emptyToken.makeShared())
 				return

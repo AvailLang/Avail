@@ -65,6 +65,7 @@ import avail.environment.actions.ExamineCompilationAction
 import avail.environment.actions.ExamineModuleManifest
 import avail.environment.actions.ExamineRepositoryAction
 import avail.environment.actions.ExamineSerializedPhrasesAction
+import avail.environment.actions.ExamineStylingAction
 import avail.environment.actions.FindAction
 import avail.environment.actions.GenerateDocumentationAction
 import avail.environment.actions.GenerateGraphAction
@@ -315,7 +316,7 @@ class AvailWorkbench internal constructor (
 	 * The [text&#32;area][JTextPane] that displays the [build][AvailBuilder]
 	 * transcript.
 	 */
-	val transcript = codeSuitableTextPane(this)
+	val transcript = codeSuitableTextPane(this, this)
 
 	/** The [scroll bars][JScrollPane] for the [transcript]. */
 	private val transcriptScrollArea: JScrollPane
@@ -359,7 +360,7 @@ class AvailWorkbench internal constructor (
 	private val refreshAction = RefreshAction(this)
 
 	/** The [FindAction] for finding/replacing text in a text area. */
-	val findAction = FindAction(this)
+	private val findAction = FindAction(this, this)
 
 	/** The [&quot;about Avail&quot; action][AboutAction]. */
 	private val aboutAction = AboutAction(this)
@@ -485,6 +486,9 @@ class AvailWorkbench internal constructor (
 	private val examinePhrasesAction =
 		ExamineSerializedPhrasesAction(this, runtime)
 
+	private val examineStylingAction =
+		ExamineStylingAction(this, runtime)
+
 	/** The [ExamineModuleManifest]. */
 	private val examineModuleManifestAction =
 		ExamineModuleManifest(this, runtime)
@@ -605,9 +609,6 @@ class AvailWorkbench internal constructor (
 		/** The start time. */
 		private var startTimeMillis: Long = 0
 
-		/** The stop time. */
-		private var stopTimeMillis: Long = 0
-
 		/** The [exception][Throwable] that terminated the build. */
 		private var terminator: Throwable? = null
 
@@ -627,7 +628,7 @@ class AvailWorkbench internal constructor (
 		 */
 		protected fun reportDone()
 		{
-			val durationMillis = stopTimeMillis - startTimeMillis
+			val durationMillis = currentTimeMillis() - startTimeMillis
 			val status: String?
 			val t = terminator
 			status = when
@@ -659,7 +660,6 @@ class AvailWorkbench internal constructor (
 				try
 				{
 					Repositories.closeAllRepositories()
-					stopTimeMillis = currentTimeMillis()
 				}
 				finally
 				{
@@ -827,7 +827,7 @@ class AvailWorkbench internal constructor (
 				document.insertString(
 					document.length, // The current length
 					entry.string,
-					entry.style.styleIn(document))
+					entry.style.getStyle(document))
 				// Always use index 0, since this only happens in the UI thread.
 				insertStringStat.record(System.nanoTime() - before)
 			}
@@ -901,6 +901,8 @@ class AvailWorkbench internal constructor (
 		examineCompilationAction.isEnabled =
 			!busy && selectedModule() !== null
 		examinePhrasesAction.isEnabled =
+			!busy && selectedModule() !== null
+		examineStylingAction.isEnabled =
 			!busy && selectedModule() !== null
 		examineModuleManifestAction.isEnabled =
 			!busy && selectedModule() !== null
@@ -1451,7 +1453,7 @@ class AvailWorkbench internal constructor (
 			doc.insertString(
 				0,
 				string,
-				BUILD_PROGRESS.styleIn(doc))
+				BUILD_PROGRESS.getStyle(doc))
 			// Always use index 0, since this only happens in the UI thread.
 			insertStringStat.record(System.nanoTime() - beforeInsert)
 		}
@@ -1626,6 +1628,7 @@ class AvailWorkbench internal constructor (
 				separator()
 				item(clearTranscriptAction)
 			}
+			addWindowMenu(this@AvailWorkbench)
 			if (showDeveloperTools)
 			{
 				menu("Developer")
@@ -1658,6 +1661,7 @@ class AvailWorkbench internal constructor (
 					item(examineRepositoryAction)
 					item(examineCompilationAction)
 					item(examinePhrasesAction)
+					item(examineStylingAction)
 					item(examineModuleManifestAction)
 					separator()
 					item(graphAction)
@@ -2062,15 +2066,15 @@ class AvailWorkbench internal constructor (
 		 * The background color of the input field when a command is running.
 		 */
 		val inputBackgroundWhenRunning = AdaptiveColor(
-			light = Color(192, 255, 192),
-			dark = Color(55, 156, 26))
+			light = LightColors.consoleBackground,
+			dark = DarkColors.consoleBackground)
 
 		/**
 		 * The foreground color of the input field when a command is running.
 		 */
 		val inputForegroundWhenRunning = AdaptiveColor(
-			light = Color.black,
-			dark = Color.white)
+			light = LightColors.consoleText,
+			dark = DarkColors.consoleText)
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current
