@@ -2356,6 +2356,7 @@ class AvailWorkbench internal constructor (
 			rootsString: String = "",
 			inDarkMode: Boolean = darkMode,
 			initial: String = "",
+			subTitle: String? = null,
 			repositoryDirectory: File? = null)
 		{
 			val fileManager = FileManager()
@@ -2453,7 +2454,10 @@ class AvailWorkbench internal constructor (
 			swingReady.acquire()
 
 			// Display the UI.
-			val bench = AvailWorkbench(runtime, fileManager, resolver)
+			val title =
+				if (subTitle != null) "Avail Workbench ($subTitle)"
+				else "Avail Workbench"
+			val bench = AvailWorkbench(runtime, fileManager, resolver, title)
 			// Inject a breakpoint handler into the runtime to open a debugger.
 			runtime.breakpointHandler = { fiber ->
 				val debugger = AvailDebugger(bench)
@@ -2511,6 +2515,7 @@ class AvailWorkbench internal constructor (
 				},
 				project.darkMode,
 				"",
+				project.name,
 				File(project.repositoryLocation.fullPathNoPrefix))
 		}
 	}

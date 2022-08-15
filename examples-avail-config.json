@@ -2,7 +2,7 @@
 	"id": "5060d6d0-cd5a-4d92-b3b4-3f7611b0ab39", 
 	"darkMode": true, 
 	"serializationVersion": 1, 
-	"name": "avail-stdlib", 
+	"name": "avail-examples",
 	"repositoryLocation": {
 		"locationType": "availRepositories", 
 		"scheme": "FILE", 
