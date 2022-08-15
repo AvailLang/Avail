@@ -32,7 +32,6 @@
 
 import avail.plugin.AvailExtension
 import org.availlang.artifact.AvailArtifactType.LIBRARY
-import org.availlang.artifact.environment.location.AvailLocation
 import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme.FILE
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
@@ -51,11 +50,10 @@ version = "2.0.0-1.6.1-SNAPSHOT"
 avail {
 	projectDescription = "The Avail Standard Library"
 	rootsDirectory = ProjectHome(
-		"/distro/src",
+		"distro/src",
 		FILE,
-		project.projectDir.absolutePath,
-		AvailLocation.LocationType.projectRoots)
-	root(
+		project.rootDir.absolutePath)
+	projectRoot(
 		"avail",
 		entryPoints = listOf("!_"),
 		description = "The Avail Standard Library primary module root" )
