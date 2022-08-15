@@ -41,7 +41,9 @@ import org.availlang.json.jsonObject
 import java.io.File
 
 /**
- * The representation of an Avail
+ * An [AvailWorkbench] runner that uses an [AvailProject] configuration file to
+ * start the workbench with the appropriate Avail roots and project-specific
+ * configurations.
  *
  * @author Richard Arriaga
  */
@@ -59,12 +61,27 @@ object AvailProjectWorkbenchRunner
 	@JvmStatic
 	fun main(args: Array<String>)
 	{
-		val rootDirectory = getProjectRootDirectory(args)
+		val configFile =
+			when (args.size)
+			{
+				0 ->
+				{
+					File("${getProjectRootDirectory("")}/$CONFIG_FILE_NAME")
+				}
+				1 -> File(args[0])
+				else -> throw RuntimeException(
+					"Avail project runner expects either" +
+						"\n\t0 arguments: The Avail Project config file, " +
+						"`avail-config.json`, is at the project directory " +
+						"where this is being run from" +
+						"\n\t1 argument: The path, with name, of the project " +
+						"config file.")
+			}
 		optionallyCreateAvailUserHome()
-		val configFile = File("$rootDirectory/$CONFIG_FILE_NAME")
+		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
 		val availProject =
 			AvailProject.from(
-				rootDirectory,
+				projectPath,
 				jsonObject(configFile.readText(Charsets.UTF_8)))
 		System.setProperty(
 			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())
