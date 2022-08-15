@@ -68,7 +68,7 @@ object AvailProjectWorkbenchRunner
 				{
 					File(
 						getProjectRootDirectory("") +
-							File.pathSeparator +
+							File.separator +
 							CONFIG_FILE_NAME)
 				}
 				1 -> File(args[0])
@@ -82,7 +82,7 @@ object AvailProjectWorkbenchRunner
 			}
 		optionallyCreateAvailUserHome()
 		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
-			.removeSuffix(File.pathSeparator)
+			.removeSuffix(File.separator)
 		val availProject =
 			AvailProject.from(
 				projectPath,
