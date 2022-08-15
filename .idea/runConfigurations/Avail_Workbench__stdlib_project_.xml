@@ -4,6 +4,7 @@
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="avail.project.AvailProjectWorkbenchRunner" />
     <module name="avail.avail.main" />
+    <option name="VM_PARAMETERS" value="-ea -Xmx4g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/debug-logging.properties -DavailDeveloper=true -splash:$PROJECT_DIR$/avail/src/main/resources/resources/workbench/AvailWBSplash.png" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
