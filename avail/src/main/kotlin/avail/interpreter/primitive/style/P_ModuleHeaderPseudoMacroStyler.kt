@@ -157,8 +157,6 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 			}
 		}
 
-		//TODO Complete this.
-
 		return interpreter.primitiveSuccess(NilDescriptor.nil)
 	}
 

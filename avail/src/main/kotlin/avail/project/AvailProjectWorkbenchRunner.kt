@@ -33,10 +33,10 @@
 package avail.project
 
 import avail.environment.AvailWorkbench
-import org.availlang.artifact.environment.project.AvailProject
-import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
 import org.availlang.artifact.environment.AvailEnvironment.optionallyCreateAvailUserHome
+import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 import org.availlang.json.jsonObject
 import java.io.File
 
@@ -66,7 +66,10 @@ object AvailProjectWorkbenchRunner
 			{
 				0 ->
 				{
-					File("${getProjectRootDirectory("")}/$CONFIG_FILE_NAME")
+					File(
+						getProjectRootDirectory("") +
+							File.pathSeparator +
+							CONFIG_FILE_NAME)
 				}
 				1 -> File(args[0])
 				else -> throw RuntimeException(
@@ -79,6 +82,7 @@ object AvailProjectWorkbenchRunner
 			}
 		optionallyCreateAvailUserHome()
 		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
+			.removeSuffix(File.pathSeparator)
 		val availProject =
 			AvailProject.from(
 				projectPath,
