@@ -331,7 +331,13 @@ class AvailRuntimeTestHelper constructor (
 
 	/**
 	 * Create [ModuleRoots] from the information supplied in the
-	 * `availRoots` system property.
+	 * `availRoots` system property. Reads from the system property `user.dir`
+	 * to locate the current working directory. Note that the current working
+	 * directory is _deeply assumed_ to be a submodule of the root project,
+	 * e.g., `avail` or `avail-server`. Since there is nothing to prevent a user
+	 * from executing a brute force launch of the test harness from an arbitrary
+	 * directory, we are _fully justified_ in enforcing a specific subset of
+	 * locations from which the test harness may run.
 	 *
 	 * @param fileManager
 	 *   The [FileManager] used to access files.
@@ -340,11 +346,7 @@ class AvailRuntimeTestHelper constructor (
 	 */
 	private fun createModuleRoots(fileManager: FileManager): ModuleRoots
 	{
-		val userDir = System.getProperty("user.dir")
-		val path = userDir
-			.replace("/avail-server", "")
-			.replace("/avail/", "/")
-		val uri = "file://$path"
+		val uri = "file://$rootDirectory"
 		val rootsList = mutableListOf(
 			"avail" to "$uri/distro/src/avail",
 			"examples" to "$uri/distro/src/examples",
@@ -430,6 +432,28 @@ class AvailRuntimeTestHelper constructor (
 
 	companion object
 	{
+		/**
+		 * The root project directory. Reads from the system property `user.dir`
+		 * to locate the current working directory. Note that the current
+		 * working directory is _deeply assumed_ to be a submodule of the root
+		 * project, e.g., `avail` or `avail-server`. Since there is nothing to
+		 * prevent a user from executing a brute force launch of the test
+		 * harness from an arbitrary directory, we are _fully justified_ in
+		 * enforcing a specific subset of locations from which the test harness
+		 * may run.
+		 */
+		val rootDirectory = run {
+			// The submodules are nested one level deep inside the root project,
+			// so just toss the final path component in order to resolve the
+			// root project.
+			val currentWorkingDirectory = System.getProperty("user.dir")
+			val rootDirectory = currentWorkingDirectory
+				.split("/")
+				.dropLast(1)
+				.joinToString("/")
+			rootDirectory
+		}
+
 		/** Lazily create a test directory in which to perform the tests. */
 		val testDirectory: Path by lazy {
 			Files.createTempDirectory("for-AvailRuntimeTestHelper-")

@@ -565,6 +565,7 @@ object StyleRegistry: Iterable<BoundStyle>
 	 * @param doc
 	 *   The styled document.
 	 */
+	@Suppress("unused")
 	inline fun <reified T> addStyles(doc: StyledDocument)
 		where T: Enum<T>, T: BoundStyle
 	{

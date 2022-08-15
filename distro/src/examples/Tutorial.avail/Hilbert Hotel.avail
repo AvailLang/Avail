@@ -41,7 +41,6 @@ Extends
 		"whole number lexer",
 		"keyword lexer",
 		"operator lexer",
-
 		"…#"
 	)
 Names
