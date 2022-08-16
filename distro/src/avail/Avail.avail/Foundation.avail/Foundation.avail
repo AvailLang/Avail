@@ -567,7 +567,6 @@ Extends
 		"each…in|of_§satisfies_",
 		"filter_by_",
 		"reject each…from_§where_",
-		"reject each…,…from_§where_",
 		"select each…from_§where_",
 		"group each…in|of_§by_",
 		"group_by_",
@@ -575,6 +574,8 @@ Extends
 		"map_through_",
 		"map each…in|of_§through_",
 		"only_",
+		"_is collection",
+		"_is collection type",
 		"_is empty",
 		"_[_]else_",
 		"_∉_"
@@ -921,6 +922,13 @@ Extends
 		"Foundation$…#",
 		"_[_]else_"
 	),
+	"Late Collections" =
+	(
+		"∃…∈_§`|_",
+		"∀…∈_§`|_",
+		"…∈_§`|_",
+		"…∈_§→_"
+	),
 	"Late Definers" =
 	(
 		"Method_is stable at_«compute with_»?",
@@ -1072,7 +1080,11 @@ Extends
 		"integrate«_‡,and⁇»with_",
 		"map each…→…in|of_§through_",
 		"${…}«else_»",
-		"${…#}«else_»"
+		"${…#}«else_»",
+		"∃…→…∈_§`|_",
+		"∀…→…∈_§`|_",
+		"…→…∈_§`|_",
+		"…→…→_§`|_"
 	),
 	"Methods" =
 	(
@@ -1256,6 +1268,7 @@ Extends
 		"quicksort_",
 		"quicksort_with_",
 		"quicksort…,…in|of_§by_",
+		"reject each…,…from_§where_",
 		"relevant`|_`|",
 		"replace all occurrences of_in_with_",
 		"replace the first occurrence of_in_with_",
@@ -1275,6 +1288,8 @@ Extends
 		"zip_",
 		"∑_",
 		"∏_",
+		"…,…∈_§→_",
+		"…,…∈_§`|_",
 		"_ends with_",
 		"_padded with_to a multiple of_",
 		"_starts with_",

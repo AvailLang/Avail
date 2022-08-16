@@ -30,65 +30,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Collections"
+Module "Late Collections"
 Versions
 	"Avail-1.6.1"
+Extends
+	"Bootstrap",
+	"Collections"
 Uses
 	"Bootstrap",
-	"Definers"
+	"Control Structures",
+	"Definers",
+	"Early Conditionals",
+	"Functions",
+	"Enumeration Support",
+	"Literals",
+	"Logic",
+	"Macro Support",
+	"Maps",
+	"Math",
+	"Sets",
+	"Tuples",
+	"Types",
+	"Variables"
 Names
-	/* The definitions are provided by Tuples, Sets, and Maps, but the names
-	 * are introduced here.
-	 */
-	"For each of⁇_do_",
-	"For each…in|of_§do_",
-	"Require:_accepts_",
-	"any of_satisfies_",
-	"any…in|of_§satisfies_",
-	"count of_where_",
-	"count of…from|in|of_§where_",
-	"each of_satisfies_",
-	"each…in|of_§satisfies_",
-	"filter_by_",
-	"reject each…from_§where_",
-	"select each…from_§where_",
-	"group each…in|of_§by_",
-	"group_by_",
-	"map and filter_by_",
-	"map_through_",
-	"map each…in|of_§through_",
-	"only_",
-	"_is collection",
-	"_is collection type",
-	"_is empty",
-	"_[_]else_",
-	"_∉_"
+	"∃…∈_§`|_",
+	"∀…∈_§`|_",
+	"…∈_§`|_",
+	"…∈_§→_"
 Body
 
-/**
- * Answers {@method "true"} if the argument is a collection.
- *
- * @param "x" "any"
- *    The argument to query.
- * @returns "boolean"
- *    {@method "true"} iff the argument is a collection, or {@method "false"}
- *    otherwise.
- */
-Method "_is collection" is [x : any | false] : boolean;
+Alias "∃…∈_§`|_" to $"any…in|of_§satisfies_";
+Alias "∀…∈_§`|_" to $"each…in|of_§satisfies_";
+Alias "…∈_§`|_" to $"select each…from_§where_";
+Alias "…∈_§→_" to $"map each…in|of_§through_";
 
-/**
- * Answers {@method "true"} if the argument is a collection type.
- *
- * @param "x" "any"
- *    The argument to query.
- * @returns "boolean"
- *    {@method "true"} iff the argument is a collection type, or
- *    {@method "false"} otherwise.
- */
-Method "_is collection type" is [x : any | false] : boolean;
+Copy macros from $"any…in|of_§satisfies_" to $"∃…∈_§`|_";
+Copy macros from $"each…in|of_§satisfies_" to $"∀…∈_§`|_";
+Copy macros from $"select each…from_§where_" to $"…∈_§`|_";
+Copy macros from $"map each…in|of_§through_" to $"…∈_§→_";
 
-Method "_is collection" is stable at
-	function accepting <any> and returning boolean;
-
-Method "_is collection type" is stable at
-	function accepting <any> and returning boolean;
