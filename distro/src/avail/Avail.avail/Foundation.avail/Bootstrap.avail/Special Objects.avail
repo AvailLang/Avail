@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/17/22, 2:38 PM
+ * * Last Generated: 8/17/22, 4:23 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -181,6 +181,7 @@ Names
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
+	/* 179 */ "string literal phrase",
 	/* 171 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
@@ -2366,4 +2367,13 @@ Special object "optionalStylerFunction" is special object 177;
  * @alias "optionalPhrase"
  */
 Special object "optionalPhrase" is special object 178;
+
+/**
+ * A literal phrase on a string literal.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "string literal phrase"
+ */
+Special object "string literal phrase" is special object 179;
 

@@ -62,6 +62,7 @@ import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive:** Add a type restriction function.
@@ -130,4 +131,6 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 				E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS
 			).setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

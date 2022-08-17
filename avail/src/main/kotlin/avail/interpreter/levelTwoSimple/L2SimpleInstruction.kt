@@ -821,6 +821,7 @@ class L2Simple_PushLabel(
 				thisChunk,
 				0, // Indicates a label
 				arguments)
+			label.makeSubobjectsImmutable()
 			registers[stackp] = label as AvailObject
 			return null
 		}

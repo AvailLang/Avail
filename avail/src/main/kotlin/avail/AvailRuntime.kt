@@ -198,6 +198,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
@@ -1334,8 +1335,12 @@ class AvailRuntime constructor(
 			put(PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
 			put(zeroOrOneOf(stylerFunctionType))
 			put(zeroOrOneOf(PhraseKind.PARSE_PHRASE.mostGeneralType))
+			put(
+				PhraseKind.LITERAL_PHRASE.create(
+					LiteralTokenTypeDescriptor.literalTokenType(
+						stringType)))
 
-			at(179)
+			at(180)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**

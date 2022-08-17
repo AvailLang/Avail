@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/17/22, 2:38 PM
+ * * Last Generated: 8/17/22, 4:23 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -75,7 +75,9 @@ Uses
 		"Seal method_at_",
 		"Seal method|methods_at existing definitions",
 		"Semantic restriction_is_",
+		"Style method name_",
 		"Style span of_with_«overwriting»?",
+		"Style string literal_",
 		"Style token_as_«overwriting»?",
 		"Style_with_",
 		"_'s⁇_field",
@@ -3811,6 +3813,31 @@ Primitive "Style_with_" is
 ] : ⊤;
 
 /**
+ * Apply the bootstrap method name styler to the specified method name. Awards
+ * a distinct style to literal character data ({@code "#string-literal"}),
+ * character escapes and literal delimiters
+ * ({@code "#string-escape-sequence"}), and method name metacharacters
+ * ({@code "#method-name"}).
+ *
+ * @category "Primitives"
+ * @method "Style method name_"
+ * @param "methodName" "literal phrase⇒literal token⇒string"
+ *    The string literal phrase to style as a method name.
+ * @returns "⊤"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ */
+Primitive "Style method name_" is
+[
+	methodName : string literal phrase
+|
+	Primitive StyleMethodName (failureCode : {
+		cannot-define-during-compilation code,
+		loading-is-over code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
  * Apply the given style to the contiguous span of source bounded by all tokens
  * within the given phrase and its constituents.
  *
@@ -3833,6 +3860,30 @@ Primitive "Style span of_with_«overwriting»?" is
 	overwriting : boolean
 |
 	Primitive StyleSpanOfPhrase (failureCode : {
+		cannot-define-during-compilation code,
+		loading-is-over code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Apply the bootstrap string literal styler to the specified string literal.
+ * Awards a distinct style to literal character data
+ * ({@code "#string-literal"}) and character escapes and literal delimiters
+ * ({@code "#string-escape-sequence"}).
+ *
+ * @category "Primitives"
+ * @method "Style string literal_"
+ * @param "stringLiteral" "literal phrase⇒literal token⇒string"
+ *    The string literal phrase to style.
+ * @returns "⊤"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ */
+Primitive "Style string literal_" is
+[
+	stringLiteral : string literal phrase
+|
+	Primitive StyleStringLiteral (failureCode : {
 		cannot-define-during-compilation code,
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode

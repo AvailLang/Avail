@@ -826,7 +826,8 @@ constructor(
 		var start = stringLiteralToken.start().toLong()
 		lockStyles {
 			val characters =
-				stringLiteralToken.string().iterator() as ListIterator<A_Character>
+				stringLiteralToken.string().iterator() as
+					ListIterator<A_Character>
 			while (characters.hasNext())
 			{
 				var count = 0L
@@ -896,14 +897,14 @@ constructor(
 										in 'A'.code .. 'F'.code ->
 										{
 											count++
-											value =
-												(value shl 4) + c - 'A'.code + 10
+											value = (value shl 4) +
+												c - 'A'.code + 10
 										}
 										in 'a'.code .. 'f'.code ->
 										{
 											count++
-											value =
-												(value shl 4) + c - 'a'.code + 10
+											value = (value shl 4) +
+												c - 'a'.code + 10
 										}
 										else ->
 										{
@@ -926,7 +927,8 @@ constructor(
 							'\r'.code, '\n'.code ->
 							{
 								// Explicitly don't style the escaped carriage
-								// return or line feed, but do style the backslash.
+								// return or line feed, but do style the
+								// backslash.
 								edit(start, start + count) {
 									SystemStyle
 										.STRING_ESCAPE_SEQUENCE
@@ -944,8 +946,8 @@ constructor(
 					}
 					BACK_QUOTE.codepoint ->
 					{
-						// We know that the message split correctly, so there can't
-						// be a dangling escape.
+						// We know that the message split correctly, so there
+						// can't be a dangling escape.
 						val c = characters.next().codePoint
 						assert(canBeBackQuoted(c))
 						edit(start, start + 1) {
@@ -998,9 +1000,9 @@ constructor(
 								count++
 							}
 						}
-						// We know that the string lexed correctly, so there have to
-						// be more characters (because we haven't seen the closing
-						// double quote yet).
+						// We know that the string lexed correctly, so there
+						// have to be more characters (because we haven't seen
+						// the closing double quote yet).
 						assert(characters.hasNext())
 					}
 				}
