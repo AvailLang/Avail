@@ -537,6 +537,7 @@ constructor(
 				workbench.openEditors.remove(resolverReference.moduleName)
 			}
 		})
+		setLocationRelativeTo(workbench)
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
