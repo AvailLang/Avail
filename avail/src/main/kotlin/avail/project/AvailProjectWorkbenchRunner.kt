@@ -89,7 +89,6 @@ object AvailProjectWorkbenchRunner
 				jsonObject(configFile.readText(Charsets.UTF_8)))
 		System.setProperty(
 			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())
-
 		AvailWorkbench.launchWorkbenchWithProject(
 			availProject, configFile.absolutePath)
 	}

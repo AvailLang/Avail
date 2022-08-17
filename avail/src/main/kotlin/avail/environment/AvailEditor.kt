@@ -45,9 +45,7 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.persistence.cache.Repository.StylingRecord
-import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.payloads
-import avail.utility.PrefixTree.Companion.set
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Toolkit
@@ -70,8 +68,19 @@ import javax.swing.undo.CannotRedoException
 import javax.swing.undo.CannotUndoException
 import javax.swing.undo.UndoManager
 
-class AvailEditor
-constructor(
+/**
+ * An editor for an Avail source module. Currently supports:
+ *
+ * * Basic editing.
+ * * Basic undo/redo.
+ * * Template expansion, with prefix shortening and explicit single caret
+ *   positioning.
+ * * Syntax highlighting.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+class AvailEditor constructor(
 	val workbench: AvailWorkbench,
 	moduleName: ModuleName
 ) : JFrame("Avail Editor: $moduleName")
@@ -438,7 +447,7 @@ constructor(
 				// to a template. I verified this was still real-time for 120
 				// leading characters (2022.08.17).
 				prefix = document.getText(startPosition, length)
-				candidates = templates.payloads(prefix)
+				candidates = workbench.templates.payloads(prefix).flatten()
 				if (candidates.isNotEmpty())
 				{
 					// We found some candidates, so bail on the shortening
@@ -471,7 +480,7 @@ constructor(
 			// characters (⁁) correctly.
 			state.expandingTemplate = true
 			val oldCandidate = state.candidate
-			length = oldCandidate.length - oldCandidate.count { it == '⁁' }
+			length = oldCandidate.expandedLength
 			state.candidateIndex++
 			// Select the next candidate, wrapping around if necessary.
 			if (state.candidateIndex == state.candidateExpansions.size)
@@ -513,8 +522,7 @@ constructor(
 		if (state !== null)
 		{
 			val startPosition = state.startPosition
-			val caretPosition = sourcePane.caretPosition
-			val length = caretPosition - startPosition
+			val length = state.candidate.expandedLength
 			val document = sourcePane.document
 			document.remove(startPosition, length)
 			val prefix = state.templatePrefix
@@ -575,115 +583,12 @@ constructor(
 	companion object
 	{
 		/** The [AvailEditor] that sourced the [receiver][ActionEvent]. */
+		@Suppress("unused")
 		private val ActionEvent.editor get() =
 			(source as JRootPane).parent as AvailEditor
 
-		/**
-		 * The recognized textual templates available for interactive
-		 * transformation, as a [PrefixTree] from template texts to expansion
-		 * texts. Right now only direct transformations without metavariables
-		 * are supported.
-		 */
-		@Suppress("SpellCheckingInspection")
-		private val templates = PrefixTree<Int, String>().apply {
-			this["bottom"] = "⊥"
-			this["ceiling"] = "⌈⁁⌉"
-			this["celsius"] = "℃"
-			this["cent"] = "¢"
-			this["conjunction"] = "∧"
-			this["convert"] = "≍"
-			this["copyright"] = "©"
-			this["degree"] = "°"
-			this["delta"] = "Δ"
-			this["disjunction"] = "∨"
-			this["divide"] = "÷"
-			this["doubledagger"] = "‡"
-			this["doubleexclamation"] = "‼"
-			this["doublequestion"] = "⁇"
-			this["doublequotes"] = "“⁁”"
-			this["downarrow"] = "↓"
-			this["downtack"] = "⊤"
-			this["elementof"] = "∈"
-			this["ellipsis"] = "…"
-			this["endash"] = "–"
-			this["emdash"] = "—"
-			this["emptyset"] = "∅"
-			this["enumerationt"] = "ᵀ"
-			this["equivalent"] = "≍"
-			this["floor"] = "⌊⁁⌋"
-			this["gte"] = "≥"
-			this["guillemets"] = "«⁁»"
-			this["infinity"] = "∞"
-			this["interpunct"] = "•"
-			this["intersection"] = "∩"
-			this["leftarrow"] = "←"
-			this["leftceiling"] = "⌈"
-			this["leftdoublequote"] = "“"
-			this["leftfloor"] = "⌊"
-			this["leftguillemet"] = "«"
-			this["leftsinglequote"] = "‘"
-			this["lte"] = "≤"
-			this["manicule"] = "\uD83D\uDC49"
-			this["map"] = "{⁁}"
-			this["maplet"] = "↦"
-			this["mdash"] = "—"
-			this["memberof"] = "∈"
-			this["mu"] = "µ"
-			this["ndash"] = "–"
-			this["ne"] = "≠"
-			this["not"] = "¬"
-			this["notelementof"] = "∉"
-			this["notmemberof"] = "∉"
-			this["notsubsetorequal"] = "⊈"
-			this["notsupersetorequal"] = "⊉"
-			this["o1"] = "①"
-			this["o2"] = "②"
-			this["o3"] = "③"
-			this["o4"] = "④"
-			this["o5"] = "⑤"
-			this["o6"] = "⑥"
-			this["o7"] = "⑦"
-			this["o8"] = "⑧"
-			this["o9"] = "⑨"
-			this["pi"] = "π"
-			this["picapital"] = "∏"
-			this["plusminus"] = "±"
-			this["prefix"] = "§"
-			this["rightarrow"] = "→"
-			this["rightceiling"] = "⌉"
-			this["rightdoublequote"] = "”"
-			this["rightfloor"] = "⌋"
-			this["rightsinglequote"] = "’"
-			this["rightguillemet"] = "»"
-			this["root"] = "√"
-			this["set"] = "{⁁}"
-			this["sigma"] = "∑"
-			this["singledagger"] = "†"
-			this["singlequotes"] = "‘⁁’"
-			this["subsetorequal"] = "⊆"
-			this["sum"] = "∑"
-			this["supersetorequal"] = "⊇"
-			this["swoop"] = "⤷"
-			this["t"] = "ᵀ"
-			this["thinspace"] = " "
-			this["times"] = "×"
-			this["top"] = "⊤"
-			this["tuple"] = "<⁁>"
-			this["union"] = "∪"
-			this["uparrow"] = "↑"
-			this["uptack"] = "⊥"
-			this["xor"] = "⊕"
-			this["yields"] = "⇒"
-			this["->"] = "→"
-			this["=>"] = "⇒"
-			this["<-"] = "←"
-			this["*"] = "×"
-			this["/"] = "÷"
-			this["<="] = "≤"
-			this[">="] = "≥"
-			this["!"] = "¬"
-			this["!="] = "≠"
-			this["..."] = "…"
-		}
+		/** The length of the receiver after template expansion. */
+		private val String.expandedLength get() =
+			length - count { it == '⁁' }
 	}
 }

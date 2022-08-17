@@ -165,6 +165,27 @@ class PrefixTree<K, V> constructor(
 	}
 
 	/**
+	 * Fetch the value associated with the specified key, or install the value
+	 * produced by applying [producer] if no value was available.
+	 *
+	 * @param key
+	 *   The search key.
+	 * @param producer
+	 *   How to produce a value if none was available.
+	 * @return
+	 *   The value associated with [key], which may have been obtained from
+	 *   [producer].
+	 */
+	fun getOrPut(key: Iterable<K>, producer: ()->V): V
+	{
+		val tree = mutableTraverse(key)
+		tree.payload?.let { return it }
+		val value = producer()
+		tree.payload = value
+		return value
+	}
+
+	/**
 	 * Remove the specified key and any associated value from the receiver.
 	 * Fast, because it does not alter the shape of the tree.
 	 *
@@ -281,5 +302,58 @@ class PrefixTree<K, V> constructor(
 			key: String,
 			value: V
 		): V? = set(key.codePoints().toList(), value)
+
+		/**
+		 * Convenience getter/setter for using string-keyed prefix trees.
+		 *
+		 * @param key
+		 *   The search key.
+		 * @param producer
+		 *   How to produce a value if none was available.
+		 * @return
+		 *   The value associated with [key], which may have been obtained from
+		 *   [producer].
+		 */
+		@Suppress("NOTHING_TO_INLINE")
+		inline fun <V> PrefixTree<Int, V>.getOrPut(
+			key: String,
+			noinline producer: ()->V
+		): V = getOrPut(key.codePoints().toList(), producer)
+
+		/**
+		 * Create a [PrefixTree] from the given [map][Map].
+		 *
+		 * @param map
+		 *   The map to convert.
+		 * @return
+		 *   The resultant prefix tree.
+		 */
+		@Suppress("unused")
+		fun <K, V> fromMap(map: Map<Iterable<K>, V>): PrefixTree<K, V>
+		{
+			val tree = PrefixTree<K, V>()
+			map.forEach { (key, x) ->
+				tree[key] = x
+			}
+			return tree
+		}
+
+		/**
+		 * Create a [PrefixTree] from the given [map][Map].
+		 *
+		 * @param map
+		 *   The map to convert.
+		 * @return
+		 *   The resultant prefix tree.
+		 */
+		@Suppress("unused")
+		fun <V> fromStringMap(map: Map<String, V>): PrefixTree<Int, V>
+		{
+			val tree = PrefixTree<Int, V>()
+			map.forEach { (key, x) ->
+				tree[key.codePoints().toList()] = x
+			}
+			return tree
+		}
 	}
 }

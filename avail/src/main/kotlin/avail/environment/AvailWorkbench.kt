@@ -126,6 +126,8 @@ import avail.resolver.ResolverReference
 import org.availlang.artifact.ResourceType
 import avail.stacks.StacksGenerator
 import avail.utility.IO
+import avail.utility.PrefixTree
+import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
@@ -242,14 +244,34 @@ import kotlin.math.min
  * @param windowTitle
  *   The [AvailWorkbench]'s frame's [title].
  */
-class AvailWorkbench internal constructor (
+class AvailWorkbench internal constructor(
+	internal val availProject: AvailProject,
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver,
-	internal val availProject: AvailProject,
-	internal var availProjectFilePath: String = "",
+	private var availProjectFilePath: String = "",
 	windowTitle: String = "Avail Workbench") : JFrame()
 {
+	/**
+	 * The recognized textual templates available for interactive
+	 * transformation, as a [PrefixTree] from template texts to expansion
+	 * texts.
+	 */
+	val templates = run {
+		val tree = PrefixTree<Int, MutableSet<String>>()
+		availProject.availProjectRoots.forEach { root ->
+			root.templates.forEach { (name, expansion) ->
+				val expansions = tree.getOrPut(name) { mutableSetOf() }
+				expansions.add(expansion)
+			}
+		}
+		availProject.templates.forEach { (name, expansion) ->
+			val expansions = tree.getOrPut(name) { mutableSetOf() }
+			expansions.add(expansion)
+		}
+		tree
+	}
+
 	/**
 	 * The [StyledDocument] into which to write both error and regular
 	 * output.  Lazily initialized.
@@ -2329,63 +2351,37 @@ class AvailWorkbench internal constructor (
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
-		 * @param args
-		 * The command line arguments.
-		 * @throws Exception
-		 * If something goes wrong.
-		 */
-		@Throws(Exception::class)
-		@JvmStatic
-		fun main(args: Array<String>)
-		{
-			launchWorkbench(
-				System.getProperty("availRoots", ""),
-				darkMode,
-				if (args.isNotEmpty()) args[0] else "")
-		}
-
-		/**
-		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
-		 *
-		 *
-		 * @param rootsString
-		 *   An Avail [module][ModuleDescriptor] path.
-		 * @param inDarkMode
-		 *   An indicator of whether to show the user interface in dark mode.
-		 * @param initial
-		 *   The name of the module to have selected when the workbench frame is
-		 *   opened.
-		 * @param repositoryDirectory
-		 *   The [File] directory for [Repositories.directory] or `null` to
-		 *   leave as the default value.
 		 * @param project
 		 *  The [AvailProject] to use to launch the workbench.
 		 * @param availProjectFilePath
 		 *   The String path to the [availProject] configuration file or an
 		 *   empty String if the [AvailWorkbench] was started without an
 		 *   [AvailProject].
+		 * @param initial
+		 *   The name of the module to have selected when the workbench frame is
+		 *   opened.
 		 * @throws Exception
 		 * If something goes wrong.
 		 */
 		@Throws(Exception::class)
 		@JvmStatic
 		fun launchWorkbench(
-			rootsString: String = "",
-			inDarkMode: Boolean = darkMode,
-			initial: String = "",
-			subTitle: String? = null,
-			repositoryDirectory: File? = null,
 			project: AvailProject = AvailProjectV1(
 				"--No Project--",
 				true,
 				AvailRepositories()),
-			availProjectFilePath: String = "")
+			availProjectFilePath: String = "",
+			initial: String = "")
 		{
-			val fileManager = FileManager()
-			if (repositoryDirectory != null)
-			{
-				Repositories.setDirectoryLocation(repositoryDirectory)
+			val rootsString = project.availProjectRoots.joinToString(";") {
+				it.modulePath
 			}
+			val inDarkMode = project.darkMode
+			val subTitle = project.name
+			val repositoryDirectory =
+				File(project.repositoryLocation.fullPathNoPrefix)
+			val fileManager = FileManager()
+			Repositories.setDirectoryLocation(repositoryDirectory)
 			// Do the slow Swing setup in parallel with other things...
 			val swingReady = Semaphore(0)
 			val runtimeReady = Semaphore(0)
@@ -2476,15 +2472,13 @@ class AvailWorkbench internal constructor (
 			swingReady.acquire()
 
 			// Display the UI.
-			val title =
-				if (subTitle != null) "Avail Workbench ($subTitle)"
-				else "Avail Workbench"
+			val title = "Avail Workbench ($subTitle)"
 			val bench =
 				AvailWorkbench(
+					project,
 					runtime,
 					fileManager,
 					resolver,
-					project,
 					availProjectFilePath,
 					title)
 			// Inject a breakpoint handler into the runtime to open a debugger.
@@ -2545,15 +2539,9 @@ class AvailWorkbench internal constructor (
 			availProjectFilePath: String = "")
 		{
 			launchWorkbench(
-				project.availProjectRoots.joinToString(";") {
-					it.modulePath
-				},
-				project.darkMode,
-				"",
-				project.name,
-				File(project.repositoryLocation.fullPathNoPrefix),
 				project,
-				availProjectFilePath)
+				availProjectFilePath,
+				"")
 		}
 	}
 }
