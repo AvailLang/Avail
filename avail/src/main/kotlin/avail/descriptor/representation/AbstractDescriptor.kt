@@ -4001,6 +4001,24 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_WhichPowerOfTwo(self: AvailObject): Int
 
+	abstract fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin
+
+	abstract fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int
+	): A_SetBin
+
+	abstract fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin
+
 	companion object
 	{
 		/**

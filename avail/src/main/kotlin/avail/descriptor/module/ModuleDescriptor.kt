@@ -998,6 +998,7 @@ class ModuleDescriptor private constructor(
 		assertState(Loading)
 		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 		var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
+		visibleNames = visibleNames.setUnionCanDestroy(trueNames, true)
 		for (trueName in trueNames)
 		{
 			val string: A_String = trueName.atomName
@@ -1006,7 +1007,6 @@ class ModuleDescriptor private constructor(
 			) { _, set: A_Set ->
 				set.setWithElementCanDestroy(trueName, true)
 			}
-			visibleNames = visibleNames.setWithElementCanDestroy(trueName, true)
 		}
 		self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
 		self.setSlot(VISIBLE_NAMES, visibleNames.makeShared())

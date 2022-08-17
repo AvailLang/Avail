@@ -135,44 +135,35 @@ constructor(
 
 	override fun poll(timeout: Long, unit: TimeUnit): E?
 	{
+		assert(timeout >= 0)
 		// First try it without timeout.
 		poll()?.let { return it }
-		when (timeout)
+		if (timeout == 0L)
 		{
-			0L ->
-			{
-				synchronized(monitor) {
-					while (true)
-					{
-						monitor.wait()
-						// Re-check, because someone woke us up.
-						poll()?.let { return it }
-					}
+			synchronized(monitor) {
+				while (true)
+				{
+					monitor.wait()
+					// Re-check, because someone woke us up.
+					poll()?.let { return it }
 				}
 			}
-			else ->
+		}
+		val expiry = System.nanoTime() + unit.toNanos(timeout)
+		synchronized(monitor) {
+			while (true)
 			{
-				val expiry = System.nanoTime() + unit.toNanos(timeout)
-				synchronized(monitor) {
-					while (true)
-					{
-						val nanos = when (timeout)
-						{
-							0L -> 0L
-							else -> max(1L, expiry - System.nanoTime())
-						}
-						if (nanos == 0L && timeout > 0L)
-						{
-							// Actually timed out.
-							return null
-						}
-						monitor.wait(
-							nanos / 1_000_000,
-							(nanos % 1_000_000).toInt())
-						// Re-check, even if it just timed out.
-						poll()?.let { return it }
-					}
+				val nanos = expiry - System.nanoTime()
+				if (nanos <= 0L)
+				{
+					// Actually timed out.
+					return null
 				}
+				monitor.wait(
+					nanos / 1_000_000,
+					(nanos % 1_000_000).toInt())
+				// Re-check, even if it just timed out.
+				poll()?.let { return it }
 			}
 		}
 	}

@@ -447,6 +447,9 @@ import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanD
 import avail.descriptor.sets.A_SetBin.Companion.setBinHash
 import avail.descriptor.sets.A_SetBin.Companion.setBinIterator
 import avail.descriptor.sets.A_SetBin.Companion.setBinSize
+import avail.descriptor.sets.A_SetBin.Companion.setBinUnion
+import avail.descriptor.sets.A_SetBin.Companion.setBinUnionWithHashedBin
+import avail.descriptor.sets.A_SetBin.Companion.setBinUnionWithLinearBin
 import avail.descriptor.sets.SetDescriptor.SetIterator
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
@@ -3949,4 +3952,22 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_WhichPowerOfTwo(self: AvailObject): Int =
 		self .. { whichPowerOfTwo }
+
+	override fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin = self .. { setBinUnion(otherBin, level) }
+
+	override fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int
+	): A_SetBin = self .. { setBinUnionWithLinearBin(linearBin, level) }
+
+	override fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin = self .. { setBinUnionWithHashedBin(hashedBin, level) }
 }

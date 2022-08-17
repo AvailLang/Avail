@@ -51,7 +51,10 @@ import avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
 import avail.descriptor.sets.A_SetBin.Companion.isSetBin
 import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
 import avail.descriptor.sets.A_SetBin.Companion.setBinHash
+import avail.descriptor.sets.A_SetBin.Companion.setBinIterator
 import avail.descriptor.sets.A_SetBin.Companion.setBinSize
+import avail.descriptor.sets.A_SetBin.Companion.setBinUnion
+import avail.descriptor.sets.A_SetBin.Companion.setBinUnionWithHashedBin
 import avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.BIT_VECTOR
 import avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import avail.descriptor.sets.HashedSetBinDescriptor.IntegerSlots.Companion.BIN_SIZE
@@ -313,6 +316,66 @@ class HashedSetBinDescriptor private constructor(
 			physicalIndex,
 			objectEntryCount - physicalIndex + 1)
 		return objectToModify
+	}
+
+	override fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin = otherBin.setBinUnionWithHashedBin(self, level)
+
+	override fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int
+	): A_SetBin = combineHashedAndLinear(self, linearBin, level)
+
+	override fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin
+	{
+		if (self.sameAddressAs(hashedBin)) return self
+		val mask1 = self.slot(BIT_VECTOR)
+		val mask2 = hashedBin.slot(BIT_VECTOR)
+		var mergedMask = mask1 or mask2
+		val newSize = java.lang.Long.bitCount(mergedMask)
+		val out = when
+		{
+			mask1 == mergedMask && isMutable -> self
+			mask2 == mergedMask && hashedBin.descriptor().isMutable -> hashedBin
+			mask1 == mask2 -> newLike(mutable(), self, 0, 0)
+			else -> createUninitializedHashedSetBin(
+				level, newSize, 0, 0, mergedMask, nil)
+		}
+		var source1 = 1
+		var source2 = 1
+		var elementCount = 0
+		var hash = 0
+		for (dest in 1..newSize)
+		{
+			val bit = mergedMask.takeLowestOneBit()
+			val child = when
+			{
+				mask2 and bit == 0L -> self.slot(BIN_ELEMENT_AT_, source1++)
+				mask1 and bit == 0L ->
+					hashedBin.slot(BIN_ELEMENT_AT_, source2++)
+				else -> self.slot(BIN_ELEMENT_AT_, source1++).setBinUnion(
+					hashedBin.slot(BIN_ELEMENT_AT_, source2++), level + 1)
+			}
+			elementCount += child.setBinSize
+			hash += child.setBinHash
+			out.setSlot(BIN_ELEMENT_AT_, dest, child)
+			mergedMask = mergedMask xor bit
+		}
+		assert(mergedMask == 0L)
+		assert(source1 == self.variableObjectSlotsCount() + 1)
+		assert(source2 == hashedBin.variableObjectSlotsCount() + 1)
+		out.setSlot(BIN_HASH, hash)
+		out.setSlot(BIN_SIZE, elementCount)
+		out.setSlot(BIN_UNION_KIND_OR_NIL, nil)
+		return out
 	}
 
 	override fun o_BinHasElementWithHash(
@@ -619,8 +682,7 @@ class HashedSetBinDescriptor private constructor(
 		): AvailObject {
 			val instance = createUninitializedHashedSetBin(
 				level, localSize, 0, 0, bitVector, nil)
-			val emptySubbin: AvailObject =
-				emptyLinearSetBin(level + 1)
+			val emptySubbin: AvailObject = emptyLinearSetBin(level + 1)
 			instance.fillSlots(BIN_ELEMENT_AT_, 1, localSize, emptySubbin)
 			return instance
 		}
@@ -745,6 +807,27 @@ class HashedSetBinDescriptor private constructor(
 		): HashedSetBinDescriptor {
 			assert(level in 0 until numberOfLevels)
 			return descriptors[flag]!![level]
+		}
+
+		/**
+		 * Combine a [hashed][HashedSetBinDescriptor] bin and a
+		 * [linear][LinearSetBinDescriptor] bin.  They're both at the specified
+		 * [level].
+		 */
+		fun combineHashedAndLinear(
+			hashedBin: AvailObject,
+			linearBin: AvailObject,
+			level: Int
+		): A_SetBin
+		{
+			// For simplicity, just add each of the elements from the linear bin
+			// into the hashed bin.
+			var out: A_SetBin = hashedBin
+			linearBin.setBinIterator.forEachRemaining { element ->
+				out = out.setBinAddingElementHashLevelCanDestroy(
+					element, element.hash(), level, true)
+			}
+			return out
 		}
 	}
 }

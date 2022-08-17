@@ -433,19 +433,21 @@ class MapDescriptor private constructor(
 		transformer: (AvailObject, AvailObject) -> A_BasicObject
 	): A_Map {
 		val oldRoot = rootBin(self)
-		val traversedKey: A_BasicObject = key.traversed()
+		val traversedKey = key.traversed()
 		val newRoot = oldRoot.mapBinAtHashReplacingLevelCanDestroy(
-			traversedKey.cast(),
+			traversedKey,
 			traversedKey.hash(),
 			notFoundValue.cast(),
 			0,
 			canDestroy,
 			transformer)
-		if (canDestroy && isMutable) {
+		if (canDestroy && isMutable)
+		{
 			setRootBin(self, newRoot)
 			return self
 		}
-		if (isMutable) {
+		if (isMutable)
+		{
 			self.makeImmutable()
 		}
 		return createFromBin(newRoot)

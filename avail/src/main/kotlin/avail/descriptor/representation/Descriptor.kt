@@ -76,6 +76,7 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_SetBin
+import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import avail.descriptor.sets.SetDescriptor.SetIterator
@@ -2746,4 +2747,25 @@ protected constructor (
 	override fun o_CurrentLexer(self: AvailObject): A_Lexer = unsupported
 
 	override fun o_WhichPowerOfTwo(self: AvailObject): Int = unsupported
+
+	override fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin = otherBin.setBinAddingElementHashLevelCanDestroy(
+		self, self.hash(), level, true)
+
+	override fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int
+	): A_SetBin = linearBin.setBinAddingElementHashLevelCanDestroy(
+		self, self.hash(), level, true)
+
+	override fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin = hashedBin.setBinAddingElementHashLevelCanDestroy(
+		self, self.hash(), level, true)
 }

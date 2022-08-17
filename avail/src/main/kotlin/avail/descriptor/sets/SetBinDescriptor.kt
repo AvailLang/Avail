@@ -78,8 +78,8 @@ abstract class SetBinDescriptor protected constructor(
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?,
 	internal val level: Int
 ) : Descriptor(
-	mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass
-) {
+	mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+{
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -117,6 +117,25 @@ abstract class SetBinDescriptor protected constructor(
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
 	abstract override fun o_SetBinIterator(self: AvailObject): SetIterator
+
+	abstract override fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin
+
+	abstract override fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int
+	): A_SetBin
+
+	abstract override fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin
+
 
 	companion object {
 		/**
