@@ -130,7 +130,9 @@ import avail.utility.cast
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
+import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.environment.project.AvailProjectV1
 import java.awt.Color
 import java.awt.Component
 import java.awt.Desktop
@@ -222,6 +224,11 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @property resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
+ * @property availProject
+ *   The actively running [AvailProject].
+ * @property availProjectFilePath
+ *   The String path to the [availProject] configuration file or an empty String
+ *   if the [AvailWorkbench] was started without an [AvailProject].
  *
  * @constructor
  * Construct a new `AvailWorkbench`.
@@ -230,6 +237,8 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
+ * @param availProject
+ *   The actively running [AvailProject].
  * @param windowTitle
  *   The [AvailWorkbench]'s frame's [title].
  */
@@ -237,6 +246,8 @@ class AvailWorkbench internal constructor (
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver,
+	internal val availProject: AvailProject,
+	internal var availProjectFilePath: String = "",
 	windowTitle: String = "Avail Workbench") : JFrame()
 {
 	/**
@@ -2347,6 +2358,12 @@ class AvailWorkbench internal constructor (
 		 * @param repositoryDirectory
 		 *   The [File] directory for [Repositories.directory] or `null` to
 		 *   leave as the default value.
+		 * @param project
+		 *  The [AvailProject] to use to launch the workbench.
+		 * @param availProjectFilePath
+		 *   The String path to the [availProject] configuration file or an
+		 *   empty String if the [AvailWorkbench] was started without an
+		 *   [AvailProject].
 		 * @throws Exception
 		 * If something goes wrong.
 		 */
@@ -2357,7 +2374,12 @@ class AvailWorkbench internal constructor (
 			inDarkMode: Boolean = darkMode,
 			initial: String = "",
 			subTitle: String? = null,
-			repositoryDirectory: File? = null)
+			repositoryDirectory: File? = null,
+			project: AvailProject = AvailProjectV1(
+				"--No Project--",
+				true,
+				AvailRepositories()),
+			availProjectFilePath: String = "")
 		{
 			val fileManager = FileManager()
 			if (repositoryDirectory != null)
@@ -2457,7 +2479,14 @@ class AvailWorkbench internal constructor (
 			val title =
 				if (subTitle != null) "Avail Workbench ($subTitle)"
 				else "Avail Workbench"
-			val bench = AvailWorkbench(runtime, fileManager, resolver, title)
+			val bench =
+				AvailWorkbench(
+					runtime,
+					fileManager,
+					resolver,
+					project,
+					availProjectFilePath,
+					title)
 			// Inject a breakpoint handler into the runtime to open a debugger.
 			runtime.breakpointHandler = { fiber ->
 				val debugger = AvailDebugger(bench)
@@ -2502,12 +2531,18 @@ class AvailWorkbench internal constructor (
 		 *
 		 * @param project
 		 *  The [AvailProject] to use to launch the workbench.
+		 * @param availProjectFilePath
+		 *   The String path to the [availProject] configuration file or an
+		 *   empty String if the [AvailWorkbench] was started without an
+		 *   [AvailProject].
 		 * @throws Exception
-		 * If something goes wrong.
+		 *   If something goes wrong.
 		 */
 		@Throws(Exception::class)
 		@JvmStatic
-		fun launchWorkbenchWithProject(project: AvailProject)
+		fun launchWorkbenchWithProject(
+			project: AvailProject,
+			availProjectFilePath: String = "")
 		{
 			launchWorkbench(
 				project.availProjectRoots.joinToString(";") {
@@ -2516,7 +2551,9 @@ class AvailWorkbench internal constructor (
 				project.darkMode,
 				"",
 				project.name,
-				File(project.repositoryLocation.fullPathNoPrefix))
+				File(project.repositoryLocation.fullPathNoPrefix),
+				project,
+				availProjectFilePath)
 		}
 	}
 }

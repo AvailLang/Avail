@@ -90,6 +90,7 @@ object AvailProjectWorkbenchRunner
 		System.setProperty(
 			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())
 
-		AvailWorkbench.launchWorkbenchWithProject(availProject)
+		AvailWorkbench.launchWorkbenchWithProject(
+			availProject, configFile.absolutePath)
 	}
 }
