@@ -33,9 +33,10 @@
 Module "Early Tuples"
 Versions
 	"Avail-1.6.1"
+Extends
+	"Collections" = ("_[_]else_", "_is collection", "_is collection type")
 Uses
 	"Bootstrap",
-	"Collections" = ("_[_]else_"),
 	"Definers",
 	"Early Conditionals",
 	"Early Control Structures",
@@ -68,6 +69,9 @@ Names
 	"Require:_[_.._]is ever valid",
 	"tuple type of_[_.._]"
 Body
+
+Method "_is collection" is [x : tuple | true];
+Method "_is collection type" is [x : tuple meta | true];
 
 /**
  * @method "_'s⁇default type"

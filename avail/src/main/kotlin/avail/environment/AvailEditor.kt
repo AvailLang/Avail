@@ -45,6 +45,9 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.persistence.cache.Repository.StylingRecord
+import avail.utility.PrefixTree
+import avail.utility.PrefixTree.Companion.payloads
+import avail.utility.PrefixTree.Companion.set
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Toolkit
@@ -57,6 +60,7 @@ import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JPanel
+import javax.swing.JRootPane
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
@@ -110,6 +114,49 @@ constructor(
 		limit = 1000
 	}
 
+	/**
+	 * The state of an ongoing template selection.
+	 *
+	 * @property startPosition
+	 *   The start position of the template expansion site within the document.
+	 * @property templatePrefix
+	 *   The alleged prefix of a recognized template.
+	 * @property candidateExpansions
+	 *   The candidate template expansions available for selection.
+	 */
+	data class TemplateSelectionState constructor(
+		val startPosition: Int,
+		val templatePrefix: String,
+		val candidateExpansions: List<String>
+	) {
+		/** The index of the active candidate template expansion. */
+		var candidateIndex: Int = 0
+
+		/** Whether the template expansion algorithm is running. */
+		var expandingTemplate: Boolean = true
+
+		/** The current candidate. */
+		val candidate get() = candidateExpansions[candidateIndex]
+	}
+
+	/**
+	 * The state of an ongoing template selection. Set to `null` whenever the
+	 * caret moves for any reason.
+	 */
+	private var templateSelectionState: TemplateSelectionState? = null
+
+	/**
+	 * Clear the [template&#32;selection&#32;state][TemplateSelectionState] iff
+	 * it is stale.
+	 */
+	fun clearStaleTemplateSelectionState()
+	{
+		if (templateSelectionState?.expandingTemplate != true)
+		{
+			templateSelectionState = null
+		}
+	}
+
 	init
 	{
 		// Action: undo the previous edit.
@@ -120,12 +167,12 @@ constructor(
 				KeyEvent.VK_Z,
 				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
 			)
-		)
-		{
+		) {
 			override fun actionPerformed(e: ActionEvent) =
 				try
 				{
 					undoManager.undo()
+					clearStaleTemplateSelectionState()
 				}
 				catch (e: CannotUndoException)
 				{
@@ -142,17 +189,39 @@ constructor(
 				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx or
 					KeyEvent.SHIFT_DOWN_MASK
 			)
-		)
-		{
+		) {
 			override fun actionPerformed(e: ActionEvent) =
 				try
 				{
 					undoManager.redo()
+					clearStaleTemplateSelectionState()
 				}
 				catch (e: CannotRedoException)
 				{
 					// Ignore.
 				}
+		}
+
+		// Expand template.
+		object : AbstractEditorAction(
+			this,
+			"Expand Template",
+			KeyStroke.getKeyStroke(
+				KeyEvent.VK_SPACE,
+				KeyEvent.CTRL_DOWN_MASK
+			)
+		) {
+			override fun actionPerformed(e: ActionEvent) = expandTemplate()
+		}
+
+		// Cancel template candidate selection.
+		object : AbstractEditorAction(
+			this,
+			"Cancel Template Selection",
+			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
+		) {
+			override fun actionPerformed(e: ActionEvent) =
+				cancelTemplateExpansion()
 		}
 	}
 
@@ -237,12 +306,14 @@ constructor(
 			styledDocument.applyStyleRuns(it.styleRuns)
 		}
 		isEditable = resolverReference.resolver.canSave
-		document.addDocumentListener(object : DocumentListener {
+		document.addDocumentListener(object : DocumentListener
+		{
 			override fun insertUpdate(e: DocumentEvent) = editorChanged()
 			override fun changedUpdate(e: DocumentEvent) = editorChanged()
 			override fun removeUpdate(e: DocumentEvent) = editorChanged()
 		})
 		document.addUndoableEditListener(undoManager)
+		addCaretListener { clearStaleTemplateSelectionState() }
 		// TODO Extract token/phrase style information that should have been
 		// captured by stylers that ran against method/macro send phrases.
 		// TODO Also, we need to capture info relating local variable
@@ -321,6 +392,141 @@ constructor(
 		throwable?.let { throw it }
 	}
 
+	/**
+	 * Attempt to expand the nonwhitespace text prior to the caret using one of
+	 * the known template substitutions.
+	 */
+	private fun expandTemplate()
+	{
+		val document = sourcePane.styledDocument
+		var length: Int
+		var state = templateSelectionState
+		if (state === null)
+		{
+			// This is a brand new template expansion, so determine the
+			// candidates. Scan backwards to the first character after a
+			// whitespace, treating the start of the document as such a
+			// character.
+			val caretPosition = sourcePane.caretPosition
+			var startPosition = run {
+				// Start the search just before the caret.
+				var i = caretPosition - 1
+				while (i >= 0)
+				{
+					val c = document.getText(i, 1).codePointAt(0)
+					if (Character.isWhitespace(c)) return@run i + 1
+					i--
+				}
+				0
+			}
+			// Use the substring from boundary to caret as an index into the
+			// prefix tree of available templates.
+			length = caretPosition - startPosition
+			if (length == 0)
+			{
+				// There are no characters in the prefix. Don't allow a random
+				// walk through all possible expansions, as this has no utility.
+				Toolkit.getDefaultToolkit().beep()
+				return
+			}
+			lateinit var prefix: String
+			lateinit var candidates: List<String>
+			while (length > 0)
+			{
+				// Scan shorter and shorter prefixes until we find some
+				// candidates, giving up only if nothing before the caret leads
+				// to a template. I verified this was still real-time for 120
+				// leading characters (2022.08.17).
+				prefix = document.getText(startPosition, length)
+				candidates = templates.payloads(prefix)
+				if (candidates.isNotEmpty())
+				{
+					// We found some candidates, so bail on the shortening
+					// search and continue with the candidates at this prefix.
+					break
+				}
+				// Shorten the prefix from the start. This is especially helpful
+				// when trying to expand templates near boundary punctuation.
+				startPosition++
+				length--
+			}
+			if (candidates.isEmpty())
+			{
+				// There are no candidates. Emit a beep, but don't transform any
+				// text or change any internal state, as there's nothing to do.
+				Toolkit.getDefaultToolkit().beep()
+				return
+			}
+			templateSelectionState = TemplateSelectionState(
+				startPosition,
+				prefix,
+				candidates
+			)
+			state = templateSelectionState
+		}
+		else
+		{
+			// This is an ongoing template expansion. Arrange to clear out the
+			// rejected candidate, taking care to deal with caret insertion
+			// characters (⁁) correctly.
+			state.expandingTemplate = true
+			val oldCandidate = state.candidate
+			length = oldCandidate.length - oldCandidate.count { it == '⁁' }
+			state.candidateIndex++
+			// Select the next candidate, wrapping around if necessary.
+			if (state.candidateIndex == state.candidateExpansions.size)
+			{
+				// Beep twice to alert the user that the candidate list is
+				// recycling, i.e., the user has already seen and rejected every
+				// candidate.
+				state.candidateIndex = 0
+				Toolkit.getDefaultToolkit().beep()
+			}
+		}
+		// Perform the expansion.
+		val candidate = state!!.candidate
+		val startPosition = state.startPosition
+		document.remove(startPosition, length)
+		document.insertString(startPosition, candidate, null)
+		// Search for the caret insertion character (⁁). If found, then position
+		// the caret thereat and delete the character.
+		val desiredCharacterPosition = candidate.indexOf('⁁')
+		if (desiredCharacterPosition >= 0)
+		{
+			sourcePane.caretPosition = startPosition + desiredCharacterPosition
+			document.remove(sourcePane.caretPosition, 1)
+		}
+		else
+		{
+			sourcePane.caretPosition = startPosition + candidate.length
+		}
+		state.expandingTemplate = false
+	}
+
+	/**
+	 * Cancel an ongoing iteration through template candidates. Restore the
+	 * original text.
+	 */
+	private fun cancelTemplateExpansion()
+	{
+		val state = templateSelectionState
+		if (state !== null)
+		{
+			val startPosition = state.startPosition
+			val caretPosition = sourcePane.caretPosition
+			val length = caretPosition - startPosition
+			val document = sourcePane.document
+			document.remove(startPosition, length)
+			val prefix = state.templatePrefix
+			document.insertString(startPosition, prefix, null)
+			// Positioning the caret is not strictly necessary, as the insertion
+			// should have placed it correctly. Manually position it though just
+			// to be safe.
+			sourcePane.caretPosition = startPosition + prefix.length
+			templateSelectionState = null
+		}
+	}
+
 	/** Open the editor window. */
 	fun open()
 	{
@@ -331,6 +537,7 @@ constructor(
 				workbench.openEditors.remove(resolverReference.moduleName)
 			}
 		})
+		setLocationRelativeTo(workbench)
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
@@ -362,6 +569,121 @@ constructor(
 				item(FindAction(workbench, this@AvailEditor))
 			}
 			addWindowMenu(this@AvailEditor)
+		}
+	}
+
+	companion object
+	{
+		/** The [AvailEditor] that sourced the [receiver][ActionEvent]. */
+		private val ActionEvent.editor get() =
+			(source as JRootPane).parent as AvailEditor
+
+		/**
+		 * The recognized textual templates available for interactive
+		 * transformation, as a [PrefixTree] from template texts to expansion
+		 * texts. Right now only direct transformations without metavariables
+		 * are supported.
+		 */
+		@Suppress("SpellCheckingInspection")
+		private val templates = PrefixTree<Int, String>().apply {
+			this["bottom"] = "⊥"
+			this["ceiling"] = "⌈⁁⌉"
+			this["celsius"] = "℃"
+			this["cent"] = "¢"
+			this["conjunction"] = "∧"
+			this["convert"] = "≍"
+			this["copyright"] = "©"
+			this["degree"] = "°"
+			this["delta"] = "Δ"
+			this["disjunction"] = "∨"
+			this["divide"] = "÷"
+			this["doubledagger"] = "‡"
+			this["doubleexclamation"] = "‼"
+			this["doublequestion"] = "⁇"
+			this["doublequotes"] = "“⁁”"
+			this["downarrow"] = "↓"
+			this["downtack"] = "⊤"
+			this["elementof"] = "∈"
+			this["ellipsis"] = "…"
+			this["endash"] = "–"
+			this["emdash"] = "—"
+			this["emptyset"] = "∅"
+			this["enumerationt"] = "ᵀ"
+			this["equivalent"] = "≍"
+			this["floor"] = "⌊⁁⌋"
+			this["gte"] = "≥"
+			this["guillemets"] = "«⁁»"
+			this["infinity"] = "∞"
+			this["interpunct"] = "•"
+			this["intersection"] = "∩"
+			this["leftarrow"] = "←"
+			this["leftceiling"] = "⌈"
+			this["leftdoublequote"] = "“"
+			this["leftfloor"] = "⌊"
+			this["leftguillemet"] = "«"
+			this["leftsinglequote"] = "‘"
+			this["lte"] = "≤"
+			this["manicule"] = "\uD83D\uDC49"
+			this["map"] = "{⁁}"
+			this["maplet"] = "↦"
+			this["mdash"] = "—"
+			this["memberof"] = "∈"
+			this["mu"] = "µ"
+			this["ndash"] = "–"
+			this["ne"] = "≠"
+			this["not"] = "¬"
+			this["notelementof"] = "∉"
+			this["notmemberof"] = "∉"
+			this["notsubsetorequal"] = "⊈"
+			this["notsupersetorequal"] = "⊉"
+			this["o1"] = "①"
+			this["o2"] = "②"
+			this["o3"] = "③"
+			this["o4"] = "④"
+			this["o5"] = "⑤"
+			this["o6"] = "⑥"
+			this["o7"] = "⑦"
+			this["o8"] = "⑧"
+			this["o9"] = "⑨"
+			this["pi"] = "π"
+			this["picapital"] = "∏"
+			this["plusminus"] = "±"
+			this["prefix"] = "§"
+			this["rightarrow"] = "→"
+			this["rightceiling"] = "⌉"
+			this["rightdoublequote"] = "”"
+			this["rightfloor"] = "⌋"
+			this["rightsinglequote"] = "’"
+			this["rightguillemet"] = "»"
+			this["root"] = "√"
+			this["set"] = "{⁁}"
+			this["sigma"] = "∑"
+			this["singledagger"] = "†"
+			this["singlequotes"] = "‘⁁’"
+			this["subsetorequal"] = "⊆"
+			this["sum"] = "∑"
+			this["supersetorequal"] = "⊇"
+			this["swoop"] = "⤷"
+			this["t"] = "ᵀ"
+			this["thinspace"] = " "
+			this["times"] = "×"
+			this["top"] = "⊤"
+			this["tuple"] = "<⁁>"
+			this["union"] = "∪"
+			this["uparrow"] = "↑"
+			this["uptack"] = "⊥"
+			this["xor"] = "⊕"
+			this["yields"] = "⇒"
+			this["->"] = "→"
+			this["=>"] = "⇒"
+			this["<-"] = "←"
+			this["*"] = "×"
+			this["/"] = "÷"
+			this["<="] = "≤"
+			this[">="] = "≥"
+			this["!"] = "¬"
+			this["!="] = "≠"
+			this["..."] = "…"
 		}
 	}
 }

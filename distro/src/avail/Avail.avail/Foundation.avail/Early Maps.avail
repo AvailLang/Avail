@@ -34,10 +34,9 @@ Module "Early Maps"
 Versions
 	"Avail-1.6.1"
 Extends
-	"Collections" = ("_[_]else_")
+	"Collections" = ("_[_]else_", "_is collection", "_is collection type")
 Uses
 	"Bootstrap",
-	"Collections" = ("_[_]else_"),
 	"Definers",
 	"Early Conditionals",
 	"Early Control Structures",
@@ -53,6 +52,9 @@ Names
 	"${…}«else_»",
 	"${…#}«else_»"
 Body
+
+Method "_is collection" is [x : map | true];
+Method "_is collection type" is [x : map meta | true];
 
 Method "{_→_`|_.._}" is stable at
 	[any meta, any meta, whole number, [0..∞]]→map meta;
