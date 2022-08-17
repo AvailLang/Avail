@@ -37,8 +37,9 @@ import avail.utility.Strings.tabs
 import kotlin.streams.toList
 
 /**
- * A prefix tree, with `O(1)` access time and `O(n)` insertion time. Thread-safe
- * iff the internal [transition&#32;tables][Map], supplied by the
+ * A prefix tree, with amortized `O(1)` access time, amortized `O(1)` insertion
+ * time `O(1)`, amortized `O(1)` removal time, and `O(n)` prune time.
+ * Thread-safe iff the internal [transition&#32;tables][Map], supplied by the
  * [factory][mapFactory], are thread-safe.
  *
  * @property mapFactory
@@ -107,7 +108,7 @@ class PrefixTree<K, V> constructor(
 
 	/**
 	 * Fetch every payload stored under an improper suffix of the specified key,
-	 * ordered by length and then by code point.
+	 * ordered lexicographically by key.
 	 *
 	 * @param key
 	 *   The search key.
@@ -128,7 +129,7 @@ class PrefixTree<K, V> constructor(
 
 	/**
 	 * Fetch every payload stored under an improper suffix of the specified key,
-	 * ordered by length and then by code point.
+	 * ordered lexicographically by key.
 	 *
 	 * @param key
 	 *   The search key.
@@ -165,6 +166,7 @@ class PrefixTree<K, V> constructor(
 
 	/**
 	 * Remove the specified key and any associated value from the receiver.
+	 * Fast, because it does not alter the shape of the tree.
 	 *
 	 * @param key
 	 *   The search key.

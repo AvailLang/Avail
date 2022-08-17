@@ -211,7 +211,17 @@ constructor(
 				KeyEvent.CTRL_DOWN_MASK
 			)
 		) {
-			override fun actionPerformed(e: ActionEvent) = expandTemplate(e)
+			override fun actionPerformed(e: ActionEvent) = expandTemplate()
+		}
+
+		// Cancel template candidate selection.
+		object : AbstractEditorAction(
+			this,
+			"Cancel Template Selection",
+			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
+		) {
+			override fun actionPerformed(e: ActionEvent) =
+				cancelTemplateExpansion()
 		}
 	}
 
@@ -385,15 +395,11 @@ constructor(
 	/**
 	 * Attempt to expand the nonwhitespace text prior to the caret using one of
 	 * the known template substitutions.
-	 *
-	 * @param e
-	 *   The triggering [event][ActionEvent].
 	 */
-	private fun expandTemplate(e: ActionEvent)
+	private fun expandTemplate()
 	{
-		val sourcePane = e.editor.sourcePane
 		val document = sourcePane.styledDocument
-		val length: Int
+		var length: Int
 		var state = templateSelectionState
 		if (state === null)
 		{
@@ -402,7 +408,7 @@ constructor(
 			// whitespace, treating the start of the document as such a
 			// character.
 			val caretPosition = sourcePane.caretPosition
-			val startPosition = run {
+			var startPosition = run {
 				// Start the search just before the caret.
 				var i = caretPosition - 1
 				while (i >= 0)
@@ -423,8 +429,27 @@ constructor(
 				Toolkit.getDefaultToolkit().beep()
 				return
 			}
-			val prefix = document.getText(startPosition, length)
-			val candidates = templates.payloads(prefix)
+			lateinit var prefix: String
+			lateinit var candidates: List<String>
+			while (length > 0)
+			{
+				// Scan shorter and shorter prefixes until we find some
+				// candidates, giving up only if nothing before the caret leads
+				// to a template. I verified this was still real-time for 120
+				// leading characters (2022.08.17).
+				prefix = document.getText(startPosition, length)
+				candidates = templates.payloads(prefix)
+				if (candidates.isNotEmpty())
+				{
+					// We found some candidates, so bail on the shortening
+					// search and continue with the candidates at this prefix.
+					break
+				}
+				// Shorten the prefix from the start. This is especially helpful
+				// when trying to expand templates near boundary punctuation.
+				startPosition++
+				length--
+			}
 			if (candidates.isEmpty())
 			{
 				// There are no candidates. Emit a beep, but don't transform any
@@ -476,6 +501,30 @@ constructor(
 			sourcePane.caretPosition = startPosition + candidate.length
 		}
 		state.expandingTemplate = false
+	}
+
+	/**
+	 * Cancel an ongoing iteration through template candidates. Restore the
+	 * original text.
+	 */
+	private fun cancelTemplateExpansion()
+	{
+		val state = templateSelectionState
+		if (state !== null)
+		{
+			val startPosition = state.startPosition
+			val caretPosition = sourcePane.caretPosition
+			val length = caretPosition - startPosition
+			val document = sourcePane.document
+			document.remove(startPosition, length)
+			val prefix = state.templatePrefix
+			document.insertString(startPosition, prefix, null)
+			// Positioning the caret is not strictly necessary, as the insertion
+			// should have placed it correctly. Manually position it though just
+			// to be safe.
+			sourcePane.caretPosition = startPosition + prefix.length
+			templateSelectionState = null
+		}
 	}
 
 	/** Open the editor window. */
@@ -542,6 +591,7 @@ constructor(
 			this["cent"] = "¢"
 			this["conjunction"] = "∧"
 			this["convert"] = "≍"
+			this["copyright"] = "©"
 			this["degree"] = "°"
 			this["delta"] = "Δ"
 			this["disjunction"] = "∨"
@@ -551,6 +601,7 @@ constructor(
 			this["doublequestion"] = "⁇"
 			this["doublequotes"] = "“⁁”"
 			this["downarrow"] = "↓"
+			this["downtack"] = "⊤"
 			this["elementof"] = "∈"
 			this["ellipsis"] = "…"
 			this["endash"] = "–"
@@ -572,6 +623,7 @@ constructor(
 			this["leftsinglequote"] = "‘"
 			this["lte"] = "≤"
 			this["manicule"] = "\uD83D\uDC49"
+			this["map"] = "{⁁}"
 			this["maplet"] = "↦"
 			this["mdash"] = "—"
 			this["memberof"] = "∈"
@@ -603,6 +655,7 @@ constructor(
 			this["rightsinglequote"] = "’"
 			this["rightguillemet"] = "»"
 			this["root"] = "√"
+			this["set"] = "{⁁}"
 			this["sigma"] = "∑"
 			this["singledagger"] = "†"
 			this["singlequotes"] = "‘⁁’"
@@ -614,10 +667,22 @@ constructor(
 			this["thinspace"] = " "
 			this["times"] = "×"
 			this["top"] = "⊤"
+			this["tuple"] = "<⁁>"
 			this["union"] = "∪"
 			this["uparrow"] = "↑"
+			this["uptack"] = "⊥"
 			this["xor"] = "⊕"
 			this["yields"] = "⇒"
+			this["->"] = "→"
+			this["=>"] = "⇒"
+			this["<-"] = "←"
+			this["*"] = "×"
+			this["/"] = "÷"
+			this["<="] = "≤"
+			this[">="] = "≥"
+			this["!"] = "¬"
+			this["!="] = "≠"
+			this["..."] = "…"
 		}
 	}
 }
