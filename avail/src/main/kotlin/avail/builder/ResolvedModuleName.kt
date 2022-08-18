@@ -78,7 +78,7 @@ internal constructor(
 	/**
 	 * The [ModuleRoot] that this [ResolvedModuleName] belongs to.
 	 */
-	private val moduleRoot get() = moduleRoots.moduleRootFor(rootName)!!
+	internal val moduleRoot get() = moduleRoots.moduleRootFor(rootName)!!
 
 	/**
 	 * The [resolved][ModuleNameResolver.resolve]

@@ -21,6 +21,7 @@
 			"availModuleExtensions": [
 				"avail"
 			],
+			"rootCopyright": "",
 			"templates": {
 				"a": "∀",
 				"bottom": "⊥",
@@ -141,5 +142,6 @@
 				"...": "…"
 			}
 		}
-	]
+	],
+	"projectCopyright": ""
 }

@@ -32,9 +32,13 @@
 
 package avail.environment.actions
 
+import avail.builder.ModuleRoot
+import avail.builder.ResolvedModuleName
 import avail.environment.AvailWorkbench
+import avail.environment.dialogs.NewModuleDialog
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
+import java.io.File
 import javax.swing.Action
 import javax.swing.KeyStroke
 
@@ -57,6 +61,68 @@ constructor (
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
+		workbench.selectedModule()?.let {
+			relativeToModule(it)
+		} ?: run {
+			workbench.selectedModuleRoot()?.let {
+				relativeToModuleRoot(it)
+			}
+		}
+	}
+
+	/**
+	 * The new module to create is relative to a
+	 * [AvailWorkbench.selectedModule].
+	 *
+	 * @param relativeModule
+	 *   The [AvailWorkbench.selectedModule] to create the new module relative
+	 *   to. If the [ResolvedModuleName] is a
+	 *   [module package][ResolvedModuleName.isPackage] then the new module will
+	 *   be created inside of it. If the [ResolvedModuleName] is a module file,
+	 *   the new module will be created as its sibling.
+	 */
+	private fun relativeToModule (relativeModule: ResolvedModuleName)
+	{
+		val path = relativeModule.resolverReference.uri.path
+		val targetDir = path.removeSuffix(path.split(File.separator).last())
+		val parentQualifiedName =
+			if (relativeModule.isPackage)
+			{
+				relativeModule.resolverReference.qualifiedName
+			}
+			else
+			{
+				relativeModule.resolverReference.parentName
+			}
+		val projectRoot =
+			workbench.availProject.roots.values.find {
+				it.name == relativeModule.rootName
+			}!!
+		NewModuleDialog(
+			targetDir,
+			parentQualifiedName,
+			projectRoot,
+			relativeModule.moduleRoot,
+			workbench)
+	}
+
+	/**
+	 * Create a new module at the top of the provided [ModuleRoot].
+	 *
+	 * @param relativeRoot
+	 *   The [ModuleRoot] to create the module in.
+	 */
+	private fun relativeToModuleRoot (relativeRoot: ModuleRoot)
+	{
+
+		NewModuleDialog(
+			"${relativeRoot.resolver.uri.path}${File.separator}",
+			"${File.separator}${relativeRoot.name}",
+			workbench.availProject.roots.values.find {
+				it.name == relativeRoot.name
+			}!!,
+			relativeRoot,
+			workbench)
 	}
 
 	init
