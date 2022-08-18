@@ -122,7 +122,7 @@ styled by
 	transformed : phrase
 |
 	Style token original's tokens[1] as #deemphasize;
-	exponent ::= original's arguments's expressions[2];
+	exponent ::= original's arguments' expressions[2];
 	Style span of exponent with #math-exponent;
 ];
 

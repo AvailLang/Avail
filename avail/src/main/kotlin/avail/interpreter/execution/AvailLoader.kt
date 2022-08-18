@@ -654,9 +654,9 @@ constructor(
 	 *   The token to style.  Only a token taken from the source of the current
 	 *   module will have its style honored.
 	 * @param style
-	 *   The optional [system&#32;style][SystemStyle] to apply to the token. If
-	 *   `null`, then clear the style iff `overwrite` is `true`; otherwise,
-	 *   preserve the original style.
+	 *   The optional style to apply to the token. If `null`, then clear the
+	 *   style iff `overwrite` is `true`; otherwise, preserve the original
+	 *   style.
 	 * @param overwrite
 	 *   Whether the new style should clobber the old style.
 	 * @param editor
@@ -687,6 +687,55 @@ constructor(
 				{
 					true -> style
 					false -> editor(old)
+				}
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style a token's range in a particular named style, using
+	 * the specified function to merge any style information previously attached
+	 * to all or parts of the token's range.
+	 *
+	 * @param tokens
+	 *   The tokens to style.  Only tokens actually taken from the source of the
+	 *   current module will be styled.
+	 * @param style
+	 *   The optional style to apply to the token. If `null`, then clear the
+	 *   style iff `overwrite` is `true`; otherwise, preserve the original
+	 *   style.
+	 * @param overwrite
+	 *   Whether the new style should clobber the old style.
+	 * @param editor
+	 *   How to reconcile an existing style with the new style. Applied to the
+	 *   existing style. Evaluates to the replacement style, which may be a
+	 *   comma-separated composite of styles. Defaults to style composition.
+	 */
+	@ThreadSafe
+	fun styleTokens(
+		tokens: Iterable<A_Token>,
+		style: String?,
+		overwrite: Boolean = false,
+		editor: (String?)->String? = { old ->
+			when
+			{
+				old === null -> style
+				style === null -> old
+				else -> "$old,$style"
+			}
+		}
+	) = lockStyles {
+		tokens.forEach { token ->
+			if (token.isInCurrentModule(module))
+			{
+				val start = token.start().toLong()
+				val pastEnd = token.pastEnd().toLong()
+				edit(start, pastEnd) { old ->
+					when (overwrite)
+					{
+						true -> style
+						false -> editor(old)
+					}
 				}
 			}
 		}

@@ -157,7 +157,8 @@ Method "For each of⁇_do_" is
 	[
 		Invoke action with binding;
 	];
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * Helper method for semantic restrictions: If `action` does not accept the
@@ -325,7 +326,8 @@ Private method "body function(_,_)" is
  */
 Macro "For each…→…in|of_§do_" is
 	a map iteration prefix function,
-	body function($"For each of⁇_do_", ⊤);
+	body function($"For each of⁇_do_", ⊤)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each binding of {@param "aMap"},
@@ -356,7 +358,8 @@ Method "map_through_" is
 		result := eject result + key→transformer(key, value);
 	];
 	result
-] : map;
+] : map
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all bindings of the map. If the map is
@@ -411,7 +414,8 @@ Semantic restriction "map_through_" is
  */
 Macro "map each…→…in|of_§through_" is
 	a map iteration prefix function,
-	body function($"map_through_", map);
+	body function($"map_through_", map)
+styled by loop styler;
 
 Alias "…→…→_§`|_" to $"map each…→…in|of_§through_";
 Copy macros from $"map each…→…in|of_§through_" to $"…→…→_§`|_";
@@ -446,7 +450,8 @@ Method "filter_by_" is
 		];
 	];
 	result
-] : map;
+] : map
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all bindings of the map.
@@ -492,7 +497,8 @@ Semantic restriction "filter_by_" is
  */
 Macro "select each…→…from_§where_" is
 	a map iteration prefix function,
-	body function($"filter_by_", map);
+	body function($"filter_by_", map)
+styled by loop styler;
 
 Alias "…→…∈_§`|_" to $"select each…→…from_§where_";
 Copy macros from $"select each…→…from_§where_" to $"…→…∈_§`|_";
@@ -522,7 +528,7 @@ Copy macros from $"select each…→…from_§where_" to $"…→…∈_§`|_";
  * @category "Loops" "Collections" "Maps"
  */
 Public macro "reject each…→…from_§where_" is
-	a map iteration prefix function,
+a map iteration prefix function,
 [
 	keyPhrase : literal phrase ⇒ token,
 	valuePhrase : literal phrase ⇒ token,
@@ -574,7 +580,8 @@ Public macro "reject each…→…from_§where_" is
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "accumulator"} to the bindings of {@param "aMap"},
@@ -618,7 +625,8 @@ Method "map and filter_by_" is
 			]);
 	];
 	result
-] : map;
+] : map
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all bindings of the map and also an
@@ -673,7 +681,8 @@ Method "any of_satisfies_" is
 		Exit loop with true if predicate(key, value);
 		Restart loop with <index + 1>
 	](1)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the map.
@@ -720,7 +729,8 @@ Method "each of_satisfies_" is
 		Exit loop with false if ¬predicate(key, value);
 		Restart loop with <index + 1>
 	](1)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all bindings of the map.
@@ -761,7 +771,8 @@ Semantic restriction "each of_satisfies_" is
  */
 Macro "any…→…in|of_§satisfies_" is
 	a map iteration prefix function,
-	body function($"any of_satisfies_", boolean);
+	body function($"any of_satisfies_", boolean)
+styled by loop styler;
 
 Alias "∃…→…∈_§`|_" to $"any…→…in|of_§satisfies_";
 Copy macros from $"any…→…in|of_§satisfies_" to $"∃…→…∈_§`|_";
@@ -789,7 +800,8 @@ Copy macros from $"any…→…in|of_§satisfies_" to $"∃…→…∈_§`|_";
  */
 Macro "each…→…in|of_§satisfies_" is
 	a map iteration prefix function,
-	body function($"each of_satisfies_", boolean);
+	body function($"each of_satisfies_", boolean)
+styled by loop styler;
 
 Alias "∀…→…∈_§`|_" to $"each…→…in|of_§satisfies_";
 Copy macros from $"each…→…in|of_§satisfies_" to $"∀…→…∈_§`|_";
@@ -814,7 +826,8 @@ Method "count of_where_" is
 	predicate : [⊥, ⊥]→boolean
 |
 	|filter aMap by predicate|
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all bindings of the map.
@@ -883,7 +896,8 @@ Semantic restriction "_∈_" is
  */
 Macro "count of…→…from|in|of_§where_" is
 	a map iteration prefix function,
-	body function($"count of_where_", whole number);
+	body function($"count of_where_", whole number)
+styled by loop styler;
 
 /**
  * Categorize the elements of {@param "aTuple"} via {@param "discriminator"}.
@@ -913,7 +927,8 @@ Method "group_by_" is
 		groups := eject groups + key→group;
 	];
 	groups
-] : map;
+] : map
+styled by loop styler;
 
 Semantic restriction "group_by_" is
 [
@@ -1003,8 +1018,10 @@ Semantic restriction "group_by_" is
  *          described group.
  * @category "Collections" "Tuples" "Maps" "Transformers"
  */
-Macro "group each…in|of_§by_" is a tuple iteration prefix function,
-	tuple body function($"group_by_", any);
+Macro "group each…in|of_§by_" is
+	a tuple iteration prefix function,
+	tuple body function($"group_by_", any)
+styled by loop styler;
 
 /**
  * Categorize the elements of {@param "aTuple"} via {@param "discriminator"}.

@@ -1342,7 +1342,7 @@ constructor(messageName: A_String) {
 		/**
 		 * A statically-scoped [List] of unique constants needed as operands of
 		 * some [ParsingOperation]s.  The inverse [Map] (but containing
-		 * one-based indices) is kept in #constantsMap}.
+		 * one-based indices) is kept in [constantsMap].
 		 */
 		private val constantsList = mutableListOf<AvailObject>()
 

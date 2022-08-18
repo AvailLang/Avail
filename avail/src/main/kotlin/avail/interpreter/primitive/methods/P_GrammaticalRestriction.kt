@@ -63,6 +63,7 @@ import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive:** Message precedence declaration with [tuple][TupleDescriptor]
@@ -147,4 +148,6 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 				E_AMBIGUOUS_NAME,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			.setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

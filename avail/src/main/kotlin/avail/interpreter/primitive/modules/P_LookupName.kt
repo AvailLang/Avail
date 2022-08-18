@@ -50,9 +50,10 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
- * **Primitive:** Look up the [true][AtomDescriptor] bound to the specified
+ * **Primitive:** Look up the [atom][AtomDescriptor] bound to the specified
  * [name][TupleDescriptor] in the [module][ModuleDescriptor] currently being
  * [loaded][AvailLoader], creating the true name if necessary.
  */
@@ -81,4 +82,6 @@ object P_LookupName : Primitive(1, CanInline, ReadsFromHiddenGlobalState)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER, E_AMBIGUOUS_NAME))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

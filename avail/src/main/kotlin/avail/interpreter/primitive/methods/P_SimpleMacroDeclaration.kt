@@ -74,6 +74,7 @@ import avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP
 import avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE
 import avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
 import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
+import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive
@@ -213,7 +214,8 @@ object P_SimpleMacroDeclaration : Primitive(4, CanSuspend, HasSideEffect)
 				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
 				E_MACRO_ARGUMENT_MUST_BE_A_PHRASE,
 				E_MACRO_MUST_RETURN_A_PHRASE,
-				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
+				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS,
+				E_STYLER_ALREADY_SET_BY_THIS_MODULE)
 			.setUnionCanDestroy(possibleErrors, true))
 
 	override fun bootstrapStyler() = P_BootstrapDefinitionStyler

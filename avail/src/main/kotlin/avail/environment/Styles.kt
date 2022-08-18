@@ -419,14 +419,12 @@ enum class DefaultBoundSystemStyle: BoundStyle
 
 	/** Default style for [SystemStyle.RETURN_VALUE]. */
 	RETURN_VALUE(SystemStyle.RETURN_VALUE, {
-		foreground = SystemColors::mustard
 		background = SystemColors::transparentMustard
 	}),
 
 	/** Default style for [SystemStyle.NONLOCAL_CONTROL]. */
 	NONLOCAL_CONTROL(SystemStyle.NONLOCAL_CONTROL, {
 		foreground = SystemColors::mustard
-		background = SystemColors::transparentMustard
 	}),
 
 	MATH_EXPONENT(SystemStyle.MATH_EXPONENT, {
