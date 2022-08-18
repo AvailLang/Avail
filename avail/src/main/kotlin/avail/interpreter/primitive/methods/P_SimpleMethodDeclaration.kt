@@ -110,11 +110,19 @@ object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
 				loader.addMethodBody(atom, function)
 				// Quote the string to make the method name.
 				val atomName = atom.atomName
-				function.code().methodName = stringFrom(atomName.toString())
+				val code = function.code()
+				code.methodName = stringFrom(atomName.toString())
 				if (optionalStylerFunction.tupleSize == 1)
 				{
 					val stylerFunction = optionalStylerFunction.tupleAt(1)
 					loader.addStyler(atom.bundleOrCreate(), stylerFunction)
+				}
+				else
+				{
+					// If a styler function was not specified, but the body was
+					// a primitive that has a bootstrapStyler, use that just as
+					// though it had been specified.
+					loader.addBootstrapStyler(code, atom)
 				}
 				succeed(nil)
 			}

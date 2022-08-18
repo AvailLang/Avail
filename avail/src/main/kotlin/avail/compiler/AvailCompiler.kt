@@ -2945,17 +2945,6 @@ class AvailCompiler constructor(
 				token.lineNumber()),
 			emptyTuple
 		).makeShared()
-		var optionalStyler: A_Phrase = emptyListNode()
-		primitive.bootstrapStyler()?.let { stylerPrimitive ->
-			val module = compilationContext.module
-			val stylerFunction = createFunction(
-				newPrimitiveRawFunction(
-					stylerPrimitive, module, token.lineNumber()),
-				emptyTuple)
-			optionalStyler = newListNode(
-				tuple(
-					syntheticLiteralNodeFor(stylerFunction)))
-		}
 		val send = newSendNode(
 			tuple(token),
 			METHOD_DEFINER.bundle,
@@ -2963,7 +2952,7 @@ class AvailCompiler constructor(
 				tuple(
 					nameLiteral,
 					syntheticLiteralNodeFor(function),
-					optionalStyler)),
+					emptyListNode())),
 			TOP.o)
 		evaluateModuleStatementThen(
 			token.synthesizeCurrentLexingState(),
@@ -3028,17 +3017,6 @@ class AvailCompiler constructor(
 			return
 		}
 		val bodyLiteral = functionLiterals.removeLast()
-		val macroPrimitive = primitiveByName(primitiveNames.last())!!
-		var optionalStyler: A_Phrase = emptyListNode()
-		macroPrimitive.bootstrapStyler()?.let { stylerPrimitive ->
-			val module = compilationContext.module
-			val stylerFunction = createFunction(
-				newPrimitiveRawFunction(
-					stylerPrimitive, module, token.lineNumber()),
-				emptyTuple)
-			optionalStyler = newListNode(
-				tuple(syntheticLiteralNodeFor(stylerFunction)))
-		}
 		val send = newSendNode(
 			tuple(token),
 			MACRO_DEFINER.bundle,
@@ -3047,7 +3025,7 @@ class AvailCompiler constructor(
 					nameLiteral,
 					newListNode(tupleFromList(functionLiterals)),
 					bodyLiteral,
-					optionalStyler)),
+					emptyListNode())),
 			TOP.o)
 		evaluateModuleStatementThen(
 			token.synthesizeCurrentLexingState(),

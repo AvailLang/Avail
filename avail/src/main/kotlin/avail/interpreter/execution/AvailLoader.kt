@@ -86,6 +86,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
@@ -106,6 +107,7 @@ import avail.descriptor.methods.A_Method.Companion.chooseBundle
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.A_Method.Companion.includesDefinition
 import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
+import avail.descriptor.methods.A_Method.Companion.methodStylers
 import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.methods.A_Method.Companion.removeDefinition
 import avail.descriptor.methods.A_Method.Companion.updateStylers
@@ -115,6 +117,7 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.A_Styler.Companion.module
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.AbstractDefinitionDescriptor
@@ -334,7 +337,8 @@ constructor(
 	 * @param newPhase
 	 *   The new [Phase].
 	 */
-	fun setPhase(newPhase: Phase) {
+	fun setPhase(newPhase: Phase)
+	{
 		phase = newPhase
 	}
 
@@ -813,9 +817,11 @@ constructor(
 	fun styleMethodName(stringLiteralToken: A_Token)
 	{
 		if (!stringLiteralToken.isInCurrentModule(module)) return
+		val innerToken = stringLiteralToken.literal()
+		if (!innerToken.isLiteralToken()) return
 		try
 		{
-			MessageSplitter(stringLiteralToken.literal().literal())
+			MessageSplitter(innerToken.literal())
 		}
 		catch (e: MalformedMessageException)
 		{
@@ -1600,7 +1606,8 @@ constructor(
 			val bundle: A_Bundle = parentAtom.bundleOrCreate()
 			val splitter: MessageSplitter = bundle.messageSplitter
 			val numArgs = splitter.leafArgumentCount
-			if (illegalArgumentMessages.tupleSize != numArgs) {
+			if (illegalArgumentMessages.tupleSize != numArgs)
+			{
 				throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			val grammaticalRestriction =
@@ -1616,10 +1623,10 @@ constructor(
 				// grammatical restriction.
 				val treesToVisit =
 					ArrayDeque<Pair<A_BundleTree, A_ParsingPlanInProgress>>()
-				bundle.definitionParsingPlans.forEach {
-					_, plan: A_DefinitionParsingPlan ->
+				bundle.definitionParsingPlans.forEach { _, plan ->
 					treesToVisit.addLast(root to newPlanInProgress(plan, 1))
-					while (treesToVisit.isNotEmpty()) {
+					while (treesToVisit.isNotEmpty())
+					{
 						val (tree, planInProgress) = treesToVisit.removeLast()
 						tree.updateForNewGrammaticalRestriction(
 							planInProgress, treesToVisit)
@@ -1641,6 +1648,39 @@ constructor(
 				SpecialMethodAtom.GRAMMATICAL_RESTRICTION.bundle,
 				parentAtoms,
 				illegalArgumentMessages))
+	}
+
+	/**
+	 * Create and add a bootstrap [A_Styler] in the method specified by the
+	 * [atom].  If the method already has a styler, do nothing.  Also do nothing
+	 * if the [bodyCode] is not primitive, or its primitive doesn't specify a
+	 * [bootstrapStyler][Primitive.bootstrapStyler].
+	 *
+	 * DO NOT record this action, as it will happen as an automatic consequence
+	 * of adding the method definition or macro during fast-loading.
+	 */
+	fun addBootstrapStyler(
+		bodyCode: A_RawFunction,
+		atom: A_Atom)
+	{
+		val prim = bodyCode.codePrimitive() ?: return
+		val stylerPrim = prim.bootstrapStyler() ?: return
+		val bundle = atom.bundleOrCreate()
+		val method = bundle.bundleMethod
+		if (method.methodStylers.setSize != 0) return
+		// Pretend the synthetic styler function starts on the same line as the
+		// body function.
+		val stylerRawFunction = newPrimitiveRawFunction(
+			stylerPrim, module, bodyCode.codeStartingLineNumber)
+		stylerRawFunction.methodName = stringFrom("Styler for ${atom.atomName}")
+		val styler = newStyler(
+			createFunction(stylerRawFunction, emptyTuple), method, module)
+		method.updateStylers { setWithElementCanDestroy(styler, true) }
+		module.moduleAddStyler(styler)
+		if (AvailRuntimeConfiguration.debugStyling)
+		{
+			println("Defined bootstrap styler: $atom")
+		}
 	}
 
 	/**
@@ -1808,7 +1848,8 @@ constructor(
 				// place that it might be used.
 				recordEarlyEffect(
 					LoadingEffectToRunPrimitive(
-						when {
+						when
+						{
 							newAtom.getAtomProperty(
 								HERITABLE_KEY.atom
 							).notNil -> CREATE_HERITABLE_ATOM.bundle
@@ -1863,7 +1904,8 @@ constructor(
 			.setUnionCanDestroy(privateNames, true)
 	}
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Allow investigation of why a top-level expression is being excluded
 		 * from summarization.

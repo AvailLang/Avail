@@ -171,6 +171,10 @@ object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 					val stylerFunction = optionalStylerFunction.tupleAt(1)
 					loader.addStyler(atom.bundleOrCreate(), stylerFunction)
 				}
+				// If a styler function was not specified, but the body was
+				// a primitive that has a bootstrapStyler, use that just as
+				// though it had been specified.
+				loader.addBootstrapStyler(function.code(), atom)
 				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
 					prefixFunction.code().methodName = stringFrom(
 						"Macro prefix #${zeroIndex + 1} of $atomName")
