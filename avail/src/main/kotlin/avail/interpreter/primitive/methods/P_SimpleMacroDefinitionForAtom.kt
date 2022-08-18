@@ -81,6 +81,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive:** Simple macro definition.  The first argument is the macro
@@ -213,4 +214,6 @@ object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 				E_MACRO_MUST_RETURN_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
 			.setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }
