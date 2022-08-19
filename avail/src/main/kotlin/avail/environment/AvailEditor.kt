@@ -42,6 +42,7 @@ import avail.environment.actions.FindAction
 import avail.environment.editor.AbstractEditorAction
 import avail.environment.text.AvailEditorKit.Companion.breakLine
 import avail.environment.text.AvailEditorKit.Companion.outdent
+import avail.environment.text.AvailEditorKit.Companion.space
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
@@ -67,14 +68,15 @@ import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JRootPane
-import javax.swing.JTextPane
 import javax.swing.KeyStroke.getKeyStroke
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
+import javax.swing.event.CaretEvent
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.undo.CannotRedoException
 import javax.swing.undo.CannotUndoException
+import javax.swing.undo.CompoundEdit
 import javax.swing.undo.UndoManager
 
 /**
@@ -123,6 +125,15 @@ class AvailEditor constructor(
 	 * thread.**
 	 */
 	private val resolverReference = resolvedName.resolverReference
+
+	/**
+	 * The last recorded caret position, set upon receipt of a [CaretEvent].
+	 * Used for supporting aggregate undo/redo.
+	 */
+	private var lastCaretPosition = Int.MIN_VALUE
+
+	/** The current edit, for aggregate undo/redo. */
+	internal var currentEdit: CompoundEdit? = null
 
 	/**
 	 * The [UndoManager] for supplying undo/redo for edits to the underlying
@@ -189,6 +200,7 @@ class AvailEditor constructor(
 			override fun actionPerformed(e: ActionEvent) =
 				try
 				{
+					currentEdit?.end()
 					undoManager.undo()
 					clearStaleTemplateSelectionState()
 				}
@@ -211,6 +223,7 @@ class AvailEditor constructor(
 			override fun actionPerformed(e: ActionEvent) =
 				try
 				{
+					currentEdit?.end()
 					undoManager.redo()
 					clearStaleTemplateSelectionState()
 				}
@@ -324,7 +337,21 @@ class AvailEditor constructor(
 			styledDocument.applyStyleRuns(it.styleRuns)
 		}
 		isEditable = resolverReference.resolver.canSave
-		addCaretListener { clearStaleTemplateSelectionState() }
+		addCaretListener { e ->
+			clearStaleTemplateSelectionState()
+			val dot = e.dot
+			val currentEdit = currentEdit
+			currentEdit?.let {
+				if (dot != lastCaretPosition && dot != lastCaretPosition + 1)
+				{
+					// If the caret's location is inconsistent with entry of a
+					// single character, then end the current aggregation.
+					currentEdit.end()
+				}
+			}
+			lastCaretPosition = dot
+		}
+		inputMap.put(getKeyStroke(VK_SPACE, 0), space)
 		inputMap.put(getKeyStroke(VK_TAB, SHIFT_DOWN_MASK), outdent)
 		inputMap.put(getKeyStroke(VK_ENTER, 0), breakLine)
 		document.addDocumentListener(object : DocumentListener
@@ -333,7 +360,17 @@ class AvailEditor constructor(
 			override fun changedUpdate(e: DocumentEvent) = editorChanged()
 			override fun removeUpdate(e: DocumentEvent) = editorChanged()
 		})
-		document.addUndoableEditListener(undoManager)
+		document.addUndoableEditListener {
+			var edit = currentEdit
+			if (edit === null || !edit.isInProgress)
+			{
+				edit = CompoundEdit()
+				undoManager.addEdit(edit)
+				currentEdit = edit
+				putClientProperty(AvailEditor::currentEdit.name, currentEdit)
+			}
+			edit.addEdit(it.edit)
+		}
 		// Arrange for the undo manager to be available when only the source
 		// pane is in scope.
 		putClientProperty(AvailEditor::undoManager.name, undoManager)
@@ -604,35 +641,5 @@ class AvailEditor constructor(
 		/** The length of the receiver after template expansion. */
 		private val String.expandedLength get() =
 			length - count { it == '⁁' }
-
-		/**
-		 * Locate the beginning of the line enclosing [position].
-		 *
-		 * @param position
-		 *   The position from which to scan leftward in search of the beginning
-		 *   of the enclosing line.
-		 * @return
-		 *   The beginning of the line. This is either the beginning of the
-		 *   text or a position immediately following a linefeed (U+000A).
-		 */
-		private fun JTextPane.lineStartBefore(position: Int): Int
-		{
-			var i = position
-			while (i > 0)
-			{
-				val c = getText(i, 1).codePointAt(0)
-				if (c == '\n'.code)
-				{
-					// We actually want to skip past the linefeed to place the
-					// insertion point.
-					i++
-					break
-				}
-				i--
-			}
-			// `i` is now positioned either (1) at the beginning of the text or
-			// (2) just past the nearest linefeed left of `position`.
-			return i
-		}
 	}
 }

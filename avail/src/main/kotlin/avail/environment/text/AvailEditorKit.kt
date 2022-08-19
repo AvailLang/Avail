@@ -37,6 +37,7 @@ import avail.environment.AvailWorkbench
 import avail.environment.text.AvailEditorKit.Companion.breakLine
 import avail.environment.text.AvailEditorKit.Companion.indent
 import avail.environment.text.AvailEditorKit.Companion.outdent
+import avail.environment.text.AvailEditorKit.Companion.space
 import avail.utility.Strings.tabs
 import java.awt.event.ActionEvent
 import javax.swing.Action
@@ -57,6 +58,7 @@ class AvailEditorKit constructor(
 ) : StyledEditorKit()
 {
 	private val defaultActions = arrayOf<Action>(
+		InsertSpace,
 		BreakLine,
 		IncreaseIndentation,
 		DecreaseIndentation
@@ -69,6 +71,9 @@ class AvailEditorKit constructor(
 
 	companion object
 	{
+		/** The name of the [InsertSpace] action. */
+		const val space = "insert-space"
+
 		/** The name of the [BreakLine] action. */
 		const val breakLine = insertBreakAction
 
@@ -81,8 +86,28 @@ class AvailEditorKit constructor(
 }
 
 /**
- * Break the current line by inserting a linefeed (U+000A) and as much
- * horizontal tabulation (U+0009) as began the line.
+ * Replace the current selection with a space (U+0020) and start a new
+ * [CompoundEdit] to aggregate further content updates.
+ */
+private object InsertSpace : TextAction(space)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val currentEdit = sourcePane.getClientProperty(
+			AvailEditor::currentEdit.name) as? CompoundEdit
+		currentEdit?.end()
+	}
+}
+
+/**
+ * Break the current line by replacing the current selection with a linefeed
+ * (U+000A) and as much horizontal tabulation (U+0009) as began the line.
  */
 private object BreakLine : TextAction(breakLine)
 {
@@ -100,7 +125,7 @@ private object BreakLine : TextAction(breakLine)
 		val indent = document.indentationAt(lineStart)
 		sourcePane.transaction {
 			val lineSeparator = System.lineSeparator()
-			sourcePane.replaceSelection(lineSeparator + tabs(indent))
+			replaceSelection(lineSeparator + tabs(indent))
 		}
 	}
 }
@@ -156,7 +181,7 @@ private object IncreaseIndentation : TextAction(indent)
 			sourcePane.transaction {
 				// Insert a tab at each insertion point. Iterate backward to
 				// avoid altering the positions.
-				val insertionPoints = sourcePane.lineStartsInSelection()
+				val insertionPoints = lineStartsInSelection()
 				insertionPoints.reversed().forEach { position ->
 					document.insertString(position, "\t", null)
 				}
@@ -360,7 +385,7 @@ fun JTextPane.lineStartsInSelection(): List<Int>
  *   The scope of the transaction. Any edits performed during application can be
  *   undone/redone with a single action.
  */
-internal inline fun JTextPane.transaction(edit: ()->Unit)
+internal inline fun JTextPane.transaction(edit: JTextPane.()->Unit)
 {
 	val undoManager = getClientProperty(
 		AvailEditor::undoManager.name) as? UndoManager
@@ -370,6 +395,9 @@ internal inline fun JTextPane.transaction(edit: ()->Unit)
 	}
 	else
 	{
+		val currentEdit = getClientProperty(
+			AvailEditor::currentEdit.name) as? CompoundEdit
+		currentEdit?.end()
 		val compoundEdit = CompoundEdit()
 		undoManager.addEdit(compoundEdit)
 		try
