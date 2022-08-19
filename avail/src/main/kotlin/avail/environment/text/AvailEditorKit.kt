@@ -34,18 +34,22 @@ package avail.environment.text
 
 import avail.environment.AvailEditor
 import avail.environment.AvailWorkbench
+import avail.environment.text.AvailEditorKit.Companion.breakLine
 import avail.environment.text.AvailEditorKit.Companion.indent
 import avail.environment.text.AvailEditorKit.Companion.outdent
+import avail.utility.Strings.tabs
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JFrame
 import javax.swing.JTextPane
+import javax.swing.UIManager
 import javax.swing.text.BadLocationException
 import javax.swing.text.Document
 import javax.swing.text.StyledEditorKit
 import javax.swing.text.TextAction
 import javax.swing.undo.CompoundEdit
 import javax.swing.undo.UndoManager
+import kotlin.math.max
 
 class AvailEditorKit constructor(
 	val workbench: AvailWorkbench,
@@ -53,6 +57,7 @@ class AvailEditorKit constructor(
 ) : StyledEditorKit()
 {
 	private val defaultActions = arrayOf<Action>(
+		BreakLine,
 		IncreaseIndentation,
 		DecreaseIndentation
 	)
@@ -64,27 +69,87 @@ class AvailEditorKit constructor(
 
 	companion object
 	{
+		/** The name of the [BreakLine] action. */
+		const val breakLine = insertBreakAction
+
+		/** The name of the [IncreaseIndentation] action. */
 		const val indent = insertTabAction
+
+		/** The name of the [DecreaseIndentation] action. */
 		const val outdent = "outdent"
 	}
 }
 
 /**
+ * Break the current line by inserting a linefeed (U+000A) and as much
+ * horizontal tabulation (U+0009) as began the line.
+ */
+private object BreakLine : TextAction(breakLine)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val document = sourcePane.document
+		val caretPosition = sourcePane.caretPosition
+		val lineStart = document.lineStartBefore(caretPosition - 1)
+		val indent = document.indentationAt(lineStart)
+		sourcePane.transaction {
+			val lineSeparator = System.lineSeparator()
+			sourcePane.replaceSelection(lineSeparator + tabs(indent))
+		}
+	}
+}
+
+/**
  * If some text is selected, then indent the lines enclosing the selection. If
- * no text is selected, then insert horizontal tabulation (U+0009) at the caret.
+ * no text is selected and the caret is at the beginning of the line, then
+ * insert as much horizontal tabulation (U+0009) at the caret as occurred on the
+ * previous line. Otherwise, insert a single horizontal tabulation (U+0009) at
+ * the caret.
  */
 private object IncreaseIndentation : TextAction(indent)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
 		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
 		val document = sourcePane.document
 		val selectionStart = sourcePane.selectionStart
 		val selectionEnd = sourcePane.selectionEnd
 		if (selectionStart == selectionEnd)
 		{
-			// There is no text selection, so insert a tab at the caret.
-			document.insertString(selectionStart, "\t", null)
+			// There is no text selection.
+			if (selectionStart < 2)
+			{
+				// The caret is effectively at the beginning of the document,
+				// such that there can't be any previous indented lines, so just
+				// insert a tab at the caret.
+				document.insertString(selectionStart, "\t", null)
+			}
+			else if (document.codePointAt(selectionStart - 1) == '\n'.code)
+			{
+				// The caret is at the beginning of a line, so insert as many
+				// tabs as occurred on the previous line. Always insert at least
+				// one tab.
+				val indent =
+					max(1, document.indentationBefore(selectionStart - 2))
+				document.insertString(selectionStart, tabs(indent), null)
+			}
+			else
+			{
+				// The caret is not at the beginning of a line, so just insert
+				// a tab whenever it is.
+				document.insertString(selectionStart, "\t", null)
+			}
 		}
 		else
 		{
@@ -110,6 +175,11 @@ private object DecreaseIndentation : TextAction(outdent)
 	override fun actionPerformed(e: ActionEvent)
 	{
 		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
 		val document = sourcePane.document
 		val selectionStart = sourcePane.selectionStart
 		val selectionEnd = sourcePane.selectionEnd
@@ -179,11 +249,11 @@ fun Document.codePointOrNullAt(position: Int) =
  * Locate the beginning of the line enclosing [position].
  *
  * @param position
- *   The position from which to scan leftward in search of the beginning
- *   of the enclosing line.
+ *   The position from which to scan leftward in search of the beginning of the
+ *   enclosing line.
  * @return
- *   The beginning of the line. This is either the beginning of the
- *   text or a position immediately following a linefeed (U+000A).
+ *   The beginning of the line. This is either the beginning of the text or a
+ *   position immediately following a linefeed (U+000A).
  */
 fun Document.lineStartBefore(position: Int): Int
 {
@@ -204,6 +274,45 @@ fun Document.lineStartBefore(position: Int): Int
 	// (2) just past the nearest linefeed left of `position`.
 	return i
 }
+
+/**
+ * Tally the indentation at [position]. Only horizontal tabulation (U+0009) is
+ * considered indentation.
+ *
+ * @param position
+ *   The position at which to scan rightward for indentation.
+ * @return
+ *   The amount of indentation discovered.
+ */
+fun Document.indentationAt(position: Int): Int
+{
+	var i = position
+	while (i < length)
+	{
+		val c = codePointAt(i)
+		if (c != '\t'.code) break
+		i++
+	}
+	return i - position
+}
+
+/**
+ * Tally the indentation for the line enclosing [position]. Only leading
+ * horizontal tabulation (U+0009) is considered indentation.
+ *
+ * @param position
+ *   The position from which to scan leftward in search of the beginning of the
+ *   enclosing line.
+ * @return
+ *   The amount of indentation discovered.
+ */
+fun Document.indentationBefore(position: Int): Int =
+	indentationAt(lineStartBefore(position))
+
+/**
+ * Whether the receiver can really be edited.
+ */
+val JTextPane.canEdit get() = isEnabled && isEditable
 
 /**
  * Locate the beginnings of all lines enclosing the active selection. If no text

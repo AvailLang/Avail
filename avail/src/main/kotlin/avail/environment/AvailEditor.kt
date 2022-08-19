@@ -40,6 +40,7 @@ import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
 import avail.environment.editor.AbstractEditorAction
+import avail.environment.text.AvailEditorKit.Companion.breakLine
 import avail.environment.text.AvailEditorKit.Companion.outdent
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
@@ -54,6 +55,7 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
+import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_Z
@@ -324,6 +326,7 @@ class AvailEditor constructor(
 		isEditable = resolverReference.resolver.canSave
 		addCaretListener { clearStaleTemplateSelectionState() }
 		inputMap.put(getKeyStroke(VK_TAB, SHIFT_DOWN_MASK), outdent)
+		inputMap.put(getKeyStroke(VK_ENTER, 0), breakLine)
 		document.addDocumentListener(object : DocumentListener
 		{
 			override fun insertUpdate(e: DocumentEvent) = editorChanged()
