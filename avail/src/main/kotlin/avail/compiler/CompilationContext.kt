@@ -47,6 +47,7 @@ import avail.compiler.problems.ProblemType.INTERNAL
 import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.fiber.A_Fiber
@@ -80,6 +81,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -87,11 +89,13 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.SurrogateIndexConverter
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.systemStyleForType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailEmergencyExitException
@@ -1030,85 +1034,106 @@ class CompilationContext constructor(
 	 * its subphrases.
 	 *
 	 * @param originalSendPhrase
-	 *   A phrase that had been parsed from the source.
+	 *   An optional send phrase that had been parsed from the source.  If this
+	 *   is not a macro substitution, this will be `null`.
 	 * @param transformedPhrase
 	 *   The end result of applying a macro to the [originalSendPhrase], or if
 	 *   no macro was involved, the [originalSendPhrase] itself.
 	 */
 	fun styleSendThen(
-		originalSendPhrase: A_Phrase,
+		originalSendPhrase: A_Phrase?,
 		transformedPhrase: A_Phrase,
 		then: ()->Unit)
 	{
-		val bundle = originalSendPhrase.bundle
-		if (debugStyling)
+		val bundleWithStyler: A_Bundle?
+		if (originalSendPhrase !== null)
 		{
-			println("style send: $bundle")
-		}
-
-		// First, apply basic styles to the send based on its result type, or
-		// just by virtue of it being a send.
-		val yieldType = transformedPhrase.phraseExpressionType
-		when
-		{
-			yieldType.isInstanceMeta -> loader.styleTokens(
-				originalSendPhrase.allTokens, yieldType.systemStyleForType)
-			yieldType.isInstanceOf(PARSE_PHRASE.mostGeneralType) ->
-				loader.styleTokens(
-					originalSendPhrase.allTokens, SystemStyle.PHRASE)
-			originalSendPhrase.equals(transformedPhrase) -> loader.styleTokens(
-				originalSendPhrase.tokens, SystemStyle.METHOD_SEND)
-			else -> loader.styleTokens(
-				originalSendPhrase.tokens, SystemStyle.MACRO_SEND)
-		}
-
-		// Next, give the method's styler function a chance to run.
-		val ancestorModules = module.allAncestors
-		val eligibleStylers = bundle.bundleMethod.methodStylers
-			.filter {
-				it.module.isNil
-					|| it.module.equals(module)
-					|| it.module in ancestorModules
-			}
-		val mostSpecificStylers = when (eligibleStylers.size)
-		{
-			in 0..1 -> eligibleStylers
-			else ->
+			val bundle = originalSendPhrase.bundle
+			if (debugStyling)
 			{
-				// There can't be multiple built-in (no-module) stylers, so let
-				// one defined by a module win.
-				val notBuiltIn = eligibleStylers.filter { it.module.notNil }
-				notBuiltIn.filter { styler ->
-					notBuiltIn.none { otherStyler ->
-						!styler.equals(otherStyler) &&
-							styler.module in otherStyler.module.allAncestors
+				println("style send: $bundle")
+			}
+			// First, apply basic styles to the send based on its result type,
+			// or just by virtue of it being a send.
+			val yieldType = transformedPhrase.phraseExpressionType
+			when
+			{
+				yieldType.isInstanceMeta -> loader.styleTokens(
+					originalSendPhrase.allTokens, yieldType.systemStyleForType)
+				yieldType.isInstanceOf(PARSE_PHRASE.mostGeneralType) ->
+					loader.styleTokens(
+						originalSendPhrase.allTokens, SystemStyle.PHRASE)
+				else -> loader.styleTokens(
+					originalSendPhrase.tokens, SystemStyle.MACRO_SEND)
+			}
+			bundleWithStyler = bundle
+		}
+		else
+		{
+			loader.styleTokens(
+				transformedPhrase.tokens, SystemStyle.METHOD_SEND)
+			bundleWithStyler = when
+			{
+				transformedPhrase.phraseKindIsUnder(SEND_PHRASE) ->
+					transformedPhrase.bundle
+				else -> null
+			}
+		}
+		if (bundleWithStyler !== null)
+		{
+			// Next, give the method's styler function a chance to run.
+			val ancestorModules = module.allAncestors
+			val eligibleStylers = bundleWithStyler.bundleMethod.methodStylers
+				.filter {
+					it.module.isNil
+						|| it.module.equals(module)
+						|| it.module in ancestorModules
+				}
+			val mostSpecificStylers = when (eligibleStylers.size)
+			{
+				in 0..1 -> eligibleStylers
+				else ->
+				{
+					// There can't be multiple built-in (no-module) stylers, so
+					// let one defined by a module win.
+					val notBuiltIn = eligibleStylers.filter { it.module.notNil }
+					notBuiltIn.filter { styler ->
+						notBuiltIn.none { otherStyler ->
+							!styler.equals(otherStyler) &&
+								styler.module in otherStyler.module.allAncestors
+						}
 					}
 				}
 			}
+			val stylerFn = when (mostSpecificStylers.size)
+			{
+				0 -> runtime[DEFAULT_STYLER]
+				1 -> mostSpecificStylers[0].function
+				else ->
+					// TODO - Use the conflict style, which isn't coded yet.
+					runtime[DEFAULT_STYLER]
+			}
+			val fiber = newLoaderFiber(TOP.o, loader)
+			{
+				formatString(
+					"Style %s (%s)",
+					bundleWithStyler.message,
+					stylerFn.code().methodName)
+			}
+			fiber.setSuccessAndFailure(
+				onSuccess = { then() },
+				// Ignore styler failures for now.
+				onFailure = { then() })
+			val optionalOriginal = when (originalSendPhrase)
+			{
+				null -> emptyTuple
+				else -> tuple(originalSendPhrase)
+			}
+			runtime.runOutermostFunction(
+				fiber,
+				stylerFn,
+				listOf(optionalOriginal, transformedPhrase))
 		}
-		val stylerFn = when (mostSpecificStylers.size)
-		{
-			0 -> runtime[DEFAULT_STYLER]
-			1 -> mostSpecificStylers[0].function
-			else ->
-				// TODO - Use the conflict style, which isn't coded yet.
-				runtime[DEFAULT_STYLER]
-		}
-		val fiber = newLoaderFiber(TOP.o, loader)
-		{
-			formatString(
-				"Style %s (%s)",
-				bundle.message,
-				stylerFn.code().methodName)
-		}
-		fiber.setSuccessAndFailure(
-			onSuccess = { then() },
-			// Ignore styler failures for now.
-			onFailure = { then() })
-		runtime.runOutermostFunction(
-			fiber,
-			stylerFn,
-			listOf(originalSendPhrase, transformedPhrase))
 	}
 
 	companion object

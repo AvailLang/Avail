@@ -118,12 +118,17 @@ Method "_^_" is
 ] : number
 styled by
 [
-	original : send phrase,
+	original : send phrase?,
 	transformed : phrase
 |
-	Style token original's tokens[1] as #deemphasize;
-	exponent ::= original's arguments's expressions[2];
-	Style span of exponent with #math-exponent;
+	cast original[1] else [transformed] into [
+		sendPhrase : send phrase
+	|
+		Style token sendPhrase's tokens[1] as #deemphasize;
+		exponent ::= sendPhrase's arguments's expressions[2];
+		Style span of exponent with #math-exponent;
+	]
+	else [];
 ];
 
 

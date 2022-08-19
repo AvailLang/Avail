@@ -67,7 +67,7 @@ object P_DefaultStyler :
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-//		val sendPhrase: A_Phrase = interpreter.argument(0)
+//		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 //		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader

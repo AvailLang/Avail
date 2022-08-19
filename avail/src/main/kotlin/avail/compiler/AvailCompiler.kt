@@ -682,20 +682,38 @@ class AvailCompiler constructor(
 					STRONG,
 					listOf(phrase1.value, phrase2.value)
 				) { (print1, print2) ->
-					if (print1 == print2)
-					{
-						("unambiguous interpretation near line $line. "
-							+ "At least two parses produced unequal but "
-							+ "same-looking phrases:\n\t"
-							+ print1)
-					}
-					else
+					if (print1 != print2)
 					{
 						("unambiguous interpretation near line $line. "
 							+ "Here are two possible parsings...\n\t"
 							+ print1
 							+ "\n\t"
 							+ print2)
+					}
+					else if (phrase1.value.isInstanceOfKind(
+							SEND_PHRASE.mostGeneralType)
+						&& phrase2.value.isInstanceOfKind(
+							SEND_PHRASE.mostGeneralType))
+					{
+						val atom1 = phrase1.value.bundle.message
+						val atom2 = phrase2.value.bundle.message
+						val addendum = when
+						{
+							atom1.equals(atom2) -> ""
+							else -> ("\n...and the bundle atoms are:\n" +
+								"\t$atom1 and\n\t$atom2")
+						}
+						("unambiguous interpretation near line $line. "
+							+ "At least two parses produced unequal but "
+							+ "same-looking phrases:\n\t"
+							+ "\t$print1$addendum")
+					}
+					else
+					{
+						("unambiguous interpretation near line $line. "
+							+ "At least two parses produced unequal but "
+							+ "same-looking phrases:\n\t"
+							+ "\t$print1")
 					}
 				}
 			}

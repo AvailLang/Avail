@@ -41,6 +41,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 
 /**
  * `A_Styler` is an interface that specifies the operations specific to
@@ -82,8 +83,8 @@ interface A_Styler : A_BasicObject
 		 */
 		val stylerFunctionType: A_Type = functionType(
 			tuple(
-				// The original phrase being styled.
-				PhraseKind.SEND_PHRASE.mostGeneralType,
+				// The (optional) original phrase being styled.
+				zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
 				// The transformed phrase which is useful to some stylers.
 				PhraseKind.PARSE_PHRASE.mostGeneralType),
 			Types.TOP.o)

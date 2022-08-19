@@ -35,7 +35,6 @@ package avail.interpreter.primitive.style
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
@@ -44,8 +43,11 @@ import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
@@ -71,7 +73,7 @@ object P_BootstrapDefineSpecialObjectMacroStyler :
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val sendPhrase: A_Phrase = interpreter.argument(0)
+		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 //		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
@@ -81,6 +83,12 @@ object P_BootstrapDefineSpecialObjectMacroStyler :
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
+
+		if (optionalSendPhrase.tupleSize == 0)
+		{
+			return interpreter.primitiveSuccess(nil)
+		}
+		val sendPhrase = optionalSendPhrase.tupleAt(1)
 
 		loader.styleTokens(sendPhrase.tokens, SystemStyle.SPECIAL_OBJECT)
 
@@ -104,7 +112,7 @@ object P_BootstrapDefineSpecialObjectMacroStyler :
 				loader.styleMethodName(nameLiteralArg.token)
 			}
 		}
-		return interpreter.primitiveSuccess(NilDescriptor.nil)
+		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

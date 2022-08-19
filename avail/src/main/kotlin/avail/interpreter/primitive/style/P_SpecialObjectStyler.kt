@@ -35,10 +35,12 @@ package avail.interpreter.primitive.style
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.SPECIAL_OBJECT
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
@@ -68,7 +70,7 @@ object P_SpecialObjectStyler :
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val sendPhrase: A_Phrase = interpreter.argument(0)
+		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 //		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
@@ -78,6 +80,12 @@ object P_SpecialObjectStyler :
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
+
+		if (optionalSendPhrase.tupleSize == 0)
+		{
+			return interpreter.primitiveSuccess(nil)
+		}
+		val sendPhrase = optionalSendPhrase.tupleAt(1)
 
 		loader.styleTokens(sendPhrase.tokens, SPECIAL_OBJECT)
 

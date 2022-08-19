@@ -37,20 +37,22 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.MODULE_HEADER
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.STRING_LITERAL
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
 import avail.descriptor.tuples.A_Tuple.Companion.component3
 import avail.descriptor.tuples.A_Tuple.Companion.component4
 import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
@@ -72,7 +74,7 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val sendPhrase: A_Phrase = interpreter.argument(0)
+		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 		//		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
@@ -82,6 +84,12 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
+
+		if (optionalSendPhrase.tupleSize == 0)
+		{
+			return interpreter.primitiveSuccess(nil)
+		}
+		val sendPhrase = optionalSendPhrase.tupleAt(1)
 
 		// Color the fixed tokens of the header.
 		loader.styleTokens(sendPhrase.tokens, MODULE_HEADER)
@@ -157,7 +165,7 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 			}
 		}
 
-		return interpreter.primitiveSuccess(NilDescriptor.nil)
+		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

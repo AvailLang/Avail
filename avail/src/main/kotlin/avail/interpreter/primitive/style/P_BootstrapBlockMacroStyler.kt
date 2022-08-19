@@ -50,6 +50,7 @@ import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token.Companion.pastEnd
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
 import avail.descriptor.tuples.A_Tuple.Companion.component3
@@ -57,6 +58,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.component4
 import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
 import avail.descriptor.tuples.A_Tuple.Companion.component7
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
@@ -93,7 +96,7 @@ object P_BootstrapBlockMacroStyler :
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val sendPhrase: A_Phrase = interpreter.argument(0)
+		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 //		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
@@ -103,6 +106,12 @@ object P_BootstrapBlockMacroStyler :
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
+
+		if (optionalSendPhrase.tupleSize == 0)
+		{
+			return interpreter.primitiveSuccess(nil)
+		}
+		val sendPhrase = optionalSendPhrase.tupleAt(1)
 
 		val (
 			_, //optArgs,
