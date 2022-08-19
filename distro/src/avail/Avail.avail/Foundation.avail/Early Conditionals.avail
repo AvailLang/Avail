@@ -37,12 +37,12 @@ Uses
 	"Bootstrap",
 	"Very Early Definers"
 Names
+	/* Conditionals. */
 	"If_then_",
 	"If|if_then_else_",
 	"Unless_then_",
 	"Unless|unless_then_else_"
 Body
-
 
 /**
  * Declare the one-branch conditional evaluation method that does nothing.  It
@@ -62,7 +62,8 @@ Method "If_then_" is
 	trueFunction : nullary procedure
 |
 	/* Do nothing. */
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Define the one-branch conditional evaluation method for a true condition.
@@ -108,7 +109,8 @@ Method "If|if_then_else_" is
 	falseFunction : nullary procedure
 |
 	Primitive IfFalseThenElse;
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Define the two-branch conditional evaluation method for a true condition.
@@ -151,7 +153,8 @@ Method "Unless_then_" is
 	falseFunction : nullary procedure
 |
 	/* Do nothing. */
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Define the one-branch negative conditional evaluation method for a false
@@ -198,7 +201,8 @@ Method "Unless|unless_then_else_" is
 	trueFunction : nullary procedure
 |
 	Primitive IfFalseThenElse;  /* i.e., run the trueFunction */
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Define the two-branch negative conditional evaluation method for a false

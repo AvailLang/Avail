@@ -908,6 +908,8 @@ class AvailWorkbench internal constructor(
 		buildProgress.isEnabled = busy
 		buildProgress.isVisible = backgroundTask is BuildTask
 		openEditorAction.isEnabled = !busy && selectedModule() !== null
+		newEditorAction.isEnabled = !busy &&
+			(selectedModule() !== null || selectedModuleRoot() !== null)
 		inputField.isEnabled = !busy || isRunning
 		retrievePreviousAction.isEnabled = !busy
 		retrieveNextAction.isEnabled = !busy

@@ -208,7 +208,8 @@ Public macro "If|if_then_«else if_then_»«else_»?" is
 		conditional firstPredicate
 		then firstThenBlock
 		else finalElseBlock
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by conditional styler;
 
 /* These are error messages. */
 sizesIncompatibleMessage ::=
@@ -232,7 +233,8 @@ Public method "here" is
 [
 	$body : $[]→⊥;
 	body
-] : $[]→⊥;
+] : $[]→⊥
+styled by nonlocal control styler;
 
 /**
  * Basic unconditional loop. Repeatedly invoke {@param "action"}.
@@ -250,7 +252,8 @@ Public method "Repeat_" is
 	$loop;
 	action();
 	Restart loop
-] : ⊥;
+] : ⊥
+styled by loop styler;
 
 /**
  * Apply the specified function exactly {@param "count"} times.
@@ -273,7 +276,8 @@ Public method "Repeat__times" is
 	action();
 	nextCount ::= cast count - 1 into [i : [0..∞] | i];
 	Restart loop with <action, nextCount>
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If the count is ∞, then answer ⊥ (because the loop will never terminate).
@@ -319,6 +323,8 @@ Semantic restriction "Repeat__times" is
  */
 Abstract method "From_to_by_do_" is
 	[integer, extended integer, integer, [⊥]→boolean]→⊤;
+
+Style $"From_to_by_do_" with loop styler;
 
 /**
  * Counting loop with customizable step and early exit support. Invoke {@param
@@ -704,7 +710,8 @@ Public macro "For each…from_to_by_§do_" is
 				statements
 			] : blockReturnType»
 		>» : ⊤
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Counting loop with early exit support. Invoke {@param "action"} once for
@@ -735,7 +742,8 @@ Public method "From_to_do_" is
 	shouldExit ::= ¬action(start);
 	Exit loop if shouldExit;
 	Restart loop with <start + 1, end, action>
-];
+]
+styled by loop styler;
 
 /**
  * If possible, then enforce that the specified function will accept all values
@@ -873,7 +881,8 @@ Public macro "For each…from_to_§do_" is
 				statements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Restart the continuation with the specified arguments. Execution proceeds as
@@ -1289,7 +1298,8 @@ Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
 		conditional firstPredicate
 		then firstThenBlock
 		else finalElseBlock
-]: send phrase ⇒ ⊤;
+]: send phrase ⇒ ⊤
+styled by conditional styler;
 
 /**
  * Multiply branching conditional statement/expression. Execute the first
@@ -1524,7 +1534,8 @@ Public method "While_" is
 	$loop : ⊤;
 	Exit loop if action() = false;
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "action"} certainly answers {@method "true"}, then answer ⊥
@@ -1566,7 +1577,8 @@ Public method "Until_" is
 	shouldExit ::= action();
 	Exit loop if shouldExit;
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "action"} certainly answers {@method "false"}, then answer ⊥
@@ -1611,7 +1623,8 @@ Public method "While_do_" is
 	Exit loop if predicate() = false;
 	action();
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "predicate"} certainly answers {@method "true"}, then answer ⊥
@@ -1684,7 +1697,8 @@ Public method "Until_do_" is
 	Exit loop if predicate();
 	action();
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "predicate"} certainly answers {@method "false"}, then answer ⊥
@@ -1753,7 +1767,8 @@ Public method "Do_while_" is
 	action();
 	Exit loop if predicate() = false;
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -1822,7 +1837,8 @@ Public method "Do_while_alternate with_" is
 	Exit loop if predicate() = false;
 	between();
 	Restart loop
-];
+]
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -1898,7 +1914,8 @@ Public method "While_do_alternate with_" is
 		between();
 		Restart loop
 	];
-];
+]
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -1965,7 +1982,8 @@ Public method "Do_until_" is
 	action();
 	Exit loop if predicate();
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -2034,7 +2052,8 @@ Public method "Do_until_alternate with_" is
 	Exit loop if predicate();
 	between();
 	Restart loop
-];
+]
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -2110,7 +2129,8 @@ Public method "Until_do_alternate with_" is
 		between();
 		Restart loop
 	];
-];
+]
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -2193,7 +2213,8 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 		Restart body with <index + 1>
 	](1);
 	case(value);
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Strengthen the return type of {@method "Cast|cast_into«_‡,»«else_»"} so that
@@ -2299,7 +2320,8 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 			else[1] else [[]]
 		]
 	)();
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Reject the current parse unless all of the following are true:

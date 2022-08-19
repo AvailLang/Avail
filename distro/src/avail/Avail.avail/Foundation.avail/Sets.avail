@@ -218,7 +218,8 @@ Method "For each of⁇_do_" is
 		action(aTuple[index]);
 		Restart loop with <index + 1, end, aTuple>
 	](1, |aSet|, aSet→tuple);
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * Helper method for semantic restrictions: If {@param "action"} does not accept
@@ -358,8 +359,10 @@ Public method "set body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "For each…in|of_§do_" is a set iteration prefix function,
-	set body function($"For each of⁇_do_", ⊤);
+Macro "For each…in|of_§do_" is
+	a set iteration prefix function,
+	set body function($"For each of⁇_do_", ⊤)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each element of {@param "aSet"},
@@ -391,7 +394,8 @@ Method "map_through_" is
 		transformed ::= transformer(aTuple[index]);
 		Restart loop with <index + 1, end, outputSet + transformed>
 	](1, |aSet|, ∅)
-] : set;
+] : set
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set. If the set is
@@ -441,8 +445,10 @@ Semantic restriction "map_through_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "map each…in|of_§through_" is a set iteration prefix function,
-	set body function($"map_through_",set);
+Macro "map each…in|of_§through_" is
+	a set iteration prefix function,
+	set body function($"map_through_", set)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "predicate"} to each element of {@param "aSet"}, in
@@ -480,7 +486,8 @@ Method "filter_by_" is
 		Restart loop
 	]();
 	result
-] : set;
+] : set
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set.
@@ -520,8 +527,10 @@ Semantic restriction "filter_by_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "select each…from_§where_" is a set iteration prefix function,
-	set body function($"filter_by_",set);
+Macro "select each…from_§where_" is
+	a set iteration prefix function,
+	set body function($"filter_by_", set)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element of
@@ -543,7 +552,8 @@ Macro "select each…from_§where_" is a set iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "reject each…from_§where_" is a set iteration prefix function,
+Macro "reject each…from_§where_" is
+a set iteration prefix function,
 [
 	elementPhrase : literal phrase ⇒ token,
 	aSet : expression phrase ⇒ set,
@@ -585,7 +595,8 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "accumulator"} to the elements of {@param "aSet"},
@@ -635,7 +646,8 @@ Method "map and filter_by_" is
 		Restart loop
 	]();
 	result
-] : set;
+] : set
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all arguments of the set and also an
@@ -692,7 +704,8 @@ Method "any of_satisfies_" is
 		Exit loop with true if test;
 		Restart loop with <index + 1, end, aTuple>
 	](1, |aSet|, aSet→tuple)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set.
@@ -739,7 +752,8 @@ Method "each of_satisfies_" is
 		Exit loop with false if test = false;
 		Restart loop with <index + 1, end>
 	](1, |aTuple|)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set.
@@ -775,8 +789,10 @@ Semantic restriction "each of_satisfies_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Sets" "Queries"
  */
-Macro "any…in|of_§satisfies_" is a set iteration prefix function,
-	set body function($"any of_satisfies_", boolean);
+Macro "any…in|of_§satisfies_" is
+	a set iteration prefix function,
+	set body function($"any of_satisfies_", boolean)
+styled by loop styler;
 
 /**
  * Compute and answer whether all of the elements of {@param "aSet"} satisfies
@@ -796,8 +812,10 @@ Macro "any…in|of_§satisfies_" is a set iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Sets" "Queries"
  */
-Macro "each…in|of_§satisfies_" is a set iteration prefix function,
-	set body function($"each of_satisfies_", boolean);
+Macro "each…in|of_§satisfies_" is
+	a set iteration prefix function,
+	set body function($"each of_satisfies_", boolean)
+styled by loop styler;
 
 /**
  * Compute and answer the count of elements of {@param "aSet"} that satisfy the
@@ -829,7 +847,8 @@ Method "count of_where_" is
 		newCount ::= if predicate(aTuple[index]) then [count + 1] else [count];
 		Restart loop with <index + 1, end, newCount>
 	](1, |aTuple|, 0)
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set.
@@ -865,8 +884,10 @@ Semantic restriction "count of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Sets"
  */
-Macro "count of…from|in|of_§where_" is a set iteration prefix function,
-	set body function($"count of_where_", whole number);
+Macro "count of…from|in|of_§where_" is
+	a set iteration prefix function,
+	set body function($"count of_where_", whole number)
+styled by loop styler;
 
 /**
  * Compute and answer the symmetric difference between the two sets, being the

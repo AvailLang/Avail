@@ -55,6 +55,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive:** Declare method as [abstract][AbstractDefinitionDescriptor].
@@ -109,4 +110,6 @@ object P_AbstractMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 					E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
 					E_METHOD_IS_SEALED)
 				.setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

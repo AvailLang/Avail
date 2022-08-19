@@ -406,7 +406,8 @@ Public method "Method_is stable at_«compute with_»?" is
 	macroFunction ::= macroBody → function;
 	/* Install the macro. */
 	Macro methodName is macroFunction;
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Declare that the method referenced by {@param "methodName"} is stable for the
@@ -469,7 +470,8 @@ Public method "Stable abstract method_is_" is
 |
 	Abstract method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Declare a new abstract stable method with the specified name and signature. A
@@ -526,7 +528,8 @@ Public method "Stable forward method_is_" is
 |
 	Forward method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Declare the intention to locally define a method with the specified name and
@@ -581,7 +584,8 @@ Public method "Stable method_is_" is
 |
 	Method methodName is implementation;
 	Method methodName is stable at implementation's type;
-];
+]
+styled by definition styler function;
 
 /**
  * Define a new stable method. A stable method produces the same value for the
@@ -633,7 +637,8 @@ Public method "Public stable abstract method_is_" is
 |
 	Abstract method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
@@ -714,7 +719,8 @@ Public method "Public stable forward method_is_" is
 |
 	Forward method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
@@ -793,7 +799,8 @@ Public method "Public stable method_is_" is
 |
 	Method methodName is implementation;
 	Method methodName is stable at implementation's type;
-];
+]
+styled by definition styler function;
 
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
@@ -863,7 +870,8 @@ Public method "Private stable abstract method_is_" is
 |
 	Abstract method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
@@ -944,7 +952,8 @@ Public method "Private stable forward method_is_" is
 |
 	Forward method methodName is aFunctionType;
 	Method methodName is stable at aFunctionType;
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
@@ -1023,7 +1032,8 @@ Public method "Private stable method_is_" is
 |
 	Method methodName is implementation;
 	Method methodName is stable at implementation's type;
-];
+]
+styled by definition styler function;
 
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
@@ -1099,7 +1109,8 @@ Public method "Public variable_is_" is
 	varBlock ::= «[<>| <«↑usePhrase»>] : var's type»;
 	Method cast concatenate <"`↑", accessorName> into [t : string | t] is
 		varBlock → function;
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Ensure that the new methods are introduced by the module's "Names" section.
@@ -1148,7 +1159,8 @@ Public method "Public read-only variable_is_" is
 	Method accessorName is
 		new function accepting <> and returning readType
 		applying [ ↓var ];
-] : ⊤;
+] : ⊤
+styled by definition styler function;
 
 /**
  * Ensure that the new methods are introduced by the module's "Names" section.

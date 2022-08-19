@@ -52,6 +52,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
@@ -105,17 +106,20 @@ object P_BootstrapDefinitionStyler :
 				namePhrase.macroOriginalSendNode
 			else -> namePhrase
 		}
-		val nameLiteralSendArgs = nameLiteralSend.argumentsListNode
-		if (nameLiteralSendArgs.expressionsSize == 1)
+		if (nameLiteralSend.phraseKindIsUnder(SEND_PHRASE))
 		{
-			// The first argument of the definition is a one-argument send.
-			// Keep drilling to find the literal token to style, if any.
-			var nameLiteralArg = nameLiteralSendArgs.expressionAt(1)
-			if (nameLiteralArg.isMacroSubstitutionNode)
-				nameLiteralArg = nameLiteralArg.macroOriginalSendNode
-			if (nameLiteralArg.phraseKindIsUnder(LITERAL_PHRASE))
+			val nameLiteralSendArgs = nameLiteralSend.argumentsListNode
+			if (nameLiteralSendArgs.expressionsSize == 1)
 			{
-				loader.styleMethodName(nameLiteralArg.token)
+				// The first argument of the definition is a one-argument send.
+				// Keep drilling to find the literal token to style, if any.
+				var nameLiteralArg = nameLiteralSendArgs.expressionAt(1)
+				if (nameLiteralArg.isMacroSubstitutionNode)
+					nameLiteralArg = nameLiteralArg.macroOriginalSendNode
+				if (nameLiteralArg.phraseKindIsUnder(LITERAL_PHRASE))
+				{
+					loader.styleMethodName(nameLiteralArg.token)
+				}
 			}
 		}
 		return interpreter.primitiveSuccess(nil)

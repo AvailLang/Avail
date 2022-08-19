@@ -368,7 +368,18 @@ Public macro "$…#" is
 	tokenPhrase : literal phrase ⇒ literal token ⇒ string
 |
 	‘atom for tokenPhrase's token's value's value’
-] : literal phrase ⇒ atom;
+] : literal phrase ⇒ atom
+styled by
+[
+	original : send phrase ⇒ ⊤,
+	transformed : phrase ⇒ ⊤
+|
+	dollar ::= original's tokens[1] ?→ token;
+	Style token dollar as "#method-definition";
+	arguments ::= original's arguments' expressions;
+	methodNameToken ::= arguments[1] ?→ literal phrase⇒literal token⇒string;
+	Style method name methodNameToken;
+];
 
 /**
  * Construct a {@type "character"} {@type "literal phrase" literal} from an

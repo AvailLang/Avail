@@ -957,7 +957,9 @@ Extends
 		"Require:_is unambiguous",
 		"Stable abstract method_is_",
 		"Stable forward method_is_",
-		"Stable method_is_"
+		"Stable method_is_",
+		"definition styler function",
+		"special object styler function"
 	),
 	"Late Math" =
 	(
@@ -1366,7 +1368,10 @@ Extends
 		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 		"Reject parse(confidence=_),expected:_",
 		"Shouldn't happen",
-		"Shouldn't happen(_)"
+		"Shouldn't happen(_)",
+		"conditional styler",
+		"loop styler",
+		"nonlocal control styler"
 	)
 Body
 

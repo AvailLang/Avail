@@ -125,7 +125,7 @@ styled by
 		sendPhrase : send phrase
 	|
 		Style token sendPhrase's tokens[1] as #deemphasize;
-		exponent ::= sendPhrase's arguments's expressions[2];
+		exponent ::= sendPhrase's arguments' expressions[2];
 		Style span of exponent with #math-exponent;
 	]
 	else [];

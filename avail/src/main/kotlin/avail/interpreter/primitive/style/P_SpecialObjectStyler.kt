@@ -88,7 +88,6 @@ object P_SpecialObjectStyler :
 		val sendPhrase = optionalSendPhrase.tupleAt(1)
 
 		loader.styleTokens(sendPhrase.tokens, SPECIAL_OBJECT)
-
 		return interpreter.primitiveSuccess(nil)
 	}
 

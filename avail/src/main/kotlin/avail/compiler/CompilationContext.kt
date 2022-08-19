@@ -77,7 +77,6 @@ import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -1059,10 +1058,13 @@ class CompilationContext constructor(
 			when
 			{
 				yieldType.isInstanceMeta -> loader.styleTokens(
-					originalSendPhrase.allTokens, yieldType.systemStyleForType)
+					originalSendPhrase.tokens, yieldType.systemStyleForType)
 				yieldType.isInstanceOf(PARSE_PHRASE.mostGeneralType) ->
 					loader.styleTokens(
-						originalSendPhrase.allTokens, SystemStyle.PHRASE)
+						originalSendPhrase.tokens, SystemStyle.PHRASE)
+				originalSendPhrase.equals(transformedPhrase) ->
+					loader.styleTokens(
+						originalSendPhrase.tokens, SystemStyle.METHOD_SEND)
 				else -> loader.styleTokens(
 					originalSendPhrase.tokens, SystemStyle.MACRO_SEND)
 			}
