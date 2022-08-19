@@ -80,7 +80,6 @@ object P_SpecialObjectStyler :
 		}
 
 		loader.styleTokens(sendPhrase.tokens, SPECIAL_OBJECT)
-
 		return interpreter.primitiveSuccess(nil)
 	}
 

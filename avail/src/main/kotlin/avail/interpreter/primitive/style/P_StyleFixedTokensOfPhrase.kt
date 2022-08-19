@@ -1,5 +1,5 @@
 /*
- * P_SetStylerFunction.kt
+ * P_StyleSpanOfPhrase.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,48 +32,50 @@
 
 package avail.interpreter.primitive.style
 
-import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
-import avail.descriptor.bundles.A_Bundle
+import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.functions.A_Function
-import avail.descriptor.methods.A_Styler
-import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
+import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
-import avail.exceptions.AvailException
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create and install a [styler][A_Styler], from the given
- * [function][A_Function] and for the method associated with the given
- * [A_Bundle]. Fail if the method already has a styling function for the current
- * module.
+ * **Primitive:** Apply the given style name to all fixed tokens of the given
+ * phrase. If the "overwrite" argument is true, the style for that region is
+ * replaced, otherwise the style name is appended (with a separating ",") to the
+ * existing style name. If the "overwrite" argument is true, but the style name
+ * is the empty string, clear all styles for that range. This facility is
+ * provided as a primitive to provide early utility in the standard library,
+ * i.e., before standard control structures are readily available.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetStylerFunction : Primitive(2, CanSuspend, Unknown)
+object P_StyleFixedTokensOfPhrase : Primitive(3, CanInline, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(2)
-		val atom: A_Atom = interpreter.argument(0)
-		val function: A_Function = interpreter.argument(1)
+		interpreter.checkArgumentCount(3)
+		val phrase: A_Phrase = interpreter.argument(0)
+		val styleName: A_String = interpreter.argument(1)
+		val overwrite = interpreter.argument(2).extractBoolean
+
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
@@ -81,45 +83,30 @@ object P_SetStylerFunction : Primitive(2, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val bundle = try
-		{
-			atom.bundleOrCreate()
-		}
-		catch (e: AvailException)
-		{
-			// MalformedMessageException
-			// SignatureException
-			// AmbiguousNameException
-			return interpreter.primitiveFailure(e)
-		}
-		return interpreter.suspendInSafePointThen {
-			try
-			{
-				loader.addStyler(bundle, function)
-				succeed(nil)
-			}
-			catch (e: AvailException)
-			{
-				assert(e.errorCode == E_STYLER_ALREADY_SET_BY_THIS_MODULE)
-				fail(e.errorCode)
-			}
-		}
-	}
 
-	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(
-			tuple(
-				ATOM.o,
-				stylerFunctionType),
-			TOP.o)
+		val styleOrNull = when (styleName.tupleSize)
+		{
+			0 -> null
+			else -> styleName.asNativeString()
+		}
+		if (styleOrNull === null && !overwrite)
+		{
+			return interpreter.primitiveSuccess(nil)
+		}
+		loader.styleTokens(phrase.tokens, styleOrNull, overwrite)
+		return interpreter.primitiveSuccess(nil)
+	}
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
 				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION,
-				E_STYLER_ALREADY_SET_BY_THIS_MODULE
-			).setUnionCanDestroy(possibleErrors, true))
+				E_CANNOT_DEFINE_DURING_COMPILATION))
 
-	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
+	override fun privateBlockTypeRestriction(): A_Type = functionType(
+		tuple(
+			PARSE_PHRASE.mostGeneralType,
+			stringType,
+			booleanType),
+		Types.TOP.o)
 }

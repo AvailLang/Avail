@@ -191,7 +191,8 @@ Method "For each of⁇_do_" is
 		innerAction(innerTuple[index]);
 		Restart loop with <index + 1, end, innerTuple, innerAction>
 	](1, |aTuple|, aTuple, action);
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * Iteratively apply `action` to each consecutive element of `aTuple`.
@@ -610,7 +611,8 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
  */
 Macro "For each…in|of_§do_" is
 	a tuple iteration prefix function,
-	tuple body function($"For each of⁇_do_",⊤);
+	tuple body function($"For each of⁇_do_", ⊤)
+styled by loop styler;
 
 /**
  * Tuple iterating-loop that invokes {@param "action"} once for every
@@ -638,7 +640,8 @@ Macro "For each…in|of_§do_" is
  */
 Macro "For each…,…in|of_§do_" is
 	a two-input tuple iteration prefix function,
-	indexed two-input tuple body function($"For each of⁇_do_", ⊤);
+	indexed two-input tuple body function($"For each of⁇_do_", ⊤)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of
@@ -673,7 +676,8 @@ Method "map_through_" is
 		Restart loop
 			with <index + 1, end, newAccumulator, innerTuple, innerTransformer>
 	](1, |aTuple|, <>, aTuple, transformer)
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of
@@ -754,7 +758,8 @@ Semantic restriction "map_through_" is
  */
 Macro "map each…in|of_§through_" is
 	a tuple iteration prefix function,
-	tuple body function($"map_through_", tuple);
+	tuple body function($"map_through_", tuple)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of
@@ -782,7 +787,8 @@ Macro "map each…in|of_§through_" is
  */
 Macro "map each…,…in|of_§through_" is
 	a two-input tuple iteration prefix function,
-	indexed two-input tuple body function($"map_through_", tuple);
+	indexed two-input tuple body function($"map_through_", tuple)
+styled by loop styler;
 
 Alias "…,…∈_§→_" to $"map each…,…in|of_§through_";
 Copy macros from $"map each…,…in|of_§through_" to $"…,…∈_§→_";
@@ -830,7 +836,8 @@ Method "filter_by_" is
 			innerTuple,
 			innerPredicate>
 	](1, |aTuple|, <>, aTuple, predicate)
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element and index
@@ -924,7 +931,8 @@ Semantic restriction "filter_by_" is
  */
 Macro "select each…from_§where_" is
 	a tuple iteration prefix function,
-	tuple body function($"filter_by_", tuple);
+	tuple body function($"filter_by_", tuple)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element and index
@@ -953,7 +961,8 @@ Macro "select each…from_§where_" is
  */
 Macro "select each…,…from_§where_" is
 	a two-input tuple iteration prefix function,
-	indexed two-input tuple body function($"filter_by_", tuple);
+	indexed two-input tuple body function($"filter_by_", tuple)
+styled by loop styler;
 
 Alias "…,…∈_§`|_" to $"select each…,…from_§where_";
 Copy macros from $"select each…,…from_§where_" to $"…,…∈_§`|_";
@@ -1015,7 +1024,8 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "action"} to each consecutive element and index
@@ -1096,7 +1106,8 @@ Macro "reject each…,…from_§where_" is
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "accumulator"} to the consecutive elements of
@@ -1148,7 +1159,8 @@ Method "map and filter_by_" is
 		Restart loop
 	]();
 	result
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "accumulator"} to the consecutive elements and
@@ -1293,7 +1305,8 @@ Method "any of_satisfies_" is
 			innerTuple,
 			innerPredicate>
 	](1, |aTuple|, aTuple, predicate)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Compute and answer whether any of the elements (and indices) of {@param
@@ -1387,7 +1400,8 @@ Method "each of_satisfies_" is
 			innerTuple,
 			innerPredicate>
 	](1, |aTuple|, aTuple, predicate)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Compute and answer whether each of the elements (and indices) of {@param
@@ -1464,7 +1478,8 @@ Semantic restriction "each of_satisfies_" is
  */
 Macro "any…in|of_§satisfies_" is
 	a tuple iteration prefix function,
-	tuple body function($"any of_satisfies_", boolean);
+	tuple body function($"any of_satisfies_", boolean)
+styled by loop styler;
 
 /**
  * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
@@ -1486,7 +1501,8 @@ Macro "any…in|of_§satisfies_" is
  */
 Macro "each…in|of_§satisfies_" is
 	a tuple iteration prefix function,
-	tuple body function($"each of_satisfies_", boolean);
+	tuple body function($"each of_satisfies_", boolean)
+styled by loop styler;
 
 /**
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy
@@ -1527,7 +1543,8 @@ Method "count of_where_" is
 			innerTuple,
 			innerPredicate>
 	](1, |aTuple|, 0, aTuple, predicate)
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Compute and answer the count of elements (and indices) of {@param "aTuple"}
@@ -1607,7 +1624,8 @@ Semantic restriction "count of_where_" is
  */
 Macro "count of…from|in|of_§where_" is
 	a tuple iteration prefix function,
-	tuple body function($"count of_where_", whole number);
+	tuple body function($"count of_where_", whole number)
+styled by loop styler;
 
 /**
  * Compute and answer the distinct elements of {@param "aTuple"}, preserving
@@ -1850,7 +1868,8 @@ Public method "left fold_through_" is
 			innerTuple,
 			innerTransformer>
 	](2, |aTuple|, aTuple[1], aTuple, transformer)
-] : any;
+] : any
+styled by loop styler;
 
 /**
  * Left fold has the following requirements:
@@ -1948,7 +1967,8 @@ Public method "left fold_into_through_" is
 			innerTuple,
 			innerTransformer>
 	](1, |aTuple|, initialValue, aTuple, transformer)
-] : any;
+] : any
+styled by loop styler;
 
 /**
  * Injecting left fold has the following requirements:
@@ -2059,7 +2079,8 @@ Public method "right fold_through_" is
 			innerTuple,
 			innerTransformer>
 	](|aTuple| - 1, aTuple[|aTuple|], aTuple, transformer)
-] : any;
+] : any
+styled by loop styler;
 
 /**
  * Right fold has the following requirements:
@@ -2147,7 +2168,8 @@ Public method "first index of_where_" is
 		Exit loop with index if matched;
 		Restart loop with <index + 1, end, innerTuple, innerPredicate>
 	](1, |aTuple|, aTuple, predicate)
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the tuple.
@@ -2185,7 +2207,8 @@ Semantic restriction "first index of_where_" is
  */
 Macro "first index of…in_§where_" is
 	a tuple iteration prefix function,
-	tuple body function($"first index of_where_", whole number);
+	tuple body function($"first index of_where_", whole number)
+styled by loop styler;
 
 /**
  * Compute and answer the index of the last element of {@param "aTuple"} that
@@ -2211,7 +2234,8 @@ Public method "last index of_where_" is
 		Exit body with index if predicate(aTuple[index]);
 	];
 	0
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the tuple.
@@ -2249,7 +2273,8 @@ Semantic restriction "last index of_where_" is
  */
 Macro "last index of…in_§where_" is
 	a tuple iteration prefix function,
-	tuple body function($"last index of_where_", whole number);
+	tuple body function($"last index of_where_", whole number)
+styled by loop styler;
 
 /**
  * Compute and answer the indices of all the elements of {@param "aTuple"} that
@@ -2278,7 +2303,8 @@ Public method "all indices of_where_" is
 		];
 	];
 	indices
-] : natural number*;
+] : natural number*
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the tuple.
@@ -2316,7 +2342,8 @@ Semantic restriction "all indices of_where_" is
  */
 Macro "all indices of…in_§where_" is
 	a tuple iteration prefix function,
-	tuple body function($"all indices of_where_", natural number*);
+	tuple body function($"all indices of_where_", natural number*)
+styled by loop styler;
 
 Method "_occurrences⁇of_" is stable at [whole number, any]→tuple;
 
@@ -3084,6 +3111,8 @@ Public stable method "take_from_" is
 	aTuple[1..count]
 ] : tuple;
 
+Style $"take_from_" with loop styler;
+
 /**
  * @method "take_from_"
  * @restricts "whole number's type"
@@ -3124,7 +3153,8 @@ Public method "take from_while_" is
 		then [ |aTuple| ]
 		else [ cast firstIndex - 1 into [ t : whole number | t ] ];
 	aTuple[1..splitIndex]
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * Answer a semantic restriction suitable for use by the predicated-based
@@ -3181,7 +3211,8 @@ Public method "take from_until_" is
 		then [ |aTuple| ]
 		else [ cast firstIndex - 1 into [ t : whole number | t ] ];
 	aTuple[1..splitIndex]
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * @method "take from_until_"
@@ -3218,7 +3249,8 @@ Public method "drop from_while_" is
 		then [ |aTuple| + 1 ]
 		else [ cast firstIndex into [ t : natural number | t ] ];
 	aTuple[splitIndex..]
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * @method "drop from_while_"
@@ -3252,7 +3284,8 @@ Public method "drop from_until_" is
 		then [ |aTuple| + 1 ]
 		else [ cast firstIndex into [ t : natural number | t ] ];
 	aTuple[splitIndex..]
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * @method "drop from_until_"
@@ -3281,7 +3314,8 @@ Semantic restriction "drop from_until_" is drop-until semantic restriction;
  */
 Public macro "take…from_§while_" is
 	a tuple iteration prefix function,
-	tuple body function($"take from_while_", tuple);
+	tuple body function($"take from_while_", tuple)
+styled by loop styler;
 
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
@@ -3303,7 +3337,8 @@ Public macro "take…from_§while_" is
  */
 Public macro "take…from_§until_" is
 	a tuple iteration prefix function,
-	tuple body function($"take from_until_", tuple);
+	tuple body function($"take from_until_", tuple)
+styled by loop styler;
 
 Alias "take…from_§where_" to "select each…from_§where_";
 Copy macros from $"select each…from_§where_" to $"take…from_§where_";
@@ -3328,7 +3363,8 @@ Copy macros from $"select each…from_§where_" to $"take…from_§where_";
  */
 Public macro "drop…from_§while_" is
 	a tuple iteration prefix function,
-	tuple body function($"drop from_while_", tuple);
+	tuple body function($"drop from_while_", tuple)
+styled by loop styler;
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the
@@ -3350,7 +3386,8 @@ Public macro "drop…from_§while_" is
  */
 Public macro "drop…from_§until_" is
 	a tuple iteration prefix function,
-	tuple body function($"drop from_until_", tuple);
+	tuple body function($"drop from_until_", tuple)
+styled by loop styler;
 
 Alias "drop…from_§where_" to "reject each…from_§where_";
 Copy macros from $"reject each…from_§where_" to $"drop…from_§where_";
@@ -3377,6 +3414,8 @@ Public stable method "drop_from_" is
 |
 	aTuple[count + 1..]
 ] : tuple;
+
+Style $"drop_from_" with loop styler;
 
 /**
  * @method "drop_from_"

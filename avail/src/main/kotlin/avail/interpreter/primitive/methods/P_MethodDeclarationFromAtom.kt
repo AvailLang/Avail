@@ -62,6 +62,7 @@ import avail.exceptions.AvailErrorCode.E_METHOD_IS_SEALED
 import avail.exceptions.AvailErrorCode.E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED
 import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
+import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import avail.exceptions.AvailException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
@@ -141,7 +142,8 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 			E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
 			E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 			E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-			E_METHOD_IS_SEALED)
+			E_METHOD_IS_SEALED,
+			E_STYLER_ALREADY_SET_BY_THIS_MODULE)
 		.setUnionCanDestroy(possibleErrors, true))
 
 	override fun bootstrapStyler() = P_BootstrapDefinitionStyler

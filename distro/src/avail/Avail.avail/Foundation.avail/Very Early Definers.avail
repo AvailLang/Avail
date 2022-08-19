@@ -36,6 +36,7 @@ Versions
 Uses
 	"Bootstrap"
 Names
+	/* Definers. */
 	"<«_‡,»>",
 	"Accept parse",
 	"Assert:_",
@@ -47,8 +48,29 @@ Names
 	"Replace parse rejection function with_",
 	"Replace parse acceptance function with_",
 	"Shouldn't happen",
-	"Shouldn't happen(_)"
+	"Shouldn't happen(_)",
+	"definition styler function",
+	"special object styler function",
+
+	/* Stylers. */
+	"conditional styler",
+	"loop styler",
+	"nonlocal control styler"
 Body
+
+Primitive "{«_‡,»}" is
+[
+	aTuple : tuple
+|
+	Primitive TupleToSet;
+] : set;
+
+Primitive "_ᵀ" is
+[
+	instances : set
+|
+	Primitive CreateEnumeration;
+] : any meta;
 
 /**
  * Use the same primitive that implements {@method "_'s⁇type"} to implement its
@@ -117,6 +139,69 @@ Semantic restriction "Invoke|invoke_with_" is
 /* The range from zero to one. */
 zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
 
+conditionalStyler ::=
+	[
+		original : send phrase,
+		transformed : phrase
+	|
+		Style fixed tokens of original with "#conditional";
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named {@code "conditional"}
+ * to the fixed tokens of an original {@method "send phrase"}, suitable for
+ * use in the styling clause of a method definition.
+ *
+ * @return "styler function"
+ *   The requested styler.
+ */
+Primitive "conditional styler" is [conditionalStyler];
+
+loopStyler ::=
+	[
+		original : send phrase,
+		transformed : phrase
+	|
+		Style fixed tokens of original with "#loop";
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named {@code "loop"} to the
+ * fixed tokens of an original {@method "send phrase"}, suitable for use in the
+ * styling clause of a method definition.
+ *
+ * @return "styler function"
+ *   The requested styler.
+ */
+Primitive "loop styler" is [loopStyler];
+
+nonlocalControlStyler ::=
+	[
+		original : send phrase,
+		transformed : phrase
+	|
+		Style span of original with "#return-value";
+		Style fixed tokens of original with "#nonlocal-control";
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named
+ * {@code "return-value"} to the fixed tokens of an original
+ * {@method "send phrase"} and {@code "nonlocal-control"} to the whole
+ * span covered by {@code "send phrase"}, suitable for use in the styling
+ * clause of a method definition.
+ *
+ * @return "styler function"
+ *   The requested styler.
+ */
+Primitive "nonlocal control styler" is [nonlocalControlStyler];
+
+Style atom for "Cast|cast_into_else_" with conditional styler;
+Style atom for "Crash:_" with nonlocal control styler;
+Style
+	atom for "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
+	with nonlocal control styler;
+
 /**
  * Define a new method.
  *
@@ -162,6 +247,44 @@ Primitive "Method_is_«styled by_»?" is
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>
 ] : ⊤;
+
+/**
+ * Answer a function that applies system definition styling to the new definition,
+ * suitable for use in the styling clause of a method definer.
+ *
+ * @returns "styler function"
+ */
+Method "definition styler function" is
+[
+	[
+		original : send phrase,
+		transformed : phrase
+	|
+		Primitive BootstrapDefinitionStyler (failureCode : {
+			loading-is-over code,
+			cannot-define-during-compilation code}ᵀ);
+		Invoke early failure function with <failureCode>
+	] : ⊤
+];
+
+/**
+ * Answer a function that applies system definition styling to the new definition,
+ * suitable for use in the styling clause of a special object definer.
+ *
+ * @returns "styler function"
+ */
+Method "special object styler function" is
+[
+	[
+		original : send phrase,
+		transformed : phrase
+	|
+		Primitive BootstrapDefineSpecialObjectMacroStyler (failureCode : {
+			loading-is-over code,
+			cannot-define-during-compilation code}ᵀ);
+		Invoke early failure function with <failureCode>
+	] : ⊤
+];
 
 /**
  * This is a helper for the semantic restriction for {@method
@@ -600,7 +723,8 @@ Method "Shouldn't happen" is
 [
 	Invoke assertionFailureFunction with
 		<"This should not be possible; debug the VM and/or system library.">
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
 
 /**
  * It would be hard to bootstrap this method to have a bottom return type, so

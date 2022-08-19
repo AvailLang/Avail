@@ -33,9 +33,10 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -63,7 +64,7 @@ object P_StyleStringLiteral : Primitive(1, CanInline, WritesToHiddenGlobalState)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val token: A_Token = interpreter.argument(0)
+		val phrase: A_Phrase = interpreter.argument(0)
 
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -73,7 +74,7 @@ object P_StyleStringLiteral : Primitive(1, CanInline, WritesToHiddenGlobalState)
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		loader.styleStringLiteral(token)
+		loader.styleStringLiteral(phrase.token)
 		return interpreter.primitiveSuccess(nil)
 	}
 
