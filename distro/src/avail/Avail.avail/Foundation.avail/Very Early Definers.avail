@@ -139,12 +139,40 @@ Semantic restriction "Invoke|invoke_with_" is
 /* The range from zero to one. */
 zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
 
+/* The range [1..1]. */
+exactlyOne ::= integer range from 1 (inclusive = true) to 1 (inclusive = true);
+
+/* Optional (zero or one occurrences of a) send phrase. */
+optionalSendType ::= <<>, send phrase…|zeroOrOne>;
+
+/* Do nothing if the optionalSend is empty. */
+Primitive "attempt extract_then_" is
+[
+	optionalSend : optionalSendType,
+	action : function accepting <send phrase> and returning ⊤
+|
+	/* Overridden to do something. */
+];
+
+Primitive "attempt extract_then_" is
+[
+	optionalSend : <<>, send phrase…|exactlyOne>,
+	action : function accepting <send phrase> and returning ⊤
+|
+	cast optionalSend[1] into action else [];
+];
+
 conditionalStyler ::=
 	[
-		original : send phrase,
+		optionalOriginal : optionalSendType,
 		transformed : phrase
 	|
-		Style fixed tokens of original with "#conditional";
+		attempt extract optionalOriginal then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#conditional";
+		];
 	] : ⊤;
 
 /**
@@ -159,10 +187,15 @@ Primitive "conditional styler" is [conditionalStyler];
 
 loopStyler ::=
 	[
-		original : send phrase,
+		optionalOriginal : optionalSendType,
 		transformed : phrase
 	|
-		Style fixed tokens of original with "#loop";
+		attempt extract optionalOriginal then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#loop";
+		];
 	] : ⊤;
 
 /**
@@ -177,11 +210,16 @@ Primitive "loop styler" is [loopStyler];
 
 nonlocalControlStyler ::=
 	[
-		original : send phrase,
+		optionalOriginal : <<>, send phrase…|zeroOrOne>,
 		transformed : phrase
 	|
-		Style span of original with "#return-value";
-		Style fixed tokens of original with "#nonlocal-control";
+		attempt extract optionalOriginal then
+		[
+			original : send phrase
+		|
+			Style span of original with "#return-value";
+			Style fixed tokens of original with "#nonlocal-control";
+		];
 	] : ⊤;
 
 /**
@@ -257,7 +295,7 @@ Primitive "Method_is_«styled by_»?" is
 Method "definition styler function" is
 [
 	[
-		original : send phrase,
+		original : optionalSendType,
 		transformed : phrase
 	|
 		Primitive BootstrapDefinitionStyler (failureCode : {
@@ -276,7 +314,7 @@ Method "definition styler function" is
 Method "special object styler function" is
 [
 	[
-		original : send phrase,
+		original : optionalSendType,
 		transformed : phrase
 	|
 		Primitive BootstrapDefineSpecialObjectMacroStyler (failureCode : {

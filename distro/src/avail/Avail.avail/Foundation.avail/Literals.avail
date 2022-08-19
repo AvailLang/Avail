@@ -371,14 +371,18 @@ Public macro "$…#" is
 ] : literal phrase ⇒ atom
 styled by
 [
-	original : send phrase ⇒ ⊤,
+	optionalOriginal : <<>, send phrase…|[0..1]>,
 	transformed : phrase ⇒ ⊤
 |
-	dollar ::= original's tokens[1] ?→ token;
-	Style token dollar as "#method-definition";
-	arguments ::= original's arguments' expressions;
-	methodNameToken ::= arguments[1] ?→ literal phrase⇒literal token⇒string;
-	Style method name methodNameToken;
+	If |optionalOriginal| = 1 then
+	[
+		original ::= optionalOriginal[1] ?→ send phrase;
+		dollar ::= original's tokens[1] ?→ token;
+		Style token dollar as "#method-definition";
+		arguments ::= original's arguments' expressions;
+		methodNameToken ::= arguments[1] ?→ literal phrase⇒literal token⇒string;
+		Style method name methodNameToken;
+	];
 ];
 
 /**
