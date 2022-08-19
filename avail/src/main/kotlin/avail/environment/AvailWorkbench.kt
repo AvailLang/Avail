@@ -79,6 +79,7 @@ import avail.environment.actions.ResetCCReportDataAction
 import avail.environment.actions.ResetVMReportDataAction
 import avail.environment.actions.RetrieveNextCommand
 import avail.environment.actions.RetrievePreviousCommand
+import avail.environment.actions.SearchOpenModuleDialogAction
 import avail.environment.actions.SetDocumentationPathAction
 import avail.environment.actions.ShowCCReportAction
 import avail.environment.actions.ShowVMReportAction
@@ -145,6 +146,7 @@ import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -540,6 +542,12 @@ class AvailWorkbench internal constructor(
 
 	/** The action to [edit][OpenModuleAction] a module. */
 	private val openEditorAction = OpenModuleAction(this)
+
+	/**
+	 * The action to open a dialog that enables a user to search for a module by
+	 * name and open it.
+	 */
+	private val searchOpenModuleAction = SearchOpenModuleDialogAction(this)
 
 //	/**
 //	 * The {@linkplain DisplayCodeCoverageReport action to display the current
@@ -1647,6 +1655,12 @@ class AvailWorkbench internal constructor(
 				//item(cleanModuleAction)  //TODO MvG Fix implementation and enable.
 				item(refreshAction)
 			}
+			menu("Module")
+			{
+				item(newEditorAction)
+				item(openEditorAction)
+				item(searchOpenModuleAction)
+			}
 			menu("Edit")
 			{
 				item(findAction)
@@ -2116,6 +2130,13 @@ class AvailWorkbench internal constructor(
 		 * platform.
 		 */
 		val menuShortcutMask = Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
+
+		/**
+		 * The numeric mask for the modifier key suitable for the current
+		 * platform while the SHIFT key is pressed.
+		 */
+		val menuShiftShortcutMask =
+			menuShortcutMask.or(InputEvent.SHIFT_DOWN_MASK)
 
 		/**
 		 * The current working directory of the Avail virtual machine. Because

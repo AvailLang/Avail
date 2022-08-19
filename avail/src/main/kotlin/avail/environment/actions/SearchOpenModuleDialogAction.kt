@@ -32,46 +32,39 @@
 
 package avail.environment.actions
 
-import avail.environment.AvailEditor
 import avail.environment.AvailWorkbench
+import avail.environment.dialogs.SearchOpenModuleDialog
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import javax.swing.Action
 import javax.swing.KeyStroke
 
 /**
- * Open an editor on the selected module.
+ * Open a dialog to search for modules to be opened.
  *
  * @constructor
- * Construct a new [OpenModuleAction].
+ * Construct a new [SearchOpenModuleDialogAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class OpenModuleAction
+class SearchOpenModuleDialogAction
 constructor (
 	workbench: AvailWorkbench,
 ) : AbstractWorkbenchAction(
 	workbench,
-	"Open selected module",
-	KeyStroke.getKeyStroke(KeyEvent.VK_O, AvailWorkbench.menuShortcutMask))
+	"Open module…",
+	KeyStroke.getKeyStroke(KeyEvent.VK_O, AvailWorkbench.menuShiftShortcutMask))
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
-		var isNew = false
-		val moduleName =
-			workbench.selectedModule()!!.resolverReference.moduleName
-		val editor = workbench.openEditors.computeIfAbsent(moduleName) {
-			isNew = true
-			AvailEditor(workbench, moduleName).apply { open() }
-		}
-		if (!isNew) editor.toFront()
+		SearchOpenModuleDialog(workbench)
 	}
 
 	init
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"View/edit the selected module.")
+			"Search for and open a module.")
 	}
 }

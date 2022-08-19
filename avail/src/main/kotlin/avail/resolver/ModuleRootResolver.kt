@@ -52,6 +52,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.UUID
+import java.util.regex.Pattern
 
 /**
  * `ModuleRootResolver` declares an interface for accessing Avail [ModuleRoot]s
@@ -130,6 +131,27 @@ constructor(
 	 * The full [ModuleRoot] tree if available; or `null` if not yet set.
 	 */
 	protected var moduleRootTree: ResolverReference? = null
+
+	/**
+	 * Answer all the [ResolverReference]s known by this [ModuleRootResolver]
+	 * that have a qualified name that contains the provided partial name.
+	 *
+	 * @param partialName
+	 *   The String to use to match.
+	 * @return
+	 *   The list of [ResolverReference]s that match the search.
+	 */
+	fun matches (partialName: String): List<ResolverReference>
+	{
+		val searchCriteria = Pattern.compile(
+			partialName.map { it }
+				.joinToString(".*?", ".*?", ".*?") { it.toString() },
+			Pattern.CASE_INSENSITIVE).toRegex()
+		return referenceMap.entries.filter {
+			it.value.isModule &&
+				it.key.lowercase().matches(searchCriteria)
+		}.map { it.value }.toList()
+	}
 
 	/**
 	 * Provide the non-`null` [ResolverReference] that represents the
