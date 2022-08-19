@@ -40,6 +40,7 @@ import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
 import avail.environment.editor.AbstractEditorAction
+import avail.environment.text.AvailEditorKit.Companion.outdent
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
@@ -51,6 +52,11 @@ import java.awt.Dimension
 import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.CTRL_DOWN_MASK
+import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
+import java.awt.event.KeyEvent.VK_SPACE
+import java.awt.event.KeyEvent.VK_TAB
+import java.awt.event.KeyEvent.VK_Z
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.TimerTask
@@ -59,7 +65,8 @@ import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JPanel
 import javax.swing.JRootPane
-import javax.swing.KeyStroke
+import javax.swing.JTextPane
+import javax.swing.KeyStroke.getKeyStroke
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
@@ -119,7 +126,7 @@ class AvailEditor constructor(
 	 * The [UndoManager] for supplying undo/redo for edits to the underlying
 	 * document.
 	 */
-	private val undoManager = UndoManager().apply {
+	internal val undoManager = UndoManager().apply {
 		limit = 1000
 	}
 
@@ -172,8 +179,8 @@ class AvailEditor constructor(
 		object : AbstractEditorAction(
 			this,
 			"Undo",
-			KeyStroke.getKeyStroke(
-				KeyEvent.VK_Z,
+			getKeyStroke(
+				VK_Z,
 				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
 			)
 		) {
@@ -193,10 +200,10 @@ class AvailEditor constructor(
 		object : AbstractEditorAction(
 			this,
 			"Redo",
-			KeyStroke.getKeyStroke(
-				KeyEvent.VK_Z,
+			getKeyStroke(
+				VK_Z,
 				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx or
-					KeyEvent.SHIFT_DOWN_MASK
+					SHIFT_DOWN_MASK
 			)
 		) {
 			override fun actionPerformed(e: ActionEvent) =
@@ -215,9 +222,9 @@ class AvailEditor constructor(
 		object : AbstractEditorAction(
 			this,
 			"Expand Template",
-			KeyStroke.getKeyStroke(
-				KeyEvent.VK_SPACE,
-				KeyEvent.CTRL_DOWN_MASK
+			getKeyStroke(
+				VK_SPACE,
+				CTRL_DOWN_MASK
 			)
 		) {
 			override fun actionPerformed(e: ActionEvent) = expandTemplate()
@@ -227,7 +234,7 @@ class AvailEditor constructor(
 		object : AbstractEditorAction(
 			this,
 			"Cancel Template Selection",
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0)
+			getKeyStroke(KeyEvent.VK_ESCAPE, 0)
 		) {
 			override fun actionPerformed(e: ActionEvent) =
 				cancelTemplateExpansion()
@@ -315,6 +322,8 @@ class AvailEditor constructor(
 			styledDocument.applyStyleRuns(it.styleRuns)
 		}
 		isEditable = resolverReference.resolver.canSave
+		addCaretListener { clearStaleTemplateSelectionState() }
+		inputMap.put(getKeyStroke(VK_TAB, SHIFT_DOWN_MASK), outdent)
 		document.addDocumentListener(object : DocumentListener
 		{
 			override fun insertUpdate(e: DocumentEvent) = editorChanged()
@@ -322,7 +331,9 @@ class AvailEditor constructor(
 			override fun removeUpdate(e: DocumentEvent) = editorChanged()
 		})
 		document.addUndoableEditListener(undoManager)
-		addCaretListener { clearStaleTemplateSelectionState() }
+		// Arrange for the undo manager to be available when only the source
+		// pane is in scope.
+		putClientProperty(AvailEditor::undoManager.name, undoManager)
 		// TODO Extract token/phrase style information that should have been
 		// captured by stylers that ran against method/macro send phrases.
 		// TODO Also, we need to capture info relating local variable
@@ -590,5 +601,35 @@ class AvailEditor constructor(
 		/** The length of the receiver after template expansion. */
 		private val String.expandedLength get() =
 			length - count { it == '⁁' }
+
+		/**
+		 * Locate the beginning of the line enclosing [position].
+		 *
+		 * @param position
+		 *   The position from which to scan leftward in search of the beginning
+		 *   of the enclosing line.
+		 * @return
+		 *   The beginning of the line. This is either the beginning of the
+		 *   text or a position immediately following a linefeed (U+000A).
+		 */
+		private fun JTextPane.lineStartBefore(position: Int): Int
+		{
+			var i = position
+			while (i > 0)
+			{
+				val c = getText(i, 1).codePointAt(0)
+				if (c == '\n'.code)
+				{
+					// We actually want to skip past the linefeed to place the
+					// insertion point.
+					i++
+					break
+				}
+				i--
+			}
+			// `i` is now positioned either (1) at the beginning of the text or
+			// (2) just past the nearest linefeed left of `position`.
+			return i
+		}
 	}
 }
