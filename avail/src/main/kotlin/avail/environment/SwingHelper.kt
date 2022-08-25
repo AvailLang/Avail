@@ -38,6 +38,7 @@ import avail.environment.text.TextLineNumber
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.Frame
 import java.awt.Graphics
 import java.awt.Rectangle
@@ -74,10 +75,34 @@ import kotlin.math.max
 fun JTextPane.scrollTextWithLineNumbers(): JScrollPane
 {
 	parent?.parent?.let { return it as JScrollPane }
-	val scrollPane = JScrollPane(this)
+	val scrollPane = AvailScrollPane(this)
 	val lines = TextLineNumber(this)
 	scrollPane.setRowHeaderView(lines)
 	return scrollPane
+}
+
+// TODO: Incomplete. Does not redraw when scrolling.
+class AvailScrollPane(parent: JComponent) : JScrollPane(parent)
+{
+	override fun paint(g: Graphics)
+	{
+		super.paint(g)
+		// TODO: Hack — this is absolutely the wrong way to do this, but it
+		//   positions the guide correctly, which is good enough at the moment.
+		val fontMetrics = getFontMetrics(Font.decode("Monospaced 13"))
+		// The font is monospaced, so we can use any character we like to
+		// measure the width.
+		val stringWidth = fontMetrics.stringWidth(" ".repeat(80))
+		val bounds = viewportBorderBounds
+		val x = bounds.x + stringWidth
+		g.color = SystemColors.active.guide
+		g.drawLine(
+			x,
+			bounds.y,
+			x,
+			bounds.height
+		)
+	}
 }
 
 /**
