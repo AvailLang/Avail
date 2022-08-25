@@ -362,9 +362,11 @@ fun JTextPane.lineStartsInSelection(): List<Int>
 	val lastLineStart =
 		document.lineStartBefore(selectionEnd - 1)
 	val insertionPoints = mutableListOf(firstLineStart)
+	// Avoid unnecessary work if only a single line was involved.
+	if (firstLineStart == lastLineStart) return insertionPoints
 	(firstLineStart + 1 until lastLineStart - 2).forEach { position ->
-		// The bounds are a bit tricky to avoid redundant computation
-		// for the two termini.
+		// The bounds are a bit tricky to avoid redundant computation for the
+		// two termini.
 		val c = document.codePointAt(position)
 		if (c == '\n'.code)
 		{
