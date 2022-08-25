@@ -40,7 +40,9 @@ import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
 import avail.environment.editor.AbstractEditorAction
+import avail.environment.editor.GoToDialog
 import avail.environment.text.AvailEditorKit.Companion.breakLine
+import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
 import avail.environment.text.AvailEditorKit.Companion.outdent
 import avail.environment.text.AvailEditorKit.Companion.space
 import avail.persistence.cache.Repository
@@ -53,10 +55,12 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Toolkit
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent.VK_ENTER
+import java.awt.event.KeyEvent.VK_ESCAPE
+import java.awt.event.KeyEvent.VK_L
+import java.awt.event.KeyEvent.VK_M
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_Z
@@ -142,6 +146,9 @@ class AvailEditor constructor(
 	internal val undoManager = UndoManager().apply {
 		limit = 1000
 	}
+
+	/** Any open dialogs owned by the receiver. */
+	internal val openDialogs = mutableSetOf<JFrame>()
 
 	/**
 	 * The state of an ongoing template selection.
@@ -249,10 +256,25 @@ class AvailEditor constructor(
 		object : AbstractEditorAction(
 			this,
 			"Cancel Template Selection",
-			getKeyStroke(KeyEvent.VK_ESCAPE, 0)
+			getKeyStroke(VK_ESCAPE, 0)
 		) {
 			override fun actionPerformed(e: ActionEvent) =
 				cancelTemplateExpansion()
+		}
+
+		// Go to position.
+		object: AbstractEditorAction(
+			this,
+			"Go To Line:Column…",
+			getKeyStroke(
+				VK_L,
+				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
+			)
+		) {
+			override fun actionPerformed(e: ActionEvent)
+			{
+				GoToDialog(editor)
+			}
 		}
 	}
 
@@ -308,7 +330,7 @@ class AvailEditor constructor(
 	}
 
 	/** The editor pane. */
-	private val sourcePane = codeSuitableTextPane(workbench, this).apply {
+	internal val sourcePane = codeSuitableTextPane(workbench, this).apply {
 		var stylingRecord: StylingRecord? = null
 		val semaphore = Semaphore(0)
 		resolverReference.readFileString(
@@ -354,6 +376,13 @@ class AvailEditor constructor(
 		inputMap.put(getKeyStroke(VK_SPACE, 0), space)
 		inputMap.put(getKeyStroke(VK_TAB, SHIFT_DOWN_MASK), outdent)
 		inputMap.put(getKeyStroke(VK_ENTER, 0), breakLine)
+		inputMap.put(
+			getKeyStroke(
+				VK_M,
+				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
+			),
+			centerCurrentLine
+		)
 		document.addDocumentListener(object : DocumentListener
 		{
 			override fun insertUpdate(e: DocumentEvent) = editorChanged()
@@ -594,6 +623,7 @@ class AvailEditor constructor(
 			override fun windowClosing(e: WindowEvent) {
 				if (lastSaveTime < lastEditTime) forceWrite()
 				workbench.openEditors.remove(resolverReference.moduleName)
+				openDialogs.forEach { it.dispose() }
 			}
 		})
 		setLocationRelativeTo(workbench)

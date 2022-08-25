@@ -82,7 +82,9 @@ fun JTextPane.scrollTextWithLineNumbers(): JLayer<JScrollPane>
 	val guidePane = JLayer(scrollPane, CodeGuide())
 	val lines = TextLineNumber(this)
 	scrollPane.setRowHeaderView(lines)
+	// Make sure that the font is available in several places, for convenience.
 	scrollPane.font = font
+	guidePane.font = font
 	return guidePane
 }
 

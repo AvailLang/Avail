@@ -35,22 +35,28 @@ package avail.environment.text
 import avail.environment.AvailEditor
 import avail.environment.AvailWorkbench
 import avail.environment.text.AvailEditorKit.Companion.breakLine
+import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
 import avail.environment.text.AvailEditorKit.Companion.indent
 import avail.environment.text.AvailEditorKit.Companion.outdent
 import avail.environment.text.AvailEditorKit.Companion.space
 import avail.utility.Strings.tabs
+import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JFrame
 import javax.swing.JTextPane
+import javax.swing.JViewport
+import javax.swing.SwingUtilities.getAncestorOfClass
 import javax.swing.UIManager
 import javax.swing.text.BadLocationException
 import javax.swing.text.Document
+import javax.swing.text.JTextComponent
 import javax.swing.text.StyledEditorKit
 import javax.swing.text.TextAction
 import javax.swing.undo.CompoundEdit
 import javax.swing.undo.UndoManager
 import kotlin.math.max
+import kotlin.math.min
 
 class AvailEditorKit constructor(
 	val workbench: AvailWorkbench,
@@ -61,7 +67,8 @@ class AvailEditorKit constructor(
 		InsertSpace,
 		BreakLine,
 		IncreaseIndentation,
-		DecreaseIndentation
+		DecreaseIndentation,
+		CenterCurrentLine
 	)
 
 	override fun getActions(): Array<Action>
@@ -82,6 +89,11 @@ class AvailEditorKit constructor(
 
 		/** The name of the [DecreaseIndentation] action. */
 		const val outdent = "outdent"
+
+		/**
+		 * The name of the [CenterCurrentLine] action.
+		 */
+		const val centerCurrentLine = "center-current-line"
 	}
 }
 
@@ -239,6 +251,21 @@ private object DecreaseIndentation : TextAction(outdent)
 }
 
 /**
+ * Center the current line of the [source&#32;component][JTextComponent] in its
+ * enclosing [viewport][JViewport]. If no viewport encloses the receiver, then
+ * do not move the caret.
+ */
+private object CenterCurrentLine: TextAction(centerCurrentLine)
+{
+	override fun actionPerformed(e: ActionEvent) =
+		(e.source as JTextComponent).centerCurrentLine()
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  Support.                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
  * Interrogate the code point at the specified position.
  *
  * @param position
@@ -337,7 +364,61 @@ fun Document.indentationBefore(position: Int): Int =
 /**
  * Whether the receiver can really be edited.
  */
-val JTextPane.canEdit get() = isEnabled && isEditable
+val JTextComponent.canEdit get() = isEnabled && isEditable
+
+/**
+ * Center the current line of the receiver in its enclosing
+ * [viewport][JViewport] by moving the caret. If no viewport encloses the
+ * receiver, then do not move the caret.
+ */
+fun JTextComponent.centerCurrentLine()
+{
+	val viewport =
+		getAncestorOfClass(JViewport::class.java, this) as? JViewport
+	// If there is no container, then centering is impossible.
+	if (viewport === null) return
+	try
+	{
+		val bounds = modelToView2D(caretPosition)
+		val extentHeight = viewport.extentSize.height.toDouble()
+		val viewHeight = viewport.viewSize.height.toDouble()
+		val y = min(
+			max(0.0, bounds.y - (extentHeight - bounds.height) / 2),
+			viewHeight - extentHeight
+		).toInt()
+		viewport.viewPosition = Point(0, y)
+	}
+	catch (e: BadLocationException)
+	{
+		// We tried our best, but the caret was somehow invalid. Give up.
+	}
+}
+
+/**
+ * Move the caret to the specified line and optional intra-line position.
+ * Normalize the positions, to ensure that the document and line limits are not
+ * exceeded.
+ *
+ * @param line
+ *   The 0-based target line.
+ * @param characterInLine
+ *   The 0-based target character position within the line. Defaults to `0`.
+ */
+fun JTextComponent.goTo(line: Int, characterInLine: Int = 0)
+{
+	val root = document.defaultRootElement
+	val normalizedLine = max(0, min(line, root.elementCount - 1))
+	val element = root.getElement(normalizedLine)
+	val lineStart = element.startOffset
+	val position = max(
+		min(
+		lineStart + characterInLine,
+		element.endOffset - 1
+		),
+		lineStart
+	)
+	caretPosition = position
+}
 
 /**
  * Locate the beginnings of all lines enclosing the active selection. If no text

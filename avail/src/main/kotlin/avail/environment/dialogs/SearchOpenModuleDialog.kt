@@ -255,10 +255,10 @@ class SearchOpenModuleDialog constructor(
 	 */
 	private fun displayWindow ()
 	{
-		setLocationRelativeTo(workbench)
 		pack()
 		maximumSize = Dimension(1000, 600)
 		minimumSize = Dimension(500, size.height)
+		setLocationRelativeTo(workbench)
 		isVisible = true
 		toFront()
 	}
