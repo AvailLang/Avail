@@ -35,6 +35,7 @@ package avail.environment
 import avail.environment.BoundStyle.Companion.defaultStyle
 import avail.environment.text.AvailEditorKit
 import avail.environment.text.TextLineNumber
+import avail.utility.cast
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
@@ -52,9 +53,11 @@ import javax.swing.Action
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JFrame
+import javax.swing.JLayer
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
+import javax.swing.plaf.LayerUI
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.JTextComponent
@@ -72,36 +75,46 @@ import kotlin.math.max
  * presented as row headers, or answers the JScrollPane that it's already
  * inside.
  */
-fun JTextPane.scrollTextWithLineNumbers(): JScrollPane
+fun JTextPane.scrollTextWithLineNumbers(): JLayer<JScrollPane>
 {
-	parent?.parent?.let { return it as JScrollPane }
-	val scrollPane = AvailScrollPane(this)
+	parent?.parent?.let { return it.cast() }
+	val scrollPane = JScrollPane(this)
+	val guidePane = JLayer(scrollPane, CodeGuide())
 	val lines = TextLineNumber(this)
 	scrollPane.setRowHeaderView(lines)
-	return scrollPane
+	scrollPane.font = font
+	return guidePane
 }
 
-// TODO: Incomplete. Does not redraw when scrolling.
-class AvailScrollPane(parent: JComponent) : JScrollPane(parent)
+/**
+ * Draws a code guide after the 80th column on the decorated [JScrollPane].
+ *
+ * @property afterColumn
+ *   After how many (character) columns to display the guide. Defaults to `80`.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+class CodeGuide(private val afterColumn: Int = 80): LayerUI<JScrollPane>()
 {
-	override fun paint(g: Graphics)
+	/** The X-offset for the guide. */
+	var x: Int? = null
+
+	override fun paint(g: Graphics, c: JComponent)
 	{
-		super.paint(g)
-		// TODO: Hack — this is absolutely the wrong way to do this, but it
-		//   positions the guide correctly, which is good enough at the moment.
-		val fontMetrics = getFontMetrics(Font.decode("Monospaced 13"))
-		// The font is monospaced, so we can use any character we like to
-		// measure the width.
-		val stringWidth = fontMetrics.stringWidth(" ".repeat(80))
-		val bounds = viewportBorderBounds
-		val x = bounds.x + stringWidth
+		super.paint(g, c)
+		val layer: JLayer<JScrollPane> = c.cast()
+		val view = layer.view
+		val bounds = view.viewportBorderBounds
+		if (x === null)
+		{
+			// The font is monospaced, so we can use any character we like to
+			// measure the width.
+			val fontMetrics = view.getFontMetrics(view.font)
+			val stringWidth = fontMetrics.stringWidth(" ".repeat(afterColumn))
+			x = bounds.x + stringWidth
+		}
+		val x = x!!
 		g.color = SystemColors.active.guide
-		g.drawLine(
-			x,
-			bounds.y,
-			x,
-			bounds.height
-		)
+		g.drawLine(x, bounds.y, x, bounds.height)
 	}
 }
 
@@ -135,6 +148,7 @@ fun codeSuitableTextPane(
 	isFocusable = true
 	preferredSize = Dimension(0, 500)
 	editorKit = AvailEditorKit(workbench, frame)
+	font = Font.decode("Monospaced 13")
 	foreground = SystemColors.active.baseCode
 	background = SystemColors.active.codeBackground
 	val attributes = SimpleAttributeSet()
