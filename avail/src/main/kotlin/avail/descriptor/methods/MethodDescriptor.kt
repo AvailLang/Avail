@@ -50,6 +50,7 @@ import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.bundles.A_Bundle.Companion.removePlanForSendable
 import avail.descriptor.bundles.MessageBundleDescriptor
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
@@ -102,6 +103,7 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
@@ -1054,9 +1056,10 @@ class MethodDescriptor private constructor(
 					.singleOrNull()
 				if (stylerPrim != null)
 				{
-					val stylerFunction = createFunction(
-						newPrimitiveRawFunction(stylerPrim, nil, 0),
-						emptyTuple)
+					val stylerCode = newPrimitiveRawFunction(stylerPrim, nil, 0)
+					stylerCode.methodName = stringFrom(
+						"Bootstrap styler ${stylerPrim.javaClass.simpleName}")
+					val stylerFunction = createFunction(stylerCode, emptyTuple)
 					val styler = newStyler(
 						stylerFunction, bundle.bundleMethod, nil)
 					bundle.bundleMethod.updateStylers {

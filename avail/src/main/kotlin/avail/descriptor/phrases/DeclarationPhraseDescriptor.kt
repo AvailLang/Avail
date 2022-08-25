@@ -580,26 +580,25 @@ class DeclarationPhraseDescriptor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
-		// The parser can't produce declarations of its own, but the bootstrap
-		// macros can, so when we visit the output of one of those macros, we
-		// can find declarations to style.  Which is here.
-		val style = when (self.declarationKind())
-		{
-			ARGUMENT -> SystemStyle.PARAMETER_DEFINITION
-			LABEL -> SystemStyle.LABEL_DEFINITION
-			LOCAL_VARIABLE -> SystemStyle.LOCAL_VARIABLE_DEFINITION
-			LOCAL_CONSTANT -> SystemStyle.LOCAL_CONSTANT_DEFINITION
-			MODULE_VARIABLE -> SystemStyle.MODULE_VARIABLE_DEFINITION
-			MODULE_CONSTANT -> SystemStyle.MODULE_CONSTANT_DEFINITION
-			PRIMITIVE_FAILURE_REASON ->
-				SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION
+		super.o_ApplyStylesThen(self, context, visitedSet) {
+			// The parser can't produce declarations of its own, but the
+			// bootstrap (and other) macros can, so when we visit the output of
+			// one of those macros, we can find declarations to style.  Which is
+			// here.
+			val style = when (self.declarationKind())
+			{
+				ARGUMENT -> SystemStyle.PARAMETER_DEFINITION
+				LABEL -> SystemStyle.LABEL_DEFINITION
+				LOCAL_VARIABLE -> SystemStyle.LOCAL_VARIABLE_DEFINITION
+				LOCAL_CONSTANT -> SystemStyle.LOCAL_CONSTANT_DEFINITION
+				MODULE_VARIABLE -> SystemStyle.MODULE_VARIABLE_DEFINITION
+				MODULE_CONSTANT -> SystemStyle.MODULE_CONSTANT_DEFINITION
+				PRIMITIVE_FAILURE_REASON ->
+					SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION
+			}
+			context.loader.styleToken(self.token, style.kotlinString)
+			then()
 		}
-		context.loader.styleToken(self.token, style.kotlinString)
-		val children = listOf(
-			self.typeExpression,
-			self.initializationExpression
-		).filter { it.notNil }
-		context.visitAll(children.iterator(), visitedSet, then)
 	}
 
 	override fun o_Token(self: AvailObject): A_Token = self.slot(TOKEN)

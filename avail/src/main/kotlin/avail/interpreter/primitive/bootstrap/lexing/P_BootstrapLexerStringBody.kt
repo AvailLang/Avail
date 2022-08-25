@@ -56,6 +56,7 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapLexerStringBodyStyler
 
 /**
  * The `P_BootstrapLexerStringBody` primitive is used for parsing quoted
@@ -383,4 +384,6 @@ object P_BootstrapLexerStringBody
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type = lexerBodyFunctionType()
+
+	override fun bootstrapStyler() = P_BootstrapLexerStringBodyStyler
 }

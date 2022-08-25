@@ -36,6 +36,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
+import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
@@ -81,7 +82,7 @@ object P_BootstrapDefinitionStyler :
 	{
 		interpreter.checkArgumentCount(2)
 		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
-//		val transformedPhrase: A_Phrase = interpreter.argument(1)
+		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -91,11 +92,11 @@ object P_BootstrapDefinitionStyler :
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		if (optionalSendPhrase.tupleSize == 0)
+		val sendPhrase = when (optionalSendPhrase.tupleSize)
 		{
-			return interpreter.primitiveSuccess(nil)
+			0 -> transformedPhrase
+			else -> optionalSendPhrase.tupleAt(1)
 		}
-		val sendPhrase = optionalSendPhrase.tupleAt(1)
 
 		loader.styleTokens(sendPhrase.tokens, SystemStyle.METHOD_DEFINITION)
 

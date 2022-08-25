@@ -911,6 +911,7 @@ constructor(
 										.kotlinString
 								}
 								start += count
+								count = 0
 								var value = 0
 								// Process the Unicode escape sequences, looking
 								// for hidden metacharacters.
@@ -935,6 +936,7 @@ constructor(
 												}
 											}
 											start += count
+											count = 0
 											value = 0
 											edit(start, start + 1) {
 												SystemStyle
@@ -942,7 +944,7 @@ constructor(
 													.kotlinString
 											}
 											start++
-											break
+											if (c == ')'.code) break
 										}
 										in '0'.code .. '9'.code ->
 										{
@@ -1700,39 +1702,6 @@ constructor(
 	}
 
 	/**
-	 * Create and add a bootstrap [A_Styler] in the method specified by the
-	 * [atom].  If the method already has a styler, do nothing.  Also do nothing
-	 * if the [bodyCode] is not primitive, or its primitive doesn't specify a
-	 * [bootstrapStyler][Primitive.bootstrapStyler].
-	 *
-	 * DO NOT record this action, as it will happen as an automatic consequence
-	 * of adding the method definition or macro during fast-loading.
-	 */
-	fun addBootstrapStyler(
-		bodyCode: A_RawFunction,
-		atom: A_Atom)
-	{
-		val prim = bodyCode.codePrimitive() ?: return
-		val stylerPrim = prim.bootstrapStyler() ?: return
-		val bundle = atom.bundleOrCreate()
-		val method = bundle.bundleMethod
-		if (method.methodStylers.setSize != 0) return
-		// Pretend the synthetic styler function starts on the same line as the
-		// body function.
-		val stylerRawFunction = newPrimitiveRawFunction(
-			stylerPrim, module, bodyCode.codeStartingLineNumber)
-		stylerRawFunction.methodName = stringFrom("Styler for ${atom.atomName}")
-		val styler = newStyler(
-			createFunction(stylerRawFunction, emptyTuple), method, module)
-		method.updateStylers { setWithElementCanDestroy(styler, true) }
-		module.moduleAddStyler(styler)
-		if (AvailRuntimeConfiguration.debugStyling)
-		{
-			println("Defined bootstrap styler: $atom")
-		}
-	}
-
-	/**
 	 * Define and install a new [styler][StylerDescriptor] based on the given
 	 * [stylerFunction].  Install it for the given [A_Bundle]'s method, within
 	 * the current [A_Module].
@@ -1771,7 +1740,8 @@ constructor(
 					stylerFunction))
 		}
 		val atomName = bundle.message.atomName
-		stylerFunction.code().methodName = stringFrom("Styler for $atomName")
+		stylerFunction.code().methodName =
+			stringFrom("Styler for ${atomName.asNativeString()}")
 		if (AvailRuntimeConfiguration.debugStyling)
 		{
 			println("Defined styler: ${stylerFunction.code().methodName}")
@@ -2090,15 +2060,16 @@ constructor(
 			bodyPrimitive: Primitive,
 			atomName: String)
 		{
-			val stringLexerFilter = createFunction(
+			val lexerFilter = createFunction(
 				newPrimitiveRawFunction(filterPrimitive, nil, 0),
 				emptyTuple)
-			val stringLexerBody = createFunction(
+			val lexerBody = createFunction(
 				newPrimitiveRawFunction(bodyPrimitive, nil, 0),
 				emptyTuple)
+			val atom = createSpecialAtom(atomName)
 			val bundle: A_Bundle = try
 			{
-				createSpecialAtom(atomName).bundleOrCreate()
+				atom.bundleOrCreate()
 			}
 			catch (e: MalformedMessageException)
 			{
@@ -2106,8 +2077,11 @@ constructor(
 				throw RuntimeException(e)
 			}
 			val lexer = newLexer(
-				stringLexerFilter, stringLexerBody, bundle.bundleMethod, nil)
+				lexerFilter, lexerBody, bundle.bundleMethod, nil)
 			addLexer(lexer)
+			// If the lexer body is a primitive which specifies a
+			// bootstrapStyler, add that styler to the lexer's method.
+			addBootstrapStyler(lexerBody.code(), atom, nil)
 		}
 
 		/**
@@ -2132,6 +2106,56 @@ constructor(
 				// Anything else was chosen for a narrower contextual reason, so
 				// honor the styling decisions already made.
 				else -> old
+			}
+		}
+
+		/**
+		 * Create and add a bootstrap [A_Styler] in the method specified by the
+		 * [atom].  If the method already has a styler, do nothing.  Also do
+		 * nothing if the [bodyCode] is not primitive, or its primitive doesn't
+		 * specify a [bootstrapStyler][Primitive.bootstrapStyler].
+		 *
+		 * DO NOT record this action, as it will happen as an automatic
+		 * consequence of adding the method definition or macro during
+		 * fast-loading.
+		 *
+		 * @param bodyCode
+		 *   The body of the method definition, macro, or lexer that was
+		 *   defined.  If it's a primitive, its
+		 *   [bootstrapStyler][Primitive.bootstrapStyler] will be looked up.
+		 * @param atom
+		 *   The [A_Atom] whose bundle's method that should have a styler added,
+		 *   if indicated.
+		 * @param module
+		 *   Either [nil] for a system method, or the [A_Module] with which to
+		 *   associate the new styler.
+		 */
+		fun addBootstrapStyler(
+			bodyCode: A_RawFunction,
+			atom: A_Atom,
+			module: A_Module)
+		{
+			val prim = bodyCode.codePrimitive() ?: return
+			val stylerPrim = prim.bootstrapStyler() ?: return
+			val bundle = atom.bundleOrCreate()
+			val method = bundle.bundleMethod
+			if (method.methodStylers.setSize != 0) return
+			// Pretend the synthetic styler function starts on the same line as the
+			// body function.
+			val stylerRawFunction = newPrimitiveRawFunction(
+				stylerPrim, module, bodyCode.codeStartingLineNumber)
+			stylerRawFunction.methodName =
+				stringFrom("Styler for ${atom.atomName.asNativeString()}")
+			val styler = newStyler(
+				createFunction(stylerRawFunction, emptyTuple), method, module)
+			method.updateStylers { setWithElementCanDestroy(styler, true) }
+			if (module.notNil)
+			{
+				module.moduleAddStyler(styler)
+			}
+			if (AvailRuntimeConfiguration.debugStyling)
+			{
+				println("Defined bootstrap styler: $atom")
 			}
 		}
 	}

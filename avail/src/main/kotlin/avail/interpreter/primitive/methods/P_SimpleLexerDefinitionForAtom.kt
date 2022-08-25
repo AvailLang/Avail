@@ -63,8 +63,10 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
+import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive:** Simple lexer definition.  The first argument is the lexer name
@@ -136,6 +138,9 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 					atom,
 					filterFunction,
 					bodyFunction))
+			// If the lexer body is a primitive which specifies a
+			// bootstrapStyler, add that styler to the lexer's method.
+			addBootstrapStyler(bodyFunction.code(), atom, loader.module)
 			succeed(nil)
 		}
 	}
@@ -147,8 +152,11 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION)
-			.setUnionCanDestroy(possibleErrors, true))
+				E_CANNOT_DEFINE_DURING_COMPILATION
+			).setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

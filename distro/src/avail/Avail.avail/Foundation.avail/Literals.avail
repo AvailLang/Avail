@@ -414,6 +414,17 @@ Public macro "¢…!" is
 				\|literal"
 	];
 	‘lexeme[1]’
+]
+styled by
+[
+	original : <<send phrase>, ⊥…|[0..1]>,
+	transformed : phrase
+|
+	If original ≠ <> then
+	[
+		sendPhrase ::= original[1] ?→ send phrase;
+		Style span of sendPhrase with "#character-literal";
+	];
 ];
 
 /**

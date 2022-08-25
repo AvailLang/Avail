@@ -165,6 +165,7 @@ import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPla
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
@@ -294,6 +295,7 @@ import avail.performance.StatisticReport.TYPE_CHECKING_FOR_PARSER
 import avail.persistence.cache.Repository
 import avail.utility.Mutable
 import avail.utility.PrefixSharingList.Companion.append
+import avail.utility.PrefixSharingList.Companion.withoutLast
 import avail.utility.Strings.increaseIndentation
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
@@ -302,6 +304,7 @@ import avail.utility.trace
 import java.util.Arrays
 import java.util.Collections.emptyList
 import java.util.Formatter
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
@@ -576,7 +579,9 @@ class AvailCompiler constructor(
 				if (token.tokenType() == END_OF_FILE)
 				{
 					captureOneMoreSolution(
-						CompilerSolution(start, endOfFileMarkerPhrase),
+						CompilerSolution(
+							ParserState(token.nextLexingState(), emptyMap),
+							endOfFileMarkerPhrase),
 						solutions)
 				}
 			}
@@ -3272,17 +3277,20 @@ class AvailCompiler constructor(
 			// Style the header.
 			compilationContext.loader.setPhase(STYLING_HEADER)
 			assert(headerPhrase.isMacroSubstitutionNode)
-			compilationContext.styleSendThen(
-				headerPhrase.macroOriginalSendNode,
-				headerPhrase.outputPhrase
-			) {
-				compilationContext.loader.prepareForCompilingModuleBody()
-				applyPragmasThen(afterHeader.lexingState) {
-					compilationContext.diagnostics.run {
-						positionsToTrack = 3
-						silentPositionsToTrack = 3
+			compilationContext.clearStyleCache()
+			afterHeader.lexingState.styleAllTokensThen {
+				compilationContext.styleSendThen(
+					headerPhrase.macroOriginalSendNode,
+					headerPhrase.outputPhrase,
+				) {
+					compilationContext.loader.prepareForCompilingModuleBody()
+					applyPragmasThen(afterHeader.lexingState) {
+						compilationContext.diagnostics.run {
+							positionsToTrack = 3
+							silentPositionsToTrack = 3
+						}
+						parseAndExecuteOutermostStatements(afterHeader)
 					}
-					parseAndExecuteOutermostStatements(afterHeader)
 				}
 			}
 		}
@@ -3309,7 +3317,7 @@ class AvailCompiler constructor(
 				emptyList()),
 			start.clientDataMap)
 		parseOutermostStatement(startWithoutAnyTokens) {
-			afterStatement, unambiguousStatement ->
+				afterStatement, unambiguousStatement ->
 			// The counters must be read in this order for correctness.
 			assert(
 				compilationContext.workUnitsCompleted
@@ -3318,7 +3326,19 @@ class AvailCompiler constructor(
 			// Check if we're cleanly at the end.
 			if (unambiguousStatement.equals(endOfFileMarkerPhrase))
 			{
-				reachedEndOfModule(afterStatement)
+				val withoutEndToken = afterStatement.lexingState.run {
+					ParserState(
+						LexingState(
+							compilationContext,
+							source.tupleSize + 1,
+							lineNumber,
+							allTokens.withoutLast()),
+						afterStatement.clientDataMap)
+				}
+				compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
+				withoutEndToken.lexingState.styleAllTokensThen {
+					reachedEndOfModule(withoutEndToken)
+				}
 				return@parseOutermostStatement
 			}
 
@@ -3356,41 +3376,49 @@ class AvailCompiler constructor(
 			}
 
 			compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
-			// Run the simple statements in succession.
-			val simpleStatementIterator = simpleStatements.iterator()
-			val declarationRemap = mutableMapOf<A_Phrase, A_Phrase>()
-			lateinit var recurse: (()->Unit)
-			recurse = recurse@{
-				if (!simpleStatementIterator.hasNext())
-				{
-					compilationContext.applyAllStylesThen(
-						unambiguousStatement, then = resumeParsing)
-					return@recurse
+			// Style each base token once, even if the statement has to be
+			// decomposed into multiple separately executed and separately
+			// styled statements.
+			compilationContext.clearStyleCache()
+			afterStatement.lexingState.styleAllTokensThen {
+				// Run the simple statements in succession.
+				val simpleStatementIterator = simpleStatements.iterator()
+				val declarationRemap = mutableMapOf<A_Phrase, A_Phrase>()
+				lateinit var recurse: (()->Unit)
+				recurse = recurse@{
+					if (!simpleStatementIterator.hasNext())
+					{
+						unambiguousStatement.applyStylesThen(
+							compilationContext,
+							ConcurrentHashMap.newKeySet(),
+							resumeParsing)
+						return@recurse
+					}
+					val statement = simpleStatementIterator.next()
+					if (AvailLoader.debugLoadedStatements)
+					{
+						println(
+							moduleName.qualifiedName
+								+ ':'.toString() + start.lineNumber
+								+ " Running statement:\n" + statement)
+					}
+					val beforeFirstNonwhiteToken =
+						afterStatement.lexingState.allTokens.firstOrNull {
+							it.tokenType().let { type ->
+								type != WHITESPACE
+									&& type != COMMENT
+									&& type != END_OF_FILE
+							}
+						}?.synthesizeCurrentLexingState()
+					evaluateModuleStatementThen(
+						beforeFirstNonwhiteToken ?: startLexingState,
+						afterStatement.lexingState,
+						statement,
+						declarationRemap,
+						recurse)
 				}
-				val statement = simpleStatementIterator.next()
-				if (AvailLoader.debugLoadedStatements)
-				{
-					println(
-						moduleName.qualifiedName
-							+ ':'.toString() + start.lineNumber
-							+ " Running statement:\n" + statement)
-				}
-				val beforeFirstNonwhiteToken =
-					afterStatement.lexingState.allTokens.firstOrNull {
-						it.tokenType().let { type ->
-							type != WHITESPACE
-								&& type != COMMENT
-								&& type != END_OF_FILE
-						}
-					}?.synthesizeCurrentLexingState() ?: startLexingState
-				evaluateModuleStatementThen(
-					beforeFirstNonwhiteToken,
-					afterStatement.lexingState,
-					statement,
-					declarationRemap,
-					recurse)
+				recurse()
 			}
-			recurse()
 		}
 	}
 

@@ -39,13 +39,11 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
-import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
@@ -142,13 +140,8 @@ class SendPhraseDescriptor private constructor(
 		then: ()->Unit)
 	{
 		// Process the children, then this phrase.
-		context.runtime.execute(FiberDescriptor.compilerPriority) {
-			context.visitAll(
-				self.argumentsListNode.expressionsTuple.iterator(),
-				visitedSet
-			) {
-				context.styleSendThen(self, self, then)
-			}
+		super.o_ApplyStylesThen(self, context, visitedSet) {
+			context.styleSendThen(null, self, then)
 		}
 	}
 

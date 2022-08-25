@@ -153,6 +153,12 @@ class LiteralTokenDescriptor private constructor(
 		 */
 		ORIGINATING_MODULE,
 
+		/**
+		 * The [A_Lexer] responsible for creating this token, or [nil] if the
+		 * token was not constructed by a lexer.
+		 */
+		GENERATING_LEXER,
+
 		/** The actual [AvailObject] wrapped by this token. */
 		LITERAL,
 
@@ -160,13 +166,7 @@ class LiteralTokenDescriptor private constructor(
 		 * The [A_Phrase] that produced this literal token, if known, otherwise
 		 * [nil].
 		 */
-		GENERATING_PHRASE,
-
-		/**
-		 * The [A_Lexer] responsible for creating this token, or [nil] if the
-		 * token was not constructed by a lexer.
-		 */
-		GENERATING_LEXER;
+		GENERATING_PHRASE;
 
 		companion object
 		{
@@ -180,6 +180,8 @@ class LiteralTokenDescriptor private constructor(
 					== ORIGINATING_MODULE.ordinal)
 				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
 					== ORIGINATING_MODULE.ordinal)
+				assert(TokenDescriptor.ObjectSlots.GENERATING_LEXER.ordinal
+					== GENERATING_LEXER.ordinal)
 			}
 		}
 	}

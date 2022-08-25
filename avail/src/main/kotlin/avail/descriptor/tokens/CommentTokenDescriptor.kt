@@ -142,7 +142,24 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		 * The [A_Lexer] responsible for creating this token, or [nil] if the
 		 * token was not constructed by a lexer.
 		 */
-		GENERATING_LEXER
+		GENERATING_LEXER;
+
+		companion object
+		{
+			init
+			{
+				assert(TokenDescriptor.ObjectSlots.STRING.ordinal
+					== STRING.ordinal)
+				assert(TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
+					== NEXT_LEXING_STATE_POJO.ordinal)
+				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+					== ORIGINATING_MODULE.ordinal)
+				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+					== ORIGINATING_MODULE.ordinal)
+				assert(TokenDescriptor.ObjectSlots.GENERATING_LEXER.ordinal
+					== GENERATING_LEXER.ordinal)
+			}
+		}
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(

@@ -142,12 +142,13 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME,
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
-			.setUnionCanDestroy(possibleErrors, true))
+				E_INCORRECT_NUMBER_OF_ARGUMENTS
+			).setUnionCanDestroy(possibleErrors, true))
 
 	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

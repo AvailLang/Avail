@@ -100,8 +100,22 @@ is
 	else [∅]
 ];
 
+Style $"end of line comment lexer" with
+[
+	optionalOriginal : send phrase?,
+	transformed : phrase
+|
+	cast transformed into
+	[
+		original : literal phrase
+	|
+		Style token original's token as "#comment" overwriting;
+	]
+	else [];
+] : ⊤;
+
 // Here's the first end of line comment!
-// And here's the second, without a line terminator!
+// And here's the second!
 
 radixIntegerAlphabet ::= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;

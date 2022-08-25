@@ -80,6 +80,7 @@ import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.HasSideEffect
+import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
@@ -175,7 +176,7 @@ object P_SimpleMacroDeclaration : Primitive(4, CanSuspend, HasSideEffect)
 					// If a styler function was not specified, but the body was
 					// a primitive that has a bootstrapStyler, use that just as
 					// though it had been specified.
-					loader.addBootstrapStyler(function.code(), atom)
+					addBootstrapStyler(function.code(), atom, loader.module)
 				}
 				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
 					prefixFunction.code().methodName =
@@ -204,7 +205,8 @@ object P_SimpleMacroDeclaration : Primitive(4, CanSuspend, HasSideEffect)
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME,
@@ -215,8 +217,8 @@ object P_SimpleMacroDeclaration : Primitive(4, CanSuspend, HasSideEffect)
 				E_MACRO_ARGUMENT_MUST_BE_A_PHRASE,
 				E_MACRO_MUST_RETURN_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS,
-				E_STYLER_ALREADY_SET_BY_THIS_MODULE)
-			.setUnionCanDestroy(possibleErrors, true))
+				E_STYLER_ALREADY_SET_BY_THIS_MODULE
+			).setUnionCanDestroy(possibleErrors, true))
 
 	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

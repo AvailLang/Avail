@@ -71,6 +71,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
@@ -123,7 +124,7 @@ object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
 					// If a styler function was not specified, but the body was
 					// a primitive that has a bootstrapStyler, use that just as
 					// though it had been specified.
-					loader.addBootstrapStyler(code, atom)
+					addBootstrapStyler(code, atom, loader.module)
 				}
 				succeed(nil)
 			}
@@ -145,7 +146,8 @@ object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
 		TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME,
@@ -154,8 +156,8 @@ object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
 				E_METHOD_IS_SEALED,
-				E_STYLER_ALREADY_SET_BY_THIS_MODULE)
-			.setUnionCanDestroy(possibleErrors, true))
+				E_STYLER_ALREADY_SET_BY_THIS_MODULE
+			).setUnionCanDestroy(possibleErrors, true))
 
 	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

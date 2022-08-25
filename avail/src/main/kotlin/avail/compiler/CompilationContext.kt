@@ -68,7 +68,9 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionFor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.methodStylers
+import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.A_Styler.Companion.function
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.module.A_Module
@@ -95,7 +97,6 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.systemStyleForType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailRuntimeException
@@ -112,6 +113,7 @@ import org.availlang.persistence.IndexedFile
 import java.lang.String.format
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -957,74 +959,41 @@ class CompilationContext constructor(
 	}
 
 	/**
-	 * Apply all [token][TOKEN] and [phrase][A_Phrase] styles within the given
-	 * [phrase].  Also construct the map from variable use to variable
-	 * declaration.
-	 *
-	 * The styling functions are invoked bottom-up on the phrase, in threads of
-	 * the [AvailRuntime.executor], but sequentially.  This avoids deep
-	 * recursion.  The final [then] action may be executed in any thread of the
-	 * executor.
-	 *
-	 * @param phrase
-	 *   The phrase to recursively visit with the [AvailRuntime.executor], from
-	 *   the bottom up.
-	 * @param visitedSet
-	 *   The optional [Set] of [A_Phrase]s that should not be traversed again.
-	 * @param then
-	 *   The action to perform after styling has been applied within the given
-	 *   phrase.
-	 */
-	fun applyAllStylesThen(
-		phrase: A_Phrase,
-		visitedSet: MutableSet<A_Phrase> = ConcurrentHashMap.newKeySet(),
-		then: ()->Unit)
-	{
-		if (!visitedSet.add(phrase))
-		{
-			then()
-			return
-		}
-		val ran = AtomicBoolean(false)
-		val safeThen: ()->Unit = {
-			assert(!ran.getAndSet(true))
-			then()
-		}
-		if (debugStyling)
-		{
-			println("Apply: $phrase")
-		}
-		phrase.applyStylesThen(this, visitedSet, safeThen)
-	}
-
-	/**
 	 * Process all of the phrase's subphrases recursively, then style the phrase
 	 * itself, [then] invoke the given action.
 	 *
+	 * The phrases are processed in parallel, and the [then] action is performed
+	 * only when all of the phrases have been processed.
+	 *
 	 * @param phrases
-	 *   The [Iterator] of [A_Phrase]s to process.
+	 *   The [Collection] of [A_Phrase]s to process.
 	 * @param visitedSet
 	 *   The [Set] of [A_Phrase]s that should not be traversed again.
 	 * @param then
 	 *   The action to invoke after the phrases have been fully processed.
 	 */
 	fun visitAll(
-		phrases: Iterator<A_Phrase>,
+		phrases: Collection<A_Phrase>,
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
-		if (phrases.hasNext())
-		{
-			val phrase = phrases.next()
-			runtime.execute(compilerPriority) {
-				applyAllStylesThen(phrase, visitedSet) {
-					visitAll(phrases, visitedSet, then)
+		val count = phrases.size
+		if (count == 0) return then()
+		val countdown = AtomicInteger(count)
+		val afterOne = {
+			if (countdown.decrementAndGet() == 0) then()
+		}
+		phrases.forEach { phrase ->
+			if (visitedSet.add(phrase))
+			{
+				runtime.execute(compilerPriority) {
+					phrase.applyStylesThen(this, visitedSet, afterOne)
 				}
 			}
-		}
-		else
-		{
-			runtime.execute(compilerPriority, then)
+			else
+			{
+				afterOne()
+			}
 		}
 	}
 
@@ -1037,7 +1006,9 @@ class CompilationContext constructor(
 	 *   is not a macro substitution, this will be `null`.
 	 * @param transformedPhrase
 	 *   The end result of applying a macro to the [originalSendPhrase], or if
-	 *   no macro was involved, the [originalSendPhrase] itself.
+	 *   no macro was involved, the parsed [send][SEND_PHRASE] phrase.
+	 * @param then
+	 *   What to do after styling.
 	 */
 	fun styleSendThen(
 		originalSendPhrase: A_Phrase?,
@@ -1048,10 +1019,6 @@ class CompilationContext constructor(
 		if (originalSendPhrase !== null)
 		{
 			val bundle = originalSendPhrase.bundle
-			if (debugStyling)
-			{
-				println("style send: $bundle")
-			}
 			// First, apply basic styles to the send based on its result type,
 			// or just by virtue of it being a send.
 			val yieldType = transformedPhrase.phraseExpressionType
@@ -1084,43 +1051,18 @@ class CompilationContext constructor(
 		if (bundleWithStyler !== null)
 		{
 			// Next, give the method's styler function a chance to run.
-			val ancestorModules = module.allAncestors
-			val eligibleStylers = bundleWithStyler.bundleMethod.methodStylers
-				.filter {
-					it.module.isNil
-						|| it.module.equals(module)
-						|| it.module in ancestorModules
-				}
-			val mostSpecificStylers = when (eligibleStylers.size)
+			val stylerFn = getStylerFunction(bundleWithStyler.bundleMethod)
+			if (debugStyling)
 			{
-				in 0..1 -> eligibleStylers
-				else ->
-				{
-					// There can't be multiple built-in (no-module) stylers, so
-					// let one defined by a module win.
-					val notBuiltIn = eligibleStylers.filter { it.module.notNil }
-					notBuiltIn.filter { styler ->
-						notBuiltIn.none { otherStyler ->
-							!styler.equals(otherStyler) &&
-								styler.module in otherStyler.module.allAncestors
-						}
-					}
-				}
-			}
-			val stylerFn = when (mostSpecificStylers.size)
-			{
-				0 -> runtime[DEFAULT_STYLER]
-				1 -> mostSpecificStylers[0].function
-				else ->
-					// TODO - Use the conflict style, which isn't coded yet.
-					runtime[DEFAULT_STYLER]
+				println("style send: $bundleWithStyler\n" +
+					"\twith ${stylerFn.code().methodName.asNativeString()}")
 			}
 			val fiber = newLoaderFiber(TOP.o, loader)
 			{
 				formatString(
 					"Style %s (%s)",
 					bundleWithStyler.message,
-					stylerFn.code().methodName)
+					stylerFn.code().methodName.asNativeString())
 			}
 			fiber.setSuccessAndFailure(
 				onSuccess = { then() },
@@ -1136,6 +1078,64 @@ class CompilationContext constructor(
 				stylerFn,
 				listOf(optionalOriginal, transformedPhrase))
 		}
+	}
+
+	/**
+	 * A cache mapping from [A_Method] to the [A_Function] of an [A_Styler]'s
+	 * body.  It should be cleared any time a new styler is introduced (within
+	 * the scope of the current module), or alternatively just before styling
+	 * a top-level statement.
+	 */
+	private val styleCache = ConcurrentHashMap<A_Method, A_Function>()
+
+	/**
+	 * Clear the cache of method -> style function.  This can be done either
+	 * when a new style is added within scope of this module, or just before
+	 * styling a top-level statement.
+	 */
+	fun clearStyleCache() = styleCache.clear()
+
+	/**
+	 * Given a [method], look up stylers visible by the current module, and
+	 * choose the most specific one, or the conflict styler if there is more
+	 * than one that is most specific.  Answer the default styler if none are
+	 * defined and visible to the module.
+	 */
+	fun getStylerFunction(method: A_Method): A_Function
+	{
+		styleCache[method]?.let { return it }
+		val ancestorModules = module.allAncestors
+		val eligibleStylers = method.methodStylers.filter {
+			it.module.isNil
+				|| it.module.equals(module)
+				|| it.module in ancestorModules
+		}
+		val mostSpecificStylers = when (eligibleStylers.size)
+		{
+			in 0 .. 1 -> eligibleStylers
+			else ->
+			{
+				// There can't be multiple built-in (no-module) stylers, so
+				// let one defined by a module win.
+				val notBuiltIn = eligibleStylers.filter { it.module.notNil }
+				notBuiltIn.filter { styler ->
+					notBuiltIn.none { otherStyler ->
+						!styler.equals(otherStyler) &&
+							styler.module in otherStyler.module.allAncestors
+					}
+				}
+			}
+		}
+		val stylerFn = when (mostSpecificStylers.size)
+		{
+			0 -> runtime[DEFAULT_STYLER]
+			1 -> mostSpecificStylers[0].function
+			else ->
+				// TODO - Use the conflict style, which isn't coded yet.
+				runtime[DEFAULT_STYLER]
+		}
+		styleCache[method] = stylerFn
+		return stylerFn
 	}
 
 	companion object

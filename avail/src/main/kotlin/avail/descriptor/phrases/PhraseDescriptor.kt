@@ -110,7 +110,7 @@ abstract class PhraseDescriptor protected constructor(
 		// 'then'.
 		val children = mutableListOf<A_Phrase>()
 		self.childrenDo(children::add)
-		context.visitAll(children.iterator(), visitedSet, then)
+		context.visitAll(children, visitedSet, then)
 	}
 
 	/**
@@ -336,7 +336,7 @@ abstract class PhraseDescriptor protected constructor(
 			parentNode: A_Phrase? = null,
 			children: (A_Phrase, (A_Phrase) -> Unit) -> Unit =
 				{ phrase, withChild -> phrase.childrenDo(withChild) },
-			aBlock: (A_Phrase, A_Phrase?) -> Unit)
+			aBlock: (A_Phrase, parent: A_Phrase?) -> Unit)
 		{
 			children(self) { child ->
 				treeDoWithParent(child, self, children, aBlock)

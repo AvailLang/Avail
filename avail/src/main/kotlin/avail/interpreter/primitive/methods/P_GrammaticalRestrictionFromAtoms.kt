@@ -108,9 +108,10 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
-			.setUnionCanDestroy(possibleErrors, true))
+				E_INCORRECT_NUMBER_OF_ARGUMENTS
+			).setUnionCanDestroy(possibleErrors, true))
 }

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/18/22, 1:56 PM
+ * * Last Generated: 8/24/22, 3:31 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -78,7 +78,6 @@ Uses
 		"Style fixed tokens of_with_«overwriting»?",
 		"Style method name_",
 		"Style span of_with_«overwriting»?",
-		"Style string literal_",
 		"Style token_as_«overwriting»?",
 		"Style_with_",
 		"_'s⁇_field",
@@ -2452,7 +2451,7 @@ Primitive "Lexer_when_is_" is
  *        A tuple of zero or more prefix functions.
  * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
- * @param "optionalStyler" "<[send phrase⇒⊤, phrase⇒⊤]→⊤…|0..1>"
+ * @param "optionalStyler" "<[<send phrase⇒⊤…|0..1>, phrase⇒⊤]→⊤…|0..1>"
  *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -2484,6 +2483,7 @@ Primitive "Lexer_when_is_" is
  * @raises "macro-must-return-a-phrase exception"
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Macro_is«_,»_«styled by_»?" is
 [
@@ -2552,7 +2552,7 @@ Primitive "Macro_is«_,»_«styled by_»?" is
  *        A tuple of zero or more prefix functions.
  * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
- * @param "optionalStyler" "<[send phrase⇒⊤, phrase⇒⊤]→⊤…|0..1>"
+ * @param "optionalStyler" "<[<send phrase⇒⊤…|0..1>, phrase⇒⊤]→⊤…|0..1>"
  *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -2584,6 +2584,7 @@ Primitive "Macro_is«_,»_«styled by_»?" is
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
+ * @raises "{39}"
  */
 Primitive "Macro_is«_,»_«styled by_»?" is
 [
@@ -3758,7 +3759,7 @@ Primitive "_[_]:=_" is
  * @method "Style_with_"
  * @param "anAtom" "atom"
  *        The bundle for which invocations should be styled.
- * @param "aFunction" "[send phrase⇒⊤, phrase⇒⊤]→⊤"
+ * @param "aFunction" "[<send phrase⇒⊤…|0..1>, phrase⇒⊤]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"
@@ -3891,30 +3892,6 @@ Primitive "Style span of_with_«overwriting»?" is
 	overwriting : boolean
 |
 	Primitive StyleSpanOfPhrase (failureCode : {
-		cannot-define-during-compilation code,
-		loading-is-over code}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : ⊤;
-
-/**
- * Apply the bootstrap string literal styler to the specified string literal.
- * Awards a distinct style to literal character data
- * ({@code "#string-literal"}) and character escapes and literal delimiters
- * ({@code "#string-escape-sequence"}).
- *
- * @category "Primitives"
- * @method "Style string literal_"
- * @param "stringLiteral" "literal phrase⇒literal token⇒string"
- *    The string literal phrase to style.
- * @returns "⊤"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- */
-Primitive "Style string literal_" is
-[
-	stringLiteral : string literal phrase
-|
-	Primitive StyleStringLiteral (failureCode : {
 		cannot-define-during-compilation code,
 		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode

@@ -74,6 +74,7 @@ object P_DefaultStyler :
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
+			// Also cannot *apply styles* during compilation.
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}

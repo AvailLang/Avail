@@ -32,22 +32,16 @@
 
 package avail.interpreter.primitive.style
 
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.methods.A_Styler
+import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tokens.A_Token.Companion.pastEnd
-import avail.descriptor.tokens.TokenDescriptor.TokenType
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
-import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
@@ -56,25 +50,25 @@ import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Apply the given style name to the region of the file being
- * compiled designated by the given token.  The token may be synthetic, and/or
- * include whitespace or comments.  If the "overwrite" argument is true, the
- * style for that region is replaced, otherwise the style name is appended (with
- * a separating ",") to the existing style name.  If the "overwrite" argument is
- * true, but the style name is the empty string, clear all styles for that
- * range.
+ * **Primitive:** Apply the bootstrap string literal styler to the specified
+ * string token (wrapped up as a literal by the lexer styling mechanism).
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
+object P_BootstrapLexerStringBodyStyler :
+	Primitive(
+		2,
+		CanInline,
+		Flag.Bootstrap,
+		Flag.ReadsFromHiddenGlobalState,
+		WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(3)
-		val token: A_Token = interpreter.argument(0)
-		val styleName: A_String = interpreter.argument(1)
-		val overwrite = interpreter.argument(2).extractBoolean
+		interpreter.checkArgumentCount(2)
+		//val optionalSendPhrase: A_Tuple = interpreter.argument(0)
+		val literalPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -84,26 +78,16 @@ object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		val innerToken = when
+		if (literalPhrase.phraseKindIsUnder(LITERAL_PHRASE))
 		{
-			token.tokenType() == TokenType.LITERAL
-				&& token.literal().isInstanceOf(Types.TOKEN.o)
-			-> token.literal()
-			else -> token
+			val token = literalPhrase.token.literal()
+			if (token.isLiteralToken() && token.literal().isString)
+			{
+				loader.styleStringLiteral(token)
+			}
 		}
-		val start = innerToken.start()
-		val pastEnd = innerToken.pastEnd()
-		if (start == pastEnd) return interpreter.primitiveSuccess(nil)
-		val styleOrNull = when (styleName.tupleSize)
-		{
-			0 -> null
-			else -> styleName.asNativeString()
-		}
-		if (styleOrNull === null && !overwrite)
-		{
-			return interpreter.primitiveSuccess(nil)
-		}
-		loader.styleToken(innerToken, styleOrNull, overwrite)
+		// This shouldn't happen, unless the primitive is somehow invoked
+		// directly by user code.  Ignore it.
 		return interpreter.primitiveSuccess(nil)
 	}
 
@@ -113,10 +97,5 @@ object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION))
 
-	override fun privateBlockTypeRestriction(): A_Type = functionType(
-		tuple(
-			Types.TOKEN.o,
-			stringType,
-			booleanType),
-		Types.TOP.o)
+	override fun privateBlockTypeRestriction() = A_Styler.stylerFunctionType
 }

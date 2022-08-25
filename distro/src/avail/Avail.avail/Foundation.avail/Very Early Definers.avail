@@ -53,6 +53,7 @@ Names
 	"special object styler function",
 
 	/* Stylers. */
+	"attempt extract_or_then_",
 	"conditional styler",
 	"loop styler",
 	"nonlocal control styler"
@@ -142,24 +143,40 @@ zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
 /* The range [1..1]. */
 exactlyOne ::= integer range from 1 (inclusive = true) to 1 (inclusive = true);
 
+/* The range [0..0]. */
+exactlyZero ::= integer range from 0 (inclusive = true) to 0 (inclusive = true);
+
 /* Optional (zero or one occurrences of a) send phrase. */
 optionalSendType ::= <<>, send phrase…|zeroOrOne>;
 
 /* Do nothing if the optionalSend is empty. */
-Primitive "attempt extract_then_" is
+Primitive "attempt extract_or_then_" is
 [
 	optionalSend : optionalSendType,
+	transformedPhrase : phrase,
 	action : function accepting <send phrase> and returning ⊤
 |
 	/* Overridden to do something. */
 ];
 
-Primitive "attempt extract_then_" is
+/* The optional send is present. */
+Primitive "attempt extract_or_then_" is
 [
 	optionalSend : <<>, send phrase…|exactlyOne>,
+	transformedPhrase : phrase,
 	action : function accepting <send phrase> and returning ⊤
 |
 	cast optionalSend[1] into action else [];
+];
+
+/* The optional send is absent, but the transformedPhrase is a send phrase. */
+Primitive "attempt extract_or_then_" is
+[
+	optionalSend : <<>, ⊥…|exactlyZero>,
+	transformedPhrase : send phrase,
+	action : function accepting <send phrase> and returning ⊤
+|
+	Invoke action with <transformedPhrase>;
 ];
 
 conditionalStyler ::=
@@ -167,7 +184,7 @@ conditionalStyler ::=
 		optionalOriginal : optionalSendType,
 		transformed : phrase
 	|
-		attempt extract optionalOriginal then
+		attempt extract optionalOriginal or transformed then
 		[
 			original : send phrase
 		|
@@ -190,7 +207,7 @@ loopStyler ::=
 		optionalOriginal : optionalSendType,
 		transformed : phrase
 	|
-		attempt extract optionalOriginal then
+		attempt extract optionalOriginal or transformed then
 		[
 			original : send phrase
 		|
@@ -213,7 +230,7 @@ nonlocalControlStyler ::=
 		optionalOriginal : <<>, send phrase…|zeroOrOne>,
 		transformed : phrase
 	|
-		attempt extract optionalOriginal then
+		attempt extract optionalOriginal or transformed then
 		[
 			original : send phrase
 		|

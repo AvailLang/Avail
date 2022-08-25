@@ -41,9 +41,11 @@ import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
+import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
 import avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating
 import avail.descriptor.phrases.A_Phrase.Companion.copyWith
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
@@ -168,16 +170,16 @@ class MacroSubstitutionPhraseDescriptor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
-		val originalSend = self.macroOriginalSendNode
-		val arguments = originalSend.argumentsListNode.expressionsTuple
-		context.runtime.execute(FiberDescriptor.compilerPriority) {
-			// Process the children of the original, then this phrase.
-			context.visitAll(arguments.iterator(), visitedSet) {
-				// Now that the original has been thoroughly
-				// visited, allow the outputPhrase to override any
-				// styles that the original applied.
-				context.applyAllStylesThen(self.outputPhrase, visitedSet) {
-					context.styleSendThen(originalSend, self.outputPhrase, then)
+		// Iterate over the original's children, then the output, then style the
+		// macro invocation itself.
+		val original = self.macroOriginalSendNode
+		context.visitAll(
+			original.argumentsListNode.expressionsTuple.toList(), visitedSet
+		) {
+			val output = self.outputPhrase
+			context.runtime.execute(FiberDescriptor.compilerPriority) {
+				output.applyStylesThen(context, visitedSet) {
+					context.styleSendThen(original, output, then)
 				}
 			}
 		}

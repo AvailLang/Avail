@@ -50,6 +50,7 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapLexerSlashStarCommentBodyStyler
 
 /**
  * The `P_BootstrapLexerSlashStarCommentBody` primitive is used for parsing
@@ -131,4 +132,6 @@ object P_BootstrapLexerSlashStarCommentBody
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		lexerBodyFunctionType()
+
+	override fun bootstrapStyler() = P_BootstrapLexerSlashStarCommentBodyStyler
 }

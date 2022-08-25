@@ -3945,7 +3945,9 @@ class IndirectionDescriptor private constructor(
 		context: CompilationContext,
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit
-	): Unit = self .. { applyStylesThen(context, visitedSet, then) }
+	): Unit = self .. {
+		applyStylesThen(context, visitedSet, then)
+	}
 
 	override fun o_CurrentLexer(self: AvailObject): A_Lexer =
 		self .. { currentLexer }
