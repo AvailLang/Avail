@@ -856,8 +856,9 @@ constructor(
 	}
 
 	/**
-	 * Helper method to style a method name.  If the [stringLiteralToken] is not
-	 * a well-formed method name, don't style it.
+	 * Helper method to style a method name. Supersedes [styleStringLiteral]. If
+	 * the [stringLiteralToken] is not a well-formed method name, don't style
+	 * it.
 	 *
 	 * @param stringLiteralToken
 	 *   The string literal to style as a method name.

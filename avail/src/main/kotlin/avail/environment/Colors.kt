@@ -82,6 +82,9 @@ sealed class SystemColors
 	/** A transparent rose color. */
 	abstract val transparentRose: Color
 
+	/** A transparent rose color. */
+	abstract val faintTransparentRose: Color
+
 	/** A mango color. */
 	abstract val mango: Color
 
@@ -137,6 +140,7 @@ object LightColors: SystemColors()
 	override val transparentMagenta = Color(0xD0, 0x3B, 0x83, 0xAA)
 	override val rose = Color(0xDC, 0x44, 0x44, 0xFF)
 	override val transparentRose = Color(0xDC, 0x44, 0x44, 0x88)
+	override val faintTransparentRose = Color(0xDC, 0x44, 0x44, 0x22)
 	override val mango = Color(0xEE, 0x73, 0x1B, 0xFF)
 	override val mustard = Color(0xE8, 0xB0, 0x00, 0xFF)
 	override val transparentMustard = Color(0xE8, 0xB0, 0x00, 0x18)
@@ -168,6 +172,7 @@ object DarkColors: SystemColors()
 	override val transparentMagenta = Color(0xD2, 0x5B, 0x94, 0xAA)
 	override val rose = Color(0xDC, 0x44, 0x44, 0xFF)
 	override val transparentRose = Color(0xDC, 0x44, 0x44, 0x88)
+	override val faintTransparentRose = Color(0xDC, 0x44, 0x44, 0x22)
 	override val mango = Color(0xFF, 0x88, 0x36, 0xFF)
 	override val mustard = Color(0xFF, 0xD6, 0x59, 0xFF)
 	override val transparentMustard = Color(0xFF, 0xD6, 0x59, 0x18)

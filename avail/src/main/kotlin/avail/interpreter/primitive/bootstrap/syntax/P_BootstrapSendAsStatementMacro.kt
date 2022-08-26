@@ -55,6 +55,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 
 /**
  * The `P_BootstrapSendAsStatementMacro` primitive is used to allow message
@@ -104,4 +105,6 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))
+
+	override fun bootstrapStyler() = P_BootstrapStatementStyler
 }

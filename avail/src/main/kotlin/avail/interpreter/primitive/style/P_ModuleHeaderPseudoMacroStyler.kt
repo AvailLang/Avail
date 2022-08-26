@@ -35,8 +35,13 @@ package avail.interpreter.primitive.style
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.A_Styler
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.ENTRY_POINT
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.EXPORT
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.IMPORT
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.MODULE_HEADER
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.PRAGMA
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.STRING_LITERAL
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.VERSION
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
@@ -109,6 +114,7 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 		optionalVersions.expressionsTuple.forEach { versions ->
 			versions.expressionsTuple.forEach { version ->
 				loader.styleStringLiteral(version.token)
+				loader.styleToken(version.token, VERSION)
 			}
 		}
 
@@ -125,6 +131,7 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 				optionalImportVersions.expressionsTuple.forEach { importVersions ->
 					importVersions.expressionsTuple.forEach { importVersion ->
 						loader.styleStringLiteral(importVersion.token)
+						loader.styleToken(importVersion.token, VERSION)
 					}
 				}
 				optionalImportNames.expressionsTuple.forEach { importNames ->
@@ -137,12 +144,11 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 							// This is a *negated* import.
 							//TODO Introduce negated import style.
 						}
-						loader.styleStringLiteral(original.token)
 						loader.styleMethodName(original.token)
 						optionalReplacement.expressionsTuple.forEach {
 								replacement ->
-							loader.styleStringLiteral(replacement.token)
 							loader.styleMethodName(replacement.token)
+							loader.styleToken(replacement.token, IMPORT)
 						}
 					}
 					// expressionAt(2) indicates an ellipsis to import the rest.
@@ -150,18 +156,24 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 			}
 		}
 
-		// Handle Names and Entries sections the same for nom.
-		(optionalNames.expressionsTuple + optionalEntries.expressionsTuple)
-			.forEach { names ->
-				names.expressionsTuple.forEach { name ->
-					loader.styleStringLiteral(name.token)
-					loader.styleMethodName(name.token)
-				}
+		optionalNames.expressionsTuple.forEach { names ->
+			names.expressionsTuple.forEach { name ->
+				loader.styleMethodName(name.token)
+				loader.styleToken(name.token, EXPORT)
 			}
+		}
+
+		optionalEntries.expressionsTuple.forEach { names ->
+			names.expressionsTuple.forEach { name ->
+				loader.styleMethodName(name.token)
+				loader.styleToken(name.token, ENTRY_POINT)
+			}
+		}
 
 		optionalPragmas.expressionsTuple.forEach { pragmas ->
 			pragmas.expressionsTuple.forEach { pragma ->
-				loader.styleStringLiteral(pragma.token)
+				loader.styleMethodName(pragma.token)
+				loader.styleToken(pragma.token, PRAGMA)
 			}
 		}
 

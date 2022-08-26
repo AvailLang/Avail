@@ -232,6 +232,12 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		ENTRY_POINT("#entry-point"),
 
 		/**
+		 * A pragma, i.e., a string literal within the module header `Pragma`
+		 * section.
+		 */
+		PRAGMA("#pragma"),
+
+		/**
 		 * Line and block comments, including delimiters.
 		 */
 		COMMENT("#comment"),

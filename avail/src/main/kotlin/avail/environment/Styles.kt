@@ -204,23 +204,29 @@ enum class DefaultBoundSystemStyle: BoundStyle
 
 	/** Default style for [SystemStyle.VERSION]. */
 	VERSION(SystemStyle.VERSION, {
-		foreground = SystemColors::rose
+		background = SystemColors::faintTransparentRose
 	}),
 
 	/** Default style for [SystemStyle.IMPORT]. */
 	IMPORT(SystemStyle.IMPORT, {
-		foreground = SystemColors::rose
+		background = SystemColors::faintTransparentRose
 	}),
 
 	/** Default style for [SystemStyle.EXPORT]. */
 	EXPORT(SystemStyle.EXPORT, {
-		foreground = SystemColors::rose
+		background = SystemColors::faintTransparentRose
 	}),
 
 	/** Default style for [SystemStyle.ENTRY_POINT]. */
 	ENTRY_POINT(SystemStyle.ENTRY_POINT, {
-		foreground = SystemColors::rose
+		background = SystemColors::faintTransparentRose
 		bold()
+	}),
+
+	/** Default style for [SystemStyle.ENTRY_POINT]. */
+	PRAGMA(SystemStyle.PRAGMA, {
+		background = SystemColors::faintTransparentRose
+		italic()
 	}),
 
 	/** Default style for [SystemStyle.COMMENT]. */
