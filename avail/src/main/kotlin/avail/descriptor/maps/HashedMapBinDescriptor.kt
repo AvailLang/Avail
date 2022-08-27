@@ -211,8 +211,11 @@ class HashedMapBinDescriptor private constructor(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
 	) {
-		for (i in 1..self.variableObjectSlotsCount()) {
-			self.slot(SUB_BINS_, i).forEachInMapBin(action)
+		val limit = self.variableObjectSlotsCount()
+		var i = 1
+		while (i <= limit)
+		{
+			self.slot(SUB_BINS_, i++).forEachInMapBin(action)
 		}
 	}
 

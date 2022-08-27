@@ -37,7 +37,6 @@ import java.util.AbstractQueue
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.math.max
 
 /**
  * WIP – The intent is to use this queue to store tasks in a way that a

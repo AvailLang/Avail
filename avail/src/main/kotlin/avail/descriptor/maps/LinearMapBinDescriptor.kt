@@ -164,10 +164,13 @@ internal class LinearMapBinDescriptor private constructor(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
 	) {
-		(1..(entryCount(self) shl 1) step 2).forEach {
+		val limit = entryCount(self) shl 1
+		var i = 1
+		while (i <= limit)
+		{
 			action(
-				self.slot(BIN_SLOT_AT_, it),
-				self.slot(BIN_SLOT_AT_, it + 1))
+				self.slot(BIN_SLOT_AT_, i++),
+				self.slot(BIN_SLOT_AT_, i++))
 		}
 	}
 

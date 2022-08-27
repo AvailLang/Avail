@@ -1287,6 +1287,7 @@ class L2Generator internal constructor(
 	{
 		addInstruction(L2_JUMP, edgeTo(targetBlock))
 	}
+
 	/**
 	 * Generate a conditional branch to either `passBlock` or `failBlock`, based
 	 * on whether the given register equals the given constant value.
@@ -1315,7 +1316,6 @@ class L2Generator internal constructor(
 		failBlock: L2BasicBlock)
 	{
 		val restriction = registerToTest.restriction()
-		val constantValueStrong = constantValue as AvailObject
 		when (restriction.constantOrNull)
 		{
 			constantValue -> {
@@ -1456,6 +1456,7 @@ class L2Generator internal constructor(
 		// intermediate block that uses a move to a temp to force the constant
 		// value to be visible in a register.
 		val innerPass = L2BasicBlock("strengthen to constant")
+		val constantValueStrong = constantValue as AvailObject
 		if (constantValueStrong.isInt
 			&& registerToTest.restriction().containedByType(int32))
 		{

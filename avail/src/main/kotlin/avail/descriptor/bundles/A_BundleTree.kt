@@ -41,10 +41,10 @@ import avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
+import avail.dispatch.LookupTree
 import java.util.Deque
 
 /**
@@ -196,24 +196,24 @@ interface A_BundleTree : A_BasicObject {
 			get() = dispatch { o_LazyPrefilterMap(it) }
 
 		/**
-		 * If this message bundle tree has a type filter tree, return the raw
-		 * pojo holding it, otherwise [nil].
+		 * If this message bundle tree has a type filter tree, return it,
+		 * otherwise `null`.
 		 *
 		 * The type filter tree is used to quickly eliminate potential bundle
 		 * invocations based on the type of an argument that has just been
 		 * parsed. The argument's expression type is looked up in the tree, and
-		 * the result is which bundle tree should be visited, having eliminated
-		 * all parsing possibilities where the argument was of an unacceptable
-		 * type.
+		 * the result is which bundle tree should be visited next, having
+		 * eliminated all parsing possibilities where the argument was of an
+		 * unacceptable type.
 		 *
 		 * This is only authoritative if an [expand] has been invoked since the
 		 * last modification via methods like [addPlanInProgress].
 		 *
 		 * @return
-		 *   The type filter tree pojo or [nil].
+		 *   The type filter [LookupTree] or `null`.
 		 */
-		val A_BundleTree.lazyTypeFilterTreePojo
-			get() = dispatch { o_LazyTypeFilterTreePojo(it) }
+		val A_BundleTree.lazyTypeFilterTree: LookupTree<A_Tuple, A_BundleTree>?
+			get() = dispatch { o_LazyTypeFilterTree(it) }
 
 		/**
 		 * Add a

@@ -2413,8 +2413,9 @@ protected constructor (
 		self: AvailObject,
 		aListNodeType: A_Type): A_Type = unsupported
 
-	override fun o_LazyTypeFilterTreePojo (self: AvailObject): A_BasicObject =
-		unsupported
+	override fun o_LazyTypeFilterTree (
+		self: AvailObject
+	): LookupTree<A_Tuple, A_BundleTree>? = unsupported
 
 	override fun o_AddPlanInProgress (
 		self: AvailObject,

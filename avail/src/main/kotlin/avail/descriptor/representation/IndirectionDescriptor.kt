@@ -78,7 +78,7 @@ import avail.descriptor.bundles.A_BundleTree.Companion.lazyComplete
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyIncomplete
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyIncompleteCaseInsensitive
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
+import avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTree
 import avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
 import avail.descriptor.character.A_Character.Companion.codePoint
@@ -3517,8 +3517,9 @@ class IndirectionDescriptor private constructor(
 		aListNodeType: A_Type
 	): A_Type = self .. { typeUnionOfListNodeType(aListNodeType) }
 
-	override fun o_LazyTypeFilterTreePojo(self: AvailObject): A_BasicObject =
-		self .. { lazyTypeFilterTreePojo }
+	override fun o_LazyTypeFilterTree(
+		self: AvailObject
+	): LookupTree<A_Tuple, A_BundleTree>? = self .. { lazyTypeFilterTree }
 
 	override fun o_AddPlanInProgress(
 		self: AvailObject,

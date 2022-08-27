@@ -56,10 +56,10 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
- * The `P_BootstrapConstantDeclarationMacro` primitive is used for bootstrapping
- * declaration of a [local][PhraseKind.LOCAL_CONSTANT_PHRASE].  Constant
- * declarations that occur at the outermost scope are rewritten by the
- * [AvailCompiler] as a [ #MODULE_CONSTANT_NODE][PhraseKind].
+ * The [P_BootstrapConstantDeclarationMacro] primitive is used for bootstrapping
+ * the declaration of a [local][PhraseKind.LOCAL_CONSTANT_PHRASE] constant.
+ * Constant declarations that occur at the outermost scope are rewritten by the
+ * [AvailCompiler] as a module [constant][PhraseKind.MODULE_CONSTANT_PHRASE].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

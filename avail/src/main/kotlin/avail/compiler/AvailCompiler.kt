@@ -83,9 +83,9 @@ import avail.descriptor.bundles.A_BundleTree.Companion.lazyComplete
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyIncomplete
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyIncompleteCaseInsensitive
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
+import avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTree
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.bundles.MessageBundleTreeDescriptor
+import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.ParserTypeChecker
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
@@ -1486,19 +1486,18 @@ class AvailCompiler constructor(
 					// default check-argument action if it's present.
 				}
 			}
-			val typeFilterTreePojo = bundleTree.lazyTypeFilterTreePojo
-			if (typeFilterTreePojo.notNil)
+			val typeFilterTree = bundleTree.lazyTypeFilterTree
+			if (typeFilterTree != null)
 			{
 				// Use the most recently pushed phrase's type to look up the
 				// successor bundle tree.  This implements type filtering for
 				// aggregated arguments.
 				val latestPhrase = stepState.argsSoFar.last()
-				val successor =
-					MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
-						typeFilterTreePojo.javaObjectNotNull(),
-						latestPhrase,
-						bundleTree.latestBackwardJump,
-						typeCheckArgumentStat)
+				val successor = ParserTypeChecker.lookupByValue(
+					typeFilterTree,
+					latestPhrase,
+					bundleTree.latestBackwardJump,
+					typeCheckArgumentStat)
 				if (AvailRuntimeConfiguration.debugCompilerSteps)
 				{
 					println("Type filter: $latestPhrase -> $successor")

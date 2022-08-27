@@ -248,10 +248,12 @@ class SendPhraseDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Create a new [send#&#32;phrase][SendPhraseDescriptor] from the
-		 * specified [A_Bundle], [list#&#32;phrase][ListPhraseDescriptor] of
-		 * argument expressions, and return [type][TypeDescriptor].  Also take
-		 * a [tuple][A_Tuple] of [tokens][A_Token].
+		 * Create a new [send][SendPhraseDescriptor] phrase from the specified
+		 * [A_Bundle], [list][ListPhraseDescriptor] phrase of argument
+		 * expressions, and return [type][TypeDescriptor].  Also capture a
+		 * [tuple][A_Tuple] of [tokens][A_Token], which are all fixed tokens of
+		 * the send (the fixed tokens are the tokens occurring in the source
+		 * which match parts of the actual text of the message name).
 		 *
 		 * @param tokens
 		 *   The [tuple][A_Tuple] of [tokens][A_Token] that comprise the

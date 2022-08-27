@@ -3728,7 +3728,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_UniqueId (self: AvailObject): Long
 
-	abstract fun o_LazyTypeFilterTreePojo (self: AvailObject): A_BasicObject
+	abstract fun o_LazyTypeFilterTree (
+		self: AvailObject
+	): LookupTree<A_Tuple, A_BundleTree>?
 
 	abstract fun o_AddPlanInProgress (
 		self: AvailObject,
