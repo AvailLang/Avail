@@ -54,6 +54,7 @@ import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 
 /**
  * The [P_BootstrapConstantDeclarationMacro] primitive is used for bootstrapping
@@ -109,4 +110,6 @@ object P_BootstrapConstantDeclarationMacro
 				/* Initialization expression */
 				EXPRESSION_PHRASE.create(ANY.o)),
 			LOCAL_CONSTANT_PHRASE.mostGeneralType)
+
+	override fun bootstrapStyler() = P_BootstrapStatementStyler
 }

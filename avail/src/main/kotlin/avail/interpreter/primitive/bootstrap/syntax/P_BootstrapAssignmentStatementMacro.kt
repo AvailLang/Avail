@@ -69,6 +69,7 @@ import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 
 /**
  * The `P_BootstrapAssignmentStatementMacro` primitive is used for assignment
@@ -159,4 +160,6 @@ object P_BootstrapAssignmentStatementMacro
 				/* Assignment value */
 				EXPRESSION_PHRASE.create(ANY.o)),
 			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType)
+
+	override fun bootstrapStyler() = P_BootstrapStatementStyler
 }
