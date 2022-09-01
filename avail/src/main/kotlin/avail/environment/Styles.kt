@@ -208,6 +208,11 @@ enum class DefaultBoundSystemStyle: BoundStyle
 		foreground = SystemColors::transparentRose
 	}),
 
+	/** Default style for [SystemStyle.MODULE_HEADER_REGION]. */
+	MODULE_HEADER_REGION(SystemStyle.MODULE_HEADER_REGION, {
+		background = SystemColors::faintTransparentIndigo
+	}),
+
 	/** Default style for [SystemStyle.VERSION]. */
 	VERSION(SystemStyle.VERSION, {
 		background = SystemColors::faintTransparentRose

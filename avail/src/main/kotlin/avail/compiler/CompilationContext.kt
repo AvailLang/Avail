@@ -50,7 +50,6 @@ import avail.compiler.problems.ProblemType.INTERNAL
 import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
-import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.fiber.A_Fiber
@@ -111,6 +110,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
 import avail.serialization.Serializer
+import avail.utility.notNullAnd
 import avail.utility.trace
 import org.availlang.persistence.IndexedFile
 import java.lang.String.format
@@ -1020,68 +1020,61 @@ class CompilationContext constructor(
 		transformedPhrase: A_Phrase,
 		then: ()->Unit)
 	{
-		val bundleWithStyler: A_Bundle?
-		if (originalSendPhrase !== null)
+		val styles = mutableListOf<SystemStyle?>()
+		// 1. Add a method/macro style.
+		styles.add(
+			when
+			{
+				(originalSendPhrase.notNullAnd { !equals(transformedPhrase) }) ->
+					SystemStyle.MACRO_SEND
+
+				else -> SystemStyle.METHOD_SEND
+			}
+		)
+		// 2. Add an optional style based on the yield type.
+		styles.add(transformedPhrase.phraseExpressionType.systemStyleForType)
+		val bundleWithStyler = when
 		{
-			val bundle = originalSendPhrase.bundle
-			// First, apply basic styles to the send based on its result type,
-			// or just by virtue of it being a send.
-			val yieldType = transformedPhrase.phraseExpressionType
-			val style = yieldType.systemStyleForType ?: when
-			{
-				originalSendPhrase.equals(transformedPhrase) ->
-					SystemStyle.METHOD_SEND
-				else -> SystemStyle.MACRO_SEND
-			}
-			if (debugStyling)
-			{
-				val tokensString = originalSendPhrase.tokens
-					.map(AvailObject::string)
-					.joinToString(", ")
-				println("style tokens: $tokensString" +
-					"\twith ${style.kotlinString}")
-			}
-			loader.styleTokens(originalSendPhrase.tokens, style)
+			originalSendPhrase !== null -> originalSendPhrase.bundle
+			transformedPhrase.phraseKindIsUnder(SEND_PHRASE) ->
+				transformedPhrase.bundle
+
+			else -> null
+		}
+		styles.filterNotNull().forEach { style ->
+			originalSendPhrase?.let { loader.styleTokens(it.tokens, style) }
 			loader.styleTokens(transformedPhrase.tokens, style)
-			bundleWithStyler = bundle
 		}
-		else
-		{
-			loader.styleTokens(
-				transformedPhrase.tokens, SystemStyle.METHOD_SEND)
-			bundleWithStyler = when
-			{
-				transformedPhrase.phraseKindIsUnder(SEND_PHRASE) ->
-					transformedPhrase.bundle
-				else -> null
-			}
-		}
+		// 3. Run any custom styler.
 		if (bundleWithStyler !== null)
 		{
 			// Next, give the method's styler function a chance to run.
 			val stylerFn = getStylerFunction(bundleWithStyler.bundleMethod)
 			if (debugStyling)
 			{
-				println("style send: $bundleWithStyler\n" +
-					"\twith ${stylerFn.code().methodName.asNativeString()}")
+				println(
+					"style send: $bundleWithStyler\n" +
+						"\twith ${stylerFn.code().methodName.asNativeString()}"
+				)
 			}
 			val fiber = newStylerFiber(loader)
 			{
 				formatString(
 					"Style %s (%s)",
 					bundleWithStyler.message,
-					stylerFn.code().methodName.asNativeString())
+					stylerFn.code().methodName.asNativeString()
+				)
 			}
 			fiber.setSuccessAndFailure(
 				onSuccess = { then() },
 				// Ignore styler failures for now.
 				onFailure = { then() })
-			val optionalOriginal =
-				tupleFromList(listOfNotNull(originalSendPhrase))
 			runtime.runOutermostFunction(
 				fiber,
 				stylerFn,
-				listOf(optionalOriginal, transformedPhrase))
+				listOf(
+					tupleFromList(listOfNotNull(originalSendPhrase)),
+					transformedPhrase))
 		}
 	}
 

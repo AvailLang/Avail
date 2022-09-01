@@ -74,7 +74,7 @@ object P_DefaultStyler :
 		//val loader = fiber.availLoader!!
 
 		// Do nothing.  Fixed tokens will already have been styled as
-		// METHOD_SEND.
+		// METHOD_SEND or MACRO_SEND, as well as any yield-type-specific style.
 		return interpreter.primitiveSuccess(nil)
 	}
 

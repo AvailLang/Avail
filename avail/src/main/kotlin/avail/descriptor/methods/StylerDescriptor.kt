@@ -209,6 +209,11 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		MODULE_HEADER("#module-header"),
 
 		/**
+		 * The entire module header, including whitespace and comments.
+		 */
+		MODULE_HEADER_REGION("#module-header-region"),
+
+		/**
 		 * A module version, i.e., a string literal within a module header
 		 * `Version` section.
 		 */

@@ -82,7 +82,7 @@ sealed class SystemColors
 	/** A transparent rose color. */
 	abstract val transparentRose: Color
 
-	/** A transparent rose color. */
+	/** A (faint) transparent rose color. */
 	abstract val faintTransparentRose: Color
 
 	/** A mango color. */
@@ -99,6 +99,9 @@ sealed class SystemColors
 
 	/** A transparent green color. */
 	abstract val transparentGreen: Color
+
+	/** A (faint) transparent green color. */
+	abstract val faintTransparentIndigo: Color
 
 	/** A blue color. */
 	abstract val blue: Color
@@ -147,6 +150,7 @@ object LightColors: SystemColors()
 	override val green = Color(0x4C, 0x85, 0x3E, 0xFF)
 	override val transparentGreen = Color(0x4C, 0x85, 0x3E, 0x88)
 	override val blue = Color(0x22, 0x94, 0xC6, 0xFF)
+	override val faintTransparentIndigo = Color(0x4B, 0x35, 0xA9, 0x20)
 	override val deemphasize = Color(0x80, 0x80, 0x80, 0x80)
 	override val guide = strongGray
 }
@@ -179,6 +183,7 @@ object DarkColors: SystemColors()
 	override val green = Color(0x78, 0xB6, 0x69, 0xFF)
 	override val transparentGreen = Color(0x78, 0xB6, 0x69, 0x88)
 	override val blue = Color(0x38, 0xB1, 0xE5, 0xFF)
+	override val faintTransparentIndigo = Color(0x3B, 0x27, 0x95, 0x30)
 	override val deemphasize = Color(0x60, 0x60, 0x60, 0x80)
 	override val guide = strongGray
 }

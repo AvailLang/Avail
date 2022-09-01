@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.canStyle
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
@@ -40,10 +41,11 @@ import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.ENTRY_POINT
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.EXPORT
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.IMPORT
-import avail.descriptor.methods.StylerDescriptor.SystemStyle.MODULE_HEADER
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.MODULE_HEADER_REGION
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.PRAGMA
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.STRING_LITERAL
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.VERSION
+import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
@@ -51,6 +53,9 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tokens.A_Token.Companion.pastEnd
+import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
+import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
@@ -60,6 +65,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
@@ -94,7 +100,7 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 		val sendPhrase = optionalSendPhrase.tupleAt(1)
 
 		// Color the fixed tokens of the header.
-		loader.styleTokens(sendPhrase.tokens, MODULE_HEADER)
+		loader.styleTokens(sendPhrase.tokens, SystemStyle.MODULE_HEADER)
 
 		// Extract the original phrase's clauses.
 		val (
@@ -174,6 +180,33 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 				loader.styleToken(pragma.token, PRAGMA)
 			}
 		}
+
+		// End by coloring the entire header span (say, with a background
+		// tint).  This is done at the end, because the string and method name
+		// stylers completely override the style, but the module header region
+		// styling (probably) doesn't mess with the foreground color.
+		val allTokens = sendPhrase.allTokens
+		if (allTokens.tupleSize > 0)
+		{
+			val firstToken = allTokens.tupleAt(1)
+			val start = firstToken.start()
+			val pastEnd = allTokens.tupleAt(allTokens.tupleSize).pastEnd()
+			// Ignore zero-width spans.
+			if (pastEnd > start)
+			{
+				val fakeToken = literalToken(
+					createRepeatedElementTuple(
+						pastEnd - start, fromCodePoint('?'.code)
+					) as A_String,
+					start,
+					firstToken.lineNumber(),
+					nil,
+					nil)
+				fakeToken.setCurrentModule(loader.module)
+				loader.styleToken(fakeToken, MODULE_HEADER_REGION, false)
+			}
+		}
+
 
 		return interpreter.primitiveSuccess(nil)
 	}

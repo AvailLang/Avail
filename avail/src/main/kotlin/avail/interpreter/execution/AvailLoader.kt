@@ -32,7 +32,7 @@
 package avail.interpreter.execution
 
 import avail.AvailRuntime
-import avail.AvailRuntimeConfiguration
+import avail.AvailRuntimeConfiguration.debugStyling
 import avail.AvailThread
 import avail.annotations.ThreadSafe
 import avail.compiler.ModuleManifestEntry
@@ -627,18 +627,28 @@ constructor(
 				null -> style.kotlinString
 				else -> "$old,${style.kotlinString}"
 			}
+		})
+	{
+		if (debugStyling)
+		{
+			val tokensString =
+				tokens.joinToString(", ") { it.string().asNativeString() }
+			println(
+				"style macro tokens: $tokensString with ${style.kotlinString}"
+			)
 		}
-	) = lockStyles {
-		tokens.forEach { token ->
-			if (token.isInCurrentModule(module))
-			{
-				val start = token.start().toLong()
-				val pastEnd = token.pastEnd().toLong()
-				edit(start, pastEnd) { old ->
-					when (overwrite)
-					{
-						true -> style.kotlinString
-						false -> editor(old)
+		lockStyles {
+			tokens.forEach { token ->
+				if (token.isInCurrentModule(module))
+				{
+					val start = token.start().toLong()
+					val pastEnd = token.pastEnd().toLong()
+					edit(start, pastEnd) { old ->
+						when (overwrite)
+						{
+							true -> style.kotlinString
+							false -> editor(old)
+						}
 					}
 				}
 			}
@@ -1750,7 +1760,7 @@ constructor(
 		}
 		code.methodName = stringFrom(
 			"Styler for $name$stylerPrimSuffix")
-		if (AvailRuntimeConfiguration.debugStyling)
+		if (debugStyling)
 		{
 			println("Defined styler: ${code.methodName}")
 		}
@@ -2160,7 +2170,7 @@ constructor(
 			{
 				module.moduleAddStyler(styler)
 			}
-			if (AvailRuntimeConfiguration.debugStyling)
+			if (debugStyling)
 			{
 				println("Defined bootstrap styler: $atom")
 			}
