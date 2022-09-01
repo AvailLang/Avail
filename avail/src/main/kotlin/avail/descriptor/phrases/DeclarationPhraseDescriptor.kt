@@ -580,7 +580,8 @@ class DeclarationPhraseDescriptor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
-		super.o_ApplyStylesThen(self, context, visitedSet) {
+		if (!visitedSet.add(self)) return then()
+		styleDescendantsThen(self, context, visitedSet) {
 			// The parser can't produce declarations of its own, but the
 			// bootstrap (and other) macros can, so when we visit the output of
 			// one of those macros, we can find declarations to style.  Which is

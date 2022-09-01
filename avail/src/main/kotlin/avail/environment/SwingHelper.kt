@@ -77,7 +77,7 @@ import kotlin.math.max
  */
 fun JTextPane.scrollTextWithLineNumbers(): JLayer<JScrollPane>
 {
-	parent?.parent?.let { return it.cast() }
+	parent?.parent?.parent?.let { return it.cast() }
 	val scrollPane = JScrollPane(this)
 	val guidePane = JLayer(scrollPane, CodeGuide())
 	val lines = TextLineNumber(this)
@@ -115,8 +115,9 @@ class CodeGuide(private val afterColumn: Int = 80): LayerUI<JScrollPane>()
 			x = bounds.x + stringWidth
 		}
 		val x = x!!
+		val deltaX = view.viewport.viewPosition.x
 		g.color = SystemColors.active.guide
-		g.drawLine(x, bounds.y, x, bounds.height)
+		g.drawLine(x - deltaX, bounds.y, x - deltaX, bounds.height)
 	}
 }
 
@@ -139,7 +140,6 @@ fun Component.scroll(): JScrollPane
  *   The owning [AvailWorkbench], even if the pane is for a different [Frame].
  * @return a new [JTextPane]
  */
-// Set up styles for the transcript.
 fun codeSuitableTextPane(
 	workbench: AvailWorkbench,
 	frame: JFrame

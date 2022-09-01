@@ -46,6 +46,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import avail.descriptor.fiber.FiberDescriptor.Companion.newStylerFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
@@ -75,7 +76,6 @@ import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.SimpleDescriber
 import java.io.PrintWriter
@@ -631,7 +631,7 @@ class LexingState constructor(
 			val stylerFunction =
 				compilationContext.getStylerFunction(
 					token.generatingLexer.lexerMethod)
-			val fiber = newLoaderFiber(Types.TOP.o, compilationContext.loader)
+			val fiber = newStylerFiber(compilationContext.loader)
 			{
 				formatString(
 					"Style token (%s) with %s",

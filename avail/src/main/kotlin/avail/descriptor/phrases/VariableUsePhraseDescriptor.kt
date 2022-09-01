@@ -132,6 +132,7 @@ class VariableUsePhraseDescriptor private constructor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
+		if (!visitedSet.add(self)) return then()
 		// The parser can't produce variable-use phrases of its own, but the
 		// bootstrap macros can, so when we visit the output of one of those
 		// macros, we can find variable uses to style.  Which is here.

@@ -3335,14 +3335,20 @@ class AvailCompiler constructor(
 						afterStatement.clientDataMap)
 				}
 				compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
+				// Allow trailing comments to be styled at the same time as the
+				// final statement...
 				withoutEndToken.lexingState.styleAllTokensThen {
-					reachedEndOfModule(withoutEndToken)
+					// ...but ensure the final statement styling has completed
+					// before writing to the repository or indicating success.
+					compilationContext.whenNotStyling {
+						reachedEndOfModule(withoutEndToken)
+					}
 				}
 				return@parseOutermostStatement
 			}
 
-			// In case the top level statement is compound, process the
-			// base statements individually.
+			// In case the top level statement is compound, process the base
+			// statements individually.
 			val simpleStatements = mutableListOf<A_Phrase>()
 			unambiguousStatement.statementsDo { simpleStatement ->
 				assert(simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
@@ -3379,45 +3385,49 @@ class AvailCompiler constructor(
 			// decomposed into multiple separately executed and separately
 			// styled statements.
 			compilationContext.clearStyleCache()
-			afterStatement.lexingState.styleAllTokensThen {
-				// Run the simple statements in succession.
-				val simpleStatementIterator = simpleStatements.iterator()
-				val declarationRemap = mutableMapOf<A_Phrase, A_Phrase>()
-				lateinit var recurse: (()->Unit)
-				recurse = recurse@{
-					if (!simpleStatementIterator.hasNext())
-					{
+			// Run the simple statements in succession.
+			val simpleStatementIterator = simpleStatements.iterator()
+			val declarationRemap = mutableMapOf<A_Phrase, A_Phrase>()
+			lateinit var recurse: ()->Unit
+			recurse = recurse@{
+				if (!simpleStatementIterator.hasNext())
+				{
+					compilationContext.beginningStyling()
+					afterStatement.lexingState.styleAllTokensThen {
 						unambiguousStatement.applyStylesThen(
 							compilationContext,
 							ConcurrentHashMap.newKeySet(),
-							resumeParsing)
-						return@recurse
+							compilationContext::finishedStyling)
 					}
-					val statement = simpleStatementIterator.next()
-					if (AvailLoader.debugLoadedStatements)
-					{
-						println(
-							moduleName.qualifiedName
-								+ ':'.toString() + start.lineNumber
-								+ " Running statement:\n" + statement)
-					}
-					val beforeFirstNonwhiteToken =
-						afterStatement.lexingState.allTokens.firstOrNull {
-							it.tokenType().let { type ->
-								type != WHITESPACE
-									&& type != COMMENT
-									&& type != END_OF_FILE
-							}
-						}?.synthesizeCurrentLexingState()
-					evaluateModuleStatementThen(
-						beforeFirstNonwhiteToken ?: startLexingState,
-						afterStatement.lexingState,
-						statement,
-						declarationRemap,
-						recurse)
+					resumeParsing()
+					return@recurse
 				}
-				recurse()
+				val statement = simpleStatementIterator.next()
+				if (AvailLoader.debugLoadedStatements)
+				{
+					println(
+						moduleName.qualifiedName
+							+ ':'.toString() + start.lineNumber
+							+ " Running statement:\n" + statement)
+				}
+				val beforeFirstNonwhiteToken =
+					afterStatement.lexingState.allTokens.firstOrNull {
+						it.tokenType().let { type ->
+							type != WHITESPACE
+								&& type != COMMENT
+								&& type != END_OF_FILE
+						}
+					}?.synthesizeCurrentLexingState()
+				evaluateModuleStatementThen(
+					beforeFirstNonwhiteToken ?: startLexingState,
+					afterStatement.lexingState,
+					statement,
+					declarationRemap,
+					recurse)
 			}
+			// Wait for the previous styling operation to complete before
+			// executing the top-level statement (i.e., each simple statement).
+			compilationContext.whenNotStyling(recurse)
 		}
 	}
 
@@ -3489,7 +3499,9 @@ class AvailCompiler constructor(
 				onSuccess(compilationContext.module)
 			},
 			{
-				rollbackModuleTransaction(afterFail)
+				compilationContext.whenNotStyling {
+					rollbackModuleTransaction(afterFail)
+				}
 			})
 		startModuleTransaction()
 		parseModuleCompletely()

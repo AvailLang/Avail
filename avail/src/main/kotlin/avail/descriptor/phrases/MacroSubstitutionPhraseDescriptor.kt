@@ -45,7 +45,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
-import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
 import avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating
 import avail.descriptor.phrases.A_Phrase.Companion.copyWith
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
@@ -170,17 +169,14 @@ class MacroSubstitutionPhraseDescriptor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
+		if (!visitedSet.add(self)) return then()
 		// Iterate over the original's children, then the output, then style the
 		// macro invocation itself.
 		val original = self.macroOriginalSendNode
-		context.visitAll(
-			original.argumentsListNode.expressionsTuple.toList(), visitedSet
-		) {
+		styleDescendantsThen(original, context, visitedSet) {
 			val output = self.outputPhrase
-			context.runtime.execute(FiberDescriptor.compilerPriority) {
-				output.applyStylesThen(context, visitedSet) {
-					context.styleSendThen(original, output, then)
-				}
+			output.applyStylesThen(context, visitedSet) {
+				context.styleSendThen(original, output, then)
 			}
 		}
 	}

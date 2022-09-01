@@ -257,7 +257,10 @@ interface A_Module : A_BasicObject
 			get() = dispatch { o_ExportedNames(it) }
 
 		/**
-		 * Dispatch to the descriptor.
+		 * The [map][A_Map] from [strings][A_String] to [atoms][A_Atom] which
+		 * act as true names. The true names are identity-based identifiers that
+		 * prevent or at least clarify name conflicts. Answer only those names
+		 * that have been imported from other modules.
 		 */
 		val A_Module.importedNames: A_Map
 			get() = dispatch { o_ImportedNames(it) }

@@ -35,6 +35,7 @@ package avail.interpreter.primitive.style
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.canStyle
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -53,8 +54,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
@@ -81,13 +81,9 @@ object P_StyleSpanOfPhrase : Primitive(3, CanInline, WritesToHiddenGlobalState)
 		val styleName: A_String = interpreter.argument(1)
 		val overwrite = interpreter.argument(2).extractBoolean
 
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
-		}
+		val fiber = interpreter.fiber()
+		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		val loader = fiber.availLoader!!
 
 		val allTokens = phrase.allTokens
 		if (allTokens.tupleSize == 0)
@@ -128,8 +124,7 @@ object P_StyleSpanOfPhrase : Primitive(3, CanInline, WritesToHiddenGlobalState)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION))
+				E_CANNOT_STYLE))
 
 	override fun privateBlockTypeRestriction(): A_Type = functionType(
 		tuple(

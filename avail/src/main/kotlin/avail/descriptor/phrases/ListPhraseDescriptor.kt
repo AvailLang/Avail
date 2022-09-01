@@ -130,7 +130,10 @@ class ListPhraseDescriptor private constructor(
 			val indenter = buildString { newlineTab(indent) }
 			strings.joinTo(builder, ",$indenter", indenter)
 		}
-		strings.joinTo(builder, ", ")
+		else
+		{
+			strings.joinTo(builder, ", ")
+		}
 		builder.append(")")
 	}
 

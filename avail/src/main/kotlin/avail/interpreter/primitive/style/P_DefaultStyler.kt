@@ -32,14 +32,13 @@
 
 package avail.interpreter.primitive.style
 
-import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.canStyle
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
@@ -70,14 +69,9 @@ object P_DefaultStyler :
 //		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 //		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
-		{
-			// Also cannot *apply styles* during compilation.
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
-		}
+		val fiber = interpreter.fiber()
+		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		//val loader = fiber.availLoader!!
 
 		// Do nothing.  Fixed tokens will already have been styled as
 		// METHOD_SEND.
@@ -87,8 +81,7 @@ object P_DefaultStyler :
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION))
+				E_CANNOT_STYLE))
 
 	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }

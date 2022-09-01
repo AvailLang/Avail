@@ -316,8 +316,7 @@ Method "definition styler function" is
 		transformed : phrase
 	|
 		Primitive BootstrapDefinitionStyler (failureCode : {
-			loading-is-over code,
-			cannot-define-during-compilation code}ᵀ);
+			cannot-style code}ᵀ);
 		Invoke early failure function with <failureCode>
 	] : ⊤
 ];
@@ -335,8 +334,7 @@ Method "special object styler function" is
 		transformed : phrase
 	|
 		Primitive BootstrapDefineSpecialObjectMacroStyler (failureCode : {
-			loading-is-over code,
-			cannot-define-during-compilation code}ᵀ);
+			cannot-style code}ᵀ);
 		Invoke early failure function with <failureCode>
 	] : ⊤
 ];

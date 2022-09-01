@@ -38,6 +38,9 @@ import avail.AvailRuntime.HookType.DEFAULT_STYLER
 import avail.AvailRuntimeConfiguration.debugStyling
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
+import avail.compiler.CompilationContext.StylingCompletionState.NotStyling
+import avail.compiler.CompilationContext.StylingCompletionState.StylingAndWaiting
+import avail.compiler.CompilationContext.StylingCompletionState.StylingNotWaiting
 import avail.compiler.problems.CompilerDiagnostics
 import avail.compiler.problems.Problem
 import avail.compiler.problems.ProblemHandler
@@ -56,6 +59,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import avail.descriptor.fiber.FiberDescriptor.Companion.newStylerFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -90,12 +94,11 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.SurrogateIndexConverter
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.systemStyleForType
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailEmergencyExitException
@@ -115,6 +118,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -977,22 +981,23 @@ class CompilationContext constructor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
-		val count = phrases.size
-		if (count == 0) return then()
-		val countdown = AtomicInteger(count)
-		val afterOne = {
-			if (countdown.decrementAndGet() == 0) then()
-		}
-		phrases.forEach { phrase ->
-			if (visitedSet.add(phrase))
-			{
-				runtime.execute(compilerPriority) {
-					phrase.applyStylesThen(this, visitedSet, afterOne)
-				}
+		when (val count = phrases.size)
+		{
+			0 -> then()
+			1 -> runtime.execute(compilerPriority) {
+				phrases.single().applyStylesThen(this, visitedSet, then)
 			}
-			else
+			else ->
 			{
-				afterOne()
+				val countdown = AtomicInteger(count)
+				val afterOne = {
+					if (countdown.decrementAndGet() == 0) then()
+				}
+				phrases.forEach { phrase ->
+					runtime.execute(compilerPriority) {
+						phrase.applyStylesThen(this, visitedSet, afterOne)
+					}
+				}
 			}
 		}
 	}
@@ -1022,19 +1027,22 @@ class CompilationContext constructor(
 			// First, apply basic styles to the send based on its result type,
 			// or just by virtue of it being a send.
 			val yieldType = transformedPhrase.phraseExpressionType
-			when
+			val style = yieldType.systemStyleForType ?: when
 			{
-				yieldType.isInstanceMeta -> loader.styleTokens(
-					originalSendPhrase.tokens, yieldType.systemStyleForType)
-				yieldType.isInstanceOf(PARSE_PHRASE.mostGeneralType) ->
-					loader.styleTokens(
-						originalSendPhrase.tokens, SystemStyle.PHRASE)
 				originalSendPhrase.equals(transformedPhrase) ->
-					loader.styleTokens(
-						originalSendPhrase.tokens, SystemStyle.METHOD_SEND)
-				else -> loader.styleTokens(
-					originalSendPhrase.tokens, SystemStyle.MACRO_SEND)
+					SystemStyle.METHOD_SEND
+				else -> SystemStyle.MACRO_SEND
 			}
+			if (debugStyling)
+			{
+				val tokensString = originalSendPhrase.tokens
+					.map(AvailObject::string)
+					.joinToString(", ")
+				println("style tokens: $tokensString" +
+					"\twith ${style.kotlinString}")
+			}
+			loader.styleTokens(originalSendPhrase.tokens, style)
+			loader.styleTokens(transformedPhrase.tokens, style)
 			bundleWithStyler = bundle
 		}
 		else
@@ -1057,7 +1065,7 @@ class CompilationContext constructor(
 				println("style send: $bundleWithStyler\n" +
 					"\twith ${stylerFn.code().methodName.asNativeString()}")
 			}
-			val fiber = newLoaderFiber(TOP.o, loader)
+			val fiber = newStylerFiber(loader)
 			{
 				formatString(
 					"Style %s (%s)",
@@ -1068,11 +1076,8 @@ class CompilationContext constructor(
 				onSuccess = { then() },
 				// Ignore styler failures for now.
 				onFailure = { then() })
-			val optionalOriginal = when (originalSendPhrase)
-			{
-				null -> emptyTuple
-				else -> tuple(originalSendPhrase)
-			}
+			val optionalOriginal =
+				tupleFromList(listOfNotNull(originalSendPhrase))
 			runtime.runOutermostFunction(
 				fiber,
 				stylerFn,
@@ -1136,6 +1141,95 @@ class CompilationContext constructor(
 		}
 		styleCache[method] = stylerFn
 		return stylerFn
+	}
+
+	/**
+	 * The abstract class for the styling state machine.  A statement can be in
+	 * the process of being styled while the next statement is being parsed, but
+	 * before that next statement is allowed to executed, the previous styling
+	 * action must complete.  Otherwise, the execution of the next statement
+	 * might change the stylers that are in effect while the styling of the
+	 * previous statement is in progress, which is a race.
+	 */
+	sealed class StylingCompletionState
+	{
+		/**
+		 * Styling is not currently happening.  Also, nobody is waiting for
+		 * styling to complete.
+		 */
+		object NotStyling : StylingCompletionState()
+
+		/**
+		 * Styling is happening, but nobody is waiting for it to complete yet.
+		 */
+		object StylingNotWaiting : StylingCompletionState()
+
+		/**
+		 * Styling is happening, and the other party is waiting for it to
+		 * complete, having provided an action indicating what to do when
+		 * styling completes.
+		 */
+		class StylingAndWaiting(
+			val notStylingAction : ()->Unit
+		) : StylingCompletionState()
+	}
+
+	/**
+	 * An [AtomicReference] that holds the current [StylingCompletionState].
+	 * This is to allow styling of a statement to occur while the subsequent
+	 * statement is being parsed – but not executed, since that may affect what
+	 * styles are in effect.
+	 */
+	private val stylingState =
+		AtomicReference<StylingCompletionState>(NotStyling)
+
+	/**
+	 * A styling activity is starting.  Note that styling must always be started
+	 * causally *before* [whenNotStyling] may be called.
+	 */
+	fun beginningStyling()
+	{
+		if (!stylingState.compareAndSet(NotStyling, StylingNotWaiting))
+			throw IllegalStateException()
+	}
+
+	/**
+	 * The current styling activity has completed.  If there was a post-styling
+	 * action set, run it *after* transitioning to [NotStyling].
+	 */
+	fun finishedStyling()
+	{
+		when (val oldState = stylingState.getAndSet(NotStyling))
+		{
+			is NotStyling -> throw IllegalStateException()
+			is StylingAndWaiting -> oldState.notStylingAction()
+			else -> { }
+		}
+	}
+
+	/**
+	 * A styling action might still be running.  If it is, ensure the [action]
+	 * is executed after the styling completes.  If it was not styling, run the
+	 * [action] immediately.
+	 */
+	fun whenNotStyling(action: ()->Unit)
+	{
+		do
+		{
+			val oldState = stylingState.get()
+			val newState = when (oldState)
+			{
+				is NotStyling ->
+				{
+					action()
+					return
+				}
+				StylingNotWaiting -> StylingAndWaiting(action)
+				// Only one post-styling action is allowed.
+				is StylingAndWaiting -> throw IllegalStateException()
+			}
+		}
+		while (!stylingState.compareAndSet(oldState, newState))
 	}
 
 	companion object

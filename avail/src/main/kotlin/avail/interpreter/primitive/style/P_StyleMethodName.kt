@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.canStyle
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -43,10 +44,9 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
@@ -66,13 +66,9 @@ object P_StyleMethodName : Primitive(1, CanInline, WritesToHiddenGlobalState)
 		interpreter.checkArgumentCount(1)
 		val phrase: A_Phrase = interpreter.argument(0)
 
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
-		}
+		val fiber = interpreter.fiber()
+		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		val loader = fiber.availLoader!!
 
 		loader.styleMethodName(phrase.token)
 		return interpreter.primitiveSuccess(nil)
@@ -81,11 +77,10 @@ object P_StyleMethodName : Primitive(1, CanInline, WritesToHiddenGlobalState)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION))
+				E_CANNOT_STYLE))
 
 	override fun privateBlockTypeRestriction(): A_Type = functionType(
 		tuple(
 			LITERAL_PHRASE.create(literalTokenType(stringType))),
-		Types.TOP.o)
+		TOP.o)
 }

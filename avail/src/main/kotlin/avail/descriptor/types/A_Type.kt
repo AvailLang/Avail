@@ -49,10 +49,14 @@ import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -1053,20 +1057,25 @@ interface A_Type : A_BasicObject
 
 		/**
 		 * The appropriate [SystemStyle] for the receiver, based on whether it's
-		 * a metatype or just an ordinary type.
+		 * a metatype or just an ordinary type.  Answer `null` if the type does
+		 * not indicate any particular system style.
 		 */
 		val A_Type.systemStyleForType get() =
 			when
 			{
-				isSubtypeOf(bottomMeta) ->
-					SystemStyle.TYPE
-				isSubtypeOf(instanceMeta(bottomMeta)) ->
-					SystemStyle.METATYPE
+				isSubtypeOf(bottomMeta) -> SystemStyle.TYPE
+				isSubtypeOf(instanceMeta(bottomMeta)) -> SystemStyle.METATYPE
 				isSubtypeOf(instanceMeta(PARSE_PHRASE.mostGeneralType)) ->
 					SystemStyle.PHRASE_TYPE
-				isSubtypeOf(instanceMeta(topMeta())) ->
-					SystemStyle.METATYPE
-				else -> SystemStyle.TYPE
+				isSubtypeOf(instanceMeta(topMeta())) -> SystemStyle.METATYPE
+				isSubtypeOf(PARSE_PHRASE.mostGeneralType) ->
+					SystemStyle.PHRASE
+				isSubtypeOf(NUMBER.o) -> SystemStyle.NUMERIC_LITERAL
+				isSubtypeOf(CHARACTER.o) -> SystemStyle.CHARACTER_LITERAL
+				isSubtypeOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
+				isSubtypeOf(ATOM.o) -> SystemStyle.ATOM_LITERAL
+				isInstanceMeta -> SystemStyle.TYPE
+				else -> null
 			}
 
 		// Static methods referenced from generated code.

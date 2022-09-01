@@ -164,7 +164,7 @@ bootstrapMacroExpression ::=
 	"…:_†;",
 	"…::=_;",
 	"…:_†:=_;",
-	"…:=_;",
+	"…:=§_;",
 	"…",
 	"_!;",
 	"(_::_†)"
@@ -183,7 +183,7 @@ badTypeExpression ::=
 		"…:_†;",
 		"…::=_;",
 		"…:_†:=_;",
-		"…:=_;",
+		"…:=§_;",
 		"_!;",
 		"(_::_†)"
 	} (set of string);
@@ -193,7 +193,7 @@ badSourceExpression ::=
 		"…:_†;",
 		"…::=_;",
 		"…:_†:=_;",
-		"…:=_;",
+		"…:=§_;",
 		"_!;",
 		"(_::_†)"
 	} (set of string);
@@ -228,7 +228,7 @@ Grammatical restriction {"…:_†:=_;"} (set of string)
 	is <∅, badTypeExpression, badSourceExpression> (tuple of set of string);
 
 /* Restrict assignment. */
-Grammatical restriction {"…:=_;"} (set of string)
+Grammatical restriction {"…:=§_;"} (set of string)
 	is <∅, badSourceExpression> (tuple of set of string);
 
 /* Restrict send as statement. */

@@ -37,7 +37,9 @@ import avail.AvailRuntimeSupport
 import avail.AvailTask
 import avail.annotations.HideFieldJustForPrinting
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.IS_STYLING
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.RUNNING_LEXER
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
@@ -86,6 +88,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.A_String
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
@@ -1200,6 +1203,43 @@ class FiberDescriptor private constructor(
 			loaderPriority,
 			{ },
 			nameSupplier)
+
+		/**
+		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
+		 * with the specified [AvailLoader], for the purpose of styling tokens
+		 * and phrases.  Such a fiber is the only place that styling is allowed.
+		 * Fibers launched from this fiber also allow styling, but they should
+		 * be joined by this fiber to ensure they are not making changes after
+		 * styling is supposed to have completed.  The priority is initially set
+		 * to [loaderPriority].
+		 *
+		 * @param loader
+		 *   An [AvailLoader].
+		 * @param nameSupplier
+		 *   A supplier that produces an Avail [string][A_String] to name this
+		 *   fiber on demand.  Please don't run Avail code to do so, since if
+		 *   this is evaluated during fiber execution it will cause the current
+		 *   [Thread]'s execution to block, potentially starving the execution
+		 *   pool.
+		 * @return
+		 *   The new fiber.
+		 */
+		fun newStylerFiber(
+			loader: AvailLoader,
+			nameSupplier: ()->A_String
+		): A_Fiber = createFiber(
+			TOP.o,
+			loader.runtime,
+			loader,
+			loader.textInterface,
+			loaderPriority,
+			setup =
+			{
+				fiberGlobals = fiberGlobals
+					.mapAtPuttingCanDestroy(IS_STYLING.atom, trueObject, true)
+					.makeShared()
+			},
+			nameSupplier = nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]

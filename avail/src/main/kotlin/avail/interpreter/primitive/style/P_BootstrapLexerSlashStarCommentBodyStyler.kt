@@ -33,19 +33,19 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.character.A_Character.Companion.codePoint
-import avail.descriptor.character.CharacterDescriptor
-import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.canStyle
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
-import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
@@ -73,13 +73,9 @@ object P_BootstrapLexerSlashStarCommentBodyStyler :
 		//val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 		val literalPhrase: A_Phrase = interpreter.argument(1)
 
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
-		}
+		val fiber = interpreter.fiber()
+		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		val loader = fiber.availLoader!!
 
 		val token = literalPhrase.token.literal()
 		val string = token.string()
@@ -96,6 +92,11 @@ object P_BootstrapLexerSlashStarCommentBodyStyler :
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_CANNOT_STYLE))
 
 	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }

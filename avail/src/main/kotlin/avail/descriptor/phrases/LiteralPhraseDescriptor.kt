@@ -32,7 +32,6 @@
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
-import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -58,16 +57,11 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelOne.L1Decompiler
 import avail.serialization.SerializerOperation
@@ -119,6 +113,7 @@ class LiteralPhraseDescriptor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
+		if (!visitedSet.add(self)) return then()
 		val token = self.token
 		var literal = token.literal()
 		// As a nicety, drill into a literal phrase whose value is a literal
@@ -135,52 +130,26 @@ class LiteralPhraseDescriptor(
 		// itself a phrase. Third, it runs then2, which styles the generating
 		// phrase, if any, of the literal.  Fourth, it runs the original
 		// continuation.
-		val then2: ()->Unit =
+		val then2: ()->Unit = {
+			when
 			{
-				when
-				{
-					generatingPhrase.notNil -> generatingPhrase.applyStylesThen(
-						context, visitedSet, then)
-					else -> then()
-				}
+				generatingPhrase.notNil -> generatingPhrase.applyStylesThen(
+					context, visitedSet, then)
+				else -> then()
 			}
+		}
 
-		val then3: ()->Unit = then3@{
-			val style = when
+		val then3: ()->Unit = {
+			when
 			{
+				// When a macro name includes "_!", a call site will wrap that
+				// argument *phrase* inside a synthetic literal (i.e., the value
+				// of that literal will be a phrase.  We should traverse into
+				// such a phrase.
 				literal.isInstanceOf(PARSE_PHRASE.mostGeneralType) ->
-				{
-					// When a macro name includes "_!", a call site will wrap
-					// that argument *phrase* inside a synthetic literal (i.e.,
-					// the value of that literal will be a phrase.  We should
-					// traverse into such a phrase.
 					literal.applyStylesThen(context, visitedSet, then2)
-					// We "already" ran the continuation, so we have to exit.
-					return@then3
-				}
-				literal.isInstanceOf(Types.TOKEN.o) ->
-				{
-					// The literal is itself a token.  This mechanism is what
-					// the compiler uses to pass a token for '…' and similar
-					// arguments.
-					// TODO In theory we could style arbitrary tokens here, but
-					//  they tend to get embedded inside phrases produced by
-					//  macros, so we can let the specific macros decide on
-					//  styling.
-					null
-				}
-				literal.isInstanceOf(CHARACTER.o) ->
-					SystemStyle.CHARACTER_LITERAL
-				literal.isInstanceOf(NUMBER.o) -> SystemStyle.NUMERIC_LITERAL
-				literal.isInstanceOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
-				literal.isInstanceOf(ATOM.o) -> SystemStyle.ATOM_LITERAL
-				// Don't apply any bootstrap style for other literal types.
-				else -> null
+				else -> then2()
 			}
-			style?.let {
-				context.loader.styleToken(token, it)
-			}
-			then2()
 		}
 		super.o_ApplyStylesThen(self, context, visitedSet, then3)
 	}

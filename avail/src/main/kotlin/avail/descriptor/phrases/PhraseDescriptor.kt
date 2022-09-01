@@ -105,12 +105,11 @@ abstract class PhraseDescriptor protected constructor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
+		if (!visitedSet.add(self)) return then()
 		// By default, just visit the children and do nothing else with this
 		// phrase.  Subclasses may invoke the super behavior with an altered
 		// 'then'.
-		val children = mutableListOf<A_Phrase>()
-		self.childrenDo(children::add)
-		context.visitAll(children, visitedSet, then)
+		styleDescendantsThen(self, context, visitedSet, then)
 	}
 
 	/**
@@ -414,6 +413,21 @@ abstract class PhraseDescriptor protected constructor(
 			return list1.zip(list2).all { (phrase1, phrase2) ->
 				phrase1.equalsPhrase(phrase2)
 			}
+		}
+
+		/**
+		 * Recursively style all descendants of the given phrase.
+		 *
+		 */
+		fun styleDescendantsThen(
+			phrase: A_Phrase,
+			context: CompilationContext,
+			visitedSet: MutableSet<A_Phrase>,
+			then: ()->Unit)
+		{
+			val children = mutableListOf<A_Phrase>()
+			phrase.childrenDo(children::add)
+			context.visitAll(children, visitedSet, then)
 		}
 	}
 }

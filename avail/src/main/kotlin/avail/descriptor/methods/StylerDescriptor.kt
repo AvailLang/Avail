@@ -47,6 +47,7 @@ import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.TypeTag
 
@@ -450,8 +451,12 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		MATH_EXPONENT("#math-exponent"),
 
 		/** The token should be visually ignored. */
-		DEEMPHASIZE("#deemphasize");
+		DEEMPHASIZE("#deemphasize"),
 
+		/** The token should indicate it is being excluded from something. */
+		EXCLUDED("#excluded");
+
+		/** The Avail [A_String] version of the [kotlinString]. */
 		val string = stringFrom(kotlinString).makeShared()
 	}
 

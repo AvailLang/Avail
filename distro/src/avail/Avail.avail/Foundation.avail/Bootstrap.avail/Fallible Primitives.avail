@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/24/22, 3:31 PM
+ * * Last Generated: 9/1/22, 11:36 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -2584,7 +2584,6 @@ Primitive "Macro_is«_,»_«styled by_»?" is
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
- * @raises "{39}"
  */
 Primitive "Macro_is«_,»_«styled by_»?" is
 [
@@ -3828,9 +3827,7 @@ Primitive "Style_with_" is
  * @param "overwriting" "boolean"
  *    Whether to overwrite existing styles of the affected tokens.
  * @returns "⊤"
- *    TODO
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
+ * @raises "cannot-style exception"
  */
 Primitive "Style fixed tokens of_with_«overwriting»?" is
 [
@@ -3839,8 +3836,7 @@ Primitive "Style fixed tokens of_with_«overwriting»?" is
 	overwriting : boolean
 |
 	Primitive StyleFixedTokensOfPhrase (failureCode : {
-		cannot-define-during-compilation code,
-		loading-is-over code}ᵀ);
+		cannot-style code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -3856,16 +3852,14 @@ Primitive "Style fixed tokens of_with_«overwriting»?" is
  * @param "methodName" "literal phrase⇒literal token⇒string"
  *    The string literal phrase to style as a method name.
  * @returns "⊤"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
+ * @raises "cannot-style exception"
  */
 Primitive "Style method name_" is
 [
 	methodName : string literal phrase
 |
 	Primitive StyleMethodName (failureCode : {
-		cannot-define-during-compilation code,
-		loading-is-over code}ᵀ);
+		cannot-style code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -3882,8 +3876,7 @@ Primitive "Style method name_" is
  * @param "overwriting" "boolean"
  *        Whether to overwrite existing styles in this span.
  * @returns "⊤"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
+ * @raises "cannot-style exception"
  */
 Primitive "Style span of_with_«overwriting»?" is
 [
@@ -3892,8 +3885,7 @@ Primitive "Style span of_with_«overwriting»?" is
 	overwriting : boolean
 |
 	Primitive StyleSpanOfPhrase (failureCode : {
-		cannot-define-during-compilation code,
-		loading-is-over code}ᵀ);
+		cannot-style code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 
@@ -3911,8 +3903,7 @@ Primitive "Style span of_with_«overwriting»?" is
  * @param "overwriting" "boolean"
  *        `true` to completely overwrite the style, `false` to merge them.
  * @returns "⊤"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
+ * @raises "cannot-style exception"
  */
 Primitive "Style token_as_«overwriting»?" is
 [
@@ -3921,8 +3912,7 @@ Primitive "Style token_as_«overwriting»?" is
 	overwriting : boolean
 |
 	Primitive StyleToken (failureCode : {
-		cannot-define-during-compilation code,
-		loading-is-over code}ᵀ);
+		cannot-style code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

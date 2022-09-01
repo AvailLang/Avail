@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.canStyle
 import avail.descriptor.methods.A_Styler
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
@@ -42,10 +43,11 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
@@ -60,8 +62,8 @@ object P_BootstrapLexerStringBodyStyler :
 	Primitive(
 		2,
 		CanInline,
-		Flag.Bootstrap,
-		Flag.ReadsFromHiddenGlobalState,
+		Bootstrap,
+		ReadsFromHiddenGlobalState,
 		WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
@@ -70,13 +72,9 @@ object P_BootstrapLexerStringBodyStyler :
 		//val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 		val literalPhrase: A_Phrase = interpreter.argument(1)
 
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
-		}
+		val fiber = interpreter.fiber()
+		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		val loader = fiber.availLoader!!
 
 		if (literalPhrase.phraseKindIsUnder(LITERAL_PHRASE))
 		{
@@ -94,8 +92,7 @@ object P_BootstrapLexerStringBodyStyler :
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION))
+				E_CANNOT_STYLE))
 
 	override fun privateBlockTypeRestriction() = A_Styler.stylerFunctionType
 }

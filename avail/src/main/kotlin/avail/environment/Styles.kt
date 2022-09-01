@@ -35,7 +35,12 @@ package avail.environment
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.environment.AdaptiveColor.Companion.blend
 import avail.environment.BoundStyle.Companion.defaultStyle
-import avail.environment.StyleFlag.*
+import avail.environment.StyleFlag.Bold
+import avail.environment.StyleFlag.Italic
+import avail.environment.StyleFlag.StrikeThrough
+import avail.environment.StyleFlag.Subscript
+import avail.environment.StyleFlag.Superscript
+import avail.environment.StyleFlag.Underline
 import avail.environment.streams.StreamStyle
 import avail.persistence.cache.StyleRun
 import java.awt.Color
@@ -132,6 +137,7 @@ class DefaultBoundSystemStyleBuilder(private val flags: MutableSet<StyleFlag>)
 	fun underline() { flags.add(Underline) }
 	fun superscript() { flags.add(Superscript) }
 	fun subscript() { flags.add(Subscript) }
+	fun strikeThrough() { flags.add(StrikeThrough) }
 }
 
 /**
@@ -439,6 +445,10 @@ enum class DefaultBoundSystemStyle: BoundStyle
 
 	DEEMPHASIZE(SystemStyle.DEEMPHASIZE, {
 		foreground = SystemColors::deemphasize
+	}),
+
+	EXCLUDED(SystemStyle.EXCLUDED, {
+		strikeThrough()
 	});
 
 	/**
@@ -658,7 +668,8 @@ constructor(styleConstantsObject: Any)
 	Italic(StyleConstants.Italic),
 	Underline(StyleConstants.Underline),
 	Superscript(StyleConstants.Superscript),
-	Subscript(StyleConstants.Subscript);
+	Subscript(StyleConstants.Subscript),
+	StrikeThrough(StyleConstants.StrikeThrough);
 
 	/** Undo the idiotic type-erasure to Object. */
 	val styleConstants = styleConstantsObject as StyleConstants

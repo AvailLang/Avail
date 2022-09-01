@@ -33,7 +33,8 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.methods.A_Styler
+import avail.descriptor.fiber.A_Fiber.Companion.canStyle
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
@@ -44,16 +45,19 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
-import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.Bootstrap
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -65,10 +69,10 @@ import avail.interpreter.execution.Interpreter
 object P_BootstrapDefineSpecialObjectMacroStyler :
 	Primitive(
 		2,
-		Flag.CanInline,
-		Flag.Bootstrap,
-		Flag.ReadsFromHiddenGlobalState,
-		Flag.WritesToHiddenGlobalState)
+		CanInline,
+		Bootstrap,
+		ReadsFromHiddenGlobalState,
+		WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -76,13 +80,9 @@ object P_BootstrapDefineSpecialObjectMacroStyler :
 		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
 //		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
-		val loader = interpreter.fiber().availLoader
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
-		{
-			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION)
-		}
+		val fiber = interpreter.fiber()
+		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		val loader = fiber.availLoader!!
 
 		if (optionalSendPhrase.tupleSize == 0)
 		{
@@ -116,11 +116,9 @@ object P_BootstrapDefineSpecialObjectMacroStyler :
 	}
 
 	override fun privateFailureVariableType(): A_Type =
-		AbstractEnumerationTypeDescriptor.enumerationWith(
-			SetDescriptor.set(
-				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION))
+		enumerationWith(
+			set(
+				E_CANNOT_STYLE))
 
-	override fun privateBlockTypeRestriction(): A_Type =
-		A_Styler.stylerFunctionType
+	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }

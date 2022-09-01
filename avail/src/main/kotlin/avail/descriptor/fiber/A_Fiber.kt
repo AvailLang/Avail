@@ -32,6 +32,9 @@
 package avail.descriptor.fiber
 
 import avail.AvailDebuggerModel
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.IS_STYLING
+import avail.descriptor.fiber.FiberDescriptor.Companion.newStylerFiber
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
@@ -41,6 +44,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.maps.A_Map
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -55,6 +59,7 @@ import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.execution.AvailLoader
 import avail.io.TextInterface
+import avail.utility.notNullAnd
 import java.util.TimerTask
 
 /**
@@ -387,5 +392,20 @@ interface A_Fiber : A_BasicObject
 
 		val A_Fiber.currentLexer: A_Lexer
 			get() = dispatch { o_CurrentLexer(it) }
+
+
+		/**
+		 * Check if this fiber is allowed to be performing styling operations.
+		 * For it to be allowed, the fiber must have been launched in the VM by
+		 * [newStylerFiber].  Answer `true` if the fiber is permitted to style,
+		 * otherwise `false`.
+		 */
+		val A_Fiber.canStyle: Boolean
+			get() {
+				availLoader ?: return false
+				return fiberGlobals.mapAtOrNull(IS_STYLING.atom).notNullAnd {
+					equals(trueObject)
+				}
+			}
 	}
 }

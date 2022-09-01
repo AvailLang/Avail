@@ -55,6 +55,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.objects.ObjectTypeDescriptor
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -65,6 +66,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
@@ -418,12 +420,26 @@ open class AtomDescriptor protected constructor (
 		MACRO_BUNDLE_KEY("Macro bundle"),
 
 		/**
-		 * A heritable atom (has [HERITABLE_KEY] -> [trueObject] as a property)
-		 * which, when present in as [A_Fiber]'s [heritableFiberGlobals],
-		 * indicates that the fiber was launched to run a lexer to produce a
-		 * token (or multiple).  Not serializable.
+		 * When this [A_Atom] occurs as a [heritable][HERITABLE_KEY] property of
+		 * an [A_Fiber] (with the lexer being evaluated as the value), the fiber
+		 * is permitted to run [A_Lexer]s on a module's source to produce
+		 * [A_Token]s.
+		 *
+		 * This also allows the current lexer to be extracted from the fiber,
+		 * avoiding the need to pass it.
+		 *
+		 * Not serializable.
 		 */
 		RUNNING_LEXER("running lexer", heritable = true),
+
+		/**
+		 * When this [A_Atom] occurs as a non-heritable property of an [A_Fiber]
+		 * (with [trueObject] as a property), the fiber is permitted to perform
+		 * styling operations on tokens and/or phrases.
+		 *
+		 * Not serializable.
+		 */
+		IS_STYLING("is styling"),
 
 		/**
 		 * The atom used as a key in a [fiber's][A_Fiber] global map to

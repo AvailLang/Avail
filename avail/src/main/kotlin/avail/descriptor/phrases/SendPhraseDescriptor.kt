@@ -139,8 +139,9 @@ class SendPhraseDescriptor private constructor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
+		if (!visitedSet.add(self)) return then()
 		// Process the children, then this phrase.
-		super.o_ApplyStylesThen(self, context, visitedSet) {
+		styleDescendantsThen(self, context, visitedSet) {
 			context.styleSendThen(null, self, then)
 		}
 	}

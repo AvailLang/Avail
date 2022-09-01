@@ -174,7 +174,7 @@ import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.A_Token.Companion.end
 import avail.descriptor.tokens.A_Token.Companion.pastEnd
@@ -1741,11 +1741,18 @@ constructor(
 					stylerFunction))
 		}
 		val atomName = bundle.message.atomName
-		stylerFunction.code().methodName =
-			stringFrom("Styler for ${atomName.asNativeString()}")
+		val name = atomName.asNativeString()
+		val code = stylerFunction.code()
+		val stylerPrimSuffix = when (val stylerPrim = code.codePrimitive())
+		{
+			null -> ""
+			else -> " (${stylerPrim.name})"
+		}
+		code.methodName = stringFrom(
+			"Styler for $name$stylerPrimSuffix")
 		if (AvailRuntimeConfiguration.debugStyling)
 		{
-			println("Defined styler: ${stylerFunction.code().methodName}")
+			println("Defined styler: ${code.methodName}")
 		}
 	}
 
@@ -1910,11 +1917,8 @@ constructor(
 	 *   Every [atom][AtomDescriptor] associated with the name.
 	 */
 	fun lookupAtomsForName(stringName: A_String): A_Set = module.lock {
-		val newNames = when (val name = module.newNames.mapAtOrNull(stringName))
-		{
-			null -> emptySet
-			else -> singletonSet(name)
-		}
+		val name = module.newNames.mapAtOrNull(stringName)
+		val newNames = setFromCollection(listOfNotNull(name))
 		val publicNames =
 			module.importedNames.mapAtOrNull(stringName) ?: emptySet
 		val privateNames =
@@ -2145,8 +2149,10 @@ constructor(
 			// body function.
 			val stylerRawFunction = newPrimitiveRawFunction(
 				stylerPrim, module, bodyCode.codeStartingLineNumber)
+			val name = atom.atomName.asNativeString()
+			val stylerPrimName = stylerPrim.name
 			stylerRawFunction.methodName =
-				stringFrom("Styler for ${atom.atomName.asNativeString()}")
+				stringFrom("Styler for $name ($stylerPrimName)")
 			val styler = newStyler(
 				createFunction(stylerRawFunction, emptyTuple), method, module)
 			method.updateStylers { setWithElementCanDestroy(styler, true) }

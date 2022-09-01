@@ -1,5 +1,5 @@
 /*
- * P_BootstrapVariableUseMacro.kt
+ * P_BootstrapAssignmentStatementCheckMacro.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -37,56 +37,55 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
-import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
-import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.module.A_Module.Companion.constantBindings
 import avail.descriptor.module.A_Module.Companion.variableBindings
-import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
-import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
-import avail.descriptor.phrases.VariableUsePhraseDescriptor
-import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor.TokenType
-import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
- * The `P_BootstrapVariableUseMacro` primitive is used to create
- * [variable&#32;use][VariableUsePhraseDescriptor] phrases.
+ * The [P_BootstrapAssignmentStatementCheckMacro] primitive is used for checking
+ * that an assignment statement's destination variable is within scope. It
+ * reduces some false-positive theories from partial parses like "a : b := c",
+ * in the likely event that "b" is not a variable that is in scope.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapVariableUseMacro
-	: Primitive(1, CanInline, Bootstrap)
+object P_BootstrapAssignmentStatementCheckMacro
+	: Primitive(1, CannotFail, CanInline, Bootstrap)
 {
+	/** The key to the all tokens tuple in the fiber's environment. */
+	private val staticTokensKey = STATIC_TOKENS_KEY.atom
+
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val variableNameLiteral = interpreter.argument(0)
 
-		val loader = interpreter.availLoaderOrNull()
-			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader =
+			interpreter.fiber().availLoader
+				?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
 				LITERAL_PHRASE.mostGeneralType))
@@ -98,72 +97,41 @@ object P_BootstrapVariableUseMacro
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw AvailRejectedParseException(
-				SILENT, "variable $variableNameString to be alphanumeric")
+				SILENT,
+				"variable name for assignment to be alphanumeric, " +
+					"not $variableNameString")
 		}
 		val fiberGlobals = interpreter.fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
-		scopeMap.mapAtOrNull(variableNameString)?.let { localDeclaration ->
-			// If the local constant is initialized by a literal, then treat a
-			// mention of that constant as though it were the literal itself.
-			if (localDeclaration.declarationKind() === LOCAL_CONSTANT
-				&& localDeclaration.initializationExpression
-					.phraseKindIsUnder(LITERAL_PHRASE))
-			{
-				return interpreter.primitiveSuccess(
-					localDeclaration.initializationExpression)
-			}
-			val variableUse = newUse(actualToken, localDeclaration)
-			variableUse.makeImmutable()
-			return interpreter.primitiveSuccess(variableUse)
-		}
-		// Not in a block scope. See if it's a module variable or module
-		// constant...
 		val module = loader.module
-		module.variableBindings.mapAtOrNull(variableNameString)?.let {
-				variableObject ->
-			val moduleVarDecl =
-				newModuleVariable(actualToken, variableObject, nil, nil)
-			val variableUse = newUse(actualToken, moduleVarDecl)
-			return interpreter.primitiveSuccess(variableUse.makeImmutable())
-		}
-		module.constantBindings.mapAtOrNull(variableNameString)?.let {
-				variableObject ->
-			val moduleConstDecl =
-				newModuleConstant(actualToken, variableObject, nil)
-			val variableUse = newUse(actualToken, moduleConstDecl)
-			return interpreter.primitiveSuccess(variableUse.makeImmutable())
-		}
-		throw AvailRejectedParseException(
-			// Almost any theory is better than guessing that we want the
-			// value of some variable that doesn't exist.
-			if (scopeMap.mapSize == 0) SILENT else WEAK)
+		val declaration = scopeMap.mapAtOrNull(variableNameString) ?:
+			module.variableBindings.mapAtOrNull(variableNameString)?.let {
+				newModuleVariable(actualToken, it, nil, nil)
+			} ?:
+				module.constantBindings.mapAtOrNull(variableNameString)?.let {
+					newModuleConstant(actualToken, it, nil)
+				} ?: throw AvailRejectedParseException(WEAK) {
+					formatString(
+						"variable (%s) for assignment to be in scope",
+						variableNameString)
+				}
+		if (!declaration.declarationKind().isVariable)
 		{
-			stringFrom(
-				buildString {
-					val scope = scopeMap.keysAsSet.map(A_String::asNativeString)
-					append("potential variable ")
-					append(variableNameString)
-					append(" to be in scope (local scope is")
-					when
-					{
-						scope.isEmpty() -> append(" empty)")
-						else -> append(
-							scope.sorted().joinToString(
-								prefix = ": ",
-								postfix = ")"))
-					}
-				})
+			throw AvailRejectedParseException(WEAK)
+			{
+				formatString(
+					"a name of a variable for assignment, not a(n) %s",
+					declaration.declarationKind().nativeKindName())
+			}
 		}
+		return interpreter.primitiveSuccess(nil)
 	}
-
-	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(
-			set(
-				E_LOADING_IS_OVER))
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(LITERAL_PHRASE.create(TOKEN.o)), // Variable name
-			VARIABLE_USE_PHRASE.mostGeneralType)
+			tuple(
+				/* Leading variable name for assignment */
+				LITERAL_PHRASE.create(TOKEN.o)),
+			TOP.o)
 }
