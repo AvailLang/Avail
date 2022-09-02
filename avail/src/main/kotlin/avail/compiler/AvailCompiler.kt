@@ -458,7 +458,7 @@ class AvailCompiler constructor(
 			builder.append(pointer.depth)
 			builder.append(". ")
 			val bundleTree = pointer.bundleTree
-			if (bundleTree.equals(compilationContext.loader.rootBundleTree()))
+			if (bundleTree.equals(compilationContext.loader.rootBundleTree))
 			{
 				builder.append("an expression")
 			}
@@ -1266,7 +1266,7 @@ class AvailCompiler constructor(
 	{
 		val loader = compilationContext.loader
 		parseRestOfSendNode(
-			loader.rootBundleTree(),
+			loader.rootBundleTree,
 			ParsingStepState(
 				start,
 				null,
@@ -1277,7 +1277,7 @@ class AvailCompiler constructor(
 				false,
 				emptyList(),
 				PartialSubexpressionList(
-					loader.rootBundleTree(), superexpressions),
+					loader.rootBundleTree, superexpressions),
 				continuation))
 	}
 
@@ -1305,7 +1305,7 @@ class AvailCompiler constructor(
 		assert(start.lexingState != initialTokenPosition.lexingState)
 		val loader = compilationContext.loader
 		parseRestOfSendNode(
-			loader.rootBundleTree(),
+			loader.rootBundleTree,
 			ParsingStepState(
 				start,
 				leadingArgument,
@@ -1316,7 +1316,7 @@ class AvailCompiler constructor(
 				false,
 				emptyList(),
 				PartialSubexpressionList(
-					loader.rootBundleTree(), superexpressions),
+					loader.rootBundleTree, superexpressions),
 				continuation))
 	}
 
@@ -3944,7 +3944,7 @@ class AvailCompiler constructor(
 			// being parsed, or if we're at the root of the bundle tree.
 			val isRoot = superexpressions === null
 				|| superexpressions.bundleTree.equals(
-					compilationContext.loader.rootBundleTree())
+					compilationContext.loader.rootBundleTree)
 			start.expected(if (isRoot) SILENT else WEAK) {
 				val builder = StringBuilder()
 				builder.append("an expression for (at least) this reason:")

@@ -77,7 +77,6 @@ import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
-import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
 import avail.descriptor.character.A_Character
 import avail.descriptor.character.A_Character.Companion.codePoint
@@ -333,22 +332,12 @@ constructor(
 	var lexicalScanner: LexicalScanner? = moduleHeaderLexicalScanner
 
 	/**
-	 * Answer the [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor]
-	 * that this [AvailLoader] is using to parse its [module][ModuleDescriptor].
-	 * Start it out as the [moduleHeaderBundleRoot] for parsing the header, then
-	 * switch it out to parse the body.
+	 * The [A_BundleTree] that this [AvailLoader] is using to parse its
+	 * [module][ModuleDescriptor]. Start it out as the [moduleHeaderBundleRoot]
+	 * for parsing the header, then switch it out to parse the body.
 	 */
-	private var rootBundleTree: A_BundleTree = moduleHeaderBundleRoot
-
-	/**
-	 * Answer the [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor]
-	 * that this [AvailLoader] is using to parse its [module][ModuleDescriptor].
-	 * It must not be `null`.
-	 *
-	 * @return
-	 *   A message bundle tree.
-	 */
-	fun rootBundleTree(): A_BundleTree = rootBundleTree
+	var rootBundleTree: A_BundleTree = moduleHeaderBundleRoot
+		private set
 
 	/**
 	 * During module compilation, this holds the top-level zero-argument block
@@ -1198,7 +1187,7 @@ constructor(
 			method.methodAddDefinition(newForward)
 			recordEffect(LoadingEffectToAddDefinition(bundle, newForward))
 			val theModule = module
-			val root = rootBundleTree()
+			val root = rootBundleTree
 			theModule.lock {
 				theModule.moduleAddDefinition(newForward)
 				pendingForwards =
@@ -1349,7 +1338,7 @@ constructor(
 		if (phase == EXECUTING_FOR_COMPILE)
 		{
 			module.lock {
-				val root = rootBundleTree()
+				val root = rootBundleTree
 				forward?.let { forward ->
 					method.bundles.forEach { bundle ->
 						if (module.hasAncestor(bundle.message.issuingModule))
@@ -1507,7 +1496,7 @@ constructor(
 				val plan: A_DefinitionParsingPlan =
 					bundle.definitionParsingPlans.mapAt(macroDefinition)
 				val planInProgress = newPlanInProgress(plan, 1)
-				rootBundleTree().addPlanInProgress(planInProgress)
+				rootBundleTree.addPlanInProgress(planInProgress)
 			}
 		}
 	}
@@ -1648,7 +1637,7 @@ constructor(
 			}
 			val grammaticalRestriction =
 				newGrammaticalRestriction(bundleSetTuple, bundle, module)
-			val root = rootBundleTree()
+			val root = rootBundleTree
 			val theModule = module
 			theModule.lock {
 				bundle.addGrammaticalRestriction(grammaticalRestriction)
