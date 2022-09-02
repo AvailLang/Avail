@@ -1070,10 +1070,6 @@ interface A_Type : A_BasicObject
 				isSubtypeOf(instanceMeta(topMeta())) -> SystemStyle.METATYPE
 				isSubtypeOf(PARSE_PHRASE.mostGeneralType) ->
 					SystemStyle.PHRASE
-				isSubtypeOf(NUMBER.o) -> SystemStyle.NUMERIC_LITERAL
-				isSubtypeOf(CHARACTER.o) -> SystemStyle.CHARACTER_LITERAL
-				isSubtypeOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
-				isSubtypeOf(ATOM.o) -> SystemStyle.ATOM_LITERAL
 				isInstanceMeta -> SystemStyle.TYPE
 				else -> null
 			}

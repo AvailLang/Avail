@@ -329,7 +329,7 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 
 		/**
 		 * A string escape sequence, including both the escape character \ and
-		 * the character(s) that follow it that are being escaped. ALL escape
+		 * the character(s) that follow it that are being escaped. *All* escape
 		 * sequences are styled similarly, even \\ and \", which serve to mark
 		 * the escape character \ and the delimiter " as actual characters
 		 * within the string. Also used for delimiting quotes.
@@ -373,6 +373,12 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 * if it serves as a method name, object type field, etc.
 		 */
 		ATOM_LITERAL("#atom-literal"),
+
+		/**
+		 * A literal of some other Avail datatype than string, number, boolean,
+		 * character, or atom.
+		 */
+		OTHER_LITERAL("#other-literal"),
 
 		/**
 		 * The fixed syntax indicating a conditional expression, but not its

@@ -374,6 +374,11 @@ enum class DefaultBoundSystemStyle: BoundStyle
 		foreground = SystemColors::green
 	}),
 
+	/** Default style for [SystemStyle.OTHER_LITERAL]. */
+	OTHER_LITERAL(SystemStyle.OTHER_LITERAL, {
+		foreground = SystemColors::green
+	}),
+
 	/** Default style for [SystemStyle.CONDITIONAL]. */
 	CONDITIONAL(SystemStyle.CONDITIONAL, {
 		foreground = SystemColors::mustard

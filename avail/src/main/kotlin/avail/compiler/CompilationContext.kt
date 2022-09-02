@@ -96,9 +96,16 @@ import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.systemStyleForType
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailRuntimeException
@@ -1020,62 +1027,76 @@ class CompilationContext constructor(
 		transformedPhrase: A_Phrase,
 		then: ()->Unit)
 	{
-		val styles = mutableListOf<SystemStyle?>()
+		val styles = mutableListOf<SystemStyle>()
 		// 1. Add a method/macro style.
 		styles.add(
 			when
 			{
 				(originalSendPhrase.notNullAnd { !equals(transformedPhrase) }) ->
 					SystemStyle.MACRO_SEND
-
 				else -> SystemStyle.METHOD_SEND
-			}
-		)
-		// 2. Add an optional style based on the yield type.
-		styles.add(transformedPhrase.phraseExpressionType.systemStyleForType)
+			})
+		// 2. Add an optional style based on the yield type, taking care not to
+		//    override variable use styles.
+		val yieldType = transformedPhrase.phraseExpressionType
+		when
+		{
+			transformedPhrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> {}
+			else -> yieldType.systemStyleForType?.let { styles.add(it) }
+		}
+		// 3. Run any custom styler.
 		val bundleWithStyler = when
 		{
 			originalSendPhrase !== null -> originalSendPhrase.bundle
 			transformedPhrase.phraseKindIsUnder(SEND_PHRASE) ->
 				transformedPhrase.bundle
-
-			else -> null
+			transformedPhrase.phraseKindIsUnder(LITERAL_PHRASE) ->
+			{
+				// Handle literals, whether intrinsic or folded.
+				val literalStyle = yieldType.run {
+					when
+					{
+						isSubtypeOf(NUMBER.o) -> SystemStyle.NUMERIC_LITERAL
+						isSubtypeOf(CHARACTER.o) -> SystemStyle.CHARACTER_LITERAL
+						isSubtypeOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
+						isSubtypeOf(ATOM.o) -> SystemStyle.ATOM_LITERAL
+						else -> SystemStyle.OTHER_LITERAL
+					}
+				}
+				styles.add(literalStyle)
+				transformedPhrase.bundle
+			}
+			else -> return
 		}
-		styles.filterNotNull().forEach { style ->
+		styles.forEach { style ->
 			originalSendPhrase?.let { loader.styleTokens(it.tokens, style) }
 			loader.styleTokens(transformedPhrase.tokens, style)
 		}
-		// 3. Run any custom styler.
-		if (bundleWithStyler !== null)
+		// Next, give the method's styler function a chance to run.
+		val stylerFn = getStylerFunction(bundleWithStyler.bundleMethod)
+		if (debugStyling)
 		{
-			// Next, give the method's styler function a chance to run.
-			val stylerFn = getStylerFunction(bundleWithStyler.bundleMethod)
-			if (debugStyling)
-			{
-				println(
-					"style send: $bundleWithStyler\n" +
-						"\twith ${stylerFn.code().methodName.asNativeString()}"
-				)
-			}
-			val fiber = newStylerFiber(loader)
-			{
-				formatString(
-					"Style %s (%s)",
-					bundleWithStyler.message,
-					stylerFn.code().methodName.asNativeString()
-				)
-			}
-			fiber.setSuccessAndFailure(
-				onSuccess = { then() },
-				// Ignore styler failures for now.
-				onFailure = { then() })
-			runtime.runOutermostFunction(
-				fiber,
-				stylerFn,
-				listOf(
-					tupleFromList(listOfNotNull(originalSendPhrase)),
-					transformedPhrase))
+			println(
+				"style send: $bundleWithStyler\n" +
+					"\twith ${stylerFn.code().methodName.asNativeString()}")
 		}
+		val fiber = newStylerFiber(loader)
+		{
+			formatString(
+				"Style %s (%s)",
+				bundleWithStyler.message,
+				stylerFn.code().methodName.asNativeString())
+		}
+		fiber.setSuccessAndFailure(
+			onSuccess = { then() },
+			// Ignore styler failures for now.
+			onFailure = { then() })
+		runtime.runOutermostFunction(
+			fiber,
+			stylerFn,
+			listOf(
+				tupleFromList(listOfNotNull(originalSendPhrase)),
+				transformedPhrase))
 	}
 
 	/**
