@@ -49,8 +49,8 @@ Names
 	"Replace parse acceptance function with_",
 	"Shouldn't happen",
 	"Shouldn't happen(_)",
-	"definition styler function",
-	"special object styler function",
+	"definition styler",
+	"special object styler",
 
 	/* Stylers. */
 	"attempt extract_or_then_",
@@ -309,7 +309,7 @@ Primitive "Method_is_«styled by_»?" is
  *
  * @returns "styler function"
  */
-Method "definition styler function" is
+Method "definition styler" is
 [
 	[
 		original : optionalSendType,
@@ -327,7 +327,7 @@ Method "definition styler function" is
  *
  * @returns "styler function"
  */
-Method "special object styler function" is
+Method "special object styler" is
 [
 	[
 		original : optionalSendType,

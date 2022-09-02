@@ -958,8 +958,8 @@ Extends
 		"Stable abstract method_is_",
 		"Stable forward method_is_",
 		"Stable method_is_",
-		"definition styler function",
-		"special object styler function"
+		"definition styler",
+		"special object styler"
 	),
 	"Late Math" =
 	(
@@ -1102,7 +1102,8 @@ Extends
 			\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
 				\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 			\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
-		"_as_«with«_::=_‡,»»"
+		"_as_«with«_::=_‡,»»",
+		"object type styler"
 	),
 	"Observing" =
 	(

@@ -252,7 +252,8 @@ Public method "Raise_" is
 	[
 		noUnhandledExceptionHandler(anException)
 	]
-] : ⊥;
+] : ⊥
+styled by nonlocal control styler;
 
 /**
  * Mark the nearest {@method "Guard|guard_«intercept_»«ensure_»" guard frame}
@@ -812,7 +813,8 @@ Private method "System exception_(_)extends_" is
 	Method "exception for code_" is
 		new [code's type]→exceptionType's type
 		applying [i : integer | exceptionType];
-];
+]
+styled by definition styler;
 
 /**
  * An arithmetic exception describes error conditions related to arithmetic and
