@@ -49,14 +49,10 @@ import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
