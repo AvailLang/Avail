@@ -363,7 +363,7 @@ class AvailCompiler constructor(
 	val compilationContext = CompilationContext(
 		moduleHeader,
 		module,
-		source,
+		source.makeShared(),
 		textInterface,
 		pollForAbort,
 		progressReporter,
@@ -3641,7 +3641,7 @@ class AvailCompiler constructor(
 			{
 				val versionString = stringFromToken(versionStringToken)
 				assert(!moduleHeader.versions.contains(versionString))
-				moduleHeader.versions.add(versionString)
+				moduleHeader.versions.add(versionString.makeShared())
 			}
 		}
 

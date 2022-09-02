@@ -804,7 +804,8 @@ class AvailObject private constructor(
 		do
 		{
 			queue.removeLast().makeImmutableInternal(queue, fixups)
-		} while (queue.isNotEmpty())
+		}
+		while (queue.isNotEmpty())
 		fixups.forEach { it() }
 		return traversed()
 	}
