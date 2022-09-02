@@ -80,7 +80,7 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 
 		val loader = interpreter.availLoaderOrNull()
 		loader ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)

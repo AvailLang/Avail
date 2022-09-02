@@ -319,44 +319,18 @@ constructor(
 		COMPILING_FOR_EVAL(false);
 	}
 
-	/** The current loading setPhase. */
+	/** The current loading [Phase]. */
 	@Volatile
-	private var phase: Phase = INITIALIZING
+	var phase: Phase = INITIALIZING
 
 	/**
-	 * Get the current loading [Phase].
-	 *
-	 * @return
-	 *   The loader's current [Phase].
-	 */
-	fun phase(): Phase = phase
-
-	/**
-	 * Set the current loading [Phase].
-	 *
-	 * @param newPhase
-	 *   The new [Phase].
-	 */
-	fun setPhase(newPhase: Phase)
-	{
-		phase = newPhase
-	}
-
-	/**
-	 * Used for extracting tokens from the source text. Start by using the
-	 * module header lexical scanner, and replace it after the header has been
-	 * fully parsed.
-	 */
-	private var lexicalScanner: LexicalScanner? = moduleHeaderLexicalScanner
-
-	/**
-	 * Answer the [LexicalScanner] used for creating tokens from source
+	 * The [LexicalScanner] used for creating tokens from source
 	 * code for this [AvailLoader].
 	 *
-	 * @return
-	 *   The [LexicalScanner], which must not be `null`.
+	 * Start by using the module header lexical scanner, and replace it after
+	 * the header has been fully parsed.
 	 */
-	fun lexicalScanner(): LexicalScanner = lexicalScanner!!
+	var lexicalScanner: LexicalScanner? = moduleHeaderLexicalScanner
 
 	/**
 	 * Answer the [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor]

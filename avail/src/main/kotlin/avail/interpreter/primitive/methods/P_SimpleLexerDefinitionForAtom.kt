@@ -93,7 +93,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -120,9 +120,9 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			// and run entry points in the scope of the module, without having
 			// to generate the lexicalScanner for a module that has already been
 			// closed (ModuleDescriptor.State.Loaded).
-			if (loader.phase() == EXECUTING_FOR_COMPILE)
+			if (loader.phase == EXECUTING_FOR_COMPILE)
 			{
-				loader.lexicalScanner().addLexer(lexer)
+				loader.lexicalScanner!!.addLexer(lexer)
 				loader.manifestEntries!!.add(
 					ModuleManifestEntry(
 						SideEffectKind.LEXER_KIND,

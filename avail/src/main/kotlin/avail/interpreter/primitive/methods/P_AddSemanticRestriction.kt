@@ -79,7 +79,7 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 		val tupleType = functionType.argsTupleType
 		val loader = interpreter.availLoaderOrNull()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)

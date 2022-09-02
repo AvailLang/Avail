@@ -216,7 +216,7 @@ class LexingState constructor(
 			this.actions = null
 			return
 		}
-		compilationContext.loader.lexicalScanner().getLexersForCodePointThen(
+		compilationContext.loader.lexicalScanner!!.getLexersForCodePointThen(
 			this,
 			source.tupleCodePointAt(position),
 			this::evaluateLexers,
@@ -241,7 +241,7 @@ class LexingState constructor(
 		if (applicableLexers.tupleSize == 0)
 		{
 			// No applicable lexers.
-			val scanner = compilationContext.loader.lexicalScanner()
+			val scanner = compilationContext.loader.lexicalScanner!!
 			val codePoint = compilationContext.source.tupleCodePointAt(position)
 			val charString =
 				CharacterDescriptor.fromCodePoint(codePoint).toString()
@@ -249,7 +249,7 @@ class LexingState constructor(
 				STRONG,
 				format(
 					"an applicable lexer, but all %d filter functions returned "
-					+ "false (code point = %s (U+%04x))",
+						+ "false (code point = %s (U+%04x))",
 					scanner.allVisibleLexers.size,
 					charString,
 					codePoint))
@@ -463,7 +463,7 @@ class LexingState constructor(
 					.keys
 					.sortedBy { it.string().asNativeString() }
 					.joinToString()
-				val lexers = compilationContext.loader.lexicalScanner()
+				val lexers = compilationContext.loader.lexicalScanner!!
 					.allVisibleLexers
 					.map {
 						it.lexerMethod.chooseBundle(compilationContext.module)

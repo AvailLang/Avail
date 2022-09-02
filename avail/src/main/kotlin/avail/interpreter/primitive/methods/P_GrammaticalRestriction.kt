@@ -86,7 +86,7 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		val excludedStringSets = interpreter.argument(1)
 		val loader = interpreter.availLoaderOrNull() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)

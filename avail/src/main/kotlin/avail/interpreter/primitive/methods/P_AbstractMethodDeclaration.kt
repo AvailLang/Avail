@@ -74,7 +74,7 @@ object P_AbstractMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)

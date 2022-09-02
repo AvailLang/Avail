@@ -76,7 +76,7 @@ object P_AbstractMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)

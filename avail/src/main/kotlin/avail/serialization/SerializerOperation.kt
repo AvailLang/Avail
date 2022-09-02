@@ -2130,7 +2130,6 @@ enum class SerializerOperation constructor(
 			{
 				throw AvailRuntimeException(E_JAVA_METHOD_NOT_AVAILABLE)
 			}
-
 		}
 	},
 
@@ -2175,7 +2174,6 @@ enum class SerializerOperation constructor(
 			{
 				throw AvailRuntimeException(E_JAVA_METHOD_NOT_AVAILABLE)
 			}
-
 		}
 	},
 

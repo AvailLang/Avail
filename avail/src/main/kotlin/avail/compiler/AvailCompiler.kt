@@ -301,7 +301,6 @@ import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
 import avail.utility.safeWrite
 import avail.utility.trace
-import java.util.Arrays
 import java.util.Collections.emptyList
 import java.util.Formatter
 import java.util.concurrent.ConcurrentHashMap
@@ -368,10 +367,8 @@ class AvailCompiler constructor(
 		pollForAbort,
 		progressReporter,
 		problemHandler)
-
 	/** The memoization of results of previous parsing attempts. */
 	private val fragmentCache = AvailCompilerFragmentCache()
-
 	/**
 	 * The Avail [A_String] containing the complete content of the module
 	 * being compiled.
@@ -391,9 +388,8 @@ class AvailCompiler constructor(
 	 * @return
 	 *   The module name.
 	 */
-	private val moduleName get() = ModuleName(
-		compilationContext.module.moduleNameNative)
-
+	private val moduleName
+		get() = ModuleName(compilationContext.module.moduleNameNative)
 	/**
 	 * A list of subexpressions being parsed, represented by
 	 * [message&#32;bundle&#32;trees][A_BundleTree] holding the positions
@@ -474,7 +470,8 @@ class AvailCompiler constructor(
 				bundles.sortedBy { it.message.atomName.asNativeString() }
 				var first = true
 				val maxBundles = 3
-				for (bundle in bundles.subList(0, min(bundles.size,maxBundles)))
+				for (bundle in
+					bundles.subList(0, min(bundles.size, maxBundles)))
 				{
 					if (!first)
 					{
@@ -521,7 +518,6 @@ class AvailCompiler constructor(
 		acceptAnswer: (ParserState, A_Phrase)->Unit)
 	{
 		val solutions = mutableListOf<CompilerSolution>()
-
 		// Set up an action to perform when the last work unit for this compiler
 		// has completed.  That's the moment when we can check how many
 		// solutions were actually found.
@@ -558,8 +554,7 @@ class AvailCompiler constructor(
 			}
 		}
 		start.workUnitDo {
-			parseExpressionThen(start, null) {
-				afterExpression, expression ->
+			parseExpressionThen(start, null) { afterExpression, expression ->
 				when
 				{
 					expression.phraseKindIsUnder(STATEMENT_PHRASE) ->
@@ -749,7 +744,6 @@ class AvailCompiler constructor(
 	private fun rollbackModuleTransaction(afterRollback: ()->Unit) =
 		compilationContext.module.removeFrom(
 			compilationContext.loader, afterRollback)
-
 	/**
 	 * Commit the [module][A_Module] that was defined since the most recent
 	 * [startModuleTransaction].  This also closes the module against further
@@ -758,7 +752,6 @@ class AvailCompiler constructor(
 	 */
 	private fun commitModuleTransaction() =
 		compilationContext.runtime.addModule(compilationContext.module)
-
 	/**
 	 * Evaluate the specified semantic restriction [function][A_Function] in the
 	 * module's context; lexically enclosing variables are not considered in
@@ -899,7 +892,6 @@ class AvailCompiler constructor(
 			nil,
 			mutableListOf(),
 			declarationRemap)
-
 		val phraseFailure = { e: Throwable ->
 			when (e)
 			{
@@ -954,9 +946,9 @@ class AvailCompiler constructor(
 					afterStatement.expected(
 						STRONG,
 						"new module constant "
-						+ name
-						+ " not to have same name as existing "
-						+ shadowProblem)
+							+ name
+							+ " not to have same name as existing "
+							+ shadowProblem)
 					compilationContext.diagnostics.reportError()
 					return
 				}
@@ -1050,9 +1042,9 @@ class AvailCompiler constructor(
 					afterStatement.expected(
 						STRONG,
 						"new module variable "
-						+ name
-						+ " not to have same name as existing "
-						+ shadowProblem)
+							+ name
+							+ " not to have same name as existing "
+							+ shadowProblem)
 					compilationContext.diagnostics.reportError()
 					return
 				}
@@ -1182,7 +1174,7 @@ class AvailCompiler constructor(
 						// positions.
 						val strings = mutableSetOf<String>()
 						nextTree.allParsingPlansInProgress.forEach {
-							bundle, definitions ->
+								bundle, definitions ->
 							definitions.forEach { _, plans ->
 								plans.forEach { inProgress ->
 									val previousPlan = newPlanInProgress(
@@ -1434,7 +1426,7 @@ class AvailCompiler constructor(
 						{
 							println(
 								"Completed send/macro: ${bundle.message} "
-								+ "$args")
+									+ "$args")
 						}
 						completedSendNode(
 							stepState.initialTokenPosition,
@@ -1472,7 +1464,7 @@ class AvailCompiler constructor(
 						{
 							println(
 								"Grammatical prefilter: $argumentBundle to "
-								+ "$successor")
+									+ "$successor")
 						}
 						eventuallyParseRestOfSendNode(
 							successor, stepState.copy())
@@ -1642,7 +1634,8 @@ class AvailCompiler constructor(
 					{
 						val strings = tokens.mapTo(
 							mutableSetOf(),
-							when {
+							when
+							{
 								caseInsensitive -> A_Token::lowerCaseString
 								else -> A_Token::string
 							})
@@ -1753,7 +1746,8 @@ class AvailCompiler constructor(
 				append("phrase to have a type other than:\n\t\t")
 				append(increaseIndentation(actualTypeString, 2))
 				append(".\n\tExpecting:")
-				for ((planString, types) in entries) {
+				for ((planString, types) in entries)
+				{
 					append("\n\t\t")
 					append(planString)
 					append("   ")
@@ -1799,23 +1793,23 @@ class AvailCompiler constructor(
 			{
 				println(
 					"Instr @"
-					+ stepState.start.shortString()
-					+ ": "
-					+ op.name
-					+ " ("
-					+ operand(instruction)
-					+ ") -> "
-					+ successorTree)
+						+ stepState.start.shortString()
+						+ ": "
+						+ op.name
+						+ " ("
+						+ operand(instruction)
+						+ ") -> "
+						+ successorTree)
 			}
 			else
 			{
 				println(
 					"Instr @"
-					+ stepState.start.shortString()
-					+ ": "
-					+ op.name
-					+ " -> "
-					+ successorTree)
+						+ stepState.start.shortString()
+						+ ": "
+						+ op.name
+						+ " -> "
+						+ successorTree)
 			}
 		}
 		val timeBefore = captureNanos()
@@ -2059,40 +2053,41 @@ class AvailCompiler constructor(
 				restriction,
 				argTypes,
 				state.lexingState,
-				intersectAndDecrement) { e ->
-					if (e is AvailAcceptedParseException)
-					{
-						// This is really a success.
-						intersectAndDecrement(TOP.o)
-						return@evaluateSemanticRestrictionFunctionThen
-					}
-					when (e)
-					{
-						is AvailRejectedParseException -> state.expected(
-							e.level,
-							e.rejectionString.asNativeString()
-								+ " (while parsing send of "
-								+ bundle.message
-								.atomName.asNativeString()
-								+ ")")
-						is FiberTerminationException -> state.expected(
-							STRONG,
-							"semantic restriction not to raise an "
-								+ "unhandled exception (while parsing "
-								+ "send of "
-								+ bundle.message.atomName.asNativeString()
-								+ "):\n\t"
-								+ e)
-						else -> state.expected(
-							STRONG,
-							FormattingDescriber(
-								"unexpected error: %s", e))
-					}
-					failureCount.incrementAndGet()
-					if (outstanding.decrementAndGet() == 0)
-					{
-						whenDone()
-					}
+				intersectAndDecrement
+			) { e ->
+				if (e is AvailAcceptedParseException)
+				{
+					// This is really a success.
+					intersectAndDecrement(TOP.o)
+					return@evaluateSemanticRestrictionFunctionThen
+				}
+				when (e)
+				{
+					is AvailRejectedParseException -> state.expected(
+						e.level,
+						e.rejectionString.asNativeString()
+							+ " (while parsing send of "
+							+ bundle.message
+							.atomName.asNativeString()
+							+ ")")
+					is FiberTerminationException -> state.expected(
+						STRONG,
+						"semantic restriction not to raise an "
+							+ "unhandled exception (while parsing "
+							+ "send of "
+							+ bundle.message.atomName.asNativeString()
+							+ "):\n\t"
+							+ e)
+					else -> state.expected(
+						STRONG,
+						FormattingDescriber(
+							"unexpected error: %s", e))
+				}
+				failureCount.incrementAndGet()
+				if (outstanding.decrementAndGet() == 0)
+				{
+					whenDone()
+				}
 			}
 		}
 	}
@@ -2129,8 +2124,9 @@ class AvailCompiler constructor(
 		macrosTuple: A_Tuple,
 		scopeModule: A_Module): Describer
 	{
-		assert((definitionsTuple.tupleSize > 0)
-			xor (macrosTuple.tupleSize > 0))
+		assert(
+			(definitionsTuple.tupleSize > 0)
+				xor (macrosTuple.tupleSize > 0))
 		return { c ->
 			val kindOfDefinition = when
 			{
@@ -2218,7 +2214,7 @@ class AvailCompiler constructor(
 				val builder = Formatter()
 				builder.format(
 					"arguments at indices %s of message %s to "
-					+ "match a visible %s definition:%n",
+						+ "match a visible %s definition:%n",
 					allFailedIndices,
 					bundle.message.atomName,
 					kindOfDefinition)
@@ -2254,8 +2250,8 @@ class AvailCompiler constructor(
 				{
 					c(
 						"[[[Internal problem - No visible implementations;"
-						+ " should have been excluded.]]]\n"
-						+ builder)
+							+ " should have been excluded.]]]\n"
+							+ builder)
 				}
 				else
 				{
@@ -2305,8 +2301,8 @@ class AvailCompiler constructor(
 			stateAfterCall.expected(
 				STRONG,
 				"there to be a method or macro definition for "
-				+ bundle.message
-				+ ", but there wasn't")
+					+ bundle.message
+					+ ", but there wasn't")
 			return
 		}
 
@@ -2387,7 +2383,10 @@ class AvailCompiler constructor(
 				// Failed lookup.
 				when (errorCode)
 				{
-					E_NO_METHOD_DEFINITION -> { } // fall through
+					E_NO_METHOD_DEFINITION ->
+					{
+						// fall through
+					}
 					E_AMBIGUOUS_METHOD_DEFINITION ->
 					{
 						stateAfterCall.expected(MEDIUM) {
@@ -2518,7 +2517,6 @@ class AvailCompiler constructor(
 			// argument was explicitly provided to the parser.  We should
 			// consume the provided first argument now.
 			assert(!canReallyParse)
-
 			// wrapInLiteral allows us to accept anything, even expressions that
 			// are ⊤- or ⊥-valued.
 			if (wrapInLiteral)
@@ -2548,7 +2546,7 @@ class AvailCompiler constructor(
 			return
 		}
 		parseExpressionThen(start, superexpressions) {
-			afterArgument, argument ->
+				afterArgument, argument ->
 			// Only accept a ⊤-valued or ⊥-valued expression if
 			// wrapInLiteral is true.
 			if (!wrapInLiteral)
@@ -2724,13 +2722,13 @@ class AvailCompiler constructor(
 		{
 			println(
 				"PRE-EVAL:"
-				+ stateAfterCall.lineNumber
-				+ '('.toString()
-				+ stateAfterCall.position
-				+ ") "
-				+ macroDefinitionToInvoke
-				+ ' '.toString()
-				+ argumentsList)
+					+ stateAfterCall.lineNumber
+					+ '('.toString()
+					+ stateAfterCall.position
+					+ ") "
+					+ macroDefinitionToInvoke
+					+ ' '.toString()
+					+ argumentsList)
 		}
 		val clientDataAfterRunning = Mutable<A_Map?>(null)
 		evaluateMacroFunctionThen(
@@ -2743,13 +2741,15 @@ class AvailCompiler constructor(
 				assert(clientDataAfterRunning.value !== null)
 				// In theory a fiber can produce anything, although you have to
 				// mess with continuations to get it wrong.
-				val adjustedReplacement: A_Phrase = when {
+				val adjustedReplacement: A_Phrase = when
+				{
 					!replacement.isInstanceOfKind(
 						PARSE_PHRASE.mostGeneralType) ->
 					{
 						stateAfterCall.expected(
 							STRONG,
-							listOf(replacement)) {
+							listOf(replacement)
+						) {
 							"Macro body for ${bundle.message} to have " +
 								"produced a phrase, not ${it[0]}"
 						}
@@ -2807,11 +2807,11 @@ class AvailCompiler constructor(
 				{
 					println(
 						":"
-						+ stateAfter.lineNumber
-						+ '('.toString()
-						+ stateAfter.position
-						+ ") "
-						+ substitution)
+							+ stateAfter.lineNumber
+							+ '('.toString()
+							+ stateAfter.position
+							+ ") "
+							+ substitution)
 				}
 				stateAfter.workUnitDo { continuation(stateAfter, substitution) }
 			},
@@ -3189,9 +3189,9 @@ class AvailCompiler constructor(
 	private fun applyPragmasThen(state: LexingState, success: ()->Unit)
 	{
 		val iterator = moduleHeader.pragmas.iterator()
-		compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
+		compilationContext.loader.phase = EXECUTING_FOR_COMPILE
 		var recurse: (()->Unit)? = null
-		recurse = recurse@ {
+		recurse = recurse@{
 			if (!iterator.hasNext())
 			{
 				// Done with all the pragmas, if any.  Report any new
@@ -3222,9 +3222,7 @@ class AvailCompiler constructor(
 					pragmaToken.nextLexingState(),
 					"Unsupported pragma kind at %s on line %d:",
 					"Pragma kind should be one of: "
-					+ Arrays.stream(PragmaKind.values())
-						.map { it.lexeme }
-						.toList())
+						+ PragmaKind.values().map { it.lexeme }.toList())
 				return@recurse
 			}
 			pragmaKind.applyThen(
@@ -3274,7 +3272,7 @@ class AvailCompiler constructor(
 				return@parseModuleHeader
 			}
 			// Style the header.
-			compilationContext.loader.setPhase(STYLING_HEADER)
+			compilationContext.loader.phase = STYLING_HEADER
 			assert(headerPhrase.isMacroSubstitutionNode)
 			compilationContext.clearStyleCache()
 			afterHeader.lexingState.styleAllTokensThen {
@@ -3305,7 +3303,7 @@ class AvailCompiler constructor(
 	 */
 	private fun parseAndExecuteOutermostStatements(start: ParserState)
 	{
-		compilationContext.loader.setPhase(COMPILING)
+		compilationContext.loader.phase = COMPILING
 		// Forget any accumulated tokens from previous top-level statements.
 		val startLexingState = start.lexingState
 		val startWithoutAnyTokens = ParserState(
@@ -3334,7 +3332,7 @@ class AvailCompiler constructor(
 							allTokens.withoutLast()),
 						afterStatement.clientDataMap)
 				}
-				compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
+				compilationContext.loader.phase = EXECUTING_FOR_COMPILE
 				// Allow trailing comments to be styled at the same time as the
 				// final statement...
 				withoutEndToken.lexingState.styleAllTokensThen {
@@ -3380,7 +3378,7 @@ class AvailCompiler constructor(
 					afterStatement.withMap(start.clientDataMap))
 			}
 
-			compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
+			compilationContext.loader.phase = EXECUTING_FOR_COMPILE
 			// Style each base token once, even if the statement has to be
 			// decomposed into multiple separately executed and separately
 			// styled statements.
@@ -3549,7 +3547,7 @@ class AvailCompiler constructor(
 		val start = ParserState(
 			LexingState(compilationContext, 1, 1, emptyList()), clientData)
 		val solutions = mutableListOf<A_Phrase>()
-		compilationContext.noMoreWorkUnits = noMoreWorkUnits@ {
+		compilationContext.noMoreWorkUnits = noMoreWorkUnits@{
 			// The counters must be read in this order for correctness.
 			assert(compilationContext.workUnitsCompleted ==
 				compilationContext.workUnitsQueued)
@@ -3563,7 +3561,7 @@ class AvailCompiler constructor(
 			onSuccess(solutions, this::rollbackModuleTransaction)
 		}
 		recordExpectationsRelativeTo(start.lexingState)
-		if (loader.lexicalScanner().allVisibleLexers.isEmpty())
+		if (loader.lexicalScanner!!.allVisibleLexers.isEmpty())
 		{
 			start.expected(
 				STRONG,
@@ -3783,7 +3781,6 @@ class AvailCompiler constructor(
 					compilationContext.diagnostics.reportError()
 					return false
 				}
-
 			}  // modules of an import subsection
 		}  // imports section
 
@@ -4000,7 +3997,7 @@ class AvailCompiler constructor(
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		parseLeadingKeywordSendThen(start, superexpressions) {
-			endState, phrase ->
+				endState, phrase ->
 			parseOptionalLeadingArgumentSendAfterThen(
 				start, endState, phrase, superexpressions, continuation)
 		}
@@ -4150,8 +4147,12 @@ class AvailCompiler constructor(
 			problemHandler: ProblemHandler,
 			succeed: (AvailCompiler)->Unit)
 		{
-			extractSourceThen(resolvedName, runtime, afterFail, problemHandler) {
-				sourceText ->
+			extractSourceThen(
+				resolvedName,
+				runtime,
+				afterFail,
+				problemHandler
+			) { sourceText ->
 				succeed(
 					AvailCompiler(
 						ModuleHeader(resolvedName),
@@ -4263,7 +4264,7 @@ class AvailCompiler constructor(
 		 */
 		private fun treeMapWithParent(
 			obj: A_Phrase,
-			transformer: (A_Phrase, A_Phrase, List<A_Phrase>) -> A_Phrase,
+			transformer: (A_Phrase, A_Phrase, List<A_Phrase>)->A_Phrase,
 			parentPhrase: A_Phrase,
 			outerPhrases: List<A_Phrase>,
 			phraseMap: MutableMap<A_Phrase, A_Phrase>): A_Phrase

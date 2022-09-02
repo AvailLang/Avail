@@ -396,7 +396,7 @@ internal class BuildLoader constructor(
 
 		// Run each zero-argument block, one after another.
 		recurse { runNext ->
-			availLoader.setPhase(Phase.LOADING)
+			availLoader.phase = Phase.LOADING
 			val function: A_Function?
 			try
 			{
@@ -439,7 +439,7 @@ internal class BuildLoader constructor(
 							runNext()
 						},
 						fail)
-					availLoader.setPhase(Phase.EXECUTING_FOR_LOAD)
+					availLoader.phase = Phase.EXECUTING_FOR_LOAD
 					if (AvailLoader.debugLoadedStatements)
 					{
 						println(
