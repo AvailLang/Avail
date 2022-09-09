@@ -45,6 +45,8 @@ import avail.environment.text.AvailEditorKit.Companion.breakLine
 import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
 import avail.environment.text.AvailEditorKit.Companion.outdent
 import avail.environment.text.AvailEditorKit.Companion.space
+import avail.environment.text.MarkToDotRange
+import avail.environment.text.markToDotRange
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
@@ -70,6 +72,7 @@ import java.util.TimerTask
 import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
 import javax.swing.JFrame
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRootPane
 import javax.swing.KeyStroke.getKeyStroke
@@ -78,6 +81,7 @@ import javax.swing.border.EmptyBorder
 import javax.swing.event.CaretEvent
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
+import javax.swing.text.Caret
 import javax.swing.undo.CannotRedoException
 import javax.swing.undo.CannotUndoException
 import javax.swing.undo.CompoundEdit
@@ -329,6 +333,16 @@ class AvailEditor constructor(
 		)
 	}
 
+	/**
+	 * The [MarkToDotRange] of the [Caret] in the [sourcePane].
+	 */
+	private var range: MarkToDotRange
+
+	/**
+	 * The [JLabel] that displays the [range]
+	 */
+	private val caretRangeLabel = JLabel()
+
 	/** The editor pane. */
 	internal val sourcePane = codeSuitableTextPane(workbench, this).apply {
 		var stylingRecord: StylingRecord? = null
@@ -372,6 +386,9 @@ class AvailEditor constructor(
 				}
 			}
 			lastCaretPosition = dot
+			range = markToDotRange()
+			caretRangeLabel.text = range.toString()
+			println("Edit >> $range")
 		}
 		inputMap.put(getKeyStroke(VK_SPACE, 0), space)
 		inputMap.put(getKeyStroke(VK_TAB, SHIFT_DOWN_MASK), outdent)
@@ -403,6 +420,9 @@ class AvailEditor constructor(
 		// Arrange for the undo manager to be available when only the source
 		// pane is in scope.
 		putClientProperty(AvailEditor::undoManager.name, undoManager)
+		range = markToDotRange()
+		caretRangeLabel.text = range.toString()
+		println(range)
 		// TODO Extract token/phrase style information that should have been
 		// captured by stylers that ran against method/macro send phrases.
 		// TODO Also, we need to capture info relating local variable
@@ -618,6 +638,7 @@ class AvailEditor constructor(
 	/** Open the editor window. */
 	fun open()
 	{
+		// TODO add gutter in here
 		addWindowListener(object : WindowAdapter()
 		{
 			override fun windowClosing(e: WindowEvent) {
@@ -632,16 +653,15 @@ class AvailEditor constructor(
 		background = panel.background
 		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers()
 		panel.layout = GroupLayout(panel).apply {
-			//val pref = GroupLayout.PREFERRED_SIZE
-			//val def = DEFAULT_SIZE
-			//val max = Int.MAX_VALUE
 			autoCreateGaps = true
 			setHorizontalGroup(
-				createSequentialGroup()
-					.addComponent(sourcePaneScroll))
+				createParallelGroup()
+					.addComponent(sourcePaneScroll)
+					.addComponent(caretRangeLabel, GroupLayout.Alignment.TRAILING))
 			setVerticalGroup(
 				createSequentialGroup()
-					.addComponent(sourcePaneScroll))
+					.addComponent(sourcePaneScroll)
+					.addComponent(caretRangeLabel))
 		}
 		minimumSize = Dimension(650, 350)
 		preferredSize = Dimension(800, 1000)

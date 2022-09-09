@@ -279,6 +279,47 @@ fun Document.codePointAt(position: Int) =
 	getText(position, 1).codePointAt(0)
 
 /**
+ * @return
+ *  The [DotPosition] of the [JTextPane.caret] in this [JTextPane].
+ */
+fun JTextComponent.dotPosition(): DotPosition
+{
+	val offset = caret.dot
+	val root = document.defaultRootElement
+	val line = root.getElementIndex(offset)
+	val element = root.getElement(line)
+
+	return DotPosition(
+		line,
+		offset - element.startOffset,
+		offset)
+}
+
+/**
+ * @return
+ *  The [MarkPosition] of the [JTextPane.caret] in this [JTextPane].
+ */
+fun JTextComponent.markPosition(): MarkPosition
+{
+	val offset = caret.mark
+	val root = document.defaultRootElement
+	val line = root.getElementIndex(offset)
+	val element = root.getElement(line)
+
+	return MarkPosition(
+		line,
+		offset - element.startOffset,
+		offset)
+}
+
+/**
+ * @return
+ *  The [MarkToDotRange] of the [JTextPane.caret] in this [JTextPane].
+ */
+fun JTextComponent.markToDotRange(): MarkToDotRange =
+	MarkToDotRange(markPosition(), dotPosition())
+
+/**
  * Interrogate the code point at the specified position.
  *
  * @param position
@@ -427,7 +468,7 @@ fun JTextComponent.goTo(line: Int, characterInLine: Int = 0)
  * @return
  *   The positions of the desired linefeed (U+0009) characters.
  */
-fun JTextPane.lineStartsInSelection(): List<Int>
+fun JTextComponent.lineStartsInSelection(): List<Int>
 {
 	if (selectionStart == selectionEnd)
 	{
