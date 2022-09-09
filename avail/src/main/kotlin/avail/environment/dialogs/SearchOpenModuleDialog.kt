@@ -241,43 +241,37 @@ class SearchOpenModuleDialog constructor(
 				{
 					override fun actionPerformed(e: ActionEvent)
 					{
-						val list = resultsList
-						if (list !== null && list.selectedIndex >= 0)
-						{
-							openModule(list.selectedValue)
-						}
+						val list = resultsList ?: return
+						if (list.selectedIndex < 0) return
+						openModule(list.selectedValue)
 					}
 				})
 				put(previousReference, object : TextAction(previousReference)
 				{
 					override fun actionPerformed(e: ActionEvent)
 					{
-						val list = resultsList
-						if (list !== null)
+						val list = resultsList ?: return
+						var index = list.selectedIndex - 1
+						if (index < 0)
 						{
-							var index = list.selectedIndex - 1
-							if (index < 0)
-							{
-								index = list.model.size
-							}
-							list.selectedIndex = index
+							index = list.model.size
 						}
+						list.selectedIndex = index
+						list.ensureIndexIsVisible(index)
 					}
 				})
 				put(nextReference, object : TextAction(nextReference)
 				{
 					override fun actionPerformed(e: ActionEvent)
 					{
-						val list = resultsList
-						if (list !== null)
+						val list = resultsList ?: return
+						var index = list.selectedIndex + 1
+						if (index >= list.model.size)
 						{
-							var index = list.selectedIndex + 1
-							if (index >= list.model.size)
-							{
-								index = 0
-							}
-							list.selectedIndex = index
+							index = 0
 						}
+						list.selectedIndex = index
+						list.ensureIndexIsVisible(index)
 					}
 				})
 			}
