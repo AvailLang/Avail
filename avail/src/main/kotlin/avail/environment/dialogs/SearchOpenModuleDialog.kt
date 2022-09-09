@@ -70,7 +70,8 @@ import javax.swing.text.TextAction
 /**
  * Opens the dialog for searching for an opening a module in an editor.
  *
- * @author Richard Arriaga
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @property workbench
  *   The running [AvailWorkbench].
@@ -85,15 +86,15 @@ class SearchOpenModuleDialog constructor(
 	private val abbreviationField: JTextField = JTextField()
 
 	/**
+	 * The variable that holds onto the proposed module name to open.
+	 */
+	private val abbreviation get() = abbreviationField.text
+
+	/**
 	 * The active [ModuleRootResolver]s.
 	 */
 	private val resolvers =
 		workbench.resolver.moduleRoots.map { it.resolver }
-
-	/**
-	 * The variable that holds onto the proposed module name to open.
-	 */
-	private val abbreviation get() = abbreviationField.text
 
 	/**
 	 * The label to be displayed if there no results found.
@@ -122,7 +123,7 @@ class SearchOpenModuleDialog constructor(
 	 * @param found
 	 *   The list of [ResolverReference]s to display.
 	 */
-	private fun populateCenterPanel (found: List<ResolverReference>)
+	private fun populateCenterPanel(found: List<ResolverReference>)
 	{
 		resultsPanel.removeAll()
 		if (found.isEmpty())
@@ -176,7 +177,7 @@ class SearchOpenModuleDialog constructor(
 	 * @param reference
 	 *   The [ResolverReference] of the module to open.
 	 */
-	private fun openModule (reference: ResolverReference)
+	private fun openModule(reference: ResolverReference)
 	{
 		SwingUtilities.invokeLater {
 			var isOpen = false
@@ -289,9 +290,7 @@ class SearchOpenModuleDialog constructor(
 		populateCenterPanel(listOf())
 		panel.add(resultsPanel, BorderLayout.CENTER)
 		rootPane.registerKeyboardAction(
-			{
-				this@SearchOpenModuleDialog.dispose()
-			},
+			{ this@SearchOpenModuleDialog.dispose() },
 			getKeyStroke(VK_ESCAPE, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW)
 		add(panel)
@@ -361,7 +360,7 @@ class SearchOpenModuleDialog constructor(
 	/**
 	 * Perform the necessary final operations to display this view.
 	 */
-	private fun displayWindow ()
+	private fun displayWindow()
 	{
 		pack()
 		maximumSize = Dimension(1000, 600)
