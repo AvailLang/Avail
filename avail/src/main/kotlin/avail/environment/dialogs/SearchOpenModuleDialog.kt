@@ -36,15 +36,22 @@ import avail.environment.AvailEditor
 import avail.environment.AvailWorkbench
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
+import avail.utility.ifZero
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_DOWN
+import java.awt.event.KeyEvent.VK_ENTER
+import java.awt.event.KeyEvent.VK_ESCAPE
+import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.ActionMap
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JFrame
@@ -53,9 +60,12 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTextField
-import javax.swing.KeyStroke
+import javax.swing.KeyStroke.getKeyStroke
 import javax.swing.ListSelectionModel
 import javax.swing.SwingUtilities
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
+import javax.swing.text.TextAction
 
 /**
  * Opens the dialog for searching for an opening a module in an editor.
@@ -72,7 +82,7 @@ class SearchOpenModuleDialog constructor(
 	/**
 	 * The [JTextField] field to use wto set the module name.
 	 */
-	private val moduleNameTextField: JTextField = JTextField()
+	private val abbreviationField: JTextField = JTextField()
 
 	/**
 	 * The active [ModuleRootResolver]s.
@@ -83,7 +93,7 @@ class SearchOpenModuleDialog constructor(
 	/**
 	 * The variable that holds onto the proposed module name to open.
 	 */
-	private val partialName get() = moduleNameTextField.text
+	private val abbreviation get() = abbreviationField.text
 
 	/**
 	 * The label to be displayed if there no results found.
@@ -96,9 +106,15 @@ class SearchOpenModuleDialog constructor(
 	/**
 	 * The panel to add the search results to.
 	 */
-	val resultsPanel = JPanel(BorderLayout()).apply {
+	private val resultsPanel = JPanel(BorderLayout()).apply {
 		border = BorderFactory.createEmptyBorder(15, 10, 15, 10)
 	}
+
+	/**
+	 * The [list][JList] of [results][ResolverReference] from the most recent
+	 * search.
+	 */
+	private var resultsList: JList<ResolverReference>? = null
 
 	/**
 	 * Populate the center panel with the list of located [ResolverReference]s.
@@ -111,6 +127,7 @@ class SearchOpenModuleDialog constructor(
 		resultsPanel.removeAll()
 		if (found.isEmpty())
 		{
+			resultsList = null
 			resultsPanel.add(noResultsMessageLabel, BorderLayout.CENTER)
 		}
 		else
@@ -119,12 +136,10 @@ class SearchOpenModuleDialog constructor(
 				selectionMode = ListSelectionModel.SINGLE_INTERVAL_SELECTION
 				visibleRowCount = 10
 				layoutOrientation = JList.VERTICAL
-
 				addKeyListener(object: KeyAdapter() {
 					override fun keyReleased(e: KeyEvent)
 					{
-						if (e.keyCode == KeyEvent.VK_ENTER &&
-							selectedIndex > -1)
+						if (e.keyCode == VK_ENTER && selectedIndex >= 0)
 						{
 							openModule(selectedValue)
 						}
@@ -148,6 +163,8 @@ class SearchOpenModuleDialog constructor(
 			}
 			JScrollPane().apply {
 				setViewportView(list)
+				list.selectedIndex = 0
+				resultsList = list
 				resultsPanel.add(this)
 			}
 		}
@@ -164,10 +181,12 @@ class SearchOpenModuleDialog constructor(
 		SwingUtilities.invokeLater {
 			var isOpen = false
 			val editor =
-				workbench.openEditors.computeIfAbsent(reference.moduleName)
-				{
+				workbench.openEditors.computeIfAbsent(reference.moduleName) {
 					isOpen = true
-					AvailEditor(workbench, reference.moduleName).apply { open() }
+					AvailEditor(
+						workbench,
+						reference.moduleName
+					).apply(AvailEditor::open)
 				}
 			if (!isOpen) editor.toFront()
 			dispose()
@@ -193,7 +212,7 @@ class SearchOpenModuleDialog constructor(
 				})
 		}
 
-		moduleNameTextField.apply {
+		abbreviationField.apply {
 			moduleNamePanel.add(
 				this,
 				GridBagConstraints().apply {
@@ -204,29 +223,67 @@ class SearchOpenModuleDialog constructor(
 					gridy = 0
 					gridwidth = 1
 				})
-				addKeyListener(object: KeyAdapter() {
-					override fun keyReleased(e: KeyEvent)
+			document.addDocumentListener(object : DocumentListener
+			{
+				override fun insertUpdate(e: DocumentEvent) =
+					abbreviationUpdated()
+
+				override fun removeUpdate(e: DocumentEvent) =
+					abbreviationUpdated()
+
+				override fun changedUpdate(e: DocumentEvent) =
+					abbreviationUpdated()
+			})
+			val actions = ActionMap().apply {
+				parent = actionMap
+				put(openModule, object : TextAction(openModule)
+				{
+					override fun actionPerformed(e: ActionEvent)
 					{
-						super.keyReleased(e)
-						if (partialName.length > 1)
+						val list = resultsList
+						if (list !== null && list.selectedIndex >= 0)
 						{
-							populateCenterPanel(
-								resolvers
-									.flatMap { it.matches(partialName) }
-									.sortedBy { it.qualifiedName })
-							pack()
-							resultsPanel.validate()
-							repaint()
-						}
-						else
-						{
-							populateCenterPanel(listOf())
-							pack()
-							resultsPanel.validate()
-							repaint()
+							openModule(list.selectedValue)
 						}
 					}
 				})
+				put(previousReference, object : TextAction(previousReference)
+				{
+					override fun actionPerformed(e: ActionEvent)
+					{
+						val list = resultsList
+						if (list !== null)
+						{
+							var index = list.selectedIndex - 1
+							if (index < 0)
+							{
+								index = list.model.size
+							}
+							list.selectedIndex = index
+						}
+					}
+				})
+				put(nextReference, object : TextAction(nextReference)
+				{
+					override fun actionPerformed(e: ActionEvent)
+					{
+						val list = resultsList
+						if (list !== null)
+						{
+							var index = list.selectedIndex + 1
+							if (index >= list.model.size)
+							{
+								index = 0
+							}
+							list.selectedIndex = index
+						}
+					}
+				})
+			}
+			actionMap = actions
+			inputMap.put(getKeyStroke(VK_ENTER, 0), openModule)
+			inputMap.put(getKeyStroke(VK_UP, 0), previousReference)
+			inputMap.put(getKeyStroke(VK_DOWN, 0), nextReference)
 		}
 
 		populateCenterPanel(listOf())
@@ -235,12 +292,63 @@ class SearchOpenModuleDialog constructor(
 			{
 				this@SearchOpenModuleDialog.dispose()
 			},
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+			getKeyStroke(VK_ESCAPE, 0),
 			JComponent.WHEN_IN_FOCUSED_WINDOW)
-
 		add(panel)
 		displayWindow()
 	}
+
+	/**
+	 * The [abbreviation][abbreviationField] was updated, so refresh the
+	 * results accordingly.
+	 */
+	private fun abbreviationUpdated()
+	{
+		populateCenterPanel(
+			if (abbreviation.isNotEmpty()) resolvers.results
+			else listOf())
+		pack()
+		resultsPanel.validate()
+		repaint()
+	}
+
+	/**
+	 * The sublist of the receiver whose elements match the abbreviation, sorted
+	 * sensibly for likely user interest.
+	 */
+	private val List<ModuleRootResolver>.results get() =
+		flatMap { it.referencesMatchingAbbreviation(abbreviation, true) }
+			.sortedWith { a, b ->
+				val aqn = a.qualifiedName
+				val bqn = b.qualifiedName
+				// Exact matches have the highest priority.
+				(bqn == abbreviation).compareTo(aqn == abbreviation)
+					// Component prefix matches have the next priority.
+					.ifZero(
+						{
+							bqn
+								.substringAfterLast('/')
+								.startsWith(abbreviation, true)
+						},
+						{
+							aqn
+								.substringAfterLast('/')
+								.startsWith(abbreviation, true)
+						}
+					)
+					// Containment matches have the next priority.
+					.ifZero(
+						{ bqn.contains(abbreviation, true) },
+						{ aqn.contains(abbreviation, true) }
+					)
+					// Length has the next priority.
+					.ifZero(
+						{ aqn.length },
+						{ bqn.length }
+					)
+					// Finally, fall back on lexicographic order.
+					.ifZero { aqn.compareTo(bqn) }
+			}
 
 	override fun getPreferredSize(): Dimension
 	{
@@ -261,5 +369,17 @@ class SearchOpenModuleDialog constructor(
 		setLocationRelativeTo(workbench)
 		isVisible = true
 		toFront()
+	}
+
+	companion object
+	{
+		/** The name of the anonymous open-module action. */
+		const val openModule = "open-module"
+
+		/** The name of the anonymous previous-reference action. */
+		const val previousReference = "previous-reference"
+
+		/** The name of the anonymous next-reference action. */
+		const val nextReference = "next-reference"
 	}
 }

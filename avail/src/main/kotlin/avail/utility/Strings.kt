@@ -44,7 +44,8 @@ import java.util.regex.Pattern
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object Strings {
+object Strings
+{
 	/**
 	 * Produce an escaped variant of the specified [string][String].
 	 *
@@ -277,5 +278,86 @@ object Strings {
 		{
 			append("</$tag>")
 		}
+	}
+
+	/**
+	 * Find the characters of [abbreviation] within the receiver, in the order
+	 * specified by [abbreviation] but not necessarily contiguously.
+	 *
+	 * @param abbreviation
+	 *   The abbreviation.
+	 * @param allowPartials
+	 *   Whether to allow matches that do not account for every character of the
+	 *   abbreviation. Defaults to `false`.
+	 * @param ignoreCase
+	 *   Whether to ignore case. Defaults to `false`.
+	 * @return
+	 *   The positions within the receiver where matching characters occurred.
+	 *   Empty if the abbreviation does not match completely.
+	 */
+	fun String.matchesAbbreviation(
+		abbreviation: String,
+		allowPartials: Boolean = false,
+		ignoreCase: Boolean = false
+	): List<Pair<Int, Int>>
+	{
+		if (!allowPartials && abbreviation.length > length)
+		{
+			// The abbreviation is longer than the qualified name, so even on
+			// its face it can't match.
+			return listOf()
+		}
+		// The logic is a bit messy because it has been hand optimized for
+		// speed. The algorithm is straightforward though — walk the target
+		// string and the search string together, increment the target string on
+		// each iteration, and increment the search pointer only when a code
+		// point hit occurs.
+		val normalize =
+			if (ignoreCase) { s: String -> s.lowercase() }
+			else { s: String -> s }
+		val search = normalize(abbreviation)
+		val searchLength = search.length
+		val target = normalize(this)
+		val targetLength = target.length
+		val matches = mutableListOf<Pair<Int, Int>>()
+		var start: Int? = null
+		var scan = 0
+		var next = search.codePointAt(0)
+		var i = 0
+		var matchLength = 0
+		while (true)
+		{
+			val c = target.codePointAt(i)
+			if (next == c)
+			{
+				if (start === null)
+				{
+					start = i
+				}
+				scan++
+				if (scan >= searchLength)
+				{
+					matches.add(start to (i + 1))
+					matchLength += i - start + 1
+					break
+				}
+				next = search.codePointAt(scan)
+			}
+			else if (start !== null)
+			{
+				matches.add(start to i)
+				matchLength += i - start
+				start = null
+			}
+			i += Character.charCount(c)
+			if (i >= targetLength)
+			{
+				break
+			}
+		}
+		return (
+			if (allowPartials || matchLength == searchLength) matches
+			else listOf()
+		)
 	}
 }

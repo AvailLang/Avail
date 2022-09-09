@@ -46,13 +46,13 @@ import avail.files.FileErrorCode
 import avail.files.FileManager
 import avail.files.ManagedFileWrapper
 import avail.persistence.cache.Repository
+import avail.utility.Strings.matchesAbbreviation
 import org.availlang.artifact.ResourceType
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.Collections
 import java.util.UUID
-import java.util.regex.Pattern
 
 /**
  * `ModuleRootResolver` declares an interface for accessing Avail [ModuleRoot]s
@@ -112,12 +112,6 @@ constructor(
 	protected val referenceMap = mutableMapOf<String, ResolverReference>()
 
 	/**
-	 * The [exception][Throwable] that prevented most recent attempt at
-	 * accessing the source location of this [ModuleRootResolver].
-	 */
-	var accessException: Throwable? = null
-
-	/**
 	 * The [Map] from a UUID that represents an interested party to a lambda
 	 * that accepts a [WatchEventType] that describes the event that occurred
 	 * at the source location and a [ResolverReference] that identifies to what
@@ -134,24 +128,47 @@ constructor(
 
 	/**
 	 * Answer all the [ResolverReference]s known by this [ModuleRootResolver]
-	 * that have a qualified name that contains the provided partial name.
+	 * that have a qualified name that matches the supplied abbreviation.
 	 *
-	 * @param partialName
-	 *   The String to use to match.
+	 * @param abbreviation
+	 *   The abbreviation for the search. Any results will include every
+	 *   character of the abbreviation, according to the order given by the
+	 *   abbreviation, but _not necessarily_ contiguously.
+	 * @param ignoreCase
+	 *   Whether to ignore case. Defaults to `false`.
 	 * @return
-	 *   The list of [ResolverReference]s that match the search.
+	 *   The list of [ResolverReference]s that match the abbreviation, which
+	 *   will be empty if no items match.
 	 */
-	fun matches (partialName: String): List<ResolverReference>
-	{
-		val searchCriteria = Pattern.compile(
-			partialName.map { it }
-				.joinToString(".*?", ".*?", ".*?") { it.toString() },
-			Pattern.CASE_INSENSITIVE).toRegex()
-		return referenceMap.entries.filter {
-			it.value.isModule &&
-				it.key.lowercase().matches(searchCriteria)
-		}.map { it.value }.toList()
-	}
+	fun referencesMatchingAbbreviation (
+		abbreviation: String,
+		ignoreCase: Boolean = false
+	) = referenceMap.values
+		.filter {
+			it.isModule && it.matchesAbbreviation(abbreviation, ignoreCase)
+		}
+		.toList()
+
+	/**
+	 * Find the characters of [abbreviation] within the
+	 * [qualified&#32;name][ResolverReference.qualifiedName] of the
+	 * [receiver][ResolverReference], in the order specified by [abbreviation]
+	 * but not necessarily contiguously.
+	 *
+	 * @param abbreviation
+	 *   The abbreviation.
+	 * @param ignoreCase
+	 *   Whether to ignore case. Defaults to `false`.
+	 * @return
+	 *   `true` if the abbreviation matches, `false` otherwise.
+	 */
+	private fun ResolverReference.matchesAbbreviation(
+		abbreviation: String,
+		ignoreCase: Boolean = false
+	) = qualifiedName.matchesAbbreviation(
+			abbreviation,
+			ignoreCase = ignoreCase
+		).isNotEmpty()
 
 	/**
 	 * Provide the non-`null` [ResolverReference] that represents the
