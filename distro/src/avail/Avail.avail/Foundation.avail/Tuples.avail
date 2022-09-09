@@ -116,6 +116,8 @@ Names
 	"_[.._]else_",
 	"_↑-=_",
 	"_-=_",
+	"«indexed»?two-input tuple body function(_,_)",
+	"«two input»?«indexed»?return type(_,_,_,_)",
 	"«_‡zip»"
 Body
 
@@ -453,12 +455,12 @@ Public method "a two-input tuple prefix function" is
  * 	"return type(_,_,_,_)"
  * 	"index return type(_,_,_,_)"
  * evaluate the return types of methods given a tuple input to a block.*/
-Private method "«two input»?«indexed»?return type(_,_,_,_)" is
+Public method "«two input»?«indexed»?return type(_,_,_,_)" is
 [
 	twoInput : boolean,
 	indexed : boolean,
 	aTuple : expression phrase ⇒ tuple,
-	action : block phrase ⇒ []→⊤,
+	action : block phrase ⇒ […]→⊤,
 	baseReturnType : type,
 	anAtom : atom
 |
@@ -470,10 +472,13 @@ Private method "«two input»?«indexed»?return type(_,_,_,_)" is
 		[
 			indexingType ::= (0 .. ⌈aTupleType⌉+1);
 			[elementType, indexingType]→action's semantic type's return type
-		] else [
+		]
+		else
+		[
 			[elementType, elementType]→action's semantic type's return type
 		]
-	] else
+	]
+	else
 	[
 		[elementType]→action's semantic type's return type
 	];
@@ -489,7 +494,7 @@ Private method "«two input»?«indexed»?return type(_,_,_,_)" is
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple,
- *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *   block phrase ⇒ []→⊤]→send phrase ⇒ ⊤"
  *          The requested function.
  */
 Public method "tuple body function(_,_)" is
@@ -502,8 +507,7 @@ Public method "tuple body function(_,_)" is
 		aTuple : expression phrase ⇒ tuple,
 		action : block phrase ⇒ []→⊤
 	|
-		returnType ::=
-				return type(aTuple, action, baseReturnType, anAtom);
+		returnType ::= return type(aTuple, action, baseReturnType, anAtom);
 		statements ::= action's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t[|t|]'s semantic type]
@@ -524,7 +528,7 @@ Public method "tuple body function(_,_)" is
 ] : [
 	literal phrase ⇒ token,
 	expression phrase ⇒ tuple,
-	block phrase ⇒ []→ ⊤
+	block phrase ⇒ []→⊤
 ]→send phrase ⇒ ⊤;
 
 /**
@@ -538,7 +542,7 @@ Public method "tuple body function(_,_)" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "«indexed»?two-input tuple body function(_,_)" is
+Public method "«indexed»?two-input tuple body function(_,_)" is
 [
 	indexed : boolean,
 	anAtom : atom,
@@ -555,7 +559,8 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
 			[
 				two input indexed return type(
 					aTuple, action, baseReturnType, anAtom)
-			] else [
+			]
+			else [
 				two input return type(
 					aTuple, action, baseReturnType, anAtom)
 			];
@@ -749,7 +754,7 @@ Semantic restriction "map_through_" is
  *        variable is given the strongest possible type based on the type union
  *        of the leading types and default type of {@param "aTuple"}.
  * @param "aTuple" "expression phrase ⇒ any"
- *        An {@type "expression phrase"} that yields the tuple to iterate over
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.

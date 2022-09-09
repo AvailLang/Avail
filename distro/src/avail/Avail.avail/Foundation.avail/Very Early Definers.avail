@@ -193,7 +193,7 @@ conditionalStyler ::=
 	] : ⊤;
 
 /**
- * Answer a function that applies the system style named {@code "conditional"}
+ * Answer a function that applies the system style named {@code "#conditional"}
  * to the fixed tokens of an original {@method "send phrase"}, suitable for
  * use in the styling clause of a method definition.
  *
@@ -216,7 +216,7 @@ loopStyler ::=
 	] : ⊤;
 
 /**
- * Answer a function that applies the system style named {@code "loop"} to the
+ * Answer a function that applies the system style named {@code "#loop"} to the
  * fixed tokens of an original {@method "send phrase"}, suitable for use in the
  * styling clause of a method definition.
  *
@@ -241,8 +241,8 @@ nonlocalControlStyler ::=
 
 /**
  * Answer a function that applies the system style named
- * {@code "return-value"} to the fixed tokens of an original
- * {@method "send phrase"} and {@code "nonlocal-control"} to the whole
+ * {@code "#return-value"} to the fixed tokens of an original
+ * {@method "send phrase"} and {@code "#nonlocal-control"} to the whole
  * span covered by {@code "send phrase"}, suitable for use in the styling
  * clause of a method definition.
  *
