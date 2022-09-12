@@ -74,10 +74,14 @@ import javax.swing.tree.TreeSelectionModel
  * [ModuleManifestEntry]s.
  *
 <<<<<<< HEAD
+<<<<<<< HEAD
  * @author Richard Arriaga
 =======
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
 >>>>>>> a6d00a85e (Fixed button responsiveness in `StructureViewPanel`.)
+=======
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+>>>>>>> 644a3577a (Fixed button responsiveness in `StructureViewPanel`.)
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class StructureViewPanel constructor (
