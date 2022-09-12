@@ -35,14 +35,20 @@ package avail.environment.text
 import avail.environment.AvailEditor
 import avail.environment.AvailEditor.Companion.editor
 import avail.environment.AvailWorkbench
+import avail.environment.editor.GoToDialog
 import avail.environment.tasks.BuildTask
 import avail.environment.text.AvailEditorKit.Companion.breakLine
+import avail.environment.text.AvailEditorKit.Companion.cancelTemplateSelection
 import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
+import avail.environment.text.AvailEditorKit.Companion.expandTemplate
+import avail.environment.text.AvailEditorKit.Companion.goToDialog
 import avail.environment.text.AvailEditorKit.Companion.indent
 import avail.environment.text.AvailEditorKit.Companion.openStructureView
 import avail.environment.text.AvailEditorKit.Companion.outdent
+import avail.environment.text.AvailEditorKit.Companion.redo
 import avail.environment.text.AvailEditorKit.Companion.refresh
 import avail.environment.text.AvailEditorKit.Companion.space
+import avail.environment.text.AvailEditorKit.Companion.undo
 import avail.environment.views.StructureViewPanel
 import avail.utility.Strings.tabs
 import java.awt.Point
@@ -74,6 +80,11 @@ class AvailEditorKit constructor(
 		IncreaseIndentation,
 		DecreaseIndentation,
 		CenterCurrentLine,
+		Undo,
+		Redo,
+		ExpandTemplate,
+		CancelTemplateSelection,
+		GoToDialogAction,
 		OpenStructureView,
 		Refresh
 	)
@@ -100,8 +111,23 @@ class AvailEditorKit constructor(
 		/** The name of the [CenterCurrentLine] action. */
 		const val centerCurrentLine = "center-current-line"
 
+		/** The name of the [Undo] action. */
+		const val undo = "undo"
+
+		/** The name of the [Redo] action. */
+		const val redo = "redo"
+
+		/** The name of the [ExpandTemplate] action. */
+		const val expandTemplate = "expand-template"
+
+		/** The name of the [CancelTemplateSelection] action. */
+		const val cancelTemplateSelection = "cancel-template-selection"
+
 		/** The name of the [OpenStructureView] action. */
 		const val openStructureView = "open-structure-view"
+
+		/** The name of the [GoToDialog] action. */
+		const val goToDialog = "go-to-dialog"
 
 		/** The name of the [OpenStructureView] action. */
 		const val refresh = "refresh"
@@ -273,6 +299,56 @@ private object CenterCurrentLine: TextAction(centerCurrentLine)
 }
 
 /**
+ * The undo action.
+ */
+private object Undo: TextAction(undo)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val editor = e.editor
+		editor.currentEdit?.end()
+		editor.undoManager.undo()
+		editor.clearStaleTemplateSelectionState()
+	}
+}
+
+/**
+ * The redo action.
+ */
+private object Redo: TextAction(redo)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val editor = e.editor
+		editor.currentEdit?.end()
+		editor.undoManager.redo()
+		editor.clearStaleTemplateSelectionState()
+	}
+}
+
+/**
+ * Expand the template selection.
+ */
+private object ExpandTemplate: TextAction(expandTemplate)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		e.editor.expandTemplate()
+	}
+}
+
+/**
+ * Cancel the template selection.
+ */
+private object CancelTemplateSelection: TextAction(cancelTemplateSelection)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		e.editor.cancelTemplateExpansion()
+	}
+}
+
+/**
  * Open the [StructureViewPanel].
  */
 private object OpenStructureView: TextAction(openStructureView)
@@ -280,6 +356,17 @@ private object OpenStructureView: TextAction(openStructureView)
 	override fun actionPerformed(e: ActionEvent)
 	{
 		e.editor.openStructureView(false)
+	}
+}
+
+/**
+ * Open the [GoToDialog].
+ */
+private object GoToDialogAction: TextAction(goToDialog)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		GoToDialog(e.editor)
 	}
 }
 

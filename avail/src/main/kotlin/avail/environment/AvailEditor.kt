@@ -45,14 +45,17 @@ import avail.environment.AvailWorkbench.Companion.menuShiftShortcutMask
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
-import avail.environment.editor.AbstractEditorAction
-import avail.environment.editor.GoToDialog
 import avail.environment.text.AvailEditorKit.Companion.breakLine
+import avail.environment.text.AvailEditorKit.Companion.cancelTemplateSelection
 import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
+import avail.environment.text.AvailEditorKit.Companion.expandTemplate
+import avail.environment.text.AvailEditorKit.Companion.goToDialog
 import avail.environment.text.AvailEditorKit.Companion.openStructureView
 import avail.environment.text.AvailEditorKit.Companion.outdent
+import avail.environment.text.AvailEditorKit.Companion.redo
 import avail.environment.text.AvailEditorKit.Companion.refresh
 import avail.environment.text.AvailEditorKit.Companion.space
+import avail.environment.text.AvailEditorKit.Companion.undo
 import avail.environment.text.MarkToDotRange
 import avail.environment.text.goTo
 import avail.environment.text.markToDotRange
@@ -94,8 +97,6 @@ import javax.swing.event.CaretEvent
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.Caret
-import javax.swing.undo.CannotRedoException
-import javax.swing.undo.CannotUndoException
 import javax.swing.undo.CompoundEdit
 import javax.swing.undo.UndoManager
 
@@ -291,92 +292,6 @@ class AvailEditor constructor(
 		}
 	}
 
-	init
-	{
-		// TODO move all these to AvailEditorKit.defaultActions
-		// Action: undo the previous edit.
-		object : AbstractEditorAction(
-			this,
-			"Undo",
-			getKeyStroke(
-				VK_Z,
-				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
-			)
-		) {
-			override fun actionPerformed(e: ActionEvent) =
-				try
-				{
-					currentEdit?.end()
-					undoManager.undo()
-					clearStaleTemplateSelectionState()
-				}
-				catch (e: CannotUndoException)
-				{
-					// Ignore.
-				}
-		}
-
-		// Action: redo the previous undone edit.
-		object : AbstractEditorAction(
-			this,
-			"Redo",
-			getKeyStroke(
-				VK_Z,
-				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx or
-					SHIFT_DOWN_MASK
-			)
-		) {
-			override fun actionPerformed(e: ActionEvent) =
-				try
-				{
-					currentEdit?.end()
-					undoManager.redo()
-					clearStaleTemplateSelectionState()
-				}
-				catch (e: CannotRedoException)
-				{
-					// Ignore.
-				}
-		}
-
-		// Expand template.
-		object : AbstractEditorAction(
-			this,
-			"Expand Template",
-			getKeyStroke(
-				VK_SPACE,
-				CTRL_DOWN_MASK
-			)
-		) {
-			override fun actionPerformed(e: ActionEvent) = expandTemplate()
-		}
-
-		// Cancel template candidate selection.
-		object : AbstractEditorAction(
-			this,
-			"Cancel Template Selection",
-			getKeyStroke(VK_ESCAPE, 0)
-		) {
-			override fun actionPerformed(e: ActionEvent) =
-				cancelTemplateExpansion()
-		}
-
-		// Go to position.
-		object: AbstractEditorAction(
-			this,
-			"Go To Line:Column…",
-			getKeyStroke(
-				VK_L,
-				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
-			)
-		) {
-			override fun actionPerformed(e: ActionEvent)
-			{
-				GoToDialog(editor)
-			}
-		}
-	}
-
 	/**
 	 * Fetch the active [StylingRecord] for the target [module][A_Module].
 	 *
@@ -470,8 +385,26 @@ class AvailEditor constructor(
 			centerCurrentLine
 		)
 		inputMap.put(
+			getKeyStroke(
+				VK_Z,
+				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx),
+			undo)
+		inputMap.put(
+			getKeyStroke(
+				VK_Z,
+				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx or
+					SHIFT_DOWN_MASK),
+			redo)
+		inputMap.put(getKeyStroke(VK_SPACE, CTRL_DOWN_MASK), expandTemplate)
+		inputMap.put(getKeyStroke(VK_ESCAPE, 0), cancelTemplateSelection)
+		inputMap.put(
 			getKeyStroke(VK_M, menuShiftShortcutMask),
 			openStructureView)
+		inputMap.put(
+			getKeyStroke(
+				VK_L,
+				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx),
+			goToDialog)
 		inputMap.put(getKeyStroke(VK_F5, 0), refresh)
 		document.addDocumentListener(object : DocumentListener
 		{
@@ -617,7 +550,7 @@ class AvailEditor constructor(
 	 * Attempt to expand the nonwhitespace text prior to the caret using one of
 	 * the known template substitutions.
 	 */
-	private fun expandTemplate()
+	internal fun expandTemplate()
 	{
 		val document = sourcePane.styledDocument
 		var length: Int
@@ -728,7 +661,7 @@ class AvailEditor constructor(
 	 * Cancel an ongoing iteration through template candidates. Restore the
 	 * original text.
 	 */
-	private fun cancelTemplateExpansion()
+	internal fun cancelTemplateExpansion()
 	{
 		val state = templateSelectionState
 		if (state !== null)

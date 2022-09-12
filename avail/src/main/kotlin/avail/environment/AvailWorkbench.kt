@@ -2170,7 +2170,8 @@ class AvailWorkbench internal constructor(
 		 * The numeric mask for the modifier key suitable for the current
 		 * platform.
 		 */
-		val menuShortcutMask = Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
+		val menuShortcutMask get() =
+			Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current
