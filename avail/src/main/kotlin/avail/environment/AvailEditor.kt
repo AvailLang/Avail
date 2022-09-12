@@ -33,9 +33,14 @@
 package avail.environment
 
 import avail.AvailRuntime
+import avail.AvailTask
+import avail.builder.AvailBuilder
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
+import avail.compiler.ModuleManifestEntry
+import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.manifestEntries
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
@@ -46,7 +51,9 @@ import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
 import avail.environment.text.AvailEditorKit.Companion.outdent
 import avail.environment.text.AvailEditorKit.Companion.space
 import avail.environment.text.MarkToDotRange
+import avail.environment.text.goTo
 import avail.environment.text.markToDotRange
+import avail.environment.views.StructureViewPanel
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
@@ -68,6 +75,7 @@ import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_Z
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.awt.event.WindowFocusListener
 import java.util.TimerTask
 import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
@@ -132,7 +140,7 @@ class AvailEditor constructor(
 	 * The resolved reference to the module. **Only access within the Swing UI
 	 * thread.**
 	 */
-	private val resolverReference = resolvedName.resolverReference
+	internal val resolverReference = resolvedName.resolverReference
 
 	/**
 	 * The last recorded caret position, set upon receipt of a [CaretEvent].
@@ -153,6 +161,76 @@ class AvailEditor constructor(
 
 	/** Any open dialogs owned by the receiver. */
 	internal val openDialogs = mutableSetOf<JFrame>()
+
+	/**
+	 * The [ModuleManifestEntry] list for the represented model.
+	 */
+	private lateinit var manifestEntriesList: List<ModuleManifestEntry>
+
+	/**
+	 * Get the [List] of [ModuleManifestEntry]s for the associated
+	 * [AvailBuilder.LoadedModule] then provide it to the given lambda.
+	 *
+	 * @param then
+	 *  The lambda that accepts the [List] of [ModuleManifestEntry]s.
+	 */
+	internal fun manifestEntries (then: (List<ModuleManifestEntry>) -> Unit)
+	{
+		if (this::manifestEntriesList.isInitialized)
+		{
+			then(manifestEntriesList)
+		}
+		else
+		{
+			workbench.runtime.execute(
+				AvailTask(FiberDescriptor.loaderPriority) {
+					manifestEntriesList =
+						workbench.availBuilder.getLoadedModule(resolvedName)
+							?.module?.manifestEntries() ?: emptyList()
+					then(manifestEntriesList)
+				})
+		}
+	}
+
+	/**
+	 * Open the [StructureViewPanel] associated with this [AvailEditor].
+	 *
+	 * @param giveEditorFocus
+	 *   `true` gives focus to this [AvailEditor]; `false` give focus to
+	 *   [AvailWorkbench.structureViewPanel].
+	 */
+	fun openStructureView (giveEditorFocus: Boolean = true)
+	{
+		manifestEntries {
+			SwingUtilities.invokeLater {
+				workbench.structureViewPanel.apply {
+					updateView(this@AvailEditor, it)
+					{
+						if (giveEditorFocus)
+						{
+							this@AvailEditor.toFront()
+							this@AvailEditor.requestFocus()
+							this@AvailEditor.sourcePane.requestFocus()
+						}
+						else
+						{
+							requestFocus()
+						}
+					}
+					isVisible = true
+
+				}
+			}
+		}
+	}
+
+	/**
+	 * Go to the top starting line of the given [ModuleManifestEntry].
+	 */
+	internal fun goTo (entry: ModuleManifestEntry)
+	{
+		sourcePane.goTo(entry.topLevelStartingLine - 1)
+	}
 
 	/**
 	 * The state of an ongoing template selection.
@@ -280,6 +358,21 @@ class AvailEditor constructor(
 				GoToDialog(editor)
 			}
 		}
+
+		// Go to position.
+		object: AbstractEditorAction(
+			this,
+			"Open Structure View",
+			getKeyStroke(
+				VK_M,
+				AvailWorkbench.menuShiftShortcutMask
+			)
+		) {
+			override fun actionPerformed(e: ActionEvent)
+			{
+				editor.openStructureView(false)
+			}
+		}
 	}
 
 	/**
@@ -343,6 +436,8 @@ class AvailEditor constructor(
 	 */
 	private val caretRangeLabel = JLabel()
 
+//	private val mainSplit: JSplitPane
+
 	/** The editor pane. */
 	internal val sourcePane = codeSuitableTextPane(workbench, this).apply {
 		var stylingRecord: StylingRecord? = null
@@ -388,7 +483,6 @@ class AvailEditor constructor(
 			lastCaretPosition = dot
 			range = markToDotRange()
 			caretRangeLabel.text = range.toString()
-			println("Edit >> $range")
 		}
 		inputMap.put(getKeyStroke(VK_SPACE, 0), space)
 		inputMap.put(getKeyStroke(VK_TAB, SHIFT_DOWN_MASK), outdent)
@@ -422,7 +516,6 @@ class AvailEditor constructor(
 		putClientProperty(AvailEditor::undoManager.name, undoManager)
 		range = markToDotRange()
 		caretRangeLabel.text = range.toString()
-		println(range)
 		// TODO Extract token/phrase style information that should have been
 		// captured by stylers that ran against method/macro send phrases.
 		// TODO Also, we need to capture info relating local variable
@@ -643,9 +736,24 @@ class AvailEditor constructor(
 		{
 			override fun windowClosing(e: WindowEvent) {
 				if (lastSaveTime < lastEditTime) forceWrite()
-				workbench.openEditors.remove(resolverReference.moduleName)
+				workbench.closeEditor(this@AvailEditor)
 				openDialogs.forEach { it.dispose() }
 			}
+		})
+		addWindowFocusListener(object : WindowFocusListener
+		{
+			override fun windowGainedFocus(e: WindowEvent?)
+			{
+				if (workbench.structureViewIsOpen)
+				{
+					if (workbench.structureViewPanel.editor != this@AvailEditor)
+					{
+						openStructureView(true)
+					}
+				}
+			}
+
+			override fun windowLostFocus(e: WindowEvent?) = Unit
 		})
 		setLocationRelativeTo(workbench)
 		val panel = JPanel(BorderLayout(20, 20))
@@ -668,6 +776,7 @@ class AvailEditor constructor(
 		add(panel)
 		pack()
 		isVisible = true
+		if (workbench.structureViewIsOpen) openStructureView(true)
 	}
 
 	init
@@ -679,6 +788,11 @@ class AvailEditor constructor(
 			}
 			addWindowMenu(this@AvailEditor)
 		}
+//		mainSplit = JSplitPane(
+//			JSplitPane.VERTICAL_SPLIT,
+//			sourcePane,
+//			structurePane)
+//		contentPane.add(mainSplit)
 	}
 
 	companion object

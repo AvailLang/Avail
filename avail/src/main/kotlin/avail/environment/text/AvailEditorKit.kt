@@ -459,6 +459,7 @@ fun JTextComponent.goTo(line: Int, characterInLine: Int = 0)
 		lineStart
 	)
 	caretPosition = position
+	requestFocus()
 }
 
 /**

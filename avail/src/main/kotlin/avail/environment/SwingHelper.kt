@@ -57,6 +57,7 @@ import javax.swing.JLayer
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
+import javax.swing.ScrollPaneConstants
 import javax.swing.plaf.LayerUI
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
@@ -130,6 +131,21 @@ fun Component.scroll(): JScrollPane
 	parent?.parent?.let { return it as JScrollPane }
 	return JScrollPane(this)
 }
+
+/**
+ * Answer the pane wrapped in a JScrollPane.
+ *
+ * @param innerComponent
+ * The [Component] to be wrapped with scrolling capability.
+ * @return The new [JScrollPane].
+ */
+internal fun createScrollPane(innerComponent: Component): JScrollPane =
+	JScrollPane(innerComponent).apply {
+		horizontalScrollBarPolicy =
+			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+		verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+		minimumSize = Dimension(100, 50)
+	}
 
 /**
  * Create a JTextPane, initializing it and its [StyledDocument] in a way that

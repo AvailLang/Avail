@@ -115,6 +115,7 @@ import avail.environment.streams.StreamStyle.ERR
 import avail.environment.streams.StreamStyle.INFO
 import avail.environment.streams.StreamStyle.OUT
 import avail.environment.tasks.BuildTask
+import avail.environment.views.StructureViewPanel
 import avail.files.FileManager
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
@@ -195,8 +196,6 @@ import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
-import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.SwingWorker
 import javax.swing.UIManager
@@ -1614,6 +1613,48 @@ class AvailWorkbench internal constructor(
 		}
 	}
 
+	/**
+	 * The singular [StructureViewPanel] or `null` if none available.
+	 */
+	internal var structureView: StructureViewPanel? = null
+		private set
+
+	/**
+	 * The singular [StructureViewPanel].
+	 */
+	internal val structureViewPanel: StructureViewPanel get()
+	{
+		var v = structureView
+		if (v == null)
+		{
+			v = StructureViewPanel(this)
+			{
+				structureView = null
+			}
+			structureView = v
+		}
+		return v
+	}
+
+	/**
+	 * `true` indicates a [structureViewPanel] is open; `false` indicates the
+	 * window is not open.
+	 */
+	internal val structureViewIsOpen get() = structureView != null
+
+	/**
+	 * Close the provided [AvailEditor].
+	 *
+	 * @param editor
+	 *   The [AvailEditor] that is closing.
+	 */
+	fun closeEditor (editor: AvailEditor)
+	{
+		openEditors.remove(editor.resolverReference.moduleName)
+		structureView?.closingEditor(editor)
+	}
+
+
 	private val mainSplit: JSplitPane
 
 	private val leftPane: JSplitPane
@@ -2314,20 +2355,6 @@ class AvailWorkbench internal constructor(
 				}
 			}
 		}
-
-		/**
-		 * Answer the pane wrapped in a JScrollPane.
-		 *
-		 * @param innerComponent
-		 * The [Component] to be wrapped with scrolling capability.
-		 * @return The new [JScrollPane].
-		 */
-		private fun createScrollPane(innerComponent: Component): JScrollPane =
-			JScrollPane(innerComponent).apply {
-				horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
-				verticalScrollBarPolicy = VERTICAL_SCROLLBAR_ALWAYS
-				minimumSize = Dimension(100, 50)
-			}
 
 		/**
 		 * Pass this method an Object and Method equipped to perform application

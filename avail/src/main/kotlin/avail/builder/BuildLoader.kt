@@ -324,6 +324,8 @@ internal class BuildLoader constructor(
 		module.getAndSetTupleOfBlockPhrases(
 			fromLong(compilation.recordNumberOfBlockPhrases))
 		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
+		module.setManifestEntriesIndex(
+			compilation.recordNumberOfManifestEntries)
 		val availLoader = AvailLoader(
 			availBuilder.runtime, module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()

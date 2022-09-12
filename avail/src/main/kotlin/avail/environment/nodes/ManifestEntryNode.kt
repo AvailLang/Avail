@@ -1,5 +1,5 @@
 /*
- * OpenModuleAction.kt
+ * EntryPointNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,52 +30,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.environment.actions
+package avail.environment.nodes
 
+import avail.compiler.ModuleManifestEntry
 import avail.environment.AvailEditor
-import avail.environment.AvailWorkbench
-import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
-import javax.swing.Action
-import javax.swing.KeyStroke
+import avail.environment.icons.StructureIcons
+import avail.utility.ifZero
+import javax.swing.ImageIcon
+import javax.swing.tree.DefaultMutableTreeNode
 
 /**
- * Open an editor on the selected module.
+ * This is a tree node representing an entry point of some module. The parent
+ * tree node should be an [ManifestEntryNameNode].
  *
- * @constructor
- * Construct a new [OpenModuleAction].
+ * @author Richard Arriaga
  *
- * @param workbench
- *   The owning [AvailWorkbench].
+ * @property editor
+ *   The associated [AvailEditor].
+ * @property entry
+ *   The [ModuleManifestEntry].
  */
-class OpenModuleAction
-constructor (
-	workbench: AvailWorkbench,
-) : AbstractWorkbenchAction(
-	workbench,
-	"Open selected module",
-	KeyStroke.getKeyStroke(KeyEvent.VK_O, AvailWorkbench.menuShortcutMask))
+class ManifestEntryNode constructor(
+	val editor: AvailEditor,
+	val entry: ModuleManifestEntry
+): DefaultMutableTreeNode(), Comparable<ManifestEntryNode>
 {
-	override fun actionPerformed(event: ActionEvent)
-	{
-		var isNew = false
-		val moduleName =
-			workbench.selectedModule()!!.resolverReference.moduleName
-		val editor = workbench.openEditors.computeIfAbsent(moduleName) {
-			isNew = true
-			AvailEditor(workbench, moduleName).apply { open() }
-		}
-		if (!isNew)
-		{
-			editor.openStructureView(true)
-			editor.toFront()
-		}
-	}
+	override fun compareTo(other: ManifestEntryNode): Int =
+		entry.topLevelStartingLine - other.entry.topLevelStartingLine
 
-	init
-	{
-		putValue(
-			Action.SHORT_DESCRIPTION,
-			"View/edit the selected module.")
-	}
+	/**
+	 * Return a suitable icon to display for this instance with the given line
+	 * height.
+	 *
+	 * @param lineHeight
+	 *   The desired icon height in pixels.
+	 * @return The icon.
+	 */
+	fun icon(lineHeight: Int): ImageIcon =
+		StructureIcons.icon(lineHeight.ifZero { 19 }, entry.kind)
 }

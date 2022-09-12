@@ -1,5 +1,5 @@
 /*
- * OpenModuleAction.kt
+ * EntryPointModuleNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,52 +30,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.environment.actions
+package avail.environment.nodes
 
+import avail.compiler.ModuleManifestEntry
 import avail.environment.AvailEditor
-import avail.environment.AvailWorkbench
-import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
-import javax.swing.Action
-import javax.swing.KeyStroke
+import javax.swing.tree.DefaultMutableTreeNode
 
 /**
- * Open an editor on the selected module.
+ * This is a tree node representing a grouping of more than one
+ * [ModuleManifestEntry]s that all share the same
+ * [ModuleManifestEntry.summaryText].
  *
- * @constructor
- * Construct a new [OpenModuleAction].
+ * @author Richard Arriaga
  *
- * @param workbench
- *   The owning [AvailWorkbench].
+ * @property editor
+ *   The associated [AvailEditor].
+ * @property entryName
+ *   The common [ModuleManifestEntry.summaryText].
  */
-class OpenModuleAction
-constructor (
-	workbench: AvailWorkbench,
-) : AbstractWorkbenchAction(
-	workbench,
-	"Open selected module",
-	KeyStroke.getKeyStroke(KeyEvent.VK_O, AvailWorkbench.menuShortcutMask))
+class ManifestEntryNameNode constructor(
+	val editor: AvailEditor,
+	val entryName: String
+): DefaultMutableTreeNode(), Comparable<ManifestEntryNameNode>
 {
-	override fun actionPerformed(event: ActionEvent)
-	{
-		var isNew = false
-		val moduleName =
-			workbench.selectedModule()!!.resolverReference.moduleName
-		val editor = workbench.openEditors.computeIfAbsent(moduleName) {
-			isNew = true
-			AvailEditor(workbench, moduleName).apply { open() }
-		}
-		if (!isNew)
-		{
-			editor.openStructureView(true)
-			editor.toFront()
-		}
-	}
-
-	init
-	{
-		putValue(
-			Action.SHORT_DESCRIPTION,
-			"View/edit the selected module.")
-	}
+	override fun compareTo(other: ManifestEntryNameNode): Int =
+		entryName.compareTo(other.entryName)
 }
