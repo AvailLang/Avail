@@ -54,6 +54,7 @@ import java.awt.event.WindowEvent
 import javax.swing.BorderFactory
 import javax.swing.BorderFactory.createLineBorder
 import javax.swing.GroupLayout
+import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -71,7 +72,8 @@ import javax.swing.tree.TreeSelectionModel
  * The panel for a module's structure view that lists the top level
  * [ModuleManifestEntry]s.
  *
- * @author Richard Arriaga
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class StructureViewPanel constructor(
 	val workbench: AvailWorkbench,
@@ -170,7 +172,7 @@ class StructureViewPanel constructor(
 		add(sortAlpha)
 		add(sortPosition)
 		SideEffectKind.values().forEach {
-			val iconLabel = JLabel(StructureIcons.icon(19, it))
+			val iconLabel = JButton(StructureIcons.icon(19, it))
 			iconLabel.apply {
 				border = selectedBorder()
 				toolTipText =
@@ -193,28 +195,19 @@ class StructureViewPanel constructor(
 						SideEffectKind.MODULE_CONSTANT_KIND -> "Constant"
 						SideEffectKind.MODULE_VARIABLE_KIND -> "Variable"
 					}
-				addMouseListener(
-					object : MouseAdapter()
+				addActionListener { _ ->
+					if (filterExcludeSet.contains(it))
 					{
-						override fun mouseClicked(e: MouseEvent)
-						{
-							if (e.clickCount == 1 && e.button == MouseEvent.BUTTON1)
-							{
-								e.consume()
-								if (filterExcludeSet.contains(it))
-								{
-									iconLabel.border = selectedBorder()
-									filterExcludeSet.remove(it)
-								}
-								else
-								{
-									iconLabel.border = unselectedBorder()
-									filterExcludeSet.add(it)
-								}
-								updateView(editor)
-							}
-						}
-					})
+						iconLabel.border = selectedBorder()
+						filterExcludeSet.remove(it)
+					}
+					else
+					{
+						iconLabel.border = unselectedBorder()
+						filterExcludeSet.add(it)
+					}
+					updateView(editor)
+				}
 			}
 			add(iconLabel)
 		}
@@ -380,7 +373,7 @@ class StructureViewPanel constructor(
 							entryMap[it]!!.first().topLevelStartingLine
 						}
 				}
-				mapKeys.forEach { it ->
+				mapKeys.forEach {
 					val manifestEntries = entryMap[it]!!
 					if (manifestEntries.size == 1)
 					{
