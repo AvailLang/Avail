@@ -624,8 +624,15 @@ object StyleApplicator
 	 *
 	 * @param runs
 	 *   The style runs to apply to the [document][StyledDocument].
+	 * @param replace
+	 *   Indicates whether or not the previous attributes should be cleared
+	 *   before the new attributes as set. If true, the operation will replace
+	 *   the previous attributes entirely. If false, the new attributes will be
+	 *   merged with the previous attributes.
 	 */
-	fun StyledDocument.applyStyleRuns(runs: List<StyleRun>)
+	fun StyledDocument.applyStyleRuns(
+		runs: List<StyleRun>,
+		replace: Boolean = true)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
 		val compositeStyles = mutableMapOf<String, Style>()
@@ -642,7 +649,7 @@ object StyleApplicator
 						range.first - 1,
 						range.last - range.first + 1,
 						style,
-						false)
+						replace)
 				}
 			}
 			else
@@ -664,7 +671,7 @@ object StyleApplicator
 					range.first - 1,
 					range.last - range.first + 1,
 					style,
-					false)
+					replace)
 			}
 		}
 	}

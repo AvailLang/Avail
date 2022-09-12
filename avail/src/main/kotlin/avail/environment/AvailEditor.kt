@@ -41,6 +41,7 @@ import avail.compiler.ModuleManifestEntry
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.manifestEntries
+import avail.environment.AvailWorkbench.Companion.menuShiftShortcutMask
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
@@ -48,7 +49,9 @@ import avail.environment.editor.AbstractEditorAction
 import avail.environment.editor.GoToDialog
 import avail.environment.text.AvailEditorKit.Companion.breakLine
 import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
+import avail.environment.text.AvailEditorKit.Companion.openStructureView
 import avail.environment.text.AvailEditorKit.Companion.outdent
+import avail.environment.text.AvailEditorKit.Companion.refresh
 import avail.environment.text.AvailEditorKit.Companion.space
 import avail.environment.text.MarkToDotRange
 import avail.environment.text.goTo
@@ -68,6 +71,7 @@ import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
+import java.awt.event.KeyEvent.VK_F5
 import java.awt.event.KeyEvent.VK_L
 import java.awt.event.KeyEvent.VK_M
 import java.awt.event.KeyEvent.VK_SPACE
@@ -82,7 +86,7 @@ import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JRootPane
+import javax.swing.JTextPane
 import javax.swing.KeyStroke.getKeyStroke
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
@@ -134,7 +138,7 @@ class AvailEditor constructor(
 	private var lastSaveTime = 0L
 
 	/** The [resolved][ResolvedModuleName] [module&#32;name][ModuleName]. */
-	private val resolvedName = runtime.moduleNameResolver.resolve(moduleName)
+	internal val resolvedName = runtime.moduleNameResolver.resolve(moduleName)
 
 	/**
 	 * The resolved reference to the module. **Only access within the Swing UI
@@ -165,7 +169,18 @@ class AvailEditor constructor(
 	/**
 	 * The [ModuleManifestEntry] list for the represented model.
 	 */
-	private lateinit var manifestEntriesList: List<ModuleManifestEntry>
+	private var manifestEntriesList: List<ModuleManifestEntry>? = null
+
+	internal fun updateManifestEntriesList (then: (List<ModuleManifestEntry>) -> Unit)
+	{
+		workbench.runtime.execute(
+			AvailTask(FiberDescriptor.loaderPriority) {
+				val newList = workbench.availBuilder.getLoadedModule(resolvedName)
+					?.module?.manifestEntries() ?: emptyList()
+				manifestEntriesList = newList
+				then(newList)
+			})
+	}
 
 	/**
 	 * Get the [List] of [ModuleManifestEntry]s for the associated
@@ -176,20 +191,22 @@ class AvailEditor constructor(
 	 */
 	internal fun manifestEntries (then: (List<ModuleManifestEntry>) -> Unit)
 	{
-		if (this::manifestEntriesList.isInitialized)
+		val mel = manifestEntriesList
+		if (mel != null)
 		{
-			then(manifestEntriesList)
+			then(mel)
 		}
 		else
 		{
-			workbench.runtime.execute(
-				AvailTask(FiberDescriptor.loaderPriority) {
-					manifestEntriesList =
-						workbench.availBuilder.getLoadedModule(resolvedName)
-							?.module?.manifestEntries() ?: emptyList()
-					then(manifestEntriesList)
-				})
+			updateManifestEntriesList(then)
 		}
+//		workbench.runtime.execute(
+//			AvailTask(FiberDescriptor.loaderPriority) {
+//				manifestEntriesList =
+//					workbench.availBuilder.getLoadedModule(resolvedName)
+//						?.module?.manifestEntries() ?: emptyList()
+//				then(manifestEntriesList)
+//			})
 	}
 
 	/**
@@ -218,7 +235,6 @@ class AvailEditor constructor(
 						}
 					}
 					isVisible = true
-
 				}
 			}
 		}
@@ -277,6 +293,7 @@ class AvailEditor constructor(
 
 	init
 	{
+		// TODO move all these to AvailEditorKit.defaultActions
 		// Action: undo the previous edit.
 		object : AbstractEditorAction(
 			this,
@@ -358,21 +375,6 @@ class AvailEditor constructor(
 				GoToDialog(editor)
 			}
 		}
-
-		// Go to position.
-		object: AbstractEditorAction(
-			this,
-			"Open Structure View",
-			getKeyStroke(
-				VK_M,
-				AvailWorkbench.menuShiftShortcutMask
-			)
-		) {
-			override fun actionPerformed(e: ActionEvent)
-			{
-				editor.openStructureView(false)
-			}
-		}
 	}
 
 	/**
@@ -440,33 +442,6 @@ class AvailEditor constructor(
 
 	/** The editor pane. */
 	internal val sourcePane = codeSuitableTextPane(workbench, this).apply {
-		var stylingRecord: StylingRecord? = null
-		val semaphore = Semaphore(0)
-		resolverReference.readFileString(
-			true,
-			withContents = { string, _ ->
-				text = string
-				getActiveStylingRecord(
-					onSuccess = { stylingRecordOrNull ->
-						stylingRecord = stylingRecordOrNull
-						semaphore.release()
-					},
-					onError = { e ->
-						e?.let { e.printStackTrace() }
-							?: System.err.println(
-								"unable to style editor for $resolvedName")
-						semaphore.release()
-					}
-				)
-			},
-			failureHandler = { code, throwable ->
-				text = "Error reading module: $throwable, code=$code"
-				semaphore.release()
-			})
-		semaphore.acquire()
-		stylingRecord?.let {
-			styledDocument.applyStyleRuns(it.styleRuns)
-		}
 		isEditable = resolverReference.resolver.canSave
 		addCaretListener { e ->
 			clearStaleTemplateSelectionState()
@@ -494,6 +469,10 @@ class AvailEditor constructor(
 			),
 			centerCurrentLine
 		)
+		inputMap.put(
+			getKeyStroke(VK_M, menuShiftShortcutMask),
+			openStructureView)
+		inputMap.put(getKeyStroke(VK_F5, 0), refresh)
 		document.addDocumentListener(object : DocumentListener
 		{
 			override fun insertUpdate(e: DocumentEvent) = editorChanged()
@@ -514,13 +493,53 @@ class AvailEditor constructor(
 		// Arrange for the undo manager to be available when only the source
 		// pane is in scope.
 		putClientProperty(AvailEditor::undoManager.name, undoManager)
-		range = markToDotRange()
-		caretRangeLabel.text = range.toString()
+		putClientProperty(availEditor, this@AvailEditor)
 		// TODO Extract token/phrase style information that should have been
 		// captured by stylers that ran against method/macro send phrases.
 		// TODO Also, we need to capture info relating local variable
 		// uses and definitions, and we should extract it here, so that we can
 		// navigate, or at least highlight all the occurrences.
+	}
+
+	init
+	{
+		highlightCode()
+		range = sourcePane.markToDotRange()
+		caretRangeLabel.text = range.toString()
+	}
+
+	/**
+	 * Apply style highlighting to the text in the [JTextPane].
+	 */
+	internal fun highlightCode()
+	{
+		var stylingRecord: StylingRecord? = null
+		val semaphore = Semaphore(0)
+		resolverReference.readFileString(
+			true,
+			withContents = { string, _ ->
+				sourcePane.text = string
+				getActiveStylingRecord(
+					onSuccess = { stylingRecordOrNull ->
+						stylingRecord = stylingRecordOrNull
+						semaphore.release()
+					},
+					onError = { e ->
+						e?.let { e.printStackTrace() }
+							?: System.err.println(
+								"unable to style editor for $resolvedName")
+						semaphore.release()
+					}
+				)
+			},
+			failureHandler = { code, throwable ->
+				sourcePane.text = "Error reading module: $throwable, code=$code"
+				semaphore.release()
+			})
+		semaphore.acquire()
+		stylingRecord?.let {
+			sourcePane.styledDocument.applyStyleRuns(it.styleRuns)
+		}
 	}
 
 	/**
@@ -797,10 +816,13 @@ class AvailEditor constructor(
 
 	companion object
 	{
+		/** The client property key for an [AvailEditor] from a [JTextPane]. */
+		const val availEditor = "avail-editor"
+
 		/** The [AvailEditor] that sourced the [receiver][ActionEvent]. */
 		@Suppress("unused")
-		private val ActionEvent.editor get() =
-			(source as JRootPane).parent as AvailEditor
+		internal val ActionEvent.editor get() =
+			(source as JTextPane).getClientProperty(availEditor) as AvailEditor
 
 		/** The length of the receiver after template expansion. */
 		private val String.expandedLength get() =

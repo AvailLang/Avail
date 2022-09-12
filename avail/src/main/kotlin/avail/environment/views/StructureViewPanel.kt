@@ -54,6 +54,7 @@ import java.awt.event.WindowEvent
 import javax.swing.BorderFactory
 import javax.swing.BorderFactory.createLineBorder
 import javax.swing.GroupLayout
+import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -72,6 +73,7 @@ import javax.swing.tree.TreeSelectionModel
  * [ModuleManifestEntry]s.
  *
  * @author Richard Arriaga
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class StructureViewPanel constructor(
 	val workbench: AvailWorkbench,
@@ -125,52 +127,31 @@ class StructureViewPanel constructor(
 		minimumSize = Dimension(450, 50)
 		maximumSize = Dimension(450, 50)
 		preferredSize = Dimension(450, 50)
-		val sortAlpha = JLabel("🔠")
-		val sortPosition = JLabel("🔢")
+		val sortAlpha = JButton("🔠")
+		val sortPosition = JButton("🔢")
 		sortAlpha.apply {
 			font = Font("Serif", Font.PLAIN, 18)
-			addMouseListener(
-				object : MouseAdapter()
-				{
-					override fun mouseClicked(e: MouseEvent)
-					{
-						if (e.clickCount == 1 && e.button == MouseEvent.BUTTON1)
-						{
-							e.consume()
-							BorderFactory.createCompoundBorder(
-
-							)
-							border = selectedBorder()
-							sortPosition.border = unselectedBorder()
-							updateView(editor, sortBy = SortBy.SUMMARY_TEXT)
-						}
-					}
-				})
+			addActionListener {
+				border = selectedBorder()
+				sortPosition.border = unselectedBorder()
+				updateView(editor, sortBy = SortBy.SUMMARY_TEXT)
+			}
 		}
 		sortPosition.apply {
 			border = createLineBorder(Color.GREEN, SELECTION_BORDER_THICKNESS)
 			font = Font("Serif", Font.PLAIN, 18)
-			addMouseListener(
-				object : MouseAdapter()
-				{
-					override fun mouseClicked(e: MouseEvent)
-					{
-						if (e.clickCount == 1 && e.button == MouseEvent.BUTTON1)
-						{
-							e.consume()
-							sortAlpha.border = unselectedBorder()
-							border = selectedBorder()
-							updateView(
-								editor,
-								sortBy = SortBy.LINE_NUMBER)
-						}
-					}
-				})
+			addActionListener {
+				sortAlpha.border = unselectedBorder()
+				border = selectedBorder()
+				updateView(
+					editor,
+					sortBy = SortBy.LINE_NUMBER)
+			}
 		}
 		add(sortAlpha)
 		add(sortPosition)
 		SideEffectKind.values().forEach {
-			val iconLabel = JLabel(StructureIcons.icon(19, it))
+			val iconLabel = JButton(StructureIcons.icon(19, it))
 			iconLabel.apply {
 				border = selectedBorder()
 				toolTipText =
@@ -193,28 +174,19 @@ class StructureViewPanel constructor(
 						SideEffectKind.MODULE_CONSTANT_KIND -> "Constant"
 						SideEffectKind.MODULE_VARIABLE_KIND -> "Variable"
 					}
-				addMouseListener(
-					object : MouseAdapter()
+				addActionListener { _ ->
+					if (filterExcludeSet.contains(it))
 					{
-						override fun mouseClicked(e: MouseEvent)
-						{
-							if (e.clickCount == 1 && e.button == MouseEvent.BUTTON1)
-							{
-								e.consume()
-								if (filterExcludeSet.contains(it))
-								{
-									iconLabel.border = selectedBorder()
-									filterExcludeSet.remove(it)
-								}
-								else
-								{
-									iconLabel.border = unselectedBorder()
-									filterExcludeSet.add(it)
-								}
-								updateView(editor)
-							}
-						}
-					})
+						iconLabel.border = selectedBorder()
+						filterExcludeSet.remove(it)
+					}
+					else
+					{
+						iconLabel.border = unselectedBorder()
+						filterExcludeSet.add(it)
+					}
+					updateView(editor)
+				}
 			}
 			add(iconLabel)
 		}
@@ -338,7 +310,7 @@ class StructureViewPanel constructor(
 	 *   and displayed.
 	 */
 	fun updateView (
-		targetEditor: AvailEditor?,
+		targetEditor: AvailEditor? = editor,
 		entries: List<ModuleManifestEntry> = manifestEntries.toList(),
 		sortBy: SortBy = lastSortBy,
 		excludeSet: Set<SideEffectKind> = filterExcludeSet.toSet(),

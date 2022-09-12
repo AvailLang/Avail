@@ -43,6 +43,9 @@ import javax.swing.SwingUtilities
  * A `BuildTask` launches the actual build of the target
  * [module][ModuleDescriptor].
  *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga
+ *
  * @constructor
  * Construct a new `BuildTask`.
  *
@@ -69,12 +72,22 @@ constructor (
 			workbench::eventuallyUpdateBuildProgress,
 			workbench.availBuilder.buildProblemHandler
 		) {
+
 			SwingUtilities.invokeLater {
 				workbench.backgroundTask = null
 				reportDone()
 				workbench.availBuilder.checkStableInvariants()
 				workbench.setEnablements()
 				workbench.cursor = Cursor.getDefaultCursor()
+				workbench.openEditors.values.forEach { editor ->
+					editor.highlightCode()
+					editor.updateManifestEntriesList {
+						if (workbench.structureView?.editor == editor)
+						{
+							editor.openStructureView(true)
+						}
+					}
+				}
 				afterExecute()
 			}
 		}

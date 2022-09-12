@@ -33,12 +33,17 @@
 package avail.environment.text
 
 import avail.environment.AvailEditor
+import avail.environment.AvailEditor.Companion.editor
 import avail.environment.AvailWorkbench
+import avail.environment.tasks.BuildTask
 import avail.environment.text.AvailEditorKit.Companion.breakLine
 import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
 import avail.environment.text.AvailEditorKit.Companion.indent
+import avail.environment.text.AvailEditorKit.Companion.openStructureView
 import avail.environment.text.AvailEditorKit.Companion.outdent
+import avail.environment.text.AvailEditorKit.Companion.refresh
 import avail.environment.text.AvailEditorKit.Companion.space
+import avail.environment.views.StructureViewPanel
 import avail.utility.Strings.tabs
 import java.awt.Point
 import java.awt.event.ActionEvent
@@ -68,7 +73,9 @@ class AvailEditorKit constructor(
 		BreakLine,
 		IncreaseIndentation,
 		DecreaseIndentation,
-		CenterCurrentLine
+		CenterCurrentLine,
+		OpenStructureView,
+		Refresh
 	)
 
 	override fun getActions(): Array<Action>
@@ -90,10 +97,14 @@ class AvailEditorKit constructor(
 		/** The name of the [DecreaseIndentation] action. */
 		const val outdent = "outdent"
 
-		/**
-		 * The name of the [CenterCurrentLine] action.
-		 */
+		/** The name of the [CenterCurrentLine] action. */
 		const val centerCurrentLine = "center-current-line"
+
+		/** The name of the [OpenStructureView] action. */
+		const val openStructureView = "open-structure-view"
+
+		/** The name of the [OpenStructureView] action. */
+		const val refresh = "refresh"
 	}
 }
 
@@ -259,6 +270,34 @@ private object CenterCurrentLine: TextAction(centerCurrentLine)
 {
 	override fun actionPerformed(e: ActionEvent) =
 		(e.source as JTextComponent).centerCurrentLine()
+}
+
+/**
+ * Open the [StructureViewPanel].
+ */
+private object OpenStructureView: TextAction(openStructureView)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		e.editor.openStructureView(false)
+	}
+}
+
+/**
+ * Rebuild the open editor's module and refresh the screen style.
+ */
+private object Refresh: TextAction(refresh)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val editor = e.editor
+		val workbench = editor.workbench
+		val buildTask = BuildTask(workbench, editor.resolvedName)
+		workbench.backgroundTask = buildTask
+		workbench.availBuilder.checkStableInvariants()
+		workbench.setEnablements()
+		buildTask.execute()
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
