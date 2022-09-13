@@ -46,12 +46,12 @@ import avail.builder.UnresolvedDependencyException
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
-import avail.environment.LayoutConfiguration.Companion.basePreferences
-import avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSubkeyString
-import avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyString
-import avail.environment.LayoutConfiguration.Companion.moduleRenamesKeyString
-import avail.environment.LayoutConfiguration.Companion.moduleRootsKeyString
-import avail.environment.LayoutConfiguration.Companion.moduleRootsSourceSubkeyString
+import avail.environment.window.AvailWorkbenchLayoutConfiguration.Companion.basePreferences
+import avail.environment.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenameSourceSubkeyString
+import avail.environment.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenameTargetSubkeyString
+import avail.environment.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenamesKeyString
+import avail.environment.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRootsKeyString
+import avail.environment.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRootsSourceSubkeyString
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.actions.AboutAction
 import avail.environment.actions.BuildAction
@@ -116,6 +116,9 @@ import avail.environment.streams.StreamStyle.INFO
 import avail.environment.streams.StreamStyle.OUT
 import avail.environment.tasks.BuildTask
 import avail.environment.views.StructureViewPanel
+import avail.environment.window.AvailWorkbenchLayoutConfiguration
+import avail.environment.window.LocalScreenState
+import avail.environment.window.WorkbenchFrame
 import avail.files.FileManager
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
@@ -151,6 +154,7 @@ import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.BufferedReader
 import java.io.File
@@ -184,7 +188,6 @@ import javax.swing.Action
 import javax.swing.GroupLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
-import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JMenu
 import javax.swing.JPanel
@@ -250,9 +253,20 @@ class AvailWorkbench internal constructor(
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver,
-	private var availProjectFilePath: String = "",
-	windowTitle: String = "Avail Workbench") : JFrame()
+	internal var availProjectFilePath: String = "",
+	windowTitle: String = "Avail Workbench") : WorkbenchFrame(windowTitle)
 {
+	override val workbench: AvailWorkbench get() = this
+
+	/**
+	 * The file path to the [LocalScreenState].
+	 */
+	private val localScreenStatePath =
+		availProjectFilePath.replace(".json", "-local-state.json")
+
+	// TODO read/write LocalScreenState from/to disk and use it to reopen
+	// windows
+
 	/**
 	 * The recognized textual templates available for interactive
 	 * transformation, as a [PrefixTree] from template texts to expansion
@@ -1659,11 +1673,13 @@ class AvailWorkbench internal constructor(
 
 	private val leftPane: JSplitPane
 
-	/**
-	 * Get the existing preferences early for plugging in at the right times
-	 * during construction.
-	 */
-	private val layoutConfiguration = LayoutConfiguration.initialConfiguration
+	// Get the existing preferences early for plugging in at the right times
+	// during construction.
+	private var screenState = LocalScreenState.from(File(localScreenStatePath))
+
+	override val layoutConfiguration =
+		AvailWorkbenchLayoutConfiguration.from(
+			screenState.workbenchLayoutConfig)
 
 	init
 	{
@@ -2002,7 +2018,22 @@ class AvailWorkbench internal constructor(
 				saveWindowPosition()
 			}
 		})
-
+		addWindowListener(object : WindowAdapter()
+		{
+			override fun windowClosing(e: WindowEvent)
+			{
+				saveWindowPosition()
+				val sv = structureView?.let {
+					it.saveWindowPosition()
+					it.layoutConfiguration.stringToStore()
+				} ?: ""
+				val local = LocalScreenState(
+					layoutConfiguration.stringToStore(),
+					sv)
+				local.refreshOpenEditors(this@AvailWorkbench)
+				File(localScreenStatePath).writeText(local.fileContent)
+			}
+		})
 		// Set up desktop and taskbar features.
 		Desktop.getDesktop().setDefaultMenuBar(jMenuBar)
 		jMenuBar.maximumSize = Dimension(0, 0)
@@ -2011,11 +2042,17 @@ class AvailWorkbench internal constructor(
 			// position state then exit. Apple's apple.eawt.quitStrategy has
 			// never worked, to the best of my knowledge.  It's a trick.  We
 			// must close the workbench window explicitly to give it a chance to
-			// save.  But first close all the editors (assume they close).
+			// save.  But first build the current LocalScreenState then close
+			// all the editors (assume they close).
+			val local = LocalScreenState(
+				layoutConfiguration.stringToStore(),
+				structureView?.layoutConfiguration?.stringToStore() ?: "")
+			local.refreshOpenEditors(this)
 			openEditors.values.toList().forEach { editor ->
 				editor.dispatchEvent(
 					WindowEvent(editor, WindowEvent.WINDOW_CLOSING))
 			}
+			File(localScreenStatePath).writeText(local.fileContent)
 			dispatchEvent(
 				WindowEvent(this@AvailWorkbench, WindowEvent.WINDOW_CLOSING))
 			true
@@ -2039,7 +2076,7 @@ class AvailWorkbench internal constructor(
 		setEnablements()
 	}
 
-	private fun saveWindowPosition()
+	override fun saveWindowPosition()
 	{
 		layoutConfiguration.extendedState = extendedState
 		if (extendedState == NORMAL)
@@ -2124,6 +2161,24 @@ class AvailWorkbench internal constructor(
 			ignoreRepaint = false
 			repaint()
 			isVisible = true
+			invokeLater {
+				screenState.openEditors.values.forEach {
+					it.open(this@AvailWorkbench)
+				}
+				if (screenState.structureViewLayoutConfig.isNotEmpty())
+				{
+					val editor = openEditors.values.first()
+					structureViewPanel.apply {
+						layoutConfiguration.parseInput(
+							screenState.structureViewLayoutConfig)
+						layoutConfiguration.placement?.let {
+							this.bounds = it
+						}
+						this.extendedState = layoutConfiguration.extendedState
+						updateView(editor)
+					}
+				}
+			}
 		}
 	}
 

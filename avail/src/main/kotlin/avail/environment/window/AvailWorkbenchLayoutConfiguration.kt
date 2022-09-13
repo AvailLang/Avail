@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,11 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.environment
+package avail.environment.window
 
 import avail.builder.ModuleRoots
+import avail.environment.AvailWorkbench
 import java.awt.Frame
-import java.awt.GraphicsDevice
 import java.awt.GraphicsEnvironment
 import java.awt.Rectangle
 import java.util.prefs.Preferences
@@ -42,28 +42,11 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Information about the window layout.
- *
- * @constructor
- *
- * Construct a new `LayoutConfiguration` with preferences specified by some
- * private encoding in the provided [String].
- *
- * @param input
- *   A string in some encoding compatible with that produced by
- *   [stringToStore].
+ * The [LayoutConfiguration] for the [AvailWorkbench].
  */
-class LayoutConfiguration constructor (input: String = "")
+class AvailWorkbenchLayoutConfiguration private constructor ()
+	: LayoutConfiguration()
 {
-	/** The preferred location and size of the window, if specified. */
-	internal var placement: Rectangle? = null
-
-	/**
-	 * The platform-independent information about whether the window is
-	 * maximized or minimized (iconified).
-	 */
-	internal var extendedState: Int = Frame.NORMAL
-
 	/**
 	 * The width of the left region of the builder frame in pixels, if
 	 * specified
@@ -77,7 +60,7 @@ class LayoutConfiguration constructor (input: String = "")
 	 */
 	internal var moduleVerticalProportion: Double? = null
 
-	init
+	override fun parseInput(input: String)
 	{
 		if (input.isNotEmpty())
 		{
@@ -135,16 +118,9 @@ class LayoutConfiguration constructor (input: String = "")
 		return if (h !== null) max(0.0, min(1.0, h)) else 0.5
 	}
 
-	fun saveWindowPosition()
-	{
-		val preferences =
-			placementPreferencesNodeForScreenNames(allScreenNames())
-		preferences.put(placementLeafKeyString, stringToStore())
-	}
-
 	/**
 	 * Answer a string representation of this configuration that is suitable
-	 * for being stored and restored via the [LayoutConfiguration]
+	 * for being stored and restored via the [AvailWorkbenchLayoutConfiguration]
 	 * constructor that accepts a [String].
 	 *
 	 * The layout should be fairly stable to avoid treating older versions
@@ -164,7 +140,7 @@ class LayoutConfiguration constructor (input: String = "")
 	 *
 	 * @return A string.
 	 */
-	private fun stringToStore(): String
+	override fun stringToStore(): String
 	{
 		val strings = Array(10) { "" }
 		val p = placement
@@ -204,13 +180,6 @@ class LayoutConfiguration constructor (input: String = "")
 		val basePreferences: Preferences =
 			Preferences.userNodeForPackage(AvailWorkbench::class.java)
 
-		/** The key under which to organize all placement information. */
-		private const val placementByMonitorNamesString =
-			"placementByMonitorNames"
-
-		/** The leaf key under which to store a single window placement. */
-		const val placementLeafKeyString = "placement"
-
 		/** The key under which to store the [ModuleRoots]. */
 		const val moduleRootsKeyString = "module roots"
 
@@ -227,53 +196,16 @@ class LayoutConfiguration constructor (input: String = "")
 		const val moduleRenameTargetSubkeyString = "target"
 
 		/**
-		 * Figure out how to initially lay out the frame, based on previously
-		 * saved preference information.
+		 * Create a [AvailWorkbenchLayoutConfiguration] from the provided input
+		 * string.
 		 *
-		 * @return The initial [LayoutConfiguration].
+		 * @param input
+		 *   A string in some encoding compatible with that produced by
+		 *   [stringToStore].
 		 */
-		val initialConfiguration: LayoutConfiguration
-			get()
-			{
-				val preferences =
-					placementPreferencesNodeForScreenNames(allScreenNames())
-				val configurationString =
-					preferences.get(placementLeafKeyString, null)
-					?: return LayoutConfiguration()
-				return LayoutConfiguration(configurationString)
+		fun from (input: String = ""): AvailWorkbenchLayoutConfiguration =
+			AvailWorkbenchLayoutConfiguration().apply {
+				parseInput(input)
 			}
-
-		/**
-		 * Answer a [List] of [Rectangle]s corresponding with the physical
-		 * monitors into which [Frame]s may be positioned.
-		 *
-		 * @return The list of rectangles to which physical screens are mapped.
-		 */
-		fun allScreenNames(): List<String> =
-			GraphicsEnvironment
-				.getLocalGraphicsEnvironment()
-				.screenDevices.map(GraphicsDevice::getIDstring)
-
-		/**
-		 * Answer the [Preferences] node responsible for holding the default
-		 * window position and size for the current monitor configuration.
-		 *
-		 * @param screenNames
-		 *   The list of id [String]s of all physical screens.
-		 * @return The `Preferences` node in which placement information for
-		 *   the current monitor configuration can be stored and retrieved.
-		 */
-		fun placementPreferencesNodeForScreenNames(screenNames: List<String>)
-			: Preferences
-		{
-			val allNamesString = StringBuilder()
-			screenNames.forEach { name ->
-				allNamesString.append(name)
-				allNamesString.append(";")
-			}
-			return basePreferences.node(
-				"$placementByMonitorNamesString/$allNamesString")
-		}
-
 	}
 }

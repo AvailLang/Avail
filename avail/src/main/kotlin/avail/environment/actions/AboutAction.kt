@@ -35,7 +35,7 @@ package avail.environment.actions
 import avail.AvailRuntimeConfiguration
 import avail.environment.AdaptiveColor
 import avail.environment.AvailWorkbench
-import avail.environment.LayoutConfiguration.Companion.resource
+import avail.environment.window.AvailWorkbenchLayoutConfiguration.Companion.resource
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dialog.ModalityType

@@ -33,6 +33,9 @@
 package avail.environment.text
 
 import avail.environment.AvailEditor
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONObject
+import org.availlang.json.JSONWriter
 import javax.swing.text.Caret
 import javax.swing.text.Document
 import javax.swing.text.Element
@@ -43,7 +46,7 @@ import javax.swing.text.JTextComponent
  *
  * @author Richard Arriaga
  */
-sealed class DocumentPosition
+sealed class DocumentPosition: JSONFriendly
 {
 	/**
 	 * The 0-based line number of this [DocumentPosition].
@@ -70,6 +73,17 @@ sealed class DocumentPosition
 	 */
 	abstract val offset: Int
 
+	override fun writeTo(writer: JSONWriter)
+	{
+		writer.writeObject {
+			at(DocumentPosition::line.name) { write(line) }
+			at(DocumentPosition::characterInLine.name) {
+				write(characterInLine)
+			}
+			at(DocumentPosition::offset.name) { write(offset) }
+		}
+	}
+
 	/**
 	 * Answer the [Element] inside which this [DocumentPosition] resides.
 	 *
@@ -95,6 +109,31 @@ data class MarkPosition constructor(
 {
 	override fun toString(): String =
 		"$lineOneBased:$characterInLineOneBased ($offset)"
+
+	companion object
+	{
+		/**
+		 * Extract the [MarkPosition] from the provided [JSONObject].
+		 *
+		 * @param obj
+		 *   The [JSONObject] to extract the data from.
+		 * @return
+		 *   A [MarkPosition].
+		 */
+		fun from (obj: JSONObject): MarkPosition
+		{
+			if (!obj.containsKey(MarkPosition::line.name)
+				|| !obj.containsKey(MarkPosition::characterInLine.name)
+				|| !obj.containsKey(MarkPosition::offset.name))
+			{
+				return MarkPosition(0, 0, 0)
+			}
+			return MarkPosition(
+				obj.getNumber(MarkPosition::line.name).int,
+				obj.getNumber(MarkPosition::characterInLine.name).int,
+				obj.getNumber(MarkPosition::offset.name).int)
+		}
+	}
 }
 
 /**
@@ -110,6 +149,31 @@ data class DotPosition constructor(
 {
 	override fun toString(): String =
 		"$lineOneBased:$characterInLineOneBased ($offset)"
+
+	companion object
+	{
+		/**
+		 * Extract the [DotPosition] from the provided [JSONObject].
+		 *
+		 * @param obj
+		 *   The [JSONObject] to extract the data from.
+		 * @return
+		 *   A [DotPosition].
+		 */
+		fun from (obj: JSONObject): DotPosition
+		{
+			if (!obj.containsKey(DotPosition::line.name)
+				|| !obj.containsKey(DotPosition::characterInLine.name)
+				|| !obj.containsKey(DotPosition::offset.name))
+			{
+				return DotPosition(0, 0, 0)
+			}
+			return DotPosition(
+				obj.getNumber(DotPosition::line.name).int,
+				obj.getNumber(DotPosition::characterInLine.name).int,
+				obj.getNumber(DotPosition::offset.name).int)
+		}
+	}
 }
 
 /**
@@ -124,7 +188,8 @@ data class DotPosition constructor(
  */
 data class MarkToDotRange constructor(
 	val markPosition: MarkPosition,
-	val dotPosition: DotPosition)
+	val dotPosition: DotPosition
+): JSONFriendly
 {
 	/**
 	 * Answer the number of characters included in this [MarkToDotRange].
@@ -143,6 +208,18 @@ data class MarkToDotRange constructor(
 	fun selected (jTextComponent: JTextComponent): String =
 		jTextComponent.document.getText(markPosition.offset, count)
 
+	override fun writeTo(writer: JSONWriter)
+	{
+		writer.writeObject {
+			at(MarkToDotRange::markPosition.name) {
+				markPosition.writeTo(this)
+			}
+			at(MarkToDotRange::dotPosition.name) {
+				dotPosition.writeTo(this)
+			}
+		}
+	}
+
 	override fun toString(): String =
 		if (count == 0)
 		{
@@ -154,4 +231,31 @@ data class MarkToDotRange constructor(
 				"${dotPosition.lineOneBased}:${dotPosition.characterInLineOneBased} " +
 				"($count chars)"
 		}
+
+	companion object
+	{
+		/**
+		 * Extract the [MarkToDotRange] from the provided [JSONObject].
+		 *
+		 * @param obj
+		 *   The [JSONObject] to extract the data from.
+		 * @return
+		 *   A [MarkToDotRange].
+		 */
+		fun from (obj: JSONObject): MarkToDotRange
+		{
+			if (!obj.containsKey(MarkToDotRange::markPosition.name)
+				|| !obj.containsKey(MarkToDotRange::dotPosition.name))
+			{
+				return MarkToDotRange(
+					MarkPosition(0, 0, 0),
+					DotPosition(0, 0, 0))
+			}
+			return MarkToDotRange(
+				MarkPosition.from(
+					obj.getObject(MarkToDotRange::markPosition.name)),
+				DotPosition.from(
+					obj.getObject(MarkToDotRange::dotPosition.name)))
+		}
+	}
 }

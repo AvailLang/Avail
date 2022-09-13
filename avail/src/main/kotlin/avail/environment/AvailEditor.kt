@@ -60,6 +60,9 @@ import avail.environment.text.MarkToDotRange
 import avail.environment.text.goTo
 import avail.environment.text.markToDotRange
 import avail.environment.views.StructureViewPanel
+import avail.environment.window.AvailEditorLayoutConfiguration
+import avail.environment.window.LayoutConfiguration
+import avail.environment.window.WorkbenchFrame
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
@@ -111,11 +114,22 @@ import javax.swing.undo.UndoManager
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct an [AvailEditor].
+ *
+ * @param workbench
+ *   The owning [AvailWorkbench].
+ * @param moduleName
+ *   The [ModuleName] of the module being opened in the editor.
+ * @param afterTextLoaded
+ *   Action to perform after text has been loaded to [sourcePane].
  */
 class AvailEditor constructor(
-	val workbench: AvailWorkbench,
-	moduleName: ModuleName
-) : JFrame("Avail Editor: $moduleName")
+	override val workbench: AvailWorkbench,
+	moduleName: ModuleName,
+	afterTextLoaded: (AvailEditor) -> Unit = {}
+) : WorkbenchFrame("Avail Editor: $moduleName")
 {
 	/** The current [AvailRuntime]. */
 	private val runtime = workbench.runtime
@@ -147,6 +161,9 @@ class AvailEditor constructor(
 	 */
 	internal val resolverReference = resolvedName.resolverReference
 
+	override val layoutConfiguration: LayoutConfiguration =
+		AvailEditorLayoutConfiguration(resolvedName.qualifiedName)
+
 	/**
 	 * The last recorded caret position, set upon receipt of a [CaretEvent].
 	 * Used for supporting aggregate undo/redo.
@@ -171,6 +188,13 @@ class AvailEditor constructor(
 	 * The [ModuleManifestEntry] list for the represented model.
 	 */
 	private var manifestEntriesList: List<ModuleManifestEntry>? = null
+
+	override fun saveWindowPosition()
+	{
+		super.saveWindowPosition()
+		(layoutConfiguration as AvailEditorLayoutConfiguration).range =
+			this@AvailEditor.sourcePane.markToDotRange()
+	}
 
 	internal fun updateManifestEntriesList (then: (List<ModuleManifestEntry>) -> Unit)
 	{
@@ -346,7 +370,7 @@ class AvailEditor constructor(
 	/**
 	 * The [MarkToDotRange] of the [Caret] in the [sourcePane].
 	 */
-	private var range: MarkToDotRange
+	internal var range: MarkToDotRange // TODO can this be set?
 
 	/**
 	 * The [JLabel] that displays the [range]
@@ -358,6 +382,7 @@ class AvailEditor constructor(
 	/** The editor pane. */
 	internal val sourcePane = codeSuitableTextPane(workbench, this).apply {
 		isEditable = resolverReference.resolver.canSave
+
 		addCaretListener { e ->
 			clearStaleTemplateSelectionState()
 			val dot = e.dot
@@ -436,15 +461,18 @@ class AvailEditor constructor(
 
 	init
 	{
-		highlightCode()
+		highlightCode(afterTextLoaded)
 		range = sourcePane.markToDotRange()
 		caretRangeLabel.text = range.toString()
 	}
 
 	/**
 	 * Apply style highlighting to the text in the [JTextPane].
+	 *
+	 * @param then
+	 *   Action to perform after text has been loaded to [sourcePane].
 	 */
-	internal fun highlightCode()
+	internal fun highlightCode(then: (AvailEditor) -> Unit = {})
 	{
 		var stylingRecord: StylingRecord? = null
 		val semaphore = Semaphore(0)
@@ -473,6 +501,7 @@ class AvailEditor constructor(
 		stylingRecord?.let {
 			sourcePane.styledDocument.applyStyleRuns(it.styleRuns)
 		}
+		then(this)
 	}
 
 	/**

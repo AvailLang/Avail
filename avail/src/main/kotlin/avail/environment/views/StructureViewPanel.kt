@@ -36,10 +36,12 @@ import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind
 import avail.environment.AvailEditor
 import avail.environment.AvailWorkbench
+import avail.environment.window.WorkbenchFrame
 import avail.environment.createScrollPane
 import avail.environment.icons.StructureIcons
 import avail.environment.nodes.ManifestEntryNameNode
 import avail.environment.nodes.ManifestEntryNode
+import avail.environment.window.LayoutConfiguration
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -55,7 +57,6 @@ import javax.swing.BorderFactory
 import javax.swing.BorderFactory.createLineBorder
 import javax.swing.GroupLayout
 import javax.swing.JButton
-import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTree
@@ -75,10 +76,10 @@ import javax.swing.tree.TreeSelectionModel
  * @author Richard Arriaga
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class StructureViewPanel constructor(
-	val workbench: AvailWorkbench,
+class StructureViewPanel constructor (
+	override val workbench: AvailWorkbench,
 	private val onClose: () -> Unit
-	): JFrame("Structure")
+): WorkbenchFrame("Structure")
 {
 	/**
 	 * The presently associated [AvailEditor] for the displayed
@@ -86,6 +87,9 @@ class StructureViewPanel constructor(
 	 */
 	internal var editor: AvailEditor? = null
 		private set
+
+	override val layoutConfiguration: LayoutConfiguration =
+		LayoutConfiguration.initialConfiguration
 
 	/**
 	 * The list of [ModuleManifestEntry]s being displayed.

@@ -36,6 +36,8 @@ import avail.builder.ResolvedModuleName
 import avail.descriptor.module.ModuleDescriptor
 import avail.environment.AvailWorkbench
 import avail.environment.AvailWorkbench.AbstractWorkbenchTask
+import avail.environment.text.centerCurrentLine
+import avail.environment.text.setCaretFrom
 import java.awt.Cursor
 import javax.swing.SwingUtilities
 
@@ -80,7 +82,13 @@ constructor (
 				workbench.setEnablements()
 				workbench.cursor = Cursor.getDefaultCursor()
 				workbench.openEditors.values.forEach { editor ->
-					editor.highlightCode()
+					val r = editor.range
+					editor.highlightCode {
+						it.sourcePane.setCaretFrom(r)
+						SwingUtilities.invokeLater {
+							it.sourcePane.centerCurrentLine()
+						}
+					}
 					editor.updateManifestEntriesList {
 						if (workbench.structureView?.editor == editor)
 						{

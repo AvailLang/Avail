@@ -60,6 +60,7 @@ import javax.swing.JViewport
 import javax.swing.SwingUtilities.getAncestorOfClass
 import javax.swing.UIManager
 import javax.swing.text.BadLocationException
+import javax.swing.text.Caret
 import javax.swing.text.Document
 import javax.swing.text.JTextComponent
 import javax.swing.text.StyledEditorKit
@@ -444,6 +445,21 @@ fun JTextComponent.markPosition(): MarkPosition
  */
 fun JTextComponent.markToDotRange(): MarkToDotRange =
 	MarkToDotRange(markPosition(), dotPosition())
+
+/**
+ * Set the [caret dot][Caret.setDot] and [caret mark][Caret.getMark] from the
+ * given [MarkToDotRange].
+ *
+ * @param range
+ *   The [MarkToDotRange] to use to  position the [JTextComponent.caret].
+ */
+fun JTextComponent.setCaretFrom (range: MarkToDotRange)
+{
+	caret.apply {
+		dot = range.markPosition.offset
+		moveDot(range.dotPosition.offset)
+	}
+}
 
 /**
  * Interrogate the code point at the specified position.
