@@ -2044,14 +2044,15 @@ class AvailWorkbench internal constructor(
 			// must close the workbench window explicitly to give it a chance to
 			// save.  But first build the current LocalScreenState then close
 			// all the editors (assume they close).
+			saveWindowPosition()
+			val sv = structureView?.let {
+				it.saveWindowPosition()
+				it.layoutConfiguration.stringToStore()
+			} ?: ""
 			val local = LocalScreenState(
 				layoutConfiguration.stringToStore(),
-				structureView?.layoutConfiguration?.stringToStore() ?: "")
-			local.refreshOpenEditors(this)
-			openEditors.values.toList().forEach { editor ->
-				editor.dispatchEvent(
-					WindowEvent(editor, WindowEvent.WINDOW_CLOSING))
-			}
+				sv)
+			local.refreshOpenEditors(this@AvailWorkbench)
 			File(localScreenStatePath).writeText(local.fileContent)
 			dispatchEvent(
 				WindowEvent(this@AvailWorkbench, WindowEvent.WINDOW_CLOSING))

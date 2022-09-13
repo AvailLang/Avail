@@ -41,7 +41,7 @@ import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
 import org.availlang.json.jsonObject
-import org.availlang.json.jsonPrettyPrintWriter
+import org.availlang.json.jsonWriter
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -110,7 +110,7 @@ class LocalScreenState constructor(
 	 * The file contents to write to the
 	 */
 	val fileContent: String get() =
-		jsonPrettyPrintWriter {
+		jsonWriter {
 			this@LocalScreenState.writeTo(this)
 		}.toString()
 
