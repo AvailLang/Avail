@@ -1,0 +1,72 @@
+## Create custom JRE with jlink
+jlink --add-modules java.base,java.desktop,java.compiler --output otherJre
+
+## To see which modules were included in the custom runtime built with jlink use
+## the java bin from the created environment to list the modules:
+otherJre/bin/java --list-modules
+
+# Create a runtime image with all Java SE modules
+jlink --output my-custom-jdk-runtime --add-modules java.se
+
+## jlink reference
+https://docs.oracle.com/javase/9/tools/jlink.htm
+
+## jlink creates a directory as output that contains the following directories
+    ・bin/ - All the necessary dynamic libraries, java executable, and other requirements
+    ・conf/ - Configuration files
+    ・include/ - Header files
+    ・legal/ - License files
+    ・lib/ - Dependencies
+    ・release - Contains info about the Java version
+
+## Modules for custom jlink build
+https://docs.oracle.com/en/java/javase/17/docs/api/index.html
+
+###############################################################################
+
+## Package command that uses custom JRE built with jlink
+jpackage --name AvailZ --input /Users/Rich/Development/avail-repos/avail/avail/build/libs/ --main-jar avail-2.0.0-SNAPSHOT-all.jar --main-class avail.project.AvailProjectWorkbenchRunner --type dmg --java-options '--enable-preview' --runtime-image otherJre/
+
+## Package command that uses system JDK
+jpackage --name Avail0 --input /Users/Rich/Development/avail-repos/avail/avail/build/libs/ --main-jar avail-2.0.0-SNAPSHOT-all.jar --main-class avail.project.AvailProjectWorkbenchRunner --type dmg --java-options '--enable-preview'
+
+## jpackage has an icon option to change out the default Java icon with a custom
+## one. This is done with the option `--icon`. The file type used will need to
+## be specific to the platform:
+	・Windows: ".ico"
+		ref: https://github.com/AdoptOpenJDK/openjdk-jdk/blob/9d8ad2ed62325bd8d813974d5aa1e031ed8bf8da/src/jdk.jpackage/windows/classes/jdk/jpackage/internal/WindowsAppImageBuilder.java#L47
+	・Mac: ".icns"
+		ref: https://github.com/AdoptOpenJDK/openjdk-jdk/blob/9d8ad2ed62325bd8d813974d5aa1e031ed8bf8da/src/jdk.jpackage/macosx/classes/jdk/jpackage/internal/MacAppImageBuilder.java#L130
+	・Linux: ".png"
+		ref: https://github.com/AdoptOpenJDK/openjdk-jdk/blob/9d8ad2ed62325bd8d813974d5aa1e031ed8bf8da/src/jdk.jpackage/linux/classes/jdk/jpackage/internal/LinuxAppImageBuilder.java#L41
+
+## jpackate reference
+https://docs.oracle.com/en/java/javase/14/docs/specs/man/jpackage.html
+
+###############################################################################
+
+## Use jdeps to determine what modules a jar depends. This could help identify
+## the needed modules for building a custom runtime to be packaged for release.
+jdeps -s avail-2.0.0-SNAPSHOT-all.jar
+
+## jdeps reference
+https://docs.oracle.com/javase/9/tools/jdeps.htm#JSWOR690
+
+###############################################################################
+
+## To run a JAR that is not already packed in to the runtime, add the JAR to the
+## module path and then specify the module as normal. If the JAR has a main
+## class defined in the manifest, you can run it directly.
+
+# Run a module from a JAR using a custom runtime
+myruntime/bin/java --module-path .;mylib.jar --module mymodule/MyClass
+
+# Or if the JAR has a main class defined in the JAR manifest
+myruntime/bin/java -jar mylib.jar
+
+###############################################################################
+
+## Resource articles
+https://jfrog.com/blog/java-artifacts-just-got-better-jpackage-is-production-ready-in-java-16/
+https://www.devdungeon.com/content/how-create-java-runtime-images-jlink
+
