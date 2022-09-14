@@ -131,7 +131,7 @@ class LocalScreenState constructor(
 		fun from (file: File): LocalScreenState =
 			try
 			{
-				if (!file.exists() || file.isDirectory)
+				if (!file.exists() || !file.isFile)
 				{
 					LocalScreenState()
 				}
