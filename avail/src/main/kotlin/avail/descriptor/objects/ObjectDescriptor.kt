@@ -52,6 +52,7 @@ import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.TYPE_VETTINGS_CACHE
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypesForObjectType
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
@@ -223,6 +224,12 @@ class ObjectDescriptor internal constructor(
 		self: AvailObject
 	): Array<AvailObjectFieldHelper> {
 		val fields = mutableListOf<AvailObjectFieldHelper>()
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				KIND,
+				-1,
+				self.slot(KIND)))
 		val otherAtoms = mutableListOf<A_Atom>()
 		variant.fieldToSlotIndex.forEach { (fieldKey, index) ->
 			when (index) {
@@ -257,30 +264,36 @@ class ObjectDescriptor internal constructor(
 		anObject: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObject)) return true
-		val otherVariant = anObject.objectVariant
-		if (variant !== otherVariant) return false
+		if (variant !== anObject.objectVariant) return false
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
 		var myHash = self.slot(HASH_OR_ZERO)
 		var otherHash = anObject.slot(HASH_OR_ZERO)
-		when {
+		when
+		{
 			myHash != 0 && otherHash == 0 -> otherHash = anObject.hash()
 			otherHash != 0 && myHash == 0 -> myHash = self.hash()
 		}
-		when {
-			myHash != otherHash -> return false
-			// Hashes are equal (perhaps both still zero).  Compare fields,
-			// which must be in corresponding positions because we share the
-			// same variant.
-			(1..self.variableObjectSlotsCount()).any {
-				!self.slot(FIELD_VALUES_, it)
-					.equals(anObject.slot(FIELD_VALUES_, it))
-			} -> return false
-			!isShared && self.slot(KIND).isNil ->
-				self.becomeIndirectionTo(anObject)
-			!anObject.descriptor().isShared ->
-				anObject.becomeIndirectionTo(self)
+		if (myHash != otherHash) return false
+		// Hashes are equal (perhaps both still zero).  Compare fields, which
+		// must be in corresponding positions because we share the same variant.
+		for (i in 1..self.variableObjectSlotsCount())
+		{
+			if (!self.slot(FIELD_VALUES_, i)
+					.equals(anObject.slot(FIELD_VALUES_, i)))
+				return false
+		}
+		val kind = self.slot(KIND).ifNil { anObject.slot(KIND) }
+		if (!isShared)
+		{
+			anObject.setSlot(KIND, kind.makeImmutable())
+			self.becomeIndirectionTo(anObject)
+		}
+		else if (!anObject.descriptor().isShared)
+		{
+			self.setSlot(KIND, kind.makeImmutable())
+			anObject.becomeIndirectionTo(self)
 		}
 		return true
 	}
@@ -473,12 +486,19 @@ class ObjectDescriptor internal constructor(
 		val kind = self.slot(KIND)
 		if (kind.notNil) return kind
 		self.makeImmutable()
-		return variant.mutableObjectTypeDescriptor.createFromObject(self).also {
-			// Make the object shared since it's being written to a mutable slot
-			// of a shared object. Don't lock, since multiple threads would
-			// compute equal values anyhow.
-			self.setSlot(KIND, if (isShared) it.makeShared() else it)
-		}
+		val objectType =
+			variant.mutableObjectTypeDescriptor.createFromObject(self)
+		// Make the object shared since it's being written to a mutable slot
+		// of a shared object. Don't lock, since multiple threads would
+		// compute equal values anyhow.
+		self.setSlot(
+			KIND,
+			when
+			{
+				isShared -> objectType.makeShared()
+				else -> objectType.makeImmutable()
+			})
+		return objectType
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String

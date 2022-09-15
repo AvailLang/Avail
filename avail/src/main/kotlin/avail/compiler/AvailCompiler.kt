@@ -203,6 +203,7 @@ import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiter
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
 import avail.descriptor.phrases.MarkerPhraseDescriptor.Companion.newMarkerNode
 import avail.descriptor.phrases.PhraseDescriptor
+import avail.descriptor.phrases.PhraseDescriptor.Companion.treeDoWithParent
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
@@ -4156,7 +4157,8 @@ class AvailCompiler constructor(
 				succeed(
 					AvailCompiler(
 						ModuleHeader(resolvedName),
-						newModule(stringFrom(resolvedName.qualifiedName)),
+						newModule(
+							runtime, stringFrom(resolvedName.qualifiedName)),
 						stringFrom(sourceText),
 						textInterface,
 						pollForAbort,
@@ -4273,17 +4275,25 @@ class AvailCompiler constructor(
 			{
 				return phraseMap[obj]!!
 			}
-			val objectCopy = obj.copyMutablePhrase()
-			objectCopy.childrenMap { child ->
-				assert(child.isInstanceOfKind(PARSE_PHRASE.mostGeneralType))
-				treeMapWithParent(
-					child, transformer, objectCopy, outerPhrases, phraseMap)
-			}
-			val transformed = transformer(
-				objectCopy, parentPhrase, outerPhrases)
-			transformed.makeShared()
-			phraseMap[obj] = transformed
-			return transformed
+			treeDoWithParent(
+				obj,
+				parentPhrase,
+				children = { p, withChild ->
+					if (p !in phraseMap)
+					{
+						p.childrenDo(withChild)
+					}
+				},
+				aBlock = { p, parent ->
+					phraseMap.computeIfAbsent(p) { original ->
+						val objectCopy = original.copyMutablePhrase()
+						objectCopy.childrenMap { child -> phraseMap[child]!! }
+						transformer(
+							objectCopy, parent!!, outerPhrases
+						).makeShared()
+					}
+				})
+			return phraseMap[obj]!!
 		}
 
 		/**

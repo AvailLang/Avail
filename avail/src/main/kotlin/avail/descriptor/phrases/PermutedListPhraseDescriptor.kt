@@ -53,7 +53,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
@@ -93,7 +92,7 @@ class PermutedListPhraseDescriptor private constructor(
 	mutability,
 	TypeTag.PERMUTED_LIST_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
+	PhraseDescriptor.IntegerSlots::class.java
 ) {
 	/**
 	 * My slots of type [AvailObject].
@@ -142,7 +141,7 @@ class PermutedListPhraseDescriptor private constructor(
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase
-	) = self.setSlot(LIST, transformer(self.slot(LIST)))
+	) = self.updateSlot(LIST, transformer)
 
 	override fun o_EmitAllValuesOn(
 		self: AvailObject,
@@ -182,11 +181,6 @@ class PermutedListPhraseDescriptor private constructor(
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { computeExpressionType(self) }
-
-	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(LIST).hash(),
-		self.slot(PERMUTATION).hash(),
-		-0x3703d84e)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
 		self.slot(LIST).hasSuperCast
@@ -250,13 +244,6 @@ class PermutedListPhraseDescriptor private constructor(
 	}
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(LIST).tokens
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -325,6 +312,7 @@ class PermutedListPhraseDescriptor private constructor(
 			setSlot(LIST, list)
 			setSlot(PERMUTATION, permutation)
 			setSlot(EXPRESSION_TYPE, nil)
+			initHash()
 		}
 
 		/** The mutable [PermutedListPhraseDescriptor]. */

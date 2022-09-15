@@ -545,7 +545,7 @@ enum class ParsingOperation constructor(
 					token.start(),
 					token.lineNumber(),
 					token,
-					nil)
+					token.generatingLexer)
 				syntheticToken.setCurrentModule(
 					compiler.compilationContext.module)
 				val stepStateCopy = stepState.copy {
@@ -614,7 +614,7 @@ enum class ParsingOperation constructor(
 					token.start(),
 					token.lineNumber(),
 					token,
-					nil)
+					token.generatingLexer)
 				syntheticToken.setCurrentModule(
 					compiler.compilationContext.module)
 				val stepStateCopy = stepState.copy {

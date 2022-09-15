@@ -41,7 +41,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.SequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
@@ -74,8 +73,8 @@ class SequencePhraseDescriptor private constructor(
 	mutability,
 	TypeTag.SEQUENCE_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -96,9 +95,7 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase
-	) = self.setSlot(
-		STATEMENTS,
-		tupleFromList(self.slot(STATEMENTS).map(transformer)))
+	) = self.updateSlot(STATEMENTS) { tupleFromList(map(transformer)) }
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
@@ -144,9 +141,6 @@ class SequencePhraseDescriptor private constructor(
 		it.flattenStatementsInto(accumulatedStatements)
 	}
 
-	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.slot(STATEMENTS).hash(), -0x1c7ebf36)
-
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEQUENCE_PHRASE
 
@@ -161,13 +155,6 @@ class SequencePhraseDescriptor private constructor(
 		SerializerOperation.SEQUENCE_PHRASE
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -201,6 +188,7 @@ class SequencePhraseDescriptor private constructor(
 		fun newSequence(statements: A_Tuple): A_Phrase =
 			mutable.createShared {
 				setSlot(STATEMENTS, statements)
+				initHash()
 			}
 
 		/** The mutable [SequencePhraseDescriptor]. */

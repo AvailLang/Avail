@@ -259,6 +259,8 @@ zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
 googol ::=
 	100000000000000000000000000000000000000000000000000 ×
 	100000000000000000000000000000000000000000000000000;
+/* The integer -(10^100), computed once for early performance. */
+negativeGoogol ::= 0 - googol;
 
 Private method stabilityBodyAtom is
 [
@@ -287,7 +289,7 @@ Private method stabilityBodyAtom is
 						intValue : integer
 					|
 						/* We don't have "_∨_" bootstrapped at this point. */
-						{0 - googol < intValue, intValue < googol} = {true}
+						{negativeGoogol < intValue, intValue < googol} = {true}
 					]
 					else
 					[

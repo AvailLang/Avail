@@ -661,13 +661,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			try
 			{
 				val primClass = loader.loadClass(className)
-
-				val field =
-					primClass.getField("INSTANCE") ?:
-					throw NoSuchFieldException(
-						"Couldn't find instance field of primitive $className")
 				// Trigger the linker.
-				field.get(null) as Primitive
+				primClass.kotlin.objectInstance as Primitive
 			}
 			catch (e: ClassNotFoundException)
 			{

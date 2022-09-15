@@ -41,7 +41,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
@@ -76,8 +75,8 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	mutability,
 	TypeTag.FIRST_OF_SEQUENCE_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -103,11 +102,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase
-	) {
-		self.setSlot(
-			STATEMENTS,
-			tupleFromList(self.slot(STATEMENTS).map(transformer)))
-	}
+	) = self.updateSlot(STATEMENTS) { tupleFromList(map(transformer)) }
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
@@ -176,9 +171,6 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		}
 	}
 
-	override fun o_Hash(self: AvailObject) =
-		combine2(self.slot(STATEMENTS).hash(), 0x70EDD231)
-
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.FIRST_OF_SEQUENCE_PHRASE
 
@@ -194,13 +186,6 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	) = self.slot(STATEMENTS).forEach { it.statementsDo(continuation) }
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -235,6 +220,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 			assert(statements.tupleSize > 1)
 			return mutable.createShared {
 				setSlot(STATEMENTS, statements)
+				initHash()
 			}
 		}
 

@@ -38,6 +38,7 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.io.NybbleOutputStream
+import kotlin.math.abs
 
 /**
  * `AvailInstruction` implements an abstract instruction set that doesn't have
@@ -73,6 +74,31 @@ abstract class AvailInstruction constructor(var relevantTokens: A_Tuple)
 	 *   Where to write the nybbles.
 	 */
 	abstract fun writeNybblesOn(aStream: NybbleOutputStream)
+
+	/**
+	 * Write an entry to the encoded line number deltas for each L1 instruction
+	 * generated.  Most [AvailInstruction]s write a single L1 instruction, so
+	 * that implementation is here.
+	 */
+	open fun writeLineNumberDeltasOn(
+		encodedLineNumberDeltas: MutableList<Int>,
+		currentLineNumber: Int
+	) : Int = when (val nextLineNumber = lineNumber)
+	{
+		-1 ->
+		{
+			// Indicate no change.
+			encodedLineNumberDeltas.add(0)
+			currentLineNumber
+		}
+		else ->
+		{
+			val delta = nextLineNumber - currentLineNumber
+			val encodedDelta = (abs(delta) shl 1) or (delta ushr 31)
+			encodedLineNumberDeltas.add(encodedDelta)
+			nextLineNumber
+		}
+	}
 
 	/**
 	 * The instructions of a block are being iterated over.  Coordinate
@@ -111,13 +137,11 @@ abstract class AvailInstruction constructor(var relevantTokens: A_Tuple)
 	 *   The line number for this instruction, or `-1`.
 	 */
 	val lineNumber: Int
-		get()
-		{
-			return when {
-				relevantTokens.tupleSize == 0 -> -1
+		get() = when (relevantTokens.tupleSize)
+			{
+				0 -> -1
 				else -> relevantTokens.tupleAt(1).lineNumber()
 			}
-		}
 
 	companion object
 	{

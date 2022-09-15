@@ -42,7 +42,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.LiteralPhraseDescriptor.ObjectSlots.TOKEN
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
@@ -86,12 +85,13 @@ class LiteralPhraseDescriptor(
 	mutability,
 	TypeTag.LITERAL_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null)
+	PhraseDescriptor.IntegerSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * The token that was transformed into this literal.
 		 */
@@ -102,8 +102,8 @@ class LiteralPhraseDescriptor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		builder.append(self.token.string().asNativeString())
 	}
 
@@ -213,9 +213,6 @@ class LiteralPhraseDescriptor(
 		return instanceTypeOrMetaOn(token.literal()).makeImmutable()
 	}
 
-	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.token.hash(), -0x6379f3f3)
-
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.LITERAL_PHRASE
 
@@ -230,13 +227,6 @@ class LiteralPhraseDescriptor(
 	override fun o_Token(self: AvailObject): A_Token = self.slot(TOKEN)
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = tuple(self.slot(TOKEN))
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?)
-	{
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -268,6 +258,7 @@ class LiteralPhraseDescriptor(
 		fun fromTokenForDecompiler(token: A_Token): A_Phrase =
 			mutable.createShared {
 				setSlot(TOKEN, token)
+				initHash()
 			}
 
 		/**
@@ -282,6 +273,7 @@ class LiteralPhraseDescriptor(
 			assert(token.isInstanceOfKind(mostGeneralLiteralTokenType()))
 			return mutable.createShared {
 				setSlot(TOKEN, token)
+				initHash()
 			}
 		}
 

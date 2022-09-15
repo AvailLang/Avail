@@ -208,6 +208,8 @@ class L2Simple_MoveConstant(
 	val to: Int
 ) : L2SimpleInstruction()
 {
+	init { assert(value.descriptor().isShared) }
+
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
@@ -1281,6 +1283,11 @@ constructor(
 	expectedType,
 	mustCheck)
 {
+	/**
+	 * Capture the last argument's stack position during instruction creation.
+	 */
+	val lastArgumentPosition = stackp - function.code().numArgs() + 1
+
 	override fun step(
 		registers: Array<AvailObject>,
 		interpreter: Interpreter
@@ -1288,7 +1295,7 @@ constructor(
 	{
 		val args = interpreter.argsBuffer
 		args.clear()
-		for (i in stackp downTo stackp - function.code().numArgs() + 1)
+		for (i in stackp downTo lastArgumentPosition)
 		{
 			args.add(registers[i])
 		}

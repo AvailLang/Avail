@@ -318,7 +318,8 @@ internal class BuildLoader constructor(
 		completionAction: ()->Unit)
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L, 0) { null }
-		val module = newModule(stringFrom(moduleName.qualifiedName))
+		val module = newModule(
+			availBuilder.runtime, stringFrom(moduleName.qualifiedName))
 		// Set up the block phrases field with an A_Number, so that requests for
 		// block phrases will retrieve them from the repository.
 		module.getAndSetTupleOfBlockPhrases(

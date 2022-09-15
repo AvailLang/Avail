@@ -56,7 +56,6 @@ import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKENS
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.A_Token
@@ -86,8 +85,8 @@ class SendPhraseDescriptor private constructor(
 	mutability,
 	TypeTag.SEND_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -159,8 +158,7 @@ class SendPhraseDescriptor private constructor(
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase
-	) = self.setSlot(ARGUMENTS_LIST_NODE,
-		transformer(self.slot(ARGUMENTS_LIST_NODE)))
+	) = self.updateSlot(ARGUMENTS_LIST_NODE, transformer)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
@@ -196,12 +194,6 @@ class SendPhraseDescriptor private constructor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(RETURN_TYPE)
 
-	override fun o_Hash(self: AvailObject): Int = combine4(
-		self.slot(ARGUMENTS_LIST_NODE).hash(),
-		self.slot(BUNDLE).hash(),
-		self.slot(RETURN_TYPE).hash(),
-		-0x6f1c64b3)
-
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEND_PHRASE
 
@@ -214,13 +206,6 @@ class SendPhraseDescriptor private constructor(
 	): Unit = unsupported
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -281,6 +266,7 @@ class SendPhraseDescriptor private constructor(
 				setSlot(ARGUMENTS_LIST_NODE, argsListNode)
 				setSlot(BUNDLE, bundle)
 				setSlot(RETURN_TYPE, returnType)
+				initHash()
 			}
 		}
 
