@@ -32,7 +32,7 @@
 
 package avail.environment.projects
 
-import avail.environment.launcher.AvailLaunchWindow
+import avail.environment.launcher.AvailProjectManagerWindow
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.availHome
 import org.availlang.artifact.environment.project.AvailProject
@@ -60,8 +60,8 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 
 	/**
 	 * The [KnownAvailProject.id] of the project marked to be opened
-	 * automatically at launch bypassing the [AvailLaunchWindow] or `null` if
-	 * only the [AvailLaunchWindow] should be opened.
+	 * automatically at launch bypassing the [AvailProjectManagerWindow] or `null` if
+	 * only the [AvailProjectManagerWindow] should be opened.
 	 */
 	var favorite: String?
 

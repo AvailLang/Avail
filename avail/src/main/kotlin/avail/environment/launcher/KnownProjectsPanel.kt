@@ -66,7 +66,7 @@ import javax.swing.filechooser.FileNameExtensionFilter
  */
 internal class KnownProjectsPanel constructor(
 	internal val config: GlobalAvailConfiguration,
-	internal val launcher: AvailLaunchWindow
+	internal val launcher: AvailProjectManagerWindow
 ) : JPanel()
 {
 	/**

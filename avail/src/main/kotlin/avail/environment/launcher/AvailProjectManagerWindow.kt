@@ -1,5 +1,5 @@
 /*
- * AvailProject.kt
+ * AvailLaunchWindow.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,36 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.project
+package avail.environment.launcher
 
-import avail.environment.AvailWorkbench
-import avail.environment.launcher.AvailLaunchWindow
 import avail.environment.projects.GlobalAvailConfiguration
 import org.availlang.artifact.environment.project.AvailProject
+import java.awt.Color
+import java.awt.Dimension
+import javax.swing.JFrame
+import javax.swing.WindowConstants
 
 /**
- * An [AvailWorkbench] runner that uses an [AvailProject] configuration file to
- * start the workbench with the appropriate Avail roots and project-specific
- * configurations.
+ * The Avail start up window. This window is displayed when an Avail development
+ * environment is started with no particular [AvailProject] file.
  *
  * @author Richard Arriaga
  */
-object AvailLauncherRunner
+class AvailProjectManagerWindow constructor(
+	internal val globalConfig: GlobalAvailConfiguration
+): JFrame("Avail")
 {
-	/**
-	 * Launch an [AvailWorkbench] for a specific [AvailLauncherRunner].
-	 *
-	 * @param args
-	 *   The command line arguments.
-	 * @throws Exception
-	 *   If something goes wrong.
-	 */
-	@Throws(Exception::class)
-	@JvmStatic
-	fun main(args: Array<String>)
+	fun hideLauncher ()
 	{
-		val globalConfig = GlobalAvailConfiguration.getGlobalConfig()
-
-		AvailLaunchWindow(globalConfig)
+		isVisible = false
+	}
+	init
+	{
+		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+		val projectPane = KnownProjectsPanel(globalConfig, this)
+		background = Color(0x3C, 0x3F, 0x41)
+		add(projectPane)
+		minimumSize = Dimension(600, 400)
+		preferredSize = Dimension(750, 600)
+		pack()
+		isVisible = true
 	}
 }
