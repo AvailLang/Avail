@@ -669,18 +669,37 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		{
 			val sizes1 = part1.sizeRange
 			val upper1 = sizes1.upperBound
-			val limit1 = if (upper1.isInt) upper1.extractInt
-			else max(
-				part1.typeTuple.tupleSize + 1,
-				sizes1.lowerBound.extractInt)
+			val limit1 = when
+			{
+				// Values near the limit are probably just manifestations of
+				// int32 limits produced by strengthened primitive return
+				// type guarantees.  We can't (and shouldn't) actually build
+				// a tuple of leading types that big, so we pretend it can
+				// be infinitely large instead.
+				upper1.isInt && upper1.extractInt < 0x7FFF_FF00 ->
+					upper1.extractInt
+				else -> max(
+					part1.typeTuple.tupleSize + 1,
+					sizes1.lowerBound.extractInt)
+			}
 			val sizes2 = part2.sizeRange
 			val upper2 = sizes2.upperBound
 			val limit2 =
-				if (upper2.isInt) upper2.extractInt
-				else part2.typeTuple.tupleSize + 1
-			val total = limit1 + limit2
+				when
+				{
+					// Values near the limit are probably just manifestations of
+					// int32 limits produced by strengthened primitive return
+					// type guarantees.  We can't (and shouldn't) actually build
+					// a tuple of leading types that big, so we pretend it can
+					// be infinitely large instead.
+					upper2.isInt && upper2.extractInt < 0x7FFF_FF00 ->
+						upper2.extractInt
+					else -> part2.typeTuple.tupleSize + 1
+				}
+			val total =
+				min(limit1.toLong() + limit2.toLong(), Int.MAX_VALUE.toLong())
 			val section1 = min(sizes1.lowerBound.extractInt, limit1)
-			val typeTuple: A_Tuple = generateObjectTupleFrom(total) {
+			val typeTuple: A_Tuple = generateObjectTupleFrom(total.toInt()) {
 				if (it <= section1) part1.typeAtIndex(it)
 				else elementOfConcatenation(part1, part2, it)
 			}

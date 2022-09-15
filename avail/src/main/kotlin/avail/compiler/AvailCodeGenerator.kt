@@ -357,23 +357,8 @@ class AvailCodeGenerator private constructor(
 				unusedOuters.clear(i - 1)
 			}
 			instruction.writeNybblesOn(nybbles)
-			val nextLineNumber = instruction.lineNumber
-			if (nextLineNumber == -1)
-			{
-				// Indicate no change.
-				encodedLineNumberDeltas.add(0)
-			}
-			else
-			{
-				val delta = nextLineNumber - currentLineNumber
-				val encodedDelta =
-					if (delta < 0)
-						-delta shl 1 or 1
-					else
-						delta shl 1
-				encodedLineNumberDeltas.add(encodedDelta)
-				currentLineNumber = nextLineNumber
-			}
+			currentLineNumber = instruction.writeLineNumberDeltasOn(
+				encodedLineNumberDeltas, currentLineNumber)
 		}
 		if (!unusedOuters.isEmpty)
 		{
@@ -485,12 +470,13 @@ class AvailCodeGenerator private constructor(
 	 */
 	fun setTokensWhile(tokens: A_Tuple, action: () -> Unit)
 	{
-		if (tokens.tupleSize == 0)
+		val filteredTokens = tokens.filter { it.lineNumber() != 0 }
+		if (filteredTokens.isEmpty())
 		{
 			action()
 			return
 		}
-		tokensStack.addLast(tokens)
+		tokensStack.addLast(tupleFromList(filteredTokens))
 		try
 		{
 			action()
@@ -735,22 +721,18 @@ class AvailCodeGenerator private constructor(
 	fun emitPushLocalOrOuter(tokens: A_Tuple, variableDeclaration: A_Phrase)
 	{
 		increaseDepth()
-		if (varMap.containsKey(variableDeclaration))
-		{
-			addInstruction(AvailPushLocalVariable(
-				tokens, varMap[variableDeclaration]!!))
-			return
-		}
-		if (outerMap.containsKey(variableDeclaration))
-		{
-			addInstruction(AvailPushOuterVariable(
-				tokens, outerMap[variableDeclaration]!!))
-			return
-		}
-		assert(labelInstructions.containsKey(variableDeclaration)) {
-			"Consistency error - unknown variable."
-		}
-		addInstruction(AvailPushLabel(tokens))
+		addInstruction(
+			when (variableDeclaration)
+			{
+				in varMap -> AvailPushLocalVariable(
+					tokens, varMap[variableDeclaration]!!)
+				in outerMap -> AvailPushOuterVariable(
+					tokens, outerMap[variableDeclaration]!!)
+				in labelInstructions ->
+					AvailPushLabel(tokens)
+				else -> throw AssertionError(
+					"Consistency error - unknown variable.")
+			})
 	}
 
 	/**
@@ -833,7 +815,9 @@ class AvailCodeGenerator private constructor(
 	 */
 	private fun addInstruction(instruction: AvailInstruction)
 	{
-		if (instruction.relevantTokens.tupleSize == 0)
+		val usableTokens =
+			instruction.relevantTokens.filter { it.lineNumber() != 0}
+		if (usableTokens.isEmpty())
 		{
 			// Replace it with the nearest tuple from the stack, which should
 			// relate to the most specific position in the phrase tree for which

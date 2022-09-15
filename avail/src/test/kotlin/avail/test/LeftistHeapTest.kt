@@ -1,5 +1,5 @@
 /*
- * AvailLabel.kt
+ * LeftistHeapTest.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,51 +29,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.test
 
-package avail.compiler.instruction
-
-import avail.descriptor.phrases.BlockPhraseDescriptor
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple
-import avail.io.NybbleOutputStream
+import avail.utility.structures.LeftistHeap
+import avail.utility.structures.leftistLeaf
+import org.junit.jupiter.api.Test
+import kotlin.random.Random
 
 /**
- * An `AvailLabel` is a pseudo-instruction in the
- * [Level&#32;One&#32;instruction][AvailInstruction] set.  It represents a
- * [label][DeclarationKind.LABEL] in the parse tree of a
- * [block][BlockPhraseDescriptor].  If a label declaration occurs at all in a
- * block, it must be the first statement of the block.
+ * A test of [avail.utility.structures.LeftistHeap].
  *
- * No actual nybblecodes are generated for an `AvailLabel`.  The only reason for
- * a label pseudo-instruction to exist is to keep track of which blocks require
- * labels.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @constructor
- *
- * Construct an instruction.  Capture the tokens that contributed to it.
- *
- * @param relevantTokens
- *   The [A_Tuple] of [A_Token]s that are associated with this instruction.
+ * @author
+ *   Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class AvailLabel constructor(relevantTokens: A_Tuple)
-	: AvailInstruction(relevantTokens)
+class LeftistHeapTest
 {
-	override fun writeNybblesOn(aStream: NybbleOutputStream)
+	/**
+	 * Test the incremental construction via [LeftistHeap.with] in random order,
+	 * ensuring that a corresponding [List], when subsequently sorted, contains
+	 * the same values in the same order as the [LeftistHeap.toList].
+	 */
+	@Test
+	fun testRandom()
 	{
-		// A label pseudo-instruction has no actual nybblecode instructions
-		// generated for it.
-	}
-
-	override fun writeLineNumberDeltasOn(
-		encodedLineNumberDeltas: MutableList<Int>,
-		currentLineNumber: Int
-	): Int
-	{
-		// A label pseudo-instruction produces no instructions, so there are no
-		// line number deltas to generate.
-		return currentLineNumber
+		val maxValue = 20
+		for (seed in 1..100)
+		{
+			val rnd = Random(seed)
+			var heap = leftistLeaf<Int>()
+			val list = mutableListOf<Int>()
+			repeat(rnd.nextInt(maxValue)) {
+				val value = rnd.nextInt(maxValue)
+				heap = heap.with(value)
+				list.add(value)
+			}
+			assert(heap.toList() == list.sorted())
+		}
 	}
 }

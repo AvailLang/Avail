@@ -688,6 +688,7 @@ class IntTupleDescriptor private constructor(
 		 * @return
 		 *   An `IntTupleDescriptor`.
 		 */
+		@Suppress("SameParameterValue")
 		private fun descriptorFor(
 			flag: Mutability,
 			size: Int): IntTupleDescriptor =

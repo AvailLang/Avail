@@ -386,7 +386,7 @@ internal class LinearMapBinDescriptor private constructor(
 						self.slot(BIN_SLOT_AT_, oldSize shl 1))
 				}
 				// Adjust keys hash by the removed key.
-				result.setSlot(KEYS_HASH, self.slot(KEYS_HASH) - keyHash)
+				result.updateSlot(KEYS_HASH) { minus(keyHash) }
 				result.setSlot(VALUES_HASH_OR_ZERO, 0)
 				result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
 				result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)

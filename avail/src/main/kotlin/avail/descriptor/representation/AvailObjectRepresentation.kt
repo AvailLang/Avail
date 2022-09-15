@@ -186,7 +186,6 @@ sealed class AvailObjectRepresentation constructor(
 	 */
 	private fun checkSlot(field: ObjectSlotsEnum)
 	{
-		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots)
 		{
 			val debugSlots = currentDescriptor.debugObjectSlots
@@ -228,7 +227,6 @@ sealed class AvailObjectRepresentation constructor(
 	 */
 	private fun checkSlot(field: IntegerSlotsEnum)
 	{
-		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots)
 		{
 			privateCheckSlots(field)
@@ -800,7 +798,6 @@ sealed class AvailObjectRepresentation constructor(
 	 * Extract the current value of the slot, pass it to the supplied inline
 	 * Kotlin function, and write the result back to the slot.
 	 */
-	@Suppress("unused")
 	fun updateSlot(
 		field: ObjectSlotsEnum,
 		updater: AvailObject.()->A_BasicObject)
@@ -814,6 +811,40 @@ sealed class AvailObjectRepresentation constructor(
 		val newValue = oldValue.updater() as AvailObject
 		assert(!currentDescriptor.isShared || newValue.descriptor().isShared)
 		objectSlots[ordinal] = newValue
+	}
+
+	/**
+	 * Extract the current value of the [Long] slot, pass it to the supplied
+	 * inline Kotlin function, and write the resulting [Long] back to the slot.
+	 */
+	fun updateSlot(
+		field: IntegerSlotsEnum,
+		updater: Long.()->Long)
+	{
+		checkSlot(field)
+		checkWriteForField(field)
+		val ordinal = field.fieldOrdinal
+		longSlots[ordinal] = longSlots[ordinal].updater()
+	}
+
+	/**
+	 * Extract the current [Int] value of the [BitField], pass it to the
+	 * supplied inline Kotlin function, and write the result back to the
+	 * [BitField].  Note that this is not atomic, so other fields encoded in the
+	 * same [Long] field may get clobbered if simultaneously updated by multiple
+	 * threads.
+	 */
+	fun updateSlot(
+		bitField: BitField,
+		updater: Int.()->Int)
+	{
+		checkWriteForField(bitField.integerSlot)
+		checkSlot(bitField.integerSlot)
+		val oldLongValue = longSlots[bitField.integerSlotIndex]
+		val oldFieldValue = bitField.extractFromLong(oldLongValue)
+		val newFieldValue = oldFieldValue.updater()
+		val newLongValue = bitField.replaceBits(oldLongValue, newFieldValue)
+		longSlots[bitField.integerSlotIndex] = newLongValue
 	}
 
 	/**

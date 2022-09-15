@@ -1706,7 +1706,7 @@ class Interpreter(
 	 */
 	@get:ReferencedInGeneratedCode
 	val isInterruptRequested: Boolean
-		get() = (runtime.safePointRequested()
+		get() = (runtime.safePointRequested
 			|| unreifiedCallDepth > maxUnreifiedCallDepth
 			|| runtime.clock.get() - startTick >= timeSliceTicks
 			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED))

@@ -170,7 +170,6 @@ import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
-import avail.utility.safeWrite
 import org.availlang.json.JSONWriter
 import java.lang.reflect.InvocationTargetException
 import java.math.BigInteger
@@ -180,10 +179,7 @@ import java.util.IdentityHashMap
 import java.util.Spliterator
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReadWriteLock
-import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Stream
-import kotlin.concurrent.read
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
@@ -194,7 +190,6 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
-import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 
@@ -2897,9 +2892,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		action: (A_Phrase)->Unit)
 
-	abstract fun o_ValidateLocally (
-		self: AvailObject,
-		parent: A_Phrase?)
+	abstract fun o_ValidateLocally (self: AvailObject)
 
 	abstract fun o_GenerateInModule (
 		self: AvailObject,
@@ -4139,16 +4132,11 @@ abstract class AbstractDescriptor protected constructor (
 			}
 
 		/**
-		 * A static cache of mappings from [integer&#32;slots][IntegerSlotsEnum]
-		 * to [List]s of [BitField]s.  Access to the map must be synchronized,
-		 * which isn't much of a penalty since it only affects the default
-		 * object printing mechanism.
+		 * A cache of mappings from [integer&#32;slots][IntegerSlotsEnum]
+		 * to [List]s of [BitField]s, collected via reflection.
 		 */
 		private val bitFieldsCache =
-			mutableMapOf<IntegerSlotsEnum, List<BitField>>()
-
-		/** A [ReadWriteLock] that protects the [bitFieldsCache]. */
-		private val bitFieldsLock = ReentrantReadWriteLock()
+			ConcurrentHashMap<IntegerSlotsEnum, List<BitField>>()
 
 		/**
 		 * Describe the integer field onto the provided [StringBuilder]. The
@@ -4251,51 +4239,47 @@ abstract class AbstractDescriptor protected constructor (
 		 */
 		fun bitFieldsFor (slot: IntegerSlotsEnum): List<BitField>
 		{
-			bitFieldsLock.read {
-				// Vast majority of cases.
-				bitFieldsCache[slot]?.let { return it }
-			}
-			bitFieldsLock.safeWrite {
-				// Try again, this time holding the write lock to avoid multiple
-				// threads trying to populate the cache.
-				bitFieldsCache[slot]?.let { return it }
-				val slotAsEnum = slot as Enum<*>
-				val bitFields = mutableListOf<BitField>()
-				val companionObject = slotAsEnum::class.companionObject
-				val fields = companionObject?.memberProperties
-				for (field in fields ?: listOf())
+			// Vast majority of cases.
+			bitFieldsCache[slot]?.let { return it }
+
+			// Without holding a lock, compute the bitfields and update the
+			// cache unconditionally.  Competing writers will write equivalent
+			// values to the cache, so they're idempotent and commutative.
+			val slotAsEnum = slot as Enum<*>
+			val bitFields = mutableListOf<BitField>()
+			val companionObject = slotAsEnum::class.companionObject
+			val fields = companionObject?.memberProperties
+			for (field in fields ?: listOf())
+			{
+				if (field.returnType.isSubtypeOf(
+						BitField::class.starProjectedType))
 				{
-					if (field.returnType.isSubtypeOf(
-							BitField::class.starProjectedType))
+					try
 					{
-						try
+						val bitField: BitField = field.getter.call(
+							companionObject!!.objectInstance).cast()
+						if (bitField.integerSlot === slot
+							&& !field.javaField!!.isAnnotationPresent(
+								HideFieldInDebugger::class.java)
+							&& !field.javaField!!.isAnnotationPresent(
+								HideFieldJustForPrinting::class.java))
 						{
-							field.valueParameters
-							val bitField: BitField = field.getter.call(
-								companionObject!!.objectInstance).cast()
-							if (bitField.integerSlot === slot
-								&& !field.javaField!!.isAnnotationPresent(
-									HideFieldInDebugger::class.java)
-								&& !field.javaField!!.isAnnotationPresent(
-									HideFieldJustForPrinting::class.java))
-							{
-								bitField.enumField = field.findAnnotation()
-								bitField.name = field.name
-								bitFields.add(bitField)
-							}
-						}
-						catch (e: IllegalAccessException)
-						{
-							throw RuntimeException(e)
+							bitField.enumField = field.findAnnotation()
+							bitField.name = field.name
+							bitFields.add(bitField)
 						}
 					}
+					catch (e: IllegalAccessException)
+					{
+						throw RuntimeException(e)
+					}
 				}
-				val sorted =
-					if (bitFields.isEmpty()) emptyList()
-					else bitFields.sorted()
-				bitFieldsCache[slot] = sorted
-				return@bitFieldsFor sorted
 			}
+			val sorted =
+				if (bitFields.isEmpty()) emptyList()
+				else bitFields.sorted()
+			bitFieldsCache[slot] = sorted
+			return sorted
 		}
 
 		/**

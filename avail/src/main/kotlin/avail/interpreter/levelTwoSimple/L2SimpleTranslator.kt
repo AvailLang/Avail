@@ -57,8 +57,11 @@ import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import avail.descriptor.tuples.StringDescriptor.Companion.generateStringFromCodePoints
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
@@ -300,8 +303,12 @@ constructor(
 			// that constant complies with the expectedType.
 			instructions.add(
 				L2Simple_MoveConstant(
-					guaranteedReturnType.instance,
+					guaranteedReturnType.instance.makeShared(),
 					stackp))
+			return restrictionForType(
+				guaranteedReturnType.typeIntersection(expectedType),
+				BOXED_FLAG
+			).withFlag(IMMUTABLE_FLAG)
 		}
 		else
 		{
@@ -314,9 +321,9 @@ constructor(
 					expectedType,
 					!guaranteedReturnType.isSubtypeOf(expectedType),
 					calledFunction))
+			return restrictionForType(
+				guaranteedReturnType.typeIntersection(expectedType), BOXED_FLAG)
 		}
-		return restrictionForType(
-			guaranteedReturnType.typeIntersection(expectedType), BOXED_FLAG)
 	}
 
 	/**
@@ -533,8 +540,9 @@ constructor(
 				instructions.size + 1,
 				liveIndices(),
 				local))
-		restrictions[stackp] = restrictionForType(
-			restrictions[local].type.readType, BOXED_FLAG)
+		restrictions[stackp] =
+			restrictionForType(restrictions[local].type.readType, BOXED_FLAG)
+				.withFlag(IMMUTABLE_FLAG)
 	}
 
 	override fun L1_doMakeTuple()
@@ -542,6 +550,36 @@ constructor(
 		val size = instructionDecoder.getOperand()
 		val oldStackp = stackp
 		stackp += size - 1
+		// Check if the previous `size` instructions were pushes of constants,
+		// replacing them all with a new constant tuple push.
+		if (instructions.size >= size
+			&& (1..size).all { i ->
+				instructions[instructions.size - i].let {
+					it is L2Simple_MoveConstant && it.to == oldStackp + i - 1
+				}
+			})
+		{
+			// The previous `size` instructions were constant pushes.  Assemble
+			// a tuple now and replace those instructions with a single push,
+			// which will also make it eligible for further collapsing if its
+			// siblings are also all constant.
+			val values = (1..size).map {
+				(instructions.removeLast() as L2Simple_MoveConstant).value
+			}.reversed()
+			var tuple = tupleFromList(values)
+			if (tuple.isString)
+			{
+				tuple = generateStringFromCodePoints(tuple.tupleSize) { i ->
+					tuple.tupleCodePointAt(i)
+				}
+			}
+			for (i in oldStackp until stackp)
+				restrictions[i] = nilRestriction
+			instructions.add(
+				L2Simple_MoveConstant(tuple.makeShared(), stackp))
+			restrictions[stackp] = restrictionForConstant(tuple, BOXED_FLAG)
+			return
+		}
 		add(
 			when (size)
 			{
@@ -551,7 +589,7 @@ constructor(
 				3 -> L2Simple_MakeTuple3(stackp)
 				else -> L2Simple_MakeTupleN(size, stackp)
 			})
-		val types = (oldStackp .. stackp).map {
+		val types = (stackp downTo  oldStackp).map {
 			restrictions[it].type
 		}
 		for (i in oldStackp until stackp)
@@ -570,8 +608,9 @@ constructor(
 				instructions.size + 1,
 				liveIndices(),
 				outer))
-		restrictions[stackp] = restrictionForType(
-			code.outerTypeAt(outer).readType, BOXED_FLAG)
+		restrictions[stackp] =
+			restrictionForType(code.outerTypeAt(outer).readType, BOXED_FLAG)
+				.withFlag(IMMUTABLE_FLAG)
 	}
 
 	override fun L1_doExtension()
@@ -607,8 +646,9 @@ constructor(
 				instructions.size + 1,
 				liveIndices(),
 				variable))
-		restrictions[stackp] = restrictionForType(
-			variable.kind().readType, BOXED_FLAG)
+		restrictions[stackp] =
+			restrictionForType(variable.kind().readType, BOXED_FLAG)
+				.withFlag(IMMUTABLE_FLAG)
 	}
 
 	override fun L1Ext_doSetLiteral()

@@ -323,8 +323,8 @@ constructor(
 	var phase: Phase = INITIALIZING
 
 	/**
-	 * The [LexicalScanner] used for creating tokens from source
-	 * code for this [AvailLoader].
+	 * The [LexicalScanner] used for creating tokens from source code for this
+	 * [AvailLoader].
 	 *
 	 * Start by using the module header lexical scanner, and replace it after
 	 * the header has been fully parsed.

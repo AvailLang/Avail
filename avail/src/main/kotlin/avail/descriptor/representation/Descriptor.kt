@@ -1564,8 +1564,7 @@ protected constructor (
 	): Unit = unsupported
 
 	override fun o_ValidateLocally (
-		self: AvailObject,
-		parent: A_Phrase?): Unit = unsupported
+		self: AvailObject): Unit = unsupported
 
 	override fun o_GenerateInModule (
 		self: AvailObject,
