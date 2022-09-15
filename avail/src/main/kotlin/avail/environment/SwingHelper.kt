@@ -107,8 +107,17 @@ class CodeGuide(private val afterColumn: Int = 80): LayerUI<JScrollPane>()
 		}
 		val x = x!!
 		val deltaX = view.viewport.viewPosition.x
-		g.color = SystemColors.active.guide
+		g.color = guide.color
 		g.drawLine(x - deltaX, bounds.y, x - deltaX, bounds.height)
+	}
+
+	companion object
+	{
+		/** The color of the guide. */
+		val guide = AdaptiveColor(
+			light = LightColors.strongGray,
+			dark = DarkColors.strongGray
+		)
 	}
 }
 
