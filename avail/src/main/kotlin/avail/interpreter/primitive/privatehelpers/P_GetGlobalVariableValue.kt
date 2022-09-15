@@ -46,6 +46,7 @@ import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
@@ -154,6 +155,6 @@ object P_GetGlobalVariableValue : Primitive(
 		}
 		simpleTranslator.add(
 			L2Simple_MoveConstant(constant, simpleTranslator.stackp))
-		return TypeRestriction.restrictionForConstant(constant, BOXED_FLAG)
+		return restrictionForConstant(constant, BOXED_FLAG)
 	}
 }

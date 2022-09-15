@@ -246,7 +246,7 @@ class CompilationContext constructor(
 				val e = Throwable().fillInStackTrace()
 				builder.append(trace(e))
 				val trace = builder.toString().replace(
-					"\\A.*\\R((.*\\R){6})(.|\\R)*\\z".toRegex(), "$1")
+					"\\A.*?\\R((.*?\\R){6})(.|\\R)*?\\z".toRegex(), "$1")
 				logWorkUnits(
 					"SetNoMoreWorkUnits:\n\t" + trace.trim { it <= ' ' })
 			}
@@ -1044,28 +1044,27 @@ class CompilationContext constructor(
 			transformedPhrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> {}
 			else -> yieldType.systemStyleForType?.let { styles.add(it) }
 		}
-		// 3. Run any custom styler.
+		// 3. Deal with literals, if any source tokens were involved.
+		if (transformedPhrase.phraseKindIsUnder(LITERAL_PHRASE))
+		{
+			val literalStyle = yieldType.run {
+				when
+				{
+					isSubtypeOf(NUMBER.o) -> SystemStyle.NUMERIC_LITERAL
+					isSubtypeOf(CHARACTER.o) -> SystemStyle.CHARACTER_LITERAL
+					isSubtypeOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
+					isSubtypeOf(ATOM.o) -> SystemStyle.ATOM_LITERAL
+					else -> SystemStyle.OTHER_LITERAL
+				}
+			}
+			styles.add(literalStyle)
+		}
+		// 4. Run any custom styler.
 		val bundleWithStyler = when
 		{
 			originalSendPhrase !== null -> originalSendPhrase.bundle
 			transformedPhrase.phraseKindIsUnder(SEND_PHRASE) ->
 				transformedPhrase.bundle
-			transformedPhrase.phraseKindIsUnder(LITERAL_PHRASE) ->
-			{
-				// Handle literals, whether intrinsic or folded.
-				val literalStyle = yieldType.run {
-					when
-					{
-						isSubtypeOf(NUMBER.o) -> SystemStyle.NUMERIC_LITERAL
-						isSubtypeOf(CHARACTER.o) -> SystemStyle.CHARACTER_LITERAL
-						isSubtypeOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
-						isSubtypeOf(ATOM.o) -> SystemStyle.ATOM_LITERAL
-						else -> SystemStyle.OTHER_LITERAL
-					}
-				}
-				styles.add(literalStyle)
-				transformedPhrase.bundle
-			}
 			else -> return
 		}
 		styles.forEach { style ->

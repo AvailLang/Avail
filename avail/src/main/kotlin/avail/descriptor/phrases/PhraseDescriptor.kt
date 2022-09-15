@@ -31,6 +31,7 @@
  */
 package avail.descriptor.phrases
 
+import avail.AvailRuntimeSupport
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
@@ -39,9 +40,11 @@ import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
 import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.PhraseDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -90,6 +93,22 @@ abstract class PhraseDescriptor protected constructor(
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
 ) : Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
+	/**
+	 * My slots of type [int][Integer].
+	 */
+	enum class IntegerSlots : IntegerSlotsEnum
+	{
+		/**
+		 * A slot containing multiple [BitField]s, potentially.
+		 */
+		HASH_AND_MORE;
+
+		companion object {
+			/** The random hash of this object. */
+			val HASH = BitField(HASH_AND_MORE, 0, 32) { null }
+		}
+	}
+
 	override fun maximumIndent(): Int = Int.MAX_VALUE
 
 	/**
@@ -234,15 +253,7 @@ abstract class PhraseDescriptor protected constructor(
 		accumulatedStatements.add(self)
 	}
 
-	/**
-	 * [Phrases][A_Phrase] must implement this.
-	 *
-	 * @param self
-	 *   The phrase.
-	 * @return
-	 *   The hash of the phrase.
-	 */
-	abstract override fun o_Hash(self: AvailObject): Int
+	override fun o_Hash(self: AvailObject) = self.slot(HASH)
 
 	/**
 	 * Terminate the recursion through the recursive list structure.  If this
@@ -297,17 +308,17 @@ abstract class PhraseDescriptor protected constructor(
 	abstract override fun o_Tokens(self: AvailObject): A_Tuple
 
 	/**
-	 * Validate this phrase, throwing an exception if there is a problem.
+	 * Validate this phrase, throwing an exception if there is a problem.  Do
+	 * not recurse into its subphrases, as those have already been validated.
 	 *
 	 * @param self
 	 *   The [A_Phrase] to validate.
-	 * @param parent
-	 *   The optional [A_Phrase] which contains the phrase to validate as its
-	 *   sub-phrase.
 	 */
-	abstract override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?)
+	override fun o_ValidateLocally(
+		self: AvailObject)
+	{
+		// Do nothing by default.
+	}
 
 	/**
 	 * Subclasses do not have an immutable descriptor, so use the shared one
@@ -319,6 +330,12 @@ abstract class PhraseDescriptor protected constructor(
 
 	companion object
 	{
+		/**
+		 * Initialize the phrase's hash value during construction.
+		 */
+		fun AvailObject.initHash(): Unit =
+			setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
+
 		/**
 		 * Visit the entire tree with the given consumer, children before
 		 * parents.  The block takes two arguments: the phrase and its parent.
@@ -333,14 +350,59 @@ abstract class PhraseDescriptor protected constructor(
 		fun treeDoWithParent(
 			self: A_Phrase,
 			parentNode: A_Phrase? = null,
-			children: (A_Phrase, (A_Phrase) -> Unit) -> Unit =
+			children: (A_Phrase, (A_Phrase)->Unit)->Unit =
 				{ phrase, withChild -> phrase.childrenDo(withChild) },
-			aBlock: (A_Phrase, parent: A_Phrase?) -> Unit)
+			aBlock: (A_Phrase, parent: A_Phrase?)->Unit)
 		{
-			children(self) { child ->
-				treeDoWithParent(child, self, children, aBlock)
+			TreeIterator(children, aBlock).visitAll(self, parentNode)
+		}
+
+		/**
+		 * A helper for traversing a phrase tree without recursion.
+		 *
+		 * @property childrenExtractor
+		 *   A function that takes a phrase and a function that accepts a
+		 *   phrase, and evaluates the passed function with each child of the
+		 *   phrase.
+		 * @property aBlock
+		 *   What to execute with each phrase in the tree and its optional (only
+		 *   for the top phrase) parent.
+		 */
+		class TreeIterator
+		constructor(
+			val childrenExtractor: (A_Phrase, (A_Phrase)->Unit)->Unit,
+			val aBlock: (A_Phrase, parent: A_Phrase?)->Unit)
+		{
+			/** The work stack of nullary actions to run. */
+			private val stack = ArrayDeque<()->Unit>()
+
+			/** Visit a phrase, with the provided optional parent. */
+			private fun traceOne(phrase: A_Phrase, parent: A_Phrase?)
+			{
+				// This will run after the children are processed.
+				stack.add { aBlock(phrase, parent) }
+				// Process the children.  Reverse the order of the children on
+				// the stack, since we will be popping values from the end of
+				// the deque.
+				val temp = mutableListOf<()->Unit>()
+				childrenExtractor(phrase) { child ->
+					temp.add { traceOne(child, phrase) }
+				}
+				stack.addAll(temp.asReversed())
 			}
-			aBlock(self, parentNode)
+
+			/**
+			 * Visit all phrases in the tree, in bottom-up order, invoking
+			 * aBlock for each, and also passing the phrase's optional parent.
+			 */
+			fun visitAll(phrase: A_Phrase, parent: A_Phrase?)
+			{
+				traceOne(phrase, parent)
+				while (stack.isNotEmpty())
+				{
+					stack.removeLast()()
+				}
+			}
 		}
 
 		/**

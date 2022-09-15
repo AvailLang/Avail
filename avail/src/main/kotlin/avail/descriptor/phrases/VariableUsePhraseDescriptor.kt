@@ -42,14 +42,13 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
-import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.FLAGS
+import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.USE_TOKEN
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -83,25 +82,38 @@ class VariableUsePhraseDescriptor private constructor(
 	mutability,
 	TypeTag.VARIABLE_USE_PHRASE_TAG,
 	ObjectSlots::class.java,
-	IntegerSlots::class.java
-) {
+	IntegerSlots::class.java)
+{
 	/**
-	 * My slots of type [int][Integer].
+	 * My integer slots.
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * Currently just a single BitField, [LAST_USE].
+		 * The [assignment&#32;phrase][AssignmentPhraseDescriptor]'s flags.
 		 */
-		FLAGS;
+		HASH_AND_MORE;
 
-		companion object {
+		companion object
+		{
+			/** The random hash of this object. */
+			val HASH = BitField(HASH_AND_MORE, 0, 32) { null }
+
 			/**
 			 * A flag indicating (with 0/1) whether this is the last use of the
 			 * mentioned entity.  This gets set during code generation, even if
 			 * the phrase is immutable.  It should not be made visible to the
 			 * Avail language.
 			 */
-			val LAST_USE = BitField(FLAGS, 0, 1) { (it != 0).toString() }
+			val LAST_USE = BitField(HASH_AND_MORE, 32, 1) {
+				(it != 0).toString()
+			}
+
+			init
+			{
+				assert(PhraseDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
+					== HASH_AND_MORE.ordinal)
+				assert(PhraseDescriptor.IntegerSlots.HASH.isSamePlaceAs(HASH))
+			}
 		}
 	}
 
@@ -124,7 +136,7 @@ class VariableUsePhraseDescriptor private constructor(
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
-	) = e === FLAGS
+	) = e === HASH_AND_MORE
 
 	override fun o_ApplyStylesThen(
 		self: AvailObject,
@@ -166,7 +178,7 @@ class VariableUsePhraseDescriptor private constructor(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase)
 	{
-		self.setSlot(DECLARATION, transformer(self.slot(DECLARATION)))
+		self.updateSlot(DECLARATION, transformer)
 	}
 
 	override fun o_Declaration(self: AvailObject): A_Phrase =
@@ -191,11 +203,6 @@ class VariableUsePhraseDescriptor private constructor(
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(DECLARATION).declaredType
-
-	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(USE_TOKEN).hash(),
-		self.slot(DECLARATION).hash(),
-		-0x16ffabab)
 
 	override fun o_IsLastUse(
 		self: AvailObject,
@@ -224,13 +231,6 @@ class VariableUsePhraseDescriptor private constructor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		tuple(self.slot(USE_TOKEN))
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -282,7 +282,8 @@ class VariableUsePhraseDescriptor private constructor(
 			return mutable.createShared {
 				setSlot(USE_TOKEN, theToken)
 				setSlot(DECLARATION, declaration)
-				setSlot(FLAGS, 0)
+				setSlot(LAST_USE, 0)
+				initHash()
 			}
 		}
 

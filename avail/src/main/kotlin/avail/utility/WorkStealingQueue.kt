@@ -33,29 +33,37 @@
 package avail.utility
 
 import avail.interpreter.execution.Interpreter
+import avail.utility.structures.LeftistHeap
+import avail.utility.structures.leftistLeaf
 import java.util.AbstractQueue
 import java.util.concurrent.BlockingQueue
-import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 
 /**
- * WIP – The intent is to use this queue to store tasks in a way that a
- * ThreadPoolExecutor can fetch them in a mostly-priority order, but with a
- * preference for keeping work local to a thread if the other threads already
- * have their own work to do.
+ * A [WorkStealingQueue] tracks [parallelism] separate subqueues of tasks.  Each
+ * [Interpreter] feeds and consumes a distinct subqueue dedicated to that
+ * interpreter thread, ideally without contention from other threads.  When a
+ * subqueue is exhausted, the requesting thread will examine the other threads'
+ * queues and steal one for itself.  Only at that point will contention occur.
+ *
+ * Each subqueue is maintained in priority order, but the aggregate collection
+ * of queues cannot be considered strictly ordered.
  */
-class WorkStealingQueue<E>
+class WorkStealingQueue<E : Comparable<E>>
 constructor(
 	private val parallelism: Int
 ) : BlockingQueue<E>, AbstractQueue<E>()
 {
 	/**
-	 * An array of regular [PriorityBlockingQueue]s, one dedicated to each
-	 * worker thread of the thread pool that this instance is plugged into.
-	 * New tasks from thread #N always gets added to queue #N, but other threads
-	 * may steal the task (and run it) if they're otherwise idle.
+	 * An array of wait-free priority queues, one dedicated to each worker
+	 * thread of the thread pool that this instance is plugged into. New tasks
+	 * from thread #N always gets added to queue #N, but other threads may steal
+	 * the task (and run it) if they're otherwise idle.
 	 */
-	private val queues = Array(parallelism) { PriorityBlockingQueue<E>() }
+	private val queues = Array(parallelism) {
+		AtomicReference(leftistLeaf<E>())
+	}
 
 	/**
 	 * A Java [Object] to use as a monitor for threads to block on, waiting for
@@ -67,18 +75,48 @@ constructor(
 	private val localQueue get() = queues[Interpreter.currentIndexOrZero()]
 
 	override val size: Int
-		get() = queues.sumOf(PriorityBlockingQueue<E>::size)
+		get() = queues.sumOf { it.get().size }
 
 	override fun drainTo(c: MutableCollection<in E>): Int =
-		queues.sumOf { it.drainTo(c) }
+		queues.sumOf {
+			val heap = it.getAndSet(leftistLeaf())
+			c.addAll(heap.toList())
+			heap.size
+		}
 
 	override fun drainTo(c: MutableCollection<in E>, maxElements: Int): Int
 	{
 		var remaining = maxElements
-		for (queue in queues)
+		outer@ for (queue in queues)
 		{
-			remaining -= queue.drainTo(c, remaining)
-			if (remaining <= 0) break
+			while (true)
+			{
+				if (remaining <= 0) break@outer
+				val oldHeap = queue.get()
+				if (oldHeap.isEmpty) break
+				if (oldHeap.size <= remaining)
+				{
+					// Try to remove them all.
+					if (queue.compareAndSet(oldHeap, leftistLeaf()))
+					{
+						// We removed them all.
+						c.addAll(oldHeap.toList())
+						remaining -= oldHeap.size
+						break
+					}
+				}
+				else
+				{
+					// Try to remove them one at a time.
+					val newHeap = oldHeap.withoutFirst
+					if (queue.compareAndSet(oldHeap, newHeap))
+					{
+						c.add(oldHeap.first)
+						remaining--
+						// Fall through to do more if they're available.
+					}
+				}
+			}
 		}
 		return maxElements - remaining
 	}
@@ -86,7 +124,12 @@ constructor(
 	override fun offer(element: E): Boolean
 	{
 		val queue = localQueue
-		val changed = queue.add(element)
+		lateinit var oldHeap: LeftistHeap<E>
+		while (true)
+		{
+			oldHeap = queue.get()
+			if (queue.compareAndSet(oldHeap, oldHeap.with(element))) break
+		}
 		// When the local queue reaches specific sizes, allow another thread to
 		// wake up, if it's waiting.  If no thread is waiting, this has no
 		// effect.
@@ -104,7 +147,7 @@ constructor(
 		//
 		// If we've queued about as many items in the local queue as there are
 		// threads, wake them all up.
-		when (queue.size)
+		when (oldHeap.size + 1)
 		{
 			1, 2 -> synchronized(monitor) { monitor.notify() }
 			5 -> synchronized(monitor) {
@@ -113,7 +156,7 @@ constructor(
 			}
 			parallelism + 1 -> synchronized(monitor) { monitor.notifyAll() }
 		}
-		return changed
+		return true
 	}
 
 	override fun offer(e: E, timeout: Long, unit: TimeUnit): Boolean = offer(e)
@@ -123,11 +166,22 @@ constructor(
 		// First try the queue dedicated to the current thread.  When the number
 		// of threads is stable (due to low, high, or constant load), the queue
 		// for the current thread won't be under significant contention.
-		localQueue.poll()?.let { return it }
+		val queue = localQueue
+		while (true)
+		{
+			val heap = queue.get()
+			if (heap.isEmpty) break
+			if (queue.compareAndSet(heap, heap.withoutFirst)) return heap.first
+		}
 		// Local queue didn't have anything.  Look for something to steal.
 		for (q in queues)
 		{
-			q.poll()?.let { return it }
+			while (true)
+			{
+				val heap = q.get()
+				if (heap.isEmpty) break
+				if (q.compareAndSet(heap, heap.withoutFirst)) return heap.first
+			}
 		}
 		return null
 	}
@@ -188,17 +242,34 @@ constructor(
 
 	override fun remainingCapacity(): Int = Int.MAX_VALUE
 
-	override fun remove(element: E): Boolean = queues.any { it.remove(element) }
+	override fun remove(element: E): Boolean = queues.any { queue ->
+		while (true)
+		{
+			val oldHeap = queue.get()
+			val newHeap = oldHeap.without(element)
+			if (newHeap === oldHeap) break
+			if (queue.compareAndSet(oldHeap, newHeap)) return true
+		}
+		return false
+	}
 
 	override fun iterator(): MutableIterator<E>
 	{
 		// Not efficient, but technically correct.
 		val list = mutableListOf<E>()
-		queues.forEach { q -> q.forEach { e -> list.add(e) } }
+		queues.forEach { q -> list.addAll(q.get().toList()) }
 		return list.iterator()
 	}
 
-	override fun peek(): E? =
-		localQueue.peek() ?: queues.firstNotNullOfOrNull { it.peek() }
+	override fun peek(): E?
+	{
+		val heap = localQueue.get()
+		if (!heap.isEmpty) return heap.first
+		queues.forEach { q ->
+			val h = q.get()
+			if (!h.isEmpty) return h.first
+		}
+		return null
+	}
 }
 

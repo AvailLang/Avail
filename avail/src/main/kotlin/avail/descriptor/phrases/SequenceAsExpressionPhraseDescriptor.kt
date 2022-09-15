@@ -42,7 +42,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.SequenceAsExpressionPhraseDescriptor.ObjectSlots.SEQUENCE
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
@@ -72,8 +71,8 @@ class SequenceAsExpressionPhraseDescriptor(
 	mutability,
 	TypeTag.SEQUENCE_AS_EXPRESSION_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -133,9 +132,6 @@ class SequenceAsExpressionPhraseDescriptor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(SEQUENCE).phraseExpressionType
 
-	override fun o_Hash(self: AvailObject) =
-		combine2(self.slot(SEQUENCE).hash(), 0x46D8127F)
-
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE
 
@@ -149,13 +145,6 @@ class SequenceAsExpressionPhraseDescriptor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		self.slot(SEQUENCE).tokens
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -190,6 +179,7 @@ class SequenceAsExpressionPhraseDescriptor(
 		fun newSequenceAsExpression(sequence: A_Phrase): A_Phrase =
 			mutable.createShared {
 				setSlot(SEQUENCE, sequence)
+				initHash()
 			}
 
 		/** The mutable [SequenceAsExpressionPhraseDescriptor]. */

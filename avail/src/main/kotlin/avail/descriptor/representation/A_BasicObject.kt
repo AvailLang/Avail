@@ -65,6 +65,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.cast
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -483,6 +484,20 @@ interface A_BasicObject : JSONFriendly
 	 * Note: [nil] is never the target of an indirection.
 	 */
 	val notNil get() = this !== nil
+
+	/**
+	 * If the receiver is [notNil], evaluate the [action] with it.
+	 */
+	fun <T : A_BasicObject> ifNotNil(action: (T)->Unit)
+	{
+		if (notNil) action(cast())
+	}
+
+	/**
+	 * If the receiver is [notNil], evaluate the [action] with it.
+	 */
+	fun <T : A_BasicObject, O : A_BasicObject> mapNotNil(action: (T)->O): O =
+		if (notNil) action(this.cast()) else nil.cast()
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1133,6 +1148,13 @@ interface A_BasicObject : JSONFriendly
 
 	companion object
 	{
+		/**
+		 * If the receiver [isNil], evaluate the [action].  Answer either the
+		 * non-nil receiver, or the result of the action.
+		 */
+		fun <T : A_BasicObject> T.ifNil(action: ()->T): T =
+			if (this === nil) action() else this
+
 		/**
 		 * Dispatcher helper function for routing messages to the descriptor.
 		 *

@@ -53,7 +53,6 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODU
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -87,8 +86,8 @@ class AssignmentPhraseDescriptor private constructor(
 	mutability,
 	TypeTag.ASSIGNMENT_PHRASE_TAG,
 	ObjectSlots::class.java,
-	IntegerSlots::class.java
-) {
+	IntegerSlots::class.java)
+{
 	/**
 	 * My integer slots.
 	 */
@@ -96,13 +95,24 @@ class AssignmentPhraseDescriptor private constructor(
 		/**
 		 * The [assignment&#32;phrase][AssignmentPhraseDescriptor]'s flags.
 		 */
-		FLAGS;
+		HASH_AND_MORE;
 
-		companion object {
-			/**
-			 * Is this an inline [assignment][AssignmentPhraseDescriptor]?
-			 */
-			val IS_INLINE = BitField(FLAGS, 0, 1) { (it != 0).toString() }
+		companion object
+		{
+			/** The random hash of this object. */
+			val HASH = BitField(HASH_AND_MORE, 0, 32) { null }
+
+			/** Is this an inline [assignment][AssignmentPhraseDescriptor]? */
+			val IS_INLINE = BitField(HASH_AND_MORE, 32, 1) {
+				(it != 0).toString()
+			}
+
+			init
+			{
+				assert(PhraseDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
+					== HASH_AND_MORE.ordinal)
+				assert(PhraseDescriptor.IntegerSlots.HASH.isSamePlaceAs(HASH))
+			}
 		}
 	}
 
@@ -150,11 +160,6 @@ class AssignmentPhraseDescriptor private constructor(
 			isInline(self) -> self.slot(EXPRESSION).phraseExpressionType
 			else -> TOP.o
 		}
-
-	override fun o_Hash(self: AvailObject) = combine3(
-		self.variable.hash(),
-		self.expression.hash(),
-		-0x58e157ac)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
@@ -206,8 +211,8 @@ class AssignmentPhraseDescriptor private constructor(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase
 	) {
-		self.setSlot(EXPRESSION, transformer(self.slot(EXPRESSION)))
-		self.setSlot(VARIABLE, transformer(self.slot(VARIABLE)))
+		self.updateSlot(EXPRESSION, transformer)
+		self.updateSlot(VARIABLE, transformer)
 	}
 
 	override fun o_ChildrenDo(
@@ -224,8 +229,7 @@ class AssignmentPhraseDescriptor private constructor(
 	) = continuation(self)
 
 	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
+		self: AvailObject
 	) = when (self.slot(VARIABLE).declaration.declarationKind()) {
 		ARGUMENT -> error("Can't assign to argument")
 		LABEL -> error("Can't assign to label")
@@ -303,6 +307,7 @@ class AssignmentPhraseDescriptor private constructor(
 			setSlot(EXPRESSION, expression)
 			setSlot(TOKENS, tokens)
 			setSlot(IS_INLINE, if (isInline) 1 else 0)
+			initHash()
 		}
 
 		/** The mutable [AssignmentPhraseDescriptor]. */

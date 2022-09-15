@@ -210,10 +210,14 @@ import kotlin.concurrent.withLock
  *   The [mutability][Mutability] of the new descriptor.
  * @property moduleName
  *   The [A_String] name of the module.
+ * @property runtime
+ *   The [AvailRuntime] that will eventually hold the module using this
+ *   descriptor.
  */
 class ModuleDescriptor private constructor(
 	mutability: Mutability,
-	val moduleName: A_String
+	val moduleName: A_String,
+	val runtime: AvailRuntime?
 ) : Descriptor(mutability, TypeTag.MODULE_TAG, ObjectSlots::class.java, null)
 {
 	/**
@@ -454,6 +458,7 @@ class ModuleDescriptor private constructor(
 	private val stateField = AtomicReference(Loading)
 
 	/** Assert that the module is still open. */
+	@Suppress("SameParameterValue")
 	private fun assertState(expectedState: State)
 	{
 		if (stateField.get() != expectedState)
@@ -1072,9 +1077,9 @@ class ModuleDescriptor private constructor(
 				return nil
 			}
 			val phrasesKey = phrases.extractLong
-			val runtime = AvailRuntime.currentRuntime()
 			val moduleName = ModuleName(moduleNameNative)
-			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
+			val resolved =
+				runtime!!.moduleNameResolver.resolve(moduleName, null)
 			val record = resolved.repository.run {
 				reopenIfNecessary()
 				lock.withLock { repository!![phrasesKey] }
@@ -1106,9 +1111,9 @@ class ModuleDescriptor private constructor(
 	{
 		if (manifestEntries === null)
 		{
-			val runtime = AvailRuntime.currentRuntime()
 			val moduleName = ModuleName(moduleNameNative)
-			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
+			val resolved =
+				runtime!!.moduleNameResolver.resolve(moduleName, null)
 			val record = resolved.repository.run {
 				reopenIfNecessary()
 				lock.withLock { repository!![manifestEntriesRecordIndex] }
@@ -1144,9 +1149,8 @@ class ModuleDescriptor private constructor(
 	override fun o_StylingRecord(self: AvailObject): StylingRecord
 	{
 		stylingRecord?.let { return it }
-		val runtime = AvailRuntime.currentRuntime()
 		val moduleName = ModuleName(moduleNameNative)
-		val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
+		val resolved = runtime!!.moduleNameResolver.resolve(moduleName, null)
 		stylingRecord = if (stylingRecordIndex == -1L)
 		{
 			StylingRecord(emptyList(), emptyList())
@@ -1481,12 +1485,19 @@ class ModuleDescriptor private constructor(
 		 * Construct a new empty `module`.  Pre-add the module itself to its
 		 * [set][SetDescriptor] of ancestor modules.
 		 *
+		 * @param runtime
+		 *   The current [AvailRuntime] that will eventually have this module
+		 *   added to it.  Capturing this now makes it easier to ensure we can
+		 *   access needed repository structures from any thread.
 		 * @param moduleName
 		 *   The fully qualified [name][StringDescriptor] of the module.
 		 * @return
 		 *   The new module.
 		 */
-		fun newModule(moduleName: A_String): A_Module =
+		fun newModule(
+			runtime: AvailRuntime,
+			moduleName: A_String
+		): A_Module =
 			initialMutableDescriptor.create {
 				setSlot(NEW_NAMES, emptyMap)
 				setSlot(IMPORTED_NAMES, emptyMap)
@@ -1503,7 +1514,11 @@ class ModuleDescriptor private constructor(
 				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
 				// Create a new shared descriptor.
-				setDescriptor(ModuleDescriptor(SHARED, moduleName.makeShared()))
+				setDescriptor(
+					ModuleDescriptor(
+						SHARED,
+						moduleName.makeShared(),
+						runtime))
 			}
 
 		/**
@@ -1511,7 +1526,7 @@ class ModuleDescriptor private constructor(
 		 * new [A_Module], prior to replacing it with a new shared descriptor.
 		 */
 		private val initialMutableDescriptor = ModuleDescriptor(
-			Mutability.MUTABLE, emptyTuple)
+			Mutability.MUTABLE, emptyTuple, null)
 
 		/**
 		 * Create an empty [BloomFilter] for use as a module serialization

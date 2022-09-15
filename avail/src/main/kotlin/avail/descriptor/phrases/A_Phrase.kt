@@ -714,14 +714,9 @@ interface A_Phrase : A_BasicObject {
 			get() = dispatch { o_TypeExpression(it) }
 
 		/**
-		 * Validate this phrase, without also validating
-		 * [block][BlockPhraseDescriptor] phrases that occur within this phrase.
-		 *
-		 * @param parent
-		 *   The phrase that contains this phrase, or `null`.
+		 * Validate this phrase without also visiting its subphrases.
 		 */
-		fun A_Phrase.validateLocally(parent: A_Phrase?) =
-			dispatch { o_ValidateLocally(it, parent) }
+		fun A_Phrase.validateLocally() = dispatch { o_ValidateLocally(it) }
 
 		/**
 		 * Answer the [variable&#32;use][VariableUsePhraseDescriptor] phrase

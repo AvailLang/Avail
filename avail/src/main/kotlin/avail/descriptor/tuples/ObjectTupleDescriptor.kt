@@ -544,9 +544,6 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		{
 			if (size == 0) return emptyTuple
 			val result = createUninitialized(size)
-			// Initialize it for safe GC within the loop below.  Might be
-			// unnecessary if the substrate already initialized it safely.
-			result.fillSlots(TUPLE_AT_, 1, size, nil)
 			for (i in 1 .. size)
 			{
 				result.setSlot(TUPLE_AT_, i, generator(i))

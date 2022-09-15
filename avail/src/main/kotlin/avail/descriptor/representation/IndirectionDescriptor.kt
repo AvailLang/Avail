@@ -2401,10 +2401,8 @@ class IndirectionDescriptor private constructor(
 		action: (A_Phrase)->Unit
 	) = self .. { childrenDo(action) }
 
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) = self .. { validateLocally(parent) }
+	override fun o_ValidateLocally(self: AvailObject) =
+		self .. { validateLocally() }
 
 	override fun o_GenerateInModule(
 		self: AvailObject,
@@ -2424,9 +2422,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_IsLastUse(
 		self: AvailObject,
 		isLastUse: Boolean
-	) = self .. {
-		this.isLastUse = isLastUse
-	}
+	) = self .. { this.isLastUse = isLastUse }
 
 	override fun o_IsLastUse(self: AvailObject): Boolean =
 		self .. { isLastUse }

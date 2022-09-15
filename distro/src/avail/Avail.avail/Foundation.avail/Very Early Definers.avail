@@ -227,7 +227,7 @@ Primitive "loop styler" is [loopStyler];
 
 nonlocalControlStyler ::=
 	[
-		optionalOriginal : <<>, send phrase…|zeroOrOne>,
+		optionalOriginal : optionalSendType,
 		transformed : phrase
 	|
 		attempt extract optionalOriginal or transformed then

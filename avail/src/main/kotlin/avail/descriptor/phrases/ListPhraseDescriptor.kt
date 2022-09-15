@@ -46,7 +46,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
@@ -89,8 +88,8 @@ class ListPhraseDescriptor private constructor(
 	mutability,
 	TypeTag.LIST_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -145,11 +144,7 @@ class ListPhraseDescriptor private constructor(
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase
-	) {
-		self.setSlot(
-			EXPRESSIONS_TUPLE,
-			tupleFromList(self.expressionsTuple.map(transformer)))
-	}
+	) = self.updateSlot(EXPRESSIONS_TUPLE) { tupleFromList(map(transformer)) }
 
 	/**
 	 * Create a new [list&#32;phrase]][ListPhraseDescriptor] with one more
@@ -227,9 +222,6 @@ class ListPhraseDescriptor private constructor(
 		return self.synchronizeIf(isShared) { expressionType(self) }
 	}
 
-	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.expressionsTuple.hash(), -0x3ebc1689)
-
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
 		self.slot(EXPRESSIONS_TUPLE).any { it.hasSuperCast }
 
@@ -294,11 +286,6 @@ class ListPhraseDescriptor private constructor(
 			// The elements' superunion types were all bottom, so answer bottom.
 			else -> bottom
 		}
-	}
-
-	override fun o_ValidateLocally(self: AvailObject, parent: A_Phrase?
-	) {
-		// Do nothing.
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -368,6 +355,7 @@ class ListPhraseDescriptor private constructor(
 			mutable.createShared {
 				setSlot(EXPRESSIONS_TUPLE, expressions)
 				setSlot(TUPLE_TYPE, nil)
+				initHash()
 			}
 
 		/** The mutable [ListPhraseDescriptor]. */

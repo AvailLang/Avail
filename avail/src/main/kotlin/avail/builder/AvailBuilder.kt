@@ -861,6 +861,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		for (loadedModule in modulesWithEntryPoints)
 		{
 			val module = newModule(
+				runtime,
 				stringFrom(
 					loadedModule.module.moduleNameNative + " (command)"))
 			val loader = AvailLoader(runtime, module, runtime.textInterface())

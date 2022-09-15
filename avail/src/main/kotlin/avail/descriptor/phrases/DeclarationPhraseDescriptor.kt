@@ -58,7 +58,6 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKEN
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine7
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import avail.descriptor.representation.Mutability
@@ -108,8 +107,8 @@ class DeclarationPhraseDescriptor(
 	mutability,
 	declarationKind.phraseKind().typeTag,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -644,15 +643,6 @@ class DeclarationPhraseDescriptor(
 		codeGenerator.emitPushLiteral(emptyTuple, nil)
 	}
 
-	override fun o_Hash(self: AvailObject): Int = combine7(
-		self.token.hash(),
-		self.typeExpression.hash(),
-		self.declaredType.hash(),
-		self.initializationExpression.hash(),
-		self.literalObject.hash(),
-		self.declarationKind().ordinal,
-		0x4C27EB37)
-
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -660,45 +650,24 @@ class DeclarationPhraseDescriptor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase)->A_Phrase
-	) {
-		val typeExpression = self.typeExpression
-		if (typeExpression.notNil) {
-			self.setSlot(TYPE_EXPRESSION, transformer(typeExpression))
-		}
-		val expression: A_Phrase = self.initializationExpression
-		if (expression.notNil) {
-			self.setSlot(INITIALIZATION_EXPRESSION, transformer(expression))
-		}
+		transformer: (A_Phrase)->A_Phrase)
+	{
+		self.updateSlot(TYPE_EXPRESSION) { mapNotNil(transformer) }
+		self.updateSlot(INITIALIZATION_EXPRESSION) { mapNotNil(transformer) }
 	}
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase)->Unit
-	) {
-		val typeExpression = self.typeExpression
-		if (typeExpression.notNil)
-		{
-			action(typeExpression)
-		}
-		val initExpression = self.initializationExpression
-		if (initExpression.notNil)
-		{
-			action(initExpression)
-		}
+		action: (A_Phrase)->Unit)
+	{
+		self.typeExpression.ifNotNil(action)
+		self.initializationExpression.ifNotNil(action)
 	}
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
 	) = continuation(self)
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		self.declarationKind().phraseKind()
@@ -791,6 +760,7 @@ class DeclarationPhraseDescriptor(
 				setSlot(TYPE_EXPRESSION, typeExpression)
 				setSlot(INITIALIZATION_EXPRESSION, initializationExpression)
 				setSlot(LITERAL_OBJECT, literalObject)
+				initHash()
 			}
 		}
 

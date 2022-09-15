@@ -32,6 +32,7 @@
 package avail
 
 import avail.AvailRuntime.Companion.specialObject
+import avail.ImmutableList.Companion.length
 import avail.AvailRuntimeConfiguration.availableProcessors
 import avail.AvailRuntimeConfiguration.maxInterpreters
 import avail.AvailThread.Companion.current
@@ -265,17 +266,15 @@ import java.util.Collections.synchronizedSet
 import java.util.Timer
 import java.util.TimerTask
 import java.util.WeakHashMap
+import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.fixedRateTimer
 import kotlin.concurrent.read
-import kotlin.concurrent.withLock
 import kotlin.math.min
 
 /**
@@ -358,13 +357,20 @@ class AvailRuntime constructor(
 	/**
 	 * The [ThreadPoolExecutor] for running tasks and fibers of this
 	 * [AvailRuntime].
+	 *
+	 * Note that the WorkStealingQueue plugged in as the workQueue only accepts
+	 * [AvailTask]s, but the [ThreadPoolExecutor] mechanism is supposed to
+	 * accept any [Runnable], not just ones that are [Comparable].  So don't
+	 * queue anything in it but [AvailTask]s, and everything will be ok.
 	 */
+	@Suppress("UNCHECKED_CAST")
 	val executor = ThreadPoolExecutor(
 		min(availableProcessors, maxInterpreters),
 		maxInterpreters,
 		10L,
 		TimeUnit.SECONDS,
-		WorkStealingQueue(maxInterpreters),
+		WorkStealingQueue<AvailTask>(maxInterpreters)
+			as BlockingQueue<Runnable>,
 		{
 			val interpreter = Interpreter(this)
 			interpreterHolders[interpreter.interpreterIndex].set(interpreter)
@@ -766,7 +772,6 @@ class AvailRuntime constructor(
 		 * A [supplier][OnceSupplier] of a default [A_Function] to use for this
 		 * hook type.
 		 */
-		@Suppress("LeakingThis")
 		val defaultFunctionSupplier: OnceSupplier<A_Function> =
 			produceDefaultFunctionSupplier(hookName, primitive)
 
@@ -1635,64 +1640,53 @@ class AvailRuntime constructor(
 	}
 
 	/**
-	 * The [ReentrantLock] that guards access to the [safePointTasks] and
-	 * [interpreterTasks] and their associated incomplete execution counters.
+	 * This [AtomicReference] implements a lock-free algorithm for queueing
+	 * tasks that must run when interpreters are running, or during a
+	 * safe-point.  Those two modes of execution are mutually exclusive.
 	 *
-	 * For example, an [L2Chunk] may not be invalidated while any [A_Fiber] is
-	 * actively running. These two activities are mutually exclusive.
+	 * While running interpreter tasks, safe-point tasks are queued for later,
+	 * and vice-versa.  Also, interpreter tasks are queued if there are any
+	 * safe-point tasks queue, since that condition will cause the interpreter
+	 * tasks to exit as soon as possible, to reach the safe-point.
 	 */
-	private val safePointLock = ReentrantLock()
+	private val activeDiversionQueue =
+		AtomicReference(DiversionQueue(0, null, null))
 
 	/**
-	 * The [List] of tasks to run at the next safe point.  Such tasks may only
-	 * execute when there are no [interpreterTasks] running.
+	 * An immutable state object that can atomically replace the current state
+	 * in [activeDiversionQueue] via a
+	 * [compare-and-set][AtomicReference.compareAndSet] (with retries).
 	 *
-	 * For example, an [L2Chunk] may not be invalidated while any [A_Fiber] is
-	 * actively running. These two activities are mutually exclusive.
+	 * @property interpreterSurplus
+	 *   If zero, no tasks are running.  If positive, that many interpreter
+	 *   tasks have been sent to the [executor] and have not yet completed.  If
+	 *   negative, the magnitude says how many safe point tasks have been sent
+	 *   to the [executor] and have not yet completed.
+	 * @property postponedSafeTasks
+	 *   The queue of safe-point tasks that should run when we're next at a
+	 *   safe point.  Null indicates an empty queue.  Safe-point tasks have
+	 *   priority over interpreter tasks, so new interpreter tasks should not
+	 *   be started if there are any safe-point tasks queued here, or if the
+	 *   [interpreterSurplus] is negative, indicating it's processing safe-point
+	 *   tasks already.
+	 * @property postponedInterpreterTasks
+	 *   The queue of interpreter tasks that should run when we're next able to
+	 *   run interpreter tasks.  Null indicates an empty queue.  Safe-point
+	 *   tasks have precedence, so if there are any outstanding safe point
+	 *   tasks, or if any are queued, then queue new interpreter tasks here
+	 *   instead of allowing them to execute.
 	 */
-	@GuardedBy("safePointLock")
-	private val safePointTasks = mutableListOf<AvailTask>()
+	data class DiversionQueue(
+		val interpreterSurplus: Int,
+		val postponedSafeTasks: ImmutableList<AvailTask>?,
+		val postponedInterpreterTasks: ImmutableList<AvailTask>?)
+	{
+		val safePointRequested
+			get() = interpreterSurplus > 0 && postponedSafeTasks !== null
+	}
 
-	/**
-	 * The [List] of tasks that run when interpreters are allowed to run.  This
-	 * includes tasks that actually run fibers, but may include any other task
-	 * which must not execute at the same time as any [safePointTasks].
-	 */
-	@GuardedBy("safePointLock")
-	private val interpreterTasks = mutableListOf<AvailTask>()
-
-	/**
-	 * The number of [safePointTasks] that have been scheduled for
-	 * [execution][executor] but have not yet reached completion.  This also
-	 * includes safe-point tasks that have been added to the executor but not
-	 * yet started.
-	 */
-	@GuardedBy("safePointLock")
-	private var incompleteSafePointTasks = 0
-
-	/**
-	 * The number of [interpreterTasks] that have been scheduled for
-	 * [execution][executor] but have not yet reached completion.  This also
-	 * includes interpreter tasks that have been added to the executor but not
-	 * yet started.
-	 */
-	@GuardedBy("safePointLock")
-	private var incompleteInterpreterTasks = 0
-
-	/**
-	 * Has a safe-point been requested?
-	 */
-	@Volatile
-	private var safePointRequested = false
-
-	/**
-	 * Has a safe point been requested?  During a safe point, no interpreters
-	 * are allowed to be running fibers.
-	 *
-	 * @return
-	 *   `true` if a safe point has been requested, `false` otherwise.
-	 */
-	fun safePointRequested(): Boolean = safePointRequested
+	/** Determine whether any safe-point tasks have been queued for later. */
+	val safePointRequested get() = activeDiversionQueue.get().safePointRequested
 
 	/**
 	 * Assert that we're currently inside a safe point.  This should only be
@@ -1701,13 +1695,14 @@ class AvailRuntime constructor(
 	 */
 	fun assertInSafePoint()
 	{
-		val isSafe = safePointLock.withLock { incompleteSafePointTasks > 0 }
-		assert(isSafe)
+		assert(activeDiversionQueue.get().interpreterSurplus < 0)
 	}
 
 	/**
 	 * Request that the specified [action] be executed when interpreter tasks
-	 * are allowed to run.
+	 * are allowed to run.  If there are any postponed safe-point tasks, that
+	 * means we're either in or waiting for a safe-point to be reached, so don't
+	 * start another interpreter task – queue it instead.
 	 *
 	 * @param priority
 	 *   The priority of the [AvailTask] to queue.  It must be in the range
@@ -1717,7 +1712,7 @@ class AvailRuntime constructor(
 	 */
 	fun whenRunningInterpretersDo(priority: Int, action: ()->Unit)
 	{
-		val wrapped = AvailTask(priority)
+		val task = AvailTask(priority)
 		{
 			try
 			{
@@ -1731,44 +1726,89 @@ class AvailRuntime constructor(
 			}
 			finally
 			{
-				safePointLock.withLock {
-					incompleteInterpreterTasks--
-					if (incompleteInterpreterTasks == 0)
+				// Deal with this interpreter task having just completed.
+				while (true)
+				{
+					val old = activeDiversionQueue.get()
+					val surplus = old.interpreterSurplus
+					assert(surplus > 0)
+					if (surplus == 1)
 					{
-						assert(incompleteSafePointTasks == 0)
-						incompleteSafePointTasks = safePointTasks.size
-						// Run all queued safe point tasks sequentially.
-						safePointTasks.forEach(this::execute)
-						safePointTasks.clear()
+						// This is the last interpreter task finishing up.
+						var queuedSafeTasks = old.postponedSafeTasks
+						val new = old.copy(
+							interpreterSurplus = -queuedSafeTasks.length,
+							postponedSafeTasks = null)
+						if (!activeDiversionQueue.compareAndSet(old, new))
+							continue
+						// The replacement was successful, which means we're now
+						// processing safe-point tasks.  Add the ones from the
+						// queue, which are already accounted for in the new
+						// state's negative counter.  It can't race up to zero,
+						// since we haven't activated the tasks that are able to
+						// increment the counter.
+						while (queuedSafeTasks !== null)
+						{
+							execute(queuedSafeTasks.first)
+							queuedSafeTasks = queuedSafeTasks.rest
+						}
+						break
+					}
+					else
+					{
+						val new = old.copy(interpreterSurplus = surplus - 1)
+						if (!activeDiversionQueue.compareAndSet(old, new))
+							continue
+						// It decremented correctly (to non-zero).
+						break
 					}
 				}
 			}
 		}
-		safePointLock.withLock {
-			// Hasten the execution of safe-point tasks by postponing this task
-			// if there are any safe-point tasks waiting to run.
-			if (incompleteSafePointTasks == 0 && safePointTasks.isEmpty())
+		// Now try to add the new interpreter task.
+		while (true)
+		{
+			val old = activeDiversionQueue.get()
+			val surplus = old.interpreterSurplus
+			if (surplus >= 0 && old.postponedSafeTasks === null)
 			{
-				assert(!safePointRequested)
-				incompleteInterpreterTasks++
-				execute(wrapped)
+				// We're running interpreter tasks AND there are no queued safe
+				// point tasks.
+				val new = old.copy(interpreterSurplus = surplus + 1)
+				if (!activeDiversionQueue.compareAndSet(old, new)) continue
+				// We successfully incremented the surplus, and there's no way
+				// it can go back to zero until we start the task, which we do
+				// now.
+				execute(task)
+				break
 			}
 			else
 			{
-				interpreterTasks.add(wrapped)
+				// We're either at a safe point already or there is a safe-point
+				// task already waiting, so don't let any more interpreter tasks
+				// through until we've dealt with the safe point.
+				val new = old.copy(
+					postponedInterpreterTasks =
+						ImmutableList(task, old.postponedInterpreterTasks)
+				)
+				if (!activeDiversionQueue.compareAndSet(old, new)) continue
+				// We successfully added the interpreter task to the postponed
+				// queue, while still running in a safe point, or striving for
+				// one.
+				break
 			}
 		}
 	}
 
 	/**
-	 * Request that the specified action be executed at the next safe point.
-	 * No interpreter tasks are running at a safe point.
+	 * Request that the specified action be executed at the next safe-point.
+	 * No interpreter tasks are running at a safe-point.
 	 *
 	 * @param priority
 	 *   The priority of the [AvailTask] to queue.  It must be in the range
 	 *   [0..255].
 	 * @param safeAction
-	 *   The action to execute at the next safe point.
+	 *   The action to execute at the next safe-point.
 	 */
 	fun whenSafePointDo(priority: Int, safeAction: ()->Unit)
 	{
@@ -1786,39 +1826,89 @@ class AvailRuntime constructor(
 			}
 			finally
 			{
-				safePointLock.withLock {
-					incompleteSafePointTasks--
-					if (incompleteSafePointTasks == 0)
+				// Deal with this safe-point task having just completed.
+				while (true)
+				{
+					val old = activeDiversionQueue.get()
+					val surplus = old.interpreterSurplus
+					assert(surplus < 0)
+					if (surplus == -1)
 					{
-						assert(incompleteInterpreterTasks == 0)
-						safePointRequested = false
-						incompleteInterpreterTasks = interpreterTasks.size
-						interpreterTasks.forEach(this::execute)
-						interpreterTasks.clear()
+						// This is the last safe-point task finishing up.  Allow
+						// the queued interpreter tasks, if any, to all launch
+						// at once.
+						assert(old.postponedSafeTasks == null)
+						var queuedInterpreterTasks =
+							old.postponedInterpreterTasks
+						val new = old.copy(
+							interpreterSurplus = queuedInterpreterTasks.length,
+							postponedInterpreterTasks = null)
+						if (!activeDiversionQueue.compareAndSet(old, new))
+							continue
+						// The replacement was successful, which means we're now
+						// processing interpreter tasks.  Add the ones from the
+						// queue, which are already accounted for in the new
+						// state's positive counter.  It can't race down to
+						// zero, since we haven't activated the tasks that are
+						// able to decrement the counter.
+						while (queuedInterpreterTasks !== null)
+						{
+							execute(queuedInterpreterTasks.first)
+							queuedInterpreterTasks = queuedInterpreterTasks.rest
+						}
+						break
+					}
+					else
+					{
+						val new = old.copy(interpreterSurplus = surplus + 1)
+						if (!activeDiversionQueue.compareAndSet(old, new))
+							continue
+						// It incremented correctly (to non-zero).
+						break
 					}
 				}
 			}
 		}
-		safePointLock.withLock {
-			safePointRequested = true
-			if (incompleteInterpreterTasks == 0)
+		// Now try to add the new safe-point task.
+		while (true)
+		{
+			val old = activeDiversionQueue.get()
+			val surplus = old.interpreterSurplus
+			if (surplus <= 0)
 			{
-				incompleteSafePointTasks++
+				// We're already at a safe point (or idle).
+				val new = old.copy(interpreterSurplus = surplus - 1)
+				if (!activeDiversionQueue.compareAndSet(old, new)) continue
+				// We successfully decremented the surplus, and there's no way
+				// it can go back up to zero until we start the task, which we
+				// do now.
 				execute(task)
+				break
 			}
 			else
 			{
-				safePointTasks.add(task)
+				// We're running interpreter tasks, so queue the safe-point task
+				// for later.  The presence of the queued safe-point task also
+				// acts as a gate that prevents new interpreter tasks from
+				// starting, since that would delay us from reaching a safe
+				// point.
+				val new = old.copy(
+					postponedSafeTasks =
+						ImmutableList(task, old.postponedSafeTasks)
+				)
+				if (!activeDiversionQueue.compareAndSet(old, new)) continue
+				// We successfully added the safe-point task to the postponed
+				// queue, while still running interpreter tasks.
+				break
 			}
 		}
 	}
 
 	/**
 	 * Schedule the specified [suspended][ExecutionState.indicatesSuspension]
-	 * fiber to execute for a while as an
-	 * [interpreter][AvailRuntime.interpreterTasks] task. If the fiber completes
-	 * normally, then call its [A_Fiber.resultContinuation] with its final
-	 * answer. If the fiber terminates abnormally, then call its
+	 * fiber to execute for a while as an interpreter task. If the fiber
+	 * completes normally, then call its [A_Fiber.resultContinuation] with its
+	 * final answer. If the fiber terminates abnormally, then call its
 	 * [A_Fiber.failureContinuation] with the terminal [Throwable].
 	 *
 	 * @param aFiber

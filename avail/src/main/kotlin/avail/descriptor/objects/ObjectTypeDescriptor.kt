@@ -255,25 +255,28 @@ class ObjectTypeDescriptor internal constructor(
 		anObjectType: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObjectType)) return true
-		val otherVariant = anObjectType.objectTypeVariant
-		if (variant !== otherVariant) return false
+		if (variant !== anObjectType.objectTypeVariant) return false
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
 		var myHash = self.slot(HASH_OR_ZERO)
 		var otherHash = anObjectType.slot(HASH_OR_ZERO)
-		when {
+		when
+		{
 			myHash != 0 && otherHash == 0 -> otherHash = anObjectType.hash()
 			otherHash != 0 && myHash == 0 -> myHash = self.hash()
 		}
+		if (myHash != otherHash) return false
 		// Hashes are equal.  Compare field types, which must be in
 		// corresponding positions because we share the same variant.
-		when {
-			myHash != otherHash -> return false
-			(1..self.variableObjectSlotsCount()).any {
-				!self.slot(FIELD_TYPES_, it).equals(
-					anObjectType.slot(FIELD_TYPES_, it))
-			} -> return false
+		for (i in 1..self.variableObjectSlotsCount())
+		{
+			if (!self.slot(FIELD_TYPES_, i).equals(
+					anObjectType.slot(FIELD_TYPES_, i)))
+				return false
+		}
+		when
+		{
 			!isShared -> self.becomeIndirectionTo(anObjectType)
 			!anObjectType.descriptor().isShared ->
 				anObjectType.becomeIndirectionTo(self)
