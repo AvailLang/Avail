@@ -105,6 +105,7 @@ import avail.environment.nodes.EntryPointModuleNode
 import avail.environment.nodes.EntryPointNode
 import avail.environment.nodes.ModuleOrPackageNode
 import avail.environment.nodes.ModuleRootNode
+import avail.environment.projects.GlobalAvailConfiguration
 import avail.environment.streams.BuildInputStream
 import avail.environment.streams.BuildOutputStream
 import avail.environment.streams.BuildOutputStreamEntry
@@ -2643,6 +2644,7 @@ class AvailWorkbench internal constructor(
 		@JvmStatic
 		fun launchWorkbenchWithProject(
 			project: AvailProject,
+			globalAvailConfiguration: GlobalAvailConfiguration,
 			availProjectFilePath: String = "")
 		{
 			launchWorkbench(

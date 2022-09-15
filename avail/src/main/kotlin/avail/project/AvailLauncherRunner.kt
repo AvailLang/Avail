@@ -33,13 +33,9 @@
 package avail.project
 
 import avail.environment.AvailWorkbench
+import avail.environment.launcher.AvailLaunchWindow
 import avail.environment.projects.GlobalAvailConfiguration
-import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
-import org.availlang.artifact.environment.AvailEnvironment.optionallyCreateAvailUserHome
 import org.availlang.artifact.environment.project.AvailProject
-import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
-import org.availlang.json.jsonObject
-import java.io.File
 
 /**
  * An [AvailWorkbench] runner that uses an [AvailProject] configuration file to
@@ -48,10 +44,10 @@ import java.io.File
  *
  * @author Richard Arriaga
  */
-object AvailProjectWorkbenchRunner
+object AvailLauncherRunner
 {
 	/**
-	 * Launch an [AvailWorkbench] for a specific [AvailProjectWorkbenchRunner].
+	 * Launch an [AvailWorkbench] for a specific [AvailLauncherRunner].
 	 *
 	 * @param args
 	 *   The command line arguments.
@@ -62,38 +58,8 @@ object AvailProjectWorkbenchRunner
 	@JvmStatic
 	fun main(args: Array<String>)
 	{
-		val configFile =
-			when (args.size)
-			{
-				0 ->
-				{
-					File(
-						getProjectRootDirectory("") +
-							File.separator +
-							CONFIG_FILE_NAME)
-				}
-				1 -> File(args[0])
-				else -> throw RuntimeException(
-					"Avail project runner expects either" +
-						"\n\t0 arguments: The Avail Project config file, " +
-						"`avail-config.json`, is at the project directory " +
-						"where this is being run from" +
-						"\n\t1 argument: The path, with name, of the project " +
-						"config file.")
-			}
-		optionallyCreateAvailUserHome()
-		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
-			.removeSuffix(File.separator)
-		val availProject =
-			AvailProject.from(
-				projectPath,
-				jsonObject(configFile.readText(Charsets.UTF_8)))
-		System.setProperty(
-			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())
-		val globalConfig = GlobalAvailConfiguration.getGlobalConfig().apply {
-			add(availProject, configFile.absolutePath)
-		}
-		AvailWorkbench.launchWorkbenchWithProject(
-			availProject, globalConfig, configFile.absolutePath)
+		val globalConfig = GlobalAvailConfiguration.getGlobalConfig()
+
+		AvailLaunchWindow(globalConfig)
 	}
 }

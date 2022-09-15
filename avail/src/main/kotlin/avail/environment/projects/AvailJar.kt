@@ -1,5 +1,5 @@
 /*
- * AvailLaunchWindow.kt
+ * AvailBinary.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,18 +32,66 @@
 
 package avail.environment.projects
 
-import org.availlang.artifact.environment.project.AvailProject
-import javax.swing.JFrame
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONObject
+import org.availlang.json.JSONWriter
 
 /**
- * The Avail start up window. This window is displayed when an Avail development
- * environment is started with no particular [AvailProject] file.
+ * The location of the Avail jar to use for the Avail runtime.
  *
  * @author Richard Arriaga
+ *
+ * @property version
+ *   The [AvailVersion] of Avail to use.
+ * @property path
+ *   The path to the Avail jar file.
  */
-class AvailLaunchWindow constructor(
-	internal val globalConfig: GlobalAvailConfiguration
-): JFrame("Avail")
+data class AvailJar constructor(
+	val version: AvailVersion,
+	val path: String
+): JSONFriendly, Comparable<AvailJar>
 {
-	// TODO build me!
+	override fun writeTo(writer: JSONWriter)
+	{
+		writer.writeObject {
+			at(AvailJar::version.name) { write(version.version) }
+			at(AvailJar::path.name) { write(path) }
+		}
+	}
+
+	override fun compareTo(other: AvailJar): Int =
+		version.compareTo(other.version)
+
+	companion object
+	{
+		/**
+		 * Answer a [AvailJar] from the provided [JSONObject].
+		 *
+		 * @param obj
+		 *   The [JSONObject] to extract data from.
+		 * @return
+		 *   The [AvailJar] or `null` if malformed.
+		 */
+		fun from (obj: JSONObject): AvailJar?
+		{
+			if (!obj.containsKey(AvailJar::version.name)
+				|| !obj.containsKey(AvailJar::path.name))
+			{
+				return null
+			}
+			return try
+			{
+				val version = AvailVersion.versionOrNull(
+					obj.getString(AvailJar::version.name)) ?: return null
+				AvailJar(
+					version,
+					obj.getString(AvailJar::path.name))
+			}
+			catch (e: Throwable)
+			{
+				e.printStackTrace()
+				null
+			}
+		}
+	}
 }

@@ -32,6 +32,7 @@
 
 package avail.environment.projects
 
+import avail.environment.launcher.AvailLaunchWindow
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.availHome
 import org.availlang.artifact.environment.project.AvailProject
@@ -80,6 +81,34 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	 * `null` if none set.
 	 */
 	var defaultStandardLibrary: String?
+
+	/**
+	 * The [knownProjects] sorted by [KnownAvailProject.name] in ascending
+	 * alphabetical order.
+	 */
+	val knownProjectsByAlphaAscending get() =
+		knownProjects.toList().sortedBy { it.name }
+
+	/**
+	 * The [knownProjects] sorted by [KnownAvailProject.name] in descending
+	 * alphabetical order.
+	 */
+	val knownProjectsByAlphaDescending get() =
+		knownProjects.toList().sortedByDescending { it.name }
+
+	/**
+	 * The [knownProjects] sorted by [KnownAvailProject.lastOpened] in ascending
+	 * order.
+	 */
+	val knownProjectsByLastOpenedAscending get() =
+		knownProjects.toList().sortedBy { it.lastOpened }
+
+	/**
+	 * The [knownProjects] sorted by [KnownAvailProject.lastOpened] in
+	 * descending order.
+	 */
+	val knownProjectsByLastOpenedDescending get() =
+		knownProjects.toList().sortedByDescending { it.lastOpened }
 
 	/**
 	 * Add the provided [AvailProject] to this [GlobalAvailConfiguration] as a

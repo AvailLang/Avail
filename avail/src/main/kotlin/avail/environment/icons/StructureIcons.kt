@@ -33,8 +33,6 @@
 package avail.environment.icons
 
 import avail.compiler.SideEffectKind
-import org.availlang.cache.LRUCache
-import java.awt.Image
 import javax.swing.ImageIcon
 
 /**
@@ -51,8 +49,9 @@ import javax.swing.ImageIcon
  */
 data class StructureIconKey constructor(
 	val sideEffectKind: SideEffectKind,
-	val resourceName: String,
-	val scaledHeight: Int)
+	override val resourceName: String,
+	override val scaledHeight: Int
+): IconKey
 
 /**
  * Manages the structure view icons associated with the various
@@ -156,18 +155,11 @@ object StructureIcons
 		}
 
 	/**
-	 * A static cache of scaled icons, organized by node class and line
-	 * height.
+	 * A static cache of scaled icons, organized
+	 * [SideEffectKind] and line height.
 	 */
-	private val cachedScaledIcons = LRUCache<StructureIconKey, ImageIcon>(
-		100, 20,
-		{ key ->
-			val path = "/resources/workbench/structure-icons/${key.resourceName}"
-			val thisClass = StructureIcons::class.java
-			val resource = thisClass.getResource(path)
-			val originalIcon = ImageIcon(resource)
-			val scaled = originalIcon.image.getScaledInstance(
-				-1, key.scaledHeight, Image.SCALE_SMOOTH)
-			ImageIcon(scaled, key.resourceName)
-		})
+	private val cachedScaledIcons =
+		ImageIconCache<StructureIconKey>(
+			"/resources/workbench/structure-icons/",
+			StructureIcons::class.java)
 }

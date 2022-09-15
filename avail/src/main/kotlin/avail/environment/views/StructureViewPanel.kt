@@ -46,6 +46,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -131,6 +132,7 @@ class StructureViewPanel constructor (
 		minimumSize = Dimension(450, 50)
 		maximumSize = Dimension(450, 50)
 		preferredSize = Dimension(450, 50)
+		this.layout = FlowLayout(FlowLayout.LEFT)
 		val sortAlpha = JButton("🔠")
 		val sortPosition = JButton("🔢")
 		sortAlpha.apply {
@@ -152,8 +154,8 @@ class StructureViewPanel constructor (
 					sortBy = SortBy.LINE_NUMBER)
 			}
 		}
-		add(sortAlpha)
 		add(sortPosition)
+		add(sortAlpha)
 		SideEffectKind.values().forEach {
 			val iconLabel = JButton(StructureIcons.icon(19, it))
 			iconLabel.apply {
@@ -194,7 +196,6 @@ class StructureViewPanel constructor (
 			}
 			add(iconLabel)
 		}
-		pack()
 	}
 
 	/**
