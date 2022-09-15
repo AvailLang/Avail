@@ -240,9 +240,7 @@ class NewModuleDialog constructor(
 					SwingUtilities.invokeLater {
 						val editor =
 							workbench.openEditors.computeIfAbsent(toOpen) {
-								AvailEditor(workbench, toOpen).apply {
-									open()
-								}
+								AvailEditor(workbench, toOpen)
 							}
 						RefreshAction(workbench).runAction()
 						editor.toFront()

@@ -83,10 +83,10 @@ import avail.environment.MenuBarBuilder
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
 import avail.environment.addWindowMenu
-import avail.environment.codeSuitableTextPane
 import avail.environment.scroll
 import avail.environment.scrollTextWithLineNumbers
 import avail.environment.showTextRange
+import avail.environment.text.CodePane
 import avail.interpreter.levelOne.L1Disassembler
 import avail.persistence.cache.Repository.StylingRecord
 import avail.utility.safeWrite
@@ -575,13 +575,13 @@ class AvailDebugger internal constructor (
 
 	/** A view of the L1 disassembly for the selected frame. */
 	private val disassemblyPane =
-		codeSuitableTextPane(workbench, workbench).apply {
+		CodePane(workbench).apply {
 			isEditable = false
 		}
 
 	/** A view of the source code for the selected frame. */
 	private val sourcePane =
-		codeSuitableTextPane(workbench, workbench).apply {
+		CodePane(workbench).apply {
 			isEditable = false
 		}
 

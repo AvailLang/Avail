@@ -184,10 +184,7 @@ class SearchOpenModuleDialog constructor(
 			val editor =
 				workbench.openEditors.computeIfAbsent(reference.moduleName) {
 					isOpen = true
-					AvailEditor(
-						workbench,
-						reference.moduleName
-					).apply(AvailEditor::open)
+					AvailEditor(workbench, reference.moduleName)
 				}
 			if (!isOpen) editor.toFront()
 			dispose()
