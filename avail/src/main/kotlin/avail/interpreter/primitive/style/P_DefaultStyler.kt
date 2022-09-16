@@ -32,15 +32,18 @@
 
 package avail.interpreter.primitive.style
 
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
-import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.fiber.A_Fiber.Companion.canStyle
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.A_Type
-import avail.descriptor.variables.A_Variable
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.Primitive.Flag.Bootstrap
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -52,19 +55,33 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DefaultStyler : Primitive(2, CanSuspend, CannotFail, Unknown)
+object P_DefaultStyler :
+	Primitive(
+		2,
+		CanInline,
+		Bootstrap,
+		ReadsFromHiddenGlobalState,
+		WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(4)
-		val sendPhrase: A_Phrase = interpreter.argument(0)
-		val phraseStyles: A_Variable = interpreter.argument(1)
-		val tokenStyles: A_Variable = interpreter.argument(2)
-		val tokenDefinitions: A_Variable = interpreter.argument(3)
+		interpreter.checkArgumentCount(2)
+//		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
+//		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
-		// Do nothing.  At some point we could do something more elegant.
+		val fiber = interpreter.fiber()
+		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
+		//val loader = fiber.availLoader!!
+
+		// Do nothing.  Fixed tokens will already have been styled as
+		// METHOD_SEND or MACRO_SEND, as well as any yield-type-specific style.
 		return interpreter.primitiveSuccess(nil)
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_CANNOT_STYLE))
 
 	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }

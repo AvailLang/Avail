@@ -1155,7 +1155,7 @@ class TypeRestriction private constructor(
 		 * It's marked as immutable because there is no way to create another
 		 * [AvailObject] with a [NilDescriptor] as its descriptor.
 		 */
-		private val nilRestriction = TypeRestriction(
+		val nilRestriction = TypeRestriction(
 			positiveGroup = RestrictionGroup(
 				constants = setOf(nil),
 				types = setOf(TOP.o),

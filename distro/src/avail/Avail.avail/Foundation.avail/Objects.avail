@@ -56,12 +56,40 @@ Names
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
-		\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+		\|«with immutable⁇field|fields««public»?«reconstructible»?\
+			\|_:_«(accessor⁇_)»‡,»»\
 		\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
 			\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 		\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
-	"_as_«with«_::=_‡,»»"
+	"_as_«with«_::=_‡,»»",
+
+	/** Stylers. */
+	"object type styler"
 Body
+
+objectTypeStyler ::=
+	[
+		optionalOriginal : send phrase?,
+		transformed : phrase
+	|
+		attempt extract optionalOriginal or transformed then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#object-type-definition";
+		];
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named
+ * {@code "object-type-definition"} to the fixed tokens of an original
+ * {@method "send phrase"}, suitable for use in the styling clause of a method
+ * definition.
+ *
+ * @return "styler function"
+ *   The requested styler.
+ */
+Public method "object type styler" is [objectTypeStyler];
 
 /**
  * Strengthen object field extraction ({@method "_[_]"}).
@@ -78,6 +106,7 @@ Semantic restriction "_[_]" is
 ] : any's type;
 
 Method "_→object type" is stable at [field type map]→object meta;
+Style $"_→object type" with object type styler;
 
 /**
  * @method "_→object type"
@@ -337,6 +366,8 @@ Public stable method "extend_with«_:_‡,»" is
 	];
 	subtype
 ] : object meta;
+
+Style $"extend_with«_:_‡,»" with object type styler;
 
 /**
  * Object type extension statically requires that:
@@ -1335,6 +1366,14 @@ is
 			for atoms;
 	];
 ] : ⊤;
+
+Style $"«Public»?«Explicit|explicit»?\
+	\|Class|class_extends_\
+	\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+		\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
+	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
+with definition styler;
 
 /**
  * Class definition statically requires that:

@@ -456,12 +456,11 @@ class L2Optimizer internal constructor(
 	 * Regenerate the edge-split SSA graph, postponing emission of
 	 * side-effectless instructions until just before they're needed.
 	 *
-	 * The [L2ValueManifest] maintains a multi-level map to go from a
-	 * [RegisterKind] and [L2SemanticValue] to an [L2Instruction] that was
-	 * translated from the original graph, but not yet emitted.  When a register
-	 * kind / semantic value pair is needed by an instruction being emitted, we
-	 * emit a copy of the instruction to provide that value (recursively, as
-	 * needed).
+	 * The [L2ValueManifest] maintains a map from [L2SemanticValue] to an
+	 * [L2Instruction] that was translated from the original graph, but not yet
+	 * emitted.  When a register kind / semantic value pair is needed by an
+	 * instruction being emitted, we emit a copy of the instruction to provide
+	 * that value (recursively, as needed).
 	 *
 	 * This maximally postpones construction of values, ensuring they're only
 	 * constructed along paths where they're actually needed.

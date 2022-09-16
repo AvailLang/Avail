@@ -49,7 +49,6 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIM
 import avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
@@ -81,8 +80,8 @@ class ReferencePhraseDescriptor(
 	mutability,
 	TypeTag.REFERENCE_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -125,11 +124,8 @@ class ReferencePhraseDescriptor(
 	): Boolean {
 		return (!aPhrase.isMacroSubstitutionNode
 			&& self.phraseKind == aPhrase.phraseKind
-			&& self.slot(VARIABLE).equals(aPhrase.variable))
+			&& self.slot(VARIABLE).equalsPhrase(aPhrase.variable))
 	}
-
-	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.variable.hash(), -0x180564c1)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
@@ -140,26 +136,24 @@ class ReferencePhraseDescriptor(
 			self.tokens, declaration, codeGenerator)
 	}
 
-	override fun o_ChildrenMap(
-		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(VARIABLE, transformer(self.slot(VARIABLE)))
-
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(VARIABLE))
+
+	override fun o_ChildrenMap(
+		self: AvailObject,
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(VARIABLE, transformer)
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
 
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?)
+	override fun o_ValidateLocally(self: AvailObject)
 	{
-		val decl: A_BasicObject = self.slot(VARIABLE).declaration
+		val decl: A_Phrase = self.slot(VARIABLE).declaration
 		when (decl.declarationKind()) {
 			ARGUMENT -> error("You can't take the reference of an argument")
 			LABEL -> error("You can't take the reference of a label")
@@ -212,6 +206,7 @@ class ReferencePhraseDescriptor(
 		fun referenceNodeFromUse(variableUse: A_Phrase): A_Phrase =
 			mutable.createShared {
 				setSlot(VARIABLE, variableUse)
+				initHash()
 			}
 
 		/** The mutable [ReferencePhraseDescriptor]. */

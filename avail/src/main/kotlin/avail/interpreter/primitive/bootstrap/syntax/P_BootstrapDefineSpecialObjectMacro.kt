@@ -57,9 +57,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
-import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.MalformedMessageException
@@ -67,6 +67,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefineSpecialObjectMacroStyler
 
 /**
  * **Primitive**: Construct a method and an accompanying literalizing macro that
@@ -120,7 +121,7 @@ object P_BootstrapDefineSpecialObjectMacro
 						emptySet,
 						0,
 						emptyTuple),
-					newListNode(emptyTuple))),
+					emptyListNode())),
 			TOP.o)
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
@@ -142,7 +143,8 @@ object P_BootstrapDefineSpecialObjectMacro
 						syntheticLiteralNodeFor(
 							fromInt(0)),
 						syntheticLiteralNodeFor(
-							fromInt(0)))),
+							fromInt(0)),
+						emptyListNode())),
 				literalTokenType(literalType))
 		val createLiteralNode =
 			newSendNode(
@@ -166,7 +168,8 @@ object P_BootstrapDefineSpecialObjectMacro
 								literalType),
 							emptySet,
 							0,
-							emptyTuple))),
+							emptyTuple),
+						emptyListNode())),
 				TOP.o)
 		return interpreter.primitiveSuccess(
 			newSequence(
@@ -181,4 +184,6 @@ object P_BootstrapDefineSpecialObjectMacro
 				LITERAL_PHRASE.create(nonemptyStringType),
 				LITERAL_PHRASE.create(ANY.o)),
 			SEQUENCE_PHRASE.mostGeneralType)
+
+	override fun bootstrapStyler() = P_BootstrapDefineSpecialObjectMacroStyler
 }

@@ -34,7 +34,6 @@ package avail.interpreter.primitive.bootstrap.syntax
 
 import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
-import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
@@ -51,16 +50,16 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleConstant
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newModuleVariable
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
+import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.sets.A_Set.Companion.asTuple
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -101,7 +100,7 @@ object P_BootstrapVariableUseMacro
 		if (actualToken.tokenType() != TokenType.KEYWORD)
 		{
 			throw AvailRejectedParseException(
-				STRONG, "variable $variableNameString to be alphanumeric")
+				SILENT, "variable $variableNameString to be alphanumeric")
 		}
 		val fiberGlobals = interpreter.fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
@@ -109,16 +108,31 @@ object P_BootstrapVariableUseMacro
 		scopeMap.mapAtOrNull(variableNameString)?.let { localDeclaration ->
 			// If the local constant is initialized by a literal, then treat a
 			// mention of that constant as though it were the literal itself.
+			// This is especially useful when using pojo syntax in multiple
+			// steps, looking up classes, methods, and constructors.  Otherwise
+			// any *types* that are looked up won't be recognized as constant,
+			// due to metacovariance (i.e., metatypes can have subtypes), and
+			// the stability macros won't correctly determine that that exact
+			// type can be used to look up a signature during compilation.
 			if (localDeclaration.declarationKind() === LOCAL_CONSTANT
 				&& localDeclaration.initializationExpression
 					.phraseKindIsUnder(LITERAL_PHRASE))
 			{
-				return interpreter.primitiveSuccess(
-					localDeclaration.initializationExpression)
+				val definitionLiteral =
+					localDeclaration.initializationExpression
+				val definitionToken = definitionLiteral.token
+				val newLiteralToken = literalToken(
+					actualToken.string(),
+					actualToken.start(),
+					actualToken.lineNumber(),
+					definitionToken.literal(),
+					nil)
+				newLiteralToken.setCurrentModule(loader.module)
+				val newLiteral = literalNodeFromToken(newLiteralToken)
+				return interpreter.primitiveSuccess(newLiteral.makeImmutable())
 			}
 			val variableUse = newUse(actualToken, localDeclaration)
-			variableUse.makeImmutable()
-			return interpreter.primitiveSuccess(variableUse)
+			return interpreter.primitiveSuccess(variableUse.makeImmutable())
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
@@ -144,9 +158,7 @@ object P_BootstrapVariableUseMacro
 		{
 			stringFrom(
 				buildString {
-					val scope =
-						toList<A_String>(scopeMap.keysAsSet.asTuple)
-							.map(A_String::asNativeString)
+					val scope = scopeMap.keysAsSet.map(A_String::asNativeString)
 					append("potential variable ")
 					append(variableNameString)
 					append(" to be in scope (local scope is")

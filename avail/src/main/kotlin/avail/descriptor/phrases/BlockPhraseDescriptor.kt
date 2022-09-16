@@ -61,7 +61,6 @@ import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.PRIMITIVE_POJO
 import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.RESULT_TYPE
 import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.STATEMENTS_TUPLE
 import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.TOKENS
-import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
@@ -70,7 +69,6 @@ import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine5
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -101,7 +99,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
-import avail.utility.evaluation.Combinator.recurse
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
@@ -130,14 +127,24 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		/**
 		 * A slot containing multiple [BitField]s, potentially.
 		 */
-		STARTING_LINE_NUMBER_AND_MORE;
+		HASH_AND_MORE;
 
 		companion object {
+			/** The random hash of this object. */
+			val HASH = BitField(HASH_AND_MORE, 0, 32) { null }
+
 			/**
 			 * The line number on which this block starts.
 			 */
 			val STARTING_LINE_NUMBER = BitField(
-				STARTING_LINE_NUMBER_AND_MORE, 0, 32, Int::toString)
+				HASH_AND_MORE, 32, 32, Int::toString)
+
+			init
+			{
+				assert(PhraseDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
+					== HASH_AND_MORE.ordinal)
+				assert(PhraseDescriptor.IntegerSlots.HASH.isSamePlaceAs(HASH))
+			}
 		}
 	}
 
@@ -320,7 +327,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) {
 		self.argumentsTuple.forEach(action)
 		self.statementsTuple.forEach(action)
@@ -328,7 +335,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) {
 		var arguments: A_Tuple = self.slot(ARGUMENTS_TUPLE)
 		arguments = generateObjectTupleFrom(arguments.tupleSize) {
@@ -378,8 +385,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	): Boolean {
 		return (!aPhrase.isMacroSubstitutionNode
 			&& self.phraseKind == aPhrase.phraseKind
-			&& self.argumentsTuple.equals(aPhrase.argumentsTuple)
-			&& self.statementsTuple.equals(aPhrase.statementsTuple)
+			&& equalPhrases(self.argumentsTuple, aPhrase.argumentsTuple)
+			&& equalPhrases(self.statementsTuple, aPhrase.statementsTuple)
 			&& self.resultType().equals(aPhrase.resultType())
 			&& self.primitive === aPhrase.primitive)
 	}
@@ -405,13 +412,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		self: AvailObject,
 		module: A_Module
 	): A_RawFunction = generateFunction(module, self)
-
-	override fun o_Hash(self: AvailObject): Int = combine5(
-		self.argumentsTuple.hash(),
-		self.statementsTuple.hash(),
-		self.resultType().hash(),
-		self.primitive?.name?.hashCode() ?: 0,
-		0x05E6A04A)
 
 	override fun o_NeededVariables(self: AvailObject): A_Tuple =
 		self.mutableSlot(NEEDED_VARIABLES)
@@ -447,16 +447,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	) = unsupported
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Make sure our neededVariables list has up-to-date information about
-		// the outer variables that are accessed in me, because they have to be
-		// captured when a function is made for me.
-		collectNeededVariablesOfOuterBlocks(self)
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -522,27 +512,37 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		): List<A_Phrase>
 		{
 			val declarations = mutableListOf<A_Phrase>()
-			recurse(self) { parent: A_Phrase, again: (A_Phrase)->Unit ->
-				parent.childrenDo { child: A_Phrase ->
-					when
-					{
-						// Don't recurse into blocks.
-						child.phraseKindIsUnder(BLOCK_PHRASE) -> { }
-						// Don't look in a variable use phrases, because the
-						// declaration it refers to might be in an outer scope.
-						child.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> { }
-						child.phraseKindIsUnder(DECLARATION_PHRASE) ->
+			treeDoWithParent(
+				self,
+				null,
+				children = { phrase, withChild ->
+					phrase.childrenDo { child ->
+						when
 						{
-							declarations.add(child)
-							// The initialization expression of a declaration is
-							// allowed to be a sequence-as-expression that has
-							// additional declarations.
-							again(child)
+							// Don't recurse into blocks.
+							child.phraseKindIsUnder(BLOCK_PHRASE) -> { }
+							// Don't look in a variable use phrases, because the
+							// declaration it refers to might be in an outer
+							// scope.
+							child.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> { }
+							child.phraseKindIsUnder(DECLARATION_PHRASE) ->
+							{
+								// The initialization expression of a
+								// declaration is allowed to be a
+								// sequence-as-expression that has additional
+								// declarations.
+								withChild(child)
+							}
+							else -> withChild(child)
 						}
-						else -> again(child)
 					}
-				}
-			}
+				},
+				aBlock = { child, _ ->
+					if (child.phraseKindIsUnder(DECLARATION_PHRASE))
+					{
+						declarations.add(child)
+					}
+				})
 			return declarations
 		}
 
@@ -647,6 +647,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 				setSlot(TOKENS, tokens)
 				setSlot(STARTING_LINE_NUMBER, lineNumber)
 				setSlot(PRIMITIVE_POJO, primitive?.let(::identityPojo) ?: nil)
+				initHash()
 			}
 		}
 
@@ -659,69 +660,74 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 */
 		fun recursivelyValidate(blockNode: A_Phrase)
 		{
+			var needed = mutableSetOf<A_Phrase>()
+			var provided = mutableSetOf<A_Phrase>()
+			val scopeStack = mutableListOf<
+				Pair<MutableSet<A_Phrase>, MutableSet<A_Phrase>>>()
 			treeDoWithParent(
 				blockNode,
-				{ obj: A_Phrase, parent: A_Phrase? ->
-					obj.validateLocally(parent)
+				children = visitBefore@{ phrase, withChild ->
+					val kind = phrase.phraseKind
+					when
+					{
+						phrase.isMacroSubstitutionNode ->
+						{
+							// Macro substitutions pretend to be of a different
+							// kind, so just continue recursing through it.
+						}
+						kind.isSubkindOf(VARIABLE_USE_PHRASE) ->
+						{
+							if (!phrase.declaration.declarationKind()
+									.isModuleScoped)
+							{
+								needed.add(phrase.declaration)
+							}
+							// Don't recurse into the declaration, since this is
+							// just a mention.
+							return@visitBefore
+						}
+						kind.isSubkindOf(BLOCK_PHRASE) ->
+						{
+							// Start a new scope for the block.
+							scopeStack.add(needed to provided)
+							needed = mutableSetOf()
+							provided = mutableSetOf()
+						}
+						kind.isSubkindOf(DECLARATION_PHRASE) ->
+						{
+							// A declaration was encountered.
+							provided.add(phrase)
+						}
+					}
+					phrase.childrenDo(withChild)
 				},
-				null)
+				aBlock = visitAfter@{ phrase, _ ->
+					if (phrase.isMacroSubstitutionNode) return@visitAfter
+					phrase.validateLocally()
+					val kind = phrase.phraseKind
+					when
+					{
+						kind.isSubkindOf(BLOCK_PHRASE) ->
+						{
+							// We've finished processing everything inside a
+							// block.
+							needed.removeAll(provided)
+							phrase.neededVariables =
+								tupleFromList(needed.toList())
+							val innerNeeds = needed
+							val pair = scopeStack.removeLast()
+							needed = pair.first
+							provided = pair.second
+							needed.addAll(innerNeeds)
+						}
+					}
+				}
+			)
+			assert(scopeStack.isEmpty())
 			if (blockNode.neededVariables.tupleSize != 0)
 			{
 				throw AvailRuntimeException(E_BLOCK_MUST_NOT_CONTAIN_OUTERS)
 			}
-		}
-
-		/**
-		 * Figure out what outer variables will need to be captured when a
-		 * function for me is built.
-		 *
-		 * @param self
-		 *   The block phrase to analyze.
-		 */
-		private fun collectNeededVariablesOfOuterBlocks(self: A_Phrase)
-		{
-			val providedByMe = allLocalDeclarations(self).toSet()
-			val neededDeclarationsSet = mutableSetOf<A_Phrase>()
-			val neededDeclarations = mutableListOf<A_Phrase>()
-			recurse(self) { parent: A_Phrase, again: (A_Phrase)->Unit ->
-				parent.childrenDo { child: A_Phrase ->
-					when
-					{
-						child.phraseKindIsUnder(BLOCK_PHRASE) ->
-							for (declaration in child.neededVariables)
-							{
-								if (!providedByMe.contains(declaration)
-									&& !neededDeclarationsSet.contains(
-										declaration))
-								{
-									neededDeclarationsSet.add(declaration)
-									neededDeclarations.add(declaration)
-								}
-							}
-						child.phraseKindIsUnder(VARIABLE_USE_PHRASE) ->
-						{
-							val declaration = child.declaration
-							if (!providedByMe.contains(declaration)
-								&& declaration.declarationKind()
-									!== DeclarationKind.MODULE_VARIABLE
-								&& declaration.declarationKind()
-									!== DeclarationKind.MODULE_CONSTANT
-								&& !neededDeclarationsSet.contains(declaration))
-							{
-								neededDeclarationsSet.add(declaration)
-								neededDeclarations.add(declaration)
-							}
-							// Avoid visiting the declaration explicitly,
-							// otherwise uses of declarations that have
-							// initializations will cause variables used in
-							// those initializations to accidentally be captured
-							// as well.
-						}
-						else -> again(child)
-					}
-				}
-			}
-			self.neededVariables = tupleFromList(neededDeclarations)
 		}
 
 		/** The mutable [BlockPhraseDescriptor]. */

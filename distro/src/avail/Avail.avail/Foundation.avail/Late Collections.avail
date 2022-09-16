@@ -1,0 +1,659 @@
+/*
+ * Late Collections.avail
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Late Collections"
+Versions
+	"Avail-1.6.1"
+Extends
+	"Bootstrap",
+	"Collections"
+Uses
+	"Bootstrap",
+	"Control Structures",
+	"Definers",
+	"Early Conditionals",
+	"Functions",
+	"Enumeration Support",
+	"Lexers",
+	"Literals",
+	"Logic",
+	"Macro Support",
+	"Maps",
+	"Math",
+	"Sets",
+	"Tuples",
+	"Types",
+	"Variables"
+Names
+	/* Concise operators. */
+	"∃…∈_`|§_",
+	"∀…∈_`|§_",
+	"…∈_`|§_",
+	"…,…∈_`|§_",
+	"…∈_→§_",
+	"…,…∈_→§_",
+	"∃…→…∈_`|§_",
+	"∀…→…∈_`|§_",
+	"…→…∈_`|§_",
+	"…→…∈_→§_",
+
+	/* Utilities. */
+	"single-expression set body function(_,_)",
+	"single-expression tuple body function(_,_)",
+	"single-expression«indexed»?two-input tuple body function(_,_)",
+	"single-expression map body function(_,_)"
+Body
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  Aliases.                                  //
+////////////////////////////////////////////////////////////////////////////////
+
+// For the forms allowing lexical blocks, we can simply alias existing macros
+// to new method names and copy over all preexisting macro definitions.
+
+Alias "∃…∈_`|§_" to $"any…in|of_§satisfies_";
+Alias "∀…∈_`|§_" to $"each…in|of_§satisfies_";
+Alias "…∈_`|§_" to $"select each…from_§where_";
+Alias "…,…∈_§`|_" to $"select each…,…from_§where_";
+Alias "…∈_→§_" to $"map each…in|of_§through_";
+Alias "…,…∈_§→_" to $"map each…,…in|of_§through_";
+Alias "∀…→…∈_`|§_" to $"each…→…in|of_§satisfies_";
+Alias "∃…→…∈_`|§_" to $"any…→…in|of_§satisfies_";
+Alias "…→…∈_`|§_" to $"select each…→…from_§where_";
+Alias "…→…∈_→§_" to $"map each…→…in|of_§through_";
+
+Copy macros from $"any…in|of_§satisfies_" to $"∃…∈_`|§_";
+Copy macros from $"each…in|of_§satisfies_" to $"∀…∈_`|§_";
+Copy macros from $"select each…from_§where_" to $"…∈_`|§_";
+Copy macros from $"select each…,…from_§where_" to $"…,…∈_`|§_";
+Copy macros from $"map each…in|of_§through_" to $"…∈_→§_";
+Copy macros from $"map each…,…in|of_§through_" to $"…,…∈_→§_";
+Copy macros from $"each…→…in|of_§satisfies_" to $"∀…→…∈_`|§_";
+Copy macros from $"any…→…in|of_§satisfies_" to $"∃…→…∈_`|§_";
+Copy macros from $"select each…→…from_§where_" to $"…→…∈_`|§_";
+Copy macros from $"map each…→…in|of_§through_" to $"…→…∈_→§_";
+
+////////////////////////////////////////////////////////////////////////////////
+//                                  Tuples.                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Answer a function that computes a body function.
+ *
+ * @method "single-expression tuple body function(_,_)"
+ * @param "anAtom" "atom"
+ *   The atom that represents the function that the macro builds.
+ * @param "baseReturnType" "type"
+ *   The base return type of the method.
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple,
+ *      expression phrase ⇒ any]→send phrase ⇒ any"
+ *   The requested function.
+ */
+Public method "single-expression tuple body function(_,_)" is
+[
+	anAtom : atom,
+	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		action : expression phrase ⇒ any
+	|
+		name ::= elementPhrase's token's lexeme;
+		declaration ::= scope map[name];
+		blockReturnType ::= action's semantic type;
+		actionBlock ::= «[
+			<declaration ?→ argument phrase>
+		|
+			<action>
+		] : blockReturnType»;
+		returnType ::=
+			return type(aTuple, actionBlock, baseReturnType, anAtom);
+		Undeclare name;
+		send ::= bootstrap restricted send anAtom with
+			«<aTuple, actionBlock>» : returnType;
+		send ?→ send phrase ⇒ any
+	] : send phrase ⇒ any
+] : [
+	literal phrase ⇒ token,
+	expression phrase ⇒ tuple,
+	expression phrase ⇒ any
+]→send phrase ⇒ any;
+
+/**
+ * Answer a function that computes a two-input body function.
+ *
+ * @method "single-expression«indexed»?two-input tuple body function(_,_)"
+ * @param "indexed" "boolean"
+ *   Whether the second argument is an index into the tuple.
+ * @param "anAtom" "atom"
+ *   The atom that represents the function that the macro builds.
+ * @param "baseReturnType" "type"
+ *   The base return type of the method.
+ * @returns "[
+ *      literal phrase ⇒ token,
+ *      literal phrase ⇒ token,
+ *      expression phrase ⇒ tuple,
+ *      expression phrase ⇒ any]→send phrase ⇒ any"
+ *   The requested function.
+ */
+Public method "single-expression«indexed»?two-input tuple body function(_,_)" is
+[
+	indexed : boolean,
+	anAtom : atom,
+	baseReturnType : type
+|
+	[
+		firstInputPhrase : literal phrase ⇒ token,
+		secondInputPhrase : literal phrase ⇒ token,
+		aTuple : expression phrase ⇒ tuple,
+		action : expression phrase ⇒ any
+	|
+		firstInputName ::= firstInputPhrase's token's lexeme;
+		secondInputName ::= secondInputPhrase's token's lexeme;
+		castToPhrase ::= [s : nonempty string |
+			cast scope map[s] into [d : argument phrase | d]];
+		firstInputDeclaration ::= castToPhrase(firstInputName);
+		secondInputDeclaration ::= castToPhrase(secondInputName);
+		blockReturnType ::= action's semantic type;
+		actionBlock ::= «[
+			<firstInputDeclaration, secondInputDeclaration>
+		|
+			<action>
+		] : blockReturnType»;
+		returnType ::= if indexed then
+			[
+				two-input indexed return type(
+					aTuple, actionBlock, baseReturnType, anAtom)
+			]
+			else
+			[
+				two-input return type(
+					aTuple, actionBlock, baseReturnType, anAtom)
+			];
+		Undeclare firstInputName;
+		Undeclare secondInputName;
+		send ::= bootstrap restricted send anAtom with
+			«<aTuple, actionBlock>» : returnType;
+		send ?→ send phrase ⇒ any
+	] : send phrase ⇒ any
+] : [
+	literal phrase ⇒ token,
+	literal phrase ⇒ token,
+	expression phrase ⇒ tuple,
+	expression phrase ⇒ any
+]→send phrase ⇒ any;
+
+/**
+ * Compute and answer whether any of the elements of {@param "aTuple"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ *
+ * @macro "∃…∈_`|§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
+ * @param "predicate" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ boolean"
+ * @category "Collections" "Tuples" "Queries"
+ */
+Public macro "∃…∈_`|§_" is
+	a tuple iteration prefix function,
+	single-expression tuple body function($"any of_satisfies_", boolean)
+styled by loop styler;
+
+/**
+ * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ *
+ * @macro "∀…∈_`|§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
+ * @param "predicate" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ boolean"
+ * @category "Collections" "Tuples" "Queries"
+ */
+Public macro "∀…∈_`|§_" is
+	a tuple iteration prefix function,
+	single-expression tuple body function($"each of_satisfies_", boolean)
+styled by loop styler;
+
+/**
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aTuple"}, collecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new tuple (and preserving ordering). Answer
+ * the new tuple.
+ *
+ * @macro "…∈_`|§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
+ * @param "action" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ any"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Public macro "…∈_`|§_" is
+	a tuple iteration prefix function,
+	single-expression tuple body function($"filter_by_", tuple)
+styled by loop styler;
+
+/**
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aTuple"}, collecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new tuple (and preserving ordering). Answer
+ * the new tuple.
+ *
+ * @macro "…,…∈_`|§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable. The generated loop
+ *        variable is given the strongest possible type based on the type union
+ *        of the leading types and default type of {@param "aTuple"}.
+ * @param "indexPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the index variable.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
+ * @param "action" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ any"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Public macro "…,…∈_`|§_" is
+	a two-input tuple iteration prefix function,
+	single-expression indexed two-input tuple body function(
+		$"filter_by_",
+		tuple)
+styled by loop styler;
+
+/**
+ * Iteratively apply {@param "transformer"} to each consecutive element of
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving
+ * ordering of the transformed elements). Answer this tuple.
+ *
+ * @macro "…∈_→§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic
+ *        {@type "literal token"} whose value is the name of the loop variable.
+ *        The generated loop variable is given the strongest possible type
+ *        based on the type union of the leading types and default type of
+ *        {@param "aTuple"}.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
+ * @param "action" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ any"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Public macro "…∈_→§_" is
+	a tuple iteration prefix function,
+	single-expression tuple body function($"map_through_", tuple)
+styled by loop styler;
+
+/**
+ * Iteratively apply {@param "transformer"} to each consecutive element of
+ * {@param "aTuple"}, collecting the results into a new tuple (and preserving
+ * ordering of the transformed elements). Answer this tuple.
+ *
+ * @macro "…,…∈_→§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic
+ *        {@type "literal token"} whose value is the name of the loop variable.
+ *        The generated loop variable is given the strongest possible type
+ *        based on the type union of the leading types and default type of
+ *        {@param "aTuple"}.
+ * @param "indexPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the index variable.
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
+ * @param "action" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ any"
+ * @category "Control Structures" "Loops" "Collections" "Tuples"
+ */
+Public macro "…,…∈_→§_" is
+	a two-input tuple iteration prefix function,
+	single-expression indexed two-input tuple body function(
+		$"map_through_",
+		tuple)
+styled by loop styler;
+
+////////////////////////////////////////////////////////////////////////////////
+//                                   Sets.                                    //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Answer a function that computes a body function.
+ *
+ * @method "single-expression set body function(_,_)"
+ * @param "anAtom" "atom"
+ *   The atom that represents the function that the macro builds.
+ * @param "baseReturnType" "type"
+ *   The base return type of the method.
+ * @returns "[literal phrase ⇒ token, expression phrase ⇒ set,
+ *      expression phrase ⇒ any]→send phrase ⇒ any"
+ *   The requested function.
+ */
+Public method "single-expression set body function(_,_)" is
+[
+	anAtom : atom,
+	baseReturnType : type
+|
+	[
+		elementPhrase : literal phrase ⇒ token,
+		aSet : expression phrase ⇒ set,
+		action : expression phrase ⇒ any
+	|
+		name ::= elementPhrase's token's lexeme;
+		declaration ::= scope map[name];
+		blockReturnType ::= action's semantic type;
+		actionBlock ::= «[
+			<declaration ?→ argument phrase>
+		|
+			<action>
+		] : blockReturnType»;
+		setType ::= aSet's semantic type;
+		elementType ::= setType's element type;
+		blockType ::= [elementType]→blockReturnType;
+		returnType ::= strengthen baseReturnType for call of anAtom
+			using <setType, blockType>;
+		Undeclare name;
+		send ::= bootstrap restricted send anAtom with
+			«<aSet, actionBlock>» : returnType;
+		send ?→ send phrase ⇒ any
+	] : send phrase ⇒ any
+] : [
+	literal phrase ⇒ token,
+	expression phrase ⇒ set,
+	expression phrase ⇒ any
+]→send phrase ⇒ any;
+
+/**
+ * Compute and answer whether any of the elements of {@param "aSet"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ *
+ * @macro "∃…∈_`|§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over.
+ * @param "predicate" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ boolean"
+ * @category "Collections" "Sets" "Queries"
+ */
+Public macro "∃…∈_`|§_" is
+	a set iteration prefix function,
+	single-expression set body function($"any of_satisfies_", boolean);
+
+/**
+ * Compute and answer whether all of the elements of {@param "aSet"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ *
+ * @macro "∀…∈_`|§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over.
+ * @param "predicate" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ boolean"
+ * @category "Collections" "Set" "Queries"
+ */
+Public macro "∀…∈_`|§_" is
+	a set iteration prefix function,
+	single-expression set body function($"each of_satisfies_", boolean);
+
+/**
+ * Iteratively apply {@param "predicate"} to each consecutive element of
+ * {@param "aSet"}, collecting those elements for which {@param "predicate"}
+ * answers {@method "true"} into a new set. Answer the new set.
+ *
+ * @macro "…∈_`|§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the set to iterate over.
+ * @param "action" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ any"
+ * @category "Control Structures" "Loops" "Collections" "Sets"
+ */
+Public macro "…∈_`|§_" is
+	a set iteration prefix function,
+	single-expression set body function($"filter_by_", set);
+
+/**
+ * Iteratively apply {@param "transformer"} to each consecutive element of
+ * {@param "aSet"}, collecting the results into a new set. Answer the new set.
+ *
+ * @macro "…∈_→§_"
+ * @param "elementPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable.
+ * @param "aSet" "expression phrase ⇒ set"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
+ * @param "action" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ any"
+ * @category "Control Structures" "Loops" "Collections" "Sets"
+ */
+Public macro "…∈_→§_" is
+	a set iteration prefix function,
+	single-expression set body function($"map_through_", set);
+
+////////////////////////////////////////////////////////////////////////////////
+//                                   Maps.                                    //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Answer a function that computes a body function.
+ *
+ * @method "single-expression map body function(_,_)"
+ * @param "anAtom" "atom"
+ *    The atom that represents the function that the macro builds.
+ * @param "baseReturnType" "type"
+ *    The base return type of the method.
+ * @returns "[
+ *      literal phrase ⇒ token,
+ *      literal phrase ⇒ token,
+ *      expression phrase ⇒ map,
+ *      expression phrase ⇒ any]→send phrase ⇒ ⊤"
+ *    The requested function.
+ */
+Public method "single-expression map body function(_,_)" is
+[
+	anAtom : atom,
+	baseReturnType : type
+|
+	[
+		keyPhrase : literal phrase ⇒ token,
+		valuePhrase : literal phrase ⇒ token,
+		aMap : expression phrase ⇒ map,
+		action : expression phrase ⇒ any
+	|
+		keyName ::= keyPhrase's token's lexeme;
+		valueName ::= valuePhrase's token's lexeme;
+		castToPhrase ::= [s : nonempty string |
+			cast scope map[s] into [d : argument phrase | d]];
+		keyDeclaration ::= castToPhrase(keyName);
+		valueDeclaration ::= castToPhrase(valueName);
+		blockReturnType ::= action's semantic type;
+		actionBlock ::= «[
+			<keyDeclaration, valueDeclaration>
+		|
+			<action>
+		] : blockReturnType»;
+		mapType ::= aMap's semantic type;
+		keyType ::= mapType's key type;
+		valueType ::= mapType's value type;
+		blockType ::= [keyType, valueType]→blockReturnType;
+		returnType ::= strengthen baseReturnType for call of anAtom
+			using <mapType, blockType>;
+		Undeclare keyName;
+		Undeclare valueName;
+		send ::= bootstrap restricted send anAtom with
+			«<aMap, actionBlock>» : returnType;
+		send ?→ send phrase ⇒ any
+	] : send phrase ⇒ any
+] : [
+	literal phrase ⇒ token,
+	literal phrase ⇒ token,
+	expression phrase ⇒ map,
+	expression phrase ⇒ any
+]→send phrase ⇒ any;
+
+/**
+ * Compute and answer whether any of the bindings of {@param "aMap"} satisfies
+ * the specified function. Do not examine more elements than necessary.
+ *
+ * @macro "∃…→…∈_`|§_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the key of
+ *        the map.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the value of
+ *        the map.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the map to iterate over.
+ * @param "predicate" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ boolean"
+ * @category "Collections" "Maps" "Queries"
+ */
+Public macro "∃…→…∈_`|§_" is
+	a map iteration prefix function,
+	single-expression map body function($"any of_satisfies_", boolean)
+styled by loop styler;
+
+/**
+ * Compute and answer whether all of the bindings of {@param "aMap"} satisfy
+ * the specified function. Do not examine more elements than necessary.
+ *
+ * @macro "∀…→…∈_`|§_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the key of
+ *        the map.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the loop variable representing the value of
+ *        the map.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the map to iterate over.
+ * @param "predicate" "expression phrase ⇒ boolean"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ boolean"
+ * @category "Collections" "Maps" "Queries"
+ */
+Public macro "∀…→…∈_`|§_" is
+	a map iteration prefix function,
+	single-expression map body function($"each of_satisfies_", boolean)
+styled by loop styler;
+
+/**
+ * Iteratively apply {@param "predicate"} to each binding of {@param "aMap"}, in
+ * no particular order, collecting those bindings for which {@param "predicate"}
+ * answers {@method "true"} into a new map. Answer the new map.
+ *
+ * @macro "…→…∈_`|§_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map key loop variable. The generated
+ *        loop variable is given the strongest possible type based on the map
+ *        key type of {@param "aMap"}.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map value loop index variable. The
+ *        generated loop variable is given the strongest possible type based on
+ *        the map value type of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the map to iterate over.
+ * @param "predicate" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ any"
+ * @category "Loops" "Collections" "Maps"
+ */
+Public macro "…→…∈_`|§_" is
+	a map iteration prefix function,
+	single-expression map body function($"filter_by_", map)
+styled by loop styler;
+
+/**
+ * Iteratively apply {@param "transformer"} to each binding of {@param "aMap"},
+ * in no particular order, collecting the results into a new map. The resultant
+ * map has the same keys as the original, but its values have been transformed
+ * via {@param "transformer"}.
+ *
+ * @macro "…→…∈_→§_"
+ * @param "keyPhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map key loop variable. The generated
+ *        loop variable is given the strongest possible type based on the map
+ *        key type of {@param "aMap"}.
+ * @param "valuePhrase" "literal phrase ⇒ token"
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        whose value is the name of the map value loop index variable. The
+ *        generated loop variable is given the strongest possible type based on
+ *        the map value type of {@param "aMap"}.
+ * @param "aMap" "expression phrase ⇒ map"
+ *        An {@type "expression phrase"} that yields the map to iterate over.
+ * @param "transformer" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that represents the body of the loop.
+ * @returns "send phrase ⇒ any"
+ * @category "Loops" "Collections" "Maps"
+ */
+Public macro "…→…∈_→§_" is
+	a map iteration prefix function,
+	single-expression map body function($"map_through_", map)
+styled by loop styler;

@@ -177,7 +177,8 @@ Public method "Cast|cast_into_" is
 	s : string;
 	s ?= t;
 	Shouldn't happen (s)
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Strengthen the return type of {@method "Cast|cast_into_else"} so that it may
@@ -304,7 +305,8 @@ Public method "_`?→_†" is
 	strongerType : type
 |
 	value
-];
+]
+styled by conditional styler;
 
 /**
  * Cast the value into the specified <em>statically evaluated</em> type.  If the
@@ -437,14 +439,15 @@ Public method "bootstrap restricted send_with_:_" is
 	basicReturnType : type
 |
 	pair ::= restricted report and send message with args : basicReturnType;
-	optionalPhrase ::= pair[1] ?→ optionalSendPhraseType;
-	If optionalPhrase = <> then
+	optionalSendPhrase ::= pair[1] ?→ optionalSendPhraseType;
+	If optionalSendPhrase = <> then
 	[
 		Reject parse strongly, expected: pair[2] ?→ string
 	];
-	optionalPhrase[1] ?→ send phrase
+	optionalSendPhrase[1] ?→ send phrase
 ] : send phrase;
 
+Style atom for "Exit_if_" with nonlocal control styler;
 
 /**
  * Reject the current parse unless the value supplied upon exit of a
@@ -475,6 +478,8 @@ Semantic restriction "Exit_with_if_" is
 	⊤
 ];
 
+Style atom for "Exit_with_if_" with nonlocal control styler;
+
 exitIfAtom ::= atom for "Exit_if_";
 
 /**
@@ -498,7 +503,8 @@ Public macro "Exit_" is
 		with <aContinuation, trueLiteral> → list phrase
 		: ⊥;
 	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
-] : send phrase ⇒ ⊥;
+] : send phrase ⇒ ⊥
+styled by nonlocal control styler;
 
 exitWithIfAtom ::= atom for "Exit_with_if_";
 
@@ -526,7 +532,8 @@ Public macro "Exit_with_" is
 		with <aContinuation, value, trueLiteral> → list phrase
 		: ⊥;
 	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
-] : send phrase ⇒ ⊥;
+] : send phrase ⇒ ⊥
+styled by nonlocal control styler;
 
 /**
  * Reject the current parse unless the value supplied upon exit of a
@@ -584,7 +591,8 @@ Public method "From_to_do_" is
 	shouldExit ::= invoke action with <start> = false;
 	Exit loop if shouldExit;
 	Restart loop with <start + 1, end, action>
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * Sanity check the function's arguments against the implied range of iteration.
@@ -671,6 +679,8 @@ Semantic restriction "Restart_with_" is
 	];
 	⊥
 ];
+
+Style atom for "Restart_with_" with nonlocal control styler;
 
 /* Don't permit (_)  as the second argument of  Assert:_(_). */
 Invoke

@@ -38,9 +38,9 @@ import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.statements
+import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.SequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
@@ -73,8 +73,8 @@ class SequencePhraseDescriptor private constructor(
 	mutability,
 	TypeTag.SEQUENCE_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -89,15 +89,13 @@ class SequencePhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = self.slot(STATEMENTS).forEach(action)
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(
-		STATEMENTS,
-		tupleFromList(self.slot(STATEMENTS).map(transformer)))
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(STATEMENTS) { tupleFromList(map(transformer)) }
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
@@ -125,7 +123,7 @@ class SequencePhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(STATEMENTS).equals(aPhrase.statements))
+		&& equalPhrases(self.slot(STATEMENTS), aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
@@ -143,9 +141,6 @@ class SequencePhraseDescriptor private constructor(
 		it.flattenStatementsInto(accumulatedStatements)
 	}
 
-	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.slot(STATEMENTS).hash(), -0x1c7ebf36)
-
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEQUENCE_PHRASE
 
@@ -154,19 +149,12 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	) = self.slot(STATEMENTS).forEach(continuation)
+	) = self.slot(STATEMENTS).forEach { it.statementsDo(continuation) }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SEQUENCE_PHRASE
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -200,6 +188,7 @@ class SequencePhraseDescriptor private constructor(
 		fun newSequence(statements: A_Tuple): A_Phrase =
 			mutable.createShared {
 				setSlot(STATEMENTS, statements)
+				initHash()
 			}
 
 		/** The mutable [SequencePhraseDescriptor]. */

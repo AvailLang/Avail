@@ -59,8 +59,9 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.primitive.modules.P_PublishName
+import avail.persistence.cache.Repository.StylingRecord
 
 /**
  * `A_Module` is an interface that specifies the
@@ -202,7 +203,7 @@ interface A_Module : A_BasicObject
 		 * module from the set.
 		 *
 		 * @return
-		 *   The set of all ancestors of this module, including itself.
+		 *   The set of all ancestors of this module, excluding itself.
 		 */
 		val A_Module.allAncestors: A_Set get() = dispatch { o_AllAncestors(it) }
 
@@ -256,7 +257,10 @@ interface A_Module : A_BasicObject
 			get() = dispatch { o_ExportedNames(it) }
 
 		/**
-		 * Dispatch to the descriptor.
+		 * The [map][A_Map] from [strings][A_String] to [atoms][A_Atom] which
+		 * act as true names. The true names are identity-based identifiers that
+		 * prevent or at least clarify name conflicts. Answer only those names
+		 * that have been imported from other modules.
 		 */
 		val A_Module.importedNames: A_Map
 			get() = dispatch { o_ImportedNames(it) }
@@ -476,20 +480,31 @@ interface A_Module : A_BasicObject
 			set(value) = dispatch { o_SetModuleState(it, value) }
 
 		/**
-		 * Atomically get and set this module's manifest entries.  The input
-		 * and output may be an integer indicating a record in the repository, a
-		 * pojo containing a [List] of [ModuleManifestEntry], or [nil].
+		 * Set the repository record number for this module's manifest entries.
 		 */
-		fun A_Module.getAndSetManifestEntries(
-			newValue: AvailObject
-		): AvailObject = dispatch { o_GetAndSetManifestEntries(it, newValue) }
+		fun A_Module.setManifestEntriesIndex(
+			recordNumber: Long
+		) = dispatch { o_SetManifestEntriesIndex(it, recordNumber) }
 
 		/**
-		 * Atomically get and set this module's manifest entries.  The input
-		 * and output may be an integer indicating a record in the repository, a
-		 * pojo containing an [Array] of [ModuleManifestEntry], or [nil].
+		 * Get the module's [List] of manifest [entries][ModuleManifestEntry].
+		 * This may involve fetching and decoding data from the repository.
 		 */
 		fun A_Module.manifestEntries(): List<ModuleManifestEntry> =
 			dispatch { o_ManifestEntries(it) }
+
+		/**
+		 * Set the record number under which this module's [StylingRecord] has
+		 * been recorded.
+		 */
+		fun A_Module.setStylingRecordIndex(recordNumber: Long) =
+			dispatch { o_SetStylingRecordIndex(it, recordNumber) }
+
+		/**
+		 * Get the module's [StylingRecord], which is used for syntax coloring
+		 * the module source.  This may involve reading the repository.
+		 */
+		fun A_Module.stylingRecord(): StylingRecord =
+			dispatch { o_StylingRecord(it) }
 	}
 }

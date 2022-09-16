@@ -36,6 +36,7 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.numbers.A_Number
@@ -73,11 +74,11 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
-import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Chunk.Companion.allocate
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -142,7 +143,6 @@ import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.general.P_Equality
-import avail.optimizer.L2Generator.OptimizationLevel
 import avail.optimizer.L2Generator.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.L2Generator.SpecialBlock.UNREACHABLE
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -191,63 +191,6 @@ class L2Generator internal constructor(
 	val topFrame: Frame,
 	val codeName: String)
 {
-	/**
-	 * An indication of the possible degrees of optimization effort.  These are
-	 * arranged approximately monotonically increasing in terms of both cost to
-	 * generate and expected performance improvement.
-	 */
-	enum class OptimizationLevel
-	{
-		/**
-		 * Unoptimized code, interpreted via Level One machinery.  Technically
-		 * the current implementation only executes Level Two code, but the
-		 * default Level Two chunk relies on a Level Two instruction that simply
-		 * fetches each nybblecode and interprets it.
-		 */
-		UNOPTIMIZED,
-
-		/**
-		 * The initial translation into Level Two instructions customized to a
-		 * particular raw function.  This at least should avoid the cost of
-		 * fetching nybblecodes.  It also avoids looking up monomorphic methods
-		 * at execution time, and can inline or even fold calls to suitable
-		 * primitives.  The inlined calls to infallible primitives are simpler
-		 * than the calls to fallible ones or non-primitives or polymorphic
-		 * methods.  Inlined primitive attempts avoid having to reify the
-		 * calling continuation in the case that they're successful, but have to
-		 * reify if the primitive fails.
-		 */
-		FIRST_TRANSLATION,
-
-		/**
-		 * Unimplemented.  The idea is that at this level some inlining of
-		 * non-primitives will take place, emphasizing inlining of function
-		 * application.  Invocations of methods that take a literal function
-		 * should tend very strongly to get inlined, as the potential to turn
-		 * things like continuation-based conditionals and loops into mere jumps
-		 * is expected to be highly profitable.
-		 */
-		@Suppress("unused")
-		CHASED_BLOCKS;
-
-		companion object
-		{
-			/** An array of all [OptimizationLevel] enumeration values. */
-			private val all = values()
-
-			/**
-			 * Answer the `OptimizationLevel` for the given ordinal value.
-			 *
-			 * @param targetOptimizationLevel
-			 *   The ordinal value, an `int`.
-			 * @return
-			 *   The corresponding `OptimizationLevel`, failing if the ordinal
-			 *   was out of range.
-			 */
-			fun optimizationLevel(targetOptimizationLevel: Int) =
-				all[targetOptimizationLevel]
-		}
-	}
 
 	/**
 	 * An enumeration of symbolic names of key blocks of the [controlFlowGraph].
@@ -1344,6 +1287,7 @@ class L2Generator internal constructor(
 	{
 		addInstruction(L2_JUMP, edgeTo(targetBlock))
 	}
+
 	/**
 	 * Generate a conditional branch to either `passBlock` or `failBlock`, based
 	 * on whether the given register equals the given constant value.
@@ -1372,7 +1316,6 @@ class L2Generator internal constructor(
 		failBlock: L2BasicBlock)
 	{
 		val restriction = registerToTest.restriction()
-		val constantValueStrong = constantValue as AvailObject
 		when (restriction.constantOrNull)
 		{
 			constantValue -> {
@@ -1513,6 +1456,7 @@ class L2Generator internal constructor(
 		// intermediate block that uses a move to a temp to force the constant
 		// value to be visible in a register.
 		val innerPass = L2BasicBlock("strengthen to constant")
+		val constantValueStrong = constantValue as AvailObject
 		if (constantValueStrong.isInt
 			&& registerToTest.restriction().containedByType(int32))
 		{
@@ -1706,15 +1650,14 @@ class L2Generator internal constructor(
 		val afterPrimitiveOffset =
 			specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!.offset()
 		assert(afterPrimitiveOffset >= 0)
-		chunk = allocate(
+		chunk = L2JVMChunk.allocate(
 			code,
-			registerCounter.objectMax + 1,
-			registerCounter.intMax + 1,
-			registerCounter.floatMax + 1,
 			afterPrimitiveOffset,
 			instructions,
 			controlFlowGraph,
 			contingentValues)
+		code.setStartingChunkAndReoptimizationCountdown(
+			chunk!!, optimizationLevel.countdown)
 	}
 
 	/**
@@ -1739,13 +1682,13 @@ class L2Generator internal constructor(
 	class RegisterCounter : L2OperandDispatcher
 	{
 		/** The highest numbered boxed register encountered so far. */
-		var objectMax = -1
+		private var objectMax = -1
 
 		/** The highest numbered int register encountered so far. */
-		var intMax = -1
+		private var intMax = -1
 
 		/** The highest numbered float register encountered so far. */
-		var floatMax = -1
+		private var floatMax = -1
 
 		override fun doOperand(operand: L2ArbitraryConstantOperand) = Unit
 

@@ -33,6 +33,7 @@
 package avail.interpreter
 
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -77,14 +78,18 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.L2Simple_RunInfalliblePrimitiveNoCheck
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.optimizer.ExecutableChunk
@@ -209,6 +214,12 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		privateBlockTypeRestriction().makeShared()
 
 	/**
+	 * The flags that indicate to the [L2Generator] how an invocation of
+	 * this primitive should be handled.
+	 */
+	private val primitiveFlags = EnumSet.noneOf(Flag::class.java)
+
+	/**
 	 * A [type][TypeDescriptor] to constrain the [A_Type.writeType] of the
 	 * variable declaration within the primitive declaration of a block.  The
 	 * actual variable's inner type must be this or a supertype.
@@ -216,12 +227,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	@Suppress("LeakingThis")
 	val failureVariableType: AvailObject =
 		privateFailureVariableType().makeShared()
-
-	/**
-	 * The flags that indicate to the [L2Generator] how an invocation of
-	 * this primitive should be handled.
-	 */
-	private val primitiveFlags = EnumSet.noneOf(Flag::class.java)
 
 	/**
 	 * The [Statistic] for abandoning the stack due to a primitive attempt
@@ -597,7 +602,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   A type which is at least as specific as the type of the failure
 	 *   variable declared in a block using this primitive.
 	 */
-	protected open fun privateFailureVariableType(): A_Type = naturalNumbers
+	protected open fun privateFailureVariableType(): A_Type =
+		if (CannotFail in primitiveFlags) bottom
+		else naturalNumbers
 
 	/**
 	 * Answer the [fallibility][Fallibility] of the [primitive][Primitive] for a
@@ -654,13 +661,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			try
 			{
 				val primClass = loader.loadClass(className)
-
-				val field =
-					primClass.getField("INSTANCE") ?:
-					throw NoSuchFieldException(
-						"Couldn't find instance field of primitive $className")
 				// Trigger the linker.
-				field.get(null) as Primitive
+				primClass.kotlin.objectInstance as Primitive
 			}
 			catch (e: ClassNotFoundException)
 			{
@@ -827,11 +829,14 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			resultTypeCheckingNanos.record(deltaNanoseconds, interpreterIndex)
 
 	/**
-	 * The primitive couldn't be folded out, so see if alternative instructions
-	 * can be generated for its invocation.  If so, answer `true`, ensure
-	 * control flow will go to the appropriate [CallSiteHelper] exit point,
-	 * and leave the translator NOT at a currentReachable() point.  If
-	 * the alternative instructions could not be generated for this primitive,
+	 * The primitive couldn't be folded out, and the primitive failed to produce
+	 * specialized L2 instructions for itself.  If the primitive is still known
+	 * to be infallible (and does not affect the continuation stack) at this
+	 * site, generate an [L2_RUN_INFALLIBLE_PRIMITIVE] for it and answer `true`,
+	 * ensuring control flow will go to the appropriate [CallSiteHelper] exit
+	 * point, and leave the translator NOT at a currentReachable() point.
+	 *
+	 * If the primitive might fail for this site, do not generate anything,
 	 * answer `false`, and generate nothing.
 	 *
 	 * @param functionToCallReg
@@ -852,7 +857,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   if nothing was emitted and the general mechanism should be used
 	 *   instead.
 	 */
-	open fun tryToGenerateSpecialPrimitiveInvocation(
+	fun tryToGenerateGeneralPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
@@ -915,6 +920,99 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			callSiteHelper.useAnswer(translator.readBoxed(writer))
 		}
 		return true
+	}
+
+
+	/**
+	 * The primitive couldn't be folded out, so see if alternative instructions
+	 * can be generated for its invocation.  If so, answer `true`, ensure
+	 * control flow will go to the appropriate [CallSiteHelper] exit point,
+	 * and leave the translator NOT at a currentReachable() point.  If
+	 * the alternative instructions could not be generated for this primitive,
+	 * answer `false`, and generate nothing.
+	 *
+	 * @param functionToCallReg
+	 *   The [L2ReadBoxedOperand] register that holds the function being
+	 *   invoked.  The function's primitive is known to be the receiver.
+	 * @param rawFunction
+	 *   The primitive raw function whose invocation is being generated.
+	 * @param arguments
+	 *   The argument [L2ReadBoxedOperand]s supplied to the function.
+	 * @param argumentTypes
+	 *   The list of [A_Type]s of the arguments.
+	 * @param translator
+	 *   The [L1Translator] on which to emit code, if possible.
+	 * @param callSiteHelper
+	 *   Information about the call site being generated.
+	 * @return
+	 *   `true` if a specialized [L2Instruction] sequence was generated, `false`
+	 *   if nothing was emitted and the general mechanism should be used
+	 *   instead.
+	 */
+	open fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: CallSiteHelper): Boolean
+	{
+		return false
+	}
+
+	/**
+	 * Attempt to generate a simplified, faster invocation of the given constant
+	 * function, with the given argument restrictions.  The arguments will be on
+	 * the stack, the last-pushed one at stackp.  If this code generation
+	 * attempt is successful, code will be generated to invoke the given
+	 * function, and if it completes without reification, to check the return
+	 * result if it's not already guaranteed correct.  Note that the call and
+	 * the return type check can't be in separate instructions, since there's
+	 * nowhere to store the unchecked return value to compare it against the
+	 * expected type.  We can't just clobber the expected type (that was pushed
+	 * at the start of the call), since that would
+	 *
+	 * If reification happens, the continuation that will be produced at runtime
+	 * should be of the simple L1 form, using the [unoptimizedChunk].  It should
+	 * have the expected type pushed on the stack in preparation for checking
+	 * against the return type, once the continuation is "returned into".
+	 */
+	open fun attemptToGenerateSimpleInvocation(
+		simpleTranslator: L2SimpleTranslator,
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): TypeRestriction?
+	{
+		val argTypes = argRestrictions.map { it.type }
+		if (functionIfKnown === null)
+		{
+			// Subclasses may be more lenient about the function being absent.
+			return null
+		}
+		if (!hasFlag(CanInline)
+			|| hasFlag(CanSwitchContinuations)
+			|| hasFlag(CanSuspend)
+			|| hasFlag(Invokes)
+			|| fallibilityForArgumentTypes(argTypes) != CallSiteCannotFail)
+		{
+			// The primitive might fail.
+			return null
+		}
+		// The primitive cannot fail here.
+		val guaranteedType = returnTypeGuaranteedByVM(rawFunction, argTypes)
+		if (!guaranteedType.isSubtypeOf(expectedType))
+		{
+			// The result isn't strong enough to satisfy the expectedType.
+			return null
+		}
+		simpleTranslator.add(
+			L2Simple_RunInfalliblePrimitiveNoCheck(
+				simpleTranslator.stackp,
+				functionIfKnown,
+				rawFunction))
+		return restrictionForType(guaranteedType, BOXED_FLAG)
 	}
 
 	companion object

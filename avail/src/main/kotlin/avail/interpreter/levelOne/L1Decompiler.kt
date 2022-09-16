@@ -225,20 +225,12 @@ class L1Decompiler constructor(
 		instructionDecoder.pc(1)
 		val tupleType = code.functionType().argsTupleType
 		args = Array(code.numArgs()) {
-			val token = newToken(
-				stringFrom(tempGenerator("arg")),
-				0,
-				0,
-				KEYWORD)
+			val token = createToken("arg")
 			newArgument(token, tupleType.typeAtIndex(it + 1), nil)
 		}
 		mentionedLocals = BooleanArray(code.numLocals)
 		locals = Array(code.numLocals) {
-			val token = newToken(
-				stringFrom(tempGenerator("local")),
-				0,
-				0,
-				KEYWORD)
+			val token = createToken("local")
 			val declaration = newVariable(
 				token, code.localTypeAt(it + 1).writeType, nil, nil)
 			declaration
@@ -413,7 +405,8 @@ class L1Decompiler constructor(
 								+ ")"),
 						0,
 						0,
-						varObject)
+						varObject,
+						nil)
 					literalNodeFromToken(token)
 				}
 				val decompiler = L1Decompiler(
@@ -439,7 +432,8 @@ class L1Decompiler constructor(
 						stringFrom(value.toString()),
 						0,
 						0,
-						value)
+						value,
+						nil)
 					pushExpression(literalNodeFromToken(token))
 				}
 			}
@@ -683,35 +677,28 @@ class L1Decompiler constructor(
 
 		override fun L1Ext_doPushLabel()
 		{
-			val label: A_Phrase
-			if (statements.size > 0 && statements[0].isInstanceOfKind(
-					LABEL_PHRASE.mostGeneralType))
+			val label = when
 			{
-				label = statements[0]
-			}
-			else
-			{
-				val labelToken = newToken(
-					stringFrom(tempGenerator("label")),
-					0,
-					0,
-					KEYWORD)
-				label = newLabel(
-					labelToken,
+				statements.size > 0
+					&& statements[0]
+						.isInstanceOfKind(LABEL_PHRASE.mostGeneralType) ->
+				{
+					statements[0]
+				}
+				else -> newLabel(
+					createToken("label"),
 					nil,
-					continuationTypeForFunctionType(code.functionType()))
-				statements.add(0, label)
+					continuationTypeForFunctionType(code.functionType())
+				).also {
+					statements.add(0, it)
+				}
 			}
 			pushExpression(newUse(label.token, label))
 		}
 
 		override fun L1Ext_doGetLiteral()
 		{
-			val globalToken = newToken(
-				stringFrom("SomeGlobal"),
-				0,
-				0,
-				KEYWORD)
+			val globalToken = createToken("SomeGlobal")
 			val globalVar = code.literalAt(
 				instructionDecoder.getOperand())
 			val declaration = newModuleVariable(
@@ -721,11 +708,7 @@ class L1Decompiler constructor(
 
 		override fun L1Ext_doSetLiteral()
 		{
-			val globalToken = newToken(
-				stringFrom("SomeGlobal"),
-				0,
-				0,
-				KEYWORD)
+			val globalToken = createToken("SomeGlobal")
 			val globalVar = code.literalAt(
 				instructionDecoder.getOperand())
 			val declaration = newModuleVariable(
@@ -788,7 +771,7 @@ class L1Decompiler constructor(
 			pushExpression(sendNode)
 		}
 
-		override fun L1Ext_doSetSlot()
+		override fun L1Ext_doSetLocalSlot()
 		{
 			// This instruction is only used to initialize local constants.
 			// In fact, the constant declaration isn't even created until we
@@ -800,16 +783,16 @@ class L1Decompiler constructor(
 					- code.numArgs()
 					- code.numLocals
 					- 1)
-			val token = newToken(
-				stringFrom(tempGenerator("const")),
-				0,
-				0,
-				KEYWORD)
+			val token = createToken("const")
 			val constantDeclaration = newConstant(token, popExpression())
 			constants[constSubscript] = constantDeclaration
 			statements.add(constantDeclaration)
 		}
 	}
+
+	/** Create a temporary keyword token with a locally unique name. */
+	private fun createToken(prefix: String) = newToken(
+		stringFrom(tempGenerator(prefix)), 0, 0, KEYWORD, nil)
 
 	/**
 	 * There are `nArgs` values on the stack.  Pop them all, and build a
@@ -920,7 +903,7 @@ class L1Decompiler constructor(
 		{
 			val name = stringFrom("Outer#$outerIndex")
 			val variable = newVariableWithOuterType(variableTypeFor(type))
-			val token = literalToken(name, 0, 0, variable)
+			val token = literalToken(name, 0, 0, variable, nil)
 			return fromTokenForDecompiler(token)
 		}
 

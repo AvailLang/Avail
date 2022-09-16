@@ -32,6 +32,7 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -42,7 +43,9 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.START
+import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.GENERATING_LEXER
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.STRING
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor
@@ -99,8 +102,10 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 
 			init
 			{
-				assert(TokenDescriptor.IntegerSlots
-					.TOKEN_TYPE_AND_START_AND_LINE.ordinal == START_AND_LINE.ordinal)
+				assert(
+					TokenDescriptor.IntegerSlots.TOKEN_TYPE_AND_START_AND_LINE
+						.ordinal
+					== START_AND_LINE.ordinal)
 				assert(TokenDescriptor.IntegerSlots.START.isSamePlaceAs(START))
 				assert(TokenDescriptor.IntegerSlots.LINE_NUMBER
 					.isSamePlaceAs(LINE_NUMBER))
@@ -122,7 +127,22 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		 * A [raw&#32;pojo][RawPojoDescriptor] holding the [LexingState] after
 		 * this token.
 		 */
-		NEXT_LEXING_STATE_POJO;
+		NEXT_LEXING_STATE_POJO,
+
+		/**
+		 * During compilation, tokens constructed by the compiler capture the
+		 * module that was under compilation.  This field holds the module
+		 * reliably only while the module is being compiled.  At other times, it
+		 * may be either the module that it's a part of or nil.  The serializer
+		 * makes no effort to reconstruct this field.
+		 */
+		ORIGINATING_MODULE,
+
+		/**
+		 * The [A_Lexer] responsible for creating this token, or [nil] if the
+		 * token was not constructed by a lexer.
+		 */
+		GENERATING_LEXER;
 
 		companion object
 		{
@@ -132,6 +152,12 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 					== STRING.ordinal)
 				assert(TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
 					== NEXT_LEXING_STATE_POJO.ordinal)
+				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+					== ORIGINATING_MODULE.ordinal)
+				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+					== ORIGINATING_MODULE.ordinal)
+				assert(TokenDescriptor.ObjectSlots.GENERATING_LEXER.ordinal
+					== GENERATING_LEXER.ordinal)
 			}
 		}
 	}
@@ -139,6 +165,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
 			(e === NEXT_LEXING_STATE_POJO
+				|| e === ORIGINATING_MODULE
 				|| super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun o_SerializerOperation(
@@ -177,18 +204,25 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		 *   The token's starting character position in the file.
 		 * @param lineNumber
 		 *   The line number on which the token occurred.
+		 * @param generatingLexer
+		 *   The [A_Lexer] responsible for creating this token, or nil if the
+		 *   token was not constructed by a lexer.
 		 * @return The new comment token.
 		 */
 		fun newCommentToken(
 			string: A_String?,
 			start: Int,
-			lineNumber: Int): A_Token
+			lineNumber: Int,
+			generatingLexer: A_Lexer
+		): A_Token
 		{
 			return mutable.createShared {
 				setSlot(STRING, string!!)
 				setSlot(START, start)
 				setSlot(LINE_NUMBER, lineNumber)
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
+				setSlot(ORIGINATING_MODULE, nil)
+				setSlot(GENERATING_LEXER, generatingLexer)
 			}
 		}
 

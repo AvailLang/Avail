@@ -37,6 +37,7 @@ import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
@@ -62,7 +63,8 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_MapBin
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
@@ -155,7 +157,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
@@ -164,10 +166,10 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
-import avail.utility.safeWrite
 import org.availlang.json.JSONWriter
 import java.lang.reflect.InvocationTargetException
 import java.math.BigInteger
@@ -177,10 +179,7 @@ import java.util.IdentityHashMap
 import java.util.Spliterator
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReadWriteLock
-import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Stream
-import kotlin.concurrent.read
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
@@ -191,7 +190,6 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
-import kotlin.reflect.full.valueParameters
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 
@@ -313,7 +311,6 @@ abstract class AbstractDescriptor protected constructor (
 			if (objectSlotsEnumClass !== null)
 				objectSlotsEnumClass.enumConstants
 			else arrayOf()
-		@Suppress("ConstantConditionIf")
 		debugObjectSlots =
 			if (AvailObjectRepresentation.shouldCheckSlots)
 				arrayOfNulls(max(objectSlots.size, 1))
@@ -329,7 +326,6 @@ abstract class AbstractDescriptor protected constructor (
 				integerSlotsEnumClass.enumConstants
 			else
 				arrayOf()
-		@Suppress("ConstantConditionIf")
 		debugIntegerSlots =
 			if (AvailObjectRepresentation.shouldCheckSlots)
 				arrayOfNulls(max(integerSlots.size, 1))
@@ -433,7 +429,7 @@ abstract class AbstractDescriptor protected constructor (
 	open fun o_DescribeForDebugger (
 		self: AvailObject): Array<AvailObjectFieldHelper>
 	{
-		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast()!!
+		val cls: Class<AbstractDescriptor> = javaClass
 		val loader = cls.classLoader
 		var enumClass: Class<Enum<*>>? =
 			try
@@ -1783,7 +1779,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		updater: A_Set.() -> A_Set)
 
-	abstract fun o_DefinitionStylers (self: AvailObject): A_Set
+	abstract fun o_MethodStylers(self: AvailObject): A_Set
 
 	/**
 	 * Difference the [operands][AvailObject] and answer the result.
@@ -2059,7 +2055,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_CodePoint (self: AvailObject): Int
 
-	abstract fun o_LazyComplete (self: AvailObject): A_Set
+	abstract fun o_LazyComplete (self: AvailObject): A_Map
 
 	abstract fun o_ConstantBindings (self: AvailObject): A_Map
 
@@ -2124,7 +2120,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
-		continuation: (Boolean) -> Unit)
+		continuation: (Boolean) -> Unit
+	): Boolean
 
 	abstract fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,
@@ -2883,7 +2880,7 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	abstract fun o_ChildrenMap (
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase)
+		transformer: (A_Phrase)->A_Phrase)
 
 	/**
 	 * Visit my child phrases with aBlock.
@@ -2893,11 +2890,9 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	abstract fun o_ChildrenDo (
 		self: AvailObject,
-		action: (A_Phrase) -> Unit)
+		action: (A_Phrase)->Unit)
 
-	abstract fun o_ValidateLocally (
-		self: AvailObject,
-		parent: A_Phrase?)
+	abstract fun o_ValidateLocally (self: AvailObject)
 
 	abstract fun o_GenerateInModule (
 		self: AvailObject,
@@ -2935,7 +2930,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsSetBin (self: AvailObject): Boolean
 
-	abstract fun o_MapIterable (self: AvailObject): MapIterable
+	abstract fun o_MapIterable (
+		self: AvailObject
+	): Iterable<MapDescriptor.Entry>
 
 	abstract fun o_DeclaredExceptions (self: AvailObject): A_Set
 
@@ -3351,7 +3348,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		kind: AvailObject): Boolean
 
-	abstract fun o_MapBinIterable (self: AvailObject): MapIterable
+	abstract fun o_MapBinIterator (self: AvailObject): MapIterator
 
 	abstract fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 
@@ -3724,7 +3721,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_UniqueId (self: AvailObject): Long
 
-	abstract fun o_LazyTypeFilterTreePojo (self: AvailObject): A_BasicObject
+	abstract fun o_LazyTypeFilterTree (
+		self: AvailObject
+	): LookupTree<A_Tuple, A_BundleTree>?
 
 	abstract fun o_AddPlanInProgress (
 		self: AvailObject,
@@ -3942,10 +3941,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ComputeInstanceTag(self: AvailObject): TypeTag
 
-	abstract fun o_GetAndSetManifestEntries(
+	abstract fun o_SetManifestEntriesIndex(
 		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject
+		recordNumber: Long)
 
 	abstract fun o_ManifestEntries(
 		self: AvailObject
@@ -3959,9 +3957,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ModuleNameNative(self: AvailObject): String
 
-	abstract fun o_CallDepth(self: AvailObject): Int
-
-	abstract fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
+	abstract fun o_DeoptimizeForDebugger(self: AvailObject)
 
 	abstract fun o_GetValueForDebugger (self: AvailObject): AvailObject
 
@@ -3970,6 +3966,53 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_CaptureInDebugger(
 		self: AvailObject,
 		debugger: AvailDebuggerModel)
+
+	abstract fun o_SetStylingRecordIndex(self: AvailObject, recordNumber: Long)
+
+	abstract fun o_StylingRecord(self: AvailObject): StylingRecord
+
+	abstract fun o_StylerMethod(self: AvailObject): A_Method
+
+	abstract fun o_GeneratingPhrase(self: AvailObject): A_Phrase
+
+	abstract fun o_GeneratingLexer(self: AvailObject): A_Lexer
+
+	abstract fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean
+
+	abstract fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module)
+
+	abstract fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+
+	abstract fun o_CurrentLexer(self: AvailObject): A_Lexer
+
+	abstract fun o_WhichPowerOfTwo(self: AvailObject): Int
+
+	abstract fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin
+
+	abstract fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int
+	): A_SetBin
+
+	abstract fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin
 
 	companion object
 	{
@@ -4089,16 +4132,11 @@ abstract class AbstractDescriptor protected constructor (
 			}
 
 		/**
-		 * A static cache of mappings from [integer&#32;slots][IntegerSlotsEnum]
-		 * to [List]s of [BitField]s.  Access to the map must be synchronized,
-		 * which isn't much of a penalty since it only affects the default
-		 * object printing mechanism.
+		 * A cache of mappings from [integer&#32;slots][IntegerSlotsEnum]
+		 * to [List]s of [BitField]s, collected via reflection.
 		 */
 		private val bitFieldsCache =
-			mutableMapOf<IntegerSlotsEnum, List<BitField>>()
-
-		/** A [ReadWriteLock] that protects the [bitFieldsCache]. */
-		private val bitFieldsLock = ReentrantReadWriteLock()
+			ConcurrentHashMap<IntegerSlotsEnum, List<BitField>>()
 
 		/**
 		 * Describe the integer field onto the provided [StringBuilder]. The
@@ -4201,51 +4239,47 @@ abstract class AbstractDescriptor protected constructor (
 		 */
 		fun bitFieldsFor (slot: IntegerSlotsEnum): List<BitField>
 		{
-			bitFieldsLock.read {
-				// Vast majority of cases.
-				bitFieldsCache[slot]?.let { return it }
-			}
-			bitFieldsLock.safeWrite {
-				// Try again, this time holding the write lock to avoid multiple
-				// threads trying to populate the cache.
-				bitFieldsCache[slot]?.let { return it }
-				val slotAsEnum = slot as Enum<*>
-				val bitFields = mutableListOf<BitField>()
-				val companionObject = slotAsEnum::class.companionObject
-				val fields = companionObject?.memberProperties
-				for (field in fields ?: listOf())
+			// Vast majority of cases.
+			bitFieldsCache[slot]?.let { return it }
+
+			// Without holding a lock, compute the bitfields and update the
+			// cache unconditionally.  Competing writers will write equivalent
+			// values to the cache, so they're idempotent and commutative.
+			val slotAsEnum = slot as Enum<*>
+			val bitFields = mutableListOf<BitField>()
+			val companionObject = slotAsEnum::class.companionObject
+			val fields = companionObject?.memberProperties
+			for (field in fields ?: listOf())
+			{
+				if (field.returnType.isSubtypeOf(
+						BitField::class.starProjectedType))
 				{
-					if (field.returnType.isSubtypeOf(
-							BitField::class.starProjectedType))
+					try
 					{
-						try
+						val bitField: BitField = field.getter.call(
+							companionObject!!.objectInstance).cast()
+						if (bitField.integerSlot === slot
+							&& !field.javaField!!.isAnnotationPresent(
+								HideFieldInDebugger::class.java)
+							&& !field.javaField!!.isAnnotationPresent(
+								HideFieldJustForPrinting::class.java))
 						{
-							field.valueParameters
-							val bitField: BitField = field.getter.call(
-								companionObject!!.objectInstance).cast()
-							if (bitField.integerSlot === slot
-								&& !field.javaField!!.isAnnotationPresent(
-									HideFieldInDebugger::class.java)
-								&& !field.javaField!!.isAnnotationPresent(
-									HideFieldJustForPrinting::class.java))
-							{
-								bitField.enumField = field.findAnnotation()
-								bitField.name = field.name
-								bitFields.add(bitField)
-							}
-						}
-						catch (e: IllegalAccessException)
-						{
-							throw RuntimeException(e)
+							bitField.enumField = field.findAnnotation()
+							bitField.name = field.name
+							bitFields.add(bitField)
 						}
 					}
+					catch (e: IllegalAccessException)
+					{
+						throw RuntimeException(e)
+					}
 				}
-				val sorted =
-					if (bitFields.isEmpty()) emptyList()
-					else bitFields.sorted()
-				bitFieldsCache[slot] = sorted
-				return@bitFieldsFor sorted
 			}
+			val sorted =
+				if (bitFields.isEmpty()) emptyList()
+				else bitFields.sorted()
+			bitFieldsCache[slot] = sorted
+			return sorted
 		}
 
 		/**
@@ -4271,14 +4305,13 @@ abstract class AbstractDescriptor protected constructor (
 		with(builder) {
 			if (enumAnnotation !== null)
 			{
-				val describingClass: Class<Enum<*>> =
-					enumAnnotation.describedBy.java.cast()!!
+				val describingClass = enumAnnotation.describedBy.java
 				val lookupName = enumAnnotation.lookupMethodName
 				if (lookupName.isEmpty())
 				{
 					// Look it up by ordinal (must be an actual Enum).
 					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
-						describingClass.enumConstants.cast()!!
+						describingClass.enumConstants.cast()
 					if (value in allValues.indices)
 					{
 						append(allValues[value.toInt()].fieldName)

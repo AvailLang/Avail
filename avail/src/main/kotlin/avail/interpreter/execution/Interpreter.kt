@@ -118,8 +118,11 @@ import avail.exceptions.AvailErrorCode.E_UNWIND_SENTINEL
 import avail.exceptions.AvailException
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Result
 import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.Primitive.Result.FAILURE
@@ -128,10 +131,12 @@ import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.fibers.P_AttemptJoinFiber
 import avail.interpreter.primitive.fibers.P_ParkCurrentFiber
@@ -369,6 +374,7 @@ class Interpreter(
 	{
 		if (debugL1 || debugL2)
 		{
+			assert(unreifiedCallDepth + delta >= 0)
 			log(
 				loggerDebugL2,
 				Level.FINER,
@@ -837,9 +843,9 @@ class Interpreter(
 
 	/**
 	 * Suspend the interpreter in the middle of running a primitive (which must
-	 * be marked as [Primitive.Flag.CanSuspend]).  The supplied action can
-	 * invoke [succeed][SuspensionHelper.succeed] or
-	 * [fail][SuspensionHelper.fail] when it has determined its fate.
+	 * be marked as [CanSuspend]).  The supplied action can invoke
+	 * [succeed][SuspensionHelper.succeed] or [fail][SuspensionHelper.fail] when
+	 * it has determined its fate.
 	 *
 	 * @param body
 	 *   What to do when the fiber has been suspended.
@@ -1158,9 +1164,7 @@ class Interpreter(
 
 	/**
 	 * Attempt the [primitive][Primitive], dynamically checking whether it is an
-	 * [inlineable][Primitive.Flag.CanInline] primitive.
-	 *
-	 * This is used by the [L2Chunk.unoptimizedChunk]'s
+	 * [inlineable][CanInline] primitive.
 	 *
 	 * @param primitiveFunction
 	 *   The [A_Function].
@@ -1172,19 +1176,15 @@ class Interpreter(
 	@ReferencedInGeneratedCode
 	fun attemptThePrimitive(
 		primitiveFunction: A_Function,
-		primitive: Primitive): StackReifier? =
-		if (primitive.hasFlag(Primitive.Flag.CanInline))
-		{
-			attemptInlinePrimitive(primitiveFunction, primitive)
-		}
-		else
-		{
-			attemptNonInlinePrimitive(primitiveFunction, primitive)
-		}
+		primitive: Primitive
+	): StackReifier? = when (primitive.hasFlag(CanInline))
+	{
+		true -> attemptInlinePrimitive(primitiveFunction, primitive)
+		else -> attemptNonInlinePrimitive(primitiveFunction, primitive)
+	}
 
 	/**
-	 * Attempt the [inlineable][Primitive.Flag.CanInline]
-	 * [primitive][Primitive].
+	 * Attempt the [inlineable][CanInline] [primitive][Primitive].
 	 *
 	 * @param primitiveFunction
 	 *   The primitive [A_Function] to invoke.
@@ -1225,25 +1225,21 @@ class Interpreter(
 			{
 				assert(latestResultOrNull() !== null)
 				function = primitiveFunction
-				setOffset(chunk!!.offsetAfterInitialTryPrimitive())
+				setOffset(chunk!!.offsetAfterInitialTryPrimitive)
 				assert(!returnNow)
 				null
 			}
 			READY_TO_INVOKE ->
 			{
-				assert(primitive.hasFlag(Primitive.Flag.Invokes))
+				assert(primitive.hasFlag(Invokes))
 				val stepper = levelOneStepper
 				val savedChunk = chunk
 				val savedOffset = offset
 				val savedPointers = stepper.pointers
 
-				// The invocation did a runChunk, but we need to do another
-				// runChunk now (via invokeFunction).  Only one should count
-				// as an unreified frame (specifically the inner one we're
-				// about to start).
-				adjustUnreifiedCallDepthBy(-1)
+				// It doesn't matter that we count both the invoker and the
+				// invoked function.
 				val reifier = invokeFunction(function!!)
-				adjustUnreifiedCallDepthBy(1)
 				function = primitiveFunction
 				chunk = savedChunk
 				setOffset(savedOffset)
@@ -1259,7 +1255,7 @@ class Interpreter(
 			}
 			CONTINUATION_CHANGED ->
 			{
-				assert(primitive.hasFlag(Primitive.Flag.CanSwitchContinuations))
+				assert(primitive.hasFlag(CanSwitchContinuations))
 				val newContinuation = getReifiedContinuation()!!
 				val newFunction = function
 				val newChunk = chunk
@@ -1288,8 +1284,7 @@ class Interpreter(
 	}
 
 	/**
-	 * Attempt the [non-inlineable][Primitive.Flag.CanInline]
-	 * [primitive][Primitive].
+	 * Attempt the [non-inlineable][CanInline] [primitive][Primitive].
 	 *
 	 * @param primitiveFunction
 	 *   The [A_Function].
@@ -1365,7 +1360,7 @@ class Interpreter(
 				{
 					assert(latestResultOrNull() !== null)
 					function = primitiveFunction
-					setOffset(chunk!!.offsetAfterInitialTryPrimitive())
+					setOffset(chunk!!.offsetAfterInitialTryPrimitive)
 					assert(!returnNow)
 				}
 				READY_TO_INVOKE ->
@@ -1374,9 +1369,7 @@ class Interpreter(
 				}
 				CONTINUATION_CHANGED ->
 				{
-					assert(
-						primitive.hasFlag(
-							Primitive.Flag.CanSwitchContinuations))
+					assert(primitive.hasFlag(CanSwitchContinuations))
 				}
 				FIBER_SUSPENDED ->
 				{
@@ -1541,7 +1534,7 @@ class Interpreter(
 				{
 					when (val theChunk = continuation.levelTwoChunk())
 					{
-						L2Chunk.unoptimizedChunk ->
+						unoptimizedChunk ->
 							continuation.function().code().methodName
 								.toString() +
 								" (unoptimized)"
@@ -1551,8 +1544,7 @@ class Interpreter(
 				}
 			}
 			traceL2(
-				(chunk?.executableChunk
-					?: L2Chunk.unoptimizedChunk.executableChunk),
+				(chunk?.executableChunk ?: unoptimizedChunk.executableChunk),
 				-999999,
 				"Set continuation = ",
 				text)
@@ -1576,7 +1568,7 @@ class Interpreter(
 					.append(ptr.levelTwoOffset())
 					.append(" in ")
 				val ch = ptr.levelTwoChunk()
-				if (ch == L2Chunk.unoptimizedChunk)
+				if (ch == unoptimizedChunk)
 				{
 					builder.append("(L1) - ")
 						.append(ptr.function().code().methodName)
@@ -1588,8 +1580,7 @@ class Interpreter(
 				ptr = ptr.caller()
 			}
 			traceL2(
-				(chunk?.executableChunk
-					?: L2Chunk.unoptimizedChunk.executableChunk),
+				(chunk?.executableChunk ?: unoptimizedChunk.executableChunk),
 				-100000,
 				"POPPING CONTINUATION from:",
 				builder)
@@ -1715,7 +1706,7 @@ class Interpreter(
 	 */
 	@get:ReferencedInGeneratedCode
 	val isInterruptRequested: Boolean
-		get() = (runtime.safePointRequested()
+		get() = (runtime.safePointRequested
 			|| unreifiedCallDepth > maxUnreifiedCallDepth
 			|| runtime.clock.get() - startTick >= timeSliceTicks
 			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED))
@@ -1952,8 +1943,8 @@ class Interpreter(
 
 	/**
 	 * Check if the current chunk is still valid.  If so, return `true`.
-	 * Otherwise, set the current chunk to the [L2Chunk.unoptimizedChunk], set
-	 * the offset to the specified offset within that chunk, and return `false`.
+	 * Otherwise, set the current chunk to the [unoptimizedChunk], set the
+	 * offset to the specified offset within that chunk, and return `false`.
 	 *
 	 * If there is a debugger active, always treat an optimized chunk as
 	 * invalid, allowing precise control for stepping.  Note that this doesn't
@@ -1964,8 +1955,8 @@ class Interpreter(
 	 * for that frame (and any other reified frame being returned into).
 	 *
 	 * @param offsetInDefaultChunkIfInvalid
-	 *   The offset within the [L2Chunk.unoptimizedChunk] to resume execution at
-	 *   if the current chunk is found to be invalid.
+	 *   The offset within the [unoptimizedChunk] to resume execution at if the
+	 *   current chunk is found to be invalid.
 	 * @return
 	 *   Whether the current chunk is still [valid][L2Chunk.isValid] (i.e., has
 	 *   not been invalidated by a code change).
@@ -1978,7 +1969,7 @@ class Interpreter(
 		chunk!!.isValid && debugger == null -> true
 		else ->
 		{
-			chunk = L2Chunk.unoptimizedChunk
+			chunk = unoptimizedChunk
 			offset = offsetInDefaultChunkIfInvalid
 			false
 		}
@@ -2329,7 +2320,11 @@ class Interpreter(
 		startTick = runtime.clock.get()
 		if (debugL2)
 		{
-			debugModeString = "Fib=" + fiber!!.uniqueId + " "
+			debugModeString = when
+			{
+				debugIntoFiberDebugLog -> ""
+				else -> "Fib=" + fiber!!.uniqueId + " "
+			}
 			log(
 				loggerDebugPrimitives,
 				Level.FINER,
@@ -2420,8 +2415,8 @@ class Interpreter(
 	 * continuation, the offset will point to code that also rebuilds the
 	 * register set from the top reified continuation, but it won't expect a
 	 * return value.  These re-entry points should perform validity checks on
-	 * the chunk, allowing an orderly off-ramp into the
-	 * [L2Chunk.unoptimizedChunk] (which simply interprets the L1 nybblecodes).
+	 * the chunk, allowing an orderly off-ramp into the [unoptimizedChunk]
+	 * (which simply interprets the L1 nybblecodes).
 	 *
 	 * @return
 	 *   `null` if returning normally, otherwise a [StackReifier] to effect
@@ -2431,14 +2426,14 @@ class Interpreter(
 	fun runChunk(): StackReifier?
 	{
 		assert(!exitNow)
-		var reifier: StackReifier? = null
-		while (!returnNow && !exitNow && reifier === null)
+		while (!returnNow && !exitNow)
 		{
 			val currentChunk = chunk!!
 			currentChunk.beforeRunChunk(offset)
-			reifier = currentChunk.executableChunk.runChunk(this, offset)
+			val reifier = currentChunk.executableChunk.runChunk(this, offset)
+			if (reifier !== null) return reifier
 		}
-		return reifier
+		return null
 	}
 
 	/** Present the name in the debugger. */
@@ -2482,7 +2477,7 @@ class Interpreter(
 	 * Note that if the handler ([HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE])
 	 * asks to reify, this method will construct a continuation representing the
 	 * Avail calling function.  The continuation frame can't be resumed, so it
-	 * will use the [L2Chunk.unoptimizedChunk]'s [ChunkEntryPoint.UNREACHABLE].
+	 * will use the [unoptimizedChunk]'s [ChunkEntryPoint.UNREACHABLE].
 	 *
 	 * @param returnedValueOrNil
 	 *   The value that was actually returned, which may be [nil].
@@ -2533,11 +2528,11 @@ class Interpreter(
 				createRegisterDump(JVMChunk.noObjects, JVMChunk.noLongs),
 				pc,
 				stackp,
-				L2Chunk.unoptimizedChunk,
+				unoptimizedChunk,
 				ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk,
 				listOf(*slots),
 				0)
-			setReifiedContinuation(continuation)
+			it.setReifiedContinuation(continuation)
 		}
 		return reifier
 	}
@@ -2554,7 +2549,7 @@ class Interpreter(
 	 * Note that if the handler ([HookType.READ_UNASSIGNED_VARIABLE]) asks to
 	 * reify, this method will construct a continuation representing the current
 	 * function.  The continuation frame can't be resumed, so it will use the
-	 * [L2Chunk.unoptimizedChunk]'s [ChunkEntryPoint.UNREACHABLE].
+	 * [unoptimizedChunk]'s [ChunkEntryPoint.UNREACHABLE].
 	 *
 	 * @param pc
 	 *   The level one [A_Continuation.pc] to use in a new continuation, if
@@ -2591,11 +2586,11 @@ class Interpreter(
 				createRegisterDump(JVMChunk.noObjects, JVMChunk.noLongs),
 				pc,
 				stackp,
-				L2Chunk.unoptimizedChunk,
+				unoptimizedChunk,
 				ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk,
 				listOf(*slots),
 				0)
-			setReifiedContinuation(continuation)
+			it.setReifiedContinuation(continuation)
 		}
 		return reifier
 	}
@@ -2623,6 +2618,14 @@ class Interpreter(
 		}
 		statistic.record(sample, interpreterIndex)
 	}
+
+	/**
+	 * Used by the [L2SimpleTranslator].  It's fine that it's per-interpreter,
+	 * since it doesn't have to perfectly canonicalize the arrays, just reduce
+	 * greatly the amount of repetition of equivalent arrays.  The key is a
+	 * [List], just to get the right equality and hash semantics.
+	 */
+	val arraysForL2Simple = mutableMapOf<List<Int>, Array<Int>>()
 
 	companion object
 	{
@@ -2760,7 +2763,6 @@ class Interpreter(
 			{
 				val interpreter = currentOrNull()
 				val runningFiber = interpreter?.fiberOrNull()
-				@Suppress("ConstantConditionIf")
 				if (debugIntoFiberDebugLog)
 				{
 					// Write into a StringBuilder in each fiber's debugLog().

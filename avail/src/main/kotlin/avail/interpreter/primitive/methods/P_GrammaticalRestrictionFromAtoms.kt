@@ -78,7 +78,7 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 		val exclusionsTuple = interpreter.argument(1)
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -108,9 +108,10 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
-			.setUnionCanDestroy(possibleErrors, true))
+				E_INCORRECT_NUMBER_OF_ARGUMENTS
+			).setUnionCanDestroy(possibleErrors, true))
 }

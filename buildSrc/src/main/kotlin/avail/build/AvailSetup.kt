@@ -33,7 +33,6 @@
 package avail.build
 
 import avail.build.AvailSetupContext.distroSrc
-import avail.plugins.gradle.AvailRoot
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Copy

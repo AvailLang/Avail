@@ -46,7 +46,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
@@ -89,8 +88,8 @@ class ListPhraseDescriptor private constructor(
 	mutability,
 	TypeTag.LIST_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -130,23 +129,22 @@ class ListPhraseDescriptor private constructor(
 			val indenter = buildString { newlineTab(indent) }
 			strings.joinTo(builder, ",$indenter", indenter)
 		}
-		strings.joinTo(builder, ", ")
+		else
+		{
+			strings.joinTo(builder, ", ")
+		}
 		builder.append(")")
 	}
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = self.expressionsTuple.forEach(action)
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) {
-		self.setSlot(
-			EXPRESSIONS_TUPLE,
-			tupleFromList(self.expressionsTuple.map(transformer)))
-	}
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(EXPRESSIONS_TUPLE) { tupleFromList(map(transformer)) }
 
 	/**
 	 * Create a new [list&#32;phrase]][ListPhraseDescriptor] with one more
@@ -206,7 +204,7 @@ class ListPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.expressionsTuple.equals(aPhrase.expressionsTuple))
+		&& equalPhrases(self.expressionsTuple, aPhrase.expressionsTuple))
 
 	override fun o_ExpressionAt(self: AvailObject, index: Int): A_Phrase =
 		self.slot(EXPRESSIONS_TUPLE).tupleAt(index)
@@ -217,11 +215,12 @@ class ListPhraseDescriptor private constructor(
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		self.slot(EXPRESSIONS_TUPLE)
 
-	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.synchronizeIf(isShared) { expressionType(self) }
-
-	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.expressionsTuple.hash(), -0x3ebc1689)
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type
+	{
+		val probe = self.mutableSlot(TUPLE_TYPE)
+		if (probe.notNil) return probe
+		return self.synchronizeIf(isShared) { expressionType(self) }
+	}
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
 		self.slot(EXPRESSIONS_TUPLE).any { it.hasSuperCast }
@@ -289,11 +288,6 @@ class ListPhraseDescriptor private constructor(
 		}
 	}
 
-	override fun o_ValidateLocally(self: AvailObject, parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
-
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.LIST_PHRASE
 
@@ -334,7 +328,8 @@ class ListPhraseDescriptor private constructor(
 		 * @return
 		 *   A type.
 		 */
-		private fun expressionType(self: AvailObject): A_Type {
+		private fun expressionType(self: AvailObject): A_Type
+		{
 			var tupleType: A_Type = self.mutableSlot(TUPLE_TYPE)
 			if (tupleType.notNil) return tupleType
 			val types = self.expressionsTuple.map {
@@ -360,6 +355,7 @@ class ListPhraseDescriptor private constructor(
 			mutable.createShared {
 				setSlot(EXPRESSIONS_TUPLE, expressions)
 				setSlot(TUPLE_TYPE, nil)
+				initHash()
 			}
 
 		/** The mutable [ListPhraseDescriptor]. */

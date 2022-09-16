@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/24/22, 7:06 PM
+ * * Last Generated: 9/1/22, 11:36 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -74,6 +74,7 @@ Names
 	/*  73 */ "cannot-overwrite-write-once-variable code",
 	/*   6 */ "cannot-read-unassigned-variable code",
 	/*   7 */ "cannot-store-incorrectly-typed-value code",
+	/*  66 */ "cannot-style code",
 	/*   2 */ "cannot-subtract-like-infinities code",
 	/*   8 */ "cannot-swap-contents-of-differently-typed-variables code",
 	/*  51 */ "case-insensitive-expression-canonization code",
@@ -460,6 +461,11 @@ Primitive "untimely-parse-acceptance code" is
 Primitive "not-evaluating-macro" is
 [
 	65
+];
+
+Primitive "cannot-style code" is
+[
+	66
 ];
 
 Primitive "macro-prefix-function-argument-must-be-a-phrase code" is

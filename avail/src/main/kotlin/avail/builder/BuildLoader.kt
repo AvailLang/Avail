@@ -35,6 +35,7 @@ package avail.builder
 import avail.AvailRuntime
 import avail.builder.AvailBuilder.LoadedModule
 import avail.compiler.AvailCompiler
+import avail.compiler.CompilationContext
 import avail.compiler.CompilerProgressReporter
 import avail.compiler.GlobalProgressReporter
 import avail.compiler.ModuleHeader
@@ -49,15 +50,15 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.serializedObjects
+import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
-import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
@@ -71,6 +72,7 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleCompilationKey
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.Deserializer
 import avail.serialization.Serializer
 import avail.utility.evaluation.Combinator.recurse
@@ -78,7 +80,6 @@ import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import org.availlang.persistence.MalformedSerialStreamException
-import java.lang.String.format
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -241,11 +242,9 @@ internal class BuildLoader constructor(
 						catch (e: UnresolvedDependencyException)
 						{
 							availBuilder.stopBuildReason =
-								format(
-									"A module predecessor was malformed or absent: "
-										+ "%s -> %s\n",
-									moduleName.qualifiedName,
-									localName)
+								"A module predecessor was malformed or " +
+									"absent: ${moduleName.qualifiedName} " +
+									"-> $localName\n"
 							completionAction()
 							return@digestForFile
 						}
@@ -279,11 +278,10 @@ internal class BuildLoader constructor(
 					{
 						// Compile the module and cache its compiled form.
 						compileModule(
-							moduleName,
-							compilationKey,
-							completionAction)
+							moduleName, compilationKey, completionAction)
 					}
-				}) { code, ex ->
+				}
+			) { code, ex ->
 				// TODO figure out what to do with these!!! Probably report them?
 				System.err.println(
 					"Received ErrorCode: $code with exception:\n")
@@ -320,11 +318,15 @@ internal class BuildLoader constructor(
 		completionAction: ()->Unit)
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L, 0) { null }
-		val module = newModule(stringFrom(moduleName.qualifiedName))
+		val module = newModule(
+			availBuilder.runtime, stringFrom(moduleName.qualifiedName))
 		// Set up the block phrases field with an A_Number, so that requests for
 		// block phrases will retrieve them from the repository.
 		module.getAndSetTupleOfBlockPhrases(
 			fromLong(compilation.recordNumberOfBlockPhrases))
+		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
+		module.setManifestEntriesIndex(
+			compilation.recordNumberOfManifestEntries)
 		val availLoader = AvailLoader(
 			availBuilder.runtime, module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
@@ -397,7 +399,7 @@ internal class BuildLoader constructor(
 
 		// Run each zero-argument block, one after another.
 		recurse { runNext ->
-			availLoader.setPhase(Phase.LOADING)
+			availLoader.phase = Phase.LOADING
 			val function: A_Function?
 			try
 			{
@@ -440,7 +442,7 @@ internal class BuildLoader constructor(
 							runNext()
 						},
 						fail)
-					availLoader.setPhase(Phase.EXECUTING_FOR_LOAD)
+					availLoader.phase = Phase.EXECUTING_FOR_LOAD
 					if (AvailLoader.debugLoadedStatements)
 					{
 						println(
@@ -540,16 +542,16 @@ internal class BuildLoader constructor(
 							assert(!old) {
 								"Completed module compilation twice!"
 							}
-							val stream = compiler.compilationContext
-								.serializerOutputStream
+							val context = compiler.compilationContext
+							val stream = context.serializerOutputStream
 							appendCRC(stream)
 
 							// Also produce the serialization of the module's
 							// tuple of block phrases.
 							val blockPhrasesOutputStream =
 								IndexedFile.ByteArrayOutputStream(5000)
-							val bodyObjectsTuple = compiler.compilationContext
-								.serializer.serializedObjectsTuple()
+							val bodyObjectsTuple =
+								context.serializer.serializedObjectsTuple()
 							val bodyObjectsMap =
 								mutableMapOf<AvailObject, Int>()
 							bodyObjectsTuple.forEachIndexed {
@@ -572,10 +574,8 @@ internal class BuildLoader constructor(
 							blockPhraseSerializer.serialize(
 								module.getAndSetTupleOfBlockPhrases(nil))
 							appendCRC(blockPhrasesOutputStream)
-							val manifestEntries = compiler.compilationContext
-								.loader.manifestEntries!!
-							module.getAndSetManifestEntries(
-								identityPojo(manifestEntries))
+							val loader = context.loader
+							val manifestEntries = loader.manifestEntries!!
 
 							// This is the moment of compilation.
 							val compilationTime = System.currentTimeMillis()
@@ -583,7 +583,8 @@ internal class BuildLoader constructor(
 								compilationTime,
 								stream.toByteArray(),
 								blockPhrasesOutputStream.toByteArray(),
-								manifestEntries)
+								manifestEntries,
+								assembleStylingRecord(context))
 							archive.putCompilation(
 								versionKey, compilationKey, compilation)
 
@@ -602,9 +603,10 @@ internal class BuildLoader constructor(
 							module.getAndSetTupleOfBlockPhrases(
 								fromLong(
 									compilation.recordNumberOfBlockPhrases))
-							module.getAndSetManifestEntries(
-								fromLong(
-									compilation.recordNumberOfManifestEntries))
+							module.setManifestEntriesIndex(
+								compilation.recordNumberOfManifestEntries)
+							module.setStylingRecordIndex(
+								compilation.recordNumberOfStyling)
 							repository.commitIfStaleChanges(
 								AvailBuilder.maximumStaleRepositoryMs)
 							postLoad(moduleName, lastPosition)
@@ -633,6 +635,39 @@ internal class BuildLoader constructor(
 		}
 	}
 
+	private fun assembleStylingRecord(
+		context: CompilationContext
+	): StylingRecord
+	{
+		val loader = context.loader
+		val converter = context.surrogateIndexConverter
+		val styleRanges = loader.lockStyles {
+			map { (start, pastEnd, style) ->
+				val utf16Start =
+					converter.availIndexToJavaIndex(start.toInt())
+				val utf16PastEnd =
+					converter.availIndexToJavaIndex(pastEnd.toInt())
+				(utf16Start until utf16PastEnd) to style
+			}
+		}
+		val uses = loader.lockUsesToDefinitions {
+			map { (useStart, usePastEnd, defRange) ->
+				val utf16UseStart =
+					converter.availIndexToJavaIndex(useStart.toInt())
+				val utf16UsePastEnd =
+					converter.availIndexToJavaIndex(usePastEnd.toInt())
+				val utf16DefStart =
+					converter.availIndexToJavaIndex(defRange.first.toInt())
+				val utf16DefEnd =
+					converter.availIndexToJavaIndex(defRange.last.toInt())
+				Pair(
+					(utf16UseStart until utf16UsePastEnd),
+					(utf16DefStart .. utf16DefEnd))
+			}
+		}
+		return StylingRecord(styleRanges, uses)
+	}
+
 	/**
 	 * Report progress related to this module.  In particular, note that the
 	 * current module has advanced from its provided lastPosition to the end of
@@ -647,10 +682,15 @@ internal class BuildLoader constructor(
 	private fun postLoad(moduleName: ResolvedModuleName, lastPosition: Long)
 	{
 		val moduleSize = moduleName.moduleSize
-		globalTracker(
-			bytesCompiled.addAndGet(moduleSize - lastPosition),
-			globalCodeSize)
-		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) { null }
+		val newPosition = bytesCompiled.addAndGet(moduleSize - lastPosition)
+		// Don't report progress if the build is canceled.
+		if (!availBuilder.shouldStopBuild)
+		{
+			globalTracker(newPosition, globalCodeSize)
+		}
+		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) {
+			null
+		}
 	}
 
 	/**

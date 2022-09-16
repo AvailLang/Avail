@@ -292,7 +292,7 @@ class BuildDirectoryTracer constructor(
 				) { compiler ->
 					compiler.compilationContext.diagnostics
 						.setSuccessAndFailureReporters({}, completedAction)
-					compiler.parseModuleHeader {
+					compiler.parseModuleHeader { _, _ ->
 						val header = compiler.compilationContext.moduleHeader!!
 						val importNames = header.importedModuleNames
 						val entryPoints = header.entryPointNames

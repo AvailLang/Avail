@@ -37,25 +37,35 @@ import avail.compiler.AvailRejectedParseException
 import avail.compiler.CompilationContext
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.RUNNING_LEXER
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
-import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import avail.descriptor.fiber.FiberDescriptor.Companion.newStylerFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.chooseBundle
+import avail.descriptor.methods.A_Styler
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
 import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
+import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.A_Token
+import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import avail.descriptor.tuples.A_Tuple
@@ -64,6 +74,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.SimpleDescriber
@@ -151,7 +162,7 @@ class LexingState constructor(
 			compilationContext.workUnitCompletion(this, null) { _: Unit ->
 				continuation()
 			}
-		compilationContext.runtime.execute(FiberDescriptor.compilerPriority) {
+		compilationContext.runtime.execute(compilerPriority) {
 			workUnit(Unit)
 		}
 	}
@@ -196,7 +207,8 @@ class LexingState constructor(
 			// The end of the source code.  Produce an end-of-file token.
 			assert(position == source.tupleSize + 1)
 			val endOfFileToken = newToken(
-				endOfFileLexeme, position, lineNumber, END_OF_FILE)
+				endOfFileLexeme, position, lineNumber, END_OF_FILE, nil)
+			endOfFileToken.setNextLexingStateFromPrior(this)
 			theTokens.add(endOfFileToken)
 			actions.forEach { action ->
 				workUnitDo { action(theTokens) }
@@ -204,7 +216,7 @@ class LexingState constructor(
 			this.actions = null
 			return
 		}
-		compilationContext.loader.lexicalScanner().getLexersForCodePointThen(
+		compilationContext.loader.lexicalScanner!!.getLexersForCodePointThen(
 			this,
 			source.tupleCodePointAt(position),
 			this::evaluateLexers,
@@ -229,7 +241,7 @@ class LexingState constructor(
 		if (applicableLexers.tupleSize == 0)
 		{
 			// No applicable lexers.
-			val scanner = compilationContext.loader.lexicalScanner()
+			val scanner = compilationContext.loader.lexicalScanner!!
 			val codePoint = compilationContext.source.tupleCodePointAt(position)
 			val charString =
 				CharacterDescriptor.fromCodePoint(codePoint).toString()
@@ -237,7 +249,7 @@ class LexingState constructor(
 				STRONG,
 				format(
 					"an applicable lexer, but all %d filter functions returned "
-					+ "false (code point = %s (U+%04x))",
+						+ "false (code point = %s (U+%04x))",
 					scanner.allVisibleLexers.size,
 					charString,
 					codePoint))
@@ -291,16 +303,16 @@ class LexingState constructor(
 		val fiber = newLoaderFiber(lexerBodyFunctionType().returnType, loader)
 		{
 			formatString(
-				"Lexing %s:%d (%s)",
+				"Lexing %s:%d (%s in %s)",
 				compilationContext.module.shortModuleNameNative,
 				lineNumber,
-				lexer)
+				lexer,
+				loader.module.shortModuleNameNative)
 		}
-		// TODO MvG - Set up fiber variables for lexing?
-		//		A_Map fiberGlobals = fiber.fiberGlobals();
-		//		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-		//			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
-		//		fiber.fiberGlobals(fiberGlobals);
+		fiber.heritableFiberGlobals =
+			fiber.heritableFiberGlobals.mapAtPuttingCanDestroy(
+				RUNNING_LEXER.atom, lexer, true
+			).makeShared()
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		setFiberContinuationsTrackingWork(
 			fiber,
@@ -385,6 +397,7 @@ class LexingState constructor(
 			assert(run.tupleSize > 0)
 			for (token in run)
 			{
+				token.setCurrentModule(compilationContext.module)
 				compilationContext.recordToken(token)
 			}
 			nextTokens.add(run.tupleAt(1))
@@ -450,7 +463,7 @@ class LexingState constructor(
 					.keys
 					.sortedBy { it.string().asNativeString() }
 					.joinToString()
-				val lexers = compilationContext.loader.lexicalScanner()
+				val lexers = compilationContext.loader.lexicalScanner!!
 					.allVisibleLexers
 					.map {
 						it.lexerMethod.chooseBundle(compilationContext.module)
@@ -597,9 +610,56 @@ class LexingState constructor(
 		expected(level, SimpleDescriber(aString))
 	}
 
+	/**
+	 * Apply styling to each token in [allTokens], which includes all whitespace
+	 * and comment tokens as well.  The token knows its [A_Lexer], which is in
+	 * an [A_Method], which can specify an [A_Styler] in a module-scoped way.
+	 *
+	 * @param then
+	 *   What to do after all the tokens have been styled.
+	 */
+	fun styleAllTokensThen(then: ()->Unit)
+	{
+		if (allTokens.isEmpty()) return then()
+		// Apply the token styles in parallel.
+		val counter = AtomicInteger(allTokens.size)
+		val newThen = { _: Any ->
+			if (counter.decrementAndGet() == 0)
+				then()
+		}
+		allTokens.forEach { token ->
+			val stylerFunction =
+				compilationContext.getStylerFunction(
+					token.generatingLexer.lexerMethod)
+			val fiber = newStylerFiber(compilationContext.loader)
+			{
+				formatString(
+					"Style token (%s) with %s",
+					token,
+					stylerFunction.code().methodName)
+			}
+			fiber.setSuccessAndFailure(
+				onSuccess = newThen,
+				// Ignore styler failures for now.
+				onFailure = newThen)
+			compilationContext.runtime.runOutermostFunction(
+				fiber,
+				stylerFunction,
+				listOf(
+					emptyTuple,
+					literalNodeFromToken(
+						literalToken(
+							token.string(),
+							token.start(),
+							token.lineNumber(),
+							token,
+							token.generatingLexer))))
+		}
+	}
+
 	companion object
 	{
 		/** An Avail string for use as the lexeme in end-of-file tokens. */
-		private val endOfFileLexeme = stringFrom("end-of-file").makeShared()
+		private val endOfFileLexeme = stringFrom("").makeShared()
 	}
 }

@@ -562,6 +562,13 @@ private constructor(
 		}
 	}
 
+	override fun o_LiteralType(self: AvailObject): A_Type
+	{
+		val token = getInstance(self)
+		val literal = token.literal()
+		return instanceTypeOrMetaOn(literal)
+	}
+
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()

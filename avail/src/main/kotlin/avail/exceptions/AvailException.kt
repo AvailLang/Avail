@@ -39,25 +39,26 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
- * `AvailException` is the root of the hierarchy of [exceptions][Exception] that
+ * [AvailException] is the root of the hierarchy of [exceptions][Exception] that
  * are specific to the implementation of [AvailObject] and its numerous
  * primitive operations.
  *
+ * @property errorCode
+ *   The [error value][AvailObject].
+ *
+ * @constructor
+ *   Construct the [AvailException].
+ * @param cause
+ *   The optional proximal [cause][Throwable] of the [Exception].
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-open class AvailException : Exception
+open class AvailException
+constructor(
+	val errorCode: AvailErrorCode,
+	cause: Throwable? = null
+): Exception(cause)
 {
-	/** The [error value][AvailObject]. */
-	val errorCode: AvailErrorCode
-
-	/**
-	 * Answer the [error&#32;code][AvailErrorCode].
-	 *
-	 * @return
-	 *   The error code.
-	 */
-	fun errorCode(): AvailErrorCode = errorCode
-
 	/**
 	 * Answer the numeric error code as an [Avail][AvailObject].
 	 *
@@ -66,32 +67,6 @@ open class AvailException : Exception
 	 */
 	@ReferencedInGeneratedCode
 	fun numericCode(): A_Number = errorCode.numericCode()
-
-	/**
-	 * Construct a new `AvailException` with the specified
-	 * [error&#32;code][AvailErrorCode].
-	 *
-	 * @param errorCode
-	 *   The [error&#32;code][AvailErrorCode].
-	 */
-	constructor(errorCode: AvailErrorCode)
-	{
-		this.errorCode = errorCode
-	}
-
-	/**
-	 * Construct a new `AvailException` with the specified
-	 * [error&#32;code][AvailErrorCode] and [cause][Throwable].
-	 *
-	 * @param errorCode
-	 *   The [error&#32;code][AvailErrorCode].
-	 * @param cause
-	 *   The proximal [cause][Throwable] of the [Exception].
-	 */
-	constructor(errorCode: AvailErrorCode, cause: Throwable) : super(cause)
-	{
-		this.errorCode = errorCode
-	}
 
 	companion object
 	{

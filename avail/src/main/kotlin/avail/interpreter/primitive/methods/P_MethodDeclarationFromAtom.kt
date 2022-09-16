@@ -35,10 +35,11 @@ package avail.interpreter.primitive.methods
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -61,11 +62,14 @@ import avail.exceptions.AvailErrorCode.E_METHOD_IS_SEALED
 import avail.exceptions.AvailErrorCode.E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED
 import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
+import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import avail.exceptions.AvailException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive:** Define a concrete method implementation.
@@ -87,7 +91,7 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -95,16 +99,22 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 		return interpreter.suspendInSafePointThen {
 			try
 			{
-				val newDefinition = loader.addMethodBody(atom, function)
+				loader.addMethodBody(atom, function)
 				// Quote the string to make the method name.
 				val atomName = atom.atomName
-				function.code().methodName = stringFrom(atomName.toString())
+				val code = function.code()
+				code.methodName = stringFrom(atomName.toString())
 				if (optionalStylerFunction.tupleSize == 1)
 				{
 					val stylerFunction = optionalStylerFunction.tupleAt(1)
-					stylerFunction.code().methodName =
-						stringFrom("Styler for $atomName")
-					loader.addStyler(newDefinition, stylerFunction)
+					loader.addStyler(atom.bundleOrCreate(), stylerFunction)
+				}
+				else
+				{
+					// If a styler function was not specified, but the body was
+					// a primitive that has a bootstrapStyler, use that just as
+					// though it had been specified.
+					addBootstrapStyler(code, atom, loader.module)
 				}
 				succeed(nil)
 			}
@@ -126,13 +136,17 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
-			E_LOADING_IS_OVER,
-			E_CANNOT_DEFINE_DURING_COMPILATION,
-			E_INCORRECT_NUMBER_OF_ARGUMENTS,
-			E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
-			E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-			E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-			E_METHOD_IS_SEALED)
-		.setUnionCanDestroy(possibleErrors, true))
+		enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_INCORRECT_NUMBER_OF_ARGUMENTS,
+				E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED,
+				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
+				E_METHOD_IS_SEALED,
+				E_STYLER_ALREADY_SET_BY_THIS_MODULE
+			).setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

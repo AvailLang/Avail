@@ -41,7 +41,7 @@ import avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -164,10 +164,13 @@ internal class LinearMapBinDescriptor private constructor(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
 	) {
-		(1..(entryCount(self) shl 1) step 2).forEach {
+		val limit = entryCount(self) shl 1
+		var i = 1
+		while (i <= limit)
+		{
 			action(
-				self.slot(BIN_SLOT_AT_, it),
-				self.slot(BIN_SLOT_AT_, it + 1))
+				self.slot(BIN_SLOT_AT_, i++),
+				self.slot(BIN_SLOT_AT_, i++))
 		}
 	}
 
@@ -383,7 +386,7 @@ internal class LinearMapBinDescriptor private constructor(
 						self.slot(BIN_SLOT_AT_, oldSize shl 1))
 				}
 				// Adjust keys hash by the removed key.
-				result.setSlot(KEYS_HASH, self.slot(KEYS_HASH) - keyHash)
+				result.updateSlot(KEYS_HASH) { minus(keyHash) }
 				result.setSlot(VALUES_HASH_OR_ZERO, 0)
 				result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
 				result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
@@ -548,9 +551,9 @@ internal class LinearMapBinDescriptor private constructor(
 	override fun o_MapBinValuesHash(self: AvailObject): Int =
 		self.synchronizeIf(isShared) { mapBinValuesHash(self) }
 
-	override fun o_MapBinIterable(self: AvailObject): MapIterable
+	override fun o_MapBinIterator(self: AvailObject): MapIterator
 	{
-		return object : MapIterable() {
+		return object : MapIterator() {
 			/** A countdown of entry indices. */
 			var index = entryCount(self)
 

@@ -88,7 +88,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 
 		val loader = interpreter.availLoaderOrNull()
 		loader ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -126,9 +126,9 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		}
 
 		newAtom.setAtomBundle(newBundle)
-		if (loader.phase() == EXECUTING_FOR_COMPILE)
+		if (loader.phase == EXECUTING_FOR_COMPILE)
 		{
-			val root = loader.rootBundleTree()
+			val root = loader.rootBundleTree
 			loader.module.lock {
 				newBundle.definitionParsingPlans.forEach { _, value ->
 					root.addPlanInProgress(newPlanInProgress(value, 1))

@@ -34,7 +34,9 @@ import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
+import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
@@ -52,7 +54,9 @@ import avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
 import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.START
 import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.TOKEN_TYPE_CODE
+import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.GENERATING_LEXER
 import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
 import avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import avail.descriptor.tuples.A_String
@@ -150,7 +154,22 @@ open class TokenDescriptor protected constructor(
 		 * A [raw&#32;pojo][RawPojoDescriptor] holding the [LexingState] after
 		 * this token.
 		 */
-		NEXT_LEXING_STATE_POJO
+		NEXT_LEXING_STATE_POJO,
+
+		/**
+		 * During compilation, tokens constructed by the compiler capture the
+		 * module that was under compilation.  This field holds the module
+		 * reliably only while the module is being compiled.  At other times, it
+		 * may be either the module that it's a part of or nil.  The serializer
+		 * makes no effort to reconstruct this field.
+		 */
+		ORIGINATING_MODULE,
+
+		/**
+		 * The [A_Lexer] responsible for creating this token, or nil if the
+		 * token was not constructed by a lexer.
+		 */
+		GENERATING_LEXER
 	}
 
 	/**
@@ -248,6 +267,7 @@ open class TokenDescriptor protected constructor(
 	public override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = e === NEXT_LEXING_STATE_POJO
+		|| e === ORIGINATING_MODULE
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -279,6 +299,9 @@ open class TokenDescriptor protected constructor(
 			&& (!self.isLiteralToken()
 				|| self.literal().equals(aToken.literal())))
 
+	override fun o_GeneratingLexer(self: AvailObject): A_Lexer =
+		self.slot(GENERATING_LEXER)
+
 	override fun o_Hash(self: AvailObject): Int = combine4(
 		self.string().hash(),
 		self.start(),
@@ -298,6 +321,11 @@ open class TokenDescriptor protected constructor(
 
 	override fun o_LowerCaseString(self: AvailObject): A_String =
 		lowerCaseStringFrom(self)
+
+	override fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean = self.slot(ORIGINATING_MODULE).equals(currentModule)
 
 	override fun o_NextLexingState(self: AvailObject): LexingState =
 		self.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull()
@@ -327,6 +355,14 @@ open class TokenDescriptor protected constructor(
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.TOKEN
+
+	override fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module)
+	{
+		assert(self.slot(START) > 0)
+		self.setSlot(ORIGINATING_MODULE, currentModule)
+	}
 
 	override fun o_Start(self: AvailObject): Int = self.slot(START)
 
@@ -401,6 +437,9 @@ open class TokenDescriptor protected constructor(
 		 *   The line number on which the token occurred.
 		 * @param tokenType
 		 *   The type of token to create.
+		 * @param generatingLexer
+		 *   The [A_Lexer] responsible for creating this token, or nil if the
+		 *   token was not constructed by a lexer.
 		 * @return
 		 *   The new token.
 		 */
@@ -408,11 +447,14 @@ open class TokenDescriptor protected constructor(
 			string: A_String,
 			start: Int,
 			lineNumber: Int,
-			tokenType: TokenType): A_Token
+			tokenType: TokenType,
+			generatingLexer: A_Lexer
+		): A_Token
 		{
 			if (tokenType == TokenType.COMMENT)
 			{
-				return newCommentToken(string, start, lineNumber)
+				return newCommentToken(
+					string, start, lineNumber, generatingLexer)
 			}
 			return mutable.createShared {
 				setSlot(STRING, string)
@@ -420,6 +462,8 @@ open class TokenDescriptor protected constructor(
 				setSlot(LINE_NUMBER, lineNumber)
 				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal)
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
+				setSlot(ORIGINATING_MODULE, nil)
+				setSlot(GENERATING_LEXER, generatingLexer)
 			}
 		}
 

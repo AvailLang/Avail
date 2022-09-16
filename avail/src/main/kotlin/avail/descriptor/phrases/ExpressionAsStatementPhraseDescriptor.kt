@@ -40,7 +40,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.ObjectSlots.EXPRESSION
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
@@ -69,12 +68,13 @@ class ExpressionAsStatementPhraseDescriptor(
 	mutability,
 	TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/** The expression being wrapped to be a statement. */
 		EXPRESSION
 	}
@@ -89,13 +89,13 @@ class ExpressionAsStatementPhraseDescriptor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(EXPRESSION))
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(EXPRESSION, transformer(self.slot(EXPRESSION)))
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(EXPRESSION, transformer)
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
@@ -112,16 +112,13 @@ class ExpressionAsStatementPhraseDescriptor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(EXPRESSION).equals(aPhrase.expression))
+		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(EXPRESSION)
 
 	/** Statements are always ⊤-valued. */
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
-
-	override fun o_Hash(self: AvailObject) =
-		combine2(self.slot(EXPRESSION).hash(), -0x6f773228)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
@@ -136,13 +133,6 @@ class ExpressionAsStatementPhraseDescriptor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		self.slot(EXPRESSION).tokens
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -176,6 +166,7 @@ class ExpressionAsStatementPhraseDescriptor(
 		fun newExpressionAsStatement(expression: A_Phrase): A_Phrase =
 			mutable.createShared {
 				setSlot(EXPRESSION, expression)
+				initHash()
 			}
 
 		/** The mutable [ExpressionAsStatementPhraseDescriptor]. */

@@ -33,6 +33,7 @@ package avail.descriptor.representation
 
 import avail.AvailDebuggerModel
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
@@ -51,7 +52,8 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_MapBin
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
@@ -74,6 +76,7 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_SetBin
+import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import avail.descriptor.sets.SetDescriptor.SetIterator
@@ -97,11 +100,12 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
@@ -153,18 +157,6 @@ protected constructor (
 	objectSlotsEnumClass,
 	integerSlotsEnumClass)
 {
-	/**
-	 * A special enumeration used to visit all object slots within an instance
-	 * of the receiver.
-	 */
-	internal enum class FakeObjectSlotsForScanning : ObjectSlotsEnum
-	{
-		/**
-		 * An indexed object slot that makes it easy to visit all object slots.
-		 */
-		ALL_OBJECT_SLOTS_
-	}
-
 	override fun o_AcceptsArgTypesFromFunctionType (
 		self: AvailObject,
 		functionType: A_Type): Boolean = unsupported
@@ -735,7 +727,7 @@ protected constructor (
 		self: AvailObject,
 		updater: A_Set.() -> A_Set): Unit = unsupported
 
-	override fun o_DefinitionStylers(self: AvailObject): A_Set = unsupported
+	override fun o_MethodStylers(self: AvailObject): A_Set = unsupported
 
 	override fun o_SubtractFromInfinityCanDestroy (
 		self: AvailObject,
@@ -923,7 +915,7 @@ protected constructor (
 
 	override fun o_CodePoint (self: AvailObject): Int = unsupported
 
-	override fun o_LazyComplete (self: AvailObject): A_Set = unsupported
+	override fun o_LazyComplete (self: AvailObject): A_Map = unsupported
 
 	override fun o_ConstantBindings (self: AvailObject): A_Map = unsupported
 
@@ -999,7 +991,7 @@ protected constructor (
 	override fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
 		continuation: (Boolean)->Unit
-	): Unit = unsupported
+	): Boolean = unsupported
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
 		self: AvailObject,
 		delta: Long
@@ -1560,18 +1552,19 @@ protected constructor (
 
 	override fun o_ChildrenMap (
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase): Unit = unsupported
+		transformer: (A_Phrase)->A_Phrase
+	): Unit = unsupported
 
 	/**
 	 * Visit my child phrases with the action.
 	 */
 	override fun o_ChildrenDo (
 		self: AvailObject,
-		action: (A_Phrase) -> Unit): Unit = unsupported
+		action: (A_Phrase)->Unit
+	): Unit = unsupported
 
 	override fun o_ValidateLocally (
-		self: AvailObject,
-		parent: A_Phrase?): Unit = unsupported
+		self: AvailObject): Unit = unsupported
 
 	override fun o_GenerateInModule (
 		self: AvailObject,
@@ -1607,7 +1600,9 @@ protected constructor (
 
 	override fun o_IsSetBin (self: AvailObject) = false
 
-	override fun o_MapIterable (self: AvailObject): MapIterable = unsupported
+	override fun o_MapIterable (
+		self: AvailObject
+	): Iterable<MapDescriptor.Entry> = unsupported
 
 	override fun o_DeclaredExceptions (self: AvailObject): A_Set = unsupported
 
@@ -1991,7 +1986,7 @@ protected constructor (
 		self: AvailObject,
 		kind: AvailObject): Boolean = unsupported
 
-	override fun o_MapBinIterable (self: AvailObject): MapIterable = unsupported
+	override fun o_MapBinIterator (self: AvailObject): MapIterator = unsupported
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
 		unsupported
@@ -2417,8 +2412,9 @@ protected constructor (
 		self: AvailObject,
 		aListNodeType: A_Type): A_Type = unsupported
 
-	override fun o_LazyTypeFilterTreePojo (self: AvailObject): A_BasicObject =
-		unsupported
+	override fun o_LazyTypeFilterTree (
+		self: AvailObject
+	): LookupTree<A_Tuple, A_BundleTree>? = unsupported
 
 	override fun o_AddPlanInProgress (
 		self: AvailObject,
@@ -2681,10 +2677,10 @@ protected constructor (
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
 
-	override fun o_GetAndSetManifestEntries(
+	override fun o_SetManifestEntriesIndex(
 		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject = unsupported
+		recordNumber: Long
+	): Unit = unsupported
 
 	override fun o_ManifestEntries(
 		self: AvailObject
@@ -2704,9 +2700,7 @@ protected constructor (
 
 	override fun o_ModuleNameNative(self: AvailObject): String = unsupported
 
-	override fun o_CallDepth(self: AvailObject): Int = unsupported
-
-	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
+	override fun o_DeoptimizeForDebugger(self: AvailObject): Unit =
 		unsupported
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
@@ -2719,4 +2713,59 @@ protected constructor (
 		self: AvailObject,
 		debugger: AvailDebuggerModel
 	): Unit = unsupported
+
+	override fun o_SetStylingRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	): Unit = unsupported
+
+	override fun o_StylingRecord(self: AvailObject): StylingRecord = unsupported
+
+	override fun o_StylerMethod(self: AvailObject): A_Method = unsupported
+
+	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase = unsupported
+
+	override fun o_GeneratingLexer(self: AvailObject): A_Lexer = unsupported
+
+	override fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean = unsupported
+
+	override fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Unit = unsupported
+
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit
+	): Unit = unsupported
+
+	override fun o_CurrentLexer(self: AvailObject): A_Lexer = unsupported
+
+	override fun o_WhichPowerOfTwo(self: AvailObject): Int = unsupported
+
+	override fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin = otherBin.setBinAddingElementHashLevelCanDestroy(
+		self, self.hash(), level, true)
+
+	override fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int
+	): A_SetBin = linearBin.setBinAddingElementHashLevelCanDestroy(
+		self, self.hash(), level, true)
+
+	override fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin = hashedBin.setBinAddingElementHashLevelCanDestroy(
+		self, self.hash(), level, true)
 }

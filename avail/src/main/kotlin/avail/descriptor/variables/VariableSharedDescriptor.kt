@@ -280,6 +280,7 @@ open class VariableSharedDescriptor protected constructor(
 		recordWriteToSharedVariable()
 	}
 
+	@Throws(VariableSetException::class)
 	override fun o_SetValueNoCheck(
 		self: AvailObject,
 		newValue: A_BasicObject)

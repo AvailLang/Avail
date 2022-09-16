@@ -434,12 +434,12 @@ Public macro "_`|_" is
  *          otherwise.
  * @category "Mathematics" "Integers"
  */
-Public stable method "_is odd" is
+Public macro "_is odd" is
 [
-	a : integer
+	a : expression phrase ⇒ integer
 |
-	a bit∧ 1 = 1
-] : boolean;
+	⟦⦊a⦉ bit test 0⟧
+] : phrase ⇒ boolean;
 
 /**
  * Is the argument even?
@@ -451,12 +451,12 @@ Public stable method "_is odd" is
  *          otherwise.
  * @category "Mathematics" "Integers"
  */
-Public stable method "_is even" is
+Public macro "_is even" is
 [
-	a : integer
+	a : expression phrase ⇒ integer
 |
-	a bit∧ 1 = 0
-];
+	⟦¬⦊a⦉ bit test 0⟧
+] : phrase ⇒ boolean;
 
 /**
  * Compute and answer the integer range type of the sum of the argument types.
@@ -1376,6 +1376,10 @@ Semantic restriction "_bit∧_" is
 	arg1 : integer's type,
 	arg2 : integer's type
 |
+	/* Most common cases first. */
+	$body : integer's type;
+	Exit body with [0..1] if arg1 ⊆ [1..1];
+	Exit body with [0..1] if arg2 ⊆ [1..1];
 	include ::=
 	[
 		x : extended integer,

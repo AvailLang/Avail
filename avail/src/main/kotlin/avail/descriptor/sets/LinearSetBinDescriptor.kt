@@ -43,6 +43,8 @@ import avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
 import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
 import avail.descriptor.sets.A_SetBin.Companion.setBinHash
 import avail.descriptor.sets.A_SetBin.Companion.setBinSize
+import avail.descriptor.sets.A_SetBin.Companion.setBinUnionWithLinearBin
+import avail.descriptor.sets.HashedSetBinDescriptor.Companion.combineHashedAndLinear
 import avail.descriptor.sets.HashedSetBinDescriptor.Companion.createInitializedHashSetBin
 import avail.descriptor.sets.LinearSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import avail.descriptor.sets.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_
@@ -195,6 +197,91 @@ class LinearSetBinDescriptor private constructor(
 		return result
 	}
 
+	override fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin = otherBin.setBinUnionWithLinearBin(self, level)
+
+	override fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int): A_SetBin
+	{
+		// Sets derived from the same set by incremental changes will tend to
+		// share a lot of bin structure.
+		if (self.sameAddressAs(linearBin)) return self
+		var size1 = self.variableObjectSlotsCount()
+		if (size1 == 0) return linearBin
+		var size2 = linearBin.variableObjectSlotsCount()
+		if (size2 == 0) return self
+		val small: AvailObject
+		val large: AvailObject
+		when
+		{
+			size1 < size2 ->
+			{
+				small = self
+				large = linearBin
+			}
+			else ->
+			{
+				small = linearBin
+				large = self
+				val t = size1
+				size1 = size2
+				size2 = t
+			}
+		}
+		val indicesOfNew = (1..size1).filter { i ->
+			val candidate = small.slot(BIN_ELEMENT_AT_, i)
+			val candidateHash = candidate.hash()
+			(1..size2).none { j ->
+				val element = large.slot(BIN_ELEMENT_AT_, j)
+				element.hash() == candidateHash && candidate.equals(element)
+			}
+		}
+		val countNew = indicesOfNew.size
+		if (countNew == 0)
+		{
+			// small is already a subset of large.
+			return large
+		}
+		var hash = large.slot(BIN_HASH)
+		val smallHash = small.slot(BIN_HASH)
+		val newBin = newLike(mutable(), large, countNew, 0)
+		if (countNew == size1)
+		{
+			// The bins are disjoint.
+			var j = size2 + 1
+			for (i in 1..size1)
+			{
+				newBin.setSlot(
+					BIN_ELEMENT_AT_, j++, small.slot(BIN_ELEMENT_AT_, i))
+			}
+			// Note that this only works because the bins are disjoint.
+			hash += smallHash
+		}
+		else
+		{
+			// There's partial overlap.
+			var j = size2 + 1
+			indicesOfNew.forEach { i ->
+				val element = small.slot(BIN_ELEMENT_AT_, i)
+				newBin.setSlot(BIN_ELEMENT_AT_, j++, element)
+				hash += element.hash()
+			}
+		}
+		newBin.setSlot(BIN_HASH, hash)
+		return newBin
+	}
+
+	override fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin = combineHashedAndLinear(hashedBin, self, level)
+
 	override fun o_BinHasElementWithHash(
 		self: AvailObject,
 		elementObject: A_BasicObject,
@@ -331,7 +418,6 @@ class LinearSetBinDescriptor private constructor(
 		 *   A linear set bin.
 		 */
 		private fun checkBinHash(self: AvailObject) {
-			@Suppress("ConstantConditionIf")
 			if (checkBinHashes) {
 				assert(self.descriptor() is LinearSetBinDescriptor)
 				val stored = self.setBinHash

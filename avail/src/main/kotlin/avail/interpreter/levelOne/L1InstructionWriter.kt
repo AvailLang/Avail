@@ -404,6 +404,8 @@ class L1InstructionWriter constructor(
 			names.addAll(argumentTypes.map { "arg${counter++}" })
 			names.addAll(localTypes.map { "local${counter++}" })
 			names.addAll(constantTypes.map { "constant${counter++}" })
+			var outerCounter = 1
+			names.addAll(outerTypes.map { "outer${outerCounter++}" })
 		}
 		val packedDeclarationNames = names.joinToString(",") { name ->
 			// Quote-escape any name that contains a comma (,) or quote (").

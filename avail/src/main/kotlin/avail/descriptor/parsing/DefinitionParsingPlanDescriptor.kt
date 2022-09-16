@@ -76,7 +76,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
 import avail.descriptor.types.TypeTag
 import avail.exceptions.SignatureException
-import avail.utility.StackPrinter
+import avail.utility.trace
 import java.util.IdentityHashMap
 
 /**
@@ -185,7 +185,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 		}
 		catch (e: Exception)
 		{
-			val stackStrings = StackPrinter.trace(e).split("\\n").toTypedArray()
+			val stackStrings = trace(e).split("\\n").toTypedArray()
 			stackStrings.mapIndexedTo(fields) { lineNumber, line ->
 				AvailObjectFieldHelper(
 					self,

@@ -43,7 +43,6 @@ Extends
 		"floating point number lexer",
 		"keyword lexer",
 		"operator lexer",
-
 		"…#")
 Names
 	"__+",

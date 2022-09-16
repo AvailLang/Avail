@@ -60,7 +60,8 @@ Names
 	"hexadecimal integer lexer",
 	"floating point number lexer",
 	"raw string lexer",
-	"character set lexer"
+	"character set lexer",
+	"style lexer"
 Body
 
 /**
@@ -99,8 +100,22 @@ is
 	else [∅]
 ];
 
+Style $"end of line comment lexer" with
+[
+	optionalOriginal : send phrase?,
+	transformed : phrase
+|
+	cast transformed into
+	[
+		original : literal phrase
+	|
+		Style token original's token as "#comment" overwriting;
+	]
+	else [];
+] : ⊤;
+
 // Here's the first end of line comment!
-// And here's the second, without a line terminator!
+// And here's the second!
 
 radixIntegerAlphabet ::= "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;
@@ -497,11 +512,9 @@ is
 		if delimiterSize < 3 then
 		[
 			Reject parse silently, expected:
-				format
-					"raw string to begin with three (3) or more “①” \
-					\|characters"
-				with
-					startChar
+				"raw string to begin with three (3) or more "
+					++ “startChar”
+					++ " characters"
 		]
 		else
 		[
@@ -520,10 +533,9 @@ is
 			if i > limit then
 			[
 				Reject parse, expected:
-					format
-						"raw string to terminate with ‘①’ before end of file"
-					with
-						endDelimiter
+					"raw string to terminate with "
+						++ endDelimiter
+						++ " before end of file"
 			]
 			else
 			[
@@ -742,4 +754,78 @@ is
 			`result` (source[position .. i - 1]) @ position:line
 		>}
 	]
+];
+
+
+/**
+ * A lexer for style names.  There's a leading "#", then an alphabetic
+ * character, zero or more alphanumerics, then a series of zero or more
+ * repetitions of a "-" and one or more alphanumerics.  As a regex, this would
+ * be the maximal value of:
+ *    /#:alpha::alnum:*(-:alnum:+)*\b/.
+ *
+ * The token cannot be immediately followed by a "-" or alphanumeric.  The lexer
+ * produces a literal string containing the name, including the leading "#".
+ *
+ * @lexer "style lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "position" "natural number"
+ *        The position of the leading {@type "character"}.
+ * @param "line" "natural number"
+ *        The line number of the leading {@type "character"}.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "string"} {@type "literal token"}.
+ */
+Lexer $"style lexer"
+when [c : character | c = ¢#]
+is
+[
+	source : string,
+	position : natural number,
+	line : natural number
+|
+	size ::= |source|;
+	i : natural number := position + 1;
+	If i > size ∨ ¬source[i] is a letter then [
+		Reject parse silently,
+			expected: "alphabetic after '#' for style name"
+	];
+	i++;
+	wasDash : boolean := false;
+	exit : boolean := false;
+	While i ≤ size ∧ ¬exit do
+	[
+		c ::= source[i];
+		If c = ¢- then
+		[
+			If wasDash then
+			[
+				Reject parse,
+					expected: "an alphanumeric, not a second hyphen"
+			];
+			wasDash := true;
+			i++;
+		]
+		else if c is a letter ∨ c is an Arabic numeral then
+		[
+			wasDash := false;
+			i++;
+		]
+		else
+		[
+			exit := true;
+		];
+	];
+	If wasDash then
+	[
+		Reject parse,
+			expected: "an alphanumeric after the hyphen"
+	];
+	/* It's a well-formed style name. */
+	{<
+		`source[position .. i - 1]` (source[position .. i - 1])
+			@ position:line
+	>}
 ];

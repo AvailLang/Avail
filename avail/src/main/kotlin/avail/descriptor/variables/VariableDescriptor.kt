@@ -554,7 +554,7 @@ open class VariableDescriptor protected constructor(
 	{
 		withWriteReactorsToModify(self, true) { writeReactors ->
 			discardInvalidWriteReactors(writeReactors!!)
-			writeReactors[key] = reactor
+			writeReactors[key.makeShared()] = reactor
 		}
 	}
 
@@ -818,20 +818,26 @@ open class VariableDescriptor protected constructor(
 
 		/**
 		 * Create a `VariableDescriptor variable` which can only contain values
-		 * of the specified type.  The new variable initially holds no value.
+		 * of the specified type.  The new variable initially holds no value,
+		 * unless one is specified as the [optionalInitialValue].
 		 *
 		 * @param contentType
 		 *   The type of objects the new variable can contain.
+		 * @param optionalInitialValue
+		 *   The optional *unchecked* initial value of the variable, or null.
 		 * @return
 		 *   A new variable able to hold the specified type of objects.
 		 */
-		fun newVariableWithContentType(contentType: A_Type): AvailObject =
-			newVariableWithOuterType(variableTypeFor(contentType))
+		fun newVariableWithContentType(
+			contentType: A_Type,
+			optionalInitialValue: A_BasicObject? = null
+		): AvailObject = newVariableWithOuterType(
+			variableTypeFor(contentType), optionalInitialValue)
 
 		/**
-		 * Create a `variable` of the specified
-		 * [variable&#32;type][VariableTypeDescriptor].  The new variable
-		 * initially holds no value.
+		 * Create a `variable` of the specified variable
+		 * [type][VariableTypeDescriptor].  The new variable initially holds no
+		 * value, unless one is specified as the [optionalInitialValue].
 		 *
 		 * Note that [WRITE_REACTORS] and [VALUE] can be initialized with
 		 * ordinary slot writes here, because should the variable become
@@ -845,13 +851,15 @@ open class VariableDescriptor protected constructor(
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun newVariableWithOuterType(variableType: A_Type?): AvailObject =
-			mutable.create {
-				setSlot(KIND, variableType!!)
-				setSlot(HASH_OR_ZERO, 0)
-				setSlot(VALUE, nil)
-				setSlot(WRITE_REACTORS, nil)
-			}
+		fun newVariableWithOuterType(
+			variableType: A_Type,
+			optionalInitialValue: A_BasicObject? = null
+		): AvailObject = mutable.create {
+			setSlot(KIND, variableType)
+			setSlot(HASH_OR_ZERO, 0)
+			setSlot(VALUE, optionalInitialValue ?: nil)
+			setSlot(WRITE_REACTORS, nil)
+		}
 
 		/**
 		 * The [CheckedMethod] for [newVariableWithOuterType].
@@ -860,7 +868,8 @@ open class VariableDescriptor protected constructor(
 			VariableDescriptor::class.java,
 			::newVariableWithOuterType.name,
 			AvailObject::class.java,
-			A_Type::class.java)
+			A_Type::class.java,
+			A_BasicObject::class.java)
 
 		/** The mutable [VariableDescriptor]. */
 		private val mutable = VariableDescriptor(

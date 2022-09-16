@@ -44,9 +44,9 @@ import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Operation
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedMethod
@@ -174,7 +174,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 				registerDump = nil,
 				pc = 1,  // start of function
 				stackp = numSlots + 1,  // empty stack
-				levelTwoChunk = L2Chunk.unoptimizedChunk,
+				levelTwoChunk = L2JVMChunk.unoptimizedChunk,
 				levelTwoOffset = ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
 				frameValues = listOf(*stepper.pointers),
 				zeroBasedStartIndex = 1)

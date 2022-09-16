@@ -53,8 +53,10 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
 import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.L2Generator.Companion.edgeTo
 
 /**
  * **Primitive:** Compare for equality. Answer a
@@ -112,7 +114,10 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 	{
 		val (firstReg, secondReg) = arguments
 
-		if (firstReg.register() === secondReg.register())
+		val manifest = callSiteHelper.generator().currentManifest
+		if (manifest.synonymsForRegister(firstReg.register())
+			.intersect(manifest.synonymsForRegister((secondReg.register())))
+			.isNotEmpty())
 		{
 			// A value is being compared to itself, even though we might not
 			// know anything specific about what it is.
@@ -142,19 +147,23 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			return true
 		}
 
-		// It's contingent.  Fall back on generating the primitive invocation,
-		// knowing that the L1Translator will notice it and replace it with a
-		// L2_JUMP_IF_OBJECTS_EQUAL, producing true on one path and false on the
-		// other, merging with a phi.  That's a good opportunity for code
-		// splitting, as a constant true or false is a tasty piece of state that
-		// subsequent code can frequently make use of, say, for branching again
-		// based on the boolean value (for an if/then/else).
-		return super.tryToGenerateSpecialPrimitiveInvocation(
-			functionToCallReg,
-			rawFunction,
-			arguments,
-			argumentTypes,
-			translator,
-			callSiteHelper)
+		// At least avoid the overhead of a general primitive call.  Make sure
+		// to generate L2 instructions that expose the selection of booleans
+		// through control flow, so that code splitting can use it.
+		translator.generator.run {
+			val ifEqual = createBasicBlock("equal")
+			val ifNotEqual = createBasicBlock("not equal")
+			addInstruction(
+				L2_JUMP_IF_OBJECTS_EQUAL,
+				readBoxed(firstReg.semanticValue()),
+				readBoxed(secondReg.semanticValue()),
+				edgeTo(ifEqual),
+				edgeTo(ifNotEqual))
+			startBlock(ifEqual)
+			callSiteHelper.useAnswer(boxedConstant(trueObject))
+			startBlock(ifNotEqual)
+			callSiteHelper.useAnswer(boxedConstant(falseObject))
+		}
+		return true
 	}
 }

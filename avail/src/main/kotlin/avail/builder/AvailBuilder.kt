@@ -80,8 +80,8 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.serialization.Serializer
 import avail.utility.Graph
-import avail.utility.StackPrinter.Companion.trace
 import avail.utility.safeWrite
+import avail.utility.trace
 import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import java.io.File
@@ -519,7 +519,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   What to do after building everything.  This may run in another
 	 *   [Thread], possibly long after this method returns.
 	 */
-	@Suppress("MemberVisibilityCanBePrivate")
 	fun buildTargetThen(
 		target: ModuleName,
 		localTracker: CompilerProgressReporter,
@@ -862,6 +861,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		for (loadedModule in modulesWithEntryPoints)
 		{
 			val module = newModule(
+				runtime,
 				stringFrom(
 					loadedModule.module.moduleNameNative + " (command)"))
 			val loader = AvailLoader(runtime, module, runtime.textInterface())
@@ -908,7 +908,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						decider(false)
 					}
 
-					@Suppress("RedundantLambdaArrow")
 					override fun handleInternal(
 						problem: Problem,
 						decider: (Boolean)->Unit
@@ -922,7 +921,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						}
 					}
 
-					@Suppress("RedundantLambdaArrow")
 					override fun handleExternal(
 						problem: Problem,
 						decider: (Boolean)->Unit)
@@ -1149,7 +1147,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 */
 		internal fun log(level: Level, format: String, vararg args: Any)
 		{
-			@Suppress("ConstantConditionIf")
 			if (debugBuilder)
 			{
 				if (logger.isLoggable(level))
@@ -1177,7 +1174,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			format: String,
 			vararg args: Any)
 		{
-			@Suppress("ConstantConditionIf")
 			if (debugBuilder)
 			{
 				if (logger.isLoggable(level))

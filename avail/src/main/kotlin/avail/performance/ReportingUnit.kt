@@ -68,11 +68,11 @@ enum class ReportingUnit (private vararg val ranges: Range)
 	/** The number of bytes consumed or produced by some activity. */
 	@Suppress("unused")
 	BYTES(
-		Range(999_999_999_500.0, POSITIVE_INFINITY, 1.0e-12, "%, 8.3f TB"),
-		Range(999_999_500.0, 999_999_999_500.0, 1.0e-9, "%, 8.3f GB"),
-		Range(999_999.5, 999_999_500.0, 1.0e-6, "%, 8.3f MB"),
-		Range(999.5, 999_999.5, 1.0e-3, "%, 8.3f KB"),
-		Range(NEGATIVE_INFINITY, 999.5, 1.0e0, "%, 8.0f B ", "%, 8.3f B ")),
+		Range(999_999_999_500.0, POSITIVE_INFINITY, 1.0e-12, "%, 8.3f TB        "),
+		Range(999_999_500.0, 999_999_999_500.0, 1.0e-9, "%, 8.3f GB        "),
+		Range(999_999.5, 999_999_500.0, 1.0e-6, "    %, 8.3f MB    "),
+		Range(999.5, 999_999.5, 1.0e-3, "        %, 8.3f KB"),
+		Range(NEGATIVE_INFINITY, 999.5, 1.0e0, "        %, 8.0f B ", "%, 8.3f B ")),
 
 	/** A dimensionless measurement, such as a count of something. */
 	@Suppress("unused")

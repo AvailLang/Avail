@@ -31,15 +31,21 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.concatenateTupleMethod
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -69,18 +75,48 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		builder.append(' ')
 		builder.append(output.registerString())
 		builder.append(" ← ")
-		var i = 0
-		val limit = tuples.elements().size
-		while (i < limit)
+		tuples.elements().joinTo(builder, " ++ ") { it.registerString() }
+	}
+
+	override fun extractTupleElement(
+		tupleReg: L2ReadBoxedOperand,
+		index: Int,
+		generator: L2Generator): L2ReadBoxedOperand
+	{
+		// If we can tell (1) which subtuple we're getting the value from, and
+		// (2) the index within that subtuple, then extract the value from the
+		// subtuple instead of the concatenation.
+		val instruction = tupleReg.definition().instruction
+		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		// val tuple = instruction.operand<L2WriteBoxedOperand>(1)
+
+		var residualIndex = index
+		for (elementRead in values.elements())
 		{
-			if (i > 0)
+			assert(residualIndex >= 1)
+			val sizeRange = elementRead.type()
+			val lowerBound = sizeRange.lowerBound
+			if (!lowerBound.isInt)
 			{
-				builder.append(" ++ ")
+				// Should be impossible, other than abnormal intermediate types.
+				break
 			}
-			val element = tuples.elements()[i]
-			builder.append(element.registerString())
-			i++
+			val lowerBoundInt = lowerBound.extractInt
+			if (residualIndex <= lowerBoundInt)
+			{
+				// It's definitely in this subtuple.
+				return generator.extractTupleElement(elementRead, residualIndex)
+			}
+			if (!lowerBound.equals(sizeRange.upperBound))
+			{
+				// This subtuple's size is not fixed, so don't look at any more
+				// subtuples.
+				break
+			}
+			residualIndex -= lowerBoundInt
 		}
+		// It fell back, so do the default tuple element extraction.
+		return super.extractTupleElement(tupleReg, index, generator)
 	}
 
 	override fun translateToJVM(
@@ -97,7 +133,6 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		for (i in 1 until tupleCount)
 		{
 			translator.load(method, elements[i].register())
-			translator.intConstant(method, 1) // canDestroy = true
 			concatenateTupleMethod.generateCall(method)
 		}
 		// Strengthen the final result to AvailObject.

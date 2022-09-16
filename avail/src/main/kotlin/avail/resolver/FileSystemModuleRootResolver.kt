@@ -46,16 +46,17 @@ import avail.io.SimpleCompletionHandler
 import avail.resolver.ModuleRootResolver.WatchEventType.CREATE
 import avail.resolver.ModuleRootResolver.WatchEventType.DELETE
 import avail.resolver.ModuleRootResolver.WatchEventType.MODIFY
-import avail.resolver.ResourceType.DIRECTORY
-import avail.resolver.ResourceType.MODULE
-import avail.resolver.ResourceType.PACKAGE
-import avail.resolver.ResourceType.REPRESENTATIVE
-import avail.resolver.ResourceType.RESOURCE
-import avail.resolver.ResourceType.ROOT
+import org.availlang.artifact.ResourceType.DIRECTORY
+import org.availlang.artifact.ResourceType.MODULE
+import org.availlang.artifact.ResourceType.PACKAGE
+import org.availlang.artifact.ResourceType.REPRESENTATIVE
+import org.availlang.artifact.ResourceType.RESOURCE
+import org.availlang.artifact.ResourceType.ROOT
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryChangeEvent.EventType
 import io.methvin.watcher.DirectoryWatcher
 import io.methvin.watcher.hashing.FileHasher
+import org.availlang.artifact.ResourceType
 import org.slf4j.helpers.NOPLogger
 import java.io.File
 import java.io.IOException
@@ -405,7 +406,7 @@ class FileSystemModuleRootResolver constructor(
 	{
 		val data = ByteBuffer.wrap(fileContents)
 		val path = Path.of(reference.uri)
-		val tempPath = path.parent.resolve("\$\$\$" + path.fileName)
+		val tempPath = path.parent.resolve(tempFilePrefix() + path.fileName)
 		val tempFile = fileManager.ioSystem.openFile(
 			tempPath,
 			EnumSet.of(
@@ -675,12 +676,13 @@ class FileSystemModuleRootResolver constructor(
 					throw IOException("alleged root is not a directory")
 				}
 
-				val fileName = file.fileName.toString()
-				if (fileName.uppercase() == ".DS_STORE")
+				if (shouldIgnorePath(file))
 				{
-					// Mac file to be ignored
+					// Either a Mac-specific file containing folder settings
+					// or a file still being written but not yet renamed.
 					return FileVisitResult.CONTINUE
 				}
+				val fileName = file.fileName.toString()
 
 				// A file with an Avail extension is an Avail module.
 				val parent = stack.peekFirst()!!
@@ -718,6 +720,21 @@ class FileSystemModuleRootResolver constructor(
 			{
 				return FileVisitResult.CONTINUE
 			}
+		}
+	}
+
+	/**
+	 * Answer whether to ignore notifications and visits for files with the
+	 * given name.
+	 */
+	private fun shouldIgnorePath(path: Path): Boolean
+	{
+		val fileName = path.fileName.toString()
+		return when
+		{
+			fileName.uppercase() == ".DS_STORE" -> true
+			fileName.startsWith(tempFilePrefix()) -> true
+			else -> false
 		}
 	}
 
@@ -770,14 +787,10 @@ class FileSystemModuleRootResolver constructor(
 
 		private fun resolveEvent (event: DirectoryChangeEvent)
 		{
-			// Mac stuff to ignore.
 			val path = event.path()
-			if (path.endsWith(".DS_Store"))
-			{
-				return
-			}
+			if (shouldIgnorePath(path)) return
 			val base = moduleRoot.resolver.uri
-			val uri = event.path()?.toUri() ?: return
+			val uri = path?.toUri() ?: return
 			val file = File(base.resolve(uri))
 			val isDirectory = file.isDirectory
 			val eventType = event.eventType()
@@ -875,5 +888,15 @@ class FileSystemModuleRootResolver constructor(
 				else -> {}
 			}
 		}
+	}
+
+	companion object
+	{
+		/**
+		 * A prefix to use for files while they're being written.  We ignore
+		 * notifications from the watcher about files starting with this
+		 * prefix.
+		 */
+		private fun tempFilePrefix() = "\$\$\$TEMPFILE\$\$\$-"
 	}
 }

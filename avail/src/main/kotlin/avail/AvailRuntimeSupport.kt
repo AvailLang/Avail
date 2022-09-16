@@ -33,11 +33,15 @@ package avail
 
 import avail.annotations.ThreadSafe
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.representation.AvailObject
 import avail.utility.ifZero
 import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.locks.ReentrantLock
+import javax.annotation.concurrent.GuardedBy
+import kotlin.concurrent.withLock
 
 /**
  * A static class for common Avail utility operations.
@@ -126,5 +130,117 @@ object AvailRuntimeSupport
 		 *   The current clock value.
 		 */
 		fun get(): Long = counter.get()
+	}
+
+	/**
+	 * The basic states of an [AvailLazyFuture].
+	 */
+	private enum class AvailLazyFutureState
+	{
+		/** The value has not yet been requested, and is not being computed. */
+		UNSTARTED,
+
+		/** The value is being computed. */
+		RUNNING,
+
+		/** The value has already been computed. */
+		FINISHED;
+	}
+
+	/**
+	 * An implementation of a lazy future, using the [runtime]'s execution pool.
+	 * If the value is never requested, it never not run the [computation].
+	 * Otherwise, the first invocation of [withValue] causes the [computation]
+	 * to run in a task (when it's safe to run interpreters).
+	 *
+	 * When the [computation] completes, any actions queued in the [waiters]
+	 * list by [withValue] will run, inside their own tasks.
+	 *
+	 * @constructor
+	 * Create an [AvailLazyFuture] which runs the [computation], once, if
+	 * requested.
+	 *
+	 * @property runtime
+	 *   The [AvailRuntime] responsible for executing the computation and
+	 *   actions.
+	 * @property priority
+	 *   The priority at which to run tasks.
+	 * @property computation
+	 *   The function to evaluate if anyone requests the lazy future's value.
+	 *   The function takes another function, supplied by the lazy future's
+	 *   internals, responsible for running any waiting actions.
+	 */
+	class AvailLazyFuture<T>
+	constructor(
+		val runtime: AvailRuntime,
+		val priority: Int = compilerPriority,
+		val computation: ((T)->Unit)->Unit)
+	{
+		/**
+		 * The lock that must be held when examining or manipulating the
+		 * future's internal state.
+		 */
+		private val mutex = ReentrantLock()
+
+		/** Which state the future is in. Only access when holding the mutex. */
+		@GuardedBy("mutex")
+		private var state = AvailLazyFutureState.UNSTARTED
+
+		/** The computed value, if any. Only access when holding the mutex. */
+		@GuardedBy("mutex")
+		private var value: T? = null
+
+		/**
+		 * The queued actions awaiting completion of the [computation]. Only
+		 * access when holding the mutex.
+		 */
+		@GuardedBy("mutex")
+		private var waiters: MutableList<(T)->Unit>? = null
+
+		/**
+		 * Ensure the given action will run with the result of the
+		 * [computation]. If this is the first request for this future, launch a
+		 * task to run the [computation], evaluating all [waiters] when
+		 * complete.  If the value has not yet been computed, add the action to
+		 * the [waiters].  If the value has been computed, just run the action.
+		 * Note that all evaluation takes place while interpreters may run.
+		 */
+		fun withValue(action: (T)->Unit) = mutex.withLock {
+			when (state)
+			{
+				AvailLazyFutureState.UNSTARTED ->
+				{
+					// Queue the action.
+					state = AvailLazyFutureState.RUNNING
+					assert(waiters === null)
+					waiters = mutableListOf(action)
+					// Start computing the value.
+					runtime.whenRunningInterpretersDo(priority) {
+						computation { newValue ->
+							val waitersToRun: List<(T)->Unit>
+							mutex.withLock {
+								assert(state == AvailLazyFutureState.RUNNING)
+								state = AvailLazyFutureState.FINISHED
+								value = newValue
+								waitersToRun = waiters!!
+								waiters = null
+							}
+							waitersToRun.forEach { waiter ->
+								runtime.whenRunningInterpretersDo(priority) {
+									waiter(newValue)
+								}
+							}
+						}
+					}
+				}
+				// Just queue the action.
+				AvailLazyFutureState.RUNNING -> waiters!!.add(action)
+				// Just run the action.
+				AvailLazyFutureState.FINISHED ->
+					runtime.whenRunningInterpretersDo(priority) {
+						action(value!!)
+					}
+			}
+		}
 	}
 }

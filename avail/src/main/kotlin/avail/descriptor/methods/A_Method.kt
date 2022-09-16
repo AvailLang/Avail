@@ -347,5 +347,25 @@ interface A_Method : A_ChunkDependable {
 		 */
 		val A_Method.testingTree: LookupTree<A_Definition, A_Tuple>
 			get() = dispatch { o_TestingTree(it) }
+
+		/**
+		 * This method's [set][A_Set] of [A_Styler]s.  A module must not define
+		 * more than one styler on the same [A_Method].
+		 *
+		 * When styling a phrase, the invoked method's set of stylers is
+		 * filtered to just those defined by modules in the current module's
+		 * ancestry.  If there are multiple applicable stylers, choose the one
+		 * that's closest to the current module.  If there is a tie for most
+		 * specific module, style the phrase in a way that indicates a styling
+		 * conflict.
+		 */
+		val A_Method.methodStylers: A_Set
+			get() = dispatch { o_MethodStylers(it) }
+
+		/**
+		 * Atomically update this definition's set of stylers.
+		 */
+		fun A_Method.updateStylers(updater: A_Set.() -> A_Set) =
+			dispatch { o_UpdateStylers(it, updater) }
 	}
 }

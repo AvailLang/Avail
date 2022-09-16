@@ -142,7 +142,8 @@ Public method "«Public»?_is a|an new⁇field⁇atom" is
 	theAtom ::= atom for atomName;
 	Macro atomName is [`theAtom`(atomName) → literal phrase];
 	Semantic restriction atomName is [theAtom's type];
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 /**
  * @method "«Public»?_is a|an new⁇field⁇atom"
@@ -206,7 +207,8 @@ Public method "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 	theAtom ::= new heritable fiber-local atom named atomName;
 	Macro atomName is [`theAtom`(atomName) → literal phrase];
 	Semantic restriction atomName is [theAtom's type];
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 /**
  * @method "«Public»?_is a new⁇heritable«fiber-local»⁇atom"

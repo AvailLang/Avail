@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/24/22, 7:06 PM
+ * * Last Generated: 9/1/22, 11:36 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -65,7 +65,7 @@ Uses
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
 		"Lexer_when_is_",
-		"Macro_is«_,»_",
+		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
 		"Remove current fiber[_]",
@@ -75,6 +75,10 @@ Uses
 		"Seal method_at_",
 		"Seal method|methods_at existing definitions",
 		"Semantic restriction_is_",
+		"Style fixed tokens of_with_«overwriting»?",
+		"Style method name_",
+		"Style span of_with_«overwriting»?",
+		"Style token_as_«overwriting»?",
 		"Style_with_",
 		"_'s⁇_field",
 		"_'s⁇initializing expression",
@@ -110,7 +114,7 @@ Uses
 		"_→tuple",
 		"_∈_",
 		"_∈current fiber",
-		"``_``(_)@_:_",
+		"``_``(_)@_:_«from phrase_»?",
 		"`|message_'s⁇parameters`|",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
@@ -1668,7 +1672,7 @@ Primitive "_has definition for_" is
 
 /**
  * Copy all macros defined for the first {@type bundle} into the second
- * {@type bundle}.
+ * {@type bundle}.  Only copy macros visible in the current module.
  *
  * @category "Primitives"
  * @method "Copy macros from_to_"
@@ -2440,16 +2444,19 @@ Primitive "Lexer_when_is_" is
  * multiply polymorphic dispatch just as do methods.
  *
  * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
- * @method "Macro_is«_,»_"
+ * @method "Macro_is«_,»_«styled by_»?"
  * @param "macroName" "string"
  *        The name of the macro to define.
  * @param "prefixFunctions" "<[…]→⊤…|>"
  *        A tuple of zero or more prefix functions.
  * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
+ * @param "optionalStyler" "<[<send phrase⇒⊤…|0..1>, phrase⇒⊤]→⊤…|0..1>"
+ *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
+ * @raises "styler-already-set-by-this-module exception"
  * @raises "incorrect-type-for-group exception"
  * @raises "macro-argument-must-be-a-phrase exception"
  * @raises "ambiguous-name exception"
@@ -2478,15 +2485,17 @@ Primitive "Lexer_when_is_" is
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
  */
-Primitive "Macro_is«_,»_" is
+Primitive "Macro_is«_,»_«styled by_»?" is
 [
 	macroName : string,
 	prefixFunctions : tuple of function,
-	body : macro function
+	body : macro function,
+	optionalStyler : optionalStylerFunction
 |
 	Primitive SimpleMacroDeclaration (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
+		styler-already-set-by-this-module code,
 		incorrect-type-for-group code,
 		macro-argument-must-be-a-phrase code,
 		ambiguous-name code,
@@ -2536,16 +2545,19 @@ Primitive "Macro_is«_,»_" is
  * multiply polymorphic dispatch just as do methods.
  *
  * @category "Primitives" "Name Resolution" "Methods" "Constructors" "Mutators"
- * @method "Macro_is«_,»_"
+ * @method "Macro_is«_,»_«styled by_»?"
  * @param "macroName" "atom"
  *        The name of the macro to define.
  * @param "prefixFunctions" "<[…]→⊤…|>"
  *        A tuple of zero or more prefix functions.
  * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
+ * @param "optionalStyler" "<[<send phrase⇒⊤…|0..1>, phrase⇒⊤]→⊤…|0..1>"
+ *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
+ * @raises "styler-already-set-by-this-module exception"
  * @raises "incorrect-type-for-group exception"
  * @raises "macro-argument-must-be-a-phrase exception"
  * @raises "exclamation-mark-must-follow-an-alternation-group exception"
@@ -2573,15 +2585,17 @@ Primitive "Macro_is«_,»_" is
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
  */
-Primitive "Macro_is«_,»_" is
+Primitive "Macro_is«_,»_«styled by_»?" is
 [
 	macroName : atom,
 	prefixFunctions : tuple of function,
-	body : macro function
+	body : macro function,
+	optionalStyler : optionalStylerFunction
 |
 	Primitive SimpleMacroDefinitionForAtom (failureCode : {
 		incorrect-number-of-arguments code,
 		incorrect-argument-type code,
+		styler-already-set-by-this-module code,
 		incorrect-type-for-group code,
 		macro-argument-must-be-a-phrase code,
 		exclamation-mark-must-follow-an-alternation-group code,
@@ -3075,7 +3089,7 @@ Primitive "first-of-seq`«_`»" is
  * Construct and answer a literal token.
  *
  * @category "Primitives" "Tokens" "Constructors"
- * @method "``_``(_)@_:_"
+ * @method "``_``(_)@_:_«from phrase_»?"
  * @param "value" "any"
  *        The value of the literal.
  * @param "lexeme" "string"
@@ -3086,17 +3100,21 @@ Primitive "first-of-seq`«_`»" is
  * @param "line" "[0..∞)"
  *        The one-based line number of the literal. A {@code 0}
  *        indicates that the line number is unknown or meaningless.
+ * @param "optionalGeneratingPhrase" "<phrase⇒⊤…|0..1>"
+ *        The optional phrase from which this token is considered to have been
+ *        constructed.
  * @returns "literal token⇒any"
  *          The requested literal token.
  * @raises "exceeds-VM-limit exception"
  *         If a numeric parameter is outside the range supported by the VM.
  */
-Primitive "``_``(_)@_:_" is
+Primitive "``_``(_)@_:_«from phrase_»?" is
 [
 	value : any,
 	lexeme : string,
 	start : whole number,
-	line : whole number
+	line : whole number,
+	optionalGeneratingPhrase : optionalPhrase
 |
 	Primitive CreateLiteralToken (failureCode : {
 		exceeds-VM-limit code}ᵀ);
@@ -3728,18 +3746,19 @@ Primitive "_[_]:=_" is
 ] : ⊤;
 
 /**
- * Associate a styler function with this definition. The styling mechanism is
- * applied to each top-level phrase of a module to style its tokens. Of the
- * definitions that have stylers from visible modules, choose the most specific
- * definition, then choose the styler from most specific module within that set.
- * If there is no most specific definition or module, a special conflict style
- * will be produced instead, to indicate this conflict.
+ * Associate a styler function with this atom's bundle's method. The styling
+ * mechanism is applied to each top-level phrase of a module to style its
+ * tokens. Of the stylers from visible modules, choose the styler of the most
+ * specific module.
+ *
+ * If there is no most specific module, a special conflict style will be
+ * produced instead, to indicate this conflict.
  *
  * @category "Primitives"
  * @method "Style_with_"
- * @param "definition" "definition"
- *        The definition for which invocations should be styled.
- * @param "function" "[send phrase⇒⊤, ↑{send phrase⇒⊤→style|}, ↑{token→style|}, ↑{token→token|}]→⊤"
+ * @param "anAtom" "atom"
+ *        The bundle for which invocations should be styled.
+ * @param "aFunction" "[<send phrase⇒⊤…|0..1>, phrase⇒⊤]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"
@@ -3764,14 +3783,13 @@ Primitive "_[_]:=_" is
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
- * @raises "{28}"
  */
 Primitive "Style_with_" is
 [
-	definition : definition,
-	function : styler function
+	anAtom : atom,
+	aFunction : styler function
 |
-	Primitive SetStyleFunction (failureCode : {
+	Primitive SetStylerFunction (failureCode : {
 		incorrect-argument-type code,
 		styler-already-set-by-this-module code,
 		incorrect-type-for-group code,
@@ -3794,6 +3812,107 @@ Primitive "Style_with_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Apply the given style to the fixed tokens of the specified phrase.
+ *
+ * @category "Primitives"
+ * @method "Style fixed tokens of_with_«overwriting»?"
+ * @param "phrase" "phrase⇒⊤"
+ *    The phrase to style. Subexpressions are not styled.
+ * @param "styleName" "string"
+ *    The name of the style to apply.
+ * @param "overwriting" "boolean"
+ *    Whether to overwrite existing styles of the affected tokens.
+ * @returns "⊤"
+ * @raises "cannot-style exception"
+ */
+Primitive "Style fixed tokens of_with_«overwriting»?" is
+[
+	phrase : phrase,
+	styleName : string,
+	overwriting : boolean
+|
+	Primitive StyleFixedTokensOfPhrase (failureCode : {
+		cannot-style code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Apply the bootstrap method name styler to the specified method name. Awards
+ * a distinct style to literal character data ({@code "#string-literal"}),
+ * character escapes and literal delimiters
+ * ({@code "#string-escape-sequence"}), and method name metacharacters
+ * ({@code "#method-name"}).
+ *
+ * @category "Primitives"
+ * @method "Style method name_"
+ * @param "methodName" "literal phrase⇒literal token⇒string"
+ *    The string literal phrase to style as a method name.
+ * @returns "⊤"
+ * @raises "cannot-style exception"
+ */
+Primitive "Style method name_" is
+[
+	methodName : string literal phrase
+|
+	Primitive StyleMethodName (failureCode : {
+		cannot-style code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Apply the given style to the contiguous span of source bounded by all tokens
+ * within the given phrase and its constituents.
+ *
+ * @category "Primitives"
+ * @method "Style span of_with_«overwriting»?"
+ * @param "phrase" "phrase⇒⊤"
+ *        The phrase to style.
+ * @param "styleName" "string"
+ *        The name of the style to apply.
+ * @param "overwriting" "boolean"
+ *        Whether to overwrite existing styles in this span.
+ * @returns "⊤"
+ * @raises "cannot-style exception"
+ */
+Primitive "Style span of_with_«overwriting»?" is
+[
+	phrase : phrase,
+	styleName : string,
+	overwriting : boolean
+|
+	Primitive StyleSpanOfPhrase (failureCode : {
+		cannot-style code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Apply the given style name to the region of the current module covered by the
+ * given token.  If `overwriting` is true, replace the style entirely for that
+ * region, otherwise merge the style with the existing styles in that region.
+ *
+ * @category "Primitives"
+ * @method "Style token_as_«overwriting»?"
+ * @param "token" "token"
+ *        The token to style.
+ * @param "styleName" "string"
+ *        The name of the style to apply.
+ * @param "overwriting" "boolean"
+ *        `true` to completely overwrite the style, `false` to merge them.
+ * @returns "⊤"
+ * @raises "cannot-style exception"
+ */
+Primitive "Style token_as_«overwriting»?" is
+[
+	token : token,
+	styleName : string,
+	overwriting : boolean
+|
+	Primitive StyleToken (failureCode : {
+		cannot-style code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

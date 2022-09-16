@@ -57,29 +57,36 @@ Body
  *          ¬{@method "predicate"}.
  * @category "Logic"
  */
-Public stable method "¬_" is
+Public method "¬_" is
 [
 	predicate : boolean
 |
-	false
+	predicate = false
 ] : boolean;
 
-/**
- * Compute and answer the logical negation, i.e., NOT, of the argument.
- *
- * @method "¬_"
- * @param "predicate" "false's type"
- *        A boolean.
- * @returns "true's type"
- *          ¬{@method "predicate"}.
- * @category "Logic"
- */
-Method "¬_" is
+/** Generate the comparison in the caller, if possible. */
+Public macro "¬_" is
 [
-	predicate : false's type
+	predicate : expression phrase ⇒ boolean
 |
-	true
-] : true's type;
+	⟦⦊predicate⦉ = false⟧
+] : expression phrase ⇒ boolean;
+
+/** Override when predicate is always true. */
+Public macro "¬_" is
+[
+	predicate : expression phrase ⇒ true's type
+|
+	⟦false⟧
+] : expression phrase ⇒ false's type;
+
+/** Override when predicate is always false. */
+Public macro "¬_" is
+[
+	predicate : expression phrase ⇒ false's type
+|
+	⟦true⟧
+] : expression phrase ⇒ true's type;
 
 /**
  * Compute and answer the logical conjunction, i.e., AND, of the arguments.

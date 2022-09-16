@@ -88,6 +88,7 @@ Body
  * @category "Data Abstractions" "Iterators"
  * @type "iterator"
  */
+
 Public explicit class "iterator" extends object
 	with fields
 		element type : any's type;

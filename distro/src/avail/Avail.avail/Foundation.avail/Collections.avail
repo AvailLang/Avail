@@ -34,7 +34,8 @@ Module "Collections"
 Versions
 	"Avail-1.6.1"
 Uses
-	"Bootstrap"
+	"Bootstrap",
+	"Definers"
 Names
 	/* The definitions are provided by Tuples, Sets, and Maps, but the names
 	 * are introduced here.
@@ -50,7 +51,6 @@ Names
 	"each…in|of_§satisfies_",
 	"filter_by_",
 	"reject each…from_§where_",
-	"reject each…,…from_§where_",
 	"select each…from_§where_",
 	"group each…in|of_§by_",
 	"group_by_",
@@ -58,7 +58,37 @@ Names
 	"map_through_",
 	"map each…in|of_§through_",
 	"only_",
+	"_is collection",
+	"_is collection type",
 	"_is empty",
 	"_[_]else_",
 	"_∉_"
 Body
+
+/**
+ * Answers {@method "true"} if the argument is a collection.
+ *
+ * @param "x" "any"
+ *    The argument to query.
+ * @returns "boolean"
+ *    {@method "true"} iff the argument is a collection, or {@method "false"}
+ *    otherwise.
+ */
+Method "_is collection" is [x : any | false] : boolean;
+
+/**
+ * Answers {@method "true"} if the argument is a collection type.
+ *
+ * @param "x" "any"
+ *    The argument to query.
+ * @returns "boolean"
+ *    {@method "true"} iff the argument is a collection type, or
+ *    {@method "false"} otherwise.
+ */
+Method "_is collection type" is [x : any | false] : boolean;
+
+Method "_is collection" is stable at
+	function accepting <any> and returning boolean;
+
+Method "_is collection type" is stable at
+	function accepting <any> and returning boolean;

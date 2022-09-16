@@ -42,7 +42,6 @@ import avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.EXPRESSION
 import avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.TYPE_FOR_LOOKUP
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
@@ -72,8 +71,8 @@ class SuperCastPhraseDescriptor private constructor(
 	mutability,
 	TypeTag.SUPER_CAST_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -105,13 +104,13 @@ class SuperCastPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(EXPRESSION))
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(EXPRESSION, transformer(self.slot(EXPRESSION)))
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(EXPRESSION, transformer)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
@@ -123,7 +122,7 @@ class SuperCastPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.expression.equals(aPhrase.expression)
+		&& self.expression.equalsPhrase(aPhrase.expression)
 		&& self.superUnionType.equals(aPhrase.superUnionType))
 
 	/**
@@ -138,11 +137,6 @@ class SuperCastPhraseDescriptor private constructor(
 	 */
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(TYPE_FOR_LOOKUP)
-
-	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(EXPRESSION).hash(),
-		self.slot(TYPE_FOR_LOOKUP).hash(),
-		0x5035ebe5)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean = true
 
@@ -165,13 +159,6 @@ class SuperCastPhraseDescriptor private constructor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		self.slot(EXPRESSION).tokens
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -216,6 +203,7 @@ class SuperCastPhraseDescriptor private constructor(
 		): A_Phrase = mutable.createShared {
 			setSlot(EXPRESSION, expression)
 			setSlot(TYPE_FOR_LOOKUP, superUnionType)
+			initHash()
 		}
 
 		/** The mutable [SuperCastPhraseDescriptor]. */

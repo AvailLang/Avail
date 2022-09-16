@@ -152,15 +152,15 @@ interface A_Bundle : A_BasicObject {
 			get() = dispatch { o_HasGrammaticalRestrictions(it) }
 
 		/**
-		 * Look up the macro [A_Definition] to invoke, given an [A_Tuple] of
-		 * argument phrases.  Use the [A_Method]'s macro testing tree to find the
-		 * macro definition to invoke.  Answer the [A_Tuple] of applicable macro
-		 * definitions.
+		 * Look up the [A_Macro] definition to invoke, given an [A_Tuple] of
+		 * argument phrases.  Use the [A_Bundle]'s macro testing tree to find
+		 * the macro definition to invoke.  Answer the [A_Tuple] of applicable
+		 * macro definitions.
 		 *
 		 * Note that this testing tree approach is only applicable if all of the
 		 * macro definitions are visible (defined in the current module or an
-		 * ancestor.  That should be the *vast* majority of the use of macros, but
-		 * when it isn't, other lookup approaches are necessary.
+		 * ancestor.  That should be the *vast* majority of the use of macros,
+		 * but when it isn't, other lookup approaches are necessary.
 		 *
 		 * @param argumentPhraseTuple
 		 *   The argument phrases destined to be transformed by the macro.

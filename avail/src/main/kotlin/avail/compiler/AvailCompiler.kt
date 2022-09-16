@@ -73,6 +73,7 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.lookupMacroByPhraseTuple
 import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import avail.descriptor.bundles.A_Bundle.Companion.message
+import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.expand
@@ -83,9 +84,9 @@ import avail.descriptor.bundles.A_BundleTree.Companion.lazyComplete
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyIncomplete
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyIncompleteCaseInsensitive
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyPrefilterMap
-import avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
+import avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTree
 import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.bundles.MessageBundleTreeDescriptor
+import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.ParserTypeChecker
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
@@ -124,6 +125,7 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
@@ -153,7 +155,6 @@ import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
@@ -163,7 +164,9 @@ import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
@@ -197,11 +200,11 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCA
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.phrases.ListPhraseDescriptor.Companion.emptyListNode
 import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
-import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
 import avail.descriptor.phrases.MarkerPhraseDescriptor.Companion.newMarkerNode
 import avail.descriptor.phrases.PhraseDescriptor
+import avail.descriptor.phrases.PhraseDescriptor.Companion.treeDoWithParent
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
@@ -219,7 +222,6 @@ import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import avail.descriptor.tokens.A_Token
-import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor.TokenType.COMMENT
 import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
@@ -283,6 +285,7 @@ import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
+import avail.interpreter.execution.AvailLoader.Phase.STYLING_HEADER
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
@@ -294,14 +297,15 @@ import avail.performance.StatisticReport.TYPE_CHECKING_FOR_PARSER
 import avail.persistence.cache.Repository
 import avail.utility.Mutable
 import avail.utility.PrefixSharingList.Companion.append
-import avail.utility.StackPrinter.Companion.trace
+import avail.utility.PrefixSharingList.Companion.withoutLast
 import avail.utility.Strings.increaseIndentation
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
 import avail.utility.safeWrite
-import java.util.Arrays
+import avail.utility.trace
 import java.util.Collections.emptyList
 import java.util.Formatter
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
@@ -360,15 +364,13 @@ class AvailCompiler constructor(
 	val compilationContext = CompilationContext(
 		moduleHeader,
 		module,
-		source,
+		source.makeShared(),
 		textInterface,
 		pollForAbort,
 		progressReporter,
 		problemHandler)
-
 	/** The memoization of results of previous parsing attempts. */
 	private val fragmentCache = AvailCompilerFragmentCache()
-
 	/**
 	 * The Avail [A_String] containing the complete content of the module
 	 * being compiled.
@@ -388,9 +390,8 @@ class AvailCompiler constructor(
 	 * @return
 	 *   The module name.
 	 */
-	private val moduleName get() = ModuleName(
-		compilationContext.module.moduleNameNative)
-
+	private val moduleName
+		get() = ModuleName(compilationContext.module.moduleNameNative)
 	/**
 	 * A list of subexpressions being parsed, represented by
 	 * [message&#32;bundle&#32;trees][A_BundleTree] holding the positions
@@ -459,7 +460,7 @@ class AvailCompiler constructor(
 			builder.append(pointer.depth)
 			builder.append(". ")
 			val bundleTree = pointer.bundleTree
-			if (bundleTree.equals(compilationContext.loader.rootBundleTree()))
+			if (bundleTree.equals(compilationContext.loader.rootBundleTree))
 			{
 				builder.append("an expression")
 			}
@@ -471,7 +472,8 @@ class AvailCompiler constructor(
 				bundles.sortedBy { it.message.atomName.asNativeString() }
 				var first = true
 				val maxBundles = 3
-				for (bundle in bundles.subList(0, min(bundles.size,maxBundles)))
+				for (bundle in
+					bundles.subList(0, min(bundles.size, maxBundles)))
 				{
 					if (!first)
 					{
@@ -479,7 +481,7 @@ class AvailCompiler constructor(
 					}
 					val plans = bundlesMap.mapAt(bundle)
 					// Pick an active plan arbitrarily for this bundle.
-					val plansInProgress = plans.mapIterable.next().value()
+					val plansInProgress = plans.mapIterable.first().value()
 					val planInProgress = plansInProgress.first()
 					// Adjust the pc to refer to the actual instruction that
 					// caused the argument parse, not the successor instruction
@@ -518,7 +520,6 @@ class AvailCompiler constructor(
 		acceptAnswer: (ParserState, A_Phrase)->Unit)
 	{
 		val solutions = mutableListOf<CompilerSolution>()
-
 		// Set up an action to perform when the last work unit for this compiler
 		// has completed.  That's the moment when we can check how many
 		// solutions were actually found.
@@ -555,8 +556,7 @@ class AvailCompiler constructor(
 			}
 		}
 		start.workUnitDo {
-			parseExpressionThen(start, null) {
-				afterExpression, expression ->
+			parseExpressionThen(start, null) { afterExpression, expression ->
 				when
 				{
 					expression.phraseKindIsUnder(STATEMENT_PHRASE) ->
@@ -576,7 +576,9 @@ class AvailCompiler constructor(
 				if (token.tokenType() == END_OF_FILE)
 				{
 					captureOneMoreSolution(
-						CompilerSolution(start, endOfFileMarkerPhrase),
+						CompilerSolution(
+							ParserState(token.nextLexingState(), emptyMap),
+							endOfFileMarkerPhrase),
 						solutions)
 				}
 			}
@@ -623,7 +625,7 @@ class AvailCompiler constructor(
 	{
 		val phrase1 = Mutable(interpretation1)
 		val phrase2 = Mutable(interpretation2)
-		if (phrase1.value.equals(phrase2.value))
+		if (phrase1.value.equalsPhrase(phrase2.value))
 		{
 			where.expected(
 				STRONG,
@@ -639,7 +641,7 @@ class AvailCompiler constructor(
 		else
 		{
 			findParseTreeDiscriminants(phrase1, phrase2)
-			val tokens = phrase1.value.tokens
+			val tokens = phrase1.value.allTokens
 			val line =
 				if (tokens.tupleSize > 0) tokens.tupleAt(1).lineNumber()
 				else 0
@@ -682,20 +684,38 @@ class AvailCompiler constructor(
 					STRONG,
 					listOf(phrase1.value, phrase2.value)
 				) { (print1, print2) ->
-					if (print1 == print2)
-					{
-						("unambiguous interpretation near line $line. "
-							+ "At least two parses produced unequal but "
-							+ "same-looking phrases:\n\t"
-							+ print1)
-					}
-					else
+					if (print1 != print2)
 					{
 						("unambiguous interpretation near line $line. "
 							+ "Here are two possible parsings...\n\t"
 							+ print1
 							+ "\n\t"
 							+ print2)
+					}
+					else if (phrase1.value.isInstanceOfKind(
+							SEND_PHRASE.mostGeneralType)
+						&& phrase2.value.isInstanceOfKind(
+							SEND_PHRASE.mostGeneralType))
+					{
+						val atom1 = phrase1.value.bundle.message
+						val atom2 = phrase2.value.bundle.message
+						val addendum = when
+						{
+							atom1.equals(atom2) -> ""
+							else -> ("\n...and the bundle atoms are:\n" +
+								"\t$atom1 and\n\t$atom2")
+						}
+						("unambiguous interpretation near line $line. "
+							+ "At least two parses produced unequal but "
+							+ "same-looking phrases:\n\t"
+							+ "\t$print1$addendum")
+					}
+					else
+					{
+						("unambiguous interpretation near line $line. "
+							+ "At least two parses produced unequal but "
+							+ "same-looking phrases:\n\t"
+							+ "\t$print1")
 					}
 				}
 			}
@@ -726,7 +746,6 @@ class AvailCompiler constructor(
 	private fun rollbackModuleTransaction(afterRollback: ()->Unit) =
 		compilationContext.module.removeFrom(
 			compilationContext.loader, afterRollback)
-
 	/**
 	 * Commit the [module][A_Module] that was defined since the most recent
 	 * [startModuleTransaction].  This also closes the module against further
@@ -735,7 +754,6 @@ class AvailCompiler constructor(
 	 */
 	private fun commitModuleTransaction() =
 		compilationContext.runtime.addModule(compilationContext.module)
-
 	/**
 	 * Evaluate the specified semantic restriction [function][A_Function] in the
 	 * module's context; lexically enclosing variables are not considered in
@@ -876,7 +894,6 @@ class AvailCompiler constructor(
 			nil,
 			mutableListOf(),
 			declarationRemap)
-
 		val phraseFailure = { e: Throwable ->
 			when (e)
 			{
@@ -931,9 +948,9 @@ class AvailCompiler constructor(
 					afterStatement.expected(
 						STRONG,
 						"new module constant "
-						+ name
-						+ " not to have same name as existing "
-						+ shadowProblem)
+							+ name
+							+ " not to have same name as existing "
+							+ shadowProblem)
 					compilationContext.diagnostics.reportError()
 					return
 				}
@@ -1027,9 +1044,9 @@ class AvailCompiler constructor(
 					afterStatement.expected(
 						STRONG,
 						"new module variable "
-						+ name
-						+ " not to have same name as existing "
-						+ shadowProblem)
+							+ name
+							+ " not to have same name as existing "
+							+ shadowProblem)
 					compilationContext.diagnostics.reportError()
 					return
 				}
@@ -1159,7 +1176,7 @@ class AvailCompiler constructor(
 						// positions.
 						val strings = mutableSetOf<String>()
 						nextTree.allParsingPlansInProgress.forEach {
-							bundle, definitions ->
+								bundle, definitions ->
 							definitions.forEach { _, plans ->
 								plans.forEach { inProgress ->
 									val previousPlan = newPlanInProgress(
@@ -1251,7 +1268,7 @@ class AvailCompiler constructor(
 	{
 		val loader = compilationContext.loader
 		parseRestOfSendNode(
-			loader.rootBundleTree(),
+			loader.rootBundleTree,
 			ParsingStepState(
 				start,
 				null,
@@ -1262,7 +1279,7 @@ class AvailCompiler constructor(
 				false,
 				emptyList(),
 				PartialSubexpressionList(
-					loader.rootBundleTree(), superexpressions),
+					loader.rootBundleTree, superexpressions),
 				continuation))
 	}
 
@@ -1290,7 +1307,7 @@ class AvailCompiler constructor(
 		assert(start.lexingState != initialTokenPosition.lexingState)
 		val loader = compilationContext.loader
 		parseRestOfSendNode(
-			loader.rootBundleTree(),
+			loader.rootBundleTree,
 			ParsingStepState(
 				start,
 				leadingArgument,
@@ -1301,7 +1318,7 @@ class AvailCompiler constructor(
 				false,
 				emptyList(),
 				PartialSubexpressionList(
-					loader.rootBundleTree(), superexpressions),
+					loader.rootBundleTree, superexpressions),
 				continuation))
 	}
 
@@ -1397,7 +1414,7 @@ class AvailCompiler constructor(
 			if (stepState.consumedAnything)
 			{
 				val complete = bundleTree.lazyComplete
-				if (complete.setSize > 0)
+				if (complete.mapSize > 0)
 				{
 					// There are complete messages, we didn't leave a leading
 					// argument stranded, and we made progress in the file
@@ -1405,19 +1422,19 @@ class AvailCompiler constructor(
 					assert(stepState.marksSoFar.isEmpty())
 					assert(stepState.argsSoFar.size == 1)
 					val args = stepState.argsSoFar[0]
-					for (bundle in complete)
-					{
+					complete.forEach { bundle: A_Bundle, definitions: A_Set ->
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							println(
 								"Completed send/macro: ${bundle.message} "
-								+ "$args")
+									+ "$args")
 						}
 						completedSendNode(
 							stepState.initialTokenPosition,
 							stepState.start,
 							args,
 							bundle,
+							definitions,
 							stepState.consumedStaticTokens,
 							stepState.continuation)
 					}
@@ -1449,7 +1466,7 @@ class AvailCompiler constructor(
 						{
 							println(
 								"Grammatical prefilter: $argumentBundle to "
-								+ "$successor")
+									+ "$successor")
 						}
 						eventuallyParseRestOfSendNode(
 							successor, stepState.copy())
@@ -1463,19 +1480,18 @@ class AvailCompiler constructor(
 					// default check-argument action if it's present.
 				}
 			}
-			val typeFilterTreePojo = bundleTree.lazyTypeFilterTreePojo
-			if (typeFilterTreePojo.notNil)
+			val typeFilterTree = bundleTree.lazyTypeFilterTree
+			if (typeFilterTree != null)
 			{
 				// Use the most recently pushed phrase's type to look up the
 				// successor bundle tree.  This implements type filtering for
 				// aggregated arguments.
 				val latestPhrase = stepState.argsSoFar.last()
-				val successor =
-					MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
-						typeFilterTreePojo.javaObjectNotNull(),
-						latestPhrase,
-						bundleTree.latestBackwardJump,
-						typeCheckArgumentStat)
+				val successor = ParserTypeChecker.lookupByValue(
+					typeFilterTree,
+					latestPhrase,
+					bundleTree.latestBackwardJump,
+					typeCheckArgumentStat)
 				if (AvailRuntimeConfiguration.debugCompilerSteps)
 				{
 					println("Type filter: $latestPhrase -> $successor")
@@ -1620,7 +1636,8 @@ class AvailCompiler constructor(
 					{
 						val strings = tokens.mapTo(
 							mutableSetOf(),
-							when {
+							when
+							{
 								caseInsensitive -> A_Token::lowerCaseString
 								else -> A_Token::string
 							})
@@ -1731,7 +1748,8 @@ class AvailCompiler constructor(
 				append("phrase to have a type other than:\n\t\t")
 				append(increaseIndentation(actualTypeString, 2))
 				append(".\n\tExpecting:")
-				for ((planString, types) in entries) {
+				for ((planString, types) in entries)
+				{
 					append("\n\t\t")
 					append(planString)
 					append("   ")
@@ -1777,23 +1795,23 @@ class AvailCompiler constructor(
 			{
 				println(
 					"Instr @"
-					+ stepState.start.shortString()
-					+ ": "
-					+ op.name
-					+ " ("
-					+ operand(instruction)
-					+ ") -> "
-					+ successorTree)
+						+ stepState.start.shortString()
+						+ ": "
+						+ op.name
+						+ " ("
+						+ operand(instruction)
+						+ ") -> "
+						+ successorTree)
 			}
 			else
 			{
 				println(
 					"Instr @"
-					+ stepState.start.shortString()
-					+ ": "
-					+ op.name
-					+ " -> "
-					+ successorTree)
+						+ stepState.start.shortString()
+						+ ": "
+						+ op.name
+						+ " -> "
+						+ successorTree)
 			}
 		}
 		val timeBefore = captureNanos()
@@ -2037,40 +2055,41 @@ class AvailCompiler constructor(
 				restriction,
 				argTypes,
 				state.lexingState,
-				intersectAndDecrement) { e ->
-					if (e is AvailAcceptedParseException)
-					{
-						// This is really a success.
-						intersectAndDecrement(TOP.o)
-						return@evaluateSemanticRestrictionFunctionThen
-					}
-					when (e)
-					{
-						is AvailRejectedParseException -> state.expected(
-							e.level,
-							e.rejectionString.asNativeString()
-								+ " (while parsing send of "
-								+ bundle.message
-								.atomName.asNativeString()
-								+ ")")
-						is FiberTerminationException -> state.expected(
-							STRONG,
-							"semantic restriction not to raise an "
-								+ "unhandled exception (while parsing "
-								+ "send of "
-								+ bundle.message.atomName.asNativeString()
-								+ "):\n\t"
-								+ e)
-						else -> state.expected(
-							STRONG,
-							FormattingDescriber(
-								"unexpected error: %s", e))
-					}
-					failureCount.incrementAndGet()
-					if (outstanding.decrementAndGet() == 0)
-					{
-						whenDone()
-					}
+				intersectAndDecrement
+			) { e ->
+				if (e is AvailAcceptedParseException)
+				{
+					// This is really a success.
+					intersectAndDecrement(TOP.o)
+					return@evaluateSemanticRestrictionFunctionThen
+				}
+				when (e)
+				{
+					is AvailRejectedParseException -> state.expected(
+						e.level,
+						e.rejectionString.asNativeString()
+							+ " (while parsing send of "
+							+ bundle.message
+							.atomName.asNativeString()
+							+ ")")
+					is FiberTerminationException -> state.expected(
+						STRONG,
+						"semantic restriction not to raise an "
+							+ "unhandled exception (while parsing "
+							+ "send of "
+							+ bundle.message.atomName.asNativeString()
+							+ "):\n\t"
+							+ e)
+					else -> state.expected(
+						STRONG,
+						FormattingDescriber(
+							"unexpected error: %s", e))
+				}
+				failureCount.incrementAndGet()
+				if (outstanding.decrementAndGet() == 0)
+				{
+					whenDone()
+				}
 			}
 		}
 	}
@@ -2107,8 +2126,9 @@ class AvailCompiler constructor(
 		macrosTuple: A_Tuple,
 		scopeModule: A_Module): Describer
 	{
-		assert((definitionsTuple.tupleSize > 0)
-			xor (macrosTuple.tupleSize > 0))
+		assert(
+			(definitionsTuple.tupleSize > 0)
+				xor (macrosTuple.tupleSize > 0))
 		return { c ->
 			val kindOfDefinition = when
 			{
@@ -2196,7 +2216,7 @@ class AvailCompiler constructor(
 				val builder = Formatter()
 				builder.format(
 					"arguments at indices %s of message %s to "
-					+ "match a visible %s definition:%n",
+						+ "match a visible %s definition:%n",
 					allFailedIndices,
 					bundle.message.atomName,
 					kindOfDefinition)
@@ -2232,8 +2252,8 @@ class AvailCompiler constructor(
 				{
 					c(
 						"[[[Internal problem - No visible implementations;"
-						+ " should have been excluded.]]]\n"
-						+ builder)
+							+ " should have been excluded.]]]\n"
+							+ builder)
 				}
 				else
 				{
@@ -2260,6 +2280,11 @@ class AvailCompiler constructor(
 	 * @param bundle
 	 *   The [message&#32;bundle][MessageBundleDescriptor] that identifies the
 	 *   message to be sent.
+	 * @param reachedDefinitions
+	 *   The [A_Set] of [A_Sendable] macro and method definitions that the
+	 *   parser was able to ascertain were reached at this point.  Note that
+	 *   macros with prefix functions may have had to parse some more general
+	 *   macro definitions, which will have to be pruned.
 	 * @param consumedTokens
 	 *   The list of all tokens collected for this send phrase.  This includes
 	 *   only those tokens that are operator or keyword tokens that correspond
@@ -2272,6 +2297,7 @@ class AvailCompiler constructor(
 		stateAfterCall: ParserState,
 		argumentsListNode: A_Phrase,
 		bundle: A_Bundle,
+		reachedDefinitions: A_Set,
 		consumedTokens: List<A_Token>,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
@@ -2283,8 +2309,8 @@ class AvailCompiler constructor(
 			stateAfterCall.expected(
 				STRONG,
 				"there to be a method or macro definition for "
-				+ bundle.message
-				+ ", but there wasn't")
+					+ bundle.message
+					+ ", but there wasn't")
 			return
 		}
 
@@ -2365,7 +2391,10 @@ class AvailCompiler constructor(
 				// Failed lookup.
 				when (errorCode)
 				{
-					E_NO_METHOD_DEFINITION -> { } // fall through
+					E_NO_METHOD_DEFINITION ->
+					{
+						// fall through
+					}
 					E_AMBIGUOUS_METHOD_DEFINITION ->
 					{
 						stateAfterCall.expected(MEDIUM) {
@@ -2449,13 +2478,11 @@ class AvailCompiler constructor(
 					stateAfterCall,
 					argumentsListNode,
 					bundle,
+					reachedDefinitions,
 					consumedTokens,
 					macro,
-					expectedYieldType
-				) { endState, macroPhrase ->
-					assert(macroPhrase.isMacroSubstitutionNode)
-					continuation(endState, macroPhrase)
-				}
+					expectedYieldType,
+					continuation)
 			}
 		}
 	}
@@ -2499,7 +2526,6 @@ class AvailCompiler constructor(
 			// argument was explicitly provided to the parser.  We should
 			// consume the provided first argument now.
 			assert(!canReallyParse)
-
 			// wrapInLiteral allows us to accept anything, even expressions that
 			// are ⊤- or ⊥-valued.
 			if (wrapInLiteral)
@@ -2529,7 +2555,7 @@ class AvailCompiler constructor(
 			return
 		}
 		parseExpressionThen(start, superexpressions) {
-			afterArgument, argument ->
+				afterArgument, argument ->
 			// Only accept a ⊤-valued or ⊥-valued expression if
 			// wrapInLiteral is true.
 			if (!wrapInLiteral)
@@ -2651,6 +2677,17 @@ class AvailCompiler constructor(
 	 * A macro invocation has just been parsed.  Run its body now to produce a
 	 * substitute phrase.
 	 *
+	 * Prefix functions (§) that were encountered along the way could have
+	 * caused divergence of the bundle trees, where each applicable-at-that-time
+	 * macro definition is explored separately.  Now that we've reached the end,
+	 * and all arguments have passed their individual type checks along the way,
+	 * we must determine, for the actual types of the argument phrases, whether
+	 * to prune the current parse.  We do this if there is a more specific macro
+	 * definition, still applicable to the actual argument phrases, than the one
+	 * we think we've parsed.  The macro application rules state that the more
+	 * general macro definitions in this case will be excluded, which we do here
+	 * by pruning.
+	 *
 	 * @param stateAfterCall
 	 *   The parsing state after the message.
 	 * @param argumentsListNode
@@ -2659,6 +2696,10 @@ class AvailCompiler constructor(
 	 * @param bundle
 	 *   The [message&#32;bundle][MessageBundleDescriptor] that identifies the
 	 *   message to be sent.
+	 * @param reachedDefinitions
+	 *   The [A_Set] of [A_Sendable] macro definitions that were successfully
+	 *   parsed at this point.  Some of them may become excluded due to there
+	 *   being a more specific macro definition present.
 	 * @param consumedTokens
 	 *   The list of all tokens collected for this send phrase.  This includes
 	 *   only those tokens that are operator or keyword tokens that correspond
@@ -2672,24 +2713,44 @@ class AvailCompiler constructor(
 	 *   returned by the macro body, although if it's not a send phrase then the
 	 *   resulting phrase is *checked* against this expected yield type instead.
 	 * @param continuation
-	 *   What to do with the resulting send phrase solution.
+	 *   What to do with the resulting macro substitution phrase or send phrase.
 	 */
 	private fun completedSendNodeForMacro(
 		stateAfterCall: ParserState,
 		argumentsListNode: A_Phrase,
 		bundle: A_Bundle,
+		reachedDefinitions: A_Set,
 		consumedTokens: List<A_Token>,
 		macroDefinitionToInvoke: A_Macro,
 		expectedYieldType: A_Type,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
-		val argumentsTuple = argumentsListNode.expressionsTuple
-		// Strip off macro substitution wrappers from the arguments.  These were
-		// preserved only long enough to test grammatical restrictions.
-		val argumentsList = mutableListOf<A_Phrase>()
-		for (argument in argumentsTuple)
+		val argumentsList = argumentsListNode.expressionsTuple.toList()
+		if (bundle.messageSplitter.numberOfSectionCheckpoints > 0
+			&& !reachedDefinitions.hasElement(macroDefinitionToInvoke))
 		{
-			argumentsList.add(argument)
+			// An earlier prefix function caused bifurcation of the bundle tree,
+			// allowing macro definitions that don't end up being most specific
+			// (for subsequent argument types) to be parsed to the end.  We just
+			// did a macro lookup prior to this call, but the macro definition
+			// that was looked up wasn't one being parsed along this path.
+			stateAfterCall.expected(STRONG) {
+				it("parsed polymorphic macro invocation to be most specific." +
+					"\nIn particular, parsing of $bundle bifurcated when it\n" +
+					"reached a section checkpoint (§) and therefore ran a\n" +
+					"different prefix function along each path.  Having\n" +
+					"parsed a macro invocation to the end, the arguments\n" +
+					"(including those parsed after the prefix function)\n" +
+					"were found to have been strong enough to invoke a more\n" +
+					"specific macro definition, so the more general macro\n" +
+					"definition was not invoked.\n" +
+					"The more general definition is one of:\n" +
+					"\t$reachedDefinitions,\n" +
+					"and the most specific definition for the actual parsed\n" +
+					"arguments is:\n" +
+					"\t$macroDefinitionToInvoke.")
+			}
+			return
 		}
 		// Capture all tokens that comprised the entire macro send.
 		val withTokensAndBundle = stateAfterCall.clientDataMap
@@ -2705,13 +2766,13 @@ class AvailCompiler constructor(
 		{
 			println(
 				"PRE-EVAL:"
-				+ stateAfterCall.lineNumber
-				+ '('.toString()
-				+ stateAfterCall.position
-				+ ") "
-				+ macroDefinitionToInvoke
-				+ ' '.toString()
-				+ argumentsList)
+					+ stateAfterCall.lineNumber
+					+ '('.toString()
+					+ stateAfterCall.position
+					+ ") "
+					+ macroDefinitionToInvoke
+					+ ' '.toString()
+					+ argumentsList)
 		}
 		val clientDataAfterRunning = Mutable<A_Map?>(null)
 		evaluateMacroFunctionThen(
@@ -2724,25 +2785,37 @@ class AvailCompiler constructor(
 				assert(clientDataAfterRunning.value !== null)
 				// In theory a fiber can produce anything, although you have to
 				// mess with continuations to get it wrong.
-				val adjustedReplacement: A_Phrase = when {
+				val adjustedReplacement: A_Phrase = when
+				{
 					!replacement.isInstanceOfKind(
 						PARSE_PHRASE.mostGeneralType) ->
 					{
 						stateAfterCall.expected(
 							STRONG,
-							listOf(replacement)) {
+							listOf(replacement)
+						) {
 							"Macro body for ${bundle.message} to have " +
 								"produced a phrase, not ${it[0]}"
 						}
 						return@evaluateMacroFunctionThen
 					}
 					replacement.phraseKindIsUnder(SEND_PHRASE) ->
+					{
+						// If the replacement has any static tokens in it, use
+						// them in the adjusted replacement.  Otherwise use the
+						// static tokens that were actually parsed.
+						var tokens = replacement.tokens
+						if (tokens.tupleSize == 0)
+						{
+							tokens = tupleFromList(consumedTokens)
+						}
 						newSendNode(
-							replacement.tokens,
+							tokens,
 							replacement.bundle,
 							replacement.argumentsListNode,
 							replacement.phraseExpressionType
 								.typeIntersection(expectedYieldType))
+					}
 					replacement.phraseExpressionType
 							.isSubtypeOf(expectedYieldType) ->
 						replacement
@@ -2769,30 +2842,59 @@ class AvailCompiler constructor(
 					tupleFromList(consumedTokens),
 					bundle,
 					argumentsListNode,
-					macroDefinitionToInvoke.bodySignature().returnType)
+					macroDefinitionToInvoke.bodySignature().returnType
+						.phraseTypeExpressionType
+						.typeIntersection(expectedYieldType))
 				val substitution =
 					newMacroSubstitution(original, adjustedReplacement)
 				if (AvailRuntimeConfiguration.debugMacroExpansions)
 				{
 					println(
 						":"
-						+ stateAfter.lineNumber
-						+ '('.toString()
-						+ stateAfter.position
-						+ ") "
-						+ substitution)
+							+ stateAfter.lineNumber
+							+ '('.toString()
+							+ stateAfter.position
+							+ ") "
+							+ substitution)
 				}
 				stateAfter.workUnitDo { continuation(stateAfter, substitution) }
 			},
 			{ e ->
 				when (e)
 				{
-					is AvailAcceptedParseException -> stateAfterCall.expected(
-						STRONG,
-						"macro body to reject the parse or produce "
-							+ "a replacement expression, not merely "
-							+ "accept its phrases like a semantic "
-							+ "restriction")
+					is AvailAcceptedParseException ->
+					{
+						// The macro said to accept the parse, which is a
+						// convenient way of allowing the underlying machinery
+						// to construct a regular send node instead what the
+						// macro would have produced.  Note that we have to do
+						// another validateArgumentTypes() to determine what the
+						// *methods* indicate for an expected type, since the
+						// first time through we only checked the macros.
+						validateArgumentTypes(
+							bundle,
+							argumentsListNode.expressionsTuple
+								.map { it.phraseExpressionType },
+							nil,
+							stateAfterCall
+						) { newExpectedYieldType ->
+							val strongType =
+								macroDefinitionToInvoke.bodySignature()
+									.returnType
+									.phraseTypeExpressionType
+									.typeIntersection(expectedYieldType)
+									.typeIntersection(newExpectedYieldType)
+							val sendNode = newSendNode(
+								tupleFromList(consumedTokens),
+								bundle,
+								argumentsListNode,
+								strongType)
+							// Accept this answer.
+							stateAfterCall.workUnitDo {
+								continuation(stateAfterCall, sendNode)
+							}
+						}
+					}
 					is AvailRejectedParseException ->
 					{
 						stateAfterCall.expected(
@@ -2907,31 +3009,23 @@ class AvailCompiler constructor(
 				primitive,
 				compilationContext.module,
 				token.lineNumber()),
-			emptyTuple)
-		function.makeShared()
+			emptyTuple
+		).makeShared()
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			METHOD_DEFINER.bundle,
 			newListNode(
 				tuple(
 					nameLiteral,
 					syntheticLiteralNodeFor(function),
-					newListNode(emptyTuple))),
+					emptyListNode())),
 			TOP.o)
 		evaluateModuleStatementThen(
-			token.synthesizeCurrentLexingState(), state, send, mutableMapOf()
-		) {
-			// Create a bootstrap styler for it, if so indicated.
-			primitive.bootstrapStyler()?.let { stylerPrimitive ->
-				val stylerFunction = createFunction(
-					newPrimitiveRawFunction(
-						stylerPrimitive,
-						compilationContext.module,
-						token.lineNumber()),
-					emptyTuple)
-			}
-			success()
-		}
+			token.synthesizeCurrentLexingState(),
+			state,
+			send,
+			mutableMapOf(),
+			success)
 	}
 
 	/**
@@ -2965,26 +3059,18 @@ class AvailCompiler constructor(
 	{
 		assert(primitiveNames.isNotEmpty())
 		val availName = stringFrom(macroName)
-		val token1 = literalToken(
-			stringFrom(availName.toString()),
-			0,
-			0,
-			availName)
-		val nameLiteral = literalNodeFromToken(token1)
+		val nameLiteral = syntheticLiteralNodeFor(availName)
 		val functionLiterals = mutableListOf<A_Phrase>()
 		try
 		{
-			for (primitiveName in primitiveNames)
-			{
-				val prim = primitiveByName(primitiveName)!!
-				functionLiterals.add(
-					syntheticLiteralNodeFor(
-						createFunction(
-							newPrimitiveRawFunction(
-								prim,
-								compilationContext.module,
-								token.lineNumber()),
-							emptyTuple)))
+			primitiveNames.mapTo(functionLiterals) {
+				syntheticLiteralNodeFor(
+					createFunction(
+						newPrimitiveRawFunction(
+							primitiveByName(it)!!,
+							compilationContext.module,
+							token.lineNumber()),
+						emptyTuple))
 			}
 		}
 		catch (e: RuntimeException)
@@ -2996,16 +3082,16 @@ class AvailCompiler constructor(
 			compilationContext.diagnostics.reportError()
 			return
 		}
-
-		val bodyLiteral = functionLiterals.removeAt(functionLiterals.size - 1)
+		val bodyLiteral = functionLiterals.removeLast()
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			MACRO_DEFINER.bundle,
 			newListNode(
 				tuple(
 					nameLiteral,
 					newListNode(tupleFromList(functionLiterals)),
-					bodyLiteral)),
+					bodyLiteral,
+					emptyListNode())),
 			TOP.o)
 		evaluateModuleStatementThen(
 			token.synthesizeCurrentLexingState(),
@@ -3119,7 +3205,7 @@ class AvailCompiler constructor(
 
 		// Build a phrase to define the lexer.
 		val send = newSendNode(
-			emptyTuple,
+			tuple(token),
 			LEXER_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3147,9 +3233,9 @@ class AvailCompiler constructor(
 	private fun applyPragmasThen(state: LexingState, success: ()->Unit)
 	{
 		val iterator = moduleHeader.pragmas.iterator()
-		compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
+		compilationContext.loader.phase = EXECUTING_FOR_COMPILE
 		var recurse: (()->Unit)? = null
-		recurse = recurse@ {
+		recurse = recurse@{
 			if (!iterator.hasNext())
 			{
 				// Done with all the pragmas, if any.  Report any new
@@ -3180,9 +3266,7 @@ class AvailCompiler constructor(
 					pragmaToken.nextLexingState(),
 					"Unsupported pragma kind at %s on line %d:",
 					"Pragma kind should be one of: "
-					+ Arrays.stream(PragmaKind.values())
-						.map { it.lexeme }
-						.toList())
+						+ PragmaKind.values().map { it.lexeme }.toList())
 				return@recurse
 			}
 			pragmaKind.applyThen(
@@ -3206,36 +3290,49 @@ class AvailCompiler constructor(
 	 */
 	private fun parseModuleCompletely()
 	{
-		parseModuleHeader { afterHeader ->
+		val size = source.tupleSize.toLong()
+		compilationContext.progressReporter(moduleName, size, 0, 1) { null }
+		parseModuleHeader { headerPhrase, afterHeader ->
 			compilationContext.progressReporter(
 				moduleName,
-				source.tupleSize.toLong(),
+				size,
 				afterHeader.position.toLong(),
 				afterHeader.lineNumber
 			) { null }
-			// Run any side effects implied by this module header against
-			// the module.
+			// Run any side effects implied by this module header against the
+			// module.
 			val errorString = moduleHeader.applyToModule(
 				compilationContext.loader)
 			if (errorString !== null)
 			{
 				compilationContext.progressReporter(
 					moduleName,
-					source.tupleSize.toLong(),
-					source.tupleSize.toLong(),
+					size,
+					size,
 					afterHeader.lineNumber
 				) { null }
 				afterHeader.expected(STRONG, errorString)
 				compilationContext.diagnostics.reportError()
 				return@parseModuleHeader
 			}
-			compilationContext.loader.prepareForCompilingModuleBody()
-			applyPragmasThen(afterHeader.lexingState) {
-				compilationContext.diagnostics.run {
-					positionsToTrack = 3
-					silentPositionsToTrack = 3
+			// Style the header.
+			compilationContext.loader.phase = STYLING_HEADER
+			assert(headerPhrase.isMacroSubstitutionNode)
+			compilationContext.clearStyleCache()
+			afterHeader.lexingState.styleAllTokensThen {
+				compilationContext.styleSendThen(
+					headerPhrase.macroOriginalSendNode,
+					headerPhrase.outputPhrase,
+				) {
+					compilationContext.loader.prepareForCompilingModuleBody()
+					applyPragmasThen(afterHeader.lexingState) {
+						compilationContext.diagnostics.run {
+							positionsToTrack = 3
+							silentPositionsToTrack = 3
+						}
+						parseAndExecuteOutermostStatements(afterHeader)
+					}
 				}
-				parseAndExecuteOutermostStatements(afterHeader)
 			}
 		}
 	}
@@ -3250,7 +3347,7 @@ class AvailCompiler constructor(
 	 */
 	private fun parseAndExecuteOutermostStatements(start: ParserState)
 	{
-		compilationContext.loader.setPhase(COMPILING)
+		compilationContext.loader.phase = COMPILING
 		// Forget any accumulated tokens from previous top-level statements.
 		val startLexingState = start.lexingState
 		val startWithoutAnyTokens = ParserState(
@@ -3261,7 +3358,7 @@ class AvailCompiler constructor(
 				emptyList()),
 			start.clientDataMap)
 		parseOutermostStatement(startWithoutAnyTokens) {
-			afterStatement, unambiguousStatement ->
+				afterStatement, unambiguousStatement ->
 			// The counters must be read in this order for correctness.
 			assert(
 				compilationContext.workUnitsCompleted
@@ -3270,16 +3367,33 @@ class AvailCompiler constructor(
 			// Check if we're cleanly at the end.
 			if (unambiguousStatement.equals(endOfFileMarkerPhrase))
 			{
-				reachedEndOfModule(afterStatement)
+				val withoutEndToken = afterStatement.lexingState.run {
+					ParserState(
+						LexingState(
+							compilationContext,
+							source.tupleSize + 1,
+							lineNumber,
+							allTokens.withoutLast()),
+						afterStatement.clientDataMap)
+				}
+				compilationContext.loader.phase = EXECUTING_FOR_COMPILE
+				// Allow trailing comments to be styled at the same time as the
+				// final statement...
+				withoutEndToken.lexingState.styleAllTokensThen {
+					// ...but ensure the final statement styling has completed
+					// before writing to the repository or indicating success.
+					compilationContext.whenNotStyling {
+						reachedEndOfModule(withoutEndToken)
+					}
+				}
 				return@parseOutermostStatement
 			}
 
-			// In case the top level statement is compound, process the
-			// base statements individually.
+			// In case the top level statement is compound, process the base
+			// statements individually.
 			val simpleStatements = mutableListOf<A_Phrase>()
 			unambiguousStatement.statementsDo { simpleStatement ->
-				assert(
-					simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
+				assert(simpleStatement.phraseKindIsUnder(STATEMENT_PHRASE))
 				simpleStatements.add(simpleStatement)
 			}
 
@@ -3294,8 +3408,10 @@ class AvailCompiler constructor(
 			// their initialization expressions.
 
 			// What to do after running all these simple statements.
+			val ran = AtomicBoolean(false)
 			val resumeParsing = {
 				// Report progress.
+				assert(!ran.getAndSet(true))
 				compilationContext.progressReporter(
 					moduleName,
 					source.tupleSize.toLong(),
@@ -3306,14 +3422,25 @@ class AvailCompiler constructor(
 					afterStatement.withMap(start.clientDataMap))
 			}
 
-			compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
+			compilationContext.loader.phase = EXECUTING_FOR_COMPILE
+			// Style each base token once, even if the statement has to be
+			// decomposed into multiple separately executed and separately
+			// styled statements.
+			compilationContext.clearStyleCache()
 			// Run the simple statements in succession.
 			val simpleStatementIterator = simpleStatements.iterator()
 			val declarationRemap = mutableMapOf<A_Phrase, A_Phrase>()
-			lateinit var recurse: (()->Unit)
+			lateinit var recurse: ()->Unit
 			recurse = recurse@{
 				if (!simpleStatementIterator.hasNext())
 				{
+					compilationContext.beginningStyling()
+					afterStatement.lexingState.styleAllTokensThen {
+						unambiguousStatement.applyStylesThen(
+							compilationContext,
+							ConcurrentHashMap.newKeySet(),
+							compilationContext::finishedStyling)
+					}
 					resumeParsing()
 					return@recurse
 				}
@@ -3332,15 +3459,17 @@ class AvailCompiler constructor(
 								&& type != COMMENT
 								&& type != END_OF_FILE
 						}
-					}?.synthesizeCurrentLexingState() ?: startLexingState
+					}?.synthesizeCurrentLexingState()
 				evaluateModuleStatementThen(
-					beforeFirstNonwhiteToken,
+					beforeFirstNonwhiteToken ?: startLexingState,
 					afterStatement.lexingState,
 					statement,
 					declarationRemap,
 					recurse)
 			}
-			recurse()
+			// Wait for the previous styling operation to complete before
+			// executing the top-level statement (i.e., each simple statement).
+			compilationContext.whenNotStyling(recurse)
 		}
 	}
 
@@ -3412,7 +3541,9 @@ class AvailCompiler constructor(
 				onSuccess(compilationContext.module)
 			},
 			{
-				rollbackModuleTransaction(afterFail)
+				compilationContext.whenNotStyling {
+					rollbackModuleTransaction(afterFail)
+				}
 			})
 		startModuleTransaction()
 		parseModuleCompletely()
@@ -3460,7 +3591,7 @@ class AvailCompiler constructor(
 		val start = ParserState(
 			LexingState(compilationContext, 1, 1, emptyList()), clientData)
 		val solutions = mutableListOf<A_Phrase>()
-		compilationContext.noMoreWorkUnits = noMoreWorkUnits@ {
+		compilationContext.noMoreWorkUnits = noMoreWorkUnits@{
 			// The counters must be read in this order for correctness.
 			assert(compilationContext.workUnitsCompleted ==
 				compilationContext.workUnitsQueued)
@@ -3474,7 +3605,7 @@ class AvailCompiler constructor(
 			onSuccess(solutions, this::rollbackModuleTransaction)
 		}
 		recordExpectationsRelativeTo(start.lexingState)
-		if (loader.lexicalScanner().allVisibleLexers.isEmpty())
+		if (loader.lexicalScanner!!.allVisibleLexers.isEmpty())
 		{
 			start.expected(
 				STRONG,
@@ -3552,7 +3683,7 @@ class AvailCompiler constructor(
 			{
 				val versionString = stringFromToken(versionStringToken)
 				assert(!moduleHeader.versions.contains(versionString))
-				moduleHeader.versions.add(versionString)
+				moduleHeader.versions.add(versionString.makeShared())
 			}
 		}
 
@@ -3694,7 +3825,6 @@ class AvailCompiler constructor(
 					compilationContext.diagnostics.reportError()
 					return false
 				}
-
 			}  // modules of an import subsection
 		}  // imports section
 
@@ -3753,9 +3883,10 @@ class AvailCompiler constructor(
 	 * @param onSuccess
 	 *   What to do after successfully parsing the header.  The compilation
 	 *   context's header will have been updated, and the continuation will be
-	 *   passed the [ParserState] after the header.
+	 *   passed the [ParserState] after the header.  The phrase that was parsed
+	 *   and already processed is also passed, to apply styling.
 	 */
-	fun parseModuleHeader(onSuccess: (ParserState)->Unit)
+	fun parseModuleHeader(onSuccess: (A_Phrase, ParserState)->Unit)
 	{
 		// Create the initial parser state: no tokens have been seen, and no
 		// names are in scope.
@@ -3809,12 +3940,11 @@ class AvailCompiler constructor(
 			{
 				if (processHeaderMacro(headerPhrase.expression, endState))
 				{
-					onSuccess(endState)
+					onSuccess(headerPhrase, endState)
 				}
 			}
 			catch (e: Exception)
 			{
-				// TODO we don't know which thing failed here?
 				compilationContext.diagnostics.reportError(
 					endState.lexingState,
 					"Unexpected exception encountered while processing "
@@ -3851,7 +3981,6 @@ class AvailCompiler constructor(
 		// The first time we parse at this position the fragmentCache will have
 		// no knowledge about it.
 		val rendezvous = fragmentCache.getRendezvous(start)
-		@Suppress("GrazieInspection")
 		if (!rendezvous.getAndSetStartedParsing())
 		{
 			// We're the (only) cause of the transition from hasn't-started to
@@ -3859,7 +3988,7 @@ class AvailCompiler constructor(
 			// being parsed, or if we're at the root of the bundle tree.
 			val isRoot = superexpressions === null
 				|| superexpressions.bundleTree.equals(
-					compilationContext.loader.rootBundleTree())
+					compilationContext.loader.rootBundleTree)
 			start.expected(if (isRoot) SILENT else WEAK) {
 				val builder = StringBuilder()
 				builder.append("an expression for (at least) this reason:")
@@ -3912,7 +4041,7 @@ class AvailCompiler constructor(
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		parseLeadingKeywordSendThen(start, superexpressions) {
-			endState, phrase ->
+				endState, phrase ->
 			parseOptionalLeadingArgumentSendAfterThen(
 				start, endState, phrase, superexpressions, continuation)
 		}
@@ -4062,12 +4191,17 @@ class AvailCompiler constructor(
 			problemHandler: ProblemHandler,
 			succeed: (AvailCompiler)->Unit)
 		{
-			extractSourceThen(resolvedName, runtime, afterFail, problemHandler) {
-				sourceText ->
+			extractSourceThen(
+				resolvedName,
+				runtime,
+				afterFail,
+				problemHandler
+			) { sourceText ->
 				succeed(
 					AvailCompiler(
 						ModuleHeader(resolvedName),
-						newModule(stringFrom(resolvedName.qualifiedName)),
+						newModule(
+							runtime, stringFrom(resolvedName.qualifiedName)),
 						stringFrom(sourceText),
 						textInterface,
 						pollForAbort,
@@ -4175,7 +4309,7 @@ class AvailCompiler constructor(
 		 */
 		private fun treeMapWithParent(
 			obj: A_Phrase,
-			transformer: (A_Phrase, A_Phrase, List<A_Phrase>) -> A_Phrase,
+			transformer: (A_Phrase, A_Phrase, List<A_Phrase>)->A_Phrase,
 			parentPhrase: A_Phrase,
 			outerPhrases: List<A_Phrase>,
 			phraseMap: MutableMap<A_Phrase, A_Phrase>): A_Phrase
@@ -4184,17 +4318,25 @@ class AvailCompiler constructor(
 			{
 				return phraseMap[obj]!!
 			}
-			val objectCopy = obj.copyMutablePhrase()
-			objectCopy.childrenMap { child ->
-				assert(child.isInstanceOfKind(PARSE_PHRASE.mostGeneralType))
-				treeMapWithParent(
-					child, transformer, objectCopy, outerPhrases, phraseMap)
-			}
-			val transformed = transformer(
-				objectCopy, parentPhrase, outerPhrases)
-			transformed.makeShared()
-			phraseMap[obj] = transformed
-			return transformed
+			treeDoWithParent(
+				obj,
+				parentPhrase,
+				children = { p, withChild ->
+					if (p !in phraseMap)
+					{
+						p.childrenDo(withChild)
+					}
+				},
+				aBlock = { p, parent ->
+					phraseMap.computeIfAbsent(p) { original ->
+						val objectCopy = original.copyMutablePhrase()
+						objectCopy.childrenMap { child -> phraseMap[child]!! }
+						transformer(
+							objectCopy, parent!!, outerPhrases
+						).makeShared()
+					}
+				})
+			return phraseMap[obj]!!
 		}
 
 		/**

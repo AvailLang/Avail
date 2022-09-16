@@ -242,9 +242,9 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_AcceptsArgTypesFromFunctionType(
 		self: AvailObject,
-		functionType: A_Type): Boolean =
-			functionType.argsTupleType.isSubtypeOf(
-				self.slot(ARGS_TUPLE_TYPE))
+		functionType: A_Type
+	): Boolean = functionType.argsTupleType.isSubtypeOf(
+		self.slot(ARGS_TUPLE_TYPE))
 
 	override fun o_AcceptsListOfArgTypes(
 		self: AvailObject,
@@ -303,8 +303,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_AcceptsTupleOfArguments(
 		self: AvailObject,
-		arguments: A_Tuple): Boolean =
-			arguments.isInstanceOf(self.slot(ARGS_TUPLE_TYPE))
+		arguments: A_Tuple
+	): Boolean = arguments.isInstanceOf(self.slot(ARGS_TUPLE_TYPE))
 
 	override fun o_ArgsTupleType(self: AvailObject): A_Type =
 		self.slot(ARGS_TUPLE_TYPE)
@@ -314,18 +314,9 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		argRestrictions: List<TypeRestriction>): Boolean
 	{
 		val tupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
-		var i = 1
-		val end = argRestrictions.size
-		while (i <= end)
-		{
-			if (!argRestrictions[i - 1].intersectsType(
-					tupleType.typeAtIndex(i)))
-			{
-				return false
-			}
-			i++
+		return (1..argRestrictions.size).all {
+			argRestrictions[it - 1].intersectsType(tupleType.typeAtIndex(it))
 		}
-		return true
 	}
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =

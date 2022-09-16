@@ -51,7 +51,7 @@ import avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_
 import avail.descriptor.maps.HashedMapBinDescriptor.ObjectSlots.SUB_BINS_
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.createSingleLinearMapBin
 import avail.descriptor.maps.LinearMapBinDescriptor.Companion.emptyLinearMapBin
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -211,8 +211,11 @@ class HashedMapBinDescriptor private constructor(
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit
 	) {
-		for (i in 1..self.variableObjectSlotsCount()) {
-			self.slot(SUB_BINS_, i).forEachInMapBin(action)
+		val limit = self.variableObjectSlotsCount()
+		var i = 1
+		while (i <= limit)
+		{
+			self.slot(SUB_BINS_, i++).forEachInMapBin(action)
 		}
 	}
 
@@ -541,10 +544,11 @@ class HashedMapBinDescriptor private constructor(
 		self.synchronizeIf(isShared) { mapBinValuesHash(self) }
 
 	/**
-	 * A [MapIterable] used for iterating over the key/value pairs of a map
+	 * A [MapIterator] used for iterating over the key/value pairs of a map
 	 * whose root bin happens to be hashed.
 	 */
-	internal class HashedMapBinIterable(root: AvailObject) : MapIterable() {
+	internal class HashedMapBinIterator(root: AvailObject) : MapIterator()
+	{
 		/**
 		 * The path through map bins, including the current linear bin.
 		 */
@@ -560,7 +564,8 @@ class HashedMapBinDescriptor private constructor(
 		/**
 		 * When constructing a new instance, do this.
 		 */
-		init {
+		init
+		{
 			followRightmost(root)
 		}
 
@@ -571,7 +576,8 @@ class HashedMapBinDescriptor private constructor(
 		 * @param bin
 		 *   The bin at which to begin enumerating.
 		 */
-		private fun followRightmost(bin: AvailObject) {
+		private fun followRightmost(bin: AvailObject)
+		{
 			if (bin.mapBinSize == 0)
 			{
 				// An empty bin may only occur at the top of the bin tree.
@@ -597,8 +603,10 @@ class HashedMapBinDescriptor private constructor(
 			assert(binStack.size == subscriptStack.size)
 		}
 
-		override fun next(): MapDescriptor.Entry {
-			if (binStack.isEmpty()) {
+		override fun next(): MapDescriptor.Entry
+		{
+			if (binStack.isEmpty())
+			{
 				throw NoSuchElementException()
 			}
 			val linearBin = binStack.last.traversed()
@@ -610,40 +618,40 @@ class HashedMapBinDescriptor private constructor(
 					linearIndex),
 				linearBin.binElementAt(linearIndex shl 1))
 			// Got the result.  Now advance the state...
-			if (linearIndex > 1) {
+			if (linearIndex > 1)
+			{
 				// Continue in same leaf bin.
 				subscriptStack.removeLast()
 				subscriptStack.addLast(linearIndex - 1)
 				return entry
 			}
 			// Find another leaf bin.
-			binStack.removeLast()
 			subscriptStack.removeLast()
-			assert(binStack.size == subscriptStack.size)
-			while (true) {
-				if (subscriptStack.isEmpty()) {
+			var nextSubscript: Int
+			do
+			{
+				binStack.removeLast()
+				assert(binStack.size == subscriptStack.size)
+				if (subscriptStack.isEmpty())
+				{
 					// This was the last entry in the map.
 					return entry
 				}
-				val nextSubscript = subscriptStack.removeLast() - 1
-				if (nextSubscript != 0) {
-					// Continue in current internal (hashed) bin.
-					subscriptStack.addLast(nextSubscript)
-					assert(binStack.size == subscriptStack.size)
-					followRightmost(binStack.last.binElementAt(nextSubscript))
-					assert(binStack.size == subscriptStack.size)
-					return entry
-				}
-				binStack.removeLast()
-				assert(binStack.size == subscriptStack.size)
-			}
+				nextSubscript = subscriptStack.removeLast() - 1
+			} while (nextSubscript == 0)
+			// Continue in current internal (hashed) bin.
+			subscriptStack.addLast(nextSubscript)
+			assert(binStack.size == subscriptStack.size)
+			followRightmost(binStack.last.binElementAt(nextSubscript))
+			assert(binStack.size == subscriptStack.size)
+			return entry
 		}
 
 		override fun hasNext() = !binStack.isEmpty()
 	}
 
-	override fun o_MapBinIterable(self: AvailObject): MapIterable =
-		HashedMapBinIterable(self)
+	override fun o_MapBinIterator(self: AvailObject): MapIterator =
+		HashedMapBinIterator(self)
 
 	companion object {
 		/**
@@ -660,13 +668,15 @@ class HashedMapBinDescriptor private constructor(
 		 */
 		fun checkHashedMapBin(self: AvailObject) {
 			@Suppress("ConstantConditionIf")
-			if (shouldCheck) {
+			if (shouldCheck)
+			{
 				val size = self.variableObjectSlotsCount()
 				assert(java.lang.Long.bitCount(self.slot(BIT_VECTOR)) == size)
 				var keyHashSum = 0
 				var valueHashSum = 0
 				var totalCount = 0
-				for (i in 1..size) {
+				for (i in 1..size)
+				{
 					val subBin = self.slot(SUB_BINS_, i)
 					keyHashSum += subBin.mapBinKeysHash
 					valueHashSum += subBin.mapBinValuesHash
@@ -690,7 +700,8 @@ class HashedMapBinDescriptor private constructor(
 		 */
 		private fun mapBinValuesHash(self: AvailObject): Int {
 			var valuesHash = self.slot(VALUES_HASH_OR_ZERO)
-			if (valuesHash == 0) {
+			if (valuesHash == 0)
+			{
 				val size = self.variableIntegerSlotsCount()
 				(1..size).forEach {
 					valuesHash += self.slot(SUB_BINS_, it).mapBinValuesHash
@@ -718,7 +729,8 @@ class HashedMapBinDescriptor private constructor(
 		fun createLevelBitVector(
 			myLevel: Int,
 			bitVector: Long
-		): AvailObject {
+		): AvailObject
+		{
 			val newSize: Int = java.lang.Long.bitCount(bitVector)
 			return descriptorFor(MUTABLE, myLevel).create(newSize) {
 				setSlot(KEYS_HASH, 0)

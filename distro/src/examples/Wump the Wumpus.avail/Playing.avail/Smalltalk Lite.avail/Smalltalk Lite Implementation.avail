@@ -50,7 +50,7 @@ Extends
 		/* Statements. */
 		"_!;" → "_!.",
 		"…",
-		"…:=_;" → "…:=_.",
+		"…:=§_;" → "…:=_.",
 
 		/* Literals. */
 		"true",
@@ -159,7 +159,7 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 				partial[2] ++ selectorPiecePhrase's token's lexeme ++ ":_"
 			>
 		];
-	send $"Method_is_«styled by_»" with
+	send $"Method_is_«styled by_»?" with
 	«<
 		‘selector’,
 		«[
@@ -204,7 +204,7 @@ Public macro "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!" is
 	stmtsPhrase : list phrase ⇒ statement phrase*
 |
 	selector ::= "self " ++ selectorPhrase's token' lexeme;
-	send $"Method_is_«styled by_»" with
+	send $"Method_is_«styled by_»?" with
 	«<
 		‘selector’,
 		«[
@@ -232,7 +232,7 @@ Public macro "`!Game class methodsFor:'wumping'`!…«_!»`!`!" is
 	stmtsPhrase : list phrase ⇒ statement phrase*
 |
 	selector ::= "self " ++ selectorPhrase's token' lexeme;
-	send $"Method_is_«styled by_»" with
+	send $"Method_is_«styled by_»?" with
 	«<
 		‘selector’,
 		«[

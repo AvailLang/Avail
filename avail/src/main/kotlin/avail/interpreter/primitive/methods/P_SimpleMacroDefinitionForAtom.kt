@@ -41,10 +41,13 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.methods.A_Styler
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -59,9 +62,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -71,12 +75,15 @@ import avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP
 import avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE
 import avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
 import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
+import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive:** Simple macro definition.  The first argument is the macro
@@ -89,19 +96,20 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
+object P_SimpleMacroDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(3)
+		interpreter.checkArgumentCount(4)
 		val atom = interpreter.argument(0)
 		val prefixFunctions = interpreter.argument(1)
 		val function = interpreter.argument(2)
+		val optionalStylerFunction: A_Tuple = interpreter.argument(3)
 
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -160,12 +168,22 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			try
 			{
 				loader.addMacroBody(atom, function, prefixFunctions, false)
-				val string = atom.atomName
-				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
-					prefixFunction.code().methodName =
-						stringFrom("Macro prefix #${zeroIndex + 1} of $string")
+				val atomName = atom.atomName
+				if (optionalStylerFunction.tupleSize == 1)
+				{
+					val stylerFunction = optionalStylerFunction.tupleAt(1)
+					loader.addStyler(atom.bundleOrCreate(), stylerFunction)
 				}
-				function.code().methodName = stringFrom("Macro body of $string")
+				// If a styler function was not specified, but the body was
+				// a primitive that has a bootstrapStyler, use that just as
+				// though it had been specified.
+				addBootstrapStyler(function.code(), atom, loader.module)
+				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
+					prefixFunction.code().methodName = stringFrom(
+						"Macro prefix #${zeroIndex + 1} of $atomName")
+				}
+				function.code().methodName = stringFrom(
+					"Macro body of $atomName")
 				succeed(nil)
 			}
 			catch (e: AvailException)
@@ -182,11 +200,13 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			tuple(
 				ATOM.o,
 				zeroOrMoreOf(mostGeneralFunctionType()),
-				functionTypeReturning(PARSE_PHRASE.mostGeneralType)),
+				functionTypeReturning(PARSE_PHRASE.mostGeneralType),
+				zeroOrOneOf(A_Styler.stylerFunctionType)),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
@@ -195,6 +215,9 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
 				E_MACRO_ARGUMENT_MUST_BE_A_PHRASE,
 				E_MACRO_MUST_RETURN_A_PHRASE,
-				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
-			.setUnionCanDestroy(possibleErrors, true))
+				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS,
+				E_STYLER_ALREADY_SET_BY_THIS_MODULE
+			).setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

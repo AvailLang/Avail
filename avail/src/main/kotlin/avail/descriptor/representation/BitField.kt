@@ -48,7 +48,7 @@ import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
  * @property bits
  *   The number of bits that this `BitField` occupies within a [Long].
  * @property presenter
- *   An optional function that converts an [Int] value for this field into
+ *   An optional function that converts an [Int] value for this field into a
  *   suitable [String] for presenting this [BitField] value.  If the function is
  *   present and produces `null`, don't show this value.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;

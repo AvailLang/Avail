@@ -115,11 +115,13 @@ import java.util.stream.StreamSupport
  *   object's object slots layout, or null if there are no integer slots.
  */
 @Suppress("UNCHECKED_CAST")
-abstract class TupleDescriptor protected constructor(
-	mutability: Mutability?,
+abstract class TupleDescriptor
+protected constructor(
+	mutability: Mutability,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum?>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?) : Descriptor(
-	mutability!!,
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?
+) : Descriptor(
+	mutability,
 	TypeTag.TUPLE_TAG,
 	objectSlotsEnumClass,
 	integerSlotsEnumClass)
@@ -954,7 +956,7 @@ abstract class TupleDescriptor protected constructor(
 	 *   The tuple over which to iterate.
 	 */
 	private class TupleIterator(
-		private val tuple: AvailObject) : Iterator<AvailObject>
+		private val tuple: AvailObject) : ListIterator<AvailObject>
 	{
 		/**
 		 * The size of the tuple.
@@ -966,7 +968,13 @@ abstract class TupleDescriptor protected constructor(
 		 */
 		var index = 1
 
-		override fun hasNext(): Boolean = index <= size
+		override fun hasNext() = index <= size
+
+		/**
+		 * **Warning**: To conform to [nextIndex], the index must be
+		 * **0**-based, even though tuple access is ordinarily **1**-based.
+		 */
+		override fun nextIndex() = index - 1
 
 		override fun next(): AvailObject
 		{
@@ -975,6 +983,23 @@ abstract class TupleDescriptor protected constructor(
 				throw NoSuchElementException()
 			}
 			return tuple.tupleAt(index++)
+		}
+
+		override fun hasPrevious() = size > 0 && index >= 1
+
+		/**
+		 * **Warning**: To conform to [nextIndex], the index must be
+		 * **0**-based, even though tuple access is ordinarily **1**-based.
+		 */
+		override fun previousIndex() = index - 2
+
+		override fun previous(): AvailObject
+		{
+			if (size == 0 || index < 1)
+			{
+				throw NoSuchElementException()
+			}
+			return tuple.tupleAt(--index)
 		}
 	}
 
@@ -1355,14 +1380,13 @@ abstract class TupleDescriptor protected constructor(
 		}
 
 		/**
-		 * Concatenate two `A_Tuple`s.
+		 * Concatenate two [A_Tuple]s, allowing either to be destroyed if it's
+		 * mutable.
 		 *
 		 * @param firstTuple
 		 *   The first tuple to concatenate.
 		 * @param secondTuple
 		 *   The second tuple to concatenate.
-		 * @param canDestroy
-		 *   Whether either input tuple may be destroyed if it's also mutable.
 		 * @return
 		 *   The concatenated tuple.
 		 */
@@ -1370,9 +1394,8 @@ abstract class TupleDescriptor protected constructor(
 		@JvmStatic
 		fun staticConcatenateTuples(
 			firstTuple: A_Tuple,
-			secondTuple: A_Tuple,
-			canDestroy: Boolean
-		): A_Tuple = firstTuple.concatenateWith(secondTuple, canDestroy)
+			secondTuple: A_Tuple
+		): A_Tuple = firstTuple.concatenateWith(secondTuple, true)
 
 		/** The [CheckedMethod] for [staticConcatenateTuples]. */
 		val concatenateTupleMethod = staticMethod(
@@ -1380,8 +1403,7 @@ abstract class TupleDescriptor protected constructor(
 			::staticConcatenateTuples.name,
 			A_Tuple::class.java,
 			A_Tuple::class.java,
-			A_Tuple::class.java,
-			Boolean::class.javaPrimitiveType!!)
+			A_Tuple::class.java)
 
 		/**
 		 * Answer the specified element of the tuple.

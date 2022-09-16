@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/24/22, 7:06 PM
+ * * Last Generated: 9/1/22, 11:36 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -144,6 +144,8 @@ Names
 	/*  23 */ "object meta",
 	/* 163 */ "operator",
 	/* 170 */ "optional send phrase and report string",
+	/* 178 */ "optionalPhrase",
+	/* 177 */ "optionalStylerFunction",
 	/* 143 */ "parse map key",
 	/* 166 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
@@ -179,6 +181,7 @@ Names
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
+	/* 179 */ "string literal phrase",
 	/* 171 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
@@ -2346,4 +2349,31 @@ Special object "module imports tuple" is special object 175;
  * @alias "sequence-as-expression phrase"
  */
 Special object "sequence-as-expression phrase" is special object 176;
+
+/**
+ * A tuple with zero or one occurrences of a styler function.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "optionalStylerFunction"
+ */
+Special object "optionalStylerFunction" is special object 177;
+
+/**
+ * A tuple with either zero or one phrase.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "optionalPhrase"
+ */
+Special object "optionalPhrase" is special object 178;
+
+/**
+ * A literal phrase on a string literal.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "string literal phrase"
+ */
+Special object "string literal phrase" is special object 179;
 

@@ -97,6 +97,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
 
 /**
  * The `P_BootstrapBlockMacro` primitive is used for bootstrapping the
@@ -127,7 +128,7 @@ import avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Suppress("unused", "GrazieInspection")
+@Suppress("unused")
 object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 {
 	/** The key to the client parsing data in the fiber's environment. */
@@ -410,6 +411,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			clientDataKey, clientData, true)
 		return interpreter.primitiveSuccess(block)
 	}
+
+	override fun bootstrapStyler() = P_BootstrapBlockMacroStyler
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

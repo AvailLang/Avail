@@ -2308,8 +2308,7 @@ a tuple iteration prefix function,
 	aTuple : expression phrase ⇒ tuple,
 	optionalLimit : expression phrase ⇒ natural number?,
 	predicate : block phrase ⇒ []→⊤
- |
-
+|
 	anAtom ::= $"filter_in parallel«_-way»by_";
 	returnType ::=
 		indexed return type(aTuple, optionalLimit, predicate, tuple, anAtom);
@@ -2478,7 +2477,7 @@ a set iteration prefix function,
 	aMap : expression phrase ⇒ map,
 	optionalLimit : expression phrase ⇒ natural number?,
 	predicate : block phrase ⇒ []→⊤
- |
+|
 	anAtom ::= $"filter_in parallel«_-way»by_";
 	keyName ::= keyPhrase's token's lexeme;
 	optionalLimitType ::= optionalLimit's semantic type;

@@ -460,7 +460,11 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_NOT_EVALUATING_MACRO(65),
 
-	//	E_??? (66)
+	/**
+	 * A styling operation was attempted, but the current fiber does not have
+	 * permission to apply styles.
+	 */
+	E_CANNOT_STYLE(66),
 
 	/**
 	 * A [macro][MacroDescriptor]'s

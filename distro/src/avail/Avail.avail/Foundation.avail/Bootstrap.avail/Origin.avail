@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/24/22, 7:06 PM
+ * * Last Generated: 9/1/22, 11:36 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -66,7 +66,7 @@ Names
 	"…:_†;",
 	"…::=_;",
 	"…:_†:=_;",
-	"…:=_;",
+	"…:=§_;",
 	"…",
 	"_!;",
 	"(_::_†)",
@@ -102,7 +102,9 @@ Pragma
 	"macro=BootstrapVariableDeclarationMacro=…:_†;",
 	"macro=BootstrapConstantDeclarationMacro=…::=_;",
 	"macro=BootstrapInitializingVariableDeclarationMacro=…:_†:=_;",
-	"macro=BootstrapAssignmentStatementMacro=…:=_;",
+	"macro=\
+		\|BootstrapAssignmentStatementCheckMacro,\
+		\|BootstrapAssignmentStatementMacro=…:=§_;",
 	"macro=BootstrapVariableUseMacro=…",
 	"macro=BootstrapSendAsStatementMacro=_!;",
 	"macro=BootstrapSuperCastMacro=(_::_†)",
@@ -227,7 +229,7 @@ Body
  * Construct and answer an {@type "assignment phrase"} (wrapped inside an
  * {@type "expression-as-statement phrase"}.
  *
- * @macro "…:=_;"
+ * @macro "…:=§_;"
  * @param "varNamePhrase" "literal phrase⇒token"
  *        A {@type "literal phrase"} that answers the {@type "token"}
  *        corresponding to the identifier of the target {@type "variable"}.

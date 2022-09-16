@@ -9,3 +9,4 @@
 /out
 /debug
 hs_err_*.log
+*-local-state.json

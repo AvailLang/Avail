@@ -32,6 +32,7 @@
 package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.functions.A_RawFunction
@@ -39,6 +40,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
@@ -79,14 +81,12 @@ import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
-import avail.descriptor.phrases.A_Phrase.Companion.validateLocally
 import avail.descriptor.phrases.A_Phrase.Companion.variable
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PHRASE
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
@@ -129,7 +129,7 @@ class MacroSubstitutionPhraseDescriptor(
 	mutability,
 	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
-	null)
+	PhraseDescriptor.IntegerSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -160,6 +160,24 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
 		self.slot(MACRO_ORIGINAL_SEND).apparentSendName
 
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		if (!visitedSet.add(self)) return then()
+		// Iterate over the original's children, then the output, then style the
+		// macro invocation itself.
+		val original = self.macroOriginalSendNode
+		styleDescendantsThen(original, context, visitedSet) {
+			val output = self.outputPhrase
+			output.applyStylesThen(context, visitedSet) {
+				context.styleSendThen(original, output, then)
+			}
+		}
+	}
+
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PHRASE).argumentsListNode
 
@@ -183,12 +201,8 @@ class MacroSubstitutionPhraseDescriptor(
 	 */
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase)->A_Phrase)
-	{
-		self.setSlot(
-			OUTPUT_PHRASE,
-			transformer(self.slot(OUTPUT_PHRASE)))
-	}
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(OUTPUT_PHRASE, transformer)
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
 		self.slot(OUTPUT_PHRASE).typeTag
@@ -215,30 +229,37 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun o_EmitAllValuesOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
-		self.slot(OUTPUT_PHRASE).emitAllValuesOn(codeGenerator)
+	) = codeGenerator.setTokensWhile(self.slot(OUTPUT_PHRASE).tokens) {
+		codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
+			self.slot(OUTPUT_PHRASE).emitAllValuesOn(codeGenerator)
+		}
 	}
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
-		self.slot(OUTPUT_PHRASE).emitEffectOn(codeGenerator)
+	) = codeGenerator.setTokensWhile(self.slot(OUTPUT_PHRASE).tokens) {
+		codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
+			self.slot(OUTPUT_PHRASE).emitEffectOn(codeGenerator)
+		}
 	}
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
-		self.slot(OUTPUT_PHRASE).emitValueOn(codeGenerator)
+	) = codeGenerator.setTokensWhile(self.slot(OUTPUT_PHRASE).tokens) {
+		codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
+			self.slot(OUTPUT_PHRASE).emitValueOn(codeGenerator)
+		}
 	}
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
 	): Boolean = (aPhrase.isMacroSubstitutionNode
-		&& self.slot(MACRO_ORIGINAL_SEND).equals(aPhrase.macroOriginalSendNode)
-		&& self.slot(OUTPUT_PHRASE).equals(aPhrase.outputPhrase))
+		&& self.slot(MACRO_ORIGINAL_SEND).equalsPhrase(
+			aPhrase.macroOriginalSendNode)
+		&& self.slot(OUTPUT_PHRASE).equalsPhrase(aPhrase.outputPhrase))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PHRASE).expression
@@ -265,11 +286,6 @@ class MacroSubstitutionPhraseDescriptor(
 		self: AvailObject,
 		module: A_Module
 	): A_RawFunction = self.slot(OUTPUT_PHRASE).generateInModule(module)
-
-	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(MACRO_ORIGINAL_SEND).hash(),
-		self.slot(OUTPUT_PHRASE).hash(),
-		0x1d50d7f9)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
 		self.slot(OUTPUT_PHRASE).hasSuperCast
@@ -370,11 +386,6 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun o_TypeExpression(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PHRASE).typeExpression
 
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) = self.slot(OUTPUT_PHRASE).validateLocally(parent)
-
 	override fun o_Variable(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PHRASE).variable
 
@@ -417,6 +428,7 @@ class MacroSubstitutionPhraseDescriptor(
 			}
 			setSlot(MACRO_ORIGINAL_SEND, original)
 			setSlot(OUTPUT_PHRASE, outputPhrase)
+			initHash()
 		}
 
 		/** The mutable [MacroSubstitutionPhraseDescriptor]. */

@@ -124,7 +124,7 @@ class SerializerTest
 	{
 		val semaphore = Semaphore(0)
 		val projectDirectory = File(".").absolutePath
-			.replace("/avail", "")
+			.replace("/avail/", "/")
 		val rootDirectory =
 			projectDirectory.substring(0..(projectDirectory.length - 2))
 		val availRoot =
@@ -449,8 +449,8 @@ class SerializerTest
 	@Throws(MalformedSerialStreamException::class)
 	fun testAtoms()
 	{
-		val inputModule = newModule(stringFrom("Imported"))
-		val currentModule = newModule(stringFrom("Current"))
+		val inputModule = newModule(runtime(), stringFrom("Imported"))
+		val currentModule = newModule(runtime(), stringFrom("Current"))
 		val atom1: A_Atom = createAtom(stringFrom("importAtom1"), inputModule)
 		inputModule.addPrivateName(atom1)
 		val atom2: A_Atom = createAtom(

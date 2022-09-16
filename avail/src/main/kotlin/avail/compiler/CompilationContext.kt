@@ -34,8 +34,13 @@ package avail.compiler
 
 import avail.AvailRuntime
 import avail.AvailRuntime.Companion.currentRuntime
+import avail.AvailRuntime.HookType.DEFAULT_STYLER
+import avail.AvailRuntimeConfiguration.debugStyling
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
+import avail.compiler.CompilationContext.StylingCompletionState.NotStyling
+import avail.compiler.CompilationContext.StylingCompletionState.StylingAndWaiting
+import avail.compiler.CompilationContext.StylingCompletionState.StylingNotWaiting
 import avail.compiler.problems.CompilerDiagnostics
 import avail.compiler.problems.Problem
 import avail.compiler.problems.ProblemHandler
@@ -45,12 +50,15 @@ import avail.compiler.problems.ProblemType.INTERNAL
 import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
-import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import avail.descriptor.fiber.FiberDescriptor.Companion.newStylerFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -63,19 +71,41 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionFor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.methods.A_Method
+import avail.descriptor.methods.A_Method.Companion.methodStylers
+import avail.descriptor.methods.A_Styler
+import avail.descriptor.methods.A_Styler.Companion.function
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.allAncestors
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
+import avail.descriptor.phrases.A_Phrase.Companion.bundle
+import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.SurrogateIndexConverter
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.returnType
+import avail.descriptor.types.A_Type.Companion.systemStyleForType
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailRuntimeException
@@ -87,11 +117,15 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
 import avail.serialization.Serializer
-import avail.utility.StackPrinter.Companion.trace
+import avail.utility.notNullAnd
+import avail.utility.trace
 import org.availlang.persistence.IndexedFile
 import java.lang.String.format
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -160,6 +194,13 @@ class CompilationContext constructor(
 		source, moduleName, pollForAbort, problemHandler)
 
 	/**
+	 * A tool for converting character positions between Avail's Unicode strings
+	 * and Java/Kotlin's UTF-16 representation.
+	 */
+	val surrogateIndexConverter: SurrogateIndexConverter
+		get() = diagnostics.surrogateIndexConverter
+
+	/**
 	 * The [AvailRuntime] for the compiler. Since a compiler cannot migrate
 	 * between two runtime environments, it is safe to cache it for efficient
 	 * access.
@@ -205,7 +246,7 @@ class CompilationContext constructor(
 				val e = Throwable().fillInStackTrace()
 				builder.append(trace(e))
 				val trace = builder.toString().replace(
-					"\\A.*\\R((.*\\R){6})(.|\\R)*\\z".toRegex(), "$1")
+					"\\A.*?\\R((.*?\\R){6})(.|\\R)*?\\z".toRegex(), "$1")
 				logWorkUnits(
 					"SetNoMoreWorkUnits:\n\t" + trace.trim { it <= ' ' })
 			}
@@ -284,7 +325,7 @@ class CompilationContext constructor(
 	 */
 	fun eventuallyDo(lexingState: LexingState, continuation: () -> Unit)
 	{
-		runtime.execute(FiberDescriptor.compilerPriority) {
+		runtime.execute(compilerPriority) {
 			try
 			{
 				continuation()
@@ -502,7 +543,7 @@ class CompilationContext constructor(
 		// coincide (indicating the last work unit just completed).
 		continuations.forEach { continuation ->
 			val workUnit = workUnitCompletion(lexingState, null, continuation)
-			runtime.execute(FiberDescriptor.compilerPriority) {
+			runtime.execute(compilerPriority) {
 				workUnit(argument)
 			}
 		}
@@ -559,13 +600,10 @@ class CompilationContext constructor(
 		{
 			loader.startRecordingEffects()
 		}
-		val adjustedSuccess: (AvailObject) -> Unit
-		when
+		val adjustedSuccess: (AvailObject) -> Unit = when
 		{
-			shouldSerialize ->
-			{
-				val before = fiber.fiberHelper.fiberTime()
-				adjustedSuccess = { successValue ->
+			shouldSerialize -> fiber.fiberHelper.fiberTime().let { before ->
+				{ successValue ->
 					val after = fiber.fiberHelper.fiberTime()
 					Interpreter.current().recordTopStatementEvaluation(
 						(after - before).toDouble(), module)
@@ -574,7 +612,7 @@ class CompilationContext constructor(
 					onSuccess(successValue)
 				}
 			}
-			else -> adjustedSuccess = onSuccess
+			else -> onSuccess
 		}
 		if (trackTasks)
 		{
@@ -760,8 +798,8 @@ class CompilationContext constructor(
 	@Synchronized
 	private fun serializeAfterRunning(function: A_Function)
 	{
-		val code = function.code()
-		val startingLineNumber = code.codeStartingLineNumber
+		val phrase = function.code().originatingPhrase
+		val startingLineNumber = function.code().codeStartingLineNumber
 		if (loader.statementCanBeSummarized())
 		{
 			// Output summarized functions instead of what ran.  Associate the
@@ -770,7 +808,6 @@ class CompilationContext constructor(
 			// top-level phrase itself will be invalid.
 			val newEarlyEffects = loader.recordedEarlyEffects()
 			val newEffects = loader.recordedEffects()
-			val phrase = code.originatingPhrase
 			newEarlyEffects.mapTo(delayedSerializedEarlyEffects) { effect ->
 				Triple(startingLineNumber, phrase, effect)
 			}
@@ -930,6 +967,282 @@ class CompilationContext constructor(
 				// Nothing else needed.
 			}
 		})
+	}
+
+	/**
+	 * Process all of the phrase's subphrases recursively, then style the phrase
+	 * itself, [then] invoke the given action.
+	 *
+	 * The phrases are processed in parallel, and the [then] action is performed
+	 * only when all of the phrases have been processed.
+	 *
+	 * @param phrases
+	 *   The [Collection] of [A_Phrase]s to process.
+	 * @param visitedSet
+	 *   The [Set] of [A_Phrase]s that should not be traversed again.
+	 * @param then
+	 *   The action to invoke after the phrases have been fully processed.
+	 */
+	fun visitAll(
+		phrases: Collection<A_Phrase>,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		when (val count = phrases.size)
+		{
+			0 -> then()
+			1 -> runtime.execute(compilerPriority) {
+				phrases.single().applyStylesThen(this, visitedSet, then)
+			}
+			else ->
+			{
+				val countdown = AtomicInteger(count)
+				val afterOne = {
+					if (countdown.decrementAndGet() == 0) then()
+				}
+				phrases.forEach { phrase ->
+					runtime.execute(compilerPriority) {
+						phrase.applyStylesThen(this, visitedSet, afterOne)
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Apply the style for a single *method* send phrase, without considering
+	 * its subphrases.
+	 *
+	 * @param originalSendPhrase
+	 *   An optional send phrase that had been parsed from the source.  If this
+	 *   is not a macro substitution, this will be `null`.
+	 * @param transformedPhrase
+	 *   The end result of applying a macro to the [originalSendPhrase], or if
+	 *   no macro was involved, the parsed [send][SEND_PHRASE] phrase.
+	 * @param then
+	 *   What to do after styling.
+	 */
+	fun styleSendThen(
+		originalSendPhrase: A_Phrase?,
+		transformedPhrase: A_Phrase,
+		then: ()->Unit)
+	{
+		val styles = mutableListOf<SystemStyle>()
+		// 1. Add a method/macro style.
+		styles.add(
+			when
+			{
+				(originalSendPhrase.notNullAnd { !equals(transformedPhrase) }) ->
+					SystemStyle.MACRO_SEND
+				else -> SystemStyle.METHOD_SEND
+			})
+		// 2. Add an optional style based on the yield type, taking care not to
+		//    override variable use styles.
+		val yieldType = transformedPhrase.phraseExpressionType
+		when
+		{
+			transformedPhrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> {}
+			else -> yieldType.systemStyleForType?.let { styles.add(it) }
+		}
+		// 3. Deal with literals, if any source tokens were involved.
+		if (transformedPhrase.phraseKindIsUnder(LITERAL_PHRASE))
+		{
+			val literalStyle = yieldType.run {
+				when
+				{
+					isSubtypeOf(NUMBER.o) -> SystemStyle.NUMERIC_LITERAL
+					isSubtypeOf(CHARACTER.o) -> SystemStyle.CHARACTER_LITERAL
+					isSubtypeOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
+					isSubtypeOf(ATOM.o) -> SystemStyle.ATOM_LITERAL
+					else -> SystemStyle.OTHER_LITERAL
+				}
+			}
+			styles.add(literalStyle)
+		}
+		// 4. Run any custom styler.
+		val bundleWithStyler = when
+		{
+			originalSendPhrase !== null -> originalSendPhrase.bundle
+			transformedPhrase.phraseKindIsUnder(SEND_PHRASE) ->
+				transformedPhrase.bundle
+			else -> return
+		}
+		styles.forEach { style ->
+			originalSendPhrase?.let { loader.styleTokens(it.tokens, style) }
+			loader.styleTokens(transformedPhrase.tokens, style)
+		}
+		// Next, give the method's styler function a chance to run.
+		val stylerFn = getStylerFunction(bundleWithStyler.bundleMethod)
+		if (debugStyling)
+		{
+			println(
+				"style send: $bundleWithStyler\n" +
+					"\twith ${stylerFn.code().methodName.asNativeString()}")
+		}
+		val fiber = newStylerFiber(loader)
+		{
+			formatString(
+				"Style %s (%s)",
+				bundleWithStyler.message,
+				stylerFn.code().methodName.asNativeString())
+		}
+		fiber.setSuccessAndFailure(
+			onSuccess = { then() },
+			// Ignore styler failures for now.
+			onFailure = { then() })
+		runtime.runOutermostFunction(
+			fiber,
+			stylerFn,
+			listOf(
+				tupleFromList(listOfNotNull(originalSendPhrase)),
+				transformedPhrase))
+	}
+
+	/**
+	 * A cache mapping from [A_Method] to the [A_Function] of an [A_Styler]'s
+	 * body.  It should be cleared any time a new styler is introduced (within
+	 * the scope of the current module), or alternatively just before styling
+	 * a top-level statement.
+	 */
+	private val styleCache = ConcurrentHashMap<A_Method, A_Function>()
+
+	/**
+	 * Clear the cache of method -> style function.  This can be done either
+	 * when a new style is added within scope of this module, or just before
+	 * styling a top-level statement.
+	 */
+	fun clearStyleCache() = styleCache.clear()
+
+	/**
+	 * Given a [method], look up stylers visible by the current module, and
+	 * choose the most specific one, or the conflict styler if there is more
+	 * than one that is most specific.  Answer the default styler if none are
+	 * defined and visible to the module.
+	 */
+	fun getStylerFunction(method: A_Method): A_Function
+	{
+		styleCache[method]?.let { return it }
+		val ancestorModules = module.allAncestors
+		val eligibleStylers = method.methodStylers.filter {
+			it.module.isNil
+				|| it.module.equals(module)
+				|| it.module in ancestorModules
+		}
+		val mostSpecificStylers = when (eligibleStylers.size)
+		{
+			in 0 .. 1 -> eligibleStylers
+			else ->
+			{
+				// There can't be multiple built-in (no-module) stylers, so
+				// let one defined by a module win.
+				val notBuiltIn = eligibleStylers.filter { it.module.notNil }
+				notBuiltIn.filter { styler ->
+					notBuiltIn.none { otherStyler ->
+						!styler.equals(otherStyler) &&
+							styler.module in otherStyler.module.allAncestors
+					}
+				}
+			}
+		}
+		val stylerFn = when (mostSpecificStylers.size)
+		{
+			0 -> runtime[DEFAULT_STYLER]
+			1 -> mostSpecificStylers[0].function
+			else ->
+				// TODO - Use the conflict style, which isn't coded yet.
+				runtime[DEFAULT_STYLER]
+		}
+		styleCache[method] = stylerFn
+		return stylerFn
+	}
+
+	/**
+	 * The abstract class for the styling state machine.  A statement can be in
+	 * the process of being styled while the next statement is being parsed, but
+	 * before that next statement is allowed to executed, the previous styling
+	 * action must complete.  Otherwise, the execution of the next statement
+	 * might change the stylers that are in effect while the styling of the
+	 * previous statement is in progress, which is a race.
+	 */
+	sealed class StylingCompletionState
+	{
+		/**
+		 * Styling is not currently happening.  Also, nobody is waiting for
+		 * styling to complete.
+		 */
+		object NotStyling : StylingCompletionState()
+
+		/**
+		 * Styling is happening, but nobody is waiting for it to complete yet.
+		 */
+		object StylingNotWaiting : StylingCompletionState()
+
+		/**
+		 * Styling is happening, and the other party is waiting for it to
+		 * complete, having provided an action indicating what to do when
+		 * styling completes.
+		 */
+		class StylingAndWaiting(
+			val notStylingAction : ()->Unit
+		) : StylingCompletionState()
+	}
+
+	/**
+	 * An [AtomicReference] that holds the current [StylingCompletionState].
+	 * This is to allow styling of a statement to occur while the subsequent
+	 * statement is being parsed – but not executed, since that may affect what
+	 * styles are in effect.
+	 */
+	private val stylingState =
+		AtomicReference<StylingCompletionState>(NotStyling)
+
+	/**
+	 * A styling activity is starting.  Note that styling must always be started
+	 * causally *before* [whenNotStyling] may be called.
+	 */
+	fun beginningStyling()
+	{
+		if (!stylingState.compareAndSet(NotStyling, StylingNotWaiting))
+			throw IllegalStateException()
+	}
+
+	/**
+	 * The current styling activity has completed.  If there was a post-styling
+	 * action set, run it *after* transitioning to [NotStyling].
+	 */
+	fun finishedStyling()
+	{
+		when (val oldState = stylingState.getAndSet(NotStyling))
+		{
+			is NotStyling -> throw IllegalStateException()
+			is StylingAndWaiting -> oldState.notStylingAction()
+			else -> { }
+		}
+	}
+
+	/**
+	 * A styling action might still be running.  If it is, ensure the [action]
+	 * is executed after the styling completes.  If it was not styling, run the
+	 * [action] immediately.
+	 */
+	fun whenNotStyling(action: ()->Unit)
+	{
+		do
+		{
+			val oldState = stylingState.get()
+			val newState = when (oldState)
+			{
+				is NotStyling ->
+				{
+					action()
+					return
+				}
+				StylingNotWaiting -> StylingAndWaiting(action)
+				// Only one post-styling action is allowed.
+				is StylingAndWaiting -> throw IllegalStateException()
+			}
+		}
+		while (!stylingState.compareAndSet(oldState, newState))
 	}
 
 	companion object

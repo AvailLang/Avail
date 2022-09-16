@@ -74,7 +74,7 @@ import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastO
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfIntegerRangeType
-import avail.descriptor.types.IntegerRangeTypeDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import java.util.IdentityHashMap
 
 /**
@@ -481,8 +481,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			low = end
 			high = start
 		}
-		return (type.isSupertypeOfIntegerRangeType(
-				IntegerRangeTypeDescriptor.inclusive(low, high))
+		return (type.isSupertypeOfIntegerRangeType(inclusive(low, high))
 			|| super.o_TupleElementsInRangeAreInstancesOf(
 				self, startIndex, endIndex, type))
 	}

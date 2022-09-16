@@ -31,6 +31,8 @@
  */
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
@@ -42,6 +44,13 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LABEL
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.DECLARED_TYPE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.INITIALIZATION_EXPRESSION
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.LITERAL_OBJECT
@@ -49,7 +58,6 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKEN
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine7
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import avail.descriptor.representation.Mutability
@@ -99,8 +107,8 @@ class DeclarationPhraseDescriptor(
 	mutability,
 	declarationKind.phraseKind().typeTag,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -225,7 +233,8 @@ class DeclarationPhraseDescriptor(
 
 		/** A local variable, declared within a block. */
 		LOCAL_VARIABLE(
-			"local variable", true, false, PhraseKind.LOCAL_VARIABLE_PHRASE) {
+			"local variable", true, false, PhraseKind.LOCAL_VARIABLE_PHRASE
+		) {
 			override fun emitEffectForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -275,7 +284,8 @@ class DeclarationPhraseDescriptor(
 
 		/** A local constant, declared within a block. */
 		LOCAL_CONSTANT(
-			"local constant", false, false, PhraseKind.LOCAL_CONSTANT_PHRASE) {
+			"local constant", false, false, PhraseKind.LOCAL_CONSTANT_PHRASE
+		) {
 			override fun emitEffectForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -307,7 +317,8 @@ class DeclarationPhraseDescriptor(
 
 		/** A variable declared at the outermost (module) scope. */
 		MODULE_VARIABLE(
-			"module variable", true, true, PhraseKind.MODULE_VARIABLE_PHRASE) {
+			"module variable", true, true, PhraseKind.MODULE_VARIABLE_PHRASE
+		) {
 			override fun emitVariableAssignmentForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -352,7 +363,8 @@ class DeclarationPhraseDescriptor(
 
 		/** A constant declared at the outermost (module) scope. */
 		MODULE_CONSTANT(
-			"module constant", false, true, PhraseKind.MODULE_CONSTANT_PHRASE) {
+			"module constant", false, true, PhraseKind.MODULE_CONSTANT_PHRASE
+		) {
 			override fun emitVariableValueForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -378,7 +390,8 @@ class DeclarationPhraseDescriptor(
 			"primitive failure reason",
 			true,
 			false,
-			PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE) {
+			PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE
+		) {
 			override fun emitVariableValueForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
@@ -560,6 +573,34 @@ class DeclarationPhraseDescriptor(
 		}
 	}
 
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		if (!visitedSet.add(self)) return then()
+		styleDescendantsThen(self, context, visitedSet) {
+			// The parser can't produce declarations of its own, but the
+			// bootstrap (and other) macros can, so when we visit the output of
+			// one of those macros, we can find declarations to style.  Which is
+			// here.
+			val style = when (self.declarationKind())
+			{
+				ARGUMENT -> SystemStyle.PARAMETER_DEFINITION
+				LABEL -> SystemStyle.LABEL_DEFINITION
+				LOCAL_VARIABLE -> SystemStyle.LOCAL_VARIABLE_DEFINITION
+				LOCAL_CONSTANT -> SystemStyle.LOCAL_CONSTANT_DEFINITION
+				MODULE_VARIABLE -> SystemStyle.MODULE_VARIABLE_DEFINITION
+				MODULE_CONSTANT -> SystemStyle.MODULE_CONSTANT_DEFINITION
+				PRIMITIVE_FAILURE_REASON ->
+					SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION
+			}
+			context.loader.styleToken(self.token, style.kotlinString)
+			then()
+		}
+	}
+
 	override fun o_Token(self: AvailObject): A_Token = self.slot(TOKEN)
 
 	override fun o_DeclaredType(self: AvailObject): A_Type =
@@ -602,15 +643,6 @@ class DeclarationPhraseDescriptor(
 		codeGenerator.emitPushLiteral(emptyTuple, nil)
 	}
 
-	override fun o_Hash(self: AvailObject): Int = combine7(
-		self.token.hash(),
-		self.typeExpression.hash(),
-		self.declaredType.hash(),
-		self.initializationExpression.hash(),
-		self.literalObject.hash(),
-		self.declarationKind().ordinal,
-		0x4C27EB37)
-
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -618,39 +650,24 @@ class DeclarationPhraseDescriptor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) {
-		val typeExpression = self.typeExpression
-		if (typeExpression.notNil) {
-			self.setSlot(TYPE_EXPRESSION, transformer(typeExpression))
-		}
-		val expression: A_Phrase = self.initializationExpression
-		if (expression.notNil) {
-			self.setSlot(INITIALIZATION_EXPRESSION, transformer(expression))
-		}
+		transformer: (A_Phrase)->A_Phrase)
+	{
+		self.updateSlot(TYPE_EXPRESSION) { mapNotNil(transformer) }
+		self.updateSlot(INITIALIZATION_EXPRESSION) { mapNotNil(transformer) }
 	}
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
-	) {
-		val expression = self.initializationExpression
-		if (expression.notNil) {
-			action(expression)
-		}
+		action: (A_Phrase)->Unit)
+	{
+		self.typeExpression.ifNotNil(action)
+		self.initializationExpression.ifNotNil(action)
 	}
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
 	) = continuation(self)
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		self.declarationKind().phraseKind()
@@ -735,14 +752,15 @@ class DeclarationPhraseDescriptor(
 				|| initializationExpression.isInstanceOfKind(
 					PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
 			assert(literalObject.isNil
-				|| declarationKind === DeclarationKind.MODULE_VARIABLE
-				|| declarationKind === DeclarationKind.MODULE_CONSTANT)
+				|| declarationKind === MODULE_VARIABLE
+				|| declarationKind === MODULE_CONSTANT)
 			return mutables[declarationKind.ordinal].createShared {
 				setSlot(TOKEN, token)
 				setSlot(DECLARED_TYPE, declaredType)
 				setSlot(TYPE_EXPRESSION, typeExpression)
 				setSlot(INITIALIZATION_EXPRESSION, initializationExpression)
 				setSlot(LITERAL_OBJECT, literalObject)
+				initHash()
 			}
 		}
 
@@ -765,7 +783,7 @@ class DeclarationPhraseDescriptor(
 			declaredType: A_Type,
 			typeExpression: A_Phrase
 		): A_Phrase = newDeclaration(
-			DeclarationKind.ARGUMENT,
+			ARGUMENT,
 			token,
 			declaredType,
 			typeExpression,
@@ -796,7 +814,7 @@ class DeclarationPhraseDescriptor(
 			typeExpression: A_Phrase,
 			initializationExpression: A_Phrase
 		): A_Phrase = newDeclaration(
-			DeclarationKind.LOCAL_VARIABLE,
+			LOCAL_VARIABLE,
 			token,
 			declaredType,
 			typeExpression,
@@ -819,7 +837,7 @@ class DeclarationPhraseDescriptor(
 			token: A_Token,
 			initializationExpression: A_Phrase
 		): A_Phrase = newDeclaration(
-			DeclarationKind.LOCAL_CONSTANT,
+			LOCAL_CONSTANT,
 			token,
 			initializationExpression.phraseExpressionType,
 			nil,
@@ -849,7 +867,7 @@ class DeclarationPhraseDescriptor(
 			typeExpression: A_Phrase,
 			type: A_Type
 		): A_Phrase = newDeclaration(
-			DeclarationKind.PRIMITIVE_FAILURE_REASON,
+			PRIMITIVE_FAILURE_REASON,
 			token,
 			type,
 			typeExpression,
@@ -879,7 +897,7 @@ class DeclarationPhraseDescriptor(
 			returnTypeExpression: A_Phrase,
 			declaredType: A_Type
 		): A_Phrase = newDeclaration(
-			DeclarationKind.LABEL,
+			LABEL,
 			token,
 			declaredType,
 			returnTypeExpression,
@@ -910,7 +928,7 @@ class DeclarationPhraseDescriptor(
 			typeExpression: A_Phrase,
 			initializationExpression: A_Phrase
 		): A_Phrase = newDeclaration(
-			DeclarationKind.MODULE_VARIABLE,
+			MODULE_VARIABLE,
 			token,
 			literalVariable.kind().readType,
 			typeExpression,
@@ -936,7 +954,7 @@ class DeclarationPhraseDescriptor(
 			literalVariable: A_BasicObject,
 			initializationExpression: A_Phrase
 		): A_Phrase = newDeclaration(
-			DeclarationKind.MODULE_CONSTANT,
+			MODULE_CONSTANT,
 			token,
 			literalVariable.kind().readType,
 			nil,

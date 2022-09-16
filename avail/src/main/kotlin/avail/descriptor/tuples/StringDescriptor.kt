@@ -105,10 +105,11 @@ abstract class StringDescriptor protected constructor(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int,
-		type: A_Type): Boolean =
-			(CHARACTER.o.isSubtypeOf(type)
-				|| super.o_TupleElementsInRangeAreInstancesOf(
-					self, startIndex, endIndex, type))
+		type: A_Type
+	): Boolean =
+		(CHARACTER.o.isSubtypeOf(type)
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				self, startIndex, endIndex, type))
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{

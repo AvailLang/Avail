@@ -82,6 +82,7 @@ Names
 	"quicksort_",
 	"quicksort_with_",
 	"quicksort…,…in|of_§by_",
+	"reject each…,…from_§where_",
 	"replace all occurrences of_in_with_",
 	"replace the first occurrence of_in_with_",
 	"right fold_through_",
@@ -113,6 +114,8 @@ Names
 	"_[.._]else_",
 	"_↑-=_",
 	"_-=_",
+	"«indexed»?two-input tuple body function(_,_)",
+	"«two-input»?«indexed»?return type(_,_,_,_)",
 	"«_‡zip»"
 Body
 
@@ -188,7 +191,8 @@ Method "For each of⁇_do_" is
 		innerAction(innerTuple[index]);
 		Restart loop with <index + 1, end, innerTuple, innerAction>
 	](1, |aTuple|, aTuple, action);
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * Iteratively apply `action` to each consecutive element of `aTuple`.
@@ -350,14 +354,13 @@ Public method "_'s⁇strengthening function" is
 	aTuple : expression phrase ⇒ tuple
 |
 	[
-		/* Determine the strongest type of the loop variable for aTuple */
+		/* Determine the strongest type of the loop variable for aTuple. */
 		aTupleType ::= aTuple's semantic type;
 		tupleOfTypes ::= aTupleType's leading types ++
 			<aTupleType's default type>;
 		∪ tupleOfTypes
 	] : any's type
-]:[]→any's type;
-
+]: []→any's type;
 
 /**
  * A macro that takes a number type and returns a block taking nonempty
@@ -390,10 +393,10 @@ Public method "a tuple iteration prefix function" is
 		elementPhrase : literal phrase ⇒ token,
 		aTuple : expression phrase ⇒ tuple
 	|
-		/* Establish local loop variable is unique*/
+		/* Establish local loop variable is unique. */
 		Declare loop variable elementPhrase as aTuple's strengthening function;
 	]
-]: [literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤;
+] : [literal phrase ⇒ token, expression phrase ⇒ tuple]→⊤;
 
 /**
  * Answer a function that computes a prefix function for an input type
@@ -414,9 +417,11 @@ Public method "a two-input tuple iteration prefix function" is
 		aTupleType ::= aTuple's semantic type;
 		Declare loop variable indexPhrase as [(0 .. ⌈aTupleType⌉+1)];
 	]
-]: [literal phrase ⇒ token,
-    literal phrase ⇒ token,
-    expression phrase ⇒ tuple]→⊤;
+]: [
+	literal phrase ⇒ token,
+	literal phrase ⇒ token,
+	expression phrase ⇒ tuple
+]→⊤;
 
 /**
  * Answer a function that computes a prefix function that takes two
@@ -438,20 +443,22 @@ Public method "a two-input tuple prefix function" is
 		Declare loop variable secondInputPhrase as
 			aTuple's strengthening function;
 	]
-]: [literal phrase ⇒ token,
-    literal phrase ⇒ token,
-    expression phrase ⇒ tuple]→⊤;
+]: [
+	literal phrase ⇒ token,
+	literal phrase ⇒ token,
+	expression phrase ⇒ tuple
+]→⊤;
 
 /*The following methods,
  * 	"return type(_,_,_,_)"
  * 	"index return type(_,_,_,_)"
  * evaluate the return types of methods given a tuple input to a block.*/
-Private method "«two input»?«indexed»?return type(_,_,_,_)" is
+Public method "«two-input»?«indexed»?return type(_,_,_,_)" is
 [
 	twoInput : boolean,
 	indexed : boolean,
 	aTuple : expression phrase ⇒ tuple,
-	action : block phrase ⇒ []→⊤,
+	action : block phrase ⇒ […]→⊤,
 	baseReturnType : type,
 	anAtom : atom
 |
@@ -463,17 +470,19 @@ Private method "«two input»?«indexed»?return type(_,_,_,_)" is
 		[
 			indexingType ::= (0 .. ⌈aTupleType⌉+1);
 			[elementType, indexingType]→action's semantic type's return type
-		] else [
+		]
+		else
+		[
 			[elementType, elementType]→action's semantic type's return type
 		]
-	] else
+	]
+	else
 	[
 		[elementType]→action's semantic type's return type
 	];
 
 	strengthen baseReturnType for call of anAtom using <aTupleType, blockType>
-
-]:type;
+] : type;
 
 /**
  * Answer a function that computes a body function.
@@ -483,7 +492,7 @@ Private method "«two input»?«indexed»?return type(_,_,_,_)" is
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
  * @returns "[literal phrase ⇒ token, expression phrase ⇒ tuple,
- *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
+ *   block phrase ⇒ []→⊤]→send phrase ⇒ ⊤"
  *          The requested function.
  */
 Public method "tuple body function(_,_)" is
@@ -496,8 +505,7 @@ Public method "tuple body function(_,_)" is
 		aTuple : expression phrase ⇒ tuple,
 		action : block phrase ⇒ []→⊤
 	|
-		returnType ::=
-				return type(aTuple, action, baseReturnType, anAtom);
+		returnType ::= return type(aTuple, action, baseReturnType, anAtom);
 		statements ::= action's statements;
 		blockReturnType ::= cast statements
 			into [t : phrase+ | t[|t|]'s semantic type]
@@ -515,8 +523,11 @@ Public method "tuple body function(_,_)" is
 				] : blockReturnType»
 			>» : returnType
 	] : send phrase ⇒ ⊤
-] : [literal phrase ⇒ token, expression phrase ⇒ tuple,
-     block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
+] : [
+	literal phrase ⇒ token,
+	expression phrase ⇒ tuple,
+	block phrase ⇒ []→⊤
+]→send phrase ⇒ ⊤;
 
 /**
  * Answer a function that computes a two-input body function.
@@ -529,7 +540,7 @@ Public method "tuple body function(_,_)" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "«indexed»?two-input tuple body function(_,_)" is
+Public method "«indexed»?two-input tuple body function(_,_)" is
 [
 	indexed : boolean,
 	anAtom : atom,
@@ -544,10 +555,11 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
 		/* Build the block function */
 		returnType ::= if indexed then
 			[
-				two input indexed return type(
+				two-input indexed return type(
 					aTuple, action, baseReturnType, anAtom)
-			] else [
-				two input return type(
+			]
+			else [
+				two-input return type(
 					aTuple, action, baseReturnType, anAtom)
 			];
 		statements ::= action's statements;
@@ -575,8 +587,12 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
 				] : blockReturnType»
 			>» : returnType
 	] : send phrase ⇒ ⊤
-]:[literal phrase ⇒ token, literal phrase ⇒ token, expression phrase ⇒ tuple,
-   block phrase ⇒ []→ ⊤]→send phrase ⇒ ⊤;
+] : [
+	literal phrase ⇒ token,
+	literal phrase ⇒ token,
+	expression phrase ⇒ tuple,
+	block phrase ⇒ []→ ⊤
+]→send phrase ⇒ ⊤;
 
 /**
  * Tuple iterating-loop that invokes {@param "action"} once for every
@@ -596,8 +612,10 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
-Macro "For each…in|of_§do_" is a tuple iteration prefix function,
-	tuple body function($"For each of⁇_do_",⊤);
+Macro "For each…in|of_§do_" is
+	a tuple iteration prefix function,
+	tuple body function($"For each of⁇_do_", ⊤)
+styled by loop styler;
 
 /**
  * Tuple iterating-loop that invokes {@param "action"} once for every
@@ -623,8 +641,10 @@ Macro "For each…in|of_§do_" is a tuple iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
-Macro "For each…,…in|of_§do_" is a two-input tuple iteration prefix function,
-	indexed two-input tuple body function($"For each of⁇_do_", ⊤);
+Macro "For each…,…in|of_§do_" is
+	a two-input tuple iteration prefix function,
+	indexed two-input tuple body function($"For each of⁇_do_", ⊤)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of
@@ -659,7 +679,8 @@ Method "map_through_" is
 		Restart loop
 			with <index + 1, end, newAccumulator, innerTuple, innerTransformer>
 	](1, |aTuple|, <>, aTuple, transformer)
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of
@@ -730,16 +751,18 @@ Semantic restriction "map_through_" is
  *        whose value is the name of the loop variable. The generated loop
  *        variable is given the strongest possible type based on the type union
  *        of the leading types and default type of {@param "aTuple"}.
- * @param "aTuple" "expression phrase ⇒ any"
- *        An {@type "expression phrase"} that yields the tuple to iterate over
+ * @param "aTuple" "expression phrase ⇒ tuple"
+ *        An {@type "expression phrase"} that yields the tuple to iterate over.
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "send phrase ⇒ any"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
-Macro "map each…in|of_§through_" is a tuple iteration prefix function,
-	tuple body function($"map_through_",tuple);
+Macro "map each…in|of_§through_" is
+	a tuple iteration prefix function,
+	tuple body function($"map_through_", tuple)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each consecutive element of
@@ -762,12 +785,14 @@ Macro "map each…in|of_§through_" is a tuple iteration prefix function,
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "send phrase ⇒ any"
  * @category "Loops" "Collections" "Tuples"
  */
 Macro "map each…,…in|of_§through_" is
 	a two-input tuple iteration prefix function,
-	indexed two-input tuple body function($"map_through_",tuple);
+	indexed two-input tuple body function($"map_through_", tuple)
+styled by loop styler;
+
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element of
@@ -812,7 +837,8 @@ Method "filter_by_" is
 			innerTuple,
 			innerPredicate>
 	](1, |aTuple|, <>, aTuple, predicate)
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element and index
@@ -896,16 +922,18 @@ Semantic restriction "filter_by_" is
  *        whose value is the name of the loop variable. The generated loop
  *        variable is given the strongest possible type based on the type union
  *        of the leading types and default type of {@param "aTuple"}.
- * @param "aTuple" "expression phrase ⇒ any"
+ * @param "aTuple" "expression phrase ⇒ tuple"
  *        An {@type "expression phrase"} that yields the tuple to iterate over
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "send phrase ⇒ any"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
-Macro "select each…from_§where_" is a tuple iteration prefix function,
-	tuple body function($"filter_by_",tuple);
+Macro "select each…from_§where_" is
+	a tuple iteration prefix function,
+	tuple body function($"filter_by_", tuple)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element and index
@@ -929,11 +957,13 @@ Macro "select each…from_§where_" is a tuple iteration prefix function,
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "send phrase ⇒ any"
  * @category "Loops" "Collections" "Tuples"
  */
-Macro "select each…,…from_§where_" is a two-input tuple iteration prefix function,
-	indexed two-input tuple body function($"filter_by_",tuple);
+Macro "select each…,…from_§where_" is
+	a two-input tuple iteration prefix function,
+	indexed two-input tuple body function($"filter_by_", tuple)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "action"} to each consecutive element of
@@ -992,7 +1022,8 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "action"} to each consecutive element and index
@@ -1073,7 +1104,8 @@ Macro "reject each…,…from_§where_" is
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "accumulator"} to the consecutive elements of
@@ -1125,7 +1157,8 @@ Method "map and filter_by_" is
 		Restart loop
 	]();
 	result
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "accumulator"} to the consecutive elements and
@@ -1270,7 +1303,8 @@ Method "any of_satisfies_" is
 			innerTuple,
 			innerPredicate>
 	](1, |aTuple|, aTuple, predicate)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Compute and answer whether any of the elements (and indices) of {@param
@@ -1364,7 +1398,8 @@ Method "each of_satisfies_" is
 			innerTuple,
 			innerPredicate>
 	](1, |aTuple|, aTuple, predicate)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Compute and answer whether each of the elements (and indices) of {@param
@@ -1439,8 +1474,10 @@ Semantic restriction "each of_satisfies_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Tuples" "Queries"
  */
-Macro "any…in|of_§satisfies_" is a tuple iteration prefix function,
-	tuple body function($"any of_satisfies_", boolean);
+Macro "any…in|of_§satisfies_" is
+	a tuple iteration prefix function,
+	tuple body function($"any of_satisfies_", boolean)
+styled by loop styler;
 
 /**
  * Compute and answer whether all of the elements of {@param "aTuple"} satisfies
@@ -1460,8 +1497,10 @@ Macro "any…in|of_§satisfies_" is a tuple iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Tuples" "Queries"
  */
-Macro "each…in|of_§satisfies_" is a tuple iteration prefix function,
-	tuple body function($"each of_satisfies_", boolean);
+Macro "each…in|of_§satisfies_" is
+	a tuple iteration prefix function,
+	tuple body function($"each of_satisfies_", boolean)
+styled by loop styler;
 
 /**
  * Compute and answer the count of elements of {@param "aTuple"} that satisfy
@@ -1502,7 +1541,8 @@ Method "count of_where_" is
 			innerTuple,
 			innerPredicate>
 	](1, |aTuple|, 0, aTuple, predicate)
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Compute and answer the count of elements (and indices) of {@param "aTuple"}
@@ -1580,8 +1620,10 @@ Semantic restriction "count of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Tuples"
  */
-Macro "count of…from|in|of_§where_" is a tuple iteration prefix function,
-	tuple body function($"count of_where_", whole number);
+Macro "count of…from|in|of_§where_" is
+	a tuple iteration prefix function,
+	tuple body function($"count of_where_", whole number)
+styled by loop styler;
 
 /**
  * Compute and answer the distinct elements of {@param "aTuple"}, preserving
@@ -1824,7 +1866,8 @@ Public method "left fold_through_" is
 			innerTuple,
 			innerTransformer>
 	](2, |aTuple|, aTuple[1], aTuple, transformer)
-] : any;
+] : any
+styled by loop styler;
 
 /**
  * Left fold has the following requirements:
@@ -1922,7 +1965,8 @@ Public method "left fold_into_through_" is
 			innerTuple,
 			innerTransformer>
 	](1, |aTuple|, initialValue, aTuple, transformer)
-] : any;
+] : any
+styled by loop styler;
 
 /**
  * Injecting left fold has the following requirements:
@@ -2033,7 +2077,8 @@ Public method "right fold_through_" is
 			innerTuple,
 			innerTransformer>
 	](|aTuple| - 1, aTuple[|aTuple|], aTuple, transformer)
-] : any;
+] : any
+styled by loop styler;
 
 /**
  * Right fold has the following requirements:
@@ -2121,7 +2166,8 @@ Public method "first index of_where_" is
 		Exit loop with index if matched;
 		Restart loop with <index + 1, end, innerTuple, innerPredicate>
 	](1, |aTuple|, aTuple, predicate)
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the tuple.
@@ -2157,8 +2203,10 @@ Semantic restriction "first index of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Tuples"
  */
-Macro "first index of…in_§where_" is a tuple iteration prefix function,
-	tuple body function($"first index of_where_", whole number);
+Macro "first index of…in_§where_" is
+	a tuple iteration prefix function,
+	tuple body function($"first index of_where_", whole number)
+styled by loop styler;
 
 /**
  * Compute and answer the index of the last element of {@param "aTuple"} that
@@ -2184,7 +2232,8 @@ Public method "last index of_where_" is
 		Exit body with index if predicate(aTuple[index]);
 	];
 	0
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the tuple.
@@ -2220,8 +2269,10 @@ Semantic restriction "last index of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Tuples"
  */
-Macro "last index of…in_§where_" is a tuple iteration prefix function,
-	tuple body function($"last index of_where_", whole number);
+Macro "last index of…in_§where_" is
+	a tuple iteration prefix function,
+	tuple body function($"last index of_where_", whole number)
+styled by loop styler;
 
 /**
  * Compute and answer the indices of all the elements of {@param "aTuple"} that
@@ -2250,7 +2301,8 @@ Public method "all indices of_where_" is
 		];
 	];
 	indices
-] : natural number*;
+] : natural number*
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the tuple.
@@ -2286,8 +2338,10 @@ Semantic restriction "all indices of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Tuples"
  */
-Macro "all indices of…in_§where_" is a tuple iteration prefix function,
-	tuple body function($"all indices of_where_", natural number*);
+Macro "all indices of…in_§where_" is
+	a tuple iteration prefix function,
+	tuple body function($"all indices of_where_", natural number*)
+styled by loop styler;
 
 Method "_occurrences⁇of_" is stable at [whole number, any]→tuple;
 
@@ -3055,6 +3109,8 @@ Public stable method "take_from_" is
 	aTuple[1..count]
 ] : tuple;
 
+Style $"take_from_" with loop styler;
+
 /**
  * @method "take_from_"
  * @restricts "whole number's type"
@@ -3095,7 +3151,8 @@ Public method "take from_while_" is
 		then [ |aTuple| ]
 		else [ cast firstIndex - 1 into [ t : whole number | t ] ];
 	aTuple[1..splitIndex]
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * Answer a semantic restriction suitable for use by the predicated-based
@@ -3152,7 +3209,8 @@ Public method "take from_until_" is
 		then [ |aTuple| ]
 		else [ cast firstIndex - 1 into [ t : whole number | t ] ];
 	aTuple[1..splitIndex]
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * @method "take from_until_"
@@ -3189,7 +3247,8 @@ Public method "drop from_while_" is
 		then [ |aTuple| + 1 ]
 		else [ cast firstIndex into [ t : natural number | t ] ];
 	aTuple[splitIndex..]
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * @method "drop from_while_"
@@ -3223,7 +3282,8 @@ Public method "drop from_until_" is
 		then [ |aTuple| + 1 ]
 		else [ cast firstIndex into [ t : natural number | t ] ];
 	aTuple[splitIndex..]
-] : tuple;
+] : tuple
+styled by loop styler;
 
 /**
  * @method "drop from_until_"
@@ -3250,8 +3310,10 @@ Semantic restriction "drop from_until_" is drop-until semantic restriction;
  * @returns "send phrase ⇒ ⊤"
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
-Public macro "take…from_§while_" is a tuple iteration prefix function,
-	tuple body function($"take from_while_", tuple);
+Public macro "take…from_§while_" is
+	a tuple iteration prefix function,
+	tuple body function($"take from_while_", tuple)
+styled by loop styler;
 
 /**
  * Answer a tuple containing the prefix of {@param "aTuple"} that answered
@@ -3271,10 +3333,13 @@ Public macro "take…from_§while_" is a tuple iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
-Public macro "take…from_§until_" is a tuple iteration prefix function,
-	tuple body function($"take from_until_", tuple);
+Public macro "take…from_§until_" is
+	a tuple iteration prefix function,
+	tuple body function($"take from_until_", tuple)
+styled by loop styler;
 
 Alias "take…from_§where_" to "select each…from_§where_";
+Copy macros from $"select each…from_§where_" to $"take…from_§where_";
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the
@@ -3294,8 +3359,10 @@ Alias "take…from_§where_" to "select each…from_§where_";
  * @returns "send phrase ⇒ ⊤"
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
-Public macro "drop…from_§while_" is a tuple iteration prefix function,
-	tuple body function($"drop from_while_", tuple);
+Public macro "drop…from_§while_" is
+	a tuple iteration prefix function,
+	tuple body function($"drop from_while_", tuple)
+styled by loop styler;
 
 /**
  * Compute and answer the suffix of {@param "aTuple"} that begins with the
@@ -3315,10 +3382,13 @@ Public macro "drop…from_§while_" is a tuple iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Transformers" "Tuples" "Data Abstractions"
  */
-Public macro "drop…from_§until_" is a tuple iteration prefix function,
-	tuple body function($"drop from_until_", tuple);
+Public macro "drop…from_§until_" is
+	a tuple iteration prefix function,
+	tuple body function($"drop from_until_", tuple)
+styled by loop styler;
 
 Alias "drop…from_§where_" to "reject each…from_§where_";
+Copy macros from $"reject each…from_§where_" to $"drop…from_§where_";
 
 /**
  * Answer a tuple containing every element of {@param "aTuple"} except for the
@@ -3342,6 +3412,8 @@ Public stable method "drop_from_" is
 |
 	aTuple[count + 1..]
 ] : tuple;
+
+Style $"drop_from_" with loop styler;
 
 /**
  * @method "drop_from_"
@@ -3789,64 +3861,6 @@ Semantic restriction "∏_" is
 Semantic restriction "∏_" is
 	a closed element operation on nonempty tuples of double;
 
-/* TODO [RAA]
- *
- * Strengthen the return type
- *
- * @method "∏_"
- * @restricts "integer+'s type"
- *
-Semantic restriction "∏_" is
-[
-	intTupleType : integer+'s type
-|
-	leading ::= intTupleType's leading types;
-	defaultType ::= intTupleType's default type;
-	leadingSize ::= |leading|;
-	lowIndex ::= leadingSize min ⌊leading's type⌋;
-	lowBound ::= if leadingSize > 0 then
-	[
-		m ::= map each i in leading[1..lowIndex] through
-		[
-			x::=cast i into [it : integer's type | it];
-Print: "x=";
-Print: “x”;
-			y::= cast (⌊x⌋) into [n : integer | n]
-		];
-		∏ (cast x into [iTuple : integer+ | iTuple] ));
-Print: "y=";
-Print: “y”;
-
-		z::=y × (⌊defaultType⌋ ^
-				((⌊intTupleType⌋ - lowIndex) max 0));
-Print: "z=";
-Print: “z”;
-		z
-
-	]
-	else
-	[
-		⌊defaultType⌋ ^
-				((⌊intTupleType⌋ - lowIndex) max 0)
-	];
-	upBound ::= if leadingSize > 0 then
-	[
-		(∏ (cast (map each i in leading[1..lowIndex] through
-		[
-			x ::= cast i into [it : integer's type | it];
-			cast (⌈x⌉) into [n : integer | n]
-		]) into [iTuple : integer+ | iTuple] )) ×
-			((⌈intTupleType's default type⌉) ^
-			(⌈intTupleType⌉ - leadingSize))
-	]
-	else
-	[
-		((⌈intTupleType's default type⌉) ^
-			(⌈intTupleType⌉ - leadingSize))
-	];
-	[lowBound..upBound+1)
-];*/
-
 /**
  * An implementation of insertion sort that accepts a tuple to be sorted and
  * the predicate that defines how sorting occurs. This is only used for sorting
@@ -4064,7 +4078,7 @@ Method "quicksort_with_" is
 [
 	aTuple : <any…|2..10>,
 	comparator : [⊥, ⊥]→boolean
- |
+|
 	insertion sort aTuple with comparator
 ];
 
@@ -4130,7 +4144,7 @@ Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
  */
 Public macro "quicksort…,…in|of_§by_" is
 	a two-input tuple prefix function,
-	two-input tuple body function($"merge sort_with_",tuple);
+	two-input tuple body function($"merge sort_with_", tuple);
 
 
 /**
@@ -4153,7 +4167,7 @@ Private method "merge_with_" is
 [
 	splitInput : <tuple…|2>,
 	comparator : [⊥, ⊥]→boolean
- |
+|
 	i : natural number := 1;
 	j : natural number := 1;
 	k : natural number := 1;
@@ -4251,7 +4265,7 @@ Method "merge sort_with_" is
 [
 	aTuple : <any…|2..10>,
 	comparator : [⊥, ⊥]→boolean
- |
+|
 	insertion sort aTuple with comparator
 ]: tuple;
 
@@ -4259,14 +4273,12 @@ Public method "merge sort_with_" is
 [
 	aTuple : <any…|11..>,
 	comparator : [⊥, ⊥]→boolean
- |
-		left : tuple := merge sort aTuple[..|aTuple| ÷ 2] with comparator;
-		right: tuple := merge sort aTuple[|aTuple| ÷ 2 + 1..] with comparator;
-		merge: tuple := merge <left,right> with comparator;
-
-		Assert: (|left| + |right|) = |merge|;
-
-		merge
+|
+	left : tuple := merge sort aTuple[..|aTuple| ÷ 2] with comparator;
+	right: tuple := merge sort aTuple[|aTuple| ÷ 2 + 1..] with comparator;
+	merge: tuple := merge <left,right> with comparator;
+	Assert: (|left| + |right|) = |merge|;
+	merge
 ]: tuple;
 
 /**
@@ -4355,7 +4367,7 @@ Method "merge sort_" is
 Method "merge sort_" is
 [
 	aTuple : <number…|2..>
- |
+|
 	merge sort n, m of aTuple by [n ≤ m]
 ];
 
@@ -4694,7 +4706,7 @@ Semantic restriction "_[_..]else_" is
 Private method "self overlap_" is
 [
 	aTuple : any+
- |
+|
 	overlap : {tuple→natural number|} := {};
 	position : natural number := 2;
 	current : natural number := 1;
@@ -4739,7 +4751,7 @@ Method "first index of_in_" is
 [
 	subtuple : <any…|0>,
 	aTuple : <any…|0>
- |
+|
 	0
 ] : 0's type;
 
@@ -4747,7 +4759,7 @@ Method "first index of_in_" is
 [
 	subtuple : any+,
 	aTuple : <any…|0>
- |
+|
 	0
 ] : 0's type;
 
@@ -4755,7 +4767,7 @@ Method "first index of_in_" is
 [
 	subtuple : <any…|0>,
 	aTuple : any+
- |
+|
 	0
 ] : 0's type;
 
@@ -4769,8 +4781,7 @@ Method "first index of_in_" is
 [
 	subtuple : any+,
 	aTuple : any+
- |
-
+|
 	if |subtuple| > |aTuple| then [0]
 	else if |subtuple| = 1 then
 	[
@@ -4839,7 +4850,7 @@ Method "all indices of_in_" is
 [
 	subtuple : <any…|0>,
 	aTuple : <any…|0>
- |
+|
 	<>
 ] : <>'s type;
 
@@ -4847,7 +4858,7 @@ Method "all indices of_in_" is
 [
 	subtuple : any+,
 	aTuple : <any…|0>
- |
+|
 	<>
 ] : <>'s type;
 
@@ -4855,7 +4866,7 @@ Method "all indices of_in_" is
 [
 	subtuple : <any…|0>,
 	aTuple : any+
- |
+|
 	<>
 ] : <>'s type;
 
@@ -4869,7 +4880,7 @@ Method "all indices of_in_" is
 [
 	subtuple : any+,
 	aTuple : any+
- |
+|
 	if |subtuple| > |aTuple| then [<>]
 	else if |subtuple| = 1 then
 	[
@@ -5263,25 +5274,3 @@ Semantic restriction "_[_]" is
 			++ “subscript”
 	]
 ];
-
-
-
-/*** TODO - Introduce tuple query syntax
-Macro "select«all⁇|unique|distinct»\
-		\|*?\
-		\|«_«as…»?‡,»\
-		\|from«_‡,»§\
-		\|«where_»?\
-		\|«order by«_‡,»»?"
-is
-[...macro prefix...],
-[
-	modifier: literal phrase ⇒ [1..3],
-	star: literal phrase ⇒ false's type,  // Overridden for true's type to exclude explicit columns.
-	columns: (<expression, non-empty string?> → list phrase)+ → list phrase,
-	expression: expression phrase ⇒ boolean,
-	order: ()? → list phrase
-|
-	...
-]
-*/

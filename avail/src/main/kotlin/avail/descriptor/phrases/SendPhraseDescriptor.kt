@@ -32,6 +32,7 @@
 package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
@@ -55,15 +56,14 @@ import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKENS
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
+import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -85,8 +85,8 @@ class SendPhraseDescriptor private constructor(
 	mutability,
 	TypeTag.SEND_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	PhraseDescriptor.IntegerSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -132,6 +132,19 @@ class SendPhraseDescriptor private constructor(
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
 		self.slot(BUNDLE).message
 
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		if (!visitedSet.add(self)) return then()
+		// Process the children, then this phrase.
+		styleDescendantsThen(self, context, visitedSet) {
+			context.styleSendThen(null, self, then)
+		}
+	}
+
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
 		self.slot(ARGUMENTS_LIST_NODE)
 
@@ -139,14 +152,13 @@ class SendPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(ARGUMENTS_LIST_NODE))
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(ARGUMENTS_LIST_NODE,
-		transformer(self.slot(ARGUMENTS_LIST_NODE)))
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(ARGUMENTS_LIST_NODE, transformer)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
@@ -175,17 +187,12 @@ class SendPhraseDescriptor private constructor(
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
 		&& self.slot(BUNDLE).equals(aPhrase.bundle)
-		&& self.slot(ARGUMENTS_LIST_NODE).equals(aPhrase.argumentsListNode)
+		&& self.slot(ARGUMENTS_LIST_NODE).equalsPhrase(
+			aPhrase.argumentsListNode)
 		&& self.slot(RETURN_TYPE).equals(aPhrase.phraseExpressionType))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(RETURN_TYPE)
-
-	override fun o_Hash(self: AvailObject): Int = combine4(
-		self.slot(ARGUMENTS_LIST_NODE).hash(),
-		self.slot(BUNDLE).hash(),
-		self.slot(RETURN_TYPE).hash(),
-		-0x6f1c64b3)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEND_PHRASE
@@ -199,13 +206,6 @@ class SendPhraseDescriptor private constructor(
 	): Unit = unsupported
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -234,10 +234,12 @@ class SendPhraseDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Create a new [send#&#32;phrase][SendPhraseDescriptor] from the
-		 * specified [A_Bundle], [list#&#32;phrase][ListPhraseDescriptor] of
-		 * argument expressions, and return [type][TypeDescriptor].  Also take
-		 * a [tuple][A_Tuple] of [tokens][A_Token].
+		 * Create a new [send][SendPhraseDescriptor] phrase from the specified
+		 * [A_Bundle], [list][ListPhraseDescriptor] phrase of argument
+		 * expressions, and return [type][TypeDescriptor].  Also capture a
+		 * [tuple][A_Tuple] of [tokens][A_Token], which are all fixed tokens of
+		 * the send (the fixed tokens are the tokens occurring in the source
+		 * which match parts of the actual text of the message name).
 		 *
 		 * @param tokens
 		 *   The [tuple][A_Tuple] of [tokens][A_Token] that comprise the
@@ -264,6 +266,7 @@ class SendPhraseDescriptor private constructor(
 				setSlot(ARGUMENTS_LIST_NODE, argsListNode)
 				setSlot(BUNDLE, bundle)
 				setSlot(RETURN_TYPE, returnType)
+				initHash()
 			}
 		}
 
