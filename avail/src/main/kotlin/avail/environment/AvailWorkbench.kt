@@ -2234,7 +2234,7 @@ class AvailWorkbench internal constructor(
 		 * The numeric mask for the modifier key suitable for the current
 		 * platform while the SHIFT key is pressed.
 		 */
-		val menuShiftShortcutMask =
+		val menuShiftShortcutMask get() =
 			menuShortcutMask.or(InputEvent.SHIFT_DOWN_MASK)
 
 		/**

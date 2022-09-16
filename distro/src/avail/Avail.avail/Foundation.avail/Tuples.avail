@@ -101,8 +101,6 @@ Names
 	"zip_",
 	"∑_",
 	"∏_",
-	"…,…∈_§→_",
-	"…,…∈_§`|_",
 	"_ends with_",
 	"_padded with_to a multiple of_",
 	"_starts with_",
@@ -117,7 +115,7 @@ Names
 	"_↑-=_",
 	"_-=_",
 	"«indexed»?two-input tuple body function(_,_)",
-	"«two input»?«indexed»?return type(_,_,_,_)",
+	"«two-input»?«indexed»?return type(_,_,_,_)",
 	"«_‡zip»"
 Body
 
@@ -455,7 +453,7 @@ Public method "a two-input tuple prefix function" is
  * 	"return type(_,_,_,_)"
  * 	"index return type(_,_,_,_)"
  * evaluate the return types of methods given a tuple input to a block.*/
-Public method "«two input»?«indexed»?return type(_,_,_,_)" is
+Public method "«two-input»?«indexed»?return type(_,_,_,_)" is
 [
 	twoInput : boolean,
 	indexed : boolean,
@@ -557,11 +555,11 @@ Public method "«indexed»?two-input tuple body function(_,_)" is
 		/* Build the block function */
 		returnType ::= if indexed then
 			[
-				two input indexed return type(
+				two-input indexed return type(
 					aTuple, action, baseReturnType, anAtom)
 			]
 			else [
-				two input return type(
+				two-input return type(
 					aTuple, action, baseReturnType, anAtom)
 			];
 		statements ::= action's statements;
@@ -753,12 +751,12 @@ Semantic restriction "map_through_" is
  *        whose value is the name of the loop variable. The generated loop
  *        variable is given the strongest possible type based on the type union
  *        of the leading types and default type of {@param "aTuple"}.
- * @param "aTuple" "expression phrase ⇒ any"
+ * @param "aTuple" "expression phrase ⇒ tuple"
  *        An {@type "expression phrase"} that yields the tuple to iterate over.
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "send phrase ⇒ any"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "map each…in|of_§through_" is
@@ -787,7 +785,7 @@ styled by loop styler;
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "send phrase ⇒ any"
  * @category "Loops" "Collections" "Tuples"
  */
 Macro "map each…,…in|of_§through_" is
@@ -795,8 +793,6 @@ Macro "map each…,…in|of_§through_" is
 	indexed two-input tuple body function($"map_through_", tuple)
 styled by loop styler;
 
-Alias "…,…∈_§→_" to $"map each…,…in|of_§through_";
-Copy macros from $"map each…,…in|of_§through_" to $"…,…∈_§→_";
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element of
@@ -926,12 +922,12 @@ Semantic restriction "filter_by_" is
  *        whose value is the name of the loop variable. The generated loop
  *        variable is given the strongest possible type based on the type union
  *        of the leading types and default type of {@param "aTuple"}.
- * @param "aTuple" "expression phrase ⇒ any"
+ * @param "aTuple" "expression phrase ⇒ tuple"
  *        An {@type "expression phrase"} that yields the tuple to iterate over
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "send phrase ⇒ any"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
 Macro "select each…from_§where_" is
@@ -961,16 +957,13 @@ styled by loop styler;
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
  *        loop.
- * @returns "send phrase ⇒ ⊤"
+ * @returns "send phrase ⇒ any"
  * @category "Loops" "Collections" "Tuples"
  */
 Macro "select each…,…from_§where_" is
 	a two-input tuple iteration prefix function,
 	indexed two-input tuple body function($"filter_by_", tuple)
 styled by loop styler;
-
-Alias "…,…∈_§`|_" to $"select each…,…from_§where_";
-Copy macros from $"select each…,…from_§where_" to $"…,…∈_§`|_";
 
 /**
  * Iteratively apply {@param "action"} to each consecutive element of
@@ -4151,7 +4144,7 @@ Seal method "quicksort_with_" at <tuple, [⊥, ⊥]→boolean>;
  */
 Public macro "quicksort…,…in|of_§by_" is
 	a two-input tuple prefix function,
-	two-input tuple body function($"merge sort_with_",tuple);
+	two-input tuple body function($"merge sort_with_", tuple);
 
 
 /**

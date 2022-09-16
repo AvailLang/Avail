@@ -65,10 +65,7 @@ Names
 	"integrate_and_with_",
 	"integrate«_‡,and⁇»with_",
 	"map each…→…in|of_§through_",
-	"∃…→…∈_§`|_",
-	"∀…→…∈_§`|_",
-	"…→…∈_§`|_",
-	"…→…→_§`|_"
+	"map body function(_,_)"
 Body
 
 Method "“_”" is
@@ -243,7 +240,7 @@ Public method "a map iteration prefix function" is
 /**
  * Answer a function that computes a body function.
  *
- * @method "body function(_,_)"
+ * @method "map body function(_,_)"
  * @param "anAtom" "atom" the atom that represents the function that the
  * 		macro builds
  * @param "baseReturnType" "type" the base return type of the method
@@ -251,7 +248,7 @@ Public method "a map iteration prefix function" is
  *   block phrase ⇒ []→ boolean]→send phrase ⇒ ⊤"
  *          The requested function.
  */
-Private method "body function(_,_)" is
+Public method "map body function(_,_)" is
 [
 	anAtom : atom,
 	baseReturnType : type
@@ -326,7 +323,7 @@ Private method "body function(_,_)" is
  */
 Macro "For each…→…in|of_§do_" is
 	a map iteration prefix function,
-	body function($"For each of⁇_do_", ⊤)
+	map body function($"For each of⁇_do_", ⊤)
 styled by loop styler;
 
 /**
@@ -404,7 +401,7 @@ Semantic restriction "map_through_" is
  *        whose value is the name of the map value loop index variable. The
  *        generated loop variable is given the strongest possible type based on
  *        the map value type of {@param "aMap"}.
- * @param "aMap" "expression phrase ⇒ tuple"
+ * @param "aMap" "expression phrase ⇒ map"
  *        An {@type "expression phrase"} that yields the map to iterate over
  * @param "action" "block phrase ⇒ []→⊤"
  *        A zero-argument {@type "block phrase"} that represents the body of the
@@ -414,11 +411,8 @@ Semantic restriction "map_through_" is
  */
 Macro "map each…→…in|of_§through_" is
 	a map iteration prefix function,
-	body function($"map_through_", map)
+	map body function($"map_through_", map)
 styled by loop styler;
-
-Alias "…→…→_§`|_" to $"map each…→…in|of_§through_";
-Copy macros from $"map each…→…in|of_§through_" to $"…→…→_§`|_";
 
 /**
  * Iteratively apply {@param "predicate"} to each binding of {@param "aMap"}, in
@@ -497,11 +491,8 @@ Semantic restriction "filter_by_" is
  */
 Macro "select each…→…from_§where_" is
 	a map iteration prefix function,
-	body function($"filter_by_", map)
+	map body function($"filter_by_", map)
 styled by loop styler;
-
-Alias "…→…∈_§`|_" to $"select each…→…from_§where_";
-Copy macros from $"select each…→…from_§where_" to $"…→…∈_§`|_";
 
 /**
  * Iteratively apply {@param "predicate"} to each binding of {@param "aMap"}, in
@@ -758,7 +749,7 @@ Semantic restriction "each of_satisfies_" is
  *        whose value is the name of the loop variable representing the key of
  *        the map.
  * @param "valuePhrase" "literal phrase ⇒ token"
- *       A {@type "literal phrase"} holding a synthetic {@type "literal token"}
+ *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the loop variable representing the value of
  *        the map.
  * @param "aMap" "expression phrase ⇒ map"
@@ -771,11 +762,8 @@ Semantic restriction "each of_satisfies_" is
  */
 Macro "any…→…in|of_§satisfies_" is
 	a map iteration prefix function,
-	body function($"any of_satisfies_", boolean)
+	map body function($"any of_satisfies_", boolean)
 styled by loop styler;
-
-Alias "∃…→…∈_§`|_" to $"any…→…in|of_§satisfies_";
-Copy macros from $"any…→…in|of_§satisfies_" to $"∃…→…∈_§`|_";
 
 /**
  * Compute and answer whether all of the elements of {@param "aMap"} satisfies
@@ -800,11 +788,8 @@ Copy macros from $"any…→…in|of_§satisfies_" to $"∃…→…∈_§`|_";
  */
 Macro "each…→…in|of_§satisfies_" is
 	a map iteration prefix function,
-	body function($"each of_satisfies_", boolean)
+	map body function($"each of_satisfies_", boolean)
 styled by loop styler;
-
-Alias "∀…→…∈_§`|_" to $"each…→…in|of_§satisfies_";
-Copy macros from $"each…→…in|of_§satisfies_" to $"∀…→…∈_§`|_";
 
 /**
  * Compute and answer the count of bindings of {@param "aMap"} that satisfy the
@@ -896,7 +881,7 @@ Semantic restriction "_∈_" is
  */
 Macro "count of…→…from|in|of_§where_" is
 	a map iteration prefix function,
-	body function($"count of_where_", whole number)
+	map body function($"count of_where_", whole number)
 styled by loop styler;
 
 /**
@@ -1245,7 +1230,6 @@ Semantic restriction "integrate«_‡,and⁇»with_" is
 
 	{newKeyType → newValueType |}
 ];
-
 
 /**
  * Answer the {@type "map" duplication map} for the specified {@type "tuple"}.

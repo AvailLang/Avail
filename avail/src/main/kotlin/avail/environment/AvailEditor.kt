@@ -308,8 +308,7 @@ class AvailEditor constructor(
 		}
 		inputMap.put(
 			getKeyStroke(VK_L, getDefaultToolkit().menuShortcutKeyMaskEx),
-			goToDialog
-		)
+			goToDialog)
 		inputMap.put(
 			getKeyStroke(VK_M, menuShiftShortcutMask),
 			openStructureView)
