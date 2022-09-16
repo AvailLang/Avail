@@ -63,9 +63,7 @@ constructor (
 			workbench.selectedModule()!!.resolverReference.moduleName
 		val editor = workbench.openEditors.computeIfAbsent(moduleName) {
 			isNew = true
-			AvailEditor(workbench, moduleName).apply {
-				open()
-			}
+			AvailEditor(workbench, moduleName)
 		}
 		if (!isNew)
 		{

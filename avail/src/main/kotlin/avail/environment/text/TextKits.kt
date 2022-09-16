@@ -1,5 +1,5 @@
 /*
- * AvailEditorKit.kt
+ * TextKits.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,29 +32,28 @@
 
 package avail.environment.text
 
-import avail.environment.AvailEditor
 import avail.environment.AvailEditor.Companion.editor
 import avail.environment.AvailWorkbench
 import avail.environment.editor.GoToDialog
 import avail.environment.tasks.BuildTask
-import avail.environment.text.AvailEditorKit.Companion.breakLine
-import avail.environment.text.AvailEditorKit.Companion.cancelTemplateSelection
-import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
-import avail.environment.text.AvailEditorKit.Companion.expandTemplate
 import avail.environment.text.AvailEditorKit.Companion.goToDialog
-import avail.environment.text.AvailEditorKit.Companion.indent
 import avail.environment.text.AvailEditorKit.Companion.openStructureView
-import avail.environment.text.AvailEditorKit.Companion.outdent
-import avail.environment.text.AvailEditorKit.Companion.redo
 import avail.environment.text.AvailEditorKit.Companion.refresh
-import avail.environment.text.AvailEditorKit.Companion.space
-import avail.environment.text.AvailEditorKit.Companion.undo
+import avail.environment.text.CodeKit.Companion.breakLine
+import avail.environment.text.CodeKit.Companion.cancelTemplateSelection
+import avail.environment.text.CodeKit.Companion.centerCurrentLine
+import avail.environment.text.CodeKit.Companion.expandTemplate
+import avail.environment.text.CodeKit.Companion.indent
+import avail.environment.text.CodeKit.Companion.outdent
+import avail.environment.text.CodeKit.Companion.redo
+import avail.environment.text.CodeKit.Companion.space
+import avail.environment.text.CodeKit.Companion.undo
+import avail.environment.text.CodePane.Companion.codePane
 import avail.environment.views.StructureViewPanel
 import avail.utility.Strings.tabs
 import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.Action
-import javax.swing.JFrame
 import javax.swing.JTextPane
 import javax.swing.JViewport
 import javax.swing.SwingUtilities.getAncestorOfClass
@@ -62,6 +61,7 @@ import javax.swing.UIManager
 import javax.swing.text.BadLocationException
 import javax.swing.text.Caret
 import javax.swing.text.Document
+import javax.swing.text.EditorKit
 import javax.swing.text.JTextComponent
 import javax.swing.text.StyledEditorKit
 import javax.swing.text.TextAction
@@ -70,12 +70,20 @@ import javax.swing.undo.UndoManager
 import kotlin.math.max
 import kotlin.math.min
 
-class AvailEditorKit constructor(
-	val workbench: AvailWorkbench,
-	val frame: JFrame
+/**
+ * An [EditorKit] that supports multiline Avail source code, but not necessarily
+ * for the purpose of editing an Avail source module.
+ *
+ * @property workbench
+ *   The associated [AvailWorkbench].
+ * @author Todd L Smith &lt;todd@availlong.org&gt;
+ */
+open class CodeKit constructor(
+	val workbench: AvailWorkbench
 ) : StyledEditorKit()
 {
-	private val defaultActions = arrayOf<Action>(
+	/** The default actions registered by this [kit][EditorKit]. */
+	protected open val defaultActions = arrayOf<Action>(
 		InsertSpace,
 		BreakLine,
 		IncreaseIndentation,
@@ -84,16 +92,11 @@ class AvailEditorKit constructor(
 		Undo,
 		Redo,
 		ExpandTemplate,
-		CancelTemplateSelection,
-		GoToDialogAction,
-		OpenStructureView,
-		Refresh
+		CancelTemplateSelection
 	)
 
-	override fun getActions(): Array<Action>
-	{
-		return TextAction.augmentList(super.getActions(), defaultActions)
-	}
+	final override fun getActions(): Array<Action> =
+		TextAction.augmentList(super.getActions(), defaultActions)
 
 	companion object
 	{
@@ -123,12 +126,36 @@ class AvailEditorKit constructor(
 
 		/** The name of the [CancelTemplateSelection] action. */
 		const val cancelTemplateSelection = "cancel-template-selection"
+	}
+}
+
+/**
+ * An [EditorKit] that supports editing an Avail source module.
+ *
+ * @author Todd L Smith &lt;todd@availlong.org&gt;
+ *
+ * @constructor
+ *
+ * Construct an [AvailEditorKit].
+ *
+ * @param workbench
+ *   The associated [AvailWorkbench].
+ */
+class AvailEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
+{
+	override val defaultActions = super.defaultActions + arrayOf<Action>(
+		GoToDialogAction,
+		OpenStructureView,
+		Refresh
+	)
+
+	companion object
+	{
+		/** The name of the [GoToDialog] action. */
+		const val goToDialog = "go-to-dialog"
 
 		/** The name of the [OpenStructureView] action. */
 		const val openStructureView = "open-structure-view"
-
-		/** The name of the [GoToDialog] action. */
-		const val goToDialog = "go-to-dialog"
 
 		/** The name of the [OpenStructureView] action. */
 		const val refresh = "refresh"
@@ -150,7 +177,7 @@ private object InsertSpace : TextAction(space)
 			return
 		}
 		val currentEdit = sourcePane.getClientProperty(
-			AvailEditor::currentEdit.name) as? CompoundEdit
+			CodePane::currentEdit.name) as? CompoundEdit
 		currentEdit?.end()
 	}
 }
@@ -306,10 +333,10 @@ private object Undo: TextAction(undo)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		val editor = e.editor
-		editor.currentEdit?.end()
-		editor.undoManager.undo()
-		editor.clearStaleTemplateSelectionState()
+		val codePane = e.codePane
+		codePane.currentEdit?.end()
+		codePane.undoManager.undo()
+		codePane.clearStaleTemplateSelectionState()
 	}
 }
 
@@ -320,10 +347,10 @@ private object Redo: TextAction(redo)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		val editor = e.editor
-		editor.currentEdit?.end()
-		editor.undoManager.redo()
-		editor.clearStaleTemplateSelectionState()
+		val codePane = e.codePane
+		codePane.currentEdit?.end()
+		codePane.undoManager.redo()
+		codePane.clearStaleTemplateSelectionState()
 	}
 }
 
@@ -334,7 +361,7 @@ private object ExpandTemplate: TextAction(expandTemplate)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		e.editor.expandTemplate()
+		e.codePane.expandTemplate()
 	}
 }
 
@@ -345,7 +372,7 @@ private object CancelTemplateSelection: TextAction(cancelTemplateSelection)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		e.editor.cancelTemplateExpansion()
+		e.codePane.cancelTemplateExpansion()
 	}
 }
 
@@ -647,7 +674,7 @@ fun JTextComponent.lineStartsInSelection(): List<Int>
  * Aggregate edits on the receiver, such that they may be undone/redone with a
  * single action. Assumes that the an [UndoManager] is available via a
  * [client&#32;property][JTextPane.getClientProperty] (called
- * [undoManager][AvailEditor.undoManager]) on the receiver.
+ * [undoManager][CodePane.undoManager]) on the receiver.
  *
  * @param edit
  *   The scope of the transaction. Any edits performed during application can be
@@ -656,7 +683,7 @@ fun JTextComponent.lineStartsInSelection(): List<Int>
 internal inline fun JTextPane.transaction(edit: JTextPane.()->Unit)
 {
 	val undoManager = getClientProperty(
-		AvailEditor::undoManager.name) as? UndoManager
+		CodePane::undoManager.name) as? UndoManager
 	if (undoManager === null)
 	{
 		edit()
@@ -664,7 +691,7 @@ internal inline fun JTextPane.transaction(edit: JTextPane.()->Unit)
 	else
 	{
 		val currentEdit = getClientProperty(
-			AvailEditor::currentEdit.name) as? CompoundEdit
+			CodePane::currentEdit.name) as? CompoundEdit
 		currentEdit?.end()
 		val compoundEdit = CompoundEdit()
 		undoManager.addEdit(compoundEdit)

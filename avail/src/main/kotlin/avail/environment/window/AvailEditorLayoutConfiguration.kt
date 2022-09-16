@@ -90,7 +90,6 @@ class AvailEditorLayoutConfiguration internal constructor (
 				it.sourcePane.centerCurrentLine()
 			}
 		}.apply {
-			open()
 			this@AvailEditorLayoutConfiguration.placement?.let {
 				bounds = it
 			}

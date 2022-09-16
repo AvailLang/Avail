@@ -357,7 +357,7 @@ class StructureViewPanel constructor (
 							entryMap[it]!!.first().topLevelStartingLine
 						}
 				}
-				mapKeys.forEach { it ->
+				mapKeys.forEach {
 					val manifestEntries = entryMap[it]!!
 					if (manifestEntries.size == 1)
 					{

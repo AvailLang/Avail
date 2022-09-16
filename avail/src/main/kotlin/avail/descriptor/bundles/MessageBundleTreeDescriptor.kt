@@ -70,6 +70,8 @@ import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_GrammaticalRestriction
+import avail.descriptor.methods.A_Macro
+import avail.descriptor.methods.A_Sendable
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.numbers.A_Number
@@ -85,7 +87,6 @@ import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlighti
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -130,7 +131,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.performance.Statistic
 import avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
-import avail.utility.Mutable
 import avail.utility.Strings.newlineTab
 import avail.utility.safeWrite
 import java.util.ArrayDeque
@@ -233,10 +233,12 @@ class MessageBundleTreeDescriptor private constructor(
 	private var unclassified = emptyMap
 
 	/**
-	 * An [A_Set] of [A_Bundle]s that indicate which methods have just had a
-	 * complete invocation parsed at this point in the tree.
+	 * An [A_Map] from an [A_Bundle] (being parsed via this bundle tree) to an
+	 * [A_Set] of [A_Sendable] definitions, which includes both method
+	 * [A_Definition]s and [A_Macro]s.  In particular, these are the definitions
+	 * which have just been successfully parsed at this point in the tree.
 	 */
-	private var lazyComplete = emptySet
+	private var lazyComplete = emptyMap
 
 	/**
 	 * An [A_Map] from [A_String] to successor [A_BundleTree]s. During parsing,
@@ -516,21 +518,15 @@ class MessageBundleTreeDescriptor private constructor(
 				// lock, above.
 				return
 			}
-			val complete = Mutable(lazyComplete)
-			val incomplete = Mutable(lazyIncomplete)
-			val caseInsensitive = Mutable(lazyIncompleteCaseInsensitive)
-			val actionMap = Mutable(lazyActions)
-			val prefilterMap = Mutable(lazyPrefilterMap)
-			val typeFilterPairs = Mutable(lazyTypeFilterPairsTuple)
-			val oldTypeFilterSize = typeFilterPairs.value.tupleSize
-			val theAllPlansInProgress = allPlansInProgress
-
+			val oldTypeFilterSize = lazyTypeFilterPairsTuple.tupleSize
 			// Figure out what the latestBackwardJump will be for any successor
 			// bundle trees that need to be created.
 			val latestBack: A_BundleTree
-			if (self.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0) {
+			if (self.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0)
+			{
 				// New descendants will point to me as a potential target.
-				if (self.slot(IS_SOURCE_OF_CYCLE) != 0) {
+				if (self.slot(IS_SOURCE_OF_CYCLE) != 0)
+				{
 					// It was already the source of a backward link.  We don't
 					// need to create any more descendants here.
 					return
@@ -540,7 +536,7 @@ class MessageBundleTreeDescriptor private constructor(
 				var ancestor: A_BundleTree = latestBackwardJump
 				while (ancestor.notNil) {
 					if (ancestor.allParsingPlansInProgress.equals(
-							theAllPlansInProgress))
+							allPlansInProgress))
 					{
 						// This ancestor is equivalent to me, so mark me as a
 						// backward cyclic link and plug that exact ancestor
@@ -566,8 +562,7 @@ class MessageBundleTreeDescriptor private constructor(
 
 			// Update my components.
 			theUnclassified.forEach { bundle, defToPlansInProgress: A_Map ->
-				defToPlansInProgress.forEach {
-					_, plansInProgress: A_Set ->
+				defToPlansInProgress.forEach { def, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->
 						val pc = planInProgress.parsingPc
 						val plan = planInProgress.parsingPlan
@@ -575,26 +570,19 @@ class MessageBundleTreeDescriptor private constructor(
 						if (pc == instructions.tupleSize + 1) {
 							// Just reached the end of these instructions.
 							// It's past the end of the parsing instructions.
-							complete.update {
-								setWithElementCanDestroy(bundle, true)
-							}
+							lazyComplete =
+								lazyComplete.mapAtReplacingCanDestroy(
+									bundle, emptySet, true
+								) { _, defs ->
+									defs.setWithElementCanDestroy(def, true)
+								}
 						}
 						else
 						{
 							val timeBefore = AvailRuntimeSupport.captureNanos()
 							val instruction = instructions.tupleIntAt(pc)
 							val op = decode(instruction)
-							updateForPlan(
-								self,
-								plan,
-								pc,
-								module,
-								complete,
-								incomplete,
-								caseInsensitive,
-								actionMap,
-								prefilterMap,
-								typeFilterPairs)
+							updateForPlan(self, plan, pc, module)
 							val timeAfter = AvailRuntimeSupport.captureNanos()
 							op.expandingStatisticInNanoseconds.record(
 								timeAfter - timeBefore,
@@ -603,19 +591,20 @@ class MessageBundleTreeDescriptor private constructor(
 					}
 				}
 			}
-			// Write back the updates.
-			lazyComplete = complete.value.makeShared()
-			lazyIncomplete = incomplete.value.makeShared()
-			lazyIncompleteCaseInsensitive = caseInsensitive.value.makeShared()
-			lazyActions = actionMap.value.makeShared()
-			lazyPrefilterMap = prefilterMap.value.makeShared()
-			lazyTypeFilterPairsTuple = typeFilterPairs.value.makeShared()
+			// Make the updates shared.
+			lazyComplete = lazyComplete.makeShared()
+			lazyIncomplete = lazyIncomplete.makeShared()
+			lazyIncompleteCaseInsensitive =
+				lazyIncompleteCaseInsensitive.makeShared()
+			lazyActions = lazyActions.makeShared()
+			lazyPrefilterMap = lazyPrefilterMap.makeShared()
+			lazyTypeFilterPairsTuple = lazyTypeFilterPairsTuple.makeShared()
 
-			if (typeFilterPairs.value.tupleSize != oldTypeFilterSize)
+			if (lazyTypeFilterPairsTuple.tupleSize != oldTypeFilterSize)
 			{
 				// Rebuild the type-checking lookup tree.
 				lazyTypeFilterTree = ParserTypeChecker.createRoot(
-					toList(typeFilterPairs.value),
+					toList(lazyTypeFilterPairsTuple),
 					listOf(
 						restrictionForType(
 							PARSE_PHRASE.mostGeneralType, BOXED_FLAG)),
@@ -712,7 +701,8 @@ class MessageBundleTreeDescriptor private constructor(
 
 	override fun o_LazyActions(self: AvailObject) = lock.read { lazyActions }
 
-	override fun o_LazyComplete(self: AvailObject) = lock.read { lazyComplete }
+	override fun o_LazyComplete(self: AvailObject): A_Map =
+		lock.read { lazyComplete }
 
 	override fun o_LazyIncomplete(self: AvailObject) =
 		lock.read { lazyIncomplete }
@@ -789,7 +779,7 @@ class MessageBundleTreeDescriptor private constructor(
 		self: A_BundleTree
 	) = invalidationsStat.record {
 		lock.safeWrite {
-			lazyComplete = emptySet
+			lazyComplete = emptyMap
 			lazyIncomplete = emptyMap
 			lazyIncompleteCaseInsensitive = emptyMap
 			lazyActions = emptyMap
@@ -798,6 +788,246 @@ class MessageBundleTreeDescriptor private constructor(
 			lazyTypeFilterTree = null
 			unclassified = allPlansInProgress
 		}
+	}
+
+	/**
+	 * Categorize a single parsing plan in progress.
+	 *
+	 * @param bundleTree
+	 *   The [A_BundleTree] that we're updating.  The state is passed
+	 *   separately in arguments, to be written back after all the mutable
+	 *   arguments have been updated for all parsing-plans-in-progress.
+	 * @param plan
+	 *   The [A_DefinitionParsingPlan] to categorize.
+	 * @param pc
+	 *   The one-based program counter that indexes each applicable
+	 *   [plan][A_DefinitionParsingPlan]'s
+	 *   [instructions][A_DefinitionParsingPlan.parsingInstructions]. Note
+	 *   that this value can be one past the end of the instructions,
+	 *   indicating parsing is complete.
+	 * @param module
+	 *   The [A_Module] that limits the scope of information used for
+	 *   parsing.  This is used to restrict the visibility of semantic and
+	 *   grammatical restrictions, as well as which method and macro
+	 *   [A_Definition]s can be parsed.
+	 */
+	private fun updateForPlan(
+		bundleTree: AvailObject,
+		plan: A_DefinitionParsingPlan,
+		pc: Int,
+		module: A_Module)
+	{
+		val hasBackwardJump =
+			bundleTree.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0
+		val latestBackward: A_BundleTree =
+			if (hasBackwardJump) bundleTree
+			else bundleTree.latestBackwardJump
+		val instructions = plan.parsingInstructions
+		if (pc == instructions.tupleSize + 1)
+		{
+			lazyComplete = lazyComplete.mapAtReplacingCanDestroy(
+				plan.bundle, emptySet, true
+			) { _, defs ->
+				defs.setWithElementCanDestroy(plan.definition, true)
+			}
+			return
+		}
+		val instruction = plan.parsingInstructions.tupleIntAt(pc)
+		val op = decode(instruction)
+		when (op) {
+			JUMP_FORWARD, BRANCH_FORWARD, JUMP_BACKWARD ->
+			{
+				if (op == JUMP_BACKWARD && !hasBackwardJump)
+				{
+					// We just discovered the first backward jump in any
+					// parsing-plan-in-progress at this node.
+					bundleTree.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1)
+				}
+				// Bubble control flow right out of the bundle trees. There
+				// should never be a JUMP or BRANCH in an actionMap. Rather, the
+				// successor instructions (recursively in the case of jumps to
+				// other jumps) are directly exploded into the current bundle
+				// tree.  Not only does this save the cost of dispatching these
+				// control flow operations, but it also allows more potential
+				// matches for the next token to be undertaken in a single
+				// lookup. We can safely recurse here, because plans cannot have
+				// any empty loops due to progress check instructions.
+				for (nextPc in op.successorPcs(instruction, pc))
+				{
+					updateForPlan(bundleTree, plan, nextPc, module)
+				}
+				return
+			}
+			PARSE_PART ->
+			{
+				// Parse a specific keyword.
+				val keywordIndex = op.keywordIndex(instruction)
+				lazyIncomplete = lazyIncomplete.mapAtReplacingCanDestroy(
+					plan.bundle.messagePart(keywordIndex), nil, true
+				) { _, v ->
+					val subtree = when
+					{
+						v.isNil -> newBundleTree(latestBackward)
+						else -> v
+					}
+					subtree.addPlanInProgress(newPlanInProgress(plan, pc + 1))
+					subtree
+				}
+				return
+			}
+			PARSE_PART_CASE_INSENSITIVELY ->
+			{
+				// Parse a specific case-insensitive keyword.
+				val keywordIndex = op.keywordIndex(instruction)
+				lazyIncompleteCaseInsensitive =
+					lazyIncompleteCaseInsensitive.mapAtReplacingCanDestroy(
+						plan.bundle.messagePart(keywordIndex), nil, true
+					) { _, v ->
+						val subtree = when
+						{
+							v.isNil -> newBundleTree(latestBackward)
+							else -> v
+						}
+						subtree.addPlanInProgress(
+							newPlanInProgress(plan, pc + 1))
+						subtree
+					}
+				return
+			}
+			PREPARE_TO_RUN_PREFIX_FUNCTION ->
+			{
+				// Each macro definition has its own prefix functions, so for
+				// each plan create a separate successor message bundle tree.
+				// After a complete macro has been parsed, we will eliminate
+				// paths that used a macro definition that wasn't the most
+				// specific for the actual arguments that were parsed.
+				lazyActions = lazyActions.mapAtReplacingCanDestroy(
+					fromInt(instruction), emptyTuple, true
+				) { _, successors ->
+					val newTarget: A_BundleTree = newBundleTree(latestBackward)
+					newTarget.addPlanInProgress(newPlanInProgress(plan, pc + 1))
+					successors.appendCanDestroy(newTarget, true)
+				}
+				// We added it to the actions, so don't fall through.
+				return
+			}
+			TYPE_CHECK_ARGUMENT ->
+			{
+				// An argument was just parsed and passed its grammatical
+				// restriction check.  Now it needs to do a type check with a
+				// type-dispatch tree.
+				val typeIndex = op.typeCheckArgumentIndex(instruction)
+				val phraseType: A_Type = constantForIndex(typeIndex)
+				val planInProgress = newPlanInProgress(plan, pc + 1)
+				val pair = tuple(phraseType, planInProgress)
+				lazyTypeFilterPairsTuple = lazyTypeFilterPairsTuple
+					.appendCanDestroy(pair, true)
+				// The new tuple size will be detected after all the updates.
+				return
+			}
+			CHECK_ARGUMENT ->
+			{
+				// It's a checkArgument instruction.
+				val checkArgumentIndex = op.checkArgumentIndex(instruction)
+				// Add it to the action map.
+				val instructionObject: A_Number = fromInt(instruction)
+				val successors: A_Tuple? =
+					lazyActions.mapAtOrNull(instructionObject)
+				val successor: A_BundleTree = when (successors)
+				{
+					null -> newBundleTree(latestBackward).also { tree ->
+						lazyActions = lazyActions.mapAtPuttingCanDestroy(
+							instructionObject, tuple(tree), true)
+					}
+					else -> {
+						assert(successors.tupleSize == 1)
+						successors.tupleAt(1)
+					}
+				}
+				var forbiddenBundles = emptySet
+				plan.bundle.grammaticalRestrictions.forEach { restriction ->
+					// Exclude grammatical restrictions that aren't defined in
+					// an ancestor module.
+					val definitionModule = restriction.definitionModule()
+					if (definitionModule.isNil
+						|| module.hasAncestor(definitionModule))
+					{
+						val bundles: A_Set =
+							restriction.argumentRestrictionSets().tupleAt(
+								checkArgumentIndex)
+						forbiddenBundles =
+							forbiddenBundles.setUnionCanDestroy(bundles, true)
+					}
+				}
+				val planInProgress = newPlanInProgress(plan, pc + 1)
+				// Add it to every existing branch where it's permitted.
+				lazyPrefilterMap.forEach { bundle, prefilterSuccessor ->
+					if (!forbiddenBundles.hasElement(bundle))
+					{
+						prefilterSuccessor.addPlanInProgress(planInProgress)
+					}
+				}
+				// Add branches for any new restrictions.  Pre-populate with
+				// every bundle present thus far, since none of them had this
+				// restriction.
+				forbiddenBundles.forEach { restrictedBundle ->
+					if (!lazyPrefilterMap.hasKey(restrictedBundle)) {
+						val newTarget = newBundleTree(latestBackward)
+						// Be careful.  We can't add ALL_BUNDLES, since it may
+						// contain some bundles that are still UNCLASSIFIED.
+						// Instead, use ALL_BUNDLES of the successor found under
+						// this instruction, since it *has* been kept up to date
+						// as the bundles have gotten classified.
+						successor.allParsingPlansInProgress.forEach {
+								_, defMap ->
+							defMap.forEach { _, plans ->
+								plans.forEach { inProgress ->
+									newTarget.addPlanInProgress(inProgress)
+								}
+							}
+						}
+						lazyPrefilterMap =
+							lazyPrefilterMap.mapAtPuttingCanDestroy(
+								restrictedBundle, newTarget, true)
+					}
+				}
+				// Finally, add it to the action map.  This had to be postponed,
+				// since we didn't want to add it under any new restrictions,
+				// and the actionMap is what gets visited to populate new
+				// restrictions.
+				successor.addPlanInProgress(planInProgress)
+				// Note:  Fall out of the when{} here, since the action also has
+				// to be added to the actionMap (to deal with the case that a
+				// subexpression is a non-send, or a send that is not forbidden
+				// in this position by *any* potential parent sends).
+			}
+			else ->
+			{
+				// Fall out of when{} for all other operations.
+			}
+		}
+		// It's not a keyword parsing instruction or a type-check or
+		// preparation for a prefix function, so it's an ordinary parsing
+		// instruction.  It might be a CHECK_ARGUMENT that has already
+		// updated the prefilterMap and fallen out. Control flow
+		// instructions should have been dealt with in a prior case.
+		val nextPcs = op.successorPcs(instruction, pc)
+		assert(nextPcs.size == 1 && nextPcs[0] == pc + 1)
+		val instructionObject: A_Number = fromInt(instruction)
+		val successors: A_Tuple? = lazyActions.mapAtOrNull(instructionObject)
+		val successor: A_BundleTree = if (successors !== null)
+		{
+			assert(successors.tupleSize == 1)
+			successors.tupleAt(1)
+		}
+		else
+		{
+			newBundleTree(latestBackward).also { tree ->
+				lazyActions = lazyActions.mapAtPuttingCanDestroy(
+					instructionObject, tuple(tree), true)
+			}
+		}
+		successor.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 	}
 
 	companion object {
@@ -866,7 +1096,7 @@ class MessageBundleTreeDescriptor private constructor(
 					plan.definition, emptySet, true
 				) { _, inProgressSet ->
 					inProgressSet.setWithElementCanDestroy(planInProgress, true)
-			}
+				}
 			}.makeShared()
 		}
 
@@ -920,286 +1150,6 @@ class MessageBundleTreeDescriptor private constructor(
 				}
 				else outerMap.mapWithoutKeyCanDestroy(bundle, true)
 			return newOuterMap.makeShared()
-		}
-
-		/**
-		 * Categorize a single parsing plan in progress.
-		 *
-		 * @param bundleTree
-		 *   The [A_BundleTree] that we're updating.  The state is passed
-		 *   separately in arguments, to be written back after all the mutable
-		 *   arguments have been updated for all parsing-plans-in-progress.
-		 * @param plan
-		 *   The [A_DefinitionParsingPlan] to categorize.
-		 * @param pc
-		 *   The one-based program counter that indexes each applicable
-		 *   [plan][A_DefinitionParsingPlan]'s
-		 *   [instructions][A_DefinitionParsingPlan.parsingInstructions]. Note
-		 *   that this value can be one past the end of the instructions,
-		 *   indicating parsing is complete.
-		 * @param module
-		 *   The [A_Module] that limits the scope of information used for
-		 *   parsing.  This is used to restrict the visibility of semantic and
-		 *   grammatical restrictions, as well as which method and macro
-		 *   [A_Definition]s can be parsed.
-		 * @param complete
-		 *   A [Mutable] [set][A_Set] of [A_Bundle]s which have had a send
-		 *   phrase completely parsed at this position.
-		 * @param incomplete
-		 *   A [Mutable] [map][A_Map] from [A_String] to successor
-		 *   [A_BundleTree]. If a token's string matches one of the keys, it
-		 *   will be consumed and the successor bundle tree will be visited.
-		 * @param caseInsensitive
-		 *   A [Mutable] [map][A_Map] from lower-case [A_String] to
-		 *   successor [A_BundleTree].  If the lower-case version of a token's
-		 *   string matches on of the keys, it will be consumed and the
-		 *   successor bundle tree will be visited.
-		 * @param actionMap
-		 *   A [Mutable] [map][A_Map] from an Avail integer encoding a
-		 *   [ParsingOperation] to a [A_Tuple] of successor [A_BundleTree]s.
-		 *   Typically there is only one successor bundle tree, but some parsing
-		 *   operations require that the tree diverge into multiple successors.
-		 * @param prefilterMap
-		 *   A [Mutable] [map][A_Map] from [A_Bundle] to a successor
-		 *   [A_BundleTree]. If the most recently parsed argument phrase is a
-		 *   send phrase and its bundle is a key in this map, the successor will
-		 *   be explored, but not the sole action in the actionMap (which
-		 *   contains at most one entry, a [ParsingOperation.CHECK_ARGUMENT].
-		 *   If the bundle is not present, or if the latest argument is not a
-		 *   send phrase, allow the associated action(s) to be followed instead.
-		 *   This accomplishes grammatical restriction, assuming this method
-		 *   populates the successor bundle trees correctly.
-		 * @param typeFilterTuples
-		 *   A [Mutable] [tuple][A_Tuple] of pairs (2-tuples) from
-		 *   [phrase][A_Phrase] [type][A_Type] to [A_DefinitionParsingPlan].
-		 */
-		private fun updateForPlan(
-			bundleTree: AvailObject,
-			plan: A_DefinitionParsingPlan,
-			pc: Int,
-			module: A_Module,
-			complete: Mutable<A_Set>,
-			incomplete: Mutable<A_Map>,
-			caseInsensitive: Mutable<A_Map>,
-			actionMap: Mutable<A_Map>,
-			prefilterMap: Mutable<A_Map>,
-			typeFilterTuples: Mutable<A_Tuple>)
-		{
-			val hasBackwardJump =
-				bundleTree.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0
-			val latestBackward: A_BundleTree =
-				if (hasBackwardJump) bundleTree
-				else bundleTree.latestBackwardJump
-			val instructions = plan.parsingInstructions
-			if (pc == instructions.tupleSize + 1)
-			{
-				complete.update { setWithElementCanDestroy(plan.bundle, true) }
-				return
-			}
-			val instruction = plan.parsingInstructions.tupleIntAt(pc)
-			val op = decode(instruction)
-			when (op) {
-				JUMP_FORWARD, BRANCH_FORWARD, JUMP_BACKWARD ->
-				{
-					if (op == JUMP_BACKWARD && !hasBackwardJump)
-					{
-						// We just discovered the first backward jump in any
-						// parsing-plan-in-progress at this node.
-						bundleTree.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1)
-					}
-					// Bubble control flow right out of the bundle trees. There
-					// should never be a JUMP or BRANCH in an actionMap.
-					// Rather, the successor instructions (recursively in the
-					// case of jumps to other jumps) are directly exploded into
-					// the current bundle tree.  Not only does this save the
-					// cost of dispatching these control flow operations, but it
-					// also allows more potential matches for the next token to
-					// be undertaken in a single lookup. We can safely recurse
-					// here, because plans cannot have any empty loops due to
-					// progress check instructions.
-					for (nextPc in op.successorPcs(instruction, pc))
-					{
-						updateForPlan(
-							bundleTree,
-							plan,
-							nextPc,
-							module,
-							complete,
-							incomplete,
-							caseInsensitive,
-							actionMap,
-							prefilterMap,
-							typeFilterTuples)
-					}
-					return
-				}
-				PARSE_PART, PARSE_PART_CASE_INSENSITIVELY ->
-				{
-					// Parse a specific keyword, or case-insensitive keyword.
-					val keywordIndex = op.keywordIndex(instruction)
-					val part: A_String = plan.bundle.messagePart(keywordIndex)
-					val map =
-						if (op === PARSE_PART) incomplete
-						else caseInsensitive
-					map.update {
-						mapAtReplacingCanDestroy(part, nil, true) { _, v ->
-							val subtree = when
-							{
-								v.isNil -> newBundleTree(latestBackward)
-								else -> v
-							}
-							subtree.addPlanInProgress(
-								newPlanInProgress(plan, pc + 1))
-							subtree
-						}
-					}
-					return
-				}
-				PREPARE_TO_RUN_PREFIX_FUNCTION ->
-				{
-					// Each macro definition has its own prefix functions, so
-					// for each plan create a separate successor message bundle
-					// tree.
-					val newTarget: A_BundleTree =
-						newBundleTree(latestBackward)
-					newTarget.addPlanInProgress(newPlanInProgress(plan, pc + 1))
-					val instructionObject: A_Number = fromInt(instruction)
-					var successors: A_Tuple =
-						actionMap.value.mapAtOrNull(instructionObject) ?:
-							emptyTuple
-					successors = successors.appendCanDestroy(newTarget, true)
-					actionMap.update {
-						mapAtPuttingCanDestroy(
-							instructionObject, successors, true)
-					}
-					// We added it to the actions, so don't fall through.
-					return
-				}
-				TYPE_CHECK_ARGUMENT ->
-				{
-					// An argument was just parsed and passed its grammatical
-					// restriction check.  Now it needs to do a type check with
-					// a type-dispatch tree.
-					val typeIndex = op.typeCheckArgumentIndex(instruction)
-					val phraseType: A_Type = constantForIndex(typeIndex)
-					val planInProgress = newPlanInProgress(plan, pc + 1)
-					val pair = tuple(phraseType, planInProgress)
-					typeFilterTuples.update { appendCanDestroy(pair, true) }
-					return
-				}
-				CHECK_ARGUMENT ->
-				{
-					// It's a checkArgument instruction.
-					val checkArgumentIndex = op.checkArgumentIndex(instruction)
-					// Add it to the action map.
-					val instructionObject: A_Number = fromInt(instruction)
-					val successors: A_Tuple? =
-						actionMap.value.mapAtOrNull(instructionObject)
-					val successor: A_BundleTree = when (successors)
-					{
-						null -> newBundleTree(latestBackward).also { tree ->
-							actionMap.update {
-								mapAtPuttingCanDestroy(
-									instructionObject, tuple(tree), true)
-							}
-						}
-						else -> {
-							assert(successors.tupleSize == 1)
-							successors.tupleAt(1)
-						}
-					}
-					var forbiddenBundles = emptySet
-					plan.bundle.grammaticalRestrictions.forEach {
-						restriction ->
-						// Exclude grammatical restrictions that aren't defined
-						// in an ancestor module.
-						val definitionModule = restriction.definitionModule()
-						if (definitionModule.isNil
-							|| module.hasAncestor(definitionModule))
-						{
-							val bundles: A_Set =
-								restriction.argumentRestrictionSets().tupleAt(
-									checkArgumentIndex)
-							forbiddenBundles =
-								forbiddenBundles.setUnionCanDestroy(
-									bundles, true)
-						}
-					}
-					val planInProgress = newPlanInProgress(plan, pc + 1)
-					// Add it to every existing branch where it's permitted.
-					prefilterMap.value.forEach {
-						bundle, prefilterSuccessor ->
-						if (!forbiddenBundles.hasElement(bundle))
-						{
-							prefilterSuccessor.addPlanInProgress(planInProgress)
-						}
-					}
-					// Add branches for any new restrictions.  Pre-populate with
-					// every bundle present thus far, since none of them had
-					// this restriction.
-					forbiddenBundles.forEach { restrictedBundle ->
-						if (!prefilterMap.value.hasKey(restrictedBundle)) {
-							val newTarget = newBundleTree(latestBackward)
-							// Be careful.  We can't add ALL_BUNDLES, since it
-							// may contain some bundles that are still
-							// UNCLASSIFIED.  Instead, use ALL_BUNDLES of the
-							// successor found under this instruction, since it
-							// *has* been kept up to date as the bundles have
-							// gotten classified.
-							successor.allParsingPlansInProgress.forEach {
-								_, defMap ->
-								defMap.forEach { _, plans ->
-									plans.forEach { inProgress ->
-										newTarget.addPlanInProgress(inProgress)
-									}
-								}
-							}
-							prefilterMap.update {
-								mapAtPuttingCanDestroy(
-									restrictedBundle, newTarget, true)
-							}
-						}
-					}
-					// Finally, add it to the action map.  This had to be
-					// postponed, since we didn't want to add it under any new
-					// restrictions, and the actionMap is what gets visited to
-					// populate new restrictions.
-					successor.addPlanInProgress(planInProgress)
-					// Note:  Fall out of the when{} here, since the action also
-					// has to be added to the actionMap (to deal with the case
-					// that a subexpression is a non-send, or a send that is not
-					// forbidden in this position by *any* potential parent
-					// sends).
-				}
-				else -> {
-					// Fall out of when{} for all other operations.
-				}
-			}
-			// It's not a keyword parsing instruction or a type-check or
-			// preparation for a prefix function, so it's an ordinary parsing
-			// instruction.  It might be a CHECK_ARGUMENT that has already
-			// updated the prefilterMap and fallen out. Control flow
-			// instructions should have been dealt with in a prior case.
-			val nextPcs = op.successorPcs(instruction, pc)
-			assert(nextPcs.size == 1 && nextPcs[0] == pc + 1)
-			val instructionObject: A_Number = fromInt(instruction)
-			val successors: A_Tuple? =
-				actionMap.value.mapAtOrNull(instructionObject)
-			val successor: A_BundleTree = if (successors !== null)
-			{
-				assert(successors.tupleSize == 1)
-				successors.tupleAt(1)
-			}
-			else
-			{
-				newBundleTree(latestBackward).also { tree ->
-					actionMap.update {
-						mapAtPuttingCanDestroy(
-							instructionObject, tuple(tree), true)
-					}
-				}
-			}
-			successor.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 		}
 
 		/**

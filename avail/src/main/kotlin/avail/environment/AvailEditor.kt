@@ -45,17 +45,11 @@ import avail.environment.AvailWorkbench.Companion.menuShiftShortcutMask
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
-import avail.environment.text.AvailEditorKit.Companion.breakLine
-import avail.environment.text.AvailEditorKit.Companion.cancelTemplateSelection
-import avail.environment.text.AvailEditorKit.Companion.centerCurrentLine
-import avail.environment.text.AvailEditorKit.Companion.expandTemplate
+import avail.environment.text.AvailEditorKit
 import avail.environment.text.AvailEditorKit.Companion.goToDialog
 import avail.environment.text.AvailEditorKit.Companion.openStructureView
-import avail.environment.text.AvailEditorKit.Companion.outdent
-import avail.environment.text.AvailEditorKit.Companion.redo
 import avail.environment.text.AvailEditorKit.Companion.refresh
-import avail.environment.text.AvailEditorKit.Companion.space
-import avail.environment.text.AvailEditorKit.Companion.undo
+import avail.environment.text.CodePane
 import avail.environment.text.MarkToDotRange
 import avail.environment.text.goTo
 import avail.environment.text.markToDotRange
@@ -68,21 +62,13 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.persistence.cache.Repository.StylingRecord
-import avail.utility.PrefixTree.Companion.payloads
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.awt.Toolkit
+import java.awt.Toolkit.getDefaultToolkit
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent.CTRL_DOWN_MASK
-import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
-import java.awt.event.KeyEvent.VK_ENTER
-import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_F5
 import java.awt.event.KeyEvent.VK_L
 import java.awt.event.KeyEvent.VK_M
-import java.awt.event.KeyEvent.VK_SPACE
-import java.awt.event.KeyEvent.VK_TAB
-import java.awt.event.KeyEvent.VK_Z
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
@@ -96,12 +82,9 @@ import javax.swing.JTextPane
 import javax.swing.KeyStroke.getKeyStroke
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
-import javax.swing.event.CaretEvent
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.Caret
-import javax.swing.undo.CompoundEdit
-import javax.swing.undo.UndoManager
 
 /**
  * An editor for an Avail source module. Currently supports:
@@ -111,6 +94,8 @@ import javax.swing.undo.UndoManager
  * * Template expansion, with prefix shortening and explicit single caret
  *   positioning.
  * * Syntax highlighting.
+ * * Go to line/column.
+ * * Open [structure&#32;view][StructureViewPanel].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -164,23 +149,6 @@ class AvailEditor constructor(
 	override val layoutConfiguration: LayoutConfiguration =
 		AvailEditorLayoutConfiguration(resolvedName.qualifiedName)
 
-	/**
-	 * The last recorded caret position, set upon receipt of a [CaretEvent].
-	 * Used for supporting aggregate undo/redo.
-	 */
-	private var lastCaretPosition = Int.MIN_VALUE
-
-	/** The current edit, for aggregate undo/redo. */
-	internal var currentEdit: CompoundEdit? = null
-
-	/**
-	 * The [UndoManager] for supplying undo/redo for edits to the underlying
-	 * document.
-	 */
-	internal val undoManager = UndoManager().apply {
-		limit = 1000
-	}
-
 	/** Any open dialogs owned by the receiver. */
 	internal val openDialogs = mutableSetOf<JFrame>()
 
@@ -225,13 +193,6 @@ class AvailEditor constructor(
 		{
 			updateManifestEntriesList(then)
 		}
-//		workbench.runtime.execute(
-//			AvailTask(FiberDescriptor.loaderPriority) {
-//				manifestEntriesList =
-//					workbench.availBuilder.getLoadedModule(resolvedName)
-//						?.module?.manifestEntries() ?: emptyList()
-//				then(manifestEntriesList)
-//			})
 	}
 
 	/**
@@ -271,49 +232,6 @@ class AvailEditor constructor(
 	internal fun goTo (entry: ModuleManifestEntry)
 	{
 		sourcePane.goTo(entry.topLevelStartingLine - 1)
-	}
-
-	/**
-	 * The state of an ongoing template selection.
-	 *
-	 * @property startPosition
-	 *   The start position of the template expansion site within the document.
-	 * @property templatePrefix
-	 *   The alleged prefix of a recognized template.
-	 * @property candidateExpansions
-	 *   The candidate template expansions available for selection.
-	 */
-	data class TemplateSelectionState constructor(
-		val startPosition: Int,
-		val templatePrefix: String,
-		val candidateExpansions: List<String>
-	) {
-		/** The index of the active candidate template expansion. */
-		var candidateIndex: Int = 0
-
-		/** Whether the template expansion algorithm is running. */
-		var expandingTemplate: Boolean = true
-
-		/** The current candidate. */
-		val candidate get() = candidateExpansions[candidateIndex]
-	}
-
-	/**
-	 * The state of an ongoing template selection. Set to `null` whenever the
-	 * caret moves for any reason.
-	 */
-	private var templateSelectionState: TemplateSelectionState? = null
-
-	/**
-	 * Clear the [template&#32;selection&#32;state][TemplateSelectionState] iff
-	 * it is stale.
-	 */
-	fun clearStaleTemplateSelectionState()
-	{
-		if (templateSelectionState?.expandingTemplate != true)
-		{
-			templateSelectionState = null
-		}
 	}
 
 	/**
@@ -377,59 +295,23 @@ class AvailEditor constructor(
 	 */
 	private val caretRangeLabel = JLabel()
 
-//	private val mainSplit: JSplitPane
-
 	/** The editor pane. */
-	internal val sourcePane = codeSuitableTextPane(workbench, this).apply {
+	internal val sourcePane = CodePane(
+		workbench,
+		AvailEditorKit(workbench)
+	).apply {
 		isEditable = resolverReference.resolver.canSave
-
-		addCaretListener { e ->
-			clearStaleTemplateSelectionState()
-			val dot = e.dot
-			val currentEdit = currentEdit
-			currentEdit?.let {
-				if (dot != lastCaretPosition && dot != lastCaretPosition + 1)
-				{
-					// If the caret's location is inconsistent with entry of a
-					// single character, then end the current aggregation.
-					currentEdit.end()
-				}
-			}
-			lastCaretPosition = dot
+		registerStyles()
+		addCaretListener {
 			range = markToDotRange()
 			caretRangeLabel.text = range.toString()
 		}
-		inputMap.put(getKeyStroke(VK_SPACE, 0), space)
-		inputMap.put(getKeyStroke(VK_TAB, SHIFT_DOWN_MASK), outdent)
-		inputMap.put(getKeyStroke(VK_ENTER, 0), breakLine)
 		inputMap.put(
-			getKeyStroke(
-				VK_M,
-				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
-			),
-			centerCurrentLine
-		)
-		inputMap.put(
-			getKeyStroke(
-				VK_Z,
-				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx),
-			undo)
-		inputMap.put(
-			getKeyStroke(
-				VK_Z,
-				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx or
-					SHIFT_DOWN_MASK),
-			redo)
-		inputMap.put(getKeyStroke(VK_SPACE, CTRL_DOWN_MASK), expandTemplate)
-		inputMap.put(getKeyStroke(VK_ESCAPE, 0), cancelTemplateSelection)
+			getKeyStroke(VK_L, getDefaultToolkit().menuShortcutKeyMaskEx),
+			goToDialog)
 		inputMap.put(
 			getKeyStroke(VK_M, menuShiftShortcutMask),
 			openStructureView)
-		inputMap.put(
-			getKeyStroke(
-				VK_L,
-				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx),
-			goToDialog)
 		inputMap.put(getKeyStroke(VK_F5, 0), refresh)
 		document.addDocumentListener(object : DocumentListener
 		{
@@ -437,26 +319,7 @@ class AvailEditor constructor(
 			override fun changedUpdate(e: DocumentEvent) = editorChanged()
 			override fun removeUpdate(e: DocumentEvent) = editorChanged()
 		})
-		document.addUndoableEditListener {
-			var edit = currentEdit
-			if (edit === null || !edit.isInProgress)
-			{
-				edit = CompoundEdit()
-				undoManager.addEdit(edit)
-				currentEdit = edit
-				putClientProperty(AvailEditor::currentEdit.name, currentEdit)
-			}
-			edit.addEdit(it.edit)
-		}
-		// Arrange for the undo manager to be available when only the source
-		// pane is in scope.
-		putClientProperty(AvailEditor::undoManager.name, undoManager)
 		putClientProperty(availEditor, this@AvailEditor)
-		// TODO Extract token/phrase style information that should have been
-		// captured by stylers that ran against method/macro send phrases.
-		// TODO Also, we need to capture info relating local variable
-		// uses and definitions, and we should extract it here, so that we can
-		// navigate, or at least highlight all the occurrences.
 	}
 
 	init
@@ -575,143 +438,16 @@ class AvailEditor constructor(
 		throwable?.let { throw it }
 	}
 
-	/**
-	 * Attempt to expand the nonwhitespace text prior to the caret using one of
-	 * the known template substitutions.
-	 */
-	internal fun expandTemplate()
-	{
-		val document = sourcePane.styledDocument
-		var length: Int
-		var state = templateSelectionState
-		if (state === null)
-		{
-			// This is a brand new template expansion, so determine the
-			// candidates. Scan backwards to the first character after a
-			// whitespace, treating the start of the document as such a
-			// character.
-			val caretPosition = sourcePane.caretPosition
-			var startPosition = run {
-				// Start the search just before the caret.
-				var i = caretPosition - 1
-				while (i >= 0)
-				{
-					val c = document.getText(i, 1).codePointAt(0)
-					if (Character.isWhitespace(c)) return@run i + 1
-					i--
-				}
-				0
-			}
-			// Use the substring from boundary to caret as an index into the
-			// prefix tree of available templates.
-			length = caretPosition - startPosition
-			if (length == 0)
-			{
-				// There are no characters in the prefix. Don't allow a random
-				// walk through all possible expansions, as this has no utility.
-				Toolkit.getDefaultToolkit().beep()
-				return
-			}
-			lateinit var prefix: String
-			lateinit var candidates: List<String>
-			while (length > 0)
-			{
-				// Scan shorter and shorter prefixes until we find some
-				// candidates, giving up only if nothing before the caret leads
-				// to a template. I verified this was still real-time for 120
-				// leading characters (2022.08.17).
-				prefix = document.getText(startPosition, length)
-				candidates = workbench.templates.payloads(prefix).flatten()
-				if (candidates.isNotEmpty())
-				{
-					// We found some candidates, so bail on the shortening
-					// search and continue with the candidates at this prefix.
-					break
-				}
-				// Shorten the prefix from the start. This is especially helpful
-				// when trying to expand templates near boundary punctuation.
-				startPosition++
-				length--
-			}
-			if (candidates.isEmpty())
-			{
-				// There are no candidates. Emit a beep, but don't transform any
-				// text or change any internal state, as there's nothing to do.
-				Toolkit.getDefaultToolkit().beep()
-				return
-			}
-			templateSelectionState = TemplateSelectionState(
-				startPosition,
-				prefix,
-				candidates
-			)
-			state = templateSelectionState
-		}
-		else
-		{
-			// This is an ongoing template expansion. Arrange to clear out the
-			// rejected candidate, taking care to deal with caret insertion
-			// characters (⁁) correctly.
-			state.expandingTemplate = true
-			val oldCandidate = state.candidate
-			length = oldCandidate.expandedLength
-			state.candidateIndex++
-			// Select the next candidate, wrapping around if necessary.
-			if (state.candidateIndex == state.candidateExpansions.size)
-			{
-				// Beep twice to alert the user that the candidate list is
-				// recycling, i.e., the user has already seen and rejected every
-				// candidate.
-				state.candidateIndex = 0
-				Toolkit.getDefaultToolkit().beep()
-			}
-		}
-		// Perform the expansion.
-		val candidate = state!!.candidate
-		val startPosition = state.startPosition
-		document.remove(startPosition, length)
-		document.insertString(startPosition, candidate, null)
-		// Search for the caret insertion character (⁁). If found, then position
-		// the caret thereat and delete the character.
-		val desiredCharacterPosition = candidate.indexOf('⁁')
-		if (desiredCharacterPosition >= 0)
-		{
-			sourcePane.caretPosition = startPosition + desiredCharacterPosition
-			document.remove(sourcePane.caretPosition, 1)
-		}
-		else
-		{
-			sourcePane.caretPosition = startPosition + candidate.length
-		}
-		state.expandingTemplate = false
-	}
-
-	/**
-	 * Cancel an ongoing iteration through template candidates. Restore the
-	 * original text.
-	 */
-	internal fun cancelTemplateExpansion()
-	{
-		val state = templateSelectionState
-		if (state !== null)
-		{
-			val startPosition = state.startPosition
-			val length = state.candidate.expandedLength
-			val document = sourcePane.document
-			document.remove(startPosition, length)
-			val prefix = state.templatePrefix
-			document.insertString(startPosition, prefix, null)
-			// Positioning the caret is not strictly necessary, as the insertion
-			// should have placed it correctly. Manually position it though just
-			// to be safe.
-			sourcePane.caretPosition = startPosition + prefix.length
-			templateSelectionState = null
-		}
-	}
-
 	/** Open the editor window. */
-	fun open()
+	init
 	{
+		jMenuBar = createMenuBar {
+			menu("Edit")
+			{
+				item(FindAction(workbench, this@AvailEditor))
+			}
+			addWindowMenu(this@AvailEditor)
+		}
 		// TODO add gutter in here
 		addWindowListener(object : WindowAdapter()
 		{
@@ -746,7 +482,9 @@ class AvailEditor constructor(
 			setHorizontalGroup(
 				createParallelGroup()
 					.addComponent(sourcePaneScroll)
-					.addComponent(caretRangeLabel, GroupLayout.Alignment.TRAILING))
+					.addComponent(
+						caretRangeLabel,
+						GroupLayout.Alignment.TRAILING))
 			setVerticalGroup(
 				createSequentialGroup()
 					.addComponent(sourcePaneScroll)
@@ -760,34 +498,13 @@ class AvailEditor constructor(
 		if (workbench.structureViewIsOpen) openStructureView(true)
 	}
 
-	init
-	{
-		jMenuBar = createMenuBar {
-			menu("Edit")
-			{
-				item(FindAction(workbench, this@AvailEditor))
-			}
-			addWindowMenu(this@AvailEditor)
-		}
-//		mainSplit = JSplitPane(
-//			JSplitPane.VERTICAL_SPLIT,
-//			sourcePane,
-//			structurePane)
-//		contentPane.add(mainSplit)
-	}
-
 	companion object
 	{
 		/** The client property key for an [AvailEditor] from a [JTextPane]. */
 		const val availEditor = "avail-editor"
 
 		/** The [AvailEditor] that sourced the [receiver][ActionEvent]. */
-		@Suppress("unused")
 		internal val ActionEvent.editor get() =
 			(source as JTextPane).getClientProperty(availEditor) as AvailEditor
-
-		/** The length of the receiver after template expansion. */
-		private val String.expandedLength get() =
-			length - count { it == '⁁' }
 	}
 }

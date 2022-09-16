@@ -32,15 +32,11 @@
 
 package avail.environment
 
-import avail.environment.BoundStyle.Companion.defaultStyle
-import avail.environment.text.AvailEditorKit
 import avail.environment.text.TextLineNumber
 import avail.utility.cast
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.Font
-import java.awt.Frame
 import java.awt.Graphics
 import java.awt.Rectangle
 import java.awt.Shape
@@ -50,7 +46,6 @@ import java.awt.event.KeyEvent
 import java.awt.event.WindowEvent
 import javax.swing.AbstractAction
 import javax.swing.Action
-import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLayer
@@ -63,11 +58,6 @@ import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.JTextComponent
 import javax.swing.text.Position.Bias
-import javax.swing.text.SimpleAttributeSet
-import javax.swing.text.StyleConstants
-import javax.swing.text.StyledDocument
-import javax.swing.text.TabSet
-import javax.swing.text.TabStop
 import javax.swing.text.View
 import kotlin.math.max
 
@@ -117,8 +107,17 @@ class CodeGuide(private val afterColumn: Int = 80): LayerUI<JScrollPane>()
 		}
 		val x = x!!
 		val deltaX = view.viewport.viewPosition.x
-		g.color = SystemColors.active.guide
+		g.color = guide.color
 		g.drawLine(x - deltaX, bounds.y, x - deltaX, bounds.height)
+	}
+
+	companion object
+	{
+		/** The color of the guide. */
+		val guide = AdaptiveColor(
+			light = LightColors.strongGray,
+			dark = DarkColors.strongGray
+		)
 	}
 }
 
@@ -146,40 +145,6 @@ internal fun createScrollPane(innerComponent: Component): JScrollPane =
 		verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 		minimumSize = Dimension(100, 50)
 	}
-
-/**
- * Create a JTextPane, initializing it and its [StyledDocument] in a way that
- * makes it suitable for displaying or editing Avail code.  By default, make it
- * editable.
- *
- * @param workbench
- *   The owning [AvailWorkbench], even if the pane is for a different [Frame].
- * @return a new [JTextPane]
- */
-fun codeSuitableTextPane(
-	workbench: AvailWorkbench,
-	frame: JFrame
-): JTextPane = JTextPane().apply {
-	border = BorderFactory.createEtchedBorder()
-	isEditable = true
-	isEnabled = true
-	isFocusable = true
-	preferredSize = Dimension(0, 500)
-	editorKit = AvailEditorKit(workbench, frame)
-	font = Font.decode("Monospaced 13")
-	foreground = SystemColors.active.baseCode
-	background = SystemColors.active.codeBackground
-	val attributes = SimpleAttributeSet()
-	StyleConstants.setTabSet(
-		attributes, TabSet(Array(500) { TabStop(32.0f * (it + 1)) }))
-	StyleConstants.setFontFamily(attributes, "Monospaced")
-	styledDocument.run {
-		setParagraphAttributes(0, length, attributes, false)
-		val defaultStyle = defaultStyle
-		defaultStyle.addAttributes(attributes)
-		StyleRegistry.addAllStyles(this)
-	}
-}
 
 /**
  * Scroll the given [JTextPane] to ensure the given text range is visible, and

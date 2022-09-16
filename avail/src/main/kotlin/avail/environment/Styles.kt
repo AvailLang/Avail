@@ -635,22 +635,16 @@ object StyleApplicator
 		replace: Boolean = true)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
-		val compositeStyles = mutableMapOf<String, Style>()
+		val compositeStyles = mutableMapOf<String, Style?>()
 		runs.forEach { (range, compositeStyleName) ->
 			val styleNames = compositeStyleName.split(",")
-			if (styleNames.size == 1)
+			val style = if (styleNames.size == 1)
 			{
 				// All simple styles should already have been added to the
 				// document, so just ask the document for its registered style
 				// and use it to style the range.
 				val styleName = styleNames.first()
-				getStyle(styleName)?.let { style ->
-					setCharacterAttributes(
-						range.first - 1,
-						range.last - range.first + 1,
-						style,
-						replace)
-				}
+				getStyle(styleName)
 			}
 			else
 			{
@@ -659,14 +653,25 @@ object StyleApplicator
 				val style =
 					compositeStyles.computeIfAbsent(compositeStyleName) {
 						val style = addStyle(it, defaultStyle)
-						val combined = styleNames.drop(1).fold(
-							StyleAspects(getStyle(styleNames.first()))
-						) { aspect, nextStyleName ->
-							aspect + StyleAspects(getStyle(nextStyleName))
+						val styles = styleNames.mapNotNull(::getStyle)
+						if (styles.isNotEmpty())
+						{
+							val combined = styles.drop(1).fold(
+								StyleAspects(styles.first())
+							) { aspect, nextStyle ->
+								aspect + StyleAspects(nextStyle)
+							}
+							combined.applyTo(style)
+							style
 						}
-						combined.applyTo(style)
-						style
+						else
+						{
+							null
+						}
 					}
+				style
+			}
+			style?.let {
 				setCharacterAttributes(
 					range.first - 1,
 					range.last - range.first + 1,

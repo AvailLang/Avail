@@ -116,6 +116,7 @@ import avail.environment.streams.StreamStyle.ERR
 import avail.environment.streams.StreamStyle.INFO
 import avail.environment.streams.StreamStyle.OUT
 import avail.environment.tasks.BuildTask
+import avail.environment.text.CodePane
 import avail.environment.views.StructureViewPanel
 import avail.environment.window.AvailWorkbenchLayoutConfiguration
 import avail.environment.window.LocalScreenState
@@ -365,7 +366,7 @@ class AvailWorkbench internal constructor(
 	 * The [text&#32;area][JTextPane] that displays the [build][AvailBuilder]
 	 * transcript.
 	 */
-	val transcript = codeSuitableTextPane(this, this)
+	val transcript = CodePane(this)
 
 	/** The [scroll bars][JScrollPane] for the [transcript]. */
 	private val transcriptScrollArea: JScrollPane
@@ -2234,7 +2235,7 @@ class AvailWorkbench internal constructor(
 		 * The numeric mask for the modifier key suitable for the current
 		 * platform while the SHIFT key is pressed.
 		 */
-		val menuShiftShortcutMask =
+		val menuShiftShortcutMask get() =
 			menuShortcutMask.or(InputEvent.SHIFT_DOWN_MASK)
 
 		/**

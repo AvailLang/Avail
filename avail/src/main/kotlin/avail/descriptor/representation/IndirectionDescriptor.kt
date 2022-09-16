@@ -1983,7 +1983,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_CodePoint(self: AvailObject): Int =
 		self .. { codePoint }
 
-	override fun o_LazyComplete(self: AvailObject): A_Set =
+	override fun o_LazyComplete(self: AvailObject): A_Map =
 		self .. { lazyComplete }
 
 	override fun o_ConstantBindings(self: AvailObject): A_Map =
