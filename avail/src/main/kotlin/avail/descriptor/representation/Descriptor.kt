@@ -915,7 +915,7 @@ protected constructor (
 
 	override fun o_CodePoint (self: AvailObject): Int = unsupported
 
-	override fun o_LazyComplete (self: AvailObject): A_Set = unsupported
+	override fun o_LazyComplete (self: AvailObject): A_Map = unsupported
 
 	override fun o_ConstantBindings (self: AvailObject): A_Map = unsupported
 

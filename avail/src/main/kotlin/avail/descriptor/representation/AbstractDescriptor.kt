@@ -2055,7 +2055,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_CodePoint (self: AvailObject): Int
 
-	abstract fun o_LazyComplete (self: AvailObject): A_Set
+	abstract fun o_LazyComplete (self: AvailObject): A_Map
 
 	abstract fun o_ConstantBindings (self: AvailObject): A_Map
 

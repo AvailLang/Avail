@@ -73,6 +73,7 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.lookupMacroByPhraseTuple
 import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import avail.descriptor.bundles.A_Bundle.Companion.message
+import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.expand
@@ -1413,7 +1414,7 @@ class AvailCompiler constructor(
 			if (stepState.consumedAnything)
 			{
 				val complete = bundleTree.lazyComplete
-				if (complete.setSize > 0)
+				if (complete.mapSize > 0)
 				{
 					// There are complete messages, we didn't leave a leading
 					// argument stranded, and we made progress in the file
@@ -1421,8 +1422,7 @@ class AvailCompiler constructor(
 					assert(stepState.marksSoFar.isEmpty())
 					assert(stepState.argsSoFar.size == 1)
 					val args = stepState.argsSoFar[0]
-					for (bundle in complete)
-					{
+					complete.forEach { bundle: A_Bundle, definitions: A_Set ->
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							println(
@@ -1434,6 +1434,7 @@ class AvailCompiler constructor(
 							stepState.start,
 							args,
 							bundle,
+							definitions,
 							stepState.consumedStaticTokens,
 							stepState.continuation)
 					}
@@ -2279,6 +2280,11 @@ class AvailCompiler constructor(
 	 * @param bundle
 	 *   The [message&#32;bundle][MessageBundleDescriptor] that identifies the
 	 *   message to be sent.
+	 * @param reachedDefinitions
+	 *   The [A_Set] of [A_Sendable] macro and method definitions that the
+	 *   parser was able to ascertain were reached at this point.  Note that
+	 *   macros with prefix functions may have had to parse some more general
+	 *   macro definitions, which will have to be pruned.
 	 * @param consumedTokens
 	 *   The list of all tokens collected for this send phrase.  This includes
 	 *   only those tokens that are operator or keyword tokens that correspond
@@ -2291,6 +2297,7 @@ class AvailCompiler constructor(
 		stateAfterCall: ParserState,
 		argumentsListNode: A_Phrase,
 		bundle: A_Bundle,
+		reachedDefinitions: A_Set,
 		consumedTokens: List<A_Token>,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
@@ -2471,6 +2478,7 @@ class AvailCompiler constructor(
 					stateAfterCall,
 					argumentsListNode,
 					bundle,
+					reachedDefinitions,
 					consumedTokens,
 					macro,
 					expectedYieldType,
@@ -2669,6 +2677,17 @@ class AvailCompiler constructor(
 	 * A macro invocation has just been parsed.  Run its body now to produce a
 	 * substitute phrase.
 	 *
+	 * Prefix functions (§) that were encountered along the way could have
+	 * caused divergence of the bundle trees, where each applicable-at-that-time
+	 * macro definition is explored separately.  Now that we've reached the end,
+	 * and all arguments have passed their individual type checks along the way,
+	 * we must determine, for the actual types of the argument phrases, whether
+	 * to prune the current parse.  We do this if there is a more specific macro
+	 * definition, still applicable to the actual argument phrases, than the one
+	 * we think we've parsed.  The macro application rules state that the more
+	 * general macro definitions in this case will be excluded, which we do here
+	 * by pruning.
+	 *
 	 * @param stateAfterCall
 	 *   The parsing state after the message.
 	 * @param argumentsListNode
@@ -2677,6 +2696,10 @@ class AvailCompiler constructor(
 	 * @param bundle
 	 *   The [message&#32;bundle][MessageBundleDescriptor] that identifies the
 	 *   message to be sent.
+	 * @param reachedDefinitions
+	 *   The [A_Set] of [A_Sendable] macro definitions that were successfully
+	 *   parsed at this point.  Some of them may become excluded due to there
+	 *   being a more specific macro definition present.
 	 * @param consumedTokens
 	 *   The list of all tokens collected for this send phrase.  This includes
 	 *   only those tokens that are operator or keyword tokens that correspond
@@ -2696,18 +2719,38 @@ class AvailCompiler constructor(
 		stateAfterCall: ParserState,
 		argumentsListNode: A_Phrase,
 		bundle: A_Bundle,
+		reachedDefinitions: A_Set,
 		consumedTokens: List<A_Token>,
 		macroDefinitionToInvoke: A_Macro,
 		expectedYieldType: A_Type,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
-		val argumentsTuple = argumentsListNode.expressionsTuple
-		// Strip off macro substitution wrappers from the arguments.  These were
-		// preserved only long enough to test grammatical restrictions.
-		val argumentsList = mutableListOf<A_Phrase>()
-		for (argument in argumentsTuple)
+		val argumentsList = argumentsListNode.expressionsTuple.toList()
+		if (bundle.messageSplitter.numberOfSectionCheckpoints > 0
+			&& !reachedDefinitions.hasElement(macroDefinitionToInvoke))
 		{
-			argumentsList.add(argument)
+			// An earlier prefix function caused bifurcation of the bundle tree,
+			// allowing macro definitions that don't end up being most specific
+			// (for subsequent argument types) to be parsed to the end.  We just
+			// did a macro lookup prior to this call, but the macro definition
+			// that was looked up wasn't one being parsed along this path.
+			stateAfterCall.expected(STRONG) {
+				it("parsed polymorphic macro invocation to be most specific." +
+					"\nIn particular, parsing of $bundle bifurcated when it\n" +
+					"reached a section checkpoint (§) and therefore ran a\n" +
+					"different prefix function along each path.  Having\n" +
+					"parsed a macro invocation to the end, the arguments\n" +
+					"(including those parsed after the prefix function)\n" +
+					"were found to have been strong enough to invoke a more\n" +
+					"specific macro definition, so the more general macro\n" +
+					"definition was not invoked.\n" +
+					"The more general definition is one of:\n" +
+					"\t$reachedDefinitions,\n" +
+					"and the most specific definition for the actual parsed\n" +
+					"arguments is:\n" +
+					"\t$macroDefinitionToInvoke.")
+			}
+			return
 		}
 		// Capture all tokens that comprised the entire macro send.
 		val withTokensAndBundle = stateAfterCall.clientDataMap

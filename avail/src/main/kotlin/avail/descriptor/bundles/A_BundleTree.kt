@@ -33,6 +33,7 @@ package avail.descriptor.bundles
 
 import avail.compiler.ParsingOperation
 import avail.descriptor.maps.A_Map
+import avail.descriptor.methods.A_Sendable
 import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.parsing.A_DefinitionParsingPlan
@@ -100,7 +101,8 @@ interface A_BundleTree : A_BasicObject {
 		}
 
 		/**
-		 * Answer the [set][A_Set] of [bundles][A_Bundle], an invocation of
+		 * Answer the [A_Map] from [bundles][A_Bundle] to [A_Set] of
+		 * [A_Sendable] macros and method definitions, an invocation of
 		 * which has been completely parsed when this bundle tree has been
 		 * reached.
 		 *
@@ -110,7 +112,8 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   The bundles for which a send has been parsed at this point.
 		 */
-		val A_BundleTree.lazyComplete get() = dispatch { o_LazyComplete(it) }
+		val A_BundleTree.lazyComplete: A_Map
+			get() = dispatch { o_LazyComplete(it) }
 
 		/**
 		 * Answer the bundle trees that are waiting for a specific token to be

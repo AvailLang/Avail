@@ -1,5 +1,5 @@
 /*
- * Collections.avail
+ * Late Collections.avail
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -54,24 +54,24 @@ Uses
 	"Variables"
 Names
 	/* Concise operators. */
-	"∃…∈_§`|_",
-	"∀…∈_§`|_",
-	"…∈_§`|_",
-	"…∈_§→_",
-	
+	"∃…∈_`|§_",
+	"∀…∈_`|§_",
+	"…∈_`|§_",
+	"…∈_→§_",
+
 	/* Utilities. */
 	"one-line tuple body function(_,_)"
 Body
 
-Alias "∃…∈_§`|_" to $"any…in|of_§satisfies_";
-Alias "∀…∈_§`|_" to $"each…in|of_§satisfies_";
-Alias "…∈_§`|_" to $"select each…from_§where_";
-Alias "…∈_§→_" to $"map each…in|of_§through_";
+Alias "∃…∈_`|§_" to $"any…in|of_§satisfies_";
+Alias "∀…∈_`|§_" to $"each…in|of_§satisfies_";
+Alias "…∈_`|§_" to $"select each…from_§where_";
+Alias "…∈_→§_" to $"map each…in|of_§through_";
 
-Copy macros from $"any…in|of_§satisfies_" to $"∃…∈_§`|_";
-Copy macros from $"each…in|of_§satisfies_" to $"∀…∈_§`|_";
-Copy macros from $"select each…from_§where_" to $"…∈_§`|_";
-Copy macros from $"map each…in|of_§through_" to $"…∈_§→_";
+Copy macros from $"any…in|of_§satisfies_" to $"∃…∈_`|§_";
+Copy macros from $"each…in|of_§satisfies_" to $"∀…∈_`|§_";
+Copy macros from $"select each…from_§where_" to $"…∈_`|§_";
+Copy macros from $"map each…in|of_§through_" to $"…∈_→§_";
 
 /**
  * Answer a function that computes a body function.
@@ -121,7 +121,7 @@ Public method "one-line tuple body function(_,_)" is
  * {@param "aTuple"}, collecting the results into a new tuple (and preserving
  * ordering of the transformed elements). Answer this tuple.
  *
- * @macro "…∈_§→_"
+ * @macro "…∈_→§_"
  * @param "elementPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic
  *        {@type "literal token"} whose value is the name of the loop variable.
@@ -136,7 +136,7 @@ Public method "one-line tuple body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Tuples"
  */
-Public macro "…∈_§→_" is
+Public macro "…∈_→§_" is
 	a tuple iteration prefix function,
 	one-line tuple body function($"map_through_", tuple)
 styled by loop styler;
