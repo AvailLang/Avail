@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * AvailJar.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,68 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
-	kotlin("jvm") version "1.7.0"
-}
+package avail.anvil.projects
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONObject
+import org.availlang.json.JSONWriter
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha01")
-}
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
+/**
+ * The location of the Avail jar to use for the Avail runtime.
+ *
+ * @author Richard Arriaga
+ *
+ * @property version
+ *   The [AvailVersion] of Avail to use.
+ * @property path
+ *   The path to the Avail jar file.
+ */
+data class AvailJar constructor(
+	val version: AvailVersion,
+	val path: String
+): JSONFriendly, Comparable<AvailJar>
+{
+	override fun writeTo(writer: JSONWriter)
+	{
+		writer.writeObject {
+			at(AvailJar::version.name) { write(version.version) }
+			at(AvailJar::path.name) { write(path) }
+		}
 	}
 
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
+	override fun compareTo(other: AvailJar): Int =
+		version.compareTo(other.version)
+
+	companion object
+	{
+		/**
+		 * Answer a [AvailJar] from the provided [JSONObject].
+		 *
+		 * @param obj
+		 *   The [JSONObject] to extract data from.
+		 * @return
+		 *   The [AvailJar] or `null` if malformed.
+		 */
+		fun from (obj: JSONObject): AvailJar?
+		{
+			if (!obj.containsKey(AvailJar::version.name)
+				|| !obj.containsKey(AvailJar::path.name))
+			{
+				return null
+			}
+			return try
+			{
+				val version = AvailVersion.versionOrNull(
+					obj.getString(AvailJar::version.name)) ?: return null
+				AvailJar(
+					version,
+					obj.getString(AvailJar::path.name))
+			}
+			catch (e: Throwable)
+			{
+				e.printStackTrace()
+				null
+			}
 		}
 	}
 }

@@ -32,8 +32,8 @@
 
 package avail.project
 
-import avail.environment.AvailWorkbench
-import avail.environment.projects.GlobalAvailConfiguration
+import avail.anvil.AvailWorkbench
+import avail.anvil.projects.GlobalAvailConfiguration
 import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
 import org.availlang.artifact.environment.AvailEnvironment.optionallyCreateAvailUserHome
 import org.availlang.artifact.environment.project.AvailProject

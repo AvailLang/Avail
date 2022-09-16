@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * WorkbenchFrame.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
-	kotlin("jvm") version "1.7.0"
-}
+package avail.anvil.window
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+import avail.anvil.AvailWorkbench
+import javax.swing.JFrame
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
+/**
+ * A [JFrame] that is directly associated with an [AvailWorkbench].
+ *
+ * @author Richard Arriaga
+ *
+ * @constructor
+ * Create a [WorkbenchFrame].
+ *
+ * @param title
+ *   The [JFrame.title].
+ */
+abstract class WorkbenchFrame constructor(title: String): JFrame(title)
+{
+	/**
+	 * The associated workbench.
+	 */
+	abstract val workbench: AvailWorkbench
 
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
+	/**
+	 * The [LayoutConfiguration] that describes the position of this
+	 * [WorkbenchFrame].
+	 */
+	internal abstract val layoutConfiguration: LayoutConfiguration
 
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha01")
-}
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
-	}
-
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
+	/**
+	 * Save this window position.
+	 */
+	internal open fun saveWindowPosition()
+	{
+		layoutConfiguration.extendedState = extendedState
+		if (extendedState == NORMAL)
+		{
+			// Only capture the bounds if it's not zoomed or minimized.
+			layoutConfiguration.placement = bounds
 		}
 	}
 }

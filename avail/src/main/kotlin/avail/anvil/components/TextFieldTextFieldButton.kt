@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * TextFieldWithLabel.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,69 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
-	kotlin("jvm") version "1.7.0"
-}
+package avail.anvil.components
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
+import javax.swing.BorderFactory
+import javax.swing.JButton
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTextField
+import javax.swing.border.Border
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha01")
-}
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
-	}
-
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
+/**
+ * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left of the
+ * [JTextField] and a button to the right of the [JTextField].
+ *
+ * @author Richard Arriaga
+ */
+class TextFieldTextFieldButton constructor(
+	val button: JButton = JButton("…"),
+	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
+): JPanel(GridBagLayout())
+{
+	/**
+	 * The [JLabel] to the left of the [JTextField].
+	 */
+	val textFieldLeft = JTextField().apply {
+			this@TextFieldTextFieldButton.add(
+				this,
+				GridBagConstraints().apply {
+					weightx = 0.5
+					weighty = 1.0
+					fill = GridBagConstraints.HORIZONTAL
+					gridx = 0
+					gridy = 0
+					gridwidth = 1
+				})
 		}
+
+	/**
+	 * The [JTextField] that accepts the text input.
+	 */
+	val textFieldRight: JTextField = JTextField().apply {
+		this@TextFieldTextFieldButton.add(
+			this,
+			GridBagConstraints().apply {
+				weightx = 0.5
+				weighty = 1.0
+				fill = GridBagConstraints.HORIZONTAL
+				gridx = 1
+				gridy = 0
+				gridwidth = 1
+			})
+	}
+
+	init
+	{
+		add(
+			button,
+			GridBagConstraints().apply {
+				gridx = 2
+				gridy = 0
+				gridwidth = 1
+			})
+		border = panelBorder
 	}
 }

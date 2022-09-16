@@ -1,5 +1,5 @@
 /*
- * AvailProject.kt
+ * AvailProjectManagerWindow.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,68 +30,91 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.project
+package avail.anvil.projects.manager
 
-import avail.anvil.AvailWorkbench
-import avail.anvil.projects.manager.AvailProjectManagerWindow
+import avail.anvil.projects.manager.AvailProjectManagerWindow.DisplayedPanel.*
 import avail.anvil.projects.GlobalAvailConfiguration
-import com.formdev.flatlaf.FlatDarculaLaf
-import com.formdev.flatlaf.util.SystemInfo
 import org.availlang.artifact.environment.project.AvailProject
-import java.util.concurrent.Semaphore
-import javax.swing.UIManager
-import kotlin.concurrent.thread
+import java.awt.Dimension
+import javax.swing.JComponent
+import javax.swing.JFrame
+import javax.swing.SwingUtilities
+import javax.swing.WindowConstants
 
 /**
- * An [AvailWorkbench] runner that uses an [AvailProject] configuration file to
- * start the workbench with the appropriate Avail roots and project-specific
- * configurations.
+ * The Avail start up window. This window is displayed when an Avail development
+ * environment is started with no particular [AvailProject] file.
  *
  * @author Richard Arriaga
  */
-object AvailProjectManagerRunner
+class AvailProjectManagerWindow constructor(
+	internal val globalConfig: GlobalAvailConfiguration
+): JFrame("Avail")
 {
-	/**
-	 * Launch an [AvailWorkbench] for a specific [AvailProjectManagerRunner].
-	 *
-	 * @param args
-	 *   The command line arguments.
-	 * @throws Exception
-	 *   If something goes wrong.
-	 */
-	@Throws(Exception::class)
-	@JvmStatic
-	fun main(args: Array<String>)
+	init
 	{
-	// Do the slow Swing setup in parallel with other things...
-		val swingReady = Semaphore(0)
-		if (SystemInfo.isMacOS)
-		{
-			// enable screen menu bar
-			// (moves menu bar from JFrame window to top of screen)
-			System.setProperty("apple.laf.useScreenMenuBar", "true")
+		minimumSize = Dimension(750, 400)
+		preferredSize = Dimension(750, 600)
+		maximumSize = Dimension(750, 900)
+	}
+	var displayed = KNOWN_PROJECTS
 
-			// appearance of window title bars
-			// possible values:
-			//   - "system": use current macOS appearance (light or dark)
-			//   - "NSAppearanceNameAqua": use light appearance
-			//   - "NSAppearanceNameDarkAqua": use dark appearance
-			System.setProperty("apple.awt.application.appearance", "system")
-		}
-		thread(name = "Set up LAF") {
-			try
+	fun hideProjectManager()
+	{
+		isVisible = false
+	}
+	internal var displayedComponent: JComponent =
+		KnownProjectsPanel(globalConfig, this)
+
+	internal fun draw ()
+	{
+		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+
+		displayedComponent =
+			when (displayed)
 			{
-				FlatDarculaLaf.setup()
+				KNOWN_PROJECTS ->
+				{
+					title = "Avail Projects"
+					KnownProjectsPanel(globalConfig, this)
+				}
+				CREATE_PROJECT ->
+				{
+					title = "Create Project"
+					CreateProjectPanel(
+						globalConfig,
+						{
+
+						})
+					{
+						displayed = KNOWN_PROJECTS
+						SwingUtilities.invokeLater {
+							redraw()
+						}
+					}
+				}
 			}
-			catch (ex: Exception)
-			{
-				System.err.println("Failed to initialize LaF")
-			}
-			UIManager.put("ScrollPane.smoothScrolling", false)
-			swingReady.release()
-		}
-		swingReady.acquire()
-		val globalConfig = GlobalAvailConfiguration.getGlobalConfig()
-		AvailProjectManagerWindow(globalConfig)
+		add(displayedComponent)
+		pack()
+		isVisible = true
+	}
+
+	internal
+	fun redraw ()
+	{
+		remove(displayedComponent)
+		draw()
+	}
+
+	enum class DisplayedPanel
+	{
+		KNOWN_PROJECTS,
+
+		CREATE_PROJECT
+	}
+
+	init
+	{
+		draw()
 	}
 }
