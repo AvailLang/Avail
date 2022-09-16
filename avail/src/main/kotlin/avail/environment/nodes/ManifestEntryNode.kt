@@ -67,5 +67,5 @@ class ManifestEntryNode constructor(
 	 * @return The icon.
 	 */
 	fun icon(lineHeight: Int): ImageIcon =
-		StructureIcons.icon(lineHeight.ifZero { 19 }, entry.kind)
+		StructureIcons.icon(lineHeight.ifZero { 16 }, entry.kind)
 }

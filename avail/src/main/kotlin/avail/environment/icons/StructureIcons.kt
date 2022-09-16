@@ -64,57 +64,57 @@ object StructureIcons
 	/**
 	 * The resource name for [SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND].
 	 */
-	private const val ABSTRACT_METHOD ="abstract-method.png"
+	private const val ABSTRACT_METHOD ="AbstractMethod-Dark.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.ATOM_DEFINITION_KIND].
 	 */
-	private const val ATOM = "atom.png"
+	private const val ATOM = "Atom-Dark.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.MODULE_CONSTANT_KIND].
 	 */
-	private const val MODULE_CONSTANT = "constant.png"
+	private const val MODULE_CONSTANT = "Constant-Dark.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.FORWARD_METHOD_DEFINITION_KIND].
 	 */
-	private const val FORWARD_METHOD = "forward-method.png"
+	private const val FORWARD_METHOD = "ForwardMethod-Dark.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.GRAMMATICAL_RESTRICTION_KIND].
 	 */
-	private const val GRAMMATICAL_RESTRICTION = "grammatical-restriction.png"
+	private const val GRAMMATICAL_RESTRICTION = "GrammaticalRestriction-DarkLight.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.LEXER_KIND].
 	 */
-	private const val LEXER = "lexer.png"
+	private const val LEXER = "Lexer-Dark.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.MACRO_DEFINITION_KIND].
 	 */
-	private const val MACRO = "macro.png"
+	private const val MACRO = "Macro-Dark.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.METHOD_DEFINITION_KIND].
 	 */
-	private const val METHOD = "method.png"
+	private const val METHOD = "Method-Dark.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.METHOD_DEFINITION_KIND].
 	 */
-	private const val SEALED_METHOD = "method-sealed.png"
+	private const val SEALED_METHOD = "Seal-DarkLight.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.SEMANTIC_RESTRICTION_KIND].
 	 */
-	private const val SEMANTIC_RESTRICTION ="semantic-restriction.png"
+	private const val SEMANTIC_RESTRICTION ="SemanticRestriction-Dark.png"
 
 	/**
 	 * The resource name for  [SideEffectKind.MODULE_VARIABLE_KIND].
 	 */
-	private const val MODULE_VARIABLE = "variable.png"
+	private const val MODULE_VARIABLE = "Variable-Dark.png"
 
 	/**
 	 * Return a suitable icon to display for this instance with the given line
