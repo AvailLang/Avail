@@ -58,7 +58,7 @@ plugins {
 	id("org.jetbrains.compose") version Versions.compose apply false
 	id("org.jetbrains.intellij") version Versions.intellij apply false
 	id("org.jetbrains.dokka") version "1.6.21" apply false
-	id("avail.avail-plugin") version "2.0.0.rc1-SNAPSHOT" apply false
+	id("org.availlang.avail-plugin") version "2.0.0.alpha01" apply false
 }
 
 java {
@@ -69,14 +69,13 @@ java {
 
 kotlin {
 	jvmToolchain {
-		(this as JavaToolchainSpec).languageVersion.set(
-			JavaLanguageVersion.of(Versions.jvmTargetString))
+		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTargetString))
 	}
 }
 
 allprojects {
 	group = "org.availlang"
-	version = "2.0.0-SNAPSHOT"
+	version = "2.0.0.alpha01"
 
 	// Define versions in a single place
 	extra.apply{
