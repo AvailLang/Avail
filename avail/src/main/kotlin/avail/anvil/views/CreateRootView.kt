@@ -1,5 +1,5 @@
 /*
- * TextFieldWithLabel.kt
+ * CreateRootView.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,58 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.components
+package avail.anvil.views
 
+import avail.anvil.components.TextFieldWithLabel
+import org.availlang.artifact.environment.project.AvailProjectRoot
+import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.BorderFactory
-import javax.swing.JLabel
+import javax.swing.JFrame
 import javax.swing.JPanel
-import javax.swing.JTextField
-import javax.swing.border.Border
 
 /**
- * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left
+ * The [JFrame] used to create a new root.
  *
  * @author Richard Arriaga
  */
-class TextFieldWithLabel constructor(
-	label: String,
-	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
-): JPanel(GridBagLayout())
+class CreateRootView constructor(
+	val projectDirectory: String,
+	val onCreate: (AvailProjectRoot) -> Unit,
+	val onCancel: () -> Unit
+): JFrame("Create New Root")
 {
-
-	/**
-	 * The [JLabel] to the left of the [JTextField].
-	 */
-	val label = JLabel(label).apply {
-			this@TextFieldWithLabel.add(
-				this,
-				GridBagConstraints().apply {
-					gridx = 0
-					gridy = 0
-					gridwidth = 1
-				})
-		}
-
-	/**
-	 * The [JTextField] that accepts the text input.
-	 */
-	val textField: JTextField = JTextField().apply {
-		this@TextFieldWithLabel.add(
-			this,
-			GridBagConstraints().apply {
-				weightx = 0.75
-				weighty = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 1
-				gridy = 0
-				gridwidth = 1
-			})
+	val panel = JPanel(GridBagLayout()).apply {
+		border = BorderFactory.createEmptyBorder(15, 10, 15, 10)
 	}
+
+	val nameField = TextFieldWithLabel("Root Name:")
+	val projectDirField = TextFieldWithLabel("Project Relative Location:")
 
 	init
 	{
-		border = panelBorder
+		minimumSize = Dimension(500, 500)
+		preferredSize = Dimension(500, 500)
+		maximumSize = Dimension(500, 500)
+		val c = GridBagConstraints().apply {
+			weightx = 0.5
+		}
+		add(nameField, c)
+		c.gridwidth = GridBagConstraints.REMAINDER
+		add(projectDirField, c)
+		c.weightx = 0.0
 	}
+
+
 }
