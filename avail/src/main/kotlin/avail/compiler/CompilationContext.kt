@@ -81,15 +81,20 @@ import avail.descriptor.module.A_Module.Companion.allAncestors
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.SurrogateIndexConverter
@@ -100,8 +105,31 @@ import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.systemStyleForType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ARGUMENT_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.ASSIGNMENT_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.FIRST_OF_SEQUENCE_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_CONSTANT_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
@@ -1032,59 +1060,109 @@ class CompilationContext constructor(
 		styles.add(
 			when
 			{
-				(originalSendPhrase.notNullAnd { !equals(transformedPhrase) }) ->
-					SystemStyle.MACRO_SEND
+				originalSendPhrase.notNullAnd {
+					!transformedPhrase.equals(this) }
+				-> SystemStyle.MACRO_SEND
 				else -> SystemStyle.METHOD_SEND
 			})
 		// 2. Add an optional style based on the yield type, taking care not to
-		//    override variable use styles.
+		//    override variable use styles.  Style literals by their type
+		//    differently than non-literals.
+		val phraseKind = transformedPhrase.phraseKind
 		val yieldType = transformedPhrase.phraseExpressionType
-		when
+		val styleByType: SystemStyle? = when (phraseKind)
 		{
-			transformedPhrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> {}
-			else -> yieldType.systemStyleForType?.let { styles.add(it) }
-		}
-		// 3. Deal with literals, if any source tokens were involved.
-		if (transformedPhrase.phraseKindIsUnder(LITERAL_PHRASE))
-		{
-			val literalStyle = yieldType.run {
+			// Ignore "glue" phrases.  The originalSendPhrase's styler will
+			// still get a chance to run further down.
+			ASSIGNMENT_PHRASE,
+			BLOCK_PHRASE,
+			EXPRESSION_AS_STATEMENT_PHRASE,
+			EXPRESSION_PHRASE,
+			FIRST_OF_SEQUENCE_PHRASE,
+			LIST_PHRASE,
+			MACRO_SUBSTITUTION_PHRASE,
+			MARKER_PHRASE,
+			PARSE_PHRASE,
+			PERMUTED_LIST_PHRASE,
+			REFERENCE_PHRASE,
+			SEQUENCE_AS_EXPRESSION_PHRASE,
+			SEQUENCE_PHRASE,
+			STATEMENT_PHRASE,
+			SUPER_CAST_PHRASE,
+			VARIABLE_USE_PHRASE
+				-> null
+			// Declarations should be styled via the macros that create them.
+			ARGUMENT_PHRASE,
+			DECLARATION_PHRASE,
+			LABEL_PHRASE,
+			LOCAL_VARIABLE_PHRASE,
+			LOCAL_CONSTANT_PHRASE,
+			MODULE_VARIABLE_PHRASE,
+			MODULE_CONSTANT_PHRASE,
+			PRIMITIVE_FAILURE_REASON_PHRASE
+				-> null
+			// Method sends get styled by their yield type.
+			SEND_PHRASE -> yieldType.systemStyleForType
+
+			// Literals get styled specially by their type.
+			LITERAL_PHRASE -> transformedPhrase.token.let { token ->
 				when
 				{
-					isSubtypeOf(NUMBER.o) -> SystemStyle.NUMERIC_LITERAL
-					isSubtypeOf(CHARACTER.o) -> SystemStyle.CHARACTER_LITERAL
-					isSubtypeOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
-					isSubtypeOf(ATOM.o) -> SystemStyle.ATOM_LITERAL
-					else -> SystemStyle.OTHER_LITERAL
+					// If the token was directly lexed and already styled, don't
+					// add additional type-based styling.
+					token.isInCurrentModule(module) &&
+						token.generatingLexer.notNil &&
+						getStylerFunction(token.generatingLexer.lexerMethod)
+							.notNil -> null
+					yieldType.isSubtypeOf(NUMBER.o) ->
+						SystemStyle.NUMERIC_LITERAL
+					yieldType.isSubtypeOf(CHARACTER.o) ->
+						SystemStyle.CHARACTER_LITERAL
+					yieldType.isSubtypeOf(booleanType) ->
+						SystemStyle.BOOLEAN_LITERAL
+					yieldType.isSubtypeOf(ATOM.o) ->
+						SystemStyle.ATOM_LITERAL
+					else ->
+						yieldType.systemStyleForType ?:
+							SystemStyle.OTHER_LITERAL
 				}
 			}
-			styles.add(literalStyle)
 		}
-		// 4. Run any custom styler.
+		styleByType?.let { styles.add(it) }
+		styles.forEach { style ->
+			originalSendPhrase?.let { loader.styleTokens(it.tokens, style) }
+			loader.styleTokens(transformedPhrase.tokens, style)
+		}
+		// 3. Run any custom styler.
 		val bundleWithStyler = when
 		{
 			originalSendPhrase !== null -> originalSendPhrase.bundle
 			transformedPhrase.phraseKindIsUnder(SEND_PHRASE) ->
 				transformedPhrase.bundle
-			else -> return
-		}
-		styles.forEach { style ->
-			originalSendPhrase?.let { loader.styleTokens(it.tokens, style) }
-			loader.styleTokens(transformedPhrase.tokens, style)
+			else -> return then()
 		}
 		// Next, give the method's styler function a chance to run.
 		val stylerFn = getStylerFunction(bundleWithStyler.bundleMethod)
 		if (debugStyling)
 		{
-			println(
-				"style send: $bundleWithStyler\n" +
-					"\twith ${stylerFn.code().methodName.asNativeString()}")
+			val stylerName = when
+			{
+				(stylerFn.isNil) -> "(default)"
+				else -> stylerFn.code().methodName.asNativeString()
+			}
+			println("style send: $bundleWithStyler\n\twith $stylerName")
 		}
 		val fiber = newStylerFiber(loader)
 		{
+			val stylerName = when
+			{
+				(stylerFn.isNil) -> "default"
+				else -> stylerFn.code().methodName.asNativeString()
+			}
 			formatString(
 				"Style %s (%s)",
 				bundleWithStyler.message,
-				stylerFn.code().methodName.asNativeString())
+				stylerName)
 		}
 		fiber.setSuccessAndFailure(
 			onSuccess = { then() },
@@ -1092,7 +1170,7 @@ class CompilationContext constructor(
 			onFailure = { then() })
 		runtime.runOutermostFunction(
 			fiber,
-			stylerFn,
+			stylerFn.ifNil { runtime[DEFAULT_STYLER] },
 			listOf(
 				tupleFromList(listOfNotNull(originalSendPhrase)),
 				transformedPhrase))
@@ -1102,7 +1180,8 @@ class CompilationContext constructor(
 	 * A cache mapping from [A_Method] to the [A_Function] of an [A_Styler]'s
 	 * body.  It should be cleared any time a new styler is introduced (within
 	 * the scope of the current module), or alternatively just before styling
-	 * a top-level statement.
+	 * a top-level statement.  If a styler cannot be found for the method, store
+	 * nil as the value to cache a negative search.
 	 */
 	private val styleCache = ConcurrentHashMap<A_Method, A_Function>()
 
@@ -1116,8 +1195,8 @@ class CompilationContext constructor(
 	/**
 	 * Given a [method], look up stylers visible by the current module, and
 	 * choose the most specific one, or the conflict styler if there is more
-	 * than one that is most specific.  Answer the default styler if none are
-	 * defined and visible to the module.
+	 * than one that is most specific.  Answer nil if none are defined and
+	 * visible to the module.
 	 */
 	fun getStylerFunction(method: A_Method): A_Function
 	{
@@ -1133,8 +1212,8 @@ class CompilationContext constructor(
 			in 0 .. 1 -> eligibleStylers
 			else ->
 			{
-				// There can't be multiple built-in (no-module) stylers, so
-				// let one defined by a module win.
+				// There can't be multiple built-in (no-module) stylers, so let
+				// one defined by a module win.
 				val notBuiltIn = eligibleStylers.filter { it.module.notNil }
 				notBuiltIn.filter { styler ->
 					notBuiltIn.none { otherStyler ->
@@ -1146,11 +1225,11 @@ class CompilationContext constructor(
 		}
 		val stylerFn = when (mostSpecificStylers.size)
 		{
-			0 -> runtime[DEFAULT_STYLER]
+			0 -> nil
 			1 -> mostSpecificStylers[0].function
 			else ->
 				// TODO - Use the conflict style, which isn't coded yet.
-				runtime[DEFAULT_STYLER]
+				nil
 		}
 		styleCache[method] = stylerFn
 		return stylerFn

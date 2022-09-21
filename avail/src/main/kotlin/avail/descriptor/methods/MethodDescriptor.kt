@@ -133,7 +133,6 @@ import avail.exceptions.MethodDefinitionException
 import avail.exceptions.MethodDefinitionException.Companion.extractUniqueMethod
 import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByClassName
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.DEPENDENCY_CHANGED
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -844,111 +843,112 @@ class MethodDescriptor private constructor(
 	 *   is a macro being defined, or null to indicate this is a non-macro. Note
 	 *   that if there are multiple primitives provided in the variadic argument
 	 *   below, each will use the same list of prefix functions.
-	 * @param primitiveNames
+	 * @param primitives
 	 *   The primitive to wrap into a method or macro definition.  Note that
 	 *   multiple overrides may be provided in this variadic argument.
 	 */
-	enum class SpecialMethodAtom constructor(
+	enum class SpecialMethodAtom
+	constructor(
 		name: String,
-		prefixFunctions: List<String>?,
-		vararg primitiveNames: String)
+		prefixFunctions: List<Primitive>?,
+		vararg primitives: Primitive)
 	{
 		/** The special atom for failing during bootstrap.  Must be first. */
 		CRASH(
 			"vm crash:_",
-			P_EmergencyExit::class.java.name),
+			P_EmergencyExit),
 
 		/** The special atom for defining abstract methods. */
 		ABSTRACT_DEFINER(
 			"vm abstract_for_",
-			P_AbstractMethodDeclarationForAtom::class.java.name),
+			P_AbstractMethodDeclarationForAtom),
 
 		/** The special atom for adding to a map inside a variable. */
 		ADD_TO_MAP_VARIABLE(
 			"vm_↑[_]:=_",
-			P_AtomicAddToMap::class.java.name),
+			P_AtomicAddToMap),
 
 		/** The special atom for removing from a map inside a variable. */
 		REMOVE_FROM_MAP_VARIABLE(
 			"vm_↑-=_",
-			P_AtomicRemoveFromMap::class.java.name),
+			P_AtomicRemoveFromMap),
 
 		/** The special atom for adding a module unload function. */
 		ADD_UNLOADER(
 			"vm on unload_",
-			P_AddUnloadFunction::class.java.name),
+			P_AddUnloadFunction),
 
 		/** The special atom for creating aliases of atoms. */
 		ALIAS(
 			"vm alias new name_to_",
-			P_Alias::class.java.name),
+			P_Alias),
 
 		/** The special atom for function application. */
 		APPLY(
 			"vm function apply_with tuple_",
-			P_InvokeWithTuple::class.java.name),
+			P_InvokeWithTuple),
 
 		/** The special atom for adding properties to atoms. */
 		ATOM_PROPERTY(
 			"vm atom_at property_put_",
-			P_AtomSetProperty::class.java.name),
+			P_AtomSetProperty),
 
 		/** The special atom for removing properties from atoms. */
 		ATOM_REMOVE_PROPERTY(
 			"vm atom_remove property_",
-			P_AtomRemoveProperty::class.java.name),
+			P_AtomRemoveProperty),
 
 		/** The special atom for extracting the caller of a continuation. */
 		CONTINUATION_CALLER(
 			"vm_'s caller",
-			P_ContinuationCaller::class.java.name),
+			P_ContinuationCaller),
 
 		/** The special atom for creating a literal phrase. */
 		CREATE_LITERAL_PHRASE(
 			"vm create literal phrase_",
-			P_CreateLiteralExpression::class.java.name),
+			P_CreateLiteralExpression),
 
 		/** The special atom for creating a literal token. */
 		CREATE_LITERAL_TOKEN(
 			"vm create literal token_,_,_,_«from phrase_»?",
-			P_CreateLiteralToken::class.java.name),
+			P_CreateLiteralToken),
 
 		/** The special atom for declaring the stringifier atom. */
 		DECLARE_STRINGIFIER(
 			"vm stringifier:=_",
-			P_DeclareStringificationAtom::class.java.name),
+			P_DeclareStringificationAtom),
 
 		/** The special atom for forward-defining methods. */
 		FORWARD_DEFINER(
 			"vm forward_for_",
-			P_ForwardMethodDeclarationForAtom::class.java.name),
+			P_ForwardMethodDeclarationForAtom),
 
 		/** The special atom for getting a variable's value. */
 		GET_VARIABLE(
 			"vm↓_",
-			P_GetValue::class.java.name),
+			P_GetValue),
 
 		/** The special atom for adding grammatical restrictions. */
 		GRAMMATICAL_RESTRICTION(
 			"vm grammatical restriction_is_",
-			P_GrammaticalRestrictionFromAtoms::class.java.name),
+			P_GrammaticalRestrictionFromAtoms),
 
 		/** The special atom for defining lexers. */
 		LEXER_DEFINER(
 			"vm lexer_filter is_body is_",
-			P_SimpleLexerDefinitionForAtom::class.java.name),
+			P_SimpleLexerDefinitionForAtom),
 
 		/** The special atom for defining macros. */
 		MACRO_DEFINER(
 			"vm macro_is«_,»_«styled by_»?",
-			P_SimpleMacroDeclaration::class.java.name,
-			P_SimpleMacroDefinitionForAtom::class.java.name),
+			P_SimpleMacroDeclaration,
+			P_SimpleMacroDefinitionForAtom),
 
 		/** The special atom for defining methods. */
 		METHOD_DEFINER(
 			"vm method_is_«styled by_»?",
-			P_SimpleMethodDeclaration::class.java.name,
-			P_MethodDeclarationFromAtom::class.java.name),
+			P_SimpleMethodDeclaration,
+			P_MethodDeclarationFromAtom),
 
 		/**
 		 * The special atom for explicitly attaching a name to compiled code.
@@ -956,73 +956,73 @@ class MethodDescriptor private constructor(
 		 */
 		SET_COMPILED_CODE_NAME(
 			"vm set name of raw function_to_",
-			P_SetCompiledCodeName::class.java.name),
+			P_SetCompiledCodeName),
 
 		/** The special atom for creating ordinary atoms. */
 		CREATE_ATOM(
 			"vm create atom_",
-			P_CreateAtom::class.java.name),
+			P_CreateAtom),
 
 		/** The special atom for creating fiber-heritable atoms. */
 		CREATE_HERITABLE_ATOM(
 			"vm create heritable atom_",
-			P_CreateFiberHeritableAtom::class.java.name),
+			P_CreateFiberHeritableAtom),
 
 		/** The special atom for creating explicit-subclass atoms. */
 		CREATE_EXPLICIT_SUBCLASS_ATOM(
 			"vm create explicit subclass atom_",
-			P_CreateExplicitSubclassAtom::class.java.name),
+			P_CreateExplicitSubclassAtom),
 
 		/** The special atom for publishing atoms. */
 		PUBLISH_ATOMS(
 			"vm publish atom set_(public=_)",
-			P_DeclareAllExportedAtoms::class.java.name),
+			P_DeclareAllExportedAtoms),
 
 		/**
 		 * The special atom for publishing an atom created in the module body.
 		 */
 		PUBLISH_NEW_NAME(
 			"vm publish new atom_",
-			P_PublishName::class.java.name),
+			P_PublishName),
 
 		/** The special atom for publishing all atoms imported from a module. */
 		PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE(
 			"vm publish all atoms from modules named_(public=_)",
-			P_DeclareAllAtomsExportedFromAnotherModule::class.java.name),
+			P_DeclareAllAtomsExportedFromAnotherModule),
 
 		/** The special atom for recording a type's name. */
 		RECORD_TYPE_NAME(
 			"vm record type_name_",
-			P_RecordNewTypeName::class.java.name),
+			P_RecordNewTypeName),
 
 		/** The special atom for creating a module variable/constant. */
 		CREATE_MODULE_VARIABLE(
 			"vm in_create_with variable type_«constant»?«stably computed»?",
-			P_PrivateCreateModuleVariable::class.java.name),
+			P_PrivateCreateModuleVariable),
 
 		/** The special atom for sealing methods. */
 		SEAL(
 			"vm seal_at_",
-			P_SealMethodByAtom::class.java.name),
+			P_SealMethodByAtom),
 
 		/** The special atom for adding semantic restrictions. */
 		SEMANTIC_RESTRICTION(
 			"vm semantic restriction_is_",
-			P_AddSemanticRestrictionForAtom::class.java.name),
+			P_AddSemanticRestrictionForAtom),
 
 		/** The special atom for resuming a continuation. */
 		RESUME_CONTINUATION(
 			"vm resume_",
-			P_ResumeContinuation::class.java.name),
+			P_ResumeContinuation),
 
 		/** The special atom for rethrowing a Java exception in Avail. */
 		GET_RETHROW_JAVA_EXCEPTION(
 			"vm get rethrow in Avail hook",
-			P_GetRaiseJavaExceptionInAvailFunction::class.java.name),
+			P_GetRaiseJavaExceptionInAvailFunction),
 
 		SET_STYLER(
 			"vm add styler of bundle_is_",
-			P_SetStylerFunction::class.java.name),
+			P_SetStylerFunction),
 
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(
@@ -1042,10 +1042,10 @@ class MethodDescriptor private constructor(
 				+ "«Pragma«…#‡,»»"
 				+ "Body",
 			listOf(
-				P_ModuleHeaderPrefixCheckModuleName::class.java.name,
-				P_ModuleHeaderPrefixCheckModuleVersion::class.java.name,
-				P_ModuleHeaderPrefixCheckImportVersion::class.java.name),
-			P_ModuleHeaderPseudoMacro::class.java.name)
+				P_ModuleHeaderPrefixCheckModuleName,
+				P_ModuleHeaderPrefixCheckModuleVersion,
+				P_ModuleHeaderPrefixCheckImportVersion),
+			P_ModuleHeaderPseudoMacro)
 		{
 			init
 			{
@@ -1076,14 +1076,14 @@ class MethodDescriptor private constructor(
 		 *
 		 * @param name
 		 *   The name of the method or macro being defined.
-		 * @param primitiveNames
+		 * @param primitives
 		 *   The primitive to wrap into a method or macro definition.  Note that
 		 *   multiple overrides may be provided in this variadic argument.
 		 */
 		constructor(
 			name: String,
-			vararg primitiveNames: String
-		) : this(name, null, *primitiveNames)
+			vararg primitives: Primitive
+		) : this(name, null, *primitives)
 
 		/** The special atom. */
 		val atom: A_Atom = createSpecialAtom(name)
@@ -1101,10 +1101,9 @@ class MethodDescriptor private constructor(
 
 		init
 		{
-			primitiveNames.forEach { primitiveName ->
+			primitives.forEach { primitive ->
 				val function = createFunction(
-					newPrimitiveRawFunction(
-						holdersByClassName[primitiveName]!!.primitive, nil, 0),
+					newPrimitiveRawFunction(primitive, nil, 0),
 					emptyTuple())
 				try
 				{
@@ -1120,12 +1119,10 @@ class MethodDescriptor private constructor(
 								nil,
 								function,
 								tupleFromList(
-									prefixFunctions.map { prefixName ->
-										val holder =
-											holdersByClassName[prefixName]!!
+									prefixFunctions.map { prefixPrim ->
 										createFunction(
 											newPrimitiveRawFunction(
-												holder.primitive, nil, 0),
+												prefixPrim, nil, 0),
 											emptyTuple())
 									})),
 							true)

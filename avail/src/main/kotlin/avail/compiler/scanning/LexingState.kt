@@ -32,6 +32,7 @@
 
 package avail.compiler.scanning
 
+import avail.AvailRuntime.HookType.DEFAULT_STYLER
 import avail.compiler.AvailCompiler
 import avail.compiler.AvailRejectedParseException
 import avail.compiler.CompilationContext
@@ -61,6 +62,7 @@ import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
@@ -633,10 +635,15 @@ class LexingState constructor(
 					token.generatingLexer.lexerMethod)
 			val fiber = newStylerFiber(compilationContext.loader)
 			{
+				val stylerName = when
+				{
+					(stylerFunction.isNil) -> "(default)"
+					else -> stylerFunction.code().methodName.asNativeString()
+				}
 				formatString(
 					"Style token (%s) with %s",
 					token,
-					stylerFunction.code().methodName)
+					stylerName)
 			}
 			fiber.setSuccessAndFailure(
 				onSuccess = newThen,
@@ -644,7 +651,9 @@ class LexingState constructor(
 				onFailure = newThen)
 			compilationContext.runtime.runOutermostFunction(
 				fiber,
-				stylerFunction,
+				stylerFunction.ifNil {
+					compilationContext.runtime[DEFAULT_STYLER]
+				},
 				listOf(
 					emptyTuple,
 					literalNodeFromToken(

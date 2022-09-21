@@ -178,8 +178,6 @@ class LiteralTokenDescriptor private constructor(
 					== NEXT_LEXING_STATE_POJO.ordinal)
 				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
 					== ORIGINATING_MODULE.ordinal)
-				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
-					== ORIGINATING_MODULE.ordinal)
 				assert(TokenDescriptor.ObjectSlots.GENERATING_LEXER.ordinal
 					== GENERATING_LEXER.ordinal)
 			}

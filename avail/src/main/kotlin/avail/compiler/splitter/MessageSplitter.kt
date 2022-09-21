@@ -1323,7 +1323,7 @@ constructor(messageName: A_String) {
 		 *
 		 * @see [circledNumbersString]
 		 */
-		private val circledNumbersMap =
+		val circledNumbersMap =
 			circledNumberCodePoints.withIndex().associate { (i, cp) -> cp to i }
 
 		/**

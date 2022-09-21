@@ -7,6 +7,6 @@
     <option name="additionalArguments" value="-version -Xjvm-default=compatibility" />
   </component>
   <component name="KotlinJpsPluginSettings">
-    <option name="version" value="1.7.0" />
+    <option name="version" value="1.7.10" />
   </component>
 </project>

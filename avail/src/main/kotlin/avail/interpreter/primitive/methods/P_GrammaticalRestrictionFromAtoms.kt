@@ -45,10 +45,10 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -57,6 +57,7 @@ import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapGrammaticalRestrictionStyler
 
 /**
  * **Primitive:** Message precedence declaration with [tuple][TupleDescriptor]
@@ -114,4 +115,6 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS
 			).setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapGrammaticalRestrictionStyler
 }

@@ -1,5 +1,5 @@
 /*
- * P_StyleSpanOfPhrase.kt
+ * P_BootstrapGrammaticalRestrictionStyler.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,95 +32,98 @@
 
 package avail.interpreter.primitive.style
 
-import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
-import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.canStyle
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.GRAMMATICAL_RESTRICTION_DEFINITION
 import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.allTokens
+import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
+import avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
+import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokens
+import avail.descriptor.phrases.PhraseDescriptor.Companion.treeDoWithParent
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tokens.A_Token.Companion.pastEnd
-import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
-import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
-import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.exceptions.AvailErrorCode.E_CANNOT_STYLE
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Apply the given style name to the region of the file bounded
- * by the given phrase.  This includes whitespace and comments, as well as the
- * subphrases and tokens within this phrase.  If the "overwrite" argument is
- * true, the style for that region is replaced, otherwise the style name is
- * appended (with a separating ",") to the existing style name.  If the
- * "overwrite" argument is true, but the style name is the empty string, clear
- * all styles for that range.
+ * **Primitive:** Apply bootstrap styling to a phrase responsible for defining
+ * grammatical restrictions.  Scan the arguments recursively for string literals
+ * and assume that they're all method names.  Even if they end up just being
+ * fragments of constructed method names, the coloring will still be useful.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_StyleSpanOfPhrase : Primitive(3, CanInline, WritesToHiddenGlobalState)
+object P_BootstrapGrammaticalRestrictionStyler :
+	Primitive(
+		2,
+		CanInline,
+		Bootstrap,
+		ReadsFromHiddenGlobalState,
+		WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(3)
-		val phrase: A_Phrase = interpreter.argument(0)
-		val styleName: A_String = interpreter.argument(1)
-		val overwrite = interpreter.argument(2).extractBoolean
+		interpreter.checkArgumentCount(2)
+		val optionalSendPhrase: A_Tuple = interpreter.argument(0)
+		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val fiber = interpreter.fiber()
 		if (!fiber.canStyle) return interpreter.primitiveFailure(E_CANNOT_STYLE)
 		val loader = fiber.availLoader!!
-		val module = loader.module
 
-		val allTokens = phrase.allTokens.filter {
-			it.isInCurrentModule(module)
-		}
-		if (allTokens.isEmpty())
+		val sendPhrase = when (optionalSendPhrase.tupleSize)
 		{
-			// Nothing to style.
-			return interpreter.primitiveSuccess(nil)
+			0 -> transformedPhrase
+			else -> optionalSendPhrase.tupleAt(1)
 		}
-		val firstToken = allTokens.minByOrNull { it.start() }!!
-		val start = firstToken.start()
-		val pastEnd = allTokens.maxByOrNull { it.pastEnd() }!!.pastEnd()
-		if (start == pastEnd)
-		{
-			// Span is zero width.  Ignore it.
-			return interpreter.primitiveSuccess(nil)
+
+		loader.styleTokens(
+			sendPhrase.tokens, GRAMMATICAL_RESTRICTION_DEFINITION)
+
+		val literals = mutableListOf<A_Phrase>()
+		treeDoWithParent(
+			sendPhrase,
+			children =
+			{ p, withChild ->
+				when
+				{
+					p.isMacroSubstitutionNode ->
+					{
+						withChild(p.macroOriginalSendNode)
+						withChild(p.outputPhrase)
+					}
+					else -> p.childrenDo(withChild)
+				}
+			},
+			aBlock =
+			{ p, _ ->
+				if (!p.isMacroSubstitutionNode &&
+					p.phraseKindIsUnder(LITERAL_PHRASE) &&
+					p.token.literal().isString)
+				{
+					literals.add(p)
+				}
+			})
+		literals.forEach { literal ->
+			loader.styleMethodName(literal.token)
 		}
-		val styleOrNull = when (styleName.tupleSize)
-		{
-			0 -> null
-			else -> styleName.asNativeString()
-		}
-		if (styleOrNull === null && !overwrite)
-		{
-			return interpreter.primitiveSuccess(nil)
-		}
-		val fakeToken = literalToken(
-			createRepeatedElementTuple(
-				pastEnd - start, fromCodePoint('?'.code)
-			) as A_String,
-			start,
-			firstToken.lineNumber(),
-			nil,
-			nil)
-		fakeToken.setCurrentModule(loader.module)
-		loader.styleToken(fakeToken, styleOrNull, overwrite)
 		return interpreter.primitiveSuccess(nil)
 	}
 
@@ -129,10 +132,5 @@ object P_StyleSpanOfPhrase : Primitive(3, CanInline, WritesToHiddenGlobalState)
 			set(
 				E_CANNOT_STYLE))
 
-	override fun privateBlockTypeRestriction(): A_Type = functionType(
-		tuple(
-			PARSE_PHRASE.mostGeneralType,
-			stringType,
-			booleanType),
-		Types.TOP.o)
+	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }

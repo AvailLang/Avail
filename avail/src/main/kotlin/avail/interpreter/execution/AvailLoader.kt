@@ -840,8 +840,14 @@ constructor(
 	fun styleMethodName(stringLiteralToken: A_Token)
 	{
 		if (!stringLiteralToken.isInCurrentModule(module)) return
-		val innerToken = stringLiteralToken.literal()
-		if (!innerToken.isLiteralToken()) return
+		val literal = stringLiteralToken.literal()
+		val innerToken = when
+		{
+			literal.isString -> stringLiteralToken
+			literal.isLiteralToken() && literal.literal().isString -> literal
+			else -> return
+		}
+		assert(innerToken.isLiteralToken())
 		try
 		{
 			MessageSplitter(innerToken.literal())
@@ -1003,6 +1009,13 @@ constructor(
 					UNDERSCORE.codepoint,
 					UP_ARROW.codepoint,
 					VERTICAL_BAR.codepoint ->
+					{
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						start++
+					}
+					in MessageSplitter.circledNumbersMap ->
 					{
 						edit(start, start + 1) {
 							SystemStyle.METHOD_NAME.kotlinString

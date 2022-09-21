@@ -127,7 +127,6 @@ object P_BootstrapVariableUseMacro
 					actualToken.lineNumber(),
 					definitionToken.literal(),
 					nil)
-				newLiteralToken.setCurrentModule(loader.module)
 				val newLiteral = literalNodeFromToken(newLiteralToken)
 				return interpreter.primitiveSuccess(newLiteral.makeImmutable())
 			}

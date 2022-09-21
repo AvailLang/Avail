@@ -1373,7 +1373,7 @@ Style $"«Public»?«Explicit|explicit»?\
 	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
 		\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
-with definition styler;
+with object type styler;
 
 /**
  * Class definition statically requires that:
