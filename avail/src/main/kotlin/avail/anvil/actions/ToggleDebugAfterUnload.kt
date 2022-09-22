@@ -1,5 +1,5 @@
 /*
- * StepIntoAction.kt
+ * ToggleDebugAfterUnload.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,53 +30,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.debugger
+package avail.anvil.actions
 
+import avail.AvailRuntime
 import avail.anvil.AvailWorkbench
-import avail.anvil.actions.AbstractWorkbenchAction
-import avail.anvil.tasks.UnloadTask
-import java.awt.Cursor.WAIT_CURSOR
-import java.awt.Cursor.getPredefinedCursor
+import avail.interpreter.execution.Interpreter
 import java.awt.event.ActionEvent
 import javax.swing.Action
 
 /**
- * A [StepIntoAction] causes the current fiber to run the smallest step, which
- * is one or a few L1 nybblecodes, and then suspend again for the debugger.  If
- * a non-primitive method invocation is one of the instructions, it creates the
- * new frame and immediately suspends it.
+ * A [ToggleDebugAfterUnload] toggles the flag that indicates whether to
+ * trace objects after each module unload, to determine if the module is still
+ * accessible from the [AvailRuntime]
+ * to write debug information about primitive execution to the transcript.
  *
  * @constructor
- * Construct a new [StepIntoAction].
+ * Construct a new [ToggleDebugAfterUnload].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class StepIntoAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Step Into")
+class ToggleDebugAfterUnload constructor(workbench: AvailWorkbench)
+	: AbstractWorkbenchAction(workbench, "Debug references after unload")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
-		assert(workbench.backgroundTask === null)
-		val selectedModule = workbench.selectedModule()!!
-
-		// Update the UI.
-		workbench.cursor = getPredefinedCursor(WAIT_CURSOR)
-		workbench.buildProgress.value = 0
-		workbench.clearTranscript()
-
-		// Clear the build input stream.
-		workbench.inputStream().clear()
-
-		// Unload the target module in a Swing worker thread.
-		val task = UnloadTask(workbench, selectedModule)
-		workbench.backgroundTask = task
-		workbench.setEnablements()
-		task.execute()
+		Interpreter.debugCheckAfterUnload =
+			Interpreter.debugCheckAfterUnload xor true
 	}
 
 	init
 	{
-		putValue(Action.SHORT_DESCRIPTION, "Unload the target module.")
+		putValue(
+			Action.SHORT_DESCRIPTION,
+			"Toggle searching for references to modules after unloaded them.")
+		putValue(
+			Action.SELECTED_KEY, Interpreter.debugCheckAfterUnload)
 	}
 }

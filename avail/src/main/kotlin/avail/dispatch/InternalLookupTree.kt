@@ -1300,6 +1300,7 @@ internal constructor(
 		return TestForConstantsDecisionStep(
 			argumentIndex,
 			elementsByConstant.mapValues { (constant, elements) ->
+				assert(constant.descriptor().isShared)
 				val newRestrictions = knownArgumentRestrictions.toMutableList()
 				newRestrictions[argumentIndex - 1] =
 					restrictionForConstant(constant, BOXED_FLAG)

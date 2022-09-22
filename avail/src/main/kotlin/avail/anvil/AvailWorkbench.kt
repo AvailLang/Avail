@@ -84,6 +84,7 @@ import avail.anvil.actions.SetDocumentationPathAction
 import avail.anvil.actions.ShowCCReportAction
 import avail.anvil.actions.ShowVMReportAction
 import avail.anvil.actions.SubmitInputAction
+import avail.anvil.actions.ToggleDebugAfterUnload
 import avail.anvil.actions.ToggleDebugInterpreterL1
 import avail.anvil.actions.ToggleDebugInterpreterL2
 import avail.anvil.actions.ToggleDebugInterpreterPrimitives
@@ -500,6 +501,12 @@ class AvailWorkbench internal constructor(
 	 * The [toggle&#32;work-units&#32;debug&#32;action][ToggleDebugWorkUnits].
 	 */
 	private val toggleDebugWorkUnits = ToggleDebugWorkUnits(this)
+
+	/**
+	 * The [ToggleDebugAfterUnload] toggles checking of references to modules
+	 * after they are unloaded.
+	 */
+	private val toggleDebugAfterUnload = ToggleDebugAfterUnload(this)
 
 	/** The [toggle JVM dump debug action][ToggleDebugJVM]. */
 	private val toggleDebugJVM = ToggleDebugJVM(this)
@@ -1761,6 +1768,7 @@ class AvailWorkbench internal constructor(
 					check(toggleL2SanityCheck)
 					check(toggleDebugPrimitives)
 					check(toggleDebugWorkUnits)
+					check(toggleDebugAfterUnload)
 					separator()
 					check(toggleDebugJVM)
 					check(toggleDebugJVMCodeGeneration)

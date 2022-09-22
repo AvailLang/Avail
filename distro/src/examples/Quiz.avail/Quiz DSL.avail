@@ -821,11 +821,12 @@ Public method "Quiz_" is
 [
 	title : nonempty string
 |
+	currentModule ::= current module;
 	Lock mutex for
 	[
-		Assert: ¬current module ∈ quizzes ("This quiz is already defined.");
+		Assert: ¬currentModule ∈ quizzes ("This quiz is already defined.");
 		newQuiz ::= a quiz with title ::= title, questions := <>;
-		quizzes := quizzes + current module→newQuiz;
+		Register currentModule → newQuiz in ↑quizzes;
 	];
 	/* Define "Take quiz" in the current module. The semantic restriction
 	 * ensures that it is named as an entry point.

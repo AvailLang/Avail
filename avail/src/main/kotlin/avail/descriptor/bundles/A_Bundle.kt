@@ -247,7 +247,9 @@ interface A_Bundle : A_BasicObject {
 		}
 
 		/**
-		 * Remove a [macro][A_Macro] from the receiver.
+		 * Remove a [macro][A_Macro] from the receiver.  The macro will be
+		 * removed from the bundle's tuple of macros, from its current parsing
+		 * plans, and from its macro type-lookup tree.
 		 *
 		 * @param macro
 		 *   The [A_Macro] to remove from this bundle.

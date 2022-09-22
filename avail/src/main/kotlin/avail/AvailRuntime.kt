@@ -242,6 +242,7 @@ import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Result
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.debugCheckAfterUnload
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.general.P_EmergencyExit
@@ -253,6 +254,7 @@ import avail.io.TextInterface.Companion.systemTextInterface
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.utility.ObjectTracer
 import avail.utility.WorkStealingQueue
 import avail.utility.evaluation.OnceSupplier
 import avail.utility.javaNotifyAll
@@ -1464,6 +1466,17 @@ class AvailRuntime constructor(
 			modules = modules.mapWithoutKeyCanDestroy(
 				module.moduleName, true
 			).makeShared()
+			if (debugCheckAfterUnload)
+			{
+				// Figure out if something is holding onto this unloaded module.
+				val tracer = ObjectTracer(this, module)
+				val result = tracer.scan()
+				if (result != null)
+				{
+					// This is a good line to breakpoint.
+					println("chain = $result")
+				}
+			}
 		}
 	}
 

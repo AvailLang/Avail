@@ -69,7 +69,10 @@ Names
 	"↓_else_",
 
 	/* Destructuring tuple assignment. */
-	"«…‡,»::=_;"
+	"«…‡,»::=_;",
+
+	/* Registration in a module variable. */
+	"Register_→_in_"
 Body
 
 Semantic restriction "_'s⁇read type" is
@@ -785,6 +788,75 @@ Public macro "«…‡,»::=_;" is
 		true
 	];
 	seq «strongBindings»
+];
+
+/**
+ * Register the given {@param "key"} and {@param "value"} in the {@type "map"}
+ * held by the given variable {@param "var"}. Also record an unload action to
+ * automatically remove that key when the module that added it is unloaded.
+ *
+ * @macro "Register_→_in_"
+ * @param "key" "any"
+ *        The key under which to write to the variable's map.  The key should
+ *        be chosen so as not to interfere with keys added by other modules.
+ *        A good choice is the module itself.
+ * @param "value" "any"
+ *        The value to store under the given key in the variable's map.
+ * @param "var" "{any → any|whole number}"
+ *        A variable holding a map to be updated with the key and value.
+ */
+Public method "Register_→_in_" is
+[
+	key : any,
+	value : any,
+	var : map variable
+|
+	var[key] := value;
+	After the current module is unloaded, do
+	[
+		var -= key;
+	];
+];
+
+
+/**
+ * Strengthen the key and value types against the type of map in the variable.
+ *
+ * @method "Register_→_in_"
+ * @restricts "any meta"
+ * @restricts "any meta"
+ * @restricts "map variable's type"
+ */
+Semantic restriction "_[_]:=_" is
+[
+	keyType : any meta,
+	valueType : any meta,
+	varType : map variable's type
+|
+	mapType ::= varType's write type ?→ map's type;
+	Unless keyType ⊆ mapType's key type then
+	[
+		Reject parse, expected:
+			(concatenate <
+				"key's type (",
+				“keyType”,
+				") to be compatible with the map's expected key type (",
+				“mapType's key type”,
+				")"
+			>) ?→ string
+		];
+	Unless valueType ⊆ mapType's value type then
+	[
+		Reject parse, expected:
+			(concatenate <
+				"value's type (",
+				“valueType”,
+				") to be compatible with the map's expected value type (",
+				“mapType's value type”,
+				")"
+			>) ?→ string
+	];
+	⊤
 ];
 
 /* This is always invalid, so we might as well forbid it early. */

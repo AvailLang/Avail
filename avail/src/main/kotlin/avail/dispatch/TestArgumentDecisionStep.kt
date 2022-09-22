@@ -76,7 +76,7 @@ class TestArgumentDecisionStep<
 	Element : A_BasicObject,
 	Result : A_BasicObject>
 constructor(
-	val argumentTypeToTest: A_Type,
+	private val argumentTypeToTest: A_Type,
 	argumentPositionToTest: Int,
 	private val ifCheckHolds: LookupTree<Element, Result>,
 	private val ifCheckFails: LookupTree<Element, Result>

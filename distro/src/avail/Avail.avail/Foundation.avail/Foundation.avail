@@ -1336,6 +1336,7 @@ Extends
 	"Variables" =
 	(
 		"Clear_↑", "Clear_",
+		"Register_→_in_",
 		"Swap_↑and_↑", "Swap_and_",
 		"atomically compare_↑to_and,⁇if equal,⁇store_",
 			"atomically compare_to_and,⁇if equal,⁇store_",

@@ -372,7 +372,9 @@ class MessageBundleDescriptor private constructor(
 		self: AvailObject,
 		macro: A_Macro
 	) = self.synchronizeIf(isShared) {
-		removeMacro(self, macro)
+		self.updateSlotShared(MACROS_TUPLE) { tupleWithout(this, macro) }
+		removePlanForSendable(self, macro)
+		macroTestingTree = null
 	}
 
 	override fun o_RemovePlanForSendable(
@@ -460,23 +462,6 @@ class MessageBundleDescriptor private constructor(
 			var plans: A_Map = self.slot(DEFINITION_PARSING_PLANS)
 			plans = plans.mapAtPuttingCanDestroy(plan.definition, plan, true)
 			self.setSlot(DEFINITION_PARSING_PLANS, plans.makeShared())
-		}
-
-		/**
-		 * Remove an [A_Macro] from this bundle.  This is performed to make the
-		 * bundle agree with the method's definitions and macro definitions.
-		 *
-		 * @param self
-		 *   The affected message bundle.
-		 * @param macro
-		 *   The [A_Macro] to be removed.
-		 */
-		private fun removeMacro(
-			self: AvailObject,
-			macro: A_Macro)
-		{
-			self.updateSlotShared(MACROS_TUPLE) { tupleWithout(this, macro) }
-			removePlanForSendable(self, macro)
 		}
 
 		/**

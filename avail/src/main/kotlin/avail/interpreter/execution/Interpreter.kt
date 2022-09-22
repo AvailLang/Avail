@@ -119,10 +119,10 @@ import avail.exceptions.AvailException
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.Invokes
-import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.Primitive.Flag.CanSuspend
+import avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.Primitive.Result
 import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.Primitive.Result.FAILURE
@@ -2666,6 +2666,15 @@ class Interpreter(
 		 */
 		@Volatile
 		var debugCustom = false
+
+		/**
+		 * When set, each time a module is unloaded, a breadth-first scan is
+		 * performed, starting at the runtime, attempting to locate the module
+		 * that was just unloaded.  It should not be accessible, so finding a
+		 * path to it indicates a problem.
+		 */
+		@Volatile
+		var debugCheckAfterUnload = false
 
 		/** A [logger][Logger]. */
 		private val mainLogger = Logger.getLogger(

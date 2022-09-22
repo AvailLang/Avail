@@ -32,10 +32,10 @@
 
 package avail.anvil.tasks
 
-import avail.builder.ResolvedModuleName
-import avail.descriptor.module.ModuleDescriptor
 import avail.anvil.AvailWorkbench
 import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
+import avail.builder.ResolvedModuleName
+import avail.descriptor.module.ModuleDescriptor
 import java.awt.Cursor
 
 /**
@@ -51,9 +51,11 @@ import java.awt.Cursor
  *  The resolved name of the target [module][ModuleDescriptor] to unload, or
  *  null to unload all modules.
  */
-class UnloadTask constructor(
-		workbench: AvailWorkbench, targetModuleName: ResolvedModuleName?)
-	: AbstractWorkbenchTask(workbench, targetModuleName)
+class UnloadTask
+constructor(
+	workbench: AvailWorkbench,
+	targetModuleName: ResolvedModuleName?
+) : AbstractWorkbenchTask(workbench, targetModuleName)
 {
 	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
