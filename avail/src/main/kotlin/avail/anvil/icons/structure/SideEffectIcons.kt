@@ -1,5 +1,5 @@
 /*
- * StructureIcons.kt
+ * SideEffectIcons.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,13 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.icons
+package avail.anvil.icons.structure
 
+import avail.anvil.icons.IconKey
+import avail.anvil.icons.ImageIconCache
 import avail.compiler.SideEffectKind
 import javax.swing.ImageIcon
 
 /**
- * The [Pair] of [String] [Int] used to retrieve a structure icon.
+ * The [Pair] of [String] [Int] used to retrieve a side effect icon in the
+ * structure view.
  *
  * @author Richard Arriaga
  *
@@ -47,7 +50,7 @@ import javax.swing.ImageIcon
  * @property scaledHeight
  *   The height to which to scale the image.
  */
-data class StructureIconKey constructor(
+data class SideEffectIconKey constructor(
 	val sideEffectKind: SideEffectKind,
 	override val resourceName: String,
 	override val scaledHeight: Int
@@ -59,7 +62,7 @@ data class StructureIconKey constructor(
  *
  * @author Richard Arriaga
  */
-object StructureIcons
+object SideEffectIcons
 {
 	/**
 	 * The resource name for [SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND].
@@ -125,7 +128,7 @@ object StructureIcons
 	 * @return The icon.
 	 */
 	fun icon(lineHeight: Int, sideEffectKind: SideEffectKind): ImageIcon =
-		cachedScaledIcons[StructureIconKey(
+		cachedScaledIcons[SideEffectIconKey(
 			sideEffectKind, fileName(sideEffectKind), lineHeight)]
 
 	/**
@@ -159,7 +162,7 @@ object StructureIcons
 	 * [SideEffectKind] and line height.
 	 */
 	private val cachedScaledIcons =
-		ImageIconCache<StructureIconKey>(
+		ImageIconCache<SideEffectIconKey>(
 			"/resources/workbench/structure-icons/",
-			StructureIcons::class.java)
+			SideEffectIcons::class.java)
 }

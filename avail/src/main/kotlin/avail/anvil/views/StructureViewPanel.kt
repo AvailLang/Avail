@@ -32,22 +32,23 @@
 
 package avail.anvil.views
 
-import avail.compiler.ModuleManifestEntry
-import avail.compiler.SideEffectKind
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
-import avail.anvil.window.WorkbenchFrame
 import avail.anvil.createScrollPane
-import avail.anvil.icons.StructureIcons
+import avail.anvil.icons.structure.ExpansionIcons
+import avail.anvil.icons.structure.SideEffectIcons
+import avail.anvil.icons.structure.SortIcons
 import avail.anvil.nodes.ManifestEntryNameNode
 import avail.anvil.nodes.ManifestEntryNode
 import avail.anvil.window.LayoutConfiguration
+import avail.anvil.window.WorkbenchFrame
+import avail.compiler.ModuleManifestEntry
+import avail.compiler.SideEffectKind
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.FlowLayout
-import java.awt.Font
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
@@ -60,6 +61,7 @@ import javax.swing.GroupLayout
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JSeparator
 import javax.swing.JTree
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingUtilities
@@ -130,35 +132,66 @@ class StructureViewPanel constructor (
 	 * The top bar for choosing options for viewing the structure.
 	 */
 	private val optionsBar = JPanel().apply {
-		minimumSize = Dimension(450, 50)
-		maximumSize = Dimension(450, 50)
-		preferredSize = Dimension(450, 50)
+		minimumSize = Dimension(500, 50)
+		preferredSize = Dimension(500, 50)
 		this.layout = FlowLayout(FlowLayout.LEFT)
-		val sortAlpha = JButton("🔠")
-		val sortPosition = JButton("🔢")
+
+		val expandAll = JButton(ExpansionIcons.EXPAND_ALL.icon(19))
+		expandAll.apply {
+			toolTipText = ExpansionIcons.EXPAND_ALL.toolTip
+			border = unselectedBorder()
+			addActionListener {
+				var i = 0
+				while (i < structureViewTree.rowCount) {
+					structureViewTree.expandRow(i)
+					i++
+				}
+			}
+		}
+		add(expandAll)
+		val collapseAll = JButton(ExpansionIcons.COLLAPSE_ALL.icon(19))
+		collapseAll.apply {
+			toolTipText = ExpansionIcons.COLLAPSE_ALL.toolTip
+			border = unselectedBorder()
+			addActionListener {
+				var i = 0
+				while (i < structureViewTree.rowCount) {
+					structureViewTree.collapseRow(i)
+					i++
+				}
+			}
+		}
+		add(collapseAll)
+
+		add(JSeparator())
+		add(JSeparator())
+
+		val sortAlpha = JButton(SortIcons.ALPHABETICAL.icon(19))
 		sortAlpha.apply {
-			font = Font("Serif", Font.PLAIN, 18)
+			isSelected = false
+			toolTipText = SortIcons.ALPHABETICAL.toolTip
+			border = unselectedBorder()
 			addActionListener {
-				border = selectedBorder()
-				sortPosition.border = unselectedBorder()
-				updateView(editor, sortBy = SortBy.SUMMARY_TEXT)
+				isSelected = !isSelected
+				if (isSelected)
+				{
+					border = selectedBorder()
+					updateView(editor, sortBy = SortBy.SUMMARY_TEXT)
+				}
+				else
+				{
+					border = unselectedBorder()
+					updateView(editor, sortBy = SortBy.LINE_NUMBER)
+				}
 			}
 		}
-		sortPosition.apply {
-			border = createLineBorder(Color.GREEN, SELECTION_BORDER_THICKNESS)
-			font = Font("Serif", Font.PLAIN, 18)
-			addActionListener {
-				sortAlpha.border = unselectedBorder()
-				border = selectedBorder()
-				updateView(
-					editor,
-					sortBy = SortBy.LINE_NUMBER)
-			}
-		}
-		add(sortPosition)
 		add(sortAlpha)
+
+		add(JSeparator())
+		add(JSeparator())
+
 		SideEffectKind.values().forEach {
-			val iconLabel = JButton(StructureIcons.icon(19, it))
+			val iconLabel = JButton(SideEffectIcons.icon(19, it))
 			iconLabel.apply {
 				border = selectedBorder()
 				toolTipText =
@@ -246,8 +279,8 @@ class StructureViewPanel constructor (
 				}
 			})
 		}
-		minimumSize = Dimension(450, 350)
-		preferredSize = Dimension(450, 600)
+		minimumSize = Dimension(550, 350)
+		preferredSize = Dimension(550, 600)
 		val scrollView = createScrollPane(structureViewTree).apply {
 			verticalScrollBarPolicy =
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
