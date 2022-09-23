@@ -48,8 +48,10 @@ Names
 	"root command node",
 	"_'s⁇good nodes",
 	"_'s⁇good nodes:=_",
+	"`↑_'s⁇good nodes",
 	"_'s⁇next nodes",
 	"_'s⁇next nodes:=_",
+	"`↑_'s⁇next nodes",
 	"_'s⁇action",
 	"_'s⁇action:=_",
 	"`↑_'s⁇action"
@@ -95,8 +97,8 @@ Explicit class "abstract command node" extends object;
  */
 Public class "root command node" extends abstract command node
 	with mutable fields
-		public next nodes : {nonempty string→abstract command node|},
-		public good nodes : {nonempty string→abstract command node|};
+		public referable next nodes : {nonempty string→abstract command node|},
+		public referable good nodes : {nonempty string→abstract command node|};
 
 /**
  * Most of the command tree consists of command nodes. A command node extends
@@ -135,8 +137,6 @@ Private method "a root command node" is
 Private method "a command node" is
 [
 	/* The "action" field is created automatically by the object constructor. */
-	all : {nonempty string→abstract command node|} := {};
-	good : {nonempty string→abstract command node|} := {};
 	a command node with
 		next nodes := {},
 		good nodes := {}
@@ -156,6 +156,48 @@ Grammatical restriction "a|an_«with«_«:»?:=_‡,»»" is
  */
 commandTree : root command node := a root command node;
 Public read-only variable ↑commandTree is "command tree";
+
+/**
+ * Remove a particular syntax from the given command tree.  The syntax is
+ * expected to be present.  Remove the action at the terminus, and remove any
+ * empty intervening nodes.  It's recursive, so use a forward definition.
+ * Answer true if the node is now empty.
+ *
+ * @method "remove command(bad=_)with tokens_from_"
+ * @param "isBad" "boolean"
+ * @param "tokens" "nonempty string*"
+ * @param "node" "root command node"
+ * @returns "[<boolean, nonempty string…|1..>, […]→boolean]→⊤"
+ */
+Forward method "remove command(bad=_)with tokens_from_"
+	is [boolean, nonempty string*, root command node]→boolean;
+Private method "remove command(bad=_)with tokens_from_" is
+[
+	isBad : boolean,
+	tokens : nonempty string*,
+	node : root command node
+|
+	If |tokens| = 0 then
+	[
+		Clear ↑(node ?→ command node)'s action;
+	]
+	else
+	[
+		firstToken ::= tokens[1];
+		nextNode ::= node's next nodes[firstToken] ?→ command node;
+		removed ::= remove command (bad=isBad)
+			with tokens tokens[2..]
+			from nextNode;
+		If removed then
+		[
+			↑node's next nodes -= firstToken;
+			↑node's good nodes -= firstToken;
+		];
+	];
+	cast node into [n : command node | ↑n's action is unassigned] else [true]
+		∧ node's next nodes = {}
+		∧ node's good nodes = {}
+];
 
 /**
  * Answer a function that will serve as the implementation of both the lexical
@@ -209,6 +251,12 @@ Private method "command definer" is
 			 */
 			Assert: ↑commandNode's action is unassigned;
 			commandNode's action := theAction;
+			After the current module is unloaded, do
+			[
+				Ignore: remove command (bad=isBad)
+					with tokens tokens
+					from commandTree;
+			];
 		];
 	]
 ];
@@ -222,7 +270,7 @@ Private method "command definer" is
  *        which may point the user in the right direction, report something
  *        amusing, etc. Tokens leading only to bad commands will never be
  *        suggested by the parser.
- * @param "syntaxes" "nonempty string"
+ * @param "syntax" "nonempty string"
  *        The syntaxes for the command, e.g., "go to #NUMBER".
  * @param "theAction" "[…]→boolean"
  *        The action to perform when the command is understood. This function

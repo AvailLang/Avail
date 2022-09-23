@@ -802,14 +802,14 @@ Public macro "«…‡,»::=_;" is
  *        A good choice is the module itself.
  * @param "value" "any"
  *        The value to store under the given key in the variable's map.
- * @param "var" "{any → any|whole number}"
+ * @param "var" "read map / write ⊥"
  *        A variable holding a map to be updated with the key and value.
  */
 Public method "Register_→_in_" is
 [
 	key : any,
 	value : any,
-	var : map variable
+	var : read map / write ⊥
 |
 	var[key] := value;
 	After the current module is unloaded, do
@@ -825,15 +825,15 @@ Public method "Register_→_in_" is
  * @method "Register_→_in_"
  * @restricts "any meta"
  * @restricts "any meta"
- * @restricts "map variable's type"
+ * @restricts "(read map / write ⊥)'s type"
  */
-Semantic restriction "_[_]:=_" is
+Semantic restriction "Register_→_in_" is
 [
 	keyType : any meta,
 	valueType : any meta,
-	varType : map variable's type
+	varType : (read map / write ⊥)'s type
 |
-	mapType ::= varType's write type ?→ map's type;
+	mapType ::= varType's read type;
 	Unless keyType ⊆ mapType's key type then
 	[
 		Reject parse, expected:

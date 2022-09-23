@@ -148,6 +148,16 @@ constructor (
 		return false
 	}
 
+	/**
+	 * Look up the [List] of one-argument functions that extract children from
+	 * a non-[Array] (and non-[Reference]) object.  Cache the functions for
+	 * subsequent use.
+	 *
+	 * @param cls
+	 *   The class for which to look up the list of child-extracting functions.
+	 * @return
+	 *   The list of functions.
+	 */
 	private fun gettersForClass(cls: Class<*>): List<(Any)->Any?> =
 		cacheByClass.computeIfAbsent(cls) { theClass ->
 			val getters = mutableListOf<(Any)->Any?>()

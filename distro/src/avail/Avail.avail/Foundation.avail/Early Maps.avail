@@ -323,7 +323,7 @@ Semantic restriction "_[_]:=_" is
 	keyType : any meta,
 	valueType : any meta
 |
-	mapType ::= varType's write type ?→ map's type;
+	mapType ::= varType's read type;
 	Unless keyType ⊆ mapType's key type then
 	[
 		Reject parse, expected:

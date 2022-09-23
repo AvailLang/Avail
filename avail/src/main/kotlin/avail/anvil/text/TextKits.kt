@@ -407,6 +407,7 @@ private object Refresh: TextAction(refresh)
 	{
 		val editor = e.editor
 		val workbench = editor.workbench
+		workbench.clearTranscript()
 		val buildTask = BuildTask(workbench, editor.resolvedName)
 		workbench.backgroundTask = buildTask
 		workbench.availBuilder.checkStableInvariants()

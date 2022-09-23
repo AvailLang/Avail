@@ -98,6 +98,7 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 			// Build the target module in a Swing worker thread.
 			val task = BuildTask(workbench, moduleName)
 			workbench.backgroundTask = task
+			workbench.availBuilder.checkStableInvariants()
 			workbench.setEnablements()
 			task.execute()
 		}

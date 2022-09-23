@@ -108,10 +108,12 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.ifZero
+import avail.utility.safeWrite
 import org.availlang.json.JSONWriter
-import java.lang.ref.WeakReference
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
 
 /**
  * [ObjectTypeDescriptor] represents an Avail object type. An object type
@@ -435,12 +437,13 @@ class ObjectTypeDescriptor internal constructor(
 			{
 				canonical = synchronized(sharedCanonicalTypes) {
 					sharedCanonicalTypes.getOrPut(self) {
-						WeakReference(self)
+						WeakObjectTypeReference(self)
 					}.get()
 				}
-				// An older weak reference might have been found, then cleared by
-				// the JVM.  Just try again until we're successful (and therefore
-				// have a strong reference that prevents it from dissolving).
+				// An older weak reference might have been found, then cleared
+				// by the JVM.  Just try again until we're successful (and
+				// therefore have a strong reference that prevents it from
+				// dissolving).
 			}
 			while (canonical === null)
 			if (!canonical.sameAddressAs(self))
@@ -666,15 +669,17 @@ class ObjectTypeDescriptor internal constructor(
 		level = DeprecationLevel.HIDDEN)
 	override fun shared() = variant.sharedObjectTypeDescriptor
 
-	companion object {
+	companion object
+	{
 		/**
 		 * A canonical mapping of all object types that have become shared.
 		 * Without too much runtime cost, this should reduce the memory
-		 * footprint, as well as improve the efficiency of [ObjectDescriptor]'s
-		 * [vettings][ObjectDescriptor.ObjectSlots.TYPE_VETTINGS_CACHE] cache.
+		 * footprint, as well as improve the efficiency of the [VettingsCache],
+		 * stored inside each [ObjectDescriptor] that has been compared against
+		 * a shared object type.
 		 */
 		val sharedCanonicalTypes =
-			WeakHashMap<AvailObject, WeakReference<AvailObject>>()
+			WeakHashMap<AvailObject, WeakObjectTypeReference>()
 
 		/**
 		 * Extract the field type at the specified slot index.
@@ -750,6 +755,9 @@ class ObjectTypeDescriptor internal constructor(
 				setSlot(HASH_OR_ZERO, 0)
 			}
 
+		/** A lock for accessing information about object type names. */
+		private val objectNamesLock = ReentrantReadWriteLock()
+
 		/**
 		 * Assign a name to the specified `object type`.  If the only field key
 		 * [A_Atom]s in the object type are
@@ -774,8 +782,8 @@ class ObjectTypeDescriptor internal constructor(
 			allowSpecialAtomsToHoldName: Boolean
 		) {
 			assert(aString.isString)
-			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
-			synchronized(propertyKey) {
+			objectNamesLock.safeWrite {
+				val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 				var leastNames = Int.MAX_VALUE
 				var keyAtomWithLeastNames: A_Atom? = null
 				var keyAtomNamesMap: A_Map? = null
@@ -827,11 +835,11 @@ class ObjectTypeDescriptor internal constructor(
 			anObjectType: A_Type
 		) {
 			assert(aString.isString)
-			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
-			synchronized(propertyKey) {
+			objectNamesLock.safeWrite {
 				anObjectType.fieldTypeMap.forEach { atom, _ ->
 					if (!atom.isAtomSpecial)
 					{
+						val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
 						if (namesMap.notNil)
 						{
@@ -878,9 +886,9 @@ class ObjectTypeDescriptor internal constructor(
 		fun namesAndBaseTypesForObjectType(
 			anObjectType: A_Type
 		): A_Tuple {
-			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 			var applicable = emptyMap
-			synchronized(propertyKey) {
+			objectNamesLock.read {
+				val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 				anObjectType.fieldTypeMap.forEach { key, _ ->
 					val map: A_Map = key.getAtomProperty(propertyKey)
 					if (map.notNil) {

@@ -241,14 +241,16 @@ Public method "Before running_,⁇do_" is
 			else [Raise a no-such-test-suite exception with suite ID ::= id];
 		before ::= suite's suite fixture setup ++ <setup>;
 		suites by atom :=
-			suites by atom + id→suite's suite fixture setup ::= before;
-		After the current module is unloaded, do
+			suites by atom + id → suite's suite fixture setup ::= before;
+	];
+	After the current module is unloaded, do
+	[
+		Lock suite lock for
 		[
-			Lock suite lock for
-			[
-				suites by atom := suites by atom + id
-					→suite's suite fixture setup ::= (before - setup);
-			];
+			suite ::= suites by atom[id];
+			without ::= suite's suite fixture setup - setup;
+			suites by atom := suites by atom +
+				id → suite's suite fixture setup ::= without;
 		];
 	];
 ] : ⊤;
@@ -359,14 +361,16 @@ Public method "After running_,⁇do_" is
 			else [Raise a no-such-test-suite exception with suite ID ::= id];
 		after ::= suite's suite fixture tear down ++ <tearDown>;
 		suites by atom :=
-			suites by atom + id→suite's suite fixture tear down ::= after;
-		After the current module is unloaded, do
+			suites by atom + id → suite's suite fixture tear down ::= after;
+	];
+	After the current module is unloaded, do
+	[
+		Lock suite lock for
 		[
-			Lock suite lock for
-			[
-				suites by atom := suites by atom + id
-					→suite's suite fixture tear down ::= (after - tearDown);
-			];
+			suite ::= suites by atom[id];
+			without ::= suite's suite fixture tear down - tearDown;
+			suites by atom := suites by atom +
+				id → suite's suite fixture tear down ::= without;
 		];
 	];
 ] : ⊤;
