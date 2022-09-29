@@ -319,6 +319,19 @@ class L2PcOperand constructor (
 		isBackward = isBackwardFlag
 	}
 
+	fun changeUngeneratedTarget(
+		newTarget: L2BasicBlock)
+	{
+		val oldTarget = targetBlock
+		assert(!oldTarget.hasStartedCodeGeneration)
+		assert(!newTarget.hasStartedCodeGeneration)
+		targetBlock = newTarget
+		oldTarget.removePredecessorEdge(this)
+		newTarget.addPredecessorEdge(this)
+		instruction.targetEdges
+	}
+
+
 	/**
 	 * Write JVM bytecodes to the JVMTranslator which will push:
 	 *

@@ -37,6 +37,7 @@ import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
 import avail.optimizer.L2ControlFlowGraph.StateFlag
+import avail.optimizer.L2ControlFlowGraph.StateFlag.*
 import avail.optimizer.annotations.Clears
 import avail.optimizer.annotations.Requires
 import avail.optimizer.annotations.RequiresNot
@@ -67,13 +68,44 @@ internal enum class OptimizationPhase constructor(
 	 * Start by eliminating debris created during the initial L1 → L2
 	 * translation.
 	 */
+	@Requires(IS_SSA::class)
 	REMOVE_DEAD_CODE_1({ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS) }),
 
 	/**
 	 * Transform into SSA edge-split form, to avoid inserting redundant
 	 * phi-moves.
 	 */
+	@Requires(IS_SSA::class)
+	@Sets(IS_EDGE_SPLIT::class)
 	BECOME_EDGE_SPLIT_SSA({ transformToEdgeSplitSSA() }),
+
+	/**
+	 * Find places where control flow diverges due to a condition that was known
+	 * at some point earlier in the chain of phis leading to it.  Find all
+	 * vertices from the phi where control flow merged and the knowledge of the
+	 * condition was lost, up to the point where the condition is being tested
+	 * again.
+	 *
+	 * Do this for every such control-flow branch point, accumulating the
+	 * estimated profitability of each split.
+	 *
+	 * Then regenerate the instruction graph, but instead of merging and losing
+	 * information at the affected phis, produce a duplicate for each reached
+	 * profitable combination of conditions, allowing the code regeneration to
+	 * take advantage of the stronger condition along that path... at the
+	 * expense of producing more code.
+	 */
+	@Requires(IS_SSA::class, IS_EDGE_SPLIT::class)
+	@Clears(IS_EDGE_SPLIT::class)
+	DO_CODE_SPLITTING({ doCodeSplitting() }),
+
+	/**
+	 * Code splitting preserves SSA, but can lose the edge-split property.
+	 * Restore it by explicitly splitting the appropriate edges.
+	 */
+	@Requires(IS_SSA::class)
+	@Sets(IS_EDGE_SPLIT::class)
+	BECOME_EDGE_SPLIT_SSA_AFTER_CODE_SPLITTING({ transformToEdgeSplitSSA() }),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the
@@ -206,8 +238,6 @@ internal enum class OptimizationPhase constructor(
 	COMPUTE_LIVENESS_AT_EDGES_2({ computeLivenessAtEachEdge() });
 
 	// Additional optimization ideas:
-	//		-Strengthen the types of all registers and register uses.
-	//		-Ask instructions to regenerate if they want.
 	//		-When optimizing, keep track of when a TypeRestriction on a phi
 	//		  register is too weak to qualify, but the types of some of the phi
 	//		  source registers would qualify it for a reasonable expectation of

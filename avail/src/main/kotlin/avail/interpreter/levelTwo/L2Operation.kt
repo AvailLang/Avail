@@ -73,6 +73,8 @@ import avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2Generator
+import avail.optimizer.L2Optimizer
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -845,4 +847,15 @@ protected constructor(
 			elementWriter)
 		return generator.readBoxed(elementWriter)
 	}
+
+	/**
+	 * Answer the list of [L2SplitCondition]s which, if true, would allow better
+	 * code to be regenerated.  The [L2Optimizer] checks if any of these are
+	 * true on edges leading to ancestor phis, and if so, it may perform code
+	 * splitting to avoid erasing that information prematurely through a control
+	 * flow merge.
+	 */
+	open fun interestingConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition> = emptyList()
 }

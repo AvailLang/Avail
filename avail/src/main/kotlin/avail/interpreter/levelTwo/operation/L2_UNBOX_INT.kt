@@ -40,6 +40,8 @@ import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -79,5 +81,16 @@ object L2_UNBOX_INT : L2Operation(
 		translator.load(method, source.register())
 		A_Number.extractIntStaticMethod.generateCall(method)
 		translator.store(method, destination.register())
+	}
+
+	override fun interestingConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition>
+	{
+		val source = instruction.operand<L2ReadBoxedOperand>(0)
+		val destination = instruction.operand<L2WriteIntOperand>(1)
+		return listOf(
+			unboxedIntCondition(
+				listOf(source.register(), destination.register())))
 	}
 }

@@ -79,4 +79,7 @@ constructor(
 	{
 		assert(restriction.isUnboxedFloat)
 	}
+
+	override fun semanticValues(): Set<L2SemanticUnboxedFloat> =
+		super.semanticValues().cast()
 }

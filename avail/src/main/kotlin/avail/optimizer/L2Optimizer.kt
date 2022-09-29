@@ -223,6 +223,239 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
+	 * Find places where control flow diverges due to a condition that was known
+	 * at some point earlier in the chain of phis leading to it.  Find all
+	 * vertices from the phi where control flow merged and the knowledge of the
+	 * condition was lost, up to the point where the condition is being tested
+	 * again.
+	 *
+	 * Do this for every such control-flow branch point, accumulating the
+	 * estimated profitability of each split.
+	 *
+	 * Then regenerate the instruction graph, but instead of merging and losing
+	 * information at the affected phis, produce a duplicate for each reached
+	 * profitable combination of conditions, allowing the code regeneration to
+	 * take advantage of the stronger condition along that path... at the
+	 * expense of producing more code.
+	 *
+	 * The graph starts and ends in SSA form.
+	 */
+	fun doCodeSplitting()
+	{
+		val startingRequests =
+			mutableMapOf<L2BasicBlock, MutableSet<L2SplitCondition>>()
+		val allConditions = mutableSetOf<L2SplitCondition>()
+		blocks.forEach { block ->
+			block.instructions().forEach { instruction ->
+				val newConditions = instruction.interestingConditions()
+				// Ignore ones that were already true along all incoming edges
+				// of the block holding that instruction.
+				val notAlreadyTrue = newConditions.filterNot { condition ->
+					block.predecessorEdges().all { edge ->
+						condition.holdsFor(edge.manifest())
+					}
+				}
+				if (notAlreadyTrue.isNotEmpty())
+				{
+					startingRequests.computeIfAbsent(block) { mutableSetOf() }
+						.addAll(notAlreadyTrue)
+					allConditions.addAll(notAlreadyTrue)
+				}
+			}
+		}
+		// We now know which blocks wished which conditions were true, with
+		// deduplication for multiple instructions that reported equal
+		// conditions within the same block.  Figure out which of these
+		// conditions are *ever* satisfied, anywhere in the CFG.
+		val everSatisfied = allConditions.filter { condition ->
+			blocks.any { block ->
+				block.predecessorEdges().any { edge ->
+					!edge.isBackward && condition.holdsFor(edge.manifest())
+				}
+			}
+		}
+		if (everSatisfied.isEmpty())
+		{
+			// All wishes are either already fulfilled or impossible.
+			return
+		}
+		// Remove wishes that aren't satisfied anywhere.
+		if (everSatisfied.size < allConditions.size)
+		{
+			startingRequests.values.retainAll { conditions ->
+				conditions.retainAll(everSatisfied)
+				conditions.isNotEmpty()
+			}
+		}
+		// Sweep backward through the CFG (ignoring backward jumps), propagating
+		// all wishes that are not yet fulfilled.  If an edge's manifest
+		// fulfills a wish, remove it.  At branches (blocks with multiple
+		// successors), take the union of the unfulfilled wishes.
+		// Note that some wishes may propagate all the way to the start block,
+		// unfulfilled.  That's because not every path from the start will
+		// necessarily set the desired condition.  We do a separate pass forward
+		// through the graph, removing wishes that are not satisfied in any
+		// predecessor.
+		val edgeWishes = mutableMapOf<L2PcOperand, Set<L2SplitCondition>>()
+		startingRequests.forEach { (block, conditions) ->
+			block.predecessorEdges().forEach { predEdge ->
+				edgeWishes[predEdge] = conditions
+			}
+		}
+		controlFlowGraph.backwardVisit { block ->
+			val successorEdges =
+				block.successorEdges().filter { !it.isBackward }
+			val unionOfConditions =
+				if (successorEdges.isNotEmpty())
+				{
+					// Figure out what conditions the successors need that the
+					// block doesn't produce locally.
+					successorEdges
+						.map { edge ->
+							// NOTE: *Don't* remove conditions that were granted
+							// by the block, since in the previous graph it had
+							// to do that redundant work to grant the condition.
+							edgeWishes[edge] ?: emptySet()
+						}
+						.reduce(Set<L2SplitCondition>::union)
+				}
+				else
+				{
+					emptySet()
+				}
+			// Mix in what the instructions of this block wished for.
+			val extendedUnion = unionOfConditions.union(
+				startingRequests[block] ?: emptySet())
+			block.predecessorEdges().forEach { edge ->
+				edgeWishes[edge] = extendedUnion
+			}
+		}
+		// Now figure out what conditions are *possible* along each edge, if
+		// suitably split, while simultaneously filtering the edgeWishes to the
+		// possible ones.
+		val edgePossibilities =
+			mutableMapOf<L2PcOperand, Set<L2SplitCondition>>()
+		controlFlowGraph.forwardVisit { block ->
+			val possible = mutableSetOf<L2SplitCondition>()
+			block.predecessorEdges().forEach { predecessorEdge ->
+				if (!predecessorEdge.isBackward)
+				{
+					edgePossibilities[predecessorEdge]?.let {
+						possible.addAll(it)
+					}
+				}
+			}
+			block.successorEdges().forEach { successorEdge ->
+				if (!successorEdge.isBackward)
+				{
+					val wishes = edgeWishes[successorEdge]!!
+					val newWishes = wishes.filter { condition ->
+						condition in possible ||
+							condition.holdsFor(successorEdge.manifest())
+					}.toSet()
+					edgeWishes[successorEdge] = newWishes
+					edgePossibilities[successorEdge] = newWishes
+				}
+			}
+		}
+
+		// We now know all the places that code splits can start, which blocks
+		// are affected, and where the subgraphs end.
+		val splitConditions = blocks.associateWithTo(mutableMapOf()) { block ->
+			block.predecessorEdges()
+				.map { edge -> edgeWishes[edge]!! }
+				.fold(emptySet(), Set<L2SplitCondition>::union)
+		}
+		splitConditions.values.removeAll { it.isEmpty() }
+		if (splitConditions.isEmpty())
+		{
+			// Nothing to split.
+			return
+		}
+		//TODO Remove
+		if (true)
+		{
+			blocks.forEach { block ->
+				splitConditions[block]?.let { conditions ->
+					block.debugNote.append("Available splits:")
+					conditions.forEach { condition ->
+						block.debugNote.append("\n\t")
+						block.predecessorEdges().forEach { edge ->
+							block.debugNote.append(
+								when
+								{
+									condition.holdsFor(edge.manifest()) -> '+'
+									else -> '-'
+								})
+						}
+						block.debugNote.append(' ')
+						block.debugNote.append(condition)
+					}
+				}
+			}
+		}
+		// Here's a good place to breakpoint to see the condition-labeled graph
+		// prior to regeneration.
+		val edgeTranslations = mutableListOf<Pair<L2PcOperand, L2PcOperand>>()
+		regenerateGraph(true, edgeTranslations) { sourceInstruction ->
+			if (!sourceInstruction.operation.isPhi)
+			{
+				edgeTranslations.clear()
+				basicProcessInstruction(sourceInstruction)
+				// Adjust branch targets based on splitConditions, using the
+				// manifests already produced for each edge.
+				edges@ for ((oldEdge, newEdge) in edgeTranslations)
+				{
+					val oldTarget = oldEdge.targetBlock()
+					val conditions = splitConditions[oldTarget]
+					if (conditions !== null)
+					{
+						assert(conditions.isNotEmpty())
+						val trueConditions = when
+						{
+							// Ignore splitting request if it's a special block,
+							// since the execution machinery will require
+							// exactly one in the target graph (for each
+							// SpecialBlock entry).
+							newEdge.targetBlock() in inverseSpecialBlockMap ->
+								emptySet()
+
+							else -> conditions.filter {
+								it.holdsFor(newEdge.manifest())
+							}.toSet()
+						}
+						if (trueConditions.isEmpty())
+						{
+							// The newEdge is already pointing at the
+							// translation of the block with no conditions.
+							continue@edges
+						}
+						// Since the newEdge was pointing to an equivalent block
+						// with no conditions, the submap will exist.
+						val submap = blockMap[oldTarget]!!
+						val newTarget = submap.computeIfAbsent(trueConditions) {
+							val suffix = when (trueConditions.size)
+							{
+								1 -> " split ${trueConditions.single()}"
+								else -> " multi-split #" +
+									submap.keys.count { it.size > 1}
+							}
+							val newBlock = L2BasicBlock(
+								oldTarget.name() + suffix,
+								oldTarget.isLoopHead,
+								oldTarget.zone)
+							if (oldTarget.isIrremovable)
+								newBlock.makeIrremovable()
+							newBlock
+						}
+						newEdge.changeUngeneratedTarget(newTarget)
+					}
+				}
+			}
+		}
+	}
+
+	/**
 	 * For every edge leading from a multiple-out block to a multiple-in block,
 	 * split it by inserting a new block along it.  Note that we do this
 	 * regardless of whether the target block has any phi functions.
@@ -430,9 +663,21 @@ class L2Optimizer internal constructor(
 	/**
 	 * Regenerate the [controlFlowGraph], using the given instruction
 	 * transformer function.
+	 *
+	 * @param generatePhis
+	 *   Whether to produce phi instructions automatically based on semantic
+	 *   values that are in common among incoming edges at merge points.  This
+	 *   is false when phis have already been replaced with non-SSA moves.
+	 * @param edgeCollector
+	 *   An optional [MutableList] containing <old, new> pairs of edges
+	 *   generated since the last time it was cleared.  The old edge is from the
+	 *   old graph, and the new edge is the corresponding edge in the new graph.
+	 *   If the old edge is lost (e.g., unreachable, due to stronger
+	 *   restrictions when code splitting), no entry is added to the list.
 	 */
 	private fun regenerateGraph(
 		generatePhis: Boolean,
+		edgeCollector: MutableList<Pair<L2PcOperand, L2PcOperand>>? = null,
 		transformer: L2Regenerator.(L2Instruction)->Unit)
 	{
 		// Use an L2Regenerator to do the substitution.  First empty the CFG
@@ -442,9 +687,11 @@ class L2Optimizer internal constructor(
 		controlFlowGraph.evacuateTo(oldGraph)
 		val inverseSpecialBlockMap =
 			generator.specialBlocks.entries.associate { (s, b) -> b to s }
-		val regenerator = object : L2Regenerator(generator, generatePhis)
+		val regenerator = object : L2Regenerator(
+			generator, generatePhis, edgeCollector)
 		{
-			override fun processInstruction(sourceInstruction: L2Instruction)
+			override fun processInstruction(
+				sourceInstruction: L2Instruction)
 			{
 				if (!sourceInstruction.operation.isPhi)
 				{
@@ -455,12 +702,7 @@ class L2Optimizer internal constructor(
 		regenerator.inverseSpecialBlockMap.clear()
 		regenerator.inverseSpecialBlockMap.putAll(inverseSpecialBlockMap)
 		generator.specialBlocks.clear()
-		val originalStartBlock = oldGraph.basicBlockOrder[0]
-		val start = L2BasicBlock(originalStartBlock.name())
-		start.makeIrremovable()
-		generator.startBlock(start, generatePhis, regenerator)
-		regenerator.processSourceGraphStartingAt(
-			originalStartBlock.instructions()[0])
+		regenerator.processSourceGraph(oldGraph)
 	}
 
 	/**
@@ -589,7 +831,7 @@ class L2Optimizer internal constructor(
 	 * For each [L2_MOVE] instruction, if the register groups associated with
 	 * the source and destination registers don't have an interference edge
 	 * between them then merge the groups together.  The resulting merged group
-	 * should have interferences with each group that the either the source
+	 * should have interferences with each group that either the source
 	 * register's group or the destination register's group had interferences
 	 * with.
 	 */

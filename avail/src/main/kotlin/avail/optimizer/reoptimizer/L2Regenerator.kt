@@ -69,12 +69,12 @@ import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2EntityAndKind
 import avail.optimizer.L2Generator
 import avail.optimizer.L2Generator.SpecialBlock
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import avail.utility.mapToSet
-import java.util.ArrayDeque
 
 /**
  * This is used to transform and embed a called function's chunk's control flow
@@ -109,13 +109,20 @@ import java.util.ArrayDeque
  *   Whether to produce phi instructions automatically based on semantic values
  *   that are in common among incoming edges at merge points.  This is false
  *   when phis have already been replaced with non-SSA moves.
+ * @param edgeCollector
+ *   An optional [MutableList] containing <old, new> pairs of edges generated
+ *   since the last time it was cleared.  The old edge is from the old graph,
+ *   and the new edge is the corresponding edge in the new graph.  If the old
+ *   edge is lost (e.g., unreachable, due to stronger restrictions when code
+ *   splitting), no entry is added to the list.
  *
  * @constructor
  *   Construct a new `L2Regenerator`.
  */
 abstract class L2Regenerator internal constructor(
 	val targetGenerator: L2Generator,
-	private val generatePhis: Boolean)
+	private val generatePhis: Boolean,
+	val edgeCollector: MutableList<Pair<L2PcOperand, L2PcOperand>>? = null)
 {
 	/**
 	 * An [AbstractOperandTransformer] is an [L2OperandDispatcher] suitable for
@@ -132,30 +139,38 @@ abstract class L2Regenerator internal constructor(
 		var currentOperand: L2Operand? = null
 
 		/**
-		 * The mapping from the [L2BasicBlock]s in the source graph to the
-		 * corresponding `L2BasicBlock` in the target graph.
-		 */
-		private val blockMap = mutableMapOf<L2BasicBlock, L2BasicBlock>()
-
-		/**
 		 * Transform the given [L2BasicBlock].  Use the [blockMap], adding an
-		 * entry if necessary.
+		 * entry if necessary.  Always produce the block representing the
+		 * default code splitting path, the one with no conditions.
 		 *
 		 * @param block
 		 *   The basic block to look up.
 		 * @return
 		 *   The looked up or created-and-stored basic block.
 		 */
-		open fun mapBlock(block: L2BasicBlock) =
-			blockMap.computeIfAbsent(block) { oldBlock: L2BasicBlock ->
+		open fun mapBlock(block: L2BasicBlock): L2BasicBlock
+		{
+			val special = inverseSpecialBlockMap[block]
+			val submap = blockMap.computeIfAbsent(block) { mutableMapOf() }
+			// Here we always select the block representing the unconstrained
+			// path.  The optimizer will tweak this after the whole instruction
+			// has been translated, so that the manifests will be available on
+			// the outgoing edges.
+			return submap.computeIfAbsent(emptySet()) {
 				val newBlock = L2BasicBlock(
-					oldBlock.name(), oldBlock.isLoopHead, oldBlock.zone)
-				if (oldBlock.isIrremovable) newBlock.makeIrremovable()
-				inverseSpecialBlockMap[oldBlock]?.let { special ->
+					block.name(),
+					block.isLoopHead,
+					block.zone)
+				if (block.isIrremovable) newBlock.makeIrremovable()
+				if (special !== null)
+				{
+					// Don't split special blocks.
+					assert(targetGenerator.specialBlocks[special] == null)
 					targetGenerator.specialBlocks[special] = newBlock
 				}
 				newBlock
 			}
+		}
 
 		/**
 		 * Transform the given [L2SemanticValue] into another.  By default this
@@ -183,18 +198,19 @@ abstract class L2Regenerator internal constructor(
 
 		override fun doOperand(operand: L2PcOperand)
 		{
-			// Add the source edge to the appropriate queue.
-			when
-			{
-				operand.isBackward -> backEdgeVisitQueue.add(operand)
-				else -> edgeVisitQueue.add(operand)
-			}
-			// Note: ignore the manifest of the source edge.
+			// Note: Even during code splitting, always produce an edge to the
+			// unconstrained version of the replacement block.  The splitter
+			// will adjust it after the instruction generates, so that the
+			// manifest along each edge will be populated, and therefore usable
+			// for determining which conditions hold.
 			val edge = L2PcOperand(
 				mapBlock(operand.targetBlock()),
 				operand.isBackward,
 				targetGenerator.currentManifest,
 				operand.optionalName)
+			// Save the old/new edge pair in edgeCollector for the splitter code
+			// to adjust.
+			edgeCollector?.run { add(operand to edge) }
 			// Generate clamped entities based on the originals.
 			operand.forcedClampedEntities?.let { oldClamped ->
 				val manifest = targetGenerator.currentManifest
@@ -210,8 +226,7 @@ abstract class L2Regenerator internal constructor(
 							newClamped.add(entityAndKind)
 							newClamped.add(
 								L2EntityAndKind(
-									manifest.getDefinition(entity, kind),
-									kind))
+									manifest.getDefinition(entity, kind), kind))
 						}
 					}
 				}
@@ -366,7 +381,7 @@ abstract class L2Regenerator internal constructor(
 					L2IntRegister(unique)
 				}
 			currentOperand = L2WriteIntOperand(
-				operand.semanticValues().cast(),
+				operand.semanticValues(),
 				operand.restriction().restrictingKindsTo(UNBOXED_INT_FLAG.mask),
 				newRegister as L2IntRegister)
 		}
@@ -379,7 +394,7 @@ abstract class L2Regenerator internal constructor(
 					L2FloatRegister(unique)
 				}
 			currentOperand = L2WriteFloatOperand(
-				operand.semanticValues().cast(),
+				operand.semanticValues(),
 				operand.restriction().restrictingKindsTo(
 					UNBOXED_FLOAT_FLAG.mask),
 				newRegister as L2FloatRegister)
@@ -405,6 +420,14 @@ abstract class L2Regenerator internal constructor(
 		else OperandRegisterTransformer()
 
 	/**
+	 * The mapping from the [L2BasicBlock]s in the source graph to the
+	 * corresponding `L2BasicBlock` in the target graph.
+	 */
+	val blockMap = mutableMapOf<
+		L2BasicBlock,
+		MutableMap<Set<L2SplitCondition>, L2BasicBlock>>()
+
+	/**
 	 * An inverse mapping from source block to [SpecialBlock].  This is used
 	 * to detect when we need to record a corresponding target block as a
 	 * [SpecialBlock].
@@ -423,7 +446,7 @@ abstract class L2Regenerator internal constructor(
 	 * @return
 	 *   The transformed [L2Operand], also of type [O].
 	 */
-	fun <O : L2Operand> transformOperand(operand: O): O
+	open fun <O : L2Operand> transformOperand(operand: O): O
 	{
 		operandInlineTransformer.currentOperand = operand
 		operand.dispatchOperand(operandInlineTransformer)
@@ -432,114 +455,46 @@ abstract class L2Regenerator internal constructor(
 	}
 
 	/**
-	 * The set of [L2BasicBlock]s from the source graph that have already been
-	 * completely processed.  See [processSourceGraphStartingAt].
-	 */
-	private val completedSourceBlocks = mutableSetOf<L2BasicBlock>()
-
-	/**
-	 * A queue of [L2PcOperand]s from the source graph, which have not yet been
-	 * processed.  A block is translated when all of its normal (forward)
-	 * predecessor blocks have completed translation, and are therefore in the
-	 * [completedSourceBlocks].  After all forward edges have been exhausted,
-	 * the remaining backward edges are processed, which should always lead
-	 * directly to blocks that have already been processed.
-	 *
-	 * See [processSourceGraphStartingAt].
-	 */
-	private val edgeVisitQueue = ArrayDeque<L2PcOperand>()
-
-	/**
-	 * A queue of *back-edge* [L2PcOperand]s from the source graph.  These are
-	 * processed only after all forward edges have completed, thereby finishing
-	 * all nodes of the source graph.
-	 *
-	 * See [processSourceGraphStartingAt].
-	 */
-	private val backEdgeVisitQueue = ArrayDeque<L2PcOperand>()
-
-	/**
-	 * Given an [L2Instruction] from the source [L2ControlFlowGraph], start
-	 * translating and emitting to the target graph from that point, until
-	 * nothing else is reachable.  Process any encountered back-edges after all
-	 * forward edges and blocks have completed.
+	 * Given an original [L2ControlFlowGraph], translate each [L2BasicBlock] (in
+	 * topological order), translating each instruction within that block.
+	 * Since the new graph has essentially the same shape as the original, we
+	 * don't need to do any special synchronization at merge points. There's no
+	 * way for a block of the original to be reached before one of its
+	 * predecessors, and the translation of an instruction can't suddenly jump
+	 * to a point in the target graph that corresponds with an earlier point in
+	 * the source graph.  Therefore, when we reach a block in the original, we
+	 * can safely assume that its translation(s) in the target graph have
+	 * already had their predecessors completely generated.
 	 *
 	 * The client must set up the [targetGenerator] to be generating at a
 	 * reachable state, prior to this call.
 	 *
-	 * @param startingInstruction
-	 *   The [L2Instruction] of the source control flow graph from which to
-	 *   start translation and code generation.
+	 * @param oldGraph
+	 *   The [L2ControlFlowGraph] from which to start translation and code
+	 *   generation.
 	 */
-	fun processSourceGraphStartingAt(startingInstruction: L2Instruction)
+	fun processSourceGraph(oldGraph: L2ControlFlowGraph)
 	{
-		assert(edgeVisitQueue.isEmpty())
-		assert(backEdgeVisitQueue.isEmpty())
-		assert(targetGenerator.currentlyReachable()) {
-			"Caller should have set up starting block, or other starting state"
-		}
-		val startBlock = startingInstruction.basicBlock()
-		val startIndex = startBlock.instructions().indexOf(startingInstruction)
-		assert(startIndex >= 0)
-		for (i in startIndex until startBlock.instructions().size) {
-			processInstruction(startBlock.instructions()[i])
-		}
-		completedSourceBlocks.add(startBlock)
-		blocks@while (edgeVisitQueue.isNotEmpty())
-		{
-			val block = edgeVisitQueue.remove().targetBlock()
-			if (completedSourceBlocks.contains(block))
-			{
-				// This can happen when the code splitter primes the
-				// completedSourceBlocks to indicate where the "ends" of the
-				// source subgraph that is being specialized are, and where they
-				// lead to in the target graph.
-				continue@blocks
-			}
-			if (block.predecessorEdges().any {
-					!it.isBackward
-						&& !completedSourceBlocks.contains(it.sourceBlock()) })
-			{
-				// At least one predecessor has not been processed yet.  This
-				// block will get a chance later, once the other predecessors
-				// have been processed.
-				continue@blocks
-			}
+		val firstSourceBlock = oldGraph.basicBlockOrder[0]
+		val start = L2BasicBlock(firstSourceBlock.name())
+		start.makeIrremovable()
+		blockMap[firstSourceBlock] = mutableMapOf(
+			emptySet<L2SplitCondition>() to start)
+		oldGraph.forwardVisit { originalBlock ->
 			// All forward-edge predecessors have already been processed.
-			targetGenerator.startBlock(
-				operandInlineTransformer.mapBlock(block),
-				generatePhis,
-				this)
-			instructions@for (instruction in block.instructions())
-			{
-				if (!targetGenerator.currentlyReachable())
-				{
-					// Abort the rest of this block, since the target position
-					// is unreachable.  Make sure to also mark it as complete,
-					// to ensure any blocks that are reachable from it in the
-					// source, but *also* from other blocks in the source, can
-					// proceed with generation if all the other blocks have been
-					// completed.  We also have to keep walking through any
-					// successor edges, since there may be a whole subgraph that
-					// has become inaccessible, and we must ensure paths that
-					// eventually join with it (i.e., where it *would* have been
-					// merging control flow) can continue code generation with
-					// only some predecessors having produced code.
-					block.successorEdges().forEach(this::transformOperand)
-					break@instructions
-				}
-				processInstruction(instruction)
+			val submap = blockMap[originalBlock] ?: run {
+				mutableMapOf(emptySet<L2SplitCondition>() to L2BasicBlock(
+					originalBlock.name(),
+					originalBlock.isLoopHead,
+					originalBlock.zone))
 			}
-			// Now consider the block to have been fully processed.
-			completedSourceBlocks.add(block)
-		}
-		// Process any encountered back-edges.
-		while (backEdgeVisitQueue.isNotEmpty())
-		{
-			val backEdge = backEdgeVisitQueue.remove()
-			val block = backEdge.targetBlock()
-			assert(completedSourceBlocks.contains(block))
-			block.addPredecessorEdge(backEdge)
+			submap.forEach { (_, targetBlock) ->
+				targetGenerator.startBlock(targetBlock, generatePhis, this)
+				if (targetGenerator.currentlyReachable())
+				{
+					originalBlock.instructions().forEach(::processInstruction)
+				}
+			}
 		}
 	}
 

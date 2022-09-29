@@ -81,7 +81,7 @@ constructor(
 	 * @return
 	 *   The semantic value being written.
 	 */
-	fun semanticValues(): Set<L2SemanticValue> = semanticValues
+	open fun semanticValues(): Set<L2SemanticValue> = semanticValues
 
 	/**
 	 * Answer this write's sole [L2SemanticValue], failing if there isn't

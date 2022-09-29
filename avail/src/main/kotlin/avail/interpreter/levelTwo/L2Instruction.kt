@@ -43,6 +43,7 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -477,4 +478,7 @@ constructor(
 			operand.postOptimizationCleanup()
 		}
 	}
+
+	fun interestingConditions(): List<L2SplitCondition> =
+		operation.interestingConditions(this)
 }

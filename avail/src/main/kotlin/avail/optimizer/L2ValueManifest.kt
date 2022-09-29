@@ -864,7 +864,6 @@ class L2ValueManifest
 		assert(writer.instructionHasBeenEmitted)
 		for (semanticValue in writer.semanticValues())
 		{
-			@Suppress("ControlFlowWithEmptyBody")
 			if (semanticValue == sourceSemanticValue)
 			{
 				// Introduce a definition of a new kind for a semantic value
@@ -945,13 +944,30 @@ class L2ValueManifest
 	 * @param register
 	 *   The [L2Register] to find in this manifest.
 	 * @return
-	 *   A [List] of [L2Synonym]s that are mapped to the given register within
+	 *   A [Set] of [L2Synonym]s that are mapped to the given register within
 	 *   this manifest.
 	 */
-	fun synonymsForRegister(register: L2Register): List<L2Synonym> =
+	fun synonymsForRegister(register: L2Register): Set<L2Synonym> =
 		constraints.entries
 			.filter { it.value.definitions.contains(register) }
 			.map { it.key }
+			.toSet()
+
+	/**
+	 * Given a [Set] of [L2Register]s, find which [L2Synonym]s, if any, are
+	 * mapped to it in this manifest.  The CFG does not have to be in SSA form.
+	 *
+	 * @param registers
+	 *   The [L2Register]s to find in this manifest.
+	 * @return
+	 *   A [Set] of [L2Synonym]s that are mapped to any of the given registers
+	 *   within this manifest.
+	 */
+	fun synonymsForRegisters(registers: Set<L2Register>): Set<L2Synonym> =
+		constraints.entries
+			.filter { it.value.definitions.any { def -> def in registers } }
+			.map { it.key }
+			.toSet()
 
 	/**
 	 * Erase the information about all [L2SemanticValue]s that are part of the
@@ -1151,14 +1167,14 @@ class L2ValueManifest
 				}
 				if (origins.all { it == null })
 				{
-					// There are no postponed instruction for this purpose.
+					// There are no postponed instructions for this purpose.
 					continue@skip
 				}
 				if (!origins.contains(null) && origins.distinct().size == 1)
 				{
 					// The source of this semantic value (and kind) is the
 					// same original instruction(s) for each incoming edge.
-					// Simply include it to the new manifest as a postponed
+					// Simply include it in the new manifest as a postponed
 					// value.
 					origins[0]!!.forEach {
 						recordPostponedSourceInstruction(it, semanticValue)
@@ -1166,12 +1182,12 @@ class L2ValueManifest
 					continue@skip
 				}
 				// The same postponed instruction is *not* the source of the
-				// value in each incoming edge.  Force the relevant
-				// postponed instructions to generate just before each
-				// incoming edge for which there isn't already a register
-				// with the value.  The actual phi creation happens further
-				// down. This is safe, because the graph is in edge-split
-				// SSA in the presence of postponements.
+				// value in each incoming edge.  Force the relevant postponed
+				// instructions to generate just before each incoming edge for
+				// which there isn't already a register with the value.  The
+				// actual phi creation happens further down.  This is safe,
+				// because the graph is in edge-split SSA in the presence of
+				// postponements.
 
 				assert(regenerator != null)
 				val edges = generator.currentBlock().predecessorEdges()

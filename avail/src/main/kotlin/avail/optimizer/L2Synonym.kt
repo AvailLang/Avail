@@ -64,8 +64,8 @@ class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
 	 * must produce the same value even if the set of semantic values is
 	 * traversed in a different order.
 	 */
-	private val hash = semanticValues.fold(0x5C278E78) { acc, sv ->
-		((sv.hashCode() xor 0x53B478BB) * AvailObject.multiplier) xor acc
+	private val hash = 0x5C278E78 + semanticValues.sumOf { sv ->
+		AvailObject.combine2(sv.hashCode(), 0x53B478BB)
 	}
 
 	override fun hashCode() = hash

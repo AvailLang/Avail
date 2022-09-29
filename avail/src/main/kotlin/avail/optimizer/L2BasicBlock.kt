@@ -66,11 +66,15 @@ import java.lang.Integer.toHexString
  *   A mechanism to visually group blocks in the
  *   [L2ControlFlowGraphVisualizer], indicating the purpose of that group.
  */
-class L2BasicBlock constructor(
+class L2BasicBlock
+constructor(
 	private val name: String,
 	var isLoopHead: Boolean = false,
 	var zone: L2ControlFlowGraph.Zone? = null)
 {
+	/** A place to write notes for marking up a graph. */
+	val debugNote = StringBuilder()
+
 	/** The sequence of instructions within this basic block. */
 	private val instructions = mutableListOf<L2Instruction>()
 
@@ -104,7 +108,8 @@ class L2BasicBlock constructor(
 		private set
 
 	/** Whether we've started adding instructions to this basic block. */
-	private var hasStartedCodeGeneration = false
+	var hasStartedCodeGeneration = false
+		private set
 
 	/**
 	 * Keeps track whether a control-flow altering instruction has been added
@@ -177,7 +182,6 @@ class L2BasicBlock constructor(
 	 */
 	fun addPredecessorEdge(predecessorEdge: L2PcOperand)
 	{
-		assert(predecessorEdge.sourceBlock().hasStartedCodeGeneration)
 		predecessorEdges.add(predecessorEdge)
 		if (hasStartedCodeGeneration)
 		{
@@ -210,7 +214,6 @@ class L2BasicBlock constructor(
 	 */
 	fun removePredecessorEdge(predecessorEdge: L2PcOperand)
 	{
-		assert(predecessorEdge.sourceBlock().hasStartedCodeGeneration)
 		if (hasStartedCodeGeneration)
 		{
 			val index = predecessorEdges.indexOf(predecessorEdge)

@@ -40,8 +40,8 @@ import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
+import avail.utility.Mutable
 import avail.utility.Strings.increaseIndentation
-import java.lang.StringBuilder
 import java.util.Collections
 import kotlin.reflect.KClass
 
@@ -226,6 +226,76 @@ class L2ControlFlowGraph
 		{
 			basicBlockOrder.add(block)
 		}
+	}
+
+	/**
+	 * Visit the blocks of the graph in forward order, predecessors before
+	 * successors, ignoring backward branches.
+	 */
+	fun forwardVisit(action: (L2BasicBlock)->Unit)
+	{
+		val countdowns = mutableMapOf<L2BasicBlock, Mutable<Int>>()
+		basicBlockOrder.forEach { block ->
+			countdowns[block] =
+				Mutable(block.predecessorEdges().count { !it.isBackward })
+		}
+		countdowns[basicBlockOrder[0]]!!.value++
+		val queue = ArrayDeque<L2BasicBlock>()
+		queue.add(basicBlockOrder[0])
+		while (queue.isNotEmpty())
+		{
+			val block = queue.removeFirst()
+			val countdown = --countdowns[block]!!.value
+			assert(countdown >= 0)
+			if (countdown == 0)
+			{
+				action(block)
+				block.successorEdges().forEach { edge ->
+					if (!edge.isBackward)
+					{
+						queue.add(edge.targetBlock())
+					}
+				}
+			}
+		}
+		assert(countdowns.values.all { it.value == 0 })
+	}
+
+	/**
+	 * Visit the blocks of the graph in reverse order, successors before
+	 * predecessors, ignoring backward branches.
+	 */
+	fun backwardVisit(action: (L2BasicBlock)->Unit)
+	{
+		val countdowns = mutableMapOf<L2BasicBlock, Mutable<Int>>()
+		basicBlockOrder.forEach { block ->
+			countdowns[block] =
+				Mutable(block.successorEdges().count { !it.isBackward })
+		}
+		val queue = ArrayDeque<L2BasicBlock>()
+		val ends = mutableListOf<L2BasicBlock>()
+		basicBlockOrder.filterTo(ends) { block ->
+			block.successorEdges().all { it.isBackward }
+		}
+		queue.addAll(ends)
+		ends.forEach { countdowns[it]!!.value++ }
+		while (queue.isNotEmpty())
+		{
+			val block = queue.removeFirst()
+			val countdown = --countdowns[block]!!.value
+			assert(countdown >= 0)
+			if (countdown == 0)
+			{
+				action(block)
+				block.predecessorEdges().forEach { edge ->
+					if (!edge.isBackward)
+					{
+						queue.add(edge.sourceBlock())
+					}
+				}
+			}
+		}
+		assert(countdowns.values.all { it.value == 0 })
 	}
 
 	/**

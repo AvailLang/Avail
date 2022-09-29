@@ -248,6 +248,19 @@ class L2ControlFlowGraphVisualizer constructor(
 						) {
 							append(escape(basicBlock.name()))
 						}
+						if (basicBlock.debugNote.isNotEmpty())
+						{
+							tag(
+								"font",
+								"face" to "Courier",
+								"color" to writer.adjust(commentTextColor)
+							) {
+								basicBlock.debugNote.lines().forEach { line ->
+									append("<br/>")
+									append(escape(line))
+								}
+							}
+						}
 					}
 					tag(
 						"td",
