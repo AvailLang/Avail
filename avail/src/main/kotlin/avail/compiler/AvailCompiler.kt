@@ -369,8 +369,10 @@ class AvailCompiler constructor(
 		pollForAbort,
 		progressReporter,
 		problemHandler)
+
 	/** The memoization of results of previous parsing attempts. */
 	private val fragmentCache = AvailCompilerFragmentCache()
+
 	/**
 	 * The Avail [A_String] containing the complete content of the module
 	 * being compiled.
@@ -392,6 +394,7 @@ class AvailCompiler constructor(
 	 */
 	private val moduleName
 		get() = ModuleName(compilationContext.module.moduleNameNative)
+
 	/**
 	 * A list of subexpressions being parsed, represented by
 	 * [message&#32;bundle&#32;trees][A_BundleTree] holding the positions
@@ -746,6 +749,7 @@ class AvailCompiler constructor(
 	private fun rollbackModuleTransaction(afterRollback: ()->Unit) =
 		compilationContext.module.removeFrom(
 			compilationContext.loader, afterRollback)
+
 	/**
 	 * Commit the [module][A_Module] that was defined since the most recent
 	 * [startModuleTransaction].  This also closes the module against further
@@ -754,6 +758,7 @@ class AvailCompiler constructor(
 	 */
 	private fun commitModuleTransaction() =
 		compilationContext.runtime.addModule(compilationContext.module)
+
 	/**
 	 * Evaluate the specified semantic restriction [function][A_Function] in the
 	 * module's context; lexically enclosing variables are not considered in

@@ -45,7 +45,7 @@ plugins {
 	id("org.availlang.avail-plugin")
 }
 
-version = "2.0.0-1.6.1.alpha01"
+version = "2.0.0.alpha02-1.6.1.alpha02"
 
 avail {
 	projectDescription = "The Avail Standard Library"
@@ -90,7 +90,7 @@ tasks {
 			// error message:
 			// `Artifact <TARGET JAR>.jar wasn't produced by this build.`
 			// At the time of writing this was the only solution identified so
-			// far that overcame the issue. 
+			// far that overcame the issue.
 			availExtension.createArtifact()
 		}
 	}

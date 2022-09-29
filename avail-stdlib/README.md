@@ -1,6 +1,6 @@
 AVAIL STANDARD LIBRARY
 --------------------------------------------------------------------------------
-[![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0-1.6.1.alpha01-0f824e)](https://search.maven.org/artifact/org.availlang/avail-stdlib)
+[![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha02--1.6.1.alpha02-0f824e)](https://search.maven.org/artifact/org.availlang/avail-stdlib)
 
 The Avail Standard Library is the general purpose programming library for 
 writing Avail. An Avail runtime includes Avail code through **Module Roots**.

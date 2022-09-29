@@ -652,18 +652,29 @@ abstract class AbstractDescriptor protected constructor (
 		}
 		val cls = this@AbstractDescriptor.javaClass.cast()!!
 		val loader = cls.classLoader
-		val intSlots: Array<out IntegerSlotsEnum> =
+		var definitionCls = cls
+		var intSlots: Array<out IntegerSlotsEnum>
+		while (true)
+		{
 			try
 			{
-				val intEnumClass: Class<out IntegerSlotsEnum> =
-					loader.loadClass("${cls.canonicalName}\$IntegerSlots")
-						.cast()
-				intEnumClass.enumConstants ?: emptyArray()
+				val intEnumClass: Class<out IntegerSlotsEnum> = loader
+					.loadClass("${definitionCls.canonicalName}\$IntegerSlots")
+					.cast()
+				intSlots = intEnumClass.enumConstants
+				break
 			}
 			catch (e: ClassNotFoundException)
 			{
-				emptyArray()
+				if (definitionCls !== AbstractDescriptor::class.java)
+				{
+					definitionCls = definitionCls.superclass.cast()
+					continue
+				}
+				intSlots = emptyArray()
+				break
 			}
+		}
 		for (i in 1..self.integerSlotsCount())
 		{
 			val ordinal = min(i, intSlots.size) - 1
@@ -701,17 +712,29 @@ abstract class AbstractDescriptor protected constructor (
 				}
 			}
 		}
-		val objectSlots: Array<out ObjectSlotsEnum> =
+		definitionCls = cls
+		var objectSlots: Array<out ObjectSlotsEnum>
+		while (true)
+		{
 			try
 			{
-				val objectEnumClass: Class<out ObjectSlotsEnum> =
-					loader.loadClass("${cls.canonicalName}\$ObjectSlots").cast()
-				objectEnumClass.enumConstants ?: emptyArray()
+				val objectEnumClass: Class<out ObjectSlotsEnum> = loader
+					.loadClass("${definitionCls.canonicalName}\$ObjectSlots")
+					.cast()
+				objectSlots = objectEnumClass.enumConstants
+				break
 			}
 			catch (e: ClassNotFoundException)
 			{
-				emptyArray()
+				if (definitionCls !== AbstractDescriptor::class.java)
+				{
+					definitionCls = definitionCls.superclass.cast()
+					continue
+				}
+				objectSlots = emptyArray()
+				break
 			}
+		}
 		for (i in 1..self.objectSlotsCount())
 		{
 			val ordinal = min(i, objectSlots.size) - 1

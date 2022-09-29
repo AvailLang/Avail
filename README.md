@@ -1,6 +1,6 @@
 OVERVIEW
 --------------------------------------------------------------------------------
-[![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha01-0f824e)](https://search.maven.org/artifact/org.availlang/avail)
+[![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha03-0f824e)](https://search.maven.org/artifact/org.availlang/avail)
 
 Avail is a multi-paradigmatic general purpose programming language whose feature
 set emphasizes support for articulate programming. Avail is an open-source 
