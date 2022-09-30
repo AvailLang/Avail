@@ -57,7 +57,7 @@ plugins {
 	publishing
 	id("org.jetbrains.compose") version Versions.compose apply false
 	id("org.jetbrains.intellij") version Versions.intellij apply false
-	id("org.jetbrains.dokka") version "1.6.21" apply false
+	id("org.jetbrains.dokka") version "1.7.10" apply false
 	id("org.availlang.avail-plugin") version "2.0.0.alpha01" apply false
 }
 
