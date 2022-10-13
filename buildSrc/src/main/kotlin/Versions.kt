@@ -41,9 +41,6 @@ object Versions
 	/** The version of Kotlin to be used by Avail. */
 	const val kotlin = "1.6.21"
 
-	/** The Kotlin Desktop Compose version [org.jetbrains.compose]. */
-	const val compose = "1.0.0"
-
 	/** The Avail version. */
 	const val avail = "1.6.0"
 
@@ -54,7 +51,7 @@ object Versions
 	const val kotlinAnnotations="23.0.0"
 
 	/** The `org.ow2.asm` version. */
-	const val asmVersion="9.2"
+	const val asmVersion = "9.2"
 
 	/** The `com.github.weisj:darklaf-core` version.*/
 	const val flatlafVersion = "2.1"
@@ -77,9 +74,6 @@ object Versions
 	/** The JVM target version for Kotlin. */
 	const val jvmTargetString = jvmTarget.toString()
 
-
-	/** The JVM target version for Kotlin. */
-	const val intellij = "1.3.1"
 
 	/**
 	 * The list of compile-time arguments to be used during Kotlin compilation.
