@@ -1451,9 +1451,10 @@ constructor(
 			args.add(registers[i])
 		}
 		interpreter.function = function
-		val timeBefore = interpreter.beforeAttemptPrimitive(primitive)
-		val result = primitive.attempt(interpreter)
-		interpreter.afterAttemptPrimitive(primitive, timeBefore, result)
+		val result = interpreter.afterAttemptPrimitive(
+			primitive,
+			interpreter.beforeAttemptPrimitive(primitive),
+			primitive.attempt(interpreter))
 		assert(result === SUCCESS)
 		interpreter.function = registers[0]
 		registers[stackp] = interpreter.getLatestResult()

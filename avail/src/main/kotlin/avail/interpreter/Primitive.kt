@@ -68,12 +68,12 @@ import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.Primitive.PrimitiveHolder
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByClassName
-import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.afterAttemptPrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.argsBufferField
 import avail.interpreter.execution.Interpreter.Companion.beforeAttemptPrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.getLatestResultMethod
+import avail.interpreter.execution.Interpreter.Companion.optionalReifierIfCanSwitchContinuationsMethod
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
@@ -111,12 +111,13 @@ import avail.performance.StatisticReport.REIFICATIONS
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.ACONST_NULL
+import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.ARETURN
+import org.objectweb.asm.Opcodes.ASTORE
 import org.objectweb.asm.Opcodes.DUP
 import org.objectweb.asm.Opcodes.DUP2
 import org.objectweb.asm.Opcodes.DUP2_X2
-import org.objectweb.asm.Opcodes.GOTO
-import org.objectweb.asm.Opcodes.IF_ACMPNE
+import org.objectweb.asm.Opcodes.IFNULL
 import org.objectweb.asm.Opcodes.POP
 import org.objectweb.asm.Opcodes.POP2
 import org.objectweb.asm.Opcodes.SWAP
@@ -839,9 +840,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * If the primitive might fail for this site, do not generate anything,
 	 * answer `false`, and generate nothing.
 	 *
-	 * @param functionToCallReg
-	 *   The [L2ReadBoxedOperand] register that holds the function being
-	 *   invoked.  The function's primitive is known to be the receiver.
 	 * @param rawFunction
 	 *   The primitive raw function whose invocation is being generated.
 	 * @param arguments
@@ -858,7 +856,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   instead.
 	 */
 	fun tryToGenerateGeneralPrimitiveInvocation(
-		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
@@ -1046,8 +1043,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 					expected)
 			}
 			val expectedTypes = primitive.blockTypeRestriction().argsTupleType
-			assert(expectedTypes.sizeRange.upperBound.extractInt
-				== expected)
+			assert(expectedTypes.sizeRange.upperBound.extractInt == expected)
 			val string = buildString {
 				for (i in 1 .. expected)
 				{
@@ -1087,7 +1083,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * reifications.
 	 *
 	 * Subclasses may do something more specific and efficient, and should be
-	 * free to neglect the statistics.  However, the resultRegister must be
+	 * free to neglect the statistics.  However, the [result] register must be
 	 * written, even if it's always [nil], to satisfy the JVM bytecode verifier.
 	 *
 	 * @param translator
@@ -1100,35 +1096,36 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The [L2WriteBoxedOperand] that will be assigned the result of running
 	 *   the primitive, if successful.
 	 */
-	open fun generateJvmCode(
+	fun generateJvmCode(
 		translator: JVMTranslator,
 		method: MethodVisitor,
 		arguments: L2ReadBoxedVectorOperand,
-		result: L2WriteBoxedOperand
-	) {
+		result: L2WriteBoxedOperand)
+	{
 		// :: argsBuffer = interpreter.argsBuffer;
 		translator.loadInterpreter(method)
 		// [interpreter]
 		argsBufferField.generateRead(method)
 		// [argsBuffer]
 		// :: argsBuffer.clear();
-		if (arguments.elements().isNotEmpty()) {
+		if (arguments.elements.isNotEmpty())
+		{
 			method.visitInsn(DUP)
 		}
 		// [argsBuffer[, argsBuffer if #args > 0]]
 		JavaLibrary.listClearMethod.generateCall(method)
 		// [argsBuffer if #args > 0]
-		var i = 0
-		val limit = arguments.elements().size
-		while (i < limit) {
+		val limit = arguments.elements.size
+		for (i in 0 until limit)
+		{
 			// :: argsBuffer.add(«argument[i]»);
-			if (i < limit - 1) {
+			if (i < limit - 1)
+			{
 				method.visitInsn(DUP)
 			}
-			translator.load(method, arguments.elements()[i].register())
+			translator.load(method, arguments.elements[i].register())
 			JavaLibrary.listAddMethod.generateCall(method)
 			method.visitInsn(POP)
-			i++
 		}
 		// []
 		translator.loadInterpreter(method)
@@ -1154,10 +1151,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 		// :: afterAttemptPrimitive(primitive, timeBeforeLong, success);
 		afterAttemptPrimitiveMethod.generateCall(method)
-		// [success] (returned as a nicety by afterAttemptPrimitive)
 
 		// If the infallible primitive definitely switches continuations, then
 		// return null to force the context switch.
+		// :: [success] (returned as a nicety by afterAttemptPrimitive)
 		when
 		{
 			hasFlag(AlwaysSwitchesContinuation) ->
@@ -1169,26 +1166,35 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			}
 			hasFlag(CanSwitchContinuations) ->
 			{
-				// :: if (res == Result.SUCCESS) {
-				SUCCESS.checkedField.generateRead(method)
-				val switchedContinuations = Label()
-				method.visitJumpInsn(IF_ACMPNE, switchedContinuations)
-				// ::    result = interpreter.getLatestResult();
+				translator.loadInterpreter(method)
+				// :: [success, interpreter]
+				method.visitInsn(SWAP)
+				// :: [interpreter, success]
+				translator.literal(method, this)
+				// :: [interpreter, success, primitive]
+				method.visitInsn(SWAP)
+				// :: [interpreter, primitive, success]
+
+				// :: reifier = interpreter.optionalReifierIfCanSwitchContinuations(
+				//     primitive, success);
+				optionalReifierIfCanSwitchContinuationsMethod.generateCall(
+					method)
+				method.visitVarInsn(ASTORE, translator.reifierLocal())
+				val noSwitchContinuationsLabel = Label()
+				// We switched continuations, so we have to return from the
+				// method with the reifier to ensure the JVM call stack is
+				// cleared before resuming the continuation.
+				// :: if (reifier != null) return reifier;
+				method.visitVarInsn(ALOAD, translator.reifierLocal())
+				method.visitJumpInsn(IFNULL, noSwitchContinuationsLabel)
+				method.visitVarInsn(ALOAD, translator.reifierLocal())
+				method.visitInsn(ARETURN)
+
+				// :: destReg = interpreter.getLatestResult()
+				method.visitLabel(noSwitchContinuationsLabel)
 				translator.loadInterpreter(method)
 				getLatestResultMethod.generateCall(method)
 				translator.store(method, result.register())
-				// ::    goto success;
-				val success = Label()
-				method.visitJumpInsn(GOTO, success)
-				// :: } else {
-				method.visitLabel(switchedContinuations)
-				// We switched continuations, so we need to return control to
-				// the caller in order to honor the switch.
-				// ::    return null;
-				method.visitInsn(ACONST_NULL)
-				method.visitInsn(ARETURN)
-				// :: }
-				method.visitLabel(success)
 			}
 			else ->
 			{

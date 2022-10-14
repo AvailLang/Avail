@@ -598,7 +598,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 
 		/** Access to the [tupleFromArray] method. */
-		var tupleFromArrayMethod = staticMethod(
+		val tupleFromArrayMethod = staticMethod(
 			ObjectTupleDescriptor::class.java,
 			::tupleFromArray.name,
 			A_Tuple::class.java,

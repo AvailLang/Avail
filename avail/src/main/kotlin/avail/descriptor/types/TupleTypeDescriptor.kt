@@ -787,7 +787,7 @@ private constructor(
 				bottom)
 
 		/** Access the method [tupleTypeForTypes]. */
-		var tupleTypesForTypesArrayMethod = staticMethod(
+		val tupleTypesForTypesArrayMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
 			::tupleTypeForTypes.name,
 			A_Type::class.java,

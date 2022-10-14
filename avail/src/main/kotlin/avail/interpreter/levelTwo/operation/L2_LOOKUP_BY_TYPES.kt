@@ -139,7 +139,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		// The function type should be an enumeration, so we know that each
 		// argument type satisfied at least one of the functions' corresponding
 		// argument types.
-		val argumentTypeRegs = argTypeRegs.elements()
+		val argumentTypeRegs = argTypeRegs.elements
 		val functionType = functionReg.restriction().type
 		if (functionType.isEnumeration)
 		{
@@ -188,7 +188,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		translator.loadInterpreter(method)
 		translator.literal(method, bundleOperand.bundle)
 		translator.objectArray(
-			method, argTypeRegs.elements(), AvailObject::class.java)
+			method, argTypeRegs.elements, AvailObject::class.java)
 		lookupMethod.generateCall(method)
 		translator.store(method, functionReg.register())
 		// ::    goto lookupSucceeded;

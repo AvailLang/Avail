@@ -66,7 +66,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		warningStyleChange: (Boolean)->Unit)
 	{
 		assert(this == instruction.operation)
 		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
@@ -75,7 +75,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		builder.append(' ')
 		builder.append(output.registerString())
 		builder.append(" ← ")
-		tuples.elements().joinTo(builder, " ++ ") { it.registerString() }
+		tuples.elements.joinTo(builder, " ++ ") { it.registerString() }
 	}
 
 	override fun extractTupleElement(
@@ -91,7 +91,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		// val tuple = instruction.operand<L2WriteBoxedOperand>(1)
 
 		var residualIndex = index
-		for (elementRead in values.elements())
+		for (elementRead in values.elements)
 		{
 			assert(residualIndex >= 1)
 			val sizeRange = elementRead.type()
@@ -126,9 +126,9 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 	{
 		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val output = instruction.operand<L2WriteBoxedOperand>(1)
-		val elements = tuples.elements()
+		val elements = tuples.elements
 		val tupleCount = elements.size
-		assert (tupleCount > 0)
+		assert(tupleCount > 0)
 		translator.load(method, elements[0].register())
 		for (i in 1 until tupleCount)
 		{

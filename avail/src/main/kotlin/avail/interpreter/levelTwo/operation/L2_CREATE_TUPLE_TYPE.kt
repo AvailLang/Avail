@@ -69,7 +69,7 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 		builder.append(' ')
 		builder.append(tupleType.registerString())
 		builder.append(" ← ")
-		builder.append(types.elements())
+		builder.append(types.elements)
 	}
 
 	override fun translateToJVM(
@@ -83,7 +83,7 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 			instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: tupleType = TupleTypeDescriptor.tupleTypeForTypes(types);
-		translator.objectArray(method, types.elements(), A_Type::class.java)
+		translator.objectArray(method, types.elements, A_Type::class.java)
 		tupleTypesForTypesArrayMethod.generateCall(method)
 		translator.store(method, tupleType.register())
 	}

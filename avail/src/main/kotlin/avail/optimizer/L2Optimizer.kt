@@ -1061,7 +1061,7 @@ class L2Optimizer internal constructor(
 				assert(added)
 				if (operand is L2ReadVectorOperand<*, *>)
 				{
-					operand.elements().forEach {
+					operand.elements.forEach {
 						val ok = allOperands.add(it)
 						assert(ok)
 					}

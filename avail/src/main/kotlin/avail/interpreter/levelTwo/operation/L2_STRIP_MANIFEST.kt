@@ -65,7 +65,7 @@ object L2_STRIP_MANIFEST : L2Operation(
 		// registers.
 		val liveSemanticValues = mutableSetOf<L2SemanticValue>()
 		val liveRegisters = mutableSetOf<L2Register>()
-		for (read in liveVector.elements())
+		for (read in liveVector.elements)
 		{
 			liveSemanticValues.add(read.semanticValue())
 			liveRegisters.add(read.register())

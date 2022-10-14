@@ -57,7 +57,7 @@ object L2_CREATE_SET : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		warningStyleChange: (Boolean)->Unit)
 	{
 		assert(this == instruction.operation)
 		val values =
@@ -68,7 +68,7 @@ object L2_CREATE_SET : L2Operation(
 		builder.append(' ')
 		builder.append(set.registerString())
 		builder.append(" ← {")
-		values.elements().joinTo(builder, ", ")
+		values.elements.joinTo(builder, ", ")
 		builder.append('}')
 	}
 
@@ -82,7 +82,7 @@ object L2_CREATE_SET : L2Operation(
 
 		// :: set = SetDescriptor.emptySet;
 		SetDescriptor.emptySetMethod.generateCall(method)
-		for (operand in values.elements())
+		for (operand in values.elements)
 		{
 			// :: set = setWithElementStatic(set, «register»);
 			translator.load(method, operand.register())

@@ -107,6 +107,7 @@ import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
+import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_SetBin
 import avail.descriptor.sets.SetDescriptor
@@ -565,6 +566,25 @@ abstract class AbstractDescriptor protected constructor (
 		indexedSlotCount: Int = 0,
 		init: AvailObject.()->Unit = { }
 	): AvailObject = newIndexedDescriptor(indexedSlotCount, this).apply(init)
+
+	/**
+	 * Create a new [object][AvailObject] whose [descriptor][AbstractDescriptor]
+	 * is the receiver, and which has the specified number of indexed (variable)
+	 * slots for objects and ints.
+	 *
+	 * @param indexedObjectSlots
+	 *   The number of variable object slots to include.
+	 * @param indexedIntSlots
+	 *   The number of variable int slots to include.
+	 * @return
+	 *   The new uninitialized [object][AvailObject].
+	 */
+	inline fun create (
+		indexedObjectSlots: Int,
+		indexedIntSlots: Int,
+		init: AvailObject.()->Unit = { }
+	): AvailObject = newObjectIndexedIntegerIndexedDescriptor(
+		indexedObjectSlots, indexedIntSlots, this).apply(init)
 
 	/**
 	 * Create a new [object][AvailObject] whose [descriptor][AbstractDescriptor]

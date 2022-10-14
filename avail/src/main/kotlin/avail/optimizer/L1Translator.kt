@@ -1696,7 +1696,6 @@ class L1Translator private constructor(
 		{
 			// Try a general infallible invocation, if possible.
 			generated = primitive.tryToGenerateGeneralPrimitiveInvocation(
-				functionToCallReg,
 				rawFunction,
 				narrowedArguments,
 				narrowedArgTypes,

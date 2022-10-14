@@ -569,7 +569,7 @@ class ObjectDescriptor internal constructor(
 		}
 
 		/** Access the [setField] method. */
-		var setFieldMethod = staticMethod(
+		val setFieldMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::setField.name,
 			AvailObject::class.java,
@@ -657,7 +657,7 @@ class ObjectDescriptor internal constructor(
 		/**
 		 * Access the [createUninitializedObject] static method.
 		 */
-		var createUninitializedObjectMethod = staticMethod(
+		val createUninitializedObjectMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::createUninitializedObject.name,
 			AvailObject::class.java,

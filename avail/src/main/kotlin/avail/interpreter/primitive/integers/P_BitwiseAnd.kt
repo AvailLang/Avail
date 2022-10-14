@@ -138,7 +138,6 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		},
 		fallbackBody = {
 			tryToGenerateGeneralPrimitiveInvocation(
-				functionToCallReg,
 				rawFunction,
 				arguments,
 				argumentTypes,

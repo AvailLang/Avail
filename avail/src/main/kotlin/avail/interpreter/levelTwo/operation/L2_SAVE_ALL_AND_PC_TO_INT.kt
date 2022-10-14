@@ -32,6 +32,8 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor
+import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDumpMethod
+import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.emptyRegisterDumpField
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -134,10 +136,16 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		val targetAsInt = instruction.operand<L2WriteIntOperand>(1)
 		val registerDump = instruction.operand<L2WriteBoxedOperand>(2)
 		val fallThrough = instruction.operand<L2PcOperand>(3)
-		target.createAndPushRegisterDumpArrays(translator, method)
-		// :: [AvailObject[], long[]]
-		ContinuationRegisterDumpDescriptor.createRegisterDumpMethod
-			.generateCall(method)
+		if (target.createAndPushRegisterDumpArrays(translator, method, true))
+		{
+			// :: [AvailObject[], long[]]
+			createRegisterDumpMethod.generateCall(method)
+		}
+		else
+		{
+			// :: []
+			emptyRegisterDumpField.generateRead(method)
+		}
 		// :: [registerDump]
 		translator.store(method, registerDump.register())
 		// :: []

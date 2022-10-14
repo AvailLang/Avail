@@ -105,7 +105,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		builder.append(" ← ")
 		builder.append(function.registerString())
 		builder.append("(")
-		builder.append(arguments.elements())
+		builder.append(arguments.elements)
 		builder.append(")")
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
@@ -133,7 +133,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		generatePushArgumentsAndInvoke(
 			translator,
 			method,
-			arguments.elements(),
+			arguments.elements,
 			result,
 			onReturn,
 			onReification)

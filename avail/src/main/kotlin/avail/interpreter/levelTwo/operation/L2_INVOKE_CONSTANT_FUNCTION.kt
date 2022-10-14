@@ -100,7 +100,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 		builder.append(" ← ")
 		builder.append(constantFunction.constant)
 		builder.append("(")
-		builder.append(arguments.elements())
+		builder.append(arguments.elements)
 		builder.append(")")
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
@@ -128,7 +128,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,
 			method,
-			arguments.elements(),
+			arguments.elements,
 			result,
 			onReturn,
 			onReification)

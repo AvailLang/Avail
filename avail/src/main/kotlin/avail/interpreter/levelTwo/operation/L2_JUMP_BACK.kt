@@ -73,7 +73,7 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 		preservedReads.instructionWasAdded(manifest)
 		val semanticValuesToKeep = mutableSetOf<L2SemanticValue>()
 		val registersToKeep = mutableSetOf<L2Register>()
-		preservedReads.elements().forEach {
+		preservedReads.elements.forEach {
 			semanticValuesToKeep.add(it.semanticValue())
 			registersToKeep.add(it.register())
 		}

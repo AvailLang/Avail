@@ -1358,17 +1358,202 @@ class AvailObject private constructor(
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun frameAtPutStatic(
+		fun frameAtPut(
 			self: AvailObject,
 			index: Int,
 			value: AvailObject
 		): AvailObject = self.descriptor().o_FrameAtPut(self, index, value)
 
-		/** Access the [frameAtPutStatic] method. */
+		/** Access the [frameAtPut] method. */
 		val frameAtPutMethod = staticMethod(
 			AvailObject::class.java,
-			::frameAtPutStatic.name,
+			::frameAtPut.name,
 			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut2(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			return self
+		}
+
+		/** Access the [frameAtPut2] method. */
+		val frameAtPut2Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut2.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut3(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject,
+			index3: Int,
+			value3: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			desc.o_FrameAtPut(self, index3, value3)
+			return self
+		}
+
+		/** Access the [frameAtPut3] method. */
+		val frameAtPut3Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut3.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut4(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject,
+			index3: Int,
+			value3: AvailObject,
+			index4: Int,
+			value4: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			desc.o_FrameAtPut(self, index3, value3)
+			desc.o_FrameAtPut(self, index4, value4)
+			return self
+		}
+
+		/** Access the [frameAtPut4] method. */
+		val frameAtPut4Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut4.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut5(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject,
+			index3: Int,
+			value3: AvailObject,
+			index4: Int,
+			value4: AvailObject,
+			index5: Int,
+			value5: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			desc.o_FrameAtPut(self, index3, value3)
+			desc.o_FrameAtPut(self, index4, value4)
+			desc.o_FrameAtPut(self, index5, value5)
+			return self
+		}
+
+		/** Access the [frameAtPut5] method. */
+		val frameAtPut5Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut5.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut6(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject,
+			index3: Int,
+			value3: AvailObject,
+			index4: Int,
+			value4: AvailObject,
+			index5: Int,
+			value5: AvailObject,
+			index6: Int,
+			value6: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			desc.o_FrameAtPut(self, index3, value3)
+			desc.o_FrameAtPut(self, index4, value4)
+			desc.o_FrameAtPut(self, index5, value5)
+			desc.o_FrameAtPut(self, index6, value6)
+			return self
+		}
+
+		/** Access the [frameAtPut6] method. */
+		val frameAtPut6Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut6.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java)

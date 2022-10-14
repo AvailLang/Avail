@@ -119,9 +119,9 @@ constructor() : ExecutableChunk
 		val noLongs = LongArray(0)
 
 		/** Access to the field [noLongs]. */
-		var noLongsField: CheckedField = CheckedField.staticField(
+		val noLongsField: CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
-			"noLongs",
+			::noLongs.name,
 			LongArray::class.java)
 
 		/** An empty [AvailObject] array. */
@@ -130,9 +130,9 @@ constructor() : ExecutableChunk
 		val noObjects = arrayOf<AvailObject>()
 
 		/** Access to the field [noObjects]. */
-		var noObjectsField: CheckedField = CheckedField.staticField(
+		val noObjectsField: CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
-			"noObjects",
+			::noObjects.name,
 			Array<AvailObject>::class.java)
 
 		/**

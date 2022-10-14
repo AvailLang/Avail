@@ -1208,9 +1208,10 @@ class Interpreter(
 				debugModeString,
 				primitive.name)
 		}
-		val timeBefore = beforeAttemptPrimitive(primitive)
-		val result = primitive.attempt(this)
-		afterAttemptPrimitive(primitive, timeBefore, result)
+		val result = afterAttemptPrimitive(
+			primitive,
+			beforeAttemptPrimitive(primitive),
+			primitive.attempt(this))
 		return when (result)
 		{
 			SUCCESS ->
@@ -1255,24 +1256,7 @@ class Interpreter(
 			}
 			CONTINUATION_CHANGED ->
 			{
-				assert(primitive.hasFlag(CanSwitchContinuations))
-				val newContinuation = getReifiedContinuation()!!
-				val newFunction = function
-				val newChunk = chunk
-				val newOffset = offset
-				val newReturnNow = returnNow
-				val newReturnValue = latestResultOrNull()
-				isReifying = true
-				StackReifier(false, primitive.reificationAbandonmentStat!!)
-				{
-					setReifiedContinuation(newContinuation)
-					function = newFunction
-					chunk = newChunk
-					setOffset(newOffset)
-					returnNow = newReturnNow
-					setLatestResult(newReturnValue)
-					isReifying = false
-				}
+				reifierForChangedContinuation(primitive)
 			}
 			FIBER_SUSPENDED ->
 			{
@@ -1281,6 +1265,54 @@ class Interpreter(
 				null
 			}
 		}
+	}
+
+	/**
+	 * A primitive has switched the continuation, but it's unknown whether the
+	 * JVM stack has already been cleared of calls that are no longer in effect.
+	 * Answer a [StackReifier] that will discard the frames and then continue
+	 * with [theReifiedContinuation].
+	 */
+	@ReferencedInGeneratedCode
+	fun reifierForChangedContinuation(primitive: Primitive): StackReifier
+	{
+		assert(primitive.hasFlag(CanSwitchContinuations))
+		val newContinuation = getReifiedContinuation()!!
+		val newFunction = function
+		val newChunk = chunk
+		val newOffset = offset
+		val newReturnNow = returnNow
+		val newReturnValue = latestResultOrNull()
+		isReifying = true
+		return StackReifier(false, primitive.reificationAbandonmentStat!!)
+		{
+			setReifiedContinuation(newContinuation)
+			function = newFunction
+			chunk = newChunk
+			setOffset(newOffset)
+			returnNow = newReturnNow
+			setLatestResult(newReturnValue)
+			isReifying = false
+		}
+	}
+
+	/**
+	 * The [primitive] was just invoked, producing the [result], which *must* be
+	 * either [SUCCESS] or [CONTINUATION_CHANGED].  Answer `null` if the
+	 * primitive indicated success, otherwise answer a [StackReifier] that will
+	 * discard the JVM call stack and continue running whatever the
+	 * [getReifiedContinuation] was when this method was called.
+	 */
+	@ReferencedInGeneratedCode
+	fun optionalReifierIfCanSwitchContinuations(
+		primitive: Primitive,
+		result: Result
+	) = when (result)
+	{
+		SUCCESS -> null
+		CONTINUATION_CHANGED -> reifierForChangedContinuation(primitive)
+		else -> error("Invalid result from infallible " +
+			"CanSwitchContinuations primitive")
 	}
 
 	/**
@@ -1345,9 +1377,10 @@ class Interpreter(
 			}
 			argsBuffer.clear()
 			argsBuffer.addAll(savedArgs)
-			val timeBefore = beforeAttemptPrimitive(primitive)
-			val result = primitive.attempt(this)
-			afterAttemptPrimitive(primitive, timeBefore, result)
+			val result = afterAttemptPrimitive(
+				primitive,
+				beforeAttemptPrimitive(primitive),
+				primitive.attempt(this))
 			when (result)
 			{
 				SUCCESS ->
@@ -1448,52 +1481,68 @@ class Interpreter(
 		success: Result
 	): Result
 	{
-		val timeAfter = AvailRuntimeSupport.captureNanos()
 		primitive.addNanosecondsRunning(
-			timeAfter - timeBefore, interpreterIndex)
+			AvailRuntimeSupport.captureNanos() - timeBefore, interpreterIndex)
 		assert(success !== FAILURE || !primitive.hasFlag(CannotFail))
 		if (debugPrimitives)
 		{
-			if (loggerDebugPrimitives.isLoggable(Level.FINER))
+			// Lifted to another function, to make the live path shorter (when
+			// not debugging).
+			logDebugAfterAttemptPrimitive(primitive, success)
+		}
+		return success
+	}
+
+	/**
+	 * Log debug information about the primitive that just executed.
+	 *
+	 * @param primitive
+	 *   The [Primitive] that just ran.
+	 * @param success
+	 *   The [Result] that the primitive produced.
+	 */
+	private fun logDebugAfterAttemptPrimitive(
+		primitive: Primitive,
+		success: Result)
+	{
+		if (loggerDebugPrimitives.isLoggable(Level.FINER))
+		{
+			val detailPart = when
 			{
-				val detailPart = when
+				success === SUCCESS ->
 				{
-					success === SUCCESS ->
+					var result = getLatestResult().toString()
+					if (result.length > 70)
 					{
-						var result = getLatestResult().toString()
-						if (result.length > 70)
-						{
-							result = result.substring(0, 70) + "..."
-						}
-						" --> $result"
+						result = result.substring(0, 70) + "..."
 					}
-					success === FAILURE && getLatestResult().isInt ->
-					{
-						val errorInt = getLatestResult().extractInt
-						" (${byNumericCode(errorInt)})"
-					}
-					else -> ""
+					" --> $result"
 				}
+				success === FAILURE && getLatestResult().isInt ->
+				{
+					val errorInt = getLatestResult().extractInt
+					" (${byNumericCode(errorInt)})"
+				}
+				else -> ""
+			}
+			log(
+				loggerDebugPrimitives,
+				Level.FINER,
+				"{0}... completed primitive {1} => {2}{3}",
+				debugModeString,
+				primitive.name,
+				success.name,
+				detailPart)
+			if (success !== SUCCESS)
+			{
 				log(
 					loggerDebugPrimitives,
 					Level.FINER,
-					"{0}... completed primitive {1} => {2}{3}",
+					"{0}      ({1})",
 					debugModeString,
-					primitive.name,
-					success.name,
-					detailPart)
-				if (success !== SUCCESS)
-				{
-					log(
-						loggerDebugPrimitives,
-						Level.FINER,
-						"{0}      ({1})",
-						debugModeString,
-						success.name)
-				}
+					success.name)
 			}
 		}
-		return success
 	}
 
 	/**
@@ -1559,33 +1608,41 @@ class Interpreter(
 	{
 		if (debugL2)
 		{
-			val builder = StringBuilder()
-			var ptr: A_Continuation = theReifiedContinuation!!
-			while (ptr.notNil)
-			{
-				builder
-					.append("\n\t\toffset ")
-					.append(ptr.levelTwoOffset())
-					.append(" in ")
-				val ch = ptr.levelTwoChunk()
-				if (ch == unoptimizedChunk)
-				{
-					builder.append("(L1) - ")
-						.append(ptr.function().code().methodName)
-				}
-				else
-				{
-					builder.append(ptr.levelTwoChunk().name())
-				}
-				ptr = ptr.caller()
-			}
-			traceL2(
-				(chunk?.executableChunk ?: unoptimizedChunk.executableChunk),
-				-100000,
-				"POPPING CONTINUATION from:",
-				builder)
+			logPopContinuation()
 		}
 		setReifiedContinuation(getReifiedContinuation()!!.caller())
+	}
+
+	/**
+	 * Extracted to make [popContinuation] smaller for HotSpot.
+	 */
+	private fun logPopContinuation()
+	{
+		val builder = StringBuilder()
+		var ptr: A_Continuation = theReifiedContinuation!!
+		while (ptr.notNil)
+		{
+			builder
+				.append("\n\t\toffset ")
+				.append(ptr.levelTwoOffset())
+				.append(" in ")
+			val ch = ptr.levelTwoChunk()
+			if (ch == unoptimizedChunk)
+			{
+				builder.append("(L1) - ")
+					.append(ptr.function().code().methodName)
+			} else
+			{
+				builder.append(ptr.levelTwoChunk().name())
+			}
+			ptr = ptr.caller()
+		}
+		traceL2(
+			(chunk?.executableChunk ?: unoptimizedChunk.executableChunk),
+			-100000,
+			"POPPING CONTINUATION from:",
+			builder
+		)
 	}
 
 	/**
@@ -2952,14 +3009,14 @@ class Interpreter(
 			AvailRuntime::class.java)
 
 		/** Access the [setLatestResult] method. */
-		var setLatestResultMethod = instanceMethod(
+		val setLatestResultMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setLatestResult.name,
 			Void.TYPE,
 			A_BasicObject::class.java)
 
 		/** Access the [getLatestResult] method. */
-		var getLatestResultMethod = instanceMethod(
+		val getLatestResultMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getLatestResult.name,
 			AvailObject::class.java)
@@ -2977,14 +3034,14 @@ class Interpreter(
 			Boolean::class.javaPrimitiveType!!)
 
 		/** The method [beforeAttemptPrimitive]. */
-		var beforeAttemptPrimitiveMethod = instanceMethod(
+		val beforeAttemptPrimitiveMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::beforeAttemptPrimitive.name,
 			Long::class.javaPrimitiveType!!,
 			Primitive::class.java)
 
 		/** The method [afterAttemptPrimitive]. */
-		var afterAttemptPrimitiveMethod = instanceMethod(
+		val afterAttemptPrimitiveMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::afterAttemptPrimitive.name,
 			Result::class.java,
@@ -3006,7 +3063,7 @@ class Interpreter(
 			A_Continuation::class.java)
 
 		/** Access the [popContinuation] method. */
-		var popContinuationMethod = instanceMethod(
+		val popContinuationMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::popContinuation.name,
 			Void.TYPE)
@@ -3024,7 +3081,7 @@ class Interpreter(
 			A_Function::class.java)
 
 		/** Access to the field [chunk]. */
-		var chunkField: CheckedField = instanceField(
+		val chunkField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::chunk.name,
 			L2Chunk::class.java)
@@ -3074,6 +3131,25 @@ class Interpreter(
 			StackReifier::class.java,
 			A_Continuation::class.java)
 
+		/**
+		 * The [CheckedMethod] for [reifierForChangedContinuation].
+		 */
+		val reifierForChangedContinuationMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::reifierForChangedContinuation.name,
+			StackReifier::class.java,
+			Primitive::class.java)
+
+		/**
+		 * The [CheckedMethod] for [optionalReifierIfCanSwitchContinuations].
+		 */
+		val optionalReifierIfCanSwitchContinuationsMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::optionalReifierIfCanSwitchContinuations.name,
+			StackReifier::class.java,
+			Primitive::class.java,
+			Result::class.java)
+
 		/** The [CheckedMethod] for [reify]. */
 		val reifyMethod = instanceMethod(
 			Interpreter::class.java,
@@ -3094,14 +3170,14 @@ class Interpreter(
 			Array<AvailObject>::class.java)
 
 		/** Access the [preinvoke0] method. */
-		var preinvoke0Method = instanceMethod(
+		val preinvoke0Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke0.name,
 			AvailObject::class.java,
 			A_Function::class.java)
 
 		/** Access the [preinvoke1] method. */
-		var preinvoke1Method = instanceMethod(
+		val preinvoke1Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke1.name,
 			AvailObject::class.java,
@@ -3111,7 +3187,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke2] method.
 		 */
-		var preinvoke2Method = instanceMethod(
+		val preinvoke2Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke2.name,
 			AvailObject::class.java,
@@ -3122,7 +3198,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke3] method.
 		 */
-		var preinvoke3Method = instanceMethod(
+		val preinvoke3Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke3.name,
 			AvailObject::class.java,
@@ -3134,7 +3210,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke] method.
 		 */
-		var preinvokeMethod = instanceMethod(
+		val preinvokeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke.name,
 			AvailObject::class.java,
@@ -3144,7 +3220,7 @@ class Interpreter(
 		/**
 		 * Access the [postinvoke] method.
 		 */
-		var postinvokeMethod = instanceMethod(
+		val postinvokeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::postinvoke.name,
 			StackReifier::class.java,
@@ -3155,7 +3231,7 @@ class Interpreter(
 		/**
 		 * Access the [runChunk] method.
 		 */
-		var interpreterRunChunkMethod = instanceMethod(
+		val interpreterRunChunkMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::runChunk.name,
 			StackReifier::class.java)
@@ -3193,7 +3269,7 @@ class Interpreter(
 		/**
 		 * Access the [reportWrongReturnType] method.
 		 */
-		var reportWrongReturnTypeMethod = instanceMethod(
+		val reportWrongReturnTypeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportWrongReturnType.name,
 			StackReifier::class.java,
@@ -3206,7 +3282,7 @@ class Interpreter(
 		/**
 		 * Access the [reportUnassignedVariableRead] method.
 		 */
-		var reportUnassignedVariableReadMethod = instanceMethod(
+		val reportUnassignedVariableReadMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportUnassignedVariableRead.name,
 			StackReifier::class.java,

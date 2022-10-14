@@ -226,21 +226,21 @@ abstract class L2Regenerator internal constructor(
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadBoxedVectorOperand(
-				operand.elements().map(this@L2Regenerator::transformOperand))
+				operand.elements.map(this@L2Regenerator::transformOperand))
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadIntVectorOperand(
-				operand.elements().map(this@L2Regenerator::transformOperand))
+				operand.elements.map(this@L2Regenerator::transformOperand))
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadFloatVectorOperand(
-				operand.elements().map(this@L2Regenerator::transformOperand))
+				operand.elements.map(this@L2Regenerator::transformOperand))
 		}
 
 		override fun doOperand(operand: L2SelectorOperand) = Unit

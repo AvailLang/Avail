@@ -725,7 +725,7 @@ protected constructor(
 				is L2ReadOperand<*> ->
 					sources.add(operand.register().toString())
 				is L2ReadVectorOperand<*, *> -> sources.add(
-					operand.elements().joinToString(", ", "[", "]") {
+					operand.elements.joinToString(", ", "[", "]") {
 						it.register().toString()
 					})
 				is L2SelectorOperand ->

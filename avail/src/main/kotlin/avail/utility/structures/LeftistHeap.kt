@@ -84,7 +84,7 @@ private open class LeftistLeaf<Value : Comparable<Value>>
 	override fun without(value: Value) = this
 }
 
-private val TheLeftistLeaf = LeftistLeaf<Nothing>()
+private object TheLeftistLeaf : LeftistLeaf<Nothing>()
 
 @Suppress("UNCHECKED_CAST")
 fun <Value: Comparable<Value>> leftistLeaf(): LeftistHeap<Value> =

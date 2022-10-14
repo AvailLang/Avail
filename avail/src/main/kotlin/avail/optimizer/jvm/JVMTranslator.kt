@@ -304,7 +304,7 @@ class JVMTranslator constructor(
 		// [reifier, interpreter]
 		Interpreter.interpreterFunctionField.generateRead(method)
 		// [reifier, function]
-		onReification.createAndPushRegisterDumpArrays(this, method)
+		onReification.createAndPushRegisterDumpArrays(this, method, false)
 		// [reifier, function, AvailObject[], long[]]
 		loadInterpreter(method)
 		Interpreter.chunkField.generateRead(method)
@@ -646,17 +646,17 @@ class JVMTranslator constructor(
 
 		override fun doOperand(vector: L2ReadBoxedVectorOperand)
 		{
-			vector.elements().forEach(this::doOperand)
+			vector.elements.forEach(this::doOperand)
 		}
 
 		override fun doOperand(vector: L2ReadIntVectorOperand)
 		{
-			vector.elements().forEach(this::doOperand)
+			vector.elements.forEach(this::doOperand)
 		}
 
 		override fun doOperand(vector: L2ReadFloatVectorOperand)
 		{
-			vector.elements().forEach(this::doOperand)
+			vector.elements.forEach(this::doOperand)
 		}
 
 		override fun doOperand(operand: L2SelectorOperand)
@@ -1639,12 +1639,10 @@ class JVMTranslator constructor(
 		}
 		method.visitLabel(methodHead)
 		// Emit the lookupswitch instruction to select among the entry points.
-		val offsets = IntArray(entryPoints.size)
-		val entries = arrayOfNulls<Label>(entryPoints.size)
-		entryPoints.entries.forEachIndexed { i, (key, value) ->
-			offsets[i] = key
-			entries[i] = value
-		}
+		// Thu lookupswitch requires its values to be in ascending order.
+		val entriesList = entryPoints.entries.sortedBy(Map.Entry<Int, *>::key)
+		val offsets = IntArray(entryPoints.size) { entriesList[it].key }
+		val entries = Array(entryPoints.size) { entriesList[it].value }
 		method.visitCode()
 		// :: switch (offset) {…}
 		method.visitVarInsn(ILOAD, offsetLocal())
@@ -1659,7 +1657,6 @@ class JVMTranslator constructor(
 				method.visitLabel(label)
 				method.visitLineNumber(instruction.offset, label)
 			}
-			@Suppress("ConstantConditionIf")
 			if (callTraceL2AfterEveryInstruction)
 			{
 				loadReceiver(method) // this, the executable chunk.

@@ -1721,7 +1721,7 @@ class L2Generator internal constructor(
 
 		override fun doOperand(operand: L2ReadBoxedVectorOperand)
 		{
-			for (register in operand.elements())
+			for (register in operand.elements)
 			{
 				objectMax = objectMax.coerceAtLeast(register.finalIndex())
 			}
@@ -1729,7 +1729,7 @@ class L2Generator internal constructor(
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
-			for (register in operand.elements())
+			for (register in operand.elements)
 			{
 				intMax = intMax.coerceAtLeast(register.finalIndex())
 			}
@@ -1737,7 +1737,7 @@ class L2Generator internal constructor(
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
-			for (register in operand.elements())
+			for (register in operand.elements)
 			{
 				floatMax = floatMax.coerceAtLeast(register.finalIndex())
 			}

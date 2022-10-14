@@ -42,7 +42,6 @@ import avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryInstanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.javaLibraryStaticMethod
 import java.util.concurrent.atomic.LongAdder
 
-
 // Alias the Java primitive classes for convenience.
 typealias JavaVoid = java.lang.Void
 typealias JavaBoolean = java.lang.Boolean

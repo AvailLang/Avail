@@ -80,7 +80,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		// val function = instruction.operand<L2WriteBoxedOperand>(2)
 
-		val originalRead = outers.elements()[outerIndex - 1]
+		val originalRead = outers.elements[outerIndex - 1]
 		// Intersect the read's restriction, the given type, and the type that
 		// the code says the outer must have.
 		var intersection = originalRead.restriction().intersectionWithType(
@@ -150,11 +150,11 @@ object L2_CREATE_FUNCTION : L2Operation(
 		builder.append(" ← ")
 		var decompiled = code.toString()
 		var i = 0
-		val limit = outers.elements().size
+		val limit = outers.elements.size
 		while (i < limit)
 		{
 			decompiled = decompiled.replace(
-				"Outer#" + (i + 1), outers.elements()[i].toString())
+				"Outer#" + (i + 1), outers.elements[i].toString())
 			i++
 		}
 		builder.append(increaseIndentation(decompiled, 1))
@@ -168,7 +168,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		val code = instruction.operand<L2ConstantOperand>(0)
 		val outerRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val newFunctionReg = instruction.operand<L2WriteBoxedOperand>(2)
-		val numOuters = outerRegs.elements().size
+		val numOuters = outerRegs.elements.size
 
 		assert(numOuters == code.constant.numOuters)
 		translator.literal(method, code.constant)
@@ -194,7 +194,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 					// :: function.outerVarAtPut(«i + 1», «outerRegs[i]»);
 					method.visitInsn(Opcodes.DUP)
 					translator.intConstant(method, i + 1)
-					translator.load(method, outerRegs.elements()[i].register())
+					translator.load(method, outerRegs.elements[i].register())
 					FunctionDescriptor.outerVarAtPutMethod.generateCall(method)
 				}
 			}

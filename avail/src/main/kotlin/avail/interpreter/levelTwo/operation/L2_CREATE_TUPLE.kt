@@ -96,7 +96,7 @@ object L2_CREATE_TUPLE : L2Operation(
 		builder.append(' ')
 		builder.append(tuple.registerString())
 		builder.append(" ← ")
-		builder.append(values.elements())
+		builder.append(values.elements)
 	}
 
 	/**
@@ -119,11 +119,11 @@ object L2_CREATE_TUPLE : L2Operation(
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val tuple = instruction.operand<L2WriteBoxedOperand>(1)
 
-		val elements = values.elements()
+		val elements = values.elements
 		val size = elements.size
 
 		// Special cases for small tuples
-		assert (size > 0) {
+		assert(size > 0) {
 			"Empty tuple should have been replaced via generateReplacement()"
 		}
 
@@ -250,6 +250,6 @@ object L2_CREATE_TUPLE : L2Operation(
 	{
 		assert(instruction.operation === this)
 		val vector = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		return vector.elements()
+		return vector.elements
 	}
 }
