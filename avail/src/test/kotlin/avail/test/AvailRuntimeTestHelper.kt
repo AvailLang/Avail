@@ -346,7 +346,7 @@ class AvailRuntimeTestHelper constructor (
 	 */
 	private fun createModuleRoots(fileManager: FileManager): ModuleRoots
 	{
-		val uri = "file://$rootDirectory"
+		val uri = "file:///$rootDirectory"
 		val rootsList = mutableListOf(
 			"avail" to systemPath(uri, "distro", "src", "avail"),
 			"examples" to  systemPath(uri, "distro", "src", "examples"),
@@ -460,7 +460,8 @@ class AvailRuntimeTestHelper constructor (
 		}
 
 		/**
-		 * Construct a operating system-specific file path using [File.separator].
+		 * Construct a operating system-specific file path using
+		 * [File.separator].
 		 *
 		 * @param path
 		 *   The locations to join using the system separator.
@@ -469,5 +470,12 @@ class AvailRuntimeTestHelper constructor (
 		 */
 		fun systemPath(vararg path: String): String =
 			path.toList().joinToString(File.separator) { it }
+
+		/**
+		 * `true` indicates this is running on Windows; `false` otherwise.
+		 */
+		@Suppress("unused")
+		val isWindows: Boolean get() =
+			System.getProperty("os.name").startsWith("Windows")
 	}
 }

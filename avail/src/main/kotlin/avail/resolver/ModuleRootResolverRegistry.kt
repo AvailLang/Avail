@@ -92,7 +92,7 @@ object ModuleRootResolverRegistry
 	{
 		val lookup = when (uri.scheme)
 		{
-			null -> URI("file://$uri")
+			null -> URI("file:///$uri")
 			else -> uri
 		}
 		val factory = resolvers[lookup.scheme]

@@ -65,6 +65,8 @@ tasks {
 	// during setup to reflectively identify the complete catalog of primitives.
 	val generatePrimitivesList by creating(GenerateFileManifestTask::class) {
 		basePath = layout.projectDirectory.dir("src/main/kotlin").asFile.path
+		val prefix = "$basePath${File.separator}"
+		println("========basePath: $basePath")
 		inputs.files(
 			fileTree(basePath) {
 				include("avail/interpreter/primitive/**/P_*.kt")
@@ -73,7 +75,9 @@ tasks {
 		outputFilePath = "avail/interpreter/All_Primitives.txt"
 		fileNameTransformer = {
 			// Transform from a relative path to a fully qualified class name.
-			replaceFirst(".kt", "").replace("/", ".")
+			replaceFirst(".kt", "")
+				.replace(prefix, "")
+				.replace(File.separator, ".")
 		}
 	}
 

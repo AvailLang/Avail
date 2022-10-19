@@ -86,6 +86,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.File.separator
 import java.io.StringReader
 import java.util.Random
 import java.util.concurrent.Semaphore
@@ -124,12 +125,13 @@ class SerializerTest
 	{
 		val semaphore = Semaphore(0)
 		val projectDirectory = File(".").absolutePath
-			.replace("/avail/", "/")
+			.replace("${separator}avail$separator", separator)
 		val rootDirectory =
 			projectDirectory.substring(0..(projectDirectory.length - 2))
 		val availRoot =
 			File(rootDirectory).resolve("distro/src/avail").absolutePath
-		val roots = ModuleRoots(fileManager, "avail=$availRoot")
+		val availRootUri = "file:///$availRoot"
+		val roots = ModuleRoots(fileManager, "avail=$availRootUri")
 		{
 			if (it.isNotEmpty())
 			{
