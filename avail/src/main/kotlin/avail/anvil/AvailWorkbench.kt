@@ -2044,44 +2044,25 @@ class AvailWorkbench internal constructor(
 				File(localScreenStatePath).writeText(local.fileContent)
 			}
 		})
-		// Set up desktop and taskbar features.
-		Desktop.getDesktop().setDefaultMenuBar(jMenuBar)
-		jMenuBar.maximumSize = Dimension(0, 0)
-		setQuitHandler {
-			// Quit was pressed.  Close the workbench, which should save window
-			// position state then exit. Apple's apple.eawt.quitStrategy has
-			// never worked, to the best of my knowledge.  It's a trick.  We
-			// must close the workbench window explicitly to give it a chance to
-			// save.  But first build the current LocalScreenState then close
-			// all the editors (assume they close).
-			saveWindowPosition()
-			val sv = structureView?.let {
-				it.saveWindowPosition()
-				it.layoutConfiguration.stringToStore()
-			} ?: ""
-			val local = LocalScreenState(
-				layoutConfiguration.stringToStore(),
-				sv)
-			local.refreshOpenEditors(this@AvailWorkbench)
-			File(localScreenStatePath).writeText(local.fileContent)
-			dispatchEvent(
-				WindowEvent(this@AvailWorkbench, WindowEvent.WINDOW_CLOSING))
-			true
+		if (System.getProperty("os.name").startsWith("Mac"))
+		{
+			// Set up desktop and taskbar features.
+			Desktop.getDesktop().setDefaultMenuBar(jMenuBar)
+			jMenuBar.maximumSize = Dimension(0, 0)
+			setAboutHandler {
+				aboutAction.showDialog()
+			}
+			setPreferencesHandler {
+				preferencesAction.actionPerformed(null)
+			}
+			Taskbar.getTaskbar().run {
+				iconImage = ImageIcon(
+					AvailWorkbench::class.java.classLoader.getResource(
+						"resources/workbench/AvailHammer.png")
+				).image
+				setIconBadge(activeVersionSummary)
+			}
 		}
-		setAboutHandler {
-			aboutAction.showDialog()
-		}
-		setPreferencesHandler {
-			preferencesAction.actionPerformed(null)
-		}
-		Taskbar.getTaskbar().run {
-			iconImage = ImageIcon(
-				AvailWorkbench::class.java.classLoader.getResource(
-					"resources/workbench/AvailHammer.png")
-			).image
-			setIconBadge(activeVersionSummary)
-		}
-
 		// Select an initial module if specified.
 		validate()
 		setEnablements()
@@ -2419,24 +2400,6 @@ class AvailWorkbench internal constructor(
 						// Fully transparent.
 						backgroundNonSelectionColor = Color(45, 45, 45, 0)
 					}
-				}
-			}
-		}
-
-		/**
-		 * Pass this method an Object and Method equipped to perform application
-		 * shutdown logic.  The method passed should return a boolean stating
-		 * whether the quit should occur.
-		 *
-		 * @param quitHandler
-		 */
-		fun setQuitHandler (quitHandler: () -> Boolean)
-		{
-			Desktop.getDesktop().setQuitHandler { _, response ->
-				when (quitHandler())
-				{
-					true -> response.performQuit()
-					false -> response.cancelQuit()
 				}
 			}
 		}

@@ -738,6 +738,9 @@ class FileSystemModuleRootResolver constructor(
 		}
 	}
 
+	override fun toString(): String =
+		"$name - $uri"
+
 	/**
 	 * `FileSystemWatcher` manages the [WatchService] responsible for watching
 	 * the local file system directories of the [ModuleRoot]s loaded into the
