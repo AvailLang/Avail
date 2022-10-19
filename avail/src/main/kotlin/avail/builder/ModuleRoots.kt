@@ -197,7 +197,7 @@ class ModuleRoots constructor(
 				"Module root \"$rootName\" is missing a source URI"))
 			return
 		}
-		val rootUri = URI(location)
+		val rootUri =  URI(location.replace("\\", "/"))
 		val resolver = createResolver(rootName, rootUri, fileManager)
 		resolver.resolve(
 			successHandler = {

@@ -81,6 +81,7 @@ import java.util.UUID
 import kotlin.concurrent.thread
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.moveTo
+import kotlin.io.path.toPath
 
 /**
  * `FileSystemModuleRootResolver` is a [ModuleRootResolver] used for accessing
@@ -753,7 +754,14 @@ class FileSystemModuleRootResolver constructor(
 			.logger(NOPLogger.NOP_LOGGER)
 			.fileHasher(FileHasher.LAST_MODIFIED_TIME)
 			.listener { e -> resolveEvent(e) }
-			.path(Paths.get(moduleRoot.resolver.uri))
+			.apply {
+				val resolverUri = moduleRoot.resolver.uri
+				val f = File(resolverUri)
+				val p = f.canonicalPath
+				val path = Path.of(p)
+				path(path)
+			}
+//			.path(moduleRoot.resolver.uri.toPath())
 			.build()!!
 			.apply {
 				// Allocate a dedicated thread to observing changes to the

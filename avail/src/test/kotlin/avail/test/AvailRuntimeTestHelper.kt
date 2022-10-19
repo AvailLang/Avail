@@ -348,12 +348,12 @@ class AvailRuntimeTestHelper constructor (
 	{
 		val uri = "file://$rootDirectory"
 		val rootsList = mutableListOf(
-			"avail" to "$uri/distro/src/avail",
-			"examples" to "$uri/distro/src/examples",
-			"builder-tests" to "$uri/distro/src/builder-tests")
+			"avail" to systemPath(uri, "distro", "src", "avail"),
+			"examples" to  systemPath(uri, "distro", "src", "examples"),
+			"builder-tests" to  systemPath(uri, "distro", "src", "builder-tests"))
 		if (includeTemporaryTestsDirectory)
 		{
-			rootsList.add("tests" to "$testDirectory/tests")
+			rootsList.add("tests" to systemPath("$testDirectory", "tests"))
 		}
 		val roots = rootsList.joinToString(";") { (name, path) -> "$name=$path" }
 		val semaphore = Semaphore(0)
@@ -448,9 +448,9 @@ class AvailRuntimeTestHelper constructor (
 			// root project.
 			val currentWorkingDirectory = System.getProperty("user.dir")
 			val rootDirectory = currentWorkingDirectory
-				.split("/")
+				.split(File.separator)
 				.dropLast(1)
-				.joinToString("/")
+				.joinToString(File.separator)
 			rootDirectory
 		}
 
@@ -458,5 +458,16 @@ class AvailRuntimeTestHelper constructor (
 		val testDirectory: Path by lazy {
 			Files.createTempDirectory("for-AvailRuntimeTestHelper-")
 		}
+
+		/**
+		 * Construct a operating system-specific file path using [File.separator].
+		 *
+		 * @param path
+		 *   The locations to join using the system separator.
+		 * @return
+		 *   The constructed String path.
+		 */
+		fun systemPath(vararg path: String): String =
+			path.toList().joinToString(File.separator) { it }
 	}
 }

@@ -51,7 +51,7 @@ import java.io.File
  *   The constructed String path.
  */
 fun systemPath(vararg path: String): String =
-	path.toList().joinToString(File.separator) { it }
+	path.toList().joinToString(File.separator)
 
 object AvailSetupContext
 {
@@ -98,10 +98,11 @@ object AvailSetupContext
 fun Project.availRoot(name: String): AvailRoot
 {
 	val rootURI = systemPath("${rootProject.projectDir}", distroSrc, name)
-	println("AvailRoot: $rootURI")
+	println("AvailRoot(${rootURI.length}): $rootURI")
+
 	return AvailRoot(
 		name,
-		URI(rootURI))
+		File(rootURI).toURI())
 }
 
 /**
@@ -136,7 +137,7 @@ fun Project.relocateGeneratedPropertyFiles (task: Copy)
 		"tools",
 		"bootstrap"))
 	val lang = System.getProperty("user.language")
-	pathBootstrap.include("**/*_${lang}.properties")
+	pathBootstrap.include(systemPath("**", "*_${lang}.properties"))
 	// This is a lie, but it ensures that this rule will not run until after the
 	// Kotlin source is compiled.
 	pathBootstrap.builtBy("compileKotlin")
