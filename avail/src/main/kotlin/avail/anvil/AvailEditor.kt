@@ -298,9 +298,9 @@ class AvailEditor constructor(
 	/** The editor pane. */
 	internal val sourcePane = CodePane(
 		workbench,
+		isEditable = resolverReference.resolver.canSave,
 		AvailEditorKit(workbench)
 	).apply {
-		isEditable = resolverReference.resolver.canSave
 		registerStyles()
 		addCaretListener {
 			range = markToDotRange()

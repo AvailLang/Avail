@@ -95,8 +95,10 @@ import javax.swing.undo.UndoManager
  * @param kit
  *   The [editor&#32;kit][CodeKit].
  */
-class CodePane(
+class CodePane
+constructor(
 	internal val workbench: AvailWorkbench,
+	isEditable: Boolean = true,
 	kit: CodeKit = CodeKit(workbench)
 ): JTextPane()
 {
@@ -162,7 +164,7 @@ class CodePane(
 	{
 		editorKit = kit
 		border = BorderFactory.createEtchedBorder()
-		isEditable = true
+		this.isEditable = isEditable
 		isEnabled = true
 		isFocusable = true
 		preferredSize = Dimension(0, 500)
@@ -170,10 +172,13 @@ class CodePane(
 		foreground = SystemColors.active.baseCode
 		background = SystemColors.active.codeBackground
 		registerStyles()
-		installUndoSupport()
 		registerKeystrokes()
-		putClientProperty(CodePane::undoManager.name, undoManager)
-		putClientProperty(CodePane::currentEdit.name, currentEdit)
+		if (isEditable)
+		{
+			installUndoSupport()
+			putClientProperty(CodePane::undoManager.name, undoManager)
+			putClientProperty(CodePane::currentEdit.name, currentEdit)
+		}
 	}
 
 	/**

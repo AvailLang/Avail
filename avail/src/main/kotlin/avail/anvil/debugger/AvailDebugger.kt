@@ -574,16 +574,10 @@ class AvailDebugger internal constructor (
 	}
 
 	/** A view of the L1 disassembly for the selected frame. */
-	private val disassemblyPane =
-		CodePane(workbench).apply {
-			isEditable = false
-		}
+	private val disassemblyPane = CodePane(workbench, false)
 
 	/** A view of the source code for the selected frame. */
-	private val sourcePane =
-		CodePane(workbench).apply {
-			isEditable = false
-		}
+	private val sourcePane = CodePane(workbench, false)
 
 	/** The list of variables in scope in the selected frame. */
 	private val variablesPane = JList(arrayOf<Variable>()).apply {
