@@ -269,6 +269,7 @@ class ResolverReference constructor(
 		when (type)
 		{
 			ResourceType.MODULE,
+			ResourceType.HEADERLESS_MODULE,
 			ResourceType.REPRESENTATIVE,
 			ResourceType.RESOURCE ->
 				AvailModuleFile(
