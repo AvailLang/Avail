@@ -137,6 +137,11 @@ class AvailEditor constructor(
 	 */
 	private var lastSaveTime = 0L
 
+	/**
+	 * The line-end delimiter that should be used when saving the file.
+	 */
+	private var lineEndDelimiter = "\n"
+
 	/** The [resolved][ResolvedModuleName] [module&#32;name][ModuleName]. */
 	internal val resolvedName = runtime.moduleNameResolver.resolve(moduleName)
 
@@ -339,27 +344,22 @@ class AvailEditor constructor(
 	{
 		var stylingRecord: StylingRecord? = null
 		val semaphore = Semaphore(0)
-		resolverReference.readFileString(
-			true,
-			withContents = { string, _ ->
-				sourcePane.text = string
-				getActiveStylingRecord(
-					onSuccess = { stylingRecordOrNull ->
-						stylingRecord = stylingRecordOrNull
-						semaphore.release()
-					},
-					onError = { e ->
-						e?.let { e.printStackTrace() }
-							?: System.err.println(
-								"unable to style editor for $resolvedName")
-						semaphore.release()
-					}
-				)
-			},
-			failureHandler = { code, throwable ->
-				sourcePane.text = "Error reading module: $throwable, code=$code"
-				semaphore.release()
-			})
+		val info = SourceCodeInfo(runtime, resolverReference)
+		info.sourceAndDelimiter.withValue { (normalizedText, delimiter) ->
+			lineEndDelimiter = delimiter
+			sourcePane.text = normalizedText
+			getActiveStylingRecord(
+				onSuccess = { stylingRecordOrNull ->
+					stylingRecord = stylingRecordOrNull
+					semaphore.release()
+				},
+				onError = { e ->
+					e?.let { e.printStackTrace() }
+						?: System.err.println(
+							"unable to style editor for $resolvedName")
+					semaphore.release()
+				})
+		}
 		semaphore.acquire()
 		stylingRecord?.let {
 			sourcePane.styledDocument.applyStyleRuns(it.styleRuns)
@@ -425,9 +425,14 @@ class AvailEditor constructor(
 		val string = sourcePane.text
 		val semaphore = Semaphore(0)
 		var throwable: Throwable? = null
+		val adjustedString = when (lineEndDelimiter)
+		{
+			"\n" -> string
+			else -> string.replace("\n", lineEndDelimiter)
+		}
 		resolverReference.resolver.saveFile(
 			resolverReference,
-			string.toByteArray(),
+			adjustedString.toByteArray(),
 			{ semaphore.release() },
 			{ _, t ->
 				throwable = t

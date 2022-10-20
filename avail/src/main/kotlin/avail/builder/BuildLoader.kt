@@ -514,7 +514,8 @@ internal class BuildLoader constructor(
 					availBuilder.runtime,
 					availBuilder.textInterface,
 					availBuilder.pollForAbort,
-					{ moduleName2, moduleSize, position, line, phrase ->
+					reporter = {
+							moduleName2, moduleSize, position, line, phrase ->
 						assert(moduleName == moduleName2)
 						// Don't reach the full module size yet.  A separate
 						// update at 100% will be sent after post-loading
@@ -530,102 +531,102 @@ internal class BuildLoader constructor(
 							globalCodeSize)
 						lastPosition = position
 					},
-					{
+					afterFail = {
 						postLoad(moduleName, lastPosition)
 						completionAction()
 					},
-					problemHandler
-				) { compiler: AvailCompiler ->
-					compiler.parseModule(
-						{ module ->
-							val old = ranOnce.getAndSet(true)
-							assert(!old) {
-								"Completed module compilation twice!"
-							}
-							val context = compiler.compilationContext
-							val stream = context.serializerOutputStream
-							appendCRC(stream)
-
-							// Also produce the serialization of the module's
-							// tuple of block phrases.
-							val blockPhrasesOutputStream =
-								IndexedFile.ByteArrayOutputStream(5000)
-							val bodyObjectsTuple =
-								context.serializer.serializedObjectsTuple()
-							val bodyObjectsMap =
-								mutableMapOf<AvailObject, Int>()
-							bodyObjectsTuple.forEachIndexed {
-									zeroIndex, element ->
-								bodyObjectsMap[element] = zeroIndex + 1
-							}
-							// Ensure the primed objects are always at strictly
-							// negative indices.
-							val delta = bodyObjectsMap.size + 1
-							val blockPhraseSerializer = Serializer(
-								blockPhrasesOutputStream,
-								module
-							) { obj ->
-								when (val i = bodyObjectsMap[obj])
-								{
-									null -> 0
-									else -> i - delta
+					problemHandler,
+					succeed = { compiler: AvailCompiler ->
+						compiler.parseModule(
+							onSuccess = { module ->
+								val old = ranOnce.getAndSet(true)
+								assert(!old) {
+									"Completed module compilation twice!"
 								}
-							}
-							blockPhraseSerializer.serialize(
-								module.getAndSetTupleOfBlockPhrases(nil))
-							appendCRC(blockPhrasesOutputStream)
-							val loader = context.loader
-							val manifestEntries = loader.manifestEntries!!
+								val context = compiler.compilationContext
+								val stream = context.serializerOutputStream
+								appendCRC(stream)
 
-							// This is the moment of compilation.
-							val compilationTime = System.currentTimeMillis()
-							val compilation = repository.ModuleCompilation(
-								compilationTime,
-								stream.toByteArray(),
-								blockPhrasesOutputStream.toByteArray(),
-								manifestEntries,
-								assembleStylingRecord(context))
-							archive.putCompilation(
-								versionKey, compilationKey, compilation)
+								// Also produce the serialization of the
+								// module's tuple of block phrases.
+								val blockPhrasesOutputStream =
+									IndexedFile.ByteArrayOutputStream(5000)
+								val bodyObjectsTuple =
+									context.serializer.serializedObjectsTuple()
+								val bodyObjectsMap =
+									mutableMapOf<AvailObject, Int>()
+								bodyObjectsTuple.forEachIndexed {
+										zeroIndex, element ->
+									bodyObjectsMap[element] = zeroIndex + 1
+								}
+								// Ensure the primed objects are always at
+								// strictly negative indices.
+								val delta = bodyObjectsMap.size + 1
+								val blockPhraseSerializer = Serializer(
+									blockPhrasesOutputStream,
+									module
+								) { obj ->
+									when (val i = bodyObjectsMap[obj])
+									{
+										null -> 0
+										else -> i - delta
+									}
+								}
+								blockPhraseSerializer.serialize(
+									module.getAndSetTupleOfBlockPhrases(nil))
+								appendCRC(blockPhrasesOutputStream)
+								val loader = context.loader
+								val manifestEntries = loader.manifestEntries!!
 
-							// Serialize the Stacks comments.
-							val out = IndexedFile.ByteArrayOutputStream(100)
-							// TODO MvG - Capture "/**" comments for Stacks.
-							//		final A_Tuple comments = fromList(
-							//         module.commentTokens());
-							//val comments = emptyTuple
-							//val stacksSerializer = Serializer(out, module)
-							//stacksSerializer.serialize(comments)
-							appendCRC(out)
-							val version = archive.getVersion(versionKey)!!
-							version.putComments(out.toByteArray())
+								// This is the moment of compilation.
+								val compilationTime = System.currentTimeMillis()
+								val compilation = repository.ModuleCompilation(
+									compilationTime,
+									stream.toByteArray(),
+									blockPhrasesOutputStream.toByteArray(),
+									manifestEntries,
+									assembleStylingRecord(context))
+								archive.putCompilation(
+									versionKey, compilationKey, compilation)
 
-							module.getAndSetTupleOfBlockPhrases(
-								fromLong(
-									compilation.recordNumberOfBlockPhrases))
-							module.setManifestEntriesIndex(
-								compilation.recordNumberOfManifestEntries)
-							module.setStylingRecordIndex(
-								compilation.recordNumberOfStyling)
-							repository.commitIfStaleChanges(
-								AvailBuilder.maximumStaleRepositoryMs)
-							postLoad(moduleName, lastPosition)
-							module.serializedObjects(bodyObjectsTuple)
-							availBuilder.putLoadedModule(
-								moduleName,
-								LoadedModule(
+								// Serialize the Stacks comments.
+								val out = IndexedFile.ByteArrayOutputStream(100)
+								// TODO MvG - Capture "/**" comments for Stacks.
+								//		final A_Tuple comments = fromList(
+								//         module.commentTokens());
+								//val comments = emptyTuple
+								//val stacksSerializer = Serializer(out, module)
+								//stacksSerializer.serialize(comments)
+								appendCRC(out)
+								val version = archive.getVersion(versionKey)!!
+								version.putComments(out.toByteArray())
+
+								module.getAndSetTupleOfBlockPhrases(
+									fromLong(
+										compilation.recordNumberOfBlockPhrases))
+								module.setManifestEntriesIndex(
+									compilation.recordNumberOfManifestEntries)
+								module.setStylingRecordIndex(
+									compilation.recordNumberOfStyling)
+								repository.commitIfStaleChanges(
+									AvailBuilder.maximumStaleRepositoryMs)
+								postLoad(moduleName, lastPosition)
+								module.serializedObjects(bodyObjectsTuple)
+								availBuilder.putLoadedModule(
 									moduleName,
-									versionKey.sourceDigest,
-									module,
-									version,
-									compilation))
-							completionAction()
-						},
-						{
-							postLoad(moduleName, lastPosition)
-							completionAction()
-						})
-				}
+									LoadedModule(
+										moduleName,
+										versionKey.sourceDigest,
+										module,
+										version,
+										compilation))
+								completionAction()
+							},
+							afterFail = {
+								postLoad(moduleName, lastPosition)
+								completionAction()
+							})
+					})
 			}
 		) { code, ex ->
 			// TODO figure out what to do with these!!! Probably report them?

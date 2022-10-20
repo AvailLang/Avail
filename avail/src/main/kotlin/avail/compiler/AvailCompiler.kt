@@ -3537,7 +3537,7 @@ class AvailCompiler constructor(
 	{
 		val ran = AtomicBoolean(false)
 		compilationContext.diagnostics.setSuccessAndFailureReporters(
-			{
+			theSuccessReporter = {
 				val old = ran.getAndSet(true)
 				assert(!old) { "Attempting to succeed twice." }
 				serializePublicationFunction(true)
@@ -3545,7 +3545,7 @@ class AvailCompiler constructor(
 				commitModuleTransaction()
 				onSuccess(compilationContext.module)
 			},
-			{
+			theFailureReporter = {
 				compilationContext.whenNotStyling {
 					rollbackModuleTransaction(afterFail)
 				}
@@ -4243,9 +4243,10 @@ class AvailCompiler constructor(
 				{ content, _ ->
 					try
 					{
+						val (normalizedContent, _) = normalizeLineEnds(content)
 						runtime.execute(compilerPriority)
 						{
-							withSource(content)
+							withSource(normalizedContent)
 						}
 					}
 					catch (e: Throwable)
@@ -4797,6 +4798,38 @@ class AvailCompiler constructor(
 				}
 			}
 			return usedDeclarations
+		}
+
+		/**
+		 * Given the exact source code of a module, replace line ends with "\n".
+		 * Answer a [Pair] consisting of the new source and the line break
+		 * string that was encountered (or "\n" if none).
+		 *
+		 * @param originalSource
+		 *   The source code extracted from a module file.
+		 * @return
+		 *   The [Pair] of normalized source and detected line-end string.
+		 */
+		fun normalizeLineEnds(
+			originalSource: String
+		): Pair<String, String>
+		{
+			var lineBreaks = "\n"
+			var withoutWindows = originalSource.replace("\r\n", "\n")
+			when
+			{
+				withoutWindows.length != originalSource.length ->
+					lineBreaks = "\r\n"
+
+				else -> withoutWindows = originalSource
+			}
+			var withoutMacOS9 = withoutWindows.replace("\r", "\n")
+			when
+			{
+				withoutMacOS9 != withoutWindows -> lineBreaks = "\r"
+				else -> withoutMacOS9 = withoutWindows
+			}
+			return Pair(withoutMacOS9, lineBreaks)
 		}
 	}
 }

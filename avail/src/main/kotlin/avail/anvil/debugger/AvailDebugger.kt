@@ -33,8 +33,6 @@
 package avail.anvil.debugger
 
 import avail.AvailDebuggerModel
-import avail.AvailRuntimeSupport.AvailLazyFuture
-import avail.builder.ModuleName
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
@@ -67,7 +65,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
-import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -83,10 +80,12 @@ import avail.anvil.MenuBarBuilder
 import avail.anvil.StyleApplicator.applyStyleRuns
 import avail.anvil.actions.FindAction
 import avail.anvil.addWindowMenu
+import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
 import avail.anvil.scroll
 import avail.anvil.scrollTextWithLineNumbers
 import avail.anvil.showTextRange
 import avail.anvil.text.CodePane
+import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.interpreter.levelOne.L1Disassembler
 import avail.persistence.cache.Repository.StylingRecord
 import avail.utility.safeWrite
@@ -329,65 +328,6 @@ class AvailDebugger internal constructor (
 			// Write to the cache, even if it overwrites.
 			disassemblyCache[code] = string to map
 			then(string, map)
-		}
-	}
-
-	/**
-	 * Information about the source code for some module.
-	 *
-	 * @constructor
-	 * Create a new record with the given content.
-	 */
-	inner class SourceCodeInfo
-	constructor (val module: A_Module)
-	{
-		val resolverReference = runtime.moduleNameResolver
-			.resolve(ModuleName(module.moduleNameNative), null)
-			.resolverReference
-
-		val source = AvailLazyFuture<String>(runtime) { withSource ->
-			resolverReference.readFileString(
-				false,
-				{ string, _ -> withSource(string) },
-				{ errorCode, _ ->
-					// Cheesy, but good enough.
-					withSource("Cannot retrieve source: $errorCode")
-				})
-
-		}
-
-		val lineEnds = AvailLazyFuture<List<Int>>(runtime) { withLineEnds ->
-			source.withValue { string ->
-				val ends = string.withIndex()
-					.filter { it.value == '\n' }
-					.map(IndexedValue<Char>::index)
-				withLineEnds(ends)
-			}
-		}
-
-		val stylingRecord: StylingRecord get() = module.stylingRecord()
-	}
-
-	/**
-	 * A cache of the source code for [A_Module]s, each with a [List] of
-	 * positions in the string where a linefeed occurs.
-	 */
-	private val sourceCache =
-		synchronizedMap<A_Module, SourceCodeInfo>(mutableMapOf())
-
-	/**
-	 * Extract the source of the current frame's module, along with the list
-	 * of positions where linefeeds are.
-	 */
-	private fun sourceWithLineEndsAndStylingThen(
-		module: A_Module,
-		then: (String, List<Int>, StylingRecord)->Unit)
-	{
-		val info = sourceCache.computeIfAbsent(module, ::SourceCodeInfo)
-		info.source.withValue { source ->
-			info.lineEnds.withValue { lineEnds ->
-				then(source, lineEnds, info.stylingRecord)
-			}
 		}
 	}
 
@@ -756,8 +696,9 @@ class AvailDebugger internal constructor (
 					}
 					if (module.notNil)
 					{
-						sourceWithLineEndsAndStylingThen(module) {
-								source, lineEnds, stylingRecord ->
+						sourceWithInfoThen(runtime, module) {
+								source, _, lineEnds ->
+							val stylingRecord = module.stylingRecord()
 							currentSourceAndLineEndsAndStyling =
 								Triple(source, lineEnds, stylingRecord)
 							SwingUtilities.invokeLater {
@@ -806,16 +747,14 @@ class AvailDebugger internal constructor (
 		val rangeStart = when
 		{
 			lineNumber <= 1 -> 0
-			lineNumber <= lineEnds.size + 1 ->
-				lineEnds[lineNumber - 2] + 1
+			lineNumber <= lineEnds.size + 1 -> lineEnds[lineNumber - 2] + 1
 			else -> source.length - 1
 		}
 		val rangeEnd = when
 		{
 			lineEnds.isEmpty() -> source.length
 			lineNumber <= 1 -> lineEnds[0]
-			lineNumber <= lineEnds.size ->
-				lineEnds[lineNumber - 1]
+			lineNumber <= lineEnds.size -> lineEnds[lineNumber - 1]
 			else -> source.length
 		}
 		sourcePane.highlighter.addHighlight(

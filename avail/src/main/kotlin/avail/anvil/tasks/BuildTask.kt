@@ -74,7 +74,6 @@ constructor (
 			workbench::eventuallyUpdateBuildProgress,
 			workbench.availBuilder.buildProblemHandler
 		) {
-
 			SwingUtilities.invokeLater {
 				workbench.backgroundTask = null
 				reportDone()
