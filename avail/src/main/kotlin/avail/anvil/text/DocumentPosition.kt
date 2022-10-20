@@ -40,6 +40,7 @@ import javax.swing.text.Caret
 import javax.swing.text.Document
 import javax.swing.text.Element
 import javax.swing.text.JTextComponent
+import kotlin.math.absoluteValue
 
 /**
  * An abstract location within a document opened in an [AvailEditor].
@@ -229,7 +230,7 @@ data class MarkToDotRange constructor(
 		{
 			"${markPosition.lineOneBased}:${markPosition.characterInLineOneBased} — " +
 				"${dotPosition.lineOneBased}:${dotPosition.characterInLineOneBased} " +
-				"($count chars)"
+				"(${count.absoluteValue} chars)"
 		}
 
 	companion object
