@@ -45,7 +45,7 @@ plugins {
 	id("org.availlang.avail-plugin")
 }
 
-version = "2.0.0.alpha05-1.6.1.alpha03"
+version = "2.0.0.alpha09-1.6.1.alpha04"
 
 avail {
 	projectDescription = "The Avail Standard Library"
