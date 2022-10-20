@@ -56,7 +56,7 @@ plugins {
 	`maven-publish`
 	publishing
 	id("org.jetbrains.dokka") version "1.7.10" apply false
-	id("org.availlang.avail-plugin") version "2.0.0.alpha04" apply false
+	id("org.availlang.avail-plugin") version "2.0.0.alpha07" apply false
 }
 
 java {
@@ -73,7 +73,7 @@ kotlin {
 
 allprojects {
 	group = "org.availlang"
-	version = "2.0.0.alpha06"
+	version = "2.0.0.alpha08"
 
 	// Define versions in a single place
 	extra.apply{

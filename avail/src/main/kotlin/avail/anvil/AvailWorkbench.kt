@@ -1731,12 +1731,13 @@ class AvailWorkbench internal constructor(
 			{
 				item(findAction)
 			}
-			menu("Document")
-			{
-				item(documentAction)
-				separator()
-				item(setDocumentationPathAction)
-			}
+			// TODO Stacks is not viable right now
+//			menu("Document")
+//			{
+//				item(documentAction)
+//				separator()
+//				item(setDocumentationPathAction)
+//			}
 			menu("Run")
 			{
 				item(insertEntryPointAction)
@@ -2440,6 +2441,15 @@ class AvailWorkbench internal constructor(
 		 * @param initial
 		 *   The name of the module to have selected when the workbench frame is
 		 *   opened.
+		 * @param customWindowTitle
+		 *   The title to apply to the Avail Workbench window. If empty, the
+		 *   default will be to determine the name based upon the rules
+		 *   associated with `useProjectNameAsFullTitle`.
+		 * @param useProjectNameAsFullTitle
+		 *   `true` indicates only the [AvailProject.name] should be used as the
+		 *   title for the entire workbench window; `false` indicates the
+		 *   [AvailProject.name] will appear in parenthesis:
+		 *   "Avail Workbench (<project name>)"
 		 * @throws Exception
 		 * If something goes wrong.
 		 */
@@ -2451,13 +2461,21 @@ class AvailWorkbench internal constructor(
 				true,
 				AvailRepositories()),
 			availProjectFilePath: String = "",
-			initial: String = "")
+			initial: String = "",
+			customWindowTitle: String = "",
+			useProjectNameAsFullTitle: Boolean)
 		{
 			val rootsString = project.availProjectRoots.joinToString(";") {
 				it.modulePath
 			}
 			val inDarkMode = project.darkMode
-			val subTitle = project.name
+			val workbenchWindowTitle =
+				when
+				{
+					customWindowTitle.isNotEmpty() -> customWindowTitle
+					useProjectNameAsFullTitle -> project.name
+					else -> "Avail Workbench (${project.name})"
+				}
 			val repositoryDirectory =
 				File(project.repositoryLocation.fullPathNoPrefix)
 			val fileManager = FileManager()
@@ -2552,7 +2570,6 @@ class AvailWorkbench internal constructor(
 			swingReady.acquire()
 
 			// Display the UI.
-			val title = "Avail Workbench ($subTitle)"
 			val bench =
 				AvailWorkbench(
 					project,
@@ -2560,7 +2577,7 @@ class AvailWorkbench internal constructor(
 					fileManager,
 					resolver,
 					availProjectFilePath,
-					title)
+					workbenchWindowTitle)
 			// Inject a breakpoint handler into the runtime to open a debugger.
 			runtime.breakpointHandler = { fiber ->
 				val debugger = AvailDebugger(bench)
@@ -2609,6 +2626,15 @@ class AvailWorkbench internal constructor(
 		 *   The String path to the [availProject] configuration file or an
 		 *   empty String if the [AvailWorkbench] was started without an
 		 *   [AvailProject].
+		 * @param customWindowTitle
+		 *   The title to apply to the Avail Workbench window. If empty, the
+		 *   default will be to determine the name based upon the rules
+		 *   associated with `useProjectNameAsFullTitle`.
+		 * @param useProjectNameAsFullTitle
+		 *   `true` indicates only the [AvailProject.name] should be used as the
+		 *   title for the entire workbench window; `false` indicates the
+		 *   [AvailProject.name] will appear in parenthesis:
+		 *   "Avail Workbench (<project name>)"
 		 * @throws Exception
 		 *   If something goes wrong.
 		 */
@@ -2617,12 +2643,56 @@ class AvailWorkbench internal constructor(
 		fun launchWorkbenchWithProject(
 			project: AvailProject,
 			globalAvailConfiguration: GlobalAvailConfiguration,
-			availProjectFilePath: String = "")
+			availProjectFilePath: String = "",
+			customWindowTitle: String = "",
+			useProjectNameAsFullTitle: Boolean = false)
 		{
 			launchWorkbench(
 				project,
 				availProjectFilePath,
-				"")
+				"",
+				customWindowTitle,
+				useProjectNameAsFullTitle)
+		}
+
+
+
+		/**
+		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
+		 *
+		 * @param project
+		 *  The [AvailProject] to use to launch the workbench.
+		 * @param availProjectFilePath
+		 *   The String path to the [availProject] configuration file or an
+		 *   empty String if the [AvailWorkbench] was started without an
+		 *   [AvailProject].
+		 * @param customWindowTitle
+		 *   The title to apply to the Avail Workbench window. If empty, the
+		 *   default will be to determine the name based upon the rules
+		 *   associated with `useProjectNameAsFullTitle`.
+		 * @param useProjectNameAsFullTitle
+		 *   `true` indicates only the [AvailProject.name] should be used as the
+		 *   title for the entire workbench window; `false` indicates the
+		 *   [AvailProject.name] will appear in parenthesis:
+		 *   "Avail Workbench (<project name>)"
+		 * @throws Exception
+		 *   If something goes wrong.
+		 */
+		@Throws(Exception::class)
+		@JvmStatic
+		fun launchWorkbenchWithProject (
+			project: AvailProject,
+			customWindowTitle: String = "",
+			availProjectFilePath: String = "",
+			useProjectNameAsFullTitle: Boolean = true)
+		{
+			System.setProperty(DARK_MODE_KEY, project.darkMode.toString())
+			launchWorkbench(
+				project,
+				availProjectFilePath,
+				"",
+				customWindowTitle,
+				useProjectNameAsFullTitle)
 		}
 	}
 }
