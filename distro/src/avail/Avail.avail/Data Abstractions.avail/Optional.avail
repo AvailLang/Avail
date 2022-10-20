@@ -48,6 +48,7 @@ Names
 			"``_",
 		/* methods */
 		"_'s⁇value",
+		"_'s⁇value else_",
 
 	/* Control structures. */
 	"When_is present do_",
@@ -260,6 +261,87 @@ Method "_'s⁇value" is
 	noValue : absent
 |
 	Shouldn't happen ("synthetic call extracted a value from an absent")
+] : any;
+
+
+/**
+ * Answer the value encapsulated by the argument, iff present, or apply
+ * {@param "else"} if {@type "absent"}.
+ *
+ * @method "_'s⁇value else_"
+ * @param "anOptional" "optional"
+ *        An {@type "optional"}.
+ * @param "else" "[]→any"
+ *        How to produce a value if {@param "anOptional"} is {@method "none"}.
+ * @returns "any"
+ *          The value encapsulated by the argument.
+ */
+Public stable abstract method "_'s⁇value else_" is [optional, []→any]→any;
+
+/**
+ * Reject the current parse if the argument type is not statically known to be
+ * a subtype of {@type "present"}.
+ *
+ * @method "_'s⁇value else_"
+ * @restricts "optional's type"
+ * @restricts "([]→any)'s type"
+ */
+Semantic restriction "_'s⁇value else_" is
+[
+	optionalType : optional's type,
+	elseType : ([]→any)'s type
+|
+	If optionalType ⊆ absent then
+	[
+		Reject parse, expected:
+			format "value extraction not to be attempted on “①”"
+			with optionalType
+	];
+	If optionalType ⊆ present then
+	[
+		Reject parse, expected:
+			format "unconditional value extraction on “①”"
+			with optionalType
+	];
+	optionalType's actual value[1] ∪ elseType's return type
+];
+
+/**
+ * Answer the value encapsulated by the argument.
+ *
+ * @method "_'s⁇value else_"
+ * @param "someValue" "present"
+ *        {@type "present" Some} value.
+ * @param "else" "[]→any"
+ *        Unused.
+ * @returns "any"
+ *          The encapsulated value.
+ */
+Method "_'s⁇value else_" is
+[
+	someValue : present,
+	else : []→any
+|
+	someValue's actual value[1]
+] : any;
+
+/**
+ * Answer the value produced by the function.
+ *
+ * @method "_'s⁇value else"
+ * @param "noValue" "absent"
+ *        Unused.
+ * @param "else" "[]→any"
+ *        How to produce a value.
+ * @returns "any"
+ *          The encapsulated value.
+ */
+Method "_'s⁇value else_" is
+[
+	noValue : absent,
+	else : []→any
+|
+	else()
 ] : any;
 
 /**

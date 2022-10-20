@@ -198,7 +198,7 @@ private object BreakLine : TextAction(breakLine)
 		}
 		val document = sourcePane.document
 		val caretPosition = sourcePane.caretPosition
-		val lineStart = document.lineStartBefore(caretPosition - 1)
+		val lineStart = max(0, document.lineStartBefore(caretPosition - 1))
 		val indent = document.indentationAt(lineStart)
 		sourcePane.transaction {
 			val lineSeparator = System.lineSeparator()

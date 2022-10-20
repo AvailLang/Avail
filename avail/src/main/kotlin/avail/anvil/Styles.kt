@@ -420,7 +420,7 @@ enum class DefaultBoundSystemStyle: BoundStyle
 
 	/** Default style for [SystemStyle.OBJECT_TYPE_DEFINITION]. */
 	OBJECT_TYPE_DEFINITION(SystemStyle.OBJECT_TYPE_DEFINITION, {
-		foreground = SystemColors::blue
+		foreground = SystemColors::rose
 	}),
 
 	/** Default style for [SystemStyle.SPECIAL_OBJECT]. */
@@ -449,14 +449,17 @@ enum class DefaultBoundSystemStyle: BoundStyle
 		foreground = SystemColors::mustard
 	}),
 
+	/** Default style for [SystemStyle.MATH_EXPONENT]. */
 	MATH_EXPONENT(SystemStyle.MATH_EXPONENT, {
 		superscript()
 	}),
 
+	/** Default style for [SystemStyle.DEEMPHASIZE]. */
 	DEEMPHASIZE(SystemStyle.DEEMPHASIZE, {
 		foreground = SystemColors::deemphasize
 	}),
 
+	/** Default style for [SystemStyle.EXCLUDED]. */
 	EXCLUDED(SystemStyle.EXCLUDED, {
 		strikeThrough()
 	});
