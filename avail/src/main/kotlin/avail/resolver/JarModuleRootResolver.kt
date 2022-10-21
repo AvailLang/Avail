@@ -296,6 +296,14 @@ constructor(
 			failureHandler(StandardErrorCode.IO_EXCEPTION, e)
 			return
 		}
+		catch (e: Throwable)
+		{
+			failureHandler(StandardErrorCode.UNSPECIFIED, e)
+			return
+		}
 		withContents(fileContent, null)
 	}
+
+	override fun toString(): String =
+		"$name - $uri"
 }
