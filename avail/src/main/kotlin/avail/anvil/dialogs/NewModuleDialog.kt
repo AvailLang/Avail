@@ -231,7 +231,7 @@ class NewModuleDialog constructor(
 			dir.listFiles (FileFilter {
 				it.name == moduleName
 			})
-		if(duplicateFiles?.isNotEmpty() != false)
+		if (duplicateFiles?.isNotEmpty() != false)
 		{
 			errorMessage = "$moduleName already exists!"
 			SwingUtilities.invokeLater {
@@ -243,15 +243,11 @@ class NewModuleDialog constructor(
 		}
 		else
 		{
-			val toOpen =
-				if (isModulePackage)
-				{
-					ModuleName("$createdModuleName/$baseModuleName")
-				}
-				else
-				{
-					createdModuleName
-				}
+			val toOpen = when (isModulePackage)
+			{
+				true -> ModuleName("$createdModuleName/$baseModuleName")
+				else -> createdModuleName
+			}
 			var id = UUID.randomUUID()
 			id = moduleRoot.resolver.subscribeRootWatcher { type, ref ->
 				if (type == ModuleRootResolver.WatchEventType.CREATE &&

@@ -57,7 +57,7 @@ object Versions
 	const val flatlafVersion = "2.1"
 
 	/** The `io.methvin:directory-watcher` version. */
-	const val directoryWatcherVersion = "0.15.0"
+	const val directoryWatcherVersion = "0.16.1"
 
 	/** The `com.google.code.findbugs:jsr305` version. */
 	const val jsrVersion = "3.0.2"

@@ -48,6 +48,7 @@ import avail.files.ManagedFileWrapper
 import avail.persistence.cache.Repository
 import avail.utility.Strings.matchesAbbreviation
 import org.availlang.artifact.ResourceType
+import java.io.File
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -105,6 +106,7 @@ constructor(
 	 */
 	@Suppress("LeakingThis")
 	val moduleRoot: ModuleRoot = ModuleRoot(name, this)
+
 	/**
 	 * The map from the [ModuleName.qualifiedName] string to the respective
 	 * [ResolverReference].
@@ -593,10 +595,12 @@ constructor(
 	 */
 	fun getQualifiedName(targetURI: String): String
 	{
-		assert(targetURI.startsWith(uri.path)) {
+		// Re-normalize the uri path, which must a be file-like URI.
+		val uriPath = File(uri.path).toString()
+		assert(targetURI.startsWith(uriPath)) {
 			"$targetURI is not in ModuleRoot, $moduleRoot"
 		}
-		val relative = targetURI.split(uri.path)[1]
+		val relative = targetURI.split(uriPath)[1]
 		val cleansedRelative = relative.replace(availExtension, "")
 		return "/${moduleRoot.name}" +
 			(if (relative.startsWith("/")) "" else "/") +

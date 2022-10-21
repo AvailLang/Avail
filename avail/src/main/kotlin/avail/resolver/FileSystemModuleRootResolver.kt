@@ -46,17 +46,17 @@ import avail.io.SimpleCompletionHandler
 import avail.resolver.ModuleRootResolver.WatchEventType.CREATE
 import avail.resolver.ModuleRootResolver.WatchEventType.DELETE
 import avail.resolver.ModuleRootResolver.WatchEventType.MODIFY
+import io.methvin.watcher.DirectoryChangeEvent
+import io.methvin.watcher.DirectoryChangeEvent.EventType
+import io.methvin.watcher.DirectoryWatcher
+import io.methvin.watcher.hashing.FileHasher
+import org.availlang.artifact.ResourceType
 import org.availlang.artifact.ResourceType.DIRECTORY
 import org.availlang.artifact.ResourceType.MODULE
 import org.availlang.artifact.ResourceType.PACKAGE
 import org.availlang.artifact.ResourceType.REPRESENTATIVE
 import org.availlang.artifact.ResourceType.RESOURCE
 import org.availlang.artifact.ResourceType.ROOT
-import io.methvin.watcher.DirectoryChangeEvent
-import io.methvin.watcher.DirectoryChangeEvent.EventType
-import io.methvin.watcher.DirectoryWatcher
-import io.methvin.watcher.hashing.FileHasher
-import org.availlang.artifact.ResourceType
 import org.slf4j.helpers.NOPLogger
 import java.io.File
 import java.io.IOException
@@ -755,7 +755,18 @@ class FileSystemModuleRootResolver constructor(
 		private val directoryWatcher = DirectoryWatcher.builder()
 			.logger(NOPLogger.NOP_LOGGER)
 			.fileHasher(FileHasher.LAST_MODIFIED_TIME)
-			.listener { e -> resolveEvent(e) }
+			.listener { event ->
+				try
+				{
+					resolveEvent(event)
+				}
+				catch (t: Throwable)
+				{
+					println(
+						"Processing ${event.eventType()}: ${event.path()},"
+						+ " encountered error: $t\n${t.stackTraceToString()}")
+				}
+			}
 			.path(Path.of(File(moduleRoot.resolver.uri).canonicalPath))
 			.build()!!
 			.apply {
