@@ -137,6 +137,7 @@ import avail.utility.IO
 import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
+import avail.utility.notNullAnd
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
@@ -939,8 +940,10 @@ class AvailWorkbench internal constructor(
 		buildProgress.isEnabled = busy
 		buildProgress.isVisible = backgroundTask is BuildTask
 		openEditorAction.isEnabled = !busy && selectedModule() !== null
-		newEditorAction.isEnabled = !busy &&
-			(selectedModule() !== null || selectedModuleRoot() !== null)
+		newEditorAction.isEnabled = !busy && run {
+			val root = selectedModuleRoot() ?: (selectedModule()?.moduleRoot)
+			root.notNullAnd { getProjectRoot(name).notNullAnd { editable } }
+		}
 		inputField.isEnabled = !busy || isRunning
 		retrievePreviousAction.isEnabled = !busy
 		retrieveNextAction.isEnabled = !busy
@@ -1062,7 +1065,8 @@ class AvailWorkbench internal constructor(
 			allExpanded.asSequence()
 				.map(TreePath::getLastPathComponent)
 				.filterIsInstance<AbstractBuilderFrameTreeNode>()
-				.mapNotNull { modulePath(it.modulePathString()) }
+				.map(AbstractBuilderFrameTreeNode::modulePathString)
+				.mapNotNull(::modulePath)
 				.forEach(moduleTree::expandPath)
 			selection?.let { path ->
 				val node =
@@ -1096,39 +1100,43 @@ class AvailWorkbench internal constructor(
 		val roots = resolver.moduleRoots
 		val sortedRootNodes = Collections.synchronizedList(
 			mutableListOf<ModuleRootNode>())
-
 		val treeRoot = DefaultMutableTreeNode("(packages hidden root)")
 		val rootCount = AtomicInteger(roots.roots.size)
+		val decrement = {
+			if (rootCount.decrementAndGet() == 0)
+			{
+				sortedRootNodes.sort()
+				sortedRootNodes.forEach(treeRoot::add)
+				val iterator:
+					Iterator<AbstractBuilderFrameTreeNode> =
+					treeRoot.preorderEnumeration().iterator().cast()
+				iterator.next()
+				iterator.forEachRemaining(
+					AbstractBuilderFrameTreeNode::sortChildren
+				)
+				withTreeNode(treeRoot)
+			}
+		}
 		// Put the invisible root onto the work stack.
 		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
 			val projRoot = getProjectRoot(root.name) ?: return@forEach
 			if (!projRoot.visible)
 			{
-				rootCount.decrementAndGet()
+				decrement()
 				return@forEach
 			}
 			root.repository.reopenIfNecessary()
 			root.resolver.provideModuleRootTree(
 				{
-					val node = ModuleRootNode(availBuilder, root)
+					val node =
+						ModuleRootNode(availBuilder, projRoot.editable, root)
 					createRootNodesThen(node, it) {
 						sortedRootNodes.add(node)
 						// Need to wait for every module to finish the
 						// resolution process before handing in the hidden, top
 						// level tree node.
-						if (rootCount.decrementAndGet() == 0)
-						{
-							sortedRootNodes.sort()
-							sortedRootNodes.forEach { m -> treeRoot.add(m) }
-							val iterator:
-									Iterator<AbstractBuilderFrameTreeNode> =
-								treeRoot.preorderEnumeration().iterator().cast()
-							iterator.next()
-							iterator.forEachRemaining(
-								AbstractBuilderFrameTreeNode::sortChildren)
-							withTreeNode(treeRoot)
-						}
+						decrement()
 					}
 				},
 				{ code, ex ->
@@ -1232,8 +1240,7 @@ class AvailWorkbench internal constructor(
 		availBuilder.traceDirectoriesThen(
 			action = { resolvedName, moduleVersion, after ->
 				val projectRoot = getProjectRoot(resolvedName.moduleRoot.name)
-					?: return@traceDirectoriesThen
-				if (projectRoot.visible)
+				if (projectRoot.notNullAnd { visible })
 				{
 					val entryPoints = moduleVersion.getEntryPoints()
 					if (entryPoints.isNotEmpty())
@@ -1308,6 +1315,9 @@ class AvailWorkbench internal constructor(
 	 */
 	private fun selectedModuleRootNode(): ModuleRootNode?
 	{
+		// This can be called during the constructor, so it can be null.
+		@Suppress("SENSELESS_COMPARISON")
+		if (moduleTree === null) return null
 		val path = moduleTree.selectionPath ?: return null
 		return when (val selection = path.lastPathComponent)
 		{
@@ -1331,6 +1341,9 @@ class AvailWorkbench internal constructor(
 	 */
 	private fun selectedModuleNode(): ModuleOrPackageNode?
 	{
+		// This can be called during the constructor, so it can be null.
+		@Suppress("SENSELESS_COMPARISON")
+		if (moduleTree === null) return null
 		val path = moduleTree.selectionPath ?: return null
 		return when (val selection = path.lastPathComponent)
 		{
@@ -1368,6 +1381,9 @@ class AvailWorkbench internal constructor(
 	 */
 	fun selectedEntryPoint(): String?
 	{
+		// This can be called during the constructor, so it can be null.
+		@Suppress("SENSELESS_COMPARISON")
+		if (entryPointsTree === null) return null
 		val path = entryPointsTree.selectionPath ?: return null
 		return when (val selection = path.lastPathComponent)
 		{
@@ -2187,18 +2203,18 @@ class AvailWorkbench internal constructor(
 		}
 	}
 
-/**
- * Answer the [AvailProjectRoot] for the given [AvailProjectRoot.name].
- *
- * @param targetRootName
- *   The [AvailProjectRoot.name] to retrieve.
- * @return
- *   The [AvailProjectRoot] or `null` if not found.
- */
-private fun getProjectRoot (targetRootName: String): AvailProjectRoot? =
-	availProject.availProjectRoots.firstOrNull {
-		it.name == targetRootName
-	}
+	/**
+	 * Answer the [AvailProjectRoot] for the given [AvailProjectRoot.name].
+	 *
+	 * @param targetRootName
+	 *   The [AvailProjectRoot.name] to retrieve.
+	 * @return
+	 *   The [AvailProjectRoot] or `null` if not found.
+	 */
+	internal fun getProjectRoot (targetRootName: String): AvailProjectRoot? =
+		availProject.availProjectRoots.firstOrNull {
+			it.name == targetRootName
+		}
 
 	companion object
 	{
@@ -2679,8 +2695,6 @@ private fun getProjectRoot (targetRootName: String): AvailProjectRoot? =
 				customWindowTitle,
 				useProjectNameAsFullTitle)
 		}
-
-
 
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].

@@ -52,11 +52,16 @@ import avail.builder.ModuleRoot
  */
 class ModuleRootNode constructor(
 	builder: AvailBuilder,
+	private val isEditable: Boolean,
 	val moduleRoot: ModuleRoot) : AbstractBuilderFrameTreeNode(builder)
 {
 	override fun modulePathString(): String = "/" + moduleRoot.name
 
-	override fun iconResourceName(): String? = null
+	override fun iconResourceName(): String? = when (isEditable)
+	{
+		true -> null
+		else -> "ReadOnlyModuleRoot"
+	}
 
 	override fun text(selected: Boolean): String = moduleRoot.name
 

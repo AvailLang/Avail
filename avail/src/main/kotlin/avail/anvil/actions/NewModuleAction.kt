@@ -32,10 +32,10 @@
 
 package avail.anvil.actions
 
-import avail.builder.ModuleRoot
-import avail.builder.ResolvedModuleName
 import avail.anvil.AvailWorkbench
 import avail.anvil.dialogs.NewModuleDialog
+import avail.builder.ModuleRoot
+import avail.builder.ResolvedModuleName
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.io.File

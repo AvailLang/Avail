@@ -34,13 +34,6 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.AvailTask
-import avail.builder.AvailBuilder
-import avail.builder.ModuleName
-import avail.builder.ResolvedModuleName
-import avail.compiler.ModuleManifestEntry
-import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.manifestEntries
 import avail.anvil.AvailWorkbench.Companion.menuShiftShortcutMask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.StyleApplicator.applyStyleRuns
@@ -57,11 +50,19 @@ import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailEditorLayoutConfiguration
 import avail.anvil.window.LayoutConfiguration
 import avail.anvil.window.WorkbenchFrame
+import avail.builder.AvailBuilder
+import avail.builder.ModuleName
+import avail.builder.ResolvedModuleName
+import avail.compiler.ModuleManifestEntry
+import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.manifestEntries
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.persistence.cache.Repository.StylingRecord
+import avail.utility.notNullAnd
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Toolkit.getDefaultToolkit
@@ -303,7 +304,9 @@ class AvailEditor constructor(
 	/** The editor pane. */
 	internal val sourcePane = CodePane(
 		workbench,
-		isEditable = resolverReference.resolver.canSave,
+		isEditable = resolverReference.resolver.canSave &&
+			workbench.getProjectRoot(resolverReference.moduleName.rootName)
+				.notNullAnd { editable },
 		AvailEditorKit(workbench)
 	).apply {
 		registerStyles()

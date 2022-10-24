@@ -181,7 +181,7 @@
 		{
 			"id": "6d046c0c-448d-4a19-8c2d-ec4fb001d1bf",
 			"name": "website",
-			"editable": true,
+			"editable": false,
 			"visible": true,
 			"location": {
 				"locationType": "project",
