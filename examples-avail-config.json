@@ -13,7 +13,7 @@
 			"id": "16bb6b34-3596-463f-a8ec-10e4c89edf54",
 			"name": "avail",
 			"editable": true,
-			"visible": true,
+			"visible": false,
 			"location": {
 				"locationType": "project",
 				"scheme": "FILE",

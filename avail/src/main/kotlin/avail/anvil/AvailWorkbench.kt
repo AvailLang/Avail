@@ -142,6 +142,7 @@ import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.AvailProjectV1
 import java.awt.Color
 import java.awt.Component
@@ -1101,6 +1102,12 @@ class AvailWorkbench internal constructor(
 		// Put the invisible root onto the work stack.
 		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
+			val projRoot = getProjectRoot(root.name) ?: return@forEach
+			if (!projRoot.visible)
+			{
+				rootCount.decrementAndGet()
+				return@forEach
+			}
 			root.repository.reopenIfNecessary()
 			root.resolver.provideModuleRootTree(
 				{
@@ -1224,18 +1231,23 @@ class AvailWorkbench internal constructor(
 			mutableMapOf<String, DefaultMutableTreeNode>())
 		availBuilder.traceDirectoriesThen(
 			action = { resolvedName, moduleVersion, after ->
-				val entryPoints = moduleVersion.getEntryPoints()
-				if (entryPoints.isNotEmpty())
+				val projectRoot = getProjectRoot(resolvedName.moduleRoot.name)
+					?: return@traceDirectoriesThen
+				if (projectRoot.visible)
 				{
-					val moduleNode =
-						EntryPointModuleNode(availBuilder, resolvedName)
-					entryPoints.forEach { entryPoint ->
-						val entryPointNode = EntryPointNode(
-							availBuilder, resolvedName, entryPoint)
-						moduleNode.add(entryPointNode)
-					}
-					mutex.safeWrite {
-						moduleNodes[resolvedName.qualifiedName] = moduleNode
+					val entryPoints = moduleVersion.getEntryPoints()
+					if (entryPoints.isNotEmpty())
+					{
+						val moduleNode =
+							EntryPointModuleNode(availBuilder, resolvedName)
+						entryPoints.forEach { entryPoint ->
+							val entryPointNode = EntryPointNode(
+								availBuilder, resolvedName, entryPoint)
+							moduleNode.add(entryPointNode)
+						}
+						mutex.safeWrite {
+							moduleNodes[resolvedName.qualifiedName] = moduleNode
+						}
 					}
 				}
 				after()
@@ -2173,6 +2185,19 @@ class AvailWorkbench internal constructor(
 				}
 			}
 		}
+	}
+
+/**
+ * Answer the [AvailProjectRoot] for the given [AvailProjectRoot.name].
+ *
+ * @param targetRootName
+ *   The [AvailProjectRoot.name] to retrieve.
+ * @return
+ *   The [AvailProjectRoot] or `null` if not found.
+ */
+private fun getProjectRoot (targetRootName: String): AvailProjectRoot? =
+	availProject.availProjectRoots.firstOrNull {
+		it.name == targetRootName
 	}
 
 	companion object
