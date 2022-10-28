@@ -262,10 +262,10 @@ class StructureViewPanel constructor (
 				{
 					override fun mouseClicked(e: MouseEvent)
 					{
-						if (e.clickCount == 1 && e.button == MouseEvent.BUTTON1)
+						if (e.clickCount == 2 && e.button == MouseEvent.BUTTON1)
 						{
 							e.consume()
-							selection()
+							doubleClick()
 						}
 					}
 				})
@@ -274,7 +274,7 @@ class StructureViewPanel constructor (
 				{
 					if(e.keyCode == KeyEvent.VK_ENTER)
 					{
-						selection()
+						doubleClick()
 					}
 				}
 			})
@@ -284,6 +284,9 @@ class StructureViewPanel constructor (
 		val scrollView = createScrollPane(structureViewTree).apply {
 			verticalScrollBarPolicy =
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+			// Take up all of the window space that is not already reserved for
+			// other pane components.
+			preferredSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
 		}
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
@@ -310,9 +313,10 @@ class StructureViewPanel constructor (
 	}
 
 	/**
-	 * The action to perform when a node in the [structureViewTree] is selected.
+	 * The action to perform when a node in the [structureViewTree] is
+	 * double-clicked.
 	 */
-	private fun JTree.selection()
+	private fun JTree.doubleClick()
 	{
 		val path = structureViewTree.selectionPath ?: return
 		when (val selection = path.lastPathComponent)
