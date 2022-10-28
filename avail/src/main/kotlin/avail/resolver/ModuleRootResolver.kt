@@ -33,6 +33,7 @@
 package avail.resolver
 
 import avail.AvailThread
+import avail.anvil.AvailWorkbench
 import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
 import avail.builder.ModuleNameResolver.Companion.availExtension
@@ -98,7 +99,11 @@ constructor(
 	val uri: URI,
 	val fileManager: FileManager)
 {
-	/** Answer whether data can be written to modules under this resolver. */
+	/**
+	 * Answer whether data can be written to modules under this resolver.  Note
+	 * that this may be further restricted by choosing to use the root as a
+	 * read-only source.  See [AvailWorkbench.getProjectRoot].
+	 */
 	abstract val canSave: Boolean
 
 	/**

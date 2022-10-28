@@ -220,31 +220,21 @@ class FileSystemModuleRootResolver constructor(
 	private fun determineResourceType (file: File): ResourceType
 	{
 		val fileName = file.absolutePath
-		return if (fileName.endsWith(availExtension))
+		val endsWithExtension = fileName.endsWith(availExtension)
+		val isDirectory = file.isDirectory
+		return when
 		{
-
-			if (file.isDirectory) PACKAGE
-			else
+			!endsWithExtension && isDirectory -> DIRECTORY
+			!endsWithExtension -> RESOURCE
+			isDirectory -> PACKAGE
+			else ->
 			{
-				val components = fileName.split("/")
-				val parent =
-					if (components.size > 1)
-					{
-						components[components.size - 2].split(availExtension)[0]
-					}
-					else ""
-
-				val localName = fileName.substring(
-					0,
-					fileName.length - availExtension.length)
-				if (parent == localName) REPRESENTATIVE
+				val localName = fileName.substringAfterLast('/')
+				val parent = fileName.substringBeforeLast('/', "")
+				val parentLocal = parent.substringAfterLast('/', "")
+				if (parentLocal == localName) REPRESENTATIVE
 				else MODULE
 			}
-		}
-		else
-		{
-			if (file.isDirectory) DIRECTORY
-			else RESOURCE
 		}
 	}
 

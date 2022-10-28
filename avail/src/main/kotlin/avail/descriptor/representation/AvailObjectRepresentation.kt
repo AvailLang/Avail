@@ -190,6 +190,7 @@ sealed class AvailObjectRepresentation constructor(
 		{
 			val debugSlots = currentDescriptor.debugObjectSlots
 			val permittedFields = debugSlots[field.fieldOrdinal]
+			@Suppress("KotlinConstantConditions")
 			if (permittedFields !== null)
 			{
 				for (permittedField in permittedFields)
@@ -202,6 +203,7 @@ sealed class AvailObjectRepresentation constructor(
 			assert(definitionClass.isInstance(currentDescriptor))
 			// Cache that field for next time.
 			val newPermittedFields: Array<ObjectSlotsEnum>
+			@Suppress("KotlinConstantConditions")
 			when (permittedFields)
 			{
 				null -> newPermittedFields = arrayOf(field)
@@ -241,6 +243,7 @@ sealed class AvailObjectRepresentation constructor(
 	{
 		val debugSlots = currentDescriptor.debugIntegerSlots
 		val permittedFields = debugSlots[field.fieldOrdinal]
+		@Suppress("KotlinConstantConditions")
 		if (permittedFields !== null)
 		{
 			for (permittedField in permittedFields)
@@ -253,6 +256,7 @@ sealed class AvailObjectRepresentation constructor(
 		assert(definitionClass.isInstance(currentDescriptor))
 		// Cache that field for next time.
 		val newPermittedFields: Array<IntegerSlotsEnum>
+		@Suppress("KotlinConstantConditions")
 		when (permittedFields)
 		{
 			null -> newPermittedFields = arrayOf(field)
@@ -1078,6 +1082,44 @@ sealed class AvailObjectRepresentation constructor(
 			targetArray,
 			zeroBasedStartTargetSubscript,
 			count)
+	}
+
+	/**
+	 * Compare corresponding consecutive long slots from the receiver and the
+	 * [otherObject], starting at the beginning at the variable-length section
+	 * indicated by the [integerField]. Answer false if any differ, otherwise
+	 * true.
+	 *
+	 * The [integerField] must be suitable for accessing slots in both the
+	 * receiver and the [otherObject].
+	 *
+	 * @param otherObject
+	 *   The other [AvailObjectRepresentation] to compare against.
+	 * @param integerField
+	 *   The [IntegerSlotsEnum] that designates the starting field to scan the
+	 *   [longSlots] of both objects.
+	 * @return
+	 *   Whether the corresponding visited slots were equal.
+	 */
+	@Suppress("unused")
+	fun intSlotsCompare(
+		otherObject: AvailObjectRepresentation,
+		integerField: IntegerSlotsEnum
+	): Boolean
+	{
+		checkSlot(integerField)
+		otherObject.checkSlot(integerField)
+		val mySlots = longSlots
+		val otherSlots = otherObject.longSlots
+		val size = mySlots.size
+		assert(otherSlots.size == size)
+		var pos = integerField.fieldOrdinal
+		while (pos < size)
+		{
+			if (mySlots[pos] != otherSlots[pos]) return false
+			pos++
+		}
+		return true
 	}
 
 	/**

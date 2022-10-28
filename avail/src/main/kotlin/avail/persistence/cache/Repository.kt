@@ -301,6 +301,14 @@ class Repository constructor(
 				return unmodifiableSortedMap(TreeMap(map))
 			}
 
+		override fun toString(): String =
+			this::class.simpleName +
+				versions.entries.sortedWith(comparingByKey()).joinToString(
+					", ", " $rootRelativeName (", ")"
+				) { (key, value) ->
+					"${key.shortString}=${value.compilations.size}"
+				}
+
 		/**
 		 * Determine the cryptographic hash of the file's current contents.
 		 * Since we assume that the same filename and modification time implies

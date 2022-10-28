@@ -184,34 +184,24 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
-	 * Remove any unnecessary instructions.  Answer true if any were removed.
+	 * Remove any unnecessary instructions.
 	 *
 	 * @param dataCouplingMode
 	 *   The [DataCouplingMode] that chooses how to trace liveness.
-	 * @return
-	 *   Whether any dead instructions were removed or changed.
+	 * @param generatePhis
+	 *   Whether to produce [L2_PHI_PSEUDO_OPERATION]s automatically.
 	 */
 	private fun removeDeadInstructions(
 		dataCouplingMode: DataCouplingMode,
-		generatePhis: Boolean
-	): Boolean
+		generatePhis: Boolean)
 	{
 		val analyzer = DeadCodeAnalyzer(dataCouplingMode, controlFlowGraph)
 		analyzer.analyzeReads()
-		val liveInstructions: Set<L2Instruction> = analyzer.liveInstructions()
-		var anyRemoved = false
-
+		val liveInstructions = analyzer.liveInstructions()
 		regenerateGraph(generatePhis) { sourceInstruction ->
 			if (sourceInstruction in liveInstructions)
-			{
 				basicProcessInstruction(sourceInstruction)
-			}
-			else
-			{
-				anyRemoved = true
-			}
 		}
-		return anyRemoved
 	}
 
 	/**
@@ -229,85 +219,7 @@ class L2Optimizer internal constructor(
 		// Removing instructions won't cause blocks to be inaccessible, so just
 		// clean up unreachable blocks once at the start.
 		removeUnreachableBlocks()
-		if (!removeDeadInstructions(dataCouplingMode, generatePhis))
-		{
-			// No instructions were removed, so don't bother cleaning up the
-			// manifests.
-			return
-		}
-		// Clean up all manifests so that they only mention registers that
-		// are guaranteed to have values at that point.
-		val visibleRegisters =
-			mutableMapOf<L2PcOperand, MutableSet<L2Register>>()
-		val visibleSemanticValues =
-			mutableMapOf<L2PcOperand, MutableSet<L2SemanticValue>>()
-		blocks.deepForEach(L2BasicBlock::predecessorEdges) {
-			visibleRegisters[it] = mutableSetOf()
-			visibleSemanticValues[it] = mutableSetOf()
-		}
-		// These two collections should maintain the same membership.
-		val toVisitQueue: Deque<L2BasicBlock> = ArrayDeque(blocks)
-		val toVisitSet = blocks.toMutableSet()
-		while (toVisitQueue.isNotEmpty())
-		{
-			val block = toVisitQueue.removeFirst()!!
-			toVisitSet.remove(block)
-			val regs: MutableSet<L2Register>
-			val values: MutableSet<L2SemanticValue>
-			val predecessors = block.predecessorEdges().iterator()
-			if (predecessors.hasNext())
-			{
-				val first = predecessors.next()
-				regs = visibleRegisters[first]!!.toMutableSet()
-				values = visibleSemanticValues[first]!!.toMutableSet()
-				predecessors.forEachRemaining {
-					regs.retainAll(visibleRegisters[it]!!)
-					values.retainAll(visibleSemanticValues[it]!!)
-				}
-			}
-			else
-			{
-				regs = mutableSetOf()
-				values = mutableSetOf()
-			}
-			for (instruction in block.instructions())
-			{
-				if (!instruction.altersControlFlow)
-				{
-					instruction.writeOperands.forEach {
-						regs.add(it.register())
-						values.addAll(it.semanticValues())
-					}
-				}
-				else
-				{
-					instruction.edgesAndPurposesDo { edge, purpose ->
-						val regsForEdge = regs.toMutableSet()
-						val valuesForEdge = values.toMutableSet()
-						instruction.writesForPurposeDo(purpose!!) {
-							regsForEdge.add(it.register())
-							valuesForEdge.addAll(it.semanticValues())
-						}
-						var changed =
-							visibleRegisters[edge]!!.addAll(regsForEdge)
-						changed = changed or
-							visibleSemanticValues[edge]!!.addAll(valuesForEdge)
-						if (changed && toVisitSet.add(edge.targetBlock()))
-						{
-							toVisitQueue.add(edge.targetBlock())
-						}
-					}
-				}
-			}
-		}
-		// Now that we have the complete registers available at each edge,
-		// narrow each edge's manifest accordingly.
-		visibleRegisters.forEach { (edge, regs) ->
-			edge.manifest().retainRegisters(regs)
-		}
-		visibleSemanticValues.forEach { (edge, values) ->
-			edge.manifest().retainSemanticValues(values)
-		}
+		removeDeadInstructions(dataCouplingMode, generatePhis)
 	}
 
 	/**

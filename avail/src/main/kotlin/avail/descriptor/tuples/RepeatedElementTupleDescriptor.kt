@@ -410,14 +410,13 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			else if (element.isCharacter)
 			{
 				// Make it a string.
-				val codePoint: Int = element.codePoint
-				if (codePoint <= 255)
+				when (val codePoint = element.codePoint)
 				{
-					result = generateByteString(size) { codePoint }
-				}
-				else if (codePoint <= 65535)
-				{
-					result = generateTwoByteString(size) { codePoint }
+					in 0 .. 0xFF ->
+						result = generateByteString(size) { codePoint }
+					in 0 .. 0xFFFF ->
+						result =
+							generateTwoByteString(size) { codePoint.toUShort() }
 				}
 			}
 			if (result === null)

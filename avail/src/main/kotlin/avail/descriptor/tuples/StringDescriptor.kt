@@ -174,7 +174,7 @@ abstract class StringDescriptor protected constructor(
 				// Pack it into a TwoByteString, preserving surrogates.
 				generateTwoByteString(aNativeString.length)
 				{
-					aNativeString[it - 1].code
+					aNativeString[it - 1].code.toUShort()
 				}
 			}
 		}
@@ -260,7 +260,7 @@ abstract class StringDescriptor protected constructor(
 					codePoint <= 65535 ->
 					{
 						string = generateTwoByteString(size) {
-							string.tupleCodePointAt(it)
+							string.tupleCodePointAt(it).toUShort()
 						}
 						representationLimit = 65535
 					}

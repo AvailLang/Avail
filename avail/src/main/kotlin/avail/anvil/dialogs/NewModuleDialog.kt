@@ -39,6 +39,7 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.actions.RefreshAction
 import avail.anvil.streams.StreamStyle
 import avail.resolver.ModuleRootResolver
+import avail.utility.notNullAnd
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import java.awt.BorderLayout
 import java.awt.Color
@@ -223,15 +224,20 @@ class NewModuleDialog constructor(
 	 */
 	private fun attemptCreate ()
 	{
-		workbench.writeText(
-			"Created module: $targetLocationAbsolutePath\n",
-			StreamStyle.INFO)
+		if ('/' in moduleName || '\\' in moduleName)
+		{
+			errorMessage = "$moduleName must not contain '/' or '\\'!"
+			SwingUtilities.invokeLater {
+				populateCenterPanel()
+				displayWindow()
+				centerPanel.validate()
+				repaint()
+			}
+			return
+		}
 		val dir = File(targetDir)
-		val duplicateFiles =
-			dir.listFiles (FileFilter {
-				it.name == moduleName
-			})
-		if (duplicateFiles?.isNotEmpty() != false)
+		val duplicateFiles = dir.listFiles(FileFilter { it.name == moduleName })
+		if (duplicateFiles.notNullAnd { isNotEmpty() })
 		{
 			errorMessage = "$moduleName already exists!"
 			SwingUtilities.invokeLater {
@@ -240,62 +246,59 @@ class NewModuleDialog constructor(
 				centerPanel.validate()
 				repaint()
 			}
+			return
 		}
-		else
+		workbench.writeText(
+			"Created module: $targetLocationAbsolutePath\n",
+			StreamStyle.INFO)
+		val toOpen = when (isModulePackage)
 		{
-			val toOpen = when (isModulePackage)
+			true -> ModuleName("$createdModuleName/$baseModuleName")
+			else -> createdModuleName
+		}
+		lateinit var id: UUID
+		id = moduleRoot.resolver.subscribeRootWatcher { type, ref ->
+			if (type == ModuleRootResolver.WatchEventType.CREATE &&
+				ref.qualifiedName == toOpen.qualifiedName)
 			{
-				true -> ModuleName("$createdModuleName/$baseModuleName")
-				else -> createdModuleName
-			}
-			var id = UUID.randomUUID()
-			id = moduleRoot.resolver.subscribeRootWatcher { type, ref ->
-				if (type == ModuleRootResolver.WatchEventType.CREATE &&
-					ref.qualifiedName == toOpen.qualifiedName)
-				{
-					SwingUtilities.invokeLater {
-						val editor =
-							workbench.openEditors.computeIfAbsent(toOpen) {
-								AvailEditor(workbench, toOpen)
-							}
-						RefreshAction(workbench).runAction()
-						editor.toFront()
-						moduleRoot.resolver.unsubscribeRootWatcher(id)
-					}
+				SwingUtilities.invokeLater {
+					val editor =
+						workbench.openEditors.computeIfAbsent(toOpen) {
+							AvailEditor(workbench, toOpen)
+						}
+					RefreshAction(workbench).runAction()
+					editor.toFront()
+					moduleRoot.resolver.unsubscribeRootWatcher(id)
 				}
 			}
-
-			if (isModulePackage)
+		}
+		val file = when
+		{
+			isModulePackage ->
 			{
 				File(targetLocationAbsolutePath).mkdirs()
-				File(
-					"$targetLocationAbsolutePath${File.separator}$moduleName")
+				File("$targetLocationAbsolutePath${File.separator}$moduleName")
 			}
-			else
-			{
-				File(targetLocationAbsolutePath)
-			}.apply {
-				createNewFile()
-				if (!addHeader.isSelected)
-				{
-					return@apply
-				}
-				var t = ""
-				if (workbench.availProject.projectCopyright.isNotEmpty())
-				{
-					t = workbench.availProject.projectCopyright
-					t = t.replace("{{MOD}}", baseModuleName)
-					val date = Date.from(Instant.now())
-					val formatter = SimpleDateFormat("yyyy", Locale.getDefault())
-					val year = formatter.format(date)
-					t = t.replace("{{YEAR}}", year)
-					t = "$t\n"
-				}
-				t = "${t}Module \"$baseModuleName\""
-				writeText(t)
-			}
-			dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+			else -> File(targetLocationAbsolutePath)
 		}
+		file.createNewFile()
+		if (addHeader.isSelected)
+		{
+			var t = ""
+			if (workbench.availProject.projectCopyright.isNotEmpty())
+			{
+				t = workbench.availProject.projectCopyright
+				t = t.replace("{{MOD}}", baseModuleName)
+				val date = Date.from(Instant.now())
+				val formatter = SimpleDateFormat("yyyy", Locale.getDefault())
+				val year = formatter.format(date)
+				t = t.replace("{{YEAR}}", year)
+				t = "$t\n"
+			}
+			t = "${t}Module \"$baseModuleName\""
+			file.writeText(t)
+		}
+		dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
 	}
 
 	init
@@ -387,8 +390,7 @@ class NewModuleDialog constructor(
 				{
 					KeyEvent.VK_ENTER ->
 					{
-						modulePackageCB.isSelected =
-							!modulePackageCB.isSelected
+						modulePackageCB.isSelected = !modulePackageCB.isSelected
 					}
 				}
 			}

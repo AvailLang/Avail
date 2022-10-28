@@ -67,8 +67,7 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ModuleHeaderPrefixCheckImportVersion
-	: Primitive(3, Private, Bootstrap)
+object P_ModuleHeaderPrefixCheckImportVersion : Primitive(3, Private, Bootstrap)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -93,8 +92,7 @@ object P_ModuleHeaderPrefixCheckImportVersion
 				oldVersionPhrase.token.literal().literal()
 			if (lastImportVersionString.equals(oldVersion))
 			{
-				val importModuleName =
-					lastImportNameEntry.expressionAt(1)
+				val importModuleName = lastImportNameEntry.expressionAt(1)
 				throw AvailRejectedParseException(
 					STRONG,
 					"imported module ($importModuleName) version specification "

@@ -1,5 +1,5 @@
 /*
- * MenuBuilder.kt
+ * NewRootAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,54 +30,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil
+package avail.anvil.actions
 
+import avail.anvil.AvailWorkbench
+import java.awt.event.ActionEvent
 import javax.swing.Action
-import javax.swing.JCheckBoxMenuItem
-import javax.swing.JMenu
 
-/** A helper class for building menus. */
-class MenuBuilder constructor(private val theMenu: JMenu)
+/**
+ * Create a new root and select it.
+ *
+ * @constructor
+ * Construct a new [NewRootAction].
+ *
+ * @param workbench
+ *   The owning [AvailWorkbench].
+ */
+class NewRootAction
+constructor (
+	workbench: AvailWorkbench,
+) : AbstractWorkbenchAction(
+	workbench,
+	"New root")
 {
-	fun item(item: Action)
+	override fun actionPerformed(event: ActionEvent)
 	{
-		theMenu.add(item)
+//TODO WIP
+//		CreateRootView
+
+
 	}
 
-	fun check(item: Action)
+	init
 	{
-		theMenu.add(JCheckBoxMenuItem(item))
-	}
-
-	fun separator(): Unit = theMenu.addSeparator()
-
-	/** Add a pre-built menu. */
-	fun submenu(submenu: JMenu)
-	{
-		theMenu.add(submenu)
-	}
-
-	/** Create a submenu directly. */
-	fun submenu(name: String, body: MenuBuilder.()->Unit): JMenu =
-		menu(name, body).also(theMenu::add)
-
-	companion object
-	{
-		/**
-		 * Create a menu with the given name and entries, which can be null to
-		 * indicate a separator, a JMenuItem, or an Action to wrap in a
-		 * JMenuItem.
-		 *
-		 * @param name
-		 *   The name of the menu to create.
-		 * @param body
-		 *   A function that adds entries to the menu via the [MenuBuilder]
-		 *   syntax.
-		 * @return A new [JMenu].
-		 */
-		inline fun menu(
-			name: String = "",
-			body: MenuBuilder.()->Unit
-		) = JMenu(name).also { MenuBuilder(it).body() }
+		putValue(
+			Action.SHORT_DESCRIPTION,
+			"Create a new module root.")
 	}
 }

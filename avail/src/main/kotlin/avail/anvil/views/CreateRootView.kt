@@ -56,6 +56,20 @@ class CreateRootView constructor(
 		border = BorderFactory.createEmptyBorder(15, 10, 15, 10)
 	}
 
+	//TODO WIP
+	//val x : AvailArtifactJar;
+	//
+	//*** Relative paths:
+	//home
+	//project-relative
+	//absolute
+	//
+	//file/jar
+	//read-only (checkbox)
+
+
+
+
 	val nameField = TextFieldWithLabel("Root Name:")
 	val projectDirField = TextFieldWithLabel("Project Relative Location:")
 

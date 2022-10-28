@@ -114,7 +114,6 @@ constructor (
 	 */
 	private fun relativeToModuleRoot (relativeRoot: ModuleRoot)
 	{
-
 		NewModuleDialog(
 			"${relativeRoot.resolver.uri.path}${File.separator}",
 			"${File.separator}${relativeRoot.name}",

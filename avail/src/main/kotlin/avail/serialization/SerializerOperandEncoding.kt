@@ -362,7 +362,7 @@ internal enum class SerializerOperandEncoding
 			return generateTwoByteString(tupleSize) {
 				val codePoint = readCompressedPositiveInt(deserializer)
 				assert(codePoint and 0xFFFF == codePoint)
-				codePoint
+				codePoint.toUShort()
 			}
 		}
 	},

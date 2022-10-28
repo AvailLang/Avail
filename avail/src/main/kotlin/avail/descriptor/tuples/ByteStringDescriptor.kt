@@ -235,15 +235,30 @@ class ByteStringDescriptor private constructor(
 		aByteString: A_String): Boolean
 	{
 		// First, check for object-structure (address) identity.
-		if (self.sameAddressAs(aByteString))
+		when
 		{
-			return true
+			self.sameAddressAs(aByteString) -> return true
+			self.tupleSize != aByteString.tupleSize -> return false
+			self.hash() != aByteString.hash() -> return false
+			// The longs array *must* be padded with zeros for the last 0-3
+			// shorts. Compare long-by-long.
+			!self.intSlotsCompare(aByteString as AvailObject, RAW_LONGS_) ->
+				return false
+			// They're equal, but occupy disjoint storage. If possible, replace one
+			// with an indirection to the other to keep down the frequency of
+			// character comparisons.
+			!isShared ->
+			{
+				aByteString.makeImmutable()
+				self.becomeIndirectionTo(aByteString)
+			}
+			!aByteString.descriptor().isShared ->
+			{
+				self.makeImmutable()
+				aByteString.becomeIndirectionTo(self)
+			}
 		}
-		val tupleSize = self.tupleSize
-		return tupleSize == aByteString.tupleSize
-				&& self.hash() == aByteString.hash()
-				&& self.compareFromToWithByteStringStartingAt(
-				1, tupleSize, aByteString, 1)
+		return true
 	}
 
 	override fun o_IsByteString(self: AvailObject): Boolean = true
@@ -450,8 +465,8 @@ class ByteStringDescriptor private constructor(
 				// Concatenate a byte string and two-byte string by creating a
 				// two-byte string.
 				return generateTwoByteString(newSize) { i ->
-					if (i <= size1) self.tupleCodePointAt(i)
-					else otherTuple.tupleCodePointAt(i - size1)
+					if (i <= size1) self.tupleCodePointAt(i).toUShort()
+					else otherTuple.tupleCodePointAt(i - size1).toUShort()
 				}
 			}
 		}
@@ -553,7 +568,7 @@ class ByteStringDescriptor private constructor(
 			self: AvailObject): A_String
 		{
 			val result = generateTwoByteString(self.tupleSize) {
-				self.byteSlot(RAW_LONGS_, it).toInt()
+				self.byteSlot(RAW_LONGS_, it).toUShort()
 			}
 			result.setHashOrZero(self.hashOrZero())
 			return result

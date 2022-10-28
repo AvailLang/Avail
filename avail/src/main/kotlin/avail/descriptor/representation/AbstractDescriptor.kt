@@ -170,6 +170,7 @@ import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
 import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
+import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import org.availlang.json.JSONWriter
 import java.lang.reflect.InvocationTargetException
@@ -185,6 +186,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.reflect.KType
+import kotlin.reflect.full.IllegalCallableAccessException
 import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
@@ -192,7 +195,6 @@ import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.jvm.javaField
-import kotlin.reflect.jvm.javaGetter
 
 /**
  * [AbstractDescriptor] is the base descriptor type.  An [AvailObject] contains
@@ -789,12 +791,12 @@ abstract class AbstractDescriptor protected constructor (
 
 	override fun toString (): String
 	{
-		val members = mutableListOf<KProperty1<out AbstractDescriptor, *>>()
+		val members = mutableListOf<KProperty1<AbstractDescriptor, *>>()
 		var cls: KClass<*> = this::class
 		do
 		{
 			members.addAll(0, cls.declaredMemberProperties.cast()) // top-down
-			cls = cls.supertypes.map { it.classifier }
+			cls = cls.supertypes.map(KType::classifier)
 				.filterIsInstance<KClass<*>>()
 				.single()
 		}
@@ -814,14 +816,25 @@ abstract class AbstractDescriptor protected constructor (
 				"${m.name}=" +
 					try
 					{
-						m.javaGetter?.invoke(this)
-					} catch (e: IllegalArgumentException)
+						when (val value = m.get(this@AbstractDescriptor))
+						{
+							is AvailObject -> "(AvailObject)"
+							else -> value.toString().truncateTo(20)
+						}
+					}
+					catch (e: IllegalArgumentException)
 					{
 						"(inaccessible)"
-					} catch (e: IllegalAccessException)
+					}
+					catch (e: IllegalAccessException)
 					{
 						"(inaccessible)"
-					} catch (e: InvocationTargetException)
+					}
+					catch (e: IllegalCallableAccessException)
+					{
+						"(inaccessible)"
+					}
+					catch (e: InvocationTargetException)
 					{
 						"$e: TRACE=${e.stackTraceToString()}"
 					}

@@ -154,7 +154,7 @@ class TwoByteStringDescriptor private constructor(
 			self.setSlot(HASH_OR_ZERO, 0)
 			return self
 		}
-		// Copy to a potentially larger ByteTupleDescriptor.
+		// Copy to a potentially larger TwoByteStringDescriptor.
 		val result = newLike(
 			descriptorFor(Mutability.MUTABLE, newSize),
 			self,
@@ -209,11 +209,10 @@ class TwoByteStringDescriptor private constructor(
 			self.sameAddressAs(aString) -> return true
 			self.tupleSize != aString.tupleSize -> return false
 			self.hash() != aString.hash() -> return false
-			!self.compareFromToWithTwoByteStringStartingAt(
-				1,
-				self.tupleSize,
-				aString,
-				1) -> return false
+			// The longs array *must* be padded with zeros for the last 0-3
+			// shorts. Compare long-by-long.
+			!self.intSlotsCompare(aString as AvailObject, RAW_LONGS_) ->
+				return false
 			// They're equal, but occupy disjoint storage. If possible, replace one
 			// with an indirection to the other to keep down the frequency of
 			// character comparisons.
@@ -290,7 +289,7 @@ class TwoByteStringDescriptor private constructor(
 		else
 		{
 			generateTwoByteString(size) {
-				self.shortSlot(RAW_LONGS_, size + 1 - it)
+				self.shortSlot(RAW_LONGS_, size + 1 - it).toUShort()
 			}
 		}
 
@@ -423,7 +422,7 @@ class TwoByteStringDescriptor private constructor(
 			else ->
 				// Copy the two-byte codepoints.
 				generateTwoByteString(size) {
-					self.shortSlot(RAW_LONGS_, it + start - 1)
+					self.shortSlot(RAW_LONGS_, it + start - 1).toUShort()
 				}
 		}
 	}
@@ -497,9 +496,10 @@ class TwoByteStringDescriptor private constructor(
 		 *   A two-byte string with the given content.
 		 */
 		fun mutableObjectFromNativeTwoByteString(
-			aNativeTwoByteString: String): AvailObject =
-				generateTwoByteString(aNativeTwoByteString.length)
-					{ aNativeTwoByteString.codePointAt(it - 1) }
+			aNativeTwoByteString: String
+		): AvailObject = generateTwoByteString(aNativeTwoByteString.length) {
+			aNativeTwoByteString.codePointAt(it - 1).toUShort()
+		}
 
 		/**
 		 * Create an object of the appropriate size, whose descriptor is an
@@ -518,23 +518,20 @@ class TwoByteStringDescriptor private constructor(
 		 */
 		fun generateTwoByteString(
 			size: Int,
-			generator: (Int)->Int): AvailObject
+			generator: (Int)->UShort): AvailObject
 		{
 			val result = mutableTwoByteStringOfSize(size)
 			var counter = 1
 			// Aggregate four writes at a time for the bulk of the string.
 			for (slotIndex in 1..(size ushr 2))
 			{
-				var combined: Long = 0
-				var shift = 0
-				while (shift < 64)
-				{
-					val c = generator(counter++).toLong()
-					assert(c and 0xFFFF == c)
-					combined += c shl shift
-					shift += 16
-				}
-				result.setSlot(RAW_LONGS_, slotIndex, combined)
+				result.setSlot(
+					RAW_LONGS_,
+					slotIndex,
+					generator(counter++).toLong() +
+						(generator(counter++).toLong() shl 16) +
+						(generator(counter++).toLong() shl 32) +
+						(generator(counter++).toLong() shl 48))
 			}
 			// Do the last 0-3 writes the slow way.
 			for (index in (size and 3.inv()) + 1 .. size)

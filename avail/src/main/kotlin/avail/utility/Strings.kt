@@ -357,7 +357,20 @@ object Strings
 		}
 		return (
 			if (allowPartials || matchLength == searchLength) matches
-			else listOf()
-		)
+			else listOf())
+	}
+
+	/**
+	 * If the receiver is more than [limit] characters, truncate it and append
+	 * the [ellipsis], ensuring the resulting string does not exceed the limit.
+	 * The limit must be at least the length of the ellipsis.
+	 */
+	fun String.truncateTo(limit: Int, ellipsis: String = "…"): String
+	{
+		assert(limit >= ellipsis.length)
+		return when {
+			length <= limit -> this
+			else -> substring(0, limit - ellipsis.length) + ellipsis
+		}
 	}
 }

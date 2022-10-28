@@ -35,23 +35,6 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.activeVersionSummary
-import avail.builder.AvailBuilder
-import avail.builder.ModuleName
-import avail.builder.ModuleNameResolver
-import avail.builder.ModuleRoot
-import avail.builder.ModuleRoots
-import avail.builder.RenamesFileParser
-import avail.builder.ResolvedModuleName
-import avail.builder.UnresolvedDependencyException
-import avail.descriptor.module.A_Module
-import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.phrases.A_Phrase
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.basePreferences
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenameSourceSubkeyString
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenameTargetSubkeyString
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenamesKeyString
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRootsKeyString
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRootsSourceSubkeyString
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.actions.AboutAction
 import avail.anvil.actions.BuildAction
@@ -61,6 +44,7 @@ import avail.anvil.actions.CleanModuleAction
 import avail.anvil.actions.ClearTranscriptAction
 import avail.anvil.actions.CreateProgramAction
 import avail.anvil.actions.DebugAction
+import avail.anvil.actions.DeleteModuleAction
 import avail.anvil.actions.ExamineCompilationAction
 import avail.anvil.actions.ExamineModuleManifest
 import avail.anvil.actions.ExamineRepositoryAction
@@ -120,8 +104,25 @@ import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
+import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.basePreferences
+import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenameSourceSubkeyString
+import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenameTargetSubkeyString
+import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenamesKeyString
+import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRootsKeyString
+import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRootsSourceSubkeyString
 import avail.anvil.window.LocalScreenState
 import avail.anvil.window.WorkbenchFrame
+import avail.builder.AvailBuilder
+import avail.builder.ModuleName
+import avail.builder.ModuleNameResolver
+import avail.builder.ModuleRoot
+import avail.builder.ModuleRoots
+import avail.builder.RenamesFileParser
+import avail.builder.ResolvedModuleName
+import avail.builder.UnresolvedDependencyException
+import avail.descriptor.module.A_Module
+import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.phrases.A_Phrase
 import avail.files.FileManager
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
@@ -131,7 +132,6 @@ import avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import avail.persistence.cache.Repositories
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
-import org.availlang.artifact.ResourceType
 import avail.stacks.StacksGenerator
 import avail.utility.IO
 import avail.utility.PrefixTree
@@ -141,6 +141,7 @@ import avail.utility.notNullAnd
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
+import org.availlang.artifact.ResourceType
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
@@ -194,7 +195,6 @@ import javax.swing.GroupLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JLabel
-import javax.swing.JMenu
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.JScrollPane
@@ -566,6 +566,9 @@ class AvailWorkbench internal constructor(
 
 	/** The action to [edit][OpenModuleAction] a module. */
 	private val openEditorAction = OpenModuleAction(this)
+
+	/** The action to [delete][DeleteModuleAction] a module or package. */
+	private val deleteModuleAction = DeleteModuleAction(this)
 
 	/**
 	 * The action to open a dialog that enables a user to search for a module by
@@ -943,6 +946,10 @@ class AvailWorkbench internal constructor(
 		newEditorAction.isEnabled = !busy && run {
 			val root = selectedModuleRoot() ?: (selectedModule()?.moduleRoot)
 			root.notNullAnd { getProjectRoot(name).notNullAnd { editable } }
+		}
+		deleteModuleAction.isEnabled = !busy && selectedModule().notNullAnd {
+			moduleRoot.resolver.canSave &&
+				getProjectRoot(moduleRoot.name).notNullAnd { editable }
 		}
 		inputField.isEnabled = !busy || isRunning
 		retrievePreviousAction.isEnabled = !busy
@@ -1730,15 +1737,28 @@ class AvailWorkbench internal constructor(
 		isResizable = true
 		background = rootPane.background
 
-		// Create the menu bar and its menus.
-		lateinit var buildMenu: JMenu
+		// Build the pop-up menu for the modules area.
+		val buildMenu = MenuBuilder.menu("Module") {
+			item(newEditorAction)
+			item(openEditorAction)
+			item(searchOpenModuleAction)
+			item(deleteModuleAction)
+			separator()
+			item(buildAction)
+			item(cancelAction)
+			separator()
+			item(unloadAction)
+			item(unloadAllAction)
+			item(cleanAction)
+			separator()
+			//item(cleanModuleAction)  //TODO MvG Fix implementation and enable.
+			item(refreshAction)
+		}
 
+		// Create the menu bar and its menus.
 		jMenuBar = createMenuBar {
-			buildMenu = menu("Build")
+			menu("Build")
 			{
-				item(newEditorAction)
-				item(openEditorAction)
-				separator()
 				item(buildAction)
 				item(cancelAction)
 				separator()
@@ -1754,6 +1774,7 @@ class AvailWorkbench internal constructor(
 				item(newEditorAction)
 				item(openEditorAction)
 				item(searchOpenModuleAction)
+				item(deleteModuleAction)
 			}
 			menu("Edit")
 			{
@@ -2211,7 +2232,7 @@ class AvailWorkbench internal constructor(
 	 * @return
 	 *   The [AvailProjectRoot] or `null` if not found.
 	 */
-	internal fun getProjectRoot (targetRootName: String): AvailProjectRoot? =
+	fun getProjectRoot (targetRootName: String): AvailProjectRoot? =
 		availProject.availProjectRoots.firstOrNull {
 			it.name == targetRootName
 		}
@@ -2611,14 +2632,13 @@ class AvailWorkbench internal constructor(
 			swingReady.acquire()
 
 			// Display the UI.
-			val bench =
-				AvailWorkbench(
-					project,
-					runtime,
-					fileManager,
-					resolver,
-					availProjectFilePath,
-					workbenchWindowTitle)
+			val bench = AvailWorkbench(
+				project,
+				runtime,
+				fileManager,
+				resolver,
+				availProjectFilePath,
+				workbenchWindowTitle)
 			// Inject a breakpoint handler into the runtime to open a debugger.
 			runtime.breakpointHandler = { fiber ->
 				val debugger = AvailDebugger(bench)

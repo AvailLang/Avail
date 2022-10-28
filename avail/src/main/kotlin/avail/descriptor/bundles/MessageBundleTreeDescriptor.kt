@@ -51,6 +51,8 @@ import avail.descriptor.bundles.A_Bundle.Companion.messagePart
 import avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.expand
+import avail.descriptor.bundles.A_BundleTree.Companion.hasBackwardJump
+import avail.descriptor.bundles.A_BundleTree.Companion.isSourceOfCycle
 import avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
 import avail.descriptor.bundles.A_BundleTree.Companion.lazyActions
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HASH
@@ -450,31 +452,116 @@ class MessageBundleTreeDescriptor private constructor(
 		self: AvailObject
 	): Array<AvailObjectFieldHelper>
 	{
-		val fields = super.o_DescribeForDebugger(self).toMutableList()
-		val actions = self.lazyActions
-		val actionEntries = actions.keysAsSet
-			.sortedBy { it.extractInt }
-			.map { key ->
-				val keyInt = key.extractInt
-				val operation = decode(keyInt)
-				val operand = operand(keyInt)
-				val description = operation.describe(operand)
+		val fields = when
+		{
+			self.isSourceOfCycle || self.hasBackwardJump ->
+				super.o_DescribeForDebugger(self).toMutableList()
+			else -> mutableListOf()
+		}
+		if (unclassified.mapSize > 0)
+		{
+			fields.add(
 				AvailObjectFieldHelper(
 					self,
 					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
 					-1,
-					actions.mapAt(key).toList().toTypedArray(),
-					slotName = description,
-					forcedName = description)
-			}
-		fields.add(
-			AvailObjectFieldHelper(
-				self,
-				DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
-				-1,
-				actionEntries.toTypedArray(),
-				slotName = "lazyActions",
-				forcedName = "lazyActions"))
+					unclassified,
+					slotName = "*** unclassified",
+					forcedName = "*** unclassified"))
+		}
+		if (latestBackwardJump.notNil)
+		{
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					latestBackwardJump,
+					slotName = "latestBackwardJump",
+					forcedName = "latestBackwardJump"))
+		}
+		if (lazyComplete.mapSize > 0)
+		{
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					lazyComplete,
+					slotName = "lazyComplete",
+					forcedName = "lazyComplete"))
+		}
+		if (lazyIncomplete.mapSize > 0)
+		{
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					lazyIncomplete,
+					slotName = "lazyIncomplete",
+					forcedName = "lazyIncomplete"))
+		}
+		if (lazyIncompleteCaseInsensitive.mapSize > 0)
+		{
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					lazyIncompleteCaseInsensitive,
+					slotName = "lazyIncompleteCaseInsensitive",
+					forcedName = "lazyIncompleteCaseInsensitive"))
+		}
+		val actions = self.lazyActions
+		if (actions.mapSize > 0)
+		{
+			val actionEntries = actions.keysAsSet
+				.sortedBy { it.extractInt }
+				.map { key ->
+					val keyInt = key.extractInt
+					val operation = decode(keyInt)
+					val operand = operand(keyInt)
+					val description = operation.describe(operand)
+					AvailObjectFieldHelper(
+						self,
+						DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+						-1,
+						actions.mapAt(key).toList().toTypedArray(),
+						slotName = description,
+						forcedName = description)
+				}
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					actionEntries.toTypedArray(),
+					slotName = "lazyActions",
+					forcedName = "lazyActions"))
+		}
+		if (lazyPrefilterMap.mapSize > 0)
+		{
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					lazyPrefilterMap,
+					slotName = "lazyPrefilterMap",
+					forcedName = "lazyPrefilterMap"))
+		}
+		if (lazyTypeFilterTree !== null)
+		{
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					lazyTypeFilterTree,
+					slotName = "lazyTypeFilterTree",
+					forcedName = "lazyTypeFilterTree"))
+		}
 		return fields.toTypedArray()
 	}
 

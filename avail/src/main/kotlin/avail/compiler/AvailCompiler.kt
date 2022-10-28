@@ -2333,7 +2333,16 @@ class AvailCompiler constructor(
 					|| compilationContext.module.hasAncestor(definitionModule)
 			}
 			var errorCode: AvailErrorCode? = null
-			if (visibleDefinitions.size == macros.tupleSize)
+			if (visibleDefinitions.size == 1
+				&& method.definitionsTuple.tupleSize == 0)
+			{
+				// Special case for speed.  If only one macro definition is
+				// visible and there are no method definitions, then the parser
+				// will have already fully checked all arguments for us, so we
+				// don't have to check them again with a lookup tree.
+				macro = visibleDefinitions[0]
+			}
+			else if (visibleDefinitions.size == macros.tupleSize)
 			{
 				// All macro definitions are visible.  Use the lookup tree.
 				val matchingMacros = bundle.lookupMacroByPhraseTuple(
@@ -2355,7 +2364,6 @@ class AvailCompiler constructor(
 					macroDefinition.bodySignature()
 						.couldEverBeInvokedWith(phraseRestrictions)
 				}
-
 				when (filtered.size)
 				{
 					1 -> macro = filtered[0]

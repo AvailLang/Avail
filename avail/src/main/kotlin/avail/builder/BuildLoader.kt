@@ -214,7 +214,7 @@ internal class BuildLoader constructor(
 			// we run it right now in the current thread, it will recurse,
 			// potentially deeply, as the already-loaded part of the module
 			// graph is skipped in this way.  To avoid this deep stack, queue a
-			// task run the completionAction.
+			// task to run the completionAction.
 			availBuilder.runtime.execute(loaderPriority, completionAction)
 		}
 		else

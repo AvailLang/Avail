@@ -46,19 +46,43 @@ package avail.utility.structures
  * spine.  In fact, the rank can be *defined* as zero for a leaf, or the right
  * subtree's rank + 1.
  *
+ * @constructor
+ * Construct a heap.
+ *
+ * @param rank
+ *   The rank of the heap, which is the number of values along the right spine.
+ * @param size
+ *   The number of values in the heap.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-sealed class LeftistHeap<Value : Comparable<Value>>
-constructor (
+sealed class LeftistHeap<Value : Comparable<Value>>(
 	val rank: Int,
 	val size: Int)
 {
+	/** Whether this heap is empty. */
 	val isEmpty: Boolean get() = this === TheLeftistLeaf
+
+	/** The minimum value of this heap. */
 	abstract val first: Value
+
+	/** A heap having all but its minimum value. */
 	abstract val withoutFirst: LeftistHeap<Value>
-	abstract fun with(newValue: Value): LeftistInternal<Value>
+
+	/** A heap with one more element. */
+	abstract fun with(newValue: Value): LeftistHeap<Value>
+
+	/** Merge this heap with another. */
 	abstract fun merge(another: LeftistHeap<Value>): LeftistHeap<Value>
+
+	/**
+	 * Create a heap with a specific element removed.  This is particularly
+	 * efficient (O(log(N))) when the element is the minimal element, although
+	 * [withoutFirst] is the preferred form.
+	 */
 	abstract fun without(value: Value): LeftistHeap<Value>
+
+	/** Collect the heap's elements in a [List] in arbitrary order. */
 	fun toList(): List<Value>
 	{
 		val list = mutableListOf<Value>()
@@ -84,13 +108,30 @@ private open class LeftistLeaf<Value : Comparable<Value>>
 	override fun without(value: Value) = this
 }
 
+/** The sole empty heap. */
 private object TheLeftistLeaf : LeftistLeaf<Nothing>()
 
+/**
+ * Answer the sole empty heap, cast to the desired element type.  This cast is
+ * fine, since by definition there are no elements in an empty heap.
+ */
 @Suppress("UNCHECKED_CAST")
 fun <Value: Comparable<Value>> leftistLeaf(): LeftistHeap<Value> =
 	TheLeftistLeaf as LeftistHeap<Value>
 
-class LeftistInternal<Value : Comparable<Value>>
+/**
+ * @constructor
+ * Create a heap with at least one element.
+ *
+ * @param first
+ *   The minimal element of the heap.
+ * @param left
+ *   The left child heap.  Its elements must all be > [first].
+ * @param right
+ *   The right child heap.  Its elements must all be > [first], and its [rank]
+ *   must be less than [left]'s rank.
+ */
+private class LeftistInternal<Value : Comparable<Value>>
 constructor(
 	override val first: Value,
 	val left: LeftistHeap<Value>,
@@ -118,6 +159,11 @@ constructor(
 	}
 }
 
+/**
+ * Create a new [LeftistInternal], choosing the lesser-rank child to go on the
+ * right.  The caller must ensure the [value] is less than all elements in [a]
+ * or [b].
+ */
 private fun <Value : Comparable<Value>> join(
 	value: Value,
 	a: LeftistHeap<Value>,

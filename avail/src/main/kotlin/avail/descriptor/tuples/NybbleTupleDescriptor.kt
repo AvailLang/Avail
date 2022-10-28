@@ -210,7 +210,8 @@ class NybbleTupleDescriptor private constructor(
 					return when (val codePoint = strongNewElement.codePoint)
 					{
 						in 0 .. 0xFF -> generateByteString(1) { codePoint }
-						in 0 .. 0xFFFF -> generateTwoByteString(1) { codePoint }
+						in 0 .. 0xFFFF ->
+							generateTwoByteString(1) { codePoint.toUShort() }
 						else -> tuple(strongNewElement)
 					}
 				strongNewElement.isLong ->
