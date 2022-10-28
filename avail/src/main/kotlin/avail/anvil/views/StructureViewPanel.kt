@@ -443,7 +443,7 @@ class StructureViewPanel constructor (
 			}
 			else
 			{
-				updateView(workbench.openEditors.values.first())
+				workbench.openEditors.values.first().openStructureView()
 			}
 		}
 	}
