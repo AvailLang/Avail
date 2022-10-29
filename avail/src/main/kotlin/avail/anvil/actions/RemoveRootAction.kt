@@ -1,5 +1,5 @@
 /*
- * DeleteModuleAction.kt
+ * RemoveRootAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,89 +33,103 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.streams.StreamStyle
-import avail.utility.isNullOr
+import avail.utility.notNullAnd
+import org.availlang.json.JSONWriter
 import java.awt.event.ActionEvent
-import java.nio.file.Path
+import java.io.File
 import javax.swing.Action
 import javax.swing.JOptionPane
-import javax.swing.JOptionPane.ERROR_MESSAGE
-import javax.swing.JOptionPane.OK_CANCEL_OPTION
-import javax.swing.JOptionPane.OK_OPTION
+import javax.swing.JOptionPane.CANCEL_OPTION
+import javax.swing.JOptionPane.NO_OPTION
 import javax.swing.JOptionPane.WARNING_MESSAGE
+import javax.swing.JOptionPane.YES_NO_CANCEL_OPTION
+import javax.swing.JOptionPane.YES_OPTION
 import kotlin.io.path.toPath
 
 /**
- * Delete a module file or package directory.
+ * Remove a root from the current project configuration.
  *
  * @constructor
- * Construct a new [DeleteModuleAction].
+ * Construct a new [RemoveRootAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class DeleteModuleAction
+class RemoveRootAction
 constructor (
 	workbench: AvailWorkbench,
 ) : AbstractWorkbenchAction(
 	workbench,
-	"Delete module")
+	"Remove root")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
-		val module = workbench.selectedModule()!!
-		val resolverReference = module.resolverReference
-		val root = module.moduleRoot
-		val message: String
-		val title: String
-		val pathToDelete: Path
-		if (!root.resolver.canSave ||
-			workbench.getProjectRoot(root.name).isNullOr {!editable })
+		val root = workbench.selectedModuleRoot()!!
+		var deleteDirectory = false
+		if (root.resolver.canSave &&
+			workbench.getProjectRoot(root.name).notNullAnd { editable })
+		{
+			val response = JOptionPane.showOptionDialog(
+				workbench,
+				"Also delete the entire directory?",
+				"Confirm directory deletion",
+				YES_NO_CANCEL_OPTION,
+				WARNING_MESSAGE,
+				null,
+				null,
+				NO_OPTION)
+			when (response)
+			{
+				CANCEL_OPTION -> return
+				YES_OPTION -> deleteDirectory = true
+			}
+		}
+		val project = workbench.availProject
+		val projectRoot = workbench.getProjectRoot(root.name)!!
+		val removedRoot = project.removeRoot(projectRoot.id)
+		if (removedRoot == null)
 		{
 			JOptionPane.showMessageDialog(
 				workbench,
-				"Modules within this root (${root.name}) cannot "
-					+ "be modified.",
-				"Cannot modify",
-				ERROR_MESSAGE)
+				"Internal error - could not remove root \"${root.name}\".",
+				"Warning",
+				WARNING_MESSAGE)
 			return
 		}
-		when
+		// Update the runtime as well.
+		workbench.runtime.moduleRoots().removeRoot(root.name)
+		val projectFilePath = workbench.availProjectFilePath
+		// We're allowed to edit the roots even if there's no backing project
+		// file.  We have nowhere to write back the new configuration, but it's
+		// still useful while the project is open.
+		if (projectFilePath.isNotEmpty())
 		{
-			resolverReference.isPackageRepresentative ->
+			// Update the backing project file.
+			val writer = JSONWriter.newPrettyPrinterWriter()
+			workbench.availProject.writeTo(writer)
+			File(projectFilePath).writeText(writer.contents())
+		}
+		if (deleteDirectory)
+		{
+			val success =
+				root.resolver.uri.toPath().toFile().deleteRecursively()
+			if (!success)
 			{
-				message = "Delete this package " +
-					"(${resolverReference.parentName}) " +
-					"and all modules within it?"
-				title = "Confirm package deletion"
-				pathToDelete = resolverReference.uri.toPath().parent
-			}
-			else ->
-			{
-				message = "Delete this module (${module.qualifiedName})?"
-				title = "Confirm module deletion"
-				pathToDelete = resolverReference.uri.toPath()
+				JOptionPane.showMessageDialog(
+					workbench,
+					"Unable to delete some of the files and directories.",
+					"Warning",
+					WARNING_MESSAGE)
 			}
 		}
-		val ret = JOptionPane.showOptionDialog(
-			workbench,
-			message,
-			title,
-			OK_CANCEL_OPTION,
-			WARNING_MESSAGE,
-			null,
-			null,
-			OK_OPTION)
-		if (ret != OK_OPTION) return
-		workbench.writeText("Deleting: $pathToDelete...\n", StreamStyle.INFO)
-		pathToDelete.toFile().deleteRecursively()
-		workbench.writeText("Done.\n", StreamStyle.INFO)
+		// Refresh it visually to eliminate the root from the workbench.
+		workbench.refreshAction.runAction()
 	}
 
 	init
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"Create a new module.")
+			"Remove this module root from the project.")
 	}
 }

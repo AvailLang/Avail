@@ -59,6 +59,7 @@ import avail.anvil.actions.OpenModuleAction
 import avail.anvil.actions.ParserIntegrityCheckAction
 import avail.anvil.actions.PreferencesAction
 import avail.anvil.actions.RefreshAction
+import avail.anvil.actions.RemoveRootAction
 import avail.anvil.actions.ResetCCReportDataAction
 import avail.anvil.actions.ResetVMReportDataAction
 import avail.anvil.actions.RetrieveNextCommand
@@ -104,12 +105,6 @@ import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.basePreferences
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenameSourceSubkeyString
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenameTargetSubkeyString
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRenamesKeyString
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRootsKeyString
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.moduleRootsSourceSubkeyString
 import avail.anvil.window.LocalScreenState
 import avail.anvil.window.WorkbenchFrame
 import avail.builder.AvailBuilder
@@ -137,6 +132,7 @@ import avail.utility.IO
 import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
+import avail.utility.isNullOr
 import avail.utility.notNullAnd
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
@@ -171,7 +167,6 @@ import java.io.PrintStream
 import java.io.Reader
 import java.io.StringReader
 import java.io.UnsupportedEncodingException
-import java.lang.Integer.parseInt
 import java.lang.String.format
 import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets.UTF_8
@@ -189,7 +184,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.prefs.BackingStoreException
 import javax.swing.Action
 import javax.swing.GroupLayout
 import javax.swing.ImageIcon
@@ -410,7 +404,7 @@ class AvailWorkbench internal constructor(
 	/* Actions. */
 
 	/** The [refresh action][RefreshAction]. */
-	private val refreshAction = RefreshAction(this)
+	val refreshAction = RefreshAction(this)
 
 	/** The [FindAction] for finding/replacing text in a text area. */
 	private val findAction = FindAction(this, this)
@@ -555,10 +549,13 @@ class AvailWorkbench internal constructor(
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
 
-	/** The [insert entry point action][InsertEntryPointAction]. */
+	/**
+	 * The [action][InsertEntryPointAction] to insert an entry point invocation
+	 * into the command area.
+	 */
 	internal val insertEntryPointAction = InsertEntryPointAction(this)
 
-	/** The [action to build an entry point module][BuildAction]. */
+	/** The [action][BuildAction] to build an entry point module. */
 	internal val buildEntryPointModuleAction = BuildAction(this, true)
 
 	/** The action to open a [new][NewModuleAction] module editor. */
@@ -569,6 +566,9 @@ class AvailWorkbench internal constructor(
 
 	/** The action to [delete][DeleteModuleAction] a module or package. */
 	private val deleteModuleAction = DeleteModuleAction(this)
+
+	/** The [action][RemoveRootAction] to remove a root from the project. */
+	private val removeRootAction = RemoveRootAction(this)
 
 	/**
 	 * The action to open a dialog that enables a user to search for a module by
@@ -942,6 +942,7 @@ class AvailWorkbench internal constructor(
 		val busy = backgroundTask !== null || isRunning
 		buildProgress.isEnabled = busy
 		buildProgress.isVisible = backgroundTask is BuildTask
+		removeRootAction.isEnabled = selectedModuleRoot() != null
 		openEditorAction.isEnabled = !busy && selectedModule() !== null
 		newEditorAction.isEnabled = !busy && run {
 			val root = selectedModuleRoot() ?: (selectedModule()?.moduleRoot)
@@ -1108,7 +1109,8 @@ class AvailWorkbench internal constructor(
 		val sortedRootNodes = Collections.synchronizedList(
 			mutableListOf<ModuleRootNode>())
 		val treeRoot = DefaultMutableTreeNode("(packages hidden root)")
-		val rootCount = AtomicInteger(roots.roots.size)
+		// One extra to make the no-roots case easier.
+		val rootCount = AtomicInteger(roots.roots.size + 1)
 		val decrement = {
 			if (rootCount.decrementAndGet() == 0)
 			{
@@ -1119,16 +1121,15 @@ class AvailWorkbench internal constructor(
 					treeRoot.preorderEnumeration().iterator().cast()
 				iterator.next()
 				iterator.forEachRemaining(
-					AbstractBuilderFrameTreeNode::sortChildren
-				)
+					AbstractBuilderFrameTreeNode::sortChildren)
 				withTreeNode(treeRoot)
 			}
 		}
-		// Put the invisible root onto the work stack.
+		// Start jobs to trace each root.
 		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
-			val projRoot = getProjectRoot(root.name) ?: return@forEach
-			if (!projRoot.visible)
+			val projRoot = getProjectRoot(root.name)
+			if (projRoot.isNullOr { !visible })
 			{
 				decrement()
 				return@forEach
@@ -1137,7 +1138,7 @@ class AvailWorkbench internal constructor(
 			root.resolver.provideModuleRootTree(
 				{
 					val node =
-						ModuleRootNode(availBuilder, projRoot.editable, root)
+						ModuleRootNode(availBuilder, projRoot!!.editable, root)
 					createRootNodesThen(node, it) {
 						sortedRootNodes.add(node)
 						// Need to wait for every module to finish the
@@ -1152,6 +1153,8 @@ class AvailWorkbench internal constructor(
 					ex?.printStackTrace()
 				})
 		}
+		// One extra, handling no-roots case.
+		decrement()
 	}
 
 	/**
@@ -1187,8 +1190,7 @@ class AvailWorkbench internal constructor(
 				{
 					try
 					{
-						val resolved =
-							resolver.resolve(it.moduleName)
+						val resolved = resolver.resolve(it.moduleName)
 						val node = ModuleOrPackageNode(
 							availBuilder, it.moduleName, resolved, false)
 						parentNode.add(node)
@@ -1569,65 +1571,6 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * Save the current [ModuleRoots] and rename rules to the preferences
-	 * storage.
-	 */
-	fun saveModuleConfiguration()
-	{
-		try
-		{
-			val rootsNode = basePreferences.node(moduleRootsKeyString)
-			val roots = resolver.moduleRoots
-			rootsNode.childrenNames().forEach { oldChildName ->
-				if (roots.moduleRootFor(oldChildName) === null)
-				{
-					rootsNode.node(oldChildName).removeNode()
-				}
-			}
-			roots.forEach { root ->
-				val childNode = rootsNode.node(root.name)
-				childNode.put(
-					moduleRootsSourceSubkeyString,
-					root.resolver.uri.toString())
-			}
-
-			val renamesNode =
-				basePreferences.node(moduleRenamesKeyString)
-			val renames = resolver.renameRules
-			renamesNode.childrenNames().forEach { oldChildName ->
-				val nameInt = try
-				{
-					parseInt(oldChildName)
-				}
-				catch (e: NumberFormatException)
-				{
-					-1
-				}
-
-				if (oldChildName != nameInt.toString()
-					|| nameInt < 0
-					|| nameInt >= renames.size)
-				{
-					renamesNode.node(oldChildName).removeNode()
-				}
-			}
-			var rowCounter = 0
-			renames.forEach { (key, value) ->
-				val childNode = renamesNode.node(rowCounter.toString())
-				childNode.put(moduleRenameSourceSubkeyString, key)
-				childNode.put(moduleRenameTargetSubkeyString, value)
-				rowCounter++
-			}
-			basePreferences.flush()
-		}
-		catch (e: BackingStoreException)
-		{
-			System.err.println(
-				"Unable to write Avail roots/renames preferences.")
-		}
-	}
-
-	/**
 	 * Write text to the transcript with the given [StreamStyle].
 	 *
 	 * @param text
@@ -1739,6 +1682,8 @@ class AvailWorkbench internal constructor(
 
 		// Build the pop-up menu for the modules area.
 		val buildMenu = MenuBuilder.menu("Module") {
+			item(removeRootAction)
+			separator()
 			item(newEditorAction)
 			item(openEditorAction)
 			item(searchOpenModuleAction)
@@ -1771,6 +1716,8 @@ class AvailWorkbench internal constructor(
 			}
 			menu("Module")
 			{
+				item(removeRootAction)
+				separator()
 				item(newEditorAction)
 				item(openEditorAction)
 				item(searchOpenModuleAction)
@@ -2097,14 +2044,14 @@ class AvailWorkbench internal constructor(
 		if (System.getProperty("os.name").startsWith("Mac"))
 		{
 			// Set up desktop and taskbar features.
-			Desktop.getDesktop().setDefaultMenuBar(jMenuBar)
+			Desktop.getDesktop().run {
+				setDefaultMenuBar(jMenuBar)
+				setAboutHandler { aboutAction.showDialog() }
+				setPreferencesHandler {
+					preferencesAction.actionPerformed(null)
+				}
+			}
 			jMenuBar.maximumSize = Dimension(0, 0)
-			setAboutHandler {
-				aboutAction.showDialog()
-			}
-			setPreferencesHandler {
-				preferencesAction.actionPerformed(null)
-			}
 			Taskbar.getTaskbar().run {
 				iconImage = ImageIcon(
 					AvailWorkbench::class.java.classLoader.getResource(
@@ -2331,87 +2278,6 @@ class AvailWorkbench internal constructor(
 		private val removeStringStat =
 			Statistic(WORKBENCH_TRANSCRIPT, "Remove string")
 
-		/**
-		 * Parse the [ModuleRoots] from the module roots preferences node.
-		 *
-		 * @param fileManager
-		 *   The [FileManager] used to manage Avail files.
-		 * @return The `ModuleRoots` constructed from the preferences node.
-		 */
-		private fun loadModuleRoots(fileManager: FileManager): ModuleRoots
-		{
-			val outerSemaphore = Semaphore(0)
-			val roots = ModuleRoots(fileManager, "") {
-				// Ignore the failures during the initial scan.
-				outerSemaphore.release()
-			}
-			outerSemaphore.acquireUninterruptibly()
-			roots.clearRoots()
-			val node = basePreferences.node(moduleRootsKeyString)
-			val pairs = mutableListOf<Pair<String, String>>()
-			try
-			{
-				node.childrenNames().forEach { childName ->
-					val childNode = node.node(childName)
-					val sourceName = childNode.get(
-						moduleRootsSourceSubkeyString, "")
-					pairs.add(childName to sourceName)
-				}
-			} catch (e: BackingStoreException)
-			{
-				System.err.println("Unable to read Avail roots preferences.")
-				return roots
-			}
-			val decrement = AtomicInteger(pairs.size)
-			pairs.forEach { (rootName, uri) ->
-				roots.addRoot(rootName, uri) { failures ->
-					failures.forEach { failure ->
-						System.err.println(failure)
-					}
-					if (decrement.decrementAndGet() == 0)
-					{
-						outerSemaphore.release()
-					}
-				}
-			}
-			outerSemaphore.acquire()
-			return roots
-		}
-
-		/**
-		 * Parse the [ModuleRoots] from the module roots preferences node.
-		 *
-		 * @param resolver
-		 *   The [ModuleNameResolver] used for resolving module names.
-		 */
-		private fun loadRenameRulesInto(resolver: ModuleNameResolver)
-		{
-			resolver.clearRenameRules()
-			val node = basePreferences.node(moduleRenamesKeyString)
-			try
-			{
-				val childNames = node.childrenNames()
-				childNames.forEach { childName ->
-					val childNode = node.node(childName)
-					val source = childNode.get(
-						moduleRenameSourceSubkeyString, "")
-					val target = childNode.get(
-						moduleRenameTargetSubkeyString, "")
-					// Ignore empty sources and targets, although they shouldn't
-					// occur.
-					if (source.isNotEmpty() && target.isNotEmpty())
-					{
-						resolver.addRenameRule(source, target)
-					}
-				}
-			}
-			catch (e: BackingStoreException)
-			{
-				System.err.println(
-					"Unable to read Avail rename rule preferences.")
-			}
-		}
-
 		/** Statistic for waiting for updateQueue's monitor. */
 		internal val waitForDequeLockStat = Statistic(
 			WORKBENCH_TRANSCRIPT, "Wait for lock to trim old entries")
@@ -2465,30 +2331,6 @@ class AvailWorkbench internal constructor(
 					}
 				}
 			}
-		}
-
-		/**
-		 * Pass this method an Object and Method equipped to display application
-		 * info.  They will be called when the About menu item is selected from
-		 * the application menu.
-		 *
-		 * @param aboutHandler
-		 */
-		fun setAboutHandler (aboutHandler: () -> Unit)
-		{
-			Desktop.getDesktop().setAboutHandler { aboutHandler() }
-		}
-
-		/**
-		 * Pass this method a function which displays and edits application
-		 * options. It will be invoked when the Preferences menu item is
-		 * selected from the application menu.
-		 *
-		 * @param preferences
-		 */
-		fun setPreferencesHandler (preferences: ()-> Unit)
-		{
-			Desktop.getDesktop().setPreferencesHandler { preferences() }
 		}
 
 		/**
@@ -2575,25 +2417,12 @@ class AvailWorkbench internal constructor(
 			}
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()
-			val roots = when
-			{
-				// Read the persistent preferences file...
-				rootsString.isEmpty() -> loadModuleRoots(fileManager)
-				// Providing availRoots on command line overrides preferences...
-				else ->
-				{
-					val semaphore = Semaphore(0)
-					val roots = ModuleRoots(fileManager, rootsString) { fails ->
-						if (fails.isNotEmpty())
-						{
-							failedResolutions.addAll(fails)
-						}
-						semaphore.release()
-					}
-					semaphore.acquireUninterruptibly()
-					roots
-				}
+			val semaphore = Semaphore(0)
+			val roots = ModuleRoots(fileManager, rootsString) { fails ->
+				failedResolutions.addAll(fails)
+				semaphore.release()
 			}
+			semaphore.acquireUninterruptibly()
 			val resolutionTime = currentTimeMillis() - rootResolutionStart
 			lateinit var resolver: ModuleNameResolver
 			lateinit var runtime: AvailRuntime
@@ -2604,21 +2433,14 @@ class AvailWorkbench internal constructor(
 					val renames = System.getProperty("availRenames", null)
 					reader = when (renames)
 					{
-						// Load the renames from preferences further down.
 						null -> StringReader("")
-						// Load renames from file specified on the command line...
+						// Load renames from file specified on the command line.
 						else -> BufferedReader(
 							InputStreamReader(
-								FileInputStream(File(renames)),
-								UTF_8))
+								FileInputStream(File(renames)), UTF_8))
 					}
 					val renameParser = RenamesFileParser(reader, roots)
 					resolver = renameParser.parse()
-					if (renames === null)
-					{
-						// Now load the rename rules from preferences.
-						loadRenameRulesInto(resolver)
-					}
 				}
 				finally
 				{

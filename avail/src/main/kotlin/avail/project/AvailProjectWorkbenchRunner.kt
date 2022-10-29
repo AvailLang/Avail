@@ -36,8 +36,10 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.projects.GlobalAvailConfiguration
 import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
 import org.availlang.artifact.environment.AvailEnvironment.optionallyCreateAvailUserHome
+import org.availlang.artifact.environment.location.InvalidLocation
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
+import org.availlang.artifact.environment.project.AvailProjectV1
 import org.availlang.json.jsonObject
 import java.io.File
 
@@ -84,10 +86,22 @@ object AvailProjectWorkbenchRunner
 		optionallyCreateAvailUserHome()
 		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
 			.removeSuffix(File.separator)
-		val availProject =
+		val availProject = try
+		{
 			AvailProject.from(
 				projectPath,
 				jsonObject(configFile.readText(Charsets.UTF_8)))
+		}
+		catch (e: Exception)
+		{
+			System.err.println(
+				"Error parsing project:\n${e.stackTraceToString()}")
+			// Hobble on.
+			AvailProjectV1(
+				"Unknown project",
+				true,
+				InvalidLocation("", "Unable to parse config file: $e"))
+		}
 		System.setProperty(
 			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())
 		val globalConfig = GlobalAvailConfiguration.getGlobalConfig().apply {

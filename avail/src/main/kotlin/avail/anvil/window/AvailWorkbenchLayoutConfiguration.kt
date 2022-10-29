@@ -32,12 +32,10 @@
 
 package avail.anvil.window
 
-import avail.builder.ModuleRoots
 import avail.anvil.AvailWorkbench
 import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.awt.Rectangle
-import java.util.prefs.Preferences
 import kotlin.math.max
 import kotlin.math.min
 
@@ -175,25 +173,6 @@ class AvailWorkbenchLayoutConfiguration private constructor ()
 		 */
 		fun resource(localResourceName: String): String =
 			resourcePrefix + localResourceName
-
-		/** The user-specific [Preferences] for this application to use. */
-		val basePreferences: Preferences =
-			Preferences.userNodeForPackage(AvailWorkbench::class.java)
-
-		/** The key under which to store the [ModuleRoots]. */
-		const val moduleRootsKeyString = "module roots"
-
-		/** The subkey that holds a root's source directory name. */
-		const val moduleRootsSourceSubkeyString = "source"
-
-		/** The key under which to store the module rename rules. */
-		const val moduleRenamesKeyString = "module renames"
-
-		/** The subkey that holds a rename rule's source module name. */
-		const val moduleRenameSourceSubkeyString = "source"
-
-		/** The subkey that holds a rename rule's replacement module name. */
-		const val moduleRenameTargetSubkeyString = "target"
 
 		/**
 		 * Create a [AvailWorkbenchLayoutConfiguration] from the provided input

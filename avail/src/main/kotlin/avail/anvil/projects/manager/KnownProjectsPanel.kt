@@ -260,7 +260,8 @@ internal class KnownProjectsPanel constructor(
 				if (result == JFileChooser.APPROVE_OPTION)
 				{
 					val configFile = selectedFile
-					val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
+					val projectPath = configFile.absolutePath
+						.removeSuffix(configFile.name)
 						.removeSuffix(File.separator)
 					val project = try
 					{

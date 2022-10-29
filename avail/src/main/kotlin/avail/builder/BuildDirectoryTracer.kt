@@ -122,7 +122,17 @@ class BuildDirectoryTracer constructor(
 		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit)
 	{
 		val moduleRoots = availBuilder.runtime.moduleRoots()
-		val countDown = AtomicInteger(moduleRoots.roots.size)
+		// Extra one is to simplify the no roots case.
+		val countDown = AtomicInteger(moduleRoots.roots.size + 1)
+		val decrement = {
+			if (countDown.decrementAndGet() == 0)
+			{
+				synchronized(this) {
+					allQueued = true
+					checkForCompletion()
+				}
+			}
+		}
 		for (moduleRoot in moduleRoots)
 		{
 			traceAllModuleHeaders(
@@ -130,17 +140,13 @@ class BuildDirectoryTracer constructor(
 				moduleAction,
 				{ _, _, _ ->
 					// Ignore exceptions during header tracing.
-				}
+				},
 			) {
-				if (countDown.decrementAndGet() == 0)
-				{
-					synchronized(this) {
-						allQueued = true
-						checkForCompletion()
-					}
-				}
+				decrement()
 			}
 		}
+		// Simplify the case of no roots.
+		decrement()
 	}
 
 	/**

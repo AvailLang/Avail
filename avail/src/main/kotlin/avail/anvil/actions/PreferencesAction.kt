@@ -48,6 +48,7 @@ import javax.swing.GroupLayout.Alignment
 import javax.swing.JButton
 import javax.swing.JDialog
 import javax.swing.JLabel
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTable
@@ -60,6 +61,8 @@ import kotlin.math.min
 
 /**
  * A [PreferencesAction] presents the preferences dialog.
+ * TODO Implement user preferences not related to roots/renames or other
+ *  project-specific data stored in JSON config file.
  *
  * @constructor
  * Construct a new [PreferencesAction].
@@ -67,15 +70,16 @@ import kotlin.math.min
  * @param workbench
  *   The owning [AvailWorkbench].
  */
+@Deprecated("Placeholder until we have preferences that aren't in JSON file.")
 class PreferencesAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Preferences…")
 {
-	internal var preferencesDialog: JDialog? = null
+	private var preferencesDialog: JDialog? = null
 
-	internal val rootsTableModel =
+	private val rootsTableModel =
 		SimpleTableModel("root", "source")
 
-	internal val renamesTableModel =
+	private val renamesTableModel =
 		SimpleTableModel("module", "replacement path")
 
 	inner class SimpleTableModel internal constructor(
@@ -103,6 +107,17 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 
 	override fun actionPerformed(event: ActionEvent?)
 	{
+		// Do nothing for now.
+		if (true)
+		{
+			JOptionPane.showMessageDialog(
+				workbench,
+				"Preferences dialog is currently under construction.",
+				"Warning",
+				JOptionPane.WARNING_MESSAGE)
+			return
+		}
+
 		if (preferencesDialog === null)
 		{
 			createDialog()
@@ -117,6 +132,9 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 
 	fun savePreferences()
 	{
+		// Stubbed until it has non-roots/renames functionality.
+		if (true) return
+
 		// Rebuild the ModuleRoots from the rootsTableModel.
 		val roots = workbench.resolver.moduleRoots
 		Repositories.closeAllRepositories()
@@ -155,7 +173,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			workbench.resolver.addRenameRule(pair[0], pair[1])
 		}
 
-		workbench.saveModuleConfiguration()
+//		workbench.saveModuleConfiguration()
 	}
 
 	/**
@@ -171,145 +189,48 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 
 		preferencesDialog = JDialog(workbench, "Preferences")
 
-
 		// Add the module roots area.
 		val rootsLabel = JLabel("Avail module roots")
 		panel.add(rootsLabel)
-
 		rootsTableModel.rows.clear()
 		for (root in workbench.resolver.moduleRoots.roots)
 		{
-			val double = mutableListOf<String>()
-			double.add(root.name)
-			double.add(root.resolver.uri.toString())
-			rootsTableModel.rows.add(double)
+			rootsTableModel.rows.add(
+				mutableListOf(root.name, root.resolver.uri.toString()))
 		}
 		val rootsTable = JTable(rootsTableModel)
 		rootsTable.putClientProperty("terminateEditOnFocusLost", true)
 		val rootsColumns = rootsTable.columnModel
-		rootsColumns.getColumn(0).minWidth = 30
-		rootsColumns.getColumn(0).preferredWidth = 60
-		rootsColumns.getColumn(1).minWidth = 50
-		rootsColumns.getColumn(1).preferredWidth = 500
-		rootsTable.gridColor = Color.gray
-		rootsTable.fillsViewportHeight = true
+		rootsColumns.getColumn(0).run { minWidth = 30; preferredWidth = 60 }
+		rootsColumns.getColumn(1).run { minWidth = 50;  preferredWidth = 500 }
 		val rootsScrollPane = JScrollPane(rootsTable)
 		panel.add(rootsScrollPane)
-
-		val addRootAction = object : AbstractWorkbenchAction(workbench, "+")
-		{
-			override fun actionPerformed(e: ActionEvent)
-			{
-				var insertionIndex = rootsTable.selectedRow
-				if (insertionIndex == -1)
-				{
-					insertionIndex = rootsTableModel.rowCount
-				}
-				rootsTableModel.rows.add(
-					insertionIndex, mutableListOf("", ""))
-				rootsTableModel.fireTableDataChanged()
-				rootsTable.changeSelection(
-					insertionIndex, 0, false, false)
-			}
-		}
+		val (addRootAction, removeRootAction) = actionsFor(rootsTable)
 		val addRootButton = JButton(addRootAction)
 		panel.add(addRootButton)
-
-		val removeRootAction = object : AbstractWorkbenchAction(workbench, "-")
-		{
-			override fun actionPerformed(e: ActionEvent)
-			{
-				val deletionIndex = rootsTable.selectedRow
-				if (deletionIndex != -1)
-				{
-					rootsTableModel.rows.removeAt(deletionIndex)
-					rootsTableModel.fireTableDataChanged()
-					rootsTable.changeSelection(
-						if (rootsTableModel.rows.isEmpty())
-							-1
-						else
-							min(
-								deletionIndex,
-								rootsTableModel.rowCount - 1),
-						0,
-						false,
-						false)
-				}
-			}
-		}
 		val removeRootButton = JButton(removeRootAction)
 		panel.add(removeRootButton)
-
 
 		// Add the renames area.
 		val renamesLabel = JLabel("Renames")
 		panel.add(renamesLabel)
-
 		renamesTableModel.rows.clear()
 		for ((key, value) in workbench.resolver.renameRules)
 		{
-			val pair = mutableListOf<String>()
-			pair.add(key)
-			pair.add(value)
-			renamesTableModel.rows.add(pair)
+			renamesTableModel.rows.add(mutableListOf(key, value))
 		}
-
 		val renamesTable = JTable(renamesTableModel)
 		renamesTable.putClientProperty("terminateEditOnFocusLost", true)
 		val renamesColumns = renamesTable.columnModel
-		renamesColumns.getColumn(0).minWidth = 50
-		renamesColumns.getColumn(0).preferredWidth = 400
-		renamesColumns.getColumn(1).minWidth = 50
-		renamesColumns.getColumn(1).preferredWidth = 400
-		renamesTable.gridColor = Color.gray
-		renamesTable.fillsViewportHeight = true
+		renamesColumns.getColumn(0).run { minWidth = 50; preferredWidth = 400 }
+		renamesColumns.getColumn(1).run { minWidth = 50; preferredWidth = 400 }
 		val renamesScrollPane = JScrollPane(renamesTable)
 		panel.add(renamesScrollPane)
-
-		val addRenameAction = object : AbstractWorkbenchAction(workbench, "+")
-		{
-			override fun actionPerformed(e: ActionEvent)
-			{
-				var insertionIndex = renamesTable.selectedRow
-				if (insertionIndex == -1)
-				{
-					insertionIndex = renamesTableModel.rowCount
-				}
-				renamesTableModel.rows.add(
-					insertionIndex, mutableListOf("", ""))
-				renamesTableModel.fireTableDataChanged()
-				renamesTable.changeSelection(
-					insertionIndex, 0, false, false)
-			}
-		}
+		val (addRenameAction, removeRenameAction) = actionsFor(renamesTable)
 		val addRenameButton = JButton(addRenameAction)
 		panel.add(addRenameButton)
-
-		val removeRenameAction = object : AbstractWorkbenchAction(workbench, "-")
-		{
-			override fun actionPerformed(e: ActionEvent)
-			{
-				val deletionIndex = renamesTable.selectedRow
-				if (deletionIndex != -1)
-				{
-					renamesTableModel.rows.removeAt(deletionIndex)
-					renamesTableModel.fireTableDataChanged()
-					renamesTable.changeSelection(
-						if (renamesTableModel.rows.isEmpty())
-							-1
-						else
-							min(
-								deletionIndex,
-								renamesTableModel.rowCount - 1),
-						0,
-						false,
-						false)
-				}
-			}
-		}
 		val removeRenameButton = JButton(removeRenameAction)
 		panel.add(removeRenameButton)
-
 
 		// Add the ok/cancel buttons.
 		val okAction = object : AbstractWorkbenchAction(
@@ -384,6 +305,58 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			pack()
 			location = workbench.location.apply { translate(22, 22) }
 		}
+	}
+
+	/**
+	 * Answer the add and remove actions for this table.
+	 *
+	 * @param table
+	 *   The [JTable] for which to create add and remove actions.  The add
+	 *   action will create a row containing two empty strings.
+	 * @return
+	 *   A [Pair] containing the add action and the remove action.
+	 */
+	private fun actionsFor(
+		table: JTable
+	): Pair<AbstractWorkbenchAction, AbstractWorkbenchAction>
+	{
+		table.gridColor = Color.gray
+		table.fillsViewportHeight = true
+		val addAction = object : AbstractWorkbenchAction(workbench, "+")
+		{
+			override fun actionPerformed(e: ActionEvent)
+			{
+				val model = table.model as SimpleTableModel
+				var insertionIndex = table.selectedRow
+				if (insertionIndex == -1)
+				{
+					insertionIndex = model.rowCount
+				}
+				model.rows.add(insertionIndex, mutableListOf("", ""))
+				model.fireTableDataChanged()
+				table.changeSelection(insertionIndex, 0, false, false)
+			}
+		}
+		val removeAction = object : AbstractWorkbenchAction(workbench, "-")
+		{
+			override fun actionPerformed(e: ActionEvent)
+			{
+				val deletionIndex = table.selectedRow
+				if (deletionIndex != -1)
+				{
+					val model = table.model as SimpleTableModel
+					model.rows.removeAt(deletionIndex)
+					model.fireTableDataChanged()
+					table.changeSelection(
+						if (model.rows.isEmpty()) -1
+						else min(deletionIndex, model.rowCount - 1),
+						0,
+						false,
+						false)
+				}
+			}
+		}
+		return addAction to removeAction
 	}
 
 	init

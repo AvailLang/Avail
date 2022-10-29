@@ -141,7 +141,7 @@ open class LayoutConfiguration protected constructor ()
 			resourcePrefix + localResourceName
 
 		/** The user-specific [Preferences] for this application to use. */
-		val basePreferences: Preferences =
+		private val basePreferences: Preferences =
 			Preferences.userNodeForPackage(AvailWorkbench::class.java)
 
 		/** The key under which to organize all placement information. */
