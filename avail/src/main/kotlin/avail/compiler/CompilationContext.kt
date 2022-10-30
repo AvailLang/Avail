@@ -146,12 +146,12 @@ import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
 import avail.serialization.Serializer
 import avail.utility.notNullAnd
+import avail.utility.parallelDoThen
 import avail.utility.trace
 import org.availlang.persistence.IndexedFile
 import java.lang.String.format
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
@@ -1016,24 +1016,19 @@ class CompilationContext constructor(
 		visitedSet: MutableSet<A_Phrase>,
 		then: ()->Unit)
 	{
-		when (val count = phrases.size)
+		when (phrases.size)
 		{
 			0 -> then()
 			1 -> runtime.execute(compilerPriority) {
 				phrases.single().applyStylesThen(this, visitedSet, then)
 			}
-			else ->
-			{
-				val countdown = AtomicInteger(count)
-				val afterOne = {
-					if (countdown.decrementAndGet() == 0) then()
-				}
-				phrases.forEach { phrase ->
+			else -> phrases.parallelDoThen(
+				action = { phrase, after ->
 					runtime.execute(compilerPriority) {
-						phrase.applyStylesThen(this, visitedSet, afterOne)
+						phrase.applyStylesThen(this, visitedSet, after)
 					}
-				}
-			}
+				},
+				then = then)
 		}
 	}
 

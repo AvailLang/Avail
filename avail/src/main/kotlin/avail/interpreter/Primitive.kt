@@ -244,7 +244,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		private set
 
 	/** Capture the name of the primitive class once for performance. */
-	val name: String
+	val name: String = holdersByClassName[javaClass.name]!!.name
+
+	/** Capture the simpleName of the primitive class once for performance. */
+	val simpleName: String = javaClass.simpleName
 
 	/**
 	 * A performance metric indicating how long was spent executing each
@@ -261,18 +264,16 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 */
 	private val resultTypeCheckingNanos = Statistic(
 		PRIMITIVE_RETURNER_TYPE_CHECKS,
-		"${this@Primitive.javaClass.simpleName} (checking result)")
+		"$simpleName (checking result)")
 
 	init
 	{
-		val holder = holdersByClassName[javaClass.name]
-		name = holder!!.name
 		assert(primitiveFlags.isEmpty())
 		for (flag in flags)
 		{
 			assert(!primitiveFlags.contains(flag))
 			{
-				"Duplicate flag in ${this@Primitive.javaClass.simpleName}"
+				"Duplicate flag in ${javaClass.simpleName}"
 			}
 			primitiveFlags.add(flag)
 		}
@@ -280,19 +281,17 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		assert(!primitiveFlags.contains(CanFold)
 				|| primitiveFlags.contains(CanInline))
 		{
-			("Primitive ${this@Primitive.javaClass.simpleName} has CanFold " +
-				"without CanInline")
+			"Primitive ${javaClass.simpleName} has CanFold without CanInline"
 		}
 		assert(!primitiveFlags.contains(Invokes)
 				|| primitiveFlags.contains(CanInline))
 		{
-			("Primitive ${this@Primitive.javaClass.simpleName} has Invokes " +
-				"without CanInline")
+			"Primitive ${javaClass.simpleName} has Invokes without CanInline"
 		}
 		runningNanos = Statistic(
 			PRIMITIVES,
 			(if (hasFlag(CanInline)) "" else "[NOT INLINE] ")
-				+ "${this@Primitive.javaClass.simpleName} (running)")
+				+ "$simpleName (running)")
 		if (hasFlag(CanSwitchContinuations))
 		{
 			reificationAbandonmentStat = Statistic(
@@ -345,10 +344,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		 * should switch processes now.
 		 */
 		FIBER_SUSPENDED;
-
-		/** The [CheckedField] for this instance. */
-		val checkedField: CheckedField = enumField(this)
-
 	}
 
 	/**

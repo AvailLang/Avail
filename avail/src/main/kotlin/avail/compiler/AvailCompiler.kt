@@ -301,6 +301,7 @@ import avail.utility.PrefixSharingList.Companion.withoutLast
 import avail.utility.Strings.increaseIndentation
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
+import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.trace
 import java.util.Collections.emptyList
@@ -2027,76 +2028,66 @@ class AvailCompiler constructor(
 		}
 		// Run all relevant semantic restrictions, in parallel, computing the
 		// type intersection of their results.
-		val outstanding = AtomicInteger(restrictionsToTry.size)
 		val failureCount = AtomicInteger(0)
 		val outstandingLock = ReentrantReadWriteLock()
-		// This runs when the last applicable semantic restriction finishes.
-		val whenDone = {
-			assert(outstanding.get() == 0)
-			if (failureCount.get() == 0)
-			{
-				// No failures occurred.  Invoke success.
-				onSuccess(intersection)
-			}
-		}
-		val intersectAndDecrement = { restrictionType: AvailObject ->
-			assert(restrictionType.isType)
-			outstandingLock.safeWrite {
+		// Launch the semantic restrictions in parallel.
+		restrictionsToTry.parallelDoThen(
+			action = { restriction, after ->
+				evaluateSemanticRestrictionFunctionThen(
+					restriction,
+					argTypes,
+					state.lexingState,
+					{ restrictionType: AvailObject ->
+						assert(restrictionType.isType)
+						outstandingLock.safeWrite {
+							if (failureCount.get() == 0)
+							{
+								intersection = intersection.typeIntersection(
+									restrictionType)
+							}
+						}
+						after()
+					}
+				) { e ->
+					when (e)
+					{
+						is AvailAcceptedParseException ->
+						{
+							// Not an error or rejection.
+							after()
+							return@evaluateSemanticRestrictionFunctionThen
+						}
+						is AvailRejectedParseException -> state.expected(
+							e.level,
+							e.rejectionString.asNativeString()
+								+ " (while parsing send of "
+								+ bundle.message
+								.atomName.asNativeString()
+								+ ")")
+						is FiberTerminationException -> state.expected(
+							STRONG,
+							"semantic restriction not to raise an "
+								+ "unhandled exception (while parsing "
+								+ "send of "
+								+ bundle.message.atomName.asNativeString()
+								+ "):\n\t"
+								+ e)
+						else -> state.expected(
+							STRONG,
+							FormattingDescriber("unexpected error: %s", e))
+					}
+					failureCount.incrementAndGet()
+					after()
+				}
+			},
+			then = {
+				// The last applicable semantic restriction has finished.
 				if (failureCount.get() == 0)
 				{
-					intersection =
-						intersection.typeIntersection(restrictionType)
+					// No failures occurred.  Invoke success.
+					onSuccess(intersection)
 				}
-			}
-			if (outstanding.decrementAndGet() == 0)
-			{
-				whenDone()
-			}
-		}
-		// Launch the semantic restrictions in parallel.
-		for (restriction in restrictionsToTry)
-		{
-			evaluateSemanticRestrictionFunctionThen(
-				restriction,
-				argTypes,
-				state.lexingState,
-				intersectAndDecrement
-			) { e ->
-				if (e is AvailAcceptedParseException)
-				{
-					// This is really a success.
-					intersectAndDecrement(TOP.o)
-					return@evaluateSemanticRestrictionFunctionThen
-				}
-				when (e)
-				{
-					is AvailRejectedParseException -> state.expected(
-						e.level,
-						e.rejectionString.asNativeString()
-							+ " (while parsing send of "
-							+ bundle.message
-							.atomName.asNativeString()
-							+ ")")
-					is FiberTerminationException -> state.expected(
-						STRONG,
-						"semantic restriction not to raise an "
-							+ "unhandled exception (while parsing "
-							+ "send of "
-							+ bundle.message.atomName.asNativeString()
-							+ "):\n\t"
-							+ e)
-					else -> state.expected(
-						STRONG,
-						FormattingDescriber(
-							"unexpected error: %s", e))
-				}
-				failureCount.incrementAndGet()
-				if (outstanding.decrementAndGet() == 0)
-				{
-					whenDone()
-				}
-			}
-		}
+			})
 	}
 
 	/**

@@ -80,6 +80,7 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.serialization.Serializer
 import avail.utility.Graph
+import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.trace
 import org.availlang.persistence.IndexedFile
@@ -849,12 +850,24 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			if (outstanding.decrementAndGet() == 0)
 			{
 				processParsedCommand(
-					allSolutions, // no longer changing
-					allProblems, // no longer changing
+					// collection is no longer changing.
+					allSolutions,
+					// collection is no longer changing.
+					allProblems,
 					onAmbiguity,
 					onSuccess,
-					parallelCombine(allCleanups), // no longer changing
-					onFailure)
+					// collection is no longer changing.
+					postSuccessCleanup = { postAction ->
+						allCleanups.parallelDoThen(
+							action = { action, after ->
+								runtime.execute(commandPriority) {
+									action(after)
+								}
+							},
+							then = postAction)
+					},
+					onFailure
+				)
 			}
 		}
 
@@ -942,30 +955,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					decrement()
 				},
 				decrement)
-		}
-	}
-
-	/**
-	 * Given a [Collection] of actions, each of which expects a continuation
-	 * (called the post-action activity) that instructs it on how to proceed
-	 * when it has completed, produce a single action that evaluates this
-	 * collection in parallel and defers the post-action activity until every
-	 * member has completed.
-	 *
-	 * @param actions
-	 *   A collection of actions.
-	 * @return
-	 *   The combined action.
-	 */
-	private fun parallelCombine(
-		actions: Collection<(()->Unit)->Unit>): (()->Unit)->Unit
-	{
-		return { postAction ->
-			val count = AtomicInteger(actions.size)
-			val decrement = { if (count.decrementAndGet() == 0) postAction() }
-			actions.forEach { action ->
-				runtime.execute(commandPriority) { action(decrement) }
-			}
 		}
 	}
 

@@ -150,7 +150,7 @@ internal object Resources
 	 *   parameter in the appropriate [resource bundle][ResourceBundle].
 	 */
 	fun primitiveParameterNameKey(primitive: Primitive, index: Int) =
-		"${primitive.javaClass.simpleName}_$index"
+		"${primitive.simpleName}_$index"
 
 	/**
 	 * Answer the key for the specified [primitive][Primitive]'s comment.
@@ -162,7 +162,7 @@ internal object Resources
 	 *   appropriate [resource bundle][ResourceBundle].
 	 */
 	fun primitiveCommentKey(primitive: Primitive) =
-		"${primitive.javaClass.simpleName}_comment"
+		"${primitive.simpleName}_comment"
 
 	/**
 	 * Answer the key for the specified [primitive error code][AvailErrorCode].

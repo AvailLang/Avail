@@ -134,6 +134,7 @@ import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
 import avail.utility.isNullOr
 import avail.utility.notNullAnd
+import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
@@ -181,7 +182,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.swing.Action
@@ -1109,52 +1109,49 @@ class AvailWorkbench internal constructor(
 		val sortedRootNodes = Collections.synchronizedList(
 			mutableListOf<ModuleRootNode>())
 		val treeRoot = DefaultMutableTreeNode("(packages hidden root)")
-		// One extra to make the no-roots case easier.
-		val rootCount = AtomicInteger(roots.roots.size + 1)
-		val decrement = {
-			if (rootCount.decrementAndGet() == 0)
-			{
+
+		roots.roots.parallelDoThen(
+			action = { root, after ->
+				// Obtain the path associated with the module root.
+				val projRoot = getProjectRoot(root.name)
+				if (projRoot.isNullOr { !visible })
+				{
+					after()
+					return@parallelDoThen
+				}
+				root.repository.reopenIfNecessary()
+				root.resolver.provideModuleRootTree(
+					successHandler = {
+						val node = ModuleRootNode(
+							availBuilder, projRoot!!.editable, root)
+						createRootNodesThen(node, it) {
+							sortedRootNodes.add(node)
+							for (each in node.preorderEnumeration())
+							{
+								(each as AbstractBuilderFrameTreeNode)
+									.sortChildren()
+							}
+							after()
+						}
+					},
+					failureHandler = { code, ex ->
+						System.err.println(
+							"Workbench could not walk root: " +
+								"${root.name}: $code")
+						ex?.printStackTrace()
+						after()
+					})
+			},
+			then = {
 				sortedRootNodes.sort()
 				sortedRootNodes.forEach(treeRoot::add)
-				val iterator:
-					Iterator<AbstractBuilderFrameTreeNode> =
+				val iterator: Iterator<AbstractBuilderFrameTreeNode> =
 					treeRoot.preorderEnumeration().iterator().cast()
 				iterator.next()
 				iterator.forEachRemaining(
 					AbstractBuilderFrameTreeNode::sortChildren)
 				withTreeNode(treeRoot)
-			}
-		}
-		// Start jobs to trace each root.
-		roots.roots.forEach { root ->
-			// Obtain the path associated with the module root.
-			val projRoot = getProjectRoot(root.name)
-			if (projRoot.isNullOr { !visible })
-			{
-				decrement()
-				return@forEach
-			}
-			root.repository.reopenIfNecessary()
-			root.resolver.provideModuleRootTree(
-				{
-					val node =
-						ModuleRootNode(availBuilder, projRoot!!.editable, root)
-					createRootNodesThen(node, it) {
-						sortedRootNodes.add(node)
-						// Need to wait for every module to finish the
-						// resolution process before handing in the hidden, top
-						// level tree node.
-						decrement()
-					}
-				},
-				{ code, ex ->
-					System.err.println(
-						"Workbench could not walk root: ${root.name}: $code")
-					ex?.printStackTrace()
-				})
-		}
-		// One extra, handling no-roots case.
-		decrement()
+			})
 	}
 
 	/**

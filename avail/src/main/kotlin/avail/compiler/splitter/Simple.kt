@@ -98,8 +98,7 @@ internal class Simple constructor(
 		return wrapState
 	}
 
-	override fun toString(): String =
-		"${this@Simple.javaClass.simpleName}($token)"
+	override fun toString(): String = "${javaClass.simpleName}($token)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

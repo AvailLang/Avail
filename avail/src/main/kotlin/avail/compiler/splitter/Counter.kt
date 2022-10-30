@@ -132,7 +132,6 @@ internal class Counter(
 		}
 	}
 
-	@Suppress("LocalVariableName")
 	override fun emitOn(
 		phraseType: A_Type,
 		generator: InstructionGenerator,
@@ -171,7 +170,7 @@ internal class Counter(
 	}
 
 	override fun toString(): String =
-		"${this@Counter.javaClass.simpleName}($group)"
+		"${javaClass.simpleName}($group)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

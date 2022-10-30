@@ -1963,7 +1963,7 @@ protected constructor (
 
 	override fun o_NameForDebugger (self: AvailObject): String
 	{
-		var typeName = this@Descriptor.javaClass.simpleName
+		var typeName = javaClass.simpleName
 		if (typeName.endsWith("Descriptor"))
 		{
 			typeName = typeName.substring(0, typeName.length - 10)

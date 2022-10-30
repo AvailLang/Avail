@@ -80,6 +80,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.SimpleDescriber
+import avail.utility.parallelDoThen
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.String.format
@@ -624,46 +625,44 @@ class LexingState constructor(
 	{
 		if (allTokens.isEmpty()) return then()
 		// Apply the token styles in parallel.
-		val counter = AtomicInteger(allTokens.size)
-		val newThen = { _: Any ->
-			if (counter.decrementAndGet() == 0)
-				then()
-		}
-		allTokens.forEach { token ->
-			val stylerFunction =
-				compilationContext.getStylerFunction(
-					token.generatingLexer.lexerMethod)
-			val fiber = newStylerFiber(compilationContext.loader)
-			{
-				val stylerName = when
+		allTokens.parallelDoThen(
+			action = { token, after ->
+				val stylerFunction =
+					compilationContext.getStylerFunction(
+						token.generatingLexer.lexerMethod)
+				val fiber = newStylerFiber(compilationContext.loader)
 				{
-					(stylerFunction.isNil) -> "(default)"
-					else -> stylerFunction.code().methodName.asNativeString()
+					val stylerName = when
+					{
+						(stylerFunction.isNil) -> "(default)"
+						else -> stylerFunction.code().methodName
+							.asNativeString()
+					}
+					formatString(
+						"Style token (%s) with %s",
+						token,
+						stylerName)
 				}
-				formatString(
-					"Style token (%s) with %s",
-					token,
-					stylerName)
-			}
-			fiber.setSuccessAndFailure(
-				onSuccess = newThen,
-				// Ignore styler failures for now.
-				onFailure = newThen)
-			compilationContext.runtime.runOutermostFunction(
-				fiber,
-				stylerFunction.ifNil {
-					compilationContext.runtime[DEFAULT_STYLER]
-				},
-				listOf(
-					emptyTuple,
-					literalNodeFromToken(
-						literalToken(
-							token.string(),
-							token.start(),
-							token.lineNumber(),
-							token,
-							token.generatingLexer))))
-		}
+				fiber.setSuccessAndFailure(
+					onSuccess = { after() },
+					// Ignore styler failures for now.
+					onFailure = { after() })
+				compilationContext.runtime.runOutermostFunction(
+					fiber,
+					stylerFunction.ifNil {
+						compilationContext.runtime[DEFAULT_STYLER]
+					},
+					listOf(
+						emptyTuple,
+						literalNodeFromToken(
+							literalToken(
+								token.string(),
+								token.start(),
+								token.lineNumber(),
+								token,
+								token.generatingLexer))))
+			},
+			then = then)
 	}
 
 	companion object

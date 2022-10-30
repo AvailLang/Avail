@@ -152,7 +152,7 @@ internal class Alternation constructor(
 	override fun toString(): String
 	{
 		val builder = StringBuilder()
-		builder.append(this@Alternation.javaClass.simpleName)
+		builder.append(javaClass.simpleName)
 		builder.append('(')
 		var first = true
 		for (expression in alternatives)

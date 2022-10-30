@@ -132,8 +132,7 @@ constructor(
 			&& shift == bitField.shift
 			&& bits == bitField.bits
 
-	override fun toString() =
-		"${this@BitField.javaClass.simpleName}($shift:$bits)"
+	override fun toString() = "${javaClass.simpleName}($shift:$bits)"
 
 	/**
 	 * Extract this `BitField` from the given [Long].

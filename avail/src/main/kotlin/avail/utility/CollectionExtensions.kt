@@ -139,6 +139,73 @@ inline fun <A: Iterable<B>, B, C, D> A.deepForEach (
 fun<E> MutableList<E>.removeLast(): E = this.removeAt(size - 1)
 
 /**
+ * For each element in the collection, execute the [action], passing a
+ * zero-argument function to run exactly once afterward (in this [Thread] or
+ * another).  When the last element's zero-argument function has been invoked,
+ * or immediately if the collection is empty, invoke [then].
+ *
+ * @param action
+ *   What to do with each element.  It should invoke the second argument when
+ *   processing of that element is considered complete.
+ * @param then
+ *   What to do after each element has reported completion.
+ */
+fun<E> Collection<E>.parallelDoThen(
+	action: (E, ()->Unit)->Unit,
+	then: ()->Unit)
+{
+	if (isEmpty())
+	{
+		then()
+		return
+	}
+	val countdown = AtomicInteger(size)
+	val decrement = {
+		if (countdown.decrementAndGet() == 0) then()
+	}
+	forEach { e -> action(e, decrement) }
+}
+
+/**
+ * For each element in the collection, execute the [action], passing a
+ * zero-argument function to run exactly once afterward (in this [Thread] or
+ * another).  When the last element's zero-argument function has been invoked,
+ * or immediately if the collection is empty, invoke [then].
+ *
+ * @param action
+ *   What to do with each element.  It should invoke the second argument when
+ *   processing of that element is considered complete.
+ * @param then
+ *   What to do after each element has reported completion.
+ * @param S
+ *   The source element type.
+ * @param T
+ *   The target element type, produced by the action.
+ */
+inline fun<S, reified T> Collection<S>.parallelMapThen(
+	crossinline action: (S, (T)->Unit)->Unit,
+	crossinline then: (List<T>)->Unit)
+{
+	if (isEmpty())
+	{
+		then(emptyList())
+		return
+	}
+	val resultsArray = arrayOfNulls<T>(size)
+	val countdown = AtomicInteger(size)
+	val decrement = { i: Int, target: T ->
+		resultsArray[i] = target
+		if (countdown.decrementAndGet() == 0)
+		{
+			then(resultsArray.toList().cast())
+		}
+	}
+	forEachIndexed { i, source ->
+		action(source) { target -> decrement(i, target) }
+	}
+}
+
+/**
  * Partition the receiver into [partitions] approximately equal sublists.  Some
  * may be empty if count is larger than the receiver's size.  Invoke the
  * supplied [body] for each sublist.  The body must eventually, perhaps in
@@ -159,22 +226,19 @@ fun<E, R> List<E>.partitionedMap(
 	after: (List<R>)->Unit)
 {
 	val size = size
+	if (size == 0)
+	{
+		after(emptyList())
+		return
+	}
 	val sublists = (0L until partitions).map { i ->
 		subList(
 			(i * size / partitions).toInt(),
 			((i + 1) * size / partitions).toInt())
 	}
-	val countdown = AtomicInteger(partitions)
-	val outputLists = MutableList<List<R>?>(partitions) { null }
-	sublists.forEachIndexed { i, sublist ->
-		body(sublist) { transformed ->
-			outputLists[i] = transformed
-			if (countdown.decrementAndGet() == 0)
-			{
-				after(outputLists.flatMap { it!! })
-			}
-		}
-	}
+	sublists.parallelMapThen(
+		action = body,
+		then = { outputLists -> after(outputLists.flatten()) })
 }
 
 /**

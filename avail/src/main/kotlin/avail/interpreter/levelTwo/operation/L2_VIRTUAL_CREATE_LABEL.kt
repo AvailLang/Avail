@@ -304,7 +304,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		instruction: L2Instruction)
 	{
 		throw UnsupportedOperationException(
-			"${this@L2_VIRTUAL_CREATE_LABEL.javaClass.simpleName} should " +
+			"${javaClass.simpleName} should " +
 				"have been replaced during optimization")
 	}
 }

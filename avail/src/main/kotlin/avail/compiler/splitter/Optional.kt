@@ -207,7 +207,7 @@ internal class Optional constructor(
 		generator.emit(`$merge`)
 	}
 
-	override fun toString() = "${this@Optional.javaClass.simpleName}($sequence)"
+	override fun toString() = "${javaClass.simpleName}($sequence)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

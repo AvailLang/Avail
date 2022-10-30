@@ -39,10 +39,10 @@ import avail.error.ErrorCode
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.resolver.ModuleRootResolver
+import avail.utility.parallelDoThen
 import java.net.URI
 import java.util.Collections.synchronizedSet
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
 
@@ -122,31 +122,22 @@ class BuildDirectoryTracer constructor(
 		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit)
 	{
 		val moduleRoots = availBuilder.runtime.moduleRoots()
-		// Extra one is to simplify the no roots case.
-		val countDown = AtomicInteger(moduleRoots.roots.size + 1)
-		val decrement = {
-			if (countDown.decrementAndGet() == 0)
-			{
+		moduleRoots.toList().parallelDoThen(
+			action = { root, after ->
+				traceAllModuleHeaders(
+					root.resolver,
+					moduleAction,
+					{ _, _, _ ->
+						// Ignore exceptions during header tracing.
+					},
+					{ after() })
+			},
+			then = {
 				synchronized(this) {
 					allQueued = true
 					checkForCompletion()
 				}
-			}
-		}
-		for (moduleRoot in moduleRoots)
-		{
-			traceAllModuleHeaders(
-				moduleRoot.resolver,
-				moduleAction,
-				{ _, _, _ ->
-					// Ignore exceptions during header tracing.
-				},
-			) {
-				decrement()
-			}
-		}
-		// Simplify the case of no roots.
-		decrement()
+			})
 	}
 
 	/**

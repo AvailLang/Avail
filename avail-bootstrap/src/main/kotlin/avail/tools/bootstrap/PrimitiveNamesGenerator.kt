@@ -80,17 +80,16 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 			if (!primitive.hasFlag(Primitive.Flag.Private))
 			{
 				// Write a comment that gives the primitive name and its arity.
-				keys.add(primitive.javaClass.simpleName)
+				keys.add(primitive.simpleName)
 				format(
 					"# %s : _=%d%n",
 					primitive.name,
 					primitive.argCount)
 				// Write the primitive key and any name already associated with
 				// it.
-				print(primitive.javaClass.simpleName)
+				print(primitive.simpleName)
 				print('=')
-				val primitiveName = properties.getProperty(
-					primitive.javaClass.simpleName)
+				val primitiveName = properties.getProperty(primitive.simpleName)
 				if (primitiveName !== null)
 				{
 					print(escape(primitiveName))

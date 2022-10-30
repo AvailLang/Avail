@@ -60,7 +60,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
-import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String
@@ -95,8 +94,9 @@ import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
 import avail.utility.Strings.increaseIndentation
+import avail.utility.parallelDoThen
 import avail.utility.safeWrite
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.Collections.synchronizedList
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 /**
@@ -164,7 +164,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		// supplied type.
 		val module = loader.module
 		var intersection: A_Type = returnType
-		val resultLock = ReentrantReadWriteLock()
+		val intersectionLock = ReentrantReadWriteLock()
 		// Merge in the applicable (and visible) definition return types.
 		var anyDefinitionsApplicable = false
 		for (definition in bundle.bundleMethod.filterByTypes(argTypesList))
@@ -203,98 +203,89 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		// Merge in the (non-empty list of) semantic restriction results.
 		val runtime = currentRuntime()
 		return interpreter.suspendThen {
-			val countdown = AtomicInteger(restrictionsSize)
-			val problems = mutableListOf<A_String>()
-			val decrement = {
-				when
-				{
-					countdown.decrementAndGet() != 0 ->
-					{
-						// We're not last to decrement.
-					}
-					problems.isEmpty() ->
-						// We're last to report, and there were no errors.
-						succeed(
-							tuple(
-								tuple(
-									newSendNode(
-										emptyTuple,
-										bundle,
-										argsListPhrase,
-										intersection)),
-								emptyTuple))
-					else ->
-						// There were problems.  Succeed with <<>, "report...">.
-						succeed(
-							tuple(
-								emptyTuple,
-								collectProblemReport(problems)))
-				}
-			}
-			val success: (AvailObject)->Unit = {
-				resultLock.safeWrite {
-					when
-					{
-						it.isType ->
-							intersection = intersection.typeIntersection(it)
-						else -> problems.add(
-							stringFrom(
-								"Semantic restriction failed to produce "
-									+ "a type, and instead produced: $it"))
-					}
-				}
-				decrement()
-			}
+			val problems = synchronizedList(mutableListOf<A_String>())
 			// Now launch the fibers.
 			var fiberCount = 1
-			for (restriction in applicableRestrictions)
-			{
-				val finalCount = fiberCount++
-				val forkedFiber = createFiber(
-					topMeta(),
-					runtime,
-					loader,
-					originalFiber.textInterface,
-					originalFiber.priority)
-				{
-					stringFrom(
-						"Semantic restriction checker (#"
-							+ finalCount
-							+ "/"
-							+ applicableRestrictions.size
-							+ ") for primitive "
-							+ this@P_CreateRestrictedSendExpression.javaClass
-							.simpleName)
-				}
-				forkedFiber.setGeneralFlag(CAN_REJECT_PARSE)
-				forkedFiber.heritableFiberGlobals =
-					originalFiber.heritableFiberGlobals
-				forkedFiber.setSuccessAndFailure(success) { throwable ->
-					when (throwable)
+			applicableRestrictions.parallelDoThen(
+				action = { restriction, after ->
+					val finalCount = fiberCount++
+					val forkedFiber = createFiber(
+						topMeta(),
+						runtime,
+						loader,
+						originalFiber.textInterface,
+						originalFiber.priority)
 					{
-						is AvailRejectedParseException ->
-						{
-							// Compute rejectionString outside the mutex.
-							val string = throwable.rejectionString
-							resultLock.safeWrite { problems.add(string) }
-						}
-						is AvailAcceptedParseException ->
-						{
-							// Success without type narrowing – do nothing.
-						}
-						else -> resultLock.safeWrite {
-							problems.add(
-								stringFrom(
-									"evaluation of macro body not to " +
-										"raise an unhandled " +
-										"exception:\n\t$throwable"))
-						}
+						stringFrom(
+							"Semantic restriction checker (#$finalCount/" +
+								applicableRestrictions.size.toString() +
+								") for primitive " +
+								P_CreateRestrictedSendExpression.simpleName)
 					}
-					decrement()
-				}
-				runtime.runOutermostFunction(
-					forkedFiber, restriction.function(), argTypesList)
-			}
+					forkedFiber.setGeneralFlag(CAN_REJECT_PARSE)
+					forkedFiber.heritableFiberGlobals =
+						originalFiber.heritableFiberGlobals
+					forkedFiber.setSuccessAndFailure(
+						onSuccess = {
+							when
+							{
+								it.isType -> intersectionLock.safeWrite {
+									intersection =
+										intersection.typeIntersection(it)
+								}
+								else -> problems.add(
+									stringFrom(
+										"Semantic restriction failed to " +
+											"produce a type, and instead " +
+											"produced: $it"))
+							}
+							after()
+						},
+						onFailure = { throwable ->
+							when (throwable)
+							{
+								is AvailRejectedParseException ->
+								{
+									problems.add(throwable.rejectionString)
+								}
+								is AvailAcceptedParseException ->
+								{
+									// Success, but no type narrowing.  Do
+									// nothing.
+								}
+								else -> problems.add(
+									stringFrom(
+										"evaluation of macro body not to " +
+											"raise an unhandled " +
+											"exception:\n\t$throwable"))
+							}
+							after()
+						})
+					runtime.runOutermostFunction(
+						forkedFiber, restriction.function(), argTypesList)				},
+				then = {
+					when
+					{
+						problems.isEmpty() ->
+							// We're last to report, and there were no errors.
+							succeed(
+								tuple(
+									tuple(
+										newSendNode(
+											emptyTuple,
+											bundle,
+											argsListPhrase,
+											intersection)),
+									emptyTuple))
+						else ->
+							// There were problems.
+							// Succeed with <<>, "report...">.
+							succeed(
+								tuple(
+									emptyTuple,
+									collectProblemReport(problems)))
+					}
+				})
 		}
 	}
 

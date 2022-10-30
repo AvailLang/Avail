@@ -714,7 +714,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		assert(parameterCount.lowerBound.equals(parameterCount.upperBound)) {
 			String.format(
 				"Expected %s to have a fixed parameter count",
-				primitive.javaClass.simpleName)
+				primitive.simpleName)
 		}
 		return buildString {
 			var i = 1
@@ -896,8 +896,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				}
 			val formatArgs = arrayOfNulls<Any>(templateArgCount)
 			// The method name goes into the first slot…
-			formatArgs[0] = primitiveBundle.getString(
-				primitive.javaClass.simpleName)
+			formatArgs[0] = primitiveBundle.getString(primitive.simpleName)
 			// …then come the parameter names, followed by their types…
 			val paramsType = primitive.blockTypeRestriction().argsTupleType
 			for (i in 1 .. primitiveArgCount)
@@ -1284,7 +1283,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		primitive: Primitive,
 		writer: PrintWriter)
 	{
-		val name = primitive.javaClass.simpleName
+		val name = primitive.simpleName
 		if (!primitiveBundle.containsKey(name)
 			|| primitiveBundle.getString(name).isEmpty())
 		{
@@ -1596,7 +1595,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun primitiveCoverageTestModuleName(primitive: Primitive) =
 		checkedFormat(
 			preamble.getString(primitiveCoverageTestModuleName.name),
-			primitive.javaClass.simpleName.substring(2))
+			primitive.simpleName.substring(2))
 
 	/**
 	 * Answer the correct [file name][File] for the [primitive][Primitive] test
@@ -1792,7 +1791,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	{
 		for (primitive in primitives(null))
 		{
-			val primitiveName = primitive.javaClass.simpleName.substring(2)
+			val primitiveName = primitive.simpleName.substring(2)
 			@Suppress("MapGetWithNotNullAssertionOperator")
 			val testPackage =
 				testPackageMap[primitive.javaClass.getPackage().name]!!
@@ -1969,8 +1968,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 
 		// Map localized names to the primitives.
 		primitives(null).forEach { primitive ->
-			val value = primitiveBundle.getString(
-				primitive.javaClass.simpleName)
+			val value = primitiveBundle.getString(primitive.simpleName)
 			if (value.isNotEmpty())
 			{
 				primitiveNameMap.computeIfAbsent(value) { mutableSetOf() }

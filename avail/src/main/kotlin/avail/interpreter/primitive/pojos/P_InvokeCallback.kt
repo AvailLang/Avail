@@ -110,7 +110,8 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend, HasSideEffect)
 		// Raw functions using this primitive should not be constructed through
 		// this default mechanism.  See CallbackSystem for details.
 		throw UnsupportedOperationException(
-			this@P_InvokeCallback.javaClass.simpleName
-			+ " must not create a function through the bootstrap mechanism")
+			"${javaClass.simpleName} must not create a function through the " +
+				"bootstrap mechanism"
+		)
 	}
 }

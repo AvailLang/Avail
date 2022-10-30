@@ -188,7 +188,7 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 	}
 
 	override fun toString(): String =
-		"${this@NumberedChoice.javaClass.simpleName}($alternation)"
+		"${javaClass.simpleName}($alternation)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

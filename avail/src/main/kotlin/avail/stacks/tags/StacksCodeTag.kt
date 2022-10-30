@@ -79,8 +79,5 @@ class StacksCodeTag
 		//DO NOTHING
 	}
 
-	override fun toString(): String
-	{
-		return this@StacksCodeTag.javaClass.simpleName
-	}
+	override fun toString(): String = javaClass.simpleName
 }

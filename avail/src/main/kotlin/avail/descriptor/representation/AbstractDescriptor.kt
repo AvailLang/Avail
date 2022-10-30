@@ -811,7 +811,7 @@ abstract class AbstractDescriptor protected constructor (
 		members.remove(AbstractDescriptor::numberOfFixedObjectSlots)
 		members.remove(AbstractDescriptor::isMutable)
 		members.remove(AbstractDescriptor::isShared)
-		return this::class.simpleName +
+		return javaClass.simpleName +
 			members.joinToString(", ", "(", ")") { m ->
 				"${m.name}=" +
 					try

@@ -116,7 +116,7 @@ internal class CaseInsensitive constructor(
 	}
 
 	override fun toString(): String =
-		"${this@CaseInsensitive.javaClass.simpleName}($expression)"
+		"${javaClass.simpleName}($expression)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

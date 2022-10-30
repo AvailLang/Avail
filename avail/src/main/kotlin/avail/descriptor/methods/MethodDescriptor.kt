@@ -1058,7 +1058,7 @@ class MethodDescriptor private constructor(
 				{
 					val stylerCode = newPrimitiveRawFunction(stylerPrim, nil, 0)
 					stylerCode.methodName = stringFrom(
-						"Bootstrap styler ${stylerPrim.javaClass.simpleName}")
+						"Bootstrap styler ${stylerPrim.simpleName}")
 					val stylerFunction = createFunction(stylerCode, emptyTuple)
 					val styler = newStyler(
 						stylerFunction, bundle.bundleMethod, nil)

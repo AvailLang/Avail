@@ -32,10 +32,10 @@
 package avail
 
 import avail.AvailRuntime.Companion.specialObject
-import avail.ImmutableList.Companion.length
 import avail.AvailRuntimeConfiguration.availableProcessors
 import avail.AvailRuntimeConfiguration.maxInterpreters
 import avail.AvailThread.Companion.current
+import avail.ImmutableList.Companion.length
 import avail.annotations.ThreadSafe
 import avail.builder.ModuleNameResolver
 import avail.builder.ModuleRoots
@@ -256,13 +256,14 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.ObjectTracer
 import avail.utility.WorkStealingQueue
+import avail.utility.cast
 import avail.utility.evaluation.OnceSupplier
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
+import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.structures.EnumMap.Companion.enumMap
 import avail.utility.trace
-import java.util.Collections.emptyList
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.Timer
@@ -2263,26 +2264,19 @@ class AvailRuntime constructor(
 		continuation: (List<String>)->Unit)
 	{
 		val valuesCount = values.size
-		if (valuesCount == 0)
-		{
-			continuation(emptyList())
-			return
-		}
 		// Deduplicate the list of values for performance…
 		val map = values.indices.groupBy(values::get)
-		val outstanding = AtomicInteger(map.size)
 		val strings = arrayOfNulls<String>(valuesCount)
-		map.forEach { (key, indicesToWrite) ->
-			stringifyThen(key, textInterface) { arg ->
-				indicesToWrite.forEach { indexToWrite ->
-					strings[indexToWrite] = arg
+		map.entries.parallelDoThen(
+			action = { (key, indicesToWrite), after ->
+				stringifyThen(key, textInterface) { arg ->
+					indicesToWrite.forEach { indexToWrite ->
+						strings[indexToWrite] = arg
+					}
+					after()
 				}
-				if (outstanding.decrementAndGet() == 0)
-				{
-					continuation(strings.map { it!! })
-				}
-			}
-		}
+			},
+			then = { continuation(listOf(*strings).cast()) })
 	}
 
 	/**
