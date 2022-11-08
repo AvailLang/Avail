@@ -76,12 +76,18 @@ constructor (
 				YES_NO_CANCEL_OPTION,
 				WARNING_MESSAGE,
 				null,
-				null,
-				NO_OPTION)
-			when (response)
+				arrayOf("Also delete directory", "Remove root", "Cancel"),
+				"Remove root")
+			deleteDirectory = when (response)
 			{
+				YES_OPTION -> true
+				NO_OPTION -> false
 				CANCEL_OPTION -> return
-				YES_OPTION -> deleteDirectory = true
+				else ->
+				{
+					println("Unknown response: $response")
+					return
+				}
 			}
 		}
 		val project = workbench.availProject

@@ -64,7 +64,8 @@ interface ModuleRootResolverFactory
 	fun resolver (
 		name: String,
 		uri: URI,
-		fileManager: FileManager): ModuleRootResolver
+		fileManager: FileManager
+	): ModuleRootResolver
 
 	/**
 	 * The [URI.scheme] type this [ModuleRootResolverFactory] creates

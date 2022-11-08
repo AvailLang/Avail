@@ -32,19 +32,19 @@
 
 package avail.anvil.nodes
 
-import avail.builder.AvailBuilder
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
-import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.resource
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Loaded
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Unloaded
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.NotRenamed
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.Renamed
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Selected
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Unselected
-import org.availlang.cache.LRUCache
+import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.resource
+import avail.builder.AvailBuilder
 import avail.utility.cast
 import avail.utility.ifZero
+import org.availlang.cache.LRUCache
 import java.awt.Color
 import java.awt.Image
 import javax.swing.ImageIcon
@@ -156,11 +156,10 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		if (children !== null)
 		{
 			// HACK to make children (Vector!) sortable
-			val temp: MutableList<AbstractBuilderFrameTreeNode> =
-				children.toMutableList().cast()
-			temp.sort()
+			val temp: List<AbstractBuilderFrameTreeNode> =
+				children.toList().cast()
 			children.clear()
-			children.addAll(temp)
+			children.addAll(temp.sorted())
 		}
 	}
 
@@ -225,10 +224,13 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		 */
 		fun fontStyle(
 			bold: Boolean = false,
-			italic: Boolean = false
-		): String =
-			(if (bold) "font-weight:900;" else "") +
-			(if (italic) "font-style:italic;" else "")
+			italic: Boolean = false,
+			strikethrough: Boolean = false,
+		) = buildString {
+			if (bold) append("font-weight:900;")
+			if (italic) append("font-style:italic;")
+			if (strikethrough) append("text-decoration:line-through;")
+		}
 
 		/**
 		 * A static cache of scaled icons, organized by node class and line

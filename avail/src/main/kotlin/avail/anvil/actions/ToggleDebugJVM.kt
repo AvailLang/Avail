@@ -54,8 +54,7 @@ class ToggleDebugJVM constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
-
-		JVMTranslator.debugJVM = JVMTranslator.debugJVM xor true
+		JVMTranslator.debugJVM = !JVMTranslator.debugJVM
 	}
 
 	init

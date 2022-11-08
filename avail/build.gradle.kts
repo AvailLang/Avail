@@ -50,9 +50,9 @@ val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
 dependencies {
-	api("org.availlang:avail-json:1.1.1")
+	api("org.availlang:avail-json:1.2.0")
 	api("org.availlang:avail-storage:1.1.1")
-	api("org.availlang:avail-artifact:2.0.0.alpha09")
+	api("org.availlang:avail-artifact:2.0.0.alpha11")
 	AvailModule.addDependencies(this)
 }
 

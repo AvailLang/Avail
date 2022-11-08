@@ -52,7 +52,8 @@ avail {
 	rootsDirectory = ProjectHome(
 		"distro/src",
 		FILE,
-		project.rootDir.absolutePath)
+		project.rootDir.absolutePath,
+		rootNameInJar = "avail")
 	projectRoot(
 		"avail",
 		entryPoints = listOf("!_"),
@@ -99,7 +100,8 @@ tasks {
 		outputLocation = ProjectHome(
 			"",
 			FILE,
-			rootDir.absolutePath)
+			rootDir.absolutePath,
+			rootNameInJar = null)
 	}
 
 	// Copy the library into the distribution directory. This is used by the

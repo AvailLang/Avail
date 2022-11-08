@@ -487,7 +487,7 @@ class ResolverReference constructor(
 		if (this === other) return true
 		if (other !is ResolverReference) return false
 
-		return resolver.uri == other.resolver.uri
+		return resolver === other.resolver
 			&& qualifiedName == other.qualifiedName
 	}
 
@@ -538,8 +538,7 @@ class ResolverReference constructor(
 			else emptyList())
 		afterAllVisited(
 			top.fold(0) { count, module ->
-				count + visitReference(
-					module, visitResources, withReference = withReference)
+				count + visitReference(module, visitResources, withReference)
 			})
 	}
 

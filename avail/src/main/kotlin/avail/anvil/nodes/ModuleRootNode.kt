@@ -53,7 +53,8 @@ import avail.builder.ModuleRoot
 class ModuleRootNode constructor(
 	builder: AvailBuilder,
 	private val isEditable: Boolean,
-	val moduleRoot: ModuleRoot) : AbstractBuilderFrameTreeNode(builder)
+	val moduleRoot: ModuleRoot,
+	val visible: Boolean) : AbstractBuilderFrameTreeNode(builder)
 {
 	override fun modulePathString(): String = "/" + moduleRoot.name
 
@@ -63,8 +64,13 @@ class ModuleRootNode constructor(
 		else -> "ReadOnlyModuleRoot"
 	}
 
-	override fun text(selected: Boolean): String = moduleRoot.name
+	override fun text(selected: Boolean) = buildString {
+		append(moduleRoot.name)
+		moduleRoot.resolver.uri.fragment?.let { f -> append(" [$f]") }
+		if (!visible) append(" (invisible)")
+	}
 
 	override fun htmlStyle(selected: Boolean): String =
-		fontStyle(bold = true) + colorStyle(selected, true, false)
+		fontStyle(bold = true, strikethrough = !visible) +
+			colorStyle(selected, loaded = visible, false)
 }

@@ -33,13 +33,12 @@
 package avail.builder
 
 import avail.descriptor.module.ModuleDescriptor
-import org.availlang.persistence.IndexedFileException
 import avail.persistence.cache.Repositories
 import avail.persistence.cache.Repository
 import avail.resolver.ModuleRootResolver
 import org.availlang.json.JSONWriter
+import org.availlang.persistence.IndexedFileException
 import java.io.File
-import java.lang.RuntimeException
 
 /**
  * A `ModuleRoot` represents a vendor of Avail modules and/or the vended modules
@@ -95,7 +94,7 @@ class ModuleRoot
 	{
 		writer.writeArray {
 			write(repository.fileName.absolutePath)
-			write("${resolver.uri.scheme}://${resolver.uri.path}")
+			write(resolver.uri.toString())
 		}
 	}
 

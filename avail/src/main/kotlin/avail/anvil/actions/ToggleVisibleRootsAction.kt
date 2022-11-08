@@ -1,5 +1,5 @@
 /*
- * JarModuleRootResolverFactory.kt
+ * ToggleVisibleRootsAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,27 +30,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.resolver
+package avail.anvil.actions
 
-import avail.files.FileManager
-import java.net.URI
+import avail.anvil.AvailWorkbench
+import java.awt.event.ActionEvent
+import javax.swing.Action
 
 /**
- * `JarModuleRootResolverFactory` is a [ModuleRootResolverFactory] used to
- * create [JarModuleRootResolver]s.
+ * Toggle whether to show roots marked as invisible.  There will still be an
+ * indication whether the root is supposed to be invisible (e.g. strikethrough).
  *
- * `JarModuleRootResolverFactory` is always
- * [registered][ModuleRootResolverRegistry.register] with Avail by default.
+ * @constructor
+ * Construct a new [ToggleVisibleRootsAction].
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @param workbench
+ *   The owning [AvailWorkbench].
  */
-object JarModuleRootResolverFactory: ModuleRootResolverFactory
+class ToggleVisibleRootsAction
+constructor (
+	workbench: AvailWorkbench,
+) : AbstractWorkbenchAction(
+	workbench,
+	"Show invisible roots")
 {
-	override fun resolver(
-		name: String,
-		uri: URI,
-		fileManager: FileManager
-	) = JarModuleRootResolver(name, uri, fileManager)
+	override fun actionPerformed(event: ActionEvent)
+	{
+		workbench.showInvisibleRoots = !workbench.showInvisibleRoots
+		workbench.refreshAction.runAction()
+	}
 
-	override val scheme: String = "jar"
+	init
+	{
+		putValue(
+			Action.SHORT_DESCRIPTION,
+			"Show or hide roots marked as invisible.")
+		putValue(
+			Action.SELECTED_KEY, workbench.showInvisibleRoots)
+	}
 }

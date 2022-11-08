@@ -100,7 +100,7 @@ object AvailProjectWorkbenchRunner
 			AvailProjectV1(
 				"Unknown project",
 				true,
-				InvalidLocation("", "Unable to parse config file: $e"))
+				InvalidLocation("", "Unable to parse config file: $e", ""))
 		}
 		System.setProperty(
 			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())

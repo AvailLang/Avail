@@ -163,7 +163,7 @@ class ModuleRoots constructor(
 	 *   The name for the new [ModuleRoot].
 	 * @param location
 	 *   The [String] representation of the [URI] for the base of the new
-	 *   [ModuleRoot]
+	 *   [ModuleRoot].
 	 * @param withFailures
 	 *   What to invoke, with a [List] of new failure report strings, after the
 	 *   root has been added and scanned.

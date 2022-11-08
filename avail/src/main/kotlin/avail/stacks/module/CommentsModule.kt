@@ -928,12 +928,12 @@ class CommentsModule constructor(
 				{
 					filteredMap[key]?.let {
 						it[modName] = implementation
-					} ?: {
+					} ?: run {
 						val modToImplement =
 							mutableMapOf<String, CommentGroup>()
 						modToImplement[modName] = implementation
 						filteredMap[key] = modToImplement
-					}()
+					}
 
 					for (category in implementation.categories())
 					{
@@ -980,12 +980,12 @@ class CommentsModule constructor(
 					if (filteredMap.containsKey(key))
 					filteredMap[key]?.let {
 						it[tempEntry.key] = implementation
-					} ?: {
+					} ?: run {
 						val modToImplement =
 							mutableMapOf<String, CommentGroup>()
 						modToImplement[tempEntry.key] = implementation
 						filteredMap[key] = modToImplement
-					}()
+					}
 
 					for (category in implementation.categories())
 					{

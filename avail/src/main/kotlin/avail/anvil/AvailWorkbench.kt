@@ -43,6 +43,7 @@ import avail.anvil.actions.CleanAction
 import avail.anvil.actions.CleanModuleAction
 import avail.anvil.actions.ClearTranscriptAction
 import avail.anvil.actions.CreateProgramAction
+import avail.anvil.actions.CreateRootAction
 import avail.anvil.actions.DebugAction
 import avail.anvil.actions.DeleteModuleAction
 import avail.anvil.actions.ExamineCompilationAction
@@ -78,6 +79,7 @@ import avail.anvil.actions.ToggleDebugJVMCodeGeneration
 import avail.anvil.actions.ToggleDebugWorkUnits
 import avail.anvil.actions.ToggleFastLoaderAction
 import avail.anvil.actions.ToggleL2SanityCheck
+import avail.anvil.actions.ToggleVisibleRootsAction
 import avail.anvil.actions.TraceCompilerAction
 import avail.anvil.actions.TraceLoadedStatementsAction
 import avail.anvil.actions.TraceMacrosAction
@@ -262,6 +264,12 @@ class AvailWorkbench internal constructor(
 	 */
 	private val localScreenStatePath =
 		availProjectFilePath.replace(".json", "-local-state.json")
+
+	/**
+	 * The directory which is the root of the project.
+ 	 */
+	val projectHomeDirectory =
+		availProjectFilePath.substringBeforeLast(File.separator)
 
 	// TODO read/write LocalScreenState from/to disk and use it to reopen
 	// windows
@@ -567,8 +575,14 @@ class AvailWorkbench internal constructor(
 	/** The action to [delete][DeleteModuleAction] a module or package. */
 	private val deleteModuleAction = DeleteModuleAction(this)
 
+	/** The [action][CreateRootAction] to add a root to the project. */
+	private val createRootAction = CreateRootAction(this)
+
 	/** The [action][RemoveRootAction] to remove a root from the project. */
 	private val removeRootAction = RemoveRootAction(this)
+
+	/** The [action][ToggleVisibleRootsAction] to show/hide invisible roots. */
+	private val toggleShowInvisibleRootAction = ToggleVisibleRootsAction(this)
 
 	/**
 	 * The action to open a dialog that enables a user to search for a module by
@@ -651,6 +665,12 @@ class AvailWorkbench internal constructor(
 	 * task.
 	 */
 	private var taskGate = AtomicBoolean(false)
+
+	/**
+	 * When false, roots marked as invisible are not shown.  When true, they are
+	 * shown with an indication that they have been marked invisible.
+	 */
+	var showInvisibleRoots = false
 
 	/**
 	 * `AbstractWorkbenchTask` is a foundation for long-running [AvailBuilder]
@@ -942,7 +962,10 @@ class AvailWorkbench internal constructor(
 		val busy = backgroundTask !== null || isRunning
 		buildProgress.isEnabled = busy
 		buildProgress.isVisible = backgroundTask is BuildTask
-		removeRootAction.isEnabled = selectedModuleRoot() != null
+
+		createRootAction.isEnabled = !busy
+		removeRootAction.isEnabled = !busy && selectedModuleRoot() != null
+		toggleShowInvisibleRootAction.isEnabled = !busy
 		openEditorAction.isEnabled = !busy && selectedModule() !== null
 		newEditorAction.isEnabled = !busy && run {
 			val root = selectedModuleRoot() ?: (selectedModule()?.moduleRoot)
@@ -1114,7 +1137,7 @@ class AvailWorkbench internal constructor(
 			action = { root, after ->
 				// Obtain the path associated with the module root.
 				val projRoot = getProjectRoot(root.name)
-				if (projRoot.isNullOr { !visible })
+				if (projRoot.isNullOr { !visible && !showInvisibleRoots })
 				{
 					after()
 					return@parallelDoThen
@@ -1123,7 +1146,10 @@ class AvailWorkbench internal constructor(
 				root.resolver.provideModuleRootTree(
 					successHandler = {
 						val node = ModuleRootNode(
-							availBuilder, projRoot!!.editable, root)
+							availBuilder,
+							projRoot!!.editable,
+							root,
+							projRoot.visible)
 						createRootNodesThen(node, it) {
 							sortedRootNodes.add(node)
 							for (each in node.preorderEnumeration())
@@ -1245,7 +1271,7 @@ class AvailWorkbench internal constructor(
 			mutableMapOf<String, DefaultMutableTreeNode>())
 		availBuilder.traceDirectoriesThen(
 			action = { resolvedName, moduleVersion, after ->
-				val projectRoot = getProjectRoot(resolvedName.moduleRoot.name)
+				val projectRoot = getProjectRoot(resolvedName.rootName)
 				if (projectRoot.notNullAnd { visible })
 				{
 					val entryPoints = moduleVersion.getEntryPoints()
@@ -1268,7 +1294,6 @@ class AvailWorkbench internal constructor(
 			afterAll = {
 				val entryPointsTreeRoot =
 					DefaultMutableTreeNode("(entry points hidden root)")
-
 				val mapKeys = moduleNodes.keys.toTypedArray()
 				sort(mapKeys)
 				mapKeys.forEach { moduleLabel ->
@@ -1276,7 +1301,7 @@ class AvailWorkbench internal constructor(
 				}
 				val iterator: Iterator<DefaultMutableTreeNode> =
 					entryPointsTreeRoot.preorderEnumeration().iterator().cast()
-				// Skip the invisible root.
+				// Skip the invisible top node.
 				iterator.next()
 				iterator.forEachRemaining { node ->
 					(node as AbstractBuilderFrameTreeNode).sortChildren()
@@ -1679,7 +1704,9 @@ class AvailWorkbench internal constructor(
 
 		// Build the pop-up menu for the modules area.
 		val buildMenu = MenuBuilder.menu("Module") {
+			item(createRootAction)
 			item(removeRootAction)
+			check(toggleShowInvisibleRootAction)
 			separator()
 			item(newEditorAction)
 			item(openEditorAction)
@@ -1713,7 +1740,9 @@ class AvailWorkbench internal constructor(
 			}
 			menu("Module")
 			{
+				item(createRootAction)
 				item(removeRootAction)
+				check(toggleShowInvisibleRootAction)
 				separator()
 				item(newEditorAction)
 				item(openEditorAction)
@@ -2360,7 +2389,7 @@ class AvailWorkbench internal constructor(
 			project: AvailProject = AvailProjectV1(
 				"--No Project--",
 				true,
-				AvailRepositories()),
+				AvailRepositories(rootNameInJar = null)),
 			availProjectFilePath: String = "",
 			initial: String = "",
 			customWindowTitle: String = "",

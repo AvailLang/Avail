@@ -103,27 +103,29 @@ constructor(
 		executeTask {
 			val map = mutableMapOf<String, ResolverReference>()
 			val rootPrefix = "/${moduleRoot.name}"
+			val rootInJar = uri.fragment
 			try
 			{
 				val digests: Map<String, ByteArray>
 				val entries = jarFileLock.withLock {
-					digests = artifactJar.extractDigestForRoot(name)
+					digests = artifactJar.extractDigestForRoot(rootInJar)
 					artifactJar.jarFileEntries
 				}
-				artifactJar.extractFileMetadataForRoot(name, entries, digests)
-					.forEach {
-						val reference = ResolverReference(
-							this,
-							// exact relative path within jar
-							URI(null, it.path, null),
-							it.qualifiedName,
-							it.type,
-							it.mimeType,
-							it.lastModified,
-							it.size,
-							forcedDigest = digests[it.path])
-						map[it.qualifiedName] = reference
-					}
+				artifactJar.extractFileMetadataForRoot(
+					name, rootInJar, entries, digests
+				).forEach {
+					val reference = ResolverReference(
+						this,
+						// exact relative path within jar
+						URI(null, it.path, null),
+						it.qualifiedName,
+						it.type,
+						it.mimeType,
+						it.lastModified,
+						it.size,
+						forcedDigest = digests[it.path])
+					map[it.qualifiedName] = reference
+				}
 				// Add the root.
 				map[rootPrefix] = ResolverReference(
 					this,
@@ -287,7 +289,7 @@ constructor(
 				// We stashed the exact path within the jar inside the
 				// schemaSpecificPart of the URI.
 				artifactJar.extractRootFile(
-					reference.resolver.name,
+					reference.resolver.uri.fragment,
 					reference.uri.schemeSpecificPart)
 			}
 		}
