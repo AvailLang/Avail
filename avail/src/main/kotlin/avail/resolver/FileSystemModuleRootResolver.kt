@@ -757,7 +757,7 @@ class FileSystemModuleRootResolver constructor(
 						+ " encountered error: $t\n${t.stackTraceToString()}")
 				}
 			}
-			.path(Path.of(File(moduleRoot.resolver.uri).canonicalPath))
+			.path(Path.of(File(moduleRoot.resolver.uri).path))
 			.build()!!
 			.apply {
 				// Allocate a dedicated thread to observing changes to the
