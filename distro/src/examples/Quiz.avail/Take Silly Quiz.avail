@@ -1,5 +1,5 @@
 /*
- * Silly Quiz.avail
+ * Quiz.avail
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,55 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "Silly Quiz"
+Module "Take Silly Quiz"
 Versions
 	"Avail-1.6.1"
-Extends
-	"Avail" =
-	(
-		"whitespace lexer",
-		"keyword lexer"
-	)
 Uses
-	"Quiz DSL"
+	"Avail",
+	"Silly Quiz"
 Entries
-	"Take quiz"
+	"Take Silly Quiz"
 Body
 
-Quiz "Silly Quiz";
-
-Multiple Choice (5 pt).
-"Which of the following people is not a member of the Avail team?"
-A: "Mark van Gulik"
-A: "Todd Smith"
-A: "Richard Arriaga"
-A: "Julius Caesar" ✔;
-
-Multiple Choice (5 pt).
-"Which of these is the number 3?"
-A: "日本語"
-A: "3" ✔
-A: "IV"
-A: "17";
-
-Multiple Choice (10 pt).
-"What animal makes the sound \"meow\"?"
-A: "Dog"
-A: "Cat" ✔
-A: "Motor Torpedo Boat"
-A: "Horse"
-A: "Cow"
-A: "Great Cthulhu";
-
-True ✔ / False (3 pt).
-"Truth is more true than falsehood.";
-
-Multiple Choice (3 pt).
-"Falsehood is more true than truth."
-A: "true"
-A: "false" ✔;
-
-Short Answer (4 pt).
-"x + 5 = 7. Solve for x."
-A: "2"
-A: "two";
+Method "Take Silly Quiz" is [Administer quiz "Silly Quiz";];

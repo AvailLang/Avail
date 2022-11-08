@@ -32,12 +32,18 @@
 
 package avail.persistence.cache.record
 
+import avail.AvailRuntime
+import avail.builder.ResolvedModuleName
+import avail.compiler.ModuleCorpus
 import avail.compiler.ModuleHeader
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.tokens.CommentTokenDescriptor
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.LimitedCache
+import avail.serialization.Deserializer
 import avail.serialization.Serializer
 import avail.utility.decodeString
 import avail.utility.sizedString
@@ -46,6 +52,7 @@ import avail.utility.unvlqLong
 import avail.utility.unzigzagLong
 import avail.utility.vlq
 import avail.utility.zigzag
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -84,6 +91,14 @@ class ModuleVersion
 	private val entryPoints: MutableList<String>
 
 	/**
+	 * The [ModuleCorpus]es that this package representative defines.  Each
+	 * such corpus indicates a file pattern to find headerless modules, and
+	 * the module that should be extended implicitly by that headerless
+	 * module.
+	 */
+	private val corpora: MutableList<ModuleCorpus>
+
+	/**
 	 * The `N` most recently recorded compilations of this version of the
 	 * module.
 	 */
@@ -108,20 +123,31 @@ class ModuleVersion
 	private var moduleHeaderRecordNumber: Long = -1L
 
 	/**
-	 * Answer the [serialized][Serializer] [module&#32;header][ModuleHeader]
-	 * associated with this [version][ModuleVersion].
+	 * Answer the [deserialized][Deserializer] [module&#32;header][ModuleHeader]
+	 * associated with this [ModuleVersion].
 	 *
+	 * @param resolvedModuleName
+	 *   The [ResolvedModuleName] of the module for which this is a version.
+	 * @param runtime
+	 *   The [AvailRuntime] used by deserialization.
 	 * @return
-	 *   A serialized module header.
+	 *   The [ModuleHeader] for this [ModuleVersion].
 	 */
-	val moduleHeader: ByteArray
-		get()
-		{
-			assert(moduleHeaderRecordNumber != -1L)
-			return repository.lock.withLock {
-				repository[moduleHeaderRecordNumber]
-			}
+	fun moduleHeader(
+		resolvedModuleName: ResolvedModuleName,
+		runtime: AvailRuntime
+	): ModuleHeader
+	{
+		assert(moduleHeaderRecordNumber != -1L)
+		val bytes = repository.lock.withLock {
+			repository[moduleHeaderRecordNumber]
 		}
+		val inputStream = validatedBytesFrom(bytes)
+		val deserializer = Deserializer(inputStream, runtime)
+		val header = ModuleHeader(resolvedModuleName)
+		header.deserializeHeaderFrom(deserializer)
+		return header
+	}
 
 	/**
 	 * The persistent record number of the Stacks
@@ -178,6 +204,15 @@ class ModuleVersion
 		Collections.unmodifiableList(entryPoints)
 
 	/**
+	 * The [List] of each [ModuleCorpus] declared by this version of the
+	 * module.
+	 *
+	 * @return
+	 *   The list of corpora.
+	 */
+	fun getCorpora(): List<ModuleCorpus> = Collections.unmodifiableList(corpora)
+
+	/**
 	 * Write the specified byte array (encoding a [ModuleHeader]) into the
 	 * indexed file. Record the record position for subsequent retrieval.
 	 *
@@ -229,6 +264,12 @@ class ModuleVersion
 		{
 			binaryStream.sizedString(entryPoint)
 		}
+		binaryStream.vlq(corpora.size)
+		for (corpus in corpora)
+		{
+			binaryStream.sizedString(corpus.moduleName.asNativeString())
+			binaryStream.sizedString(corpus.filePattern.asNativeString())
+		}
 		binaryStream.vlq(compilations.size)
 		for ((key, value) in compilations)
 		{
@@ -246,6 +287,11 @@ class ModuleVersion
 		{
 			append("\n\t\tentry points=")
 			append(entryPoints)
+		}
+		if (corpora.isNotEmpty())
+		{
+			append("\n\t\tcorpora=")
+			append(corpora)
 		}
 		append("\n\t\tcompilations=")
 		append(compilations.values)
@@ -284,6 +330,14 @@ class ModuleVersion
 		{
 			entryPoints.add(binaryStream.decodeString())
 		}
+		var corporaCount = binaryStream.unvlqInt()
+		corpora = mutableListOf()
+		while (corporaCount-- > 0)
+		{
+			val moduleName = stringFrom(binaryStream.decodeString())
+			val filePattern = stringFrom(binaryStream.decodeString())
+			corpora.add(ModuleCorpus(moduleName, filePattern))
+		}
 		var compilationsCount = binaryStream.unvlqInt()
 		while (compilationsCount-- > 0)
 		{
@@ -305,17 +359,22 @@ class ModuleVersion
 	 *   The list of module names being imported.
 	 * @param entryPoints
 	 *   The list of entry points defined in the module.
+	 * @param corpora
+	 *   The [List] of each [ModuleCorpus] defined by the module, which is
+	 *   used to support headerless modules (with a non-`.avail` extension).
 	 */
 	constructor(
 		repository: Repository,
 		moduleSize: Long,
 		localImportNames: List<String>,
-		entryPoints: List<String>)
+		entryPoints: List<String>,
+		corpora: List<ModuleCorpus>)
 	{
 		this.repository = repository
 		this.moduleSize = moduleSize
 		this.localImportNames = localImportNames.toMutableList()
 		this.entryPoints = entryPoints.toMutableList()
+		this.corpora = corpora.toMutableList()
 	}
 
 	companion object

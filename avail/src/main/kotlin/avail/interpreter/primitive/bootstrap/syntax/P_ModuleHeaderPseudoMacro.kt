@@ -72,17 +72,18 @@ import avail.interpreter.primitive.style.P_ModuleHeaderPseudoMacroStyler
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object P_ModuleHeaderPseudoMacro
-	: Primitive(6, Private, Bootstrap, CannotFail, CanInline)
+	: Primitive(7, Private, Bootstrap, CannotFail, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(6)
+		interpreter.checkArgumentCount(7)
 		val moduleNameLiteral = interpreter.argument(0)
 		val optionalVersions = interpreter.argument(1)
 		val allImports = interpreter.argument(2)
 		val optionalNames = interpreter.argument(3)
 		val optionalEntries = interpreter.argument(4)
 		val optionalPragmas = interpreter.argument(5)
+		val optionalCorpus = interpreter.argument(6)
 
 		return interpreter.primitiveSuccess(
 			newExpressionAsStatement(
@@ -99,7 +100,8 @@ object P_ModuleHeaderPseudoMacro
 							allImports,
 							optionalNames,
 							optionalEntries,
-							optionalPragmas)),
+							optionalPragmas,
+							optionalCorpus)),
 					TOP.o)))
 	}
 
@@ -138,8 +140,12 @@ object P_ModuleHeaderPseudoMacro
 				// Optional entries.
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 				// Optional pragmas.
-				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
-			/* Shouldn't be invoked, so always fail. */
+				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
+				// Optional corpus.
+				zeroOrOneList(
+					zeroOrMoreList(
+						list(stringLiteralType, stringLiteralType)))),
+			/* Return value. */
 			STATEMENT_PHRASE.mostGeneralType)
 
 	override fun bootstrapStyler() = P_ModuleHeaderPseudoMacroStyler

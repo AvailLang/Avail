@@ -365,11 +365,7 @@ internal class BuildLoader constructor(
 		// Read the module header from the repository.
 		try
 		{
-			val bytes = version.moduleHeader
-			val inputStream = validatedBytesFrom(bytes)
-			val deserializer = Deserializer(inputStream, availBuilder.runtime)
-			val header = ModuleHeader(moduleName)
-			header.deserializeHeaderFrom(deserializer)
+			val header = version.moduleHeader(moduleName, availBuilder.runtime)
 			val errorString = header.applyToModule(availLoader)
 			if (errorString !== null)
 			{

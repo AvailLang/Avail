@@ -37,6 +37,8 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.text.FileExtensionMetadata.AVAIL
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
+import avail.compiler.ModuleCorpus
+import avail.persistence.cache.record.ModuleVersionKey
 
 /**
  * This is a tree node representing a module file or a package.
@@ -61,13 +63,41 @@ import avail.builder.ResolvedModuleName
  * @param isPackage
  *   Whether it's a package.
  */
-class ModuleOrPackageNode constructor(
+class ModuleOrPackageNode
+constructor(
 	workbench: AvailWorkbench,
 	private val originalModuleName: ModuleName,
 	val resolvedModuleName: ResolvedModuleName,
 	val isPackage: Boolean
 ): OpenableFileNode(workbench)
 {
+	/**
+	 * The list of [module corpora][ModuleCorpus] on which to operate.  This is
+	 * fetched from the repository as needed.
+	 */
+	private val corpora: List<ModuleCorpus> by lazy {
+		if (!isPackage)
+		{
+			// Only package representatives can define corpora, to avoid having
+			// multiple modules with overlapping claims.
+			emptyList()
+		}
+		else
+		{
+			// Fetch the hopefully already-parsed module header from the
+			// repository.
+			val resolverReference = resolvedModuleName.resolverReference
+			val archive = resolvedModuleName.repository.getArchive(
+				resolvedModuleName.rootRelativeName)
+			archive.provideDigest(resolverReference)?.let { digest ->
+				archive
+					.getVersion(ModuleVersionKey(resolvedModuleName, digest))
+					?.moduleHeader(resolvedModuleName, workbench.runtime)
+					?.corpora
+			} ?: emptyList()
+		}
+	}
+
 	override fun modulePathString(): String = when
 	{
 		resolvedModuleName.resolverReference.isPackageRepresentative ->
@@ -100,17 +130,24 @@ class ModuleOrPackageNode constructor(
 
 	override fun equalityText(): String = resolvedModuleName.localName
 
-	override fun text(selected: Boolean): String =
-		if (isRenamedSource)
+	override fun text(selected: Boolean): String = buildString {
+		when
 		{
-			(originalModuleName.localName +
-				" → " +
-				resolvedModuleName.qualifiedName)
+			isRenamedSource ->
+			{
+				append(originalModuleName.localName)
+				append(" → ")
+				append(resolvedModuleName.qualifiedName)
+			}
+			else -> append(resolvedModuleName.localName)
 		}
-		else
+
+		if (corpora.isNotEmpty())
 		{
-			resolvedModuleName.localName
-		} + suffix
+			corpora.joinTo(this, ", ", "\n\t\tcorpora=", "")
+		}
+		append(suffix)
+	}
 
 	/**
 	 * A bad hack to preserve enough space in the HTML [text] to allow the

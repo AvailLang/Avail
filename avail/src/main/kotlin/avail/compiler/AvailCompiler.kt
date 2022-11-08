@@ -242,6 +242,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.component3
 import avail.descriptor.tuples.A_Tuple.Companion.component4
 import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
+import avail.descriptor.tuples.A_Tuple.Companion.component7
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -3800,14 +3801,16 @@ class AvailCompiler constructor(
 		assert(headerPhrase.phraseKindIsUnder(SEND_PHRASE))
 		assert(headerPhrase.apparentSendName.equals(MODULE_HEADER.atom))
 		val args = convertHeaderPhraseToValue(headerPhrase.argumentsListNode)
-		assert(args.tupleSize == 6)
+		assert(args.tupleSize == 7)
 		val (
 			moduleNameToken,
 			optionalVersionsPart,
 			allImportsPart,
 			optionalNamesPart,
 			optionalEntriesPart,
-			optionalPragmasPart) = args
+			optionalPragmasPart,
+			optionalCorpus
+		) = args
 
 		// Module name was checked against file name in a prefix function.
 		val moduleName = stringFromToken(moduleNameToken)
@@ -4005,6 +4008,20 @@ class AvailCompiler constructor(
 				moduleHeader.pragmas.add(innerToken)
 			}
 		}
+
+		// Corpus section
+		if (optionalCorpus.tupleSize > 0)
+		{
+			assert(optionalCorpus.tupleSize == 1)
+			for ((corpusModule, filePattern) in optionalCorpus.tupleAt(1))
+			{
+				moduleHeader.corpora.add(
+					ModuleCorpus(
+						moduleName = stringFromToken(corpusModule),
+						filePattern = stringFromToken(filePattern)))
+			}
+		}
+
 		moduleHeader.startOfBodyPosition = stateAfterHeader.position
 		moduleHeader.startOfBodyLineNumber = stateAfterHeader.lineNumber
 		return true

@@ -75,7 +75,7 @@ import kotlin.concurrent.withLock
  * **Metadata:**
  * 1. #modules
  * 2. For each module,
- *    2.a. moduleArchive
+ *    2a. moduleArchive
  *
  * **ModuleArchive:**
  * 1. UTF8 rootRelativeName
@@ -154,7 +154,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V18")
+		"Avail compiled module repository V18+headerless")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe

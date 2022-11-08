@@ -63,6 +63,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.component3
 import avail.descriptor.tuples.A_Tuple.Companion.component4
 import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
+import avail.descriptor.tuples.A_Tuple.Companion.component7
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
@@ -109,7 +110,8 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 			imports,
 			optionalNames,
 			optionalEntries,
-			optionalPragmas
+			optionalPragmas,
+			optionalCorpus
 		) = sendPhrase.argumentsListNode.expressionsTuple
 
 		loader.styleToken(moduleName.token, STRING_LITERAL)
@@ -178,6 +180,14 @@ object P_ModuleHeaderPseudoMacroStyler : Primitive(2, CanInline, Bootstrap)
 			pragmas.expressionsTuple.forEach { pragma ->
 				loader.styleMethodName(pragma.token)
 				loader.styleToken(pragma.token, PRAGMA)
+			}
+		}
+
+		optionalCorpus.expressionsTuple.forEach { corpus ->
+			corpus.expressionsTuple.forEach { corpusPair ->
+				val (corpusName, filePattern) = corpusPair.expressionsTuple
+				loader.styleStringLiteral(corpusName.token)
+				loader.styleStringLiteral(filePattern.token)
 			}
 		}
 

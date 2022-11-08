@@ -1421,10 +1421,7 @@ class AvailWorkbench internal constructor(
 		parentRef.walkChildrenThen(
 			true,
 			{
-				if (it.isRoot)
-				{
-					return@walkChildrenThen
-				}
+				if (it.isRoot) return@walkChildrenThen
 				val parentNode = parentMap[it.parentName]
 					?: return@walkChildrenThen
 				when (it.type)
@@ -1435,7 +1432,10 @@ class AvailWorkbench internal constructor(
 						{
 							val resolved = resolver.resolve(it.moduleName)
 							val node = ModuleOrPackageNode(
-								this, it.moduleName, resolved, false)
+								this,
+								it.moduleName,
+								resolved,
+								false)
 							parentNode.add(node)
 						}
 						catch (e: UnresolvedDependencyException)
@@ -1455,8 +1455,9 @@ class AvailWorkbench internal constructor(
 						}
 						catch (e: UnresolvedDependencyException)
 						{
-							// The directory didn't contain the necessary package
-							// representative, so simply skip the whole directory.
+							// The directory didn't contain the necessary
+							// package representative, so simply skip the whole
+							// directory.
 							return@walkChildrenThen
 						}
 						val node = ModuleOrPackageNode(

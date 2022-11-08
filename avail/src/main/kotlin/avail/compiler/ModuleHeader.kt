@@ -107,6 +107,13 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	val pragmas = mutableListOf<A_Token>()
 
 	/**
+	 * The [ModuleCorpus]es that this package representative defines.  Each such
+	 * corpus indicates a file pattern to find headerless modules, and the
+	 * module that should be extended implicitly by that headerless module.
+	 */
+	val corpora = mutableListOf<ModuleCorpus>()
+
+	/**
 	 * The position in the file where the body starts (right after the "body"
 	 * token).
 	 */

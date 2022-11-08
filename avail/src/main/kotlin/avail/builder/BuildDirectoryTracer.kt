@@ -179,8 +179,8 @@ class BuildDirectoryTracer constructor(
 		resolver.provideModuleRootTree(
 			successHandler = { refRoot ->
 				refRoot.walkChildrenThen(
-					false,
-					{ visited ->
+					visitResources = false,
+					withReference = { visited ->
 						if (visited.isRoot || visited.isPackage)
 						{
 							// We don't want to trace packages.
@@ -212,11 +212,11 @@ class BuildDirectoryTracer constructor(
 							}
 						}
 					},
-					afterAllQueued)
+					afterAllVisited = afterAllQueued)
 			},
 			failureHandler = { code, ex ->
 				moduleFailureHandler(
-					"Could not get ${resolver.name} ResolverReference",
+					"Could not get ${resolver.moduleRoot.name} ResolverReference",
 					code,
 					ex)
 			})
@@ -267,9 +267,9 @@ class BuildDirectoryTracer constructor(
 		val sourceReference = resolvedName.resolverReference
 		val archive = repository.getArchive(resolvedName.rootRelativeName)
 		archive.digestForFile(
-			resolvedName,
-			false,
-			{ digest ->
+			resolvedModuleName = resolvedName,
+			forceRefreshDigest = false,
+			withDigest = { digest ->
 				val versionKey = ModuleVersionKey(resolvedName, digest)
 				val existingVersion = archive.getVersion(versionKey)
 				if (existingVersion !== null)
@@ -306,11 +306,13 @@ class BuildDirectoryTracer constructor(
 						val header = compiler.compilationContext.moduleHeader!!
 						val importNames = header.importedModuleNames
 						val entryPoints = header.entryPointNames
+						val corpora = header.corpora
 						val newVersion = ModuleVersion(
-							repository,sourceReference.size,
+							repository,
+							sourceReference.size,
 							importNames,
-							entryPoints)
-
+							entryPoints,
+							corpora)
 						availBuilder.serialize(header, newVersion)
 						archive.putVersion(versionKey, newVersion)
 						action(resolvedName, newVersion, completedAction)

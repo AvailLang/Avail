@@ -35,5 +35,7 @@ Versions
 	"Avail-1.6.1"
 Uses
 	"Avail",
-	"Silly Quiz"
+	"Quiz DSL"
+Corpus
+	"Quiz DSL" = "*.quiz"
 Body

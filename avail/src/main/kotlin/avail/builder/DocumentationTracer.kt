@@ -182,35 +182,32 @@ internal class DocumentationTracer constructor(
 					return@getVersion
 				}
 
-				val header: ModuleHeader
-				try
-				{
-					val input = validatedBytesFrom(version.moduleHeader)
-					val deserializer = Deserializer(input, availBuilder.runtime)
-					header = ModuleHeader(moduleName)
-					header.deserializeHeaderFrom(deserializer)
-				}
-				catch (e: MalformedSerialStreamException)
-				{
-					val problem = object : Problem(
-						moduleName,
-						1,
-						0,
-						INTERNAL,
-						"Couldn''t deserialize header for module \"{0}\"",
-						moduleName)
+				val header: ModuleHeader =
+					try
 					{
-						override fun abortCompilation()
-						{
-							availBuilder.stopBuildReason =
-								"Module header deserialization failed when " +
-									"loading comments"
-							completionAction()
-						}
+						version.moduleHeader(moduleName, availBuilder.runtime)
 					}
-					problemHandler.handle(problem)
-					return@getVersion
-				}
+					catch (e: MalformedSerialStreamException)
+					{
+						val problem = object : Problem(
+							moduleName,
+							1,
+							0,
+							INTERNAL,
+							"Couldn''t deserialize header for module \"{0}\"",
+							moduleName)
+						{
+							override fun abortCompilation()
+							{
+								availBuilder.stopBuildReason =
+									"Module header deserialization failed " +
+										"when loading comments"
+								completionAction()
+							}
+						}
+						problemHandler.handle(problem)
+						return@getVersion
+					}
 
 				generator.add(header, tuple)
 				completionAction()

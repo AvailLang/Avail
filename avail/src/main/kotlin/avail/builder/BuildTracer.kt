@@ -75,8 +75,8 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	 * that is scheduled here.  That ensures the two counters won't accidentally
 	 * be equal at any time except after the last trace has completed.
 	 *
-	 * When traceCompletions finally does reach traceRequests, a notifyAll] will
-	 * be sent to the `BuildTracer`.
+	 * When traceCompletions finally does reach traceRequests, a
+	 * [notifyAll][Object.notifyAll] will be sent to the `BuildTracer`.
 	 *
 	 * @param qualifiedName
 	 *   A fully-qualified [module&#32;name][ModuleName].
@@ -257,8 +257,13 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 							val header = compiler.compilationContext.moduleHeader!!
 							val importNames = header.importedModuleNames
 							val entryPoints = header.entryPointNames
+							val corpora = header.corpora
 							val newVersion = ModuleVersion(
-								repository,sourceFile.size, importNames, entryPoints)
+								repository,
+								sourceFile.size,
+								importNames,
+								entryPoints,
+								corpora)
 							availBuilder.serialize(header, newVersion)
 							archive.putVersion(versionKey, newVersion)
 							traceModuleNames(

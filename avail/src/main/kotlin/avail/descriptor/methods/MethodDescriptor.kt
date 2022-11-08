@@ -1046,6 +1046,7 @@ class MethodDescriptor private constructor(
 				+ "«Names«…#‡,»»"
 				+ "«Entries«…#‡,»»"
 				+ "«Pragma«…#‡,»»"
+				+ "«Corpus«…#=…#‡,»»"
 				+ "Body",
 			listOf(
 				P_ModuleHeaderPrefixCheckModuleName,
