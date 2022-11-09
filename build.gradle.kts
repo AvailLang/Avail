@@ -73,7 +73,7 @@ kotlin {
 
 allprojects {
 	group = "org.availlang"
-	version = "2.0.0.alpha16"
+	version = "2.0.0.alpha17"
 
 	// Define versions in a single place
 	extra.apply{

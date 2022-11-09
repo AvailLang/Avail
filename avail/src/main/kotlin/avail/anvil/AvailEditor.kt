@@ -86,6 +86,7 @@ import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.Caret
+import javax.swing.text.StyleConstants
 
 /**
  * An editor for an Avail source module. Currently supports:
@@ -312,7 +313,11 @@ class AvailEditor constructor(
 		registerStyles()
 		addCaretListener {
 			range = markToDotRange()
-			caretRangeLabel.text = range.toString()
+			val offset = range.markPosition.offset
+			val element = styledDocument.getCharacterElement(offset)
+			val style = element.attributes.getAttribute(
+				StyleConstants.NameAttribute)
+			caretRangeLabel.text = "$style $range"
 		}
 		inputMap.put(
 			getKeyStroke(VK_L, getDefaultToolkit().menuShortcutKeyMaskEx),
