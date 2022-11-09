@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 10/13/22, 4:31 PM
+ * * Last Generated: 11/8/22, 8:28 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -64,7 +64,7 @@ Uses
 		"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
-		"Lexer_when_is_",
+		"Lexer_when_is_«styled by_»?",
 		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
@@ -2363,15 +2363,19 @@ Primitive "semantic restrictions for_given_" is
  * should run when a particular character is encountered, and its body attempts
  * to produce tokens in that circumstance.
  *
+ * Also optionally specify a styler function.
+ *
  * @category "Primitives"
- * @method "Lexer_when_is_"
+ * @method "Lexer_when_is_«styled by_»?"
  * @param "lexerName" "atom"
  *        The atom that names the lexer.
  * @param "filterFunction" "[character]→boolean"
  *        The filter function of the lexer.
  * @param "bodyFunction" "[string, [1..∞), [1..∞)]→{<token…|1..∞>|}"
  *        The body of the lexer.
- * @returns "⊤"
+ * @param "optionalStyler" "<[<send phrase⇒⊤…|0..1>, phrase⇒⊤]→⊤…|0..1>"
+ *        The optional function used for styling invocations of this lexer.
+ * @raises "⊤"
  * @raises "incorrect-argument-type exception"
  * @raises "incorrect-type-for-group exception"
  * @raises "exclamation-mark-must-follow-an-alternation-group exception"
@@ -2394,11 +2398,12 @@ Primitive "semantic restrictions for_given_" is
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
  */
-Primitive "Lexer_when_is_" is
+Primitive "Lexer_when_is_«styled by_»?" is
 [
 	lexerName : atom,
 	filterFunction : lexer filter function,
-	bodyFunction : lexer body function
+	bodyFunction : lexer body function,
+	optionalStyler : optionalStylerFunction
 |
 	Primitive SimpleLexerDefinitionForAtom (failureCode : {
 		incorrect-argument-type code,

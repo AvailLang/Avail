@@ -99,7 +99,7 @@ Extends
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
 		"Invoke_with_,⁇forked at priority_",
-		"Lexer_when_is_",
+		"Lexer_when_is_«styled by_»?",
 		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Park current fiber",

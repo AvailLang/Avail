@@ -41,6 +41,7 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
@@ -49,6 +50,8 @@ import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
@@ -56,6 +59,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.MalformedMessageException
@@ -81,14 +85,15 @@ import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
+object P_SimpleLexerDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(3)
+		interpreter.checkArgumentCount(4)
 		val atom = interpreter.argument(0)
 		val filterFunction = interpreter.argument(1)
 		val bodyFunction = interpreter.argument(2)
+		val optionalStylerFunction = interpreter.argument(3)
 
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader ?:
@@ -137,10 +142,21 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 					SpecialMethodAtom.LEXER_DEFINER.bundle,
 					atom,
 					filterFunction,
-					bodyFunction))
-			// If the lexer body is a primitive which specifies a
-			// bootstrapStyler, add that styler to the lexer's method.
-			addBootstrapStyler(bodyFunction.code(), atom, loader.module)
+					bodyFunction,
+					optionalStylerFunction))
+			if (optionalStylerFunction.tupleSize == 1)
+			{
+				// Set the styler function explicitly.
+				val stylerFunction = optionalStylerFunction.tupleAt(1)
+				loader.addStyler(atom.bundleOrCreate(), stylerFunction)
+			}
+			else
+			{
+				// If a styler function was not specified, but the lexer
+				// body was a primitive that has a bootstrapStyler, use that
+				// just as though it had been specified.
+				addBootstrapStyler(bodyFunction.code(), atom, loader.module)
+			}
 			succeed(nil)
 		}
 	}
@@ -148,7 +164,10 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o, lexerFilterFunctionType(), lexerBodyFunctionType()),
+				ATOM.o,
+				lexerFilterFunctionType(),
+				lexerBodyFunctionType(),
+				zeroOrOneOf(stylerFunctionType)),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =

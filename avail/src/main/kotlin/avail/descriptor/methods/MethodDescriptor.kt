@@ -935,7 +935,7 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for defining lexers. */
 		LEXER_DEFINER(
-			"vm lexer_filter is_body is_",
+			"vm lexer_filter is_body is_«styled by_»?",
 			P_SimpleLexerDefinitionForAtom),
 
 		/** The special atom for defining macros. */

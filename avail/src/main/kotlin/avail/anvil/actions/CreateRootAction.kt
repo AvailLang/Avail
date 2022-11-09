@@ -78,7 +78,7 @@ constructor (
 	workbench: AvailWorkbench,
 ) : AbstractWorkbenchAction(
 	workbench,
-	"Create root")
+	"Create root…")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

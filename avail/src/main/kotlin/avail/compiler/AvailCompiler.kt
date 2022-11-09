@@ -3215,7 +3215,8 @@ class AvailCompiler constructor(
 				tuple(
 					nameLiteral,
 					syntheticLiteralNodeFor(filterFunction),
-					syntheticLiteralNodeFor(bodyFunction))),
+					syntheticLiteralNodeFor(bodyFunction),
+					emptyListNode())),
 			TOP.o)
 		evaluateModuleStatementThen(
 			token.synthesizeCurrentLexingState(),
