@@ -246,6 +246,7 @@ Extends
 		"statement phrase",
 		"static method_._,⁇parameterized by_",
 		"string",
+		"string literal phrase",
 		"super cast phrase",
 		"termination requested",
 		"token",
