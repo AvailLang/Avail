@@ -98,9 +98,8 @@ is
 		{<comment (commentText) @ position:line>}
 	]
 	else [∅]
-];
-
-Style $"end of line comment lexer" with
+]
+styled by
 [
 	optionalOriginal : send phrase?,
 	transformed : phrase

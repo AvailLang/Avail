@@ -61,6 +61,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelOne.L1Decompiler
 import avail.serialization.SerializerOperation
@@ -226,7 +227,19 @@ class LiteralPhraseDescriptor(
 
 	override fun o_Token(self: AvailObject): A_Token = self.slot(TOKEN)
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = tuple(self.slot(TOKEN))
+	override fun o_Tokens(self: AvailObject): A_Tuple
+	{
+		val token: A_Token = self.slot(TOKEN)
+		val literal = token.literal()
+		return when
+		{
+			// The literal phrase's token's literal is also a token.
+			// Answer both.
+			literal.isInstanceOf(Types.TOKEN.o) -> tuple(token, literal)
+			// Answer just the literal phrase's token.
+			else -> tuple(token)
+		}
+	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

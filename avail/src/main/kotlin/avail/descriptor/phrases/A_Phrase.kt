@@ -691,13 +691,13 @@ interface A_Phrase : A_BasicObject {
 						}
 						else -> phrase.childrenDo(withChild)
 					}
-				}
-			) { phrase, _ ->
-				if (!exclude.contains(phrase))
-				{
-					tokens.addAll(phrase.tokens.filter { it.start() != 0 })
-				}
-			}
+				},
+				aBlock = { phrase, _ ->
+					if (!exclude.contains(phrase))
+					{
+						tokens.addAll(phrase.tokens.filter { it.start() != 0 })
+					}
+				})
 			val sorted = tokens.sortedBy { it.start() }
 			return tupleFromList(sorted)
 		}
