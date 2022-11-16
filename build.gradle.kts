@@ -56,7 +56,7 @@ plugins {
 	`maven-publish`
 	publishing
 	id("org.jetbrains.dokka") version "1.7.10" apply false
-	id("org.availlang.avail-plugin") version "2.0.0.alpha12" apply false
+	id("org.availlang.avail-plugin") version "2.0.0.alpha16" apply false
 }
 
 java {

@@ -13,16 +13,12 @@
 			"id": "4087a9f5-4d53-4a2d-8b59-b7d5bd7a1505",
 			"name": "avail",
 			"editable": true,
-			"visible": true,
 			"location": {
 				"locationType": "project",
 				"scheme": "FILE",
 				"path": "distro/src/avail"
 			},
-			"availModuleExtensions": [
-				"avail"
-			],
-			"rootCopyright": "",
+			"rootCopyright": "/*\n * {{MOD}}.avail\n * Copyright © 1993-{{YEAR}}, The Avail Foundation, LLC.\n * All rights reserved.\n *\n * Redistribution and use in source and binary forms, with or without\n * modification, are permitted provided that the following conditions are met:\n *\n * * Redistributions of source code must retain the above copyright notice, this\n *   list of conditions and the following disclaimer.\n *\n * * Redistributions in binary form must reproduce the above copyright notice,\n *   this list of conditions and the following disclaimer in the documentation\n *   and/or other materials provided with the distribution.\n *\n * * Neither the name of the copyright holder nor the names of the contributors\n *   may be used to endorse or promote products derived from this software\n *   without specific prior written permission.\n *\n * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE\n * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\n * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\n * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\n * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n * POSSIBILITY OF SUCH DAMAGE.\n */\n",
 			"templates": {
 				"a": "∀",
 				"bottom": "⊥",
@@ -149,6 +145,223 @@
 				"!=": "≠",
 				"...": "…",
 				"??": "⁇"
+			},
+			"palette": {
+				"extreme": "#FFFFFFFF/000000FF",
+				"textBackground": "#FFFFFF4A/21121940",
+				"codeBackground": "#F7F7F7FF/02232EFF",
+				"consoleBackground": "#E6E6E6FF/053646FF",
+				"baseCode": "#000000EE/FFFFFFEE",
+				"consoleText": "#000000FF/FFFFFFFF",
+				"strongGray": "#00000077/FFFFFF77",
+				"weakGray": "#00000044/FFFFFF44",
+				"lilac": "#8174FFFF/6659E2FF",
+				"magenta": "#D03B83FF/D25B94FF",
+				"transparentMagenta": "#D03B83AA/D25B94AA",
+				"rose": "#DC4444FF",
+				"transparentRose": "#DC444488",
+				"faintTransparentRose": "#DC444422",
+				"mango": "#EE731BFF/FF8836FF",
+				"mustard": "#E8B000FF/FFD659FF",
+				"transparentMustard": "#E8B00018/FFD65918",
+				"green": "#4C853EFF/78B669FF",
+				"transparentGreen": "#4C853E88/78B66988",
+				"blue": "#2294C6FF/38B1E5FF",
+				"faintTransparentIndigo": "#4B35A920/3B279530",
+				"deemphasize": "#80808080/60606080"
+			},
+			"stylesheet": {
+				"#block": {
+					"foreground": "mustard"
+				},
+				"#method-definition": {
+					"foreground": "rose"
+				},
+				"#method-name": {
+					"foreground": "mango",
+					"bold": true
+				},
+				"#parameter-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#parameter-use": {
+					"foreground": "magenta",
+					"bold": true
+				},
+				"#method-send": {
+					"foreground": "baseCode"
+				},
+				"#macro-send": {
+					"foreground": "baseCode"
+				},
+				"#statement": {
+					"bold": true
+				},
+				"#type": {
+					"foreground": "blue"
+				},
+				"#metatype": {
+					"foreground": "blue",
+					"italic": true
+				},
+				"#phrase-type": {
+					"foreground": "lilac",
+					"italic": true
+				},
+				"#module-header": {
+					"foreground": "transparentRose"
+				},
+				"#module-header-region": {
+					"background": "faintTransparentIndigo"
+				},
+				"#version": {
+					"background": "faintTransparentRose"
+				},
+				"#import": {
+					"background": "faintTransparentRose"
+				},
+				"#export": {
+					"background": "faintTransparentRose"
+				},
+				"#entry-point": {
+					"background": "faintTransparentRose",
+					"bold": true
+				},
+				"#pragma": {
+					"background": "faintTransparentRose",
+					"italic": true
+				},
+				"#comment": {
+					"foreground": "weakGray"
+				},
+				"#documentation": {
+					"foreground": "strongGray"
+				},
+				"#documentation-tag": {
+					"foreground": "strongGray",
+					"bold": true
+				},
+				"#module-constant-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#module-constant-use": {
+					"foreground": "magenta",
+					"italic": true
+				},
+				"#module-variable-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#module-variable-use": {
+					"foreground": "magenta",
+					"italic": true,
+					"underline": true
+				},
+				"#primitive-failure-reason-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#local-constant-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#local-variable-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#local-variable-use": {
+					"foreground": "magenta",
+					"underline": true
+				},
+				"#label-definition": {
+					"foreground": "mustard",
+					"background": "transparentMustard"
+				},
+				"#label-use": {
+					"foreground": "mustard"
+				},
+				"#string-literal": {
+					"foreground": "green"
+				},
+				"#string-escape-sequence": {
+					"foreground": "transparentGreen",
+					"bold": true
+				},
+				"#numeric-literal": {
+					"foreground": "green"
+				},
+				"#boolean-literal": {
+					"foreground": "green"
+				},
+				"#tuple-constructor": {
+					"foreground": "green"
+				},
+				"#set-constructor": {
+					"foreground": "green"
+				},
+				"#map-constructor": {
+					"foreground": "green"
+				},
+				"#character-literal": {
+					"foreground": "green"
+				},
+				"#atom-literal": {
+					"foreground": "green"
+				},
+				"#other-literal": {
+					"foreground": "green"
+				},
+				"#condition": {
+					"foreground": "mustard"
+				},
+				"#loop": {
+					"foreground": "mustard"
+				},
+				"#lexer-definition": {
+					"foreground": "rose"
+				},
+				"#macro-definition": {
+					"foreground": "rose"
+				},
+				"#semantic-restriction-definition": {
+					"foreground": "rose"
+				},
+				"#grammatical-restriction-definition": {
+					"foreground": "rose"
+				},
+				"#seal-definition": {
+					"foreground": "rose"
+				},
+				"#object-type-definition": {
+					"foreground": "rose"
+				},
+				"#special-object": {
+					"foreground": "rose"
+				},
+				"#primitive-name": {
+					"foreground": "rose",
+					"bold": true
+				},
+				"#phrase": {
+					"foreground": "lilac"
+				},
+				"#return-value": {
+					"background": "transparentMustard"
+				},
+				"#nonlocal-control": {
+					"foreground": "mustard"
+				},
+				"#math-exponent": {
+					"superscript": true
+				},
+				"#deemphasize": {
+					"foreground": "deemphasize"
+				},
+				"#excluded": {
+					"strikethrough": true
+				}
 			}
 		}
 	],

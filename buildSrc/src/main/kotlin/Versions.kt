@@ -39,7 +39,7 @@
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.6.21"
+	const val kotlin = "1.7.21"
 
 	/** The Avail version. */
 	const val avail = "1.6.0"
@@ -48,7 +48,7 @@ object Versions
 	const val shadow = "7.1.2"
 
 	/** The `org.jetbrains:annotations` version. */
-	const val kotlinAnnotations="23.0.0"
+	const val kotlinAnnotations = "23.0.0"
 
 	/** The `org.ow2.asm` version. */
 	const val asmVersion = "9.2"
