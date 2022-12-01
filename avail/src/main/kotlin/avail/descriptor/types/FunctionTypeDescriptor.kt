@@ -727,7 +727,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A function type.
 		 */
-		@JvmOverloads
 		fun functionType(
 			argTypes: A_Tuple,
 			returnType: A_Type,

@@ -1202,7 +1202,6 @@ constructor(messageName: A_String) {
 	 * @throws SignatureException
 	 *         If the function type is inappropriate for the method name.
 	 */
-	@JvmOverloads
 	@Throws(SignatureException::class)
 	fun checkImplementationSignature(
 		functionType: A_Type,

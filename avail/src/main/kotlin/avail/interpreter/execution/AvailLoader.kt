@@ -1842,7 +1842,6 @@ constructor(
 	 * @throws AmbiguousNameException
 	 *   If the string could represent several different true names.
 	 */
-	@JvmOverloads
 	@Throws(AmbiguousNameException::class)
 	fun lookupName(
 		stringName: A_String,

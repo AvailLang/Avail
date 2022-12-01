@@ -170,7 +170,7 @@ class ObjectDescriptor internal constructor(
 		KIND,
 
 		/**
-		 * Either [nil] or a [raw&32;pojo][RawPojoDescriptor] containing a
+		 * Either [nil] or a [raw&#32;pojo][RawPojoDescriptor] containing a
 		 * [VettingsCache], for caching the results of type checks against
 		 * object types that are already marked shared.  Since method and
 		 * function signatures are always shared, as well as types used by

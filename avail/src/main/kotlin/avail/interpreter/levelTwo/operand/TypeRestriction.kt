@@ -1572,7 +1572,6 @@ class TypeRestriction private constructor(
 		 * @return
 		 *   The new or existing canonical TypeRestriction.
 		 */
-		@JvmOverloads
 		fun restriction(
 			type: A_Type,
 			constantOrNull: A_BasicObject?,

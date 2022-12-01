@@ -122,7 +122,7 @@ enum class ReportingUnit (private vararg val ranges: Range)
 	 *   the (double) value to render, and the second argument to be the
 	 *   standard deviation.
 	 */
-	internal class Range @JvmOverloads internal constructor(
+	internal class Range internal constructor(
 		internal val low: Double,
 		internal val high: Double,
 		internal val scale: Double,
