@@ -126,6 +126,22 @@ class NybbleArray constructor(
 ): Iterable<Byte>
 {
 	/**
+	 * Determine whether the receiver is empty.
+	 *
+	 * @return
+	 *   `true` iff the receiver is empty.
+ 	 */
+	fun isEmpty() = size == 0
+
+	/**
+	 * Determine whether the receiver is nonempty.
+	 *
+	 * @return
+	 *   `true` iff the receiver is empty.
+	 */
+	fun isNotEmpty() = size != 0
+
+	/**
 	 * Answer the nybble at the given zero-based [index].
 	 *
 	 * @param index

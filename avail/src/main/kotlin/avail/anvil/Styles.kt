@@ -1751,6 +1751,10 @@ class StylePatternCompiler private constructor(
 		{
 			matchExactly = true
 			expression.child.accept(this)
+			// For correct operation, we need to explicitly match the
+			// end-of-sequence classifier; otherwise, we will accept sequences
+			// with acceptable prefixes that do not match in their totality.
+			MatchEndOfSequence.emitOn(accumulator)
 		}
 
 		override fun visit(expression: SuccessionExpression)
@@ -2114,15 +2118,40 @@ class StylePatternException(
  * @property literals
  *   The literal values recorded by the [compiler][StylePatternCompiler],
  *   corresponding to the fixed style classifiers embedded in the
- *   [pattern][ValidatedStylePattern].
+ *   [pattern][ValidatedStylePattern]. Will be [interned][intern] prior to
+ *   internal storage, to accelerate matching during
+ *   [execution][StyleRuleExecutor.run].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a [StyleRule].
+ *
+ * @param source
+ *   The source text whence the rule was compiled.
+ * @param renderingContext
+ *   The [validated&#32;rendering&#32;context][ValidatedRenderingContext] to
+ *   apply when this rule wins out over all others in the enclosing
+ *   [stylesheet][Stylesheet].
+ * @param instructions
+ *   The [instructions][StyleRuleInstruction] that implement the
+ *   [pattern][ValidatedStylePattern]-matching program.
+ * @param literals
+ *   The literal values recorded by the [compiler][StylePatternCompiler],
+ *   corresponding to the fixed style classifiers embedded in the
+ *   [pattern][ValidatedStylePattern]. Will be [interned][intern] prior to
+ *   internal storage, to accelerate matching during
+ *   [execution][StyleRuleExecutor.run].
  */
 class StyleRule constructor(
 	val source: String,
 	val renderingContext: ValidatedRenderingContext,
 	val instructions: NybbleArray,
-	private val literals: List<String>)
+	literals: List<String>)
 {
+	/** The [interned][String.intern] literals. */
+	private val literals = literals.map { it.intern() }
+
 	/**
 	 * Answer the literal value at the requested index. Should generally only be
 	 * invoked by a [StyleRuleInstruction] during its
@@ -2215,8 +2244,7 @@ sealed class StyleRuleInstructionCoder constructor(val opcode: Int)
 	 */
 	open fun emitOn(
 		nybbles: NybbleOutputStream,
-		vararg operands: Int
-	)
+		vararg operands: Int)
 	{
 		nybbles.opcode(opcode)
 		operands.forEach { nybbles.vlq(it) }
@@ -2577,6 +2605,19 @@ class ForkN constructor(
 	}
 }
 
+/**
+ * Match a style classifier against the special end-of-sequence classifier,
+ * represented by the empty string. On success, [succeed][ACCEPTED] the
+ * enclosing rule; on failure, [fail][REJECTED] the enclosing [rule][StyleRule].
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+object MatchEndOfSequence: StyleRuleInstructionCoder(0xC), StyleRuleInstruction
+{
+	override fun toString() = "match end of sequence"
+	override fun decodeOperands(nybbles: NybbleInputStream) = MatchEndOfSequence
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Execution.                                 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -2612,6 +2653,8 @@ data class StyleRuleContext constructor(
 			programCounter == rule.instructions.size -> copy(state = ACCEPTED)
 			else -> this
 		}
+
+	override fun toString() = "@{${rule.source} :: @$programCounter, $state}"
 }
 
 /**
@@ -2652,7 +2695,10 @@ enum class StyleRuleContextState
  * derivative of the initial context has left the
  * [RUNNING]&nbsp;[state][StyleRuleContextState]. The executor uses a supplied
  * injector to feed [forked][ForkN] contexts back into the pool of pending
- * contexts.
+ * contexts. It should be run iteratively against a lineage of contexts and a
+ * sequence of classifiers. The special [end-of-sequence][endOfSequenceLiteral]
+ * classifier should terminate a sequence of classifiers (unless the rule
+ * [rejects][REJECTED] the sequence preemptively).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -2665,25 +2711,29 @@ object StyleRuleExecutor
 	 * [state][StyleRuleContextState].
 	 *
 	 * @param initialContext
-	 *   The initial [context][StyleRuleContext].
+	 *   The initial [context][StyleRuleContext]. Must be in the [RUNNING]
+	 *   state.
+	 * @param classifier
+	 *   The _[interned][String.intern]_ style classifier, which is possibly the
+	 *   special [end-of-sequence&#32;classifier][endOfSequenceLiteral].
+	 *   **Non-interned classifiers will not match literals correctly, because
+	 *   identity checks, not value checks, are used for efficiency!**
 	 * @param injector
 	 *   How to inject a forked [context][StyleRuleContext] into the pool of
 	 *   pending contexts.
-	 * @param classifier
-	 *   The style classifier.
 	 * @return
 	 *   The context after leaving the [RUNNING] state.
 	 */
 	fun run(
 		initialContext: StyleRuleContext,
-		injector: (StyleRuleContext) -> Unit,
-		classifier: String
+		classifier: String,
+		injector: (StyleRuleContext) -> Unit
 	): StyleRuleContext
 	{
-		assert(initialContext.state == PAUSED)
+		assert(initialContext.state == RUNNING)
 		val rule = initialContext.rule
 		val reader = rule.instructions.inputStream(0)
-		var context = initialContext.copy(state = RUNNING)
+		var context = initialContext
 		while (context.state == RUNNING)
 		{
 			reader.goTo(context.programCounter)
@@ -2734,11 +2784,23 @@ object StyleRuleExecutor
 						reader.unvlq(),
 						injector,
 						reader.position)
+				MatchEndOfSequence.opcode ->
+					executeMatchLiteralClassifier(
+						context,
+						classifier,
+						endOfSequenceLiteral,
+						reader.position)
 				else -> throw IllegalStateException("invalid opcode: $opcode")
 			}
 		}
 		return context
 	}
+
+	/**
+	 * The special end-of-sequence literal, represented by the
+	 * [interned][String.intern] empty string.
+	 */
+	val endOfSequenceLiteral = "".intern()
 
 	/**
 	 * Execute one of the [MatchLiteralClassifierN] family of instructions.
@@ -2763,10 +2825,10 @@ object StyleRuleExecutor
 	) = context
 		.copy(
 			programCounter = programCounter,
-			state = when (literal)
+			state = when (literal === classifier)
 			{
-				classifier -> PAUSED
-				else -> REJECTED
+				true -> PAUSED
+				false -> REJECTED
 			})
 		.normalized
 
@@ -2799,19 +2861,22 @@ object StyleRuleExecutor
 		literal: String,
 		jumpTarget: Int,
 		programCounter: Int
-	) = context
-		.copy(
-			programCounter = when (literal)
-			{
-				classifier -> programCounter
-				else -> jumpTarget
-			},
-			state = when (jumpTarget)
-			{
-				context.programCounter -> PAUSED
-				else -> RUNNING
-			})
-		.normalized
+	) =
+		when (literal === classifier)
+		{
+			true -> context.copy(
+				programCounter = programCounter,
+				state = PAUSED
+			).normalized
+			false -> context.copy(
+				programCounter = jumpTarget,
+				state = when (jumpTarget)
+				{
+					context.programCounter -> PAUSED
+					else -> RUNNING
+				}
+			).normalized
+		}
 
 	/**
 	 * Execute one of the [ForkN] family of instructions.
@@ -2836,8 +2901,8 @@ object StyleRuleExecutor
 		programCounter: Int
 	): StyleRuleContext
 	{
-		injector(context.copy(programCounter = forkTarget))
-		return context.copy(programCounter = programCounter)
+		injector(context.copy(programCounter = forkTarget).normalized)
+		return context.copy(programCounter = programCounter).normalized
 	}
 }
 
