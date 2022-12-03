@@ -45,6 +45,8 @@ import avail.anvil.StyleRuleContextState.ACCEPTED
 import avail.anvil.StyleRuleContextState.PAUSED
 import avail.anvil.StyleRuleContextState.REJECTED
 import avail.anvil.StyleRuleContextState.RUNNING
+import avail.anvil.StyleRuleExecutor.endOfSequenceLiteral
+import avail.anvil.StyleRuleExecutor.run
 import avail.anvil.StyleRuleInstructionCoder.Companion.decodeInstruction
 import avail.anvil.streams.StreamStyle
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
@@ -58,7 +60,6 @@ import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.Palette
 import org.availlang.artifact.environment.project.StyleAttributes
 import java.awt.Color
-import java.util.IdentityHashMap
 import javax.swing.SwingUtilities
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
@@ -1227,14 +1228,47 @@ class StylePatternCompiler private constructor(
 		 *
 		 * @param operand
 		 *   The subexpression to push onto the operand stack.
+		 * @return
+		 *   The requested context.
 		 */
 		fun with(operand: Expression) = ParseContext(
 			tokenIndex + 1,
 			operands.append(operand))
 
 		/**
+		 * Derive a successor [ParseContext] with an appropriate
+		 * [MatchExpression] or [ForkExpression] based on the specified
+		 * [classifier]. A [ForkExpression] will be pushed only if the
+		 * [classifier] matches the [leading&#32;classifier][leadingClassifier]
+		 * in the current [succession][SuccessionExpression].
+		 *
+		 * @param classifier
+		 *   The style classifier.
+		 * @param leadingClassifier
+		 *   The leading classifier of the current succession, or `null` if this
+		 *   call is creating the first subexpression of a new succession.
+		 * @return
+		 *   The requested context.
+		 */
+		fun makeMatchExpression(
+			classifier: String,
+			leadingClassifier: String?
+		): ParseContext
+		{
+			val match = MatchExpression(classifier)
+			if (classifier == leadingClassifier)
+			{
+				return with(ForkExpression(match))
+			}
+			return with(match)
+		}
+
+		/**
 		 * Derive a successor [ParseContext] that reduces the top of the
 		 * [operand&#32;stack][operands] to an [ExactMatchExpression].
+		 *
+		 * @return
+		 *   The requested context.
 		 */
 		fun makeExactMatchExpression(): ParseContext
 		{
@@ -1247,6 +1281,9 @@ class StylePatternCompiler private constructor(
 		/**
 		 * Derive a successor [ParseContext] that reduces the top of the
 		 * [operand&#32;stack][operands] to a [SuccessionExpression].
+		 *
+		 * @return
+		 *   The requested context.
 		 */
 		fun makeSuccessionExpression(): ParseContext
 		{
@@ -1261,6 +1298,9 @@ class StylePatternCompiler private constructor(
 		/**
 		 * Derive a successor [ParseContext] that reduces the top of the
 		 * [operand&#32;stack][operands] to a [SubsequenceExpression].
+		 *
+		 * @return
+		 *   The requested context.
 		 */
 		fun makeSubsequenceExpression(): ParseContext
 		{
@@ -1382,16 +1422,16 @@ class StylePatternCompiler private constructor(
 	 * self-similar pattern. For this purpose, a pattern is _self-similar_ if it
 	 * begins with a repeated prefix.
 	 *
-	 * @property succession
-	 *   The [SuccessionExpression] that represents the remainder of the
-	 *   transitively enclosing [SuccessionExpression] that occurs after the
-	 *   leading occurrence of the repeated prefix.
+	 * @property expression
+	 *   The [Expression] that represents the remainder of the transitively
+	 *   enclosing [Expression] that occurs after the leading occurrence of the
+	 *   repeated prefix.
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private data class ForkExpression(val succession: Expression): Expression()
+	private data class ForkExpression(val expression: Expression): Expression()
 	{
 		override fun accept(visitor: ExpressionVisitor) = visitor.visit(this)
-		override fun toString() = "fork ($succession)"
+		override fun toString() = "fork ($expression)"
 	}
 
 	/**
@@ -1495,7 +1535,7 @@ class StylePatternCompiler private constructor(
 				{
 					is EndOfPatternToken -> context.with(
 						EmptyClassifierSequenceExpression)
-					else -> parseSuccession(next,false)
+					else -> parseSuccession(next, allowSubsequence = false)
 						.makeExactMatchExpression()
 				}
 			}
@@ -1551,28 +1591,36 @@ class StylePatternCompiler private constructor(
 	 *
 	 * @param context
 	 *   The initial context for the parse.
+	 * @param leadingClassifier
+	 *   The leading classifier of the succession, or `null` if this is the
+	 *   opening parse of a new succession.
 	 * @param allowSubsequence
 	 *   Whether to permit the appearance of a [SubsequenceToken] as an
-	 *   expression delimiter.
+	 *   expression delimiter. When `false`, no [ForkExpression]s will be
+	 *   generated.
 	 */
 	private fun parseSuccession(
 		context: ParseContext,
+		leadingClassifier: String? = null,
 		allowSubsequence: Boolean = true
 	): ParseContext
 	{
 		val next = when (val token = context.token)
 		{
-			is StyleClassifierToken -> context.with(
-				MatchExpression(token.lexeme))
+			is StyleClassifierToken -> context.makeMatchExpression(
+				token.lexeme,
+				if (allowSubsequence) leadingClassifier else null)
 			else -> throw StylePatternException(
 				context.position,
 				"expected classifier (#…), but found $token")
 		}
+		val leading = leadingClassifier ?: context.token.lexeme
 		return when (val token = next.token)
 		{
 			is EndOfPatternToken -> next
-			is SuccessionToken -> parseSuccession(next.nextContext)
-				.makeSuccessionExpression()
+			is SuccessionToken ->
+				parseSuccession(next.nextContext, leading, allowSubsequence)
+					.makeSuccessionExpression()
 			is SubsequenceToken ->
 			{
 				if (allowSubsequence) next
@@ -1653,47 +1701,6 @@ class StylePatternCompiler private constructor(
 		}
 
 		/**
-		 * Whether the current [succession][SuccessionExpression] has already
-		 * been analyzed for repeated prefixes. `true` indicates that a
-		 * [ForkExpression] has already been inserted if necessary, while
-		 * `false` indicates that analysis is still required.
-		 */
-		private var analyzedForRepeatedPrefixes = false
-
-		/**
-		 * Perform an analysis of the specified [expression], and substitute one
-		 * which includes a [ForkExpression] iff a repeated prefix was found.
-		 * Ensure that analysis only occurs once within the scope of the
-		 * progenitor [succession][SuccessionExpression].
-		 *
-		 * @param expression
-		 *   The succession to analyze.
-		 * @param action
-		 *   The action to apply to the substitute (or original).
-		 */
-		private fun withSubstitute(
-			expression: SuccessionExpression,
-			action: (SuccessionExpression) -> Unit)
-		{
-			if (matchExactly)
-			{
-				// If exact matching is enabled, then no special code generation
-				// is required for repeated prefixes.
-				action(expression)
-			}
-			else
-			{
-				val shouldClearFlag = !analyzedForRepeatedPrefixes
-				if (shouldClearFlag) analyzedForRepeatedPrefixes = true
-				action(
-					if (shouldClearFlag) ForkRewriter(expression).substitute
-					else expression
-				)
-				if (shouldClearFlag) analyzedForRepeatedPrefixes = false
-			}
-		}
-
-		/**
 		 * The accumulator for coded [instructions][StyleRuleInstruction],
 		 * populated by the various implementations of [visit].
 		 */
@@ -1759,11 +1766,9 @@ class StylePatternCompiler private constructor(
 
 		override fun visit(expression: SuccessionExpression)
 		{
-			withSubstitute(expression) { substitute ->
-				withTarget {
-					substitute.left.accept(this)
-					substitute.right.accept(this)
-				}
+			withTarget {
+				expression.left.accept(this)
+				expression.right.accept(this)
 			}
 		}
 
@@ -1780,7 +1785,7 @@ class StylePatternCompiler private constructor(
 				0 -> Fork.emitOn(accumulator)
 				else -> ForkN.emitOn(accumulator, target)
 			}
-			expression.succession.accept(this)
+			expression.expression.accept(this)
 		}
 
 		override fun visit(expression: EmptyClassifierSequenceExpression)
@@ -1788,237 +1793,6 @@ class StylePatternCompiler private constructor(
 			// Don't emit any instructions. Only one rule can implement this
 			// expression within an entire StyleRuleTree, and that rule is
 			// stored and handled specially.
-		}
-	}
-
-	/**
-	 * A [ForkRewriter] determines whether a prefix of the literal style
-	 * classifiers that compose a [SuccessionExpression] occur repeat. Repeated
-	 * prefixes require special [code&#32;generation][CodeGenerator];
-	 * specifically, a [instruction][StyleRuleInstruction] of the [ForkN] family
-	 * of instructions must be omitted just before the second occurrence of the
-	 * prefix.
-	 *
-	 * @property successionExpression
-	 *   The [succession][SuccessionExpression] to rewrite if any subexpressions
-	 *   need to become [forks][ForkExpression].
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
-	private inner class ForkRewriter(
-		private val successionExpression: SuccessionExpression
-	): ExpressionVisitor
-	{
-		/** The [MatchExpression]s. */
-		val matches = mutableListOf<MatchExpression>()
-
-		/** The [SuccessionExpression]s, by subexpression. */
-		val successions = IdentityHashMap<Expression, SuccessionExpression>()
-
-		/**
-		 * The substitute [SuccessionExpression] to use in place of the
-		 * original. Defaults to the original.
-		 */
-		val substitute: SuccessionExpression by lazy {
-			successionExpression.accept(this)
-			if (matches.size < 3)
-			{
-				// If there are fewer than three literals, then special code
-				// generation is not required. Forks are not required for this
-				// simple class of pattern, so we don't need to rewrite the
-				// succession.
-				return@lazy successionExpression
-			}
-			val literals = matches.map { it.classifier }
-			// Determine whether the succession begins with a repeated prefix.
-			// We look for occurrences of the first literal. When we find a
-			// subsequent occurrence, we compare the subsequence anchored at the
-			// first literal with the one anchored at the second. If it matches,
-			// we've found a repeated prefix. Otherwise, we repeat the process
-			// for the other occurrences of the first literal. Note that we only
-			// have to scan half of the literals; if we haven't found a match by
-			// the halfway point, then there can't be one.
-			val first = literals.first()
-			var repetitionIndex = 0
-			for (i in 1 .. literals.size / 2)
-			{
-				if (literals[i] == first)
-				{
-					val firstRun = literals.slice(0 until i)
-					val secondRun = literals.slice(i until i + firstRun.size)
-					if (firstRun == secondRun)
-					{
-						repetitionIndex = i
-						break
-					}
-				}
-			}
-			if (repetitionIndex > 0)
-			{
-				// We found a repetition. It doesn't matter how many there were,
-				// because we only need to fork right after the first
-				// occurrence; the forked rule will handle further forks as
-				// necessary, giving us a kind of recursive coverage. Because a
-				// fork wraps a succession, and succession is left associative,
-				// any succession to wrap will be the right operand of its
-				// parent succession.
-				val parent = successions[matches[repetitionIndex]]!!
-				val replacements =
-					IdentityHashMap<Expression, Expression>().apply {
-						put(parent, ForkExpression(parent))
-					}
-				return@lazy ExpressionRewriter(
-					successionExpression,
-					replacements
-				).result as SuccessionExpression
-			}
-			// No repetitions were discovered, so no forks are required. We can
-			// deliver the original expression.
-			successionExpression
-		}
-
-		override fun visit(expression: MatchExpression)
-		{
-			matches.add(expression)
-		}
-
-		override fun visit(expression: ExactMatchExpression)
-		{
-			// Repetition does not require special handling for an exact match
-			// expression… but we shouldn't be able to reach here, because an
-			// ExactMatchExpression can only be a top-level expression.
-			assert(false) { "unreachable" }
-		}
-
-		override fun visit(expression: SuccessionExpression)
-		{
-			successions[expression.left] = expression
-			successions[expression.right] = expression
-			expression.left.accept(this)
-			expression.right.accept(this)
-		}
-
-		override fun visit(expression: SubsequenceExpression)
-		{
-			// Subsequences cannot occur inside succession expressions, so we
-			// shouldn't be able to reach here.
-			assert(false) { "unreachable" }
-		}
-
-		override fun visit(expression: ForkExpression)
-		{
-			// Forks only get inserted as a consequence of this visitor's usage,
-			// so we shouldn't be able to reach here.
-			assert(false) { "unreachable" }
-		}
-
-		override fun visit(expression: EmptyClassifierSequenceExpression)
-		{
-			// EmptyClassifierSequenceExpression can only be a top-level
-			// expression, so we shouldn't be able to reach here.
-			assert(false) { "unreachable" }
-		}
-
-		override fun toString() = successionExpression.toString()
-	}
-
-	/**
-	 * An [ExpressionRewriter] transforms an [expression][Expression] using a
-	 * map from its subexpressions to their replacements. Does not traverse into
-	 * the replacements. Because no client code runs during the visitation, the
-	 * contents of the map remain fixed throughout the visitation.
-	 *
-	 * @property originalExpression
-	 *   The [expression][Expression] to rewrite.
-	 * @property replacements
-	 *   The replacements, as a map from [subexpressions][Expression] to their
-	 *   replacements.
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
-	private class ExpressionRewriter constructor(
-		private val originalExpression: Expression,
-		private val replacements: IdentityHashMap<Expression, Expression>
-	): ExpressionVisitor
-	{
-		/** The operand stack. */
-		private val operands = mutableListOf<Expression>()
-
-		/** The final result. */
-		val result by lazy {
-			originalExpression.accept(this)
-			assert(operands.size == 1) {
-				"stack should contain exactly 1 operand, not ${operands.size}"
-			}
-			operands.first()
-		}
-
-		private fun replace(
-			expression: Expression,
-			builder: () -> Expression)
-		{
-			val replacement = replacements[expression]
-			operands.add(
-				if (replacement !== null) replacement
-				else builder())
-		}
-
-		override fun visit(expression: MatchExpression)
-		{
-			replace(expression) { expression }
-		}
-
-		override fun visit(expression: ExactMatchExpression)
-		{
-			replace(expression) {
-				expression.child.accept(this)
-				ExactMatchExpression(operands.removeLast())
-			}
-		}
-
-		override fun visit(expression: SuccessionExpression)
-		{
-			replace(expression) {
-				expression.left.accept(this)
-				expression.right.accept(this)
-				// The named arguments invert the usual evaluation order.
-				SuccessionExpression(
-					right = operands.removeLast(),
-					left = operands.removeLast())
-			}
-		}
-
-		override fun visit(expression: SubsequenceExpression)
-		{
-			replace(expression) {
-				expression.left.accept(this)
-				expression.right.accept(this)
-				// The named arguments invert the usual evaluation order.
-				SubsequenceExpression(
-					right = operands.removeLast(),
-					left = operands.removeLast())
-			}
-		}
-
-		override fun visit(expression: ForkExpression)
-		{
-			replace(expression) {
-				expression.succession.accept(this)
-				ForkExpression(operands.removeLast())
-			}
-		}
-
-		override fun visit(expression: EmptyClassifierSequenceExpression)
-		{
-			replace(expression) { expression }
-		}
-
-		override fun toString() = buildString {
-			append("original: $originalExpression")
-			replacements.forEach { (original, replacement) ->
-				append("\n\t")
-				append(original)
-				append(" -> ")
-				append(replacement)
-			}
 		}
 	}
 
@@ -2752,7 +2526,7 @@ object StyleRuleExecutor
 					executeMatchLiteralClassifier(
 						context,
 						classifier,
-						rule.literalAt(reader.unvlq()),
+						rule.literalAt(reader.unvlq() + 4),
 						reader.position)
 				MatchLiteralClassifierOrJump0.opcode,
 						MatchLiteralClassifierOrJump1.opcode,
@@ -2769,7 +2543,7 @@ object StyleRuleExecutor
 					executeMatchLiteralClassifierOrJump(
 						context,
 						classifier,
-						rule.literalAt(reader.unvlq()),
+						rule.literalAt(reader.unvlq() + 4),
 						reader.unvlq(),
 						reader.position)
 				Fork.opcode ->
@@ -2781,7 +2555,7 @@ object StyleRuleExecutor
 				ForkN.opcode ->
 					executeFork(
 						context,
-						reader.unvlq(),
+						reader.unvlq() + 1,
 						injector,
 						reader.position)
 				MatchEndOfSequence.opcode ->

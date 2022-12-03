@@ -70,8 +70,14 @@ import org.junit.jupiter.params.provider.Arguments.of as argumentsOf
 import java.util.stream.Stream.of as streamOf
 
 /**
- * Tests for [stylesheets][Stylesheet], especially [style&#32;pattern][StylePattern]
- * compilation and execution.
+ * Tests for [stylesheets][Stylesheet], especially
+ * [style&#32;pattern][StylePattern] compilation and execution. As of
+ * 2022.12.03, the [exhaustive&#32;test][testExhaustive] was successfully run
+ * with [vocabularySize]=`4` and `[maxSequenceSize]=`8`, in ~19s on a MacBook
+ * Pro 2018). The values in the code strike the right compromise for efficiency
+ * and thoroughness for ongoing testing, and the
+ * [regression&#32;test][testRegressions] provides safety for once volatile
+ * areas of the theory and/or implementation.
  *
  * @author Todd Smith &lt;todd@availlang.org&gt;
  */
@@ -246,8 +252,25 @@ class StylesheetTest
 			{ Thread(it) },
 			ThreadPoolExecutor.AbortPolicy())
 		val symbols = ('a' until 'a' + vocabularySize).map { "#$it".intern() }
-		val total = (patternCount(vocabularySize)
-			* sequenceCount(vocabularySize, maxSequenceSize))
+		// The operations and data in support of counting are deliberately kept
+		// to 32 bits, just to ensure that the number of test vectors does not
+		// grow too large for practical execution.
+		val patternCount = patternCount(vocabularySize)
+		assertTrue(patternCount >= 0) {
+			"vocabularySize is too large"
+		}
+		val sequenceCount = sequenceCount(vocabularySize, maxSequenceSize)
+		assertTrue(sequenceCount >= 0) {
+			"vocabularySize and/or maxSequenceSize is/are too large"
+		}
+		val total = patternCount * sequenceCount
+		assertEquals(
+			total.toBigInteger(),
+			patternCount.toBigInteger() * sequenceCount.toBigInteger()
+		) {
+			"too many test vectors: reduce either/both " +
+				"vocabularySize and maxSequenceSize"
+		}
 		val completed = AtomicInteger(0)
 		val errors = ConcurrentLinkedQueue<Failure>()
 		patternGenerator(symbols).forEach { source ->
@@ -544,11 +567,12 @@ class StylesheetTest
 				"""
 					#foo,#bar,#foo
 					nybblecodes:
-						506050
+						5060A50
 					instructions:
 						@0: match literal #0 <#foo> or jump to @0
 						@2: match literal #1 <#bar> or jump to @0
-						@4: match literal #0 <#foo> or jump to @0
+						@4: fork to @0
+						@5: match literal #0 <#foo> or jump to @0
 					renderingContext:
 						fontFamily = Monospaced
 						foreground = baseCode
@@ -591,10 +615,11 @@ class StylesheetTest
 				"""
 					#foo,#foo
 					nybblecodes:
-						5050
+						50A50
 					instructions:
 						@0: match literal #0 <#foo> or jump to @0
-						@2: match literal #0 <#foo> or jump to @0
+						@2: fork to @0
+						@3: match literal #0 <#foo> or jump to @0
 					renderingContext:
 						fontFamily = Monospaced
 						foreground = baseCode
@@ -611,12 +636,13 @@ class StylesheetTest
 				"""
 					#foo,#foo,#foo
 					nybblecodes:
-						50A5050
+						50A50A50
 					instructions:
 						@0: match literal #0 <#foo> or jump to @0
 						@2: fork to @0
 						@3: match literal #0 <#foo> or jump to @0
-						@5: match literal #0 <#foo> or jump to @0
+						@5: fork to @0
+						@6: match literal #0 <#foo> or jump to @0
 					renderingContext:
 						fontFamily = Monospaced
 						foreground = baseCode
@@ -633,13 +659,14 @@ class StylesheetTest
 				"""
 					#a,#a,#a,#b
 					nybblecodes:
-						50A505060
+						50A50A5060
 					instructions:
 						@0: match literal #0 <#a> or jump to @0
 						@2: fork to @0
 						@3: match literal #0 <#a> or jump to @0
-						@5: match literal #0 <#a> or jump to @0
-						@7: match literal #1 <#b> or jump to @0
+						@5: fork to @0
+						@6: match literal #0 <#a> or jump to @0
+						@8: match literal #1 <#b> or jump to @0
 					renderingContext:
 						fontFamily = Monospaced
 						foreground = baseCode
@@ -656,12 +683,13 @@ class StylesheetTest
 				"""
 					#a,#b,#a,#c
 					nybblecodes:
-						50605070
+						5060A5070
 					instructions:
 						@0: match literal #0 <#a> or jump to @0
 						@2: match literal #1 <#b> or jump to @0
-						@4: match literal #0 <#a> or jump to @0
-						@6: match literal #2 <#c> or jump to @0
+						@4: fork to @0
+						@5: match literal #0 <#a> or jump to @0
+						@7: match literal #2 <#c> or jump to @0
 					renderingContext:
 						fontFamily = Monospaced
 						foreground = baseCode
@@ -678,18 +706,20 @@ class StylesheetTest
 				"""
 					#a,#b,#a,#c,#a,#b,#a,#c,#d
 					nybblecodes:
-						50605070A5060507080
+						5060A5070A5060A507080
 					instructions:
 						@0: match literal #0 <#a> or jump to @0
 						@2: match literal #1 <#b> or jump to @0
-						@4: match literal #0 <#a> or jump to @0
-						@6: match literal #2 <#c> or jump to @0
-						@8: fork to @0
-						@9: match literal #0 <#a> or jump to @0
-						@11: match literal #1 <#b> or jump to @0
-						@13: match literal #0 <#a> or jump to @0
-						@15: match literal #2 <#c> or jump to @0
-						@17: match literal #3 <#d> or jump to @0
+						@4: fork to @0
+						@5: match literal #0 <#a> or jump to @0
+						@7: match literal #2 <#c> or jump to @0
+						@9: fork to @0
+						@10: match literal #0 <#a> or jump to @0
+						@12: match literal #1 <#b> or jump to @0
+						@14: fork to @0
+						@15: match literal #0 <#a> or jump to @0
+						@17: match literal #2 <#c> or jump to @0
+						@19: match literal #3 <#d> or jump to @0
 					renderingContext:
 						fontFamily = Monospaced
 						foreground = baseCode
@@ -830,7 +860,7 @@ class StylesheetTest
 		 * [exhausted][testExhaustive] test.
 		 */
 		@JvmStatic
-		val executionExemplars: Stream<Arguments> = streamOf(
+		val executionExemplars get(): Stream<Arguments> = streamOf(
 			argumentsOf("=", emptyList<String>(), true),
 			argumentsOf("=", listOf("#a"), false),
 			argumentsOf("=#a", listOf("#a"), true),
@@ -915,6 +945,89 @@ class StylesheetTest
 		 */
 		@JvmStatic
 		val regressionExemplars: Stream<Arguments> = streamOf(
+			argumentsOf(
+				"=#a,#a,#a",
+				listOf("#a", "#a", "#a", "#a", "#a", "#a"),
+				false),
+			argumentsOf("=#a,#a,#b", listOf("#a", "#a", "#a", "#b"), false),
+			argumentsOf(
+				"=#a,#a,#b",
+				listOf("#a", "#a", "#a", "#a", "#a", "#b"),
+				false),
+			argumentsOf(
+				"=#a,#a,#a,#a",
+				listOf("#a", "#a", "#a", "#a", "#a"),
+				false),
+			argumentsOf(
+				"=#a,#a,#b,#b",
+				listOf("#a", "#a", "#a", "#a", "#b", "#b"),
+				false),
+			argumentsOf(
+				"=#a,#a,#b,#c",
+				listOf("#a", "#a", "#a", "#a", "#b", "#c"),
+				false),
+			argumentsOf(
+				"=#a,#b,#a,#a",
+				listOf("#a", "#b", "#a", "#b", "#a", "#a"),
+				false),
+			argumentsOf(
+				"=#a,#b,#a,#b",
+				listOf("#a", "#b", "#a", "#b", "#a", "#b"),
+				false),
+			argumentsOf(
+				"=#a,#a,#b,#c",
+				listOf("#a", "#a", "#a", "#b", "#c"),
+				false),
+			argumentsOf(
+				"=#a,#a,#b,#b",
+				listOf("#a", "#a", "#a", "#b", "#b"),
+				false),
+			argumentsOf(
+				"=#a,#a,#b,#a",
+				listOf("#a", "#a", "#a", "#a", "#b", "#a"),
+				false),
+			argumentsOf(
+				"=#a,#a,#b,#a",
+				listOf("#a", "#a", "#a", "#b", "#a"),
+				false),
+			argumentsOf(
+				"=#a,#a,#a,#b",
+				listOf("#a", "#a", "#a", "#a", "#a", "#b"),
+				false),
+			argumentsOf(
+				"=#a,#a,#a,#b",
+				listOf("#a", "#a", "#a", "#a", "#b"),
+				false),
+			argumentsOf(
+				"=#a,#a,#a,#a",
+				listOf("#a", "#a", "#a", "#a", "#a", "#a"),
+				false),
+			argumentsOf(
+				"=#a,#a,#b",
+				listOf("#a", "#a", "#a", "#a", "#b"),
+				false),
+			argumentsOf(
+				"=#a,#a,#a",
+				listOf("#a", "#a", "#a", "#a", "#a"),
+				false),
+			argumentsOf(
+				"=#a,#a",
+				listOf("#a", "#a", "#a", "#a", "#a", "#a"),
+				false),
+			argumentsOf("=#a,#a", listOf("#a", "#a", "#a"), false),
+			argumentsOf("=#a,#a", listOf("#a", "#a", "#a", "#a", "#a"), false),
+			argumentsOf("=#a,#a", listOf("#a", "#a", "#a", "#a"), false),
+			argumentsOf("=#a,#a,#a", listOf("#a", "#a", "#a", "#a"), false),
+			argumentsOf(
+				"=#a,#b,#a",
+				listOf("#a", "#b", "#a", "#b", "#a"),
+				false
+			),
+			argumentsOf(
+				"=#a,#b,#a,#c",
+				listOf("#a", "#b", "#a", "#b", "#a", "#c"),
+				false
+			),
 			argumentsOf(
 				"#a,#b,#a,#c",
 				listOf("#a", "#b", "#a", "#b", "#a", "#c"),
