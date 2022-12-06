@@ -35,6 +35,7 @@ package avail.test
 import avail.anvil.RenderingContext
 import avail.anvil.StylePattern
 import avail.anvil.StylePatternCompiler.Companion.compile
+import avail.anvil.StylePatternException
 import avail.anvil.StyleRule
 import avail.anvil.StyleRuleContextState.ACCEPTED
 import avail.anvil.StyleRuleContextState.PAUSED
@@ -45,6 +46,8 @@ import avail.anvil.StyleRuleExecutor.run
 import avail.anvil.Stylesheet
 import avail.anvil.UnvalidatedRenderingContext
 import avail.anvil.UnvalidatedStylePattern
+import avail.test.StylesheetTest.Companion.maxSequenceSize
+import avail.test.StylesheetTest.Companion.vocabularySize
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.WorkStealingQueue
 import avail.utility.javaNotifyAll
@@ -54,6 +57,7 @@ import org.availlang.artifact.environment.project.StyleAttributes
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONReader
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrowsExactly
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -93,13 +97,34 @@ class StylesheetTest
 	 * @param expected
 	 *   The expected stringification of the compiled rule.
 	 */
-	@ParameterizedTest(name = "{0}")
+	@ParameterizedTest(name = "pattern: {0}")
 	@MethodSource("getPositiveExemplars")
 	fun testPositiveExemplars(source: String, expected: String)
 	{
 		val pattern = UnvalidatedStylePattern(source, renderingContext)
 		val rule = compile(pattern, palette)
 		assertEquals(expected, rule.toString())
+	}
+
+	/**
+	 * Test the [negative&#32;exemplars][negativeExemplars]. This is an
+	 * end-to-end test of parsing and error reporting.
+	 */
+	@ParameterizedTest(name = "pattern: {0}")
+	@MethodSource("getNegativeExemplars")
+	fun testNegativeExemplars(
+		source: String,
+		expectedPosition: Int,
+		expectedMessage: String)
+	{
+		val pattern = UnvalidatedStylePattern(source, renderingContext)
+		val e = assertThrowsExactly(StylePatternException::class.java) {
+			compile(pattern, palette)
+		}
+		assertEquals(expectedPosition, e.position)
+		assertEquals(
+			"pattern error @ character #$expectedPosition: $expectedMessage",
+			e.message)
 	}
 
 	/**
@@ -113,7 +138,7 @@ class StylesheetTest
 	 * @param expected
 	 *   The expected result of the match.
 	 */
-	@ParameterizedTest(name = "{0} : {1}")
+	@ParameterizedTest(name = "case: {0} ← {1}")
 	@MethodSource("getExecutionExemplars")
 	fun testNaiveMatch(
 		source: String,
@@ -134,7 +159,7 @@ class StylesheetTest
 	 * @param expected
 	 *   The expected result of the match.
 	 */
-	@ParameterizedTest(name = "{0} : {1}")
+	@ParameterizedTest(name = "case: {0} ← {1}")
 	@MethodSource("getExecutionExemplars")
 	fun testRuleMatch(source: String, sequence: List<String>, expected: Boolean)
 	{
@@ -155,7 +180,7 @@ class StylesheetTest
 	 * @param expected
 	 *   The expected result of the match.
 	 */
-	@ParameterizedTest(name = "{0} : {1}")
+	@ParameterizedTest(name = "case: {0} ← {1}")
 	@MethodSource("getRegressionExemplars")
 	fun testRegressions(
 		source: String,
@@ -272,6 +297,8 @@ class StylesheetTest
 				"vocabularySize and maxSequenceSize"
 		}
 		val completed = AtomicInteger(0)
+		// Generously assume that there won't be so many failures that this will
+		// require a huge amount of memory.
 		val errors = ConcurrentLinkedQueue<Failure>()
 		patternGenerator(symbols).forEach { source ->
 			// Iterate through every pattern. Each should be valid, so we expect
@@ -289,6 +316,7 @@ class StylesheetTest
 							val actual = ruleMatch(rule, sequence)
 							if (actual != expected)
 							{
+								// Record the error for reporting later.
 								errors.add(Failure(source, sequence, expected))
 							}
 						}
@@ -370,7 +398,7 @@ class StylesheetTest
 		 * disassemblies.
 		 */
 		@JvmStatic
-		val positiveExemplars: Stream<Arguments> = streamOf(
+		val positiveExemplars get(): Stream<Arguments> = streamOf(
 			argumentsOf(
 				"=",
 				"""
@@ -854,6 +882,47 @@ class StylesheetTest
 		)
 
 		/**
+		 * The negative exemplars, as triples of source pattern, expected
+		 * error position, and expected error message.
+		 */
+		@JvmStatic
+		val negativeExemplars get(): Stream<Arguments> = streamOf(
+			argumentsOf(
+				"",
+				1,
+				"expected exact match pragma (=) or classifier (#…), "
+					+ "but found end of pattern"),
+			argumentsOf(
+				"+",
+				1,
+				"expected exact match pragma (=) or classifier (#…), "
+					+ "but found +"),
+			argumentsOf(
+				"foo",
+				1,
+				"expected exact match pragma (=) or classifier (#…), "
+					+ "but found f"),
+			argumentsOf(
+				"#a,",
+				4,
+				"expected classifier (#…), but found end of pattern"),
+			argumentsOf(
+				"#a<",
+				4,
+				"expected classifier (#…), but found end of pattern"),
+			argumentsOf(
+				"#a+",
+				3,
+				"expected succession operator (,), subsequence operator (<), "
+					+ "or end of pattern, but found +"),
+			argumentsOf(
+				"=#a<#b",
+				4,
+				"expected succession operator (,) or end of pattern, "
+					+ "but found <")
+		)
+
+		/**
 		 * The exemplars to support [testNaiveMatch] and [testRuleMatch]. This
 		 * supports meta-testing, for building confidence in the implementation
 		 * of the test suite itself, in furtherance of the
@@ -944,7 +1013,7 @@ class StylesheetTest
 		 * emitted by [testExhaustive].
 		 */
 		@JvmStatic
-		val regressionExemplars: Stream<Arguments> = streamOf(
+		val regressionExemplars get(): Stream<Arguments> = streamOf(
 			argumentsOf(
 				"=#a,#a,#a",
 				listOf("#a", "#a", "#a", "#a", "#a", "#a"),

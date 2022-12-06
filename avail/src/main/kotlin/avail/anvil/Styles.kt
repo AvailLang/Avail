@@ -1055,11 +1055,8 @@ class StylePatternCompiler private constructor(
 
 		companion object
 		{
-			/**
-			 * The fake lexeme to use for visualizing end-of-pattern, chosen to
-			 * be reminiscent of the regular expression end anchor.
-			 */
-			const val lexeme = "$"
+			/** The fake lexeme to use for describing end-of-pattern. */
+			const val lexeme = "end of pattern"
 		}
 	}
 
@@ -1210,7 +1207,7 @@ class StylePatternCompiler private constructor(
 		val token get() = tokens[tokenIndex]
 
 		/**
-		 * The zero-based position of the leading character of the [token]
+		 * The one-based position of the leading character of the [token]
 		 * within the source pattern, for error reporting.
 		 */
 		val position get() = token.position
@@ -1580,8 +1577,7 @@ class StylePatternCompiler private constructor(
 			else -> throw StylePatternException(
 				next.position,
 				"expected subsequence operator (<) or end of pattern, "
-					+ "but found $token"
-			)
+					+ "but found $token")
 		}
 	}
 
@@ -1625,8 +1621,9 @@ class StylePatternCompiler private constructor(
 			{
 				if (allowSubsequence) next
 				else throw StylePatternException(
-					context.position,
-					"expected succession operator (,) or end of pattern")
+					next.position,
+					"expected succession operator (,) or end of pattern, "
+						+ "but found $token")
 			}
 			else -> throw StylePatternException(
 				next.position,
