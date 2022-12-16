@@ -40,16 +40,21 @@ import avail.anvil.text.AvailEditorKit.Companion.goToDialog
 import avail.anvil.text.AvailEditorKit.Companion.openStructureView
 import avail.anvil.text.AvailEditorKit.Companion.refresh
 import avail.anvil.text.CodeKit.Companion.breakLine
+import avail.anvil.text.CodeKit.Companion.camelCase
 import avail.anvil.text.CodeKit.Companion.cancelTemplateSelection
 import avail.anvil.text.CodeKit.Companion.centerCurrentLine
 import avail.anvil.text.CodeKit.Companion.expandTemplate
 import avail.anvil.text.CodeKit.Companion.indent
+import avail.anvil.text.CodeKit.Companion.kebabCase
+import avail.anvil.text.CodeKit.Companion.lowercase
 import avail.anvil.text.CodeKit.Companion.moveLineDown
 import avail.anvil.text.CodeKit.Companion.moveLineUp
 import avail.anvil.text.CodeKit.Companion.outdent
 import avail.anvil.text.CodeKit.Companion.redo
+import avail.anvil.text.CodeKit.Companion.snakeCase
 import avail.anvil.text.CodeKit.Companion.space
 import avail.anvil.text.CodeKit.Companion.undo
+import avail.anvil.text.CodeKit.Companion.uppercase
 import avail.anvil.text.CodePane.Companion.codePane
 import avail.anvil.views.StructureViewPanel
 import avail.utility.Strings.tabs
@@ -96,7 +101,9 @@ open class CodeKit constructor(
 		ExpandTemplate,
 		CancelTemplateSelection,
 		MoveLineUp,
-		MoveLineDown
+		MoveLineDown,
+		ToUppercase,
+		ToLowercase
 	)
 
 	final override fun getActions(): Array<Action> =
@@ -136,6 +143,21 @@ open class CodeKit constructor(
 
 		/** The name of the [MoveLineDown] action. */
 		const val moveLineDown = "move-line-down"
+
+		/** The name of the [ToUppercase] action. */
+		const val uppercase = "uppercase"
+
+		/** The name of the [ToLowercase] action. */
+		const val lowercase = "lowercase"
+
+		/** The name of the [ToCamelCase] action. */
+		const val camelCase = "camel-case"
+
+		/** The name of the [ToSnakeCase] action. */
+		const val snakeCase = "camel-case"
+
+		/** The name of the [ToKebabCase] action. */
+		const val kebabCase = "kebab-case"
 	}
 }
 
@@ -426,6 +448,10 @@ private object Refresh: TextAction(refresh)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//                                  Move Code                                 //
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * Move the current line of the [source&#32;component][JTextComponent] in its
  * enclosing [viewport][JViewport] up one line.
@@ -665,6 +691,143 @@ private object MoveLineDown: TextAction(moveLineDown)
 			txt.selectionStart = shiftedSelectionStart
 			txt.selectionEnd = shiftedSelectionEnd
 		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Change Case.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Change the selection to all uppercase characters.
+ */
+private object ToUppercase: TextAction(uppercase)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val txt = e.source as JTextComponent
+		if (txt.selectionStart == txt.selectionEnd)
+		{
+			// No text is selected; do nothing
+			return
+		}
+		val textToTransform = txt.selectedText
+		val startPosition = txt.selectionStart
+		val transformed = textToTransform.uppercase()
+		sourcePane.transaction {
+			txt.document.remove(startPosition, textToTransform.length)
+			txt.document.insertString(startPosition, transformed, null)
+		}
+	}
+}
+
+/**
+ * Change the selection to all lowercase characters.
+ */
+private object ToLowercase: TextAction(lowercase)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val txt = e.source as JTextComponent
+		if (txt.selectionStart == txt.selectionEnd)
+		{
+			// No text is selected; do nothing
+			return
+		}
+		val textToTransform = txt.selectedText
+		val startPosition = txt.selectionStart
+		val transformed = textToTransform.lowercase()
+		sourcePane.transaction {
+			txt.document.remove(startPosition, textToTransform.length)
+			txt.document.insertString(startPosition, transformed, null)
+		}
+	}
+}
+
+/**
+ * Change the selection to camel case: "foo_bar" -> "fooBar".
+ */
+private object ToCamelCase: TextAction(camelCase)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val txt = e.source as JTextComponent
+		if (txt.selectionStart == txt.selectionEnd)
+		{
+			// No text is selected; do nothing
+			return
+		}
+		val textToTransform = txt.selectedText
+		val startPosition = txt.selectionStart
+		// TODO finish me!
+	}
+}
+
+/**
+ * Change the selection to snake case: "fooBar" -> "foo_bar".
+ */
+private object ToSnakeCase: TextAction(snakeCase)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val txt = e.source as JTextComponent
+		if (txt.selectionStart == txt.selectionEnd)
+		{
+			// No text is selected; do nothing
+			return
+		}
+		val textToTransform = txt.selectedText
+		val startPosition = txt.selectionStart
+		// TODO finish me!
+	}
+}
+
+/**
+ * Change the selection to kebab case: "fooBar" -> "foo-bar".
+ */
+private object ToKebabCase: TextAction(kebabCase)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val txt = e.source as JTextComponent
+		if (txt.selectionStart == txt.selectionEnd)
+		{
+			// No text is selected; do nothing
+			return
+		}
+		val textToTransform = txt.selectedText
+		val startPosition = txt.selectionStart
+		// TODO finish me!
 	}
 }
 
