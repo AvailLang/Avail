@@ -40,6 +40,8 @@ import avail.anvil.text.CodeKit.Companion.breakLine
 import avail.anvil.text.CodeKit.Companion.cancelTemplateSelection
 import avail.anvil.text.CodeKit.Companion.centerCurrentLine
 import avail.anvil.text.CodeKit.Companion.expandTemplate
+import avail.anvil.text.CodeKit.Companion.moveLineDown
+import avail.anvil.text.CodeKit.Companion.moveLineUp
 import avail.anvil.text.CodeKit.Companion.outdent
 import avail.anvil.text.CodeKit.Companion.redo
 import avail.anvil.text.CodeKit.Companion.space
@@ -49,13 +51,16 @@ import java.awt.Dimension
 import java.awt.Font
 import java.awt.Toolkit.getDefaultToolkit
 import java.awt.event.ActionEvent
+import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
+import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_M
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
+import java.awt.event.KeyEvent.VK_UP
 import java.awt.event.KeyEvent.VK_Z
 import javax.swing.BorderFactory
 import javax.swing.InputMap
@@ -254,6 +259,8 @@ constructor(
 		)
 		inputMap.put(getKeyStroke(VK_SPACE, CTRL_DOWN_MASK), expandTemplate)
 		inputMap.put(getKeyStroke(VK_ESCAPE, 0), cancelTemplateSelection)
+		inputMap.put(getKeyStroke(VK_UP, ALT_DOWN_MASK.or(SHIFT_DOWN_MASK)), moveLineUp)
+		inputMap.put(getKeyStroke(VK_DOWN, ALT_DOWN_MASK.or(SHIFT_DOWN_MASK)), moveLineDown)
 	}
 
 	/**

@@ -44,6 +44,8 @@ import avail.anvil.text.CodeKit.Companion.cancelTemplateSelection
 import avail.anvil.text.CodeKit.Companion.centerCurrentLine
 import avail.anvil.text.CodeKit.Companion.expandTemplate
 import avail.anvil.text.CodeKit.Companion.indent
+import avail.anvil.text.CodeKit.Companion.moveLineDown
+import avail.anvil.text.CodeKit.Companion.moveLineUp
 import avail.anvil.text.CodeKit.Companion.outdent
 import avail.anvil.text.CodeKit.Companion.redo
 import avail.anvil.text.CodeKit.Companion.space
@@ -92,7 +94,9 @@ open class CodeKit constructor(
 		Undo,
 		Redo,
 		ExpandTemplate,
-		CancelTemplateSelection
+		CancelTemplateSelection,
+		MoveLineUp,
+		MoveLineDown
 	)
 
 	final override fun getActions(): Array<Action> =
@@ -126,6 +130,12 @@ open class CodeKit constructor(
 
 		/** The name of the [CancelTemplateSelection] action. */
 		const val cancelTemplateSelection = "cancel-template-selection"
+
+		/** The name of the [MoveLineUp] action. */
+		const val moveLineUp = "move-line-up"
+
+		/** The name of the [MoveLineDown] action. */
+		const val moveLineDown = "move-line-down"
 	}
 }
 
@@ -416,6 +426,248 @@ private object Refresh: TextAction(refresh)
 	}
 }
 
+/**
+ * Move the current line of the [source&#32;component][JTextComponent] in its
+ * enclosing [viewport][JViewport] up one line.
+ */
+private object MoveLineUp: TextAction(moveLineUp)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val txt = e.source as JTextComponent
+		val lineStarts = txt.lineStartsInSelection()
+		if (lineStarts.size == 1 && lineStarts[0] == 0)
+		{
+			// We are on the first line of the document so there is no line
+			// above that this line can be placed before. So just do nothing.
+			return
+		}
+		val lineEnds = txt.lineEndsInSelection()
+		val lastLineEnd = lineEnds.last()
+		// Get the bounds of the previous line
+		val endPrevLine = lineStarts[0] - 1
+		val startPrevLine = txt.document.lineStartBefore(endPrevLine)
+
+		// Get the length of the previous line that will be moved below the
+		// current selection
+		val prevLineLength = lineStarts[0] - startPrevLine
+
+		// Calculate the text that will be moved down taking into account end of
+		// line offset if the last line of the file is to move up.
+		val moveIncludesLastLine =
+			txt.document.endPosition.offset == lastLineEnd + 1
+		val txtToMoveDown =
+			if (moveIncludesLastLine)
+			{
+				// The lines to shift up includes the last line of the document
+				if (lineStarts[0] == 0)
+				{
+					// The entire document is highlighted so there is no line
+					// shift available. Do nothing.
+					return
+				}
+				// We are shifting up the last line of the file so we want to
+				// truncate the text being moved not to include the '\n' because
+				// the text being moved will be the last line and by definition
+				// the last line of the file does not have a '\n' at the end
+				// of the last line.
+				txt.document.getText(startPrevLine, prevLineLength - 1)
+			}
+			else
+			{
+				// We are not including the last line of the file in the move so
+				// no special offsets are required.
+				txt.document.getText(startPrevLine, prevLineLength)
+			}
+
+		// Calculate the adjustment to the selection for the new start and end
+		// of the selection after the text is moved down.
+		val shiftedSelectionStart = txt.selectionStart - txtToMoveDown.length
+		val shiftedSelectionEnd = txt.selectionEnd - txtToMoveDown.length
+
+		// Move the lines as a single undo-able transaction.
+		sourcePane.transaction {
+			if (moveIncludesLastLine)
+			{
+				// Our move involves moving the last line of the file up.
+				// Because "lastLineEnd" represents the end of the file, we
+				// can't insert the text after the end of the file, we have to
+				// insert the text at the end of the file.
+				txt.document.insertString(
+					lastLineEnd,
+					"\n" + txtToMoveDown,
+					null)
+				// Remove the moved text from its original position.
+				txt.document.remove(
+					startPrevLine,
+					prevLineLength)
+			}
+			else
+			{
+				// The line shift does not include the last line of the file so
+				// our insertion of the text, "txtToMoveDown", needs to be
+				// inserted one position after the "lastLineEnd".
+				txt.document.insertString(
+					lastLineEnd + 1,
+					txtToMoveDown,
+					null)
+				// Remove the moved text from its original position.
+				txt.document.remove(startPrevLine, prevLineLength)
+			}
+			// Reset the selection to highlight the originally selected text.
+			txt.selectionStart = shiftedSelectionStart
+			txt.selectionEnd = shiftedSelectionEnd
+		}
+	}
+}
+
+/**
+ * Move the current line of the [source&#32;component][JTextComponent] in its
+ * enclosing [viewport][JViewport] down one line.
+ */
+private object MoveLineDown: TextAction(moveLineDown)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val txt = e.source as JTextComponent
+		val lineEnds = txt.lineEndsInSelection()
+		val lastLineEnd = lineEnds.last()
+		if (txt.document.endPosition.offset == lastLineEnd + 1)
+		{
+			// The last line of the file is part of the selection so there is no
+			// line beneath that the selection can be moved below.
+			return
+		}
+
+		// Get the start of all lines that will be moving down.
+		val lineStarts = txt.lineStartsInSelection()
+
+		// Get the bounds of the next line that will move up above selection.
+		val startNextLine = lastLineEnd + 1
+		val endNextLine = txt.document.lineEndAfter(startNextLine)
+
+		// Get the length of the next line that will be moved above the current
+		// selection
+		val nextLineLength = endNextLine - startNextLine
+
+		// Calculate text of the next line that will be moved up taking into
+		// account any position containing the beginning/end of file or a blank
+		// line as the last line to shift down.
+		val txtToMoveUp =
+			when
+			{
+				// The lines to shift down includes the first line of the
+				// document
+				lineStarts[0] == 0 ->
+				{
+					if (txt.document.endPosition.offset == lastLineEnd + 1)
+					{
+						// The entire document is highlighted so there is no
+						// line shift available. Do nothing.
+						return
+					}
+					txt.document.getText(startNextLine, nextLineLength)
+				}
+				// The last line of the document is to move above the selection.
+				endNextLine + 1 == txt.document.endPosition.offset ->
+					txt.document.getText(startNextLine, nextLineLength)
+				// The last line of the selection to move down in an empty line.
+				lineStarts.last() == lineEnds.last() ->
+					txt.document.getText(startNextLine, nextLineLength + 1)
+				// No edge case; shift is fully internal to the document.
+				else -> txt.document.getText(startNextLine - 1, nextLineLength)
+			}
+
+		// Calculate the adjustment to the selection for the new start and end
+		// of the selection after the text is moved down.
+		val shiftedSelectionStart = txt.selectionStart + txtToMoveUp.length
+		val shiftedSelectionEnd = txt.selectionEnd + txtToMoveUp.length
+
+		// Move the lines as a single undo-able transaction.
+		sourcePane.transaction {
+			when
+			{
+				// The last line is being moved above selection
+				endNextLine + 1 == txt.document.endPosition.offset ->
+				{
+					// Remove the last '\n' of the second to last line of the
+					// file text, the end of the last line to be moved down, all
+					// the way to the end of the file.
+					txt.document.remove(lastLineEnd, endNextLine - lastLineEnd)
+
+					// The line shift does not include the first line of the file so
+					// our insertion of the text, "txtToMoveUp", needs to be
+					// inserted one position before the "lineStarts[0]".
+					txt.document.insertString(
+						lineStarts[0],
+						txtToMoveUp + "\n",
+						null)
+				}
+				// The first line is being shifted down
+				lineStarts[0] == 0 ->
+				{
+					// Remove the moved text from its original position.
+					txt.document.remove(
+						startNextLine,
+						nextLineLength + 1)
+
+					// Our move involves moving the first line of the file down.
+					// Because "lineStarts[0]" represents the start of the file, we
+					// can't insert the text before the start of the file, we have
+					// to insert the text at the start of the file.
+					txt.document.insertString(
+						0,
+						txtToMoveUp + "\n",
+						null)
+				}
+				// The last line of the selection to move down is an empty line.
+				lineStarts.last() == lineEnds.last() ->
+				{
+					// Remove the moved text from its original position.
+					txt.document.remove(startNextLine, nextLineLength + 1)
+
+					// The line shift does not include the first line of the file so
+					// our insertion of the text, "txtToMoveUp", needs to be
+					// inserted one position before the "lineStarts[0]".
+					txt.document.insertString(
+						lineStarts[0],
+						txtToMoveUp,
+						null)
+				}
+				// Text movement is fully internal to the document.
+				else ->
+				{
+					// Remove the moved text from its original position.
+					txt.document.remove(startNextLine, nextLineLength + 1)
+
+					// The line shift does not include the first line of the file so
+					// our insertion of the text, "txtToMoveUp", needs to be
+					// inserted one position before the "lineStarts[0]".
+					txt.document.insertString(
+						lineStarts[0] - 1,
+						txtToMoveUp,
+						null)
+				}
+			}
+			// Reset the selection to highlight the originally selected text.
+			txt.selectionStart = shiftedSelectionStart
+			txt.selectionEnd = shiftedSelectionEnd
+		}
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                                  Support.                                  //
 ////////////////////////////////////////////////////////////////////////////////
@@ -521,22 +773,50 @@ fun Document.codePointOrNullAt(position: Int) =
 fun Document.lineStartBefore(position: Int): Int
 {
 	var i = position
-	while (i > 0)
+	while (true)
+	{
+		// Have we hit start of file or is there a line feed before the current
+		// position
+		if ( i <= 0 || codePointAt(i - 1) == '\n'.code)
+		{
+			return i
+		}
+		// We haven't reached the start of the file nor have we reached a '\n'
+		// so we need to keep walking backwards in the file.
+		i--
+	}
+}
+
+/**
+ * Locate the end of the line enclosing [position].
+ *
+ * @param position
+ *   The position from which to scan rightward in search of the end of the
+ *   enclosing line.
+ * @return
+ *   The end of the line. This is either the end of the text or a position
+ *   immediately preceding a linefeed (U+000A).
+ */
+fun Document.lineEndAfter(position: Int): Int
+{
+	var i = position
+	while (i < endPosition.offset)
 	{
 		val c = codePointAt(i)
 		if (c == '\n'.code)
 		{
-			// We actually want to skip past the linefeed to place the
-			// insertion point.
-			i++
+			// We don't want to skip past the linefeed so we can place the
+			// insertion point before linefeed.
 			break
 		}
-		i--
+		i++
 	}
-	// `i` is now positioned either (1) at the beginning of the text or
-	// (2) just past the nearest linefeed left of `position`.
+	// `i` is now positioned either
+	//   (1) at the end of the text or
+	//   (2) just before the next linefeed right of `position`.
 	return i
 }
+
 
 /**
  * Tally the indentation at [position]. Only horizontal tabulation (U+0009) is
@@ -623,8 +903,8 @@ fun JTextComponent.goTo(line: Int, characterInLine: Int = 0)
 	val lineStart = element.startOffset
 	val position = max(
 		min(
-		lineStart + characterInLine,
-		element.endOffset - 1
+			lineStart + characterInLine,
+			element.endOffset - 1
 		),
 		lineStart
 	)
@@ -668,6 +948,44 @@ fun JTextComponent.lineStartsInSelection(): List<Int>
 		}
 	}
 	insertionPoints.add(lastLineStart)
+	return insertionPoints
+}
+
+/**
+ * Locate the ends of all lines enclosing the active selection. If no text
+ * is selected, then locate the end of the line containing the caret.
+ *
+ * @return
+ *   The positions of the desired linefeed (U+0009) characters.
+ */
+fun JTextComponent.lineEndsInSelection(): List<Int>
+{
+	if (selectionStart == selectionEnd)
+	{
+		// There's no text selection, so answer the start of the line featuring
+		// the caret.
+		return listOf(document.lineEndAfter(selectionStart))
+	}
+	// Some text is selected, so find the beginnings of the enclosing
+	// lines.
+	val document = document
+	val firstLineEnd =
+		document.lineEndAfter(selectionStart)
+	val lastLineEnd =
+		document.lineEndAfter(selectionEnd - 1)
+	val insertionPoints = mutableListOf(firstLineEnd)
+	// Avoid unnecessary work if only a single line was involved.
+	if (firstLineEnd == lastLineEnd) return insertionPoints
+	(firstLineEnd + 1 until lastLineEnd - 2).forEach { position ->
+		// The bounds are a bit tricky to avoid redundant computation for the
+		// two termini.
+		val c = document.codePointAt(position)
+		if (c == '\n'.code)
+		{
+			insertionPoints.add(position + 1)
+		}
+	}
+	insertionPoints.add(lastLineEnd)
 	return insertionPoints
 }
 
