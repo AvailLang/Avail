@@ -167,6 +167,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
@@ -1396,6 +1397,12 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		canDestroy: Boolean): A_Tuple
 
+	abstract fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+
 	abstract fun o_SetContinuation (
 		self: AvailObject,
 		value: A_Continuation)
@@ -1603,6 +1610,12 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		index: Int,
 		value: AvailObject): AvailObject
+
+	abstract fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
 
 	abstract fun o_LocalTypeAt (self: AvailObject, index: Int): A_Type
 
@@ -2077,6 +2090,16 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	abstract fun o_AsTuple (self: AvailObject): A_Tuple
 
+	/**
+	 * For this tuple, estimate how many bits of memory per element are consumed
+	 * by its current representation.  This is used to determine which of two
+	 * representations is more efficient, in the case that equal tuples have
+	 * been compared, and either one can be converted into an indirection to the
+	 * other.
+	 *
+	 * @param self
+	 *   A tuple.
+	 */
 	abstract fun o_BitsPerEntry (self: AvailObject): Int
 
 	abstract fun o_BodyBlock (self: AvailObject): A_Function
@@ -4026,6 +4049,12 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_SetStylingRecordIndex(self: AvailObject, recordNumber: Long)
 
 	abstract fun o_StylingRecord(self: AvailObject): StylingRecord
+
+	abstract fun o_SetPhrasePathRecordIndex(
+		self: AvailObject,
+		recordNumber: Long)
+
+	abstract fun o_PhrasePathRecord(self: AvailObject): PhrasePathRecord
 
 	abstract fun o_StylerMethod(self: AvailObject): A_Method
 

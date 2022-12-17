@@ -48,8 +48,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class RetrieveNextCommand constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "RetrieveNextCommand")
+class RetrieveNextCommand constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "RetrieveNextCommand")
 {
 	override fun actionPerformed(e: ActionEvent)
 	{

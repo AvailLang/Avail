@@ -151,6 +151,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
@@ -163,6 +164,7 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -173,6 +175,7 @@ import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.Deserializer
 import avail.serialization.SerializerOperation
@@ -409,6 +412,25 @@ class ModuleDescriptor private constructor(
 	 */
 	@Volatile
 	private var stylingRecord: StylingRecord? = null
+
+	/**
+	 * This field is initially -1, but when a module has been compiled, the
+	 * [PhrasePathRecord] is written to the repository, and this field is set to
+	 * that record number.
+	 */
+	@Volatile
+	private var phrasePathRecordIndex: Long = -1
+
+	/**
+	 * The [PhrasePathRecord] for this module, used for explanation and
+	 * navigation and possibly other things.  During compilation, the
+	 * [PhrasePathRecord] is written to the [Repository], setting the
+	 * [phrasePathRecordIndex] to the record number, and this field remains
+	 * null.  Any subsequent request for the phrase path record will look it up
+	 * in the repository, and cache it here.
+	 */
+	@Volatile
+	var phrasePathRecord: PhrasePathRecord? = null
 
 	/**
 	 * The lock used to control access to this module's modifiable parts.
@@ -1134,6 +1156,7 @@ class ModuleDescriptor private constructor(
 		blockPhrase: A_Phrase
 	): Int = lock.safeWrite {
 		assertState(Loading)
+		assert(blockPhrase.isInstanceOfKind(PARSE_PHRASE.mostGeneralType))
 		val newTuple = self.atomicUpdateSlot(ALL_BLOCK_PHRASES) {
 			assert(isTuple)
 			appendCanDestroy(blockPhrase.makeShared(), false)
@@ -1164,6 +1187,33 @@ class ModuleDescriptor private constructor(
 			StylingRecord(bytes)
 		}
 		return stylingRecord!!
+	}
+
+	override fun o_SetPhrasePathRecordIndex(
+		self: AvailObject,
+		recordNumber: Long)
+	{
+		phrasePathRecordIndex = recordNumber
+	}
+
+	override fun o_PhrasePathRecord(self: AvailObject): PhrasePathRecord
+	{
+		phrasePathRecord?.let { return it }
+		val moduleName = ModuleName(moduleNameNative)
+		val resolved = runtime!!.moduleNameResolver.resolve(moduleName, null)
+		phrasePathRecord = if (phrasePathRecordIndex == -1L)
+		{
+			PhrasePathRecord()
+		}
+		else
+		{
+			val bytes = resolved.repository.run {
+				reopenIfNecessary()
+				lock.withLock { repository!![phrasePathRecordIndex] }
+			}
+			PhrasePathRecord(bytes)
+		}
+		return phrasePathRecord!!
 	}
 
 	override fun o_RemoveFrom(

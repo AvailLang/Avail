@@ -35,6 +35,8 @@ package avail.anvil
 import avail.AvailRuntime
 import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
+import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
+import avail.anvil.PhrasePathStyleApplicator.applyPhrasePaths
 import avail.anvil.StyleApplicator.applyStyleRuns
 import avail.anvil.actions.FindAction
 import avail.anvil.shortcuts.AvailEditorShortcut
@@ -55,13 +57,18 @@ import avail.compiler.ModuleManifestEntry
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.manifestEntries
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.Repository.PhraseNode
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
+import avail.utility.Strings.escapedForHTML
 import avail.utility.notNullAnd
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.WindowAdapter
@@ -69,9 +76,12 @@ import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.util.TimerTask
 import java.util.concurrent.Semaphore
+import javax.swing.DefaultListCellRenderer
+import javax.swing.DefaultListModel
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
@@ -80,6 +90,7 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.Caret
 import javax.swing.text.StyleConstants
+import kotlin.math.min
 
 /**
  * An editor for an Avail source module. Currently supports:
@@ -107,7 +118,7 @@ import javax.swing.text.StyleConstants
  */
 class AvailEditor constructor(
 	override val workbench: AvailWorkbench,
-	moduleName: ModuleName,
+	val moduleName: ModuleName,
 	afterTextLoaded: (AvailEditor) -> Unit = {}
 ) : WorkbenchFrame("Avail Editor: $moduleName")
 {
@@ -235,21 +246,21 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * Fetch the active [StylingRecord] for the target [module][A_Module].
+	 * Fetch the active [StylingRecord] and [PhrasePathRecord] for the target
+	 * [module][A_Module].
 	 *
 	 * @param onSuccess
-	 *   What to do with a [StylingRecord]. Might be applied to `null`, if
-	 *   nothing went wrong but no [ModuleVersion], [ModuleCompilation], or
-	 *   [StylingRecord] exists for the target module, e.g., because the module
-	 *   has never been compiled.
+	 *   What to do with [StylingRecord] and [PhrasePathRecord]. One or both
+	 *   arguments may be `null`, if nothing went wrong but no [ModuleVersion],
+	 *   [ModuleCompilation], or [StylingRecord] exists for the target module,
+	 *   e.g., because the module has never been compiled.
 	 * @param onError
 	 *   What to do when the fetch fails unexpectedly, e.g., because of a
 	 *   corrupt [Repository] or [StylingRecord].
 	 */
-	private fun getActiveStylingRecord(
-		onSuccess: (StylingRecord?)->Unit,
-		onError: (Throwable?)->Unit
-	)
+	private fun getActiveStylingAndPhrasePathRecords(
+		onSuccess: (StylingRecord?, PhrasePathRecord?)->Unit,
+		onError: (Throwable?)->Unit)
 	{
 		val repository = resolvedName.repository
 		repository.reopenIfNecessary()
@@ -268,13 +279,19 @@ class AvailEditor constructor(
 							ModuleCompilation::compilationTime)
 						if (compilation !== null)
 						{
-							val index = compilation.recordNumberOfStyling
+							val stylingRecordIndex =
+								compilation.recordNumberOfStyling
 							val stylingRecord = StylingRecord(
-								repository.repository!![index])
-							return@digestForFile onSuccess(stylingRecord)
+								repository.repository!![stylingRecordIndex])
+							val phrasePathRecordIndex =
+								compilation.recordNumberOfPhrasePaths
+							val phrasePathRecord = PhrasePathRecord(
+								repository.repository!![phrasePathRecordIndex])
+							return@digestForFile onSuccess(
+								stylingRecord, phrasePathRecord)
 						}
 					}
-					onSuccess(null)
+					onSuccess(null, null)
 				}
 				catch (e: Throwable)
 				{
@@ -289,6 +306,105 @@ class AvailEditor constructor(
 	 * The [MarkToDotRange] of the [Caret] in the [sourcePane].
 	 */
 	internal var range: MarkToDotRange // TODO can this be set?
+
+	/**
+	 * The [JList] that displays the hierarchy of phrases containing the
+	 * selected token.
+	 */
+	private val parseStructureList = JList<PhraseExplanation>().apply {
+		model = DefaultListModel()
+		cellRenderer = object : DefaultListCellRenderer()
+		{
+			override fun getListCellRendererComponent(
+				list: JList<*>?,
+				phraseStructure: Any?,
+				index: Int,
+				isSelected: Boolean,
+				cellHasFocus: Boolean
+			): Component = super.getListCellRendererComponent(
+				list,
+				(phraseStructure as? PhraseExplanation)?.run
+				{
+					"<html>$htmlText</html>"
+				},
+				index,
+				isSelected,
+				cellHasFocus)
+		}
+	}
+
+	/**
+	 * Compute the sequence of nested send phrases that describe how the
+	 * selected token ended up being embedded in the final parse structure.
+	 * Update the [parseStructureList] to show this information.
+	 */
+	private fun updatePhraseStructure()
+	{
+		val doc = sourcePane.styledDocument
+		val element = doc.getCharacterElement(
+			min(range.markPosition.offset + 1, doc.length))
+		val attributes = element.attributes
+		val phraseNode =
+			attributes.getAttribute(PhraseNodeAttributeKey) as PhraseNode?
+		(parseStructureList.model as DefaultListModel).run {
+			clear()
+			var node = phraseNode
+			while (node != null)
+			{
+				val parent = node.parent
+				parent ?: run {
+					add(0, PhraseExplanation(node!!, -1, 0))
+					return
+				}
+				val siblings = parent.children
+				add(
+					0,
+					PhraseExplanation(node, node.indexInParent, siblings.size))
+				node = parent
+			}
+		}
+	}
+
+	/**
+	 * An entry in the [parseStructureList] that shows a send phrase's bundle
+	 * name and an indication of where within that name the subphrase below it
+	 * occurs.
+	 *
+	 * @constructor
+	 * Construct a new [PhraseExplanation]
+	 *
+	 * @param phraseNode
+	 *   The [PhraseNode] that this is based on.
+	 * @param childIndex
+	 *   My zero-based index within my parents' children, or -1 if I am a root
+	 *   phrase.
+	 * @param siblingsCount
+	 *   The number of children that my parent has, including me.
+	 */
+	data class PhraseExplanation(
+		val phraseNode: PhraseNode,
+		val childIndex: Int,
+		val siblingsCount: Int)
+	{
+		/**
+		 * Produce suitable HTML text indicating the message sent by this
+		 * phrase, and which argument position the next subphrase down occupies.
+		 *
+		 * For now, just use the send phrase's name directly with no indication
+		 * of which argument position the subphrase is in.
+		 */
+		val htmlText = buildString {
+			if (childIndex >= 0)
+			{
+				append("@${childIndex + 1}/$siblingsCount: ")
+			}
+			when (val atomName = phraseNode.atomName)
+			{
+				null -> append("...")
+				else -> append(atomName.asNativeString().escapedForHTML())
+			}
+		}
+	}
 
 	/**
 	 * The [JLabel] that displays the [range]
@@ -311,6 +427,7 @@ class AvailEditor constructor(
 			val style = element.attributes.getAttribute(
 				StyleConstants.NameAttribute)
 			caretRangeLabel.text = "$style $range"
+			updatePhraseStructure()
 		}
 
 		// To add a new shortcut, add it as a subtype of the sealed class
@@ -354,7 +471,9 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * Apply style highlighting to the text in the [JTextPane].
+	 * Apply style highlighting to the text in the [JTextPane].  Also apply the
+	 * semantic styling that associates a [PhraseNode] with each token that was
+	 * part of a parsed phrase.
 	 *
 	 * @param then
 	 *   Action to perform after text has been loaded to [sourcePane].
@@ -362,14 +481,16 @@ class AvailEditor constructor(
 	internal fun highlightCode(then: (AvailEditor) -> Unit = {})
 	{
 		var stylingRecord: StylingRecord? = null
+		var phrasePathRecord: PhrasePathRecord? = null
 		val semaphore = Semaphore(0)
 		val info = SourceCodeInfo(runtime, resolverReference)
 		info.sourceAndDelimiter.withValue { (normalizedText, delimiter) ->
 			lineEndDelimiter = delimiter
 			sourcePane.text = normalizedText
-			getActiveStylingRecord(
-				onSuccess = { stylingRecordOrNull ->
+			getActiveStylingAndPhrasePathRecords(
+				onSuccess = { stylingRecordOrNull, phrasePathRecordOrNull ->
 					stylingRecord = stylingRecordOrNull
+					phrasePathRecord = phrasePathRecordOrNull
 					semaphore.release()
 				},
 				onError = { e ->
@@ -382,6 +503,9 @@ class AvailEditor constructor(
 		semaphore.acquire()
 		stylingRecord?.let {
 			sourcePane.styledDocument.applyStyleRuns(it.styleRuns)
+		}
+		phrasePathRecord?.let {
+			sourcePane.styledDocument.applyPhrasePaths(it)
 		}
 		then(this)
 	}
@@ -502,19 +626,36 @@ class AvailEditor constructor(
 
 		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
 			workbench.globalSettings.editorGuideLines)
+		val parseStructureListScroll = parseStructureList.scroll()
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
 			setHorizontalGroup(
 				createParallelGroup()
 					.addComponent(sourcePaneScroll)
 					.addComponent(
+						parseStructureListScroll,
+						0,
+						GroupLayout.DEFAULT_SIZE,
+						Short.MAX_VALUE.toInt())
+					.addComponent(
 						caretRangeLabel,
 						GroupLayout.Alignment.TRAILING))
 			setVerticalGroup(
 				createSequentialGroup()
 					.addComponent(sourcePaneScroll)
+					.addComponent(
+						parseStructureListScroll,
+						GroupLayout.PREFERRED_SIZE,
+						GroupLayout.DEFAULT_SIZE,
+						GroupLayout.PREFERRED_SIZE)
 					.addComponent(caretRangeLabel))
 		}
+		parseStructureList.prototypeCellValue =
+			PhraseExplanation(
+				PhraseNode(null, null, emptyList(), parent = null),
+				0,
+				1)
+		parseStructureList.visibleRowCount = 10
 		minimumSize = Dimension(650, 350)
 		preferredSize = Dimension(800, 1000)
 		add(panel)

@@ -49,8 +49,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ToggleDebugJVM constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Debug JVM translation")
+class ToggleDebugJVM constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Debug JVM translation")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

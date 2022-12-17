@@ -373,4 +373,22 @@ object Strings
 			else -> substring(0, limit - ellipsis.length) + ellipsis
 		}
 	}
+
+	private val escapesForHTML = mapOf(
+		'&' to "&amp;",
+		'<' to "&lt;",
+		'>' to "&gt;",
+		'"' to "&quot;",
+		'\'' to "&#x27;",
+		'/' to "&#x2F;")
+
+	fun String.escapedForHTML() = buildString {
+		this@escapedForHTML.forEach { char ->
+			when (val transformed = escapesForHTML[char])
+			{
+				null -> append(char)
+				else -> append(transformed)
+			}
+		}
+	}
 }

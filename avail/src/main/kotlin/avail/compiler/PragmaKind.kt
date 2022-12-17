@@ -156,10 +156,8 @@ enum class PragmaKind constructor(val lexeme: String)
 			val pragmaPrim = parts[0].trim { it <= ' ' }
 			val macroName = parts[1].trim { it <= ' ' }
 			val primNameStrings = pragmaPrim.split(",")
-			val primNames = arrayOfNulls<String>(primNameStrings.size)
-			for (i in primNames.indices)
-			{
-				val primName = primNameStrings[i]
+			val primNames = Array(primNameStrings.size) { zeroIndex ->
+				val primName = primNameStrings[zeroIndex]
 				val prim = primitiveByName(primName)
 				if (prim === null)
 				{
@@ -170,15 +168,10 @@ enum class PragmaKind constructor(val lexeme: String)
 							"not '$primName'")
 					return
 				}
-				primNames[i] = primName
+				primName
 			}
-			@Suppress("UNCHECKED_CAST")
 			compiler.bootstrapMacroThen(
-				state,
-				pragmaToken,
-				macroName,
-				primNames as Array<String>,
-				success)
+				state, pragmaToken, macroName, primNames, success)
 		}
 	},
 

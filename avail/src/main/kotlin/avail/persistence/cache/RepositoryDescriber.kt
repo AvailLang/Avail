@@ -92,6 +92,8 @@ class RepositoryDescriber constructor(
 						append("Manifest #$recordNumberOfManifestEntries")
 						newlineTab(3)
 						append("Styling #$recordNumberOfStyling")
+						newlineTab(3)
+						append("PhrasePaths #$recordNumberOfPhrasePaths")
 					}
 				}
 			}

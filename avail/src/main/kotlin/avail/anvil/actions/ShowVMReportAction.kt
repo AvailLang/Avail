@@ -48,8 +48,9 @@ import javax.swing.Action
  * @param workbench
  * The owning [AvailWorkbench].
  */
-class ShowVMReportAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Generate VM report")
+class ShowVMReportAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Generate VM report")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

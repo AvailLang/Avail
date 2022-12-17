@@ -32,11 +32,10 @@
 
 package avail.anvil.actions
 
-import avail.AvailRuntime
-import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.functions.CompiledCodeDescriptor.Companion.resetCodeCoverageDetailsThen
 import avail.anvil.AvailWorkbench
 import avail.anvil.streams.StreamStyle.INFO
+import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.functions.CompiledCodeDescriptor.Companion.resetCodeCoverageDetailsThen
 import java.awt.event.ActionEvent
 import javax.swing.Action
 
@@ -44,28 +43,21 @@ import javax.swing.Action
  * A `ResetCCReportDataAction` clears code coverage information obtained
  * from running.
  *
- * @property runtime
- *   The active [AvailRuntime].
  * @constructor
  * Construct a new [ResetCCReportDataAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param runtime
- *   The active [AvailRuntime].
  */
 class ResetCCReportDataAction constructor(
-		workbench: AvailWorkbench, private val runtime: AvailRuntime)
-	: AbstractWorkbenchAction(workbench, "Clear code coverage data")
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Clear code coverage data")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
-		runtime.execute(
-			FiberDescriptor.commandPriority
-		) {
+		workbench.runtime.execute(FiberDescriptor.commandPriority) {
 			resetCodeCoverageDetailsThen {
-				workbench.writeText(
-					"Code coverage data reset.\n", INFO)
+				workbench.writeText("Code coverage data reset.\n", INFO)
 			}
 		}
 	}

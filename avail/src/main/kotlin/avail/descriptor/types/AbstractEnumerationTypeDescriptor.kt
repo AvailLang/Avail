@@ -525,10 +525,9 @@ protected constructor(
 		 * [BottomTypeDescriptor] and [InstanceTypeDescriptor], respectively.
 		 *
 		 * Note that we also have to assure type union metainvariance, namely:
-		 * <sub>x,yT</sub>(T(x)T(y) = T(xy)).
+		 * &forall;<sub>x,y&isin;T</sub>&thinsp;(T(x)&cup;T(y) = T(x&cup;y)).
 		 * Thus, if there are multiple instances which are types, use their type
 		 * union as a single member in place of them.
-		 *
 		 *
 		 * @param instancesSet
 		 *   The [set][SetDescriptor] of objects which are to be instances of

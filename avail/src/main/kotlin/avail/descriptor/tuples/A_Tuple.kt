@@ -608,6 +608,27 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_ExtractNybbleFromTupleAt(it, index) }
 
 		/**
+		 * Search for a particular value in the tuple, starting at the given
+		 * index and working forward.
+		 *
+		 * @param value
+		 *   The value to search for in the receiver.
+		 * @param startIndex
+		 *   The position at which to start scanning.
+		 * @param endIndex
+		 *   The position at which to stop scanning, which should be >= the
+		 *   startIndex for a non-empty range.
+		 * @return
+		 *   The first encountered index of the code point when scanning forward
+		 *   from the [startIndex].  If the value is not found, answer 0.
+		 */
+		fun A_Tuple.firstIndexOf(
+			value: A_BasicObject,
+			startIndex: Int,
+			endIndex: Int
+		): Int = dispatch { o_FirstIndexOf(it, value, startIndex, endIndex) }
+
+		/**
 		 * Calculate the hash of the subtuple spanning the two indices.
 		 *
 		 * @param startIndex
@@ -639,12 +660,26 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Returns a sequential `Stream` with this tuple as its source.
+		 * Search for a particular value in the tuple, starting at the given
+		 * one-based index and working backward.
 		 *
+		 * @param value
+		 *   The value to search for in the receiver.
+		 * @param startIndex
+		 *   The position at which to start scanning backward.
+		 * @param endIndex
+		 *   The position at which to stop scanning; should be <= startIndex
+		 *   for a non-empty range.
 		 * @return
-		 *   A [Stream] of [AvailObject]s.
+		 *   The first encountered index of the code point when scanning
+		 *   backward from the [startIndex].  If the value is not found, answer
+		 *   0.
 		 */
-		fun A_Tuple.stream(): Stream<AvailObject> = dispatch { o_Stream(it) }
+		fun A_Tuple.lastIndexOf(
+			value: A_BasicObject,
+			startIndex: Int,
+			endIndex: Int
+		): Int = dispatch { o_LastIndexOf(it, value, startIndex, endIndex) }
 
 		/**
 		 * Returns a possibly parallel `Stream` with this tuple as its source.
@@ -683,6 +718,14 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 */
 		fun A_Tuple.replaceFirstChild(newFirst: A_Tuple): A_Tuple =
 			dispatch { o_ReplaceFirstChild(it, newFirst) }
+
+		/**
+		 * Returns a sequential `Stream` with this tuple as its source.
+		 *
+		 * @return
+		 *   A [Stream] of [AvailObject]s.
+		 */
+		fun A_Tuple.stream(): Stream<AvailObject> = dispatch { o_Stream(it) }
 
 		/**
 		 * Transfer the specified subrange of this tuple of bytes into the

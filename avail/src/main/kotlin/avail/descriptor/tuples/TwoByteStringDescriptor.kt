@@ -43,6 +43,7 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLi
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwoByteStringStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
@@ -230,7 +231,43 @@ class TwoByteStringDescriptor private constructor(
 		return true
 	}
 
+	override fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		val strongValue = value as A_Character
+		if (!strongValue.isCharacter) return 0
+		val codePoint = strongValue.codePoint
+		// This string only contains Unicode code points U+0000 - U+FFFF.
+		if (codePoint > 0xFFFF) return 0
+		for (i in startIndex .. endIndex)
+		{
+			if (self.tupleCodePointAt(i) == codePoint) return i
+		}
+		return 0
+	}
+
 	override fun o_IsTwoByteString(self: AvailObject): Boolean = true
+
+	override fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		val strongValue = value as A_Character
+		if (!strongValue.isCharacter) return 0
+		val codePoint = strongValue.codePoint
+		// This string only contains Unicode code points U+0000 - U+FFFF.
+		if (codePoint > 0xFFFF) return 0
+		for (i in startIndex downTo endIndex)
+		{
+			if (self.tupleCodePointAt(i) == codePoint) return i
+		}
+		return 0
+	}
 
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{

@@ -229,6 +229,7 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
@@ -3320,6 +3321,9 @@ class AvailCompiler constructor(
 				compilationContext.diagnostics.reportError()
 				return@parseModuleHeader
 			}
+			// Capture the phrase path structure of the original header phrase.
+			compilationContext.recordPathForTopLevelPhrase(headerPhrase)
+
 			// Style the header.
 			compilationContext.loader.phase = STYLING_HEADER
 			assert(headerPhrase.isMacroSubstitutionNode)
@@ -3327,7 +3331,7 @@ class AvailCompiler constructor(
 			afterHeader.lexingState.styleAllTokensThen {
 				compilationContext.styleSendThen(
 					headerPhrase.macroOriginalSendNode,
-					headerPhrase.outputPhrase,
+					headerPhrase.outputPhrase
 				) {
 					compilationContext.loader.prepareForCompilingModuleBody()
 					applyPragmasThen(afterHeader.lexingState) {
@@ -3393,6 +3397,10 @@ class AvailCompiler constructor(
 				}
 				return@parseOutermostStatement
 			}
+
+			// Capture the phrase path structure of the original top-level
+			// phrase.
+			compilationContext.recordPathForTopLevelPhrase(unambiguousStatement)
 
 			// In case the top level statement is compound, process the base
 			// statements individually.

@@ -50,10 +50,13 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
+import avail.descriptor.module.A_Module.Companion.phrasePathRecord
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.serializedObjects
 import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setPhrasePathRecordIndex
 import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
@@ -61,6 +64,7 @@ import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -68,6 +72,7 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter
 import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ModuleArchive
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleCompilationKey
 import avail.persistence.cache.Repository.ModuleVersion
@@ -325,6 +330,7 @@ internal class BuildLoader constructor(
 		module.getAndSetTupleOfBlockPhrases(
 			fromLong(compilation.recordNumberOfBlockPhrases))
 		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
+		module.setPhrasePathRecordIndex(compilation.recordNumberOfPhrasePaths)
 		module.setManifestEntriesIndex(
 			compilation.recordNumberOfManifestEntries)
 		val availLoader = AvailLoader(
@@ -543,83 +549,15 @@ internal class BuildLoader constructor(
 								assert(!old) {
 									"Completed module compilation twice!"
 								}
-								val context = compiler.compilationContext
-								val stream = context.serializerOutputStream
-								appendCRC(stream)
-
-								// Also produce the serialization of the
-								// module's tuple of block phrases.
-								val blockPhrasesOutputStream =
-									IndexedFile.ByteArrayOutputStream(5000)
-								val bodyObjectsTuple =
-									context.serializer.serializedObjectsTuple()
-								val bodyObjectsMap =
-									mutableMapOf<AvailObject, Int>()
-								bodyObjectsTuple.forEachIndexed {
-										zeroIndex, element ->
-									bodyObjectsMap[element] = zeroIndex + 1
-								}
-								// Ensure the primed objects are always at
-								// strictly negative indices.
-								val delta = bodyObjectsMap.size + 1
-								val blockPhraseSerializer = Serializer(
-									blockPhrasesOutputStream,
-									module
-								) { obj ->
-									when (val i = bodyObjectsMap[obj])
-									{
-										null -> 0
-										else -> i - delta
-									}
-								}
-								blockPhraseSerializer.serialize(
-									module.getAndSetTupleOfBlockPhrases(nil))
-								appendCRC(blockPhrasesOutputStream)
-								val loader = context.loader
-								val manifestEntries = loader.manifestEntries!!
-
-								// This is the moment of compilation.
-								val compilationTime = System.currentTimeMillis()
-								val compilation = repository.ModuleCompilation(
-									compilationTime,
-									stream.toByteArray(),
-									blockPhrasesOutputStream.toByteArray(),
-									manifestEntries,
-									assembleStylingRecord(context))
-								archive.putCompilation(
-									versionKey, compilationKey, compilation)
-
-								// Serialize the Stacks comments.
-								val out = IndexedFile.ByteArrayOutputStream(100)
-								// TODO MvG - Capture "/**" comments for Stacks.
-								//		final A_Tuple comments = fromList(
-								//         module.commentTokens());
-								//val comments = emptyTuple
-								//val stacksSerializer = Serializer(out, module)
-								//stacksSerializer.serialize(comments)
-								appendCRC(out)
-								val version = archive.getVersion(versionKey)!!
-								version.putComments(out.toByteArray())
-
-								module.getAndSetTupleOfBlockPhrases(
-									fromLong(
-										compilation.recordNumberOfBlockPhrases))
-								module.setManifestEntriesIndex(
-									compilation.recordNumberOfManifestEntries)
-								module.setStylingRecordIndex(
-									compilation.recordNumberOfStyling)
-								repository.commitIfStaleChanges(
-									AvailBuilder.maximumStaleRepositoryMs)
-								postLoad(moduleName, lastPosition)
-								module.serializedObjects(bodyObjectsTuple)
-								availBuilder.putLoadedModule(
+								completedCompilation(
+									compiler,
+									module,
+									repository,
+									archive,
+									versionKey,
+									compilationKey,
 									moduleName,
-									LoadedModule(
-										moduleName,
-										versionKey.sourceDigest,
-										module,
-										version,
-										compilation))
+									lastPosition)
 								completionAction()
 							},
 							afterFail = {
@@ -634,6 +572,87 @@ internal class BuildLoader constructor(
 				"Received ErrorCode: $code with exception:\n")
 			ex?.printStackTrace()
 		}
+	}
+
+	private fun completedCompilation(
+		compiler: AvailCompiler,
+		module: A_Module,
+		repository: Repository,
+		archive: ModuleArchive,
+		versionKey: ModuleVersionKey,
+		compilationKey: ModuleCompilationKey,
+		moduleName: ResolvedModuleName,
+		lastPosition: Long)
+	{
+		val context = compiler.compilationContext
+		val stream = context.serializerOutputStream
+		appendCRC(stream)
+
+		// Also produce the serialization of the
+		// module's tuple of block phrases.
+		val blockPhrasesOutputStream = IndexedFile.ByteArrayOutputStream(5000)
+		val bodyObjectsTuple = context.serializer.serializedObjectsTuple()
+		val bodyObjectsMap = mutableMapOf<AvailObject, Int>()
+		bodyObjectsTuple.forEachIndexed { zeroIndex, element ->
+			bodyObjectsMap[element] = zeroIndex + 1
+		}
+		// Ensure the primed objects are always at
+		// strictly negative indices.
+		val delta = bodyObjectsMap.size + 1
+		val blockPhraseSerializer = Serializer(
+			blockPhrasesOutputStream,
+			module
+		) { obj ->
+			when (val i = bodyObjectsMap[obj])
+			{
+				null -> 0
+				else -> i - delta
+			}
+		}
+		val blockPhrases: A_Tuple = module.getAndSetTupleOfBlockPhrases(nil)
+		blockPhraseSerializer.serialize(blockPhrases)
+		appendCRC(blockPhrasesOutputStream)
+		val manifestEntries = context.loader.manifestEntries!!
+		val compilation = repository.createModuleCompilation(
+			// Now is the moment of compilation.
+			System.currentTimeMillis(),
+			stream.toByteArray(),
+			blockPhrasesOutputStream.toByteArray(),
+			manifestEntries,
+			assembleStylingRecord(context),
+			module.phrasePathRecord())
+		archive.putCompilation(versionKey, compilationKey, compilation)
+
+		// Serialize the Stacks comments.
+		val out = IndexedFile.ByteArrayOutputStream(100)
+		// TODO MvG - Capture "/**" comments for Stacks.
+		//		final A_Tuple comments = fromList(
+		//         module.commentTokens());
+		//val comments = emptyTuple
+		//val stacksSerializer = Serializer(out, module)
+		//stacksSerializer.serialize(comments)
+		appendCRC(out)
+		val version = archive.getVersion(versionKey)!!
+		version.putComments(out.toByteArray())
+
+		module.getAndSetTupleOfBlockPhrases(
+			fromLong(compilation.recordNumberOfBlockPhrases))
+		module.setManifestEntriesIndex(
+			compilation.recordNumberOfManifestEntries)
+		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
+		module.setPhrasePathRecordIndex(compilation.recordNumberOfPhrasePaths)
+		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)
+		postLoad(moduleName, lastPosition)
+		module.serializedObjects(bodyObjectsTuple)
+		availBuilder.putLoadedModule(
+			moduleName,
+			LoadedModule(
+				moduleName,
+				versionKey.sourceDigest,
+				module,
+				version,
+				compilation))
+
 	}
 
 	private fun assembleStylingRecord(

@@ -80,8 +80,11 @@ import java.util.Collections
  * @param alternation
  *   The enclosed [Alternation].
  */
-internal class NumberedChoice constructor(private val alternation: Alternation)
-: Expression(alternation.positionInName)
+internal class NumberedChoice constructor(
+	startInName: Int,
+	pastEndInName: Int,
+	private val alternation: Alternation,
+) : Expression(startInName, pastEndInName)
 {
 	override val recursivelyContainsReorders: Boolean
 		get() = alternation.recursivelyContainsReorders
@@ -93,7 +96,10 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 		get() = alternation.isLowerCase
 
 	override fun applyCaseInsensitive() =
-		NumberedChoice(alternation.applyCaseInsensitive())
+		NumberedChoice(
+			startInName,
+			pastEndInName,
+			alternation.applyCaseInsensitive())
 
 	override val underscoreCount: Int
 		get()

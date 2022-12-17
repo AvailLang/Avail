@@ -48,8 +48,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ToggleFastLoaderAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Use fast-loading")
+class ToggleFastLoaderAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Use fast-loading")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

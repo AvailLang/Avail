@@ -67,8 +67,7 @@ class ExpressionAsStatementPhraseDescriptor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].

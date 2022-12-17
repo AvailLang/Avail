@@ -74,8 +74,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.FIRST_OF_SEQUENCE_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].

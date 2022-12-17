@@ -77,14 +77,16 @@ import java.util.Collections
  *
  * Construct a new `Optional`.
  *
- * @param positionInName
+ * @param startInName
  *   The position of the group or token in the message name.
  * @param sequence
  *   The governed [sequence][Sequence].
  */
 internal class Optional constructor(
-	positionInName: Int,
-	private val sequence: Sequence) : Expression(positionInName)
+	startInName: Int,
+	pastEndInName: Int,
+	private val sequence: Sequence
+) : Expression(startInName, pastEndInName)
 {
 	override val recursivelyContainsReorders: Boolean
 		get() = sequence.recursivelyContainsReorders
@@ -96,7 +98,7 @@ internal class Optional constructor(
 		get() = sequence.isLowerCase
 
 	override fun applyCaseInsensitive() =
-		Optional(positionInName, sequence.applyCaseInsensitive())
+		Optional(startInName, pastEndInName, sequence.applyCaseInsensitive())
 
 	override val underscoreCount: Int
 		get()

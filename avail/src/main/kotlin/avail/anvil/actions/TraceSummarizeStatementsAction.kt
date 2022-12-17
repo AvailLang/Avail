@@ -47,8 +47,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class TraceSummarizeStatementsAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Trace statement summarizations")
+class TraceSummarizeStatementsAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Trace statement summarizations")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

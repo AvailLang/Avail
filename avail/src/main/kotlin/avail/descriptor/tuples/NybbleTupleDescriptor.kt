@@ -217,6 +217,9 @@ class NybbleTupleDescriptor private constructor(
 				strongNewElement.isLong ->
 					return when (val longValue = strongNewElement.extractLong)
 					{
+						in 0..0xF -> generateNybbleTupleFrom(1) {
+							longValue.toInt()
+						}
 						in 0 .. 0xFF -> generateByteTupleFrom(1) {
 							longValue.toInt()
 						}

@@ -70,8 +70,7 @@ class SequenceAsExpressionPhraseDescriptor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.SEQUENCE_AS_EXPRESSION_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].

@@ -204,6 +204,7 @@ import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.A_Tuple.Companion.component1
@@ -1288,6 +1289,7 @@ enum class SerializerOperation constructor(
 					|| serializer.module === null
 					|| !serializer.module.hasAncestor(module)
 				-> obj.originatingPhrase
+				obj.originatingPhrase.isNil -> nil
 				else ->
 				{
 					val index = module.recordBlockPhrase(obj.originatingPhrase)

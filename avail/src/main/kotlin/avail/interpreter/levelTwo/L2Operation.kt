@@ -38,6 +38,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType

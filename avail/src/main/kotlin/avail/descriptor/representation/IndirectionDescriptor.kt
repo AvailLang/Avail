@@ -276,12 +276,14 @@ import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.moduleState
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
+import avail.descriptor.module.A_Module.Companion.phrasePathRecord
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.serializedObjects
 import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setPhrasePathRecordIndex
 import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.A_Module.Companion.stylers
@@ -454,6 +456,7 @@ import avail.descriptor.sets.SetDescriptor.SetIterator
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
@@ -483,8 +486,10 @@ import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableLongTuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.extractNybbleFromTupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.hashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
+import avail.descriptor.tuples.A_Tuple.Companion.lastIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.parallelStream
 import avail.descriptor.tuples.A_Tuple.Companion.rawByteForCharacterAt
 import avail.descriptor.tuples.A_Tuple.Companion.replaceFirstChild
@@ -617,6 +622,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -723,12 +729,27 @@ class IndirectionDescriptor private constructor(
 	 * next time if possible.
 	 */
 	override fun o_Traversed(self: AvailObject): AvailObject {
-		val next = self.slot(INDIRECTION_TARGET)
-		val finalObject = next.traversed()
-		if (!finalObject.sameAddressAs(next)) {
-			self.setSlot(INDIRECTION_TARGET, finalObject)
+		var next = self.slot(INDIRECTION_TARGET)
+		if (next.descriptor() !is IndirectionDescriptor)
+		{
+			// This indirection is already pointing to a non-indirection.
+			return next
 		}
-		return finalObject
+		// Find the final target iteratively.
+		do
+		{
+			next = next.slot(INDIRECTION_TARGET)
+		} while (next.descriptor() is IndirectionDescriptor)
+		// Flatten the path for each intervening indirection.
+		val finalTarget = next
+		next = self
+		do
+		{
+			val nextNext = next.slot(INDIRECTION_TARGET)
+			next.setSlot(INDIRECTION_TARGET, finalTarget)
+			next = nextNext
+		} while (next.descriptor() is IndirectionDescriptor)
+		return finalTarget
 	}
 
 	/**
@@ -3918,6 +3939,14 @@ class IndirectionDescriptor private constructor(
 	override fun o_StylingRecord(self: AvailObject): StylingRecord =
 		self .. { stylingRecord() }
 
+	override fun o_SetPhrasePathRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	) = self .. { setPhrasePathRecordIndex(recordNumber) }
+
+	override fun o_PhrasePathRecord(self: AvailObject): PhrasePathRecord =
+		self .. { phrasePathRecord() }
+
 	override fun o_StylerMethod(self: AvailObject): A_Method =
 		self .. { stylerMethod }
 
@@ -3969,4 +3998,18 @@ class IndirectionDescriptor private constructor(
 		hashedBin: AvailObject,
 		level: Int
 	): A_SetBin = self .. { setBinUnionWithHashedBin(hashedBin, level) }
+
+	override fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int = self .. { firstIndexOf(value, startIndex, endIndex) }
+
+	override fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int = self .. { lastIndexOf(value, startIndex, endIndex) }
 }

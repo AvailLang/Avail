@@ -128,8 +128,7 @@ class MacroSubstitutionPhraseDescriptor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.UNKNOWN_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].

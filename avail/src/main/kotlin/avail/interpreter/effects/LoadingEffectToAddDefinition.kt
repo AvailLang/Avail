@@ -68,7 +68,7 @@ internal class LoadingEffectToAddDefinition constructor(
 	internal val bundle: A_Bundle,
 	internal val definition: A_Definition
 ) : LoadingEffect() {
-	override fun writeEffectTo(writer: L1InstructionWriter)
+	override fun writeEffectTo(writer: L1InstructionWriter, startLine: Int)
 	{
 		val atom = bundle.message
 		with(writer) {
@@ -76,7 +76,7 @@ internal class LoadingEffectToAddDefinition constructor(
 				definition.isAbstractDefinition() -> {
 					// Push the bundle's atom.
 					write(
-						0,
+						startLine,
 						L1Operation.L1_doPushLiteral,
 						addLiteral(atom))
 					// Push the function type.
@@ -94,7 +94,7 @@ internal class LoadingEffectToAddDefinition constructor(
 				definition.isForwardDefinition() -> {
 					// Push the bundle's atom.
 					write(
-						0,
+						startLine,
 						L1Operation.L1_doPushLiteral,
 						addLiteral(atom))
 					// Push the function type.
@@ -113,7 +113,7 @@ internal class LoadingEffectToAddDefinition constructor(
 					assert(definition.isMethodDefinition())
 					// Push the bundle's atom.
 					write(
-						0,
+						startLine,
 						L1Operation.L1_doPushLiteral,
 						addLiteral(atom))
 					// Push the body function.

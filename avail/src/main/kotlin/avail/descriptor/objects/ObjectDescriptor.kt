@@ -54,7 +54,6 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypes
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
@@ -74,6 +73,7 @@ import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
@@ -436,8 +436,7 @@ class ObjectDescriptor internal constructor(
 			{
 				0 -> append("object")
 				else -> append(
-					names.map(AvailObject::asNativeString)
-						.sorted()
+					names.sortedBy { it.asNativeString() }
 						.joinToString(" ∩ "))
 			}
 		}

@@ -40,6 +40,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
 import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.PhraseDescriptor.IntegerSlots
 import avail.descriptor.phrases.PhraseDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -82,7 +83,8 @@ import avail.serialization.SerializerOperation
  *   object's object slots layout, or `null` if there are no object slots.
  * @param integerSlotsEnumClass
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
- *   object's object slots layout, or `null` if there are no integer slots.
+ *   object's object slots layout.  The [IntegerSlots] class defined below is
+ *   used if none is specified.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -90,7 +92,8 @@ abstract class PhraseDescriptor protected constructor(
 	mutability: Mutability,
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum> =
+		IntegerSlots::class.java
 ) : Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	/**

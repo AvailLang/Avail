@@ -33,6 +33,17 @@
 package avail.anvil.debugger
 
 import avail.AvailDebuggerModel
+import avail.anvil.AdaptiveColor
+import avail.anvil.AvailWorkbench
+import avail.anvil.MenuBarBuilder
+import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
+import avail.anvil.StyleApplicator.applyStyleRuns
+import avail.anvil.actions.FindAction
+import avail.anvil.addWindowMenu
+import avail.anvil.scroll
+import avail.anvil.scrollTextWithLineNumbers
+import avail.anvil.showTextRange
+import avail.anvil.text.CodePane
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
@@ -65,10 +76,12 @@ import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.PrimitiveTypeDescriptor
@@ -802,7 +815,8 @@ class AvailDebugger internal constructor (
 			val numLocals = code.numLocals
 			val numConstants = code.numConstants
 			val numOuters = code.numOuters
-			val names = code.declarationNames.map(AvailObject::asNativeString)
+			val names = code.declarationNames
+				.map { it.asNativeString() }
 				.iterator()
 			var frameIndex = 1
 			repeat (numArgs)

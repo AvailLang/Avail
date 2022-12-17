@@ -82,15 +82,16 @@ import java.util.Collections
  *
  * Construct a new `Counter`.
  *
- * @param positionInName
+ * @param startInName
  *   The position of the start of the group in the message name.
  * @param group
  *   The [group][Group] whose occurrences should be counted.
  */
 internal class Counter(
-	positionInName: Int,
+	startInName: Int,
+	pastEndInName: Int,
 	private val group: Group
-) : Expression(positionInName)
+) : Expression(startInName, pastEndInName)
 {
 	init
 	{
@@ -108,7 +109,7 @@ internal class Counter(
 		get() = group.isLowerCase
 
 	override fun applyCaseInsensitive() =
-		Counter(positionInName, group.applyCaseInsensitive())
+		Counter(startInName, pastEndInName, group.applyCaseInsensitive())
 
 	override val underscoreCount: Int
 		get()

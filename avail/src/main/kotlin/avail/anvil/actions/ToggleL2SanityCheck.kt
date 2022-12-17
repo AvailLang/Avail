@@ -49,8 +49,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ToggleL2SanityCheck constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Enable L2 sanity checks")
+class ToggleL2SanityCheck constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Enable L2 sanity checks")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

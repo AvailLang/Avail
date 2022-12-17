@@ -32,7 +32,6 @@
 
 package avail.anvil
 
-import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.anvil.AdaptiveColor.Companion.blend
 import avail.anvil.BoundStyle.Companion.defaultStyle
 import avail.anvil.StyleFlag.Bold
@@ -42,9 +41,14 @@ import avail.anvil.StyleFlag.Subscript
 import avail.anvil.StyleFlag.Superscript
 import avail.anvil.StyleFlag.Underline
 import avail.anvil.streams.StreamStyle
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
+import avail.persistence.cache.Repository.PhraseNode
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.StyleRun
 import java.awt.Color
 import javax.swing.SwingUtilities
+import javax.swing.text.AttributeSet
+import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
 import javax.swing.text.StyleConstants.CharacterConstants
@@ -653,26 +657,24 @@ object StyleApplicator
 			{
 				// Compute the composite styles on demand, using a cache to
 				// avoid redundant effort.
-				val style =
-					compositeStyles.computeIfAbsent(compositeStyleName) {
-						val style = addStyle(it, defaultStyle)
-						val styles = styleNames.mapNotNull(::getStyle)
-						if (styles.isNotEmpty())
-						{
-							val combined = styles.drop(1).fold(
-								StyleAspects(styles.first())
-							) { aspect, nextStyle ->
-								aspect + StyleAspects(nextStyle)
-							}
-							combined.applyTo(style)
-							style
+				compositeStyles.computeIfAbsent(compositeStyleName) {
+					val style = addStyle(it, defaultStyle)
+					val styles = styleNames.mapNotNull(::getStyle)
+					if (styles.isNotEmpty())
+					{
+						val combined = styles.drop(1).fold(
+							StyleAspects(styles.first())
+						) { aspect, nextStyle ->
+							aspect + StyleAspects(nextStyle)
 						}
-						else
-						{
-							null
-						}
+						combined.applyTo(style)
+						style
 					}
-				style
+					else
+					{
+						null
+					}
+				}
 			}
 			style?.let {
 				setCharacterAttributes(
@@ -683,6 +685,44 @@ object StyleApplicator
 			}
 		}
 	}
+}
+
+/**
+ * Utility for applying [PhrasePathRecord]'s information to token ranges in a
+ * [StyledDocument].
+ */
+object PhrasePathStyleApplicator
+{
+	/**
+	 * Apply all [style&#32;runs] to the receiver. Each style name is treated as
+	 * a comma-separated composite. Rendered styles compose rather than replace.
+	 * **Must be invoked on the Swing UI thread.**
+	 *
+	 * @param phrasePathsRecord
+	 *   The [PhrasePathRecord] containing information about phrase structure
+	 *   that should be applied as invisible styles to the [StyledDocument].
+	 */
+	fun StyledDocument.applyPhrasePaths(
+		phrasePathsRecord: PhrasePathRecord)
+	{
+		assert(SwingUtilities.isEventDispatchThread())
+		phrasePathsRecord.phraseNodesDo { phraseNode ->
+			val styleForPhrase = SimpleAttributeSet().apply {
+				addAttribute(PhraseNodeAttributeKey, phraseNode)
+			}
+			phraseNode.tokenSpans.forEach { (start, pastEnd) ->
+				this.setCharacterAttributes(
+					start, pastEnd - start, styleForPhrase, false)
+			}
+		}
+	}
+
+	/**
+	 * An object to use as a key in an [AttributeSet], where the value is a
+	 * [PhraseNode].  This is applied to the [StyledDocument] for the span of
+	 * each token that is part of that [PhraseNode].
+	 */
+	object PhraseNodeAttributeKey
 }
 
 /** Styles that are on/off. */

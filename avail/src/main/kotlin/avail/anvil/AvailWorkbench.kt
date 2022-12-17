@@ -49,6 +49,7 @@ import avail.anvil.actions.DebugAction
 import avail.anvil.actions.DeleteModuleAction
 import avail.anvil.actions.ExamineCompilationAction
 import avail.anvil.actions.ExamineModuleManifest
+import avail.anvil.actions.ExaminePhrasePathsAction
 import avail.anvil.actions.ExamineRepositoryAction
 import avail.anvil.actions.ExamineSerializedPhrasesAction
 import avail.anvil.actions.ExamineStylingAction
@@ -527,10 +528,10 @@ class AvailWorkbench internal constructor(
 	private val debugAction = DebugAction(this)
 
 	/** The [show CC report action][ShowCCReportAction]. */
-	private val showCCReportAction = ShowCCReportAction(this, runtime)
+	private val showCCReportAction = ShowCCReportAction(this)
 
 	/** The [reset CC report data action][ResetCCReportDataAction]. */
-	private val resetCCReportDataAction = ResetCCReportDataAction(this, runtime)
+	private val resetCCReportDataAction = ResetCCReportDataAction(this)
 
 	/** The [toggle trace macros action][TraceMacrosAction]. */
 	private val debugMacroExpansionsAction = TraceMacrosAction(this)
@@ -593,25 +594,30 @@ class AvailWorkbench internal constructor(
 
 	/** The [ParserIntegrityCheckAction]. */
 	private val parserIntegrityCheckAction =
-		ParserIntegrityCheckAction(this, runtime)
+		ParserIntegrityCheckAction(this)
 
 	/** The [ExamineRepositoryAction]. */
-	private val examineRepositoryAction = ExamineRepositoryAction(this, runtime)
+	private val examineRepositoryAction = ExamineRepositoryAction(this)
 
 	/** The [ExamineCompilationAction]. */
 	private val examineCompilationAction =
-		ExamineCompilationAction(this, runtime)
+		ExamineCompilationAction(this)
 
 	/** The [ExamineSerializedPhrasesAction]. */
 	private val examinePhrasesAction =
-		ExamineSerializedPhrasesAction(this, runtime)
+		ExamineSerializedPhrasesAction(this)
 
+	/** The [ExamineStylingAction]. */
 	private val examineStylingAction =
-		ExamineStylingAction(this, runtime)
+		ExamineStylingAction(this)
+
+	/** The [ExaminePhrasePathsAction]. */
+	private val examinePhrasePathsAction =
+		ExaminePhrasePathsAction(this)
 
 	/** The [ExamineModuleManifest]. */
 	private val examineModuleManifestAction =
-		ExamineModuleManifest(this, runtime)
+		ExamineModuleManifest(this)
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -1083,6 +1089,8 @@ class AvailWorkbench internal constructor(
 		examinePhrasesAction.isEnabled =
 			!busy && selectedModule() !== null
 		examineStylingAction.isEnabled =
+			!busy && selectedModule() !== null
+		examinePhrasePathsAction.isEnabled =
 			!busy && selectedModule() !== null
 		examineModuleManifestAction.isEnabled =
 			!busy && selectedModule() !== null
@@ -1911,6 +1919,7 @@ class AvailWorkbench internal constructor(
 					item(examineCompilationAction)
 					item(examinePhrasesAction)
 					item(examineStylingAction)
+					item(examinePhrasePathsAction)
 					item(examineModuleManifestAction)
 					separator()
 					item(graphAction)
