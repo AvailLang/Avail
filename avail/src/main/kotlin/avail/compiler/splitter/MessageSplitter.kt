@@ -73,6 +73,7 @@ import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.LiteralTokenDescriptor
@@ -119,7 +120,9 @@ import avail.exceptions.AvailErrorCode.E_UP_ARROW_MUST_FOLLOW_ARGUMENT
 import avail.exceptions.AvailErrorCode.E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
+import avail.utility.iterableWith
 import avail.utility.safeWrite
+import org.availlang.cache.LRUCache
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -151,10 +154,10 @@ import kotlin.concurrent.read
  */
 class MessageSplitter
 @Throws(MalformedMessageException::class)
-constructor(messageName: A_String)
+private constructor(messageName: A_String)
 {
 	/**
-	 * The Avail string to be parsed.
+	 * The Avail string to be parsed.  It *must* be [SHARED].
 	 */
 	val messageName: A_String
 
@@ -532,7 +535,11 @@ constructor(messageName: A_String)
 
 	init
 	{
-		this.messageName = messageName.makeShared()
+		// Since the messageName is used as a key in a cache, multiple threads
+		// may compare these keys, so it must have been shared already for
+		// safety.
+		assert(messageName.descriptor().isShared)
+		this.messageName = messageName
 		val tokenizer = MessageSplitterTokenizer(this.messageName)
 		this.messageParts = tokenizer.canonicalMessageParts()
 		this.messagePartPositions = tokenizer.messagePartPositions()
@@ -598,18 +605,6 @@ constructor(messageName: A_String)
 			append("\t${it.asNativeString()}\n")
 		}
 	}
-
-	/**
-	 * Answer the 1-based position of the current message part in the message
-	 * name.
-	 *
-	 * @return
-	 *   The current 1-based position in the message name.
-	 */
-	private val startInName
-		get() =
-			if (atEnd) messageName.tupleSize
-			else messagePartPositions[messagePartPosition - 1]
 
 	/**
 	 * Answer whether parsing has reached the end of the message parts.
@@ -853,37 +848,37 @@ constructor(messageName: A_String)
 	{
 		val start = currentPositionForStart
 		val elements = mutableListOf<Expression>()
-		var expression = parseElementOrAlternation()
 		var isReordered: Boolean? = null
 		var anyYielders = false
-		while (expression !== null)
-		{
-			elements.add(expression)
-			if (expression.yieldsValue)
-			{
-				assert(expression.canBeReordered)
-				val alsoReordered = expression.explicitOrdinal != -1
-				if (!anyYielders)
+		parseElementOrAlternation()
+			.iterableWith { parseElementOrAlternation() }
+			.forEach { expression ->
+				elements.add(expression)
+				if (expression.yieldsValue)
 				{
-					isReordered = alsoReordered
-				}
-				else
-				{
-					// Check that the new expression's reordering agrees with
-					// the current consensus.
-					if (isReordered != alsoReordered)
+					assert(expression.canBeReordered)
+					val alsoReordered = expression.explicitOrdinal != -1
+					if (!anyYielders)
 					{
-						throwMalformedMessageException(
-							E_INCONSISTENT_ARGUMENT_REORDERING,
-							"The sequence of subexpressions before or after " +
-								"a double-dagger (‡) in a group must have " +
-								"either all or none of its arguments or " +
-								"direct subgroups numbered for reordering")
+						isReordered = alsoReordered
 					}
+					else
+					{
+						// Check that the new expression's reordering agrees
+						// with the current consensus.
+						if (isReordered != alsoReordered)
+						{
+							throwMalformedMessageException(
+								E_INCONSISTENT_ARGUMENT_REORDERING,
+								"The sequence of subexpressions before or " +
+									"after a double-dagger (‡) in a group " +
+									"must have either all or none of its " +
+									"arguments or direct subgroups numbered " +
+									"for reordering")
+						}
+					}
+					anyYielders = true
 				}
-				anyYielders = true
-			}
-			expression = parseElementOrAlternation()
 		}
 		val sequence = Sequence(start, currentPositionForEnd, elements)
 		sequence.isReordered = isReordered ?: false
@@ -1410,6 +1405,26 @@ constructor(messageName: A_String)
 
 	companion object
 	{
+		/**
+		 * The public factory for splitting message names.  The result may be
+		 * cached in an [LRUCache].  Since the [messageName] is used as a key in
+		 * the cache, we force it to be [SHARED] here.
+		 *
+		 * Note that any exception thrown during splitting is captured in the
+		 * cache as well, and rethrown when subsequently looking up that same
+		 * name.
+		 */
+		fun split(messageName: A_String): MessageSplitter
+		{
+			return cache[messageName.makeShared()]
+		}
+
+		/**
+		 * The cache of recently split message names.  The keys are [A_String]s
+		 * which have been [SHARED].
+		 */
+		private val cache = LRUCache(10000, 100, ::MessageSplitter)
+
 		/**
 		 * The [set][A_Set] of all [errors][AvailErrorCode] that can happen
 		 * during [message&#32;splitting][MessageSplitter].

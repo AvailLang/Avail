@@ -1633,7 +1633,8 @@ class Interpreter(
 			{
 				builder.append("(L1) - ")
 					.append(ptr.function().code().methodName)
-			} else
+			}
+			else
 			{
 				builder.append(ptr.levelTwoChunk().name())
 			}

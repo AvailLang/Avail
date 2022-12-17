@@ -259,6 +259,7 @@ import avail.utility.ObjectTracer
 import avail.utility.WorkStealingQueue
 import avail.utility.cast
 import avail.utility.evaluation.OnceSupplier
+import avail.utility.iterableWith
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
 import avail.utility.parallelDoThen
@@ -1750,7 +1751,7 @@ class AvailRuntime constructor(
 					if (surplus == 1)
 					{
 						// This is the last interpreter task finishing up.
-						var queuedSafeTasks = old.postponedSafeTasks
+						val queuedSafeTasks = old.postponedSafeTasks
 						val new = old.copy(
 							interpreterSurplus = -queuedSafeTasks.length,
 							postponedSafeTasks = null)
@@ -1762,11 +1763,9 @@ class AvailRuntime constructor(
 						// state's negative counter.  It can't race up to zero,
 						// since we haven't activated the tasks that are able to
 						// increment the counter.
-						while (queuedSafeTasks !== null)
-						{
-							execute(queuedSafeTasks.first)
-							queuedSafeTasks = queuedSafeTasks.rest
-						}
+						queuedSafeTasks
+							.iterableWith { it.rest }
+							.forEach { execute(it.first) }
 						break
 					}
 					else
@@ -1853,7 +1852,7 @@ class AvailRuntime constructor(
 						// the queued interpreter tasks, if any, to all launch
 						// at once.
 						assert(old.postponedSafeTasks == null)
-						var queuedInterpreterTasks =
+						val queuedInterpreterTasks =
 							old.postponedInterpreterTasks
 						val new = old.copy(
 							interpreterSurplus = queuedInterpreterTasks.length,
@@ -1866,11 +1865,9 @@ class AvailRuntime constructor(
 						// state's positive counter.  It can't race down to
 						// zero, since we haven't activated the tasks that are
 						// able to decrement the counter.
-						while (queuedInterpreterTasks !== null)
-						{
-							execute(queuedInterpreterTasks.first)
-							queuedInterpreterTasks = queuedInterpreterTasks.rest
-						}
+						queuedInterpreterTasks
+							.iterableWith { it.rest }
+							.forEach { execute(it.first) }
 						break
 					}
 					else

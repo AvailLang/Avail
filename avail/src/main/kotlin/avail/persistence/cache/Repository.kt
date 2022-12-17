@@ -58,6 +58,7 @@ import avail.resolver.ResolverReference
 import avail.serialization.Serializer
 import avail.utility.Mutable
 import avail.utility.decodeString
+import avail.utility.iterableWith
 import avail.utility.sizedString
 import avail.utility.unvlqInt
 import avail.utility.unvlqLong
@@ -1416,7 +1417,7 @@ class Repository constructor(
 		 */
 		var splitter: MessageSplitter? = null
 			get() = field ?: atomName?.let {
-				field = MessageSplitter(it)
+				field = MessageSplitter.split(it)
 				field
 			}
 			private set
@@ -1464,17 +1465,7 @@ class Repository constructor(
 			}
 		}
 
-		fun depth(): Int
-		{
-			var depth = 1
-			var node = parent
-			while (node != null)
-			{
-				depth++
-				node = node.parent
-			}
-			return depth
-		}
+		fun depth() = iterableWith(PhraseNode::parent).count()
 
 		override fun toString(): String =
 			tokenSpans.joinToString(

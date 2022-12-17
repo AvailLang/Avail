@@ -100,6 +100,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.execution.LexicalScanner
 import avail.serialization.SerializerOperation
+import avail.utility.iterableWith
 import org.availlang.json.JSONWriter
 import java.beans.MethodDescriptor
 import java.util.IdentityHashMap
@@ -722,21 +723,10 @@ private constructor(
 					val descriptor = PrimitiveTypeDescriptor(
 						Mutability.SHARED, spec)
 					descriptor.finishInitializingPrimitiveTypeWithParent(
-						o,
-						if (spec.parent === null)
-						{
-							nil
-						}
-						else
-						{
-							spec.parent.o
-						})
-					var pointer: Types? = spec
-					while (pointer !== null)
-					{
-						val ancestorOrdinal: Int = pointer.ordinal
+						o, spec.parent?.o ?: nil)
+					spec.iterableWith { it.parent }.forEach { pointer ->
+						val ancestorOrdinal = pointer.ordinal
 						spec.superTests[ancestorOrdinal] = true
-						pointer = pointer.parent
 					}
 				}
 				// Precompute all type unions and type intersections.

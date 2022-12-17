@@ -674,8 +674,8 @@ class ModuleDescriptor private constructor(
 				{
 					val oldBundle = oldAtom.bundleOrCreate()
 					val method = oldBundle.bundleMethod
-					newBundle =
-						newBundle(newAtom, method, MessageSplitter(newString))
+					newBundle = newBundle(
+						newAtom, method, MessageSplitter.split(newString))
 					newAtom.setAtomBundle(newBundle)
 					atomsToImport =
 						atomsToImport.setWithElementCanDestroy(newAtom, true)
@@ -731,7 +731,7 @@ class ModuleDescriptor private constructor(
 					1 ->
 					{
 						// Just validate the name.
-						MessageSplitter(name)
+						MessageSplitter.split(name)
 						trueName = trueNames.single()
 					}
 					else -> return ("entry point $name to be unambiguous")

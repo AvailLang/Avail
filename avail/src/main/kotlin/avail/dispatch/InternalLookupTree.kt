@@ -76,6 +76,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
+import avail.utility.iterableWith
 import avail.utility.notNullAnd
 import java.lang.String.format
 import kotlin.math.max
@@ -872,10 +873,8 @@ internal constructor(
 		// OBJECT_TYPE_TAG, so be aware of this possibility during subsequent
 		// variant testing.
 		tagToElements.forEach { (k, v) ->
-			var p = k.parent
-			while (p != null) {
-				tagToElements[p]?.let(v::addAll)
-				p = p.parent
+			k.iterableWith(TypeTag::parent).forEach {
+				tagToElements[it]?.let(v::addAll)
 			}
 		}
 		assert(!alreadyTagTestedArguments.bitTest(argumentIndex - 1))

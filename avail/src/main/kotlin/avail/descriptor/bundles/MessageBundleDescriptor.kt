@@ -572,6 +572,6 @@ class MessageBundleDescriptor private constructor(
 		 */
 		private val initialMutableDescriptor = MessageBundleDescriptor(
 			Mutability.MUTABLE,
-			MessageSplitter(stringFrom("dummy")))
+			MessageSplitter.split(stringFrom("dummy")))
 	}
 }

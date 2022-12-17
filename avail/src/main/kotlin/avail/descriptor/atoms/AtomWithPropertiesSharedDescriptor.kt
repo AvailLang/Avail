@@ -197,7 +197,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		synchronized(self) {
 			bundle = self.volatileSlot(BUNDLE_OR_NIL)
 			if (bundle.notNil) return bundle
-			val splitter = MessageSplitter(self.slot(NAME))
+			val splitter = MessageSplitter.split(self.slot(NAME))
 			val method: A_Method = newMethod(splitter.numberOfArguments)
 			bundle = newBundle(self, method, splitter)
 			self.setVolatileSlot(BUNDLE_OR_NIL, bundle)

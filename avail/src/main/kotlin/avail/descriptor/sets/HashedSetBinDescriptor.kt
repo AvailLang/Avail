@@ -203,7 +203,8 @@ class HashedSetBinDescriptor private constructor(
 				union = union.typeUnion(
 					self.slot(BIN_ELEMENT_AT_, i).binUnionKind)
 			}
-			if (isShared) {
+			if (isShared)
+			{
 				union = union.makeShared()
 			}
 			self.setSlot(BIN_UNION_KIND_OR_NIL, union)

@@ -851,7 +851,7 @@ constructor(
 		assert(innerToken.isLiteralToken())
 		try
 		{
-			MessageSplitter(innerToken.literal())
+			MessageSplitter.split(innerToken.literal())
 		}
 		catch (e: MalformedMessageException)
 		{

@@ -66,6 +66,7 @@ import avail.persistence.cache.Repository.PhraseNode
 import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.utility.Strings.escapedForHTML
+import avail.utility.iterableWith
 import avail.utility.notNullAnd
 import java.awt.BorderLayout
 import java.awt.Component
@@ -346,21 +347,21 @@ class AvailEditor constructor(
 		val attributes = element.attributes
 		val phraseNode =
 			attributes.getAttribute(PhraseNodeAttributeKey) as PhraseNode?
+		// Reverse the list, so the first element is the top-most phrase.
+		val nodes =
+			phraseNode.iterableWith(PhraseNode::parent).reversed().iterator()
 		(parseStructureList.model as DefaultListModel).run {
 			clear()
-			var node = phraseNode
-			while (node != null)
+			while (nodes.hasNext())
 			{
-				val parent = node.parent
-				parent ?: run {
-					add(0, PhraseExplanation(node!!, -1, 0))
-					return
+				val node = nodes.next()
+				val newElement = when (val parent = node.parent)
+				{
+					null -> PhraseExplanation(node, -1, 0)
+					else -> PhraseExplanation(
+						node, node.indexInParent, parent.children.size)
 				}
-				val siblings = parent.children
-				add(
-					0,
-					PhraseExplanation(node, node.indexInParent, siblings.size))
-				node = parent
+				addElement(newElement)
 			}
 		}
 	}
