@@ -1,5 +1,5 @@
 /*
- * CamelCaseTest.kt
+ * SnakeCaseTest.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,141 +32,147 @@
 
 package avail.anvil.test.text
 
-import avail.anvil.text.toCamelCase
+import avail.anvil.text.toSnakeCase
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.assertEquals
 
-/**
- * Test text transformation [toCamelCase].
- *
- * @author Richard Arriaga
- */
-class CamelCaseTest
+class SnakeCaseTest
 {
 	@Test
-	@DisplayName("Snake Case to Camel Case")
-	fun testSnakeToCamel ()
+	@DisplayName("Camel Case to Snake Case")
+	fun testCamelToSnake ()
 	{
-		val orig = "all_the_horses"
-		val expected = "allTheHorses"
-		val transformed = toCamelCase(orig)
+		val orig = "allTheHorses"
+		val expected = "all_the_horses"
+		val transformed = toSnakeCase(orig)
 		assertEquals(expected, transformed)
 
 		val orig2 = "aLl_tHe_Horses"
-		val expected2 = "aLlTheHorses"
-		val transformed2 = toCamelCase(orig2)
+		val expected2 = "a_ll_t_he_horses"
+		val transformed2 = toSnakeCase(orig2)
 		assertEquals(expected2, transformed2)
 	}
 
 	@Test
-	@DisplayName("Kebab Case to Camel Case")
-	fun testKebabToCamel ()
+	@DisplayName("Snake-ish Case to Snake Case")
+	fun testAlmostSnakeToSnake ()
+	{
+		val orig2 = "aLl_tHe_Horses"
+		val expected2 = "a_ll_t_he_horses"
+		val transformed2 = toSnakeCase(orig2)
+		assertEquals(expected2, transformed2)
+	}
+
+
+	@Test
+	@DisplayName("Kebab Case to Snake Case")
+	fun testKebabToSnake ()
 	{
 		val orig = "all-the-horses"
-		val expected = "allTheHorses"
-		val transformed = toCamelCase(orig)
+		val expected = "all_the_horses"
+		val transformed = toSnakeCase(orig)
 		assertEquals(expected, transformed)
 
 		val orig2 = "aLl-tHe-Horses"
-		val expected2 = "aLlTheHorses"
-		val transformed2 = toCamelCase(orig2)
+		val expected2 = "a_ll_t_he_horses"
+		val transformed2 = toSnakeCase(orig2)
 		assertEquals(expected2, transformed2)
 	}
 
 	@Test
-	@DisplayName("Camel Case to Camel Case - No Change")
-	fun testCamelToCamel ()
+	@DisplayName("Snake Case to Snake Case - No Change")
+	fun testSnakeToSnake ()
 	{
-		val orig = "allTheHorses"
-		val transformed = toCamelCase(orig)
+		val orig = "all_the_horses"
+		val transformed = toSnakeCase(orig)
 		assertEquals(orig, transformed)
 	}
 
 	@Test
-	@DisplayName("Does not transform to Camel Case No Spaces")
-	fun testNoTransformToCamelNoSpaces ()
+	@DisplayName("Does not transform to Snake Case No Spaces")
+	fun testNoTransformToSnakeNoSpaces ()
 	{
 		val orig = "allthehorses"
-		val transformed = toCamelCase(orig)
+		val transformed = toSnakeCase(orig)
 		assertEquals(orig, transformed)
 	}
 
 	@Test
-	@DisplayName("Does not transform to Camel Case Spaces")
-	fun testNoTransformToCamelSpaces ()
+	@DisplayName("Does not transform to Snake Case Spaces")
+	fun testNoTransformToSnakeSpaces ()
 	{
 		val orig = "all the horses"
-		val transformed = toCamelCase(orig)
+		val transformed = toSnakeCase(orig)
 		assertEquals(orig, transformed)
 	}
 
 	@Test
-	@DisplayName("Does not transform to Camel Case Non-Transformable Delimiters")
-	fun testNoTransformToCamelNoTransformableDelimiter ()
+	@DisplayName("Does not transform to Snake Case Non-Transformable Delimiters")
+	fun testNoTransformToSnakeNoTransformableDelimiter ()
 	{
 		val orig = "all.the/horses"
-		val transformed = toCamelCase(orig)
+		val transformed = toSnakeCase(orig)
 		assertEquals(orig, transformed)
 	}
 
 	@Test
-	@DisplayName("Consecutive Capital Case to Camel Case")
-	fun testMultipleCapitalsToCamel ()
+	@DisplayName("Consecutive Capital Case to Snake Case")
+	fun testMultipleCapitalsToSnake ()
 	{
 		val orig = "TNTexplosions"
-		val expected = "tNtexplosions"
-		val transformed = toCamelCase(orig)
+		val expected = "t_n_texplosions"
+		val transformed = toSnakeCase(orig)
 		assertEquals(expected, transformed)
 	}
 
 	@Test
-	@DisplayName("Complex string to Camel Case")
+	@DisplayName("Complex string to Snake Case")
 	fun testComplexMixture ()
 	{
-		val orig = "TN.T.explosions4_five"
-		val expected = "tN.t.explosions4Five"
-		val transformed = toCamelCase(orig)
+		val orig = "TN.T.explosions4Five"
+		val expected = "t_n.t.explosions4_five"
+		val transformed = toSnakeCase(orig)
 		assertEquals(expected, transformed)
 	}
 
 	@Test
-	@DisplayName("Compound string to Camel Case")
-	fun testCompoundToCamelCase ()
+	@DisplayName("Compound string to Snake Case")
+	fun testCompoundtoSnakeCase ()
 	{
-		val orig = "moo-meta.GOO-GETA"
-		val expected = "mooMeta.gOoGeta"
-		val transformed = toCamelCase(orig)
+		val orig = "moo-meta.GOO-Geta"
+		val expected = "moo_meta.g_o_o_geta"
+		val transformed = toSnakeCase(orig)
 		assertEquals(expected, transformed)
 	}
 
 	@Test
-	@DisplayName("Mixed Snake & Kebab to Camel Case")
+	@DisplayName("Mixed Snake & Kebab to Snake Case")
 	fun testMixedSnakeKebab ()
 	{
 		val orig = "Foo-bar_baz"
-		val expected = "fooBarBaz"
-		val transformed = toCamelCase(orig)
+		val expected = "foo_bar_baz"
+		val transformed = toSnakeCase(orig)
 		assertEquals(expected, transformed)
 	}
 
 	@Test
-	@DisplayName("Foo-bar_baz-moMaz to Camel Case")
+	@DisplayName("Foo-bar_baz-moMaz to Snake Case")
 	fun testMixedSnakeKebabCapital ()
 	{
 		val orig = "Foo-bar_baz-moMaz"
-		val expected = "fooBarBazMoMaz"
-		val transformed = toCamelCase(orig)
+		val expected = "foo_bar_baz_mo_maz"
+		val transformed = toSnakeCase(orig)
 		assertEquals(expected, transformed)
 	}
 
 	@Test
-	@DisplayName("GRoo-bar_baz to Camel Case")
+	@DisplayName("GRoo-bar_baz to Snake Case")
 	fun testMixedCapitalSnakeKebabCapital ()
 	{
 		val orig = "GRoo-bar_baz"
-		val expected = "gRooBarBaz"
-		val transformed = toCamelCase(orig)
+		val expected = "g_roo_bar_baz"
+		val transformed = toSnakeCase(orig)
 		assertEquals(expected, transformed)
 	}
 }

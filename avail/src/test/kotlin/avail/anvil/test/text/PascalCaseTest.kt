@@ -69,7 +69,7 @@ class PascalCaseTest
 		assertEquals(expected, transformed)
 
 		val orig2 = "aLl-tHe-Horses"
-		val expected2 = "ALlTheHorses" // aLlThEHorses
+		val expected2 = "ALlTheHorses"
 		val transformed2 = toPascalCase(orig2)
 		assertEquals(expected2, transformed2)
 	}

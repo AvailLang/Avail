@@ -41,12 +41,14 @@ import avail.anvil.text.CodeKit.Companion.camelCase
 import avail.anvil.text.CodeKit.Companion.cancelTemplateSelection
 import avail.anvil.text.CodeKit.Companion.centerCurrentLine
 import avail.anvil.text.CodeKit.Companion.expandTemplate
+import avail.anvil.text.CodeKit.Companion.kebabCase
 import avail.anvil.text.CodeKit.Companion.lowercase
 import avail.anvil.text.CodeKit.Companion.moveLineDown
 import avail.anvil.text.CodeKit.Companion.moveLineUp
 import avail.anvil.text.CodeKit.Companion.outdent
 import avail.anvil.text.CodeKit.Companion.pascalCase
 import avail.anvil.text.CodeKit.Companion.redo
+import avail.anvil.text.CodeKit.Companion.snakeCase
 import avail.anvil.text.CodeKit.Companion.space
 import avail.anvil.text.CodeKit.Companion.undo
 import avail.anvil.text.CodeKit.Companion.uppercase
@@ -63,9 +65,11 @@ import java.awt.event.KeyEvent.VK_C
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
+import java.awt.event.KeyEvent.VK_K
 import java.awt.event.KeyEvent.VK_L
 import java.awt.event.KeyEvent.VK_M
 import java.awt.event.KeyEvent.VK_P
+import java.awt.event.KeyEvent.VK_S
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_U
@@ -285,6 +289,10 @@ constructor(
 			getKeyStroke(VK_C, META_DOWN_MASK.or(CTRL_DOWN_MASK)), camelCase)
 		inputMap.put(
 			getKeyStroke(VK_P, META_DOWN_MASK.or(CTRL_DOWN_MASK)), pascalCase)
+		inputMap.put(
+			getKeyStroke(VK_S, META_DOWN_MASK.or(CTRL_DOWN_MASK)), snakeCase)
+		inputMap.put(
+			getKeyStroke(VK_K, META_DOWN_MASK.or(CTRL_DOWN_MASK)), kebabCase)
 	}
 
 	/**

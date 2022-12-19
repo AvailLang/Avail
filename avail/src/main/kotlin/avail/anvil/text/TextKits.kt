@@ -106,7 +106,9 @@ open class CodeKit constructor(
 		ToUppercase,
 		ToLowercase,
 		ToCamelCase,
-		ToPascalCase
+		ToPascalCase,
+		ToSnakeCase,
+		ToKebabCase
 	)
 
 	final override fun getActions(): Array<Action> =
@@ -841,7 +843,11 @@ private object ToSnakeCase: TextAction(snakeCase)
 		}
 		val textToTransform = txt.selectedText
 		val startPosition = txt.selectionStart
-		// TODO finish me!
+		val transformed = toSnakeCase(textToTransform)
+		sourcePane.transaction {
+			txt.document.remove(startPosition, textToTransform.length)
+			txt.document.insertString(startPosition, transformed, null)
+		}
 	}
 }
 
@@ -866,7 +872,11 @@ private object ToKebabCase: TextAction(kebabCase)
 		}
 		val textToTransform = txt.selectedText
 		val startPosition = txt.selectionStart
-		// TODO finish me!
+		val transformed = toKebabCase(textToTransform)
+		sourcePane.transaction {
+			txt.document.remove(startPosition, textToTransform.length)
+			txt.document.insertString(startPosition, transformed, null)
+		}
 	}
 }
 
@@ -1227,7 +1237,6 @@ internal inline fun JTextPane.transaction(edit: JTextPane.()->Unit)
 	}
 }
 
-
 /**
  * Holds Strings that are queued to be transformed into a different case
  * representation.
@@ -1395,6 +1404,40 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 
 
 	/**
+	 * Convert the text to either snake case or kebab case depending on the
+	 * input for `delimiter`.
+	 *
+	 * @param textToTransform
+	 *   The text to transform.
+	 * @param delimiter
+	 *   The snake underscore character or the kebab hyphen character.
+	 */
+	private fun toSnakeKebabCase (
+		textToTransform: String,
+		delimiter: String
+	): String =
+		buildString {
+			var previousIsDelimiter = false
+			append(textToTransform[0].lowercase())
+			textToTransform.substring(1).forEach {
+				if (it == '-' || it == '_')
+				{
+					append(delimiter)
+					previousIsDelimiter = true
+				}
+				else
+				{
+					if (it.isUpperCase() && !previousIsDelimiter)
+					{
+						append(delimiter)
+					}
+					append(it.lowercase())
+					previousIsDelimiter = false
+				}
+			}
+		}
+
+	/**
 	 * Transform the following text to camel case.
 	 *
 	 * @param textToTransform
@@ -1406,15 +1449,37 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 		toCamelPascalCase(textToTransform)
 
 	/**
-	 * Transform the following text to camel case.
+	 * Transform the following text to pascal case.
 	 *
 	 * @param textToTransform
-	 *   The text to transform to camel case.
+	 *   The text to transform to pascal case.
 	 * @return
 	 *   The transformed text.
 	 */
 	private fun toPascalCase(textToTransform: String) =
 		toCamelPascalCase(textToTransform, true)
+
+	/**
+	 * Transform the following text to snake case.
+	 *
+	 * @param textToTransform
+	 *   The text to transform to snake case.
+	 * @return
+	 *   The transformed text.
+	 */
+	private fun toSnakeCase(textToTransform: String) =
+		toSnakeKebabCase(textToTransform, "_")
+
+	/**
+	 * Transform the following text to snake case.
+	 *
+	 * @param textToTransform
+	 *   The text to transform to snake case.
+	 * @return
+	 *   The transformed text.
+	 */
+	private fun toKebabCase(textToTransform: String) =
+		toSnakeKebabCase(textToTransform, "-")
 
 	/**
 	 * The camel case transformation.
@@ -1425,6 +1490,16 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 	 * The pascal case transformation.
 	 */
 	val pascalCase: String = interleave { toPascalCase(it) }
+
+	/**
+	 * The snake case transformation.
+	 */
+	val snakeCase: String = interleave { toSnakeCase(it) }
+
+	/**
+	 * The snake case transformation.
+	 */
+	val kebabCase: String = interleave { toKebabCase(it) }
 }
 
 /**
@@ -1449,3 +1524,24 @@ fun toCamelCase(textToTransform: String) =
 fun toPascalCase(textToTransform: String) =
 	StringCaseTransformQueue(textToTransform).pascalCase
 
+/**
+ * Transform the following text to snake case.
+ *
+ * @param textToTransform
+ *   The text to transform to snake case.
+ * @return
+ *   The transformed text.
+ */
+fun toSnakeCase(textToTransform: String) =
+	StringCaseTransformQueue(textToTransform).snakeCase
+
+/**
+ * Transform the following text to kebab case.
+ *
+ * @param textToTransform
+ *   The text to transform to kebab case.
+ * @return
+ *   The transformed text.
+ */
+fun toKebabCase(textToTransform: String) =
+	StringCaseTransformQueue(textToTransform).kebabCase
