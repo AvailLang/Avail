@@ -50,6 +50,7 @@ import avail.anvil.text.CodeKit.Companion.lowercase
 import avail.anvil.text.CodeKit.Companion.moveLineDown
 import avail.anvil.text.CodeKit.Companion.moveLineUp
 import avail.anvil.text.CodeKit.Companion.outdent
+import avail.anvil.text.CodeKit.Companion.pascalCase
 import avail.anvil.text.CodeKit.Companion.redo
 import avail.anvil.text.CodeKit.Companion.snakeCase
 import avail.anvil.text.CodeKit.Companion.space
@@ -103,7 +104,9 @@ open class CodeKit constructor(
 		MoveLineUp,
 		MoveLineDown,
 		ToUppercase,
-		ToLowercase
+		ToLowercase,
+		ToCamelCase,
+		ToPascalCase
 	)
 
 	final override fun getActions(): Array<Action> =
@@ -158,6 +161,9 @@ open class CodeKit constructor(
 
 		/** The name of the [ToKebabCase] action. */
 		const val kebabCase = "kebab-case"
+
+		/** The name of the [ToPascalCase] action. */
+		const val pascalCase = "pascal-case"
 	}
 }
 
@@ -777,7 +783,40 @@ private object ToCamelCase: TextAction(camelCase)
 		}
 		val textToTransform = txt.selectedText
 		val startPosition = txt.selectionStart
-		// TODO finish me!
+		val transformed = toCamelCase(textToTransform)
+		sourcePane.transaction {
+			txt.document.remove(startPosition, textToTransform.length)
+			txt.document.insertString(startPosition, transformed, null)
+		}
+	}
+}
+
+/**
+ * Change the selection to Pascal case: "fooBar" -> "FooBar".
+ */
+private object ToPascalCase: TextAction(pascalCase)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as JTextPane
+		if (!sourcePane.canEdit)
+		{
+			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+			return
+		}
+		val txt = e.source as JTextComponent
+		if (txt.selectionStart == txt.selectionEnd)
+		{
+			// No text is selected; do nothing
+			return
+		}
+		val textToTransform = txt.selectedText
+		val startPosition = txt.selectionStart
+		val transformed = toPascalCase(textToTransform)
+		sourcePane.transaction {
+			txt.document.remove(startPosition, textToTransform.length)
+			txt.document.insertString(startPosition, transformed, null)
+		}
 	}
 }
 
@@ -1187,3 +1226,226 @@ internal inline fun JTextPane.transaction(edit: JTextPane.()->Unit)
 		}
 	}
 }
+
+
+/**
+ * Holds Strings that are queued to be transformed into a different case
+ * representation.
+ *
+ * @author Richard Arriaga
+ *
+ * @constructor
+ * Construct a [StringCaseTransformQueue].
+ *
+ * @param toTransform
+ *   The String be transformed to a different case strategy.
+ */
+internal class StringCaseTransformQueue constructor(toTransform: String)
+{
+	/**
+	 * The Strings that are to be transformed according to the target rules.
+	 */
+	val transformStringQueue: List<String>
+
+	/**
+	 * The non-alphanumeric characters that are placed in between the strings in
+	 * [transformStringQueue].
+	 */
+	val delimiters: List<String>
+
+	init
+	{
+		val tsq = mutableListOf<String>()
+		val d = mutableListOf<String>()
+		var nextDelimiter = ""
+		var nextTransformString = ""
+		var collectingDelimiters = false
+		toTransform.forEach { c ->
+			when
+			{
+				c.isLetterOrDigit() || c == '_' || c == '-' ->
+				{
+					if (collectingDelimiters)
+					{
+						collectingDelimiters = false
+						d.add(nextDelimiter)
+						nextDelimiter = ""
+					}
+					nextTransformString += c
+				}
+				else ->
+				{
+					if (!collectingDelimiters)
+					{
+						tsq.add(nextTransformString)
+						nextTransformString = ""
+					}
+					collectingDelimiters = true
+					nextDelimiter += c
+				}
+			}
+		}
+		if (nextTransformString.isNotBlank())
+		{
+			tsq.add(nextTransformString)
+		}
+		if (nextDelimiter.isNotBlank())
+		{
+			d.add(nextDelimiter)
+		}
+		delimiters = d
+		transformStringQueue = tsq
+	}
+
+	/**
+	 * Transform each String in [transformStringQueue] using the provided
+	 * transformer interleaving the [delimiters] between each transformed
+	 * screen.
+	 *
+	 * @param transformer
+	 *   The transformer to transform the elements in [transformStringQueue].
+	 * @return
+	 *   The transformed assembled string.
+	 */
+	fun interleave(transformer: (String) -> String): String
+	{
+		val tQueue = transformStringQueue.iterator()
+		val dQueue = delimiters.iterator()
+		return buildString {
+			while (tQueue.hasNext())
+			{
+				append(transformer(tQueue.next()))
+				if (dQueue.hasNext())
+				{
+					append(dQueue.next())
+				}
+			}
+		}
+	}
+
+	/**
+	 * Convert the text to either camel case or pascal case depending on the
+	 * input for `capFirstLetter`.
+	 *
+	 * @param textToTransform
+	 *   The text to transform.
+	 * @param capFirstLetter
+	 *   `true` capitalize the first character; `false` lowercase.
+	 */
+	private fun toCamelPascalCase (
+		textToTransform: String,
+		capFirstLetter: Boolean = false
+	): String =
+		buildString {
+			var capNextLetter = false
+			var previousCapped = false
+			if (capFirstLetter)
+			{
+				append(textToTransform[0].uppercase())
+			}
+			else
+			{
+				append(textToTransform[0].lowercase())
+			}
+			textToTransform.substring(1).forEach {
+				if (it == '-' || it == '_')
+				{
+					capNextLetter = true
+					previousCapped = false
+				}
+				else
+				{
+					if (capNextLetter && !previousCapped)
+					{
+						append(it.uppercase())
+						capNextLetter = false
+						previousCapped = true
+					}
+					else
+					{
+						when
+						{
+							it.isUpperCase() && previousCapped ->
+							{
+								append(it.lowercase())
+								capNextLetter = false
+							}
+							it.isUpperCase() ->
+							{
+								append(it)
+								previousCapped = true
+							}
+							capNextLetter ->
+							{
+								append(it.uppercase())
+								capNextLetter = false
+								previousCapped = true
+							}
+							else ->
+							{
+								append(it)
+								previousCapped = false
+							}
+						}
+					}
+				}
+
+			}
+		}
+
+
+	/**
+	 * Transform the following text to camel case.
+	 *
+	 * @param textToTransform
+	 *   The text to transform to camel case.
+	 * @return
+	 *   The transformed text.
+	 */
+	private fun toCamelCase(textToTransform: String) =
+		toCamelPascalCase(textToTransform)
+
+	/**
+	 * Transform the following text to camel case.
+	 *
+	 * @param textToTransform
+	 *   The text to transform to camel case.
+	 * @return
+	 *   The transformed text.
+	 */
+	private fun toPascalCase(textToTransform: String) =
+		toCamelPascalCase(textToTransform, true)
+
+	/**
+	 * The camel case transformation.
+	 */
+	val camelCase: String = interleave { toCamelCase(it) }
+
+	/**
+	 * The pascal case transformation.
+	 */
+	val pascalCase: String = interleave { toPascalCase(it) }
+}
+
+/**
+ * Transform the following text to camel case.
+ *
+ * @param textToTransform
+ *   The text to transform to camel case.
+ * @return
+ *   The transformed text.
+ */
+fun toCamelCase(textToTransform: String) =
+	StringCaseTransformQueue(textToTransform).camelCase
+
+/**
+ * Transform the following text to pascal case.
+ *
+ * @param textToTransform
+ *   The text to transform to pascal case.
+ * @return
+ *   The transformed text.
+ */
+fun toPascalCase(textToTransform: String) =
+	StringCaseTransformQueue(textToTransform).pascalCase
+

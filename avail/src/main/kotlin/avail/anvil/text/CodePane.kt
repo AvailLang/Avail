@@ -37,6 +37,7 @@ import avail.anvil.BoundStyle
 import avail.anvil.StyleRegistry
 import avail.anvil.SystemColors
 import avail.anvil.text.CodeKit.Companion.breakLine
+import avail.anvil.text.CodeKit.Companion.camelCase
 import avail.anvil.text.CodeKit.Companion.cancelTemplateSelection
 import avail.anvil.text.CodeKit.Companion.centerCurrentLine
 import avail.anvil.text.CodeKit.Companion.expandTemplate
@@ -44,6 +45,7 @@ import avail.anvil.text.CodeKit.Companion.lowercase
 import avail.anvil.text.CodeKit.Companion.moveLineDown
 import avail.anvil.text.CodeKit.Companion.moveLineUp
 import avail.anvil.text.CodeKit.Companion.outdent
+import avail.anvil.text.CodeKit.Companion.pascalCase
 import avail.anvil.text.CodeKit.Companion.redo
 import avail.anvil.text.CodeKit.Companion.space
 import avail.anvil.text.CodeKit.Companion.undo
@@ -57,11 +59,13 @@ import java.awt.event.InputEvent.ALT_DOWN_MASK
 import java.awt.event.InputEvent.META_DOWN_MASK
 import java.awt.event.KeyEvent.CTRL_DOWN_MASK
 import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
+import java.awt.event.KeyEvent.VK_C
 import java.awt.event.KeyEvent.VK_DOWN
 import java.awt.event.KeyEvent.VK_ENTER
 import java.awt.event.KeyEvent.VK_ESCAPE
 import java.awt.event.KeyEvent.VK_L
 import java.awt.event.KeyEvent.VK_M
+import java.awt.event.KeyEvent.VK_P
 import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_U
@@ -266,12 +270,21 @@ constructor(
 		inputMap.put(getKeyStroke(VK_ESCAPE, 0), cancelTemplateSelection)
 
 		// Move code
-		inputMap.put(getKeyStroke(VK_UP, ALT_DOWN_MASK.or(SHIFT_DOWN_MASK)), moveLineUp)
-		inputMap.put(getKeyStroke(VK_DOWN, ALT_DOWN_MASK.or(SHIFT_DOWN_MASK)), moveLineDown)
+		inputMap.put(
+			getKeyStroke(VK_UP, ALT_DOWN_MASK.or(SHIFT_DOWN_MASK)), moveLineUp)
+		inputMap.put(
+			getKeyStroke(VK_DOWN, ALT_DOWN_MASK.or(SHIFT_DOWN_MASK)),
+			moveLineDown)
 
 		// Change text case
-		inputMap.put(getKeyStroke(VK_U, META_DOWN_MASK.or(SHIFT_DOWN_MASK)), uppercase)
-		inputMap.put(getKeyStroke(VK_L, META_DOWN_MASK.or(SHIFT_DOWN_MASK)), lowercase)
+		inputMap.put(
+			getKeyStroke(VK_U, META_DOWN_MASK.or(SHIFT_DOWN_MASK)), uppercase)
+		inputMap.put(
+			getKeyStroke(VK_L, META_DOWN_MASK.or(SHIFT_DOWN_MASK)), lowercase)
+		inputMap.put(
+			getKeyStroke(VK_C, META_DOWN_MASK.or(CTRL_DOWN_MASK)), camelCase)
+		inputMap.put(
+			getKeyStroke(VK_P, META_DOWN_MASK.or(CTRL_DOWN_MASK)), pascalCase)
 	}
 
 	/**
