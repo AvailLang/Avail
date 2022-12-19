@@ -36,50 +36,16 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.BoundStyle
 import avail.anvil.StyleRegistry
 import avail.anvil.SystemColors
-import avail.anvil.text.CodeKit.Companion.breakLine
-import avail.anvil.text.CodeKit.Companion.camelCase
-import avail.anvil.text.CodeKit.Companion.cancelTemplateSelection
-import avail.anvil.text.CodeKit.Companion.centerCurrentLine
-import avail.anvil.text.CodeKit.Companion.expandTemplate
-import avail.anvil.text.CodeKit.Companion.kebabCase
-import avail.anvil.text.CodeKit.Companion.lowercase
-import avail.anvil.text.CodeKit.Companion.moveLineDown
-import avail.anvil.text.CodeKit.Companion.moveLineUp
-import avail.anvil.text.CodeKit.Companion.outdent
-import avail.anvil.text.CodeKit.Companion.pascalCase
-import avail.anvil.text.CodeKit.Companion.redo
-import avail.anvil.text.CodeKit.Companion.snakeCase
-import avail.anvil.text.CodeKit.Companion.space
-import avail.anvil.text.CodeKit.Companion.undo
-import avail.anvil.text.CodeKit.Companion.uppercase
+import avail.anvil.shortcuts.CodePaneShortCut
 import avail.utility.PrefixTree.Companion.payloads
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.Toolkit.getDefaultToolkit
 import java.awt.event.ActionEvent
-import java.awt.event.InputEvent.ALT_DOWN_MASK
-import java.awt.event.InputEvent.META_DOWN_MASK
-import java.awt.event.KeyEvent.CTRL_DOWN_MASK
-import java.awt.event.KeyEvent.SHIFT_DOWN_MASK
-import java.awt.event.KeyEvent.VK_C
-import java.awt.event.KeyEvent.VK_DOWN
-import java.awt.event.KeyEvent.VK_ENTER
-import java.awt.event.KeyEvent.VK_ESCAPE
-import java.awt.event.KeyEvent.VK_K
-import java.awt.event.KeyEvent.VK_L
-import java.awt.event.KeyEvent.VK_M
-import java.awt.event.KeyEvent.VK_P
-import java.awt.event.KeyEvent.VK_S
-import java.awt.event.KeyEvent.VK_SPACE
-import java.awt.event.KeyEvent.VK_TAB
-import java.awt.event.KeyEvent.VK_U
-import java.awt.event.KeyEvent.VK_UP
-import java.awt.event.KeyEvent.VK_Z
 import javax.swing.BorderFactory
 import javax.swing.InputMap
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
-import javax.swing.KeyStroke.getKeyStroke
 import javax.swing.event.CaretEvent
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
@@ -252,47 +218,11 @@ constructor(
 	 */
 	private fun registerKeystrokes()
 	{
-		inputMap.put(getKeyStroke(VK_SPACE, 0), space)
-		inputMap.put(getKeyStroke(VK_TAB, SHIFT_DOWN_MASK), outdent)
-		inputMap.put(getKeyStroke(VK_ENTER, 0), breakLine)
-		inputMap.put(
-			getKeyStroke(VK_M, getDefaultToolkit().menuShortcutKeyMaskEx),
-			centerCurrentLine
-		)
-		inputMap.put(
-			getKeyStroke(VK_Z, getDefaultToolkit().menuShortcutKeyMaskEx),
-			undo
-		)
-		inputMap.put(
-			getKeyStroke(
-				VK_Z,
-				getDefaultToolkit().menuShortcutKeyMaskEx or SHIFT_DOWN_MASK
-			),
-			redo
-		)
-		inputMap.put(getKeyStroke(VK_SPACE, CTRL_DOWN_MASK), expandTemplate)
-		inputMap.put(getKeyStroke(VK_ESCAPE, 0), cancelTemplateSelection)
-
-		// Move code
-		inputMap.put(
-			getKeyStroke(VK_UP, ALT_DOWN_MASK.or(SHIFT_DOWN_MASK)), moveLineUp)
-		inputMap.put(
-			getKeyStroke(VK_DOWN, ALT_DOWN_MASK.or(SHIFT_DOWN_MASK)),
-			moveLineDown)
-
-		// Change text case
-		inputMap.put(
-			getKeyStroke(VK_U, META_DOWN_MASK.or(SHIFT_DOWN_MASK)), uppercase)
-		inputMap.put(
-			getKeyStroke(VK_L, META_DOWN_MASK.or(SHIFT_DOWN_MASK)), lowercase)
-		inputMap.put(
-			getKeyStroke(VK_C, META_DOWN_MASK.or(CTRL_DOWN_MASK)), camelCase)
-		inputMap.put(
-			getKeyStroke(VK_P, META_DOWN_MASK.or(CTRL_DOWN_MASK)), pascalCase)
-		inputMap.put(
-			getKeyStroke(VK_S, META_DOWN_MASK.or(CTRL_DOWN_MASK)), snakeCase)
-		inputMap.put(
-			getKeyStroke(VK_K, META_DOWN_MASK.or(CTRL_DOWN_MASK)), kebabCase)
+		// To add a new shortcut, add it as a subtype of the sealed class
+		// CodePaneShortCut.
+		CodePaneShortCut::class.sealedSubclasses.forEach {
+			it.objectInstance?.addToInputMap(inputMap)
+		}
 	}
 
 	/**

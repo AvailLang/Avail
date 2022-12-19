@@ -33,10 +33,10 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.shortcuts.CancelBuildActionShortcut
 import avail.anvil.tasks.BuildTask
 import java.awt.event.ActionEvent
 import javax.swing.Action
-import javax.swing.KeyStroke
 
 /**
  * A `CancelAction` cancels a background [build&#32;task][BuildTask].
@@ -53,7 +53,7 @@ constructor(
 ) : AbstractWorkbenchAction(
 	workbench,
 	"Cancel Build",
-	KeyStroke.getKeyStroke("control ESCAPE"))
+	CancelBuildActionShortcut)
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

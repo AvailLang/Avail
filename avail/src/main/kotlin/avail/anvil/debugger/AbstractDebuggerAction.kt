@@ -33,7 +33,7 @@
 package avail.anvil.debugger
 
 import avail.anvil.actions.AbstractWorkbenchAction
-import javax.swing.KeyStroke
+import avail.anvil.shortcuts.AvailDebuggerShortCut
 
 /**
  * An [AbstractDebuggerAction] is attached to an [AvailDebugger], and
@@ -47,17 +47,17 @@ import javax.swing.KeyStroke
  *   The owning [AvailDebugger].
  * @param name
  *   The name of the action.
- * @param keyStroke
- *   The optional window-global [KeyStroke] used to invoke the action.
+ * @param shortcut
+ *   The [AvailDebuggerShortCut] used to invoke the action or `null` if there
+ *   is no shortcut for this [AbstractDebuggerAction].
  */
-abstract class AbstractDebuggerAction
-constructor(
+abstract class AbstractDebuggerAction(
 	@Suppress("MemberVisibilityCanBePrivate")
 	val debugger: AvailDebugger,
 	name: String,
-	keyStroke: KeyStroke? = null)
+	shortcut: AvailDebuggerShortCut? = null)
 : AbstractWorkbenchAction(
 	debugger.workbench,
 	name,
-	keyStroke,
+	shortcut,
 	debugger.rootPane)

@@ -83,6 +83,10 @@ import avail.anvil.addWindowMenu
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
 import avail.anvil.scroll
 import avail.anvil.scrollTextWithLineNumbers
+import avail.anvil.shortcuts.ResumeActionShortcut
+import avail.anvil.shortcuts.StepIntoShortcut
+import avail.anvil.shortcuts.StepOutShortcut
+import avail.anvil.shortcuts.StepOverShortcut
 import avail.anvil.showTextRange
 import avail.anvil.text.CodePane
 import avail.descriptor.module.A_Module.Companion.stylingRecord
@@ -94,7 +98,6 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.Collections.synchronizedMap
@@ -113,7 +116,6 @@ import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JTextArea
-import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -354,7 +356,7 @@ class AvailDebugger internal constructor (
 	private val stepIntoAction = object : AbstractDebuggerAction(
 		this,
 		"Into (F7)",
-		KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0))
+		StepIntoShortcut)
 	{
 		override fun actionPerformed(e: ActionEvent) =
 			runtime.whenSafePointDo(debuggerPriority) {
@@ -379,7 +381,7 @@ class AvailDebugger internal constructor (
 	private val stepOverAction = object : AbstractDebuggerAction(
 		this,
 		"Over (F8)",
-		KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0))
+		StepOverShortcut)
 	{
 		init { isEnabled = false }
 
@@ -393,7 +395,7 @@ class AvailDebugger internal constructor (
 	private val stepOutAction = object : AbstractDebuggerAction(
 		this,
 		"Out (⇧F8)",
-		KeyStroke.getKeyStroke(KeyEvent.VK_F8, KeyEvent.SHIFT_DOWN_MASK))
+		StepOutShortcut)
 	{
 		init { isEnabled = false }
 
@@ -420,7 +422,7 @@ class AvailDebugger internal constructor (
 	private val resumeAction = object : AbstractDebuggerAction(
 		this,
 		"Resume (⌘R)",
-		KeyStroke.getKeyStroke(KeyEvent.VK_R, AvailWorkbench.menuShortcutMask))
+		ResumeActionShortcut)
 	{
 		override fun actionPerformed(e: ActionEvent)
 		{

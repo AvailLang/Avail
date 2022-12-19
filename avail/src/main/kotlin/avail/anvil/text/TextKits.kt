@@ -35,27 +35,27 @@ package avail.anvil.text
 import avail.anvil.AvailEditor.Companion.editor
 import avail.anvil.AvailWorkbench
 import avail.anvil.editor.GoToDialog
+import avail.anvil.shortcuts.BreakLineShortcut
+import avail.anvil.shortcuts.CamelCaseShortcut
+import avail.anvil.shortcuts.CancelTemplateSelectionShortcut
+import avail.anvil.shortcuts.CenterCurrentLineShortcut
+import avail.anvil.shortcuts.ExpandTemplateShortcut
+import avail.anvil.shortcuts.GoToDialogShortcut
+import avail.anvil.shortcuts.InsertSpaceShortcut
+import avail.anvil.shortcuts.KebabCaseShortcut
+import avail.anvil.shortcuts.LowercaseShortcut
+import avail.anvil.shortcuts.MoveLineDownShortcut
+import avail.anvil.shortcuts.MoveLineUpShortcut
+import avail.anvil.shortcuts.OpenStructureViewShortcut
+import avail.anvil.shortcuts.OutdentShortcut
+import avail.anvil.shortcuts.PascalCaseShortcut
+import avail.anvil.shortcuts.RedoShortcut
+import avail.anvil.shortcuts.RefreshShortcut
+import avail.anvil.shortcuts.SnakeCaseShortcut
+import avail.anvil.shortcuts.UndoShortcut
+import avail.anvil.shortcuts.UppercaseShortcut
 import avail.anvil.tasks.BuildTask
-import avail.anvil.text.AvailEditorKit.Companion.goToDialog
-import avail.anvil.text.AvailEditorKit.Companion.openStructureView
-import avail.anvil.text.AvailEditorKit.Companion.refresh
-import avail.anvil.text.CodeKit.Companion.breakLine
-import avail.anvil.text.CodeKit.Companion.camelCase
-import avail.anvil.text.CodeKit.Companion.cancelTemplateSelection
-import avail.anvil.text.CodeKit.Companion.centerCurrentLine
-import avail.anvil.text.CodeKit.Companion.expandTemplate
 import avail.anvil.text.CodeKit.Companion.indent
-import avail.anvil.text.CodeKit.Companion.kebabCase
-import avail.anvil.text.CodeKit.Companion.lowercase
-import avail.anvil.text.CodeKit.Companion.moveLineDown
-import avail.anvil.text.CodeKit.Companion.moveLineUp
-import avail.anvil.text.CodeKit.Companion.outdent
-import avail.anvil.text.CodeKit.Companion.pascalCase
-import avail.anvil.text.CodeKit.Companion.redo
-import avail.anvil.text.CodeKit.Companion.snakeCase
-import avail.anvil.text.CodeKit.Companion.space
-import avail.anvil.text.CodeKit.Companion.undo
-import avail.anvil.text.CodeKit.Companion.uppercase
 import avail.anvil.text.CodePane.Companion.codePane
 import avail.anvil.views.StructureViewPanel
 import avail.utility.Strings.tabs
@@ -116,56 +116,8 @@ open class CodeKit constructor(
 
 	companion object
 	{
-		/** The name of the [InsertSpace] action. */
-		const val space = "insert-space"
-
-		/** The name of the [BreakLine] action. */
-		const val breakLine = insertBreakAction
-
 		/** The name of the [IncreaseIndentation] action. */
 		const val indent = insertTabAction
-
-		/** The name of the [DecreaseIndentation] action. */
-		const val outdent = "outdent"
-
-		/** The name of the [CenterCurrentLine] action. */
-		const val centerCurrentLine = "center-current-line"
-
-		/** The name of the [Undo] action. */
-		const val undo = "undo"
-
-		/** The name of the [Redo] action. */
-		const val redo = "redo"
-
-		/** The name of the [ExpandTemplate] action. */
-		const val expandTemplate = "expand-template"
-
-		/** The name of the [CancelTemplateSelection] action. */
-		const val cancelTemplateSelection = "cancel-template-selection"
-
-		/** The name of the [MoveLineUp] action. */
-		const val moveLineUp = "move-line-up"
-
-		/** The name of the [MoveLineDown] action. */
-		const val moveLineDown = "move-line-down"
-
-		/** The name of the [ToUppercase] action. */
-		const val uppercase = "uppercase"
-
-		/** The name of the [ToLowercase] action. */
-		const val lowercase = "lowercase"
-
-		/** The name of the [ToCamelCase] action. */
-		const val camelCase = "camel-case"
-
-		/** The name of the [ToSnakeCase] action. */
-		const val snakeCase = "camel-case"
-
-		/** The name of the [ToKebabCase] action. */
-		const val kebabCase = "kebab-case"
-
-		/** The name of the [ToPascalCase] action. */
-		const val pascalCase = "pascal-case"
 	}
 }
 
@@ -188,25 +140,13 @@ class AvailEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
 		OpenStructureView,
 		Refresh
 	)
-
-	companion object
-	{
-		/** The name of the [GoToDialog] action. */
-		const val goToDialog = "go-to-dialog"
-
-		/** The name of the [OpenStructureView] action. */
-		const val openStructureView = "open-structure-view"
-
-		/** The name of the [OpenStructureView] action. */
-		const val refresh = "refresh"
-	}
 }
 
 /**
  * Replace the current selection with a space (U+0020) and start a new
  * [CompoundEdit] to aggregate further content updates.
  */
-private object InsertSpace : TextAction(space)
+private object InsertSpace : TextAction(InsertSpaceShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -226,7 +166,7 @@ private object InsertSpace : TextAction(space)
  * Break the current line by replacing the current selection with a linefeed
  * (U+000A) and as much horizontal tabulation (U+0009) as began the line.
  */
-private object BreakLine : TextAction(breakLine)
+private object BreakLine : TextAction(BreakLineShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -312,7 +252,7 @@ private object IncreaseIndentation : TextAction(indent)
  * no text is selected, then remove at most one horizontal tabulation (U+0009)
  * at the beginning of the line containing the caret.
  */
-private object DecreaseIndentation : TextAction(outdent)
+private object DecreaseIndentation : TextAction(OutdentShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -360,7 +300,8 @@ private object DecreaseIndentation : TextAction(outdent)
  * enclosing [viewport][JViewport]. If no viewport encloses the receiver, then
  * do not move the caret.
  */
-private object CenterCurrentLine: TextAction(centerCurrentLine)
+private object CenterCurrentLine
+	: TextAction(CenterCurrentLineShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent) =
 		(e.source as JTextComponent).centerCurrentLine()
@@ -369,7 +310,7 @@ private object CenterCurrentLine: TextAction(centerCurrentLine)
 /**
  * The undo action.
  */
-private object Undo: TextAction(undo)
+private object Undo: TextAction(UndoShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -383,7 +324,7 @@ private object Undo: TextAction(undo)
 /**
  * The redo action.
  */
-private object Redo: TextAction(redo)
+private object Redo: TextAction(RedoShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -397,7 +338,7 @@ private object Redo: TextAction(redo)
 /**
  * Expand the template selection.
  */
-private object ExpandTemplate: TextAction(expandTemplate)
+private object ExpandTemplate: TextAction(ExpandTemplateShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -408,7 +349,8 @@ private object ExpandTemplate: TextAction(expandTemplate)
 /**
  * Cancel the template selection.
  */
-private object CancelTemplateSelection: TextAction(cancelTemplateSelection)
+private object CancelTemplateSelection
+	: TextAction(CancelTemplateSelectionShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -419,7 +361,8 @@ private object CancelTemplateSelection: TextAction(cancelTemplateSelection)
 /**
  * Open the [StructureViewPanel].
  */
-private object OpenStructureView: TextAction(openStructureView)
+private object OpenStructureView
+	: TextAction(OpenStructureViewShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -430,7 +373,7 @@ private object OpenStructureView: TextAction(openStructureView)
 /**
  * Open the [GoToDialog].
  */
-private object GoToDialogAction: TextAction(goToDialog)
+private object GoToDialogAction: TextAction(GoToDialogShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -441,7 +384,7 @@ private object GoToDialogAction: TextAction(goToDialog)
 /**
  * Rebuild the open editor's module and refresh the screen style.
  */
-private object Refresh: TextAction(refresh)
+private object Refresh: TextAction(RefreshShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -464,7 +407,7 @@ private object Refresh: TextAction(refresh)
  * Move the current line of the [source&#32;component][JTextComponent] in its
  * enclosing [viewport][JViewport] up one line.
  */
-private object MoveLineUp: TextAction(moveLineUp)
+private object MoveLineUp: TextAction(MoveLineUpShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -565,7 +508,7 @@ private object MoveLineUp: TextAction(moveLineUp)
  * Move the current line of the [source&#32;component][JTextComponent] in its
  * enclosing [viewport][JViewport] down one line.
  */
-private object MoveLineDown: TextAction(moveLineDown)
+private object MoveLineDown: TextAction(MoveLineDownShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -709,7 +652,7 @@ private object MoveLineDown: TextAction(moveLineDown)
 /**
  * Change the selection to all uppercase characters.
  */
-private object ToUppercase: TextAction(uppercase)
+private object ToUppercase: TextAction(UppercaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -738,7 +681,7 @@ private object ToUppercase: TextAction(uppercase)
 /**
  * Change the selection to all lowercase characters.
  */
-private object ToLowercase: TextAction(lowercase)
+private object ToLowercase: TextAction(LowercaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -767,7 +710,7 @@ private object ToLowercase: TextAction(lowercase)
 /**
  * Change the selection to camel case: "foo_bar" -> "fooBar".
  */
-private object ToCamelCase: TextAction(camelCase)
+private object ToCamelCase: TextAction(CamelCaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -796,7 +739,7 @@ private object ToCamelCase: TextAction(camelCase)
 /**
  * Change the selection to Pascal case: "fooBar" -> "FooBar".
  */
-private object ToPascalCase: TextAction(pascalCase)
+private object ToPascalCase: TextAction(PascalCaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -825,7 +768,7 @@ private object ToPascalCase: TextAction(pascalCase)
 /**
  * Change the selection to snake case: "fooBar" -> "foo_bar".
  */
-private object ToSnakeCase: TextAction(snakeCase)
+private object ToSnakeCase: TextAction(SnakeCaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
@@ -854,7 +797,7 @@ private object ToSnakeCase: TextAction(snakeCase)
 /**
  * Change the selection to kebab case: "fooBar" -> "foo-bar".
  */
-private object ToKebabCase: TextAction(kebabCase)
+private object ToKebabCase: TextAction(KebabCaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
