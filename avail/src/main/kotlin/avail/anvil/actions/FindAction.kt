@@ -34,7 +34,7 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.GlowHighlightPainter
-import avail.anvil.shortcuts.WorkbenchFindActionShortcut
+import avail.anvil.shortcuts.FindActionShortcut
 import avail.anvil.showTextRange
 import java.awt.BorderLayout
 import java.awt.Color
@@ -78,7 +78,7 @@ class FindAction constructor(
 ) : AbstractWorkbenchAction(
 	workbench,
 	"Find/Replace…",
-	WorkbenchFindActionShortcut)
+	FindActionShortcut)
 {
 	init
 	{

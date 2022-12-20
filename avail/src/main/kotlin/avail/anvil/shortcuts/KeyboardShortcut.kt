@@ -64,6 +64,17 @@ interface BaseKeyboardShortcut
 	 * The key that identifies this [BaseKeyboardShortcut].
 	 */
 	val actionMapKey: String
+
+	/**
+	 * The [KeyStroke] used to trigger this [KeyboardShortcut].
+	 */
+	val keyStroke : KeyStroke get() =
+		KeyStroke.getKeyStroke(
+			keyCode.code,
+			modifierKeys.fold(0)
+			{
+					modifier, mk -> modifier.or(mk.modifier)
+			})
 }
 
 /**
@@ -81,6 +92,11 @@ interface BaseKeyboardShortcut
  */
 abstract class KeyboardShortcut: BaseKeyboardShortcut
 {
+	/**
+	 * The description of the action the shortcut performs.
+	 */
+	open val description: String = ""
+
 	/**
 	 * This [KeyboardShortcut] is permitted to customized for an environment.
 	 */
@@ -106,6 +122,13 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 	abstract val defaultKeyCode: KeyCode
 
 	/**
+	 * The [description] that is displayed that describes the shortcut or the
+	 * [actionMapKey] if the [description] is empty.
+	 */
+	val descriptionDisplay: String get () =
+		description.ifBlank { actionMapKey }
+
+	/**
 	 * Reset the [modifierKeys] to the [defaultModifierKeys] and reset the
 	 * [keyCode] to the [defaultKeyCode].
 	 */
@@ -115,18 +138,6 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 		modifierKeys.addAll(defaultModifierKeys)
 		keyCode = defaultKeyCode
 	}
-
-	/**
-	 * The [KeyStroke] used to trigger this [KeyboardShortcut].
-	 */
-	val keyStroke : KeyStroke get() =
-		KeyStroke.getKeyStroke(
-			keyCode.code,
-			modifierKeys.fold(0)
-			{
-					modifier, mk -> modifier.or(mk.modifier)
-			})
-
 
 	/**
 	 * Add this [KeyboardShortcut] to the provided [InputMap].

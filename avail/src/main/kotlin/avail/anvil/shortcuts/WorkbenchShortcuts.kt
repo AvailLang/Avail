@@ -32,21 +32,21 @@
 
 package avail.anvil.shortcuts
 
+import avail.anvil.AvailWorkbench
+import avail.anvil.actions.AbstractWorkbenchAction
 import avail.anvil.actions.BuildAction
 import avail.anvil.actions.CancelAction
 import avail.anvil.actions.DebugAction
-import avail.anvil.actions.FindAction
 import avail.anvil.actions.GenerateDocumentationAction
 import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenModuleAction
 import avail.anvil.actions.RefreshAction
 import avail.anvil.actions.SearchOpenModuleDialogAction
-import avail.anvil.debugger.AbstractDebuggerAction
-import avail.anvil.debugger.AvailDebugger
+import avail.anvil.actions.OpenShortcutManagerAction
 
 /**
  * A [KeyboardShortcut] that is used to launch an
- * [AbstractDebuggerAction] while using the [AvailDebugger].
+ * [AbstractWorkbenchAction] while using the [AvailWorkbench].
  */
 sealed class WorkbenchShortCut: KeyboardShortcut()
 {
@@ -65,10 +65,11 @@ object WorkbenchBuildShortcut: WorkbenchShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_ENTER
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "build"
+	override val description: String = "Build the Selected Module"
 }
 
 /**
- * [WorkbenchShortCut]  for the [RefreshAction].
+ * [WorkbenchShortCut] for the [RefreshAction].
  *
  * @author Richard Arriaga
  */
@@ -78,6 +79,7 @@ object WorkbenchRefreshShortcut: WorkbenchShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_F5
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "refresh"
+	override val description: String = "Update Module Tree from Filesystem"
 }
 
 /**
@@ -92,6 +94,7 @@ object SearchOpenModuleDialogShortcut: WorkbenchShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_O
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "open-module-dialog"
+	override val description: String = "Open Module Search Dialog"
 }
 
 /**
@@ -105,6 +108,7 @@ object DebugActionShortcut: WorkbenchShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_D
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "open-debugger"
+	override val description: String = "Launch Debugger"
 }
 
 /**
@@ -118,19 +122,7 @@ object GenerateDocumentationActionShortcut: WorkbenchShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_G
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "generate-documentation"
-}
-
-/**
- * [WorkbenchShortCut]  for the [FindAction].
- *
- * @author Richard Arriaga
- */
-object WorkbenchFindActionShortcut: WorkbenchShortCut()
-{
-	override val defaultModifierKeys = setOf(ModifierKey.menuShortcutKeyMaskEx)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_F
-	override var keyCode = defaultKeyCode
-	override val actionMapKey: String = "workbench-find-replace"
+	override val description: String = "Generate Documentation"
 }
 
 /**
@@ -144,6 +136,7 @@ object OpenModuleShortcut: WorkbenchShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_O
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "open-selected-module"
+	override val description: String = "Open the Selected Module"
 }
 
 /**
@@ -157,6 +150,7 @@ object NewModuleActionShortcut: WorkbenchShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_N
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "new-module"
+	override val description: String = "Create New Module"
 }
 
 /**
@@ -170,4 +164,19 @@ object CancelBuildActionShortcut: WorkbenchShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_ESCAPE
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "cancel-build"
+	override val description: String = "Cancel the Build"
+}
+
+/**
+ * [WorkbenchShortCut] for the [OpenShortcutManagerAction].
+ *
+ * @author Richard Arriaga
+ */
+object OpenShortcutManagerShortcut: WorkbenchShortCut()
+{
+	override val defaultModifierKeys = setOf(ModifierKey.menuShortcutKeyMaskEx)
+	override val defaultKeyCode: KeyCode = KeyCode.VK_COMMA
+	override var keyCode = defaultKeyCode
+	override val actionMapKey: String = "shortcuts"
+	override val description: String = "Open This Shortcuts Window"
 }

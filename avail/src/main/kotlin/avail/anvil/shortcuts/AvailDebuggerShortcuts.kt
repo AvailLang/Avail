@@ -57,6 +57,8 @@ object StepIntoShortcut: AvailDebuggerShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_F7
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "step-into"
+	override val description: String =
+		"Step Into Operation (execute one L1 nybblecode)"
 }
 
 /**
@@ -70,6 +72,7 @@ object StepOverShortcut: AvailDebuggerShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_F8
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "step-over"
+	override val description: String = "Step Over Operation"
 }
 
 /**
@@ -83,6 +86,7 @@ object StepOutShortcut: AvailDebuggerShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_F8
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "step-out"
+	override val description: String = "Step Out of Current Operation"
 }
 
 /**
@@ -96,4 +100,5 @@ object ResumeActionShortcut: AvailDebuggerShortCut()
 	override val defaultKeyCode: KeyCode = KeyCode.VK_R
 	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "resume"
+	override val description: String = "Resume Execution"
 }

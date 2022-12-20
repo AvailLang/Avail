@@ -1,5 +1,5 @@
 /*
- * AvailEditorShortcuts.kt
+ * WorkbenchShortcuts.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,61 +32,31 @@
 
 package avail.anvil.shortcuts
 
-import avail.anvil.AvailEditor
-import avail.anvil.editor.GoToDialog
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.actions.AbstractWorkbenchAction
+import avail.anvil.actions.FindAction
+import avail.anvil.debugger.AvailDebugger
 
 /**
- * A [KeyboardShortcut] that is used in the [AvailEditor].
- *
- * @author Richard Arriaga
+ * A [KeyboardShortcut] that is used to launch an
+ * [AbstractWorkbenchAction] while using the [AvailDebugger].
  */
-sealed class AvailEditorShortCut: KeyboardShortcut()
+sealed class TextPaneShortcut: KeyboardShortcut()
 {
 	override val category: KeyboardShortcutCategory
-		get() = KeyboardShortcutCategory.AVAIL_EDITOR
+		get() = KeyboardShortcutCategory.WORKBENCH
 }
 
 /**
- * The [AvailEditorShortCut] to open the [GoToDialog].
+ * [TextPaneShortcut] for the [FindAction].
  *
  * @author Richard Arriaga
  */
-object GoToDialogShortcut: AvailEditorShortCut()
+object FindActionShortcut: TextPaneShortcut()
 {
 	override val defaultModifierKeys = setOf(ModifierKey.menuShortcutKeyMaskEx)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_L
+	override val defaultKeyCode: KeyCode = KeyCode.VK_F
 	override var keyCode = defaultKeyCode
-	override val actionMapKey: String = "go-to-dialog"
-	override val description: String = "Open Go-To Line Dialog"
+	override val actionMapKey: String = "find-replace"
+	override val description: String = "Open Find/Replace Dialog"
 }
 
-/**
- * The [AvailEditorShortCut] to open the [StructureViewPanel].
- *
- * @author Richard Arriaga
- */
-object OpenStructureViewShortcut: AvailEditorShortCut()
-{
-	override val defaultModifierKeys =
-		setOf(ModifierKey.menuShortcutKeyMaskEx, ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_M
-	override var keyCode = defaultKeyCode
-	override val actionMapKey: String = "open-structure-view"
-	override val description: String = "Open Structure View"
-}
-
-/**
- * The [AvailEditorShortCut] to rebuild the open editor's module and
- * refresh the screen style.
- *
- * @author Richard Arriaga
- */
-object RefreshShortcut: AvailEditorShortCut()
-{
-	override val defaultModifierKeys = emptySet<ModifierKey>()
-	override val defaultKeyCode: KeyCode = KeyCode.VK_F5
-	override var keyCode = defaultKeyCode
-	override val actionMapKey: String = "refresh"
-	override val description: String = "Rebuild and Refresh Module"
-}
