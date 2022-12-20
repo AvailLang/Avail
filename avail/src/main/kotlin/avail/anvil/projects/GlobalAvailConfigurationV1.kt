@@ -49,7 +49,7 @@ class GlobalAvailConfigurationV1
 	override var favorite: String? = null
 	override val globalTemplates = mutableMapOf<String, String>()
 	override val keyboardShortcutOverrides =
-		mutableSetOf<KeyboardShortcutOverride>()
+		mutableMapOf<String, KeyboardShortcutOverride>()
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -87,7 +87,7 @@ class GlobalAvailConfigurationV1
 				at(::keyboardShortcutOverrides.name) {
 					writeArray {
 						keyboardShortcutOverrides.forEach {
-							it.writeTo(this)
+							it.value.writeTo(this)
 						}
 					}
 				}
@@ -156,7 +156,8 @@ class GlobalAvailConfigurationV1
 				arr.forEach {
 					val shortcutOverride =
 						KeyboardShortcutOverride.from(it as JSONObject)
-					config.keyboardShortcutOverrides.add(shortcutOverride)
+					config.keyboardShortcutOverrides[shortcutOverride.actionMapKey] =
+						shortcutOverride
 					shortcutOverride.associatedShortcut!!.let { ks ->
 						ks.keyCode = shortcutOverride.keyCode
 						ks.modifierKeys.clear()

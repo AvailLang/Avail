@@ -78,10 +78,11 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	val globalTemplates: MutableMap<String, String>
 
 	/**
-	 * The set of [KeyboardShortcutOverride]s that override the default key
-	 * combinations for the listed [KeyboardShortcut]s.
+	 * The map of [KeyboardShortcutOverride.actionMapKey] to [KeyboardShortcut]
+	 * that override the default key combinations for the listed
+	 * [KeyboardShortcut]s.
 	 */
-	val keyboardShortcutOverrides: MutableSet<KeyboardShortcutOverride>
+	val keyboardShortcutOverrides: MutableMap<String, KeyboardShortcutOverride>
 
 	/**
 	 * The path to the default Avail standard library to be used in projects or
