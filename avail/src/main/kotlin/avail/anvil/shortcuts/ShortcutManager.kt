@@ -35,7 +35,9 @@ package avail.anvil.shortcuts
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.structure.EditIcons
 import avail.anvil.projects.manager.KnownProjectRow
+import java.awt.Color
 import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.GridBagConstraints
 import java.awt.GridBagConstraints.EAST
@@ -54,6 +56,7 @@ import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
+import javax.swing.SwingUtilities
 
 /**
  * The [JFrame] that presents the different [KeyboardShortcut]s.
@@ -73,7 +76,7 @@ class ShortcutManager internal constructor(
 	init
 	{
 		KeyboardShortcutCategory.values().forEach {
-			 tabs.addTab(it.display, JScrollPane(ShortcutPanel(it, workbench)))
+			 tabs.addTab(it.display, ShortcutsPanel(it, workbench))
 		}
 		contentPane.add(tabs)
 		minimumSize = Dimension(700, 800)
@@ -96,17 +99,80 @@ class ShortcutManager internal constructor(
  *
  * @author Richard Arriaga
  */
-class ShortcutPanel constructor(
+class ShortcutsPanel constructor(
 	val category: KeyboardShortcutCategory,
 	val workbench: AvailWorkbench
 ) : JPanel()
 {
-	init
-	{
+	/**
+	 * The panel that contains all the shortcuts.
+	 */
+	private val shortcutsPanel = JPanel().apply {
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)
 		category.shortcutsByDescription.forEach {
 			add(ShortcutRow(it, workbench))
 		}
+	}
+
+	/**
+	 * Redraw the [shortcutsPanel].
+	 */
+	private fun redrawShortcuts ()
+	{
+		SwingUtilities.invokeLater {
+			shortcutsPanel.removeAll()
+			category.shortcutsByDescription.forEach {
+				shortcutsPanel.add(ShortcutRow(it, workbench))
+			}
+			shortcutsPanel.revalidate()
+			shortcutsPanel.repaint()
+		}
+	}
+
+	init
+	{
+		layout = BoxLayout(this, BoxLayout.Y_AXIS)
+		val overlaps = category.overlapCategories
+		if (overlaps.isNotEmpty())
+		{
+			val overlapCategories = overlaps.toList()
+				.sortedBy { it.display }
+				.joinToString(", ") { it.display }
+			add(JPanel().apply {
+				layout = (FlowLayout(FlowLayout.LEFT))
+				minimumSize = Dimension(720, 30)
+				preferredSize = Dimension(750, 30)
+				maximumSize = Dimension(750, 30)
+				add(JLabel("In-Scope with $overlapCategories").apply {
+					font = font.deriveFont(font.style or Font.BOLD)
+				})
+			})
+		}
+		add(JScrollPane(shortcutsPanel))
+
+		val reset = JButton("Reset to Defaults").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 150, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			toolTipText = "Resets all shortcuts across all categories to " +
+				"default key mappings"
+			addActionListener {
+				KeyboardShortcutCategory.resetAllToDefaults(workbench)
+				redrawShortcuts()
+			}
+		}
+
+		add(JPanel().apply {
+			layout = (FlowLayout(FlowLayout.RIGHT))
+			minimumSize = Dimension(600, 50)
+			preferredSize = Dimension(700, 50)
+			maximumSize = Dimension(700, 50)
+			background = Color(0x3C, 0x3F, 0x41)
+			add(reset)
+		})
 	}
 }
 

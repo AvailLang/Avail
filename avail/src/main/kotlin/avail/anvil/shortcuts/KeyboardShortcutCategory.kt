@@ -156,6 +156,12 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 	companion object
 	{
 		/**
+		 * All the [KeyboardShortcut]s currently available.
+		 */
+		val allShortcuts: List<KeyboardShortcut> get() =
+			values().flatMap { it.shortcuts }
+
+		/**
 		 * The names of all the valid [KeyboardShortcutCategory]s.
 		 */
 		val validNames: String get() =
@@ -182,5 +188,17 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 		 */
 		fun getNonUniqueShortcuts (): List<Set<KeyboardShortcut>> =
 			values().map { it.checkShortcutsUnique() }.flatten()
+
+		/**
+		 * Reset all of the [KeyboardShortcut]s to their default key mappings.
+		 *
+		 * @param workbench
+		 *   The active [AvailWorkbench].
+		 */
+		fun resetAllToDefaults (workbench: AvailWorkbench)
+		{
+			allShortcuts.forEach { it.resetToDefaults() }
+			workbench.globalAvailConfiguration.resetToDefaultShortcuts()
+		}
 	}
 }

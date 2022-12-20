@@ -178,6 +178,17 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	{
 		globalTemplates.clear()
 		globalTemplates.putAll(defaultTemplates)
+		saveToDisk()
+	}
+
+	/**
+	 * Reset the [keyboardShortcutOverrides] to the defaults. This clears all
+	 * current [keyboardShortcutOverrides].
+	 */
+	fun resetToDefaultShortcuts ()
+	{
+		keyboardShortcutOverrides.clear()
+		saveToDisk()
 	}
 
 	/**

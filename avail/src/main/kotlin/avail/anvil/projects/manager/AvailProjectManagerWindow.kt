@@ -99,8 +99,7 @@ class AvailProjectManagerWindow constructor(
 		isVisible = true
 	}
 
-	internal
-	fun redraw ()
+	internal fun redraw ()
 	{
 		remove(displayedComponent)
 		draw()
