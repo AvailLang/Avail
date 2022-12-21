@@ -52,7 +52,6 @@ import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JLabel
-import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
@@ -76,7 +75,8 @@ class ShortcutManager internal constructor(
 	init
 	{
 		KeyboardShortcutCategory.values().forEach {
-			 tabs.addTab(it.display, ShortcutsPanel(it, workbench))
+			 tabs.addTab(
+				 it.display, ShortcutsPanel(it, workbench).redrawShortcuts())
 		}
 		contentPane.add(tabs)
 		minimumSize = Dimension(700, 800)
@@ -90,6 +90,7 @@ class ShortcutManager internal constructor(
 				workbench.shortcutManager = null
 			}
 		})
+		setLocationRelativeTo(workbench)
 		isVisible = true
 	}
 }
@@ -109,24 +110,22 @@ class ShortcutsPanel constructor(
 	 */
 	private val shortcutsPanel = JPanel().apply {
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)
-		category.shortcutsByDescription.forEach {
-			add(ShortcutRow(it, workbench))
-		}
 	}
 
 	/**
 	 * Redraw the [shortcutsPanel].
 	 */
-	private fun redrawShortcuts ()
+	fun redrawShortcuts (): ShortcutsPanel
 	{
 		SwingUtilities.invokeLater {
 			shortcutsPanel.removeAll()
 			category.shortcutsByDescription.forEach {
-				shortcutsPanel.add(ShortcutRow(it, workbench))
+				shortcutsPanel.add(ShortcutRow(it, workbench, this))
 			}
 			shortcutsPanel.revalidate()
 			shortcutsPanel.repaint()
 		}
+		return this
 	}
 
 	init
@@ -188,7 +187,8 @@ class ShortcutsPanel constructor(
  */
 internal class ShortcutRow constructor(
 	private val shortcut: KeyboardShortcut,
-	val workbench: AvailWorkbench
+	val workbench: AvailWorkbench,
+	val parent: ShortcutsPanel
 ): JPanel(GridBagLayout())
 {
 	/**
@@ -223,12 +223,7 @@ internal class ShortcutRow constructor(
 	 */
 	private fun openEditDialog ()
 	{
-		// TODO
-		JOptionPane.showMessageDialog(
-			workbench,
-			"Shortcut edit dialog is currently under construction.",
-			"Warning",
-			JOptionPane.WARNING_MESSAGE)
+		EditShortcutDialog(workbench, parent, shortcut)
 	}
 
 	/**
@@ -286,12 +281,7 @@ internal class ShortcutRow constructor(
 	 */
 	@Suppress("unused")
 	private val shortcutKeys: JLabel =
-		JLabel("\t\t" +
-			shortcut.modifierKeys.joinToString("") { it.displayRepresentation } +
-				shortcut.keyCode.displayRepresentation
-		).apply {
-			shortcutPanel.add(this)
-		}
+		JLabel(shortcut.shortcutAsString).apply { shortcutPanel.add(this) }
 
 	init
 	{

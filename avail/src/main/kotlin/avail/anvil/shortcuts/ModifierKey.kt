@@ -34,6 +34,7 @@ package avail.anvil.shortcuts
 
 import java.awt.Toolkit
 import java.awt.event.InputEvent
+import javax.swing.KeyStroke
 
 /**
  * Enumerates the [InputEvent] modifier keys.
@@ -122,6 +123,46 @@ enum class ModifierKey constructor(
 		 */
 		fun lookupByCode (code: Int): ModifierKey? =
 			values().firstOrNull { code == it.modifier }
+
+		/**
+		 * Answer all the [ModifierKey]s used in the provided [KeyStroke].
+		 *
+		 * @param keyStroke
+		 *   The [KeyStroke] to extract the [ModifierKey]s from.
+		 * @return
+		 *   The set of [ModifierKey]s used; an empty set if none used.
+		 */
+		fun getModifiersFrom (keyStroke: KeyStroke): Set<ModifierKey>
+		{
+			val modifiers = mutableSetOf<ModifierKey>()
+			values().forEach {
+				if (it.modifier.and(keyStroke.modifiers) == it.modifier)
+				{
+					modifiers.add(it)
+				}
+			}
+			return modifiers
+		}
+
+		/**
+		 * Answer all the [ModifierKey]s used in the provided modifier value.
+		 *
+		 * @param modifier
+		 *   The modifier value to extract the [ModifierKey]s from.
+		 * @return
+		 *   The set of [ModifierKey]s used; an empty set if none used.
+		 */
+		fun getModifiersFrom (modifier: Int): Set<ModifierKey>
+		{
+			val modifiers = mutableSetOf<ModifierKey>()
+			values().forEach {
+				if (it.modifier.and(modifier) == it.modifier)
+				{
+					modifiers.add(it)
+				}
+			}
+			return modifiers
+		}
 
 		/**
 		 * The [ModifierKey] that is the appropriate accelerator key for menu

@@ -138,7 +138,35 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 			val ks = it.keyStroke
 			(keystrokeMap.computeIfAbsent(ks) { mutableSetOf() }).add(it)
 		}
-		return keystrokeMap.map { it.value }.toList()
+		return keystrokeMap.map { it.value }
+			.filter { it.size > 1 }
+			.toList()
+	}
+
+	/**
+	 * Check to see that the [shortcuts] of this category and the [shortcuts] of
+	 * all the [overlapCategories] are unique relative the provided
+	 * [BaseKeyboardShortcut].
+	 *
+	 * @param bks
+	 *   The [BaseKeyboardShortcut] to compare against.
+	 *
+	 * @return
+	 *   The [Set]s of [KeyboardShortcut]s that have the same shortcut key
+	 *   combination as the provided [BaseKeyboardShortcut]. If there are no
+	 *   duplicates, the set will be empty.
+	 */
+	fun checkShortcutsUniqueAgainst (
+		bks: BaseKeyboardShortcut
+	): Set<KeyboardShortcut>
+	{
+		val keystrokeMap =
+			mutableMapOf<KeyStroke, MutableSet<KeyboardShortcut>>()
+		(shortcuts + overlapCategories.map { it.shortcuts }.flatten()).forEach {
+			val ks = it.keyStroke
+			(keystrokeMap.computeIfAbsent(ks) { mutableSetOf() }).add(it)
+		}
+		return keystrokeMap[bks.keyStroke] ?: emptySet()
 	}
 
 	/**

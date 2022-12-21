@@ -32,6 +32,7 @@
 
 package avail.anvil.shortcuts
 
+import avail.anvil.projects.KeyboardShortcutOverride
 import javax.swing.InputMap
 import javax.swing.KeyStroke
 
@@ -75,6 +76,21 @@ interface BaseKeyboardShortcut
 			{
 					modifier, mk -> modifier.or(mk.modifier)
 			})
+
+	/**
+	 * Check to see if the provided [BaseKeyboardShortcut] matches the
+	 * key bindings of this [BaseKeyboardShortcut] while having different
+	 * [actionMapKey]s.
+	 *
+	 * @param bks
+	 *   The [BaseKeyboardShortcut] to compare.
+	 * @return
+	 *   `true` indicates the shortcuts match and the [actionMapKey]s are
+	 *   different; `false` otherwise.
+	 */
+	fun matchesOther(bks: BaseKeyboardShortcut): Boolean =
+		bks.keyCode == keyCode && bks.modifierKeys == modifierKeys
+			&& bks.actionMapKey != actionMapKey
 }
 
 /**
@@ -129,6 +145,35 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 		description.ifBlank { actionMapKey }
 
 	/**
+	 * The [ModifierKey.displayRepresentation]s and the
+	 * [KeyCode.displayRepresentation] in a single String.
+	 */
+	val shortcutAsString: String get() =
+		modifierKeys.joinToString("") { it.displayRepresentation } +
+			keyCode.displayRepresentation
+
+	/**
+	 * A corresponding [KeyboardShortcutOverride] sourced from this
+	 * [KeyboardShortcut].
+	 */
+	val shortcutOverride: KeyboardShortcutOverride get() =
+		KeyboardShortcutOverride(category, keyCode, actionMapKey).apply {
+			modifierKeys.addAll(this@KeyboardShortcut.modifierKeys)
+		}
+
+	/**
+	 * Check to see if the provided [KeyboardShortcutOverride] matches the
+	 * default key bindings of this [KeyboardShortcut].
+	 *
+	 * @param kso
+	 *   The [KeyboardShortcutOverride] to compare.
+	 * @return
+	 *   `true` indicates the shortcuts match; `false` otherwise.
+	 */
+	fun matchesDefault(kso: KeyboardShortcutOverride): Boolean =
+		kso.keyCode == defaultKeyCode && kso.modifierKeys == defaultModifierKeys
+
+	/**
 	 * Reset the [modifierKeys] to the [defaultModifierKeys] and reset the
 	 * [keyCode] to the [defaultKeyCode].
 	 */
@@ -148,5 +193,25 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 	open fun addToInputMap (inputMap: InputMap)
 	{
 		inputMap.put(keyStroke, actionMapKey)
+	}
+
+	/**
+	 * Update this [KeyboardShortcut] to match the [modifierKeys] and [keyCode]
+	 * used in the provided [KeyStroke].
+	 *
+	 * @param keyStroke
+	 *   The [KeyStroke] to use to update this [KeyboardShortcut].
+	 * @return
+	 *   `true` if the update was successfully completed; `false` if the
+	 *   [KeyStroke.keyCode] is not a recognized [KeyCode].
+	 */
+	fun updateFrom (keyStroke: KeyStroke): Boolean
+	{
+		val newKeyCode = KeyCode.lookupByCode(keyStroke.keyCode) ?: return false
+		val mks = ModifierKey.getModifiersFrom(keyStroke)
+		modifierKeys.clear()
+		modifierKeys.addAll(mks)
+		keyCode = newKeyCode
+		return true
 	}
 }
