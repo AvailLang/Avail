@@ -34,7 +34,6 @@ package avail.anvil.shortcuts
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.structure.EditIcons
-import avail.anvil.projects.manager.KnownProjectRow
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -92,6 +91,7 @@ class ShortcutManager internal constructor(
 		})
 		setLocationRelativeTo(workbench)
 		isVisible = true
+		workbench.shortcutManager = this
 	}
 }
 
@@ -192,7 +192,7 @@ internal class ShortcutRow constructor(
 ): JPanel(GridBagLayout())
 {
 	/**
-	 * The [GridBagConstraints] used for all components in [KnownProjectRow].
+	 * The [GridBagConstraints] used for all components in this [ShortcutRow].
 	 */
 	private val constraints = GridBagConstraints().apply {
 		anchor = GridBagConstraints.WEST
@@ -288,7 +288,7 @@ internal class ShortcutRow constructor(
 		shortcutPanel.add(Box.createRigidArea(Dimension(10, 0)))
 	}
 	/**
-	 * The button to remove the project from the view.
+	 * The button to edit the shortcut.
 	 */
 	@Suppress("unused")
 	private val editShortcut: JButton =
@@ -322,6 +322,7 @@ internal class ShortcutRow constructor(
 		/**
 		 * The edit icon.
 		 */
-		private val editIcon get() = EditIcons.PENCIL_GREY.icon(scaledIconHeight)
+		private val editIcon get() =
+			EditIcons.PENCIL_GREY.icon(scaledIconHeight)
 	}
 }

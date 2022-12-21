@@ -58,6 +58,7 @@ import avail.anvil.actions.InsertEntryPointAction
 import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenModuleAction
 import avail.anvil.actions.OpenShortcutManagerAction
+import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
 import avail.anvil.actions.PreferencesAction
 import avail.anvil.actions.RefreshAction
@@ -95,6 +96,7 @@ import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.projects.TemplateExpansionsManager
 import avail.anvil.shortcuts.ShortcutManager
 import avail.anvil.streams.BuildInputStream
 import avail.anvil.streams.BuildOutputStream
@@ -583,6 +585,10 @@ class AvailWorkbench internal constructor(
 	/** The action to open the [ShortcutManager]. */
 	private val openShortcutManagerAction = OpenShortcutManagerAction(this)
 
+	/** The action to open the [TemplateExpansionsManager]. */
+	private val openTemplateExpansionManagerAction =
+		OpenTemplateExpansionsManagerAction(this)
+
 	/** The action to [delete][DeleteModuleAction] a module or package. */
 	private val deleteModuleAction = DeleteModuleAction(this)
 
@@ -618,7 +624,15 @@ class AvailWorkbench internal constructor(
 	/** Whether an entry point invocation (command line) is executing. */
 	var isRunning = false
 
+	/**
+	 * The open [ShortcutManager] view or `null` if not open.
+	 */
 	var shortcutManager: ShortcutManager? = null
+
+	/**
+	 * The [TemplateExpansionsManager] view or `null` if not open.
+	 */
+	var templateExpansionManager: TemplateExpansionsManager? = null
 
 	/**
 	 * A monitor to serialize access to the current build status information.
@@ -1781,6 +1795,7 @@ class AvailWorkbench internal constructor(
 			}
 			menu("Settings")
 			{
+				item(openTemplateExpansionManagerAction)
 				item(openShortcutManagerAction)
 			}
 			addWindowMenu(this@AvailWorkbench)
