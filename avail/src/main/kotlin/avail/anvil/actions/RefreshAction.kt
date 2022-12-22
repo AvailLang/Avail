@@ -33,9 +33,9 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.shortcuts.WorkbenchRefreshShortcut
 import java.awt.event.ActionEvent
 import javax.swing.Action
-import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
 
 /**
@@ -51,7 +51,7 @@ import javax.swing.SwingUtilities.invokeLater
 class RefreshAction
 constructor(
 	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(workbench, "Refresh", KeyStroke.getKeyStroke("F5"))
+) : AbstractWorkbenchAction(workbench, "Refresh", WorkbenchRefreshShortcut)
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * OpenShortcutManagerAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
-	kotlin("jvm") version "1.7.0"
-}
+package avail.anvil.actions
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+import avail.anvil.AvailWorkbench
+import avail.anvil.shortcuts.ShortcutManager
+import avail.anvil.shortcuts.OpenShortcutManagerShortcut
+import java.awt.event.ActionEvent
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha15")
-}
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
-	}
-
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
+/**
+ * The [AbstractWorkbenchAction] that opens the [ShortcutManager]
+ *
+ * @author Richard Arriaga
+ *
+ * @constructor
+ * Construct a new [OpenShortcutManagerAction].
+ *
+ * @param workbench
+ *   The owning [AvailWorkbench].
+ */
+class OpenShortcutManagerAction constructor(workbench: AvailWorkbench)
+	: AbstractWorkbenchAction(workbench, "Shortcuts", OpenShortcutManagerShortcut)
+{
+	override fun actionPerformed(e: ActionEvent?)
+	{
+		val scm = workbench.shortcutManager
+		if (scm == null)
+		{
+			workbench.shortcutManager = ShortcutManager(workbench)
+		}
+		else
+		{
+			scm.toFront()
 		}
 	}
 }

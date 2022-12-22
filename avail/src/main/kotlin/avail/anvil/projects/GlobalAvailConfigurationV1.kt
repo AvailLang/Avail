@@ -48,34 +48,46 @@ class GlobalAvailConfigurationV1
 	override var defaultStandardLibrary: String? = null
 	override var favorite: String? = null
 	override val globalTemplates = mutableMapOf<String, String>()
+	override val keyboardShortcutOverrides =
+		mutableMapOf<String, KeyboardShortcutOverride>()
 
 	override fun writeTo(writer: JSONWriter)
 	{
 		writer.writeObject {
-			at(GlobalAvailConfigurationV1::serializationVersion.name) {
+			at(::serializationVersion.name) {
 				write(serializationVersion)
 			}
-			at(GlobalAvailConfigurationV1::defaultStandardLibrary.name) {
+			at(::defaultStandardLibrary.name) {
 				defaultStandardLibrary.let {
 					if (it == null) writeNull()
 					else write(it)
 				}
 			}
-			at(GlobalAvailConfigurationV1::favorite.name) {
+			at(::favorite.name) {
 				favorite.let {
 					if (it == null) writeNull()
 					else write(it)
 				}
 			}
-			at(GlobalAvailConfigurationV1::knownProjects.name) {
+			at(::knownProjects.name) {
 				writeArray(knownProjects.toMutableList().sorted())
 			}
 			if (globalTemplates.isNotEmpty())
 			{
-				at(GlobalAvailConfigurationV1::globalTemplates.name) {
+				at(::globalTemplates.name) {
 					writeObject {
 						globalTemplates.forEach { (name, expansion) ->
 							at(name) { write(expansion) }
+						}
+					}
+				}
+			}
+			if (keyboardShortcutOverrides.isNotEmpty())
+			{
+				at(::keyboardShortcutOverrides.name) {
+					writeArray {
+						keyboardShortcutOverrides.forEach {
+							it.value.writeTo(this)
 						}
 					}
 				}
@@ -134,6 +146,21 @@ class GlobalAvailConfigurationV1
 					GlobalAvailConfigurationV1::globalTemplates.name)
 				map.forEach { (name, expansion) ->
 					config.globalTemplates[name] = expansion.string
+				}
+			}
+			if (obj.containsKey(
+					GlobalAvailConfigurationV1::keyboardShortcutOverrides.name))
+			{
+				val arr = obj.getArray(
+					GlobalAvailConfigurationV1::keyboardShortcutOverrides.name)
+				arr.forEach {
+					val shortcutOverride =
+						KeyboardShortcutOverride.from(it as JSONObject)
+					config.keyboardShortcutOverrides[shortcutOverride.actionMapKey] =
+						shortcutOverride
+					shortcutOverride.associatedShortcut!!.let { ks ->
+						ks.key = shortcutOverride.key
+					}
 				}
 			}
 			return config

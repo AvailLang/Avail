@@ -57,6 +57,8 @@ import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
 import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenModuleAction
+import avail.anvil.actions.OpenShortcutManagerAction
+import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
 import avail.anvil.actions.PreferencesAction
 import avail.anvil.actions.RefreshAction
@@ -94,6 +96,8 @@ import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.projects.TemplateExpansionsManager
+import avail.anvil.shortcuts.ShortcutManager
 import avail.anvil.streams.BuildInputStream
 import avail.anvil.streams.BuildOutputStream
 import avail.anvil.streams.BuildOutputStreamEntry
@@ -155,7 +159,6 @@ import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
-import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -231,6 +234,9 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @property resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
+ * @property globalAvailConfiguration
+ *   The [GlobalAvailConfiguration] for the environment this [AvailWorkbench] is
+ *   being launched in.
  * @property availProject
  *   The actively running [AvailProject].
  * @property availProjectFilePath
@@ -244,6 +250,9 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
+ * @param globalAvailConfiguration
+ *  The [GlobalAvailConfiguration] for the environment this [AvailWorkbench] is
+ *  being launched in.
  * @param availProject
  *   The actively running [AvailProject].
  * @param windowTitle
@@ -254,6 +263,7 @@ class AvailWorkbench internal constructor(
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver,
+	val globalAvailConfiguration: GlobalAvailConfiguration,
 	internal var availProjectFilePath: String = "",
 	windowTitle: String = "Avail Workbench") : WorkbenchFrame(windowTitle)
 {
@@ -572,6 +582,13 @@ class AvailWorkbench internal constructor(
 	/** The action to [edit][OpenModuleAction] a module. */
 	private val openEditorAction = OpenModuleAction(this)
 
+	/** The action to open the [ShortcutManager]. */
+	private val openShortcutManagerAction = OpenShortcutManagerAction(this)
+
+	/** The action to open the [TemplateExpansionsManager]. */
+	private val openTemplateExpansionManagerAction =
+		OpenTemplateExpansionsManagerAction(this)
+
 	/** The action to [delete][DeleteModuleAction] a module or package. */
 	private val deleteModuleAction = DeleteModuleAction(this)
 
@@ -606,6 +623,16 @@ class AvailWorkbench internal constructor(
 
 	/** Whether an entry point invocation (command line) is executing. */
 	var isRunning = false
+
+	/**
+	 * The open [ShortcutManager] view or `null` if not open.
+	 */
+	var shortcutManager: ShortcutManager? = null
+
+	/**
+	 * The [TemplateExpansionsManager] view or `null` if not open.
+	 */
+	var templateExpansionManager: TemplateExpansionsManager? = null
 
 	/**
 	 * A monitor to serialize access to the current build status information.
@@ -1766,6 +1793,11 @@ class AvailWorkbench internal constructor(
 				separator()
 				item(clearTranscriptAction)
 			}
+			menu("Settings")
+			{
+				item(openTemplateExpansionManagerAction)
+				item(openShortcutManagerAction)
+			}
 			addWindowMenu(this@AvailWorkbench)
 			if (showDeveloperTools)
 			{
@@ -2257,13 +2289,6 @@ class AvailWorkbench internal constructor(
 			Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
 
 		/**
-		 * The numeric mask for the modifier key suitable for the current
-		 * platform while the SHIFT key is pressed.
-		 */
-		val menuShiftShortcutMask get() =
-			menuShortcutMask.or(InputEvent.SHIFT_DOWN_MASK)
-
-		/**
 		 * The current working directory of the Avail virtual machine. Because
 		 * Java does not permit the current working directory to be changed, it
 		 * is safe to cache the answer at class-loading time.
@@ -2362,8 +2387,11 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
+		 * @param globalAvailConfiguration
+		 *   The [GlobalAvailConfiguration] for the environment this
+		 *   [AvailWorkbench] is being launched in.
 		 * @param project
-		 *  The [AvailProject] to use to launch the workbench.
+		 *   The [AvailProject] to use to launch the workbench.
 		 * @param availProjectFilePath
 		 *   The String path to the [availProject] configuration file or an
 		 *   empty String if the [AvailWorkbench] was started without an
@@ -2386,6 +2414,7 @@ class AvailWorkbench internal constructor(
 		@Throws(Exception::class)
 		@JvmStatic
 		fun launchWorkbench(
+			globalAvailConfiguration: GlobalAvailConfiguration,
 			project: AvailProject = AvailProjectV1(
 				"--No Project--",
 				true,
@@ -2485,6 +2514,7 @@ class AvailWorkbench internal constructor(
 				runtime,
 				fileManager,
 				resolver,
+				globalAvailConfiguration,
 				availProjectFilePath,
 				workbenchWindowTitle)
 			// Inject a breakpoint handler into the runtime to open a debugger.
@@ -2529,8 +2559,11 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
+		 * @param globalAvailConfiguration
+		 *   The [GlobalAvailConfiguration] for the environment this
+		 *   [AvailWorkbench] is being launched in.
 		 * @param project
-		 *  The [AvailProject] to use to launch the workbench.
+		 *   The [AvailProject] to use to launch the workbench.
 		 * @param availProjectFilePath
 		 *   The String path to the [availProject] configuration file or an
 		 *   empty String if the [AvailWorkbench] was started without an
@@ -2557,6 +2590,7 @@ class AvailWorkbench internal constructor(
 			useProjectNameAsFullTitle: Boolean = false)
 		{
 			launchWorkbench(
+				globalAvailConfiguration,
 				project,
 				availProjectFilePath,
 				"",
@@ -2567,8 +2601,11 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
+		 * @param globalAvailConfiguration
+		 * 	 The [GlobalAvailConfiguration] for the environment this
+		 * 	 [AvailWorkbench] is being launched in.
 		 * @param project
-		 *  The [AvailProject] to use to launch the workbench.
+		 *   The [AvailProject] to use to launch the workbench.
 		 * @param availProjectFilePath
 		 *   The String path to the [availProject] configuration file or an
 		 *   empty String if the [AvailWorkbench] was started without an
@@ -2587,7 +2624,9 @@ class AvailWorkbench internal constructor(
 		 */
 		@Throws(Exception::class)
 		@JvmStatic
+		@Suppress("unused")
 		fun launchWorkbenchWithProject (
+			globalAvailConfiguration: GlobalAvailConfiguration,
 			project: AvailProject,
 			customWindowTitle: String = "",
 			availProjectFilePath: String = "",
@@ -2595,6 +2634,7 @@ class AvailWorkbench internal constructor(
 		{
 			System.setProperty(DARK_MODE_KEY, project.darkMode.toString())
 			launchWorkbench(
+				globalAvailConfiguration,
 				project,
 				availProjectFilePath,
 				"",

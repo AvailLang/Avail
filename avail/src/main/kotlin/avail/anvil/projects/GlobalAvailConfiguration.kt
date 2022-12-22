@@ -33,6 +33,7 @@
 package avail.anvil.projects
 
 import avail.anvil.projects.manager.AvailProjectManagerWindow
+import avail.anvil.shortcuts.KeyboardShortcut
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.availHome
 import org.availlang.artifact.environment.project.AvailProject
@@ -60,8 +61,8 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 
 	/**
 	 * The [KnownAvailProject.id] of the project marked to be opened
-	 * automatically at launch bypassing the [AvailProjectManagerWindow] or `null` if
-	 * only the [AvailProjectManagerWindow] should be opened.
+	 * automatically at launch bypassing the [AvailProjectManagerWindow] or
+	 * `null` if only the [AvailProjectManagerWindow] should be opened.
 	 */
 	var favorite: String?
 
@@ -75,6 +76,13 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	 * insertion (⁁) may appear in each expansion.
 	 */
 	val globalTemplates: MutableMap<String, String>
+
+	/**
+	 * The map of [KeyboardShortcutOverride.actionMapKey] to [KeyboardShortcut]
+	 * that override the default key combinations for the listed
+	 * [KeyboardShortcut]s.
+	 */
+	val keyboardShortcutOverrides: MutableMap<String, KeyboardShortcutOverride>
 
 	/**
 	 * The path to the default Avail standard library to be used in projects or
@@ -171,6 +179,17 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	{
 		globalTemplates.clear()
 		globalTemplates.putAll(defaultTemplates)
+		saveToDisk()
+	}
+
+	/**
+	 * Reset the [keyboardShortcutOverrides] to the defaults. This clears all
+	 * current [keyboardShortcutOverrides].
+	 */
+	fun resetToDefaultShortcuts ()
+	{
+		keyboardShortcutOverrides.clear()
+		saveToDisk()
 	}
 
 	/**

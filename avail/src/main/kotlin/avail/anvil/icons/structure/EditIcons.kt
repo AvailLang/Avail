@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * ExpansionIcons.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
-	kotlin("jvm") version "1.7.0"
-}
+package avail.anvil.icons.structure
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+import avail.anvil.icons.IconKey
+import avail.anvil.icons.ImageIconCache
+import javax.swing.ImageIcon
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
+/**
+ * The [Pair] of [String] [Int] used to retrieve an edit icon.
+ *
+ * @author Richard Arriaga
+ *
+ * @property resourceName
+ *   The associated file name of the resource.
+ * @property scaledHeight
+ *   The height to which to scale the image.
+ */
+data class EditIconKey(
+    override val resourceName: String,
+    override val scaledHeight: Int
+): IconKey
 
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
+/**
+ * Manages the structure view icons associated with the various expansion
+ * actions.
+ *
+ * @author Richard Arriaga
+ */
+enum class EditIcons(val fileName: String, val toolTip: String)
+{
+    PENCIL_GREY("pencil_grey.png", "Edit");
 
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha15")
-}
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
-	}
-
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
-		}
-	}
+    /**
+     * Return a suitable icon to display for this instance with the given line
+     * height.
+     *
+     * @param lineHeight
+     *   The desired icon height in pixels.
+     * @return The icon.
+     */
+    fun icon(lineHeight: Int): ImageIcon =
+        ImageIconCache<EditIconKey>(
+            "/resources/general/",
+            SortIcons::class.java
+        )[
+            EditIconKey(fileName, lineHeight)
+        ]
 }

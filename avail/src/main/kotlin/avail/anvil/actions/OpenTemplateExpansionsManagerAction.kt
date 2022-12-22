@@ -1,21 +1,21 @@
 /*
- * DebugAction.kt
+ * OpenShortcutManagerAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,40 +32,36 @@
 
 package avail.anvil.actions
 
-import avail.descriptor.fiber.A_Fiber
 import avail.anvil.AvailWorkbench
-import avail.anvil.debugger.AvailDebugger
-import avail.anvil.shortcuts.DebugActionShortcut
+import avail.anvil.projects.TemplateExpansionsManager
 import java.awt.event.ActionEvent
-import javax.swing.Action
 
 /**
- * The [DebugAction] opens a debugger on all extant Avail [fibers][A_Fiber].
+ * The [AbstractWorkbenchAction] that opens the [TemplateExpansionsManager]
+ *
+ * @author Richard Arriaga
  *
  * @constructor
- * Construct a new [DebugAction].
+ * Construct a new [OpenTemplateExpansionsManagerAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class DebugAction
-constructor(
+class OpenTemplateExpansionsManagerAction constructor(
 	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(
-	workbench,
-	"Debug",
-	DebugActionShortcut)
+): AbstractWorkbenchAction(workbench, "Root Template Expansions")
 {
-	override fun actionPerformed(event: ActionEvent)
+	override fun actionPerformed(e: ActionEvent?)
 	{
-		val debugger = AvailDebugger(workbench)
-		debugger.debuggerModel.installFiberCapture(true)
-		debugger.gatherFibers { workbench.runtime.allFibers() }
-		debugger.open()
-	}
-
-	init
-	{
-		putValue(Action.SHORT_DESCRIPTION, "Debug all Avail fibers.")
+		val tem = workbench.templateExpansionManager
+		if (tem == null)
+		{
+			workbench.templateExpansionManager =
+				TemplateExpansionsManager(workbench)
+		}
+		else
+		{
+			tem.toFront()
+		}
 	}
 }

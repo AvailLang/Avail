@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * WorkbenchShortcuts.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
-	kotlin("jvm") version "1.7.0"
+package avail.anvil.shortcuts
+
+import avail.anvil.actions.AbstractWorkbenchAction
+import avail.anvil.actions.FindAction
+import avail.anvil.debugger.AvailDebugger
+
+/**
+ * A [KeyboardShortcut] that is used to launch an
+ * [AbstractWorkbenchAction] while using the [AvailDebugger].
+ *
+ * @constructor
+ * Construct a [TextPaneShortcut].
+ *
+ * @param defaultKey
+ *   The default [Key] when pressed triggers this shortcut.
+ * @param key
+ *   The [Key] used for this shortcut. Defaults to `defaultKey`.
+ */
+sealed class TextPaneShortcut constructor(
+	override val defaultKey: Key,
+	override var key: Key = defaultKey
+): KeyboardShortcut()
+{
+	override val category: KeyboardShortcutCategory
+		get() = KeyboardShortcutCategory.WORKBENCH
 }
 
-repositories {
-	mavenLocal()
-	mavenCentral()
+/**
+ * [TextPaneShortcut] for the [FindAction].
+ *
+ * @author Richard Arriaga
+ */
+object FindActionShortcut
+	: TextPaneShortcut(KeyCode.VK_F.with(ModifierKey.menuShortcutKeyMaskEx))
+{
+	override val actionMapKey: String = "find-replace"
+	override val description: String = "Open Find/Replace Dialog"
 }
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha15")
-}
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
-	}
-
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
-		}
-	}
-}
