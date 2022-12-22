@@ -37,7 +37,7 @@ import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.StyleApplicator.applyStyleRuns
 import avail.anvil.actions.FindAction
-import avail.anvil.shortcuts.AvailEditorShortCut
+import avail.anvil.shortcuts.AvailEditorShortcut
 import avail.anvil.text.AvailEditorKit
 import avail.anvil.text.CodePane
 import avail.anvil.text.MarkToDotRange
@@ -313,8 +313,8 @@ class AvailEditor constructor(
 		}
 
 		// To add a new shortcut, add it as a subtype of the sealed class
-		// AvailEditorShortCut.
-		AvailEditorShortCut::class.sealedSubclasses.forEach {
+		// AvailEditorShortcut.
+		AvailEditorShortcut::class.sealedSubclasses.forEach {
 			it.objectInstance?.addToInputMap(inputMap)
 		}
 

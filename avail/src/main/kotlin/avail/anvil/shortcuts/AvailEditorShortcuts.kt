@@ -34,59 +34,64 @@ package avail.anvil.shortcuts
 
 import avail.anvil.AvailEditor
 import avail.anvil.editor.GoToDialog
+import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
+import avail.anvil.shortcuts.ModifierKey.SHIFT
 import avail.anvil.views.StructureViewPanel
 
 /**
  * A [KeyboardShortcut] that is used in the [AvailEditor].
  *
  * @author Richard Arriaga
+ *
+ * @constructor
+ * Construct a [AvailEditorShortcut].
+ *
+ * @param defaultKey
+ *   The default [Key] when pressed triggers this shortcut.
+ * @param key
+ *   The [Key] used for this shortcut. Defaults to `defaultKey`.
  */
-sealed class AvailEditorShortCut: KeyboardShortcut()
+sealed class AvailEditorShortcut constructor(
+	override val defaultKey: Key,
+	override var key: Key = defaultKey
+): KeyboardShortcut()
 {
 	override val category: KeyboardShortcutCategory
 		get() = KeyboardShortcutCategory.AVAIL_EDITOR
 }
 
 /**
- * The [AvailEditorShortCut] to open the [GoToDialog].
+ * The [AvailEditorShortcut] to open the [GoToDialog].
  *
  * @author Richard Arriaga
  */
-object GoToDialogShortcut: AvailEditorShortCut()
+object GoToDialogShortcut
+	: AvailEditorShortcut(KeyCode.VK_L.with(menuShortcutKeyMaskEx))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.menuShortcutKeyMaskEx)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_L
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "go-to-dialog"
 	override val description: String = "Open Go-To Line Dialog"
 }
 
 /**
- * The [AvailEditorShortCut] to open the [StructureViewPanel].
+ * The [AvailEditorShortcut] to open the [StructureViewPanel].
  *
  * @author Richard Arriaga
  */
-object OpenStructureViewShortcut: AvailEditorShortCut()
+object OpenStructureViewShortcut
+	: AvailEditorShortcut(KeyCode.VK_M.with(menuShortcutKeyMaskEx, SHIFT))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.menuShortcutKeyMaskEx, ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_M
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "open-structure-view"
 	override val description: String = "Open Structure View"
 }
 
 /**
- * The [AvailEditorShortCut] to rebuild the open editor's module and
+ * The [AvailEditorShortcut] to rebuild the open editor's module and
  * refresh the screen style.
  *
  * @author Richard Arriaga
  */
-object RefreshShortcut: AvailEditorShortCut()
+object RefreshShortcut: AvailEditorShortcut(KeyCode.VK_F5.with())
 {
-	override val defaultModifierKeys = emptySet<ModifierKey>()
-	override val defaultKeyCode: KeyCode = KeyCode.VK_F5
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "refresh"
 	override val description: String = "Rebuild and Refresh Module"
 }

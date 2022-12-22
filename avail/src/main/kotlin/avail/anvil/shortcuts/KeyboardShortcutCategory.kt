@@ -62,7 +62,7 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 	AVAIL_EDITOR("Avail Editor")
 	{
 		override val shortcuts: List<KeyboardShortcut>
-			get() = AvailEditorShortCut::class.sealedSubclasses.map {
+			get() = AvailEditorShortcut::class.sealedSubclasses.map {
 				it.objectInstance!!
 			}
 
@@ -74,7 +74,7 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 	CODE_PANE("Code Pane")
 	{
 		override val shortcuts: List<KeyboardShortcut>
-			get() = CodePaneShortCut::class.sealedSubclasses.map {
+			get() = CodePaneShortcut::class.sealedSubclasses.map {
 				it.objectInstance!!
 			}
 
@@ -86,7 +86,7 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 	DEBUGGER("Avail Debugger")
 	{
 		override val shortcuts: List<KeyboardShortcut>
-			get() = AvailDebuggerShortCut::class.sealedSubclasses.map {
+			get() = AvailDebuggerShortcut::class.sealedSubclasses.map {
 				it.objectInstance!!
 			}
 	},
@@ -95,7 +95,7 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 	WORKBENCH("Workbench")
 	{
 		override val shortcuts: List<KeyboardShortcut>
-			get() = WorkbenchShortCut::class.sealedSubclasses.map {
+			get() = WorkbenchShortcut::class.sealedSubclasses.map {
 				it.objectInstance!!
 			}
 	};
@@ -138,14 +138,12 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 			val ks = it.keyStroke
 			(keystrokeMap.computeIfAbsent(ks) { mutableSetOf() }).add(it)
 		}
-		return keystrokeMap.map { it.value }
-			.filter { it.size > 1 }
-			.toList()
+		return keystrokeMap.values.filter { it.size > 1 }.toList()
 	}
 
 	/**
 	 * Check to see that the [shortcuts] of this category and the [shortcuts] of
-	 * all the [overlapCategories] are unique relative the provided
+	 * all the [overlapCategories] are unique relative to the provided
 	 * [BaseKeyboardShortcut].
 	 *
 	 * @param bks
@@ -178,7 +176,7 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 	 * @return
 	 *   The associated [KeyboardShortcut] or `null` if not a valid key.
 	 */
-	fun keyboardShortCut (actionMapKey: String): KeyboardShortcut? =
+	fun keyboardShortcut (actionMapKey: String): KeyboardShortcut? =
 		shortcuts.firstOrNull { it.actionMapKey == actionMapKey }
 
 	companion object

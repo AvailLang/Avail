@@ -650,31 +650,42 @@ private object MoveLineDown: TextAction(MoveLineDownShortcut.actionMapKey)
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
+ * Transform the selected text and insert the result of the transformation where
+ * the selected text is in this [JTextPane].
+ *
+ * @param transformer
+ *   A zero-argument function that transforms the selected text.
+ */
+fun JTextPane.transform(transformer: String.()->String)
+{
+	if (!canEdit)
+	{
+		UIManager.getLookAndFeel().provideErrorFeedback(this)
+		return
+	}
+	val txt =this as JTextComponent
+	if (txt.selectionStart == txt.selectionEnd)
+	{
+		// No text is selected; do nothing
+		return
+	}
+	val textToTransform = txt.selectedText
+	val startPosition = txt.selectionStart
+	val transformed = textToTransform.transformer()
+	transaction {
+		txt.document.remove(startPosition, textToTransform.length)
+		txt.document.insertString(startPosition, transformed, null)
+	}
+}
+
+/**
  * Change the selection to all uppercase characters.
  */
 private object ToUppercase: TextAction(UppercaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
-		val txt = e.source as JTextComponent
-		if (txt.selectionStart == txt.selectionEnd)
-		{
-			// No text is selected; do nothing
-			return
-		}
-		val textToTransform = txt.selectedText
-		val startPosition = txt.selectionStart
-		val transformed = textToTransform.uppercase()
-		sourcePane.transaction {
-			txt.document.remove(startPosition, textToTransform.length)
-			txt.document.insertString(startPosition, transformed, null)
-		}
+		(e.source as JTextPane).transform(String::uppercase)
 	}
 }
 
@@ -685,25 +696,7 @@ private object ToLowercase: TextAction(LowercaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
-		val txt = e.source as JTextComponent
-		if (txt.selectionStart == txt.selectionEnd)
-		{
-			// No text is selected; do nothing
-			return
-		}
-		val textToTransform = txt.selectedText
-		val startPosition = txt.selectionStart
-		val transformed = textToTransform.lowercase()
-		sourcePane.transaction {
-			txt.document.remove(startPosition, textToTransform.length)
-			txt.document.insertString(startPosition, transformed, null)
-		}
+		(e.source as JTextPane).transform(String::lowercase)
 	}
 }
 
@@ -714,25 +707,7 @@ private object ToCamelCase: TextAction(CamelCaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
-		val txt = e.source as JTextComponent
-		if (txt.selectionStart == txt.selectionEnd)
-		{
-			// No text is selected; do nothing
-			return
-		}
-		val textToTransform = txt.selectedText
-		val startPosition = txt.selectionStart
-		val transformed = toCamelCase(textToTransform)
-		sourcePane.transaction {
-			txt.document.remove(startPosition, textToTransform.length)
-			txt.document.insertString(startPosition, transformed, null)
-		}
+		(e.source as JTextPane).transform { toCamelCase(this) }
 	}
 }
 
@@ -743,25 +718,7 @@ private object ToPascalCase: TextAction(PascalCaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
-		val txt = e.source as JTextComponent
-		if (txt.selectionStart == txt.selectionEnd)
-		{
-			// No text is selected; do nothing
-			return
-		}
-		val textToTransform = txt.selectedText
-		val startPosition = txt.selectionStart
-		val transformed = toPascalCase(textToTransform)
-		sourcePane.transaction {
-			txt.document.remove(startPosition, textToTransform.length)
-			txt.document.insertString(startPosition, transformed, null)
-		}
+		(e.source as JTextPane).transform { toPascalCase(this) }
 	}
 }
 
@@ -772,25 +729,7 @@ private object ToSnakeCase: TextAction(SnakeCaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
-		val txt = e.source as JTextComponent
-		if (txt.selectionStart == txt.selectionEnd)
-		{
-			// No text is selected; do nothing
-			return
-		}
-		val textToTransform = txt.selectedText
-		val startPosition = txt.selectionStart
-		val transformed = toSnakeCase(textToTransform)
-		sourcePane.transaction {
-			txt.document.remove(startPosition, textToTransform.length)
-			txt.document.insertString(startPosition, transformed, null)
-		}
+		(e.source as JTextPane).transform { toSnakeCase(this) }
 	}
 }
 
@@ -801,25 +740,7 @@ private object ToKebabCase: TextAction(KebabCaseShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
-		val txt = e.source as JTextComponent
-		if (txt.selectionStart == txt.selectionEnd)
-		{
-			// No text is selected; do nothing
-			return
-		}
-		val textToTransform = txt.selectedText
-		val startPosition = txt.selectionStart
-		val transformed = toKebabCase(textToTransform)
-		sourcePane.transaction {
-			txt.document.remove(startPosition, textToTransform.length)
-			txt.document.insertString(startPosition, transformed, null)
-		}
+		(e.source as JTextPane).transform { toKebabCase(this) }
 	}
 }
 
@@ -1266,7 +1187,15 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 		return buildString {
 			while (tQueue.hasNext())
 			{
-				append(transformer(tQueue.next()))
+				val next = tQueue.next()
+				if (next.length < 2)
+				{
+					append(next)
+				}
+				else
+				{
+					append(transformer(next))
+				}
 				if (dQueue.hasNext())
 				{
 					append(dQueue.next())

@@ -1,5 +1,5 @@
 /*
- * WorkbenchShortcuts.kt
+ * AvailDebuggerShortcut.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,71 +34,73 @@ package avail.anvil.shortcuts
 
 import avail.anvil.debugger.AbstractDebuggerAction
 import avail.anvil.debugger.AvailDebugger
+import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
+import avail.anvil.shortcuts.ModifierKey.SHIFT
 
 /**
  * A [KeyboardShortcut] that is used to launch an [AbstractDebuggerAction]
  * while using the [AvailDebugger].
+ *
+ * @constructor
+ * Construct a [AvailDebuggerShortcut].
+ *
+ * @param defaultKey
+ *   The default [Key] when pressed triggers this shortcut.
+ * @param key
+ *   The [Key] used for this shortcut. Defaults to `defaultKey`.
  */
-sealed class AvailDebuggerShortCut: KeyboardShortcut()
+sealed class AvailDebuggerShortcut constructor(
+	override val defaultKey: Key,
+	override var key: Key = defaultKey
+): KeyboardShortcut()
 {
 	override val category: KeyboardShortcutCategory
 		get() = KeyboardShortcutCategory.DEBUGGER
 }
 
 /**
- * [AvailDebuggerShortCut] for the single-step into action which allows the
+ * [AvailDebuggerShortcut] for the single-step into action which allows the
  * selected fiber to execute one L1 nybblecode.
  *
  * @author Richard Arriaga
  */
-object StepIntoShortcut: AvailDebuggerShortCut()
+object StepIntoShortcut: AvailDebuggerShortcut(KeyCode.VK_F7.with())
 {
-	override val defaultModifierKeys = emptySet<ModifierKey>()
-	override val defaultKeyCode: KeyCode = KeyCode.VK_F7
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "step-into"
 	override val description: String =
 		"Step Into Operation (execute one L1 nybblecode)"
 }
 
 /**
- * [AvailDebuggerShortCut] for the single-step over action.
+ * [AvailDebuggerShortcut] for the single-step over action.
  *
  * @author Richard Arriaga
  */
-object StepOverShortcut: AvailDebuggerShortCut()
+object StepOverShortcut: AvailDebuggerShortcut(KeyCode.VK_F8.with())
 {
-	override val defaultModifierKeys = emptySet<ModifierKey>()
-	override val defaultKeyCode: KeyCode = KeyCode.VK_F8
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "step-over"
 	override val description: String = "Step Over Operation"
 }
 
 /**
- * [AvailDebuggerShortCut] for the stepping out of the current process.
+ * [AvailDebuggerShortcut] for the stepping out of the current process.
  *
  * @author Richard Arriaga
  */
-object StepOutShortcut: AvailDebuggerShortCut()
+object StepOutShortcut: AvailDebuggerShortcut(KeyCode.VK_F8.with(SHIFT))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_F8
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "step-out"
 	override val description: String = "Step Out of Current Operation"
 }
 
 /**
- * [AvailDebuggerShortCut] for resuming current process.
+ * [AvailDebuggerShortcut] for resuming current process.
  *
  * @author Richard Arriaga
  */
-object ResumeActionShortcut: AvailDebuggerShortCut()
+object ResumeActionShortcut
+	: AvailDebuggerShortcut(KeyCode.VK_R.with(menuShortcutKeyMaskEx))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.menuShortcutKeyMaskEx)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_R
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "resume"
 	override val description: String = "Resume Execution"
 }

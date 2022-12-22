@@ -39,8 +39,19 @@ import avail.anvil.debugger.AvailDebugger
 /**
  * A [KeyboardShortcut] that is used to launch an
  * [AbstractWorkbenchAction] while using the [AvailDebugger].
+ *
+ * @constructor
+ * Construct a [TextPaneShortcut].
+ *
+ * @param defaultKey
+ *   The default [Key] when pressed triggers this shortcut.
+ * @param key
+ *   The [Key] used for this shortcut. Defaults to `defaultKey`.
  */
-sealed class TextPaneShortcut: KeyboardShortcut()
+sealed class TextPaneShortcut constructor(
+	override val defaultKey: Key,
+	override var key: Key = defaultKey
+): KeyboardShortcut()
 {
 	override val category: KeyboardShortcutCategory
 		get() = KeyboardShortcutCategory.WORKBENCH
@@ -51,11 +62,9 @@ sealed class TextPaneShortcut: KeyboardShortcut()
  *
  * @author Richard Arriaga
  */
-object FindActionShortcut: TextPaneShortcut()
+object FindActionShortcut
+	: TextPaneShortcut(KeyCode.VK_F.with(ModifierKey.menuShortcutKeyMaskEx))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.menuShortcutKeyMaskEx)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_F
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "find-replace"
 	override val description: String = "Open Find/Replace Dialog"
 }

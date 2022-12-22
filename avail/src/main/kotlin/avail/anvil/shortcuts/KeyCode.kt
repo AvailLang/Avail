@@ -44,28 +44,23 @@ import java.awt.event.KeyEvent
  *   The numeric key code that represents the key.
  * @property lookupKey
  *   The key used to lookup this [KeyCode].
+ * @property displayRepresentation
+ *   The platform-specific String that represents this key. Defaults to
+ *   [lookupKey].
  */
 enum class KeyCode constructor(
 	val code: Int,
-	val lookupKey: String)
+	val lookupKey: String,
+	val displayRepresentation: String = lookupKey)
 {
 	/** The [Enter][KeyEvent.VK_ENTER] key. */
-	VK_ENTER(KeyEvent.VK_ENTER, "Enter")
-	{
-		override val displayRepresentation: String = "⏎"
-	},
+	VK_ENTER(KeyEvent.VK_ENTER, "Enter", "⏎"),
 
 	/** The [Backspace][KeyEvent.VK_BACK_SPACE] key. */
-	VK_BACK_SPACE(KeyEvent.VK_BACK_SPACE, "Backspace")
-	{
-		override val displayRepresentation: String = "⌫"
-	},
+	VK_BACK_SPACE(KeyEvent.VK_BACK_SPACE, "Backspace", "⌫"),
 
 	/** The [Tab][KeyEvent.VK_TAB] key. */
-	VK_TAB(KeyEvent.VK_TAB, "Tab")
-	{
-		override val displayRepresentation: String = "⇥"
-	},
+	VK_TAB(KeyEvent.VK_TAB, "Tab", "⇥"),
 
 	/** The [Cancel][KeyEvent.VK_CANCEL] key. */
 	VK_CANCEL(KeyEvent.VK_CANCEL, "Cancel"),
@@ -107,28 +102,16 @@ enum class KeyCode constructor(
 	VK_HOME(KeyEvent.VK_HOME, "Home"),
 
 	/** The [Left Arrow][KeyEvent.VK_BACK_SPACE] key. */
-	VK_LEFT(KeyEvent.VK_LEFT, "Left Arrow")
-	{
-		override val displayRepresentation: String = "←"
-	},
+	VK_LEFT(KeyEvent.VK_LEFT, "Left Arrow", "←"),
 
 	/** The [Up Arrow][KeyEvent.VK_UP] key. */
-	VK_UP(KeyEvent.VK_UP, "Up Arrow")
-	{
-		override val displayRepresentation: String = "↑"
-	},
+	VK_UP(KeyEvent.VK_UP, "Up Arrow", "↑"),
 
 	/** The [Right Arrow][KeyEvent.VK_RIGHT] key. */
-	VK_RIGHT(KeyEvent.VK_RIGHT, "Right Arrow")
-	{
-		override val displayRepresentation: String = "→"
-	},
+	VK_RIGHT(KeyEvent.VK_RIGHT, "Right Arrow", "→"),
 
 	/** The [Down Arrow][KeyEvent.VK_DOWN] key. */
-	VK_DOWN(KeyEvent.VK_DOWN, "Down Arrow")
-	{
-		override val displayRepresentation: String = "↓"
-	},
+	VK_DOWN(KeyEvent.VK_DOWN, "Down Arrow", "↓"),
 
 	/** The [Comma][KeyEvent.VK_COMMA] key. */
 	VK_COMMA(KeyEvent.VK_COMMA, ","),
@@ -422,12 +405,25 @@ enum class KeyCode constructor(
 	VK_KP_RIGHT(KeyEvent.VK_KP_RIGHT, "Num Right");
 
 	/**
-	 * The platform-specific String that represents this key.
+	 * Answer the [Key] represented by this [KeyCode] and the provided
+	 * [ModifierKey]s.
+	 *
+	 * @param modifiers
+	 *   The [ModifierKey]s for the [Key.modifiers].
+	 * @return
+	 *   The resulting [Key].
 	 */
-	open val displayRepresentation: String get () = lookupKey
+	fun with(vararg modifiers: ModifierKey) = Key(this, modifiers.toSet())
 
 	companion object
 	{
+		/**
+		 * The immutable list of [KeyCode]s. This is used in lieu of [values]
+		 * as every time [values] is called it creates a copy of the backing
+		 * array of [KeyCode]s; this is done so that copy is only made once.
+		 */
+		private val keyCodes = values().toList()
+
 		/**
 		 * Answer the [KeyCode] that matches the provided
 		 * [KeyCode.lookupKey].
@@ -438,7 +434,7 @@ enum class KeyCode constructor(
 		 *   The matching [KeyCode] of `null` if not found.
 		 */
 		fun lookup (lookupKey: String): KeyCode? =
-			values().firstOrNull { lookupKey == it.lookupKey }
+			keyCodes.firstOrNull { lookupKey == it.lookupKey }
 
 		/**
 		 * Answer the [KeyCode] that matches the provided [code].
@@ -449,12 +445,12 @@ enum class KeyCode constructor(
 		 *   The matching [KeyCode] of `null` if not found.
 		 */
 		fun lookupByCode (code: Int): KeyCode? =
-			values().firstOrNull { code == it.code }
+			keyCodes.firstOrNull { code == it.code }
 
 		/**
 		 * The [KeyCode.lookupKey]s of all the valid [KeyCode]s.
 		 */
 		val validLookups: String get() =
-			values().joinToString(", ") { it.lookupKey }
+			keyCodes.joinToString(", ") { it.lookupKey }
 	}
 }

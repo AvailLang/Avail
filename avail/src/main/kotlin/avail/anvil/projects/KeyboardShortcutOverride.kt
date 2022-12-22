@@ -33,6 +33,7 @@
 package avail.anvil.projects
 
 import avail.anvil.shortcuts.BaseKeyboardShortcut
+import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyCode
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.shortcuts.KeyboardShortcutCategory
@@ -47,20 +48,18 @@ import kotlin.IllegalArgumentException
  *
  * @author Richard Arriaga
  */
-class KeyboardShortcutOverride constructor(
+data class KeyboardShortcutOverride constructor(
 	override val category: KeyboardShortcutCategory,
-	override var keyCode: KeyCode,
+	override var key: Key,
 	override val actionMapKey: String
 ): BaseKeyboardShortcut, JSONFriendly
 {
-	override val modifierKeys = mutableSetOf<ModifierKey>()
-
 	/**
 	 * The associated [KeyboardShortcut] or `null` if [actionMapKey] is not a
 	 * valid [KeyboardShortcut.actionMapKey]
 	 */
 	val associatedShortcut: KeyboardShortcut? get() =
-		category.keyboardShortCut(actionMapKey)
+		category.keyboardShortcut(actionMapKey)
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -73,14 +72,14 @@ class KeyboardShortcutOverride constructor(
 			{
 				write(actionMapKey)
 			}
-			at(::keyCode.name)
+			at(Key::code.name)
 			{
-				write(keyCode.lookupKey)
+				write(key.code.lookupKey)
 			}
-			at(::modifierKeys.name)
+			at(Key::modifiers.name)
 			{
 				writeArray {
-					modifierKeys.forEach {
+					key.modifiers.forEach {
 						write(it.lookupKey)
 					}
 				}
@@ -112,22 +111,33 @@ class KeyboardShortcutOverride constructor(
 					throw IllegalArgumentException(
 						"$categoryName is not a valid " +
 							"KeyboardShortcutCategory. The category must be " +
-							"one of:\n ${KeyboardShortcutCategory.validNames}",
+							"one of:\n\t${KeyboardShortcutCategory.validNames}",
 						e)
 				}
 			val actionMapKey =
 				obj[KeyboardShortcutOverride::actionMapKey.name].string
 
 			val keyCodeLookup =
-				obj[KeyboardShortcutOverride::keyCode.name].string
+				obj[Key::code.name].string
 			val keyCode = KeyCode.lookup(keyCodeLookup) ?:
 				throw IllegalArgumentException(
 					"$keyCodeLookup is not a valid KeyCode lookup. " +
-						"The KeyCode lookup must be one of:\n " +
+						"The KeyCode lookup must be one of:\n\t" +
 						KeyCode.validLookups)
 
-			val shortcut =
-				KeyboardShortcutOverride(category, keyCode, actionMapKey)
+			val modifiers = mutableSetOf<ModifierKey>()
+			obj.getArray(Key::modifiers.name)
+				.strings.forEach {
+					val key = ModifierKey.lookup(it) ?:
+						throw IllegalArgumentException(
+							"$it is not a valid ModifierKey lookup. " +
+								"The ModifierKey lookup must be one of:\n\t" +
+								ModifierKey.validLookups)
+					modifiers.add(key)
+				}
+
+			val shortcut = KeyboardShortcutOverride(
+				category, Key(keyCode, modifiers), actionMapKey)
 
 			if (shortcut.associatedShortcut == null)
 			{
@@ -137,17 +147,6 @@ class KeyboardShortcutOverride constructor(
 						"must be one of:\n" +
 						KeyboardShortcutCategory.validActionMapKeys)
 			}
-
-			obj.getArray(KeyboardShortcutOverride::modifierKeys.name)
-				.strings.forEach {
-					val key = ModifierKey.lookup(it) ?:
-						throw IllegalArgumentException(
-							"$it is not a valid ModifierKey lookup. " +
-								"The ModifierKey lookup must be one of:\n " +
-								ModifierKey.validLookups)
-					shortcut.modifierKeys.add(key)
-				}
-
 			return shortcut
 		}
 	}

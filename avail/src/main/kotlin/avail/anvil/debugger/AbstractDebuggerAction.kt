@@ -33,7 +33,7 @@
 package avail.anvil.debugger
 
 import avail.anvil.actions.AbstractWorkbenchAction
-import avail.anvil.shortcuts.AvailDebuggerShortCut
+import avail.anvil.shortcuts.AvailDebuggerShortcut
 
 /**
  * An [AbstractDebuggerAction] is attached to an [AvailDebugger], and
@@ -48,14 +48,14 @@ import avail.anvil.shortcuts.AvailDebuggerShortCut
  * @param name
  *   The name of the action.
  * @param shortcut
- *   The [AvailDebuggerShortCut] used to invoke the action or `null` if there
+ *   The [AvailDebuggerShortcut] used to invoke the action or `null` if there
  *   is no shortcut for this [AbstractDebuggerAction].
  */
 abstract class AbstractDebuggerAction(
 	@Suppress("MemberVisibilityCanBePrivate")
 	val debugger: AvailDebugger,
 	name: String,
-	shortcut: AvailDebuggerShortCut? = null)
+	shortcut: AvailDebuggerShortcut? = null)
 : AbstractWorkbenchAction(
 	debugger.workbench,
 	name,

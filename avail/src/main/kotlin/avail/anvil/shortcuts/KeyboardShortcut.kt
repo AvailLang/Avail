@@ -37,6 +37,39 @@ import javax.swing.InputMap
 import javax.swing.KeyStroke
 
 /**
+ * A combination of keyboard keys.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga
+ *
+ * @property code
+ *   The [KeyCode] of the [Key] combination.
+ * @property modifiers
+ *   The [ModifierKey]s of this [Key] combination.
+ */
+data class Key(val code: KeyCode, val modifiers: Set<ModifierKey>)
+{
+	/**
+	 * The [KeyStroke] used to trigger this [Key].
+	 */
+	val keyStroke : KeyStroke get() =
+		KeyStroke.getKeyStroke(
+			code.code,
+			modifiers.fold(0)
+			{
+				modifier, mk -> modifier.or(mk.modifier)
+			})
+
+	/**
+	 * The [ModifierKey.displayRepresentation]s and the
+	 * [KeyCode.displayRepresentation] in a single String.
+	 */
+	val keyAsString: String get() =
+		modifiers.joinToString("") { it.displayRepresentation } +
+			code.displayRepresentation
+}
+
+/**
  * The base-level information required to create a keyboard shortcut.
  *
  * @author Richard Arriaga
@@ -49,17 +82,9 @@ interface BaseKeyboardShortcut
 	val category: KeyboardShortcutCategory
 
 	/**
-	 * The overrideable [Set] of [ModifierKey]s to trigger this shortcut. This
-	 * is the modifier set use to trigger the short cut.
+	 * The key of this [BaseKeyboardShortcut].
 	 */
-	val modifierKeys: MutableSet<ModifierKey>
-
-	/**
-	 * The [KeyCode] that represents the key when pressed in combination with
-	 * the [modifierKeys] triggers the shortcut. This is the overrideable
-	 * [KeyCode] used to trigger this shortcut
-	 */
-	var keyCode: KeyCode
+	var key: Key
 
 	/**
 	 * The key that identifies this [BaseKeyboardShortcut].
@@ -69,13 +94,7 @@ interface BaseKeyboardShortcut
 	/**
 	 * The [KeyStroke] used to trigger this [KeyboardShortcut].
 	 */
-	val keyStroke : KeyStroke get() =
-		KeyStroke.getKeyStroke(
-			keyCode.code,
-			modifierKeys.fold(0)
-			{
-					modifier, mk -> modifier.or(mk.modifier)
-			})
+	val keyStroke : KeyStroke get() = key.keyStroke
 
 	/**
 	 * Check to see if the provided [BaseKeyboardShortcut] matches the
@@ -89,8 +108,7 @@ interface BaseKeyboardShortcut
 	 *   different; `false` otherwise.
 	 */
 	fun matchesOther(bks: BaseKeyboardShortcut): Boolean =
-		bks.keyCode == keyCode && bks.modifierKeys == modifierKeys
-			&& bks.actionMapKey != actionMapKey
+		bks.key == key && bks.actionMapKey != actionMapKey
 }
 
 /**
@@ -109,33 +127,19 @@ interface BaseKeyboardShortcut
 abstract class KeyboardShortcut: BaseKeyboardShortcut
 {
 	/**
-	 * The description of the action the shortcut performs.
-	 */
-	open val description: String = ""
-
-	/**
 	 * This [KeyboardShortcut] is permitted to customized for an environment.
 	 */
 	open val customizable: Boolean = true
 
 	/**
-	 * The default [Set] of [ModifierKey]s to trigger this shortcut.
+	 * The description of the action the shortcut performs.
 	 */
-	abstract val defaultModifierKeys: Set<ModifierKey>
+	abstract val description: String
 
 	/**
-	 * The overrideable [Set] of [ModifierKey]s to trigger this shortcut. This
-	 * is the modifier set use to trigger the short cut.
+	 * The default [Key] when pressed triggers this shortcut.
 	 */
-	override val modifierKeys: MutableSet<ModifierKey> by lazy {
-		defaultModifierKeys.toMutableSet()
-	}
-
-	/**
-	 * The default [KeyCode] that represents the key when pressed in combination
-	 * with the [modifierKeys] triggers the shortcut.
-	 */
-	abstract val defaultKeyCode: KeyCode
+	abstract val defaultKey: Key
 
 	/**
 	 * The [description] that is displayed that describes the shortcut or the
@@ -145,43 +149,18 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 		description.ifBlank { actionMapKey }
 
 	/**
-	 * The [ModifierKey.displayRepresentation]s and the
-	 * [KeyCode.displayRepresentation] in a single String.
-	 */
-	val shortcutAsString: String get() =
-		modifierKeys.joinToString("") { it.displayRepresentation } +
-			keyCode.displayRepresentation
-
-	/**
 	 * A corresponding [KeyboardShortcutOverride] sourced from this
 	 * [KeyboardShortcut].
 	 */
 	val shortcutOverride: KeyboardShortcutOverride get() =
-		KeyboardShortcutOverride(category, keyCode, actionMapKey).apply {
-			modifierKeys.addAll(this@KeyboardShortcut.modifierKeys)
-		}
+		KeyboardShortcutOverride(category, key, actionMapKey)
 
 	/**
-	 * Check to see if the provided [KeyboardShortcutOverride] matches the
-	 * default key bindings of this [KeyboardShortcut].
-	 *
-	 * @param kso
-	 *   The [KeyboardShortcutOverride] to compare.
-	 * @return
-	 *   `true` indicates the shortcuts match; `false` otherwise.
-	 */
-	fun matchesDefault(kso: KeyboardShortcutOverride): Boolean =
-		kso.keyCode == defaultKeyCode && kso.modifierKeys == defaultModifierKeys
-
-	/**
-	 * Reset the [modifierKeys] to the [defaultModifierKeys] and reset the
-	 * [keyCode] to the [defaultKeyCode].
+	 * Reset the [key] to the [defaultKey].
 	 */
 	fun resetToDefaults()
 	{
-		modifierKeys.clear()
-		modifierKeys.addAll(defaultModifierKeys)
-		keyCode = defaultKeyCode
+		key = defaultKey
 	}
 
 	/**
@@ -196,7 +175,7 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 	}
 
 	/**
-	 * Update this [KeyboardShortcut] to match the [modifierKeys] and [keyCode]
+	 * Update this [KeyboardShortcut] to match the [ModifierKey]s and [KeyCode]
 	 * used in the provided [KeyStroke].
 	 *
 	 * @param keyStroke
@@ -209,9 +188,7 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 	{
 		val newKeyCode = KeyCode.lookupByCode(keyStroke.keyCode) ?: return false
 		val mks = ModifierKey.getModifiersFrom(keyStroke)
-		modifierKeys.clear()
-		modifierKeys.addAll(mks)
-		keyCode = newKeyCode
+		key = Key(newKeyCode, mks)
 		return true
 	}
 }

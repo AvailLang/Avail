@@ -281,12 +281,11 @@ internal class ShortcutRow constructor(
 	 */
 	@Suppress("unused")
 	private val shortcutKeys: JLabel =
-		JLabel(shortcut.shortcutAsString).apply { shortcutPanel.add(this) }
+		JLabel(shortcut.key.keyAsString).apply {
+			shortcutPanel.add(this)
+			add(Box.createRigidArea(Dimension(10, 0)))
+		}
 
-	init
-	{
-		shortcutPanel.add(Box.createRigidArea(Dimension(10, 0)))
-	}
 	/**
 	 * The button to edit the shortcut.
 	 */

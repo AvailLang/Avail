@@ -1,5 +1,5 @@
 /*
- * CodePaneShortCuts.kt
+ * CodePaneShortcuts.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,6 +32,8 @@
 
 package avail.anvil.shortcuts
 
+import avail.anvil.shortcuts.ModifierKey.*
+import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 import avail.anvil.text.CodePane
 import javax.swing.JViewport
 import javax.swing.text.DefaultEditorKit
@@ -41,250 +43,207 @@ import javax.swing.text.JTextComponent
  * A [KeyboardShortcut] that is used in a generic [CodePane].
  *
  * @author Richard Arriaga
+ *
+ * @constructor
+ * Construct a [CodePaneShortcut].
+ *
+ * @param defaultKey
+ *   The default [Key] when pressed triggers this shortcut.
+ * @param key
+ *   The [Key] used for this shortcut. Defaults to `defaultKey`.
  */
-sealed class CodePaneShortCut: KeyboardShortcut()
+sealed class CodePaneShortcut constructor(
+	override val defaultKey: Key,
+	override var key: Key = defaultKey
+): KeyboardShortcut()
 {
 	override val category: KeyboardShortcutCategory
 		get() = KeyboardShortcutCategory.CODE_PANE
 }
 
 /**
- * [CodePaneShortCut] to replace the current selection with a space
+ * [CodePaneShortcut] to replace the current selection with a space
  * (U+0020).
  *
  * @author Richard Arriaga
  */
-object InsertSpaceShortcut: CodePaneShortCut()
+object InsertSpaceShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with())
 {
-	override val defaultModifierKeys = emptySet<ModifierKey>()
-	override val defaultKeyCode: KeyCode = KeyCode.VK_SPACE
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "insert-space"
 	override val description: String = "Insert Space"
 }
 
 /**
- * The [CodePaneShortCut] for break the current line by replacing the
+ * The [CodePaneShortcut] for break the current line by replacing the
  * current selection with a linefeed (U+000A) and as much horizontal tabulation
  * (U+0009) as began the line.
  *
  * @author Richard Arriaga
  */
-object BreakLineShortcut: CodePaneShortCut()
+object BreakLineShortcut: CodePaneShortcut(KeyCode.VK_ENTER.with())
 {
-	override val defaultModifierKeys = emptySet<ModifierKey>()
-	override val defaultKeyCode: KeyCode = KeyCode.VK_ENTER
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = DefaultEditorKit.insertBreakAction
 	override val description: String = "Insert Line Break w/ Tabs"
 }
 
 /**
- * The [CodePaneShortCut] for outdenting selected lines enclosing the
+ * The [CodePaneShortcut] for outdenting selected lines enclosing the
  * selection. If no text is selected, then remove at most one horizontal
  * tabulation (U+0009) at the beginning of the line containing the caret.
  *
  * @author Richard Arriaga
  */
-object OutdentShortcut: CodePaneShortCut()
+object OutdentShortcut: CodePaneShortcut(KeyCode.VK_TAB.with(SHIFT))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_TAB
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "outdent"
 	override val description: String = "Outdent Text"
 }
 
 /**
- * The [CodePaneShortCut] for centering the current line of the
+ * The [CodePaneShortcut] for centering the current line of the
  * [source&#32;component][JTextComponent] in its enclosing
  * [viewport][JViewport]. If no viewport encloses the receiver, then do not move
  * the caret.
  *
  * @author Richard Arriaga
  */
-object CenterCurrentLineShortcut: CodePaneShortCut()
+object CenterCurrentLineShortcut
+	: CodePaneShortcut(KeyCode.VK_M.with(menuShortcutKeyMaskEx))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.menuShortcutKeyMaskEx)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_M
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "center-line"
 	override val description: String = "Center Line in View"
 }
 
 /**
- * The [CodePaneShortCut] that calls the undo action.
+ * The [CodePaneShortcut] that calls the undo action.
  *
  * @author Richard Arriaga
  */
-object UndoShortcut: CodePaneShortCut()
+object UndoShortcut: CodePaneShortcut(KeyCode.VK_Z.with(menuShortcutKeyMaskEx))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.menuShortcutKeyMaskEx)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_Z
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "undo"
 	override val description: String = "Undo Last Action"
 }
 
 /**
- * The [CodePaneShortCut] that calls the redo action.
+ * The [CodePaneShortcut] that calls the redo action.
  *
  * @author Richard Arriaga
  */
-object RedoShortcut: CodePaneShortCut()
+object RedoShortcut
+	: CodePaneShortcut(KeyCode.VK_Z.with(menuShortcutKeyMaskEx, SHIFT))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.menuShortcutKeyMaskEx, ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_Z
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "redo"
 	override val description: String = "Redo Last Action"
 }
 
 /**
- * The [CodePaneShortCut] that expands a template selection.
+ * The [CodePaneShortcut] that expands a template selection.
  *
  * @author Richard Arriaga
  */
-object ExpandTemplateShortcut: CodePaneShortCut()
+object ExpandTemplateShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with(CTRL))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.CTRL_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_SPACE
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "expand-template"
 	override val description: String = "Expand the Selected Template"
 }
 
 /**
- * The [CodePaneShortCut] that cancels the template selection.
+ * The [CodePaneShortcut] that cancels the template selection.
  *
  * @author Richard Arriaga
  */
-object CancelTemplateSelectionShortcut: CodePaneShortCut()
+object CancelTemplateSelectionShortcut
+	: CodePaneShortcut(KeyCode.VK_ESCAPE.with(CTRL))
 {
-	override val defaultModifierKeys = setOf(ModifierKey.CTRL_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_ESCAPE
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "cancel-template-selection"
 	override val description: String = "Cancel Template Selection Expansion"
 }
 
 /**
- * The [CodePaneShortCut] that moves the selected lines up.
+ * The [CodePaneShortcut] that moves the selected lines up.
  *
  * @author Richard Arriaga
  */
-object MoveLineUpShortcut: CodePaneShortCut()
+object MoveLineUpShortcut: CodePaneShortcut(KeyCode.VK_UP.with(ALT, SHIFT))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.ALT_DOWN_MASK, ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_UP
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "move-line-up"
 	override val description: String = "Move the Selected Text Up One Line"
 }
 
 /**
- * The [CodePaneShortCut] that moves the selected lines down.
+ * The [CodePaneShortcut] that moves the selected lines down.
  *
  * @author Richard Arriaga
  */
-object MoveLineDownShortcut: CodePaneShortCut()
+object MoveLineDownShortcut: CodePaneShortcut( KeyCode.VK_DOWN.with())
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.ALT_DOWN_MASK, ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_DOWN
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "move-line-down"
 	override val description: String = "Move the Selected Text Down One Line"
 }
 
 /**
- * The [CodePaneShortCut] that transforms the selected text to uppercase.
+ * The [CodePaneShortcut] that transforms the selected text to uppercase.
  *
  * @author Richard Arriaga
  */
-object UppercaseShortcut: CodePaneShortCut()
+object UppercaseShortcut: CodePaneShortcut(KeyCode.VK_U.with(META, SHIFT))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.META_DOWN_MASK, ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_U
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "uppercase"
 	override val description: String = "Uppercase Selected Text"
 }
 
 /**
- * The [CodePaneShortCut] that transforms the selected text to lowercase.
+ * The [CodePaneShortcut] that transforms the selected text to lowercase.
  *
  * @author Richard Arriaga
  */
-object LowercaseShortcut: CodePaneShortCut()
+object LowercaseShortcut: CodePaneShortcut(KeyCode.VK_L.with(META, SHIFT))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.META_DOWN_MASK, ModifierKey.SHIFT_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_L
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "lowercase"
 	override val description: String = "Lowercase Selected Text"
 }
 
 /**
- * The [CodePaneShortCut] that transforms the selected text to camel case.
+ * The [CodePaneShortcut] that transforms the selected text to camel case.
  *
  * @author Richard Arriaga
  */
-object CamelCaseShortcut: CodePaneShortCut()
+object CamelCaseShortcut: CodePaneShortcut(KeyCode.VK_C.with(META, CTRL))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.META_DOWN_MASK, ModifierKey.CTRL_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_C
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "camel-case"
 	override val description: String = "Transform Selected Text to camelCase"
 }
 
 /**
- * The [CodePaneShortCut] that transforms the selected text to pascal case.
+ * The [CodePaneShortcut] that transforms the selected text to pascal case.
  *
  * @author Richard Arriaga
  */
-object PascalCaseShortcut: CodePaneShortCut()
+object PascalCaseShortcut: CodePaneShortcut(KeyCode.VK_P.with(META, CTRL))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.META_DOWN_MASK, ModifierKey.CTRL_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_P
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "pascal-case"
 	override val description: String = "Transform Selected Text to PascalCase"
 }
 
 /**
- * The [CodePaneShortCut] that transforms the selected text to snake case.
+ * The [CodePaneShortcut] that transforms the selected text to snake case.
  *
  * @author Richard Arriaga
  */
-object SnakeCaseShortcut: CodePaneShortCut()
+object SnakeCaseShortcut: CodePaneShortcut(KeyCode.VK_S.with(META, CTRL))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.META_DOWN_MASK, ModifierKey.CTRL_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_S
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "snake-case"
 	override val description: String = "Transform Selected Text to snake_case"
 }
 
 /**
- * The [CodePaneShortCut] that transforms the selected text to kebab case.
+ * The [CodePaneShortcut] that transforms the selected text to kebab case.
  *
  * @author Richard Arriaga
  */
-object KebabCaseShortcut: CodePaneShortCut()
+object KebabCaseShortcut: CodePaneShortcut(KeyCode.VK_K.with(META, CTRL))
 {
-	override val defaultModifierKeys =
-		setOf(ModifierKey.META_DOWN_MASK, ModifierKey.CTRL_DOWN_MASK)
-	override val defaultKeyCode: KeyCode = KeyCode.VK_K
-	override var keyCode = defaultKeyCode
 	override val actionMapKey: String = "kebab-case"
 	override val description: String = "Transform Selected Text to kebab-case"
 }

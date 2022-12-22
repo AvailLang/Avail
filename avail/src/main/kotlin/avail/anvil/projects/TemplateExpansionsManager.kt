@@ -267,6 +267,7 @@ class TemplateRow constructor(
 				}
 			}
 		}
+
 	init
 	{
 		border = BorderFactory.createEmptyBorder()
@@ -313,11 +314,7 @@ class TemplateRow constructor(
 	private val templateEditDeletePanel: JPanel = JPanel().apply {
 		border = BorderFactory.createEmptyBorder()
 		layout = BoxLayout(this, BoxLayout.X_AXIS)
-	}
-
-	init
-	{
-		templateEditDeletePanel.add(Box.createRigidArea(Dimension(10, 0)))
+		add(Box.createRigidArea(Dimension(10, 0)))
 	}
 
 	/**
@@ -357,17 +354,13 @@ class TemplateRow constructor(
 				}
 			}
 			templateEditDeletePanel.add(this)
+			this@TemplateRow.add(
+				templateEditDeletePanel,
+				constraints.apply {
+					weightx = 1.0
+					anchor = EAST
+				})
 		}
-
-	init
-	{
-		add(
-			templateEditDeletePanel,
-			constraints.apply {
-				weightx = 1.0
-				anchor = EAST
-			})
-	}
 
 	companion object
 	{
@@ -418,13 +411,10 @@ class RootTemplateEditPanel constructor(
 	 */
 	private fun validateUpdates ()
 	{
+		duplicates.text = " "
+		applyChanges.isEnabled = false
 		when
 		{
-			tempName.isEmpty() ->
-			{
-				applyChanges.isEnabled = false
-				duplicates.text = " "
-			}
 			tempName != templateRow.templateName ->
 			{
 				when
@@ -432,28 +422,15 @@ class RootTemplateEditPanel constructor(
 					templateRow.root.templates.containsKey(tempName) ->
 					{
 						duplicates.text = "Template $tempName already exists"
-						applyChanges.isEnabled = false
-					}
-					expansion.isEmpty() ->
-					{
-						applyChanges.isEnabled = false
-						duplicates.text = " "
 					}
 					else ->
 					{
-						duplicates.text = " "
 						applyChanges.isEnabled = true
 					}
 				}
 			}
-			expansion.isEmpty() ->
-			{
-				applyChanges.isEnabled = false
-				duplicates.text = " "
-			}
 			expansion != templateRow.expansion ->
 			{
-				duplicates.text = " "
 				applyChanges.isEnabled = true
 			}
 		}

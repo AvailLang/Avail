@@ -36,7 +36,7 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.BoundStyle
 import avail.anvil.StyleRegistry
 import avail.anvil.SystemColors
-import avail.anvil.shortcuts.CodePaneShortCut
+import avail.anvil.shortcuts.CodePaneShortcut
 import avail.utility.PrefixTree.Companion.payloads
 import java.awt.Dimension
 import java.awt.Font
@@ -219,8 +219,8 @@ constructor(
 	private fun registerKeystrokes()
 	{
 		// To add a new shortcut, add it as a subtype of the sealed class
-		// CodePaneShortCut.
-		CodePaneShortCut::class.sealedSubclasses.forEach {
+		// CodePaneShortcut.
+		CodePaneShortcut::class.sealedSubclasses.forEach {
 			it.objectInstance?.addToInputMap(inputMap)
 		}
 	}

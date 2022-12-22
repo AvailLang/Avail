@@ -159,9 +159,7 @@ class GlobalAvailConfigurationV1
 					config.keyboardShortcutOverrides[shortcutOverride.actionMapKey] =
 						shortcutOverride
 					shortcutOverride.associatedShortcut!!.let { ks ->
-						ks.keyCode = shortcutOverride.keyCode
-						ks.modifierKeys.clear()
-						ks.modifierKeys.addAll(shortcutOverride.modifierKeys)
+						ks.key = shortcutOverride.key
 					}
 				}
 			}

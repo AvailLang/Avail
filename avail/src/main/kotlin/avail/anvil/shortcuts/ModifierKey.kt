@@ -51,13 +51,13 @@ enum class ModifierKey constructor(
 	val lookupKey: String)
 {
 	/** The [Shift Key][InputEvent.SHIFT_DOWN_MASK]. */
-	SHIFT_DOWN_MASK(InputEvent.SHIFT_DOWN_MASK, "SHIFT")
+	SHIFT(InputEvent.SHIFT_DOWN_MASK, "SHIFT")
 	{
 		override val displayRepresentation: String = "⇧"
 	},
 
 	/** The [Control Key][InputEvent.CTRL_DOWN_MASK]. */
-	CTRL_DOWN_MASK(InputEvent.CTRL_DOWN_MASK, "CTRL")
+	CTRL(InputEvent.CTRL_DOWN_MASK, "CTRL")
 	{
 		override val displayRepresentation: String = "⌃"
 	},
@@ -66,7 +66,7 @@ enum class ModifierKey constructor(
 	 * The [Meta Key][InputEvent.META_DOWN_MASK]. On Windows this is the Winodws
 	 * key; on Mac, the Command key.
 	 */
-	META_DOWN_MASK(InputEvent.META_DOWN_MASK, "META")
+	META(InputEvent.META_DOWN_MASK, "META")
 	{
 		override val displayRepresentation: String get() =
 			if (System.getProperty("os.name").startsWith("Mac"))
@@ -80,19 +80,19 @@ enum class ModifierKey constructor(
 	},
 
 	/** The [Alt Key][InputEvent.ALT_DOWN_MASK]. */
-	ALT_DOWN_MASK(InputEvent.ALT_DOWN_MASK, "ALT")
+	ALT(InputEvent.ALT_DOWN_MASK, "ALT")
 	{
 		override val displayRepresentation: String = "⌥"
 	},
 
 	/** The [Mouse Button 1][InputEvent.BUTTON1_DOWN_MASK]. */
-	BUTTON1_DOWN_MASK(InputEvent.BUTTON1_DOWN_MASK, "LEFT-CLICK"),
+	BUTTON1(InputEvent.BUTTON1_DOWN_MASK, "LEFT-CLICK"),
 
 	/** The [Mouse Button 2][InputEvent.BUTTON2_DOWN_MASK]. */
-	BUTTON2_DOWN_MASK(InputEvent.BUTTON2_DOWN_MASK, "RIGHT-CLICK"),
+	BUTTON2(InputEvent.BUTTON2_DOWN_MASK, "RIGHT-CLICK"),
 
 	/** The [Mouse Button 3][InputEvent.BUTTON3_DOWN_MASK]. */
-	BUTTON3_DOWN_MASK(InputEvent.BUTTON3_DOWN_MASK, "MIDDLE-MOUSE-BUTTON");
+	BUTTON3(InputEvent.BUTTON3_DOWN_MASK, "MIDDLE-MOUSE-BUTTON");
 
 	/**
 	 * The platform-specific String that represents this key.

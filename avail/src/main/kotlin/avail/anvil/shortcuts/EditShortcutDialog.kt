@@ -1,5 +1,5 @@
 /*
- * GoToDialog.kt
+ * EditShortcutDialog.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -52,8 +52,6 @@ import javax.swing.JTextField
  * A dialog that permits the changing of the key mappings of a
  * [KeyboardShortcut].
  *
- * The
- *
  * @author Richard Arriaga
  *
  * @property workbench
@@ -68,20 +66,14 @@ class EditShortcutDialog constructor(
 ): JFrame(shortcut.descriptionDisplay)
 {
 	/**
-	 * The set of [KeyboardShortcut]s that match the selected [keyCode] and
-	 * [modifiers].
+	 * The set of [KeyboardShortcut]s that match the selected [Key].
 	 */
 	private var duplicateShortcuts = setOf<KeyboardShortcut>()
 
 	/**
-	 * The last [KeyCode] chosen.
+	 * The last [Key] chosen.
 	 */
-	private var keyCode: KeyCode? = shortcut.keyCode
-
-	/**
-	 * The last set of [ModifierKey]s chosen.
-	 */
-	private var modifiers: Set<ModifierKey> = shortcut.modifierKeys
+	private var key: Key? = shortcut.key
 
 	/**
 	 * The current [KeyboardShortcutOverride] or `null` if none selected.
@@ -103,8 +95,10 @@ class EditShortcutDialog constructor(
 		isEnabled = ksOverride != null
 		addActionListener {
 			val kso = ksOverride!!
-			if (shortcut.matchesDefault(kso))
+			if (shortcut.defaultKey == kso.key)
 			{
+				// There is no need to use the ksOverride as the override
+				// is the same Key as the shortcut's default key.
 				if (workbench.globalAvailConfiguration
 						.keyboardShortcutOverrides
 						.containsKey(shortcut.actionMapKey))
@@ -118,9 +112,7 @@ class EditShortcutDialog constructor(
 			}
 			else
 			{
-				shortcut.keyCode = kso.keyCode
-				shortcut.modifierKeys.clear()
-				shortcut.modifierKeys.addAll(kso.modifierKeys)
+				shortcut.key = kso.key
 				workbench.globalAvailConfiguration
 					.keyboardShortcutOverrides[kso.actionMapKey] = kso
 				workbench.globalAvailConfiguration.saveToDisk()
@@ -132,7 +124,7 @@ class EditShortcutDialog constructor(
 
 	/** The displayable shortcut. */
 	private val shortcutTextField = JTextField().apply {
-		text = shortcut.shortcutAsString
+		text = shortcut.key.keyAsString
 		isEditable = false
 		toolTipText = "Click in this text field then press the keys of the " +
 			"desired new shortcut"
@@ -152,14 +144,13 @@ class EditShortcutDialog constructor(
 					mks.joinToString("")
 					{ it.displayRepresentation } +
 						(kc?.displayRepresentation ?: "")
-				keyCode = kc
-				modifiers = mks
+
 				if (kc != null)
 				{
 					val overrideKs = shortcut.shortcutOverride
-					overrideKs.keyCode = kc
-					overrideKs.modifierKeys.clear()
-					overrideKs.modifierKeys.addAll(mks)
+					val tempKey = Key(kc, mks)
+					key = tempKey
+					overrideKs.key = tempKey
 					duplicateShortcuts = shortcut.category
 						.checkShortcutsUniqueAgainst(overrideKs)
 					if (duplicateShortcuts.isEmpty())
