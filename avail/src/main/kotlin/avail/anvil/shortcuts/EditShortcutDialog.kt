@@ -99,9 +99,8 @@ class EditShortcutDialog constructor(
 			{
 				// There is no need to use the ksOverride as the override
 				// is the same Key as the shortcut's default key.
-				if (workbench.globalAvailConfiguration
-						.keyboardShortcutOverrides
-						.containsKey(shortcut.actionMapKey))
+				if (shortcut.actionMapKey in workbench
+					.globalAvailConfiguration.keyboardShortcutOverrides)
 				{
 					workbench.globalAvailConfiguration
 						.keyboardShortcutOverrides.remove(

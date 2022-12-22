@@ -33,7 +33,10 @@
 package avail.anvil.projects
 
 import avail.anvil.projects.manager.AvailProjectManagerWindow
+import avail.anvil.settings.ShortcutSettings
+import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyboardShortcut
+import avail.anvil.shortcuts.KeyboardShortcutCategory
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.availHome
 import org.availlang.artifact.environment.project.AvailProject
@@ -83,6 +86,46 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	 * [KeyboardShortcut]s.
 	 */
 	val keyboardShortcutOverrides: MutableMap<String, KeyboardShortcutOverride>
+
+	/**
+	 * The [ShortcutSettings] sourced from [keyboardShortcutOverrides].
+	 */
+	val shortcutSettings: ShortcutSettings get() =
+		ShortcutSettings(keyboardShortcutOverrides.toMap())
+
+	/**
+	 * Attempt to import the provided [ShortcutSettings] into
+	 * [keyboardShortcutOverrides] only adding the
+	 * [ShortcutSettings.keyboardShortcutOverrides] that do not
+	 * [conflict][KeyboardShortcutCategory.checkShortcutsUniqueAgainst] with
+	 * any other shortcuts.
+	 *
+	 * @param settings
+	 *   The [ShortcutSettings] to import.
+	 * @return
+	 *   The map from [KeyboardShortcutCategory] (from the imported settings) to
+	 *   the [Set] of [KeyboardShortcut]s its [Key] conflicts with.
+	 */
+	fun attemptShortcutImport(
+		settings: ShortcutSettings
+	): Map<KeyboardShortcutOverride, Set<KeyboardShortcut>> =
+		settings.keyboardShortcutOverrides.values
+			.map { it to it.category.checkShortcutsUniqueAgainst(it) }
+			.filter {
+				val notEmpty = it.second.isNotEmpty()
+				if (!notEmpty)
+				{
+					it.first.category.keyboardShortcut(it.first.actionMapKey)
+						?.let {ks ->
+							keyboardShortcutOverrides[it.first.actionMapKey] =
+								it.first
+							ks.key = it.first.key
+						}
+				}
+				notEmpty
+			}
+			.associate { it }
+			.apply { saveToDisk() }
 
 	/**
 	 * The path to the default Avail standard library to be used in projects or

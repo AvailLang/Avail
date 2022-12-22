@@ -34,6 +34,8 @@ package avail.anvil.shortcuts
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.structure.EditIcons
+import avail.anvil.settings.Settings
+import avail.anvil.settings.ShortcutSettings
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -45,16 +47,21 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.io.File
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
+import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTabbedPane
 import javax.swing.SwingUtilities
+import javax.swing.filechooser.FileFilter
+import javax.swing.filechooser.FileNameExtensionFilter
 
 /**
  * The [JFrame] that presents the different [KeyboardShortcut]s.
@@ -163,6 +170,136 @@ class ShortcutsPanel constructor(
 				redrawShortcuts()
 			}
 		}
+		val importSettings = JButton("Import").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 150, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			toolTipText = "Imports shortcuts from a settings file"
+			addActionListener {
+				JFileChooser().apply chooser@ {
+					dialogTitle = "Select Settings File to Import From"
+					fileSelectionMode = JFileChooser.FILES_ONLY
+					fileFilter = FileNameExtensionFilter("*.json", "json")
+					addChoosableFileFilter(
+						object : FileFilter()
+						{
+							override fun getDescription(): String
+							{
+								return "Settings File (*.json)"
+							}
+
+							override fun accept(f: File?): Boolean
+							{
+								assert(f !== null)
+								return f!!.isFile
+									&& f.canWrite()
+									&& f.absolutePath.lowercase().endsWith(".json")
+							}
+						})
+					val result = showDialog(
+						this@ShortcutsPanel,
+						"Select Settings File")
+					if (result == JFileChooser.APPROVE_OPTION)
+					{
+						val shortcuts =
+							ShortcutSettings.readFromFile(selectedFile)
+						if (shortcuts != null)
+						{
+							workbench.globalAvailConfiguration
+								.attemptShortcutImport(shortcuts).let { m ->
+									if (m.isNotEmpty())
+									{
+										val conflicts =
+											m.entries.joinToString ("\n\t")
+											{
+												"${it.key.actionMapKey} (${it.key.category.display} " +
+													"conflicts with " +
+													it.value.joinToString { v ->
+														v.actionMapKey +
+															"(${v.category.display})"
+													}
+											}
+										SwingUtilities.invokeLater {
+											JOptionPane.showMessageDialog(
+												this@ShortcutsPanel,
+												"Partial Success, some " +
+													"key mapping conflicts detected:\n " +
+													conflicts,
+												"Some Shortcuts Loaded",
+												JOptionPane.PLAIN_MESSAGE)
+										}
+									}
+									else
+									{
+										SwingUtilities.invokeLater {
+											JOptionPane.showMessageDialog(
+												this@ShortcutsPanel,
+												"Success!",
+												"Shortcuts Loaded",
+												JOptionPane.PLAIN_MESSAGE)
+										}
+									}
+									redrawShortcuts()
+								}
+						}
+						else
+						{
+							val path = selectedFile.path
+							SwingUtilities.invokeLater {
+								JOptionPane.showMessageDialog(
+									this@ShortcutsPanel,
+									"Could not load shortcut settings " +
+										"from $path.",
+									"Settings Load Failure",
+									JOptionPane.ERROR_MESSAGE)
+							}
+						}
+					}
+				}
+			}
+		}
+		val exportSettings = JButton("Export").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 150, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			toolTipText = "Imports shortcuts from a settings file"
+			addActionListener {
+				JFileChooser().apply chooser@ {
+					dialogTitle = "Select Settings File to Export To"
+					fileSelectionMode = JFileChooser.FILES_ONLY
+					fileFilter = FileNameExtensionFilter("*.json", "json")
+					addChoosableFileFilter(
+						object : FileFilter()
+						{
+							override fun getDescription(): String
+							{
+								return "Settings File (*.json)"
+							}
+
+							override fun accept(f: File?): Boolean
+							{
+								assert(f !== null)
+								return f!!.isFile
+									&& f.canWrite()
+									&& f.absolutePath.lowercase().endsWith(".json")
+							}
+						})
+					val result = showSaveDialog(this@ShortcutsPanel)
+					if (result == JFileChooser.APPROVE_OPTION)
+					{
+						val shortcuts =
+							workbench.globalAvailConfiguration.shortcutSettings
+						Settings.exportSettings(selectedFile, shortcuts)
+					}
+				}
+			}
+		}
 
 		add(JPanel().apply {
 			layout = (FlowLayout(FlowLayout.RIGHT))
@@ -170,6 +307,8 @@ class ShortcutsPanel constructor(
 			preferredSize = Dimension(700, 50)
 			maximumSize = Dimension(700, 50)
 			background = Color(0x3C, 0x3F, 0x41)
+			add(importSettings)
+			add(exportSettings)
 			add(reset)
 		})
 	}
