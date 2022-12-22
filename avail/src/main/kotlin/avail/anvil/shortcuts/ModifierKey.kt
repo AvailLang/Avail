@@ -45,45 +45,32 @@ import javax.swing.KeyStroke
  *   The modifier constant.
  * @property lookupKey
  *   The key used to look up this modifier.
+ * @property displayRepresentation
+ *   The platform-specific String that represents this key.
  */
 enum class ModifierKey constructor(
 	val modifier: Int,
-	val lookupKey: String)
+	val lookupKey: String,
+	val displayRepresentation: String = lookupKey)
 {
 	/** The [Shift Key][InputEvent.SHIFT_DOWN_MASK]. */
-	SHIFT(InputEvent.SHIFT_DOWN_MASK, "SHIFT")
-	{
-		override val displayRepresentation: String = "⇧"
-	},
+	SHIFT(InputEvent.SHIFT_DOWN_MASK, "SHIFT", "⇧"),
 
 	/** The [Control Key][InputEvent.CTRL_DOWN_MASK]. */
-	CTRL(InputEvent.CTRL_DOWN_MASK, "CTRL")
-	{
-		override val displayRepresentation: String = "⌃"
-	},
+	CTRL(InputEvent.CTRL_DOWN_MASK, "CTRL", "⌃"),
 
 	/**
 	 * The [Meta Key][InputEvent.META_DOWN_MASK]. On Windows this is the Winodws
 	 * key; on Mac, the Command key.
 	 */
-	META(InputEvent.META_DOWN_MASK, "META")
-	{
-		override val displayRepresentation: String get() =
-			if (System.getProperty("os.name").startsWith("Mac"))
-			{
-				"⌘"
-			}
-			else
-			{
-				"Windows"
-			}
-	},
+	META(
+		InputEvent.META_DOWN_MASK,
+		"META",
+		if (System.getProperty("os.name").startsWith("Mac")) "⌘"
+		else "Windows"),
 
 	/** The [Alt Key][InputEvent.ALT_DOWN_MASK]. */
-	ALT(InputEvent.ALT_DOWN_MASK, "ALT")
-	{
-		override val displayRepresentation: String = "⌥"
-	},
+	ALT(InputEvent.ALT_DOWN_MASK, "ALT", "⌥"),
 
 	/** The [Mouse Button 1][InputEvent.BUTTON1_DOWN_MASK]. */
 	BUTTON1(InputEvent.BUTTON1_DOWN_MASK, "LEFT-CLICK"),
@@ -93,11 +80,6 @@ enum class ModifierKey constructor(
 
 	/** The [Mouse Button 3][InputEvent.BUTTON3_DOWN_MASK]. */
 	BUTTON3(InputEvent.BUTTON3_DOWN_MASK, "MIDDLE-MOUSE-BUTTON");
-
-	/**
-	 * The platform-specific String that represents this key.
-	 */
-	open val displayRepresentation: String get () = lookupKey
 
 	companion object
 	{
