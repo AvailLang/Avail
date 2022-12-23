@@ -34,8 +34,10 @@ package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.ProjectManagerIcons
+import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
-import org.availlang.json.JSONWriter
+import org.availlang.json.JSONObject
+import org.availlang.json.jsonReader
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -230,14 +232,7 @@ class RootTemplatesPanel constructor(
 					rootTemplateEditPanel.templateRow =
 						newEmptyTemplateRow().apply { select() }
 					root.templates.clear()
-					val projectFilePath = workbench.availProjectFilePath
-					if (projectFilePath.isNotEmpty())
-					{
-						// Update the backing project file.
-						val writer = JSONWriter.newPrettyPrinterWriter()
-						workbench.availProject.writeTo(writer)
-						File(projectFilePath).writeText(writer.contents())
-					}
+					workbench.saveProjectFileToDisk()
 					redrawTemplates()
 				}
 			}
@@ -307,10 +302,44 @@ class RootTemplatesPanel constructor(
 			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
 			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
 			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
-			toolTipText = "Import expansion templates"
+			toolTipText = "Import expansion templates from settings file"
 			addActionListener {
-				SwingUtilities.invokeLater {
-					rootTemplateEditPanel.templateRow = newEmptyTemplateRow()
+				JFileChooser().apply chooser@ {
+					dialogTitle = "Select Settings File to Import From"
+					fileSelectionMode = JFileChooser.FILES_ONLY
+					fileFilter = FileNameExtensionFilter("*.json", "json")
+					addChoosableFileFilter(
+						object : FileFilter()
+						{
+							override fun getDescription(): String
+							{
+								return "Settings File (*.json)"
+							}
+
+							override fun accept(f: File?): Boolean
+							{
+								assert(f !== null)
+								return f!!.isFile
+									&& f.canWrite()
+									&& f.absolutePath.lowercase().endsWith(".json")
+							}
+						})
+					val result = showDialog(
+						this@RootTemplatesPanel,
+						"Select Settings File")
+					if (result == JFileChooser.APPROVE_OPTION)
+					{
+						val templateSettings =
+							TemplateSettings.readFromFile(selectedFile)
+						if (templateSettings != null)
+						{
+							root.templates.putAll(templateSettings.templates)
+							SwingUtilities.invokeLater {
+								redrawTemplates()
+								workbench.saveProjectFileToDisk()
+							}
+						}
+					}
 				}
 			}
 		}
@@ -322,10 +351,48 @@ class RootTemplatesPanel constructor(
 			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
 			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
 			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
-			toolTipText = "Import expansion templates"
+			toolTipText = "Import expansion templates from project file"
 			addActionListener {
-				SwingUtilities.invokeLater {
-					rootTemplateEditPanel.templateRow = newEmptyTemplateRow()
+				addActionListener {
+					JFileChooser().apply chooser@ {
+						dialogTitle = "Select Project File to Import From"
+						fileSelectionMode = JFileChooser.FILES_ONLY
+						fileFilter = FileNameExtensionFilter("*.json", "json")
+						addChoosableFileFilter(
+							object : FileFilter()
+							{
+								override fun getDescription(): String
+								{
+									return "Project File (*.json)"
+								}
+
+								override fun accept(f: File?): Boolean
+								{
+									assert(f !== null)
+									return f!!.isFile
+										&& f.canWrite()
+										&& f.absolutePath.lowercase().endsWith(".json")
+								}
+							})
+						val result = showDialog(
+							this@RootTemplatesPanel,
+							"Select Project File")
+						if (result == JFileChooser.APPROVE_OPTION)
+						{
+							val obj = jsonReader(selectedFile.readText())
+								.read() as JSONObject
+							val ap = AvailProject.from(selectedFile.parent, obj)
+							val templateSettings = TemplateSettings.combine(ap.roots
+								.map { it.value.templateSettings }
+								.toMutableSet()
+								.apply { add(ap.templateSettings) })
+							root.templates.putAll(templateSettings.templates)
+							SwingUtilities.invokeLater {
+								redrawTemplates()
+								workbench.saveProjectFileToDisk()
+							}
+						}
+					}
 				}
 			}
 		}
@@ -337,20 +404,13 @@ class RootTemplatesPanel constructor(
 			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
 			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
 			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
-			toolTipText = "Import expansion templates"
+			toolTipText = "Import system default expansion templates"
 			addActionListener {
 				SwingUtilities.invokeLater {
 					TemplateSettings.systemDefaultTemplates?.let {
 						root.templates.putAll(it.templates)
 						redrawTemplates()
-						val projectFilePath = workbench.availProjectFilePath
-						if (projectFilePath.isNotEmpty())
-						{
-							// Update the backing project file.
-							val writer = JSONWriter.newPrettyPrinterWriter()
-							workbench.availProject.writeTo(writer)
-							File(projectFilePath).writeText(writer.contents())
-						}
+						workbench.saveProjectFileToDisk()
 					}
 				}
 			}
@@ -556,16 +616,7 @@ class TemplateRow constructor(
 						this@TemplateRow.parentPanel.clearSelectedRow()
 					}
 					SwingUtilities.invokeLater {
-						val projectFilePath =
-							this@TemplateRow.workbench.availProjectFilePath
-						if (projectFilePath.isNotEmpty())
-						{
-							// Update the backing project file.
-							val writer = JSONWriter.newPrettyPrinterWriter()
-							this@TemplateRow.workbench.availProject
-								.writeTo(writer)
-							File(projectFilePath).writeText(writer.contents())
-						}
+						this@TemplateRow.workbench.saveProjectFileToDisk()
 						this@TemplateRow.parentPanel.redrawTemplates()
 					}
 				}
@@ -747,14 +798,7 @@ class RootTemplateEditPanel constructor(
 			SwingUtilities.invokeLater {
 				templateRow.root.templates[templateKey] = expansion
 				templateRow.templateKey = templateKey
-				val projectFilePath = templateRow.workbench.availProjectFilePath
-				if (projectFilePath.isNotEmpty())
-				{
-					// Update the backing project file.
-					val writer = JSONWriter.newPrettyPrinterWriter()
-					templateRow.workbench.availProject.writeTo(writer)
-					File(projectFilePath).writeText(writer.contents())
-				}
+				templateRow.workbench.saveProjectFileToDisk()
 				templateRow.parentPanel.redrawTemplates()
 			}
 		}

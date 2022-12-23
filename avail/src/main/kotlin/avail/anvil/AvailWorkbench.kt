@@ -149,6 +149,7 @@ import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.AvailProjectV1
+import org.availlang.json.JSONWriter
 import java.awt.Color
 import java.awt.Component
 import java.awt.Desktop
@@ -281,8 +282,20 @@ class AvailWorkbench internal constructor(
 	val projectHomeDirectory =
 		availProjectFilePath.substringBeforeLast(File.separator)
 
-	// TODO read/write LocalScreenState from/to disk and use it to reopen
-	// windows
+	/**
+	 * Save the [availProject] to disk in [availProjectFilePath].
+	 */
+	fun saveProjectFileToDisk ()
+	{
+		val projectFilePath = availProjectFilePath
+		if (projectFilePath.isNotEmpty())
+		{
+			// Update the backing project file.
+			val writer = JSONWriter.newPrettyPrinterWriter()
+			availProject.writeTo(writer)
+			File(projectFilePath).writeText(writer.contents())
+		}
+	}
 
 	/**
 	 * The recognized textual templates available for interactive

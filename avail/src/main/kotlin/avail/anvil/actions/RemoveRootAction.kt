@@ -34,9 +34,7 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.utility.notNullAnd
-import org.availlang.json.JSONWriter
 import java.awt.event.ActionEvent
-import java.io.File
 import javax.swing.Action
 import javax.swing.JOptionPane
 import javax.swing.JOptionPane.CANCEL_OPTION
@@ -104,17 +102,10 @@ constructor (
 		}
 		// Update the runtime as well.
 		workbench.runtime.moduleRoots().removeRoot(root.name)
-		val projectFilePath = workbench.availProjectFilePath
 		// We're allowed to edit the roots even if there's no backing project
 		// file.  We have nowhere to write back the new configuration, but it's
 		// still useful while the project is open.
-		if (projectFilePath.isNotEmpty())
-		{
-			// Update the backing project file.
-			val writer = JSONWriter.newPrettyPrinterWriter()
-			workbench.availProject.writeTo(writer)
-			File(projectFilePath).writeText(writer.contents())
-		}
+		workbench.saveProjectFileToDisk()
 		if (deleteDirectory)
 		{
 			val success =

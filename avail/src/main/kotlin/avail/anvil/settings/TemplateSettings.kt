@@ -85,6 +85,27 @@ data class TemplateSettings constructor(
 	companion object: SettingsType<TemplateSettings>("TEMPLATES", true)
 	{
 		/**
+		 * Extract the [TemplateSettings] from the provided [Settings] [File].
+		 *
+		 * @param file
+		 *   The [File] to extract the [TemplateSettings] from.
+		 *
+		 */
+		fun readFromFile (file: File): TemplateSettings? =
+			try
+			{
+				getCombinedTemplates(
+					jsonReader(file.readText()).read() as JSONArray)
+			}
+			catch (e: Throwable)
+			{
+				AnvilException(
+					"Could not retrieve shortcut settings from ${file.path}",
+					e).printStackTrace()
+				null
+			}
+
+		/**
 		 * The system's default [TemplateSettings] or `null` if there is a
 		 * problem retrieving the default [TemplateSettings].
 		 */
@@ -92,11 +113,9 @@ data class TemplateSettings constructor(
 			get() =
 				try
 				{
-					val contents = File(
+					readFromFile(File(
 						TemplateSettings::class.java.getResource(
-							"/defaultTemplates.json")!!.path).readText()
-					val reader = jsonReader(contents)
-					getCombinedTemplates(reader.read() as JSONArray)
+							"/defaultTemplates.json")!!.path))
 				}
 				catch (e: Throwable)
 				{
