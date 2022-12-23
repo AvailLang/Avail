@@ -1,5 +1,5 @@
 /*
- * ShortcutManager.kt
+ * TemplateExpansionsManager.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.projects
+package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.ProjectManagerIcons
@@ -52,6 +52,8 @@ import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
+import javax.swing.JCheckBox
+import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JOptionPane
@@ -63,6 +65,8 @@ import javax.swing.JTextField
 import javax.swing.SwingUtilities
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
+import javax.swing.filechooser.FileFilter
+import javax.swing.filechooser.FileNameExtensionFilter
 
 /**
  * The [JFrame] that presents the different template expansions.
@@ -90,9 +94,9 @@ class TemplateExpansionsManager constructor(
 				 RootTemplatesPanel(it.value, workbench).redrawTemplates())
 		}
 		contentPane.add(tabs)
-		minimumSize = Dimension(950, 950)
-		preferredSize = Dimension(950, 950)
-		maximumSize = Dimension(950, 1400)
+		minimumSize = Dimension(950, 800)
+		preferredSize = Dimension(950, 800)
+		maximumSize = Dimension(950, 800)
 		pack()
 		addWindowListener(object : WindowAdapter()
 		{
@@ -123,12 +127,18 @@ class RootTemplatesPanel constructor(
 ) : JPanel()
 {
 	/**
+	 * The set of [TemplateRow]s that have their checkbox checked.
+	 */
+	val checkedRowsKeys = mutableSetOf<String>()
+
+	/**
 	 * The panel that contains all the shortcuts.
 	 */
 	private val templatesPanel = JPanel().apply {
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)
 		root.templates.forEach {
-			add(TemplateRow(
+			add(
+				TemplateRow(
 				it.key, it.value, root, workbench, this@RootTemplatesPanel))
 		}
 	}
@@ -137,7 +147,7 @@ class RootTemplatesPanel constructor(
 	 * Create a new empty [TemplateRow] that has not yet been added to the
 	 * [root].
 	 */
-	private fun newEmptyTemplateRow (): TemplateRow =
+	fun newEmptyTemplateRow (): TemplateRow =
 		TemplateRow("", "", root, workbench, this)
 
 	/**
@@ -158,45 +168,229 @@ class RootTemplatesPanel constructor(
 	/**
 	 * The [RootTemplateEditPanel] at the bottom of the [RootTemplatesPanel].
 	 */
-	val rootTemplateEditPanel = RootTemplateEditPanel(selectedRow)
+	val rootTemplateEditPanel = RootTemplateEditPanel(this, selectedRow)
 
 	/**
 	 * Redraw the [templatesPanel].
+	 *
+	 * @param checkAll
+	 *   Check all the [TemplateRow.templateKeyCheckBox] if `true`; uncheck
+	 *   otherwise.
+	 * @return
+	 *   This [RootTemplatesPanel].
 	 */
-	fun redrawTemplates (): RootTemplatesPanel
+	fun redrawTemplates (checkAll: Boolean = false): RootTemplatesPanel
 	{
 		SwingUtilities.invokeLater {
 			templatesPanel.removeAll()
-			root.templates.toList().sortedBy { it.first }.forEach {
-				templatesPanel.add(TemplateRow(
-					it.first, it.second, root, workbench, this))
-			}
 			templatesPanel.revalidate()
+			root.templates.toList()
+				.sortedBy { it.first }
+				.forEach {
+					templatesPanel.add(
+						TemplateRow(
+						it.first, it.second, root, workbench, this).apply {
+							if (selectedRow.templateKey == templateKey)
+							{
+								select()
+							}
+							if (checkAll)
+							{
+								templateKeyCheckBox.isSelected = true
+								checkedRowsKeys.add(templateKey)
+							}
+					})
+				}
 			templatesPanel.repaint()
 		}
 		return this
 	}
 
+	/**
+	 * The button that deletes all the checked rows.
+	 */
+	val deleteSelectedTemplate = JButton("Delete Checked").apply {
+		isOpaque = true
+		isEnabled = false
+		val currentHeight = height
+		val currentWidth = width
+		minimumSize = Dimension(currentWidth + 140, currentHeight + 30)
+		preferredSize = Dimension(currentWidth + 140, currentHeight + 30)
+		maximumSize = Dimension(currentWidth + 140, currentHeight + 30)
+		toolTipText = "Delete checked rows"
+		addActionListener {
+			SwingUtilities.invokeLater {
+				val selection = JOptionPane.showConfirmDialog(
+					this@RootTemplatesPanel,
+					"Delete Checked Rows?",
+					"Delete Templates",
+					JOptionPane.YES_NO_OPTION)
+				if (selection == 0)
+				{
+					rootTemplateEditPanel.templateRow =
+						newEmptyTemplateRow().apply { select() }
+					root.templates.clear()
+					val projectFilePath = workbench.availProjectFilePath
+					if (projectFilePath.isNotEmpty())
+					{
+						// Update the backing project file.
+						val writer = JSONWriter.newPrettyPrinterWriter()
+						workbench.availProject.writeTo(writer)
+						File(projectFilePath).writeText(writer.contents())
+					}
+					redrawTemplates()
+				}
+			}
+		}
+	}
+
 	init
 	{
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)
-		add(JScrollPane(
-			templatesPanel,
-			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER))
 
-		add(rootTemplateEditPanel)
-		val newTemplate = JButton("New").apply {
+		val checkAllTemplate = JButton("Check All").apply {
 			isOpaque = true
 			val currentHeight = height
 			val currentWidth = width
-			minimumSize = Dimension(currentWidth + 150, currentHeight + 40)
-			preferredSize = Dimension(currentWidth + 150, currentHeight + 40)
-			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			minimumSize = Dimension(currentWidth + 140, currentHeight + 30)
+			preferredSize = Dimension(currentWidth + 140, currentHeight + 30)
+			maximumSize = Dimension(currentWidth + 140, currentHeight + 30)
 			toolTipText = "Create a new template"
 			addActionListener {
 				SwingUtilities.invokeLater {
+					redrawTemplates(true)
+					deleteSelectedTemplate.isEnabled = true
+				}
+			}
+		}
+		val uncheckAllTemplate = JButton("Uncheck All").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 140, currentHeight + 30)
+			preferredSize = Dimension(currentWidth + 140, currentHeight + 30)
+			maximumSize = Dimension(currentWidth + 140, currentHeight + 30)
+			toolTipText = "Create a new template"
+			addActionListener {
+				SwingUtilities.invokeLater {
+					redrawTemplates()
+					deleteSelectedTemplate.isEnabled = false
+				}
+			}
+		}
+
+		add(JPanel().apply {
+			layout = (FlowLayout(FlowLayout.LEFT))
+			minimumSize = Dimension(950, 50)
+			preferredSize = Dimension(950, 50)
+			maximumSize = Dimension(950, 50)
+			background = Color(0x3C, 0x3F, 0x41)
+			add(checkAllTemplate)
+			add(uncheckAllTemplate)
+			add(deleteSelectedTemplate)
+		})
+		add(JScrollPane(
+			templatesPanel,
+			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER).apply {
+			minimumSize = Dimension(950, 400)
+			preferredSize = Dimension(950, 400)
+			maximumSize = Dimension(950, 400)
+		})
+
+		add(rootTemplateEditPanel)
+
+		val importSettingsTemplates = JButton("Import From Settings").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
+			toolTipText = "Import expansion templates"
+			addActionListener {
+				SwingUtilities.invokeLater {
 					rootTemplateEditPanel.templateRow = newEmptyTemplateRow()
+				}
+			}
+		}
+
+		val importProjectTemplates = JButton("Import From Project").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
+			toolTipText = "Import expansion templates"
+			addActionListener {
+				SwingUtilities.invokeLater {
+					rootTemplateEditPanel.templateRow = newEmptyTemplateRow()
+				}
+			}
+		}
+
+		val importDefaultTemplates = JButton("Import Defaults").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
+			toolTipText = "Import expansion templates"
+			addActionListener {
+				SwingUtilities.invokeLater {
+					TemplateSettings.systemDefaultTemplates?.let {
+						root.templates.putAll(it.templates)
+						redrawTemplates()
+						val projectFilePath = workbench.availProjectFilePath
+						if (projectFilePath.isNotEmpty())
+						{
+							// Update the backing project file.
+							val writer = JSONWriter.newPrettyPrinterWriter()
+							workbench.availProject.writeTo(writer)
+							File(projectFilePath).writeText(writer.contents())
+						}
+					}
+				}
+			}
+		}
+
+		val exportTemplates = JButton("Export").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
+			toolTipText = "Export expansion templates"
+			addActionListener {
+				JFileChooser().apply chooser@ {
+					dialogTitle = "Select Settings File to Export To"
+					fileSelectionMode = JFileChooser.FILES_ONLY
+					fileFilter = FileNameExtensionFilter("*.json", "json")
+					addChoosableFileFilter(
+						object : FileFilter()
+						{
+							override fun getDescription(): String
+							{
+								return "Settings File (*.json)"
+							}
+
+							override fun accept(f: File?): Boolean
+							{
+								assert(f !== null)
+								return f!!.isFile
+									&& f.canWrite()
+									&& f.absolutePath.lowercase().endsWith(".json")
+							}
+						})
+					val result = showSaveDialog(this@RootTemplatesPanel)
+					if (result == JFileChooser.APPROVE_OPTION)
+					{
+						Settings.exportSettings(
+							selectedFile, root.templateSettings)
+					}
 				}
 			}
 		}
@@ -207,7 +401,10 @@ class RootTemplatesPanel constructor(
 			preferredSize = Dimension(950, 50)
 			maximumSize = Dimension(950, 50)
 			background = Color(0x3C, 0x3F, 0x41)
-			add(newTemplate)
+			add(importSettingsTemplates)
+			add(importProjectTemplates)
+			add(importDefaultTemplates)
+			add(exportTemplates)
 		})
 	}
 }
@@ -217,23 +414,23 @@ class RootTemplatesPanel constructor(
  *
  * @author Richard Arriaga
  *
- * @property templateName
- *   The template name corresponding to user inputs.
+ * @property templateKey
+ *   The unique template key corresponding the target template expansion.
  * @property expansion
  *   The expanded template.
  * @property root
  *   The [AvailProjectRoot] this template belongs to.
  * @property workbench
  *   The associated [AvailWorkbench]
- * @property parent
+ * @property parentPanel
  *   The [RootTemplatesPanel] this [TemplateRow] is in.
  */
 class TemplateRow constructor(
-	val templateName: String,
+	var templateKey: String,
 	val expansion: String,
 	val root: AvailProjectRoot,
 	val workbench: AvailWorkbench,
-	val parent: RootTemplatesPanel
+	val parentPanel: RootTemplatesPanel
 ): JPanel(GridBagLayout())
 {
 	/**
@@ -244,9 +441,22 @@ class TemplateRow constructor(
 	}
 
 	/**
+	 * Select this [TemplateRow].
+	 */
+	internal fun select ()
+	{
+		parentPanel.selectedRow.border =
+			BorderFactory.createEmptyBorder()
+		border = BorderFactory.createLineBorder(Color.BLUE)
+		parentPanel.selectedRow = this
+		parentPanel.rootTemplateEditPanel.templateRow = this
+		requestFocus()
+	}
+
+	/**
 	 * The [MouseAdapter] used to select this [TemplateRow] when clicked on.
 	 */
-	private val selectAdapter =
+	private val mouseSelectAdapter =
 		object : MouseAdapter()
 		{
 			override fun mouseClicked(e: MouseEvent)
@@ -255,15 +465,7 @@ class TemplateRow constructor(
 					&& e.button == MouseEvent.BUTTON1)
 				{
 					e.consume()
-					SwingUtilities.invokeLater {
-						parent.selectedRow.border =
-							BorderFactory.createEmptyBorder()
-						this@TemplateRow.border =
-							BorderFactory.createLineBorder(Color.BLUE)
-						parent.selectedRow = this@TemplateRow
-						parent.rootTemplateEditPanel.templateRow =
-							this@TemplateRow
-					}
+					SwingUtilities.invokeLater { select() }
 				}
 			}
 		}
@@ -274,28 +476,43 @@ class TemplateRow constructor(
 		minimumSize = Dimension(925, 35)
 		preferredSize = Dimension(925, 35)
 		maximumSize = Dimension(925, 35)
-		addMouseListener(selectAdapter)
+		addMouseListener(mouseSelectAdapter)
 	}
 
 	/**
-	 * The [JPanel] that displays the [templateName].
+	 * The [JPanel] that displays the [templateKey].
 	 */
 	private val templateNamePanel: JPanel = JPanel().apply {
 		border = BorderFactory.createEmptyBorder()
 		layout = BoxLayout(this, BoxLayout.X_AXIS)
 		add(Box.createRigidArea(Dimension(10, 0)))
-		addMouseListener(selectAdapter)
+		addMouseListener(mouseSelectAdapter)
 	}
 
 	/**
-	 * The [templateName].
+	 * The [templateKey].
 	 */
 	@Suppress("unused")
-	private val templateKey: JLabel =
-		JLabel(templateName).apply {
+	val templateKeyCheckBox: JCheckBox =
+		JCheckBox("  $templateKey").apply {
 			font = font.deriveFont(font.style or Font.BOLD)
 			templateNamePanel.add(this)
-			addMouseListener(selectAdapter)
+			addMouseListener(mouseSelectAdapter)
+			addItemListener {
+				if (it.stateChange == 1)
+				{
+					parentPanel.checkedRowsKeys.add(templateKey)
+					parentPanel.deleteSelectedTemplate.isEnabled = true
+				}
+				else
+				{
+					parentPanel.checkedRowsKeys.remove(templateKey)
+					if (parentPanel.checkedRowsKeys.isEmpty())
+					{
+						parentPanel.deleteSelectedTemplate.isEnabled = false
+					}
+				}
+			}
 		}
 
 	init
@@ -328,15 +545,15 @@ class TemplateRow constructor(
 			addActionListener {
 				val selection = JOptionPane.showConfirmDialog(
 					this@TemplateRow,
-					"Delete '$templateName'?",
+					"Delete '$templateKey'?",
 					"Delete Template",
 					JOptionPane.YES_NO_OPTION)
 				if (selection == 0)
 				{
-					root.templates.remove(templateName)
-					if (this@TemplateRow.parent.selectedRow == this@TemplateRow)
+					root.templates.remove(templateKey)
+					if (this@TemplateRow.parentPanel.selectedRow == this@TemplateRow)
 					{
-						this@TemplateRow.parent.clearSelectedRow()
+						this@TemplateRow.parentPanel.clearSelectedRow()
 					}
 					SwingUtilities.invokeLater {
 						val projectFilePath =
@@ -349,7 +566,7 @@ class TemplateRow constructor(
 								.writeTo(writer)
 							File(projectFilePath).writeText(writer.contents())
 						}
-						this@TemplateRow.parent.redrawTemplates()
+						this@TemplateRow.parentPanel.redrawTemplates()
 					}
 				}
 			}
@@ -389,13 +606,14 @@ class TemplateRow constructor(
  *   The [TemplateRow] to initially populate this pane with.
  */
 class RootTemplateEditPanel constructor(
+	val parentPanel: RootTemplatesPanel,
 	initialTemplateRow: TemplateRow
 ) : JPanel()
 {
 	/**
 	 * Temporary holder of template name. If saved, will override current name.
 	 */
-	var tempName = initialTemplateRow.templateName
+	var templateKey = initialTemplateRow.templateKey
 
 	/**
 	 * Temporary holder of template expansion. If saved, will override current
@@ -405,9 +623,9 @@ class RootTemplateEditPanel constructor(
 
 	/**
 	 * Validate the name and expansion of the template. Considered invalid if:
-	 *  1. [tempName] is empty
+	 *  1. [templateKey] is empty
 	 *  2. [expansion] is empty
-	 *  3. [tempName] is a duplicate of an existing template.
+	 *  3. [templateKey] is a duplicate of an existing template.
 	 */
 	private fun validateUpdates ()
 	{
@@ -415,13 +633,13 @@ class RootTemplateEditPanel constructor(
 		applyChanges.isEnabled = false
 		when
 		{
-			tempName != templateRow.templateName ->
+			templateKey != templateRow.templateKey ->
 			{
 				when
 				{
-					templateRow.root.templates.containsKey(tempName) ->
+					templateRow.root.templates.containsKey(templateKey) ->
 					{
-						duplicates.text = "Template $tempName already exists"
+						duplicates.text = "Template $templateKey already exists"
 					}
 					else ->
 					{
@@ -438,25 +656,25 @@ class RootTemplateEditPanel constructor(
 
 	/** The template name. */
 	private val templateNameTextField = JTextField(35).apply {
-		text = tempName
+		text = templateKey
 		document.addDocumentListener(
 			object: DocumentListener
 			{
 				override fun insertUpdate(e: DocumentEvent?)
 				{
-					tempName = text
+					templateKey = text
 					validateUpdates()
 				}
 
 				override fun removeUpdate(e: DocumentEvent?)
 				{
-					tempName = text
+					templateKey = text
 					validateUpdates()
 				}
 
 				override fun changedUpdate(e: DocumentEvent?)
 				{
-					tempName = text
+					templateKey = text
 					validateUpdates()
 				}
 			})
@@ -497,16 +715,16 @@ class RootTemplateEditPanel constructor(
 		set(value)
 		{
 			field = value
-			tempName = value.templateName
+			templateKey = value.templateKey
 			expansion = value.expansion
 			SwingUtilities.invokeLater {
-				templateNameTextField.text = tempName
+				templateNameTextField.text = templateKey
 				expansionField.text = expansion
 			}
 		}
 
 	/**
-	 * The label that indicates if the new [tempName] already exists.
+	 * The label that indicates if the new [templateKey] already exists.
 	 */
 	val duplicates = JLabel(" ").apply {
 		foreground = Color.RED
@@ -527,7 +745,8 @@ class RootTemplateEditPanel constructor(
 		toolTipText = "Apply Changes"
 		addActionListener {
 			SwingUtilities.invokeLater {
-				templateRow.root.templates[tempName] = expansion
+				templateRow.root.templates[templateKey] = expansion
+				templateRow.templateKey = templateKey
 				val projectFilePath = templateRow.workbench.availProjectFilePath
 				if (projectFilePath.isNotEmpty())
 				{
@@ -536,7 +755,27 @@ class RootTemplateEditPanel constructor(
 					templateRow.workbench.availProject.writeTo(writer)
 					File(projectFilePath).writeText(writer.contents())
 				}
-				templateRow.parent.redrawTemplates()
+				templateRow.parentPanel.redrawTemplates()
+			}
+		}
+	}
+
+	/**
+	 * The button that resets this view to create new template expansion.
+	 */
+	private val newTemplate = JButton("New").apply {
+		isOpaque = true
+		val currentHeight = height
+		val currentWidth = width
+		minimumSize = Dimension(currentWidth + 125, currentHeight + 30)
+		preferredSize = Dimension(currentWidth + 125, currentHeight + 30)
+		maximumSize = Dimension(currentWidth + 125, currentHeight + 30)
+		toolTipText = "Create a new template"
+		addActionListener {
+			SwingUtilities.invokeLater {
+				templateRow =
+					this@RootTemplateEditPanel.parentPanel
+						.newEmptyTemplateRow().apply { select() }
 			}
 		}
 	}
@@ -559,7 +798,9 @@ class RootTemplateEditPanel constructor(
 		}
 		namePanel.add(Box.createRigidArea(Dimension(20, 25)))
 		namePanel.add(applyChanges)
-		namePanel.add(Box.createRigidArea(Dimension(500, 25)))
+		namePanel.add(Box.createRigidArea(Dimension(10, 25)))
+		namePanel.add(newTemplate)
+		namePanel.add(Box.createRigidArea(Dimension(400 - newTemplate.width, 25)))
 		add(namePanel)
 		add(JPanel().apply {
 			layout = (FlowLayout(FlowLayout.LEFT))

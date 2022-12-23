@@ -33,7 +33,7 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.shortcuts.ShortcutManager
+import avail.anvil.settings.ShortcutManager
 import avail.anvil.shortcuts.OpenShortcutManagerShortcut
 import java.awt.event.ActionEvent
 

@@ -30,12 +30,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.shortcuts
+package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.structure.EditIcons
-import avail.anvil.settings.Settings
-import avail.anvil.settings.ShortcutSettings
+import avail.anvil.shortcuts.KeyboardShortcut
+import avail.anvil.shortcuts.KeyboardShortcutCategory
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -268,7 +268,7 @@ class ShortcutsPanel constructor(
 			minimumSize = Dimension(currentWidth + 150, currentHeight + 40)
 			preferredSize = Dimension(currentWidth + 150, currentHeight + 40)
 			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
-			toolTipText = "Imports shortcuts from a settings file"
+			toolTipText = "Export shortcuts to a settings file"
 			addActionListener {
 				JFileChooser().apply chooser@ {
 					dialogTitle = "Select Settings File to Export To"

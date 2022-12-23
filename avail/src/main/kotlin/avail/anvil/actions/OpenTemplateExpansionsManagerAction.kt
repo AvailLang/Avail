@@ -33,7 +33,7 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.TemplateExpansionsManager
+import avail.anvil.settings.TemplateExpansionsManager
 import java.awt.event.ActionEvent
 
 /**

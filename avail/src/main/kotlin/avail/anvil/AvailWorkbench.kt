@@ -96,8 +96,8 @@ import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.projects.GlobalAvailConfiguration
-import avail.anvil.projects.TemplateExpansionsManager
-import avail.anvil.shortcuts.ShortcutManager
+import avail.anvil.settings.TemplateExpansionsManager
+import avail.anvil.settings.ShortcutManager
 import avail.anvil.streams.BuildInputStream
 import avail.anvil.streams.BuildOutputStream
 import avail.anvil.streams.BuildOutputStreamEntry

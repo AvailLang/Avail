@@ -30,10 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.shortcuts
+package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.projects.KeyboardShortcutOverride
+import avail.anvil.shortcuts.Key
+import avail.anvil.shortcuts.KeyCode
+import avail.anvil.shortcuts.KeyboardShortcut
+import avail.anvil.shortcuts.ModifierKey
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
