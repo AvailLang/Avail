@@ -79,6 +79,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.A_Phrase.Companion.variable
@@ -381,6 +382,9 @@ class MacroSubstitutionPhraseDescriptor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		self.slot(MACRO_ORIGINAL_SEND).tokens
+
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
+		self.slot(MACRO_ORIGINAL_SEND).tokenIndicesInName
 
 	override fun o_TypeExpression(self: AvailObject): A_Phrase =
 		self.slot(OUTPUT_PHRASE).typeExpression

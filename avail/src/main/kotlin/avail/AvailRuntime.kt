@@ -1294,6 +1294,7 @@ class AvailRuntime constructor(
 			put(SpecialAtom.STATIC_TOKENS_KEY.atom)
 
 			at(160)
+			put(SpecialAtom.STATIC_TOKEN_INDICES_KEY.atom)
 			put(TokenType.END_OF_FILE.atom)
 			put(TokenType.KEYWORD.atom)
 			put(TokenType.LITERAL.atom)
@@ -1305,9 +1306,9 @@ class AvailRuntime constructor(
 			put(
 				continuationTypeForFunctionType(
 					functionTypeReturning(Types.TOP.o)))
-			put(CharacterDescriptor.nonemptyStringOfDigitsType)
 
 			at(170)
+			put(CharacterDescriptor.nonemptyStringOfDigitsType)
 			put(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
@@ -1345,12 +1346,14 @@ class AvailRuntime constructor(
 			put(PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
 			put(zeroOrOneOf(stylerFunctionType))
 			put(zeroOrOneOf(PhraseKind.PARSE_PHRASE.mostGeneralType))
+
+			at(180)
 			put(
 				PhraseKind.LITERAL_PHRASE.create(
 					LiteralTokenTypeDescriptor.literalTokenType(
 						stringType)))
+			at(181)
 
-			at(180)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
@@ -1383,6 +1386,7 @@ class AvailRuntime constructor(
 			put(SpecialAtom.SERVER_SOCKET_KEY.atom)
 			put(SpecialAtom.SOCKET_KEY.atom)
 			put(SpecialAtom.STATIC_TOKENS_KEY.atom)
+			put(SpecialAtom.STATIC_TOKEN_INDICES_KEY.atom)
 			put(SpecialAtom.TRUE.atom)
 			put(SpecialAtom.DONT_DEBUG_KEY.atom)
 			put(SpecialMethodAtom.ABSTRACT_DEFINER.atom)

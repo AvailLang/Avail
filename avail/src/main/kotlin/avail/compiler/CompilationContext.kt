@@ -86,6 +86,8 @@ import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.phrasePathRecord
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.numbers.A_Number
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
@@ -99,6 +101,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -112,7 +115,6 @@ import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
-import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -158,6 +160,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
 import avail.persistence.cache.Repository.PhraseNode
+import avail.persistence.cache.Repository.PhraseNode.PhraseNodeToken
 import avail.serialization.Serializer
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
@@ -1419,19 +1422,21 @@ class CompilationContext constructor(
 					}
 				}
 			}
-			val tokenSpans = phrase.tokens.mapNotNull { token: A_Token ->
-				if (!token.isInCurrentModule(module)) return@mapNotNull null
-				val start =
-					surrogateIndexConverter.availIndexToJavaIndex(token.start())
-				val pastEnd = surrogateIndexConverter.availIndexToJavaIndex(
-					token.pastEnd())
-				start to pastEnd
-			}
+			val tokenSpans =
+				(phrase.tokens zip phrase.tokenIndicesInName).mapNotNull {
+						(token: A_Token, indexInName: A_Number) ->
+					if (!token.isInCurrentModule(module)) return@mapNotNull null
+					val start = surrogateIndexConverter.availIndexToJavaIndex(
+						token.start())
+					val pastEnd = surrogateIndexConverter.availIndexToJavaIndex(
+						token.pastEnd())
+					PhraseNodeToken(start, pastEnd, indexInName.extractInt)
+				}
 			if (atomName === null && phrase.phraseKind == SEND_PHRASE)
 			{
 				println("HERE")
 			}
-			atomName = atomName ?: stringFrom("(${phrase.phraseKind.name})")
+			//atomName = atomName ?: stringFrom("(${phrase.phraseKind.name})")
 			val phraseNode = PhraseNode(
 				moduleName, atomName, tokenSpans, parent = parent)
 			parent.children.add(phraseNode)

@@ -414,6 +414,13 @@ open class AtomDescriptor protected constructor (
 		STATIC_TOKENS_KEY("Static tokens"),
 
 		/**
+		 * The atom used as a key in a [ParserState]'s
+		 * [ParserState.clientDataMap] to accumulate the tuple of one-based
+		 * indices of the static tokens associated with [STATIC_TOKENS_KEY].
+		 */
+		STATIC_TOKEN_INDICES_KEY("Static token indices"),
+
+		/**
 		 * The atom used to identify the entry in a [ParserState]'s
 		 * [ParserState.clientDataMap] containing the bundle of the macro send
 		 * for which the current fiber is computing a replacement phrase.

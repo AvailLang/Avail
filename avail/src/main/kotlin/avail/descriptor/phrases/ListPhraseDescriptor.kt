@@ -290,13 +290,6 @@ class ListPhraseDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.LIST_PHRASE
 
-	override fun o_Tokens(self: AvailObject): A_Tuple
-	{
-		val tokens = mutableListOf<A_Token>()
-		self.slot(EXPRESSIONS_TUPLE).forEach { tokens.addAll(it.tokens) }
-		return tupleFromList(tokens)
-	}
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("list phrase") }

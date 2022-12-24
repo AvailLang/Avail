@@ -90,6 +90,7 @@ object P_ModuleHeaderPseudoMacro
 					// Don't bother collecting tokens in header, since the
 					// original phrase of this macro already has them.
 					emptyTuple,
+					emptyTuple,
 					MODULE_HEADER.bundle,
 					newListNode(
 						tupleFromArray(

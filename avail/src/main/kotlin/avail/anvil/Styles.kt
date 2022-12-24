@@ -41,6 +41,7 @@ import avail.anvil.StyleFlag.Subscript
 import avail.anvil.StyleFlag.Superscript
 import avail.anvil.StyleFlag.Underline
 import avail.anvil.streams.StreamStyle
+import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.persistence.cache.Repository.PhraseNode
 import avail.persistence.cache.Repository.PhrasePathRecord
@@ -696,7 +697,7 @@ object PhrasePathStyleApplicator
 	/**
 	 * Apply all [style&#32;runs] to the receiver. Each style name is treated as
 	 * a comma-separated composite. Rendered styles compose rather than replace.
-	 * **Must be invoked on the Swing UI thread.**
+	 * **This must only be invoked on the Swing UI thread.**
 	 *
 	 * @param phrasePathsRecord
 	 *   The [PhrasePathRecord] containing information about phrase structure
@@ -707,15 +708,27 @@ object PhrasePathStyleApplicator
 	{
 		assert(SwingUtilities.isEventDispatchThread())
 		phrasePathsRecord.phraseNodesDo { phraseNode ->
-			val styleForPhrase = SimpleAttributeSet().apply {
-				addAttribute(PhraseNodeAttributeKey, phraseNode)
-			}
-			phraseNode.tokenSpans.forEach { (start, pastEnd) ->
+			phraseNode.tokenSpans.forEach { (start, pastEnd, indexInName) ->
+				val styleForToken = SimpleAttributeSet().apply {
+					addAttribute(
+						PhraseNodeAttributeKey,
+						TokenStyle(phraseNode, indexInName))
+				}
 				this.setCharacterAttributes(
-					start, pastEnd - start, styleForPhrase, false)
+					start, pastEnd - start, styleForToken, false)
 			}
 		}
 	}
+
+	/**
+	 * A [TokenStyle] contains information about which [PhraseNode] is
+	 * applicable for a span of source having this invisible style (under the
+	 * [PhraseNodeAttributeKey]), as well as which of the phrase's atom's
+	 * [MessageSplitter] parts occurred in this span of the source.
+	 */
+	data class TokenStyle(
+		val phraseNode: PhraseNode,
+		val tokenIndexInName: Int)
 
 	/**
 	 * An object to use as a key in an [AttributeSet], where the value is a

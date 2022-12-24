@@ -399,8 +399,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			tupleFromList(allStatements),
 			returnType,
 			exceptionsSet,
-			lineNumber,
-			tokens)
+			lineNumber)
 		block.makeImmutable()
 		// Pop and discard the top entry from the scope stack.
 		val fiber = interpreter.fiber()

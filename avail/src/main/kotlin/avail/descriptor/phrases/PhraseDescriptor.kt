@@ -52,6 +52,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.phraseKind
@@ -308,7 +309,9 @@ abstract class PhraseDescriptor protected constructor(
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type = bottom
 
-	abstract override fun o_Tokens(self: AvailObject): A_Tuple
+	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
+
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple = emptyTuple
 
 	/**
 	 * Validate this phrase, throwing an exception if there is a problem.  Do

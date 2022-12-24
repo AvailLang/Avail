@@ -35,6 +35,7 @@ package avail.compiler
 import avail.compiler.scanning.LexingState
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
@@ -209,6 +210,7 @@ enum class PragmaKind constructor(val lexeme: String)
 					val atom = atoms.single()
 					val send = newSendNode(
 						tuple(pragmaToken),
+						tuple(zero),
 						DECLARE_STRINGIFIER.bundle,
 						newListNode(tuple(syntheticLiteralNodeFor(atom))),
 						TOP.o)

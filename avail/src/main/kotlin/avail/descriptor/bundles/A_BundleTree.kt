@@ -117,10 +117,15 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * Answer the bundle trees that are waiting for a specific token to be
-		 * parsed.  These are organized as a map where each key is the
-		 * [A_String] form of an expected token, and the corresponding value is
-		 * the successor [A_BundleTree] representing the situation where a token
-		 * matching the key was consumed.
+		 * parsed.  These are organized as a two-layer map.  The outer map is
+		 * keyed by the [A_String] form of an expected token, and each
+		 * corresponding inner map is from the keyword index to the successor
+		 * [A_BundleTree] representing the situation where a token matching the
+		 * key was consumed, and it had the keyword index that led to this new
+		 * bundle tree.
+		 *
+		 * The two layered map allows the correct keyword index to be captured
+		 * with a consumed token during parsing.
 		 *
 		 * This is only an authoritative map if an [expand] has been invoked
 		 * since the last modification via methods like [addPlanInProgress].
@@ -133,11 +138,15 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * Answer the bundle trees that are waiting for a specific
-		 * case-insensitive token to be parsed.  These are organized as a map
-		 * where each key is the lower-case string form of an expected
-		 * case-insensitive token, and the corresponding value is the successor
-		 * bundle tree representing the situation where a token
-		 * case-insensitively matching the key was consumed.
+		 * case-insensitive token to be parsed.  These are organized as a
+		 * two-layer map.  The outer map is keyed by the lower-case [A_String]
+		 * form of an expected token, and each corresponding inner map is from
+		 * the keyword index to the successor [A_BundleTree] representing the
+		 * situation where a token matching the key was consumed, and it had the
+		 * keyword index that led to this new bundle tree.
+		 *
+		 * The two layered map allows the correct keyword index to be captured
+		 * with a consumed token during parsing.
 		 *
 		 * This is only an authoritative map if an [expand] has been invoked
 		 * since the last modification via methods like [addPlanInProgress].

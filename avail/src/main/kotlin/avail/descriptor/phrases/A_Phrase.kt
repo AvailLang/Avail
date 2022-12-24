@@ -34,6 +34,7 @@ package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.AvailCompiler
 import avail.compiler.CompilationContext
+import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.functions.A_RawFunction
@@ -639,6 +640,20 @@ interface A_Phrase : A_BasicObject {
 		 *   The requested tuple of [tokens][A_Token].
 		 */
 		val A_Phrase.tokens: A_Tuple get() = dispatch { o_Tokens(it) }
+
+		/**
+		 * Answer the [tuple][A_Token] of the one-based indices of the tokens
+		 * that contributed to this phrase.  The indices refer to the sent
+		 * [A_Bundle]'s tuple of parts produced by the [MessageSplitter].
+		 *
+		 * If the phrase is not a send or macro, or if the phrase was not parsed
+		 * from source, these indices will be zero.
+		 *
+		 * @return
+		 *   The requested tuple of [tokens][A_Token].
+		 */
+		val A_Phrase.tokenIndicesInName: A_Tuple get() =
+			dispatch { o_TokenIndicesInName(it) }
 
 		/**
 		 * Answer all [tokens][A_Token] belong to the receiver or its

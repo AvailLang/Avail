@@ -416,6 +416,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.stripMacro
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.A_Phrase.Companion.validateLocally
@@ -3487,6 +3488,9 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		self .. { tokens }
+
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
+		self .. { tokenIndicesInName }
 
 	override fun o_ChooseBundle(
 		self: AvailObject,

@@ -37,7 +37,6 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
-import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.maps.A_Map.Companion.mapAt
@@ -75,9 +74,6 @@ import avail.interpreter.execution.Interpreter
 object P_BootstrapAssignmentStatementCheckMacro
 	: Primitive(1, CannotFail, CanInline, Bootstrap)
 {
-	/** The key to the all tokens tuple in the fiber's environment. */
-	private val staticTokensKey = STATIC_TOKENS_KEY.atom
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)

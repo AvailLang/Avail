@@ -150,6 +150,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.A_Phrase.Companion.variable
@@ -2232,8 +2233,7 @@ enum class SerializerOperation constructor(
 		60,
 		BYTE.named("flags"),
 		OBJECT_REFERENCE.named("variable"),
-		OBJECT_REFERENCE.named("expression"),
-		OBJECT_REFERENCE.named("tokens"))
+		OBJECT_REFERENCE.named("expression"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2243,17 +2243,16 @@ enum class SerializerOperation constructor(
 			return array(
 				fromInt(if (isInline) 1 else 0),
 				obj.variable,
-				obj.expression,
-				obj.tokens)
+				obj.expression)
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (isInline, variableUse, expression, tokens) = subobjects
+			val (isInline, variableUse, expression) = subobjects
 			return newAssignment(
-				variableUse, expression, tokens, !isInline.equalsInt(0))
+				variableUse, expression, !isInline.equalsInt(0))
 		}
 	},
 
@@ -2267,8 +2266,7 @@ enum class SerializerOperation constructor(
 		TUPLE_OF_OBJECTS.named("statements tuple"),
 		OBJECT_REFERENCE.named("result type"),
 		TUPLE_OF_OBJECTS.named("declared exceptions"),
-		UNSIGNED_INT.named("starting line number"),
-		TUPLE_OF_OBJECTS.named("tokens"))
+		UNSIGNED_INT.named("starting line number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2285,8 +2283,7 @@ enum class SerializerOperation constructor(
 				obj.statementsTuple,
 				obj.resultType(),
 				obj.declaredExceptions.asTuple,
-				fromInt(obj.codeStartingLineNumber),
-				obj.tokens)
+				fromInt(obj.codeStartingLineNumber))
 		}
 
 		override fun compose(
@@ -2299,7 +2296,6 @@ enum class SerializerOperation constructor(
 			val resultType = subobjects[3]
 			val declaredExceptionsTuple = subobjects[4]
 			val startingLineNumber = subobjects[5]
-			val tokens = subobjects[6]
 			val primitive = when (primitiveName.tupleSize)
 			{
 				0 -> null
@@ -2311,8 +2307,7 @@ enum class SerializerOperation constructor(
 				statementsTuple,
 				resultType,
 				declaredExceptionsTuple.asSet,
-				startingLineNumber.extractInt,
-				tokens)
+				startingLineNumber.extractInt)
 		}
 	},
 
@@ -2535,7 +2530,8 @@ enum class SerializerOperation constructor(
 		OBJECT_REFERENCE.named("bundle"),
 		OBJECT_REFERENCE.named("arguments list phrase"),
 		OBJECT_REFERENCE.named("return type"),
-		TUPLE_OF_OBJECTS.named("tokens"))
+		TUPLE_OF_OBJECTS.named("tokens"),
+		COMPRESSED_INT_TUPLE.named("token indices in name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2545,15 +2541,18 @@ enum class SerializerOperation constructor(
 				obj.bundle,
 				obj.argumentsListNode,
 				obj.phraseExpressionType,
-				obj.tokens)
+				obj.tokens,
+				obj.tokenIndicesInName)
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (bundle, argsListNode, returnType, tokens) = subobjects
-			return newSendNode(tokens, bundle, argsListNode, returnType)
+			val (bundle, argsListNode, returnType, tokens, tokenIndices) =
+				subobjects
+			return newSendNode(
+				tokens, tokenIndices, bundle, argsListNode, returnType)
 		}
 	},
 

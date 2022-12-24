@@ -36,6 +36,7 @@ import avail.AvailRuntime
 import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
+import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.PhrasePathStyleApplicator.applyPhrasePaths
 import avail.anvil.StyleApplicator.applyStyleRuns
 import avail.anvil.actions.FindAction
@@ -58,6 +59,8 @@ import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.manifestEntries
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
@@ -65,9 +68,11 @@ import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.persistence.cache.Repository.PhraseNode
 import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
+import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.escapedForHTML
 import avail.utility.iterableWith
 import avail.utility.notNullAnd
+import avail.utility.structures.RunTree
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
@@ -342,25 +347,84 @@ class AvailEditor constructor(
 	private fun updatePhraseStructure()
 	{
 		val doc = sourcePane.styledDocument
-		val element = doc.getCharacterElement(
-			min(range.markPosition.offset + 1, doc.length))
-		val attributes = element.attributes
-		val phraseNode =
-			attributes.getAttribute(PhraseNodeAttributeKey) as PhraseNode?
+		// First look to the right of the cursor position.
+		val mark = range.markPosition.offset
+		var element = doc.getCharacterElement(min(mark + 1, doc.length))
+		var tokenStyle = element.attributes.getAttribute(PhraseNodeAttributeKey)
+			as? TokenStyle
+		if (tokenStyle == null)
+		{
+			// If there's no phrase structure information for the character to
+			// the right of the cursor, try looking to the left.
+			element = doc.getCharacterElement(mark)
+			tokenStyle = element.attributes.getAttribute(PhraseNodeAttributeKey)
+				as? TokenStyle
+		}
+		val phraseNode = tokenStyle?.phraseNode
 		// Reverse the list, so the first element is the top-most phrase.
-		val nodes =
-			phraseNode.iterableWith(PhraseNode::parent).reversed().iterator()
+		val nodes = phraseNode.iterableWith(PhraseNode::parent).reversed()
+		val nodesSize = nodes.size
 		(parseStructureList.model as DefaultListModel).run {
 			clear()
-			while (nodes.hasNext())
+			var i = 0
+			while (i < nodesSize)
 			{
-				val node = nodes.next()
-				val newElement = when (val parent = node.parent)
+				val node = nodes[i++]
+				val runs = RunTree<List<String>>()
+				if (node.atomName !== null)
 				{
-					null -> PhraseExplanation(node, -1, 0)
-					else -> PhraseExplanation(
-						node, node.indexInParent, parent.children.size)
+					// This is a send or macro.  Highlight the part of the name
+					// in which the subphrase occurs.
+					var subindices = (i until nodesSize)
+						.takeWhile { nodes[it].atomName === null }
+						.map { nodes[it].indexInParent }
+					// Consume the chain of indices.
+					i += subindices.size
+					// Add the indexInParent of the next child as well, but
+					// don't consume it.
+					if (i < nodesSize)
+					{
+						subindices = subindices.append(nodes[i].indexInParent)
+					}
+					if (node === nodes.last())
+					{
+						// We're at the leaf.  Color only the token indicated
+						// in the tokenStyle, to indicate which token of the
+						// message this was.
+						tokenStyle?.tokenIndexInName?.let { tokenIndexInName ->
+							if (tokenIndexInName > 0)
+							{
+								phraseNode!!.splitter
+									?.highlightMessagePartIndex(
+										tokenIndexInName)
+									?.let { range ->
+										runs.edit(
+											range.first + 0L,
+											range.last + 1L
+										) { old ->
+											(old ?: emptyList()).append(
+												"font color='red'")
+										}
+									}
+							}
+						}
+					}
+					else
+					{
+						val range =
+							node.splitter!!.highlightRangeForPath(subindices)
+						runs.edit(range.first + 0L, range.last + 1L) { old ->
+							(old ?: emptyList()).append("font color='red'")
+						}
+					}
 				}
+				val (index, siblingCount) = when (val parent = node.parent)
+				{
+					null -> -1 to 0
+					else -> node.indexInParent to parent.children.size
+				}
+				val newElement =
+					PhraseExplanation(node, index, siblingCount, runs)
 				addElement(newElement)
 			}
 		}
@@ -385,24 +449,46 @@ class AvailEditor constructor(
 	data class PhraseExplanation(
 		val phraseNode: PhraseNode,
 		val childIndex: Int,
-		val siblingsCount: Int)
+		val siblingsCount: Int,
+		val htmlTagRuns: RunTree<List<String>>)
 	{
 		/**
 		 * Produce suitable HTML text indicating the message sent by this
 		 * phrase, and which argument position the next subphrase down occupies.
 		 *
-		 * For now, just use the send phrase's name directly with no indication
-		 * of which argument position the subphrase is in.
+		 * Use the [htmlTagRuns] to insert html tag names (and attributes) to
+		 * mark up spans of text, in the Avail one-based coordinate system.
 		 */
 		val htmlText = buildString {
-			if (childIndex >= 0)
-			{
-				append("@${childIndex + 1}/$siblingsCount: ")
-			}
 			when (val atomName = phraseNode.atomName)
 			{
 				null -> append("...")
-				else -> append(atomName.asNativeString().escapedForHTML())
+				else ->
+				{
+					var here = 1
+					htmlTagRuns.forEach { (start, pastEnd, tags) ->
+						if (start > here)
+						{
+							val gap = atomName.copyStringFromToCanDestroy(
+								here, start.toInt() - 1, false)
+							append(gap.asNativeString().escapedForHTML())
+							here = start.toInt()
+						}
+						val part = atomName.copyStringFromToCanDestroy(
+							here, pastEnd.toInt() - 1, false)
+						tags.forEach { tag -> append("<$tag>") }
+						append(part.asNativeString().escapedForHTML())
+						// Close the tags in reverse order, only using up to the
+						// space after a tag name if it has attributes.
+						tags.reversed().forEach { tag ->
+							append("</${tag.substringBefore(' ')}>")
+						}
+						here = pastEnd.toInt()
+					}
+					val trailer = atomName.copyStringFromToCanDestroy(
+						here, atomName.tupleSize, false)
+					append(trailer.asNativeString().escapedForHTML())
+				}
 			}
 		}
 	}
@@ -655,7 +741,8 @@ class AvailEditor constructor(
 			PhraseExplanation(
 				PhraseNode(null, null, emptyList(), parent = null),
 				0,
-				1)
+				1,
+				RunTree())
 		parseStructureList.visibleRowCount = 10
 		minimumSize = Dimension(650, 350)
 		preferredSize = Dimension(800, 1000)

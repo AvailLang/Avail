@@ -675,9 +675,6 @@ class DeclarationPhraseDescriptor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.DECLARATION_PHRASE
 
-	override fun o_Tokens(self: AvailObject): A_Tuple =
-		tuple(self.slot(TOKEN))
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") {

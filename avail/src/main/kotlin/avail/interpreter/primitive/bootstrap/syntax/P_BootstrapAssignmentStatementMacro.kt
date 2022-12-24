@@ -36,7 +36,6 @@ import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
-import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.maps.A_Map.Companion.mapAt
@@ -82,9 +81,6 @@ import avail.interpreter.primitive.style.P_BootstrapStatementStyler
 object P_BootstrapAssignmentStatementMacro
 	: Primitive(2, CannotFail, CanInline, Bootstrap)
 {
-	/** The key to the all tokens tuple in the fiber's environment. */
-	private val staticTokensKey = STATIC_TOKENS_KEY.atom
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
@@ -144,9 +140,8 @@ object P_BootstrapAssignmentStatementMacro
 					declaration.declaredType)
 			}
 		}
-		val tokens = clientData.mapAt(staticTokensKey)
 		val assignment = newAssignment(
-			newUse(actualToken, declaration), valueExpression, tokens, false)
+			newUse(actualToken, declaration), valueExpression, false)
 		assignment.makeImmutable()
 		val assignmentAsStatement = newExpressionAsStatement(assignment)
 		return interpreter.primitiveSuccess(assignmentAsStatement)

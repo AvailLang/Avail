@@ -3766,6 +3766,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_Tokens (self: AvailObject): A_Tuple
 
+	abstract fun o_TokenIndicesInName (self: AvailObject): A_Tuple
+
 	abstract fun o_ChooseBundle (
 		self: AvailObject,
 		currentModule: A_Module): A_Bundle

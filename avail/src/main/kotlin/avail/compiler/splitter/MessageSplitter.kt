@@ -263,7 +263,7 @@ private constructor(messageName: A_String)
 	 */
 	private val currentPositionForStart: Int get() = when (messagePartPosition)
 	{
-		messageParts.size + 1 -> messageName.tupleSize
+		messageParts.size + 1 -> messageName.tupleSize + 1
 		else -> messagePartPositions[messagePartPosition - 1]
 	}
 
@@ -273,10 +273,10 @@ private constructor(messageName: A_String)
 	 */
 	private val currentPositionForEnd: Int get() = when (messagePartPosition)
 	{
-		messageParts.size + 1 -> messageName.tupleSize
+		messageParts.size + 1 -> messageName.tupleSize + 1
 		1 -> 1
-		else -> messagePartPositions[messagePartPosition - 1] +
-			messageParts[messagePartPosition - 1].tupleSize
+		else -> messagePartPositions[messagePartPosition - 2] +
+			messageParts[messagePartPosition - 2].tupleSize
 	}
 
 	/**
@@ -495,8 +495,8 @@ private constructor(messageName: A_String)
 		VERTICAL_BAR("|");
 
 		/** The Avail [A_String] denoting this metacharacter. */
-		val string: A_String = stringFrom(javaString).makeShared().also {
-			assert(it.tupleSize == 1)
+		val string: A_String = stringFrom(javaString).makeShared().apply {
+			assert(tupleSize == 1)
 		}
 
 		/** The sole codepoint ([Int]) of this [Metacharacter] instance. */
@@ -730,6 +730,87 @@ private constructor(messageName: A_String)
 			zeroBasedPosition until zeroBasedPosition,
 			CompilerDiagnostics.errorIndicatorSymbol)
 		return stringFrom(annotatedString).toString()
+	}
+
+	/**
+	 * Given a series of one-based indices that indicate how to traverse the
+	 * nested lists of some call site to a single point of interest, follow the
+	 * corresponding [Expression]s to identify the region of the name identified
+	 * by that path.
+	 *
+	 * The returned range includes both the first and last character position of
+	 * the range, using one-based indexing.
+	 */
+	fun highlightRangeForPath(
+		indices: List<Int>
+	): IntRange
+	{
+		var expression: Expression = rootSequence
+		val indicesIterator = indices.iterator()
+		while (indicesIterator.hasNext())
+		{
+			val index = indicesIterator.next()
+			when (expression)
+			{
+				is Sequence ->
+				{
+					val yielders = expression.yielders
+					if (index - 1 !in yielders.indices) break
+					expression = yielders[index - 1]
+				}
+				is Group ->
+				{
+					// Ignore the current index, since it's just the group
+					// repetition index, which doesn't affect the highlight.
+					val leftYielders = expression.beforeDagger.yielders
+					val rightYielders = expression.afterDagger.yielders
+					if (leftYielders.size == 1 && rightYielders.isEmpty())
+					{
+						// It's a singly-wrapped group, so go immediately to the
+						// sole left yielder without consuming another index.
+						expression = leftYielders.single()
+					}
+					else
+					{
+						// It's a doubly-wrapped group.  Consume another index
+						// and figure out which left or right yielder to visit.
+						if (indicesIterator.hasNext())
+						{
+							val nextZeroIndex = indicesIterator.next() - 1
+							val nextMinusLeft =
+								nextZeroIndex - leftYielders.size
+							expression = when
+							{
+								nextMinusLeft < 0 -> leftYielders[nextZeroIndex]
+								nextMinusLeft < rightYielders.size ->
+									rightYielders[nextMinusLeft]
+								// Invalid index.
+								else -> break
+							}
+						}
+					}
+				}
+			}
+		}
+		return expression.startInName until expression.pastEndInName
+	}
+
+	/**
+	 * Given a one-based [messagePartIndex] into this splitter's tokenized
+	 * parts, answer the one-based (inclusive) range of the message covered by
+	 * that message part.
+	 *
+	 * The returned range includes both the first and last character position of
+	 * the range, using one-based indexing.
+	 */
+	fun highlightMessagePartIndex(
+		messagePartIndex: Int
+	): IntRange
+	{
+		assert(messagePartIndex > 0)
+		val start = messagePartPositions[messagePartIndex - 1]
+		val size = messageParts[messagePartIndex - 1].tupleSize
+		return start until start + size
 	}
 
 	/**

@@ -42,7 +42,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.variable
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.IntegerSlots.Companion.IS_INLINE
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.EXPRESSION
-import avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.TOKENS
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.ObjectSlots.VARIABLE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LABEL
@@ -59,7 +58,6 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -130,13 +128,7 @@ class AssignmentPhraseDescriptor private constructor(
 		 * The actual [expression][PhraseDescriptor] providing the value to
 		 * assign.
 		 */
-		EXPRESSION,
-
-		/**
-		 * The [A_Tuple] of [A_Token]s, if any, from which the assignment was
-		 * constructed.
-		 */
-		TOKENS
+		EXPRESSION
 	}
 
 	override fun printObjectOnAvoidingIndent(
@@ -168,8 +160,7 @@ class AssignmentPhraseDescriptor private constructor(
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
 		&& self.slot(VARIABLE).equalsPhrase(aPhrase.variable)
-		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression)
-		&& self.slot(TOKENS).equals(aPhrase.tokens))
+		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression))
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
@@ -247,8 +238,6 @@ class AssignmentPhraseDescriptor private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.ASSIGNMENT_PHRASE
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("assignment phrase") }
@@ -291,8 +280,6 @@ class AssignmentPhraseDescriptor private constructor(
 		 *   A use of the variable into which to assign.
 		 * @param expression
 		 *   The expression whose value should be assigned to the variable.
-		 * @param tokens
-		 *   The tuple of tokens that formed this assignment.
 		 * @param isInline
 		 *   `true` to create an inline assignment, `false` otherwise.
 		 * @return
@@ -301,12 +288,10 @@ class AssignmentPhraseDescriptor private constructor(
 		fun newAssignment(
 			variableUse: A_Phrase,
 			expression: A_Phrase,
-			tokens: A_Tuple,
 			isInline: Boolean
 		): A_Phrase = mutable.createShared {
 			setSlot(VARIABLE, variableUse)
 			setSlot(EXPRESSION, expression)
-			setSlot(TOKENS, tokens)
 			setSlot(IS_INLINE, if (isInline) 1 else 0)
 			initHash()
 		}

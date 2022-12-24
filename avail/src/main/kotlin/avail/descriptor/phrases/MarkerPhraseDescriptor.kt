@@ -171,8 +171,6 @@ class MarkerPhraseDescriptor private constructor(
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
-
 	/** Marker phrases should have been replaced before validation. */
 	override fun o_ValidateLocally(self: AvailObject): Unit = unsupported
 

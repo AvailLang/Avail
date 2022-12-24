@@ -130,9 +130,6 @@ class ExpressionAsStatementPhraseDescriptor(
 		continuation: (A_Phrase) -> Unit
 	) = continuation(self)
 
-	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("expression as statement phrase") }

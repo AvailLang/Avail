@@ -197,7 +197,11 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				tuple(
 					tuple(
 						newSendNode(
-							emptyTuple, bundle, argsListPhrase, intersection)),
+							emptyTuple,
+							emptyTuple,
+							bundle,
+							argsListPhrase,
+							intersection)),
 					emptyTuple))
 		}
 
@@ -273,6 +277,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 								tuple(
 									tuple(
 										newSendNode(
+											emptyTuple,
 											emptyTuple,
 											bundle,
 											argsListPhrase,

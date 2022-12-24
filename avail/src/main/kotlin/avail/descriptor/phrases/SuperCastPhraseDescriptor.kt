@@ -156,9 +156,6 @@ class SuperCastPhraseDescriptor private constructor(
 	override fun o_SuperUnionType(self: AvailObject): A_Type =
 		self.slot(TYPE_FOR_LOOKUP)
 
-	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("super cast phrase") }

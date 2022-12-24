@@ -34,6 +34,7 @@ package avail.compiler
 
 import avail.compiler.AvailCompiler.PartialSubexpressionList
 import avail.compiler.ParsingOperation.BRANCH_FORWARD
+import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.tokens.A_Token
@@ -71,11 +72,15 @@ import avail.utility.PrefixSharingList.Companion.withoutLast
  *   Whether any tokens or arguments had been consumed before encountering
  *   the most recent argument.  This is to improve diagnostics when argument
  *   type checking is postponed past matches for subsequent tokens.
- * @property consumedStaticTokens
+ * @property staticTokens
  *   The immutable [List] of "static" [A_Token]s that have been encountered
  *   and consumed for the current method or macro invocation being parsed.
- *   These are the tokens that correspond with tokens that occur verbatim
- *   inside the name of the method or macro.
+ *   These also include the one-based part index of the static token within the
+ *   [MessageSplitter]'s tuple of tokens.
+ * @property superexpressions
+ *   The [PartialSubexpressionList] (or null) which forms a chain of partially
+ *   constructed outer phrases, used for describing the circumstance of a syntax
+ *   errer.
  * @property continuation
  *   What to do with a complete [message&#32;send][SendPhraseDescriptor].
  *
@@ -89,7 +94,7 @@ internal class ParsingStepState constructor(
 	var initialTokenPosition: ParserState,
 	var consumedAnything: Boolean,
 	var consumedAnythingBeforeLatestArgument: Boolean,
-	var consumedStaticTokens: List<A_Token>,
+	var staticTokens: List<Pair<A_Token, Int>>,
 	var superexpressions: PartialSubexpressionList?,
 	var continuation: (ParserState, A_Phrase)->Unit)
 {
@@ -110,7 +115,7 @@ internal class ParsingStepState constructor(
 			initialTokenPosition,
 			consumedAnything,
 			consumedAnythingBeforeLatestArgument,
-			consumedStaticTokens,
+			staticTokens,
 			superexpressions,
 			continuation)
 		copy.update()

@@ -54,6 +54,8 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -174,6 +176,9 @@ class ReferencePhraseDescriptor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		self.slot(VARIABLE).tokens
+
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
+		generateIntTupleFrom(self.slot(VARIABLE).tokens.tupleSize) { 0 }
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

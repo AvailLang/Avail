@@ -175,7 +175,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V10")
+		"Avail compiled module repository V11")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
@@ -1391,8 +1391,11 @@ class Repository constructor(
 	 *   the name of the sent bundle's atom.  Otherwise `null`.
 	 * @property tokenSpans
 	 *   The regions of the file that tokens of this phrase occupy.  Each region
-	 *   is a [Pair] of [Int]s representing the one-based start and pastEnd
+	 *   is a [PhraseNodeToken] representing the one-based start and pastEnd
 	 *   positions in the source string, adjusted to UCS-2 ("Char") positions.
+	 *   It also contains an index into the [splitter]'s tuple of parts, to say
+	 *   what the token was, or zero if it was not a literal part of the message
+	 *   name.
 	 * @property children
 	 *   The children of this phrase, which roughly correspond to subphrases.
 	 *   For a send phrase or macro send phrase, these may be the argument
@@ -1407,10 +1410,40 @@ class Repository constructor(
 	constructor(
 		val atomModuleName: A_String?,
 		val atomName: A_String?,
-		val tokenSpans: List<Pair<Int, Int>>,
+		val tokenSpans: List<PhraseNodeToken>,
 		val children: MutableList<PhraseNode> = mutableListOf(),
 		var parent: PhraseNode?)
 	{
+		/**
+		 * An entry in the [tokenSpans] of a PhraseNode.  The [start] and
+		 * [pastEnd] identify where the token occurs in the UCS-2 source
+		 * [String], but using one-based indices.  The [tokenIndexInName] is
+		 * either zero or a one-based index into the atom's [MessageSplitter]'s
+		 * [MessageSplitter.messageParts], indicating the part of the message
+		 * that this token matched during parsing.
+		 *
+		 * TODO 2022.12.19 - This just indicates the first equivalent token in
+		 *  the tokenized message, since we don't preserve which tokens matched
+		 *  what during parsing.  So when we parse "a<b<c" as invocation of
+		 *  "_<_<_", we can't (yet) tell afterward that the "<" between a and b
+		 *  was the first "<" in the method name, and the "<" between b and c
+		 *  was the second "<" in the method name.
+		 *
+		 *  @property start
+		 *    The one-based index into the UCS-2 [String] at which the token
+		 *    begins.
+		 *  @property pastEnd
+		 *    The one-based index into the UCS-2 [String] just past the token.
+		 *  @property tokenIndexInName
+		 *    Either zero to indicate this was not a token that occurred in the
+		 *    actual method name, or the one-based index into the [PhraseNode]'s
+		 *    [MessageSplitter]'s tuple of tokenized parts.
+		 */
+		data class PhraseNodeToken(
+			val start: Int,
+			val pastEnd: Int,
+			val tokenIndexInName: Int)
+
 		/**
 		 * If the [atomName] is not null, this is a lazily-computed
 		 * [MessageSplitter] derived from that name.  Otherwise this is null.
@@ -1434,7 +1467,7 @@ class Repository constructor(
 				{
 					// Fill in the index of every child, for efficiency.
 					parent?.children?.forEachIndexed { i, child ->
-						child.indexInParent = i
+						child.indexInParent = i + 1
 					}
 				}
 				return field
@@ -1457,21 +1490,31 @@ class Repository constructor(
 			binaryStream.vlq(atomModuleName?.let(moduleNameMap::get) ?: 0)
 			binaryStream.vlq(atomName?.let(atomNameMap::get) ?: 0)
 			binaryStream.vlq(tokenSpans.size)
-			tokenSpans.forEach { (start, pastEnd) ->
+			tokenSpans.forEach { (start, pastEnd, tokenIndexInName) ->
 				binaryStream.zigzag(start - tokenCursor.value)
 				tokenCursor.value = start
 				binaryStream.zigzag(pastEnd - tokenCursor.value)
 				tokenCursor.value = pastEnd
+				binaryStream.vlq(tokenIndexInName)
 			}
 		}
 
 		fun depth() = iterableWith(PhraseNode::parent).count()
 
-		override fun toString(): String =
-			tokenSpans.joinToString(
+		override fun toString(): String
+		{
+			val indexInfo = when (val p = parent)
+			{
+				null -> ""
+				else -> "($indexInParent/${p.children.size}) "
+			}
+			return tokenSpans.joinToString(
 				", ",
-				"PhraseNode $atomName: "
-			) { (start, pastEnd) -> "[$start..$pastEnd)" }
+				"PhraseNode $indexInfo$atomName: "
+			) { (start, pastEnd, tokenIndex) ->
+				"[$start..$pastEnd #$tokenIndex)"
+			}
+		}
 
 		companion object
 		{
@@ -1502,9 +1545,10 @@ class Repository constructor(
 				val tokenSpans = (1..binaryStream.unvlqInt()).map {
 					val start = tokenCursor.value + binaryStream.unzigzagInt()
 					tokenCursor.value = start
-					val end = tokenCursor.value + binaryStream.unzigzagInt()
-					tokenCursor.value = end
-					start to end
+					val pastEnd = tokenCursor.value + binaryStream.unzigzagInt()
+					tokenCursor.value = pastEnd
+					val tokenIndexInName = binaryStream.unvlqInt()
+					PhraseNodeToken(start, pastEnd, tokenIndexInName)
 				}
 				return PhraseNode(
 					atomModuleName, atomName, tokenSpans, parent = null)

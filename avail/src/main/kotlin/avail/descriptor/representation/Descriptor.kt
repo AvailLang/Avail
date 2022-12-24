@@ -2368,6 +2368,8 @@ protected constructor (
 
 	override fun o_Tokens (self: AvailObject): A_Tuple = unsupported
 
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple = unsupported
+
 	override fun o_ChooseBundle (
 		self: AvailObject,
 		currentModule: A_Module): A_Bundle = unsupported
