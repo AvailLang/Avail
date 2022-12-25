@@ -30,10 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.shortcuts
+package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.projects.KeyboardShortcutOverride
+import avail.anvil.shortcuts.Key
+import avail.anvil.shortcuts.KeyCode
+import avail.anvil.shortcuts.KeyboardShortcut
+import avail.anvil.shortcuts.ModifierKey
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
@@ -99,9 +103,8 @@ class EditShortcutDialog constructor(
 			{
 				// There is no need to use the ksOverride as the override
 				// is the same Key as the shortcut's default key.
-				if (workbench.globalAvailConfiguration
-						.keyboardShortcutOverrides
-						.containsKey(shortcut.actionMapKey))
+				if (shortcut.actionMapKey in workbench
+					.globalAvailConfiguration.keyboardShortcutOverrides)
 				{
 					workbench.globalAvailConfiguration
 						.keyboardShortcutOverrides.remove(

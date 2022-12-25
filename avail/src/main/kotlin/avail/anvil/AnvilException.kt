@@ -1,5 +1,5 @@
 /*
- * OpenShortcutManagerAction.kt
+ * AnvilException.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,38 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.actions
-
-import avail.anvil.AvailWorkbench
-import avail.anvil.settings.TemplateExpansionsManager
-import java.awt.event.ActionEvent
+package avail.anvil
 
 /**
- * The [AbstractWorkbenchAction] that opens the [TemplateExpansionsManager]
+ * A [RuntimeException] specific to Anvil.
  *
  * @author Richard Arriaga
- *
- * @constructor
- * Construct a new [OpenTemplateExpansionsManagerAction].
- *
- * @param workbench
- *   The owning [AvailWorkbench].
  */
-class OpenTemplateExpansionsManagerAction constructor(
-	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Root Template Expansions")
+class AnvilException: RuntimeException
 {
-	override fun actionPerformed(e: ActionEvent?)
-	{
-		val tem = workbench.templateExpansionManager
-		if (tem == null)
-		{
-			workbench.templateExpansionManager =
-				TemplateExpansionsManager(workbench)
-		}
-		else
-		{
-			tem.toFront()
-		}
-	}
+	/**
+	 * Construct an [AnvilException].
+	 *
+	 * @param message
+	 *   The message that describes the nature of the exception.
+	 */
+	constructor(message: String) : super(message)
+
+	/**
+	 * Construct an [AnvilException].
+	 *
+	 * @param message
+	 *   The message that describes the nature of the exception.
+	 * @param cause
+	 *   The [Throwable] proximal cause of this [AnvilException].
+	 */
+	constructor(message: String, cause: Throwable) : super(message, cause)
 }
