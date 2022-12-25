@@ -32,6 +32,7 @@
 
 package avail.anvil.projects.manager
 
+import avail.anvil.AvailWorkbench
 import avail.anvil.projects.manager.AvailProjectManagerWindow.DisplayedPanel.*
 import avail.anvil.projects.GlobalAvailConfiguration
 import org.availlang.artifact.environment.project.AvailProject
@@ -83,8 +84,13 @@ class AvailProjectManagerWindow constructor(
 					title = "Create Project"
 					CreateProjectPanel(
 						globalConfig,
-						{
-
+						{ project, path ->
+							AvailWorkbench.launchWorkbenchWithProject(
+								project, globalConfig, path)
+							SwingUtilities.invokeLater {
+								displayed = KNOWN_PROJECTS
+								hideProjectManager()
+							}
 						})
 					{
 						displayed = KNOWN_PROJECTS

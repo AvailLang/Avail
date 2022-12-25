@@ -33,28 +33,26 @@
 package avail.anvil.projects.manager
 
 import avail.anvil.components.DirectoryChooser
-import avail.anvil.components.TextFieldTextFieldButton
 import avail.anvil.components.TextFieldWithLabel
 import avail.anvil.components.TextFieldWithLabelAndButton
-import avail.anvil.createScrollPane
 import avail.anvil.icons.ProjectManagerIcons
 import avail.anvil.projects.GlobalAvailConfiguration
-import org.availlang.artifact.environment.AvailEnvironment
+import org.availlang.artifact.environment.location.AvailRepositories
+import org.availlang.artifact.environment.location.ProjectHome
+import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.environment.project.AvailProjectV1
+import org.availlang.json.JSONWriter
 import java.awt.Color
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.io.File
 import javax.swing.BorderFactory
-import javax.swing.BoxLayout
 import javax.swing.JButton
-import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JScrollPane
-import javax.swing.ScrollPaneConstants
-import javax.swing.SwingUtilities
 
 /**
  * A [JPanel] used to create a new [AvailProject].
@@ -71,26 +69,45 @@ import javax.swing.SwingUtilities
  */
 class CreateProjectPanel constructor(
 	internal val config: GlobalAvailConfiguration,
-	private val onCreate: (AvailProject) -> Unit,
+	private val onCreate: (AvailProject, String) -> Unit,
 	private val onCancel: () -> Unit
 ): JPanel(GridBagLayout())
 {
-	// TODO MUST Build
-	//  - capture project name
-	//  - capture project location
-	//  - capture repo location (populate default)
-	//  - add new roots to create
-	//  - add existing roots
-	//  - dark mode flag
-	//  - populate templates
-	//  - project copyright
-	//  - add clone existing project?
-
-	fun create (): AvailProject
+	fun create ()
 	{
-		TODO()
+		val fileName = projectFileName.textField.text
+		val projLocation = projectLocation.textField.text
+		val projectFilePath = "$projLocation/$fileName.json"
+		AvailProjectV1(
+			fileName,
+			true,
+			AvailRepositories(rootNameInJar = null)
+		).apply {
+			File(projLocation).mkdirs()
+			val rootsLocation = "${projLocation}/roots"
+			File(rootsLocation).mkdirs()
+			val root = AvailProjectRoot(
+				projLocation,
+				rootNameField.textField.text,
+				ProjectHome(
+					"roots",
+					Scheme.FILE,
+					projLocation,
+					null))
+			roots[root.name] = root
+
+			if (projectFilePath.isNotEmpty())
+			{
+				// Update the backing project file.
+				val writer = JSONWriter.newPrettyPrinterWriter()
+				writeTo(writer)
+				File(projectFilePath).writeText(writer.contents())
+				config.add(this, projectFilePath)
+				onCreate(this, projectFilePath)
+			}
+		}
 	}
-// 6e6f71
+
 	/**
 	 * The [TextFieldWithLabel] used to set the project name.
 	 */
@@ -111,15 +128,7 @@ class CreateProjectPanel constructor(
 			}
 
 	private val projectLocation =
-		DirectoryChooser("Project Directory: ","Select Avail Repository Directory" )
-
-	private val repoLocation =
-		DirectoryChooser(
-			"Repository: ",
-			"Select Avail Repository Directory"
-		).apply {
-			textField.text = AvailEnvironment.availHomeRepos
-		}
+		DirectoryChooser("Project Directory: ","Select Project Directory" )
 
 	/**
 	 * The [TextFieldWithLabel] used to set the project name.
@@ -138,13 +147,7 @@ class CreateProjectPanel constructor(
 		minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
 		preferredSize = Dimension(currentWidth + 100, currentHeight + 40)
 		maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
-		addActionListener {
-			val project = create()
-//			config.add(project, )
-			onCreate(project)
-			// TODO
-			println("Create Button Doesn't have a target screen yet!")
-		}
+		addActionListener { create() }
 	}
 
 	/**
@@ -163,75 +166,22 @@ class CreateProjectPanel constructor(
 	}
 
 	/**
-	 * The list of added [TextFieldWithLabelAndButton]s that represent the
-	 * added roots.
-	 */
-	private val addedRoots = mutableMapOf<Int, TextFieldTextFieldButton>()
-
-	/**
-	 * The [JPanel] used to display all of the project rows.
-	 */
-	private val rootRowsInnerPanel: JPanel = JPanel().apply {
-		layout = BoxLayout(this, BoxLayout.Y_AXIS).apply {
-			alignmentY = Component.TOP_ALIGNMENT
-		}
-	}
-
-	/**
-	 * The [JScrollPane] that contains the [rootRowsInnerPanel].
-	 */
-	private val scrollPane: JScrollPane = createScrollPane(rootRowsInnerPanel).apply {
-		verticalScrollBarPolicy =
-			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-		minimumSize = Dimension(width, 300)
-		preferredSize = Dimension(width, 300)
-		alignmentY = Component.TOP_ALIGNMENT
-	}
-
-	private var addedRootsId = 0
-
-	fun newRootRow (id: Int): TextFieldTextFieldButton =
-		TextFieldTextFieldButton().apply {
-			val remove = JButton(ProjectManagerIcons.cancelFilled(19))
-			remove.addActionListener {
-				val removed =
-					addedRoots.remove(id) ?: return@addActionListener
-				SwingUtilities.invokeLater {
-					rootRowsInnerPanel.remove(removed)
-					rootRowsInnerPanel.revalidate()
-					rootRowsInnerPanel.repaint()
-				}
-			}
-			add(remove,
-				GridBagConstraints().apply {
-					gridx = 3
-					gridy = 0
-					gridwidth = 1
-				})
-			addedRoots[id] = this
-		}
-
-	fun addRow ()
-	{
-		rootRowsInnerPanel.add(newRootRow(addedRootsId++))
-		rootRowsInnerPanel.revalidate()
-		rootRowsInnerPanel.repaint()
-	}
-
-	/**
 	 * The top panel that has sorting options and can open a project.
 	 */
 	private val bottomPanel = JPanel().apply {
 		layout = (FlowLayout(FlowLayout.RIGHT))
 		minimumSize = Dimension(600, 50)
-		preferredSize = Dimension(750, 50)
-		maximumSize = Dimension(750, 50)
+		preferredSize = Dimension(600, 50)
+		maximumSize = Dimension(600, 50)
 		add(cancel)
 		add(createButton)
 	}
 
 	init
 	{
+		minimumSize = Dimension(600, 50)
+		preferredSize = Dimension(600, 50)
+		maximumSize = Dimension(600, 50)
 		add(
 			projectNameField,
 			GridBagConstraints().apply {
@@ -257,7 +207,7 @@ class CreateProjectPanel constructor(
 				gridy = 2
 				gridwidth = 1
 			})
-		add(repoLocation,
+		add(rootNameField,
 			GridBagConstraints().apply {
 				weightx = 1.0
 				fill = GridBagConstraints.HORIZONTAL
@@ -265,49 +215,13 @@ class CreateProjectPanel constructor(
 				gridy = 3
 				gridwidth = 1
 			})
-		add(rootNameField,
-			GridBagConstraints().apply {
-				weightx = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 0
-				gridy = 4
-				gridwidth = 1
-			})
-		add(
-			JPanel(FlowLayout(FlowLayout.LEFT)).apply {
-				add(JLabel("Add Existing Roots "))
-				add(JButton("+").apply {
-					addActionListener {
-						SwingUtilities.invokeLater {
-							addRow()
-						}
-					}
-				})
-			},
-			GridBagConstraints().apply {
-				weightx = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 0
-				gridy = 5
-				gridwidth = 1
-			})
-		add(scrollPane,
-			GridBagConstraints().apply {
-				weightx = 1.0
-				weighty = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 0
-				gridy = 6
-				gridwidth = 1
-				gridheight = 5
-			})
 		add(
 			bottomPanel,
 			GridBagConstraints().apply {
 				weightx = 1.0
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 0
-				gridy = 11
+				gridy = 5
 				gridwidth = 1
 			})
 	}
