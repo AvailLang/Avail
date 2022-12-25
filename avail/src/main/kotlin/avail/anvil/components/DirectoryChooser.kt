@@ -95,10 +95,8 @@ class DirectoryChooser constructor(
 				addChoosableFileFilter(
 					object : FileFilter()
 					{
-						override fun getDescription(): String
-						{
-							return "Choose Directory"
-						}
+						override fun getDescription(): String =
+							"Choose Directory"
 
 						override fun accept(f: File): Boolean =
 							f.isDirectory

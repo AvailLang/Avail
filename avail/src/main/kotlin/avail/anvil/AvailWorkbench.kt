@@ -290,6 +290,16 @@ class AvailWorkbench internal constructor(
 		val projectFilePath = availProjectFilePath
 		if (projectFilePath.isNotEmpty())
 		{
+			val backup = File("$availProjectFilePath.backup")
+			if (backup.exists())
+			{
+				backup.delete()
+			}
+			val orig = File(projectFilePath)
+			if (orig.exists())
+			{
+				orig.renameTo(backup)
+			}
 			// Update the backing project file.
 			val writer = JSONWriter.newPrettyPrinterWriter()
 			availProject.writeTo(writer)

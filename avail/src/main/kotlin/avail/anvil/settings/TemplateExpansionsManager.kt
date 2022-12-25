@@ -141,7 +141,7 @@ class RootTemplatesPanel constructor(
 		root.templates.forEach {
 			add(
 				TemplateRow(
-				it.key, it.value, root, workbench, this@RootTemplatesPanel))
+					it.key, it.value, root, workbench, this@RootTemplatesPanel))
 		}
 	}
 
@@ -239,6 +239,110 @@ class RootTemplatesPanel constructor(
 		}
 	}
 
+	/**
+	 * Use this [JFileChooser] to import templates from a [TemplateSettings]
+	 * file.
+	 */
+	private fun JFileChooser.importSettings ()
+	{
+		dialogTitle = "Select Settings File to Import From"
+		fileSelectionMode = JFileChooser.FILES_ONLY
+		fileFilter = FileNameExtensionFilter("*.json", "json")
+		addChoosableFileFilter(
+			object : FileFilter()
+			{
+				override fun getDescription(): String =
+					"Settings File (*.json)"
+
+				override fun accept(f: File): Boolean =
+					f.isFile
+						&& f.canWrite()
+						&& f.absolutePath.lowercase().endsWith(".json")
+			})
+		val result = showDialog(
+			this@RootTemplatesPanel,
+			"Select Settings File")
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			val templateSettings =
+				TemplateSettings.readFromFile(selectedFile)
+			if (templateSettings != null)
+			{
+				root.templates.putAll(templateSettings.templates)
+				SwingUtilities.invokeLater {
+					redrawTemplates()
+					workbench.saveProjectFileToDisk()
+				}
+			}
+		}
+	}
+
+	/**
+	 * Use this [JFileChooser] to import templates from an [AvailProject] file.
+	 */
+	private fun JFileChooser.importFromProject ()
+	{
+		dialogTitle = "Select Project File to Import From"
+		fileSelectionMode = JFileChooser.FILES_ONLY
+		fileFilter = FileNameExtensionFilter("*.json", "json")
+		addChoosableFileFilter(
+			object : FileFilter()
+			{
+				override fun getDescription(): String =
+					"Project File (*.json)"
+
+				override fun accept(f: File): Boolean =
+					f.isFile
+						&& f.canWrite()
+						&& f.absolutePath.lowercase().endsWith(".json")
+			})
+		val result = showDialog(
+			this@RootTemplatesPanel,
+			"Select Project File")
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			val obj = jsonReader(selectedFile.readText())
+				.read() as JSONObject
+			val ap = AvailProject.from(selectedFile.parent, obj)
+			val templateSettings = TemplateSettings.combine(ap.roots
+				.map { it.value.templateSettings }
+				.toMutableSet()
+				.apply { add(ap.templateSettings) })
+			root.templates.putAll(templateSettings.templates)
+			SwingUtilities.invokeLater {
+				redrawTemplates()
+				workbench.saveProjectFileToDisk()
+			}
+		}
+	}
+
+	/**
+	 * Use this [JFileChooser] to export templates to a [TemplateSettings] file.
+	 */
+	private fun JFileChooser.exportSettings ()
+	{
+		dialogTitle = "Select Settings File to Export To"
+		fileSelectionMode = JFileChooser.FILES_ONLY
+		fileFilter = FileNameExtensionFilter("*.json", "json")
+		addChoosableFileFilter(
+			object : FileFilter()
+			{
+				override fun getDescription(): String =
+					"Settings File (*.json)"
+
+				override fun accept(f: File): Boolean =
+					f.isFile
+						&& f.canWrite()
+						&& f.absolutePath.lowercase().endsWith(".json")
+			})
+		val result = showSaveDialog(this@RootTemplatesPanel)
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			Settings.exportSettings(
+				selectedFile, root.templateSettings)
+		}
+	}
+
 	init
 	{
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)
@@ -304,43 +408,7 @@ class RootTemplatesPanel constructor(
 			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
 			toolTipText = "Import expansion templates from settings file"
 			addActionListener {
-				JFileChooser().apply chooser@ {
-					dialogTitle = "Select Settings File to Import From"
-					fileSelectionMode = JFileChooser.FILES_ONLY
-					fileFilter = FileNameExtensionFilter("*.json", "json")
-					addChoosableFileFilter(
-						object : FileFilter()
-						{
-							override fun getDescription(): String
-							{
-								return "Settings File (*.json)"
-							}
-
-							override fun accept(f: File?): Boolean
-							{
-								assert(f !== null)
-								return f!!.isFile
-									&& f.canWrite()
-									&& f.absolutePath.lowercase().endsWith(".json")
-							}
-						})
-					val result = showDialog(
-						this@RootTemplatesPanel,
-						"Select Settings File")
-					if (result == JFileChooser.APPROVE_OPTION)
-					{
-						val templateSettings =
-							TemplateSettings.readFromFile(selectedFile)
-						if (templateSettings != null)
-						{
-							root.templates.putAll(templateSettings.templates)
-							SwingUtilities.invokeLater {
-								redrawTemplates()
-								workbench.saveProjectFileToDisk()
-							}
-						}
-					}
-				}
+				JFileChooser().importSettings()
 			}
 		}
 
@@ -354,45 +422,7 @@ class RootTemplatesPanel constructor(
 			toolTipText = "Import expansion templates from project file"
 			addActionListener {
 				addActionListener {
-					JFileChooser().apply chooser@ {
-						dialogTitle = "Select Project File to Import From"
-						fileSelectionMode = JFileChooser.FILES_ONLY
-						fileFilter = FileNameExtensionFilter("*.json", "json")
-						addChoosableFileFilter(
-							object : FileFilter()
-							{
-								override fun getDescription(): String
-								{
-									return "Project File (*.json)"
-								}
-
-								override fun accept(f: File?): Boolean
-								{
-									assert(f !== null)
-									return f!!.isFile
-										&& f.canWrite()
-										&& f.absolutePath.lowercase().endsWith(".json")
-								}
-							})
-						val result = showDialog(
-							this@RootTemplatesPanel,
-							"Select Project File")
-						if (result == JFileChooser.APPROVE_OPTION)
-						{
-							val obj = jsonReader(selectedFile.readText())
-								.read() as JSONObject
-							val ap = AvailProject.from(selectedFile.parent, obj)
-							val templateSettings = TemplateSettings.combine(ap.roots
-								.map { it.value.templateSettings }
-								.toMutableSet()
-								.apply { add(ap.templateSettings) })
-							root.templates.putAll(templateSettings.templates)
-							SwingUtilities.invokeLater {
-								redrawTemplates()
-								workbench.saveProjectFileToDisk()
-							}
-						}
-					}
+					JFileChooser().importFromProject()
 				}
 			}
 		}
@@ -425,33 +455,7 @@ class RootTemplatesPanel constructor(
 			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
 			toolTipText = "Export expansion templates"
 			addActionListener {
-				JFileChooser().apply chooser@ {
-					dialogTitle = "Select Settings File to Export To"
-					fileSelectionMode = JFileChooser.FILES_ONLY
-					fileFilter = FileNameExtensionFilter("*.json", "json")
-					addChoosableFileFilter(
-						object : FileFilter()
-						{
-							override fun getDescription(): String
-							{
-								return "Settings File (*.json)"
-							}
-
-							override fun accept(f: File?): Boolean
-							{
-								assert(f !== null)
-								return f!!.isFile
-									&& f.canWrite()
-									&& f.absolutePath.lowercase().endsWith(".json")
-							}
-						})
-					val result = showSaveDialog(this@RootTemplatesPanel)
-					if (result == JFileChooser.APPROVE_OPTION)
-					{
-						Settings.exportSettings(
-							selectedFile, root.templateSettings)
-					}
-				}
+				JFileChooser().exportSettings()
 			}
 		}
 

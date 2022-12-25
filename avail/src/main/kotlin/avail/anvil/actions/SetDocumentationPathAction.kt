@@ -62,16 +62,10 @@ class SetDocumentationPathAction constructor(workbench: AvailWorkbench)
 		chooser.addChoosableFileFilter(
 			object : FileFilter()
 			{
-				override fun getDescription(): String
-				{
-					return "Directories"
-				}
+				override fun getDescription(): String = "Directories"
 
-				override fun accept(f: File?): Boolean
-				{
-					assert(f !== null)
-					return f!!.isDirectory && f.canWrite()
-				}
+				override fun accept(f: File): Boolean =
+					f.isDirectory && f.canWrite()
 			})
 		val result = chooser.showDialog(
 			workbench, "Set Documentation Path")

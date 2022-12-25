@@ -1,5 +1,5 @@
 /*
- * ShortcutSettings.kt
+ * TemplateSettings.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -85,6 +85,11 @@ data class TemplateSettings constructor(
 	companion object: SettingsType<TemplateSettings>("TEMPLATES", true)
 	{
 		/**
+		 * The resource path to the default templates [TemplateSettings] file.
+		 */
+		private const val defaultTemplatesPath = "/defaultTemplates.json"
+
+		/**
 		 * Extract the [TemplateSettings] from the provided [Settings] [File].
 		 *
 		 * @param file
@@ -115,7 +120,7 @@ data class TemplateSettings constructor(
 				{
 					readFromFile(File(
 						TemplateSettings::class.java.getResource(
-							"/defaultTemplates.json")!!.path))
+							defaultTemplatesPath)!!.path))
 				}
 				catch (e: Throwable)
 				{

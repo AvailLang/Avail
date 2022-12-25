@@ -241,18 +241,13 @@ internal class KnownProjectsPanel constructor(
 				addChoosableFileFilter(
 					object : FileFilter()
 					{
-						override fun getDescription(): String
-						{
-							return "Avail Project Config (*.json)"
-						}
+						override fun getDescription(): String =
+							"Avail Project Config (*.json)"
 
-						override fun accept(f: File?): Boolean
-						{
-							assert(f !== null)
-							return f!!.isFile
+						override fun accept(f: File): Boolean =
+							f.isFile
 								&& f.canWrite()
 								&& f.absolutePath.lowercase().endsWith(".json")
-						}
 					})
 				val result = showDialog(
 					this@KnownProjectsPanel,

@@ -135,6 +135,115 @@ class ShortcutsPanel constructor(
 		return this
 	}
 
+	/**
+	 * Import a settings file using this [JFileChooser].
+	 */
+	private fun JFileChooser.importSettings ()
+	{
+		dialogTitle = "Select Settings File to Import From"
+		fileSelectionMode = JFileChooser.FILES_ONLY
+		fileFilter = FileNameExtensionFilter("*.json", "json")
+		addChoosableFileFilter(
+			object : FileFilter()
+			{
+				override fun getDescription(): String =
+					"Settings File (*.json)"
+
+				override fun accept(f: File): Boolean =
+					f.isFile
+						&& f.canWrite()
+						&& f.absolutePath.lowercase().endsWith(".json")
+			})
+		val result = showDialog(
+			this@ShortcutsPanel,
+			"Select Settings File")
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			val shortcuts =
+				ShortcutSettings.readFromFile(selectedFile)
+			if (shortcuts != null)
+			{
+				val m =workbench.globalAvailConfiguration
+					.attemptShortcutImport(shortcuts)
+				if (m.isNotEmpty())
+				{
+					val conflicts =
+						m.entries.joinToString ("\n\t")
+						{
+							"${it.key.actionMapKey} " +
+								"(${it.key.category.display} " +
+								"conflicts with " +
+								it.value.joinToString { v ->
+									v.actionMapKey +
+										"(${v.category.display})"
+								}
+						}
+					SwingUtilities.invokeLater {
+						JOptionPane.showMessageDialog(
+							this@ShortcutsPanel,
+							"Partial Success, some " +
+								"key mapping conflicts detected:\n " +
+								conflicts,
+							"Some Shortcuts Loaded",
+							JOptionPane.PLAIN_MESSAGE)
+					}
+				}
+				else
+				{
+					SwingUtilities.invokeLater {
+						JOptionPane.showMessageDialog(
+							this@ShortcutsPanel,
+							"Success!",
+							"Shortcuts Loaded",
+							JOptionPane.PLAIN_MESSAGE)
+					}
+				}
+				redrawShortcuts()
+			}
+			else
+			{
+				val path = selectedFile.path
+				SwingUtilities.invokeLater {
+					JOptionPane.showMessageDialog(
+						this@ShortcutsPanel,
+						"Could not load shortcut settings " +
+							"from $path.",
+						"Settings Load Failure",
+						JOptionPane.ERROR_MESSAGE)
+				}
+			}
+		}
+	}
+
+	/**
+	 * Export a settings file using this [JFileChooser].
+	 */
+	private fun JFileChooser.exportSettings ()
+	{
+		dialogTitle = "Select Settings File to Export To"
+		fileSelectionMode = JFileChooser.FILES_ONLY
+		fileFilter = FileNameExtensionFilter("*.json", "json")
+		addChoosableFileFilter(
+			object : FileFilter()
+			{
+				override fun getDescription(): String =
+					"Settings File (*.json)"
+
+				override fun accept(f: File): Boolean =
+					f.isFile
+						&& f.canWrite()
+						&& f.absolutePath.lowercase().endsWith(".json")
+
+			})
+		val result = showSaveDialog(this@ShortcutsPanel)
+		if (result == JFileChooser.APPROVE_OPTION)
+		{
+			val shortcuts =
+				workbench.globalAvailConfiguration.shortcutSettings
+			Settings.exportSettings(selectedFile, shortcuts)
+		}
+	}
+
 	init
 	{
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)
@@ -170,6 +279,8 @@ class ShortcutsPanel constructor(
 				redrawShortcuts()
 			}
 		}
+
+
 		val importSettings = JButton("Import").apply {
 			isOpaque = true
 			val currentHeight = height
@@ -179,86 +290,7 @@ class ShortcutsPanel constructor(
 			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
 			toolTipText = "Imports shortcuts from a settings file"
 			addActionListener {
-				JFileChooser().apply chooser@ {
-					dialogTitle = "Select Settings File to Import From"
-					fileSelectionMode = JFileChooser.FILES_ONLY
-					fileFilter = FileNameExtensionFilter("*.json", "json")
-					addChoosableFileFilter(
-						object : FileFilter()
-						{
-							override fun getDescription(): String
-							{
-								return "Settings File (*.json)"
-							}
-
-							override fun accept(f: File?): Boolean
-							{
-								assert(f !== null)
-								return f!!.isFile
-									&& f.canWrite()
-									&& f.absolutePath.lowercase().endsWith(".json")
-							}
-						})
-					val result = showDialog(
-						this@ShortcutsPanel,
-						"Select Settings File")
-					if (result == JFileChooser.APPROVE_OPTION)
-					{
-						val shortcuts =
-							ShortcutSettings.readFromFile(selectedFile)
-						if (shortcuts != null)
-						{
-							workbench.globalAvailConfiguration
-								.attemptShortcutImport(shortcuts).let { m ->
-									if (m.isNotEmpty())
-									{
-										val conflicts =
-											m.entries.joinToString ("\n\t")
-											{
-												"${it.key.actionMapKey} (${it.key.category.display} " +
-													"conflicts with " +
-													it.value.joinToString { v ->
-														v.actionMapKey +
-															"(${v.category.display})"
-													}
-											}
-										SwingUtilities.invokeLater {
-											JOptionPane.showMessageDialog(
-												this@ShortcutsPanel,
-												"Partial Success, some " +
-													"key mapping conflicts detected:\n " +
-													conflicts,
-												"Some Shortcuts Loaded",
-												JOptionPane.PLAIN_MESSAGE)
-										}
-									}
-									else
-									{
-										SwingUtilities.invokeLater {
-											JOptionPane.showMessageDialog(
-												this@ShortcutsPanel,
-												"Success!",
-												"Shortcuts Loaded",
-												JOptionPane.PLAIN_MESSAGE)
-										}
-									}
-									redrawShortcuts()
-								}
-						}
-						else
-						{
-							val path = selectedFile.path
-							SwingUtilities.invokeLater {
-								JOptionPane.showMessageDialog(
-									this@ShortcutsPanel,
-									"Could not load shortcut settings " +
-										"from $path.",
-									"Settings Load Failure",
-									JOptionPane.ERROR_MESSAGE)
-							}
-						}
-					}
-				}
+				JFileChooser().importSettings()
 			}
 		}
 		val exportSettings = JButton("Export").apply {
@@ -270,34 +302,7 @@ class ShortcutsPanel constructor(
 			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
 			toolTipText = "Export shortcuts to a settings file"
 			addActionListener {
-				JFileChooser().apply chooser@ {
-					dialogTitle = "Select Settings File to Export To"
-					fileSelectionMode = JFileChooser.FILES_ONLY
-					fileFilter = FileNameExtensionFilter("*.json", "json")
-					addChoosableFileFilter(
-						object : FileFilter()
-						{
-							override fun getDescription(): String
-							{
-								return "Settings File (*.json)"
-							}
-
-							override fun accept(f: File?): Boolean
-							{
-								assert(f !== null)
-								return f!!.isFile
-									&& f.canWrite()
-									&& f.absolutePath.lowercase().endsWith(".json")
-							}
-						})
-					val result = showSaveDialog(this@ShortcutsPanel)
-					if (result == JFileChooser.APPROVE_OPTION)
-					{
-						val shortcuts =
-							workbench.globalAvailConfiguration.shortcutSettings
-						Settings.exportSettings(selectedFile, shortcuts)
-					}
-				}
+				JFileChooser().exportSettings()
 			}
 		}
 
