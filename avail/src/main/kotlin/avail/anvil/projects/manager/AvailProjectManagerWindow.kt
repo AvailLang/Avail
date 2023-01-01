@@ -47,41 +47,81 @@ import javax.swing.WindowConstants
  * environment is started with no particular [AvailProject] file.
  *
  * @author Richard Arriaga
+ *
+ * @property globalConfig
+ *   The [GlobalAvailConfiguration] that provides information about the Avail
+ *   environment for the entire computer.
  */
 class AvailProjectManagerWindow constructor(
-	internal val globalConfig: GlobalAvailConfiguration
+	private val globalConfig: GlobalAvailConfiguration
 ): JFrame("Avail")
 {
-	init
+	/**
+	 * Set the window's preferred size for displaying
+	 * [known projects][KnownProjectsPanel].
+	 */
+	private fun setKnownProjectsSize ()
 	{
 		minimumSize = Dimension(750, 400)
 		preferredSize = Dimension(750, 600)
 		maximumSize = Dimension(750, 900)
 	}
+
+	/**
+	 * Set the window's preferred size for displaying
+	 * [create project view][CreateProjectPanel].
+	 */
+	private fun setCreateProjectsSize ()
+	{
+		minimumSize = Dimension(750, 300)
+		preferredSize = Dimension(750, 300)
+		maximumSize = Dimension(750, 300)
+	}
+
+	init
+	{
+		setKnownProjectsSize()
+	}
 	var displayed = KNOWN_PROJECTS
 
+	/**
+	 * Hide this [AvailProjectManagerWindow].
+	 */
 	fun hideProjectManager()
 	{
 		isVisible = false
 	}
-	internal var displayedComponent: JComponent =
+
+	/**
+	 * The [JComponent] being displayed, either [KnownProjectsPanel] or
+	 * [CreateProjectPanel].
+	 */
+	private var displayedComponent: JComponent =
 		KnownProjectsPanel(globalConfig, this)
 
-	internal fun draw ()
+	/**
+	 * Draw this [AvailProjectManagerWindow].
+	 */
+	private fun draw ()
 	{
 		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
+		var newHeight = height
 		displayedComponent =
 			when (displayed)
 			{
 				KNOWN_PROJECTS ->
 				{
 					title = "Avail Projects"
+					newHeight = 600
+					setKnownProjectsSize()
 					KnownProjectsPanel(globalConfig, this)
 				}
 				CREATE_PROJECT ->
 				{
 					title = "Create Project"
+					setCreateProjectsSize()
+					newHeight = 300
 					CreateProjectPanel(
 						globalConfig,
 						{ project, path ->
@@ -101,20 +141,29 @@ class AvailProjectManagerWindow constructor(
 				}
 			}
 		add(displayedComponent)
-		pack()
+		setBounds(x, y, width, newHeight)
 		isVisible = true
 	}
 
+	/**
+	 * Redraw this [AvailProjectManagerWindow].
+	 */
 	internal fun redraw ()
 	{
 		remove(displayedComponent)
 		draw()
 	}
 
+	/**
+	 * An enumeration that refers to the [JComponent]s that can be displayed
+	 * inside this [AvailProjectManagerWindow].
+	 */
 	enum class DisplayedPanel
 	{
+		/** Represents the [KnownProjectsPanel]. */
 		KNOWN_PROJECTS,
 
+		/** Represents the [CreateProjectPanel]. */
 		CREATE_PROJECT
 	}
 
