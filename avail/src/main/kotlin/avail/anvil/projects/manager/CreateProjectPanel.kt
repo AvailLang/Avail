@@ -65,7 +65,6 @@ import javax.swing.JPanel
  *   The function that accepts the newly created [AvailProject].
  * @property onCancel
  *   The function to call if creating a new project is canceled.
- *
  */
 class CreateProjectPanel constructor(
 	internal val config: GlobalAvailConfiguration,
@@ -73,6 +72,9 @@ class CreateProjectPanel constructor(
 	private val onCancel: () -> Unit
 ): JPanel(GridBagLayout())
 {
+	/**
+	 * Create the Avail project.
+	 */
 	fun create ()
 	{
 		val fileName = projectFileName.textField.text
@@ -112,6 +114,10 @@ class CreateProjectPanel constructor(
 	 * The [TextFieldWithLabel] used to set the project name.
 	 */
 	private val projectNameField = TextFieldWithLabel("Project Name: ")
+
+	/**
+	 * The field for configuring the [AvailProject] file.
+	 */
 	private val projectFileName =
 		TextFieldWithLabelAndButton("Project Config File Name: ")
 			.apply panel@{
@@ -127,8 +133,13 @@ class CreateProjectPanel constructor(
 				}
 			}
 
+	/**
+	 * The [DirectoryChooser] used to pick the directory where the project is
+	 * to be created.
+	 */
 	private val projectLocation =
-		DirectoryChooser("Project Directory: ","Select Project Directory" )
+		DirectoryChooser(
+			"Project Directory: ","Select Project Directory" )
 
 	/**
 	 * The [TextFieldWithLabel] used to set the project name.
@@ -138,7 +149,7 @@ class CreateProjectPanel constructor(
 	/**
 	 * The button to use to show the create screen.
 	 */
-	val createButton = JButton("Create").apply {
+	private val createButton = JButton("Create").apply {
 		isOpaque = true
 		border = BorderFactory.createLineBorder(
 			Color(0xBB, 0xBB, 0xBB), 1, true)
@@ -225,9 +236,4 @@ class CreateProjectPanel constructor(
 				gridwidth = 1
 			})
 	}
-
-
-
 }
-
-
