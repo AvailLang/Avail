@@ -271,7 +271,10 @@ internal class KnownProjectsPanel constructor(
 					} ?: return@chooser
 					config.add(project, configFile.absolutePath)
 					AvailWorkbench.launchWorkbenchWithProject(
-						project, config, configFile.absolutePath)
+						project,
+						config,
+						configFile.absolutePath,
+						projectManager = manager)
 					SwingUtilities.invokeLater {
 						manager.hideProjectManager()
 					}

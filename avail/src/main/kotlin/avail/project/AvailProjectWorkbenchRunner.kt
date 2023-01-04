@@ -107,7 +107,7 @@ object AvailProjectWorkbenchRunner
 		val globalConfig = GlobalAvailConfiguration.getGlobalConfig().apply {
 			add(availProject, configFile.absolutePath)
 		}
-		AvailWorkbench.launchWorkbenchWithProject(
-			availProject, globalConfig, configFile.absolutePath)
+		AvailWorkbench.launchSoloWorkbench(
+			globalConfig, availProject, configFile.absolutePath)
 	}
 }

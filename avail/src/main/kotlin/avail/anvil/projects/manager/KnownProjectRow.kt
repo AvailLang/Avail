@@ -177,15 +177,15 @@ internal class KnownProjectRow constructor(
 	 */
 	internal fun openProject()
 	{
-		val availProject =
-			project.availProject() ?: return
+		val availProject = project.availProject() ?: return
 		config.add(availProject, project.projectConfigFile)
-		// TODO investigate starting in different process.
-//		val pb = ProcessBuilder("java", "-classpath", "B.jar", "B.BMain")
-//		val p = pb.start()
 
-		AvailWorkbench.launchWorkbenchWithProject(
-			availProject, config, project.projectConfigFile)
+		parentPanel.manager.onWorkbenchOpen(
+			AvailWorkbench.launchWorkbenchWithProject(
+				availProject,
+				config,
+				project.projectConfigFile,
+				projectManager = parentPanel.manager))
 		SwingUtilities.invokeLater {
 			parentPanel.manager.hideProjectManager()
 		}

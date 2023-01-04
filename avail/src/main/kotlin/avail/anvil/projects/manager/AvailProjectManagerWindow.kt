@@ -57,6 +57,40 @@ class AvailProjectManagerWindow constructor(
 ): JFrame("Avail")
 {
 	/**
+	 * The set of [AvailWorkbench]s opened by this [AvailProjectManagerWindow].
+	 */
+	private val openWorkbenches = mutableSetOf<AvailWorkbench>()
+
+	/**
+	 * The action to perform when an [AvailWorkbench] is launched from this
+	 * [AvailProjectManagerWindow].
+	 *
+	 * @param workbench
+	 *   The launched [AvailWorkbench].
+	 */
+	fun onWorkbenchOpen (workbench: AvailWorkbench)
+	{
+		openWorkbenches.add(workbench)
+		hideProjectManager()
+	}
+
+	/**
+	 * The action to perform when an [AvailWorkbench] launched from this
+	 * [AvailProjectManagerWindow] is closed.
+	 *
+	 * @param workbench
+	 *   The closed [AvailWorkbench].
+	 */
+	fun onWorkbenchClose (workbench: AvailWorkbench)
+	{
+		openWorkbenches.remove(workbench)
+		if (openWorkbenches.isEmpty())
+		{
+			showProjectManager()
+		}
+	}
+
+	/**
 	 * Set the window's preferred size for displaying
 	 * [known projects][KnownProjectsPanel].
 	 */
@@ -93,6 +127,14 @@ class AvailProjectManagerWindow constructor(
 	}
 
 	/**
+	 * Show this [AvailProjectManagerWindow].
+	 */
+	private fun showProjectManager()
+	{
+		isVisible = true
+	}
+
+	/**
 	 * The [JComponent] being displayed, either [KnownProjectsPanel] or
 	 * [CreateProjectPanel].
 	 */
@@ -126,7 +168,10 @@ class AvailProjectManagerWindow constructor(
 						globalConfig,
 						{ project, path ->
 							AvailWorkbench.launchWorkbenchWithProject(
-								project, globalConfig, path)
+								project,
+								globalConfig,
+								path,
+								projectManager = this)
 							SwingUtilities.invokeLater {
 								displayed = KNOWN_PROJECTS
 								hideProjectManager()

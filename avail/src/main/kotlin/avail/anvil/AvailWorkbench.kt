@@ -96,6 +96,7 @@ import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.projects.manager.AvailProjectManagerWindow
 import avail.anvil.settings.TemplateExpansionsManager
 import avail.anvil.settings.ShortcutManager
 import avail.anvil.streams.BuildInputStream
@@ -243,9 +244,12 @@ import kotlin.math.min
  * @property availProjectFilePath
  *   The String path to the [availProject] configuration file or an empty String
  *   if the [AvailWorkbench] was started without an [AvailProject].
+ * @property projectManager
+ *   The [AvailProjectManagerWindow] that launched this workbench or `null` if
+ *   not launched from an [AvailProjectManagerWindow].
  *
  * @constructor
- * Construct a new `AvailWorkbench`.
+ * Construct a new [AvailWorkbench].
  *
  * @param fileManager
  *   The [FileManager] used to manage Avail files.
@@ -258,6 +262,9 @@ import kotlin.math.min
  *   The actively running [AvailProject].
  * @param windowTitle
  *   The [AvailWorkbench]'s frame's [title].
+ * @param projectManager
+ *   The [AvailProjectManagerWindow] that launched this workbench or `null` if
+ *   not launched from an [AvailProjectManagerWindow].
  */
 class AvailWorkbench internal constructor(
 	internal val availProject: AvailProject,
@@ -266,7 +273,9 @@ class AvailWorkbench internal constructor(
 	val resolver: ModuleNameResolver,
 	val globalAvailConfiguration: GlobalAvailConfiguration,
 	internal var availProjectFilePath: String = "",
-	windowTitle: String = "Avail Workbench") : WorkbenchFrame(windowTitle)
+	windowTitle: String = "Avail Workbench",
+	private val projectManager: AvailProjectManagerWindow?
+) : WorkbenchFrame(windowTitle)
 {
 	override val workbench: AvailWorkbench get() = this
 
@@ -1745,7 +1754,23 @@ class AvailWorkbench internal constructor(
 		fileManager.associateRuntime(runtime)
 		availBuilder = AvailBuilder(runtime)
 
-		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
+		defaultCloseOperation =
+			if (projectManager != null)
+			{
+				projectManager.onWorkbenchOpen(this)
+				addWindowListener(object : WindowAdapter()
+				{
+					override fun windowClosed(e: WindowEvent)
+					{
+						projectManager.onWorkbenchClose(this@AvailWorkbench)
+					}
+				})
+				WindowConstants.DISPOSE_ON_CLOSE
+			}
+			else
+			{
+				WindowConstants.EXIT_ON_CLOSE
+			}
 
 		// Set *just* the window title...
 		title = windowTitle
@@ -2431,6 +2456,10 @@ class AvailWorkbench internal constructor(
 		 *   title for the entire workbench window; `false` indicates the
 		 *   [AvailProject.name] will appear in parenthesis:
 		 *   "Avail Workbench (<project name>)"
+		 * @param projectManager
+		 *   The [AvailProjectManagerWindow] that launched this workbench or
+		 *   `null` if not launched from an [AvailProjectManagerWindow].
+		 * @return The launched [AvailWorkbench].
 		 * @throws Exception
 		 * If something goes wrong.
 		 */
@@ -2445,7 +2474,9 @@ class AvailWorkbench internal constructor(
 			availProjectFilePath: String = "",
 			initial: String = "",
 			customWindowTitle: String = "",
-			useProjectNameAsFullTitle: Boolean)
+			useProjectNameAsFullTitle: Boolean,
+			projectManager: AvailProjectManagerWindow?
+		): AvailWorkbench
 		{
 			val rootsString = project.availProjectRoots.joinToString(";") {
 				it.modulePath
@@ -2539,7 +2570,8 @@ class AvailWorkbench internal constructor(
 				resolver,
 				globalAvailConfiguration,
 				availProjectFilePath,
-				workbenchWindowTitle)
+				workbenchWindowTitle,
+				projectManager)
 			// Inject a breakpoint handler into the runtime to open a debugger.
 			runtime.breakpointHandler = { fiber ->
 				val debugger = AvailDebugger(bench)
@@ -2577,6 +2609,7 @@ class AvailWorkbench internal constructor(
 				}
 				initialRefreshTask.execute()
 			}
+			return bench
 		}
 
 		/**
@@ -2600,6 +2633,9 @@ class AvailWorkbench internal constructor(
 		 *   title for the entire workbench window; `false` indicates the
 		 *   [AvailProject.name] will appear in parenthesis:
 		 *   "Avail Workbench (<project name>)"
+		 * @param projectManager
+		 *   The [AvailProjectManagerWindow] that launched this workbench or `null` if
+		 *   not launched from an [AvailProjectManagerWindow].
 		 * @throws Exception
 		 *   If something goes wrong.
 		 */
@@ -2610,19 +2646,20 @@ class AvailWorkbench internal constructor(
 			globalAvailConfiguration: GlobalAvailConfiguration,
 			availProjectFilePath: String = "",
 			customWindowTitle: String = "",
-			useProjectNameAsFullTitle: Boolean = false)
-		{
-			launchWorkbench(
+			useProjectNameAsFullTitle: Boolean = false,
+			projectManager: AvailProjectManagerWindow?
+		): AvailWorkbench = launchWorkbench(
 				globalAvailConfiguration,
 				project,
 				availProjectFilePath,
 				"",
 				customWindowTitle,
-				useProjectNameAsFullTitle)
-		}
+				useProjectNameAsFullTitle,
+				projectManager)
 
 		/**
-		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
+		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench]
+		 * independent of any [AvailProjectManagerWindow].
 		 *
 		 * @param globalAvailConfiguration
 		 * 	 The [GlobalAvailConfiguration] for the environment this
@@ -2648,21 +2685,23 @@ class AvailWorkbench internal constructor(
 		@Throws(Exception::class)
 		@JvmStatic
 		@Suppress("unused")
-		fun launchWorkbenchWithProject (
+		fun launchSoloWorkbench (
 			globalAvailConfiguration: GlobalAvailConfiguration,
 			project: AvailProject,
 			customWindowTitle: String = "",
 			availProjectFilePath: String = "",
-			useProjectNameAsFullTitle: Boolean = true)
+			useProjectNameAsFullTitle: Boolean = true
+		): AvailWorkbench
 		{
 			System.setProperty(DARK_MODE_KEY, project.darkMode.toString())
-			launchWorkbench(
+			return launchWorkbench(
 				globalAvailConfiguration,
 				project,
 				availProjectFilePath,
 				"",
 				customWindowTitle,
-				useProjectNameAsFullTitle)
+				useProjectNameAsFullTitle,
+				null)
 		}
 	}
 }
