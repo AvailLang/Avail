@@ -1,5 +1,5 @@
 /*
- * LocalScreenState.kt
+ * WorkbenchScreenState.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -58,7 +58,7 @@ import java.util.concurrent.ConcurrentHashMap
  *   The [LayoutConfiguration.stringToStore] for the [StructureViewPanel] or
  *   an empty string if not open.
  */
-class LocalScreenState constructor(
+class WorkbenchScreenState constructor(
 	var workbenchLayoutConfig: String = "",
 	var structureViewLayoutConfig: String = ""
 ): JSONFriendly
@@ -90,13 +90,13 @@ class LocalScreenState constructor(
 	override fun writeTo(writer: JSONWriter)
 	{
 		writer.writeObject {
-			at(LocalScreenState::workbenchLayoutConfig.name) {
+			at(WorkbenchScreenState::workbenchLayoutConfig.name) {
 				write(workbenchLayoutConfig)
 			}
-			at(LocalScreenState::structureViewLayoutConfig.name) {
+			at(WorkbenchScreenState::structureViewLayoutConfig.name) {
 				write(structureViewLayoutConfig)
 			}
-			at(LocalScreenState::openEditors.name) {
+			at(WorkbenchScreenState::openEditors.name) {
 				writeArray {
 					openEditors.forEach { (_, v) ->
 						v.writeTo(this)
@@ -111,29 +111,29 @@ class LocalScreenState constructor(
 	 */
 	val fileContent: String get() =
 		jsonWriter {
-			this@LocalScreenState.writeTo(this)
+			this@WorkbenchScreenState.writeTo(this)
 		}.toString()
 
 	companion object
 	{
 		/**
-		 * Extract a [LocalScreenState] from the provided file.
+		 * Extract a [WorkbenchScreenState] from the provided file.
 		 *
 		 * @param file
 		 *   The file to extract data from.
 		 * @return
-		 *   A [LocalScreenState] populated with data from the file or an empty
-		 *   [LocalScreenState] if any occur
+		 *   A [WorkbenchScreenState] populated with data from the file or an empty
+		 *   [WorkbenchScreenState] if any occur
 		 *   1. The file does not exist
 		 *   2. The file is a directory
 		 *   3. An exception occurs during data extraction.
 		 */
-		fun from (file: File): LocalScreenState =
+		fun from (file: File): WorkbenchScreenState =
 			try
 			{
 				if (!file.exists() || !file.isFile)
 				{
-					LocalScreenState()
+					WorkbenchScreenState()
 				}
 				else
 				{
@@ -142,38 +142,38 @@ class LocalScreenState constructor(
 			}
 			catch (e: Throwable)
 			{
-				LocalScreenState()
+				WorkbenchScreenState()
 			}
 
 		/**
-		 * Answer a [LocalScreenState] from the provided [JSONObject].
+		 * Answer a [WorkbenchScreenState] from the provided [JSONObject].
 		 *
 		 * @param obj
 		 *   The [JSONObject] to extract data from.
 		 * @return
-		 *   The [LocalScreenState].
+		 *   The [WorkbenchScreenState].
 		 */
-		fun from (obj: JSONObject): LocalScreenState
+		fun from (obj: JSONObject): WorkbenchScreenState
 		{
 			val wb =
 				if (obj.containsKey(
-						LocalScreenState::workbenchLayoutConfig.name))
+						WorkbenchScreenState::workbenchLayoutConfig.name))
 				{
-					obj.getString(LocalScreenState::workbenchLayoutConfig.name)
+					obj.getString(WorkbenchScreenState::workbenchLayoutConfig.name)
 				}
 				else ""
 			val sv =
 				if (obj.containsKey(
-						LocalScreenState::structureViewLayoutConfig.name))
+						WorkbenchScreenState::structureViewLayoutConfig.name))
 				{
 					obj.getString(
-						LocalScreenState::structureViewLayoutConfig.name)
+						WorkbenchScreenState::structureViewLayoutConfig.name)
 				}
 				else ""
-			return LocalScreenState(wb, sv).apply {
-				if (obj.containsKey(LocalScreenState::openEditors.name))
+			return WorkbenchScreenState(wb, sv).apply {
+				if (obj.containsKey(WorkbenchScreenState::openEditors.name))
 				{
-					obj.getArray(LocalScreenState::openEditors.name).forEach {
+					obj.getArray(WorkbenchScreenState::openEditors.name).forEach {
 						if (it.isObject)
 						{
 							val alc = AvailEditorLayoutConfiguration.from(

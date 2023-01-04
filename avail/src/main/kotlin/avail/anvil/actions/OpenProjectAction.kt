@@ -49,7 +49,7 @@ import java.awt.event.ActionEvent
  *   The [AvailWorkbench] that initiated this action.
  */
 class OpenProjectAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Open Project")
+	: AbstractWorkbenchAction(workbench, "Open…")
 {
 	override fun actionPerformed(e: ActionEvent?)
 	{

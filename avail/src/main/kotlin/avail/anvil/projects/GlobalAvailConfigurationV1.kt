@@ -50,6 +50,7 @@ class GlobalAvailConfigurationV1
 	override val globalTemplates = mutableMapOf<String, String>()
 	override val keyboardShortcutOverrides =
 		mutableMapOf<String, KeyboardShortcutOverride>()
+	override var projectManagerLayoutConfig: String = ""
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -68,6 +69,9 @@ class GlobalAvailConfigurationV1
 					if (it == null) writeNull()
 					else write(it)
 				}
+			}
+			at(::projectManagerLayoutConfig.name) {
+				write(projectManagerLayoutConfig)
 			}
 			at(::knownProjects.name) {
 				writeArray(knownProjects.toMutableList().sorted())
@@ -125,6 +129,13 @@ class GlobalAvailConfigurationV1
 				{
 					config.favorite = favorite.string
 				}
+			}
+			if (obj.containsKey(
+					GlobalAvailConfigurationV1::projectManagerLayoutConfig.name))
+			{
+				config.projectManagerLayoutConfig =
+					obj.getString(
+						GlobalAvailConfigurationV1::projectManagerLayoutConfig.name)
 			}
 			if (obj.containsKey(
 					GlobalAvailConfigurationV1::knownProjects.name))

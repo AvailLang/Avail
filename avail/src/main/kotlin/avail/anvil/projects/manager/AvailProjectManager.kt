@@ -36,9 +36,12 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.projects.manager.AvailProjectManager.DisplayedPanel.*
 import avail.anvil.projects.GlobalAvailConfiguration
 import avail.anvil.projects.KnownAvailProject
+import avail.anvil.window.LayoutConfiguration
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.json.jsonObject
 import java.awt.Dimension
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import java.io.File
 import javax.swing.JComponent
 import javax.swing.JFileChooser
@@ -71,6 +74,18 @@ class AvailProjectManager constructor(
 	 * The opened [OpenKnownProjectDialog] or `null` if dialog not open.
 	 */
 	internal var openKnownProjectDialog: OpenKnownProjectDialog? = null
+
+	/**
+	 * The opened [CreateProjectDialog] or `null` if dialog not open.
+	 */
+	internal var createProjectDialog: CreateProjectDialog? = null
+
+	/**
+	 * The [LayoutConfiguration] that describes the position of this
+	 * [AvailProjectManager].
+	 */
+	private val layoutConfiguration: LayoutConfiguration =
+		LayoutConfiguration.from(globalConfig.projectManagerLayoutConfig)
 
 	/**
 	 * The action to perform when an [AvailWorkbench] is launched from this
@@ -123,10 +138,39 @@ class AvailProjectManager constructor(
 		maximumSize = Dimension(750, 300)
 	}
 
+	/**
+	 * Save the window position of this [AvailProjectManager].
+	 */
+	fun saveWindowPosition()
+	{
+		layoutConfiguration.extendedState = extendedState
+		if (extendedState == NORMAL)
+		{
+			// Only capture the bounds if it's not zoomed or minimized.
+			layoutConfiguration.placement = bounds
+		}
+		globalConfig.projectManagerLayoutConfig =
+			layoutConfiguration.stringToStore()
+	}
+
 	init
 	{
 		setKnownProjectsSize()
+		addWindowListener(object: WindowAdapter()
+		{
+			override fun windowClosing(e: WindowEvent?)
+			{
+				saveWindowPosition()
+				globalConfig.saveToDisk()
+			}
+		})
+		this.bounds = layoutConfiguration.placement
 	}
+
+	/**
+	 * The [DisplayedPanel] presently occupying the view of this
+	 * [AvailProjectManager].
+	 */
 	var displayed = KNOWN_PROJECTS
 
 	/**
@@ -229,7 +273,21 @@ class AvailProjectManager constructor(
 	}
 
 	/**
-	 * Open the [KnownAvailProject] in an [AvailWorkbench].
+	 * Open the [CreateProjectDialog].
+	 *
+	 * @param workbench
+	 *   The [AvailWorkbench] that is launching the dialog to create a project.
+	 */
+	fun createProject (workbench: AvailWorkbench)
+	{
+		createProjectDialog = createProjectDialog?.let {
+			it.toFront()
+			it
+		} ?: CreateProjectDialog(this, workbench)
+	}
+
+	/**
+	 * Open a [KnownAvailProject] in an [AvailWorkbench].
 	 *
 	 * @param workbench
 	 *   The [AvailWorkbench] that is launching the dialog to open a known

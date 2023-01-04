@@ -43,6 +43,7 @@ import avail.anvil.actions.CleanAction
 import avail.anvil.actions.CleanModuleAction
 import avail.anvil.actions.ClearTranscriptAction
 import avail.anvil.actions.CreateProgramAction
+import avail.anvil.actions.CreateProjectAction
 import avail.anvil.actions.CreateRootAction
 import avail.anvil.actions.DebugAction
 import avail.anvil.actions.DeleteModuleAction
@@ -115,7 +116,7 @@ import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
-import avail.anvil.window.LocalScreenState
+import avail.anvil.window.WorkbenchScreenState
 import avail.anvil.window.WorkbenchFrame
 import avail.builder.AvailBuilder
 import avail.builder.ModuleName
@@ -283,9 +284,9 @@ class AvailWorkbench internal constructor(
 	override val workbench: AvailWorkbench get() = this
 
 	/**
-	 * The file path to the [LocalScreenState].
+	 * The file path to the [WorkbenchScreenState].
 	 */
-	private val localScreenStatePath get() =
+	private val workbenchScreenStatePath get() =
 		availProjectFilePath.replace(".json", "-local-state.json")
 
 	/**
@@ -616,6 +617,9 @@ class AvailWorkbench internal constructor(
 
 	/** The action to [edit][OpenModuleAction] a module. */
 	private val openEditorAction = OpenModuleAction(this)
+
+	/** The action to open an [CreateProjectAction]. */
+	private val createProjectAction = CreateProjectAction(this)
 
 	/** The action to open an [OpenKnownProjectDialog]. */
 	private val openKnownProjectAction = OpenKnownProjectAction(this)
@@ -1752,7 +1756,7 @@ class AvailWorkbench internal constructor(
 
 	// Get the existing preferences early for plugging in at the right times
 	// during construction.
-	private var screenState = LocalScreenState.from(File(localScreenStatePath))
+	private var screenState = WorkbenchScreenState.from(File(workbenchScreenStatePath))
 
 	override val layoutConfiguration =
 		AvailWorkbenchLayoutConfiguration.from(
@@ -1814,8 +1818,9 @@ class AvailWorkbench internal constructor(
 			{
 				menu("File")
 				{
-					item(openProjectAction)
 					item(openKnownProjectAction)
+					item(createProjectAction)
+					item(openProjectAction)
 				}
 			}
 			menu("Build")
@@ -2157,11 +2162,11 @@ class AvailWorkbench internal constructor(
 					it.saveWindowPosition()
 					it.layoutConfiguration.stringToStore()
 				} ?: ""
-				val local = LocalScreenState(
+				val local = WorkbenchScreenState(
 					layoutConfiguration.stringToStore(),
 					sv)
 				local.refreshOpenEditors(this@AvailWorkbench)
-				File(localScreenStatePath).writeText(local.fileContent)
+				File(workbenchScreenStatePath).writeText(local.fileContent)
 				openEditors.values.forEach {
 					it.dispatchEvent(WindowEvent(it, WindowEvent.WINDOW_CLOSING))
 				}

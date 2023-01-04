@@ -33,16 +33,17 @@
 package avail.anvil.projects.manager
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.KnownAvailProject
+import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Dimension
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.JFrame
+import javax.swing.SwingUtilities
 import javax.swing.WindowConstants
 
 /**
- * A [JFrame] used to provide a dialog by which a user can open an existing
- * [KnownAvailProject] in a new [AvailWorkbench].
+ * A [JFrame] used to provide a dialog by which a user can create a new
+ * [AvailProject] in a new [AvailWorkbench].
  *
  * @author Richard Arriaga
  *
@@ -50,23 +51,32 @@ import javax.swing.WindowConstants
  *   The running [AvailProjectManager].
  *
  * @constructor
- * Construct a new [OpenKnownProjectDialog].
+ * Construct a new [CreateProjectDialog].
  * @param manager
  *   The running [AvailProjectManager].
  * @param workbench
- *   The workbench that launched this [OpenKnownProjectDialog].
+ *   The workbench that launched this [CreateProjectDialog].
  */
-internal class OpenKnownProjectDialog constructor(
+internal class CreateProjectDialog constructor(
 	val manager: AvailProjectManager,
 	workbench: AvailWorkbench
-): JFrame("Open Existing Project")
+): JFrame("Create Project")
 {
+	/**
+	 * Close this [CreateProjectDialog].
+	 */
+	fun close ()
+	{
+		manager.createProjectDialog = null
+		dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+	}
+
 	init
 	{
-		manager.openKnownProjectDialog = this
-		minimumSize = Dimension(760, 400)
-		preferredSize = Dimension(760, 600)
-		maximumSize = Dimension(760, 900)
+		manager.createProjectDialog = this
+		minimumSize = Dimension(750, 300)
+		preferredSize = Dimension(750, 300)
+		maximumSize = Dimension(750, 300)
 		defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
 		addWindowListener(object: WindowAdapter()
 		{
@@ -75,17 +85,22 @@ internal class OpenKnownProjectDialog constructor(
 				manager.openKnownProjectDialog = null
 			}
 		})
-		add(KnownProjectsPanel(manager, false))
+		add(CreateProjectPanel(
+			manager.globalConfig,
+			{ project, path ->
+				AvailWorkbench.launchWorkbenchWithProject(
+					project,
+					manager.globalConfig,
+					path,
+					projectManager = manager)
+				SwingUtilities.invokeLater {
+					close()
+				}
+			})
+		{
+			close()
+		})
 		setLocationRelativeTo(workbench)
 		isVisible = true
-	}
-
-	/**
-	 * Close this [OpenKnownProjectDialog].
-	 */
-	fun close ()
-	{
-		manager.openKnownProjectDialog = null
-		dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
 	}
 }

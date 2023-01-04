@@ -1,6 +1,6 @@
 /*
- * OpenKnownProjectDialog.kt
- * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * OpenShortcutManagerAction.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,62 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.projects.manager
+package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.KnownAvailProject
-import java.awt.Dimension
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
-import javax.swing.JFrame
-import javax.swing.WindowConstants
+import avail.anvil.projects.manager.CreateProjectDialog
+import org.availlang.artifact.environment.project.AvailProject
+import java.awt.event.ActionEvent
 
 /**
- * A [JFrame] used to provide a dialog by which a user can open an existing
- * [KnownAvailProject] in a new [AvailWorkbench].
+ * The [AbstractWorkbenchAction] that opens an [CreateProjectDialog] used to
+ * create a new [AvailProject].
  *
  * @author Richard Arriaga
  *
- * @property manager
- *   The running [AvailProjectManager].
- *
  * @constructor
- * Construct a new [OpenKnownProjectDialog].
- * @param manager
- *   The running [AvailProjectManager].
+ * Construct a new [CreateProjectAction].
+ *
  * @param workbench
- *   The workbench that launched this [OpenKnownProjectDialog].
+ *   The [AvailWorkbench] that initiated this action.
  */
-internal class OpenKnownProjectDialog constructor(
-	val manager: AvailProjectManager,
-	workbench: AvailWorkbench
-): JFrame("Open Existing Project")
+class CreateProjectAction constructor(workbench: AvailWorkbench)
+	: AbstractWorkbenchAction(workbench, "New…")
 {
-	init
+	override fun actionPerformed(e: ActionEvent?)
 	{
-		manager.openKnownProjectDialog = this
-		minimumSize = Dimension(760, 400)
-		preferredSize = Dimension(760, 600)
-		maximumSize = Dimension(760, 900)
-		defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
-		addWindowListener(object: WindowAdapter()
-		{
-			override fun windowClosing(e: WindowEvent?)
-			{
-				manager.openKnownProjectDialog = null
-			}
-		})
-		add(KnownProjectsPanel(manager, false))
-		setLocationRelativeTo(workbench)
-		isVisible = true
-	}
-
-	/**
-	 * Close this [OpenKnownProjectDialog].
-	 */
-	fun close ()
-	{
-		manager.openKnownProjectDialog = null
-		dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+		workbench.projectManager?.createProject(workbench)
 	}
 }

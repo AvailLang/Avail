@@ -69,6 +69,12 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	 */
 	var favorite: String?
 
+	/**
+	 * The layout configuration string that indicates the position of the
+	 * project manager window on start up.
+	 */
+	var projectManagerLayoutConfig: String
+
 	/** The set of [KnownAvailProject]s. */
 	val knownProjects: MutableSet<KnownAvailProject>
 
