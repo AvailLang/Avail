@@ -59,6 +59,8 @@ import java.util.IdentityHashMap
  *
  * @param startInName
  *   The one-based position of the start of the token in the message name.
+ * @param pastEndInName
+ *   The one-based position just past the end of the token in the message name.
  * @param absoluteUnderscoreIndex
  *   The one-based index of this argument within the entire message name's list
  *   of arguments.

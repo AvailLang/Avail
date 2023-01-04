@@ -50,7 +50,6 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.phrasePathRecord
 import avail.descriptor.module.A_Module.Companion.removeFrom
@@ -72,6 +71,7 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter
 import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ManifestRecord
 import avail.persistence.cache.Repository.ModuleArchive
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleCompilationKey
@@ -332,7 +332,7 @@ internal class BuildLoader constructor(
 		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
 		module.setPhrasePathRecordIndex(compilation.recordNumberOfPhrasePaths)
 		module.setManifestEntriesIndex(
-			compilation.recordNumberOfManifestEntries)
+			compilation.recordNumberOfManifest)
 		val availLoader = AvailLoader(
 			availBuilder.runtime, module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
@@ -484,9 +484,9 @@ internal class BuildLoader constructor(
 	}
 
 	/**
-	 * Compile the specified [module][ModuleDescriptor], store it into the
-	 * [repository][Repository], and then load it into the
-	 * [Avail&#32;runtime][AvailRuntime].
+	 * Compile the [module][ModuleDescriptor] with the specified [moduleName]
+	 * into the current [AvailRuntime], and then store its compilation into the
+	 * [repository][Repository].
 	 *
 	 * Note that the predecessors of this module must have already been loaded.
 	 *
@@ -544,19 +544,16 @@ internal class BuildLoader constructor(
 					problemHandler,
 					succeed = { compiler: AvailCompiler ->
 						compiler.parseModule(
-							onSuccess = { module ->
+							onSuccess = {
 								val old = ranOnce.getAndSet(true)
 								assert(!old) {
 									"Completed module compilation twice!"
 								}
 								completedCompilation(
-									compiler,
-									module,
-									repository,
+									compiler.compilationContext,
 									archive,
 									versionKey,
 									compilationKey,
-									moduleName,
 									lastPosition)
 								completionAction()
 							},
@@ -574,30 +571,63 @@ internal class BuildLoader constructor(
 		}
 	}
 
+	/**
+	 * The given [module] has just been compiled using the given [context],
+	 * which has accumulated additional information to record, such as styling.
+	 * Write everything about this particular module's compilation to the
+	 * repository captured by the [archive].
+	 *
+	 * The write is not committed unless the repository is sufficiently stale
+	 * that it warrants being committed, to slow the growth of the repository
+	 * file. If the process is terminated before this commit happens, at most a
+	 * few seconds of work must be re-performed when loading the same modules in
+	 * a subsequent process.
+	 *
+	 * @param context
+	 *   The [CompilationContext] that was used to compile the module.
+	 * @param archive
+	 *   The [ModuleArchive] associated with this module in that archive's
+	 *   captured [Repository].
+	 * @param versionKey
+	 *   The [ModuleVersionKey] which indicates which version of the module was
+	 *   created.  This includes the source's cryptographic hash.
+	 * @param compilationKey
+	 *   The [ModuleCompilationKey] which captures, for a particular
+	 *   [versionKey], the compilation times of the immediate predecessor
+	 *   modules.  During subsequent use of the [Repository], the particular
+	 *   compilation of this module (written by this method) will only be
+	 *   fast-loaded (loaded from its compiled form) if the versionKey matches
+	 *   the file's hash *and* the predecessor modules' compilation times agree
+	 *   with those in some compilationKey.  If it loads successfully this way,
+	 *   the compilation time associated with the loaded module will be set to
+	 *   the value captured in the compilation, so that downstream modules may
+	 *   be able to reuse their compilations as well.
+	 * @param lastPosition
+	 *   The last compilation position that has been reported for this module
+	 *   compilation, always less than the length of the file.  This method will
+	 *   report completion of compilation of the remaining portion of the file.
+	 */
 	private fun completedCompilation(
-		compiler: AvailCompiler,
-		module: A_Module,
-		repository: Repository,
+		context: CompilationContext,
 		archive: ModuleArchive,
 		versionKey: ModuleVersionKey,
 		compilationKey: ModuleCompilationKey,
-		moduleName: ResolvedModuleName,
 		lastPosition: Long)
 	{
-		val context = compiler.compilationContext
+		val module = context.module
+		val moduleName = context.moduleHeader!!.moduleName
 		val stream = context.serializerOutputStream
 		appendCRC(stream)
 
-		// Also produce the serialization of the
-		// module's tuple of block phrases.
+		// Also produce the serialization of the module's tuple of block
+		// phrases.
 		val blockPhrasesOutputStream = IndexedFile.ByteArrayOutputStream(5000)
 		val bodyObjectsTuple = context.serializer.serializedObjectsTuple()
 		val bodyObjectsMap = mutableMapOf<AvailObject, Int>()
 		bodyObjectsTuple.forEachIndexed { zeroIndex, element ->
 			bodyObjectsMap[element] = zeroIndex + 1
 		}
-		// Ensure the primed objects are always at
-		// strictly negative indices.
+		// Ensure the primed objects are always at strictly negative indices.
 		val delta = bodyObjectsMap.size + 1
 		val blockPhraseSerializer = Serializer(
 			blockPhrasesOutputStream,
@@ -613,12 +643,13 @@ internal class BuildLoader constructor(
 		blockPhraseSerializer.serialize(blockPhrases)
 		appendCRC(blockPhrasesOutputStream)
 		val manifestEntries = context.loader.manifestEntries!!
+		val repository = archive.repository
 		val compilation = repository.createModuleCompilation(
 			// Now is the moment of compilation.
 			System.currentTimeMillis(),
 			stream.toByteArray(),
 			blockPhrasesOutputStream.toByteArray(),
-			manifestEntries,
+			ManifestRecord(manifestEntries),
 			assembleStylingRecord(context),
 			module.phrasePathRecord())
 		archive.putCompilation(versionKey, compilationKey, compilation)
@@ -638,7 +669,7 @@ internal class BuildLoader constructor(
 		module.getAndSetTupleOfBlockPhrases(
 			fromLong(compilation.recordNumberOfBlockPhrases))
 		module.setManifestEntriesIndex(
-			compilation.recordNumberOfManifestEntries)
+			compilation.recordNumberOfManifest)
 		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
 		module.setPhrasePathRecordIndex(compilation.recordNumberOfPhrasePaths)
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)

@@ -903,7 +903,7 @@ class AvailCompiler constructor(
 			expression,
 			{ phrase, _, _ -> phrase },
 			nil,
-			mutableListOf(),
+			emptyList(),
 			declarationRemap)
 		val phraseFailure = { e: Throwable ->
 			when (e)

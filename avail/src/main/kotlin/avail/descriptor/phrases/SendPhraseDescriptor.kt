@@ -256,16 +256,13 @@ private constructor(
 		 * which match parts of the actual text of the message name).
 		 *
 		 * @param consumedTokens
-		 *   The [tuple][A_Tuple] of [tokens][A_Token] that comprise the
-		 *   [send][SendPhraseDescriptor].
-		 * @param consumedTokens
-		 *   The list of all tokens collected for this send phrase.  This includes
-		 *   only those tokens that are operator or keyword tokens that correspond
-		 *   with parts of the method name itself, not the arguments.
+		 *   The list of all tokens collected for this send phrase.  This
+		 *   includes only the static tokens that occur literally within the
+		 *   method name itself.
 		 * @param consumedTokenIndices
 		 *   The indices of the [consumedTokens] collected for this send phrase.
-		 *   These are the one-based indices of the message parts within the split
-		 *   bundle name.
+		 *   These are the one-based indices of the message parts within the
+		 *   split bundle name.
 		 * @param bundle
 		 *   The method bundle for which this represents an invocation.
 		 * @param argsListNode

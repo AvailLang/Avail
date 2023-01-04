@@ -112,7 +112,6 @@ import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_String.SurrogateIndexConverter
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -257,8 +256,8 @@ class CompilationContext constructor(
 	 * [compiler][AvailCompiler] to facilitate the loading of
 	 * [modules][ModuleDescriptor].
 	 */
-	val loader = AvailLoader(runtime, module, textInterface).also {
-		it.manifestEntries = mutableListOf()
+	val loader = AvailLoader(runtime, module, textInterface).apply {
+		manifestEntries = mutableListOf()
 	}
 
 	/** The number of work units that have been queued. */
@@ -1326,7 +1325,7 @@ class CompilationContext constructor(
 					action()
 					return
 				}
-				StylingNotWaiting -> StylingAndWaiting(action)
+				is StylingNotWaiting -> StylingAndWaiting(action)
 				// Only one post-styling action is allowed.
 				is StylingAndWaiting -> throw IllegalStateException()
 			}
@@ -1337,6 +1336,9 @@ class CompilationContext constructor(
 
 	/**
 	 * Capture the tree of [PhraseNode]s that describe this top-level phrase.
+	 *
+	 * @param rootPhrase
+	 *   A top-level phrase for which to record a [PhraseNode] tree.
 	 */
 	fun recordPathForTopLevelPhrase(rootPhrase: A_Phrase)
 	{
@@ -1354,30 +1356,6 @@ class CompilationContext constructor(
 				continue
 			}
 			var phrase = iterator.next()
-			// Drill through uninteresting adaptor-like phrases.
-			while (true)
-			{
-				// Never drop names.
-				if (phrase.apparentSendName.notNil) break
-				// Never drop tokens.
-				if (phrase.tokens.tupleSize > 0) break
-				var childrenCount = 0
-				phrase.childrenDo { childrenCount++ }
-				// Can't drop if there isn't exactly one child.
-				if (childrenCount != 1) break
-				// Preserve lists, so the parts can always be correlated to the
-				// argument positions produced by the MessageSplitter.
-				if (phrase.phraseKindIsUnder(LIST_PHRASE)) break
-				// Literals have to be handled specially below.
-				if (phrase.phraseKindIsUnder(LITERAL_PHRASE)) break
-				// Drill into the sole child.
-
-//TODO Suppress skipping levels.
-				if (true) break
-
-
-				phrase.childrenDo { phrase = it }
-			}
 			var moduleName: A_String? = null
 			var atomName: A_String? = null
 			phrase.apparentSendName.ifNotNil { atom: A_Atom ->
@@ -1386,40 +1364,27 @@ class CompilationContext constructor(
 				}
 				atomName = atom.atomName
 			}
-			when
+			phrase = when
 			{
 				phrase.isMacroSubstitutionNode ->
-				{
-					// Trace the original of a macro substitution, unless the
-					// output is a send, in which case trace that instead.
-					phrase = when
-					{
-						//phrase.outputPhrase.phraseKindIsUnder(SEND_PHRASE) ->
-						//	phrase.outputPhrase
-
-						else -> phrase.macroOriginalSendNode
-					}
-				}
-				phrase.phraseKindIsUnder(LITERAL_PHRASE) -> when
-				{
-					// Prefer the generatingPhrase, if present.
-					phrase.token.generatingPhrase.notNil ->
-					{
-						phrase = phrase.token.generatingPhrase
-					}
-					// Otherwise use the literal value, if it's a phrase.
-					phrase.token.literal().isInstanceOfKind(
-						PARSE_PHRASE.mostGeneralType
-					) -> phrase = phrase.token.literal()
-				}
+					phrase.macroOriginalSendNode
+				!phrase.phraseKindIsUnder(LITERAL_PHRASE) -> phrase
+				// Prefer the generatingPhrase, if present.
+				phrase.token.generatingPhrase.notNil ->
+					phrase.token.generatingPhrase
+				// Otherwise use the literal value, if it's a phrase.
+				phrase.token.literal()
+						.isInstanceOfKind(PARSE_PHRASE.mostGeneralType) ->
+					phrase.token.literal()
+				else -> phrase
 			}
 			if (atomName === null)
 			{
 				phrase.apparentSendName.ifNotNil { atom: A_Atom ->
-					atomName = atom.atomName
 					atom.issuingModule.ifNotNil { module: A_Module ->
 						moduleName = module.moduleName
 					}
+					atomName = atom.atomName
 				}
 			}
 			val tokenSpans =
@@ -1432,11 +1397,6 @@ class CompilationContext constructor(
 						token.pastEnd())
 					PhraseNodeToken(start, pastEnd, indexInName.extractInt)
 				}
-			if (atomName === null && phrase.phraseKind == SEND_PHRASE)
-			{
-				println("HERE")
-			}
-			//atomName = atomName ?: stringFrom("(${phrase.phraseKind.name})")
 			val phraseNode = PhraseNode(
 				moduleName, atomName, tokenSpans, parent = parent)
 			parent.children.add(phraseNode)

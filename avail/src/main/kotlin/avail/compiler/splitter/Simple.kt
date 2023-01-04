@@ -59,8 +59,12 @@ import avail.descriptor.types.A_Type
  * @param startInName
  *   The one-based index of the token within the entire name string.
  * @param pastEndInName
- *   After the [MessageSplitter] has produced a complete [Expression] tree, each
- *   node will have its [pastEndInName] populated.
+ *   The one-based position just past the end of the token in the message name.
+ * @param token
+ *   The [A_String] form of this static token.
+ * @param tokenIndex
+ *   The one-based position of this static token within the [MessageSplitter]'s
+ *   tuple of [parts][MessageSplitter.messageParts].
  */
 internal class Simple constructor(
 	startInName: Int,

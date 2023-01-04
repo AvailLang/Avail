@@ -57,14 +57,10 @@ enum class SideEffectKind
 	/** The summaryText will be the method name being restricted. */
 	SEMANTIC_RESTRICTION_KIND,
 
-	/**
-	 * The summaryText will be the method name being restricted.
-	 */
+	/** The summaryText will be the method name being restricted. */
 	GRAMMATICAL_RESTRICTION_KIND,
 
-	/**
-	 * The summaryText will be the method name being sealed.
-	 */
+	/** The summaryText will be the method name being sealed. */
 	SEAL_KIND,
 
 	/** The summaryText will be the lexer's name. */
@@ -78,7 +74,7 @@ enum class SideEffectKind
 
 	companion object
 	{
-		/** All of the [Kind]s. */
+		/** All of the [SideEffectKind]s. */
 		val all = values().toList()
 	}
 }

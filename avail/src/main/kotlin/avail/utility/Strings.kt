@@ -374,6 +374,10 @@ object Strings
 		}
 	}
 
+	/**
+	 * A map translating [Char]s to their entity-escaped forms, suitable for use
+	 * in HTML text.
+	 */
 	private val escapesForHTML = mapOf(
 		'&' to "&amp;",
 		'<' to "&lt;",
@@ -382,6 +386,16 @@ object Strings
 		'\'' to "&#x27;",
 		'/' to "&#x2F;")
 
+	/**
+	 * Convert a string into HTML-escaped form, allowing the original string to
+	 * be presented literally in a web browser or Swing component expecting
+	 * HTML text.
+	 *
+	 * @receiver
+	 *   The string to escape.
+	 * @return
+	 *   The HTML-escaped string.
+	 */
 	fun String.escapedForHTML() = buildString {
 		this@escapedForHTML.forEach { char ->
 			when (val transformed = escapesForHTML[char])

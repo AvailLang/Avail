@@ -33,7 +33,6 @@
 package avail.anvil
 
 import avail.AvailRuntime
-import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
@@ -47,6 +46,7 @@ import avail.anvil.text.CodePane
 import avail.anvil.text.MarkToDotRange
 import avail.anvil.text.goTo
 import avail.anvil.text.markToDotRange
+import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailEditorLayoutConfiguration
 import avail.anvil.window.LayoutConfiguration
@@ -55,26 +55,17 @@ import avail.builder.AvailBuilder
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleManifestEntry
-import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.manifestEntries
-import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ManifestRecord
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.persistence.cache.Repository.PhraseNode
 import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
-import avail.utility.PrefixSharingList.Companion.append
-import avail.utility.Strings.escapedForHTML
-import avail.utility.iterableWith
 import avail.utility.notNullAnd
-import avail.utility.structures.RunTree
 import java.awt.BorderLayout
-import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.WindowAdapter
@@ -82,12 +73,9 @@ import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.util.TimerTask
 import java.util.concurrent.Semaphore
-import javax.swing.DefaultListCellRenderer
-import javax.swing.DefaultListModel
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
-import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
@@ -95,7 +83,10 @@ import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.Caret
+import javax.swing.text.Position
 import javax.swing.text.StyleConstants
+import javax.swing.text.StyledDocument
+import kotlin.math.max
 import kotlin.math.min
 
 /**
@@ -128,6 +119,12 @@ class AvailEditor constructor(
 	afterTextLoaded: (AvailEditor) -> Unit = {}
 ) : WorkbenchFrame("Avail Editor: $moduleName")
 {
+	/**
+	 * The cryptographic hash of the editor's text.  This gets cleared every
+	 * time the document is edited.
+	 */
+	private var latestDigest: ByteArray? = null
+
 	/** The current [AvailRuntime]. */
 	private val runtime = workbench.runtime
 
@@ -170,9 +167,18 @@ class AvailEditor constructor(
 	internal val openDialogs = mutableSetOf<JFrame>()
 
 	/**
-	 * The [ModuleManifestEntry] list for the represented model.
+	 * A class that maintains the position of a [ModuleManifestEntry] even as
+	 * the underlying [StyledDocument] is edited.
 	 */
-	private var manifestEntriesList: List<ModuleManifestEntry>? = null
+	data class ManifestEntryInDocument constructor(
+		val entry: ModuleManifestEntry,
+		val startInDocument: Position)
+
+	/**
+	 * The [List] of [ManifestEntryInDocument], if known, for the module.
+	 */
+	private var manifestEntriesInDocument: List<ManifestEntryInDocument>? =
+		null
 
 	override fun saveWindowPosition()
 	{
@@ -181,39 +187,60 @@ class AvailEditor constructor(
 			this@AvailEditor.sourcePane.markToDotRange()
 	}
 
-	internal fun updateManifestEntriesList (then: (List<ModuleManifestEntry>) -> Unit)
+	/**
+	 * Locate the most recent compilation of the current document, fetch its
+	 * manifest entries, map them into [ManifestEntryInDocument]s, and update
+	 * [manifestEntriesInDocument] accordingly.  These entries are tied to
+	 * [Position]s in the document, so they will maintain "the same" textual
+	 * position as text is added and removed.
+	 */
+	internal fun fetchManifestEntries()
 	{
-		workbench.runtime.execute(
-			AvailTask(FiberDescriptor.loaderPriority) {
-				val newList = workbench.availBuilder.getLoadedModule(resolvedName)
-					?.module?.manifestEntries() ?: emptyList()
-				manifestEntriesList = newList
-				then(newList)
+		assert(SwingUtilities.isEventDispatchThread())
+		val semaphore = Semaphore(0)
+		// In case of an error, don't update the manifest list, since the
+		// previous version is as close as we can get.
+		var entriesInDocument = manifestEntriesInDocument
+		getActiveStylingAndPhrasePathRecords(
+			onSuccess = { _, _, manifestRecord ->
+				val entries = manifestRecord?.manifestEntries ?: emptyList()
+				val document = sourcePane.styledDocument
+				val root = document.defaultRootElement
+				entriesInDocument = entries.map { entry ->
+					val line = entry.topLevelStartingLine
+					val normalizedLine =
+						max(0, min(line - 1, root.elementCount - 1))
+					val element = root.getElement(normalizedLine)
+					val lineStart = element.startOffset
+					val position = document.createPosition(lineStart)
+					ManifestEntryInDocument(entry, position)
+				}
+				semaphore.release()
+			},
+			onError = {
+				semaphore.release()
 			})
+		semaphore.acquire()
+		manifestEntriesInDocument = entriesInDocument
 	}
 
 	/**
-	 * Get the [List] of [ModuleManifestEntry]s for the associated
-	 * [AvailBuilder.LoadedModule] then provide it to the given lambda.
+	 * Get the [List] of [ManifestEntryInDocument]s for the associated
+	 * [AvailBuilder.LoadedModule].
 	 *
-	 * @param then
-	 *  The lambda that accepts the [List] of [ModuleManifestEntry]s.
+	 * @return
+	 *  The [List] of [ManifestEntryInDocument]s.
 	 */
-	internal fun manifestEntries (then: (List<ModuleManifestEntry>) -> Unit)
+	private fun manifestEntriesInDocument(): List<ManifestEntryInDocument>
 	{
-		val mel = manifestEntriesList
-		if (mel != null)
-		{
-			then(mel)
-		}
-		else
-		{
-			updateManifestEntriesList(then)
-		}
+		manifestEntriesInDocument ?: fetchManifestEntries()
+		return manifestEntriesInDocument!!
 	}
 
 	/**
 	 * Open the [StructureViewPanel] associated with this [AvailEditor].
+	 *
+	 * Must execute in the event dispatch thread.
 	 *
 	 * @param giveEditorFocus
 	 *   `true` gives focus to this [AvailEditor]; `false` give focus to
@@ -221,34 +248,45 @@ class AvailEditor constructor(
 	 */
 	fun openStructureView (giveEditorFocus: Boolean = true)
 	{
-		manifestEntries {
-			SwingUtilities.invokeLater {
-				workbench.structureViewPanel.apply {
-					updateView(this@AvailEditor, it)
-					{
-						if (giveEditorFocus)
-						{
-							this@AvailEditor.toFront()
-							this@AvailEditor.requestFocus()
-							this@AvailEditor.sourcePane.requestFocus()
-						}
-						else
-						{
-							requestFocus()
-						}
-					}
-					isVisible = true
-				}
+		assert(SwingUtilities.isEventDispatchThread())
+		val structView = workbench.structureViewPanel
+		structView.updateView(this@AvailEditor, manifestEntriesInDocument())
+		{
+			if (giveEditorFocus)
+			{
+				toFront()
+				requestFocus()
+				sourcePane.requestFocus()
 			}
+		}
+		structView.isVisible = true
+	}
+
+	/**
+	 * Open the [PhraseViewPanel] associated with this [AvailEditor], if it's
+	 * not already visible.
+	 */
+	fun openPhraseView ()
+	{
+		updatePhraseStructure()
+		if (!workbench.phraseViewIsOpen)
+		{
+			// Open the phrase view.
+			workbench.phraseViewPanel.isVisible = true
+			workbench.phraseViewPanel.requestFocus()
 		}
 	}
 
 	/**
 	 * Go to the top starting line of the given [ModuleManifestEntry].
 	 */
-	internal fun goTo (entry: ModuleManifestEntry)
+	internal fun goTo (entry: ManifestEntryInDocument)
 	{
-		sourcePane.goTo(entry.topLevelStartingLine - 1)
+		assert(SwingUtilities.isEventDispatchThread())
+		val document = sourcePane.styledDocument
+		val root = document.defaultRootElement
+		val line = root.getElementIndex(entry.startInDocument.offset)
+		sourcePane.goTo(line)
 	}
 
 	/**
@@ -265,11 +303,12 @@ class AvailEditor constructor(
 	 *   corrupt [Repository] or [StylingRecord].
 	 */
 	private fun getActiveStylingAndPhrasePathRecords(
-		onSuccess: (StylingRecord?, PhrasePathRecord?)->Unit,
+		onSuccess: (StylingRecord?, PhrasePathRecord?, ManifestRecord?)->Unit,
 		onError: (Throwable?)->Unit)
 	{
 		val repository = resolvedName.repository
 		repository.reopenIfNecessary()
+		val repositoryFile = repository.repository!!
 		val archive = repository.getArchive(resolvedName.rootRelativeName)
 		archive.digestForFile(
 			resolvedName,
@@ -278,26 +317,17 @@ class AvailEditor constructor(
 				try
 				{
 					val versionKey = ModuleVersionKey(resolvedName, digest)
-					val version = archive.getVersion(versionKey)
-					if (version !== null)
-					{
-						val compilation = version.allCompilations.maxByOrNull(
-							ModuleCompilation::compilationTime)
-						if (compilation !== null)
-						{
-							val stylingRecordIndex =
-								compilation.recordNumberOfStyling
-							val stylingRecord = StylingRecord(
-								repository.repository!![stylingRecordIndex])
-							val phrasePathRecordIndex =
-								compilation.recordNumberOfPhrasePaths
-							val phrasePathRecord = PhrasePathRecord(
-								repository.repository!![phrasePathRecordIndex])
-							return@digestForFile onSuccess(
-								stylingRecord, phrasePathRecord)
-						}
-					}
-					onSuccess(null, null)
+					val compilation = archive.getVersion(versionKey)
+							?.allCompilations
+							?.maxByOrNull(ModuleCompilation::compilationTime) ?:
+						return@digestForFile onSuccess(null, null, null)
+					val stylingRecord = StylingRecord(
+						repositoryFile[compilation.recordNumberOfStyling])
+					val phrasePathRecord = PhrasePathRecord(
+						repositoryFile[compilation.recordNumberOfPhrasePaths])
+					val manifestRecord = ManifestRecord(
+						repositoryFile[compilation.recordNumberOfManifest])
+					onSuccess(stylingRecord, phrasePathRecord, manifestRecord)
 				}
 				catch (e: Throwable)
 				{
@@ -311,41 +341,18 @@ class AvailEditor constructor(
 	/**
 	 * The [MarkToDotRange] of the [Caret] in the [sourcePane].
 	 */
-	internal var range: MarkToDotRange // TODO can this be set?
-
-	/**
-	 * The [JList] that displays the hierarchy of phrases containing the
-	 * selected token.
-	 */
-	private val parseStructureList = JList<PhraseExplanation>().apply {
-		model = DefaultListModel()
-		cellRenderer = object : DefaultListCellRenderer()
-		{
-			override fun getListCellRendererComponent(
-				list: JList<*>?,
-				phraseStructure: Any?,
-				index: Int,
-				isSelected: Boolean,
-				cellHasFocus: Boolean
-			): Component = super.getListCellRendererComponent(
-				list,
-				(phraseStructure as? PhraseExplanation)?.run
-				{
-					"<html>$htmlText</html>"
-				},
-				index,
-				isSelected,
-				cellHasFocus)
-		}
-	}
+	internal var range: MarkToDotRange
+		private set
 
 	/**
 	 * Compute the sequence of nested send phrases that describe how the
 	 * selected token ended up being embedded in the final parse structure.
-	 * Update the [parseStructureList] to show this information.
+	 * Update the [AvailWorkbench.phraseViewPanel] to show this information.
 	 */
-	private fun updatePhraseStructure()
+	fun updatePhraseStructure()
 	{
+		// Skip it if the phrase view isn't open.
+		if (!workbench.phraseViewIsOpen) return
 		val doc = sourcePane.styledDocument
 		// First look to the right of the cursor position.
 		val mark = range.markPosition.offset
@@ -360,137 +367,7 @@ class AvailEditor constructor(
 			tokenStyle = element.attributes.getAttribute(PhraseNodeAttributeKey)
 				as? TokenStyle
 		}
-		val phraseNode = tokenStyle?.phraseNode
-		// Reverse the list, so the first element is the top-most phrase.
-		val nodes = phraseNode.iterableWith(PhraseNode::parent).reversed()
-		val nodesSize = nodes.size
-		(parseStructureList.model as DefaultListModel).run {
-			clear()
-			var i = 0
-			while (i < nodesSize)
-			{
-				val node = nodes[i++]
-				val runs = RunTree<List<String>>()
-				if (node.atomName !== null)
-				{
-					// This is a send or macro.  Highlight the part of the name
-					// in which the subphrase occurs.
-					var subindices = (i until nodesSize)
-						.takeWhile { nodes[it].atomName === null }
-						.map { nodes[it].indexInParent }
-					// Consume the chain of indices.
-					i += subindices.size
-					// Add the indexInParent of the next child as well, but
-					// don't consume it.
-					if (i < nodesSize)
-					{
-						subindices = subindices.append(nodes[i].indexInParent)
-					}
-					if (node === nodes.last())
-					{
-						// We're at the leaf.  Color only the token indicated
-						// in the tokenStyle, to indicate which token of the
-						// message this was.
-						tokenStyle?.tokenIndexInName?.let { tokenIndexInName ->
-							if (tokenIndexInName > 0)
-							{
-								phraseNode!!.splitter
-									?.highlightMessagePartIndex(
-										tokenIndexInName)
-									?.let { range ->
-										runs.edit(
-											range.first + 0L,
-											range.last + 1L
-										) { old ->
-											(old ?: emptyList()).append(
-												"font color='red'")
-										}
-									}
-							}
-						}
-					}
-					else
-					{
-						val range =
-							node.splitter!!.highlightRangeForPath(subindices)
-						runs.edit(range.first + 0L, range.last + 1L) { old ->
-							(old ?: emptyList()).append("font color='red'")
-						}
-					}
-				}
-				val (index, siblingCount) = when (val parent = node.parent)
-				{
-					null -> -1 to 0
-					else -> node.indexInParent to parent.children.size
-				}
-				val newElement =
-					PhraseExplanation(node, index, siblingCount, runs)
-				addElement(newElement)
-			}
-		}
-	}
-
-	/**
-	 * An entry in the [parseStructureList] that shows a send phrase's bundle
-	 * name and an indication of where within that name the subphrase below it
-	 * occurs.
-	 *
-	 * @constructor
-	 * Construct a new [PhraseExplanation]
-	 *
-	 * @param phraseNode
-	 *   The [PhraseNode] that this is based on.
-	 * @param childIndex
-	 *   My zero-based index within my parents' children, or -1 if I am a root
-	 *   phrase.
-	 * @param siblingsCount
-	 *   The number of children that my parent has, including me.
-	 */
-	data class PhraseExplanation(
-		val phraseNode: PhraseNode,
-		val childIndex: Int,
-		val siblingsCount: Int,
-		val htmlTagRuns: RunTree<List<String>>)
-	{
-		/**
-		 * Produce suitable HTML text indicating the message sent by this
-		 * phrase, and which argument position the next subphrase down occupies.
-		 *
-		 * Use the [htmlTagRuns] to insert html tag names (and attributes) to
-		 * mark up spans of text, in the Avail one-based coordinate system.
-		 */
-		val htmlText = buildString {
-			when (val atomName = phraseNode.atomName)
-			{
-				null -> append("...")
-				else ->
-				{
-					var here = 1
-					htmlTagRuns.forEach { (start, pastEnd, tags) ->
-						if (start > here)
-						{
-							val gap = atomName.copyStringFromToCanDestroy(
-								here, start.toInt() - 1, false)
-							append(gap.asNativeString().escapedForHTML())
-							here = start.toInt()
-						}
-						val part = atomName.copyStringFromToCanDestroy(
-							here, pastEnd.toInt() - 1, false)
-						tags.forEach { tag -> append("<$tag>") }
-						append(part.asNativeString().escapedForHTML())
-						// Close the tags in reverse order, only using up to the
-						// space after a tag name if it has attributes.
-						tags.reversed().forEach { tag ->
-							append("</${tag.substringBefore(' ')}>")
-						}
-						here = pastEnd.toInt()
-					}
-					val trailer = atomName.copyStringFromToCanDestroy(
-						here, atomName.tupleSize, false)
-					append(trailer.asNativeString().escapedForHTML())
-				}
-			}
-		}
+		workbench.phraseViewPanel.updateView(this, tokenStyle)
 	}
 
 	/**
@@ -551,21 +428,28 @@ class AvailEditor constructor(
 
 	init
 	{
-		highlightCode(afterTextLoaded)
+		highlightCode()
 		range = sourcePane.markToDotRange()
 		caretRangeLabel.text = range.toString()
 		sourcePane.undoManager.discardAllEdits()
 	}
 
+	/** The scroll wrapper around the [sourcePane]. */
+	private val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
+		workbench.globalSettings.editorGuideLines)
+
 	/**
-	 * Apply style highlighting to the text in the [JTextPane].  Also apply the
-	 * semantic styling that associates a [PhraseNode] with each token that was
-	 * part of a parsed phrase.
+	 * Apply style highlighting to the text in the [JTextPane].
 	 *
-	 * @param then
-	 *   Action to perform after text has been loaded to [sourcePane].
+	 * Also apply the semantic styling that associates a [PhraseNode] with each
+	 * token that was part of a parsed phrase.
+	 *
+	 * Also create a [Position] for each [ManifestEntryInDocument], so that it
+	 * can navigate to the correct line even after edits (as long as the file
+	 * had no edits since the last compilation at the time that the editor was
+	 * opened).
 	 */
-	internal fun highlightCode(then: (AvailEditor) -> Unit = {})
+	internal fun highlightCode()
 	{
 		var stylingRecord: StylingRecord? = null
 		var phrasePathRecord: PhrasePathRecord? = null
@@ -575,9 +459,9 @@ class AvailEditor constructor(
 			lineEndDelimiter = delimiter
 			sourcePane.text = normalizedText
 			getActiveStylingAndPhrasePathRecords(
-				onSuccess = { stylingRecordOrNull, phrasePathRecordOrNull ->
-					stylingRecord = stylingRecordOrNull
-					phrasePathRecord = phrasePathRecordOrNull
+				onSuccess = { stylingRec, phrasePathRec, _ ->
+					stylingRecord = stylingRec
+					phrasePathRecord = phrasePathRec
 					semaphore.release()
 				},
 				onError = { e ->
@@ -594,7 +478,6 @@ class AvailEditor constructor(
 		phrasePathRecord?.let {
 			sourcePane.styledDocument.applyPhrasePaths(it)
 		}
-		then(this)
 	}
 
 	/**
@@ -603,6 +486,7 @@ class AvailEditor constructor(
 	 */
 	private fun editorChanged()
 	{
+		latestDigest = null
 		val editTime = lastEditTime
 		lastEditTime = System.currentTimeMillis()
 		if (editTime <= lastSaveTime)
@@ -676,6 +560,9 @@ class AvailEditor constructor(
 	/** Open the editor window. */
 	init
 	{
+		highlightCode()
+		range = sourcePane.markToDotRange()
+		caretRangeLabel.text = range.toString()
 		jMenuBar = createMenuBar {
 			menu("Edit")
 			{
@@ -702,6 +589,13 @@ class AvailEditor constructor(
 						openStructureView(true)
 					}
 				}
+				if (workbench.phraseViewIsOpen)
+				{
+					if (workbench.phraseViewPanel.editor != this@AvailEditor)
+					{
+						updatePhraseStructure()
+					}
+				}
 			}
 
 			override fun windowLostFocus(e: WindowEvent?) = Unit
@@ -713,43 +607,27 @@ class AvailEditor constructor(
 
 		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
 			workbench.globalSettings.editorGuideLines)
-		val parseStructureListScroll = parseStructureList.scroll()
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
 			setHorizontalGroup(
 				createParallelGroup()
 					.addComponent(sourcePaneScroll)
 					.addComponent(
-						parseStructureListScroll,
-						0,
-						GroupLayout.DEFAULT_SIZE,
-						Short.MAX_VALUE.toInt())
-					.addComponent(
 						caretRangeLabel,
 						GroupLayout.Alignment.TRAILING))
 			setVerticalGroup(
 				createSequentialGroup()
 					.addComponent(sourcePaneScroll)
-					.addComponent(
-						parseStructureListScroll,
-						GroupLayout.PREFERRED_SIZE,
-						GroupLayout.DEFAULT_SIZE,
-						GroupLayout.PREFERRED_SIZE)
 					.addComponent(caretRangeLabel))
 		}
-		parseStructureList.prototypeCellValue =
-			PhraseExplanation(
-				PhraseNode(null, null, emptyList(), parent = null),
-				0,
-				1,
-				RunTree())
-		parseStructureList.visibleRowCount = 10
 		minimumSize = Dimension(650, 350)
 		preferredSize = Dimension(800, 1000)
 		add(panel)
 		pack()
+		afterTextLoaded(this@AvailEditor)
+		if (workbench.structureViewIsOpen)
+			updatePhraseStructure()
 		isVisible = true
-		if (workbench.structureViewIsOpen) openStructureView(true)
 	}
 
 	companion object

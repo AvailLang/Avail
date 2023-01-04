@@ -132,7 +132,7 @@ import java.util.function.Function
  *   The [compiled&#32;code][CompiledCodeDescriptor] which is being decompiled.
  * @property tempGenerator
  *   Something to generate unique variable names from a prefix.
- * @author Mark van Gulik &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
  *

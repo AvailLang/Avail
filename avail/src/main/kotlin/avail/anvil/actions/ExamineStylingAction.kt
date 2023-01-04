@@ -86,9 +86,8 @@ class ExamineStylingAction constructor (
 				{
 					is ModuleCompilation ->
 					{
-						val stylingBytes =
-							repository.repository!![
-								selectedCompilation.recordNumberOfStyling]
+						val stylingBytes = repository.repository!![
+							selectedCompilation.recordNumberOfStyling]
 						val stylingRecord = StylingRecord(stylingBytes)
 						workbench.outputStream.println(
 							stylingRecord.styleRuns.joinToString("\n"))

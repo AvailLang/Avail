@@ -88,7 +88,7 @@ class ExamineModuleManifest constructor (
 					{
 						val describer = RepositoryDescriber(repository)
 						val description = describer.describeManifest(
-							selectedCompilation.recordNumberOfManifestEntries)
+							selectedCompilation.recordNumberOfManifest)
 						workbench.outputStream.println(description)
 					}
 					is Any -> assert(false) { "Unknown type selected" }

@@ -663,11 +663,9 @@ object StyleApplicator
 					val styles = styleNames.mapNotNull(::getStyle)
 					if (styles.isNotEmpty())
 					{
-						val combined = styles.drop(1).fold(
-							StyleAspects(styles.first())
-						) { aspect, nextStyle ->
-							aspect + StyleAspects(nextStyle)
-						}
+						val combined = styles
+							.map(::StyleAspects)
+							.reduce(StyleAspects::plus)
 						combined.applyTo(style)
 						style
 					}
@@ -725,6 +723,13 @@ object PhrasePathStyleApplicator
 	 * applicable for a span of source having this invisible style (under the
 	 * [PhraseNodeAttributeKey]), as well as which of the phrase's atom's
 	 * [MessageSplitter] parts occurred in this span of the source.
+	 *
+	 * @property phraseNode
+	 *   The [PhraseNode] that this invisible style represents.
+	 * @property tokenIndexInName
+	 *   The one-based index of a message part within the split message name
+	 *   being sent.  When this style is applied to a span of source code, this
+	 *   field indicates the corresponding static token of the message name.
 	 */
 	data class TokenStyle(
 		val phraseNode: PhraseNode,

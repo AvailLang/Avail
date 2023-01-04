@@ -175,6 +175,7 @@ import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ManifestRecord
 import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.Deserializer
@@ -183,7 +184,6 @@ import avail.utility.safeWrite
 import avail.utility.structures.BloomFilter
 import org.availlang.json.JSONWriter
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
-import java.io.DataInputStream
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -1136,17 +1136,12 @@ class ModuleDescriptor private constructor(
 			val moduleName = ModuleName(moduleNameNative)
 			val resolved =
 				runtime!!.moduleNameResolver.resolve(moduleName, null)
-			val record = resolved.repository.run {
+			val bytes = resolved.repository.run {
 				reopenIfNecessary()
 				lock.withLock { repository!![manifestEntriesRecordIndex] }
 			}
-			val bytes = DataInputStream(validatedBytesFrom(record))
-			val entriesList = mutableListOf<ModuleManifestEntry>()
-			while (bytes.available() > 0)
-			{
-				entriesList.add(ModuleManifestEntry(bytes))
-			}
-			manifestEntries = entriesList
+			val record = ManifestRecord(bytes)
+			manifestEntries = record.manifestEntries
 		}
 		return manifestEntries!!
 	}

@@ -67,7 +67,6 @@ constructor (
 		if (!isNew)
 		{
 			editor.openStructureView(true)
-			editor.toFront()
 		}
 	}
 

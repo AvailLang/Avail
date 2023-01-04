@@ -395,10 +395,10 @@ class LexingState constructor(
 		countdown: AtomicInteger)
 	{
 		val nextTokens = nextTokens!!
-		for (run in newTokenRuns)
+		for (run: A_Tuple in newTokenRuns)
 		{
 			assert(run.tupleSize > 0)
-			for (token in run)
+			for (token: A_Token in run)
 			{
 				token.setCurrentModule(compilationContext.module)
 				compilationContext.recordToken(token)

@@ -54,6 +54,7 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
 import avail.error.ErrorCode
+import avail.persistence.cache.Repository.PhraseNode.PhraseNodeToken
 import avail.resolver.ResolverReference
 import avail.serialization.Serializer
 import avail.utility.Mutable
@@ -68,7 +69,6 @@ import avail.utility.vlq
 import avail.utility.zigzag
 import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.ByteArrayOutputStream
-import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import org.availlang.persistence.IndexedFileBuilder
 import org.availlang.persistence.IndexedFileException
 import java.io.ByteArrayInputStream
@@ -175,7 +175,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V11")
+		"Avail compiled module repository V12")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
@@ -258,6 +258,9 @@ class Repository constructor(
 	 */
 	inner class ModuleArchive
 	{
+		/** Expose the enclosing Repository as a property. */
+		val repository: Repository get() = this@Repository
+
 		/** The latest `N` versions of this module. */
 		private val versions = LinkedHashMap<ModuleVersionKey, ModuleVersion>(
 			MAX_RECORDED_VERSIONS_PER_MODULE,
@@ -1031,11 +1034,10 @@ class Repository constructor(
 
 		/**
 		 * The record number at which a [ByteArray] was recorded for this
-		 * module. That record should be fetched as needed and decoded into an
-		 * array of module manifest [entries][ModuleManifestEntry] and stored
-		 * in the [A_Module]'s [ModuleDescriptor.o_ManifestEntries].
+		 * module. That record should be fetched as needed and decoded into a
+		 * [ManifestRecord].
 		 */
-		val recordNumberOfManifestEntries: Long,
+		val recordNumberOfManifest: Long,
 
 		/**
 		 * The record number at which a [ByteArray] was recorded for this
@@ -1072,7 +1074,7 @@ class Repository constructor(
 			binaryStream.writeLong(compilationTime)
 			binaryStream.zigzag(recordNumber)
 			binaryStream.zigzag(recordNumberOfBlockPhrases)
-			binaryStream.zigzag(recordNumberOfManifestEntries)
+			binaryStream.zigzag(recordNumberOfManifest)
 			binaryStream.zigzag(recordNumberOfStyling)
 			binaryStream.zigzag(recordNumberOfPhrasePaths)
 		}
@@ -1084,7 +1086,7 @@ class Repository constructor(
 				compilationTime,
 				recordNumber,
 				recordNumberOfBlockPhrases,
-				recordNumberOfManifestEntries,
+				recordNumberOfManifest,
 				recordNumberOfStyling,
 				recordNumberOfPhrasePaths)
 
@@ -1102,7 +1104,7 @@ class Repository constructor(
 			compilationTime = binaryStream.readLong(),
 			recordNumber = binaryStream.unzigzagLong(),
 			recordNumberOfBlockPhrases = binaryStream.unzigzagLong(),
-			recordNumberOfManifestEntries = binaryStream.unzigzagLong(),
+			recordNumberOfManifest = binaryStream.unzigzagLong(),
 			recordNumberOfStyling = binaryStream.unzigzagLong(),
 			recordNumberOfPhrasePaths = binaryStream.unzigzagLong())
 	}
@@ -1117,9 +1119,9 @@ class Repository constructor(
 	 *   The [serialized][Serializer] form of the compiled module.
 	 * @param serializedBlockPhrases
 	 *   The [serialized][Serializer] form of the module's block phrases.
-	 * @param manifestEntries
-	 *   The [List] of [entries][ModuleManifestEntry] captured for this
-	 *   module during this just-completed compilation.
+	 * @param manifest
+	 *   The [ManifestRecord] containing each [ModuleManifestEntry] captured for
+	 *   this module during this just-completed compilation.
 	 * @param stylingRecord
 	 *   The [StylingRecord] that captures which symbolic styles should be
 	 *   applied to which parts of the source code.
@@ -1131,19 +1133,14 @@ class Repository constructor(
 		compilationTime: Long,
 		serializedBody: ByteArray,
 		serializedBlockPhrases: ByteArray,
-		manifestEntries: List<ModuleManifestEntry>,
+		manifest: ManifestRecord,
 		stylingRecord: StylingRecord,
 		phrasePaths: PhrasePathRecord
 	) : ModuleCompilation
 	{
 		// No need to hold a lock during initialization.
-		val innerSerializedManifestEntries = ByteArrayOutputStream(4096)
-		val serializedManifestEntries =
-			DataOutputStream(innerSerializedManifestEntries)
-		manifestEntries.forEach { entry ->
-			entry.write(serializedManifestEntries)
-		}
-		appendCRC(innerSerializedManifestEntries)
+		val manifestBytes = ByteArrayOutputStream(4096)
+		manifest.write(DataOutputStream(manifestBytes))
 		val innerStylingRecordBytes = ByteArrayOutputStream(4096)
 		stylingRecord.write(DataOutputStream(innerStylingRecordBytes))
 		val innerPhrasePathsBytes = ByteArrayOutputStream(4096)
@@ -1154,13 +1151,82 @@ class Repository constructor(
 					compilationTime = compilationTime,
 					recordNumber = add(serializedBody),
 					recordNumberOfBlockPhrases = add(serializedBlockPhrases),
-					recordNumberOfManifestEntries = add(
-						innerSerializedManifestEntries.toByteArray()),
+					recordNumberOfManifest = add(manifestBytes.toByteArray()),
 					recordNumberOfStyling = add(
 						innerStylingRecordBytes.toByteArray()),
 					recordNumberOfPhrasePaths = add(
 						innerPhrasePathsBytes.toByteArray()))
 			}
+		}
+	}
+
+	/**
+	 * Manifest information that was collected during compilation of a
+	 * [module][A_Module].  This keeps track of where certain declarations and
+	 * definitions occurred within a module during compilation, each summarized
+	 * as a [ModuleManifestEntry].
+	 */
+	class ManifestRecord
+	{
+		/**
+		 * The [List] of each [ModuleManifestEntry] present in this module.
+		 */
+		val manifestEntries: List<ModuleManifestEntry>
+
+		/**
+		 * Output this styling record to the provided [DataOutputStream].
+		 * It can later be reconstructed via the constructor taking a
+		 * [DataInputStream].
+		 *
+		 * @param binaryStream
+		 *   A DataOutputStream on which to write this styling record.
+		 * @throws IOException
+		 *   If I/O fails.
+		 */
+		@Throws(IOException::class)
+		internal fun write(binaryStream: DataOutputStream)
+		{
+			manifestEntries.forEach { entry ->
+				entry.write(binaryStream)
+			}
+		}
+
+		override fun toString(): String =
+			String.format(
+				"ManifestRecord (%d entries)",
+				manifestEntries.size)
+
+		/**
+		 * Reconstruct a [ManifestRecord], having previously been written via
+		 * [write].
+		 *
+		 * @param bytes
+		 *   Where to read the [ManifestRecord] from.
+		 * @throws IOException
+		 *   If I/O fails.
+		 */
+		@Throws(IOException::class)
+		internal constructor(bytes: ByteArray)
+		{
+			val binaryStream = DataInputStream(ByteArrayInputStream(bytes))
+			val entries = mutableListOf<ModuleManifestEntry>()
+			while (binaryStream.available() > 0)
+			{
+				entries.add(ModuleManifestEntry(binaryStream))
+			}
+			manifestEntries = entries
+		}
+
+		/**
+		 * Construct a new [ManifestRecord] from a [List] of each
+		 * [ModuleManifestEntry].
+		 *
+		 * @param entries
+		 *   The [List] of each [ModuleManifestEntry].
+		 */
+		constructor(entries: List<ModuleManifestEntry>)
+		{
+			this.manifestEntries = entries
 		}
 	}
 
@@ -1353,8 +1419,7 @@ class Repository constructor(
 		}
 
 		/**
-		 * Construct a new `ModuleCompilation`, adding the serialized compiled
-		 * module bytes to the repository without committing.
+		 * Construct a new [StylingRecord] from its parts.
 		 *
 		 * @param styleRuns
 		 *   An ascending sequence of non-overlapping, non-empty [IntRange]s,
@@ -1716,8 +1781,7 @@ class Repository constructor(
 	fun getArchive(rootRelativeName: String): ModuleArchive =
 		lock.withLock {
 			assert(!rootRelativeName.startsWith("/"))
-			moduleMap.computeIfAbsent(
-				rootRelativeName, this::ModuleArchive)
+			moduleMap.computeIfAbsent(rootRelativeName, this::ModuleArchive)
 		}
 
 	/**
