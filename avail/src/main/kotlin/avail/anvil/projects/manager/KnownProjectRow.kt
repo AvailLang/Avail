@@ -187,6 +187,7 @@ internal class KnownProjectRow constructor(
 				project.projectConfigFile,
 				projectManager = parentPanel.manager))
 		SwingUtilities.invokeLater {
+			parentPanel.manager.openKnownProjectDialog?.close()
 			parentPanel.manager.hideProjectManager()
 		}
 	}

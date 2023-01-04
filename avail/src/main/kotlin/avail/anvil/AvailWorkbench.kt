@@ -56,7 +56,9 @@ import avail.anvil.actions.GenerateDocumentationAction
 import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
 import avail.anvil.actions.NewModuleAction
+import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenModuleAction
+import avail.anvil.actions.OpenProjectAction
 import avail.anvil.actions.OpenShortcutManagerAction
 import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
@@ -96,7 +98,8 @@ import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.projects.GlobalAvailConfiguration
-import avail.anvil.projects.manager.AvailProjectManagerWindow
+import avail.anvil.projects.manager.AvailProjectManager
+import avail.anvil.projects.manager.OpenKnownProjectDialog
 import avail.anvil.settings.TemplateExpansionsManager
 import avail.anvil.settings.ShortcutManager
 import avail.anvil.streams.BuildInputStream
@@ -245,8 +248,8 @@ import kotlin.math.min
  *   The String path to the [availProject] configuration file or an empty String
  *   if the [AvailWorkbench] was started without an [AvailProject].
  * @property projectManager
- *   The [AvailProjectManagerWindow] that launched this workbench or `null` if
- *   not launched from an [AvailProjectManagerWindow].
+ *   The [AvailProjectManager] that launched this workbench or `null` if
+ *   not launched from an [AvailProjectManager].
  *
  * @constructor
  * Construct a new [AvailWorkbench].
@@ -263,8 +266,8 @@ import kotlin.math.min
  * @param windowTitle
  *   The [AvailWorkbench]'s frame's [title].
  * @param projectManager
- *   The [AvailProjectManagerWindow] that launched this workbench or `null` if
- *   not launched from an [AvailProjectManagerWindow].
+ *   The [AvailProjectManager] that launched this workbench or `null` if
+ *   not launched from an [AvailProjectManager].
  */
 class AvailWorkbench internal constructor(
 	internal val availProject: AvailProject,
@@ -274,7 +277,7 @@ class AvailWorkbench internal constructor(
 	val globalAvailConfiguration: GlobalAvailConfiguration,
 	internal var availProjectFilePath: String = "",
 	windowTitle: String = "Avail Workbench",
-	private val projectManager: AvailProjectManagerWindow?
+	internal val projectManager: AvailProjectManager?
 ) : WorkbenchFrame(windowTitle)
 {
 	override val workbench: AvailWorkbench get() = this
@@ -282,7 +285,7 @@ class AvailWorkbench internal constructor(
 	/**
 	 * The file path to the [LocalScreenState].
 	 */
-	private val localScreenStatePath =
+	private val localScreenStatePath get() =
 		availProjectFilePath.replace(".json", "-local-state.json")
 
 	/**
@@ -613,6 +616,12 @@ class AvailWorkbench internal constructor(
 
 	/** The action to [edit][OpenModuleAction] a module. */
 	private val openEditorAction = OpenModuleAction(this)
+
+	/** The action to open an [OpenKnownProjectDialog]. */
+	private val openKnownProjectAction = OpenKnownProjectAction(this)
+
+	/** The action to open another [AvailWorkbench] for an [AvailProject]. */
+	private val openProjectAction = OpenProjectAction(this)
 
 	/** The action to open the [ShortcutManager]. */
 	private val openShortcutManagerAction = OpenShortcutManagerAction(this)
@@ -1801,6 +1810,14 @@ class AvailWorkbench internal constructor(
 
 		// Create the menu bar and its menus.
 		jMenuBar = createMenuBar {
+			if (projectManager != null)
+			{
+				menu("File")
+				{
+					item(openProjectAction)
+					item(openKnownProjectAction)
+				}
+			}
 			menu("Build")
 			{
 				item(buildAction)
@@ -2145,6 +2162,15 @@ class AvailWorkbench internal constructor(
 					sv)
 				local.refreshOpenEditors(this@AvailWorkbench)
 				File(localScreenStatePath).writeText(local.fileContent)
+				openEditors.values.forEach {
+					it.dispatchEvent(WindowEvent(it, WindowEvent.WINDOW_CLOSING))
+				}
+				shortcutManager?.apply {
+					dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+				}
+				templateExpansionManager?.apply {
+					dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+				}
 			}
 		})
 		if (System.getProperty("os.name").startsWith("Mac"))
@@ -2457,8 +2483,8 @@ class AvailWorkbench internal constructor(
 		 *   [AvailProject.name] will appear in parenthesis:
 		 *   "Avail Workbench (<project name>)"
 		 * @param projectManager
-		 *   The [AvailProjectManagerWindow] that launched this workbench or
-		 *   `null` if not launched from an [AvailProjectManagerWindow].
+		 *   The [AvailProjectManager] that launched this workbench or
+		 *   `null` if not launched from an [AvailProjectManager].
 		 * @return The launched [AvailWorkbench].
 		 * @throws Exception
 		 * If something goes wrong.
@@ -2475,7 +2501,7 @@ class AvailWorkbench internal constructor(
 			initial: String = "",
 			customWindowTitle: String = "",
 			useProjectNameAsFullTitle: Boolean,
-			projectManager: AvailProjectManagerWindow?
+			projectManager: AvailProjectManager?
 		): AvailWorkbench
 		{
 			val rootsString = project.availProjectRoots.joinToString(";") {
@@ -2634,8 +2660,8 @@ class AvailWorkbench internal constructor(
 		 *   [AvailProject.name] will appear in parenthesis:
 		 *   "Avail Workbench (<project name>)"
 		 * @param projectManager
-		 *   The [AvailProjectManagerWindow] that launched this workbench or `null` if
-		 *   not launched from an [AvailProjectManagerWindow].
+		 *   The [AvailProjectManager] that launched this workbench or `null` if
+		 *   not launched from an [AvailProjectManager].
 		 * @throws Exception
 		 *   If something goes wrong.
 		 */
@@ -2647,7 +2673,7 @@ class AvailWorkbench internal constructor(
 			availProjectFilePath: String = "",
 			customWindowTitle: String = "",
 			useProjectNameAsFullTitle: Boolean = false,
-			projectManager: AvailProjectManagerWindow?
+			projectManager: AvailProjectManager?
 		): AvailWorkbench = launchWorkbench(
 				globalAvailConfiguration,
 				project,
@@ -2659,7 +2685,7 @@ class AvailWorkbench internal constructor(
 
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench]
-		 * independent of any [AvailProjectManagerWindow].
+		 * independent of any [AvailProjectManager].
 		 *
 		 * @param globalAvailConfiguration
 		 * 	 The [GlobalAvailConfiguration] for the environment this
@@ -2688,8 +2714,8 @@ class AvailWorkbench internal constructor(
 		fun launchSoloWorkbench (
 			globalAvailConfiguration: GlobalAvailConfiguration,
 			project: AvailProject,
-			customWindowTitle: String = "",
 			availProjectFilePath: String = "",
+			customWindowTitle: String = "",
 			useProjectNameAsFullTitle: Boolean = true
 		): AvailWorkbench
 		{

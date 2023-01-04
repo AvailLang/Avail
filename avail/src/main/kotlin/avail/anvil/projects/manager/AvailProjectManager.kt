@@ -1,5 +1,5 @@
 /*
- * AvailProjectManagerWindow.kt
+ * AvailProjectManager.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,14 +33,20 @@
 package avail.anvil.projects.manager
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.manager.AvailProjectManagerWindow.DisplayedPanel.*
+import avail.anvil.projects.manager.AvailProjectManager.DisplayedPanel.*
 import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.projects.KnownAvailProject
 import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.json.jsonObject
 import java.awt.Dimension
+import java.io.File
 import javax.swing.JComponent
+import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.SwingUtilities
 import javax.swing.WindowConstants
+import javax.swing.filechooser.FileFilter
+import javax.swing.filechooser.FileNameExtensionFilter
 
 /**
  * The Avail start up window. This window is displayed when an Avail development
@@ -52,18 +58,23 @@ import javax.swing.WindowConstants
  *   The [GlobalAvailConfiguration] that provides information about the Avail
  *   environment for the entire computer.
  */
-class AvailProjectManagerWindow constructor(
-	private val globalConfig: GlobalAvailConfiguration
+class AvailProjectManager constructor(
+	val globalConfig: GlobalAvailConfiguration
 ): JFrame("Avail")
 {
 	/**
-	 * The set of [AvailWorkbench]s opened by this [AvailProjectManagerWindow].
+	 * The set of [AvailWorkbench]s opened by this [AvailProjectManager].
 	 */
 	private val openWorkbenches = mutableSetOf<AvailWorkbench>()
 
 	/**
+	 * The opened [OpenKnownProjectDialog] or `null` if dialog not open.
+	 */
+	internal var openKnownProjectDialog: OpenKnownProjectDialog? = null
+
+	/**
 	 * The action to perform when an [AvailWorkbench] is launched from this
-	 * [AvailProjectManagerWindow].
+	 * [AvailProjectManager].
 	 *
 	 * @param workbench
 	 *   The launched [AvailWorkbench].
@@ -76,7 +87,7 @@ class AvailProjectManagerWindow constructor(
 
 	/**
 	 * The action to perform when an [AvailWorkbench] launched from this
-	 * [AvailProjectManagerWindow] is closed.
+	 * [AvailProjectManager] is closed.
 	 *
 	 * @param workbench
 	 *   The closed [AvailWorkbench].
@@ -119,7 +130,7 @@ class AvailProjectManagerWindow constructor(
 	var displayed = KNOWN_PROJECTS
 
 	/**
-	 * Hide this [AvailProjectManagerWindow].
+	 * Hide this [AvailProjectManager].
 	 */
 	fun hideProjectManager()
 	{
@@ -127,7 +138,7 @@ class AvailProjectManagerWindow constructor(
 	}
 
 	/**
-	 * Show this [AvailProjectManagerWindow].
+	 * Show this [AvailProjectManager].
 	 */
 	private fun showProjectManager()
 	{
@@ -139,10 +150,10 @@ class AvailProjectManagerWindow constructor(
 	 * [CreateProjectPanel].
 	 */
 	private var displayedComponent: JComponent =
-		KnownProjectsPanel(globalConfig, this)
+		KnownProjectsPanel(this)
 
 	/**
-	 * Draw this [AvailProjectManagerWindow].
+	 * Draw this [AvailProjectManager].
 	 */
 	private fun draw ()
 	{
@@ -157,7 +168,7 @@ class AvailProjectManagerWindow constructor(
 					title = "Avail Projects"
 					newHeight = 600
 					setKnownProjectsSize()
-					KnownProjectsPanel(globalConfig, this)
+					KnownProjectsPanel(this)
 				}
 				CREATE_PROJECT ->
 				{
@@ -191,7 +202,7 @@ class AvailProjectManagerWindow constructor(
 	}
 
 	/**
-	 * Redraw this [AvailProjectManagerWindow].
+	 * Redraw this [AvailProjectManager].
 	 */
 	internal fun redraw ()
 	{
@@ -201,7 +212,7 @@ class AvailProjectManagerWindow constructor(
 
 	/**
 	 * An enumeration that refers to the [JComponent]s that can be displayed
-	 * inside this [AvailProjectManagerWindow].
+	 * inside this [AvailProjectManager].
 	 */
 	enum class DisplayedPanel
 	{
@@ -215,5 +226,74 @@ class AvailProjectManagerWindow constructor(
 	init
 	{
 		draw()
+	}
+
+	/**
+	 * Open the [KnownAvailProject] in an [AvailWorkbench].
+	 *
+	 * @param workbench
+	 *   The [AvailWorkbench] that is launching the dialog to open a known
+	 *   project.
+	 */
+	fun openKnownProject (workbench: AvailWorkbench)
+	{
+		openKnownProjectDialog = openKnownProjectDialog?.let {
+			it.toFront()
+			it
+		} ?: OpenKnownProjectDialog(this, workbench)
+	}
+
+	/**
+	 * Launch a dialog to select an [AvailProject] config file from disk to open
+	 * in an [AvailWorkbench].
+	 */
+	fun openProject ()
+	{
+		JFileChooser().apply chooser@ {
+			dialogTitle = "Select Avail Project Configuration File to Open"
+			fileSelectionMode = JFileChooser.FILES_ONLY
+			fileFilter = FileNameExtensionFilter("*.json", "json")
+			addChoosableFileFilter(
+				object : FileFilter()
+				{
+					override fun getDescription(): String =
+						"Avail Project Config (*.json)"
+
+					override fun accept(f: File): Boolean =
+						f.isFile
+							&& f.canWrite()
+							&& f.absolutePath.lowercase().endsWith(".json")
+				})
+			val result = showDialog(
+				this@AvailProjectManager,
+				"Select Project Config File")
+			if (result == JFileChooser.APPROVE_OPTION)
+			{
+				val projectConfigFile = selectedFile
+				val projectPath = projectConfigFile.absolutePath
+					.removeSuffix(projectConfigFile.name)
+					.removeSuffix(File.separator)
+				val project = try
+				{
+					AvailProject.from(
+						projectPath,
+						jsonObject(projectConfigFile.readText(Charsets.UTF_8)))
+				}
+				catch (e: Throwable)
+				{
+					e.printStackTrace()
+					null
+				} ?: return@chooser
+				globalConfig.add(project, projectConfigFile.absolutePath)
+				AvailWorkbench.launchWorkbenchWithProject(
+					project,
+					globalConfig,
+					projectConfigFile.absolutePath,
+					projectManager = this@AvailProjectManager)
+				SwingUtilities.invokeLater {
+					hideProjectManager()
+				}
+			}
+		}
 	}
 }

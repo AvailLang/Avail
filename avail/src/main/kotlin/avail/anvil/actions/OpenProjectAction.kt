@@ -1,21 +1,21 @@
 /*
- * NewRootAction.kt
+ * OpenShortcutManagerAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,37 +33,26 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import org.availlang.artifact.environment.project.AvailProject
 import java.awt.event.ActionEvent
-import javax.swing.Action
 
 /**
- * Create a new root and select it.
+ * The [AbstractWorkbenchAction] that opens another [AvailProject] in a new
+ * [AvailWorkbench].
+ *
+ * @author Richard Arriaga
  *
  * @constructor
- * Construct a new [NewRootAction].
+ * Construct a new [OpenProjectAction].
  *
  * @param workbench
- *   The owning [AvailWorkbench].
+ *   The [AvailWorkbench] that initiated this action.
  */
-class NewRootAction
-constructor (
-	workbench: AvailWorkbench,
-) : AbstractWorkbenchAction(
-	workbench,
-	"New root")
+class OpenProjectAction constructor(workbench: AvailWorkbench)
+	: AbstractWorkbenchAction(workbench, "Open Project")
 {
-	override fun actionPerformed(event: ActionEvent)
+	override fun actionPerformed(e: ActionEvent?)
 	{
-//TODO WIP
-//		CreateRootView
-
-
-	}
-
-	init
-	{
-		putValue(
-			Action.SHORT_DESCRIPTION,
-			"Create a new module root.")
+		workbench.projectManager?.openProject()
 	}
 }

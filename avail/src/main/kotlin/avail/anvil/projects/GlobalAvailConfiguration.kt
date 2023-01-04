@@ -32,7 +32,7 @@
 
 package avail.anvil.projects
 
-import avail.anvil.projects.manager.AvailProjectManagerWindow
+import avail.anvil.projects.manager.AvailProjectManager
 import avail.anvil.settings.ShortcutSettings
 import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyboardShortcut
@@ -64,8 +64,8 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 
 	/**
 	 * The [KnownAvailProject.id] of the project marked to be opened
-	 * automatically at launch bypassing the [AvailProjectManagerWindow] or
-	 * `null` if only the [AvailProjectManagerWindow] should be opened.
+	 * automatically at launch bypassing the [AvailProjectManager] or
+	 * `null` if only the [AvailProjectManager] should be opened.
 	 */
 	var favorite: String?
 

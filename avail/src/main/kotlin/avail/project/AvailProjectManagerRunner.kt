@@ -33,7 +33,7 @@
 package avail.project
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.manager.AvailProjectManagerWindow
+import avail.anvil.projects.manager.AvailProjectManager
 import avail.anvil.projects.GlobalAvailConfiguration
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
@@ -92,6 +92,6 @@ object AvailProjectManagerRunner
 		}
 		swingReady.acquire()
 		val globalConfig = GlobalAvailConfiguration.getGlobalConfig()
-		AvailProjectManagerWindow(globalConfig)
+		AvailProjectManager(globalConfig)
 	}
 }
