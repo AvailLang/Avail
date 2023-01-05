@@ -33,7 +33,7 @@
 package avail.project
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailConfiguration
 import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
 import org.availlang.artifact.environment.AvailEnvironment.optionallyCreateAvailUserHome
 import org.availlang.artifact.environment.location.InvalidLocation

@@ -32,8 +32,7 @@
 
 package avail.anvil.settings
 
-import avail.anvil.projects.GlobalAvailConfiguration
-import avail.anvil.projects.KeyboardShortcutOverride
+import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyCode
 import avail.anvil.shortcuts.KeyboardShortcut

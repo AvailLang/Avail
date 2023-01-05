@@ -33,7 +33,6 @@
 package avail.anvil.settings
 
 import avail.anvil.AnvilException
-import avail.anvil.projects.KeyboardShortcutOverride
 import avail.anvil.shortcuts.KeyboardShortcut
 import org.availlang.json.JSONArray
 import org.availlang.json.JSONObject

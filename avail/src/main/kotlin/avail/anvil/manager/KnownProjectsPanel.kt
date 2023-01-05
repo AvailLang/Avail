@@ -1,6 +1,6 @@
 /*
  * KnownProjectsPanel.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,15 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.anvil.projects.manager
+package avail.anvil.manager
 
 import avail.anvil.createScrollPane
 import avail.anvil.icons.ProjectManagerIcons.arrowDropDown
 import avail.anvil.icons.ProjectManagerIcons.arrowDropUp
-import avail.anvil.projects.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
+import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.projects.KnownAvailProject
+import avail.anvil.settings.SettingsView
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
@@ -72,7 +73,8 @@ internal class KnownProjectsPanel constructor(
 	/**
 	 * The [manager]'s [GlobalAvailConfiguration].
 	 */
-	private val globalConfig: GlobalAvailConfiguration get() =
+	private val globalConfig: GlobalAvailConfiguration
+		get() =
 		manager.globalConfig
 
 	/**

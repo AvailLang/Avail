@@ -1,6 +1,6 @@
 /*
  * AvailProjectManager.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.projects.manager
+package avail.anvil.manager
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.manager.AvailProjectManager.DisplayedPanel.*
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.manager.AvailProjectManager.DisplayedPanel.*
+import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.window.LayoutConfiguration
 import org.availlang.artifact.environment.project.AvailProject
@@ -133,9 +133,9 @@ class AvailProjectManager constructor(
 	 */
 	private fun setCreateProjectsSize ()
 	{
-		minimumSize = Dimension(750, 300)
-		preferredSize = Dimension(750, 300)
-		maximumSize = Dimension(750, 300)
+		minimumSize = Dimension(750, 350)
+		preferredSize = Dimension(750, 350)
+		maximumSize = Dimension(750, 350)
 	}
 
 	/**

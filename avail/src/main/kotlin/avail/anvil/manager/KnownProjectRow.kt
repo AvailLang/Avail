@@ -1,6 +1,6 @@
 /*
  * KnownProjectRow.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.anvil.projects.manager
+package avail.anvil.manager
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.ProjectManagerIcons
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.projects.KnownAvailProject
 import java.awt.Dimension
 import java.awt.Font

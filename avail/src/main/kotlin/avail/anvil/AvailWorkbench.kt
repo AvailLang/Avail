@@ -98,9 +98,9 @@ import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
-import avail.anvil.projects.GlobalAvailConfiguration
-import avail.anvil.projects.manager.AvailProjectManager
-import avail.anvil.projects.manager.OpenKnownProjectDialog
+import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.manager.AvailProjectManager
+import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.settings.TemplateExpansionsManager
 import avail.anvil.settings.ShortcutManager
 import avail.anvil.streams.BuildInputStream

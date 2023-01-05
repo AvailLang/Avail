@@ -34,7 +34,7 @@ package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.structure.EditIcons
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.shortcuts.KeyboardShortcutCategory
 import java.awt.Color

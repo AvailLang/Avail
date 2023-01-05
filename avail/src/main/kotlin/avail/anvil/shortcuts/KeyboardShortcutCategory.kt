@@ -35,7 +35,7 @@ package avail.anvil.shortcuts
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
 import avail.anvil.debugger.AvailDebugger
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.text.CodePane
 import javax.swing.JTextPane
 import javax.swing.KeyStroke

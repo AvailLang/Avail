@@ -1,6 +1,6 @@
 /*
  * GlobalAvailConfiguration.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.projects
+package avail.anvil.environment
 
-import avail.anvil.projects.manager.AvailProjectManager
+import avail.anvil.manager.AvailProjectManager
+import avail.anvil.settings.KeyboardShortcutOverride
+import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.ShortcutSettings
 import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyboardShortcut

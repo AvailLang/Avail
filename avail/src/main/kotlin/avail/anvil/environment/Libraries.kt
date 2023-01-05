@@ -1,6 +1,6 @@
 /*
- * OpenShortcutManagerAction.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Libraries.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,30 +30,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.actions
+package avail.anvil.environment
 
-import avail.anvil.AvailWorkbench
-import avail.anvil.manager.CreateProjectDialog
-import org.availlang.artifact.environment.project.AvailProject
-import java.awt.event.ActionEvent
+import org.availlang.artifact.environment.AvailEnvironment
+import java.io.File
+
+// Utilities for working with Avail libraries.
 
 /**
- * The [AbstractWorkbenchAction] that opens an [CreateProjectDialog] used to
- * create a new [AvailProject].
- *
- * @author Richard Arriaga
- *
- * @constructor
- * Construct a new [CreateProjectAction].
- *
- * @param workbench
- *   The [AvailWorkbench] that initiated this action.
+ * The Avail standard libraries in [AvailEnvironment.availHomeLibs].
  */
-class CreateProjectAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "New…")
-{
-	override fun actionPerformed(e: ActionEvent?)
-	{
-		workbench.projectManager?.createProject(workbench)
+val availStandardLibraries: Array<File> get() =
+	"${AvailEnvironment.availHomeLibs}/org/availlang".let { home ->
+		val dir = File(home)
+		dir.listFiles { _, name -> name.endsWith(".jar") } ?: arrayOf()
 	}
-}

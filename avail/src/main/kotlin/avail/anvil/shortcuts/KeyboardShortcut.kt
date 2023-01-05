@@ -32,7 +32,7 @@
 
 package avail.anvil.shortcuts
 
-import avail.anvil.projects.KeyboardShortcutOverride
+import avail.anvil.settings.KeyboardShortcutOverride
 import javax.swing.InputMap
 import javax.swing.KeyStroke
 
@@ -152,7 +152,8 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 	 * A corresponding [KeyboardShortcutOverride] sourced from this
 	 * [KeyboardShortcut].
 	 */
-	val shortcutOverride: KeyboardShortcutOverride get() =
+	val shortcutOverride: KeyboardShortcutOverride
+		get() =
 		KeyboardShortcutOverride(category, key, actionMapKey)
 
 	/**

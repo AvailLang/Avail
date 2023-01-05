@@ -33,8 +33,8 @@
 package avail.project
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.manager.AvailProjectManager
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.manager.AvailProjectManager
+import avail.anvil.environment.GlobalAvailConfiguration
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
 import org.availlang.artifact.environment.project.AvailProject

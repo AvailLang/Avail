@@ -1,6 +1,6 @@
 /*
  * GlobalAvailConfigurationV1.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.projects
+package avail.anvil.environment
 
+import avail.anvil.settings.KeyboardShortcutOverride
+import avail.anvil.projects.KnownAvailProject
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
 

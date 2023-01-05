@@ -1,6 +1,6 @@
 /*
  * CreateProjectPanel.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.projects.manager
+package avail.anvil.manager
 
 import avail.anvil.components.DirectoryChooser
 import avail.anvil.components.TextFieldWithLabel
 import avail.anvil.components.TextFieldWithLabelAndButton
 import avail.anvil.icons.ProjectManagerIcons
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.availStandardLibraries
+import org.availlang.artifact.environment.location.AvailLibraries
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme
@@ -52,6 +54,7 @@ import java.awt.GridBagLayout
 import java.io.File
 import javax.swing.BorderFactory
 import javax.swing.JButton
+import javax.swing.JComboBox
 import javax.swing.JPanel
 
 /**
@@ -72,6 +75,23 @@ class CreateProjectPanel constructor(
 	private val onCancel: () -> Unit
 ): JPanel(GridBagLayout())
 {
+	/**
+	 * The Avail standard libraries available on this machine.
+	 */
+	private val standardLibraries =
+		availStandardLibraries.associateBy { it.name }
+
+	/**
+	 * The Array of standard library names.
+	 */
+	private val standardLibraryNames: Array<String> get() =
+		arrayOf("None") + standardLibraries.keys.toTypedArray()
+
+	/**
+	 * The selected Avail standard library to use or `null` if none chosen.
+	 */
+	private var selectedLibrary: File? = null
+
 	/**
 	 * Create the Avail project.
 	 */
@@ -97,6 +117,17 @@ class CreateProjectPanel constructor(
 					projLocation,
 					null))
 			roots[root.name] = root
+			selectedLibrary?.let { lib ->
+				val rootName = libraryNameField.textField.text
+				val stdLib = AvailProjectRoot(
+					projLocation,
+					rootName,
+					AvailLibraries(
+					"org/availlang/${lib.name}",
+						Scheme.JAR,
+						"avail"))
+				roots[rootName] = stdLib
+			}
 
 			if (projectFilePath.isNotEmpty())
 			{
@@ -121,12 +152,13 @@ class CreateProjectPanel constructor(
 	private val projectFileName =
 		TextFieldWithLabelAndButton("Project Config File Name: ")
 			.apply panel@{
+				toolTipText = "The name applied to the JSON project file."
 				textField.text = "avail-config"
 				button.apply {
 					isContentAreaFilled = false
 					isBorderPainted = false
 					text = ""
-					icon = ProjectManagerIcons.refresh(19)
+					icon = ProjectManagerIcons.refresh(23)
 					addActionListener {
 						this@panel.textField.text = "avail-config"
 					}
@@ -145,6 +177,25 @@ class CreateProjectPanel constructor(
 	 * The [TextFieldWithLabel] used to set the project name.
 	 */
 	private val rootNameField = TextFieldWithLabel("Create Root Name: ")
+
+	/**
+	 * The [TextFieldWithLabel] used to set the standard library root name.
+	 */
+	private val libraryNameField =
+		TextFieldWithLabel("Standard Library Root Name: ")
+
+	/**
+	 * Updated the [JComboBox] used to pick a standard library to add as a root.
+	 */
+	private val libraryPicker = JComboBox(standardLibraryNames).apply {
+		addActionListener {
+			selectedItem?.toString()?.let { key ->
+				standardLibraries[key]?.let { lib -> selectedLibrary = lib }
+			}
+		}
+	}
+
+	// TODO add form validation
 
 	/**
 	 * The button to use to show the create screen.
@@ -200,7 +251,7 @@ class CreateProjectPanel constructor(
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 0
 				gridy = 0
-				gridwidth = 1
+				gridwidth = 2
 			})
 		add(projectFileName,
 			GridBagConstraints().apply {
@@ -208,7 +259,7 @@ class CreateProjectPanel constructor(
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 0
 				gridy = 1
-				gridwidth = 1
+				gridwidth = 2
 			})
 		add(projectLocation,
 			GridBagConstraints().apply {
@@ -216,7 +267,7 @@ class CreateProjectPanel constructor(
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 0
 				gridy = 2
-				gridwidth = 1
+				gridwidth = 2
 			})
 		add(rootNameField,
 			GridBagConstraints().apply {
@@ -224,6 +275,22 @@ class CreateProjectPanel constructor(
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 0
 				gridy = 3
+				gridwidth = 2
+			})
+		add(libraryNameField,
+			GridBagConstraints().apply {
+				weightx = 1.0
+				fill = GridBagConstraints.HORIZONTAL
+				gridx = 0
+				gridy = 4
+				gridwidth = 1
+			})
+		add(libraryPicker,
+			GridBagConstraints().apply {
+				weightx = 1.0
+				fill = GridBagConstraints.HORIZONTAL
+				gridx = 1
+				gridy = 4
 				gridwidth = 1
 			})
 		add(
@@ -233,7 +300,7 @@ class CreateProjectPanel constructor(
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 0
 				gridy = 5
-				gridwidth = 1
+				gridwidth = 2
 			})
 	}
 }

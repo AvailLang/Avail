@@ -33,7 +33,7 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.manager.OpenKnownProjectDialog
+import avail.anvil.manager.OpenKnownProjectDialog
 import org.availlang.artifact.environment.project.AvailProject
 import java.awt.event.ActionEvent
 
