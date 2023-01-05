@@ -164,7 +164,9 @@ class AvailProjectManager constructor(
 				globalConfig.saveToDisk()
 			}
 		})
-		this.bounds = layoutConfiguration.placement
+		layoutConfiguration.placement?.let {
+			this.bounds = it
+		}
 	}
 
 	/**

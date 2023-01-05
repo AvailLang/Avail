@@ -32,7 +32,7 @@
 
 package avail.anvil.settings
 
-import avail.anvil.AvailWorkbench
+import avail.anvil.projects.GlobalAvailConfiguration
 import avail.anvil.projects.KeyboardShortcutOverride
 import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyCode
@@ -58,13 +58,15 @@ import javax.swing.JTextField
  *
  * @author Richard Arriaga
  *
- * @property workbench
- *   The active [AvailWorkbench].
+ * @property globalConfig
+ *   The [GlobalAvailConfiguration].
+ * @property parent
+ *   The parent [ShortcutsPanel].
  * @property shortcut
  *   The shortcut to update.
  */
 class EditShortcutDialog constructor(
-	private val workbench: AvailWorkbench,
+	private val globalConfig: GlobalAvailConfiguration,
 	private val parent: ShortcutsPanel,
 	private val shortcut: KeyboardShortcut
 ): JFrame(shortcut.descriptionDisplay)
@@ -103,22 +105,21 @@ class EditShortcutDialog constructor(
 			{
 				// There is no need to use the ksOverride as the override
 				// is the same Key as the shortcut's default key.
-				if (shortcut.actionMapKey in workbench
-					.globalAvailConfiguration.keyboardShortcutOverrides)
+				if (shortcut.actionMapKey in
+					globalConfig.keyboardShortcutOverrides)
 				{
-					workbench.globalAvailConfiguration
+					globalConfig
 						.keyboardShortcutOverrides.remove(
 							shortcut.actionMapKey)
-					workbench.globalAvailConfiguration.saveToDisk()
+					globalConfig.saveToDisk()
 					shortcut.resetToDefaults()
 				}
 			}
 			else
 			{
 				shortcut.key = kso.key
-				workbench.globalAvailConfiguration
-					.keyboardShortcutOverrides[kso.actionMapKey] = kso
-				workbench.globalAvailConfiguration.saveToDisk()
+				globalConfig.keyboardShortcutOverrides[kso.actionMapKey] = kso
+				globalConfig.saveToDisk()
 			}
 			this@EditShortcutDialog.parent.redrawShortcuts()
 			this@EditShortcutDialog.dispose()

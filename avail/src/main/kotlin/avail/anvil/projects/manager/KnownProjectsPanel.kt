@@ -58,8 +58,8 @@ import javax.swing.SwingUtilities
  *
  * @author Richard Arriaga
  *
- * @property globalConfig
- *   The [GlobalAvailConfiguration] to display content from.
+ * @property manager
+ *   The parent [AvailProjectManager] window.
  * @property showCreateButton
  *   `true` indicates the create project button should be added to the view;
  *   `false` indicates no create project button should be added.
@@ -125,7 +125,7 @@ internal class KnownProjectsPanel constructor(
 	 * The top panel that has sorting options and can open a project.
 	 */
 	private val topPanel = JPanel().apply {
-		layout = (FlowLayout(FlowLayout.LEFT))
+		layout = FlowLayout(FlowLayout.LEFT)
 		minimumSize = Dimension(720, 50)
 		preferredSize = Dimension(750, 50)
 		maximumSize = Dimension(750, 50)
@@ -232,19 +232,19 @@ internal class KnownProjectsPanel constructor(
 		preferredSize = Dimension(750, 50)
 		maximumSize = Dimension(750, 50)
 		background = Color(0x3C, 0x3F, 0x41)
-//		TODO add back when preferences created
-//		add(JButton("Preferences").apply {
-//			isOpaque = true
-//			val currentHeight = height
-//			val currentWidth = width
-//			minimumSize = Dimension(currentWidth + 150, currentHeight + 40)
-//			preferredSize = Dimension(currentWidth + 150, currentHeight + 40)
-//			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
-//			addActionListener {
-//				// TODO create window for preferences
-//				println("Preferences t have a target screen yet!")
-//			}
-//		})
+
+		add(JButton("Settings").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			preferredSize =
+				Dimension(currentWidth + 100, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			addActionListener {
+				SettingsView(manager)
+			}
+		})
 		if (showCreateButton)
 		{
 			add(JButton("Create").apply {

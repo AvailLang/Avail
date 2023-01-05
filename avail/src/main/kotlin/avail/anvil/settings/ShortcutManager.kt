@@ -34,6 +34,7 @@ package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.structure.EditIcons
+import avail.anvil.projects.GlobalAvailConfiguration
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.shortcuts.KeyboardShortcutCategory
 import java.awt.Color
@@ -82,7 +83,9 @@ class ShortcutManager internal constructor(
 	{
 		KeyboardShortcutCategory.values().forEach {
 			 tabs.addTab(
-				 it.display, ShortcutsPanel(it, workbench).redrawShortcuts())
+				 it.display,
+				 ShortcutsPanel(it, workbench.globalAvailConfiguration)
+					 .redrawShortcuts())
 		}
 		contentPane.add(tabs)
 		minimumSize = Dimension(700, 800)
@@ -109,7 +112,7 @@ class ShortcutManager internal constructor(
  */
 class ShortcutsPanel constructor(
 	val category: KeyboardShortcutCategory,
-	val workbench: AvailWorkbench
+	val globalConfig: GlobalAvailConfiguration
 ) : JPanel()
 {
 	/**
@@ -127,7 +130,7 @@ class ShortcutsPanel constructor(
 		SwingUtilities.invokeLater {
 			shortcutsPanel.removeAll()
 			category.shortcutsByDescription.forEach {
-				shortcutsPanel.add(ShortcutRow(it, workbench, this))
+				shortcutsPanel.add(ShortcutRow(it, globalConfig, this))
 			}
 			shortcutsPanel.revalidate()
 			shortcutsPanel.repaint()
@@ -163,8 +166,7 @@ class ShortcutsPanel constructor(
 				ShortcutSettings.readFromFile(selectedFile)
 			if (shortcuts != null)
 			{
-				val m =workbench.globalAvailConfiguration
-					.attemptShortcutImport(shortcuts)
+				val m = globalConfig.attemptShortcutImport(shortcuts)
 				if (m.isNotEmpty())
 				{
 					val conflicts =
@@ -238,8 +240,7 @@ class ShortcutsPanel constructor(
 		val result = showSaveDialog(this@ShortcutsPanel)
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			val shortcuts =
-				workbench.globalAvailConfiguration.shortcutSettings
+			val shortcuts = globalConfig.shortcutSettings
 			Settings.exportSettings(selectedFile, shortcuts)
 		}
 	}
@@ -275,7 +276,7 @@ class ShortcutsPanel constructor(
 			toolTipText = "Resets all shortcuts across all categories to " +
 				"default key mappings"
 			addActionListener {
-				KeyboardShortcutCategory.resetAllToDefaults(workbench)
+				KeyboardShortcutCategory.resetAllToDefaults(globalConfig)
 				redrawShortcuts()
 			}
 		}
@@ -326,12 +327,14 @@ class ShortcutsPanel constructor(
  *
  * @property shortcut
  *   The [KeyboardShortcut] to show.
- * @property workbench
- *   The associated [AvailWorkbench]
+ * @property globalConfig
+ *   The [GlobalAvailConfiguration]
+ * @property parent
+ *   The parent [ShortcutsPanel].
  */
 internal class ShortcutRow constructor(
 	private val shortcut: KeyboardShortcut,
-	val workbench: AvailWorkbench,
+	private val globalConfig: GlobalAvailConfiguration,
 	val parent: ShortcutsPanel
 ): JPanel(GridBagLayout())
 {
@@ -367,7 +370,7 @@ internal class ShortcutRow constructor(
 	 */
 	private fun openEditDialog ()
 	{
-		EditShortcutDialog(workbench, parent, shortcut)
+		EditShortcutDialog(globalConfig, parent, shortcut)
 	}
 
 	/**
