@@ -51,8 +51,7 @@ import java.nio.file.StandardCopyOption
 /**
  * The interface that defines the state expected of the configuration for the
  * Avail environment on a specific machine. This data is stored in the
- * [AvailEnvironment.availHome] directory in the file
- * `avail-global-config.json`.
+ * [envSettingsHome] directory across multiple files.
  *
  * @author Richard Arriaga
  */
@@ -181,10 +180,10 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	{
 		// First create a backup of the current file.
 		Files.copy(
-			Paths.get(globalConfigFile),
-			Paths.get("$globalConfigFile.bak"),
+			Paths.get(environmentConfigFile),
+			Paths.get("$environmentConfigFile.bak"),
 			StandardCopyOption.REPLACE_EXISTING)
-		File(globalConfigFile).writeText(fileContent)
+		File(environmentConfigFile).writeText(fileContent)
 	}
 
 	/**
@@ -208,7 +207,7 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 		/**
 		 * The Avail configuration file name.
 		 */
-		const val CONFIG_FILE_NAME = "avail-global-config.json"
+		const val CONFIG_FILE_NAME = "environment-config.json"
 
 		/**
 		 * The path to the [GlobalAvailConfiguration] file on disk.
@@ -227,7 +226,7 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 		 */
 		fun getGlobalConfig (): GlobalAvailConfiguration
 		{
-			val file = File(globalConfigFile)
+			val file = File(environmentConfigFile)
 			if (!file.exists())
 			{
 				val config = emptyConfig

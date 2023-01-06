@@ -78,7 +78,7 @@ object AvailProjectWorkbenchRunner
 				else -> throw RuntimeException(
 					"Avail project runner expects either" +
 						"\n\t0 arguments: The Avail Project config file, " +
-						"`avail-config.json`, is at the project directory " +
+						"`environment-config.json`, is at the project directory " +
 						"where this is being run from" +
 						"\n\t1 argument: The path, with name, of the project " +
 						"config file.")

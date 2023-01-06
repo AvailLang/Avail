@@ -55,9 +55,9 @@ val stdLibHome = "$availHomeLibs/org/availlang"
 val envSettingsHome = "$availHome/settings"
 
 /**
- * The [GlobalAvailConfiguration] file location.
+ * The [GlobalAvailConfiguration] environment file location.
  */
-val globalConfigFile = "$envSettingsHome/$CONFIG_FILE_NAME"
+val environmentConfigFile = "$envSettingsHome/$CONFIG_FILE_NAME"
 
 /**
  * The file where the global expansion templates file is stored.
@@ -101,7 +101,7 @@ fun setupEnvironment ()
 			this.writeText("")
 		}
 	}
-	File(globalConfigFile).apply {
+	File(environmentConfigFile).apply {
 		if (!exists())
 		{
 			this.writeText(GlobalAvailConfiguration.emptyConfig.fileContent)
