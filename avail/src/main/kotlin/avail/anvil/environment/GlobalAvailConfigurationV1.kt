@@ -32,8 +32,8 @@
 
 package avail.anvil.environment
 
-import avail.anvil.settings.KeyboardShortcutOverride
 import avail.anvil.projects.KnownAvailProject
+import avail.anvil.settings.ShortcutSettings
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
 
@@ -46,25 +46,15 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 {
 	override val serializationVersion: Int = 1
 	override val knownProjects = mutableSetOf<KnownAvailProject>()
-	override var defaultStandardLibrary: String? = null
 	override var favorite: String? = null
-	override val globalTemplates = mutableMapOf<String, String>()
-	override val keyboardShortcutOverrides =
-		mutableMapOf<String, KeyboardShortcutOverride>()
-	override var projectManagerLayoutConfig: String = ""
+	override val shortcutSettings = ShortcutSettings.readEnvOverrides()
 	override val editorGuideLines = mutableListOf<Int>()
 
 	override fun writeTo(writer: JSONWriter)
 	{
 		writer.writeObject {
 			at(::serializationVersion.name) { write(serializationVersion) }
-			at(::defaultStandardLibrary.name)
-			{
-				defaultStandardLibrary.let {
-					if (it == null) writeNull()
-					else write(it)
-				}
-			}
+
 			at(::favorite.name)
 			{
 				favorite.let {
@@ -78,35 +68,9 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 					editorGuideLines.forEach { write(it) }
 				}
 			}
-			at(::projectManagerLayoutConfig.name)
-			{
-				write(projectManagerLayoutConfig)
-			}
 			at(::knownProjects.name)
 			{
 				writeArray(knownProjects.toMutableList().sorted())
-			}
-			if (globalTemplates.isNotEmpty())
-			{
-				at(::globalTemplates.name)
-				{
-					writeObject {
-						globalTemplates.forEach { (name, expansion) ->
-							at(name) { write(expansion) }
-						}
-					}
-				}
-			}
-			if (keyboardShortcutOverrides.isNotEmpty())
-			{
-				at(::keyboardShortcutOverrides.name)
-				{
-					writeArray {
-						keyboardShortcutOverrides.forEach {
-							it.value.writeTo(this)
-						}
-					}
-				}
 			}
 		}
 	}
@@ -124,16 +88,7 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 		fun from (obj: JSONObject): GlobalAvailConfigurationV1
 		{
 			val config = GlobalAvailConfigurationV1()
-			if (obj.containsKey(
-				GlobalAvailConfigurationV1::defaultStandardLibrary.name))
-			{
-				val lib =
-					obj[GlobalAvailConfigurationV1::defaultStandardLibrary.name]
-				if (lib.isString)
-				{
-					config.defaultStandardLibrary =	lib.string
-				}
-			}
+
 			if (obj.containsKey(GlobalAvailConfigurationV1::favorite.name))
 			{
 				val favorite = obj[GlobalAvailConfigurationV1::favorite.name]
@@ -147,13 +102,6 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 					config.editorGuideLines.addAll(it.ints)
 			} ?: config.editorGuideLines.add(80)
 			if (obj.containsKey(
-					GlobalAvailConfigurationV1::projectManagerLayoutConfig.name))
-			{
-				config.projectManagerLayoutConfig =
-					obj.getString(
-						GlobalAvailConfigurationV1::projectManagerLayoutConfig.name)
-			}
-			if (obj.containsKey(
 					GlobalAvailConfigurationV1::knownProjects.name))
 			{
 				obj.getArray(GlobalAvailConfigurationV1::knownProjects.name)
@@ -166,29 +114,6 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 							}
 						}
 					}
-			}
-			if (obj.containsKey(GlobalAvailConfigurationV1::globalTemplates.name))
-			{
-				val map = obj.getObject(
-					GlobalAvailConfigurationV1::globalTemplates.name)
-				map.forEach { (name, expansion) ->
-					config.globalTemplates[name] = expansion.string
-				}
-			}
-			if (obj.containsKey(
-					GlobalAvailConfigurationV1::keyboardShortcutOverrides.name))
-			{
-				val arr = obj.getArray(
-					GlobalAvailConfigurationV1::keyboardShortcutOverrides.name)
-				arr.forEach {
-					val shortcutOverride =
-						KeyboardShortcutOverride.from(it as JSONObject)
-					config.keyboardShortcutOverrides[shortcutOverride.actionMapKey] =
-						shortcutOverride
-					shortcutOverride.associatedShortcut!!.let { ks ->
-						ks.key = shortcutOverride.key
-					}
-				}
 			}
 			return config
 		}

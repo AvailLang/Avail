@@ -36,9 +36,7 @@ import avail.anvil.manager.AvailProjectManager
 import avail.anvil.settings.KeyboardShortcutOverride
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.ShortcutSettings
-import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyboardShortcut
-import avail.anvil.shortcuts.KeyboardShortcutCategory
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.availHome
 import org.availlang.artifact.environment.project.AvailProject
@@ -46,6 +44,9 @@ import org.availlang.json.JSONFriendly
 import org.availlang.json.jsonObject
 import org.availlang.json.jsonPrettyPrintWriter
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 
 /**
  * The interface that defines the state expected of the configuration for the
@@ -72,12 +73,6 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	var favorite: String?
 
 	/**
-	 * The layout configuration string that indicates the position of the
-	 * project manager window on start up.
-	 */
-	var projectManagerLayoutConfig: String
-
-	/**
 	 * The list of character positions to draw an editor guide line.
 	 */
 	val editorGuideLines: MutableList<Int>
@@ -86,65 +81,17 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	val knownProjects: MutableSet<KnownAvailProject>
 
 	/**
-	 * The default available templates that should be available when editing 
-	 * Avail source modules in the workbench, as a map from template names 
-	 * (corresponding to user inputs) to template expansions. Zero or one caret 
-	 * insertion (⁁) may appear in each expansion.
-	 */
-	val globalTemplates: MutableMap<String, String>
-
-	/**
 	 * The map of [KeyboardShortcutOverride.actionMapKey] to [KeyboardShortcut]
 	 * that override the default key combinations for the listed
 	 * [KeyboardShortcut]s.
 	 */
 	val keyboardShortcutOverrides: MutableMap<String, KeyboardShortcutOverride>
+		get() = shortcutSettings.keyboardShortcutOverrides
 
 	/**
 	 * The [ShortcutSettings] sourced from [keyboardShortcutOverrides].
 	 */
-	val shortcutSettings: ShortcutSettings get() =
-		ShortcutSettings(keyboardShortcutOverrides.toMap())
-
-	/**
-	 * Attempt to import the provided [ShortcutSettings] into
-	 * [keyboardShortcutOverrides] only adding the
-	 * [ShortcutSettings.keyboardShortcutOverrides] that do not
-	 * [conflict][KeyboardShortcutCategory.checkShortcutsUniqueAgainst] with
-	 * any other shortcuts.
-	 *
-	 * @param settings
-	 *   The [ShortcutSettings] to import.
-	 * @return
-	 *   The map from [KeyboardShortcutCategory] (from the imported settings) to
-	 *   the [Set] of [KeyboardShortcut]s its [Key] conflicts with.
-	 */
-	fun attemptShortcutImport(
-		settings: ShortcutSettings
-	): Map<KeyboardShortcutOverride, Set<KeyboardShortcut>> =
-		settings.keyboardShortcutOverrides.values
-			.map { it to it.category.checkShortcutsUniqueAgainst(it) }
-			.filter {
-				val notEmpty = it.second.isNotEmpty()
-				if (!notEmpty)
-				{
-					it.first.category.keyboardShortcut(it.first.actionMapKey)
-						?.let {ks ->
-							keyboardShortcutOverrides[it.first.actionMapKey] =
-								it.first
-							ks.key = it.first.key
-						}
-				}
-				notEmpty
-			}
-			.associate { it }
-			.apply { saveToDisk() }
-
-	/**
-	 * The path to the default Avail standard library to be used in projects or
-	 * `null` if none set.
-	 */
-	var defaultStandardLibrary: String?
+	val shortcutSettings: ShortcutSettings
 
 	/**
 	 * The [knownProjects] sorted by [KnownAvailProject.name] in ascending
@@ -224,18 +171,12 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	 */
 	fun saveToDisk ()
 	{
-		File(configFilePath).writeText(fileContent)
-	}
-
-	/**
-	 * Reset the [globalTemplates] to the default. This clears all current
-	 * [globalTemplates] before adding back the [defaultTemplates].
-	 */
-	fun resetToDefaultTemplates ()
-	{
-		globalTemplates.clear()
-		globalTemplates.putAll(defaultTemplates)
-		saveToDisk()
+		// First create a backup of the current file.
+		Files.copy(
+			Paths.get(globalConfigFile),
+			Paths.get("$globalConfigFile.bak"),
+			StandardCopyOption.REPLACE_EXISTING)
+		File(globalConfigFile).writeText(fileContent)
 	}
 
 	/**
@@ -244,20 +185,8 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	 */
 	fun resetToDefaultShortcuts ()
 	{
-		keyboardShortcutOverrides.clear()
-		saveToDisk()
-	}
-
-	/**
-	 * Add all the [defaultTemplates] to the [globalTemplates]. This will have
-	 * the effect of replacing any [globalTemplates] with the same template name
-	 * as a default template. Otherwise, all previous [globalTemplates] that
-	 * don't share a name with one of the [defaultTemplates] will remain the
-	 * same.
-	 */
-	fun addAllDefaultTemplates ()
-	{
-		globalTemplates.putAll(defaultTemplates)
+		shortcutSettings.keyboardShortcutOverrides.clear()
+		shortcutSettings.save()
 	}
 
 	companion object
@@ -271,7 +200,7 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 		/**
 		 * The Avail configuration file name.
 		 */
-		private const val CONFIG_FILE_NAME = "avail-global-config.json"
+		const val CONFIG_FILE_NAME = "avail-global-config.json"
 
 		/**
 		 * The path to the [GlobalAvailConfiguration] file on disk.
@@ -279,9 +208,8 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 		private val configFilePath get() =
 			"$availHome${File.separator}$CONFIG_FILE_NAME"
 
-		private val emptyConfig: GlobalAvailConfiguration
-			get() =
-			GlobalAvailConfigurationV1()
+		val emptyConfig: GlobalAvailConfiguration
+			get() = GlobalAvailConfigurationV1()
 
 		/**
 		 * @return
@@ -291,11 +219,10 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 		 */
 		fun getGlobalConfig (): GlobalAvailConfiguration
 		{
-			val file = File(configFilePath)
+			val file = File(globalConfigFile)
 			if (!file.exists())
 			{
 				val config = emptyConfig
-				config.addAllDefaultTemplates()
 				config.saveToDisk()
 				return config
 			}
@@ -326,129 +253,5 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 						" [1, $CURRENT_PROJECT_VERSION].")
 			}
 		}
-
-		/**
-		 * The default [globalTemplates].
-		 */
-		internal val defaultTemplates = mutableMapOf(
-			"a" to  "∀",
-			"bottom" to  "⊥",
-			"ceiling" to  "⌈⁁⌉",
-			"celsius" to  "℃",
-			"cent" to  "¢",
-			"conjunction" to  "∧",
-			"convert" to  "≍",
-			"copyright" to  "©",
-			"cubed" to  "³",
-			"degree" to  "°",
-			"delta" to  "Δ",
-			"disjunction" to  "∨",
-			"divide" to  "÷",
-			"dot" to  "·",
-			"doubledagger" to  "‡",
-			"doubleexclamation" to  "‼",
-			"doublequestion" to  "⁇",
-			"doublequotes" to  "“⁁”",
-			"downarrow" to  "↓",
-			"downtack" to  "⊤",
-			"e" to  "∃",
-			"elementof" to  "∈",
-			"ellipsis" to  "…",
-			"endash" to  "–",
-			"emdash" to  "—",
-			"emptyset" to  "∅",
-			"enumeration" to  "{⁁}ᵀ",
-			"equivalent" to  "≍",
-			"exists" to  "∃",
-			"floor" to  "⌊⁁⌋",
-			"forall" to  "∀",
-			"gte" to  "≥",
-			"guillemets" to  "«⁁»",
-			"infinity" to  "∞",
-			"interpunct" to  "•",
-			"intersection" to  "∩",
-			"leftarrow" to  "←",
-			"leftceiling" to  "⌈",
-			"leftdoublequote" to  "“",
-			"leftfloor" to  "⌊",
-			"leftguillemet" to  "«",
-			"leftsinglequote" to  "‘",
-			"lte" to  "≤",
-			"manicule" to  "\uD83D\uDC49",
-			"map" to  "{⁁}",
-			"maplet" to  "↦",
-			"mdash" to  "—",
-			"memberof" to  "∈",
-			"mu" to  "µ",
-			"ndash" to  "–",
-			"ne" to  "≠",
-			"not" to  "¬",
-			"notelementof" to  "∉",
-			"notmemberof" to  "∉",
-			"notsubsetorequal" to  "⊈",
-			"notsupersetorequal" to  "⊉",
-			"o1" to  "①",
-			"o2" to  "②",
-			"o3" to  "③",
-			"o4" to  "④",
-			"o5" to  "⑤",
-			"o6" to  "⑥",
-			"o7" to  "⑦",
-			"o8" to  "⑧",
-			"o9" to  "⑨",
-			"pi" to  "π",
-			"picapital" to  "∏",
-			"plusminus" to  "±",
-			"prefix" to  "§",
-			"rightarrow" to  "→",
-			"rightceiling" to  "⌉",
-			"rightdoublequote" to  "”",
-			"rightfloor" to  "⌋",
-			"rightsinglequote" to  "’",
-			"rightguillemet" to  "»",
-			"root" to  "√",
-			"section" to  "§",
-			"set" to  "{⁁}",
-			"sigma" to  "∑",
-			"singledagger" to  "†",
-			"singlequotes" to  "‘⁁’",
-			"squared" to  "²",
-			"subsetorequal" to  "⊆",
-			"sum" to  "∑",
-			"supersetorequal" to  "⊇",
-			"supert" to  "ᵀ",
-			"swoop" to  "⤷",
-			"t" to  "ᵀ",
-			"thereexists" to  "∃",
-			"thinspace" to  " ",
-			"times" to  "×",
-			"top" to  "⊤",
-			"tuple" to  "<⁁>",
-			"union" to  "∪",
-			"uparrow" to  "↑",
-			"uptack" to  "⊥",
-			"xor" to  "⊕",
-			"yields" to  "⇒",
-			"1" to  "¹",
-			"2" to  "²",
-			"3" to  "³",
-			"4" to  "⁴",
-			"5" to  "⁵",
-			"6" to  "⁶",
-			"7" to  "⁷",
-			"8" to  "⁸",
-			"9" to  "⁹",
-			"->" to  "→",
-			"=>" to  "⇒",
-			"<-" to  "←",
-			"*" to  "×",
-			"/" to  "÷",
-			"<=" to  "≤",
-			">=" to  "≥",
-			"!" to  "¬",
-			"!!" to  "‼",
-			"!=" to  "≠",
-			"..." to  "…",
-			"??" to  "⁇")
 	}
 }

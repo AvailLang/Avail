@@ -32,27 +32,24 @@
 
 package avail.project
 
-import avail.anvil.AvailWorkbench
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.setupEnvironment
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
-import org.availlang.artifact.environment.project.AvailProject
 import java.util.concurrent.Semaphore
 import javax.swing.UIManager
 import kotlin.concurrent.thread
 
 /**
- * An [AvailWorkbench] runner that uses an [AvailProject] configuration file to
- * start the workbench with the appropriate Avail roots and project-specific
- * configurations.
+ * A launcher of the [AvailProjectManager].
  *
  * @author Richard Arriaga
  */
 object AvailProjectManagerRunner
 {
 	/**
-	 * Launch an [AvailWorkbench] for a specific [AvailProjectManagerRunner].
+	 * Launch an [AvailProjectManager].
 	 *
 	 * @param args
 	 *   The command line arguments.
@@ -91,6 +88,7 @@ object AvailProjectManagerRunner
 			swingReady.release()
 		}
 		swingReady.acquire()
+		setupEnvironment()
 		val globalConfig = GlobalAvailConfiguration.getGlobalConfig()
 		AvailProjectManager(globalConfig)
 	}

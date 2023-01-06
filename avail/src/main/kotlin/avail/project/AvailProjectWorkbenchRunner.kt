@@ -34,8 +34,8 @@ package avail.project
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.setupEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
-import org.availlang.artifact.environment.AvailEnvironment.optionallyCreateAvailUserHome
 import org.availlang.artifact.environment.location.InvalidLocation
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
@@ -83,7 +83,7 @@ object AvailProjectWorkbenchRunner
 						"\n\t1 argument: The path, with name, of the project " +
 						"config file.")
 			}
-		optionallyCreateAvailUserHome()
+		setupEnvironment()
 		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
 			.removeSuffix(File.separator)
 		val availProject = try

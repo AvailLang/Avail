@@ -117,8 +117,9 @@ class EditShortcutDialog constructor(
 			else
 			{
 				shortcut.key = kso.key
-				globalConfig.keyboardShortcutOverrides[kso.actionMapKey] = kso
-				globalConfig.saveToDisk()
+				globalConfig.shortcutSettings
+					.keyboardShortcutOverrides[kso.actionMapKey] = kso
+				globalConfig.shortcutSettings.save()
 			}
 			this@EditShortcutDialog.parent.redrawShortcuts()
 			this@EditShortcutDialog.dispose()

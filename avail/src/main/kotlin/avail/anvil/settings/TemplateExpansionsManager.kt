@@ -347,8 +347,7 @@ class RootTemplatesPanel constructor(
 				{
 					File(selectedFile.absolutePath + ".json")
 				}
-			Settings.exportSettings(
-				target, root.templateSettings)
+			root.templateSettings.saveToDisk(target)
 		}
 	}
 

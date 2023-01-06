@@ -75,12 +75,13 @@ class OtherSettingsSelection constructor(
 		}
 		val guidelines = TextFieldWithLabel("Editor Guide Lines: ").apply {
 			toolTipText = "Enter comma separated list of positive integers"
-//			border = BorderFactory.createLineBorder(Color.RED)
 			border = BorderFactory.createEmptyBorder(5, 0, 5, 0)
 			val currentHeight = height
 			minimumSize = Dimension(690, currentHeight + 40)
 			preferredSize = Dimension(690, currentHeight + 40)
 			maximumSize = Dimension(690, currentHeight + 40)
+			textField.text =
+				config.editorGuideLines.joinToString { it.toString() }
 			settingsPanel.add(this)
 		}
 		val apply = JButton("Apply").apply {

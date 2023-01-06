@@ -142,6 +142,17 @@ sealed class Settings constructor(val type: SettingsType<*>): JSONFriendly
 		}
 	}
 
+	/**
+	 * Save this [ShortcutSettings] to the provided file.
+	 *
+	 * @param file
+	 *   The file to write to.
+	 */
+	fun saveToDisk (file: File)
+	{
+		exportSettings(file, this)
+	}
+
 	companion object
 	{
 		/**

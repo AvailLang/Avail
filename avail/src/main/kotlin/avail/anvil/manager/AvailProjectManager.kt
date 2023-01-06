@@ -35,6 +35,7 @@ package avail.anvil.manager
 import avail.anvil.AvailWorkbench
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.*
 import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.projectManagerLayoutFile
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.versions.MavenCentralAPI
 import avail.anvil.versions.SearchResponse
@@ -89,7 +90,7 @@ class AvailProjectManager constructor(
 	 * [AvailProjectManager].
 	 */
 	private val layoutConfiguration: LayoutConfiguration =
-		LayoutConfiguration.from(globalConfig.projectManagerLayoutConfig)
+		LayoutConfiguration.from(File(projectManagerLayoutFile).readText())
 
 	/**
 	 * The action to perform when an [AvailWorkbench] is launched from this
@@ -153,8 +154,8 @@ class AvailProjectManager constructor(
 			// Only capture the bounds if it's not zoomed or minimized.
 			layoutConfiguration.placement = bounds
 		}
-		globalConfig.projectManagerLayoutConfig =
-			layoutConfiguration.stringToStore()
+		File(projectManagerLayoutFile).writeText(
+			layoutConfiguration.stringToStore())
 	}
 
 	init

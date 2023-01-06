@@ -42,8 +42,12 @@ import java.io.File
  * The Avail standard libraries in [AvailEnvironment.availHomeLibs].
  */
 val availStandardLibraries: Array<File> get() =
-	"${AvailEnvironment.availHomeLibs}/org/availlang".let { home ->
+	stdLibHome.let { home ->
 		val dir = File(home)
+		if (!dir.exists())
+		{
+			dir.mkdirs()
+		}
 		val m = mutableListOf<AvailStdLibVersion?>()
 		val libs = dir.listFiles { _, name ->
 			name.endsWith(".jar") &&

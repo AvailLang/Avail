@@ -33,12 +33,19 @@
 package avail.anvil.settings
 
 import avail.anvil.AnvilException
+import avail.anvil.environment.envSettingsHome
+import avail.anvil.environment.keyBindingsOverrideFile
+import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyboardShortcut
+import avail.anvil.shortcuts.KeyboardShortcutCategory
 import org.availlang.json.JSONArray
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
 import org.availlang.json.jsonReader
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import kotlin.reflect.full.companionObject
 
 /**
@@ -52,7 +59,8 @@ import kotlin.reflect.full.companionObject
  *   the listed [KeyboardShortcut]s.
  */
 data class ShortcutSettings constructor(
-	val keyboardShortcutOverrides: Map<String, KeyboardShortcutOverride>
+	val keyboardShortcutOverrides: MutableMap<String, KeyboardShortcutOverride> =
+		mutableMapOf()
 ): Settings(
 	ShortcutSettings::class.companionObject!!.objectInstance as SettingsType<*>)
 {
@@ -64,6 +72,75 @@ data class ShortcutSettings constructor(
 			}
 		}
 	}
+
+	/**
+	 * Save to the [environment settings][envSettingsHome] directory in the
+	 * [keyBindingsOverrideFile].
+	 */
+	fun save ()
+	{
+		// First create a backup of the current file.
+		Files.copy(
+			Paths.get(keyBindingsOverrideFile),
+			Paths.get("$keyBindingsOverrideFile.bak"),
+			StandardCopyOption.REPLACE_EXISTING)
+		saveToDisk(File(keyBindingsOverrideFile))
+	}
+
+	/**
+	 * Apply the [KeyboardShortcutOverride]s in this [ShortcutSettings].
+	 */
+	fun applyOverrides ()
+	{
+		keyboardShortcutOverrides.values
+			.map { it to it.category.checkShortcutsUniqueAgainst(it) }
+			.forEach {
+				val notEmpty = it.second.isNotEmpty()
+				if (!notEmpty)
+				{
+					it.first.category.keyboardShortcut(it.first.actionMapKey)
+						?.let { ks ->
+							keyboardShortcutOverrides[ks.actionMapKey] =
+								it.first
+							ks.key = it.first.key
+						}
+				}
+			}
+	}
+
+	/**
+	 * Attempt to import the provided [ShortcutSettings] into
+	 * [keyboardShortcutOverrides] only adding the
+	 * [ShortcutSettings.keyboardShortcutOverrides] that do not
+	 * [conflict][KeyboardShortcutCategory.checkShortcutsUniqueAgainst] with
+	 * any other shortcuts.
+	 *
+	 * @param settings
+	 *   The [ShortcutSettings] to import.
+	 * @return
+	 *   The map from [KeyboardShortcutCategory] (from the imported settings) to
+	 *   the [Set] of [KeyboardShortcut]s its [Key] conflicts with.
+	 */
+	fun attemptShortcutImport (
+		settings: ShortcutSettings
+	): Map<KeyboardShortcutOverride, Set<KeyboardShortcut>> =
+		settings.keyboardShortcutOverrides.values
+			.map { it to it.category.checkShortcutsUniqueAgainst(it) }
+			.filter {
+				val notEmpty = it.second.isNotEmpty()
+				if (!notEmpty)
+				{
+					it.first.category.keyboardShortcut(it.first.actionMapKey)
+						?.let {ks ->
+							keyboardShortcutOverrides[it.first.actionMapKey] =
+								it.first
+							ks.key = it.first.key
+						}
+				}
+				notEmpty
+			}
+			.associate { it }
+			.apply { saveToDisk(File(keyBindingsOverrideFile)) }
 
 	/**
 	 * The [ShortcutSettings.Companion] is also a [SettingsType] parameterized
@@ -80,7 +157,7 @@ data class ShortcutSettings constructor(
 			}
 			return ShortcutSettings(obj.getArray(SETTINGS)
 				.map { KeyboardShortcutOverride.from(it as JSONObject) }
-				.associateBy { it.actionMapKey })
+				.associateBy { it.actionMapKey }.toMutableMap())
 		}
 
 		/**
@@ -105,5 +182,14 @@ data class ShortcutSettings constructor(
 					e).printStackTrace()
 				null
 			}
+
+		/**
+		 * @return
+		 *   The [ShortcutSettings] from the
+		 *   [environment directory][keyBindingsOverrideFile].
+		 */
+		fun readEnvOverrides (): ShortcutSettings =
+			(readFromFile(File(keyBindingsOverrideFile)) ?: ShortcutSettings())
+				.apply { applyOverrides() }
 	}
 }

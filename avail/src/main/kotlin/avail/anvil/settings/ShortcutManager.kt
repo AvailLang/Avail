@@ -166,7 +166,8 @@ class ShortcutsPanel constructor(
 				ShortcutSettings.readFromFile(selectedFile)
 			if (shortcuts != null)
 			{
-				val m = globalConfig.attemptShortcutImport(shortcuts)
+				val m = globalConfig.shortcutSettings
+					.attemptShortcutImport(shortcuts)
 				if (m.isNotEmpty())
 				{
 					val conflicts =
@@ -250,7 +251,7 @@ class ShortcutsPanel constructor(
 				{
 					File(selectedFile.absolutePath + ".json")
 				}
-			Settings.exportSettings(target, shortcuts)
+			shortcuts.saveToDisk(target)
 		}
 	}
 
