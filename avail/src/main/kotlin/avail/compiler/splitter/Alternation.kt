@@ -91,6 +91,8 @@ internal class Alternation constructor(
 		}
 	}
 
+	override fun children() = alternatives
+
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
 		assert(false) {

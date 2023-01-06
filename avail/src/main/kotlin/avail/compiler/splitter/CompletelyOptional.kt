@@ -96,6 +96,8 @@ internal class CompletelyOptional constructor(
 			sectionCheckpoints: MutableList<SectionCheckpoint>)
 		= sequence.extractSectionCheckpointsInto(sectionCheckpoints)
 
+	override fun children() = listOf(sequence)
+
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
 		assert(false) {

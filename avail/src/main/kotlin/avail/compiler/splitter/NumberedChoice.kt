@@ -112,6 +112,8 @@ internal class NumberedChoice constructor(
 			sectionCheckpoints: MutableList<SectionCheckpoint>)
 		= alternation.extractSectionCheckpointsInto(sectionCheckpoints)
 
+	override fun children() = listOf(alternation)
+
 	@Throws(SignatureException::class)
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{

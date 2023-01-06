@@ -123,6 +123,7 @@ import avail.exceptions.SignatureException
 import avail.utility.iterableWith
 import avail.utility.safeWrite
 import org.availlang.cache.LRUCache
+import java.util.ArrayDeque
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -803,7 +804,7 @@ private constructor(messageName: A_String)
 	 * The returned range includes both the first and last character position of
 	 * the range, using one-based indexing.
 	 */
-	fun highlightMessagePartIndex(
+	fun rangeToHighlightForPartIndex(
 		messagePartIndex: Int
 	): IntRange
 	{
@@ -1481,6 +1482,25 @@ private constructor(messageName: A_String)
 	 */
 	val recursivelyContainsReorders
 		get() = rootSequence.recursivelyContainsReorders
+
+	/**
+	 * The computed list of [Simple] expressions recursively inside the
+	 * [rootSequence].
+	 */
+	val allSimpleLeafIndices: List<Int>
+		get()
+		{
+			val indices = mutableListOf<Int>()
+			val work = ArrayDeque<Expression>()
+			work.add(rootSequence)
+			while (work.isNotEmpty())
+			{
+				val item = work.removeLast()
+				if (item is Simple) indices.add(item.tokenIndex)
+				work.addAll(item.children().reversed())
+			}
+			return indices
+		}
 
 	override fun toString() = buildString { dumpForDebug(this) }
 

@@ -111,6 +111,8 @@ internal class Optional constructor(
 			sectionCheckpoints: MutableList<SectionCheckpoint>) =
 		sequence.extractSectionCheckpointsInto(sectionCheckpoints)
 
+	override fun children() = listOf(sequence)
+
 	@Throws(SignatureException::class)
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{

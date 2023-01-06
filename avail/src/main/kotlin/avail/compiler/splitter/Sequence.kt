@@ -153,6 +153,8 @@ internal class Sequence constructor(
 		}
 	}
 
+	override fun children() = expressions
+
 	/**
 	 * Check that the given type signature is appropriate for this top-level
 	 * sequence. If not, throw a [SignatureException].

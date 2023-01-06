@@ -122,6 +122,8 @@ internal class Counter(
 			sectionCheckpoints: MutableList<SectionCheckpoint>)
 		= group.extractSectionCheckpointsInto(sectionCheckpoints)
 
+	override fun children() = listOf(group)
+
 	@Throws(SignatureException::class)
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{

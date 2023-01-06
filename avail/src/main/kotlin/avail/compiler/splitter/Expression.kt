@@ -151,6 +151,11 @@ internal abstract class Expression constructor(
 	}
 
 	/**
+	 * Produce a list of this [Expression]'s children.
+	 */
+	internal abstract fun children(): List<Expression>
+
+	/**
 	 * Answer whether this expression recursively contains any section
 	 * checkpoints.
 	 *

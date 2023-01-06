@@ -81,6 +81,8 @@ internal open class Argument constructor(
 	override val underscoreCount: Int
 		get() = 1
 
+	override fun children(): List<Expression> = emptyList()
+
 	/**
 	 * A simple underscore/ellipsis can be arbitrarily restricted, other than
 	 * when it is restricted to the uninstantiable type [bottom].

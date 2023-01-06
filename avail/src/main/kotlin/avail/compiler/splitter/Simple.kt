@@ -70,7 +70,7 @@ internal class Simple constructor(
 	startInName: Int,
 	pastEndInName: Int,
 	private val token: A_String,
-	private val tokenIndex: Int
+	internal val tokenIndex: Int
 ) : Expression(startInName, pastEndInName)
 {
 	init
@@ -88,6 +88,8 @@ internal class Simple constructor(
 
 	override fun applyCaseInsensitive(): Expression =
 		CaseInsensitive(startInName, pastEndInName, this)
+
+	override fun children(): List<Expression> = emptyList()
 
 	override fun checkType(
 		argumentType: A_Type,

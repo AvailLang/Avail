@@ -99,6 +99,8 @@ internal class CaseInsensitive constructor(
 			sectionCheckpoints: MutableList<SectionCheckpoint>) =
 		expression.extractSectionCheckpointsInto(sectionCheckpoints)
 
+	override fun children() = listOf(expression)
+
 	@Throws(SignatureException::class)
 	override fun checkType(
 		argumentType: A_Type,

@@ -202,6 +202,9 @@ class PhraseViewPanel constructor (
 			while (i < nodesSize)
 			{
 				val node = nodes[i++]
+				val usedIndices = node.tokenSpans
+					.map { it.tokenIndexInName }
+					.toSet()
 				val runs = RunTree<List<String>>()
 				if (node.atomName !== null)
 				{
@@ -216,8 +219,7 @@ class PhraseViewPanel constructor (
 					// don't consume it.
 					if (i < nodesSize)
 					{
-						subindices =
-							subindices.append(nodes[i].indexInParent)
+						subindices = subindices.append(nodes[i].indexInParent)
 					}
 					if (node === nodes.last())
 					{
@@ -227,7 +229,7 @@ class PhraseViewPanel constructor (
 						if (tokenIndexInName > 0)
 						{
 							node.splitter!!
-								.highlightMessagePartIndex(tokenIndexInName)
+								.rangeToHighlightForPartIndex(tokenIndexInName)
 								.let { range ->
 									runs.edit(
 										range.first + 0L,
@@ -245,6 +247,22 @@ class PhraseViewPanel constructor (
 							node.splitter!!.highlightRangeForPath(subindices)
 						runs.edit(range.first + 0L, range.last + 1L) { old ->
 							(old ?: emptyList()).append("font color='red'")
+						}
+					}
+					// Dim any Simple tokens that didn't actually occur.
+					val splitter = node.splitter!!
+					val simpleIndices = splitter.allSimpleLeafIndices
+					for (index in simpleIndices - usedIndices)
+					{
+						val range =
+							splitter.rangeToHighlightForPartIndex(index)
+						// This range is a Simple that doesn't occur at this
+						// call site, so de-emphasize it.
+						runs.edit(
+							range.first + 0L,
+							range.last + 1L
+						) { old ->
+							(old ?: emptyList()).append("font color='gray'")
 						}
 					}
 				}

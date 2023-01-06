@@ -2318,15 +2318,13 @@ class AvailWorkbench internal constructor(
 				}
 				if (screenState.structureViewLayoutConfig.isNotEmpty())
 				{
-					val editor = openEditors.values.first()
+					val editor = openEditors.values.firstOrNull()
 					structureViewPanel.apply {
 						layoutConfiguration.parseInput(
 							screenState.structureViewLayoutConfig)
-						layoutConfiguration.placement?.let {
-							bounds = it
-						}
+						layoutConfiguration.placement?.let(::setBounds)
 						extendedState = layoutConfiguration.extendedState
-						updateView(editor)
+						editor?.let(::updateView)
 					}
 				}
 			}

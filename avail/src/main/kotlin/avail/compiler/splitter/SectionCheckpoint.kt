@@ -81,6 +81,8 @@ internal class SectionCheckpoint constructor(
 		sectionCheckpoints.add(this)
 	}
 
+	override fun children(): List<Expression> = emptyList()
+
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
 		assert(false) {
