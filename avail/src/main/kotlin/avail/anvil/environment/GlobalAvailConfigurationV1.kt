@@ -42,8 +42,7 @@ import org.availlang.json.JSONWriter
  *
  * @author Richard Arriaga
  */
-class GlobalAvailConfigurationV1
-	: GlobalAvailConfiguration
+class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 {
 	override val serializationVersion: Int = 1
 	override val knownProjects = mutableSetOf<KnownAvailProject>()
