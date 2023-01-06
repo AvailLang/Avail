@@ -33,6 +33,7 @@
 package avail.anvil.settings
 
 import avail.anvil.manager.AvailProjectManager
+import avail.anvil.settings.editor.EditorSettingsSelection
 import java.awt.Color
 import java.awt.Dialog.ModalityType.DOCUMENT_MODAL
 import java.awt.Dimension
@@ -80,14 +81,14 @@ class SettingsView constructor (
 		preferredSize = Dimension(150, 750)
 		maximumSize = Dimension(150, 750)
 		border = BorderFactory.createLineBorder(Color(0x616365))
-		val shortcuts = ShortcutsSelection(this@SettingsView).apply {
+		val editor = EditorSettingsSelection(this@SettingsView).apply {
 			label.font = label.font.deriveFont(font.style or Font.BOLD)
 			background = Color(0x55, 0x58, 0x5A)
 		}
-		selected = shortcuts
-		add(shortcuts)
+		selected = editor
+		add(editor)
+		add(ShortcutsSelection(this@SettingsView))
 		add(StandardLibrariesSelection(this@SettingsView))
-		add(OtherSettingsSelection(this@SettingsView))
 	}
 
 	init

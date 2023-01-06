@@ -58,7 +58,7 @@ import javax.swing.SwingUtilities
  * @author Richard Arriaga
  *
  * @constructor
- * Construct a [OtherSettingsSelection].
+ * Construct a [StandardLibrariesSelection].
  *
  * @param settingsView
  *   The parent [SettingsView].

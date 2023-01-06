@@ -516,10 +516,13 @@ class AvailDebugger internal constructor (
 	}
 
 	/** A view of the L1 disassembly for the selected frame. */
-	private val disassemblyPane = CodePane(workbench, false)
+	private val disassemblyPane =
+		CodePane(workbench, false)
+
 
 	/** A view of the source code for the selected frame. */
-	private val sourcePane = CodePane(workbench, false)
+	private val sourcePane =
+		CodePane(workbench, false)
 
 	/** The list of variables in scope in the selected frame. */
 	private val variablesPane = JList(arrayOf<Variable>()).apply {
@@ -963,7 +966,7 @@ class AvailDebugger internal constructor (
 						.addComponent(disassemblyPane.scroll(), 100, 100, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
-								workbench.globalAvailConfiguration
+								workbench.globalConfig
 									.editorGuideLines),
 							100,
 							100,
@@ -989,7 +992,7 @@ class AvailDebugger internal constructor (
 						.addComponent(disassemblyPane.scroll(), 150, 150, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
-								workbench.globalAvailConfiguration
+								workbench.globalConfig
 									.editorGuideLines),
 							150,
 							150,

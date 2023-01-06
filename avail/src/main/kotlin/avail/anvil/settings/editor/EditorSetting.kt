@@ -1,6 +1,6 @@
 /*
- * TextFieldTextFieldButton.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * EditorSetting.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,69 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.components
+package avail.anvil.settings.editor
 
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import javax.swing.BorderFactory
-import javax.swing.JButton
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTextField
-import javax.swing.border.Border
+import javax.swing.JComponent
 
 /**
- * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left of the
- * [JTextField] and a button to the right of the [JTextField].
+ * A setting in [EditorSettingsSelection].
  *
  * @author Richard Arriaga
  */
-class TextFieldTextFieldButton constructor(
-	val button: JButton = JButton("…"),
-	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
-): JPanel(GridBagLayout())
+internal sealed interface EditorSetting
 {
-	/**
-	 * The [JLabel] to the left of the [JTextField].
-	 */
-	val textFieldLeft = JTextField().apply {
-			this@TextFieldTextFieldButton.add(
-				this,
-				GridBagConstraints().apply {
-					weightx = 0.5
-					weighty = 1.0
-					fill = GridBagConstraints.HORIZONTAL
-					gridx = 0
-					gridy = 0
-					gridwidth = 1
-				})
-		}
+	/** The parent [EditorSettingsSelection]. */
+	val editorSettings: EditorSettingsSelection
 
 	/**
-	 * The [JTextField] that accepts the text input.
+	 * The parent [JComponent] that contains this [EditorSetting.component].
 	 */
-	val textFieldRight: JTextField = JTextField().apply {
-		this@TextFieldTextFieldButton.add(
-			this,
-			GridBagConstraints().apply {
-				weightx = 0.5
-				weighty = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 1
-				gridy = 0
-				gridwidth = 1
-			})
-	}
+	val parent: JComponent
 
-	init
+	/** The [JComponent] that is used to edit this setting. */
+	val component: JComponent
+
+	/**
+	 * Indicates there is a change ready to be saved.
+	 *
+	 * @return
+	 *   `true` indicates there is a valid change; `false` otherwise.
+	 */
+	fun changeReady (): Boolean
+
+	/**
+	 * @return
+	 *   `true` if the contained editable content is valid; `false` otherwise.
+	 */
+	fun hasValidContent (): Boolean
+
+	/** Reset the editable content to its current setting. */
+	fun reset ()
+
+	/**
+	 * Indicates the content is being saved and this [EditorSetting] should
+	 * update accordingly.
+	 */
+	fun update () {}
+
+	/** Add this [EditorSetting] to the [parent] view. */
+	fun addToParent ()
 	{
-		add(
-			button,
-			GridBagConstraints().apply {
-				gridx = 2
-				gridy = 0
-				gridwidth = 1
-			})
-		border = panelBorder
+		parent.add(component)
 	}
 }

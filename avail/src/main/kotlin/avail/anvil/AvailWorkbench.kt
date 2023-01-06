@@ -240,7 +240,7 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @property resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
- * @property globalAvailConfiguration
+ * @property globalConfig
  *   The [GlobalAvailConfiguration] for the environment this [AvailWorkbench] is
  *   being launched in.
  * @property availProject
@@ -259,7 +259,7 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
- * @param globalAvailConfiguration
+ * @param globalConfig
  *  The [GlobalAvailConfiguration] for the environment this [AvailWorkbench] is
  *  being launched in.
  * @param availProject
@@ -275,7 +275,7 @@ class AvailWorkbench internal constructor(
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver,
-	val globalAvailConfiguration: GlobalAvailConfiguration,
+	val globalConfig: GlobalAvailConfiguration,
 	internal var availProjectFilePath: String = "",
 	windowTitle: String = "Avail Workbench",
 	internal val projectManager: AvailProjectManager?

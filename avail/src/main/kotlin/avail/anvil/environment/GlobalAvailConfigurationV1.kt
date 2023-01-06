@@ -36,6 +36,7 @@ import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.ShortcutSettings
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
+import java.awt.Font
 
 /**
  * Version 1 of [GlobalAvailConfiguration].
@@ -47,8 +48,10 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 	override val serializationVersion: Int = 1
 	override val knownProjects = mutableSetOf<KnownAvailProject>()
 	override var favorite: String? = null
-	override val shortcutSettings = ShortcutSettings.readEnvOverrides()
+	override var codePaneFontSize: Float = 13.0f
+	override var font: String = Font.MONOSPACED
 	override val editorGuideLines = mutableListOf<Int>()
+	override val shortcutSettings = ShortcutSettings.readEnvOverrides()
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -62,6 +65,8 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 					else write(it)
 				}
 			}
+			at(::codePaneFontSize.name) { write(codePaneFontSize) }
+			at(::font.name) { write(font) }
 			at(::editorGuideLines.name)
 			{
 				writeArray {
@@ -89,32 +94,30 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 		{
 			val config = GlobalAvailConfigurationV1()
 
-			if (obj.containsKey(GlobalAvailConfigurationV1::favorite.name))
-			{
-				val favorite = obj[GlobalAvailConfigurationV1::favorite.name]
-				if (favorite.isString)
-				{
-					config.favorite = favorite.string
-				}
+			obj.getStringOrNull(GlobalAvailConfigurationV1::favorite.name)?.let {
+				config.favorite = it
+			}
+			obj.getStringOrNull(GlobalAvailConfigurationV1::font.name)?.let {
+				config.font = it
+			}
+			obj.getFloatOrNull(
+				GlobalAvailConfigurationV1::codePaneFontSize.name)?.let {
+					config.codePaneFontSize = it
 			}
 			obj.getArrayOrNull(
 				GlobalAvailConfigurationV1::editorGuideLines.name)?.let {
 					config.editorGuideLines.addAll(it.ints)
 			} ?: config.editorGuideLines.add(80)
-			if (obj.containsKey(
-					GlobalAvailConfigurationV1::knownProjects.name))
-			{
-				obj.getArray(GlobalAvailConfigurationV1::knownProjects.name)
-					.forEach { data ->
-						if (data.isObject)
-						{
-							data as JSONObject
-							KnownAvailProject.from(data)?.let {
-								config.knownProjects.add(it)
-							}
+			obj.getArrayOrNull(GlobalAvailConfigurationV1::knownProjects.name)
+				?.forEach { data ->
+					if (data.isObject)
+					{
+						data as JSONObject
+						KnownAvailProject.from(data)?.let {
+							config.knownProjects.add(it)
 						}
 					}
-			}
+				}
 			return config
 		}
 	}

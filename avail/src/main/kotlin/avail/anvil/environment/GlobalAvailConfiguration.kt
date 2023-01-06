@@ -37,6 +37,7 @@ import avail.anvil.settings.KeyboardShortcutOverride
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.ShortcutSettings
 import avail.anvil.shortcuts.KeyboardShortcut
+import avail.anvil.text.CodePane
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.availHome
 import org.availlang.artifact.environment.project.AvailProject
@@ -71,9 +72,13 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	 */
 	var favorite: String?
 
-	/**
-	 * The list of character positions to draw an editor guide line.
-	 */
+	/** The desired font size for a [CodePane]. */
+	var codePaneFontSize: Float
+
+	/** The desired font for a [CodePane]. */
+	var font: String
+
+	/** The list of character positions to draw an editor guide line. */
 	val editorGuideLines: MutableList<Int>
 
 	/** The set of [KnownAvailProject]s. */
@@ -87,9 +92,7 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	val keyboardShortcutOverrides: MutableMap<String, KeyboardShortcutOverride>
 		get() = shortcutSettings.keyboardShortcutOverrides
 
-	/**
-	 * The [ShortcutSettings] sourced from [keyboardShortcutOverrides].
-	 */
+	/** The [ShortcutSettings] sourced from [keyboardShortcutOverrides]. */
 	val shortcutSettings: ShortcutSettings
 
 	/**

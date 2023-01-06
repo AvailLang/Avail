@@ -118,7 +118,7 @@ class CreateProjectPanel constructor(
 					null))
 			roots[root.name] = root
 			selectedLibrary?.let { lib ->
-				val rootName = libraryNameField.textField.text
+				val rootName = libraryNameField.input
 				val stdLib = AvailProjectRoot(
 					projLocation,
 					rootName,

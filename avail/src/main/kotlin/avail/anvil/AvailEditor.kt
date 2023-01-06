@@ -484,7 +484,7 @@ class AvailEditor constructor(
 		background = panel.background
 
 		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-			workbench.globalAvailConfiguration.editorGuideLines)
+			workbench.globalConfig.editorGuideLines)
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
 			setHorizontalGroup(

@@ -51,7 +51,7 @@ import javax.swing.JPanel
  * @param settingsView
  *   The parent [SettingsView].
  */
-sealed class SettingPanelSelection constructor(
+abstract class SettingPanelSelection constructor(
 	private val labelText: String,
 	protected val settingsView: SettingsView
 ): JPanel(FlowLayout(FlowLayout.LEFT))

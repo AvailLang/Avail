@@ -84,7 +84,7 @@ class ShortcutManager internal constructor(
 		KeyboardShortcutCategory.values().forEach {
 			 tabs.addTab(
 				 it.display,
-				 ShortcutsPanel(it, workbench.globalAvailConfiguration)
+				 ShortcutsPanel(it, workbench.globalConfig)
 					 .redrawShortcuts())
 		}
 		contentPane.add(tabs)

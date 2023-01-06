@@ -1,5 +1,5 @@
 /*
- * OtherSettingsSelection.kt
+ * EditorSettingsSelection.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,14 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.settings
+package avail.anvil.settings.editor
 
-import avail.anvil.components.TextFieldWithLabel
 import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.settings.SettingPanelSelection
+import avail.anvil.settings.SettingsView
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
-import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
@@ -45,23 +45,23 @@ import javax.swing.JPanel
 import javax.swing.JScrollPane
 
 /**
- * The [SettingPanelSelection] used for showing other settings.
+ * The [SettingPanelSelection] used for showing settings for a code editor.
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct a [OtherSettingsSelection].
+ * Construct a [EditorSettingsSelection].
  *
  * @param settingsView
  *   The parent [SettingsView].
  */
-class OtherSettingsSelection constructor(
+class EditorSettingsSelection constructor(
 	settingsView: SettingsView
-): SettingPanelSelection("Other", settingsView)
+): SettingPanelSelection("Editor", settingsView)
 {
 
 	/** The [GlobalAvailConfiguration]. */
-	private val config get() = settingsView.manager.globalConfig
+	internal val config get() = settingsView.manager.globalConfig
 
 	override fun updateSettingsPane()
 	{
@@ -73,17 +73,16 @@ class OtherSettingsSelection constructor(
 			maximumSize = Dimension(700, 690)
 			add(Box.createRigidArea(Dimension(0, 20)))
 		}
-		val guidelines = TextFieldWithLabel("Editor Guide Lines: ").apply {
-			toolTipText = "Enter comma separated list of positive integers"
-			border = BorderFactory.createEmptyBorder(5, 0, 5, 0)
-			val currentHeight = height
-			minimumSize = Dimension(690, currentHeight + 40)
-			preferredSize = Dimension(690, currentHeight + 40)
-			maximumSize = Dimension(690, currentHeight + 40)
-			textField.text =
-				config.editorGuideLines.joinToString { it.toString() }
-			settingsPanel.add(this)
+		val font = FontSetting(this, settingsPanel).apply {
+			addToParent()
 		}
+		val fontSize = FontSizeSetting(this, settingsPanel).apply {
+			addToParent()
+		}
+		val guidelines = GuideLinesSetting(this, settingsPanel).apply {
+			addToParent()
+		}
+
 		val apply = JButton("Apply").apply {
 			isOpaque = true
 			val currentHeight = height
@@ -93,24 +92,26 @@ class OtherSettingsSelection constructor(
 			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
 			toolTipText = "Save Changes"
 			addActionListener {
-				// TODO update global config
-				val lines = guidelines.textField.text.split(",")
-					.map {
-						try
-						{
-							it.trim().toInt()
-						}
-						catch (e: Throwable)
-						{
-							return@addActionListener
-						}
-					}
-
-				config.editorGuideLines.clear()
-				config.editorGuideLines.addAll(lines)
+				guidelines.update()
+				fontSize.update()
+				font.update()
 				settingsView.manager.globalConfig.saveToDisk()
 			}
 		}
+
+		val reset = JButton("Reset").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 150, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
+			toolTipText = "Save Changes"
+			addActionListener {
+				guidelines.reset()
+			}
+		}
+
 		val buttonPanel = JPanel().apply {
 			layout = (FlowLayout(FlowLayout.RIGHT))
 			minimumSize = Dimension(600, 50)
@@ -118,6 +119,7 @@ class OtherSettingsSelection constructor(
 			maximumSize = Dimension(700, 50)
 			background = Color(0x3C, 0x3F, 0x41)
 			add(apply)
+			add(reset)
 		}
 		settingsView.rightPanel.minimumSize = Dimension(700, 750)
 		settingsView.rightPanel.preferredSize = Dimension(700, 750)

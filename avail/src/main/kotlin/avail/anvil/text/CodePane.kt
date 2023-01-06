@@ -152,7 +152,8 @@ constructor(
 		isEnabled = true
 		isFocusable = true
 		preferredSize = Dimension(0, 500)
-		font = Font.decode("Monospaced 13")
+		font = Font.decode("${workbench.globalConfig.font} 13")
+		font = font.deriveFont(workbench.globalConfig.codePaneFontSize)
 		foreground = SystemColors.active.baseCode
 		background = SystemColors.active.codeBackground
 		registerStyles()
@@ -163,6 +164,14 @@ constructor(
 			putClientProperty(CodePane::undoManager.name, undoManager)
 			putClientProperty(CodePane::currentEdit.name, currentEdit)
 		}
+	}
+
+	/**
+	 * Change the font to the provided font.
+	 */
+	fun changeFontSize (updatedSize: Float)
+	{
+		font = font.deriveFont(updatedSize)
 	}
 
 	/**

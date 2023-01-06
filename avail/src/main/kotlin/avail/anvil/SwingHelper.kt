@@ -67,11 +67,12 @@ import kotlin.math.max
  * inside.
  */
 fun JTextPane.scrollTextWithLineNumbers(
-	guideLines: List<Int>): JLayer<JScrollPane>
+	guideLines: List<Int>
+): JLayer<JScrollPane>
 {
 	parent?.parent?.parent?.let { return it.cast() }
 	val scrollPane = JScrollPane(this)
-	val guidePane = JLayer(scrollPane, CodeGuide(guideLines))
+	val guidePane = JLayer(scrollPane, CodeGuide(this, guideLines))
 	val lines = TextLineNumber(this)
 	scrollPane.setRowHeaderView(lines)
 	// Make sure that the font is available in several places, for convenience.
@@ -89,6 +90,7 @@ fun JTextPane.scrollTextWithLineNumbers(
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class CodeGuide constructor(
+	private val jTextPane: JTextPane,
 	private val guideLines: List<Int> = listOf(80)
 ): LayerUI<JScrollPane>()
 {
@@ -106,9 +108,11 @@ class CodeGuide constructor(
 			{
 				// The font is monospaced, so we can use any character we like to
 				// measure the width.
-				val fontMetrics = view.getFontMetrics(view.font)
-				val stringWidth =
-					fontMetrics.stringWidth(" ".repeat(it))
+				val fontMetrics = view.getFontMetrics(jTextPane.font)
+				// The Euro, €, is a slightly wider character which appears to
+				// place the guideline in the correct spot based on empirical
+				// evidence.
+				val stringWidth = fontMetrics.stringWidth("€".repeat(it))
 				x = bounds.x + stringWidth
 			}
 			val x = x!!
