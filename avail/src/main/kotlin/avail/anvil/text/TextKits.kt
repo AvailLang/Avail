@@ -316,8 +316,11 @@ private object Undo: TextAction(UndoShortcut.actionMapKey)
 	{
 		val codePane = e.codePane
 		codePane.currentEdit?.end()
-		codePane.undoManager.undo()
-		codePane.clearStaleTemplateSelectionState()
+		if (codePane.undoManager.canUndo())
+		{
+			codePane.undoManager.undo()
+			codePane.clearStaleTemplateSelectionState()
+		}
 	}
 }
 
@@ -330,8 +333,11 @@ private object Redo: TextAction(RedoShortcut.actionMapKey)
 	{
 		val codePane = e.codePane
 		codePane.currentEdit?.end()
-		codePane.undoManager.redo()
-		codePane.clearStaleTemplateSelectionState()
+		if (codePane.undoManager.canRedo())
+		{
+			codePane.undoManager.redo()
+			codePane.clearStaleTemplateSelectionState()
+		}
 	}
 }
 

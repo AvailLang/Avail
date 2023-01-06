@@ -332,6 +332,7 @@ class AvailEditor constructor(
 		highlightCode(afterTextLoaded)
 		range = sourcePane.markToDotRange()
 		caretRangeLabel.text = range.toString()
+		sourcePane.undoManager.discardAllEdits()
 	}
 
 	/**
