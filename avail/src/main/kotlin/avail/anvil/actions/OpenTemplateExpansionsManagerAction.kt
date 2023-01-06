@@ -49,7 +49,7 @@ import java.awt.event.ActionEvent
  */
 class OpenTemplateExpansionsManagerAction constructor(
 	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Root Template Expansions")
+): AbstractWorkbenchAction(workbench, "Templates")
 {
 	override fun actionPerformed(e: ActionEvent?)
 	{

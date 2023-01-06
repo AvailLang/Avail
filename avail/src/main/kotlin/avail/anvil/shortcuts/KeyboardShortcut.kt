@@ -65,7 +65,7 @@ data class Key(val code: KeyCode, val modifiers: Set<ModifierKey>)
 	 * [KeyCode.displayRepresentation] in a single String.
 	 */
 	val keyAsString: String get() =
-		modifiers.joinToString("") { it.displayRepresentation } +
+		modifiers.sorted().joinToString("") { it.displayRepresentation } +
 			code.displayRepresentation
 }
 

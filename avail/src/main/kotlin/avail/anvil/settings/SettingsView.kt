@@ -36,6 +36,7 @@ import avail.anvil.environment.availStandardLibraries
 import avail.anvil.icons.ProjectManagerIcons
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.shortcuts.KeyboardShortcutCategory
+import avail.anvil.versions.MavenCentralAPI
 import org.availlang.artifact.environment.AvailEnvironment
 import java.awt.Color
 import java.awt.Dialog.ModalityType.DOCUMENT_MODAL
@@ -290,6 +291,20 @@ class StandardLibrariesSelection constructor(
 			border = BorderFactory.createEmptyBorder(15, 10, 15, 10)
 		}
 		val libraries = availStandardLibraries
+		val latest =
+			this@StandardLibrariesSelection.settingsView.manager.latestVersion
+		if (latest.isNotEmpty())
+		{
+			val latestJarName = "avail-stdlib-$latest.jar"
+			val match = libraries.firstOrNull {
+				it.name == latestJarName
+			}
+			if (match == null)
+			{
+				panel.add(NewLibAvailableRow(latest))
+				panel.add(Box.createRigidArea(Dimension(0, 30)))
+			}
+		}
 		libraries.forEach { panel.add(LibRow(it)) }
 		settingsView.rightPanel.removeAll()
 		settingsView.rightPanel.revalidate()
@@ -313,6 +328,78 @@ class StandardLibrariesSelection constructor(
 	 * A [JPanel] that displays an Avail standard library in
 	 * [AvailEnvironment.availHomeLibs].
 	 *
+	 * @property latest
+	 *   The latest available version
+	 */
+	inner class NewLibAvailableRow constructor(
+		private val latest: String
+	): JPanel(GridBagLayout())
+	{
+		/**
+		 * The [GridBagConstraints] used for all components in this
+		 * [NewLibAvailableRow].
+		 */
+		private val constraints = GridBagConstraints().apply {
+			anchor = GridBagConstraints.WEST
+		}
+
+		init
+		{
+			border = BorderFactory.createEmptyBorder()
+			minimumSize = Dimension(675, 35)
+			preferredSize = Dimension(675, 35)
+			maximumSize = Dimension(675, 35)
+
+			JPanel().apply {
+				border = BorderFactory.createEmptyBorder()
+				layout = BoxLayout(this, BoxLayout.X_AXIS)
+				add(Box.createRigidArea(Dimension(10, 0)))
+				add(JLabel("New Avail Standard Library Available: $latest")
+					.apply {
+						font = font.deriveFont(font.style or Font.ITALIC)
+					})
+				this@NewLibAvailableRow.add(
+					this,
+					constraints.apply {
+						weightx = 1.0
+					})
+			}
+
+			JButton("Install").apply {
+				addActionListener {
+					val selection = JOptionPane.showConfirmDialog(
+						this@NewLibAvailableRow,
+						"Install 'avail-stdlib-$latest.jar'?",
+						"Install Library",
+						JOptionPane.YES_NO_OPTION)
+					if (selection == 0)
+					{
+						SwingUtilities.invokeLater {
+							val byteCount =
+								MavenCentralAPI.downloadAvailStandardLib(latest)
+							if (byteCount == 0L)
+							{
+								System.err.println(
+									"Failed to download avail-stdlib: $latest")
+							}
+							this@StandardLibrariesSelection.updateSettingsPane()
+						}
+					}
+				}
+				this@NewLibAvailableRow.add(
+					this,
+					constraints.apply {
+						weightx = 1.0
+						anchor = GridBagConstraints.EAST
+					})
+			}
+		}
+	}
+
+	/**
+	 * A [JPanel] that displays an Avail standard library in
+	 * [AvailEnvironment.availHomeLibs].
+	 *
 	 * @property lib
 	 *   The library [File].
 	 */
@@ -321,7 +408,7 @@ class StandardLibrariesSelection constructor(
 	): JPanel(GridBagLayout())
 	{
 		/**
-		 * The [GridBagConstraints] used for all components in [TemplateRow].
+		 * The [GridBagConstraints] used for all components in this [LibRow].
 		 */
 		private val constraints = GridBagConstraints().apply {
 			anchor = GridBagConstraints.WEST
@@ -372,6 +459,7 @@ class StandardLibrariesSelection constructor(
 			}
 		}
 	}
+
 	companion object
 	{
 		/**

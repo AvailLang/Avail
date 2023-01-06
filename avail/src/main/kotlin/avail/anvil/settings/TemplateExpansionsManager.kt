@@ -80,7 +80,7 @@ import javax.swing.filechooser.FileNameExtensionFilter
  */
 class TemplateExpansionsManager constructor(
 	val workbench: AvailWorkbench
-): JFrame("Root Template Expansions")
+): JFrame("Templates")
 {
 	/**
 	 * A tab is added for each [AvailProjectRoot].
@@ -338,8 +338,17 @@ class RootTemplatesPanel constructor(
 		val result = showSaveDialog(this@RootTemplatesPanel)
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
+			val target =
+				if (selectedFile.name.endsWith(".json"))
+				{
+					selectedFile
+				}
+				else
+				{
+					File(selectedFile.absolutePath + ".json")
+				}
 			Settings.exportSettings(
-				selectedFile, root.templateSettings)
+				target, root.templateSettings)
 		}
 	}
 

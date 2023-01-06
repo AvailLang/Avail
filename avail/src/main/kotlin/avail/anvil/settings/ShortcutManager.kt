@@ -241,7 +241,16 @@ class ShortcutsPanel constructor(
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
 			val shortcuts = globalConfig.shortcutSettings
-			Settings.exportSettings(selectedFile, shortcuts)
+			val target =
+				if (selectedFile.name.endsWith(".json"))
+				{
+					selectedFile
+				}
+				else
+				{
+					File(selectedFile.absolutePath + ".json")
+				}
+			Settings.exportSettings(target, shortcuts)
 		}
 	}
 

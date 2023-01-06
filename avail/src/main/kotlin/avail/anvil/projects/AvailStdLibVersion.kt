@@ -1,5 +1,5 @@
 /*
- * Libraries.kt
+ * AvailStdLibVersion.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,29 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.environment
-
-import avail.anvil.projects.AvailStdLibVersion
-import org.availlang.artifact.environment.AvailEnvironment
-import java.io.File
-
-// Utilities for working with Avail libraries.
+package avail.anvil.projects
 
 /**
- * The Avail standard libraries in [AvailEnvironment.availHomeLibs].
+ * A version for an Avail Standard Library artifact.
+ *
+ * @author Richard Arriaga
+ *
+ * @property sdkVersion
+ *   The [AvailVersion] of the Avail SDK (the org.availlang:avail artifact).
+ * @property libVersion
+ *   The [AvailVersion] of the Avail Library.
  */
-val availStandardLibraries: Array<File> get() =
-	"${AvailEnvironment.availHomeLibs}/org/availlang".let { home ->
-		val dir = File(home)
-		val m = mutableListOf<AvailStdLibVersion?>()
-		val libs = dir.listFiles { _, name ->
-			name.endsWith(".jar") &&
-				name.startsWith("avail-stdlib")
-		} ?: arrayOf()
-		libs.sortByDescending {
-			val v = it.name.split("avail-stdlib-")
-				.last().split(".jar").first()
-			AvailStdLibVersion.versionOrNull(v).apply { m.add(this) }
-		}
-		libs
+data class AvailStdLibVersion constructor(
+	val sdkVersion: AvailVersion,
+	val libVersion: AvailVersion
+): Comparable<AvailStdLibVersion>
+{
+	/**
+	 * The stringified version.
+	 */
+	val version: String = "${sdkVersion.version}-${libVersion.version}"
+
+	override fun toString (): String = version
+
+	override fun compareTo(other: AvailStdLibVersion): Int
+	{
+		val sdkCompare = sdkVersion.compareTo(other.sdkVersion)
+		if (sdkCompare != 0) return sdkCompare
+		return libVersion.compareTo(other.libVersion)
 	}
+
+	companion object
+	{
+		/**
+		 * Given a version String, such as `2.0.0-1.6.1` or
+		 * `2.0.0.alpha01-1.6.2.beta01` or
+		 * `2.0.0.rc1-1.6.2.rc01` to parse it into an [AvailStdLibVersion].
+		 *
+		 * @param version
+		 *   The raw version string to transform in an [AvailStdLibVersion].
+		 * @return
+		 *   The [AvailStdLibVersion] or `null` if the `version` string is
+		 *   malformed.
+		 */
+		fun versionOrNull (version: String): AvailStdLibVersion?
+		{
+			val split = version.split("-")
+			if (split.size != 2)
+			{
+				return null
+			}
+			val sdkVersion = AvailVersion.versionOrNull(split[0]) ?: return null
+			val libVersion = AvailVersion.versionOrNull(split[1]) ?: return null
+
+			return AvailStdLibVersion(sdkVersion, libVersion)
+		}
+	}
+}

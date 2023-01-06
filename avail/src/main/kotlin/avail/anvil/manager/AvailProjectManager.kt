@@ -36,6 +36,8 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.*
 import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.projects.KnownAvailProject
+import avail.anvil.versions.MavenCentralAPI
+import avail.anvil.versions.SearchResponse
 import avail.anvil.window.LayoutConfiguration
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.json.jsonObject
@@ -65,6 +67,8 @@ class AvailProjectManager constructor(
 	val globalConfig: GlobalAvailConfiguration
 ): JFrame("Avail")
 {
+	var latestVersion: String = ""
+
 	/**
 	 * The set of [AvailWorkbench]s opened by this [AvailProjectManager].
 	 */
@@ -272,6 +276,20 @@ class AvailProjectManager constructor(
 	init
 	{
 		draw()
+		MavenCentralAPI.searchAvailStdLib(
+		{
+			val rsp = SearchResponse.parse(it)
+			if (rsp == null)
+			{
+				System.err.println("Couldn't parse response:\n$it")
+				return@searchAvailStdLib
+			}
+			latestVersion = rsp.latestLibVersion
+			println("Latest ${rsp.latestLibVersion}")
+		}
+		){ c, m ->
+			System.err.println("Failed to get latest version: $c\n$m")
+		}
 	}
 
 	/**

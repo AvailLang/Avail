@@ -83,7 +83,7 @@ object InsertSpaceShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with())
 object BreakLineShortcut: CodePaneShortcut(KeyCode.VK_ENTER.with())
 {
 	override val actionMapKey: String = DefaultEditorKit.insertBreakAction
-	override val description: String = "Insert Line Break w/ Tabs"
+	override val description: String = "Insert Line Break with Indentation"
 }
 
 /**

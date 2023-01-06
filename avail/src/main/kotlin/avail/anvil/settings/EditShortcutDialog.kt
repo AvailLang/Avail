@@ -156,11 +156,20 @@ class EditShortcutDialog constructor(
 					overrideKs.key = tempKey
 					duplicateShortcuts = shortcut.category
 						.checkShortcutsUniqueAgainst(overrideKs)
-					if (duplicateShortcuts.isEmpty())
+					if (duplicateShortcuts.isEmpty() ||
+						(duplicateShortcuts.size == 1 &&
+							duplicateShortcuts.contains(shortcut)))
 					{
-						ksOverride = overrideKs
 						duplicates.text = " "
-						okButton.isEnabled = true
+						if (tempKey != shortcut.key)
+						{
+							ksOverride = overrideKs
+							okButton.isEnabled = true
+						}
+						else
+						{
+							okButton.isEnabled = false
+						}
 					}
 					else
 					{

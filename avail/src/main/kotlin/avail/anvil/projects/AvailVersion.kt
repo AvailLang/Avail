@@ -44,8 +44,9 @@ package avail.anvil.projects
  * @property revision
  *   The numeric revision of the version.
  * @property suffix
- *   The suffix of the version string, e.g. "-SNAPSHOT". All suffixes must start
- *   with "-"
+ *   The [Suffix] of the version.
+ * @property suffixVersion
+ *   The numeric version of the suffix; e.g. `alpha01`.
  * @property isValid
  *   `true` indicates it is a valid version; `false` otherwise. Only [INVALID]
  *   should be invalid.
@@ -54,17 +55,39 @@ data class AvailVersion constructor (
 	val major: Int,
 	val minor: Int,
 	val revision: Int,
-	val suffix: String = "",
+	val suffix: Suffix,
+	val suffixVersion: Int = 0,
 	val isValid: Boolean = true
-) : Comparable<AvailVersion>
+): Comparable<AvailVersion>
 {
+	/**
+	 * Answer the integer version component as a string.
+	 *
+	 * @param ver
+	 *   The integer version component to stringify.
+	 * @return
+	 *   The stringified version component.
+	 */
 	private fun verAsString (ver: Int): String =
 		if (ver < 10) { "0$ver"} else ver.toString()
 
+	/**
+	 * The stringified version.
+	 */
 	val version: String =
-		"$major.${verAsString(minor)}.${verAsString(revision)}$suffix"
+		if (suffix == Suffix.PROD)
+		{
+			"$major.${verAsString(minor)}.${verAsString(revision)}"
+		}
+		else
+		{
+			"$major.${verAsString(minor)}.${verAsString(revision)}" +
+				".$suffix${verAsString(suffixVersion)}"
+		}
+
 
 	override fun toString (): String = version
+
 	override fun compareTo(other: AvailVersion): Int =
 		when
 		{
@@ -81,16 +104,72 @@ data class AvailVersion constructor (
 						{
 							revision > other.revision -> 1
 							revision < other.revision -> -1
-							else ->  suffix.compareTo(other.suffix)
+							else ->
+							when
+							{
+								suffix > other.suffix -> 1
+								suffix < other.suffix -> -1
+								else ->
+									when
+									{
+										suffixVersion > other.suffixVersion -> 1
+										suffixVersion < other.suffixVersion -> -1
+										else -> 0
+									}
+							}
 						}
 				}
 		}
 
+	/**
+	 * The acceptable suffixes for an [AvailVersion]. The enum `name` is what
+	 * should be used as the actual suffix.
+	 */
+	enum class Suffix constructor(val suffix: String)
+	{
+		/**
+		 * A development version. This is used to represent a version that is
+		 * undergoing active development. A `dev` [AvailVersion] should never
+		 * be published.
+		 */
+		DEV("dev"),
+
+		/** An Alpha release [AvailVersion]. */
+		ALPHA("alpha"),
+
+		/** A Beta release [AvailVersion]. */
+		BETA("beta"),
+
+		/** A production release candidate [AvailVersion]. */
+		RC("rc"),
+
+		/** A production release [AvailVersion] has no suffix. */
+		PROD("");
+
+		companion object
+		{
+			/**
+			 * Answer the [Suffix] with the associated provided [Suffix.suffix].
+			 *
+			 * @param suffix
+			 *   The [Suffix.suffix] to lookup.
+			 * @return
+			 *   The associated [Suffix] or `null` if invalid.
+			 */
+			operator fun get (suffix: String): Pair<Suffix, Int>? =
+				values().firstOrNull { suffix.lowercase().startsWith(it.suffix) }
+					?.let {
+						val v = suffix.lowercase().split(it.suffix).last()
+						Pair(it, v.toInt())
+					}
+		}
+	}
+
 	companion object
 	{
 		/**
-		 * Given a version String, such as `2.0.0` or `2.0.0-SNAPSHOT` or
-		 * `2.0.0-SNAPSHOT.rc1` to parse it into an [AvailVersion].
+		 * Given a version String, such as `2.0.0` or `2.0.0.alpha01` or
+		 * `2.0.0.rc1` to parse it into an [AvailVersion].
 		 *
 		 * @param version
 		 *   The raw version string to transform in an [AvailVersion].
@@ -99,23 +178,33 @@ data class AvailVersion constructor (
 		 */
 		fun versionOrNull (version: String): AvailVersion?
 		{
-			val split = version.uppercase().split("-")
-			val value = split[0]
-			val suffix = if (split.size > 1) "-${split[1]}" else ""
-			val parts = value.split(".").map { it.toInt() }
-
-			if (parts.size != 3)
+			val split = version.lowercase().split(".")
+			if (split.size !in 3..4)
 			{
 				return null
 			}
-			return AvailVersion(parts[0], parts[1], parts[2], suffix)
+			val suffix = if (split.size == 4)
+			{
+				Suffix[split[3]] ?: return null
+			}
+			else
+			{
+				Pair(Suffix.PROD, 0)
+			}
+
+			return AvailVersion(
+				split[0].toInt(),
+				split[1].toInt(),
+				split[2].toInt(),
+				suffix.first,
+				suffix.second)
 		}
 
 		/**
 		 * The canonical single not valid ([AvailVersion.isValid]) instance.
 		 */
 		val INVALID = AvailVersion(
-			-1, -1, -1, isValid = false)
+			-1, -1, -1, Suffix.DEV, -1,false)
 	}
 }
 
