@@ -77,6 +77,11 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	 */
 	var projectManagerLayoutConfig: String
 
+	/**
+	 * The list of character positions to draw an editor guide line.
+	 */
+	val editorGuideLines: MutableList<Int>
+
 	/** The set of [KnownAvailProject]s. */
 	val knownProjects: MutableSet<KnownAvailProject>
 

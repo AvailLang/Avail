@@ -53,34 +53,44 @@ class GlobalAvailConfigurationV1
 	override val keyboardShortcutOverrides =
 		mutableMapOf<String, KeyboardShortcutOverride>()
 	override var projectManagerLayoutConfig: String = ""
+	override val editorGuideLines = mutableListOf<Int>()
 
 	override fun writeTo(writer: JSONWriter)
 	{
 		writer.writeObject {
-			at(::serializationVersion.name) {
-				write(serializationVersion)
-			}
-			at(::defaultStandardLibrary.name) {
+			at(::serializationVersion.name) { write(serializationVersion) }
+			at(::defaultStandardLibrary.name)
+			{
 				defaultStandardLibrary.let {
 					if (it == null) writeNull()
 					else write(it)
 				}
 			}
-			at(::favorite.name) {
+			at(::favorite.name)
+			{
 				favorite.let {
 					if (it == null) writeNull()
 					else write(it)
 				}
 			}
-			at(::projectManagerLayoutConfig.name) {
+			at(::editorGuideLines.name)
+			{
+				writeArray {
+					editorGuideLines.forEach { write(it) }
+				}
+			}
+			at(::projectManagerLayoutConfig.name)
+			{
 				write(projectManagerLayoutConfig)
 			}
-			at(::knownProjects.name) {
+			at(::knownProjects.name)
+			{
 				writeArray(knownProjects.toMutableList().sorted())
 			}
 			if (globalTemplates.isNotEmpty())
 			{
-				at(::globalTemplates.name) {
+				at(::globalTemplates.name)
+				{
 					writeObject {
 						globalTemplates.forEach { (name, expansion) ->
 							at(name) { write(expansion) }
@@ -90,7 +100,8 @@ class GlobalAvailConfigurationV1
 			}
 			if (keyboardShortcutOverrides.isNotEmpty())
 			{
-				at(::keyboardShortcutOverrides.name) {
+				at(::keyboardShortcutOverrides.name)
+				{
 					writeArray {
 						keyboardShortcutOverrides.forEach {
 							it.value.writeTo(this)
@@ -132,6 +143,10 @@ class GlobalAvailConfigurationV1
 					config.favorite = favorite.string
 				}
 			}
+			obj.getArrayOrNull(
+				GlobalAvailConfigurationV1::editorGuideLines.name)?.let {
+					config.editorGuideLines.addAll(it.ints)
+			} ?: config.editorGuideLines.add(80)
 			if (obj.containsKey(
 					GlobalAvailConfigurationV1::projectManagerLayoutConfig.name))
 			{

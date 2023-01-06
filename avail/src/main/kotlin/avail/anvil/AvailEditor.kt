@@ -481,7 +481,9 @@ class AvailEditor constructor(
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
-		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers()
+
+		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
+			workbench.globalAvailConfiguration.editorGuideLines)
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
 			setHorizontalGroup(

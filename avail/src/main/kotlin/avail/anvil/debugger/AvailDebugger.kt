@@ -962,7 +962,9 @@ class AvailDebugger internal constructor (
 					.addGroup(createSequentialGroup()
 						.addComponent(disassemblyPane.scroll(), 100, 100, max)
 						.addComponent(
-							sourcePane.scrollTextWithLineNumbers(),
+							sourcePane.scrollTextWithLineNumbers(
+								workbench.globalAvailConfiguration
+									.editorGuideLines),
 							100,
 							100,
 							max))
@@ -986,7 +988,9 @@ class AvailDebugger internal constructor (
 					.addGroup(createParallelGroup()
 						.addComponent(disassemblyPane.scroll(), 150, 150, max)
 						.addComponent(
-							sourcePane.scrollTextWithLineNumbers(),
+							sourcePane.scrollTextWithLineNumbers(
+								workbench.globalAvailConfiguration
+									.editorGuideLines),
 							150,
 							150,
 							max))
