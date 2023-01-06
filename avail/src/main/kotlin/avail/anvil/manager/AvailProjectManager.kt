@@ -68,7 +68,17 @@ class AvailProjectManager constructor(
 	val globalConfig: GlobalAvailConfiguration
 ): JFrame("Avail")
 {
-	var latestVersion: String = ""
+	/**
+	 * The latest Avail Standard Library version.
+	 */
+	var latestVersion = ""
+
+	/**
+	 * `true` if this [AvailProjectManager] has been opened and the init block
+	 * run; `false` indicates this [AvailProjectManager] is brand new and is
+	 * starting up.
+	 */
+	private var initialOpenComplete = false
 
 	/**
 	 * The set of [AvailWorkbench]s opened by this [AvailProjectManager].
@@ -91,6 +101,19 @@ class AvailProjectManager constructor(
 	 */
 	private val layoutConfiguration: LayoutConfiguration =
 		LayoutConfiguration.from(File(projectManagerLayoutFile).readText())
+
+	/**
+	 * Answer the already opened [AvailWorkbench] that is running the
+	 * [AvailProject] with the given [AvailProject.id].
+	 *
+	 * @param projectId
+	 *   The [AvailProject.id] to use to locate an opened [AvailWorkbench].
+	 * @return
+	 *   The open [AvailWorkbench] or `null` if that project is not open in an
+	 *   [AvailWorkbench].
+	 */
+	private fun openedWorkbench (projectId: String): AvailWorkbench? =
+		openWorkbenches.firstOrNull { it.availProject.id == projectId }
 
 	/**
 	 * The action to perform when an [AvailWorkbench] is launched from this
@@ -249,7 +272,17 @@ class AvailProjectManager constructor(
 			}
 		add(displayedComponent)
 		setBounds(x, y, width, newHeight)
-		isVisible = true
+		if (!initialOpenComplete)
+		{
+			if (!openFavorite())
+			{
+				isVisible = true
+			}
+		}
+		else
+		{
+			isVisible = true
+		}
 	}
 
 	/**
@@ -286,7 +319,6 @@ class AvailProjectManager constructor(
 				return@searchAvailStdLib
 			}
 			latestVersion = rsp.latestLibVersion
-			println("Latest ${rsp.latestLibVersion}")
 		}
 		){ c, m ->
 			System.err.println("Failed to get latest version: $c\n$m")
@@ -308,6 +340,46 @@ class AvailProjectManager constructor(
 	}
 
 	/**
+	 * Open the provided [KnownAvailProject] in an [AvailWorkbench].
+	 *
+	 * @param project
+	 *   The [AvailProject] to open.
+	 * @param configPath
+	 *   The [KnownAvailProject.configFilePath] of the [AvailProject].
+	 * @param invokeLater
+	 *   The lambda to run inside [SwingUtilities.invokeLater] once the project
+	 *   is opened.
+	 * @return
+	 *   `true` if the project is being opened or already opened; `false`
+	 *   otherwise.
+	 */
+	private fun openProject (
+		project: AvailProject,
+		configPath: String,
+		invokeLater: () -> Unit
+	): Boolean
+	{
+		openedWorkbench(project.id)?.let {
+			it.toFront()
+			SwingUtilities.invokeLater {
+				invokeLater()
+			}
+			return true
+		}
+		globalConfig.add(project, configPath)
+		AvailWorkbench.launchWorkbenchWithProject(
+			project,
+			globalConfig,
+			configPath,
+			projectManager = this@AvailProjectManager)
+		SwingUtilities.invokeLater {
+			hideProjectManager()
+			invokeLater()
+		}
+		return true
+	}
+
+	/**
 	 * Open a [KnownAvailProject] in an [AvailWorkbench].
 	 *
 	 * @param workbench
@@ -320,6 +392,42 @@ class AvailProjectManager constructor(
 			it.toFront()
 			it
 		} ?: OpenKnownProjectDialog(this, workbench)
+	}
+
+	/**
+	 * Open the provided [KnownAvailProject] in an [AvailWorkbench].
+	 *
+	 * @param knownAvailProject
+	 *   The [KnownAvailProject] to open.
+	 * @param invokeLater
+	 *   The lambda to run inside [SwingUtilities.invokeLater] once the project
+	 *   is opened.
+	 * @return
+	 *   `true` if the project is being opened; `false` otherwise.
+	 */
+	fun openKnownProject (
+		knownAvailProject: KnownAvailProject,
+		invokeLater: () -> Unit = {}
+	): Boolean
+	{
+		val project = knownAvailProject.availProject() ?: return false
+		val configPath = knownAvailProject.configFilePath
+		return openProject(project, configPath, invokeLater)
+	}
+
+	/**
+	 * Open the [GlobalAvailConfiguration.favoriteKnownProject] if one is
+	 * selected.
+	 *
+	 * @return
+	 *   `true` if one is set and is being opened; `false` otherwise.
+	 */
+	private fun openFavorite (): Boolean
+	{
+		globalConfig.favoriteKnownProject?.let {
+			return openKnownProject(it)
+		}
+		return false
 	}
 
 	/**
@@ -363,6 +471,7 @@ class AvailProjectManager constructor(
 					e.printStackTrace()
 					null
 				} ?: return@chooser
+
 				globalConfig.add(project, projectConfigFile.absolutePath)
 				AvailWorkbench.launchWorkbenchWithProject(
 					project,

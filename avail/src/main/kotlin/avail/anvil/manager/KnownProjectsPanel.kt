@@ -74,8 +74,7 @@ internal class KnownProjectsPanel constructor(
 	 * The [manager]'s [GlobalAvailConfiguration].
 	 */
 	private val globalConfig: GlobalAvailConfiguration
-		get() =
-		manager.globalConfig
+		get() = manager.globalConfig
 
 	/**
 	 * The mapping from [KnownAvailProject.id] to its represented
@@ -208,10 +207,6 @@ internal class KnownProjectsPanel constructor(
 			val row = KnownProjectRow(it, globalConfig, this@KnownProjectsPanel)
 			rowMap[it.id] = row
 			add(row)
-			if (it.id == globalConfig.favorite)
-			{
-				row.openProject()
-			}
 		}
 	}
 

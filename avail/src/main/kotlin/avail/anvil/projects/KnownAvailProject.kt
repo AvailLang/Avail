@@ -65,6 +65,11 @@ data class KnownAvailProject constructor (
 ): JSONFriendly, Comparable<KnownAvailProject>
 {
 	/**
+	 * The [absolute path][File.getAbsolutePath] of the [projectConfigFile].
+	 */
+	val configFilePath: String get() = File(projectConfigFile).absolutePath
+
+	/**
 	 * [lastOpened] as the local timezone string `MM/dd/yyyy HH:mm`.
 	 */
 	val lastOpenedTimestamp: String get()
@@ -79,6 +84,7 @@ data class KnownAvailProject constructor (
 		val formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm")
 		return zdt.format(formatter)
 	}
+
 	/**
 	 * @return
 	 *   The [AvailProject] read from the [projectConfigFile] or `null` if not

@@ -143,6 +143,14 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	}
 
 	/**
+	 * The [favorite] [KnownAvailProject] or `null` if [favorite] is `null`.
+	 */
+	val favoriteKnownProject: KnownAvailProject? get() =
+		favorite?.let { fav ->
+			knownProjects.firstOrNull { it.id == fav }
+		}
+
+	/**
 	 * Remove the [KnownAvailProject] with the given [KnownAvailProject.id].
 	 *
 	 * @param id

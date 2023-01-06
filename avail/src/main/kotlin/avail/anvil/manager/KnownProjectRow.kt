@@ -177,18 +177,9 @@ internal class KnownProjectRow constructor(
 	 */
 	internal fun openProject()
 	{
-		val availProject = project.availProject() ?: return
-		config.add(availProject, project.projectConfigFile)
-
-		parentPanel.manager.onWorkbenchOpen(
-			AvailWorkbench.launchWorkbenchWithProject(
-				availProject,
-				config,
-				project.projectConfigFile,
-				projectManager = parentPanel.manager))
-		SwingUtilities.invokeLater {
+		parentPanel.manager.openKnownProject(project)
+		{
 			parentPanel.manager.openKnownProjectDialog?.close()
-			parentPanel.manager.hideProjectManager()
 		}
 	}
 
