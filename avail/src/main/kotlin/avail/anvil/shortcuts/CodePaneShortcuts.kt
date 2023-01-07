@@ -83,7 +83,7 @@ object InsertSpaceShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with())
 object BreakLineShortcut: CodePaneShortcut(KeyCode.VK_ENTER.with())
 {
 	override val actionMapKey: String = DefaultEditorKit.insertBreakAction
-	override val description: String = "Insert Line Break w/ Tabs"
+	override val description: String = "Insert Line Break with Indentation"
 }
 
 /**
@@ -246,4 +246,28 @@ object KebabCaseShortcut: CodePaneShortcut(KeyCode.VK_K.with(META, CTRL))
 {
 	override val actionMapKey: String = "kebab-case"
 	override val description: String = "Transform Selected Text to kebab-case"
+}
+
+/**
+ * The [CodePaneShortcut] that increases the size of the font by one point size.
+ *
+ * @author Richard Arriaga
+ */
+object IncreaseFontSizeShortcut: CodePaneShortcut(KeyCode.VK_EQUALS.with(META))
+{
+	override val actionMapKey: String = "increase-font-size"
+	override val description: String =
+		"Increase the font size by one point size"
+}
+
+/**
+ * The [CodePaneShortcut] that decreases the size of the font by one point size.
+ *
+ * @author Richard Arriaga
+ */
+object DecreaseFontSizeShortcut: CodePaneShortcut(KeyCode.VK_MINUS.with(META))
+{
+	override val actionMapKey: String = "decrease-font-size"
+	override val description: String =
+		"Decrease the font size by one point size"
 }

@@ -66,11 +66,13 @@ import kotlin.math.max
  * presented as row headers, or answers the JScrollPane that it's already
  * inside.
  */
-fun JTextPane.scrollTextWithLineNumbers(): JLayer<JScrollPane>
+fun JTextPane.scrollTextWithLineNumbers(
+	guideLines: List<Int>
+): JLayer<JScrollPane>
 {
 	parent?.parent?.parent?.let { return it.cast() }
 	val scrollPane = JScrollPane(this)
-	val guidePane = JLayer(scrollPane, CodeGuide())
+	val guidePane = JLayer(scrollPane, CodeGuide(this, guideLines))
 	val lines = TextLineNumber(this)
 	scrollPane.setRowHeaderView(lines)
 	// Make sure that the font is available in several places, for convenience.
@@ -82,11 +84,15 @@ fun JTextPane.scrollTextWithLineNumbers(): JLayer<JScrollPane>
 /**
  * Draws a code guide after the 80th column on the decorated [JScrollPane].
  *
- * @property afterColumn
- *   After how many (character) columns to display the guide. Defaults to `80`.
+ * @property guideLines
+ *   The list of after how many (character) columns to display a guide line.
+ *   Defaults to a single guideline at `80`.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class CodeGuide(private val afterColumn: Int = 80): LayerUI<JScrollPane>()
+class CodeGuide constructor(
+	private val jTextPane: JTextPane,
+	private val guideLines: List<Int> = listOf(80)
+): LayerUI<JScrollPane>()
 {
 	/** The X-offset for the guide. */
 	var x: Int? = null
@@ -97,18 +103,24 @@ class CodeGuide(private val afterColumn: Int = 80): LayerUI<JScrollPane>()
 		val layer: JLayer<JScrollPane> = c.cast()
 		val view = layer.view
 		val bounds = view.viewportBorderBounds
-		if (x === null)
-		{
-			// The font is monospaced, so we can use any character we like to
-			// measure the width.
-			val fontMetrics = view.getFontMetrics(view.font)
-			val stringWidth = fontMetrics.stringWidth(" ".repeat(afterColumn))
-			x = bounds.x + stringWidth
+		guideLines.forEach {
+			if (x === null)
+			{
+				// The font is monospaced, so we can use any character we like to
+				// measure the width.
+				val fontMetrics = view.getFontMetrics(jTextPane.font)
+				// The Euro, €, is a slightly wider character which appears to
+				// place the guideline in the correct spot based on empirical
+				// evidence.
+				val stringWidth = fontMetrics.stringWidth("€".repeat(it))
+				x = bounds.x + stringWidth
+			}
+			val x = x!!
+			val deltaX = view.viewport.viewPosition.x
+			g.color = guide.color
+			g.drawLine(x - deltaX, bounds.y, x - deltaX, bounds.height)
+			this.x = null
 		}
-		val x = x!!
-		val deltaX = view.viewport.viewPosition.x
-		g.color = guide.color
-		g.drawLine(x - deltaX, bounds.y, x - deltaX, bounds.height)
 	}
 
 	companion object

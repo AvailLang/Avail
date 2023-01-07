@@ -1,6 +1,6 @@
 /*
  * KnownProjectRow.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.anvil.projects.manager
+package avail.anvil.manager
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.ProjectManagerIcons
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.projects.KnownAvailProject
 import java.awt.Dimension
 import java.awt.Font
@@ -52,20 +52,20 @@ import javax.swing.SwingUtilities
 
 /**
  * The [JPanel] that displays a [KnownAvailProject] in
- * [GlobalAvailConfiguration.knownProjects].
+ * [GlobalAvailSettings.knownProjects].
  *
  * @author Richard Arriaga
  *
  * @property project
  *   The [KnownAvailProject] to show.
  * @property config
- *   The [GlobalAvailConfiguration].
+ *   The [GlobalAvailSettings].
  * @property parentPanel
  *   The [KnownProjectsPanel] this [KnownProjectRow] belongs to.
  */
 internal class KnownProjectRow constructor(
 	val project: KnownAvailProject,
-	val config: GlobalAvailConfiguration,
+	val config: GlobalAvailSettings,
 	private val parentPanel: KnownProjectsPanel
 ): JPanel(GridBagLayout())
 {
@@ -85,7 +85,7 @@ internal class KnownProjectRow constructor(
 
 	/**
 	 * The [ImageIcon] representing whether or not [project] is the [config]
-	 * [favorite][GlobalAvailConfiguration.favorite] or not. Filled indicates
+	 * [favorite][GlobalAvailSettings.favorite] or not. Filled indicates
 	 * it is; unfilled indicates it is not.
 	 */
 	private var favoriteIcon =
@@ -100,7 +100,7 @@ internal class KnownProjectRow constructor(
 
 	/**
 	 * The button to toggle to either choose the [project] as the
-	 * [GlobalAvailConfiguration.favorite] or to deselect it.
+	 * [GlobalAvailSettings.favorite] or to deselect it.
 	 */
 	private val toggleFavorite: JButton =
 		JButton(favoriteIcon).apply {
@@ -177,17 +177,9 @@ internal class KnownProjectRow constructor(
 	 */
 	internal fun openProject()
 	{
-		val availProject =
-			project.availProject() ?: return
-		config.add(availProject, project.projectConfigFile)
-		// TODO investigate starting in different process.
-//		val pb = ProcessBuilder("java", "-classpath", "B.jar", "B.BMain")
-//		val p = pb.start()
-
-		AvailWorkbench.launchWorkbenchWithProject(
-			availProject, config, project.projectConfigFile)
-		SwingUtilities.invokeLater {
-			parentPanel.manager.hideProjectManager()
+		parentPanel.manager.openKnownProject(project)
+		{
+			parentPanel.manager.openKnownProjectDialog?.close()
 		}
 	}
 
@@ -253,14 +245,14 @@ internal class KnownProjectRow constructor(
 
 		/**
 		 * Icon indicating the [project] is the
-		 * [GlobalAvailConfiguration.favorite].
+		 * [GlobalAvailSettings.favorite].
 		 */
 		private val favoriteIconChosen =
 			ProjectManagerIcons.yellowStarFilled(scaledIconHeight)
 
 		/**
 		 * Icon indicating the [project] is not the
-		 * [GlobalAvailConfiguration.favorite].
+		 * [GlobalAvailSettings.favorite].
 		 */
 		private val favoriteIconNotChosen =
 			ProjectManagerIcons.yellowStarUnfilled(scaledIconHeight)

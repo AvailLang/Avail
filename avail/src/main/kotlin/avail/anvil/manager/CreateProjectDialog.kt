@@ -1,6 +1,6 @@
 /*
- * OpenSettingsViewAction.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * CreateProjectDialog.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,77 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.actions
+package avail.anvil.manager
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.settings.TemplateExpansionsManager
-import java.awt.event.ActionEvent
+import org.availlang.artifact.environment.project.AvailProject
+import java.awt.Dimension
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
+import javax.swing.JFrame
+import javax.swing.SwingUtilities
+import javax.swing.WindowConstants
 
 /**
- * The [AbstractWorkbenchAction] that opens the [TemplateExpansionsManager]
+ * A [JFrame] used to provide a dialog by which a user can create a new
+ * [AvailProject] in a new [AvailWorkbench].
  *
  * @author Richard Arriaga
  *
- * @constructor
- * Construct a new [OpenTemplateExpansionsManagerAction].
+ * @property manager
+ *   The running [AvailProjectManager].
  *
+ * @constructor
+ * Construct a new [CreateProjectDialog].
+ * @param manager
+ *   The running [AvailProjectManager].
  * @param workbench
- *   The owning [AvailWorkbench].
+ *   The workbench that launched this [CreateProjectDialog].
  */
-class OpenTemplateExpansionsManagerAction constructor(
+internal class CreateProjectDialog constructor(
+	val manager: AvailProjectManager,
 	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Templates")
+): JFrame("Create Project")
 {
-	override fun actionPerformed(e: ActionEvent?)
+	/**
+	 * Close this [CreateProjectDialog].
+	 */
+	fun close ()
 	{
-		val tem = workbench.templateExpansionManager
-		if (tem == null)
+		manager.createProjectDialog = null
+		dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+	}
+
+	init
+	{
+		manager.createProjectDialog = this
+		minimumSize = Dimension(750, 350)
+		preferredSize = Dimension(750, 350)
+		maximumSize = Dimension(750, 350)
+		defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
+		addWindowListener(object: WindowAdapter()
 		{
-			workbench.templateExpansionManager =
-				TemplateExpansionsManager(workbench)
-		}
-		else
+			override fun windowClosing(e: WindowEvent?)
+			{
+				manager.openKnownProjectDialog = null
+			}
+		})
+		add(CreateProjectPanel(
+			manager.globalSettings,
+			{ project, path ->
+				AvailWorkbench.launchWorkbenchWithProject(
+					project,
+					manager.globalSettings,
+					path,
+					projectManager = manager)
+				SwingUtilities.invokeLater {
+					close()
+				}
+			})
 		{
-			tem.toFront()
-		}
+			close()
+		})
+		setLocationRelativeTo(workbench)
+		isVisible = true
 	}
 }

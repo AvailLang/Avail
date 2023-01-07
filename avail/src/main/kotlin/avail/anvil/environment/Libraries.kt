@@ -1,6 +1,6 @@
 /*
- * OpenSettingsViewAction.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Libraries.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.actions
+package avail.anvil.environment
 
-import avail.anvil.AvailWorkbench
-import avail.anvil.settings.TemplateExpansionsManager
-import java.awt.event.ActionEvent
+import avail.anvil.projects.AvailStdLibVersion
+import org.availlang.artifact.environment.AvailEnvironment
+import java.io.File
+
+// Utilities for working with Avail libraries.
 
 /**
- * The [AbstractWorkbenchAction] that opens the [TemplateExpansionsManager]
- *
- * @author Richard Arriaga
- *
- * @constructor
- * Construct a new [OpenTemplateExpansionsManagerAction].
- *
- * @param workbench
- *   The owning [AvailWorkbench].
+ * The Avail standard libraries in [AvailEnvironment.availHomeLibs].
  */
-class OpenTemplateExpansionsManagerAction constructor(
-	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Templates")
-{
-	override fun actionPerformed(e: ActionEvent?)
-	{
-		val tem = workbench.templateExpansionManager
-		if (tem == null)
+val availStandardLibraries: Array<File> get() =
+	stdLibHome.let { home ->
+		val dir = File(home)
+		if (!dir.exists())
 		{
-			workbench.templateExpansionManager =
-				TemplateExpansionsManager(workbench)
+			dir.mkdirs()
 		}
-		else
-		{
-			tem.toFront()
+		val m = mutableListOf<AvailStdLibVersion?>()
+		val libs = dir.listFiles { _, name ->
+			name.endsWith(".jar") &&
+				name.startsWith("avail-stdlib")
+		} ?: arrayOf()
+		libs.sortByDescending {
+			val v = it.name.split("avail-stdlib-")
+				.last().split(".jar").first()
+			AvailStdLibVersion.versionOrNull(v).apply { m.add(this) }
 		}
+		libs
 	}
-}

@@ -60,7 +60,7 @@ enum class ModifierKey constructor(
 	CTRL(InputEvent.CTRL_DOWN_MASK, "CTRL", "⌃"),
 
 	/**
-	 * The [Meta Key][InputEvent.META_DOWN_MASK]. On Windows this is the Winodws
+	 * The [Meta Key][InputEvent.META_DOWN_MASK]. On Windows this is the Windows
 	 * key; on Mac, the Command key.
 	 */
 	META(

@@ -33,35 +33,27 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.settings.TemplateExpansionsManager
+import avail.anvil.manager.CreateProjectDialog
+import org.availlang.artifact.environment.project.AvailProject
 import java.awt.event.ActionEvent
 
 /**
- * The [AbstractWorkbenchAction] that opens the [TemplateExpansionsManager]
+ * The [AbstractWorkbenchAction] that opens an [CreateProjectDialog] used to
+ * create a new [AvailProject].
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct a new [OpenTemplateExpansionsManagerAction].
+ * Construct a new [CreateProjectAction].
  *
  * @param workbench
- *   The owning [AvailWorkbench].
+ *   The [AvailWorkbench] that initiated this action.
  */
-class OpenTemplateExpansionsManagerAction constructor(
-	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Templates")
+class CreateProjectAction constructor(workbench: AvailWorkbench)
+	: AbstractWorkbenchAction(workbench, "New…")
 {
 	override fun actionPerformed(e: ActionEvent?)
 	{
-		val tem = workbench.templateExpansionManager
-		if (tem == null)
-		{
-			workbench.templateExpansionManager =
-				TemplateExpansionsManager(workbench)
-		}
-		else
-		{
-			tem.toFront()
-		}
+		workbench.projectManager?.createProject(workbench)
 	}
 }

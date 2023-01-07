@@ -32,11 +32,16 @@
 
 package avail.anvil.components
 
+import java.awt.Color
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.FocusEvent
+import java.awt.event.FocusListener
 import javax.swing.BorderFactory
 import javax.swing.Box
+import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
@@ -44,21 +49,31 @@ import javax.swing.border.Border
 
 /**
  * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left of a
- * [JTextField].
+ * [JTextField] followed by a [JButton]
+ * with a space for an optionally displayed validation message.
  *
  * @author Richard Arriaga
+ *
+ * @property validator
+ *   Accepts the [input] and answers either `null` or String message to display.
  */
-class TextFieldWithLabel constructor(
+class TextFieldWithLabelButtonValidationText constructor(
 	label: String,
 	emptySpaceRight: Double? = null,
 	emptySpaceLeft: Double? = null,
-	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
+	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10),
+	private val validator: (String) -> String?
 ): JPanel(GridBagLayout())
 {
 	/**
 	 * The next column for the layout.
 	 */
 	private var nextColumn = 0
+
+	/**
+	 * The column for the validation text.
+	 */
+	private var validationColumn = 0
 
 	init
 	{
@@ -71,14 +86,20 @@ class TextFieldWithLabel constructor(
 					gridheight = 2
 					weightx = it
 				})
+			validationColumn = nextColumn
 		}
 	}
+
+	/**
+	 * The button to add at the end.
+	 */
+	val button: JButton = JButton("…")
 
 	/**
 	 * The [JLabel] to the left of the [JTextField].
 	 */
 	val label = JLabel(label).apply {
-			this@TextFieldWithLabel.add(
+			this@TextFieldWithLabelButtonValidationText.add(
 				this,
 				GridBagConstraints().apply {
 					gridx = nextColumn++
@@ -91,7 +112,7 @@ class TextFieldWithLabel constructor(
 	 * The [JTextField] that accepts the text input.
 	 */
 	val textField: JTextField = JTextField().apply {
-		this@TextFieldWithLabel.add(
+		this@TextFieldWithLabelButtonValidationText.add(
 			this,
 			GridBagConstraints().apply {
 				weightx = 0.75
@@ -103,11 +124,49 @@ class TextFieldWithLabel constructor(
 			})
 	}
 
+	/**
+	 * The validation [JLabel] below the [label] that is displayed only if
+	 * there is a problem.
+	 */
+	private val validationMessage = JLabel(label).apply {
+		font = font.deriveFont(10.0f)
+			.deriveFont(font.style or Font.ITALIC)
+		foreground = Color.RED
+		text = " "
+		this@TextFieldWithLabelButtonValidationText.add(
+			this,
+			GridBagConstraints().apply {
+				gridx = validationColumn
+				gridy = 1
+				gridwidth = 3
+				this.anchor = GridBagConstraints.WEST
+			})
+	}
+
 	/** The text in the [textField]. */
 	val input: String get() = textField.text
 
+	/**
+	 * Run the [validator] on the [input] and apply any necessary changes to the
+	 * [validationMessage].
+	 */
+	fun checkInput ()
+	{
+		validator(input).let {
+			validationMessage.text = it ?: " "
+			validationMessage.isVisible = it != null
+		}
+	}
+
 	init
 	{
+		add(
+			button,
+			GridBagConstraints().apply {
+				gridx = nextColumn++
+				gridy = 0
+				gridwidth = 1
+			})
 		emptySpaceRight?.let {
 			add(
 				Box.createRigidArea(Dimension(1, 1)),
@@ -118,6 +177,19 @@ class TextFieldWithLabel constructor(
 					weightx = it
 				})
 		}
+		textField.addFocusListener(object: FocusListener
+		{
+			// Do nothing
+			override fun focusGained(e: FocusEvent?) = Unit
+
+			override fun focusLost(e: FocusEvent?)
+			{
+				validator(input).let {
+					validationMessage.text = it ?: " "
+					validationMessage.isVisible = it != null
+				}
+			}
+		})
 		border = panelBorder
 	}
 }

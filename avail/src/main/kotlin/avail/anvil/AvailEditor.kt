@@ -38,6 +38,7 @@ import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.StyleApplicator.applyStyleRuns
 import avail.anvil.actions.FindAction
 import avail.anvil.shortcuts.AvailEditorShortcut
+import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.text.AvailEditorKit
 import avail.anvil.text.CodePane
 import avail.anvil.text.MarkToDotRange
@@ -327,11 +328,29 @@ class AvailEditor constructor(
 		putClientProperty(availEditor, this@AvailEditor)
 	}
 
+	/**
+	 * Refresh the [KeyboardShortcut]s for this [AvailEditor].
+	 */
+	fun refreshShortcuts ()
+	{
+		sourcePane.inputMap.clear()
+		// To add a new shortcut, add it as a subtype of the sealed class
+		// AvailEditorShortcut.
+		AvailEditorShortcut::class.sealedSubclasses.forEach {
+			it.objectInstance?.addToInputMap(sourcePane.inputMap)
+		}
+		sourcePane.registerKeystrokes()
+		SwingUtilities.invokeLater {
+			sourcePane.revalidate()
+		}
+	}
+
 	init
 	{
 		highlightCode(afterTextLoaded)
 		range = sourcePane.markToDotRange()
 		caretRangeLabel.text = range.toString()
+		sourcePane.undoManager.discardAllEdits()
 	}
 
 	/**
@@ -453,7 +472,6 @@ class AvailEditor constructor(
 			}
 			addWindowMenu(this@AvailEditor)
 		}
-		// TODO add gutter in here
 		addWindowListener(object : WindowAdapter()
 		{
 			override fun windowClosing(e: WindowEvent) {
@@ -481,7 +499,9 @@ class AvailEditor constructor(
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
-		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers()
+
+		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
+			workbench.globalSettings.editorGuideLines)
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
 			setHorizontalGroup(

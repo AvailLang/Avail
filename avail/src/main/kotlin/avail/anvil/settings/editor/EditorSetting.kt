@@ -1,6 +1,6 @@
 /*
- * OpenSettingsViewAction.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * EditorSetting.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.actions
+package avail.anvil.settings.editor
 
-import avail.anvil.AvailWorkbench
-import avail.anvil.settings.TemplateExpansionsManager
-import java.awt.event.ActionEvent
+import javax.swing.JComponent
 
 /**
- * The [AbstractWorkbenchAction] that opens the [TemplateExpansionsManager]
+ * A setting in [EditorSettingsSelection].
  *
  * @author Richard Arriaga
- *
- * @constructor
- * Construct a new [OpenTemplateExpansionsManagerAction].
- *
- * @param workbench
- *   The owning [AvailWorkbench].
  */
-class OpenTemplateExpansionsManagerAction constructor(
-	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Templates")
+internal sealed interface EditorSetting
 {
-	override fun actionPerformed(e: ActionEvent?)
+	/** The parent [EditorSettingsSelection]. */
+	val editorSettings: EditorSettingsSelection
+
+	/**
+	 * The parent [JComponent] that contains this [EditorSetting.component].
+	 */
+	val parent: JComponent
+
+	/** The [JComponent] that is used to edit this setting. */
+	val component: JComponent
+
+	/**
+	 * Indicates there is a change ready to be saved.
+	 *
+	 * @return
+	 *   `true` indicates there is a valid change; `false` otherwise.
+	 */
+	fun changeReady (): Boolean
+
+	/**
+	 * @return
+	 *   `true` if the contained editable content is valid; `false` otherwise.
+	 */
+	fun hasValidContent (): Boolean
+
+	/** Reset the editable content to its current setting. */
+	fun reset ()
+
+	/**
+	 * Indicates the content is being saved and this [EditorSetting] should
+	 * update accordingly.
+	 */
+	fun update () {}
+
+	/** Add this [EditorSetting] to the [parent] view. */
+	fun addToParent ()
 	{
-		val tem = workbench.templateExpansionManager
-		if (tem == null)
-		{
-			workbench.templateExpansionManager =
-				TemplateExpansionsManager(workbench)
-		}
-		else
-		{
-			tem.toFront()
-		}
+		parent.add(component)
 	}
 }

@@ -37,6 +37,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.BorderFactory
 import javax.swing.Box
+import javax.swing.JComboBox
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
@@ -48,8 +49,9 @@ import javax.swing.border.Border
  *
  * @author Richard Arriaga
  */
-class TextFieldWithLabel constructor(
+class ComboWithLabel<SelectionType> constructor(
 	label: String,
+	val options: Array<SelectionType>,
 	emptySpaceRight: Double? = null,
 	emptySpaceLeft: Double? = null,
 	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
@@ -78,7 +80,7 @@ class TextFieldWithLabel constructor(
 	 * The [JLabel] to the left of the [JTextField].
 	 */
 	val label = JLabel(label).apply {
-			this@TextFieldWithLabel.add(
+			this@ComboWithLabel.add(
 				this,
 				GridBagConstraints().apply {
 					gridx = nextColumn++
@@ -87,11 +89,8 @@ class TextFieldWithLabel constructor(
 				})
 		}
 
-	/**
-	 * The [JTextField] that accepts the text input.
-	 */
-	val textField: JTextField = JTextField().apply {
-		this@TextFieldWithLabel.add(
+	val combo = JComboBox(options).apply {
+		this@ComboWithLabel.add(
 			this,
 			GridBagConstraints().apply {
 				weightx = 0.75
@@ -102,9 +101,6 @@ class TextFieldWithLabel constructor(
 				gridwidth = 1
 			})
 	}
-
-	/** The text in the [textField]. */
-	val input: String get() = textField.text
 
 	init
 	{

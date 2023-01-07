@@ -32,8 +32,7 @@
 
 package avail.anvil.settings
 
-import avail.anvil.AvailWorkbench
-import avail.anvil.projects.KeyboardShortcutOverride
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyCode
 import avail.anvil.shortcuts.KeyboardShortcut
@@ -51,6 +50,7 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
+import javax.swing.SwingUtilities
 
 /**
  * A dialog that permits the changing of the key mappings of a
@@ -58,17 +58,25 @@ import javax.swing.JTextField
  *
  * @author Richard Arriaga
  *
- * @property workbench
- *   The active [AvailWorkbench].
+ * @property globalSettings
+ *   The [GlobalAvailSettings].
+ * @property parent
+ *   The parent [ShortcutsPanel].
  * @property shortcut
  *   The shortcut to update.
  */
 class EditShortcutDialog constructor(
-	private val workbench: AvailWorkbench,
+	private val settingsView: SettingsView,
 	private val parent: ShortcutsPanel,
 	private val shortcut: KeyboardShortcut
 ): JFrame(shortcut.descriptionDisplay)
 {
+	/**
+	 * The [GlobalAvailSettings].
+	 */
+	private val globalSettings: GlobalAvailSettings get() =
+		settingsView.globalSettings
+
 	/**
 	 * The set of [KeyboardShortcut]s that match the selected [Key].
 	 */
@@ -103,22 +111,25 @@ class EditShortcutDialog constructor(
 			{
 				// There is no need to use the ksOverride as the override
 				// is the same Key as the shortcut's default key.
-				if (shortcut.actionMapKey in workbench
-					.globalAvailConfiguration.keyboardShortcutOverrides)
+				if (shortcut.actionMapKey in
+					globalSettings.keyboardShortcutOverrides)
 				{
-					workbench.globalAvailConfiguration
+					globalSettings
 						.keyboardShortcutOverrides.remove(
 							shortcut.actionMapKey)
-					workbench.globalAvailConfiguration.saveToDisk()
+					globalSettings.saveToDisk()
 					shortcut.resetToDefaults()
 				}
 			}
 			else
 			{
 				shortcut.key = kso.key
-				workbench.globalAvailConfiguration
+				globalSettings.shortcutSettings
 					.keyboardShortcutOverrides[kso.actionMapKey] = kso
-				workbench.globalAvailConfiguration.saveToDisk()
+				globalSettings.shortcutSettings.save()
+			}
+			SwingUtilities.invokeLater {
+				settingsView.onUpdate(setOf(SettingsCategory.SHORTCUTS))
 			}
 			this@EditShortcutDialog.parent.redrawShortcuts()
 			this@EditShortcutDialog.dispose()
@@ -156,11 +167,20 @@ class EditShortcutDialog constructor(
 					overrideKs.key = tempKey
 					duplicateShortcuts = shortcut.category
 						.checkShortcutsUniqueAgainst(overrideKs)
-					if (duplicateShortcuts.isEmpty())
+					if (duplicateShortcuts.isEmpty() ||
+						(duplicateShortcuts.size == 1 &&
+							duplicateShortcuts.contains(shortcut)))
 					{
-						ksOverride = overrideKs
 						duplicates.text = " "
-						okButton.isEnabled = true
+						if (tempKey != shortcut.key)
+						{
+							ksOverride = overrideKs
+							okButton.isEnabled = true
+						}
+						else
+						{
+							okButton.isEnabled = false
+						}
 					}
 					else
 					{

@@ -1,6 +1,6 @@
 /*
- * OpenSettingsViewAction.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * AvailStdLibVersion.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,38 +30,61 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.actions
-
-import avail.anvil.AvailWorkbench
-import avail.anvil.settings.TemplateExpansionsManager
-import java.awt.event.ActionEvent
+package avail.anvil.projects
 
 /**
- * The [AbstractWorkbenchAction] that opens the [TemplateExpansionsManager]
+ * A version for an Avail Standard Library artifact.
  *
  * @author Richard Arriaga
  *
- * @constructor
- * Construct a new [OpenTemplateExpansionsManagerAction].
- *
- * @param workbench
- *   The owning [AvailWorkbench].
+ * @property sdkVersion
+ *   The [AvailVersion] of the Avail SDK (the org.availlang:avail artifact).
+ * @property libVersion
+ *   The [AvailVersion] of the Avail Library.
  */
-class OpenTemplateExpansionsManagerAction constructor(
-	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Templates")
+data class AvailStdLibVersion constructor(
+	val sdkVersion: AvailVersion,
+	val libVersion: AvailVersion
+): Comparable<AvailStdLibVersion>
 {
-	override fun actionPerformed(e: ActionEvent?)
+	/**
+	 * The stringified version.
+	 */
+	val version: String = "${sdkVersion.version}-${libVersion.version}"
+
+	override fun toString (): String = version
+
+	override fun compareTo(other: AvailStdLibVersion): Int
 	{
-		val tem = workbench.templateExpansionManager
-		if (tem == null)
+		val sdkCompare = sdkVersion.compareTo(other.sdkVersion)
+		if (sdkCompare != 0) return sdkCompare
+		return libVersion.compareTo(other.libVersion)
+	}
+
+	companion object
+	{
+		/**
+		 * Given a version String, such as `2.0.0-1.6.1` or
+		 * `2.0.0.alpha01-1.6.2.beta01` or
+		 * `2.0.0.rc1-1.6.2.rc01` to parse it into an [AvailStdLibVersion].
+		 *
+		 * @param version
+		 *   The raw version string to transform in an [AvailStdLibVersion].
+		 * @return
+		 *   The [AvailStdLibVersion] or `null` if the `version` string is
+		 *   malformed.
+		 */
+		fun versionOrNull (version: String): AvailStdLibVersion?
 		{
-			workbench.templateExpansionManager =
-				TemplateExpansionsManager(workbench)
-		}
-		else
-		{
-			tem.toFront()
+			val split = version.split("-")
+			if (split.size != 2)
+			{
+				return null
+			}
+			val sdkVersion = AvailVersion.versionOrNull(split[0]) ?: return null
+			val libVersion = AvailVersion.versionOrNull(split[1]) ?: return null
+
+			return AvailStdLibVersion(sdkVersion, libVersion)
 		}
 	}
 }

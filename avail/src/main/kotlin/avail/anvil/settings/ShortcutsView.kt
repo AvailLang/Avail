@@ -1,5 +1,5 @@
 /*
- * ShortcutManager.kt
+ * ShortcutsView.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,8 +32,8 @@
 
 package avail.anvil.settings
 
-import avail.anvil.AvailWorkbench
 import avail.anvil.icons.structure.EditIcons
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.shortcuts.KeyboardShortcutCategory
 import java.awt.Color
@@ -45,62 +45,19 @@ import java.awt.GridBagConstraints.EAST
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
 import java.io.File
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JFileChooser
-import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JScrollPane
-import javax.swing.JTabbedPane
 import javax.swing.SwingUtilities
 import javax.swing.filechooser.FileFilter
 import javax.swing.filechooser.FileNameExtensionFilter
-
-/**
- * The [JFrame] that presents the different [KeyboardShortcut]s.
- *
- * @author Richard Arriaga
- *
- * @property workbench
- *   The active [AvailWorkbench].
- */
-class ShortcutManager internal constructor(
-	val workbench: AvailWorkbench
-): JFrame("Shortcuts")
-{
-	val tabs: JTabbedPane =
-		JTabbedPane(JTabbedPane.TOP, JTabbedPane.WRAP_TAB_LAYOUT)
-
-	init
-	{
-		KeyboardShortcutCategory.values().forEach {
-			 tabs.addTab(
-				 it.display, ShortcutsPanel(it, workbench).redrawShortcuts())
-		}
-		contentPane.add(tabs)
-		minimumSize = Dimension(700, 800)
-		preferredSize = Dimension(700, 800)
-		maximumSize = Dimension(700, 1200)
-		pack()
-		addWindowListener(object : WindowAdapter()
-		{
-			override fun windowClosing(e: WindowEvent)
-			{
-				workbench.shortcutManager = null
-			}
-		})
-		setLocationRelativeTo(workbench)
-		isVisible = true
-		workbench.shortcutManager = this
-	}
-}
 
 /**
  * A [JPanel] that displays all the shortcuts.
@@ -108,10 +65,15 @@ class ShortcutManager internal constructor(
  * @author Richard Arriaga
  */
 class ShortcutsPanel constructor(
-	val category: KeyboardShortcutCategory,
-	val workbench: AvailWorkbench
+	internal val category: KeyboardShortcutCategory,
+	private val settingsView: SettingsView
 ) : JPanel()
 {
+	/**
+	 * The environment settings.
+	 */
+	val globalSettings: GlobalAvailSettings get() = settingsView.globalSettings
+
 	/**
 	 * The panel that contains all the shortcuts.
 	 */
@@ -127,7 +89,7 @@ class ShortcutsPanel constructor(
 		SwingUtilities.invokeLater {
 			shortcutsPanel.removeAll()
 			category.shortcutsByDescription.forEach {
-				shortcutsPanel.add(ShortcutRow(it, workbench, this))
+				shortcutsPanel.add(ShortcutRow(it, settingsView, this))
 			}
 			shortcutsPanel.revalidate()
 			shortcutsPanel.repaint()
@@ -163,7 +125,7 @@ class ShortcutsPanel constructor(
 				ShortcutSettings.readFromFile(selectedFile)
 			if (shortcuts != null)
 			{
-				val m =workbench.globalAvailConfiguration
+				val m = globalSettings.shortcutSettings
 					.attemptShortcutImport(shortcuts)
 				if (m.isNotEmpty())
 				{
@@ -238,9 +200,17 @@ class ShortcutsPanel constructor(
 		val result = showSaveDialog(this@ShortcutsPanel)
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			val shortcuts =
-				workbench.globalAvailConfiguration.shortcutSettings
-			Settings.exportSettings(selectedFile, shortcuts)
+			val shortcuts = globalSettings.shortcutSettings
+			val target =
+				if (selectedFile.name.endsWith(".json"))
+				{
+					selectedFile
+				}
+				else
+				{
+					File(selectedFile.absolutePath + ".json")
+				}
+			shortcuts.saveToDisk(target)
 		}
 	}
 
@@ -275,7 +245,7 @@ class ShortcutsPanel constructor(
 			toolTipText = "Resets all shortcuts across all categories to " +
 				"default key mappings"
 			addActionListener {
-				KeyboardShortcutCategory.resetAllToDefaults(workbench)
+				KeyboardShortcutCategory.resetAllToDefaults(globalSettings)
 				redrawShortcuts()
 			}
 		}
@@ -326,12 +296,14 @@ class ShortcutsPanel constructor(
  *
  * @property shortcut
  *   The [KeyboardShortcut] to show.
- * @property workbench
- *   The associated [AvailWorkbench]
+ * @property settingsView
+ *   The [SettingsView] this [ShortcutRow] ultimately belongs to.
+ * @property parent
+ *   The parent [ShortcutsPanel].
  */
 internal class ShortcutRow constructor(
 	private val shortcut: KeyboardShortcut,
-	val workbench: AvailWorkbench,
+	private val settingsView: SettingsView,
 	val parent: ShortcutsPanel
 ): JPanel(GridBagLayout())
 {
@@ -367,7 +339,7 @@ internal class ShortcutRow constructor(
 	 */
 	private fun openEditDialog ()
 	{
-		EditShortcutDialog(workbench, parent, shortcut)
+		EditShortcutDialog(settingsView, parent, shortcut)
 	}
 
 	/**

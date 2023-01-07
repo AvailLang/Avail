@@ -39,8 +39,10 @@ import avail.anvil.shortcuts.BreakLineShortcut
 import avail.anvil.shortcuts.CamelCaseShortcut
 import avail.anvil.shortcuts.CancelTemplateSelectionShortcut
 import avail.anvil.shortcuts.CenterCurrentLineShortcut
+import avail.anvil.shortcuts.DecreaseFontSizeShortcut
 import avail.anvil.shortcuts.ExpandTemplateShortcut
 import avail.anvil.shortcuts.GoToDialogShortcut
+import avail.anvil.shortcuts.IncreaseFontSizeShortcut
 import avail.anvil.shortcuts.InsertSpaceShortcut
 import avail.anvil.shortcuts.KebabCaseShortcut
 import avail.anvil.shortcuts.LowercaseShortcut
@@ -101,6 +103,8 @@ open class CodeKit constructor(
 		Redo,
 		ExpandTemplate,
 		CancelTemplateSelection,
+		DecreaseFontSize,
+		IncreaseFontSize,
 		MoveLineUp,
 		MoveLineDown,
 		ToUppercase,
@@ -316,8 +320,11 @@ private object Undo: TextAction(UndoShortcut.actionMapKey)
 	{
 		val codePane = e.codePane
 		codePane.currentEdit?.end()
-		codePane.undoManager.undo()
-		codePane.clearStaleTemplateSelectionState()
+		if (codePane.undoManager.canUndo())
+		{
+			codePane.undoManager.undo()
+			codePane.clearStaleTemplateSelectionState()
+		}
 	}
 }
 
@@ -330,8 +337,11 @@ private object Redo: TextAction(RedoShortcut.actionMapKey)
 	{
 		val codePane = e.codePane
 		codePane.currentEdit?.end()
-		codePane.undoManager.redo()
-		codePane.clearStaleTemplateSelectionState()
+		if (codePane.undoManager.canRedo())
+		{
+			codePane.undoManager.redo()
+			codePane.clearStaleTemplateSelectionState()
+		}
 	}
 }
 
@@ -396,6 +406,37 @@ private object Refresh: TextAction(RefreshShortcut.actionMapKey)
 		workbench.availBuilder.checkStableInvariants()
 		workbench.setEnablements()
 		buildTask.execute()
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                    Font                                    //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Increase the size of the font in the [CodePane] by one point size.
+ */
+private object IncreaseFontSize
+	: TextAction(IncreaseFontSizeShortcut.actionMapKey)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as CodePane
+		sourcePane.changeFontSize(sourcePane.font.size + 1.0f)
+	}
+}
+
+/**
+ * Decrease the size of the font in the [CodePane] by one point size.
+ */
+private object DecreaseFontSize
+	: TextAction(DecreaseFontSizeShortcut.actionMapKey)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val sourcePane = e.source as CodePane
+		sourcePane.changeFontSize(
+			(sourcePane.font.size - 1.0f).coerceAtLeast(4.0f))
 	}
 }
 
@@ -1188,7 +1229,7 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 			while (tQueue.hasNext())
 			{
 				val next = tQueue.next()
-				if (next.length < 2)
+				if (next.isEmpty())
 				{
 					append(next)
 				}

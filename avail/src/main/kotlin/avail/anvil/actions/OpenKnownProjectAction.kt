@@ -33,35 +33,27 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.settings.TemplateExpansionsManager
+import avail.anvil.manager.OpenKnownProjectDialog
+import org.availlang.artifact.environment.project.AvailProject
 import java.awt.event.ActionEvent
 
 /**
- * The [AbstractWorkbenchAction] that opens the [TemplateExpansionsManager]
+ * The [AbstractWorkbenchAction] that opens an [OpenKnownProjectDialog] used to
+ * select and open another, known [AvailProject] in a new [AvailWorkbench].
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct a new [OpenTemplateExpansionsManagerAction].
+ * Construct a new [OpenKnownProjectAction].
  *
  * @param workbench
- *   The owning [AvailWorkbench].
+ *   The [AvailWorkbench] that initiated this action.
  */
-class OpenTemplateExpansionsManagerAction constructor(
-	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Templates")
+class OpenKnownProjectAction constructor(workbench: AvailWorkbench)
+	: AbstractWorkbenchAction(workbench, "Known Projects…")
 {
 	override fun actionPerformed(e: ActionEvent?)
 	{
-		val tem = workbench.templateExpansionManager
-		if (tem == null)
-		{
-			workbench.templateExpansionManager =
-				TemplateExpansionsManager(workbench)
-		}
-		else
-		{
-			tem.toFront()
-		}
+		workbench.projectManager?.openKnownProject(workbench)
 	}
 }

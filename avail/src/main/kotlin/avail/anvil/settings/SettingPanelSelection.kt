@@ -1,6 +1,6 @@
 /*
- * TextFieldWithLabel.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * SettingPanelSelection.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,94 +30,80 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.components
+package avail.anvil.settings
 
+import java.awt.Color
 import java.awt.Dimension
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import javax.swing.BorderFactory
-import javax.swing.Box
+import java.awt.FlowLayout
+import java.awt.Font
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JTextField
-import javax.swing.border.Border
 
 /**
- * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left of a
- * [JTextField].
+ * A [JPanel] that represents a settings category.
  *
  * @author Richard Arriaga
+ *
+ * @property labelText
+ *   The text to show in the panel label.
+ * @param settingsView
+ *   The parent [SettingsView].
  */
-class TextFieldWithLabel constructor(
-	label: String,
-	emptySpaceRight: Double? = null,
-	emptySpaceLeft: Double? = null,
-	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
-): JPanel(GridBagLayout())
+abstract class SettingPanelSelection constructor(
+	private val labelText: String,
+	protected val settingsView: SettingsView
+): JPanel(FlowLayout(FlowLayout.LEFT))
 {
 	/**
-	 * The next column for the layout.
+	 * The [JLabel] that displays the [labelText].
 	 */
-	private var nextColumn = 0
+	val label = JLabel(labelText)
 
-	init
+	fun init()
 	{
-		emptySpaceLeft?.let {
-			add(
-				Box.createRigidArea(Dimension(1, 1)),
-				GridBagConstraints().apply {
-					gridx = nextColumn++
-					gridy = 0
-					gridheight = 2
-					weightx = it
-				})
-		}
+		minimumSize = Dimension(150, 35)
+		preferredSize = Dimension(150, 35)
+		maximumSize = Dimension(150, 35)
+		addMouseListener(object: MouseAdapter()
+		{
+			override fun mouseClicked(e: MouseEvent)
+			{
+				if (e.clickCount == 1)
+				{
+					select()
+				}
+			}
+		})
+		add(label)
 	}
 
 	/**
-	 * The [JLabel] to the left of the [JTextField].
+	 * Update the [settingsView] right panel with the appropriate settings
+	 * configuration screen associated with this [SettingPanelSelection].
 	 */
-	val label = JLabel(label).apply {
-			this@TextFieldWithLabel.add(
-				this,
-				GridBagConstraints().apply {
-					gridx = nextColumn++
-					gridy = 0
-					gridwidth = 1
-				})
-		}
+	abstract fun updateSettingsPane ()
 
 	/**
-	 * The [JTextField] that accepts the text input.
+	 * Select this [SettingPanelSelection].
 	 */
-	val textField: JTextField = JTextField().apply {
-		this@TextFieldWithLabel.add(
-			this,
-			GridBagConstraints().apply {
-				weightx = 0.75
-				weighty = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = nextColumn++
-				gridy = 0
-				gridwidth = 1
-			})
+	fun select ()
+	{
+		if (this == settingsView.selected) return
+		label.font = label.font.deriveFont(font.style or Font.BOLD)
+		background = Color(0x55, 0x58, 0x5A)
+		settingsView.selected.deselect()
+		settingsView.selected = this
+		updateSettingsPane()
 	}
 
-	/** The text in the [textField]. */
-	val input: String get() = textField.text
-
-	init
+	/**
+	 * Deselect this [SettingPanelSelection].
+	 */
+	private fun deselect ()
 	{
-		emptySpaceRight?.let {
-			add(
-				Box.createRigidArea(Dimension(1, 1)),
-				GridBagConstraints().apply {
-					gridx = nextColumn
-					gridy = 0
-					gridheight = 2
-					weightx = it
-				})
-		}
-		border = panelBorder
+		label.font = label.font.deriveFont(font.style or Font.PLAIN)
+		background = settingsView.background
 	}
 }
