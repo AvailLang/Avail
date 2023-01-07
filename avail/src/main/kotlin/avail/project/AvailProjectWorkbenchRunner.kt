@@ -33,7 +33,7 @@
 package avail.project
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.environment.setupEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
 import org.availlang.artifact.environment.location.InvalidLocation
@@ -104,10 +104,12 @@ object AvailProjectWorkbenchRunner
 		}
 		System.setProperty(
 			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())
-		val globalConfig = GlobalAvailConfiguration.getGlobalConfig().apply {
-			add(availProject, configFile.absolutePath)
-		}
+
 		AvailWorkbench.launchSoloWorkbench(
-			globalConfig, availProject, configFile.absolutePath)
+			GlobalAvailSettings.getGlobalSettings().apply {
+				add(availProject, configFile.absolutePath)
+			},
+			availProject,
+			configFile.absolutePath)
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * GlobalAvailConfiguration.kt
+ * GlobalAvailSettings.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -56,12 +56,12 @@ import java.nio.file.StandardCopyOption
  *
  * @author Richard Arriaga
  */
-sealed interface GlobalAvailConfiguration: JSONFriendly
+sealed interface GlobalAvailSettings: JSONFriendly
 {
 	/**
-	 * The serialization version of this [GlobalAvailConfiguration] which
+	 * The serialization version of this [GlobalAvailSettings] which
 	 * represents the structure of the [JSONFriendly]-based configuration file
-	 * that represents this [GlobalAvailConfiguration].
+	 * that represents this [GlobalAvailSettings].
 	 */
 	val serializationVersion: Int
 
@@ -124,7 +124,7 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 		knownProjects.toList().sortedByDescending { it.lastOpened }
 
 	/**
-	 * Add the provided [AvailProject] to this [GlobalAvailConfiguration] as a
+	 * Add the provided [AvailProject] to this [GlobalAvailSettings] as a
 	 * [KnownAvailProject].
 	 *
 	 * @param project
@@ -167,17 +167,17 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 	}
 
 	/**
-	 * The String contents of this [GlobalAvailConfiguration] that can be
+	 * The String contents of this [GlobalAvailSettings] that can be
 	 * written to disk.
 	 */
 	@Suppress("unused")
 	val fileContent: String get() =
 		jsonPrettyPrintWriter {
-			this@GlobalAvailConfiguration.writeTo(this)
+			this@GlobalAvailSettings.writeTo(this)
 		}.toString()
 
 	/**
-	 * Write this [GlobalAvailConfiguration] to disk.
+	 * Write this [GlobalAvailSettings] to disk.
 	 */
 	fun saveToDisk ()
 	{
@@ -210,24 +210,24 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 		/**
 		 * The Avail configuration file name.
 		 */
-		const val CONFIG_FILE_NAME = "environment-config.json"
+		const val CONFIG_FILE_NAME = "environment-settings.json"
 
 		/**
-		 * The path to the [GlobalAvailConfiguration] file on disk.
+		 * The path to the [GlobalAvailSettings] file on disk.
 		 */
 		private val configFilePath get() =
 			"$availHome${File.separator}$CONFIG_FILE_NAME"
 
-		val emptyConfig: GlobalAvailConfiguration
-			get() = GlobalAvailConfigurationV1()
+		val emptyConfig: GlobalAvailSettings
+			get() = GlobalAvailSettingsV1()
 
 		/**
 		 * @return
-		 *   The [GlobalAvailConfiguration] read from the
+		 *   The [GlobalAvailSettings] read from the
 		 *   [AvailEnvironment.availHome] or the [emptyConfig] if not found or
 		 *   malformed.
 		 */
-		fun getGlobalConfig (): GlobalAvailConfiguration
+		fun getGlobalSettings (): GlobalAvailSettings
 		{
 			val file = File(environmentConfigFile)
 			if (!file.exists())
@@ -251,11 +251,11 @@ sealed interface GlobalAvailConfiguration: JSONFriendly
 					throw e
 				}
 			val version = obj.getNumber(
-				GlobalAvailConfiguration::serializationVersion.name).int
+				GlobalAvailSettings::serializationVersion.name).int
 
 			return when (version)
 			{
-				1 -> GlobalAvailConfigurationV1.from(obj)
+				1 -> GlobalAvailSettingsV1.from(obj)
 				else ->
 					throw IllegalStateException("Invalid Global Avail " +
 						"Configuration File: Version $version is not in the " +

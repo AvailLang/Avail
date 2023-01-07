@@ -33,7 +33,7 @@
 package avail.anvil.settings.editor
 
 import avail.anvil.components.TextFieldWithLabelButtonValidationText
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.icons.ProjectManagerIcons
 import java.awt.Dimension
 import javax.swing.BorderFactory
@@ -41,7 +41,7 @@ import javax.swing.JComponent
 
 /**
  * The [EditorSetting] for changing the
- * [GlobalAvailConfiguration.editorGuideLines].
+ * [GlobalAvailSettings.editorGuideLines].
  *
  * @author Richard Arriaga
  */
@@ -50,7 +50,7 @@ internal class GuideLinesSetting constructor(
 	override val parent: JComponent
 ): EditorSetting
 {
-	/** The current value in [GlobalAvailConfiguration.editorGuideLines]. */
+	/** The current value in [GlobalAvailSettings.editorGuideLines]. */
 	private var original: String =
 		editorSettings.config.editorGuideLines.joinToString { it.toString() }
 

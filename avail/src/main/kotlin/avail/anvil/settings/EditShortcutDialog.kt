@@ -32,7 +32,7 @@
 
 package avail.anvil.settings
 
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyCode
 import avail.anvil.shortcuts.KeyboardShortcut
@@ -50,6 +50,7 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
+import javax.swing.SwingUtilities
 
 /**
  * A dialog that permits the changing of the key mappings of a
@@ -57,19 +58,25 @@ import javax.swing.JTextField
  *
  * @author Richard Arriaga
  *
- * @property globalConfig
- *   The [GlobalAvailConfiguration].
+ * @property globalSettings
+ *   The [GlobalAvailSettings].
  * @property parent
  *   The parent [ShortcutsPanel].
  * @property shortcut
  *   The shortcut to update.
  */
 class EditShortcutDialog constructor(
-	private val globalConfig: GlobalAvailConfiguration,
+	private val settingsView: SettingsView,
 	private val parent: ShortcutsPanel,
 	private val shortcut: KeyboardShortcut
 ): JFrame(shortcut.descriptionDisplay)
 {
+	/**
+	 * The [GlobalAvailSettings].
+	 */
+	private val globalSettings: GlobalAvailSettings get() =
+		settingsView.globalSettings
+
 	/**
 	 * The set of [KeyboardShortcut]s that match the selected [Key].
 	 */
@@ -105,21 +112,24 @@ class EditShortcutDialog constructor(
 				// There is no need to use the ksOverride as the override
 				// is the same Key as the shortcut's default key.
 				if (shortcut.actionMapKey in
-					globalConfig.keyboardShortcutOverrides)
+					globalSettings.keyboardShortcutOverrides)
 				{
-					globalConfig
+					globalSettings
 						.keyboardShortcutOverrides.remove(
 							shortcut.actionMapKey)
-					globalConfig.saveToDisk()
+					globalSettings.saveToDisk()
 					shortcut.resetToDefaults()
 				}
 			}
 			else
 			{
 				shortcut.key = kso.key
-				globalConfig.shortcutSettings
+				globalSettings.shortcutSettings
 					.keyboardShortcutOverrides[kso.actionMapKey] = kso
-				globalConfig.shortcutSettings.save()
+				globalSettings.shortcutSettings.save()
+			}
+			SwingUtilities.invokeLater {
+				settingsView.onUpdate(setOf(SettingsCategory.SHORTCUTS))
 			}
 			this@EditShortcutDialog.parent.redrawShortcuts()
 			this@EditShortcutDialog.dispose()

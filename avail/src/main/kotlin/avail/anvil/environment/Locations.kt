@@ -32,7 +32,7 @@
 
 package avail.anvil.environment
 
-import avail.anvil.environment.GlobalAvailConfiguration.Companion.CONFIG_FILE_NAME
+import avail.anvil.environment.GlobalAvailSettings.Companion.CONFIG_FILE_NAME
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.settings.ShortcutSettings
 import avail.anvil.settings.TemplateSettings
@@ -55,7 +55,7 @@ val stdLibHome = "$availHomeLibs/org/availlang"
 val envSettingsHome = "$availHome/settings"
 
 /**
- * The [GlobalAvailConfiguration] environment file location.
+ * The [GlobalAvailSettings] environment file location.
  */
 val environmentConfigFile = "$envSettingsHome/$CONFIG_FILE_NAME"
 
@@ -104,7 +104,7 @@ fun setupEnvironment ()
 	File(environmentConfigFile).apply {
 		if (!exists())
 		{
-			this.writeText(GlobalAvailConfiguration.emptyConfig.fileContent)
+			this.writeText(GlobalAvailSettings.emptyConfig.fileContent)
 		}
 	}
 }

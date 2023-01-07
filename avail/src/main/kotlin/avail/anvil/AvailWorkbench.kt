@@ -97,7 +97,7 @@ import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.settings.SettingsView
@@ -239,8 +239,8 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @property resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
- * @property globalConfig
- *   The [GlobalAvailConfiguration] for the environment this [AvailWorkbench] is
+ * @property globalSettings
+ *   The [GlobalAvailSettings] for the environment this [AvailWorkbench] is
  *   being launched in.
  * @property availProject
  *   The actively running [AvailProject].
@@ -258,8 +258,8 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
- * @param globalConfig
- *  The [GlobalAvailConfiguration] for the environment this [AvailWorkbench] is
+ * @param globalSettings
+ *  The [GlobalAvailSettings] for the environment this [AvailWorkbench] is
  *  being launched in.
  * @param availProject
  *   The actively running [AvailProject].
@@ -274,7 +274,7 @@ class AvailWorkbench internal constructor(
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver,
-	val globalConfig: GlobalAvailConfiguration,
+	val globalSettings: GlobalAvailSettings,
 	internal var availProjectFilePath: String = "",
 	windowTitle: String = "Avail Workbench",
 	internal val projectManager: AvailProjectManager?
@@ -320,11 +320,12 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * The recognized textual templates available for interactive
+	 * Extract the recognized textual templates available for interactive
 	 * transformation, as a [PrefixTree] from template texts to expansion
-	 * texts.
+	 * texts, from the [AvailProject.roots].
 	 */
-	val templates = run {
+	private fun extractTemplates (): PrefixTree<Int, MutableSet<String>>
+	{
 		val tree = PrefixTree<Int, MutableSet<String>>()
 		availProject.availProjectRoots.forEach { root ->
 			root.templates.forEach { (name, expansion) ->
@@ -336,7 +337,23 @@ class AvailWorkbench internal constructor(
 			val expansions = tree.getOrPut(name) { mutableSetOf() }
 			expansions.add(expansion)
 		}
-		tree
+		return tree
+	}
+
+	/**
+	 * The recognized textual templates available for interactive
+	 * transformation, as a [PrefixTree] from template texts to expansion
+	 * texts.
+	 */
+	var templates = extractTemplates()
+		private set
+
+	/**
+	 * Refresh the [templates].
+	 */
+	internal fun refreshTemplates ()
+	{
+		templates = extractTemplates()
 	}
 
 	/**
@@ -2454,8 +2471,8 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
-		 * @param globalAvailConfiguration
-		 *   The [GlobalAvailConfiguration] for the environment this
+		 * @param globalAvailSettings
+		 *   The [GlobalAvailSettings] for the environment this
 		 *   [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2485,7 +2502,7 @@ class AvailWorkbench internal constructor(
 		@Throws(Exception::class)
 		@JvmStatic
 		fun launchWorkbench(
-			globalAvailConfiguration: GlobalAvailConfiguration,
+			globalAvailSettings: GlobalAvailSettings,
 			project: AvailProject = AvailProjectV1(
 				"--No Project--",
 				true,
@@ -2587,7 +2604,7 @@ class AvailWorkbench internal constructor(
 				runtime,
 				fileManager,
 				resolver,
-				globalAvailConfiguration,
+				globalAvailSettings,
 				availProjectFilePath,
 				workbenchWindowTitle,
 				projectManager)
@@ -2634,8 +2651,8 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
-		 * @param globalAvailConfiguration
-		 *   The [GlobalAvailConfiguration] for the environment this
+		 * @param globalAvailSettings
+		 *   The [GlobalAvailSettings] for the environment this
 		 *   [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2662,13 +2679,13 @@ class AvailWorkbench internal constructor(
 		@JvmStatic
 		fun launchWorkbenchWithProject(
 			project: AvailProject,
-			globalAvailConfiguration: GlobalAvailConfiguration,
+			globalAvailSettings: GlobalAvailSettings,
 			availProjectFilePath: String = "",
 			customWindowTitle: String = "",
 			useProjectNameAsFullTitle: Boolean = false,
 			projectManager: AvailProjectManager?
 		): AvailWorkbench = launchWorkbench(
-				globalAvailConfiguration,
+				globalAvailSettings,
 				project,
 				availProjectFilePath,
 				"",
@@ -2680,8 +2697,8 @@ class AvailWorkbench internal constructor(
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench]
 		 * independent of any [AvailProjectManager].
 		 *
-		 * @param globalAvailConfiguration
-		 * 	 The [GlobalAvailConfiguration] for the environment this
+		 * @param globalAvailSettings
+		 * 	 The [GlobalAvailSettings] for the environment this
 		 * 	 [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2705,7 +2722,7 @@ class AvailWorkbench internal constructor(
 		@JvmStatic
 		@Suppress("unused")
 		fun launchSoloWorkbench (
-			globalAvailConfiguration: GlobalAvailConfiguration,
+			globalAvailSettings: GlobalAvailSettings,
 			project: AvailProject,
 			availProjectFilePath: String = "",
 			customWindowTitle: String = "",
@@ -2714,7 +2731,7 @@ class AvailWorkbench internal constructor(
 		{
 			System.setProperty(DARK_MODE_KEY, project.darkMode.toString())
 			return launchWorkbench(
-				globalAvailConfiguration,
+				globalAvailSettings,
 				project,
 				availProjectFilePath,
 				"",

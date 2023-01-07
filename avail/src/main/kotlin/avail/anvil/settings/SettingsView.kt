@@ -32,7 +32,7 @@
 
 package avail.anvil.settings
 
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.settings.editor.EditorSettingsSelection
 import avail.anvil.versions.MavenCentralAPI
 import avail.anvil.versions.SearchResponse
@@ -53,23 +53,24 @@ import javax.swing.ScrollPaneConstants
  *
  * @author Richard Arriaga
  *
- * @property globalConfig
- *   The environment's [GlobalAvailConfiguration] window.
+ * @property globalSettings
+ *   The environment's [GlobalAvailSettings] window.
  *
  * @constructor
  * Construct a [SettingsView].
  *
- * @param globalConfig
- *   The environment's [GlobalAvailConfiguration] window.
+ * @param globalSettings
+ *   The environment's [GlobalAvailSettings] window.
  * @param parent
  *   The parent [JFrame] that owns this [SettingsView].
  * @param latestVersion
  *   The latest Avail Standard Library version or an empty string if not known.
  */
 class SettingsView constructor (
-	internal val globalConfig: GlobalAvailConfiguration,
+	internal val globalSettings: GlobalAvailSettings,
 	parent: JFrame,
-	latestVersion: String = ""
+	latestVersion: String = "",
+	internal val onUpdate: (Set<SettingsCategory>) -> Unit = {}
 ): JDialog(parent, "Settings", DOCUMENT_MODAL)
 {
 	/**

@@ -36,7 +36,7 @@ import avail.anvil.components.DirectoryChooser
 import avail.anvil.components.TextFieldWithLabel
 import avail.anvil.components.TextFieldWithLabelAndButton
 import avail.anvil.icons.ProjectManagerIcons
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.environment.availStandardLibraries
 import org.availlang.artifact.environment.location.AvailLibraries
 import org.availlang.artifact.environment.location.AvailRepositories
@@ -63,14 +63,14 @@ import javax.swing.JPanel
  * @author Richard Arriaga
  *
  * @property config
- *   The [GlobalAvailConfiguration] for this machine.
+ *   The [GlobalAvailSettings] for this machine.
  * @property onCreate
  *   The function that accepts the newly created [AvailProject].
  * @property onCancel
  *   The function to call if creating a new project is canceled.
  */
 class CreateProjectPanel constructor(
-	internal val config: GlobalAvailConfiguration,
+	internal val config: GlobalAvailSettings,
 	private val onCreate: (AvailProject, String) -> Unit,
 	private val onCancel: () -> Unit
 ): JPanel(GridBagLayout())

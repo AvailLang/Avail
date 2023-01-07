@@ -152,8 +152,8 @@ constructor(
 		isEnabled = true
 		isFocusable = true
 		preferredSize = Dimension(0, 500)
-		font = Font.decode("${workbench.globalConfig.font} 13")
-		font = font.deriveFont(workbench.globalConfig.codePaneFontSize)
+		font = Font.decode("${workbench.globalSettings.font} 13")
+		font = font.deriveFont(workbench.globalSettings.codePaneFontSize)
 		foreground = SystemColors.active.baseCode
 		background = SystemColors.active.codeBackground
 		registerStyles()
@@ -167,11 +167,27 @@ constructor(
 	}
 
 	/**
-	 * Change the font to the provided font.
+	 * Change the font size to the provided font size.
+	 *
+	 * @param updatedSize
+	 *   The new font size.
 	 */
 	fun changeFontSize (updatedSize: Float)
 	{
 		font = font.deriveFont(updatedSize)
+	}
+
+	/**
+	 * Change the font to the provided font name and size.
+	 *
+	 * @param name
+	 *   The [name][Font.name] of the [Font] to set.
+	 * @param updatedSize
+	 *   The size of the [Font] to set.
+	 */
+	fun changeFont (name: String, updatedSize: Float)
+	{
+		font = Font.decode(name).deriveFont(updatedSize)
 	}
 
 	/**
@@ -225,7 +241,7 @@ constructor(
 	/**
 	 * Register all [KeyStroke]s with the [InputMap].
 	 */
-	private fun registerKeystrokes()
+	internal fun registerKeystrokes()
 	{
 		// To add a new shortcut, add it as a subtype of the sealed class
 		// CodePaneShortcut.

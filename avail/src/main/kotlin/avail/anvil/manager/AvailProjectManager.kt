@@ -34,8 +34,10 @@ package avail.anvil.manager
 
 import avail.AvailRuntimeConfiguration
 import avail.anvil.AvailWorkbench
+import avail.anvil.MenuBarBuilder
+import avail.anvil.addWindowMenu
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.*
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.environment.projectManagerLayoutFile
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.SettingsView
@@ -65,12 +67,12 @@ import javax.swing.filechooser.FileNameExtensionFilter
  *
  * @author Richard Arriaga
  *
- * @property globalConfig
- *   The [GlobalAvailConfiguration] that provides information about the Avail
+ * @property globalSettings
+ *   The [GlobalAvailSettings] that provides information about the Avail
  *   environment for the entire computer.
  */
 class AvailProjectManager constructor(
-	val globalConfig: GlobalAvailConfiguration
+	val globalSettings: GlobalAvailSettings
 ): JFrame("Avail")
 {
 	/**
@@ -89,6 +91,12 @@ class AvailProjectManager constructor(
 	 * The set of [AvailWorkbench]s opened by this [AvailProjectManager].
 	 */
 	private val openWorkbenches = mutableSetOf<AvailWorkbench>()
+
+	/**
+	 * The immutable set of [AvailWorkbench]s opened by this
+	 * [AvailProjectManager].
+	 */
+	val workbenches: Set<AvailWorkbench> get() = openWorkbenches
 
 	/**
 	 * The opened [OpenKnownProjectDialog] or `null` if dialog not open.
@@ -194,11 +202,15 @@ class AvailProjectManager constructor(
 			override fun windowClosing(e: WindowEvent?)
 			{
 				saveWindowPosition()
-				globalConfig.saveToDisk()
+				globalSettings.saveToDisk()
 			}
 		})
 		layoutConfiguration.placement?.let {
 			this.bounds = it
+		}
+		jMenuBar = MenuBarBuilder.createMenuBar {
+			// TODO add about
+			addWindowMenu(this@AvailProjectManager)
 		}
 	}
 
@@ -211,7 +223,7 @@ class AvailProjectManager constructor(
 	/**
 	 * Hide this [AvailProjectManager].
 	 */
-	fun hideProjectManager()
+	private fun hideProjectManager()
 	{
 		isVisible = false
 	}
@@ -222,8 +234,6 @@ class AvailProjectManager constructor(
 	private fun showProjectManager()
 	{
 		isVisible = true
-		// TODO this means all workbenches have been closed so we need to rebuild
-		//  the menu bar to remove the workbench menus.
 	}
 
 	/**
@@ -257,11 +267,11 @@ class AvailProjectManager constructor(
 					setCreateProjectsSize()
 					newHeight = 300
 					CreateProjectPanel(
-						globalConfig,
+						globalSettings,
 						{ project, path ->
 							AvailWorkbench.launchWorkbenchWithProject(
 								project,
-								globalConfig,
+								globalSettings,
 								path,
 								projectManager = this)
 							SwingUtilities.invokeLater {
@@ -373,10 +383,10 @@ class AvailProjectManager constructor(
 			}
 			return true
 		}
-		globalConfig.add(project, configPath)
+		globalSettings.add(project, configPath)
 		AvailWorkbench.launchWorkbenchWithProject(
 			project,
-			globalConfig,
+			globalSettings,
 			configPath,
 			projectManager = this@AvailProjectManager)
 		SwingUtilities.invokeLater {
@@ -423,7 +433,7 @@ class AvailProjectManager constructor(
 	}
 
 	/**
-	 * Open the [GlobalAvailConfiguration.favoriteKnownProject] if one is
+	 * Open the [GlobalAvailSettings.favoriteKnownProject] if one is
 	 * selected.
 	 *
 	 * @return
@@ -431,7 +441,7 @@ class AvailProjectManager constructor(
 	 */
 	private fun openFavorite (): Boolean
 	{
-		globalConfig.favoriteKnownProject?.let {
+		globalSettings.favoriteKnownProject?.let {
 			return openKnownProject(it)
 		}
 		return false
@@ -479,10 +489,10 @@ class AvailProjectManager constructor(
 					null
 				} ?: return@chooser
 
-				globalConfig.add(project, projectConfigFile.absolutePath)
+				globalSettings.add(project, projectConfigFile.absolutePath)
 				AvailWorkbench.launchWorkbenchWithProject(
 					project,
-					globalConfig,
+					globalSettings,
 					projectConfigFile.absolutePath,
 					projectManager = this@AvailProjectManager)
 				SwingUtilities.invokeLater {
@@ -502,7 +512,7 @@ class AvailProjectManager constructor(
 //				setAboutHandler { aboutAction.showDialog() } // TODO
 				setPreferencesHandler {
 					SettingsView(
-						globalConfig,
+						globalSettings,
 						this@AvailProjectManager,
 						latestVersion)
 				}

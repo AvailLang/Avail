@@ -33,7 +33,7 @@
 package avail.anvil.settings
 
 import avail.anvil.icons.structure.EditIcons
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.shortcuts.KeyboardShortcutCategory
 import java.awt.Color
@@ -65,10 +65,15 @@ import javax.swing.filechooser.FileNameExtensionFilter
  * @author Richard Arriaga
  */
 class ShortcutsPanel constructor(
-	val category: KeyboardShortcutCategory,
-	val globalConfig: GlobalAvailConfiguration
+	internal val category: KeyboardShortcutCategory,
+	private val settingsView: SettingsView
 ) : JPanel()
 {
+	/**
+	 * The environment settings.
+	 */
+	val globalSettings: GlobalAvailSettings get() = settingsView.globalSettings
+
 	/**
 	 * The panel that contains all the shortcuts.
 	 */
@@ -84,7 +89,7 @@ class ShortcutsPanel constructor(
 		SwingUtilities.invokeLater {
 			shortcutsPanel.removeAll()
 			category.shortcutsByDescription.forEach {
-				shortcutsPanel.add(ShortcutRow(it, globalConfig, this))
+				shortcutsPanel.add(ShortcutRow(it, settingsView, this))
 			}
 			shortcutsPanel.revalidate()
 			shortcutsPanel.repaint()
@@ -120,7 +125,7 @@ class ShortcutsPanel constructor(
 				ShortcutSettings.readFromFile(selectedFile)
 			if (shortcuts != null)
 			{
-				val m = globalConfig.shortcutSettings
+				val m = globalSettings.shortcutSettings
 					.attemptShortcutImport(shortcuts)
 				if (m.isNotEmpty())
 				{
@@ -195,7 +200,7 @@ class ShortcutsPanel constructor(
 		val result = showSaveDialog(this@ShortcutsPanel)
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			val shortcuts = globalConfig.shortcutSettings
+			val shortcuts = globalSettings.shortcutSettings
 			val target =
 				if (selectedFile.name.endsWith(".json"))
 				{
@@ -240,7 +245,7 @@ class ShortcutsPanel constructor(
 			toolTipText = "Resets all shortcuts across all categories to " +
 				"default key mappings"
 			addActionListener {
-				KeyboardShortcutCategory.resetAllToDefaults(globalConfig)
+				KeyboardShortcutCategory.resetAllToDefaults(globalSettings)
 				redrawShortcuts()
 			}
 		}
@@ -291,14 +296,14 @@ class ShortcutsPanel constructor(
  *
  * @property shortcut
  *   The [KeyboardShortcut] to show.
- * @property globalConfig
- *   The [GlobalAvailConfiguration]
+ * @property settingsView
+ *   The [SettingsView] this [ShortcutRow] ultimately belongs to.
  * @property parent
  *   The parent [ShortcutsPanel].
  */
 internal class ShortcutRow constructor(
 	private val shortcut: KeyboardShortcut,
-	private val globalConfig: GlobalAvailConfiguration,
+	private val settingsView: SettingsView,
 	val parent: ShortcutsPanel
 ): JPanel(GridBagLayout())
 {
@@ -334,7 +339,7 @@ internal class ShortcutRow constructor(
 	 */
 	private fun openEditDialog ()
 	{
-		EditShortcutDialog(globalConfig, parent, shortcut)
+		EditShortcutDialog(settingsView, parent, shortcut)
 	}
 
 	/**

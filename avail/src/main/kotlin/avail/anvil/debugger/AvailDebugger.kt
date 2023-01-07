@@ -97,6 +97,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -523,6 +524,20 @@ class AvailDebugger internal constructor (
 	/** A view of the source code for the selected frame. */
 	private val sourcePane =
 		CodePane(workbench, false)
+
+	/**
+	 * Change the font to the provided font name and size.
+	 *
+	 * @param name
+	 *   The [name][Font.name] of the [Font] to set.
+	 * @param updatedSize
+	 *   The size of the [Font] to set.
+	 */
+	fun changeCodeFont (name: String, updatedSize: Float)
+	{
+		disassemblyPane.font = Font.decode(name).deriveFont(updatedSize)
+		sourcePane.font = Font.decode(name).deriveFont(updatedSize)
+	}
 
 	/** The list of variables in scope in the selected frame. */
 	private val variablesPane = JList(arrayOf<Variable>()).apply {
@@ -966,7 +981,7 @@ class AvailDebugger internal constructor (
 						.addComponent(disassemblyPane.scroll(), 100, 100, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
-								workbench.globalConfig
+								workbench.globalSettings
 									.editorGuideLines),
 							100,
 							100,
@@ -992,7 +1007,7 @@ class AvailDebugger internal constructor (
 						.addComponent(disassemblyPane.scroll(), 150, 150, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
-								workbench.globalConfig
+								workbench.globalSettings
 									.editorGuideLines),
 							150,
 							150,

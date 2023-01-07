@@ -1,5 +1,5 @@
 /*
- * GlobalAvailConfigurationV1.kt
+ * GlobalAvailSettingsV1.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -39,11 +39,11 @@ import org.availlang.json.JSONWriter
 import java.awt.Font
 
 /**
- * Version 1 of [GlobalAvailConfiguration].
+ * Version 1 of [GlobalAvailSettings].
  *
  * @author Richard Arriaga
  */
-class GlobalAvailConfigurationV1: GlobalAvailConfiguration
+class GlobalAvailSettingsV1: GlobalAvailSettings
 {
 	override val serializationVersion: Int = 1
 	override val knownProjects = mutableSetOf<KnownAvailProject>()
@@ -83,32 +83,32 @@ class GlobalAvailConfigurationV1: GlobalAvailConfiguration
 	companion object
 	{
 		/**
-		 * Answer a [GlobalAvailConfigurationV1] from the provided [JSONObject].
+		 * Answer a [GlobalAvailSettingsV1] from the provided [JSONObject].
 		 *
 		 * @param obj
 		 *   The [JSONObject] to extract data from.
 		 * @return
-		 *   The [GlobalAvailConfigurationV1] read from disk.
+		 *   The [GlobalAvailSettingsV1] read from disk.
 		 */
-		fun from (obj: JSONObject): GlobalAvailConfigurationV1
+		fun from (obj: JSONObject): GlobalAvailSettingsV1
 		{
-			val config = GlobalAvailConfigurationV1()
+			val config = GlobalAvailSettingsV1()
 
-			obj.getStringOrNull(GlobalAvailConfigurationV1::favorite.name)?.let {
+			obj.getStringOrNull(GlobalAvailSettingsV1::favorite.name)?.let {
 				config.favorite = it
 			}
-			obj.getStringOrNull(GlobalAvailConfigurationV1::font.name)?.let {
+			obj.getStringOrNull(GlobalAvailSettingsV1::font.name)?.let {
 				config.font = it
 			}
 			obj.getFloatOrNull(
-				GlobalAvailConfigurationV1::codePaneFontSize.name)?.let {
+				GlobalAvailSettingsV1::codePaneFontSize.name)?.let {
 					config.codePaneFontSize = it
 			}
 			obj.getArrayOrNull(
-				GlobalAvailConfigurationV1::editorGuideLines.name)?.let {
+				GlobalAvailSettingsV1::editorGuideLines.name)?.let {
 					config.editorGuideLines.addAll(it.ints)
 			} ?: config.editorGuideLines.add(80)
-			obj.getArrayOrNull(GlobalAvailConfigurationV1::knownProjects.name)
+			obj.getArrayOrNull(GlobalAvailSettingsV1::knownProjects.name)
 				?.forEach { data ->
 					if (data.isObject)
 					{

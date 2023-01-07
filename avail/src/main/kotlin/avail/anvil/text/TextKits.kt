@@ -1229,7 +1229,7 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 			while (tQueue.hasNext())
 			{
 				val next = tQueue.next()
-				if (next.length < 2)
+				if (next.isEmpty())
 				{
 					append(next)
 				}

@@ -53,6 +53,15 @@ class OpenSettingsViewAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(e: ActionEvent?)
 	{
-		SettingsView(workbench.globalConfig, workbench, "")
+		val workbenches =
+			workbench.projectManager?.workbenches?.toList() ?: listOf(workbench)
+		SettingsView(workbench.globalSettings, workbench, "")
+		{ categories ->
+			workbenches.forEach { wb ->
+				categories.forEach {
+					it.update(workbench.globalSettings, wb)
+				}
+			}
+		}
 	}
 }

@@ -812,6 +812,7 @@ class RootTemplateEditPanel constructor(
 				templateRow.templateKey = templateKey
 				templateRow.workbench.saveProjectFileToDisk()
 				templateRow.parentPanel.redrawTemplates()
+				templateRow.workbench.refreshTemplates()
 			}
 		}
 	}

@@ -86,11 +86,11 @@ internal class CreateProjectDialog constructor(
 			}
 		})
 		add(CreateProjectPanel(
-			manager.globalConfig,
+			manager.globalSettings,
 			{ project, path ->
 				AvailWorkbench.launchWorkbenchWithProject(
 					project,
-					manager.globalConfig,
+					manager.globalSettings,
 					path,
 					projectManager = manager)
 				SwingUtilities.invokeLater {

@@ -35,7 +35,7 @@ import avail.anvil.createScrollPane
 import avail.anvil.icons.ProjectManagerIcons.arrowDropDown
 import avail.anvil.icons.ProjectManagerIcons.arrowDropUp
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.SettingsView
 import java.awt.Color
@@ -55,7 +55,7 @@ import javax.swing.ScrollPaneConstants
 import javax.swing.SwingUtilities
 
 /**
- * A [JPanel] that displays the [GlobalAvailConfiguration.knownProjects].
+ * A [JPanel] that displays the [GlobalAvailSettings.knownProjects].
  *
  * @author Richard Arriaga
  *
@@ -71,10 +71,10 @@ internal class KnownProjectsPanel constructor(
 ) : JPanel()
 {
 	/**
-	 * The [manager]'s [GlobalAvailConfiguration].
+	 * The [manager]'s [GlobalAvailSettings].
 	 */
-	private val globalConfig: GlobalAvailConfiguration
-		get() = manager.globalConfig
+	private val globalConfig: GlobalAvailSettings
+		get() = manager.globalSettings
 
 	/**
 	 * The mapping from [KnownAvailProject.id] to its represented
@@ -88,7 +88,7 @@ internal class KnownProjectsPanel constructor(
 	}
 
 	/**
-	 * The appropriately sorted [GlobalAvailConfiguration.knownProjects].
+	 * The appropriately sorted [GlobalAvailSettings.knownProjects].
 	 */
 	private var projectList = globalConfig.knownProjectsByLastOpenedDescending
 

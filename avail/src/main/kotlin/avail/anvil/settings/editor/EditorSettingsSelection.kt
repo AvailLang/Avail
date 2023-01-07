@@ -32,8 +32,9 @@
 
 package avail.anvil.settings.editor
 
-import avail.anvil.environment.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.settings.SettingPanelSelection
+import avail.anvil.settings.SettingsCategory
 import avail.anvil.settings.SettingsView
 import java.awt.Color
 import java.awt.Dimension
@@ -60,8 +61,8 @@ class EditorSettingsSelection constructor(
 ): SettingPanelSelection("Editor", settingsView)
 {
 
-	/** The [GlobalAvailConfiguration]. */
-	internal val config get() = settingsView.globalConfig
+	/** The [GlobalAvailSettings]. */
+	internal val config get() = settingsView.globalSettings
 
 	override fun updateSettingsPane()
 	{
@@ -95,7 +96,9 @@ class EditorSettingsSelection constructor(
 				guidelines.update()
 				fontSize.update()
 				font.update()
-				settingsView.globalConfig.saveToDisk()
+				settingsView.globalSettings.saveToDisk()
+				settingsView.onUpdate(
+					setOf(SettingsCategory.EDITOR))
 			}
 		}
 

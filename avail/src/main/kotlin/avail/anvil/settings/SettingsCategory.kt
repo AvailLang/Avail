@@ -1,5 +1,5 @@
 /*
- * ShortcutsSelection.kt
+ * SettingsCategory.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,46 +32,75 @@
 
 package avail.anvil.settings
 
-import avail.anvil.shortcuts.KeyboardShortcutCategory
-import java.awt.Dimension
-import javax.swing.JTabbedPane
+import avail.anvil.AvailEditor
+import avail.anvil.AvailWorkbench
+import avail.anvil.environment.GlobalAvailSettings
 
 /**
- * The [SettingPanelSelection] used for showing the shortcut settings.
+ * The different settings categories that can be changed.
  *
  * @author Richard Arriaga
- *
- * @constructor
- * Construct a [ShortcutsSelection].
- *
- * @param settingsView
- *   The parent [SettingsView].
  */
-class ShortcutsSelection constructor(
-	settingsView: SettingsView
-): SettingPanelSelection("Shortcuts", settingsView)
+enum class SettingsCategory
 {
-	override fun updateSettingsPane()
+	/**
+	 * [AvailEditor] settings.
+	 */
+	EDITOR
 	{
-		val tabs = JTabbedPane(JTabbedPane.TOP, JTabbedPane.WRAP_TAB_LAYOUT)
-
-		KeyboardShortcutCategory.values().forEach {
-			tabs.addTab(
-				it.display,
-				ShortcutsPanel(it, settingsView)
-					.redrawShortcuts())
+		override fun update(
+			settings: GlobalAvailSettings,
+			workbench: AvailWorkbench)
+		{
+			workbench.transcript.changeFont(
+				settings.font,
+				settings.codePaneFontSize)
+			workbench.openEditors.values.forEach { editor ->
+				editor.sourcePane.changeFont(
+					settings.font,
+					settings.codePaneFontSize)
+			}
 		}
-		tabs.minimumSize = Dimension(700, 750)
-		tabs.preferredSize = Dimension(700, 750)
-		tabs.maximumSize = Dimension(700, 750)
-		settingsView.rightPanel.removeAll()
-		settingsView.rightPanel.revalidate()
-		settingsView.rightPanel.add(tabs)
-		settingsView.rightPanel.repaint()
-	}
+	},
 
-	init
+	/**
+	 * Expansion template settings.
+	 */
+	TEMPLATES
 	{
-		init()
-	}
+		override fun update(
+			settings: GlobalAvailSettings,
+			workbench: AvailWorkbench)
+		{
+			workbench.refreshTemplates()
+		}
+	},
+
+	/**
+	 * Keyboard shortcut settings.
+	 */
+	SHORTCUTS
+	{
+		override fun update(
+			settings: GlobalAvailSettings,
+			workbench: AvailWorkbench)
+		{
+			workbench.openEditors.values.forEach { editor ->
+				editor.refreshShortcuts()
+			}
+		}
+	};
+
+	/**
+	 * Update the settings for the given workbench associated with this
+	 * [SettingsCategory].
+	 *
+	 * @param settings
+	 *   The [GlobalAvailSettings].
+	 * @param workbench
+	 *   The [AvailWorkbench] to update the settings for.
+	 */
+	abstract fun update (
+		settings: GlobalAvailSettings,
+		workbench: AvailWorkbench)
 }
