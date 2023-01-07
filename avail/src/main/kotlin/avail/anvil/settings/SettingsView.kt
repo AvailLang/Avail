@@ -32,8 +32,10 @@
 
 package avail.anvil.settings
 
-import avail.anvil.manager.AvailProjectManager
+import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.settings.editor.EditorSettingsSelection
+import avail.anvil.versions.MavenCentralAPI
+import avail.anvil.versions.SearchResponse
 import java.awt.Color
 import java.awt.Dialog.ModalityType.DOCUMENT_MODAL
 import java.awt.Dimension
@@ -51,17 +53,55 @@ import javax.swing.ScrollPaneConstants
  *
  * @author Richard Arriaga
  *
- * @property manager
- *   The parent [AvailProjectManager] window.
+ * @property globalConfig
+ *   The environment's [GlobalAvailConfiguration] window.
+ *
+ * @constructor
+ * Construct a [SettingsView].
+ *
+ * @param globalConfig
+ *   The environment's [GlobalAvailConfiguration] window.
+ * @param parent
+ *   The parent [JFrame] that owns this [SettingsView].
+ * @param latestVersion
+ *   The latest Avail Standard Library version or an empty string if not known.
  */
 class SettingsView constructor (
-	internal val manager: AvailProjectManager,
-): JDialog(manager, "Settings", DOCUMENT_MODAL)
+	internal val globalConfig: GlobalAvailConfiguration,
+	parent: JFrame,
+	latestVersion: String = ""
+): JDialog(parent, "Settings", DOCUMENT_MODAL)
 {
+	/**
+	 * The latest Avail Standard Library version.
+	 */
+	internal var latestVersion: String = latestVersion
+		private set
+
 	/**
 	 * The currently selected [SettingPanelSelection].
 	 */
 	var selected: SettingPanelSelection
+
+	init
+	{
+		if (latestVersion.isEmpty())
+		{
+			MavenCentralAPI.searchAvailStdLib(
+				{
+					val rsp = SearchResponse.parse(it)
+					if (rsp == null)
+					{
+						System.err.println("Couldn't parse response:\n$it")
+						return@searchAvailStdLib
+					}
+					this.latestVersion = rsp.latestLibVersion
+				}
+			) { c, m ->
+				System.err.println("Failed to get latest version: $c\n$m")
+			}
+		}
+	}
 
 	/**
 	 * The top panel that has sorting options and can open a project.
@@ -107,7 +147,7 @@ class SettingsView constructor (
 			add(rightPanel)
 		})
 		selected.updateSettingsPane()
-		setLocationRelativeTo(manager)
+		setLocationRelativeTo(parent)
 		isVisible = true
 	}
 }

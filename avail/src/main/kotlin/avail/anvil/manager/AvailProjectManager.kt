@@ -32,20 +32,25 @@
 
 package avail.anvil.manager
 
+import avail.AvailRuntimeConfiguration
 import avail.anvil.AvailWorkbench
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.*
 import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.environment.projectManagerLayoutFile
 import avail.anvil.projects.KnownAvailProject
+import avail.anvil.settings.SettingsView
 import avail.anvil.versions.MavenCentralAPI
 import avail.anvil.versions.SearchResponse
 import avail.anvil.window.LayoutConfiguration
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.json.jsonObject
+import java.awt.Desktop
 import java.awt.Dimension
+import java.awt.Taskbar
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
+import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JFileChooser
 import javax.swing.JFrame
@@ -217,6 +222,8 @@ class AvailProjectManager constructor(
 	private fun showProjectManager()
 	{
 		isVisible = true
+		// TODO this means all workbenches have been closed so we need to rebuild
+		//  the menu bar to remove the workbench menus.
 	}
 
 	/**
@@ -481,6 +488,31 @@ class AvailProjectManager constructor(
 				SwingUtilities.invokeLater {
 					hideProjectManager()
 				}
+			}
+		}
+	}
+
+	init
+	{
+		if (System.getProperty("os.name").startsWith("Mac"))
+		{
+			// Set up desktop and taskbar features.
+			Desktop.getDesktop().run {
+				setDefaultMenuBar(jMenuBar)
+//				setAboutHandler { aboutAction.showDialog() } // TODO
+				setPreferencesHandler {
+					SettingsView(
+						globalConfig,
+						this@AvailProjectManager,
+						latestVersion)
+				}
+			}
+			Taskbar.getTaskbar().run {
+				iconImage = ImageIcon(
+					AvailWorkbench::class.java.classLoader.getResource(
+						"resources/workbench/AvailHammer.png")
+				).image
+				setIconBadge(AvailRuntimeConfiguration.activeVersionSummary)
 			}
 		}
 	}

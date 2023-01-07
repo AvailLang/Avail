@@ -61,7 +61,7 @@ class EditorSettingsSelection constructor(
 {
 
 	/** The [GlobalAvailConfiguration]. */
-	internal val config get() = settingsView.manager.globalConfig
+	internal val config get() = settingsView.globalConfig
 
 	override fun updateSettingsPane()
 	{
@@ -95,7 +95,7 @@ class EditorSettingsSelection constructor(
 				guidelines.update()
 				fontSize.update()
 				font.update()
-				settingsView.manager.globalConfig.saveToDisk()
+				settingsView.globalConfig.saveToDisk()
 			}
 		}
 

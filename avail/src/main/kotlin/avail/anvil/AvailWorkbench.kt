@@ -60,10 +60,9 @@ import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenModuleAction
 import avail.anvil.actions.OpenProjectAction
-import avail.anvil.actions.OpenShortcutManagerAction
+import avail.anvil.actions.OpenSettingsViewAction
 import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
-import avail.anvil.actions.PreferencesAction
 import avail.anvil.actions.RefreshAction
 import avail.anvil.actions.RemoveRootAction
 import avail.anvil.actions.ResetCCReportDataAction
@@ -101,8 +100,8 @@ import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
+import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
-import avail.anvil.settings.ShortcutManager
 import avail.anvil.streams.BuildInputStream
 import avail.anvil.streams.BuildOutputStream
 import avail.anvil.streams.BuildOutputStreamEntry
@@ -466,9 +465,6 @@ class AvailWorkbench internal constructor(
 	/** The [&quot;about Avail&quot; action][AboutAction]. */
 	private val aboutAction = AboutAction(this)
 
-	/** The [&quot;Preferences...&quot; action][PreferencesAction]. */
-	private val preferencesAction = PreferencesAction(this)
-
 	/** The [build action][BuildAction]. */
 	internal val buildAction = BuildAction(this, false)
 
@@ -627,8 +623,8 @@ class AvailWorkbench internal constructor(
 	/** The action to open another [AvailWorkbench] for an [AvailProject]. */
 	private val openProjectAction = OpenProjectAction(this)
 
-	/** The action to open the [ShortcutManager]. */
-	private val openShortcutManagerAction = OpenShortcutManagerAction(this)
+	/** The action to open the [SettingsView]. */
+	private val openSettingsViewAction = OpenSettingsViewAction(this)
 
 	/** The action to open the [TemplateExpansionsManager]. */
 	private val openTemplateExpansionManagerAction =
@@ -668,11 +664,6 @@ class AvailWorkbench internal constructor(
 
 	/** Whether an entry point invocation (command line) is executing. */
 	var isRunning = false
-
-	/**
-	 * The open [ShortcutManager] view or `null` if not open.
-	 */
-	var shortcutManager: ShortcutManager? = null
 
 	/**
 	 * The [TemplateExpansionsManager] view or `null` if not open.
@@ -1866,7 +1857,7 @@ class AvailWorkbench internal constructor(
 			menu("Settings")
 			{
 				item(openTemplateExpansionManagerAction)
-				item(openShortcutManagerAction)
+				item(openSettingsViewAction)
 			}
 			addWindowMenu(this@AvailWorkbench)
 			if (showDeveloperTools)
@@ -2170,9 +2161,6 @@ class AvailWorkbench internal constructor(
 				openEditors.values.forEach {
 					it.dispatchEvent(WindowEvent(it, WindowEvent.WINDOW_CLOSING))
 				}
-				shortcutManager?.apply {
-					dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-				}
 				templateExpansionManager?.apply {
 					dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
 				}
@@ -2185,7 +2173,7 @@ class AvailWorkbench internal constructor(
 				setDefaultMenuBar(jMenuBar)
 				setAboutHandler { aboutAction.showDialog() }
 				setPreferencesHandler {
-					preferencesAction.actionPerformed(null)
+					openSettingsViewAction.actionPerformed(null)
 				}
 			}
 			jMenuBar.maximumSize = Dimension(0, 0)

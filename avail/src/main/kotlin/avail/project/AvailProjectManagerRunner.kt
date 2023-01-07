@@ -67,6 +67,7 @@ object AvailProjectManagerRunner
 			// enable screen menu bar
 			// (moves menu bar from JFrame window to top of screen)
 			System.setProperty("apple.laf.useScreenMenuBar", "true")
+			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Anvil")
 
 			// appearance of window title bars
 			// possible values:

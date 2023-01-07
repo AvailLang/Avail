@@ -42,7 +42,7 @@ import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenModuleAction
 import avail.anvil.actions.RefreshAction
 import avail.anvil.actions.SearchOpenModuleDialogAction
-import avail.anvil.actions.OpenShortcutManagerAction
+import avail.anvil.actions.OpenSettingsViewAction
 import avail.anvil.shortcuts.ModifierKey.*
 import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 
@@ -163,13 +163,13 @@ object CancelBuildActionShortcut
 }
 
 /**
- * [WorkbenchShortcut] for the [OpenShortcutManagerAction].
+ * [WorkbenchShortcut] for the [OpenSettingsViewAction].
  *
  * @author Richard Arriaga
  */
-object OpenShortcutManagerShortcut
+object OpenSettingsViewShortcut
 	: WorkbenchShortcut(KeyCode.VK_COMMA.with(menuShortcutKeyMaskEx))
 {
-	override val actionMapKey: String = "shortcuts"
-	override val description: String = "Open This Shortcuts Window"
+	override val actionMapKey: String = "settings"
+	override val description: String = "Open Settings Window"
 }

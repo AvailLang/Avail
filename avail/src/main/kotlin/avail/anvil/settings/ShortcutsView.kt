@@ -1,5 +1,5 @@
 /*
- * ShortcutManager.kt
+ * ShortcutsView.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,7 +32,6 @@
 
 package avail.anvil.settings
 
-import avail.anvil.AvailWorkbench
 import avail.anvil.icons.structure.EditIcons
 import avail.anvil.environment.GlobalAvailConfiguration
 import avail.anvil.shortcuts.KeyboardShortcut
@@ -46,64 +45,19 @@ import java.awt.GridBagConstraints.EAST
 import java.awt.GridBagLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
 import java.io.File
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JFileChooser
-import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JScrollPane
-import javax.swing.JTabbedPane
 import javax.swing.SwingUtilities
 import javax.swing.filechooser.FileFilter
 import javax.swing.filechooser.FileNameExtensionFilter
-
-/**
- * The [JFrame] that presents the different [KeyboardShortcut]s.
- *
- * @author Richard Arriaga
- *
- * @property workbench
- *   The active [AvailWorkbench].
- */
-class ShortcutManager internal constructor(
-	val workbench: AvailWorkbench
-): JFrame("Shortcuts")
-{
-	val tabs: JTabbedPane =
-		JTabbedPane(JTabbedPane.TOP, JTabbedPane.WRAP_TAB_LAYOUT)
-
-	init
-	{
-		KeyboardShortcutCategory.values().forEach {
-			 tabs.addTab(
-				 it.display,
-				 ShortcutsPanel(it, workbench.globalConfig)
-					 .redrawShortcuts())
-		}
-		contentPane.add(tabs)
-		minimumSize = Dimension(700, 800)
-		preferredSize = Dimension(700, 800)
-		maximumSize = Dimension(700, 1200)
-		pack()
-		addWindowListener(object : WindowAdapter()
-		{
-			override fun windowClosing(e: WindowEvent)
-			{
-				workbench.shortcutManager = null
-			}
-		})
-		setLocationRelativeTo(workbench)
-		isVisible = true
-		workbench.shortcutManager = this
-	}
-}
 
 /**
  * A [JPanel] that displays all the shortcuts.

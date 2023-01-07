@@ -58,7 +58,7 @@ class ShortcutsSelection constructor(
 		KeyboardShortcutCategory.values().forEach {
 			tabs.addTab(
 				it.display,
-				ShortcutsPanel(it, settingsView.manager.globalConfig)
+				ShortcutsPanel(it, settingsView.globalConfig)
 					.redrawShortcuts())
 		}
 		tabs.minimumSize = Dimension(700, 750)

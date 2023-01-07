@@ -239,7 +239,7 @@ internal class KnownProjectsPanel constructor(
 				Dimension(currentWidth + 100, currentHeight + 40)
 			maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
 			addActionListener {
-				SettingsView(manager)
+				SettingsView(globalConfig, manager, manager.latestVersion)
 			}
 		})
 		if (showCreateButton)

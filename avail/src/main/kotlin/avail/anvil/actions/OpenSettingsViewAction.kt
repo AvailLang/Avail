@@ -1,5 +1,5 @@
 /*
- * OpenShortcutManagerAction.kt
+ * OpenSettingsViewAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,34 +33,26 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.settings.ShortcutManager
-import avail.anvil.shortcuts.OpenShortcutManagerShortcut
+import avail.anvil.settings.SettingsView
+import avail.anvil.shortcuts.OpenSettingsViewShortcut
 import java.awt.event.ActionEvent
 
 /**
- * The [AbstractWorkbenchAction] that opens the [ShortcutManager]
+ * The [AbstractWorkbenchAction] that opens the [SettingsView]
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct a new [OpenShortcutManagerAction].
+ * Construct a new [OpenSettingsViewAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class OpenShortcutManagerAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Shortcuts", OpenShortcutManagerShortcut)
+class OpenSettingsViewAction constructor(workbench: AvailWorkbench)
+	: AbstractWorkbenchAction(workbench, "Settings", OpenSettingsViewShortcut)
 {
 	override fun actionPerformed(e: ActionEvent?)
 	{
-		val scm = workbench.shortcutManager
-		if (scm == null)
-		{
-			workbench.shortcutManager = ShortcutManager(workbench)
-		}
-		else
-		{
-			scm.toFront()
-		}
+		SettingsView(workbench.globalConfig, workbench, "")
 	}
 }

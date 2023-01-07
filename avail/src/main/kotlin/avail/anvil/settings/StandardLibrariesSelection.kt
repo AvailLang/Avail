@@ -78,7 +78,7 @@ class StandardLibrariesSelection constructor(
 		}
 		val libraries = availStandardLibraries
 		val latest =
-			this@StandardLibrariesSelection.settingsView.manager.latestVersion
+			this@StandardLibrariesSelection.settingsView.latestVersion
 		if (latest.isNotEmpty())
 		{
 			val latestJarName = "avail-stdlib-$latest.jar"
