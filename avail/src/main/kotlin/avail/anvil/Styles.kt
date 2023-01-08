@@ -41,6 +41,10 @@ import avail.anvil.StyleFlag.StrikeThrough
 import avail.anvil.StyleFlag.Subscript
 import avail.anvil.StyleFlag.Superscript
 import avail.anvil.StyleFlag.Underline
+import avail.anvil.StylePatternCompiler.Companion.compile
+import avail.anvil.StylePatternCompiler.ExactMatchToken
+import avail.anvil.StylePatternCompiler.SubsequenceToken
+import avail.anvil.StylePatternCompiler.SuccessionToken
 import avail.anvil.StyleRuleContextState.ACCEPTED
 import avail.anvil.StyleRuleContextState.PAUSED
 import avail.anvil.StyleRuleContextState.REJECTED
@@ -50,6 +54,7 @@ import avail.anvil.StyleRuleExecutor.run
 import avail.anvil.StyleRuleInstructionCoder.Companion.decodeInstruction
 import avail.anvil.streams.StreamStyle
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
+import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.io.NybbleArray
 import avail.io.NybbleInputStream
 import avail.io.NybbleOutputStream
@@ -890,6 +895,10 @@ private data class StyleAspects constructor(
 
 //////////////////////////// TODO: New stuff after. ////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
+//                                Stylesheets.                                //
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * An [AvailProject] contains a [stylesheet][Stylesheet] that dictates how an
  * Avail source viewer/editor should render a source region tagged with one or
@@ -922,13 +931,115 @@ private data class StyleAspects constructor(
  * final result is memoized (to the sequence `S`).
  *
  * @property styleRules
- *   The [style&#32;rules][StyleRule] that survived
- *   [compilation][StylePatternCompiler].
+ *   The [style&#32;rules][StyleRule].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class Stylesheet constructor(val styleRules: Set<StyleRule>)
 {
-	// TODO: Implement.
+	/**
+	 * Abstract the [Stylesheet] from the specified [project][AvailProject].
+	 *
+	 * @param project
+	 *   The project from which to decode the stylesheet.
+	 * @param errors
+	 *   The accumulator for errors, as pairs of invalid
+	 *   [patterns][UnvalidatedStylePattern] and
+	 *   [exceptions][StylePatternException]. When non-`null`, patterns that
+	 *   fail [compilation][compile] are excised from the result, and any
+	 *   relevant [StylePatternException]s are appended here; when `null`,
+	 *   the constructor will terminate abnormally (by raising a
+	 *   [StylePatternException]) upon encountering an invalid source
+	 *   pattern.
+	 * @throws StylePatternException
+	 *   If any of the source patterns fails [compilation][compile] for
+	 *   any reason.
+	 */
+	constructor(
+		project: AvailProject,
+		errors: MutableList<Pair<
+			UnvalidatedStylePattern, StylePatternException>>? = null
+	): this(project.stylesheet, project.palette, errors)
+	{
+		// No implementation required.
+	}
+
+	/**
+	 * Construct a [Stylesheet] from (1) the specified map of source patterns
+	 * and [style&#32;attributes][StyleAttributes] and (2) the
+	 * [palette][Palette] for final color selection.
+	 *
+	 * @param map
+	 *   The map of source patterns to their desired style attributes.
+	 * @param palette
+	 *   The palette.
+	 * @param errors
+	 *   The accumulator for errors, as pairs of invalid
+	 *   [patterns][UnvalidatedStylePattern] and
+	 *   [exceptions][StylePatternException]. When non-`null`, patterns that
+	 *   fail [compilation][compile] are excised from the result, and any
+	 *   relevant [StylePatternException]s are appended here; when `null`, the
+	 *   constructor will terminate abnormally (by raising a
+	 *   [StylePatternException]) upon encountering an invalid source pattern.
+	 * @throws StylePatternException
+	 *   If any of the source patterns fails [compilation][compile] for
+	 *   any reason.
+	 */
+	constructor(
+		map: Map<String, StyleAttributes>,
+		palette: Palette,
+		errors: MutableList<Pair<
+			UnvalidatedStylePattern, StylePatternException>>? = null
+	): this(compileRules(map, palette, errors))
+	{
+		// No implementation required.
+	}
+
+	companion object
+	{
+		/**
+		 * Compile the specified map from source patterns to
+		 * [style&#32;attributes][StyleAttributes], using the supplied
+		 * [palette][Palette] for final color selection.
+		 *
+		 * @param map
+		 *   The map of source patterns to their desired style attributes.
+		 * @param palette
+		 *   The palette.
+		 * @param errors
+		 *   The accumulator for errors, as pairs of invalid
+		 *   [patterns][UnvalidatedStylePattern] and
+		 *   [exceptions][StylePatternException]. When non-`null`, patterns that
+		 *   fail [compilation][compile] are excised from the result, and any
+		 *   relevant [StylePatternException]s are appended here; when `null`,
+		 *   the function will terminate abnormally (by raising a
+		 *   [StylePatternException]) upon encountering an invalid source
+		 *   pattern.
+		 * @return
+		 *   The compiled [rules][StyleRule].
+		 * @throws StylePatternException
+		 *   If [errors] is not `null` and any of the source patterns fails
+		 *   [compilation][compile] for any reason.
+		 */
+		private fun compileRules(
+			map: Map<String, StyleAttributes>,
+			palette: Palette,
+			errors: MutableList<Pair<
+				UnvalidatedStylePattern, StylePatternException>>? = null
+		): Set<StyleRule> =
+			map.mapNotNullTo(mutableSetOf()) { (source, attrs) ->
+				val context = UnvalidatedRenderingContext(attrs)
+				val pattern = UnvalidatedStylePattern(source, context)
+				try
+				{
+					compile(pattern, palette)
+				}
+				catch (e: StylePatternException)
+				{
+					errors?.add(pattern to e) ?: throw e
+					null
+				}
+			}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -952,7 +1063,290 @@ sealed class StylePattern constructor(
 	val source: String,
 	open val renderingContext: RenderingContext)
 {
+	/**
+	 * Determine the relative specificity of the receiver and the argument.
+	 * The relative specificity of two [patterns][StylePattern] is determined
+	 * according to the following criteria:
+	 *
+	 * * If two patterns are equal, then they are
+	 *   _[equally&#32;specific][Order.EQUAL]_.
+	 * * All exact matches are mutually _[incomparable][Order.INCOMPARABLE]_.
+	 * * Any exact match is _[more&#32;specific][Order.MORE]_ than any inexact
+	 *   match.
+	 * * For inexact matches, given two [patterns][StylePattern] `P` and `Q`,
+	 *   the following rules are applied in order:
+	 *    * If `P` contains `Q` and `|P| ≥ |Q|`, then `P` is
+	 *      _[more&#32;specific][Order.MORE]_.
+	 *    * If `|successions(P)| = `|successions(Q)|`, where `successions`
+	 *      computes the successions of its argument, and every succession of
+	 *      `P` is more specific than the corresponding succession of `Q`, then
+	 *      `P` is _[more&#32;specific][Order.MORE]_.
+	 *    * If `|successions(P)| = 1` and `|successions(Q)| > 1`, then `P` and
+	 *      `Q` are _[incomparable][Order.INCOMPARABLE]_.
+	 *    * If every succession of `P` occurs within `Q`, preserving order and
+	 *      advancing monotonically, and `|P| ≤ |Q|`, then `Q` is
+	 *      _[more&#32;specific][Order.MORE]_.
+	 *    * Otherwise, `P` and `Q` are _[incomparable][Order.INCOMPARABLE]_.
+	 *
+	 * @param other
+	 *   The pattern to check specificity against.
+	 * @return
+	 *   The [relation][Order] of the two patterns with respect to
+	 *   specificity.
+	 */
+	fun compareSpecificityTo(other: StylePattern): Order
+	{
+		// Eliminate whitespace, for simplicity.
+		val p = source.replace(findWhitespace, "")
+		val q = other.source.replace(findWhitespace, "")
+		// If the patterns are identical, then naturally they are equivalent.
+		if (p == q)
+		{
+			// e.g., p: #a <=> q: #a | p: #a,#b<#c,#d <=> q: #a,#b<#c,#d
+			return Order.EQUAL
+		}
+		// Now handle exact matches, because they follow special rules (which
+		// are easily/cheaply resolved).
+		when (val exactMatchOperator = ExactMatchToken.lexeme.first())
+		{
+			p.first() ->
+				return (
+					// e.g., p: =#a <=> q: =#b | p: =#a <=> q: =#a,#b
+					if (q.first() == exactMatchOperator) Order.INCOMPARABLE
+					// e.g., =#a <=> #a
+					else Order.MORE)
+			q.first() ->
+				// e.g., p: #a <=> q: =#b
+				return Order.LESS
+		}
+		// Both patterns are inexact. Now determine if one of the patterns
+		// embeds the other entirely. If so, then the larger of the two is the
+		// more specific.
+		when
+		{
+			p.contains(q) ->
+				// e.g., p: #a,#b,#b <=> q: #a,#b
+				return Order.MORE
+			q.contains(p) ->
+				// e.g., p: #a,#b <=> q: #a,#b,#b
+				return Order.LESS
+		}
+		// Neither pattern directly embeds the other. Decompose each pattern
+		// into its successions. If the succession counts of the two patterns
+		// are equal, then ascertain whether the successions are all comparable.
+		val pSuccessions = p.split(SubsequenceToken.lexeme)
+		val qSuccessions = q.split(SubsequenceToken.lexeme)
+		if (pSuccessions.size == qSuccessions.size)
+		{
+			// e.g., p: #a <=> q: #b
+			if (pSuccessions.size == 1) return Order.INCOMPARABLE
+			val specificities = pSuccessions.zip(qSuccessions)
+				.map { (a, b) -> a.compareSuccessionSpecificityTo(b) }
+			return when
+			{
+				// Every succession of p is less than or equally specific to the
+				// corresponding succession of q.
+				// e.g., p: #a<#b <=> q: #a,#b<#b
+				specificities.all { it.isLessOrEqual() } -> Order.LESS
+				// Every succession of p is more than or equally specific to the
+				// corresponding succession of q.
+				// e.g., p: #a,#b<#c <=> q: #b<#c
+				specificities.all { it.isMoreOrEqual() } -> Order.MORE
+				// e.g., p: #a<#b <=> q: #c<#d
+				// e.g., p: #a<#b <=> q: #a<#c
+				// e.g., p: #a,#b<#c <=> q: #a<#c,#d
+				else -> Order.INCOMPARABLE
+			}
+		}
+		// The two patterns have unequal succession counts. If either contains
+		// only a single succession, then the patterns are incomparable.
+		val shorter =
+			if (pSuccessions.size <= qSuccessions.size) pSuccessions
+			else qSuccessions
+		val longer = (
+			if (shorter === pSuccessions) qSuccessions
+			else pSuccessions
+		).toMutableList()
+		if (shorter.size == 1)
+		{
+			// e.g., p: #a,#b <=> q: #a<#b | p: #a,#b,#c <=> #a<#b<#c
+			// e.g., p: #a<#b <=> q: #a,#b | p: #a<#b<#c <=> #a,#b,#c
+			return Order.INCOMPARABLE
+		}
+		// If every succession of one pattern is comparable to one in the other
+		// pattern, preserving order, then the longer pattern is more specific.
+		// Otherwise, the patterns are incomparable. Choose the shorter of the
+		// two patterns for the iteration, for a minor gain in efficiency.
+		val specificities = mutableListOf<Order>()
+		var index = 0
+		val indices = shorter.map { a ->
+			index = longer.subList(index, longer.size).indexOfFirst { b ->
+				// Find the earliest comparable element. Remember the result of
+				// the comparison, for use below.
+				val order = a.compareSuccessionSpecificityTo(b)
+				if (!order.isIncomparable())
+				{
+					specificities.add(order)
+					return@indexOfFirst true
+				}
+				false
+			}
+			index
+		}
+		if (indices.contains(-1))
+		{
+			// One of the successions of the smaller pattern was incomparable to
+			// any succession in the longer pattern. Therefore, the patterns are
+			// incomparable.
+			// e.g., p: #a<#b <=> q: #b<#a<#c
+			return Order.INCOMPARABLE
+		}
+		return when
+		{
+			pSuccessions.size < qSuccessions.size ->
+			{
+				assert(shorter === pSuccessions)
+				when
+				{
+					// Every succession of p is less specific or equally
+					// specific to a corresponding succession of q, so p is
+					// less specific than q.
+					// e.g., p: #a<#b <=> q: #a<#c<#b
+					// e.g., p: #a<#b <=> q: #a<#c,#d<#b
+					// e.g., p: #a<#b <=> q: #a<#c<#b<#d
+					// e.g., p: #a<#b <=> q: #a<#c<#d<#b
+					// e.g., p: #a<#b <=> q: #c<#a<#d<#b
+					// e.g., p: #a<#b <=> q: #c<#a<#d<#b<#e
+					// e.g., p: #a<#b<#c <=> q: #a<#d<#b<#c
+					// e.g., p: #a<#b<#c <=> q: #a<#c<#b<#c
+					// e.g., p: #a<#a<#b <=> q: #a<#b<#a<#b
+					// e.g., p: #a<#b<#a<#b <=> q: #a<#a<#b<#b<#a<#b
+					specificities.all { it.isLessOrEqual() } -> Order.LESS
+					// e.g., p: #a,b<#c <=> q: #a<#c<#d
+					else -> Order.INCOMPARABLE
+				}
+			}
+			specificities.all { it.isLessOrEqual() } ->
+			{
+				assert(pSuccessions.size > qSuccessions.size)
+				assert(shorter === qSuccessions)
+				// Every succession of q is less specific or equally
+				// specific to a corresponding succession of p, so p is
+				// more specific than q.
+				// e.g., p: #a<#c<#b <=> q: #a<#b
+				// e.g., p: #a<#c,#d<#b <=> q: #a<#b
+				// e.g., p: #a<#c<#b<#d <=> q: #a<#b
+				// e.g., p: #a<#c<#d<#b <=> q: #a<#b
+				// e.g., p: #c<#a<#d<#b <=> q: #a<#b
+				// e.g., p: #c<#a<#d<#b<#e <=> q: #a<#b
+				// e.g., p: #a<#d<#b<#c <=> q: #a<#b<#c
+				// e.g., p: #a<#b<#a<#b <=> q: #a<#a<#b
+				// e.g., p: #a<#a<#b<#b<#a<#b <=> q: #a<#b<#a<#b
+				Order.MORE
+			}
+			// e.g., p: #a,#b<#b#<#c <=> q: #a<#b,#c
+			else -> Order.INCOMPARABLE
+		}
+	}
+
 	override fun toString() = source
+
+	companion object
+	{
+		/**
+		 * A [regular&#32;expression][Regex] to find whitespace in a source
+		 * pattern.
+		 */
+		private val findWhitespace by lazy { "\\s+".toRegex() }
+
+		/**
+		 * A [regular&#32;expression][Regex] to find operators in a source
+		 * pattern.
+		 */
+		private val findOperator by lazy {
+			"${SuccessionToken.lexeme}|${SubsequenceToken.lexeme}".toRegex()
+		}
+
+		/**
+		 * Determine the relative specificity of the receiver and the argument,
+		 * where each is treated as a succession within some pattern.
+		 * The relative specificity of two successions is determined
+		 * according to the following criteria:
+		 *
+		 * * If the receiver and argument are equal, then they are
+		 *   _[equally&#32;specific][Order.EQUAL]_.
+		 * * If the receiver contains the argument, then the receiver is
+		 *   _[more&#32;specific][Order.MORE]_.
+		 * * Otherwise, the receiver and argument are
+		 *   _[equally&#32;specific][Order.EQUAL]_.
+		 *
+		 * @param other
+		 *   The succession to check specificity against.
+		 * @return
+		 *   The [relation][Order] of the two patterns with respect to
+		 *   specificity.
+		 */
+		private fun String.compareSuccessionSpecificityTo(other: String): Order
+		{
+			// If the patterns are identical, then they are equivalent.
+			if (this == other)
+			{
+				// e.g., p: #a <=> q: #a
+				return Order.EQUAL
+			}
+			// Determine if one of the successions embeds the other entirely. If
+			// so, then the larger of the two is the more specific.
+			when
+			{
+				this.contains(other) ->
+					// e.g., p: #a,#b,#b <=> q: #a,#b
+					return Order.MORE
+				other.contains(this) ->
+					// e.g., p: #a,#b <=> q: #a,#b,#b
+					return Order.LESS
+			}
+			// The successions are incomparable.
+			return Order.INCOMPARABLE
+		}
+
+		/**
+		 * Determine the first index at which [list] occurs as a sublist of the
+		 * receiver.
+		 *
+		 * @param list
+		 *   The list to find.
+		 * @return
+		 *   The zero-based index of the first occurrence of [list] in the
+		 *   receiver, or `-1` if [list] does not occur.
+		 */
+		private fun <T> List<T>.indexOfSublist(list: List<T>): Int
+		{
+			val listSize = list.size
+			if (listSize > size) return -1
+			for (index in 0 .. this.size - listSize)
+			{
+				val slice = subList(index, index + listSize)
+				if (slice == list) return index
+			}
+			return -1
+		}
+
+		/**
+		 * Compute the integral signum of the receiver.
+		 *
+		 * @return
+		 *   * `-1` if the receiver is `<0`
+		 *   * `0` if the receiver is `=0`
+		 *   * `1` if the receiver is `>0`
+		 */
+		private val Int.signum get() =
+			when
+			{
+				this < 0 -> -1
+				this == 0 -> 0
+				else -> 1
+			}
+	}
 }
 
 /**
@@ -976,6 +1370,26 @@ class UnvalidatedStylePattern constructor(
 	source: String,
 	override val renderingContext: UnvalidatedRenderingContext
 ): StylePattern(source, renderingContext)
+{
+	/**
+	 * Validate the [receiver][UnvalidatedStylePattern] against the supplied
+	 * [palette][Palette]. If validation succeeds, then answer a
+	 * [ValidatedStylePattern] that includes the validated source and all
+	 * attributes of the [rendering&#32;context][renderingContext].
+	 *
+	 * @param palette
+	 *   The [Palette], for interpreting the
+	 *   [foreground][StyleAttributes.foreground] and
+	 *   [background][StyleAttributes.background] colors for text rendition.
+	 * @return
+	 *   The [ValidatedStylePattern].
+	 * @throws RenderingContextValidationException
+	 *   If the palette is missing any referenced colors.
+	 */
+	fun validate(palette: Palette) = ValidatedStylePattern(
+		source,
+		renderingContext.validate(palette))
+}
 
 /**
  * A [style&#32;pattern][StylePattern] that has been successfully validated by
@@ -1028,7 +1442,7 @@ class StylePatternCompiler private constructor(
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private sealed class Token
+	internal sealed class Token
 	{
 		/**
 		 * The one-based character position with the source pattern of the
@@ -1047,7 +1461,7 @@ class StylePatternCompiler private constructor(
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private data class EndOfPatternToken constructor(
+	internal data class EndOfPatternToken constructor(
 		override val position: Int
 	): Token()
 	{
@@ -1065,7 +1479,7 @@ class StylePatternCompiler private constructor(
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private data class StyleClassifierToken constructor(
+	internal data class StyleClassifierToken constructor(
 		override val position: Int,
 		override val lexeme: String
 	): Token()
@@ -1078,7 +1492,7 @@ class StylePatternCompiler private constructor(
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private data class ExactMatchToken(override val position: Int = 0): Token()
+	internal data class ExactMatchToken(override val position: Int = 0): Token()
 	{
 		override val lexeme get() = ExactMatchToken.lexeme
 
@@ -1095,7 +1509,7 @@ class StylePatternCompiler private constructor(
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private data class SuccessionToken(override val position: Int = 0): Token()
+	internal data class SuccessionToken(override val position: Int = 0): Token()
 	{
 		override val lexeme get() = SuccessionToken.lexeme
 
@@ -1113,7 +1527,7 @@ class StylePatternCompiler private constructor(
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private data class SubsequenceToken(override val position: Int = 0): Token()
+	internal data class SubsequenceToken(override val position: Int = 0): Token()
 	{
 		override val lexeme get() = SubsequenceToken.lexeme
 
@@ -1131,7 +1545,7 @@ class StylePatternCompiler private constructor(
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
 	 */
-	private data class InvalidToken constructor(
+	internal data class InvalidToken constructor(
 		override val position: Int,
 		override val lexeme: String
 	): Token()
@@ -1797,8 +2211,7 @@ class StylePatternCompiler private constructor(
 	val rule: StyleRule by lazy {
 		val codeGenerator = CodeGenerator()
 		StyleRule(
-			source,
-			pattern.renderingContext.validate(palette),
+			pattern.validate(palette),
 			codeGenerator.instructions,
 			codeGenerator.literals.keys.toList())
 	}
@@ -1877,12 +2290,8 @@ class StylePatternException(
  * all rules that should be considered when determining how Avail source text
  * should be rendered.
  *
- * @property source
- *   The source text whence the rule was compiled.
- * @property renderingContext
- *   The [validated&#32;rendering&#32;context][ValidatedRenderingContext] to
- *   apply when this rule wins out over all others in the enclosing
- *   [stylesheet][Stylesheet].
+ * @property pattern
+ *   The [validated&#32;pattern][ValidatedStylePattern].
  * @property instructions
  *   The [instructions][StyleRuleInstruction] that implement the
  *   [pattern][ValidatedStylePattern]-matching program.
@@ -1898,12 +2307,8 @@ class StylePatternException(
  *
  * Construct a [StyleRule].
  *
- * @param source
- *   The source text whence the rule was compiled.
- * @param renderingContext
- *   The [validated&#32;rendering&#32;context][ValidatedRenderingContext] to
- *   apply when this rule wins out over all others in the enclosing
- *   [stylesheet][Stylesheet].
+ * @param pattern
+ *   The [validated&#32;pattern][ValidatedStylePattern].
  * @param instructions
  *   The [instructions][StyleRuleInstruction] that implement the
  *   [pattern][ValidatedStylePattern]-matching program.
@@ -1915,11 +2320,20 @@ class StylePatternException(
  *   [execution][StyleRuleExecutor.run].
  */
 class StyleRule constructor(
-	val source: String,
-	val renderingContext: ValidatedRenderingContext,
+	val pattern: ValidatedStylePattern,
 	val instructions: NybbleArray,
 	literals: List<String>)
 {
+	/** The source text whence the rule was compiled. */
+	val source get() = pattern.source
+
+	/**
+	 * The [validated&#32;rendering&#32;context][ValidatedRenderingContext] to
+	 * apply when this rule is not obsoleted by a more specific rule during
+	 * aggregate matching.
+	 */
+	val renderingContext get() = pattern.renderingContext
+
 	/** The [interned][String.intern] literals. */
 	private val literals = literals.map { it.intern() }
 
@@ -1939,6 +2353,23 @@ class StyleRule constructor(
 
 	/** The initial [StyleRuleContext] for running the receiver. */
 	val initialContext get() = StyleRuleContext(this, 0)
+
+	/**
+	 * Determine the relative specificity of the receiver and the argument.
+	 *
+	 * @param other
+	 *   The [rule][StyleRule] to check specificity against.
+	 * @return
+	 *   The relation of the two patterns with respect to specificity, as a
+	 *   [lax&#32;signum][Math.signum] value, i.e., `<0` if the receiver is less
+	 *   specific than the argument, `=0` if the receiver is equally specific as
+	 *   the argument, and `>0` if the receiver is more specific than the
+	 *   argument. The caller should not rely upon the exact values, only their
+	 *   displacement from `0`.
+	 * @see StylePattern.compareSpecificityTo
+	 */
+	fun compareSpecificityTo(other: StyleRule) =
+		pattern.compareSpecificityTo(other.pattern)
 
 	override fun toString() = buildString {
 		append(source)
@@ -1962,7 +2393,7 @@ class StyleRule constructor(
 			val programCounter = reader.position
 			val instruction = decodeInstruction(reader)
 			val assembly = instruction.toString()
-			val annotated = assembly.replace("#(\\d+)".toRegex()) {
+			val annotated = assembly.replace(findLiteralIndex) {
 				val literalIndex = it.groupValues[1].toInt()
 				"#$literalIndex <${literalAt(literalIndex)}>"
 			}
@@ -1977,6 +2408,15 @@ class StyleRule constructor(
 			.replace(", ", "\n\t")
 			.replace(")", "")
 		append(pretty)
+	}
+
+	companion object
+	{
+		/**
+		 * A [regular&#32;expression][Regex] to find a literal index in
+		 * disassembly text.
+		 */
+		private val findLiteralIndex by lazy { "#(\\d+)".toRegex() }
 	}
 }
 
@@ -2412,6 +2852,44 @@ data class StyleRuleContext constructor(
 	val programCounter: Int,
 	val state: StyleRuleContextState = PAUSED)
 {
+	/**
+	 * The literal style classifier that the [rule] will attempt to match given
+	 * this [context][StyleRuleContext], or `null` if the
+	 * [program&#32;counter][programCounter] is at the end of the
+	 * [instruction][StyleRuleInstruction] [stream][StyleRule.instructions].
+	 */
+	val literal get(): String?
+	{
+		// Find the first instruction that matches a style classifier.
+		val reader = rule.instructions.inputStream(programCounter)
+		while (true)
+		{
+			when (val opcode = reader.read())
+			{
+				MatchLiteralClassifier0.opcode,
+				MatchLiteralClassifier1.opcode,
+				MatchLiteralClassifier2.opcode,
+				MatchLiteralClassifier3.opcode ->
+					return rule.literalAt(
+						opcode - MatchLiteralClassifier0.opcode)
+				MatchLiteralClassifierN.opcode ->
+					return rule.literalAt(reader.unvlq() + 4)
+				MatchLiteralClassifierOrJump0.opcode,
+				MatchLiteralClassifierOrJump1.opcode,
+				MatchLiteralClassifierOrJump2.opcode,
+				MatchLiteralClassifierOrJump3.opcode ->
+					return rule.literalAt(
+						opcode - MatchLiteralClassifierOrJump0.opcode)
+				MatchLiteralClassifierOrJumpN.opcode ->
+					return rule.literalAt(reader.unvlq() + 4)
+				Fork.opcode -> {}
+				ForkN.opcode -> reader.unvlq()
+				MatchEndOfSequence.opcode -> return endOfSequenceLiteral
+				-1 -> return null
+			}
+		}
+	}
+
 	/**
 	 * A transform of the receiver without any representational singularities.
 	 * This simplifies detection of [successful][StyleRuleContextState.ACCEPTED]

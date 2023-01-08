@@ -623,8 +623,8 @@ fun JTextComponent.goTo(line: Int, characterInLine: Int = 0)
 	val lineStart = element.startOffset
 	val position = max(
 		min(
-		lineStart + characterInLine,
-		element.endOffset - 1
+			lineStart + characterInLine,
+			element.endOffset - 1
 		),
 		lineStart
 	)
