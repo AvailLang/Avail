@@ -1,6 +1,6 @@
 /*
- * TextFieldTextFieldButton.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * ShortcutsSelection.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,69 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.components
+package avail.anvil.settings
 
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
-import javax.swing.BorderFactory
-import javax.swing.JButton
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTextField
-import javax.swing.border.Border
+import avail.anvil.shortcuts.KeyboardShortcutCategory
+import java.awt.Dimension
+import javax.swing.JTabbedPane
 
 /**
- * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left of the
- * [JTextField] and a button to the right of the [JTextField].
+ * The [SettingPanelSelection] used for showing the shortcut settings.
  *
  * @author Richard Arriaga
+ *
+ * @constructor
+ * Construct a [ShortcutsSelection].
+ *
+ * @param settingsView
+ *   The parent [SettingsView].
  */
-class TextFieldTextFieldButton constructor(
-	val button: JButton = JButton("…"),
-	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
-): JPanel(GridBagLayout())
+class ShortcutsSelection constructor(
+	settingsView: SettingsView
+): SettingPanelSelection("Shortcuts", settingsView)
 {
-	/**
-	 * The [JLabel] to the left of the [JTextField].
-	 */
-	val textFieldLeft = JTextField().apply {
-			this@TextFieldTextFieldButton.add(
-				this,
-				GridBagConstraints().apply {
-					weightx = 0.5
-					weighty = 1.0
-					fill = GridBagConstraints.HORIZONTAL
-					gridx = 0
-					gridy = 0
-					gridwidth = 1
-				})
-		}
+	override fun updateSettingsPane()
+	{
+		val tabs = JTabbedPane(JTabbedPane.TOP, JTabbedPane.WRAP_TAB_LAYOUT)
 
-	/**
-	 * The [JTextField] that accepts the text input.
-	 */
-	val textFieldRight: JTextField = JTextField().apply {
-		this@TextFieldTextFieldButton.add(
-			this,
-			GridBagConstraints().apply {
-				weightx = 0.5
-				weighty = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 1
-				gridy = 0
-				gridwidth = 1
-			})
+		KeyboardShortcutCategory.values().forEach {
+			tabs.addTab(
+				it.display,
+				ShortcutsPanel(it, settingsView)
+					.redrawShortcuts())
+		}
+		tabs.minimumSize = Dimension(700, 750)
+		tabs.preferredSize = Dimension(700, 750)
+		tabs.maximumSize = Dimension(700, 750)
+		settingsView.rightPanel.removeAll()
+		settingsView.rightPanel.revalidate()
+		settingsView.rightPanel.add(tabs)
+		settingsView.rightPanel.repaint()
 	}
 
 	init
 	{
-		add(
-			button,
-			GridBagConstraints().apply {
-				gridx = 2
-				gridy = 0
-				gridwidth = 1
-			})
-		border = panelBorder
+		init()
 	}
 }

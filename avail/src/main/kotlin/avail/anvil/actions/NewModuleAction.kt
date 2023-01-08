@@ -34,13 +34,12 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.dialogs.NewModuleDialog
+import avail.anvil.shortcuts.NewModuleActionShortcut
 import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import java.io.File
 import javax.swing.Action
-import javax.swing.KeyStroke
 
 /**
  * Create a new module and open an editor on it.
@@ -57,7 +56,7 @@ constructor (
 ) : AbstractWorkbenchAction(
 	workbench,
 	"New module",
-	KeyStroke.getKeyStroke(KeyEvent.VK_N, AvailWorkbench.menuShortcutMask))
+	NewModuleActionShortcut)
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

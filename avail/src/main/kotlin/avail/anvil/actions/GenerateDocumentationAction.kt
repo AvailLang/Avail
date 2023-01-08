@@ -34,14 +34,13 @@ package avail.anvil.actions
 
 import avail.builder.AvailBuilder
 import avail.anvil.AvailWorkbench
+import avail.anvil.shortcuts.GenerateDocumentationActionShortcut
 import avail.anvil.tasks.DocumentationTask
 import avail.stacks.StacksGenerator
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import javax.swing.Action
-import javax.swing.KeyStroke
 
 /**
  * A `GenerateDocumentationAction` instructs the
@@ -60,7 +59,7 @@ constructor (
 ) : AbstractWorkbenchAction(
 	workbench,
 	"Generate Documentation",
-	KeyStroke.getKeyStroke(KeyEvent.VK_G, AvailWorkbench.menuShortcutMask))
+	GenerateDocumentationActionShortcut)
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

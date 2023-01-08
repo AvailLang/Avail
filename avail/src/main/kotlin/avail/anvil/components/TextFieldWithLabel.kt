@@ -32,24 +32,47 @@
 
 package avail.anvil.components
 
+import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.BorderFactory
+import javax.swing.Box
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.border.Border
 
 /**
- * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left
+ * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left of a
+ * [JTextField].
  *
  * @author Richard Arriaga
  */
 class TextFieldWithLabel constructor(
 	label: String,
+	emptySpaceRight: Double? = null,
+	emptySpaceLeft: Double? = null,
 	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
 ): JPanel(GridBagLayout())
 {
+	/**
+	 * The next column for the layout.
+	 */
+	private var nextColumn = 0
+
+	init
+	{
+		emptySpaceLeft?.let {
+			add(
+				Box.createRigidArea(Dimension(1, 1)),
+				GridBagConstraints().apply {
+					gridx = nextColumn++
+					gridy = 0
+					gridheight = 2
+					weightx = it
+				})
+		}
+	}
 
 	/**
 	 * The [JLabel] to the left of the [JTextField].
@@ -58,7 +81,7 @@ class TextFieldWithLabel constructor(
 			this@TextFieldWithLabel.add(
 				this,
 				GridBagConstraints().apply {
-					gridx = 0
+					gridx = nextColumn++
 					gridy = 0
 					gridwidth = 1
 				})
@@ -74,14 +97,27 @@ class TextFieldWithLabel constructor(
 				weightx = 0.75
 				weighty = 1.0
 				fill = GridBagConstraints.HORIZONTAL
-				gridx = 1
+				gridx = nextColumn++
 				gridy = 0
 				gridwidth = 1
 			})
 	}
 
+	/** The text in the [textField]. */
+	val input: String get() = textField.text
+
 	init
 	{
+		emptySpaceRight?.let {
+			add(
+				Box.createRigidArea(Dimension(1, 1)),
+				GridBagConstraints().apply {
+					gridx = nextColumn
+					gridy = 0
+					gridheight = 2
+					weightx = it
+				})
+		}
 		border = panelBorder
 	}
 }

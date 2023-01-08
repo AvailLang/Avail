@@ -33,9 +33,9 @@
 package avail.project
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.setupEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
-import org.availlang.artifact.environment.AvailEnvironment.optionallyCreateAvailUserHome
 import org.availlang.artifact.environment.location.InvalidLocation
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
@@ -78,12 +78,12 @@ object AvailProjectWorkbenchRunner
 				else -> throw RuntimeException(
 					"Avail project runner expects either" +
 						"\n\t0 arguments: The Avail Project config file, " +
-						"`avail-config.json`, is at the project directory " +
+						"`environment-config.json`, is at the project directory " +
 						"where this is being run from" +
 						"\n\t1 argument: The path, with name, of the project " +
 						"config file.")
 			}
-		optionallyCreateAvailUserHome()
+		setupEnvironment()
 		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
 			.removeSuffix(File.separator)
 		val availProject = try
@@ -104,10 +104,12 @@ object AvailProjectWorkbenchRunner
 		}
 		System.setProperty(
 			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())
-		val globalConfig = GlobalAvailConfiguration.getGlobalConfig().apply {
-			add(availProject, configFile.absolutePath)
-		}
-		AvailWorkbench.launchWorkbenchWithProject(
-			availProject, globalConfig, configFile.absolutePath)
+
+		AvailWorkbench.launchSoloWorkbench(
+			GlobalAvailSettings.getGlobalSettings().apply {
+				add(availProject, configFile.absolutePath)
+			},
+			availProject,
+			configFile.absolutePath)
 	}
 }

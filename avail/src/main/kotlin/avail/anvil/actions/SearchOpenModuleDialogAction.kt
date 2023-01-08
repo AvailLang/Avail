@@ -34,10 +34,9 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.dialogs.SearchOpenModuleDialog
+import avail.anvil.shortcuts.SearchOpenModuleDialogShortcut
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import javax.swing.Action
-import javax.swing.KeyStroke
 
 /**
  * Open a dialog to search for modules to be opened.
@@ -54,7 +53,7 @@ constructor (
 ) : AbstractWorkbenchAction(
 	workbench,
 	"Open module…",
-	KeyStroke.getKeyStroke(KeyEvent.VK_O, AvailWorkbench.menuShiftShortcutMask))
+	SearchOpenModuleDialogShortcut)
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

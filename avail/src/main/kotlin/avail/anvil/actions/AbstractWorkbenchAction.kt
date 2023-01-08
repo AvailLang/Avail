@@ -33,17 +33,20 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.shortcuts.KeyboardShortcut
 import javax.swing.AbstractAction
 import javax.swing.Action
 import javax.swing.JComponent
 import javax.swing.JRootPane
-import javax.swing.KeyStroke
 
 /**
  * An abstraction for all the workbench's actions.
  *
  * @property workbench
  *   The owning [AvailWorkbench].
+ * @property shortcut
+ *   The [KeyboardShortcut] used to invoke the action or `null` if there is no
+ *   shortcut for this [AbstractWorkbenchAction].
  *
  * @constructor
  * Construct a new [AbstractWorkbenchAction].
@@ -52,13 +55,16 @@ import javax.swing.KeyStroke
  *   The owning [AvailWorkbench].
  * @param name
  *   The action's name.
- * @param keyStroke
- *   The [KeyStroke] under which to install an action, with window-level scope.
+ * @param shortcut
+ *   The [KeyboardShortcut] used to invoke the action or `null` if there is no
+ *   shortcut for this [AbstractWorkbenchAction].
+ * @param rootPane
+ *   The [JRootPane] for the
  */
 abstract class AbstractWorkbenchAction constructor(
 	val workbench: AvailWorkbench,
 	name: String,
-	keyStroke: KeyStroke? = null,
+	private val shortcut: KeyboardShortcut? = null,
 	private val rootPane: JRootPane = workbench.rootPane
 ) : AbstractAction(name)
 {
@@ -66,7 +72,8 @@ abstract class AbstractWorkbenchAction constructor(
 
 	init
 	{
-		keyStroke?.let {
+		shortcut?.let {
+			val keyStroke = shortcut.keyStroke
 			putValue(Action.ACCELERATOR_KEY, keyStroke)
 			rootPane.actionMap.put(this, this)
 			rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(

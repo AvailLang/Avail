@@ -34,10 +34,9 @@ package avail.anvil.actions
 
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
+import avail.anvil.shortcuts.OpenModuleShortcut
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import javax.swing.Action
-import javax.swing.KeyStroke
 
 /**
  * Open an editor on the selected module.
@@ -54,7 +53,7 @@ constructor (
 ) : AbstractWorkbenchAction(
 	workbench,
 	"Open selected module",
-	KeyStroke.getKeyStroke(KeyEvent.VK_O, AvailWorkbench.menuShortcutMask))
+	OpenModuleShortcut)
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

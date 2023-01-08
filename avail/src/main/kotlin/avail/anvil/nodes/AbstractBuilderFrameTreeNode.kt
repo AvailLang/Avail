@@ -66,7 +66,7 @@ import javax.swing.tree.DefaultMutableTreeNode
  *   The builder for which this node is being built.
  */
 abstract class AbstractBuilderFrameTreeNode internal constructor(
-		internal val builder: AvailBuilder
+	internal val builder: AvailBuilder
 ) : DefaultMutableTreeNode(), Comparable<AbstractBuilderFrameTreeNode>
 {
 	/**

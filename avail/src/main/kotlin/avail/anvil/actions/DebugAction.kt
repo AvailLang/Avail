@@ -35,10 +35,9 @@ package avail.anvil.actions
 import avail.descriptor.fiber.A_Fiber
 import avail.anvil.AvailWorkbench
 import avail.anvil.debugger.AvailDebugger
+import avail.anvil.shortcuts.DebugActionShortcut
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import javax.swing.Action
-import javax.swing.KeyStroke
 
 /**
  * The [DebugAction] opens a debugger on all extant Avail [fibers][A_Fiber].
@@ -55,7 +54,7 @@ constructor(
 ) : AbstractWorkbenchAction(
 	workbench,
 	"Debug",
-	KeyStroke.getKeyStroke(KeyEvent.VK_D, AvailWorkbench.menuShortcutMask))
+	DebugActionShortcut)
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

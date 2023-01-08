@@ -33,13 +33,12 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.shortcuts.WorkbenchBuildShortcut
 import avail.anvil.tasks.BuildTask
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import javax.swing.Action
-import javax.swing.KeyStroke
 
 /**
  * A `BuildAction` launches a [build task][BuildTask] in a Swing worker thread.
@@ -67,8 +66,7 @@ constructor (
 	when
 	{
 		forEntryPointModule -> null
-		else -> KeyStroke.getKeyStroke(
-			KeyEvent.VK_ENTER, AvailWorkbench.menuShortcutMask)
+		else -> WorkbenchBuildShortcut
 	})
 {
 	override fun actionPerformed(event: ActionEvent)

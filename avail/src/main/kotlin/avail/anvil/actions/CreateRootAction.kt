@@ -39,7 +39,6 @@ import org.availlang.artifact.environment.location.AvailLocation.LocationType
 import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.jar.AvailArtifactJar
-import org.availlang.json.JSONWriter
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -127,14 +126,7 @@ constructor (
 				{
 					System.err.println(allFailures.joinToString("\n"))
 				}
-				val projectFilePath = workbench.availProjectFilePath
-				if (projectFilePath.isNotEmpty())
-				{
-					// Update the backing project file.
-					val writer = JSONWriter.newPrettyPrinterWriter()
-					workbench.availProject.writeTo(writer)
-					File(projectFilePath).writeText(writer.contents())
-				}
+				workbench.saveProjectFileToDisk()
 				workbench.refreshAction.runAction()
 			}
 		}

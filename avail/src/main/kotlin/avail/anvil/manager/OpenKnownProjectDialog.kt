@@ -1,6 +1,6 @@
 /*
- * AvailProjectManagerWindow.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * OpenKnownProjectDialog.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,91 +30,62 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.projects.manager
+package avail.anvil.manager
 
-import avail.anvil.projects.manager.AvailProjectManagerWindow.DisplayedPanel.*
-import avail.anvil.projects.GlobalAvailConfiguration
-import org.availlang.artifact.environment.project.AvailProject
+import avail.anvil.AvailWorkbench
+import avail.anvil.projects.KnownAvailProject
 import java.awt.Dimension
-import javax.swing.JComponent
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import javax.swing.JFrame
-import javax.swing.SwingUtilities
 import javax.swing.WindowConstants
 
 /**
- * The Avail start up window. This window is displayed when an Avail development
- * environment is started with no particular [AvailProject] file.
+ * A [JFrame] used to provide a dialog by which a user can open an existing
+ * [KnownAvailProject] in a new [AvailWorkbench].
  *
  * @author Richard Arriaga
+ *
+ * @property manager
+ *   The running [AvailProjectManager].
+ *
+ * @constructor
+ * Construct a new [OpenKnownProjectDialog].
+ * @param manager
+ *   The running [AvailProjectManager].
+ * @param workbench
+ *   The workbench that launched this [OpenKnownProjectDialog].
  */
-class AvailProjectManagerWindow constructor(
-	internal val globalConfig: GlobalAvailConfiguration
-): JFrame("Avail")
+internal class OpenKnownProjectDialog constructor(
+	val manager: AvailProjectManager,
+	workbench: AvailWorkbench
+): JFrame("Open Existing Project")
 {
 	init
 	{
-		minimumSize = Dimension(750, 400)
-		preferredSize = Dimension(750, 600)
-		maximumSize = Dimension(750, 900)
-	}
-	var displayed = KNOWN_PROJECTS
-
-	fun hideProjectManager()
-	{
-		isVisible = false
-	}
-	internal var displayedComponent: JComponent =
-		KnownProjectsPanel(globalConfig, this)
-
-	internal fun draw ()
-	{
-		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
-
-		displayedComponent =
-			when (displayed)
+		manager.openKnownProjectDialog = this
+		minimumSize = Dimension(760, 400)
+		preferredSize = Dimension(760, 600)
+		maximumSize = Dimension(760, 900)
+		defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
+		addWindowListener(object: WindowAdapter()
+		{
+			override fun windowClosing(e: WindowEvent?)
 			{
-				KNOWN_PROJECTS ->
-				{
-					title = "Avail Projects"
-					KnownProjectsPanel(globalConfig, this)
-				}
-				CREATE_PROJECT ->
-				{
-					title = "Create Project"
-					CreateProjectPanel(
-						globalConfig,
-						{
-
-						})
-					{
-						displayed = KNOWN_PROJECTS
-						SwingUtilities.invokeLater {
-							redraw()
-						}
-					}
-				}
+				manager.openKnownProjectDialog = null
 			}
-		add(displayedComponent)
-		pack()
+		})
+		add(KnownProjectsPanel(manager, false))
+		setLocationRelativeTo(workbench)
 		isVisible = true
 	}
 
-	internal
-	fun redraw ()
+	/**
+	 * Close this [OpenKnownProjectDialog].
+	 */
+	fun close ()
 	{
-		remove(displayedComponent)
-		draw()
-	}
-
-	enum class DisplayedPanel
-	{
-		KNOWN_PROJECTS,
-
-		CREATE_PROJECT
-	}
-
-	init
-	{
-		draw()
+		manager.openKnownProjectDialog = null
+		dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
 	}
 }

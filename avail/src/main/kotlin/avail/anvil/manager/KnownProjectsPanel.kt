@@ -1,6 +1,6 @@
 /*
  * KnownProjectsPanel.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,50 +29,53 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.anvil.projects.manager
+package avail.anvil.manager
 
-import avail.anvil.AvailWorkbench
 import avail.anvil.createScrollPane
 import avail.anvil.icons.ProjectManagerIcons.arrowDropDown
 import avail.anvil.icons.ProjectManagerIcons.arrowDropUp
-import avail.anvil.projects.manager.AvailProjectManagerWindow.DisplayedPanel.CREATE_PROJECT
-import avail.anvil.projects.GlobalAvailConfiguration
+import avail.anvil.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.projects.KnownAvailProject
-import org.availlang.artifact.environment.project.AvailProject
-import org.availlang.json.jsonObject
+import avail.anvil.settings.SettingsView
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.Font
-import java.io.File
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.ButtonGroup
 import javax.swing.JButton
-import javax.swing.JFileChooser
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 import javax.swing.JScrollPane
 import javax.swing.ScrollPaneConstants
 import javax.swing.SwingUtilities
-import javax.swing.filechooser.FileFilter
-import javax.swing.filechooser.FileNameExtensionFilter
 
 /**
- * A [JPanel] that displays the [GlobalAvailConfiguration.knownProjects].
+ * A [JPanel] that displays the [GlobalAvailSettings.knownProjects].
  *
  * @author Richard Arriaga
  *
- * @property config
- *   The [GlobalAvailConfiguration] to display content from.
+ * @property manager
+ *   The parent [AvailProjectManager] window.
+ * @property showCreateButton
+ *   `true` indicates the create project button should be added to the view;
+ *   `false` indicates no create project button should be added.
  */
 internal class KnownProjectsPanel constructor(
-	internal val config: GlobalAvailConfiguration,
-	internal val manager: AvailProjectManagerWindow
+	internal val manager: AvailProjectManager,
+	private val showCreateButton: Boolean = true
 ) : JPanel()
 {
+	/**
+	 * The [manager]'s [GlobalAvailSettings].
+	 */
+	private val globalConfig: GlobalAvailSettings
+		get() = manager.globalSettings
+
 	/**
 	 * The mapping from [KnownAvailProject.id] to its represented
 	 * [KnownProjectRow].
@@ -85,9 +88,9 @@ internal class KnownProjectsPanel constructor(
 	}
 
 	/**
-	 * The appropriately sorted [GlobalAvailConfiguration.knownProjects].
+	 * The appropriately sorted [GlobalAvailSettings.knownProjects].
 	 */
-	private var projectList = config.knownProjectsByLastOpenedDescending
+	private var projectList = globalConfig.knownProjectsByLastOpenedDescending
 
 	/**
 	 * Display projects sorted [KnownAvailProject.lastOpened] if `true`;
@@ -123,7 +126,7 @@ internal class KnownProjectsPanel constructor(
 	 * The top panel that has sorting options and can open a project.
 	 */
 	private val topPanel = JPanel().apply {
-		layout = (FlowLayout(FlowLayout.LEFT))
+		layout = FlowLayout(FlowLayout.LEFT)
 		minimumSize = Dimension(720, 50)
 		preferredSize = Dimension(750, 50)
 		maximumSize = Dimension(750, 50)
@@ -201,13 +204,9 @@ internal class KnownProjectsPanel constructor(
 	private val innerPanel: JPanel = JPanel().apply {
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)
 		projectList.forEach {
-			val row = KnownProjectRow(it, config, this@KnownProjectsPanel)
+			val row = KnownProjectRow(it, globalConfig, this@KnownProjectsPanel)
 			rowMap[it.id] = row
 			add(row)
-			if (it.id == config.favorite)
-			{
-				row.openProject()
-			}
 		}
 	}
 
@@ -221,104 +220,6 @@ internal class KnownProjectsPanel constructor(
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 	}
 
-
-	/**
-	 * The [JButton] to open a project from the file system.
-	 */
-	@Suppress("unused")
-	val openProjectButton = JButton("Open").apply {
-		isOpaque = true
-		val currentHeight = height
-		val currentWidth = width
-		minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
-		preferredSize = Dimension(currentWidth + 100, currentHeight + 40)
-		maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
-		addActionListener {
-			JFileChooser().apply chooser@ {
-				dialogTitle = "Select Avail Project Configuration File to Open"
-				fileSelectionMode = JFileChooser.FILES_ONLY
-				fileFilter = FileNameExtensionFilter("*.json", "json")
-				addChoosableFileFilter(
-					object : FileFilter()
-					{
-						override fun getDescription(): String
-						{
-							return "Avail Project Config (*.json)"
-						}
-
-						override fun accept(f: File?): Boolean
-						{
-							assert(f !== null)
-							return f!!.isFile
-								&& f.canWrite()
-								&& f.absolutePath.lowercase().endsWith(".json")
-						}
-					})
-				val result = showDialog(
-					this@KnownProjectsPanel,
-					"Select Project Config File")
-				if (result == JFileChooser.APPROVE_OPTION)
-				{
-					val configFile = selectedFile
-					val projectPath = configFile.absolutePath
-						.removeSuffix(configFile.name)
-						.removeSuffix(File.separator)
-					val project = try
-					{
-						AvailProject.from(
-							projectPath,
-							jsonObject(configFile.readText(Charsets.UTF_8)))
-					}
-					catch (e: Throwable)
-					{
-						e.printStackTrace()
-						null
-					} ?: return@chooser
-					config.add(project, configFile.absolutePath)
-					AvailWorkbench.launchWorkbenchWithProject(
-						project, config, configFile.absolutePath)
-					SwingUtilities.invokeLater {
-						manager.hideProjectManager()
-					}
-				}
-			}
-		}
-	}
-
-	/**
-	 * The button to use to show the create screen.
-	 */
-	val createButton = JButton("Create").apply {
-		isOpaque = true
-		val currentHeight = height
-		val currentWidth = width
-		minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
-		preferredSize = Dimension(currentWidth + 100, currentHeight + 40)
-		maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
-		addActionListener {
-			manager.displayed = CREATE_PROJECT
-			SwingUtilities.invokeLater {
-				manager.redraw()
-			}
-		}
-	}
-
-	/**
-	 * The button to use to show the create screen.
-	 */
-	val preferences = JButton("Preferences").apply {
-		isOpaque = true
-		val currentHeight = height
-		val currentWidth = width
-		minimumSize = Dimension(currentWidth + 150, currentHeight + 40)
-		preferredSize = Dimension(currentWidth + 150, currentHeight + 40)
-		maximumSize = Dimension(currentWidth + 150, currentHeight + 40)
-		addActionListener {
-			// TODO
-			println("Create Button Doesn't have a target screen yet!")
-		}
-	}
-
 	/**
 	 * The top panel that has sorting options and can open a project.
 	 */
@@ -328,9 +229,48 @@ internal class KnownProjectsPanel constructor(
 		preferredSize = Dimension(750, 50)
 		maximumSize = Dimension(750, 50)
 		background = Color(0x3C, 0x3F, 0x41)
-		add(preferences)
-		add(createButton)
-		add(openProjectButton)
+
+		add(JButton("Settings").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			preferredSize =
+				Dimension(currentWidth + 100, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			addActionListener {
+				SettingsView(globalConfig, manager, manager.latestVersion)
+			}
+		})
+		if (showCreateButton)
+		{
+			add(JButton("Create").apply {
+				isOpaque = true
+				val currentHeight = height
+				val currentWidth = width
+				minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
+				preferredSize =
+					Dimension(currentWidth + 100, currentHeight + 40)
+				maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
+				addActionListener {
+					manager.displayed = CREATE_PROJECT
+					SwingUtilities.invokeLater {
+						manager.redraw()
+					}
+				}
+			})
+		}
+		add(JButton("Open").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 100, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			addActionListener {
+				manager.openProject()
+			}
+		})
 	}
 
 	init
@@ -344,27 +284,25 @@ internal class KnownProjectsPanel constructor(
 		add(bottomPanel)
 	}
 
-	/**
-	 *
-	 */
+	/** Redraw the [KnownProjectRow]s. */
 	internal fun repopulateProjects ()
 	{
 		projectList =
 			when
 			{
 				byLastOpened and sortAscending ->
-					config.knownProjectsByLastOpenedAscending
+					globalConfig.knownProjectsByLastOpenedAscending
 				byLastOpened and !sortAscending ->
-					config.knownProjectsByLastOpenedDescending
+					globalConfig.knownProjectsByLastOpenedDescending
 				!byLastOpened and sortAscending ->
-					config.knownProjectsByAlphaAscending
-				else -> config.knownProjectsByAlphaDescending
+					globalConfig.knownProjectsByAlphaAscending
+				else -> globalConfig.knownProjectsByAlphaDescending
 			}
 		rowMap.clear()
 		SwingUtilities.invokeLater {
 			innerPanel.removeAll()
 			projectList.forEach {
-				val row = KnownProjectRow(it, config, this)
+				val row = KnownProjectRow(it, globalConfig, this)
 				rowMap[it.id] = row
 				innerPanel.add(row)
 			}

@@ -83,6 +83,10 @@ import avail.anvil.addWindowMenu
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
 import avail.anvil.scroll
 import avail.anvil.scrollTextWithLineNumbers
+import avail.anvil.shortcuts.ResumeActionShortcut
+import avail.anvil.shortcuts.StepIntoShortcut
+import avail.anvil.shortcuts.StepOutShortcut
+import avail.anvil.shortcuts.StepOverShortcut
 import avail.anvil.showTextRange
 import avail.anvil.text.CodePane
 import avail.descriptor.module.A_Module.Companion.stylingRecord
@@ -93,8 +97,8 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Font
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.Collections.synchronizedMap
@@ -113,7 +117,6 @@ import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JTextArea
-import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -354,7 +357,7 @@ class AvailDebugger internal constructor (
 	private val stepIntoAction = object : AbstractDebuggerAction(
 		this,
 		"Into (F7)",
-		KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0))
+		StepIntoShortcut)
 	{
 		override fun actionPerformed(e: ActionEvent) =
 			runtime.whenSafePointDo(debuggerPriority) {
@@ -379,7 +382,7 @@ class AvailDebugger internal constructor (
 	private val stepOverAction = object : AbstractDebuggerAction(
 		this,
 		"Over (F8)",
-		KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0))
+		StepOverShortcut)
 	{
 		init { isEnabled = false }
 
@@ -393,7 +396,7 @@ class AvailDebugger internal constructor (
 	private val stepOutAction = object : AbstractDebuggerAction(
 		this,
 		"Out (⇧F8)",
-		KeyStroke.getKeyStroke(KeyEvent.VK_F8, KeyEvent.SHIFT_DOWN_MASK))
+		StepOutShortcut)
 	{
 		init { isEnabled = false }
 
@@ -420,7 +423,7 @@ class AvailDebugger internal constructor (
 	private val resumeAction = object : AbstractDebuggerAction(
 		this,
 		"Resume (⌘R)",
-		KeyStroke.getKeyStroke(KeyEvent.VK_R, AvailWorkbench.menuShortcutMask))
+		ResumeActionShortcut)
 	{
 		override fun actionPerformed(e: ActionEvent)
 		{
@@ -514,10 +517,27 @@ class AvailDebugger internal constructor (
 	}
 
 	/** A view of the L1 disassembly for the selected frame. */
-	private val disassemblyPane = CodePane(workbench, false)
+	private val disassemblyPane =
+		CodePane(workbench, false)
+
 
 	/** A view of the source code for the selected frame. */
-	private val sourcePane = CodePane(workbench, false)
+	private val sourcePane =
+		CodePane(workbench, false)
+
+	/**
+	 * Change the font to the provided font name and size.
+	 *
+	 * @param name
+	 *   The [name][Font.name] of the [Font] to set.
+	 * @param updatedSize
+	 *   The size of the [Font] to set.
+	 */
+	fun changeCodeFont (name: String, updatedSize: Float)
+	{
+		disassemblyPane.font = Font.decode(name).deriveFont(updatedSize)
+		sourcePane.font = Font.decode(name).deriveFont(updatedSize)
+	}
 
 	/** The list of variables in scope in the selected frame. */
 	private val variablesPane = JList(arrayOf<Variable>()).apply {
@@ -960,7 +980,9 @@ class AvailDebugger internal constructor (
 					.addGroup(createSequentialGroup()
 						.addComponent(disassemblyPane.scroll(), 100, 100, max)
 						.addComponent(
-							sourcePane.scrollTextWithLineNumbers(),
+							sourcePane.scrollTextWithLineNumbers(
+								workbench.globalSettings
+									.editorGuideLines),
 							100,
 							100,
 							max))
@@ -984,7 +1006,9 @@ class AvailDebugger internal constructor (
 					.addGroup(createParallelGroup()
 						.addComponent(disassemblyPane.scroll(), 150, 150, max)
 						.addComponent(
-							sourcePane.scrollTextWithLineNumbers(),
+							sourcePane.scrollTextWithLineNumbers(
+								workbench.globalSettings
+									.editorGuideLines),
 							150,
 							150,
 							max))
