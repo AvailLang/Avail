@@ -43,6 +43,7 @@ import avail.anvil.StyleFlag.Superscript
 import avail.anvil.StyleFlag.Underline
 import avail.anvil.StylePatternCompiler.Companion.compile
 import avail.anvil.StylePatternCompiler.ExactMatchToken
+import avail.anvil.StylePatternCompiler.FailedMatchToken
 import avail.anvil.StylePatternCompiler.SubsequenceToken
 import avail.anvil.StyleRuleContextState.ACCEPTED
 import avail.anvil.StyleRuleContextState.PAUSED
@@ -1008,6 +1009,14 @@ class Stylesheet constructor(val rules: Set<StyleRule>)
 	}
 
 	/**
+	 * The [pattern][StylePattern] `"!"` handles renditions of classified
+	 * regions that do not match any other [pattern][StylePattern].
+	 */
+	private val noSolutionsRule by lazy(LazyThreadSafetyMode.PUBLICATION) {
+		rules.firstOrNull { it.source == FailedMatchToken.lexeme }
+	}
+
+	/**
 	 * The root [tree][StyleRuleTree] for rendering queries.
 	 */
 	private val rootTree by lazy(LazyThreadSafetyMode.PUBLICATION) {
@@ -1082,13 +1091,12 @@ class Stylesheet constructor(val rules: Set<StyleRule>)
 			// reference.
 			tree = tree[classifier.intern()]
 		}
-		// We have reached the tree containing the solution set. If there are no
-		// solutions, then we treat the region as though it were unclassified.
+		// We have reached the tree containing the solution set.
 		if (tree.solutions.isEmpty())
 		{
-			// There are no solutions, so we treat the region as though it were
-			// unclassified.
-			return unclassifiedRule?.renderingContext
+			// There are no solutions, then apply the special rule for failed
+			// matches.
+			return noSolutionsRule?.renderingContext
 				?: ValidatedRenderingContext.empty
 		}
 		// Compute the solution frontier, i.e., the subset of maximally specific
@@ -1769,6 +1777,28 @@ class StylePatternCompiler private constructor(
 	}
 
 	/**
+	 * A [FailedMatchToken] serves as a pragma to denote the fall back
+	 * [pattern][StylePattern] to apply when all other [patterns][StylePattern]
+	 * fail to match a sequence of classifiers. This disables wildcard matching
+	 * and the [subsequence][SubsequenceExpression]
+	 * [operator][SubsequenceToken].
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	internal data class FailedMatchToken(
+		override val position: Int = 0
+	): Token()
+	{
+		override val lexeme get() = FailedMatchToken.lexeme
+
+		companion object
+		{
+			/** The lexeme. */
+			const val lexeme = "!"
+		}
+	}
+
+	/**
 	 * An [InvalidToken] represents unexpected input in an alleged
 	 * [StylePattern], and guarantees that the producing pattern is not a
 	 * [ValidatedStylePattern].
@@ -1793,6 +1823,7 @@ class StylePatternCompiler private constructor(
 			i += Character.charCount(c)
 			when
 			{
+				c == '!'.code -> tokens.add(FailedMatchToken(start + 1))
 				c == '='.code -> tokens.add(ExactMatchToken(start + 1))
 				c == ','.code -> tokens.add(SuccessionToken(start + 1))
 				c == '<'.code -> tokens.add(SubsequenceToken(start + 1))
@@ -2076,6 +2107,18 @@ class StylePatternCompiler private constructor(
 	}
 
 	/**
+	 * A [FailedMatchExpression] only applies when every other [rule][StyleRule]
+	 * has failed to match a sequence of classifiers.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	private object FailedMatchExpression: Expression()
+	{
+		override fun accept(visitor: ExpressionVisitor) = visitor.visit(this)
+		override fun toString() = FailedMatchToken.lexeme
+	}
+
+	/**
 	 * An [EmptyClassifierSequenceExpression] matches only an empty stream of
 	 * classifiers. It can only serve as an outermost [expression][Expression].
 	 *
@@ -2145,6 +2188,14 @@ class StylePatternCompiler private constructor(
 		 *   The [EmptyClassifierSequenceExpression].
 		 */
 		fun visit(expression: EmptyClassifierSequenceExpression)
+
+		/**
+		 * Visit a [FailedMatchExpression].
+		 *
+		 * @param expression
+		 *   The [FailedMatchExpression].
+		 */
+		fun visit(expression: FailedMatchExpression)
 	}
 
 	/** The outermost [expression][Expression] parsed from the [source]. */
@@ -2169,6 +2220,7 @@ class StylePatternCompiler private constructor(
 		val context = ParseContext()
 		val next = when (val token = context.token)
 		{
+			is FailedMatchToken -> context.with(FailedMatchExpression)
 			is ExactMatchToken ->
 			{
 				val next = context.nextContext
@@ -2183,7 +2235,8 @@ class StylePatternCompiler private constructor(
 			is StyleClassifierToken -> parseSubsequence(context)
 			else -> throw StylePatternException(
 				context.position,
-				"expected exact match pragma (${ExactMatchToken().lexeme}) or "
+				"expected failed match pragma (${FailedMatchToken.lexeme}), "
+					+ "exact match pragma (${ExactMatchToken.lexeme}), or "
 					+ "classifier (#…), but found $token")
 		}
 		if (next.token !is EndOfPatternToken)
@@ -2435,6 +2488,13 @@ class StylePatternCompiler private constructor(
 			// expression within an entire StyleRuleTree, and that rule is
 			// stored and handled specially.
 		}
+
+		override fun visit(expression: FailedMatchExpression)
+		{
+			// Don't emit any instructions. Only one rule can implement this
+			// expression within an entire StyleRuleTree, and that rule is
+			// stored and handled specially.
+		}
 	}
 
 	/** The [rule][StyleRule] compiled from the [source]. */
@@ -2583,23 +2643,6 @@ class StyleRule constructor(
 
 	/** The initial [StyleRuleContext] for running the receiver. */
 	val initialContext get() = StyleRuleContext(this, 0)
-
-	/**
-	 * Determine the relative specificity of the receiver and the argument.
-	 *
-	 * @param other
-	 *   The [rule][StyleRule] to check specificity against.
-	 * @return
-	 *   The relation of the two patterns with respect to specificity, as a
-	 *   [lax&#32;signum][Math.signum] value, i.e., `<0` if the receiver is less
-	 *   specific than the argument, `=0` if the receiver is equally specific as
-	 *   the argument, and `>0` if the receiver is more specific than the
-	 *   argument. The caller should not rely upon the exact values, only their
-	 *   displacement from `0`.
-	 * @see StylePattern.compareSpecificityTo
-	 */
-	fun compareSpecificityTo(other: StyleRule) =
-		pattern.compareSpecificityTo(other.pattern)
 
 	override fun toString() = buildString {
 		append(source)

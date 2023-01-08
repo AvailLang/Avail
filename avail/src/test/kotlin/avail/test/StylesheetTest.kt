@@ -453,6 +453,25 @@ class StylesheetTest
 		@JvmStatic
 		val positiveExemplars get(): Stream<Arguments> = streamOf(
 			argumentsOf(
+				"!",
+				"""
+					!
+					nybblecodes:
+						[no instructions]
+					instructions:
+						[no instructions]
+					renderingContext:
+						fontFamily = Monospaced
+						foreground = baseCode
+						background = codeBackground
+						bold = false
+						italic = false
+						underline = false
+						superscript = false
+						subscript = false
+						strikethrough = false
+				""".trimIndent()),
+			argumentsOf(
 				"=",
 				"""
 					=
@@ -943,18 +962,18 @@ class StylesheetTest
 			argumentsOf(
 				"",
 				1,
-				"expected exact match pragma (=) or classifier (#…), "
-					+ "but found end of pattern"),
+				"expected failed match pragma (!), exact match pragma (=), or "
+					+ "classifier (#…), but found end of pattern"),
 			argumentsOf(
 				"+",
 				1,
-				"expected exact match pragma (=) or classifier (#…), "
-					+ "but found +"),
+				"expected failed match pragma (!), exact match pragma (=), or "
+					+ "classifier (#…), but found +"),
 			argumentsOf(
 				"foo",
 				1,
-				"expected exact match pragma (=) or classifier (#…), "
-					+ "but found f"),
+				"expected failed match pragma (!), exact match pragma (=), or "
+					+ "classifier (#…), but found f"),
 			argumentsOf(
 				"#a,",
 				4,

@@ -54,7 +54,7 @@ kotlin {
 }
 
 dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha16")
+	implementation("org.availlang:avail-artifact:2.0.0.alpha17")
 }
 
 tasks {
