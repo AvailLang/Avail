@@ -44,7 +44,6 @@ import avail.anvil.StyleFlag.Underline
 import avail.anvil.StylePatternCompiler.Companion.compile
 import avail.anvil.StylePatternCompiler.ExactMatchToken
 import avail.anvil.StylePatternCompiler.SubsequenceToken
-import avail.anvil.StylePatternCompiler.SuccessionToken
 import avail.anvil.StyleRuleContextState.ACCEPTED
 import avail.anvil.StyleRuleContextState.PAUSED
 import avail.anvil.StyleRuleContextState.REJECTED
@@ -55,16 +54,21 @@ import avail.anvil.StyleRuleInstructionCoder.Companion.decodeInstruction
 import avail.anvil.streams.StreamStyle
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
+import avail.interpreter.execution.AvailLoader
 import avail.io.NybbleArray
 import avail.io.NybbleInputStream
 import avail.io.NybbleOutputStream
 import avail.persistence.cache.StyleRun
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
+import avail.utility.drain
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.Palette
 import org.availlang.artifact.environment.project.StyleAttributes
+import org.availlang.cache.LRUCache
 import java.awt.Color
+import java.lang.ref.SoftReference
+import java.util.concurrent.ConcurrentHashMap
 import javax.swing.SwingUtilities
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
@@ -930,11 +934,11 @@ private data class StyleAspects constructor(
  * later rules prevailing over earlier ones. For computational efficiency, the
  * final result is memoized (to the sequence `S`).
  *
- * @property styleRules
+ * @property rules
  *   The [style&#32;rules][StyleRule].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class Stylesheet constructor(val styleRules: Set<StyleRule>)
+class Stylesheet constructor(val rules: Set<StyleRule>)
 {
 	/**
 	 * Abstract the [Stylesheet] from the specified [project][AvailProject].
@@ -994,6 +998,114 @@ class Stylesheet constructor(val styleRules: Set<StyleRule>)
 		// No implementation required.
 	}
 
+	/**
+	 * The [pattern][StylePattern] `"="` handles renditions of unclassified
+	 * regions, i.e., regions to which no style classifiers were applied during
+	 * parsing, and is processed specially.
+	 */
+	private val unclassifiedRule by lazy(LazyThreadSafetyMode.PUBLICATION) {
+		rules.firstOrNull { it.source == ExactMatchToken.lexeme }
+	}
+
+	/**
+	 * The root [tree][StyleRuleTree] for rendering queries.
+	 */
+	private val rootTree by lazy(LazyThreadSafetyMode.PUBLICATION) {
+		StyleRuleTree(rules.map { it.initialContext }.toSet())
+	}
+
+	/**
+	 * The cached [solutions][RenderingContext] for rendering queries. The input
+	 * text is a comma-separated list of style classifiers, such as
+	 * [styleToken][AvailLoader.styleToken] produces when classifying regions of
+	 * source code. This mechanism provides multiple options for the memory
+	 * manager to reduce memory pressure, e.g., dropping cache items, clearing
+	 * [references][SoftReference] to successor [trees][StyleRuleTree], etc.
+	 */
+	private val solutions = LRUCache(
+		softCapacity = 2000,
+		strongCapacity = 200,
+		transformer = ::computeRenderingContext
+	)
+
+	/**
+	 * Obtain the correct [rendering&#32;context][RenderingContext] for the
+	 * specified input text, using a cached solution if possible. The input text
+	 * is a comma-separated list of style classifiers, such as
+	 * [styleToken][AvailLoader.styleToken] produces when classifying regions of
+	 * source code.
+	 *
+	 * @param classifiersString
+	 *   The classification label of some region of source text, as a
+	 *   comma-separated list of style classifiers.
+	 * @return
+	 *   The [rendering&#32;context][RenderingContext] to use for the region of
+	 *   source text whence was abstracted the sequence of classifiers.
+	 */
+	operator fun get(classifiersString: String) = solutions[classifiersString]
+
+	/**
+	 * Compute the [rendering&#32;context][RenderingContext] for the specified
+	 * input text, which is a comma-separated list of style classifiers, such as
+	 * [styleToken][AvailLoader.styleToken] produces when classifying regions of
+	 * source code.
+	 *
+	 * @param classifiersString
+	 *   The classification label of some region of source text, as a
+	 *   comma-separated list of style classifiers.
+	 * @return
+	 *   The [rendering&#32;context][RenderingContext] to use for the target
+	 *   region of source text.
+	 */
+	private fun computeRenderingContext(
+		classifiersString: String
+	): ValidatedRenderingContext
+	{
+		var tree = rootTree
+		val classifiers = classifiersString.split(",")
+		if (classifiers.isEmpty())
+		{
+			// The sequence of classifiers is empty, so fall back to the
+			// special rule for unclassified text. If no such rule has been
+			// defined, then use a vanilla rendering context.
+			return unclassifiedRule?.renderingContext
+				?: ValidatedRenderingContext.empty
+		}
+		// Find the right subtree, expanding the tree as necessary along the
+		// way.
+		classifiers.forEach { classifier ->
+			// If the tree represents the completion of every rule, then we can
+			// stop here without processing the remaining classifiers.
+			if (tree.isComplete) return@forEach
+			// It's critical to intern the classifiers themselves, as the
+			// executor expects to be able to compare canonical strings by
+			// reference.
+			tree = tree[classifier.intern()]
+		}
+		// We have reached the tree containing the solution set. If there are no
+		// solutions, then we treat the region as though it were unclassified.
+		if (tree.solutions.isEmpty())
+		{
+			// There are no solutions, so we treat the region as though it were
+			// unclassified.
+			return unclassifiedRule?.renderingContext
+				?: ValidatedRenderingContext.empty
+		}
+		// Compute the solution frontier, i.e., the subset of maximally specific
+		// solutions from the solution set.
+		val solutions = tree.solutions.filter { solution ->
+			tree.solutions.none { other ->
+				solution.compareSpecificityTo(other).isLess()
+			}
+		}
+		// Aggregate the final rendering context by combining the solutions in
+		// order, such that later solutions override earlier ones when aspects
+		// are in conflict.
+		return solutions
+			.map { it.renderingContext }
+			.reduce { final, next -> final.overrideWith(next) }
+	}
+
 	companion object
 	{
 		/**
@@ -1039,6 +1151,130 @@ class Stylesheet constructor(val styleRules: Set<StyleRule>)
 					null
 				}
 			}
+	}
+}
+
+/**
+ * A [StyleRuleTree] comprises _(1)_ the complete [set][Set] of
+ * live [contexts][StyleRuleContext] for some position `K` within a sequence
+ * `S` of style classifiers, _(2)_ a lazily populated transition table from
+ * possible next style classifiers to successor [trees][StyleRuleTree], and
+ * _(3)_ the [solutions][ValidatedStylePattern] accumulated so far during a
+ * traversal from the [root][Stylesheet.rootTree] [tree][StyleRuleTree].
+ *
+ * @property contexts
+ *   The [paused][StyleRuleContextState.PAUSED] [contexts][StyleRuleContext] of
+ *   all [rules][StyleRule] live at some position `K` within a sequence `S` of
+ *   style classifiers, such that `K` corresponds to the enclosing
+ *   [tree][StyleRule].
+ * @property successors
+ *   The lazy transition table from possible next style classifiers to successor
+ *   [trees][StyleRuleTree]. Each successor is held [softly][SoftReference], to
+ *   provide an outlet for venting when memory pressure is high.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+private class StyleRuleTree constructor(
+	private val contexts: Set<StyleRuleContext>,
+	val solutions: List<ValidatedStylePattern> = emptyList())
+{
+	/**
+	 * The lazy transition table from possible next style classifiers to
+	 * successor [trees][StyleRuleTree]. Each successor is held
+	 * [softly][SoftReference], to provide an outlet for venting when memory
+	 * pressure is high.
+	 *
+	 * The wildcard transition, denoted by the
+	 * [wildcard&#32;sentinel][wildcardSentinel], applies when the incoming
+	 * style classifier is not an expected [literal][StyleRuleContext.literal]
+	 * for any live [context][StyleRuleContext]. This mechanism serves as a
+	 * space-saving technique.
+	 */
+	private val successors =
+		ConcurrentHashMap<String, SoftReference<StyleRuleTree>>()
+
+	/**
+	 * Determine whether the [solution&#32;set][solutions] is complete. The set
+	 * is complete only when no [contexts] survive. Ordinarily, solutions are
+	 * evaluated when the sequence `S` of style classifiers is exhausted, not
+	 * when all contexts have been eliminated.
+	 */
+	val isComplete get() = contexts.isEmpty()
+
+	/**
+	 * Accept [classifier] as the next style classifier in the current input
+	 * sequence `S`; this involves using the
+	 * [wildcard&#32;sentinel][wildcardSentinel] iff none of the live
+	 * [contexts][StyleRuleContext] are expecting the incoming [classifier]
+	 * explicitly.
+	 *
+	 * If the [receiver][StyleRuleTree] is [complete][isComplete], then answer
+	 * it immediately.
+	 *
+	 * If the [transition&#32;table][successors] already contains a
+	 * [successor][StyleRuleTree], then answer it immediately.
+	 *
+	 * Otherwise, resume each live [context][StyleContext], using the supplied
+	 * [classifier] as input. Update the transition table with the newly
+	 * computed successor, and answer that successor.
+	 *
+	 * @param classifier
+	 *   The next classifier from the current input sequence. **Must already be
+	 *   [interned][String.intern].**
+	 * @return
+	 *   The [successor][StyleRuleTree].
+	 */
+	operator fun get(classifier: String): StyleRuleTree
+	{
+		if (isComplete) return this
+		val literals = contexts.mapNotNull { it.literal }
+		val transitionClassifier =
+			if (literals.contains(classifier)) classifier
+			else wildcardSentinel
+		successors[transitionClassifier]?.get()?.let { return it }
+		val successor = computeSuccessor(classifier)
+		successors[transitionClassifier] = SoftReference(successor)
+		return successor
+	}
+
+	/**
+	 * Actually compute the [successor][StyleRuleTree] for the given
+	 * [classifier].
+	 *
+	 * @param classifier
+	 *   The next classifier from the current input sequence. **Must already be
+	 *   [interned][String.intern].**
+	 * @return
+	 *   The [successor][StyleRuleTree].
+	 */
+	private fun computeSuccessor(classifier: String): StyleRuleTree
+	{
+		val paused = contexts.toMutableSet()
+		val running = paused.drain().mapTo(mutableSetOf()) {
+			it.copy(state = RUNNING)
+		}
+		var solutions = solutions
+		while (running.isNotEmpty())
+		{
+			running.drain().forEach { context ->
+				val nextContext =
+					run(context, classifier) { forked -> running.add(forked) }
+				when (nextContext.state)
+				{
+					PAUSED -> paused.add(nextContext)
+					RUNNING -> running.add(nextContext)
+					ACCEPTED ->
+						solutions = solutions.append(nextContext.rule.pattern)
+					REJECTED -> {}
+				}
+			}
+		}
+		return StyleRuleTree(paused, solutions)
+	}
+
+	companion object
+	{
+		/** The wildcard sentinel for the [transition&#32;table][successors]. */
+		private const val wildcardSentinel = ""
 	}
 }
 
@@ -1257,14 +1493,8 @@ sealed class StylePattern constructor(
 		 * A [regular&#32;expression][Regex] to find whitespace in a source
 		 * pattern.
 		 */
-		private val findWhitespace by lazy { "\\s+".toRegex() }
-
-		/**
-		 * A [regular&#32;expression][Regex] to find operators in a source
-		 * pattern.
-		 */
-		private val findOperator by lazy {
-			"${SuccessionToken.lexeme}|${SubsequenceToken.lexeme}".toRegex()
+		private val findWhitespace by lazy(LazyThreadSafetyMode.PUBLICATION) {
+			"\\s+".toRegex()
 		}
 
 		/**
@@ -2416,7 +2646,9 @@ class StyleRule constructor(
 		 * A [regular&#32;expression][Regex] to find a literal index in
 		 * disassembly text.
 		 */
-		private val findLiteralIndex by lazy { "#(\\d+)".toRegex() }
+		private val findLiteralIndex by lazy(LazyThreadSafetyMode.PUBLICATION) {
+			"#(\\d+)".toRegex()
+		}
 	}
 }
 
@@ -3275,6 +3507,10 @@ class UnvalidatedRenderingContext constructor(
  * successfully validated against the [palette][Palette] used to construct it.
  * It is therefore ready to [render][renderTo] itself onto [StyledDocument]s.
  *
+ * @property palette
+ *   The [Palette], for interpreting the
+ *   [foreground][StyleAttributes.foreground] and
+ *   [background][StyleAttributes.background] colors for text rendition.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -3293,7 +3529,7 @@ class UnvalidatedRenderingContext constructor(
 @Suppress("EqualsOrHashCode")
 class ValidatedRenderingContext constructor(
 	attrs: StyleAttributes,
-	palette: Palette
+	private val palette: Palette
 ): RenderingContext(attrs)
 {
 	/**
@@ -3301,7 +3537,8 @@ class ValidatedRenderingContext constructor(
 	 * [StyledDocument]. its attributes are sourced from [attributes], which has
 	 * been fully resolved along all rendering dimensions.
 	 */
-	private val documentStyle: Style by lazy {
+	private val documentStyle: Style
+	by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
 		getDefaultStyleContext().NamedStyle(defaultDocumentStyle).apply {
 			setFontFamily(this, attributes.fontFamily!!)
 			setForeground(this, palette.colors[attributes.foreground])
@@ -3313,6 +3550,40 @@ class ValidatedRenderingContext constructor(
 			setSubscript(this, attributes.subscript!!)
 			setStrikeThrough(this, attributes.strikethrough!!)
 		}
+	}
+
+	/**
+	 * Combine the [receiver][ValidatedRenderingContext] with the argument to
+	 * produce a new [context][ValidatedRenderingContext] in which
+	 * [attributes][StyleAttributes] of the receiver are overridden by
+	 * corresponding non-`null` attributes of the argument.
+	 *
+	 * @param other
+	 *   The overriding [context][ValidatedRenderingContext].
+	 * @return
+	 *   The combined [context][ValidatedRenderingContext].
+	 */
+	fun overrideWith(
+		other: ValidatedRenderingContext
+	): ValidatedRenderingContext
+	{
+		assert(palette === other.palette)
+		val a = attributes
+		val o = other.attributes
+		return ValidatedRenderingContext(
+			attributes.copy(
+				fontFamily = o.fontFamily?.let { it } ?: a.fontFamily,
+				foreground = o.foreground?.let { it } ?: a.foreground,
+				background = o.background?.let { it } ?: a.background,
+				bold = o.bold?.let { it } ?: a.bold,
+				italic = o.italic?.let { it } ?: a.italic,
+				underline = o.underline?.let { it } ?: a.underline,
+				superscript = o.superscript?.let { it } ?: a.superscript,
+				subscript = o.subscript?.let { it } ?: a.subscript,
+				strikethrough = o.strikethrough?.let { it } ?: a.strikethrough
+			),
+			palette
+		)
 	}
 
 	/**
@@ -3347,11 +3618,18 @@ class ValidatedRenderingContext constructor(
 
 	companion object
 	{
+		/** The canonical empty [ValidatedRenderingContext]. */
+		val empty get() = ValidatedRenderingContext(
+			StyleAttributes(),
+			Palette.empty
+		)
+
 		/**
 		 * The default [document&#32;style][Style], to serve as the parent for
 		 * new document styles.
 		 */
-		private val defaultDocumentStyle: Style by lazy {
+		private val defaultDocumentStyle: Style
+		by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
 			getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE)
 		}
 	}

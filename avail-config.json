@@ -171,6 +171,10 @@
 				"deemphasize": "#80808080/60606080"
 			},
 			"stylesheet": {
+				"=": {
+					"foreground": "baseCode",
+					"background": "codeBackground"
+				},
 				"#block": {
 					"foreground": "mustard"
 				},

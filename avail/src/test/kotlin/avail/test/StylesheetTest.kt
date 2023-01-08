@@ -55,6 +55,7 @@ import avail.test.StylesheetTest.Companion.maxSequenceSize
 import avail.test.StylesheetTest.Companion.vocabularySize
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.WorkStealingQueue
+import avail.utility.drain
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
 import org.availlang.artifact.environment.project.Palette
@@ -3282,20 +3283,6 @@ class StylesheetTest
 			argumentsOf("#a<#a<#b<#b<#a<#b", "#a<#b<#a<#b", MORE),
 			argumentsOf("#a,#b<#b#<#c", "#a<#b,#c", INCOMPARABLE)
 		)
-
-			/**
-		 * Drain the elements of the receiver into a new [MutableSet], leaving the
-		 * receiver empty.
-		 *
-		 * @return
-		 *   A copy of the receiver.
-		 */
-		private fun <T> MutableSet<T>.drain(): MutableSet<T>
-		{
-			val elements = toMutableSet()
-			clear()
-			return elements
-		}
 
 		/**
 		 * Match the specified [sequence] against the given pattern, using naive
