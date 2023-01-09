@@ -43,6 +43,7 @@ import avail.anvil.actions.OpenModuleAction
 import avail.anvil.actions.RefreshAction
 import avail.anvil.actions.SearchOpenModuleDialogAction
 import avail.anvil.actions.OpenSettingsViewAction
+import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.shortcuts.ModifierKey.*
 import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 
@@ -88,6 +89,18 @@ object WorkbenchRefreshShortcut: WorkbenchShortcut(KeyCode.VK_F5.with())
 {
 	override val actionMapKey: String = "refresh"
 	override val description: String = "Update Module Tree from Filesystem"
+}
+
+/**
+ * [WorkbenchShortcut] for the [RefreshStylesheetAction].
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+object RefreshStylesheetShortcut
+	: WorkbenchShortcut(KeyCode.VK_F5.with(SHIFT))
+{
+	override val actionMapKey = "refresh-stylesheet"
+	override val description = "Refresh Stylesheet"
 }
 
 /**

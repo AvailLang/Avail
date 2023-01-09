@@ -942,33 +942,6 @@ private data class StyleAspects constructor(
 class Stylesheet constructor(val rules: Set<StyleRule>)
 {
 	/**
-	 * Abstract the [Stylesheet] from the specified [project][AvailProject].
-	 *
-	 * @param project
-	 *   The project from which to decode the stylesheet.
-	 * @param errors
-	 *   The accumulator for errors, as pairs of invalid
-	 *   [patterns][UnvalidatedStylePattern] and
-	 *   [exceptions][StylePatternException]. When non-`null`, patterns that
-	 *   fail [compilation][compile] are excised from the result, and any
-	 *   relevant [StylePatternException]s are appended here; when `null`,
-	 *   the constructor will terminate abnormally (by raising a
-	 *   [StylePatternException]) upon encountering an invalid source
-	 *   pattern.
-	 * @throws StylePatternException
-	 *   If any of the source patterns fails [compilation][compile] for
-	 *   any reason.
-	 */
-	constructor(
-		project: AvailProject,
-		errors: MutableList<Pair<
-			UnvalidatedStylePattern, StylePatternException>>? = null
-	): this(project.stylesheet, project.palette, errors)
-	{
-		// No implementation required.
-	}
-
-	/**
 	 * Construct a [Stylesheet] from (1) the specified map of source patterns
 	 * and [style&#32;attributes][StyleAttributes] and (2) the
 	 * [palette][Palette] for final color selection.

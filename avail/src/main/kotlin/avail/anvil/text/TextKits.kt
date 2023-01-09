@@ -34,6 +34,7 @@ package avail.anvil.text
 
 import avail.anvil.AvailEditor.Companion.editor
 import avail.anvil.AvailWorkbench
+import avail.anvil.Stylesheet
 import avail.anvil.editor.GoToDialog
 import avail.anvil.shortcuts.BreakLineShortcut
 import avail.anvil.shortcuts.CamelCaseShortcut
@@ -56,11 +57,13 @@ import avail.anvil.shortcuts.RefreshShortcut
 import avail.anvil.shortcuts.SnakeCaseShortcut
 import avail.anvil.shortcuts.UndoShortcut
 import avail.anvil.shortcuts.UppercaseShortcut
+import avail.anvil.shortcuts.RefreshStylesheetShortcut
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
 import avail.anvil.views.StructureViewPanel
 import avail.utility.Strings.tabs
+import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.Action
@@ -142,7 +145,8 @@ class AvailEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
 	override val defaultActions = super.defaultActions + arrayOf<Action>(
 		GoToDialogAction,
 		OpenStructureView,
-		Refresh
+		Refresh,
+		RefreshStylesheet
 	)
 }
 
@@ -407,6 +411,18 @@ private object Refresh: TextAction(RefreshShortcut.actionMapKey)
 		workbench.setEnablements()
 		buildTask.execute()
 	}
+}
+
+/**
+ * Refresh the [stylesheet][Stylesheet] from the [project][AvailProject]'s
+ * configuration file.
+ */
+private object RefreshStylesheet: TextAction(
+	RefreshStylesheetShortcut.actionMapKey
+)
+{
+	override fun actionPerformed(e: ActionEvent) =
+		e.editor.workbench.refreshStylesheetAction.runAction()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1333,10 +1349,10 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 			var previousIsDelimiter = false
 			append(textToTransform[0].lowercase())
 			textToTransform.substring(1).forEach {
-				if (it == '-' || it == '_')
+				previousIsDelimiter = if (it == '-' || it == '_')
 				{
 					append(delimiter)
-					previousIsDelimiter = true
+					true
 				}
 				else
 				{
@@ -1345,7 +1361,7 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 						append(delimiter)
 					}
 					append(it.lowercase())
-					previousIsDelimiter = false
+					false
 				}
 			}
 		}

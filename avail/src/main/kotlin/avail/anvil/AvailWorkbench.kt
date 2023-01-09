@@ -64,6 +64,7 @@ import avail.anvil.actions.OpenSettingsViewAction
 import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
 import avail.anvil.actions.RefreshAction
+import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.actions.RemoveRootAction
 import avail.anvil.actions.ResetCCReportDataAction
 import avail.anvil.actions.ResetVMReportDataAction
@@ -153,6 +154,8 @@ import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.AvailProjectV1
+import org.availlang.artifact.environment.project.Palette
+import org.availlang.artifact.environment.project.StyleAttributes
 import org.availlang.json.JSONWriter
 import java.awt.Color
 import java.awt.Component
@@ -473,8 +476,11 @@ class AvailWorkbench internal constructor(
 
 	/* Actions. */
 
-	/** The [refresh action][RefreshAction]. */
+	/** The [refresh&#32;action][RefreshAction]. */
 	val refreshAction = RefreshAction(this)
+
+	/** The [refresh&#32;action][RefreshStylesheetAction]. */
+	val refreshStylesheetAction = RefreshStylesheetAction(this)
 
 	/** The [FindAction] for finding/replacing text in a text area. */
 	private val findAction = FindAction(this, this)
@@ -751,6 +757,55 @@ class AvailWorkbench internal constructor(
 	 * shown with an indication that they have been marked invisible.
 	 */
 	var showInvisibleRoots = false
+
+	/**
+	 * The [stylesheet][Stylesheet] for rendition of all styled source reachable
+	 * from this [workbench][AvailWorkbench].
+	 */
+	var stylesheet: Stylesheet = buildStylesheet()
+		set(value)
+		{
+			field = value
+			openEditors.values.forEach { editor ->
+				invokeLater {
+					editor.highlightCode {
+						// No action required here; we just want to force the
+						// highlighting to update to reflect any changes in
+						// style.
+					}
+				}
+			}
+		}
+
+	/**
+	 * Build the [stylesheet][Stylesheet] from the specified [map] and
+	 * [palette].
+	 *
+	 * @param map
+	 *   The map of source patterns to their desired
+	 *   [style&#32;attributes][StyleAttributes].
+	 * @param palette
+	 *   The [palette][Palette].
+	 * @return
+	 *   The [stylesheet][Stylesheet].
+	 */
+	internal fun buildStylesheet(
+		map: Map<String, StyleAttributes> = availProject.stylesheet,
+		palette: Palette = availProject.palette
+	): Stylesheet
+	{
+		val errors = mutableListOf<Pair<
+			UnvalidatedStylePattern, StylePatternException>>()
+		val stylesheet = Stylesheet(map, palette, errors)
+		if (errors.isNotEmpty())
+		{
+			writeText("Compiling stylesheet encountered errors:\n", ERR)
+		}
+		errors.forEach { (pattern, e) ->
+			writeText(">>> $pattern: ${e.localizedMessage}", ERR)
+		}
+		return stylesheet
+	}
 
 	/**
 	 * `AbstractWorkbenchTask` is a foundation for long-running [AvailBuilder]
@@ -1066,6 +1121,7 @@ class AvailWorkbench internal constructor(
 		cleanModuleAction.isEnabled =
 			!busy && (selectedModuleRoot() !== null || selectedModule() !== null)
 		refreshAction.isEnabled = !busy
+		refreshStylesheetAction.isEnabled = !busy
 		setDocumentationPathAction.isEnabled = !busy
 		documentAction.isEnabled = !busy && selectedModule() !== null
 		graphAction.isEnabled = !busy && selectedModule() !== null
@@ -1857,6 +1913,8 @@ class AvailWorkbench internal constructor(
 			menu("Edit")
 			{
 				item(findAction)
+				separator()
+				item(refreshStylesheetAction)
 			}
 			// TODO Stacks is not viable right now
 //			menu("Document")
