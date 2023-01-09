@@ -34,8 +34,8 @@ package avail.anvil.settings
 
 import avail.anvil.AnvilException
 import avail.anvil.AvailEditor
-import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.environment.project.TemplateExpansion
 import org.availlang.json.JSONArray
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
@@ -52,7 +52,7 @@ import kotlin.reflect.full.companionObject
  *   The map of template key to template expansion.
  */
 data class TemplateSettings constructor(
-	val templates: Map<String, String>
+	val templates: Map<String, TemplateExpansion>
 ): Settings(
 	TemplateSettings::class.companionObject!!.objectInstance as SettingsType<*>)
 {
@@ -139,7 +139,7 @@ data class TemplateSettings constructor(
 			}
 			return TemplateSettings(obj.getObject(SETTINGS)
 				.associateTo(mutableMapOf()) { (name, expansion) ->
-					name to expansion.string
+					name to TemplateExpansion(expansion as JSONObject)
 				})
 		}
 
@@ -192,23 +192,6 @@ val AvailProjectRoot.templateSettings: TemplateSettings get() =
  *   The [TemplateSettings] to import.
  */
 fun AvailProjectRoot.import(templateSettings: TemplateSettings)
-{
-	this.templates.putAll(templateSettings.templates)
-}
-
-/**
- * The [AvailProject.templateSettings] as [TemplateSettings].
- */
-val AvailProject.templateSettings: TemplateSettings get() =
-	TemplateSettings(this.templates.toMap())
-
-/**
- * Import the [TemplateSettings.templates] into this [AvailProject.templates].
- *
- * @param templateSettings
- *   The [TemplateSettings] to import.
- */
-fun AvailProject.import(templateSettings: TemplateSettings)
 {
 	this.templates.putAll(templateSettings.templates)
 }

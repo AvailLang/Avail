@@ -56,7 +56,7 @@ avail {
 		rootNameInJar = "avail")
 	projectRoot(
 		"avail",
-		entryPoints = listOf("!_"),
+		entryPoints = mutableListOf("!_"),
 		description = "The Avail Standard Library primary module root" )
 	artifact {
 		artifactType = LIBRARY

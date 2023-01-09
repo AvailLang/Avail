@@ -330,12 +330,8 @@ class AvailWorkbench internal constructor(
 		availProject.availProjectRoots.forEach { root ->
 			root.templates.forEach { (name, expansion) ->
 				val expansions = tree.getOrPut(name) { mutableSetOf() }
-				expansions.add(expansion)
+				expansions.add(expansion.expansion)
 			}
-		}
-		availProject.templates.forEach { (name, expansion) ->
-			val expansions = tree.getOrPut(name) { mutableSetOf() }
-			expansions.add(expansion)
 		}
 		return tree
 	}

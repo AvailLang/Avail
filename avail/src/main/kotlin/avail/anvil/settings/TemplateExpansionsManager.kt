@@ -34,10 +34,8 @@ package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.ProjectManagerIcons
-import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
-import org.availlang.json.JSONObject
-import org.availlang.json.jsonReader
+import org.availlang.artifact.environment.project.TemplateExpansion
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -150,7 +148,7 @@ class RootTemplatesPanel constructor(
 	 * [root].
 	 */
 	fun newEmptyTemplateRow (): TemplateRow =
-		TemplateRow("", "", root, workbench, this)
+		TemplateRow("", TemplateExpansion(""), root, workbench, this)
 
 	/**
 	 * The currently selected [TemplateRow] or `null` if no [TemplateRow] is
@@ -277,44 +275,44 @@ class RootTemplatesPanel constructor(
 		}
 	}
 
-	/**
-	 * Use this [JFileChooser] to import templates from an [AvailProject] file.
-	 */
-	private fun JFileChooser.importFromProject ()
-	{
-		dialogTitle = "Select Project File to Import From"
-		fileSelectionMode = JFileChooser.FILES_ONLY
-		fileFilter = FileNameExtensionFilter("*.json", "json")
-		addChoosableFileFilter(
-			object : FileFilter()
-			{
-				override fun getDescription(): String =
-					"Project File (*.json)"
-
-				override fun accept(f: File): Boolean =
-					f.isFile
-						&& f.canWrite()
-						&& f.absolutePath.lowercase().endsWith(".json")
-			})
-		val result = showDialog(
-			this@RootTemplatesPanel,
-			"Select Project File")
-		if (result == JFileChooser.APPROVE_OPTION)
-		{
-			val obj = jsonReader(selectedFile.readText())
-				.read() as JSONObject
-			val ap = AvailProject.from(selectedFile.parent, obj)
-			val templateSettings = TemplateSettings.combine(ap.roots
-				.map { it.value.templateSettings }
-				.toMutableSet()
-				.apply { add(ap.templateSettings) })
-			root.templates.putAll(templateSettings.templates)
-			SwingUtilities.invokeLater {
-				redrawTemplates()
-				workbench.saveProjectFileToDisk()
-			}
-		}
-	}
+//	/**
+//	 * Use this [JFileChooser] to import templates from an [AvailProject] file.
+//	 */
+//	private fun JFileChooser.importFromProject ()
+//	{
+//		dialogTitle = "Select Project File to Import From"
+//		fileSelectionMode = JFileChooser.FILES_ONLY
+//		fileFilter = FileNameExtensionFilter("*.json", "json")
+//		addChoosableFileFilter(
+//			object : FileFilter()
+//			{
+//				override fun getDescription(): String =
+//					"Project File (*.json)"
+//
+//				override fun accept(f: File): Boolean =
+//					f.isFile
+//						&& f.canWrite()
+//						&& f.absolutePath.lowercase().endsWith(".json")
+//			})
+//		val result = showDialog(
+//			this@RootTemplatesPanel,
+//			"Select Project File")
+//		if (result == JFileChooser.APPROVE_OPTION)
+//		{
+//			val obj = jsonReader(selectedFile.readText())
+//				.read() as JSONObject
+//			val ap = AvailProject.from(selectedFile.parent, obj)
+//			val templateSettings = TemplateSettings.combine(ap.roots
+//				.map { it.value.templateSettings }
+//				.toMutableSet()
+//				.apply { add(ap.templateSettings) })
+//			root.templates.putAll(templateSettings.templates)
+//			SwingUtilities.invokeLater {
+//				redrawTemplates()
+//				workbench.saveProjectFileToDisk()
+//			}
+//		}
+//	}
 
 	/**
 	 * Use this [JFileChooser] to export templates to a [TemplateSettings] file.
@@ -420,20 +418,20 @@ class RootTemplatesPanel constructor(
 			}
 		}
 
-		val importProjectTemplates = JButton("Import From Project").apply {
-			isOpaque = true
-			val currentHeight = height
-			val currentWidth = width
-			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
-			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
-			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
-			toolTipText = "Import expansion templates from project file"
-			addActionListener {
-				addActionListener {
-					JFileChooser().importFromProject()
-				}
-			}
-		}
+//		val importProjectTemplates = JButton("Import From Project").apply {
+//			isOpaque = true
+//			val currentHeight = height
+//			val currentWidth = width
+//			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
+//			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
+//			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
+//			toolTipText = "Import expansion templates from project file"
+//			addActionListener {
+//				addActionListener {
+//					JFileChooser().importFromProject()
+//				}
+//			}
+//		}
 
 		val importDefaultTemplates = JButton("Import Defaults").apply {
 			isOpaque = true
@@ -474,7 +472,7 @@ class RootTemplatesPanel constructor(
 			maximumSize = Dimension(950, 50)
 			background = Color(0x3C, 0x3F, 0x41)
 			add(importSettingsTemplates)
-			add(importProjectTemplates)
+//			add(importProjectTemplates)
 			add(importDefaultTemplates)
 			add(exportTemplates)
 		})
@@ -489,7 +487,7 @@ class RootTemplatesPanel constructor(
  * @property templateKey
  *   The unique template key corresponding the target template expansion.
  * @property expansion
- *   The expanded template.
+ *   The [TemplateExpansion].
  * @property root
  *   The [AvailProjectRoot] this template belongs to.
  * @property workbench
@@ -499,7 +497,7 @@ class RootTemplatesPanel constructor(
  */
 class TemplateRow constructor(
 	var templateKey: String,
-	val expansion: String,
+	val expansion: TemplateExpansion,
 	val root: AvailProjectRoot,
 	val workbench: AvailWorkbench,
 	val parentPanel: RootTemplatesPanel
@@ -589,7 +587,7 @@ class TemplateRow constructor(
 
 	init
 	{
-		toolTipText = expansion
+		toolTipText = expansion.expansion
 		add(
 			templateNamePanel,
 			constraints.apply {
@@ -747,25 +745,25 @@ class RootTemplateEditPanel constructor(
 	 * The [JTextArea] used to enter the template expansion text.
 	 */
 	private val expansionField = JTextArea(10, 80).apply {
-		text = expansion
+		text = expansion.expansion
 		document.addDocumentListener(
 			object: DocumentListener
 			{
 				override fun insertUpdate(e: DocumentEvent?)
 				{
-					expansion = text
+					expansion.expansion = text
 					validateUpdates()
 				}
 
 				override fun removeUpdate(e: DocumentEvent?)
 				{
-					expansion = text
+					expansion.expansion = text
 					validateUpdates()
 				}
 
 				override fun changedUpdate(e: DocumentEvent?)
 				{
-					expansion = text
+					expansion.expansion = text
 					validateUpdates()
 				}
 			})
@@ -782,7 +780,7 @@ class RootTemplateEditPanel constructor(
 			expansion = value.expansion
 			SwingUtilities.invokeLater {
 				templateNameTextField.text = templateKey
-				expansionField.text = expansion
+				expansionField.text = expansion.expansion
 			}
 		}
 
