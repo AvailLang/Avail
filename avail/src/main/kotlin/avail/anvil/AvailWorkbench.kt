@@ -36,6 +36,8 @@ package avail.anvil
 import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.activeVersionSummary
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
+import avail.anvil.SystemStyleClassifier.INPUT_BACKGROUND
+import avail.anvil.SystemStyleClassifier.INPUT_TEXT
 import avail.anvil.actions.AboutAction
 import avail.anvil.actions.BuildAction
 import avail.anvil.actions.CancelAction
@@ -93,14 +95,14 @@ import avail.anvil.actions.TraceSummarizeStatementsAction
 import avail.anvil.actions.UnloadAction
 import avail.anvil.actions.UnloadAllAction
 import avail.anvil.debugger.AvailDebugger
+import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.manager.AvailProjectManager
+import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode
 import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
-import avail.anvil.environment.GlobalAvailSettings
-import avail.anvil.manager.AvailProjectManager
-import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
 import avail.anvil.streams.BuildInputStream
@@ -116,8 +118,8 @@ import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
-import avail.anvil.window.WorkbenchScreenState
 import avail.anvil.window.WorkbenchFrame
+import avail.anvil.window.WorkbenchScreenState
 import avail.builder.AvailBuilder
 import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
@@ -216,6 +218,7 @@ import javax.swing.SwingWorker
 import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
+import javax.swing.text.StyleConstants
 import javax.swing.text.StyledDocument
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
@@ -358,6 +361,60 @@ class AvailWorkbench internal constructor(
 	{
 		templates = extractTemplates()
 	}
+
+	/**
+	 * The [stylesheet][Stylesheet] for rendition of all styled source reachable
+	 * from this [workbench][AvailWorkbench].
+	 */
+	var stylesheet: Stylesheet = buildStylesheet(availProject)
+		set(value)
+		{
+			field = value
+			inputBackgroundWhenRunning = computeInputBackground()
+			inputForegroundWhenRunning = computeInputForeground()
+			openEditors.values.forEach { editor ->
+				invokeLater {
+					editor.highlightCode {
+						// No action required here; we just want to force the
+						// highlighting to update to reflect any changes in
+						// style.
+					}
+				}
+			}
+		}
+
+	/**
+	 * The background color of the input field when a command is running.
+	 */
+	private var inputBackgroundWhenRunning = computeInputBackground()
+
+	/**
+	 * Compute the background color of the input field from the [stylesheet].
+	 *
+	 * @return
+	 *   The background color. Defaults to [SystemColors.inputBackground] if the
+	 *   [stylesheet] does not contain a rule that matches [INPUT_BACKGROUND].
+	 */
+	private fun computeInputBackground() =
+		stylesheet[INPUT_BACKGROUND.classifier]
+			.documentStyle.getAttribute(StyleConstants.Background) as Color
+
+	/**
+	 * The foreground color of the input field when a command is running.
+	 */
+	private var inputForegroundWhenRunning = computeInputForeground()
+
+	/**
+	 * Compute the foreground color of the input field from the given
+	 * [stylesheet].
+	 *
+	 * @return
+	 *   The foreground color. Defaults to [SystemColors.inputText] if the
+	 *   [stylesheet] does not contain a rule that matches [INPUT_TEXT].
+	 */
+	private fun computeInputForeground() =
+		stylesheet[INPUT_TEXT.classifier]
+			.documentStyle.getAttribute(StyleConstants.Foreground) as Color
 
 	/**
 	 * The [StyledDocument] into which to write both error and regular
@@ -759,41 +816,38 @@ class AvailWorkbench internal constructor(
 	var showInvisibleRoots = false
 
 	/**
-	 * The [stylesheet][Stylesheet] for rendition of all styled source reachable
-	 * from this [workbench][AvailWorkbench].
-	 */
-	var stylesheet: Stylesheet = buildStylesheet()
-		set(value)
-		{
-			field = value
-			openEditors.values.forEach { editor ->
-				invokeLater {
-					editor.highlightCode {
-						// No action required here; we just want to force the
-						// highlighting to update to reflect any changes in
-						// style.
-					}
-				}
-			}
-		}
-
-	/**
-	 * Build the [stylesheet][Stylesheet] from the specified [map] and
-	 * [palette].
+	 * Build the [stylesheet][Stylesheet] from the specified [project].
 	 *
-	 * @param map
-	 *   The map of source patterns to their desired
-	 *   [style&#32;attributes][StyleAttributes].
-	 * @param palette
-	 *   The [palette][Palette].
+	 * @param project
+	 *   The [project][AvailProject] to use for building the
+	 *   [stylesheet][Stylesheet].
 	 * @return
 	 *   The [stylesheet][Stylesheet].
 	 */
-	internal fun buildStylesheet(
-		map: Map<String, StyleAttributes> = availProject.stylesheet,
-		palette: Palette = availProject.palette
-	): Stylesheet
+	internal fun buildStylesheet(project: AvailProject): Stylesheet
 	{
+		val map = project.availProjectRoots.fold(
+			mutableMapOf<String, StyleAttributes>()
+		) { merged, root ->
+			merged.apply { putAll(root.stylesheet) }
+		}.apply {
+			putAll(project.stylesheet)
+		}
+		val palette = project.availProjectRoots.fold(
+			Palette.empty
+		) { merged, root ->
+			val palette = root.palette
+			Palette(
+				lightColors = merged.lightColors + palette.lightColors,
+				darkColors = merged.darkColors + palette.darkColors
+			)
+		}.run {
+			val palette = project.palette
+			Palette(
+				lightColors = lightColors + palette.lightColors,
+				darkColors = darkColors + palette.darkColors
+			)
+		}
 		val errors = mutableListOf<Pair<
 			UnvalidatedStylePattern, StylePatternException>>()
 		val stylesheet = Stylesheet(map, palette, errors)
@@ -1047,10 +1101,11 @@ class AvailWorkbench internal constructor(
 			}
 			aggregatedEntries.forEach { entry ->
 				val before = System.nanoTime()
+				val context = stylesheet[entry.style.classifier]
 				document.insertString(
 					document.length, // The current length
 					entry.string,
-					entry.style.getStyle(document))
+					context.documentStyle)
 				// Always use index 0, since this only happens in the UI thread.
 				insertStringStat.record(System.nanoTime() - before)
 			}
@@ -1146,9 +1201,9 @@ class AvailWorkbench internal constructor(
 			!busy && selectedEntryPointModule() !== null
 		inputLabel.text = if (isRunning) "Console Input:" else "Command:"
 		inputField.background =
-			if (isRunning) inputBackgroundWhenRunning.color else null
+			if (isRunning) inputBackgroundWhenRunning else null
 		inputField.foreground =
-			if (isRunning) inputForegroundWhenRunning.color else null
+			if (isRunning) inputForegroundWhenRunning else null
 	}
 
 	/**
@@ -1710,10 +1765,11 @@ class AvailWorkbench internal constructor(
 			removeStringStat.record(System.nanoTime() - beforeRemove)
 
 			val beforeInsert = System.nanoTime()
+			val context = stylesheet[BUILD_PROGRESS.classifier]
 			doc.insertString(
 				0,
 				string,
-				BUILD_PROGRESS.getStyle(doc))
+				context.documentStyle)
 			// Always use index 0, since this only happens in the UI thread.
 			insertStringStat.record(System.nanoTime() - beforeInsert)
 		}
@@ -2408,20 +2464,6 @@ class AvailWorkbench internal constructor(
 		 */
 		val darkMode: Boolean =
 			System.getProperty(DARK_MODE_KEY)?.equals("true") ?: true
-
-		/**
-		 * The background color of the input field when a command is running.
-		 */
-		val inputBackgroundWhenRunning = AdaptiveColor(
-			light = LightColors.consoleBackground,
-			dark = DarkColors.consoleBackground)
-
-		/**
-		 * The foreground color of the input field when a command is running.
-		 */
-		val inputForegroundWhenRunning = AdaptiveColor(
-			light = LightColors.consoleText,
-			dark = DarkColors.consoleText)
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current

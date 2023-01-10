@@ -54,10 +54,10 @@ import avail.anvil.shortcuts.OutdentShortcut
 import avail.anvil.shortcuts.PascalCaseShortcut
 import avail.anvil.shortcuts.RedoShortcut
 import avail.anvil.shortcuts.RefreshShortcut
+import avail.anvil.shortcuts.RefreshStylesheetShortcut
 import avail.anvil.shortcuts.SnakeCaseShortcut
 import avail.anvil.shortcuts.UndoShortcut
 import avail.anvil.shortcuts.UppercaseShortcut
-import avail.anvil.shortcuts.RefreshStylesheetShortcut
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
@@ -421,8 +421,16 @@ private object RefreshStylesheet: TextAction(
 	RefreshStylesheetShortcut.actionMapKey
 )
 {
-	override fun actionPerformed(e: ActionEvent) =
-		e.editor.workbench.refreshStylesheetAction.runAction()
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val editor = e.editor
+		val workbench = editor.workbench
+		workbench.refreshStylesheetAction.runAction()
+		val stylesheet = workbench.stylesheet
+		val sourcePane = editor.sourcePane
+		sourcePane.background = sourcePane.computeBackground(stylesheet)
+		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////

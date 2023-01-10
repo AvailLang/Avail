@@ -35,7 +35,7 @@ package avail.anvil
 import avail.AvailRuntime
 import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
-import avail.anvil.StyleApplicator.applyStyleRuns
+import avail.anvil.RenderingEngine.applyStyleRuns
 import avail.anvil.actions.FindAction
 import avail.anvil.shortcuts.AvailEditorShortcut
 import avail.anvil.shortcuts.KeyboardShortcut
@@ -303,7 +303,7 @@ class AvailEditor constructor(
 				.notNullAnd { editable },
 		AvailEditorKit(workbench)
 	).apply {
-		registerStyles()
+		initializeStyles()
 		addCaretListener {
 			range = markToDotRange()
 			val offset = range.markPosition.offset
@@ -381,7 +381,8 @@ class AvailEditor constructor(
 		}
 		semaphore.acquire()
 		stylingRecord?.let {
-			sourcePane.styledDocument.applyStyleRuns(it.styleRuns)
+			sourcePane.styledDocument.applyStyleRuns(
+				workbench.stylesheet, it.styleRuns)
 		}
 		then(this)
 	}

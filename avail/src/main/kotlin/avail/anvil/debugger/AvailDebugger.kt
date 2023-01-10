@@ -77,7 +77,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
 import avail.anvil.MenuBarBuilder
-import avail.anvil.StyleApplicator.applyStyleRuns
+import avail.anvil.RenderingEngine.applyStyleRuns
 import avail.anvil.actions.FindAction
 import avail.anvil.addWindowMenu
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
@@ -725,7 +725,9 @@ class AvailDebugger internal constructor (
 								val doc = sourcePane.styledDocument
 								doc.remove(0, doc.length)
 								doc.insertString(0, source, null)
-								doc.applyStyleRuns(stylingRecord.styleRuns)
+								doc.applyStyleRuns(
+									workbench.stylesheet,
+									stylingRecord.styleRuns)
 								// Setting the source does not immediately
 								// update the layout, so postpone scrolling to
 								// the selected line.

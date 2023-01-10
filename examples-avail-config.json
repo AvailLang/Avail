@@ -153,7 +153,7 @@
 				"textBackground": "#FFFFFF4A/21121940",
 				"codeBackground": "#F7F7F7FF/02232EFF",
 				"consoleBackground": "#E6E6E6FF/053646FF",
-				"baseCode": "#000000EE/FFFFFFEE",
+				"codeText": "#000000EE/FFFFFFEE",
 				"consoleText": "#000000FF/FFFFFFFF",
 				"strongGray": "#00000077/FFFFFF77",
 				"weakGray": "#00000044/FFFFFF44",
@@ -174,11 +174,11 @@
 			},
 			"stylesheet": {
 				"!": {
-					"foreground": "baseCode",
+					"foreground": "codeText",
 					"background": "rose"
 				},
 				"=": {
-					"foreground": "baseCode",
+					"foreground": "codeText",
 					"background": "codeBackground"
 				},
 				"#block": {
@@ -200,10 +200,10 @@
 					"bold": true
 				},
 				"#method-send": {
-					"foreground": "baseCode"
+					"foreground": "codeText"
 				},
 				"#macro-send": {
-					"foreground": "baseCode"
+					"foreground": "codeText"
 				},
 				"#statement": {
 					"bold": true

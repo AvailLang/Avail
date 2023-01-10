@@ -82,12 +82,14 @@ fun JTextPane.scrollTextWithLineNumbers(
 }
 
 /**
- * Draws a code guide after the 80th column on the decorated [JScrollPane].
+ * Draws code guides on the decorated [JScrollPane] after the appropriate
+ * columns.
  *
  * @property guideLines
  *   The list of after how many (character) columns to display a guide line.
  *   Defaults to a single guideline at `80`.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga
  */
 class CodeGuide constructor(
 	private val jTextPane: JTextPane,
@@ -125,10 +127,13 @@ class CodeGuide constructor(
 
 	companion object
 	{
+		/** The style classifier for the code guide. */
+		const val codeGuideClassifier = "#codeGuide"
+
 		/** The color of the guide. */
 		val guide = AdaptiveColor(
-			light = LightColors.strongGray,
-			dark = DarkColors.strongGray
+			light = LightColors.codeGuide,
+			dark = DarkColors.codeGuide
 		)
 	}
 }

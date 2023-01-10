@@ -72,8 +72,7 @@ class RefreshStylesheetAction constructor(
 			val project = AvailProject.from(
 				directory,
 				jsonObject(configurationPath.readText(Charsets.UTF_8)))
-			workbench.stylesheet = workbench.buildStylesheet(
-				project.stylesheet, project.palette)
+			workbench.stylesheet = workbench.buildStylesheet(project)
 		}
 		catch (e: Exception)
 		{

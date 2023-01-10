@@ -423,7 +423,7 @@ class StylesheetTest
 						"textBackground": "#FFFFFF4A/21121940",
 						"codeBackground": "#F7F7F7FF/02232EFF",
 						"consoleBackground": "#E6E6E6FF/053646FF",
-						"baseCode": "#000000EE/FFFFFFEE",
+						"codeText": "#000000EE/FFFFFFEE",
 						"consoleText": "#000000FF/FFFFFFFF",
 						"strongGray": "#00000077/FFFFFF77",
 						"weakGray": "#00000044/FFFFFF44",
@@ -461,34 +461,34 @@ class StylesheetTest
 					instructions:
 						[no instructions]
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"=",
 				"""
 					=
 					nybblecodes:
-						[no instructions]
+						C
 					instructions:
-						[no instructions]
+						@0: match end of sequence
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo",
@@ -500,15 +500,15 @@ class StylesheetTest
 						@0: match literal #0 <#foo>
 						@1: match end of sequence
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo,#baz",
@@ -521,15 +521,15 @@ class StylesheetTest
 						@1: match literal #1 <#baz>
 						@2: match end of sequence
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo,#baz,#foo",
@@ -543,15 +543,15 @@ class StylesheetTest
 						@2: match literal #0 <#foo>
 						@3: match end of sequence
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo,#foo",
@@ -564,15 +564,15 @@ class StylesheetTest
 						@1: match literal #0 <#foo>
 						@2: match end of sequence
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo,#foo,#foo",
@@ -586,15 +586,15 @@ class StylesheetTest
 						@2: match literal #0 <#foo>
 						@3: match end of sequence
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"=#a,#b,#c,#d,#e,#f,#g,#h",
@@ -613,15 +613,15 @@ class StylesheetTest
 						@10: match literal #7 <#h>
 						@12: match end of sequence
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#foo",
@@ -632,15 +632,15 @@ class StylesheetTest
 					instructions:
 						@0: match literal #0 <#foo> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#foo,#bar",
@@ -652,15 +652,15 @@ class StylesheetTest
 						@0: match literal #0 <#foo> or jump to @0
 						@2: match literal #1 <#bar> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#foo,#bar,#foo",
@@ -674,15 +674,15 @@ class StylesheetTest
 						@4: fork to @0
 						@5: match literal #0 <#foo> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b,#c,#d,#e,#f,#g,#h",
@@ -700,15 +700,15 @@ class StylesheetTest
 						@14: match literal #6 <#g> or jump to @0
 						@17: match literal #7 <#h> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#foo,#foo",
@@ -721,15 +721,15 @@ class StylesheetTest
 						@2: fork to @0
 						@3: match literal #0 <#foo> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#foo,#foo,#foo",
@@ -744,15 +744,15 @@ class StylesheetTest
 						@5: fork to @0
 						@6: match literal #0 <#foo> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#a,#a,#b",
@@ -768,15 +768,15 @@ class StylesheetTest
 						@6: match literal #0 <#a> or jump to @0
 						@8: match literal #1 <#b> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b,#a,#c",
@@ -791,15 +791,15 @@ class StylesheetTest
 						@5: match literal #0 <#a> or jump to @0
 						@7: match literal #2 <#c> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b,#a,#c,#a,#b,#a,#c,#d",
@@ -821,15 +821,15 @@ class StylesheetTest
 						@17: match literal #2 <#c> or jump to @0
 						@19: match literal #3 <#d> or jump to @0
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#foo<#bar",
@@ -841,15 +841,15 @@ class StylesheetTest
 						@0: match literal #0 <#foo> or jump to @0
 						@2: match literal #1 <#bar> or jump to @2
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#foo<#bar<#baz",
@@ -862,15 +862,15 @@ class StylesheetTest
 						@2: match literal #1 <#bar> or jump to @2
 						@4: match literal #2 <#baz> or jump to @4
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#a<#b<#c<#d<#e<#f<#g<#h",
@@ -888,15 +888,15 @@ class StylesheetTest
 						@16: match literal #6 <#g> or jump to @16
 						@20: match literal #7 <#h> or jump to @20
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b < #c,#d",
@@ -910,15 +910,15 @@ class StylesheetTest
 						@4: match literal #2 <#c> or jump to @4
 						@6: match literal #3 <#d> or jump to @4
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b,#a,#b,#c < #c,#d,#c,#d,#e < #f",
@@ -941,15 +941,15 @@ class StylesheetTest
 						@26: match literal #4 <#e> or jump to @11
 						@30: match literal #5 <#f> or jump to @30
 					renderingContext:
-						fontFamily = Monospaced
-						foreground = baseCode
-						background = codeBackground
-						bold = false
-						italic = false
-						underline = false
-						superscript = false
-						subscript = false
-						strikethrough = false
+						fontFamily = null
+						foreground = null
+						background = null
+						bold = null
+						italic = null
+						underline = null
+						superscript = null
+						subscript = null
+						strikethrough = null
 				""".trimIndent())
 		)
 

@@ -44,7 +44,7 @@ import avail.utility.mapToSet
  * This map does not support nulls as valid values. A key-value pair where the
  * value is `null` is indicative that the "key" is not present.
  *
- * @author Rich Arriaga &lt;rich@availlang.org&gt;
+ * @author Rich Arriaga
  *
  * @param K
  *   The type of Enum keys maintained by this [EnumMap]

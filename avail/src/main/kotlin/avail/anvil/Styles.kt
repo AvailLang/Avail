@@ -32,15 +32,6 @@
 
 package avail.anvil
 
-import avail.anvil.AdaptiveColor.Companion.blend
-import avail.anvil.BoundStyle.Companion.defaultStyle
-import avail.anvil.RenderingContext.Companion.defaultAttributes
-import avail.anvil.StyleFlag.Bold
-import avail.anvil.StyleFlag.Italic
-import avail.anvil.StyleFlag.StrikeThrough
-import avail.anvil.StyleFlag.Subscript
-import avail.anvil.StyleFlag.Superscript
-import avail.anvil.StyleFlag.Underline
 import avail.anvil.StylePatternCompiler.Companion.compile
 import avail.anvil.StylePatternCompiler.ExactMatchToken
 import avail.anvil.StylePatternCompiler.FailedMatchToken
@@ -52,8 +43,6 @@ import avail.anvil.StyleRuleContextState.RUNNING
 import avail.anvil.StyleRuleExecutor.endOfSequenceLiteral
 import avail.anvil.StyleRuleExecutor.run
 import avail.anvil.StyleRuleInstructionCoder.Companion.decodeInstruction
-import avail.anvil.streams.StreamStyle
-import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.interpreter.execution.AvailLoader
 import avail.io.NybbleArray
@@ -73,7 +62,6 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.swing.SwingUtilities
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
-import javax.swing.text.StyleConstants.CharacterConstants
 import javax.swing.text.StyleConstants.setBackground
 import javax.swing.text.StyleConstants.setBold
 import javax.swing.text.StyleConstants.setFontFamily
@@ -86,819 +74,6 @@ import javax.swing.text.StyleConstants.setUnderline
 import javax.swing.text.StyleContext
 import javax.swing.text.StyleContext.getDefaultStyleContext
 import javax.swing.text.StyledDocument
-
-/**
- * An abstraction of the styles used by the [workbench][AvailWorkbench].
- * Represents the binding of an abstract style name to a
- * [textual&#32;style][Style] usable by a [styled&#32;document][StyledDocument].
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-interface BoundStyle
-{
-	/** The canonical name of the style. Should begin with octothorp (`#`). */
-	val styleName: String
-
-	/**
-	 * Apply the light-themed variant of the receiving style to the specified
-	 * [StyledDocument].
-	 *
-	 * Generally should be overridden, but not called directly. Most callers
-	 * will want to use [setStyle], because it is theme-sensitive.
-	 *
-	 * @param doc
-	 *   The document with which to register the receiver.
-	 * @return
-	 *   The applied [textual&#32;style][Style].
-	 */
-	fun lightStyle(doc: StyledDocument): Style
-
-	/**
-	 * Apply the dark-themed variant of the receiving style to the specified
-	 * [StyledDocument].
-	 *
-	 * Generally should be overridden, but not called directly. Most callers
-	 * will want to use [setStyle], because it is theme-sensitive.
-	 *
-	 * @param doc
-	 *   The document with which to register the receiver.
-	 * @return
-	 *   The applied [textual&#32;style][Style].
-	 */
-	fun darkStyle(doc: StyledDocument): Style
-
-	/**
-	 * Apply the appropriate variant of the receiving style to the specified
-	 * [StyledDocument] based on the
-	 * [active&#32;theme][AvailWorkbench.darkMode].
-	 *
-	 * @param doc
-	 *   The document with which to register the receiver.
-	 * @return
-	 *   The applied [textual&#32;style][Style].
-	 */
-	fun setStyle(doc: StyledDocument): Style =
-		if (AvailWorkbench.darkMode) darkStyle(doc) else lightStyle(doc)
-
-	/**
-	 * Answer the active [style][Style] for the receiver and the specified
-	 * [StyledDocument].
-	 *
-	 * @param doc
-	 *   The styled document.
-	 * @return
-	 *   The applied [textual&#32;style][Style], if the receiver is registered
-	 *   with the argument; otherwise, `null`.
-	 */
-	fun getStyle(doc: StyledDocument): Style? = doc.getStyle(styleName)
-
-	companion object
-	{
-		/** The default style. */
-		val defaultStyle: Style by lazy {
-			getDefaultStyleContext()
-				.getStyle(StyleContext.DEFAULT_STYLE)
-		}
-	}
-}
-
-/**
- * A builder for [DefaultBoundSystemStyle].
- *
- * @property flags
- *   The [style&#32;flags][StyleFlag].
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-class DefaultBoundSystemStyleBuilder(private val flags: MutableSet<StyleFlag>)
-{
-	/** The font family. */
-	var family: String = "Monospaced"
-
-	/** The foreground [color][Color]. */
-	var foreground: ((SystemColors)->Color) = SystemColors::baseCode
-
-	/** The background [color][Color]. */
-	var background: ((SystemColors)->Color) = SystemColors::codeBackground
-
-	/** Whether to use bold font weight. */
-	fun bold() { flags.add(Bold) }
-
-	/** Whether to use italic font style. */
-	fun italic() { flags.add(Italic) }
-
-	/** Whether to use underline text decoration. */
-	fun underline() { flags.add(Underline) }
-
-	/** Whether to use superscript text position. */
-	fun superscript() { flags.add(Superscript) }
-
-	/** Whether to use subscript text position. */
-	fun subscript() { flags.add(Subscript) }
-
-	/** Whether to use strikethrough text decoration. */
-	fun strikeThrough() { flags.add(StrikeThrough) }
-}
-
-/**
- * Default [style&#32;bindings][BoundStyle] for all
- * [system&#32;styles][SystemStyle]. Constructor capabilities are not intended
- * to cover Swing's styling capabilities comprehensively, only to provide those
- * options that will be exercised by one or more system styles.
- *
- * @author Leslie Schultz &lt;leslie@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- */
-enum class DefaultBoundSystemStyle: BoundStyle
-{
-	/** Default style for [SystemStyle.BLOCK]. */
-	BLOCK(SystemStyle.BLOCK, { foreground = SystemColors::mustard }),
-
-	/** Default style for [SystemStyle.METHOD_DEFINITION]. */
-	METHOD_DEFINITION(SystemStyle.METHOD_DEFINITION, {
-		foreground = SystemColors::rose
-	}),
-
-	/** Default style for [SystemStyle.METHOD_NAME]. */
-	METHOD_NAME(SystemStyle.METHOD_NAME, {
-		foreground = SystemColors::mango
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.PARAMETER_DEFINITION]. */
-	PARAMETER_DEFINITION(SystemStyle.PARAMETER_DEFINITION, {
-		foreground = SystemColors::transparentMagenta
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.PARAMETER_USE]. */
-	PARAMETER_USE(SystemStyle.PARAMETER_USE, {
-		foreground = SystemColors::magenta
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.METHOD_SEND]. */
-	METHOD_SEND(SystemStyle.METHOD_SEND, {}),
-
-	/** Default style for [SystemStyle.MACRO_SEND]. */
-	MACRO_SEND(SystemStyle.MACRO_SEND, {}),
-
-	/** Default style for [SystemStyle.STATEMENT]. */
-	STATEMENT(SystemStyle.STATEMENT, { bold() }),
-
-	/** Default style for [SystemStyle.TYPE]. */
-	TYPE(SystemStyle.TYPE, {
-		foreground = SystemColors::blue}),
-
-	/** Default style for [SystemStyle.METATYPE]. */
-	METATYPE(SystemStyle.METATYPE, {
-		foreground = SystemColors::blue
-		italic()
-	}),
-
-	/** Default style for [SystemStyle.PHRASE_TYPE]. */
-	PHRASE_TYPE(SystemStyle.PHRASE_TYPE, {
-		foreground = SystemColors::lilac
-		italic()
-	}),
-
-	/** Default style for [SystemStyle.MODULE_HEADER]. */
-	MODULE_HEADER(SystemStyle.MODULE_HEADER, {
-		foreground = SystemColors::transparentRose
-	}),
-
-	/** Default style for [SystemStyle.MODULE_HEADER_REGION]. */
-	MODULE_HEADER_REGION(SystemStyle.MODULE_HEADER_REGION, {
-		background = SystemColors::faintTransparentIndigo
-	}),
-
-	/** Default style for [SystemStyle.VERSION]. */
-	VERSION(SystemStyle.VERSION, {
-		background = SystemColors::faintTransparentRose
-	}),
-
-	/** Default style for [SystemStyle.IMPORT]. */
-	IMPORT(SystemStyle.IMPORT, {
-		background = SystemColors::faintTransparentRose
-	}),
-
-	/** Default style for [SystemStyle.EXPORT]. */
-	EXPORT(SystemStyle.EXPORT, {
-		background = SystemColors::faintTransparentRose
-	}),
-
-	/** Default style for [SystemStyle.ENTRY_POINT]. */
-	ENTRY_POINT(SystemStyle.ENTRY_POINT, {
-		background = SystemColors::faintTransparentRose
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.ENTRY_POINT]. */
-	PRAGMA(SystemStyle.PRAGMA, {
-		background = SystemColors::faintTransparentRose
-		italic()
-	}),
-
-	/** Default style for [SystemStyle.COMMENT]. */
-	COMMENT(SystemStyle.COMMENT, {
-		foreground = SystemColors::weakGray
-	}),
-
-	/** Default style for [SystemStyle.DOCUMENTATION]. */
-	DOCUMENTATION(SystemStyle.DOCUMENTATION, {
-		foreground = SystemColors::strongGray
-	}),
-
-	/** Default style for [SystemStyle.DOCUMENTATION_TAG]. */
-	DOCUMENTATION_TAG(SystemStyle.DOCUMENTATION_TAG, {
-		foreground = SystemColors::strongGray
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.MODULE_CONSTANT_DEFINITION]. */
-	MODULE_CONSTANT_DEFINITION(SystemStyle.MODULE_CONSTANT_DEFINITION, {
-		foreground = SystemColors::transparentMagenta
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.MODULE_CONSTANT_USE]. */
-	MODULE_CONSTANT_USE(SystemStyle.MODULE_CONSTANT_USE, {
-		foreground = SystemColors::magenta
-		italic()
-	}),
-
-	/** Default style for [SystemStyle.MODULE_VARIABLE_DEFINITION]. */
-	MODULE_VARIABLE_DEFINITION(SystemStyle.MODULE_VARIABLE_DEFINITION, {
-		foreground = SystemColors::transparentMagenta
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.MODULE_VARIABLE_USE]. */
-	MODULE_VARIABLE_USE(SystemStyle.MODULE_VARIABLE_USE, {
-		foreground = SystemColors::magenta
-		italic()
-		underline()
-	}),
-
-	/** Default style for [SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION]. */
-	PRIMITIVE_FAILURE_REASON_DEFINITION(
-		SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION,
-		{
-			foreground = SystemColors::transparentMagenta
-			bold()
-		}),
-
-	/** Default style for [SystemStyle.PRIMITIVE_FAILURE_REASON_USE]. */
-	PRIMITIVE_FAILURE_REASON_USE(SystemStyle.PRIMITIVE_FAILURE_REASON_USE, {
-		foreground = SystemColors::transparentMagenta
-	}),
-
-	/** Default style for [SystemStyle.LOCAL_CONSTANT_DEFINITION]. */
-	LOCAL_CONSTANT_DEFINITION(SystemStyle.LOCAL_CONSTANT_DEFINITION, {
-		foreground = SystemColors::transparentMagenta
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.LOCAL_CONSTANT_USE]. */
-	LOCAL_CONSTANT_USE(SystemStyle.LOCAL_CONSTANT_USE, {
-		foreground = SystemColors::magenta
-	}),
-
-	/** Default style for [SystemStyle.LOCAL_VARIABLE_DEFINITION]. */
-	LOCAL_VARIABLE_DEFINITION(SystemStyle.LOCAL_VARIABLE_DEFINITION, {
-		foreground = SystemColors::transparentMagenta
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.LOCAL_VARIABLE_USE]. */
-	LOCAL_VARIABLE_USE(SystemStyle.LOCAL_VARIABLE_USE, {
-		foreground = SystemColors::magenta
-		underline()
-	}),
-
-	/** Default style for [SystemStyle.LABEL_DEFINITION]. */
-	LABEL_DEFINITION(SystemStyle.LABEL_DEFINITION, {
-		foreground = SystemColors::mustard
-		background = SystemColors::transparentMustard
-	}),
-
-	/** Default style for [SystemStyle.LABEL_USE]. */
-	LABEL_USE(SystemStyle.LABEL_USE, {
-		foreground = SystemColors::mustard
-	}),
-
-	/** Default style for [SystemStyle.STRING_LITERAL]. */
-	STRING_LITERAL(SystemStyle.STRING_LITERAL, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.STRING_ESCAPE_SEQUENCE]. */
-	STRING_ESCAPE_SEQUENCE(SystemStyle.STRING_ESCAPE_SEQUENCE, {
-		foreground = SystemColors::transparentGreen
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.NUMERIC_LITERAL]. */
-	NUMERIC_LITERAL(SystemStyle.NUMERIC_LITERAL, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.BOOLEAN_LITERAL]. */
-	BOOLEAN_LITERAL(SystemStyle.BOOLEAN_LITERAL, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.TUPLE_CONSTRUCTOR]. */
-	TUPLE_CONSTRUCTOR(SystemStyle.TUPLE_CONSTRUCTOR, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.SET_CONSTRUCTOR]. */
-	SET_CONSTRUCTOR(SystemStyle.SET_CONSTRUCTOR, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.MAP_CONSTRUCTOR]. */
-	MAP_CONSTRUCTOR(SystemStyle.MAP_CONSTRUCTOR, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.CHARACTER_LITERAL]. */
-	CHARACTER_LITERAL(SystemStyle.CHARACTER_LITERAL, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.ATOM_LITERAL]. */
-	ATOM_LITERAL(SystemStyle.ATOM_LITERAL, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.OTHER_LITERAL]. */
-	OTHER_LITERAL(SystemStyle.OTHER_LITERAL, {
-		foreground = SystemColors::green
-	}),
-
-	/** Default style for [SystemStyle.CONDITIONAL]. */
-	CONDITIONAL(SystemStyle.CONDITIONAL, {
-		foreground = SystemColors::mustard
-	}),
-
-	/** Default style for [SystemStyle.LOOP]. */
-	LOOP(SystemStyle.LOOP, {
-		foreground = SystemColors::mustard
-	}),
-
-	/** Default style for [SystemStyle.LEXER_DEFINITION]. */
-	LEXER_DEFINITION(SystemStyle.LEXER_DEFINITION, {
-		foreground = SystemColors::rose
-	}),
-
-	/** Default style for [SystemStyle.MACRO_DEFINITION]. */
-	MACRO_DEFINITION(SystemStyle.MACRO_DEFINITION, {
-		foreground = SystemColors::rose
-	}),
-
-	/** Default style for [SystemStyle.SEMANTIC_RESTRICTION_DEFINITION]. */
-	SEMANTIC_RESTRICTION_DEFINITION(
-		SystemStyle.SEMANTIC_RESTRICTION_DEFINITION,
-		{
-			foreground = SystemColors::rose
-		}),
-
-	/** Default style for [SystemStyle.GRAMMATICAL_RESTRICTION_DEFINITION]. */
-	GRAMMATICAL_RESTRICTION_DEFINITION(
-		SystemStyle.GRAMMATICAL_RESTRICTION_DEFINITION,
-		{
-			foreground = SystemColors::rose
-		}),
-
-	/** Default style for [SystemStyle.SEAL_DEFINITION]. */
-	SEAL_DEFINITION(SystemStyle.SEAL_DEFINITION, {
-		foreground = SystemColors::rose
-	}),
-
-	/** Default style for [SystemStyle.OBJECT_TYPE_DEFINITION]. */
-	OBJECT_TYPE_DEFINITION(SystemStyle.OBJECT_TYPE_DEFINITION, {
-		foreground = SystemColors::rose
-	}),
-
-	/** Default style for [SystemStyle.SPECIAL_OBJECT]. */
-	SPECIAL_OBJECT(SystemStyle.SPECIAL_OBJECT, {
-		foreground = SystemColors::rose
-	}),
-
-	/** Default style for [SystemStyle.PRIMITIVE_NAME]. */
-	PRIMITIVE_NAME(SystemStyle.PRIMITIVE_NAME, {
-		foreground = SystemColors::rose
-		bold()
-	}),
-
-	/** Default style for [SystemStyle.PHRASE]. */
-	PHRASE(SystemStyle.PHRASE, {
-		foreground = SystemColors::lilac
-	}),
-
-	/** Default style for [SystemStyle.RETURN_VALUE]. */
-	RETURN_VALUE(SystemStyle.RETURN_VALUE, {
-		background = SystemColors::transparentMustard
-	}),
-
-	/** Default style for [SystemStyle.NONLOCAL_CONTROL]. */
-	NONLOCAL_CONTROL(SystemStyle.NONLOCAL_CONTROL, {
-		foreground = SystemColors::mustard
-	}),
-
-	/** Default style for [SystemStyle.MATH_EXPONENT]. */
-	MATH_EXPONENT(SystemStyle.MATH_EXPONENT, {
-		superscript()
-	}),
-
-	/** Default style for [SystemStyle.DEEMPHASIZE]. */
-	DEEMPHASIZE(SystemStyle.DEEMPHASIZE, {
-		foreground = SystemColors::deemphasize
-	}),
-
-	/** Default style for [SystemStyle.EXCLUDED]. */
-	EXCLUDED(SystemStyle.EXCLUDED, {
-		strikeThrough()
-	});
-
-	/**
-	 * Create a [DefaultBoundSystemStyle] for the specified [SystemStyle].  The
-	 * [setup] function is given a [DefaultBoundSystemStyleBuilder] as an
-	 * implicit receiver.
-	 */
-	@Suppress("ConvertSecondaryConstructorToPrimary")
-	constructor(
-		systemStyle: SystemStyle,
-		setup: DefaultBoundSystemStyleBuilder.()->Unit)
-	{
-		this.systemStyle = systemStyle
-		styleName = systemStyle.kotlinString
-		booleanFlags = mutableSetOf()
-		val builder = DefaultBoundSystemStyleBuilder(booleanFlags)
-		builder.setup()
-		family = builder.family
-		foreground = builder.foreground
-		background = builder.background
-	}
-
-	/**
-	 * The [SystemStyle] that should have this [DefaultBoundSystemStyle] applied
-	 * to it.
-	 */
-	private val systemStyle: SystemStyle
-
-	/** The name of this style.  Should begin with '#'. */
-	override val styleName: String
-
-	/** The font family name.  Defaults to `"Monospaced"`. */
-	private val family: String
-
-	/**
-	 * How to obtain a [system&#32;color][SystemColors] for the foreground. May
-	 * be `null`, to use the default foreground. Defaults to `null`.
-	 */
-	private val foreground: ((SystemColors)->Color)
-
-	/**
-	 * How to obtain a [system&#32;color][SystemColors] for the background. May
-	 * be `null`, to use the default background. Defaults to `null`.
-	 */
-	private val background: ((SystemColors)->Color)
-
-	/**
-	 * Extract the [CharacterConstants] provided as varargs in the constructor.
-	 * If any argument is not a [CharacterConstants], fail right away.  The
-	 * idiotic API of Swing *goes out of its way* to throw away all of the
-	 * useful type information for no reason at all.
-	 */
-	private val booleanFlags: Set<StyleFlag>
-
-	override fun lightStyle(doc: StyledDocument): Style
-	{
-		val style = doc.addStyle(styleName, defaultStyle)
-		setFontFamily(style, family)
-		StyleConstants.setForeground(style, foreground(LightColors))
-		StyleConstants.setBackground(style, background(LightColors))
-		booleanFlags.forEach {
-			style.addAttribute(it.styleConstants, true)
-		}
-		return style
-	}
-
-	override fun darkStyle(doc: StyledDocument): Style
-	{
-		val style = doc.addStyle(styleName, defaultStyle)
-		setFontFamily(style, family)
-		StyleConstants.setForeground(style, foreground(DarkColors))
-		StyleConstants.setBackground(style, background(DarkColors))
-		booleanFlags.forEach {
-			style.addAttribute(it.styleConstants, true)
-		}
-		return style
-	}
-}
-
-/**
- * The global registry of all styles, initially populated with the
- * [system&#32;styles][SystemStyle] and their
- * [default&#32;bindings][DefaultBoundSystemStyle].
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-object StyleRegistry: Iterable<BoundStyle>
-{
-	/**
-	 * The registry of all styles, as a map from style names to
-	 * [concrete&#32;style&#32;bindings][BoundStyle], initially populated from
-	 * [DefaultBoundSystemStyle] and [StreamStyle].
-	 */
-	private val allStyles = DefaultBoundSystemStyle.values()
- 		.associateByTo(mutableMapOf<String, BoundStyle>()) { it.styleName }
-		.apply {
-			putAll(StreamStyle.values().map { it.styleName to it })
-		}
-
-	/**
-	 * Lookup the [style&#32;binding][BoundStyle] for the specified
-	 * [SystemStyle].
-	 *
-	 * @param systemStyle
-	 *   The system style of interest.
-	 * @return
-	 *   The requested binding. Will never be `null`.
-	 */
-	operator fun get(systemStyle: SystemStyle) =
-		allStyles[systemStyle.kotlinString]!!
-
-	/**
-	 * Lookup the [style&#32;binding][BoundStyle] for the specified style.
-	 *
-	 * @param styleName
-	 *   The name of the style of interest.
-	 * @return
-	 *   The requested binding, if any.
-	 */
-	operator fun get(styleName: String) = allStyles[styleName]
-
-	/**
-	 * Apply the appropriate variant of every style enclosed by the specified
-	 * `enum` to the specified [StyledDocument].
-	 *
-	 * @param T
-	 *   The `enum` of interest.
-	 * @param doc
-	 *   The styled document.
-	 */
-	@Suppress("unused")
-	inline fun <reified T> addStyles(doc: StyledDocument)
-		where T: Enum<T>, T: BoundStyle
-	{
-		T::class.java.enumConstants!!.forEach { it.setStyle(doc) }
-	}
-
-	/**
-	 * Apply the appropriate variant of every registered style to the specified
-	 * [StyledDocument].
-	 *
-	 * @param doc
-	 *   The styled document.
-	 */
-	fun addAllStyles(doc: StyledDocument) = allStyles.values.forEach {
-		it.setStyle(doc)
-	}
-
-	override fun iterator() = allStyles.values.iterator()
-}
-
-/**
- * Utility for applying [bound&#32;styles][BoundStyle] to [StyledDocument]s.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-object StyleApplicator
-{
-	/**
-	 * Apply all [style&#32;runs] to the receiver. Each style name is treated as
-	 * a comma-separated composite. Rendered styles compose rather than replace.
-	 * **Must be invoked on the Swing UI thread.**
-	 *
-	 * @param runs
-	 *   The style runs to apply to the [document][StyledDocument].
-	 * @param replace
-	 *   Indicates whether or not the previous attributes should be cleared
-	 *   before the new attributes as set. If true, the operation will replace
-	 *   the previous attributes entirely. If false, the new attributes will be
-	 *   merged with the previous attributes.
-	 */
-	fun StyledDocument.applyStyleRuns(
-		runs: List<StyleRun>,
-		replace: Boolean = true)
-	{
-		assert(SwingUtilities.isEventDispatchThread())
-		val compositeStyles = mutableMapOf<String, Style?>()
-		runs.forEach { (range, compositeStyleName) ->
-			val styleNames = compositeStyleName.split(",")
-			val style = if (styleNames.size == 1)
-			{
-				// All simple styles should already have been added to the
-				// document, so just ask the document for its registered style
-				// and use it to style the range.
-				val styleName = styleNames.first()
-				getStyle(styleName)
-			}
-			else
-			{
-				// Compute the composite styles on demand, using a cache to
-				// avoid redundant effort.
-				val style =
-					compositeStyles.computeIfAbsent(compositeStyleName) {
-						val style = addStyle(it, defaultStyle)
-						val styles = styleNames.mapNotNull(::getStyle)
-						if (styles.isNotEmpty())
-						{
-							val combined = styles.drop(1).fold(
-								StyleAspects(styles.first())
-							) { aspect, nextStyle ->
-								aspect + StyleAspects(nextStyle)
-							}
-							combined.applyTo(style)
-							style
-						}
-						else
-						{
-							null
-						}
-					}
-				style
-			}
-			style?.let {
-				setCharacterAttributes(
-					range.first - 1,
-					range.last - range.first + 1,
-					style,
-					replace)
-			}
-		}
-	}
-}
-
-/**
- * Styles that are on/off.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @constructor
- *
- * Wrap a [StyleFlag] around an appropriate
- * [Swing&#32;style&#32;constant][StyleConstants].
- *
- * @param styleConstantsObject
- *   A [Swing&#32;style&#32;constant][StyleConstants] (stupidly typed as
- *   [java.lang.Object] by the authors of Swing).
- */
-enum class StyleFlag constructor(styleConstantsObject: Any)
-{
-	/** Whether to apply bold font weight. */
-	Bold(StyleConstants.Bold),
-
-	/** Whether to apply italic font style. */
-	Italic(StyleConstants.Italic),
-
-	/** Whether to apply underline text decoration. */
-	Underline(StyleConstants.Underline),
-
-	/** Whether to apply superscript text position. */
-	Superscript(StyleConstants.Superscript),
-
-	/** Whether to apply subscript text position. */
-	Subscript(StyleConstants.Subscript),
-
-	/** Whether to apply strikethrough text decoration. */
-	StrikeThrough(StyleConstants.StrikeThrough);
-
-	/** Undo the idiotic type-erasure to Object. */
-	val styleConstants = styleConstantsObject as StyleConstants
-}
-
-/**
- * Concentrate the renderable aspects of a [BoundStyle].
- *
- * @property fontFamily
- *   The font family for text rendition.
- * @property foreground
- *   The foreground color, i.e., the color of rendered text.
- * @property background
- *   The background color.
- * @property flags
- *   The [style&#32;flags][StyleFlag].
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- *
- * @constructor
- * Construct an immutable representation of the complete set of supported style
- * attributes available for a [BoundStyle].
- *
- * @param fontFamily
- *   The font family for text rendition.
- * @param foreground
- *   The foreground color, i.e., the color of rendered text.
- * @param background
- *   The background color.
- * @param flags
- *   The [style&#32;flags][StyleFlag].
- */
-private data class StyleAspects constructor(
-	val fontFamily: String,
-	val foreground: Color,
-	val background: Color,
-	val flags: Set<StyleFlag>)
-{
-	/**
-	 * Construct an instance by summarizing the supported style attributes of
-	 * the specified [Style].
-	 *
-	 * @param style
-	 *   The style to summarize.
-	 */
-	constructor(style: Style) : this(
-		StyleConstants.getFontFamily(style),
-		StyleConstants.getForeground(style),
-		StyleConstants.getBackground(style),
-		StyleFlag.values().filterTo(mutableSetOf()) {
-			@Suppress("IMPLICIT_BOXING_IN_IDENTITY_EQUALS")
-			style.getAttribute(it.styleConstants) === java.lang.Boolean.TRUE
-		})
-
-	/**
-	 * Derive an instance by compositing the receiver and the argument,
-	 * according to the following rules:
-	 *
-	 * * Use the argument's [fontFamily] unconditionally.
-	 * * If either the receiver's or the argument's [foreground] is
-	 *   [SystemColors.baseCode], then use the other color.
-	 * * If neither the receiver's nor the argument's [foreground] is
-	 *   [SystemColors.baseCode], then [blend] both colors, giving 15% to the
-	 *   receiver and %85 to the argument.
-	 * * If either the receiver's or the argument's [background] is
-	 *   [SystemColors.codeBackground], then use the other color.
-	 * * If neither the receiver's nor the argument's [foreground] is
-	 *   [SystemColors.codeBackground], then [blend] both colors, giving 15% to
-	 *   the receiver and %85 to the argument.
-	 * * If either the receiver or the argument is [bold][StyleFlag.Bold], then
-	 *   use [bold][StyleFlag.Bold].
-	 * * If either the receiver or the argument is [italic][StyleFlag.Italic],
-	 *   then use [italic][StyleFlag.Italic].
-	 * * If either the receiver or the argument is
-	 *   [underline][StyleFlag.Underline], then use
-	 *   [underline][StyleFlag.Underline].
-	 * * If either the receiver or the argument is
-	 *   [superscript][StyleFlag.Superscript], then use
-	 *   [superscript][StyleFlag.Superscript].
-	 * * If either the receiver or the argument is
-	 *   [subscript][StyleFlag.Subscript], then use
-	 *   [subscript][StyleFlag.Subscript].
-	 *
-	 * @param other
-	 *   The aspects to merge.
-	 * @return
-	 *   The merged instance.
-	 */
-	operator fun plus(other: StyleAspects) = StyleAspects(
-		other.fontFamily,
-		when
-		{
-			foreground == SystemColors.active.baseCode -> other.foreground
-			other.foreground == SystemColors.active.baseCode -> foreground
-			else -> blend(foreground, other.foreground, 0.15f)
-		},
-		when
-		{
-			background == SystemColors.active.codeBackground -> other.background
-			other.background == SystemColors.active.codeBackground -> background
-			else -> blend(background, other.background, 0.15f)
-		},
-		flags.union(other.flags))
-
-	/**
-	 * Apply the consolidated aspects to the specified [style], i.e., for
-	 * subsequent use in a [StyledDocument].
-	 *
-	 * @param style
-	 *   The style to modify.
-	 */
-	fun applyTo(style: Style)
-	{
-		setFontFamily(style, fontFamily)
-		StyleConstants.setForeground(style, foreground)
-		StyleConstants.setBackground(style, background)
-		flags.forEach { flag ->
-			style.addAttribute(flag.styleConstants, true)
-		}
-	}
-}
-
-//////////////////////////// TODO: New stuff after. ////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                Stylesheets.                                //
@@ -935,11 +110,27 @@ private data class StyleAspects constructor(
  * later rules prevailing over earlier ones. For computational efficiency, the
  * final result is memoized (to the sequence `S`).
  *
- * @property rules
- *   The [style&#32;rules][StyleRule].
+ * @property palette
+ *   The [palette][Palette].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [Stylesheet]. Supplement the supplied [rules][StyleRule] with
+ * any missing [rules][StyleRule] required to support the
+ * [system&#32;style&#32;classifiers][SystemStyleClassifier].
+ *
+ * @param originalRules
+ *   The original [style&#32;rules][StyleRule] to inject into the
+ *   [stylesheet][Stylesheet], prior to adding defaults for missing
+ *   [system&#32;style&#32;classifiers][SystemStyleClassifier].
+ * @property palette
+ *   The [palette][Palette].
  */
-class Stylesheet constructor(val rules: Set<StyleRule>)
+class Stylesheet constructor(
+	originalRules: Set<StyleRule>,
+	private val palette: Palette
+)
 {
 	/**
 	 * Construct a [Stylesheet] from (1) the specified map of source patterns
@@ -967,26 +158,57 @@ class Stylesheet constructor(val rules: Set<StyleRule>)
 		palette: Palette,
 		errors: MutableList<Pair<
 			UnvalidatedStylePattern, StylePatternException>>? = null
-	): this(compileRules(map, palette, errors))
+	): this(compileRules(map, palette, errors), palette)
 	{
 		// No implementation required.
 	}
 
-	/**
-	 * The [pattern][StylePattern] `"="` handles renditions of unclassified
-	 * regions, i.e., regions to which no style classifiers were applied during
-	 * parsing, and is processed specially.
-	 */
-	private val unclassifiedRule by lazy(LazyThreadSafetyMode.PUBLICATION) {
-		rules.firstOrNull { it.source == ExactMatchToken.lexeme }
-	}
+	/** The [style&#32;rules][StyleRule]. */
+	val rules: Set<StyleRule> = originalRules.toMutableSet()
 
 	/**
 	 * The [pattern][StylePattern] `"!"` handles renditions of classified
 	 * regions that do not match any other [pattern][StylePattern].
 	 */
-	private val noSolutionsRule by lazy(LazyThreadSafetyMode.PUBLICATION) {
-		rules.firstOrNull { it.source == FailedMatchToken.lexeme }
+	private val noSolutionsRule = (rules as MutableSet).run {
+		val rule = firstOrNull { it.source == FailedMatchToken.lexeme }
+		rule?.let { remove(it) }
+		rule
+	}
+
+	/**
+	 * The [rendering&#32;context][ValidatedRenderingContext] to use when a
+	 * classified region does not match any [pattern][StylePattern].
+	 */
+	private val noSolutionsRuleRenderingContext
+	by lazy(LazyThreadSafetyMode.PUBLICATION) {
+		noSolutionsRule?.renderingContext ?: ValidatedRenderingContext(
+			StyleAttributes(),
+			palette
+		)
+	}
+
+	init
+	{
+		// The stylesheet may not contain exact match rules for the system
+		// classifiers, so insert them here if necessary.
+		SystemStyleClassifier.values().forEach { systemStyleClassifier ->
+			val source = systemStyleClassifier.exactMatchSource
+			val rule = rules.firstOrNull { it.source == source }
+			if (rule === null)
+			{
+				// This should never fail. And if it does fail, then it should
+				// totally nuke the system.
+				val newRule = compile(
+					UnvalidatedStylePattern(
+						source,
+						systemStyleClassifier.defaultRenderingContext
+					),
+					systemStyleClassifier.palette
+				)
+				(rules as MutableSet).add(newRule)
+			}
+		}
 	}
 
 	/**
@@ -1044,15 +266,9 @@ class Stylesheet constructor(val rules: Set<StyleRule>)
 	): ValidatedRenderingContext
 	{
 		var tree = rootTree
-		val classifiers = classifiersString.split(",")
-		if (classifiers.isEmpty())
-		{
-			// The sequence of classifiers is empty, so fall back to the
-			// special rule for unclassified text. If no such rule has been
-			// defined, then use a vanilla rendering context.
-			return unclassifiedRule?.renderingContext
-				?: ValidatedRenderingContext.empty
-		}
+		// Augment the sequence with the special end-of-sequence literal.
+		val classifiers = (classifiersString.split(",")
+			+ listOf(endOfSequenceLiteral))
 		// Find the right subtree, expanding the tree as necessary along the
 		// way.
 		classifiers.forEach { classifier ->
@@ -1069,8 +285,7 @@ class Stylesheet constructor(val rules: Set<StyleRule>)
 		{
 			// There are no solutions, then apply the special rule for failed
 			// matches.
-			return noSolutionsRule?.renderingContext
-				?: ValidatedRenderingContext.empty
+			return noSolutionsRuleRenderingContext
 		}
 		// Compute the solution frontier, i.e., the subset of maximally specific
 		// solutions from the solution set.
@@ -1519,44 +734,6 @@ sealed class StylePattern constructor(
 			// The successions are incomparable.
 			return Order.INCOMPARABLE
 		}
-
-		/**
-		 * Determine the first index at which [list] occurs as a sublist of the
-		 * receiver.
-		 *
-		 * @param list
-		 *   The list to find.
-		 * @return
-		 *   The zero-based index of the first occurrence of [list] in the
-		 *   receiver, or `-1` if [list] does not occur.
-		 */
-		private fun <T> List<T>.indexOfSublist(list: List<T>): Int
-		{
-			val listSize = list.size
-			if (listSize > size) return -1
-			for (index in 0 .. this.size - listSize)
-			{
-				val slice = subList(index, index + listSize)
-				if (slice == list) return index
-			}
-			return -1
-		}
-
-		/**
-		 * Compute the integral signum of the receiver.
-		 *
-		 * @return
-		 *   * `-1` if the receiver is `<0`
-		 *   * `0` if the receiver is `=0`
-		 *   * `1` if the receiver is `>0`
-		 */
-		private val Int.signum get() =
-			when
-			{
-				this < 0 -> -1
-				this == 0 -> 0
-				else -> 1
-			}
 	}
 }
 
@@ -2457,9 +1634,8 @@ class StylePatternCompiler private constructor(
 
 		override fun visit(expression: EmptyClassifierSequenceExpression)
 		{
-			// Don't emit any instructions. Only one rule can implement this
-			// expression within an entire StyleRuleTree, and that rule is
-			// stored and handled specially.
+			matchExactly = true
+			MatchEndOfSequence.emitOn(accumulator)
 		}
 
 		override fun visit(expression: FailedMatchExpression)
@@ -2598,7 +1774,7 @@ class StyleRule constructor(
 	val renderingContext get() = pattern.renderingContext
 
 	/** The [interned][String.intern] literals. */
-	private val literals = literals.map { it.intern() }
+	private val literals = literals.map  { it.intern() }
 
 	/**
 	 * Answer the literal value at the requested index. Should generally only be
@@ -3412,34 +2588,13 @@ object StyleRuleExecutor
  * attributes to a contiguous region of text within an arbitrary
  * [StyledDocument].
  *
+ * @property attributes
+ *   The partial [StyleAttributes]. Any missing aspects will be defaulted by
+ *   Swing.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- *
- * @constructor
- *
- * Construct a [RenderingContext] from the specified [StyleAttributes].
- *
- * @param attrs
- *   The partial [StyleAttributes]. Any missing aspects will be sensibly
- *   [defaulted][defaultAttributes].
  */
-sealed class RenderingContext constructor(attrs: StyleAttributes)
+sealed class RenderingContext constructor(val attributes: StyleAttributes)
 {
-	/**
-	 * The complete [StyleAttributes] to use when rendering to a
-	 * [StyledDocument]. Any attributes bound to `null` in the argument will be
-	 * set to [default&#32;values][defaultAttributes].
-	 */
-	protected val attributes = StyleAttributes(
-		fontFamily = attrs.fontFamily ?: defaultAttributes.fontFamily,
-		foreground = attrs.foreground ?: defaultAttributes.foreground,
-		background = attrs.background ?: defaultAttributes.background,
-		bold = attrs.bold ?: defaultAttributes.bold,
-		italic = attrs.italic ?: defaultAttributes.italic,
-		underline = attrs.underline ?: defaultAttributes.underline,
-		superscript = attrs.superscript ?: defaultAttributes.superscript,
-		subscript = attrs.subscript ?: defaultAttributes.subscript,
-		strikethrough =attrs.strikethrough ?: defaultAttributes.strikethrough)
-
 	override fun equals(other: Any?): Boolean
 	{
 		// Note that this implementation suffices for all subclasses, since they
@@ -3454,22 +2609,6 @@ sealed class RenderingContext constructor(attrs: StyleAttributes)
 	override fun hashCode() = 13 + attributes.hashCode()
 
 	override fun toString() = attributes.toString()
-
-	companion object
-	{
-		/** The default [RenderingContext]. */
-		private val defaultAttributes = StyleAttributes(
-			fontFamily = "Monospaced",
-			foreground = "baseCode",
-			background = "codeBackground",
-			bold = false,
-			italic = false,
-			underline = false,
-			superscript = false,
-			subscript = false,
-			strikethrough = false
-		)
-	}
 }
 
 /**
@@ -3506,12 +2645,14 @@ class UnvalidatedRenderingContext constructor(
 	 */
 	fun validate(palette: Palette): ValidatedRenderingContext
 	{
-		palette.colors[attributes.foreground!!]
-			?: throw RenderingContextValidationException(
-				"palette missing foreground color: ${attributes.foreground}")
-		palette.colors[attributes.background!!]
-			?: throw RenderingContextValidationException(
-				"palette missing background color: ${attributes.background}")
+		attributes.foreground?.let {
+			palette.colors[it] ?: throw RenderingContextValidationException(
+				"palette missing foreground color: $it")
+		}
+		attributes.background?.let {
+			palette.colors[it] ?: throw RenderingContextValidationException(
+				"palette missing background color: $it")
+		}
 		return ValidatedRenderingContext(attributes, palette)
 	}
 
@@ -3553,18 +2694,27 @@ class ValidatedRenderingContext constructor(
 	 * [StyledDocument]. its attributes are sourced from [attributes], which has
 	 * been fully resolved along all rendering dimensions.
 	 */
-	private val documentStyle: Style
-	by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+	val documentStyle: Style by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
 		getDefaultStyleContext().NamedStyle(defaultDocumentStyle).apply {
-			setFontFamily(this, attributes.fontFamily!!)
-			setForeground(this, palette.colors[attributes.foreground])
-			setBackground(this, palette.colors[attributes.background])
-			setBold(this, attributes.bold!!)
-			setItalic(this, attributes.italic!!)
-			setUnderline(this, attributes.underline!!)
-			setSuperscript(this, attributes.superscript!!)
-			setSubscript(this, attributes.subscript!!)
-			setStrikeThrough(this, attributes.strikethrough!!)
+			attributes.run {
+				fontFamily?.let { setFontFamily(this@apply, it) }
+				foreground?.let {
+					palette.colors[it]?.let { color ->
+						setForeground(this@apply, color)
+					}
+				}
+				background?.let {
+					palette.colors[it]?.let { color ->
+						setBackground(this@apply, color)
+					}
+				}
+				bold?.let { setBold(this@apply, it) }
+				italic?.let { setItalic(this@apply, it) }
+				underline?.let { setUnderline(this@apply, it) }
+				superscript?.let { setSuperscript(this@apply, it) }
+				subscript?.let { setSubscript(this@apply, it) }
+				strikethrough?.let { setStrikeThrough(this@apply, it) }
+			}
 		}
 	}
 
@@ -3588,15 +2738,15 @@ class ValidatedRenderingContext constructor(
 		val o = other.attributes
 		return ValidatedRenderingContext(
 			attributes.copy(
-				fontFamily = o.fontFamily?.let { it } ?: a.fontFamily,
-				foreground = o.foreground?.let { it } ?: a.foreground,
-				background = o.background?.let { it } ?: a.background,
-				bold = o.bold?.let { it } ?: a.bold,
-				italic = o.italic?.let { it } ?: a.italic,
-				underline = o.underline?.let { it } ?: a.underline,
-				superscript = o.superscript?.let { it } ?: a.superscript,
-				subscript = o.subscript?.let { it } ?: a.subscript,
-				strikethrough = o.strikethrough?.let { it } ?: a.strikethrough
+				fontFamily = o.fontFamily ?: a.fontFamily,
+				foreground = o.foreground ?: a.foreground,
+				background = o.background ?: a.background,
+				bold = o.bold ?: a.bold,
+				italic = o.italic ?: a.italic,
+				underline = o.underline ?: a.underline,
+				superscript = o.superscript ?: a.superscript,
+				subscript = o.subscript ?: a.subscript,
+				strikethrough = o.strikethrough ?: a.strikethrough
 			),
 			palette
 		)
@@ -3608,6 +2758,10 @@ class ValidatedRenderingContext constructor(
 	 *
 	 * @param document
 	 *   The target [StyledDocument].
+	 * @param classifiers
+	 *   The classifier sequence associated with the [range]. A
+	 *   [NameAttribute][StyleConstants.NameAttribute] will be attached to the
+	 *   [range], to support the style classifier introspection feature.
 	 * @param range
 	 *   The target one-based [range][IntRange] of characters within the
 	 *   [document].
@@ -3619,14 +2773,20 @@ class ValidatedRenderingContext constructor(
 	 */
 	fun renderTo(
 		document: StyledDocument,
+		classifiers: String,
 		range: IntRange,
-		replace: Boolean = true)
+		replace: Boolean = true
+	)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
+		// This line is subtle, because it binds `classifiers` to a
+		// NameAttribute, which in turn makes the classifiers available for
+		// display in the AvailEditor.
+		val style = document.addStyle(classifiers, documentStyle)
 		document.setCharacterAttributes(
 			range.first - 1,
 			range.last - range.first + 1,
-			documentStyle,
+			style,
 			replace)
 	}
 
@@ -3634,17 +2794,11 @@ class ValidatedRenderingContext constructor(
 
 	companion object
 	{
-		/** The canonical empty [ValidatedRenderingContext]. */
-		val empty get() = ValidatedRenderingContext(
-			StyleAttributes(),
-			Palette.empty
-		)
-
 		/**
 		 * The default [document&#32;style][Style], to serve as the parent for
 		 * new document styles.
 		 */
-		private val defaultDocumentStyle: Style
+		val defaultDocumentStyle: Style
 		by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
 			getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE)
 		}
@@ -3665,6 +2819,47 @@ val Palette.colors get() =
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class RenderingContextValidationException(message: String): Exception(message)
+
+/**
+ * The [RenderingEngine] renders [runs][StyleRun] of source text. To achieve
+ * this for some run `R`, it queries the active [stylesheet][Stylesheet] with
+ * the run's style classifiers and then
+ * [uses][ValidatedRenderingContext.renderTo] the obtained
+ * [rendering&#32;context][RenderingContext] to set the
+ * [character&#32;attributes][StyledDocument.setCharacterAttributes] of `R`.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+object RenderingEngine
+{
+	/**
+	 * Apply all [style&#32;runs] to the [receiver][StyledDocument], using the
+	 * supplied [stylesheet] to obtain an appropriate
+	 * [rendering&#32;contexts][ValidatedRenderingContext] for each run. **Must
+	 * be invoked on the Swing UI thread.**
+	 *
+	 * @param stylesheet
+	 *   The [stylesheet][Stylesheet].
+	 * @param runs
+	 *   The style runs to apply to the [document][StyledDocument].
+	 * @param replace
+	 *   Indicates whether or not the previous attributes should be cleared
+	 *   before the new attributes as set. If true, the operation will replace
+	 *   the previous attributes entirely. If false, the new attributes will be
+	 *   merged with the previous attributes.
+	 */
+	fun StyledDocument.applyStyleRuns(
+		stylesheet: Stylesheet,
+		runs: List<StyleRun>,
+		replace: Boolean = true)
+	{
+		assert(SwingUtilities.isEventDispatchThread())
+		runs.forEach { (range, classifiers) ->
+			val context = stylesheet[classifiers]
+			context.renderTo(this, classifiers, range, replace)
+		}
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                  Coding.                                   //
@@ -3779,4 +2974,134 @@ fun NybbleInputStream.unvlq(): Int
 			}
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                               Constants.                                   //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * [SystemStyleClassifier] enumerates the style classifiers that are well-known
+ * to Anvil.
+ */
+enum class SystemStyleClassifier(val classifier: String)
+{
+	/** The background color for the input field of an active console. */
+	INPUT_BACKGROUND("#input-background")
+	{
+		override val systemColor = SystemColors::inputBackground
+		override val colorName = systemColor.name
+
+		override val defaultRenderingContext get() =
+			UnvalidatedRenderingContext(
+				StyleAttributes(background = colorName)
+			)
+	},
+
+	/** The foreground color for the input field of an active console. */
+	INPUT_TEXT("#input-text")
+	{
+		override val systemColor = SystemColors::inputText
+		override val colorName = systemColor.name
+	},
+
+	/** The background color for source text. */
+	CODE_BACKGROUND("#code-background")
+	{
+		override val systemColor = SystemColors::codeBackground
+		override val colorName = systemColor.name
+
+		override val defaultRenderingContext get() =
+			UnvalidatedRenderingContext(
+				StyleAttributes(background = colorName)
+			)
+	},
+
+	/** The foreground color for source text. */
+	CODE_TEXT("#code-text")
+	{
+		override val systemColor = SystemColors::codeText
+		override val colorName = systemColor.name
+	},
+
+	/** The color of a [code&#32;guide][CodeGuide]. */
+	CODE_GUIDE("#code-guide")
+	{
+		override val systemColor = SystemColors::codeGuide
+		override val colorName = systemColor.name
+	},
+
+	/** The stream style used to echo user input. */
+	STREAM_INPUT("#stream-input")
+	{
+		override val systemColor = SystemColors::streamInput
+		override val colorName = systemColor.name
+	},
+
+	/** The stream style used to display normal output. */
+	STREAM_OUTPUT("#stream-output")
+	{
+		override val systemColor = SystemColors::streamOutput
+		override val colorName = systemColor.name
+	},
+
+	/** The stream style used to display error output. */
+	STREAM_ERROR("#stream-error")
+	{
+		override val systemColor = SystemColors::streamError
+		override val colorName = systemColor.name
+	},
+
+	/** The stream style used to display informational text. */
+	STREAM_INFO("#stream-info")
+	{
+		override val systemColor = SystemColors::streamInfo
+		override val colorName = systemColor.name
+	},
+
+	/** The stream style used to echo commands. */
+	STREAM_COMMAND("#stream-command")
+	{
+		override val systemColor = SystemColors::streamCommand
+		override val colorName = systemColor.name
+	},
+
+	/** The stream style used to provide build progress updates. */
+	STREAM_BUILD_PROGRESS("#stream-build-progress")
+	{
+		override val systemColor = SystemColors::streamBuildProgress
+		override val colorName = systemColor.name
+	};
+
+	/**
+	 * The source text for an exact match pattern for the
+	 * [receiver][SystemStyleClassifier].
+	 */
+	val exactMatchSource get() = "${ExactMatchToken.lexeme}$classifier"
+
+	/**
+	 * The method reference to the desired [system&#32;color][SystemColors].
+	 */
+	protected abstract val systemColor: SystemColors.()->Color
+
+	/** The name of the default [system&#32;color][SystemColors]. */
+	protected abstract val colorName: String
+
+	/**
+	 * The default [palette][Palette] to use if the [palette][Palette] provided
+	 * to the [stylesheet][Stylesheet] does not have the right aliases defined.
+	 */
+	val palette get() = Palette(
+		lightColors = mapOf(colorName to LightColors.systemColor()),
+		darkColors = mapOf(colorName to DarkColors.systemColor())
+	)
+
+	/**
+	 * The default [rendering&#32;context][RenderingContext] to use when none
+	 * was supplied for an exact match of the [receiver][SystemStyleClassifier]
+	 * in the [stylesheet][Stylesheet].
+	 */
+	open val defaultRenderingContext get() = UnvalidatedRenderingContext(
+		StyleAttributes(foreground = colorName)
+	)
 }

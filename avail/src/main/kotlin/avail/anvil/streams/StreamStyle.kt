@@ -32,79 +32,54 @@
 
 package avail.anvil.streams
 
-import avail.anvil.BoundStyle
-import avail.anvil.BoundStyle.Companion.defaultStyle
+import avail.anvil.StyleRule
+import avail.anvil.Stylesheet
+import avail.anvil.SystemColors
+import avail.anvil.SystemStyleClassifier
 import java.awt.Color
-import javax.swing.text.Style
-import javax.swing.text.StyleConstants
-import javax.swing.text.StyledDocument
 
 /**
  * An abstraction of the styles of streams used by the workbench.
  *
- * @property styleName
- *   The name of this style.
- * @constructor
- * Construct a new `StreamStyle`.
- *
- * @param light
- *   The color of foreground text in this style for light mode.
- * @param dark
- *   The color of foreground text in this style for dark mode.
+ * @property classifier
+ *   The governing style classifier.
+ * @property selector
+ *   The method selector for the [default&#32;color][defaultColor].
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 enum class StreamStyle constructor(
-	override val styleName: String,
-	private val light: Color,
-	private val dark: Color
-): BoundStyle
+	val systemClassifier: SystemStyleClassifier,
+	private val selector: SystemColors.()->Color
+)
 {
 	/** The stream style used to echo user input. */
-	IN_ECHO(
-		"#stream-input",
-		light = Color(32, 144, 32),
-		dark = Color(55, 156, 26)),
+	IN_ECHO(SystemStyleClassifier.STREAM_INPUT, SystemColors::streamInput),
 
 	/** The stream style used to display normal output. */
-	OUT(
-		"#stream-output",
-		light = Color.BLACK,
-		dark = Color(238, 238, 238)),
+	OUT(SystemStyleClassifier.STREAM_OUTPUT, SystemColors::streamOutput),
 
 	/** The stream style used to display error output. */
-	ERR(
-		"#stream-error",
-		light = Color.RED,
-		dark = Color(255, 100, 88)),
+	ERR(SystemStyleClassifier.STREAM_ERROR, SystemColors::streamError),
 
 	/** The stream style used to display informational text. */
-	INFO(
-		"#stream-info",
-		light = Color.BLUE,
-		dark = Color(83, 148, 236)),
+	INFO(SystemStyleClassifier.STREAM_INFO, SystemColors::streamInfo),
 
 	/** The stream style used to echo commands. */
-	COMMAND(
-		"#stream-command",
-		light = Color.MAGENTA,
-		dark = Color(174, 138, 190)),
+	COMMAND(SystemStyleClassifier.STREAM_COMMAND, SystemColors::streamCommand),
 
-	/** Progress updates produced by a build. */
+	/** The stream style used to provide build progress updates. */
 	BUILD_PROGRESS(
-		"#stream-build",
-		light = Color(128, 96, 0),
-		dark = Color(220, 196, 87));
+		SystemStyleClassifier.STREAM_BUILD_PROGRESS,
+		SystemColors::streamBuildProgress
+	);
 
-	override fun lightStyle(doc: StyledDocument): Style
-	{
-		val style = doc.addStyle(styleName, defaultStyle)
-		StyleConstants.setForeground(style, light)
-		return style
-	}
+	/** The style classifier. */
+	val classifier get() = systemClassifier.classifier
 
-	override fun darkStyle(doc: StyledDocument): Style
-	{
-		val style = doc.addStyle(styleName, defaultStyle)
-		StyleConstants.setForeground(style, dark)
-		return style
-	}
+	/**
+	 * The [default][SystemColors] [color][Color] for this [style][StreamStyle].
+	 * Only used when the active [stylesheet][Stylesheet] does not include any
+	 * [rules][StyleRule] for the [classifiers][classifier].
+	 */
+	val defaultColor get() = SystemColors.active.selector()
 }
