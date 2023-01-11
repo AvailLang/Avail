@@ -2781,7 +2781,7 @@ class ValidatedRenderingContext constructor(
 		assert(SwingUtilities.isEventDispatchThread())
 		// This line is subtle, because it binds `classifiers` to a
 		// NameAttribute, which in turn makes the classifiers available for
-		// display in the AvailEditor.
+		// display in gutter of the AvailEditor.
 		val style = document.addStyle(classifiers, documentStyle)
 		document.setCharacterAttributes(
 			range.first - 1,

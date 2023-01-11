@@ -46,6 +46,7 @@ import avail.io.SimpleCompletionHandler
 import avail.resolver.ModuleRootResolver.WatchEventType.CREATE
 import avail.resolver.ModuleRootResolver.WatchEventType.DELETE
 import avail.resolver.ModuleRootResolver.WatchEventType.MODIFY
+import avail.utility.launch
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryChangeEvent.EventType
 import io.methvin.watcher.DirectoryWatcher
@@ -78,7 +79,6 @@ import java.util.ArrayDeque
 import java.util.EnumSet
 import java.util.LinkedList
 import java.util.UUID
-import kotlin.concurrent.thread
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.moveTo
 
@@ -728,8 +728,7 @@ class FileSystemModuleRootResolver constructor(
 		}
 	}
 
-	override fun toString(): String =
-		"$name - $uri"
+	override fun toString() = "$name - $uri"
 
 	/**
 	 * `FileSystemWatcher` manages the [WatchService] responsible for watching
@@ -739,7 +738,7 @@ class FileSystemModuleRootResolver constructor(
 	inner class FileSystemWatcher
 	{
 		/**
-		 * The [WatchService] watching the [FileManager] directories where
+		 * The [DirectoryWatcher] watching the [FileManager] directories where
 		 * the [AvailRuntime] loaded [ModuleRoot]s are stored.
 		 */
 		private val directoryWatcher = DirectoryWatcher.builder()
@@ -758,28 +757,8 @@ class FileSystemModuleRootResolver constructor(
 				}
 			}
 			.path(Path.of(File(moduleRoot.resolver.uri).path))
-			.build()!!
-			.apply {
-				// Allocate a dedicated thread to observing changes to the
-				// filesystem.
-				thread (
-					isDaemon = true,
-					name = "file system observer"
-				) {
-					while (true)
-					{
-						try
-						{
-							watch()
-							break
-						}
-						catch (t: Throwable)
-						{
-							// Try again.
-						}
-					}
-				}
-			}
+			.build()
+			.launch("module root observer")
 
 		/**
 		 * Shutdown this [FileSystemWatcher].

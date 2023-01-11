@@ -426,10 +426,6 @@ private object RefreshStylesheet: TextAction(
 		val editor = e.editor
 		val workbench = editor.workbench
 		workbench.refreshStylesheetAction.runAction()
-		val stylesheet = workbench.stylesheet
-		val sourcePane = editor.sourcePane
-		sourcePane.background = sourcePane.computeBackground(stylesheet)
-		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 	}
 }
 
@@ -1293,6 +1289,7 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 			{
 				append(textToTransform[0].lowercase())
 			}
+			@Suppress("KotlinConstantConditions")
 			textToTransform.substring(1).forEach {
 				if (it == '-' || it == '_')
 				{

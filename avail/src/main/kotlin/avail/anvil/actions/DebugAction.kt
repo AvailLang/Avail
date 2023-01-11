@@ -59,6 +59,7 @@ constructor(
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val debugger = AvailDebugger(workbench)
+		workbench.openDebuggers.add(debugger)
 		debugger.debuggerModel.installFiberCapture(true)
 		debugger.gatherFibers { workbench.runtime.allFibers() }
 		debugger.open()

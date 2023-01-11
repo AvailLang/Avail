@@ -1,5 +1,5 @@
 /*
- * RefreshStylesheetAction.kt
+ * DirectoryWatcherExtensions.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,62 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.actions
+package avail.utility
 
-import avail.anvil.AvailWorkbench
-import avail.anvil.Stylesheet
-import avail.anvil.shortcuts.WorkbenchRefreshStylesheetShortcut
-import org.availlang.artifact.environment.project.AvailProject
-import org.availlang.json.jsonObject
-import java.awt.event.ActionEvent
-import java.io.File
-import javax.swing.Action
+import io.methvin.watcher.DirectoryWatcher
+import kotlin.concurrent.thread
 
 /**
- * A [RefreshStylesheetAction] reloads the [stylesheet][Stylesheet] from the
- * configuration file underlying the [workbench]'s enclosing
- * [project][AvailProject].
+ * Run a daemon [thread][Thread] that drives the [receiver][DirectoryWatcher].
  *
- * @param workbench
- *   The owning [workbench][AvailWorkbench].
+ * @author Richard Arriaga
  * @author Todd Smith &lt;todd@availlang.org&gt;
  */
-class RefreshStylesheetAction constructor(
-	workbench: AvailWorkbench
-): AbstractWorkbenchAction(
-	workbench,
-	"Refresh Stylesheet",
-	WorkbenchRefreshStylesheetShortcut)
-{
-	override fun actionPerformed(e: ActionEvent) = runAction()
-
-	/**
-	 * Reloads the [stylesheet][Stylesheet] from the configuration file
-	 * underlying the [workbench]'s enclosing [project][AvailProject].
-	 */
-	fun runAction()
-	{
-		try
+fun DirectoryWatcher.launch(name: String) = apply {
+	thread (isDaemon = true, name = name) {
+		while (true)
 		{
-			val configurationPath = File(workbench.availProjectFilePath)
-			val directory = configurationPath.parent
-			val project = AvailProject.from(
-				directory,
-				jsonObject(configurationPath.readText(Charsets.UTF_8)))
-			workbench.stylesheet = workbench.buildStylesheet(project)
+			try
+			{
+				watch()
+				break
+			}
+			catch (t: Throwable)
+			{
+				// Try again.
+			}
 		}
-		catch (e: Exception)
-		{
-			e.printStackTrace()
-		}
-	}
-
-	init
-	{
-		putValue(
-			Action.SHORT_DESCRIPTION,
-			"Refresh the stylesheet from the configuration file for "
-				+ "this project."
-		)
 	}
 }

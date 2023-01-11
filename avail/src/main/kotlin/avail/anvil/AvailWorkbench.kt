@@ -146,11 +146,15 @@ import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
 import avail.utility.isNullOr
+import avail.utility.launch
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
+import io.methvin.watcher.DirectoryChangeEvent.EventType
+import io.methvin.watcher.DirectoryWatcher
+import io.methvin.watcher.hashing.FileHasher
 import org.availlang.artifact.ResourceType
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
@@ -159,6 +163,7 @@ import org.availlang.artifact.environment.project.AvailProjectV1
 import org.availlang.artifact.environment.project.Palette
 import org.availlang.artifact.environment.project.StyleAttributes
 import org.availlang.json.JSONWriter
+import org.slf4j.helpers.NOPLogger
 import java.awt.Color
 import java.awt.Component
 import java.awt.Desktop
@@ -375,9 +380,14 @@ class AvailWorkbench internal constructor(
 			openEditors.values.forEach { editor ->
 				invokeLater {
 					editor.highlightCode {
-						// No action required here; we just want to force the
-						// highlighting to update to reflect any changes in
-						// style.
+						editor.afterRefreshStylesheet()
+					}
+				}
+			}
+			openDebuggers.forEach { debugger ->
+				invokeLater {
+					debugger.highlightCode {
+						debugger.afterRefreshStylesheet()
 					}
 				}
 			}
@@ -452,6 +462,55 @@ class AvailWorkbench internal constructor(
 	/** The current [background task][AbstractWorkbenchTask]. */
 	@Volatile
 	var backgroundTask: AbstractWorkbenchTask? = null
+
+	/**
+	 * The [DirectoryWatcher] that observes the [project][AvailProject]
+	 * configuration file for changes.
+	 */
+	@Suppress("unused")
+	private val configurationWatcher = DirectoryWatcher.builder()
+		.logger(NOPLogger.NOP_LOGGER)
+		.fileHasher(FileHasher.LAST_MODIFIED_TIME)
+		.path(File(availProjectFilePath).toPath())
+		.listener { event ->
+			try
+			{
+				when (event.eventType()!!)
+				{
+					EventType.DELETE ->
+					{
+						errorStream().println(
+							"configuration file deleted: "
+								+ availProjectFilePath
+						)
+					}
+					EventType.CREATE, EventType.MODIFY ->
+					{
+						refreshStylesheetAction.runAction()
+						writeText(
+							"configuration file refreshed: "
+								+ "$availProjectFilePath\n",
+							INFO
+						)
+					}
+					EventType.OVERFLOW ->
+					{
+						// No implementation required.
+					}
+				}
+			}
+			catch (e: Throwable)
+			{
+				errorStream().println(
+					"Failed to process configuration file update: "
+						+ "$event.eventType():\n"
+						+ "$availProjectFilePath:\n"
+						+ e.stackTraceToString()
+				)
+			}
+		}
+		.build()
+		.launch("configuration watcher: $availProjectFilePath")
 
 	/**
 	 * The documentation [path][Path] for the
@@ -740,7 +799,11 @@ class AvailWorkbench internal constructor(
 //	 */
 //	val resetCodeCoverageDataAction = ResetCodeCoverageDataAction(this, true)
 
+	/** The open [editors][AvailEditor]. */
 	val openEditors: MutableMap<ModuleName, AvailEditor> = ConcurrentHashMap()
+
+	/** The open [debuggers][AvailDebugger]. */
+	val openDebuggers: Queue<AvailDebugger> = ConcurrentLinkedQueue()
 
 	/** Whether an entry point invocation (command line) is executing. */
 	var isRunning = false
@@ -1858,15 +1921,26 @@ class AvailWorkbench internal constructor(
 	internal val structureViewIsOpen get() = structureView != null
 
 	/**
-	 * Close the provided [AvailEditor].
+	 * Close the provided [editor][AvailEditor].
 	 *
 	 * @param editor
-	 *   The [AvailEditor] that is closing.
+	 *   The [editor][AvailEditor] that is closing.
 	 */
-	fun closeEditor (editor: AvailEditor)
+	fun closeEditor(editor: AvailEditor)
 	{
 		openEditors.remove(editor.resolverReference.moduleName)
 		structureView?.closingEditor(editor)
+	}
+
+	/**
+	 * Close the provided [debugger][AvailDebugger].
+	 *
+	 * @param debugger
+	 *   The [debugger][AvailDebugger] that is closing.
+	 */
+	fun closeDebugger(debugger: AvailDebugger)
+	{
+		openDebuggers.remove(debugger)
 	}
 
 
@@ -2711,6 +2785,7 @@ class AvailWorkbench internal constructor(
 			// Inject a breakpoint handler into the runtime to open a debugger.
 			runtime.breakpointHandler = { fiber ->
 				val debugger = AvailDebugger(bench)
+				bench.openDebuggers.add(debugger)
 				// Debug just the fiber that hit the breakpoint.
 				debugger.gatherFibers { listOf(fiber) }
 				debugger.open()

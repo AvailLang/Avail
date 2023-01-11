@@ -190,6 +190,9 @@
 				"=#code-text": {
 					"foreground": "codeText"
 				},
+				"=#code-guide": {
+					"foreground": "codeGuide"
+				},
 				"=#stream-input": {
 					"foreground": "streamInput"
 				},
@@ -234,12 +237,8 @@
 					"foreground": "magenta",
 					"bold": true
 				},
-				"#method-send": {
-					"foreground": "codeText"
-				},
-				"#macro-send": {
-					"foreground": "codeText"
-				},
+				"#method-send": {},
+				"#macro-send": {},
 				"#statement": {
 					"bold": true
 				},
@@ -312,6 +311,9 @@
 					"foreground": "transparentMagenta",
 					"bold": true
 				},
+				"#local-constant-use": {
+					"foreground": "transparentMagenta"
+				},
 				"#local-variable-definition": {
 					"foreground": "transparentMagenta",
 					"bold": true
@@ -358,7 +360,7 @@
 				"#other-literal": {
 					"foreground": "green"
 				},
-				"#condition": {
+				"#conditional": {
 					"foreground": "mustard"
 				},
 				"#loop": {
@@ -382,7 +384,7 @@
 				"#object-type-definition": {
 					"foreground": "rose"
 				},
-				"#special-object": {
+				"#special-object-definition": {
 					"foreground": "rose"
 				},
 				"#primitive-name": {

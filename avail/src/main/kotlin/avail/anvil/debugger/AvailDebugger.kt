@@ -33,6 +33,24 @@
 package avail.anvil.debugger
 
 import avail.AvailDebuggerModel
+import avail.anvil.AdaptiveColor
+import avail.anvil.AvailWorkbench
+import avail.anvil.CodeGuide
+import avail.anvil.MenuBarBuilder
+import avail.anvil.RenderingEngine.applyStyleRuns
+import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
+import avail.anvil.Stylesheet
+import avail.anvil.actions.FindAction
+import avail.anvil.actions.RefreshStylesheetAction
+import avail.anvil.addWindowMenu
+import avail.anvil.scroll
+import avail.anvil.scrollTextWithLineNumbers
+import avail.anvil.shortcuts.ResumeActionShortcut
+import avail.anvil.shortcuts.StepIntoShortcut
+import avail.anvil.shortcuts.StepOutShortcut
+import avail.anvil.shortcuts.StepOverShortcut
+import avail.anvil.showTextRange
+import avail.anvil.text.CodePane
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
@@ -65,6 +83,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -74,22 +93,6 @@ import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
-import avail.anvil.AdaptiveColor
-import avail.anvil.AvailWorkbench
-import avail.anvil.MenuBarBuilder
-import avail.anvil.RenderingEngine.applyStyleRuns
-import avail.anvil.actions.FindAction
-import avail.anvil.addWindowMenu
-import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
-import avail.anvil.scroll
-import avail.anvil.scrollTextWithLineNumbers
-import avail.anvil.shortcuts.ResumeActionShortcut
-import avail.anvil.shortcuts.StepIntoShortcut
-import avail.anvil.shortcuts.StepOutShortcut
-import avail.anvil.shortcuts.StepOverShortcut
-import avail.anvil.showTextRange
-import avail.anvil.text.CodePane
-import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.interpreter.levelOne.L1Disassembler
 import avail.persistence.cache.Repository.StylingRecord
 import avail.utility.safeWrite
@@ -725,16 +728,16 @@ class AvailDebugger internal constructor (
 								val doc = sourcePane.styledDocument
 								doc.remove(0, doc.length)
 								doc.insertString(0, source, null)
-								doc.applyStyleRuns(
-									workbench.stylesheet,
-									stylingRecord.styleRuns)
-								// Setting the source does not immediately
-								// update the layout, so postpone scrolling to
-								// the selected line.
-								SwingUtilities.invokeLater {
-									highlightSourceLine(
-										frame.currentLineNumber(isTopFrame),
-										isTopFrame)
+								highlightCode {
+									// Setting the source does not immediately
+									// update the layout, so postpone scrolling
+									// to the selected line.
+									SwingUtilities.invokeLater {
+										highlightSourceLine(
+											frame.currentLineNumber(isTopFrame),
+											isTopFrame
+										)
+									}
 								}
 							}
 						}
@@ -749,6 +752,21 @@ class AvailDebugger internal constructor (
 				}
 			}
 		}
+	}
+
+	/**
+	 * Apply style highlighting to the text in the
+	 * [source&#32;pane][sourcePane].
+	 *
+	 * @param then
+	 *   Action to perform after highlighting is complete.
+	 */
+	internal fun highlightCode(then: (AvailDebugger)->Unit = {})
+	{
+		sourcePane.styledDocument.applyStyleRuns(
+			workbench.stylesheet,
+			currentSourceAndLineEndsAndStyling.third.styleRuns)
+		then(this)
 	}
 
 	/**
@@ -924,6 +942,24 @@ class AvailDebugger internal constructor (
 		}
 	}
 
+	/**
+	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 */
+	private val codeGuide get() = sourcePane.getClientProperty(
+		CodeGuide::class.java.name) as CodeGuide
+
+	/**
+	 * What to do after [refreshing][RefreshStylesheetAction] a
+	 * [stylesheet][Stylesheet].
+	 */
+	fun afterRefreshStylesheet()
+	{
+		val stylesheet = workbench.stylesheet
+		sourcePane.background = sourcePane.computeBackground(stylesheet)
+		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
+		codeGuide.guideColor = codeGuide.computeColor()
+	}
+
 	/** Construct the user interface and display it. */
 	fun open()
 	{
@@ -951,6 +987,7 @@ class AvailDebugger internal constructor (
 		addWindowListener(object : WindowAdapter()
 		{
 			override fun windowClosing(e: WindowEvent) {
+				workbench.closeDebugger(this@AvailDebugger)
 				releaseAllFibers()
 				if (debuggerModel.isCapturingNewFibers)
 				{
@@ -983,6 +1020,7 @@ class AvailDebugger internal constructor (
 						.addComponent(disassemblyPane.scroll(), 100, 100, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
+								workbench,
 								workbench.globalSettings
 									.editorGuideLines),
 							100,
@@ -1009,8 +1047,8 @@ class AvailDebugger internal constructor (
 						.addComponent(disassemblyPane.scroll(), 150, 150, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
-								workbench.globalSettings
-									.editorGuideLines),
+								workbench,
+								workbench.globalSettings.editorGuideLines),
 							150,
 							150,
 							max))

@@ -37,6 +37,7 @@ import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.RenderingEngine.applyStyleRuns
 import avail.anvil.actions.FindAction
+import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.shortcuts.AvailEditorShortcut
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.text.AvailEditorKit
@@ -347,21 +348,25 @@ class AvailEditor constructor(
 
 	init
 	{
-		highlightCode(afterTextLoaded)
+		populateSourcePane(afterTextLoaded)
 		range = sourcePane.markToDotRange()
 		caretRangeLabel.text = range.toString()
 		sourcePane.undoManager.discardAllEdits()
 	}
 
+	/** The [styling&#32;record][StylingRecord] for the module. */
+	private var stylingRecord: StylingRecord? = null
+
 	/**
-	 * Apply style highlighting to the text in the [JTextPane].
+	 * Populate the [source&#32;pane][sourcePane] and obtain the most recently
+	 * recorded [styling&#32;record][StylingRecord] for the underlying
+	 * [module][A_Module]. [Highlight][highlightCode] the source code.
 	 *
 	 * @param then
-	 *   Action to perform after text has been loaded to [sourcePane].
+	 *   Action to perform after population and then highlighting are complete.
 	 */
-	internal fun highlightCode(then: (AvailEditor) -> Unit = {})
+	internal fun populateSourcePane(then: (AvailEditor) -> Unit = {})
 	{
-		var stylingRecord: StylingRecord? = null
 		val semaphore = Semaphore(0)
 		val info = SourceCodeInfo(runtime, resolverReference)
 		info.sourceAndDelimiter.withValue { (normalizedText, delimiter) ->
@@ -380,6 +385,18 @@ class AvailEditor constructor(
 				})
 		}
 		semaphore.acquire()
+		highlightCode { then(this) }
+	}
+
+	/**
+	 * Apply style highlighting to the text in the
+	 * [source&#32;pane][sourcePane].
+	 *
+	 * @param then
+	 *   Action to perform after highlighting is complete.
+	 */
+	internal fun highlightCode(then: (AvailEditor)->Unit = {})
+	{
 		stylingRecord?.let {
 			sourcePane.styledDocument.applyStyleRuns(
 				workbench.stylesheet, it.styleRuns)
@@ -463,6 +480,24 @@ class AvailEditor constructor(
 		throwable?.let { throw it }
 	}
 
+	/**
+	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 */
+	private val codeGuide get() = sourcePane.getClientProperty(
+		CodeGuide::class.java.name) as CodeGuide
+
+	/**
+	 * What to do after [refreshing][RefreshStylesheetAction] a
+	 * [stylesheet][Stylesheet].
+	 */
+	fun afterRefreshStylesheet()
+	{
+		val stylesheet = workbench.stylesheet
+		sourcePane.background = sourcePane.computeBackground(stylesheet)
+		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
+		codeGuide.guideColor = codeGuide.computeColor()
+	}
+
 	/** Open the editor window. */
 	init
 	{
@@ -502,7 +537,9 @@ class AvailEditor constructor(
 		background = panel.background
 
 		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-			workbench.globalSettings.editorGuideLines)
+			workbench,
+			workbench.globalSettings.editorGuideLines
+		)
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
 			setHorizontalGroup(

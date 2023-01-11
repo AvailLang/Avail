@@ -96,7 +96,7 @@ object WorkbenchRefreshShortcut: WorkbenchShortcut(KeyCode.VK_F5.with())
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object RefreshStylesheetShortcut
+object WorkbenchRefreshStylesheetShortcut
 	: WorkbenchShortcut(KeyCode.VK_F5.with(SHIFT))
 {
 	override val actionMapKey = "refresh-stylesheet"

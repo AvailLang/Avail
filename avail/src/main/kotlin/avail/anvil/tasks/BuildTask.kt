@@ -82,7 +82,7 @@ constructor (
 				workbench.cursor = Cursor.getDefaultCursor()
 				workbench.openEditors.values.forEach { editor ->
 					val r = editor.range
-					editor.highlightCode {
+					editor.populateSourcePane {
 						it.sourcePane.setCaretFrom(r)
 						SwingUtilities.invokeLater {
 							it.sourcePane.centerCurrentLine()
