@@ -46,8 +46,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class TraceCompilerAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Trace compiler")
+class TraceCompilerAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Trace compiler")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

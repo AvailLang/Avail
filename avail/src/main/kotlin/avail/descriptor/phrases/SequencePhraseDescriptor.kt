@@ -72,8 +72,7 @@ class SequencePhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.SEQUENCE_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -153,8 +152,6 @@ class SequencePhraseDescriptor private constructor(
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SEQUENCE_PHRASE
-
-	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

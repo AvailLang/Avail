@@ -48,8 +48,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class UnloadAllAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Unload All")
+class UnloadAllAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Unload All")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

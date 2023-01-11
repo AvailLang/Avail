@@ -66,6 +66,7 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor
@@ -106,8 +107,7 @@ class DeclarationPhraseDescriptor(
 ) : PhraseDescriptor(
 	mutability,
 	declarationKind.phraseKind().typeTag,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -674,9 +674,6 @@ class DeclarationPhraseDescriptor(
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.DECLARATION_PHRASE
-
-	override fun o_Tokens(self: AvailObject): A_Tuple =
-		tuple(self.slot(TOKEN))
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

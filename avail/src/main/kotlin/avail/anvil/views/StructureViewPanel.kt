@@ -33,6 +33,7 @@
 package avail.anvil.views
 
 import avail.anvil.AvailEditor
+import avail.anvil.AvailEditor.ManifestEntryInDocument
 import avail.anvil.AvailWorkbench
 import avail.anvil.createScrollPane
 import avail.anvil.icons.structure.ExpansionIcons
@@ -96,9 +97,9 @@ class StructureViewPanel constructor (
 		LayoutConfiguration.initialConfiguration
 
 	/**
-	 * The list of [ModuleManifestEntry]s being displayed.
+	 * The list of [ManifestEntryInDocument]s being displayed.
 	 */
-	private var manifestEntries = listOf<ModuleManifestEntry>()
+	private var manifestEntriesInDocument = listOf<ManifestEntryInDocument>()
 
 	/**
 	 * The [Set] of [SideEffectKind]s that are to be excluded from the view.
@@ -106,8 +107,8 @@ class StructureViewPanel constructor (
 	private val filterExcludeSet = mutableSetOf<SideEffectKind>()
 
 	/**
-	 * The last selected [SortBy] for sorting the [manifestEntries] in the
-	 * view.
+	 * The last selected [SortBy] for sorting the [manifestEntriesInDocument] in
+	 * the view.
 	 */
 	private var lastSortBy = SortBy.LINE_NUMBER
 
@@ -323,11 +324,9 @@ class StructureViewPanel constructor (
 		{
 			is ManifestEntryNode ->
 			{
-				SwingUtilities.invokeLater {
-					editor?.toFront()
-					editor?.goTo(selection.entry)
-					editor?.sourcePane?.requestFocus()
-				}
+				editor?.toFront()
+				editor?.goTo(selection.entry)
+				editor?.sourcePane?.requestFocus()
 			}
 			is ManifestEntryNameNode ->
 			{
@@ -357,71 +356,71 @@ class StructureViewPanel constructor (
 	 */
 	fun updateView (
 		targetEditor: AvailEditor? = editor,
-		entries: List<ModuleManifestEntry> = manifestEntries.toList(),
+		entries: List<ManifestEntryInDocument> =
+			manifestEntriesInDocument.toList(),
 		sortBy: SortBy = lastSortBy,
 		excludeSet: Set<SideEffectKind> = filterExcludeSet.toSet(),
 		then: () -> Unit = {})
 	{
-		SwingUtilities.invokeLater {
-			editor = targetEditor
-			manifestEntries = entries
-			filterExcludeSet.apply {
-				clear()
-				addAll(excludeSet)
-			}
-			lastSortBy = sortBy
-			val structureTreeRoot =
-				DefaultMutableTreeNode("(Structure hidden root)")
-			val mn = targetEditor?.resolverReference?.moduleName
-			this.title = mn?.let { "Structure: ${it.localName}" } ?: "Structure"
-			modulePath.text = mn?.rootRelativeName ?: ""
-			if (targetEditor != null)
-			{
-				val entryMap =
-					mutableMapOf<String, MutableList<ModuleManifestEntry>>()
-				entries.forEach {
-					if (!filterExcludeSet.contains(it.kind))
-					{
-						entryMap.getOrPut(it.summaryText) { mutableListOf() }
-							.add(it)
-					}
-				}
-				entryMap.values.forEach {
-					it.sortBy { m -> m.topLevelStartingLine }
-				}
-				val mapKeys = entryMap.keys.toMutableList()
-				when (sortBy)
-				{
-					SortBy.SUMMARY_TEXT -> mapKeys.sort()
-					SortBy.LINE_NUMBER ->
-						mapKeys.sortBy {
-							entryMap[it]!!.first().topLevelStartingLine
-						}
-				}
-				mapKeys.forEach {
-					val manifestEntries = entryMap[it]!!
-					if (manifestEntries.size == 1)
-					{
-						structureTreeRoot.add(
-							ManifestEntryNode(
-								targetEditor,
-								manifestEntries.first()))
-					}
-					else
-					{
-						val nameNode = ManifestEntryNameNode(targetEditor, it)
-						manifestEntries.forEach { entry ->
-							nameNode.add(ManifestEntryNode(targetEditor, entry))
-						}
-						structureTreeRoot.add(nameNode)
-					}
-
-				}
-			}
-			structureViewTree.model = DefaultTreeModel(structureTreeRoot)
-//			pack()
-			then()
+		assert(SwingUtilities.isEventDispatchThread())
+		editor = targetEditor
+		manifestEntriesInDocument = entries
+		filterExcludeSet.apply {
+			clear()
+			addAll(excludeSet)
 		}
+		lastSortBy = sortBy
+		val structureTreeRoot =
+			DefaultMutableTreeNode("(Structure hidden root)")
+		val mn = targetEditor?.resolverReference?.moduleName
+		this.title = mn?.let { "Structure: ${it.localName}" } ?: "Structure"
+		modulePath.text = mn?.rootRelativeName ?: ""
+		if (targetEditor != null)
+		{
+			val entryMap =
+				mutableMapOf<String, MutableList<ManifestEntryInDocument>>()
+			entries.forEach {
+				val entry = it.entry
+				if (!filterExcludeSet.contains(entry.kind))
+				{
+					entryMap.getOrPut(entry.summaryText) { mutableListOf() }
+						.add(it)
+				}
+			}
+			entryMap.values.forEach {
+				it.sortBy { m -> m.entry.topLevelStartingLine }
+			}
+			val mapKeys = entryMap.keys.toMutableList()
+			when (sortBy)
+			{
+				SortBy.SUMMARY_TEXT -> mapKeys.sort()
+				SortBy.LINE_NUMBER ->
+					mapKeys.sortBy {
+						entryMap[it]!!.first().entry.topLevelStartingLine
+					}
+			}
+			mapKeys.forEach {
+				val manifestEntries = entryMap[it]!!
+				if (manifestEntries.size == 1)
+				{
+					structureTreeRoot.add(
+						ManifestEntryNode(
+							targetEditor,
+							manifestEntries.first()))
+				}
+				else
+				{
+					val nameNode = ManifestEntryNameNode(targetEditor, it)
+					manifestEntries.forEach { entry ->
+						nameNode.add(ManifestEntryNode(targetEditor, entry))
+					}
+					structureTreeRoot.add(nameNode)
+				}
+
+			}
+		}
+		structureViewTree.model = DefaultTreeModel(structureTreeRoot)
+		then()
 	}
 
 	/**
@@ -438,12 +437,11 @@ class StructureViewPanel constructor (
 		{
 			if (workbench.openEditors.isEmpty())
 			{
-				dispatchEvent(
-					WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+				dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))
 			}
 			else
 			{
-				workbench.openEditors.values.first().openStructureView()
+				workbench.openEditors.values.last().openStructureView(true)
 			}
 		}
 	}
@@ -502,10 +500,11 @@ class StructureViewPanel constructor (
 					{
 						val icon = value.icon(tree.rowHeight)
 						setLeafIcon(icon)
-						toolTipText = "Line: ${value.entry.topLevelStartingLine}"
+						toolTipText =
+							"Line: ${value.entry.entry.topLevelStartingLine}"
 						super.getTreeCellRendererComponent(
 							tree,
-							value.entry.summaryText,
+							value.entry.entry.summaryText,
 							selected,
 							expanded,
 							leaf,

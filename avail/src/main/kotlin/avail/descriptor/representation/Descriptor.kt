@@ -105,6 +105,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -2367,6 +2368,8 @@ protected constructor (
 
 	override fun o_Tokens (self: AvailObject): A_Tuple = unsupported
 
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple = unsupported
+
 	override fun o_ChooseBundle (
 		self: AvailObject,
 		currentModule: A_Module): A_Bundle = unsupported
@@ -2721,6 +2724,14 @@ protected constructor (
 
 	override fun o_StylingRecord(self: AvailObject): StylingRecord = unsupported
 
+	override fun o_SetPhrasePathRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	): Unit = unsupported
+
+	override fun o_PhrasePathRecord(self: AvailObject): PhrasePathRecord =
+		unsupported
+
 	override fun o_StylerMethod(self: AvailObject): A_Method = unsupported
 
 	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase = unsupported
@@ -2768,4 +2779,18 @@ protected constructor (
 		level: Int
 	): A_SetBin = hashedBin.setBinAddingElementHashLevelCanDestroy(
 		self, self.hash(), level, true)
+
+	override fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int = unsupported
+
+	override fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int = unsupported
 }

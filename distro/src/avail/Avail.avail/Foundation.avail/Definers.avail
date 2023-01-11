@@ -281,7 +281,14 @@ Private method stabilityBodyAtom is
 			[
 				d : method definition
 			|
-				f ::= cast d's function into [f1 : […]→any | f1];
+				f ::= if optionalEvaluator = <> then
+				[
+					cast d's function into [f1 : […]→any | f1]
+				]
+				else
+				[
+					optionalEvaluator[1] ?→ […]→any
+				];
 				value ::= invoke f with argValues;
 				simple ::=
 					cast value into
@@ -294,7 +301,7 @@ Private method stabilityBodyAtom is
 					else
 					[
 						/* We don't have "_∨_" bootstrapped at this point. */
-						true ∈ {value ∈ string, value ∈ number}
+						true ∈ {value ∈ string, value ∈ number, value ∈ atom}
 					];
 				name ::= if simple then
 				[
@@ -1182,3 +1189,5 @@ Semantic restriction "Public read-only variable_is_" is
 
 Alias "Public read-only variable_↑is_" to
 	atom for "Public read-only variable_is_";
+
+Method "_=_" is stable at function accepting <any, any> and returning boolean;

@@ -368,7 +368,7 @@ enum class ParsingOperation constructor(
 						// been encountered, so go ahead and report that we
 						// expected a variable.
 						afterUse.expected(
-							if (stepState.consumedStaticTokens.isEmpty()) WEAK
+							if (stepState.staticTokens.isEmpty()) WEAK
 							else STRONG,
 							describeWhyVariableUseIsExpected(successorTree))
 					}
@@ -465,7 +465,7 @@ enum class ParsingOperation constructor(
 				if (tokenType == END_OF_FILE)
 				{
 					stepState.start.expected(
-						if (stepState.consumedStaticTokens.isEmpty()) WEAK
+						if (stepState.staticTokens.isEmpty()) WEAK
 						else STRONG,
 						"any token, not end-of-file")
 					return@nextNonwhitespaceTokensDo
@@ -525,7 +525,7 @@ enum class ParsingOperation constructor(
 					if (stepState.consumedAnything)
 					{
 						stepState.start.expected(
-							if (stepState.consumedStaticTokens.isEmpty()) WEAK
+							if (stepState.staticTokens.isEmpty()) WEAK
 							else STRONG
 						) {
 							it(
@@ -595,7 +595,7 @@ enum class ParsingOperation constructor(
 					if (stepState.consumedAnything)
 					{
 						stepState.start.expected(
-							if (stepState.consumedStaticTokens.isEmpty()) WEAK
+							if (stepState.staticTokens.isEmpty()) WEAK
 							else STRONG
 						) {
 							it(

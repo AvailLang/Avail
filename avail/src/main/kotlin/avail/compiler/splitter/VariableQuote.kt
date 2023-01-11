@@ -57,16 +57,19 @@ import java.util.IdentityHashMap
  * token in the name, and the absolute index of this argument in the entire
  * message name.
  *
- * @param positionInName
+ * @param startInName
  *   The one-based position of the start of the token in the message name.
+ * @param pastEndInName
+ *   The one-based position just past the end of the token in the message name.
  * @param absoluteUnderscoreIndex
  *   The one-based index of this argument within the entire message name's list
  *   of arguments.
  */
 internal class VariableQuote constructor(
-	positionInName: Int,
-	absoluteUnderscoreIndex: Int)
-: Argument(positionInName, absoluteUnderscoreIndex)
+	startInName: Int,
+	pastEndInName: Int,
+	absoluteUnderscoreIndex: Int
+) : Argument(startInName, pastEndInName, absoluteUnderscoreIndex)
 {
 	override fun emitOn(
 		phraseType: A_Type,

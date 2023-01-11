@@ -57,7 +57,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType
-import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
@@ -157,7 +157,7 @@ object P_BootstrapVariableUseMacro
 		{
 			stringFrom(
 				buildString {
-					val scope = scopeMap.keysAsSet.map(A_String::asNativeString)
+					val scope = scopeMap.keysAsSet.map { it.asNativeString() }
 					append("potential variable ")
 					append(variableNameString)
 					append(" to be in scope (local scope is")

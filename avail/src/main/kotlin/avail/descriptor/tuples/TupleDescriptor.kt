@@ -50,6 +50,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.bitsPerEntry
 import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -675,13 +676,40 @@ protected constructor(
 		return nyb.toByte()
 	}
 
-	// Compute object's hash value over the given range.
+	override fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		for (i in startIndex .. endIndex)
+		{
+			if (self.tupleAt(i).equals(value)) return i
+		}
+		return 0
+	}
+
+	// Compute tuple's hash value over the given range.
 	override fun o_HashFromTo(
 		self: AvailObject,
 		startIndex: Int,
-		endIndex: Int): Int =
-			if (startIndex == 1 && endIndex == self.tupleSize) self.hash()
-			else self.computeHashFromTo(startIndex, endIndex)
+		endIndex: Int
+	): Int =
+		if (startIndex == 1 && endIndex == self.tupleSize) self.hash()
+		else self.computeHashFromTo(startIndex, endIndex)
+
+	override fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		for (i in startIndex downTo endIndex)
+		{
+			if (self.tupleAt(i).equals(value)) return i
+		}
+		return 0
+	}
 
 	abstract override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 
@@ -888,12 +916,12 @@ protected constructor(
 	override fun o_AsNativeString(self: AvailObject): String
 	{
 		val size = self.tupleSize
-		val builder = StringBuilder(size)
-		for (i in 1 .. size)
-		{
-			builder.appendCodePoint(self.tupleCodePointAt(i))
+		return buildString(size) {
+			for (i in 1 .. size)
+			{
+				appendCodePoint(self.tupleCodePointAt(i))
+			}
 		}
-		return builder.toString()
 	}
 
 	/**

@@ -45,6 +45,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

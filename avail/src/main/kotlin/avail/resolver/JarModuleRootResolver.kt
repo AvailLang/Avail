@@ -201,7 +201,7 @@ constructor(
 	{
 		// Within a jar file, the digest file is the authoritative mechanism for
 		// distinguishing versions.  There's nothing to refresh, since the
-		// digest and timestamp were capture during jar construction.
+		// digest and timestamp were captured during jar construction.
 		when (val digest = reference.forcedDigest)
 		{
 			null -> failureHandler(

@@ -32,7 +32,10 @@
 package avail.descriptor.tuples
 
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.utility.cast
 
 /**
  * `A_String` is an interface that specifies the string-specific operations that
@@ -43,34 +46,6 @@ import avail.descriptor.representation.AvailObject
  */
 interface A_String : A_Tuple
 {
-	/**
-	 * Construct a Java [string][String] from the receiver, an Avail
-	 * [string][StringDescriptor].
-	 *
-	 * @return
-	 *   The corresponding Java string.
-	 */
-	fun asNativeString(): String
-
-	/**
-	 * Even though [A_Tuple.copyTupleFromToCanDestroy] would perform the same
-	 * activity, this method returns the stronger `A_String` type as a
-	 * convenience, when the code knows it's working on strings.
-	 *
-	 * @param start
-	 *   The start of the range to extract.
-	 * @param end
-	 *   The end of the range to extract.
-	 * @param canDestroy
-	 *   Whether the original object may be destroyed if mutable.
-	 * @return
-	 *   The substring.
-	 */
-	fun copyStringFromToCanDestroy(
-		start: Int,
-		end: Int,
-		canDestroy: Boolean): A_String
-
 	/**
 	 * A construct for mapping indices within Avail strings, which can contain
 	 * code points up to 0x10FFFF, to and from indices in the corresponding Java
@@ -126,6 +101,42 @@ interface A_String : A_Tuple
 				position >= 0 -> javaZeroIndex - position
 				else -> javaZeroIndex - (-1 - position)
 			}
+		}
+	}
+
+	companion object
+	{
+		/**
+		 * Construct a Java [string][String] from the receiver, an Avail
+		 * [string][StringDescriptor].
+		 *
+		 * @return
+		 *   The corresponding Java string.
+		 */
+		fun A_String.asNativeString(): String =
+			dispatch { o_AsNativeString(it) }
+
+		/**
+		 * Even though [A_Tuple.copyTupleFromToCanDestroy] would perform the
+		 * same activity, this method returns the stronger [A_String] type as a
+		 * convenience, when the code knows it's working on strings.
+		 *
+		 * @param start
+		 *   The start of the range to extract.
+		 * @param end
+		 *   The end of the range to extract.
+		 * @param canDestroy
+		 *   Whether the original object may be destroyed if mutable.
+		 * @return
+		 *   The substring.
+		 */
+		fun A_String.copyStringFromToCanDestroy(
+			start: Int,
+			end: Int,
+			canDestroy: Boolean
+		): A_String = dispatch {
+			// The cast is safe, since a subtuple of a string is a string.
+			o_CopyTupleFromToCanDestroy(it, start, end, canDestroy).cast()
 		}
 	}
 }

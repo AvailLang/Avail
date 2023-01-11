@@ -118,7 +118,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 			loader.recordEarlyEffect(
 				LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))
-			newBundle(newAtom, method, MessageSplitter(newString))
+			newBundle(newAtom, method, MessageSplitter.split(newString))
 		}
 		catch (e: MalformedMessageException)
 		{

@@ -62,7 +62,6 @@ import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
@@ -70,6 +69,7 @@ import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -395,10 +395,10 @@ class LexingState constructor(
 		countdown: AtomicInteger)
 	{
 		val nextTokens = nextTokens!!
-		for (run in newTokenRuns)
+		for (run: A_Tuple in newTokenRuns)
 		{
 			assert(run.tupleSize > 0)
-			for (token in run)
+			for (token: A_Token in run)
 			{
 				token.setCurrentModule(compilationContext.module)
 				compilationContext.recordToken(token)

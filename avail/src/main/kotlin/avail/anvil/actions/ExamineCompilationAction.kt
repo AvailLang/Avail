@@ -32,9 +32,8 @@
 
 package avail.anvil.actions
 
-import avail.AvailRuntime
-import avail.descriptor.fiber.FiberDescriptor
 import avail.anvil.AvailWorkbench
+import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.RepositoryDescriber
 import java.awt.event.ActionEvent
@@ -45,26 +44,20 @@ import javax.swing.JOptionPane
  * A `ExamineCompilationAction` presents information about a specific
  * compilation of the selected module.
  *
- * @property runtime
- *   The active [AvailRuntime].
- *
  * @constructor
  * Construct a new `ExamineCompilationAction`.
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param runtime
- *   The active [AvailRuntime].
  */
 class ExamineCompilationAction constructor (
-	workbench: AvailWorkbench,
-	private val runtime: AvailRuntime
+	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Examine compilation")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
-		runtime.execute(FiberDescriptor.commandPriority)
+		workbench.runtime.execute(FiberDescriptor.commandPriority)
 		execute@{
 			val moduleName = workbench.selectedModule()!!
 			moduleName.repository.use { repository ->

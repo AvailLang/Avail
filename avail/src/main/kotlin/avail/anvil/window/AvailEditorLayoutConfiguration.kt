@@ -32,18 +32,17 @@
 
 package avail.anvil.window
 
-import avail.builder.ModuleName
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
-import avail.anvil.text.centerCurrentLine
 import avail.anvil.text.DotPosition
 import avail.anvil.text.MarkPosition
 import avail.anvil.text.MarkToDotRange
+import avail.anvil.text.centerCurrentLine
 import avail.anvil.text.setCaretFrom
+import avail.builder.ModuleName
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
-import javax.swing.SwingUtilities
 
 /**
  * The [LayoutConfiguration] for an [AvailEditor]
@@ -86,9 +85,7 @@ class AvailEditorLayoutConfiguration internal constructor (
 		AvailEditor(workbench, ModuleName(qualifiedName, false))
 		{
 			it.sourcePane.setCaretFrom(range)
-			SwingUtilities.invokeLater {
-				it.sourcePane.centerCurrentLine()
-			}
+			it.sourcePane.centerCurrentLine()
 		}.apply {
 			this@AvailEditorLayoutConfiguration.placement?.let {
 				bounds = it

@@ -67,8 +67,7 @@ class ExpressionAsStatementPhraseDescriptor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -130,9 +129,6 @@ class ExpressionAsStatementPhraseDescriptor(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
 	) = continuation(self)
-
-	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

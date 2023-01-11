@@ -47,8 +47,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class TraceMacrosAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Trace macros")
+class TraceMacrosAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Trace macros")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

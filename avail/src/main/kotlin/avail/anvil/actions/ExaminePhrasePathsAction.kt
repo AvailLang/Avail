@@ -1,5 +1,5 @@
 /*
- * ExamineRepositoryAction.kt
+ * ExaminePhrasePathsAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,35 +34,73 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.descriptor.fiber.FiberDescriptor
-import avail.persistence.cache.Repository
-import avail.persistence.cache.RepositoryDescriber
+import avail.persistence.cache.Repository.ModuleCompilation
+import avail.persistence.cache.Repository.PhrasePathRecord
+import avail.utility.Strings.newlineTab
 import java.awt.event.ActionEvent
 import javax.swing.Action
+import javax.swing.JOptionPane
 
 /**
- * A `ExamineRepositoryAction` presents information about the content of the
- * [Repository] of the currently selected module root.
+ * An [ExaminePhrasePathsAction] presents information about the selected
+ * module's [PhrasePathRecord], which was produced for a selected compilation.
  *
  * @constructor
- * Construct a new `ExamineRepositoryAction`.
+ * Construct a new [ExaminePhrasePathsAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ExamineRepositoryAction constructor(
-	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(workbench, "Examine repository")
+class ExaminePhrasePathsAction constructor (
+	workbench: AvailWorkbench,
+) : AbstractWorkbenchAction(workbench, "Examine phrase paths")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
 		workbench.runtime.execute(FiberDescriptor.commandPriority)
-		{
-			val root = workbench.selectedModuleRoot()!!
-			root.repository.use { repository ->
+		execute@{
+			val moduleName = workbench.selectedModule()!!
+			moduleName.repository.use { repository ->
 				repository.reopenIfNecessary()
-				val describer = RepositoryDescriber(repository)
-				workbench.outputStream.println(describer.dumpAll())
+				val archive = repository.getArchive(moduleName.rootRelativeName)
+				val compilations = archive.allKnownVersions.flatMap {
+					it.value.allCompilations
+				}
+				val compilationsArray = compilations.toTypedArray()
+				val selectedCompilation = JOptionPane.showInputDialog(
+					workbench,
+					"Select module compilation to examine phrase paths",
+					"Examine phrase paths for compilation",
+					JOptionPane.PLAIN_MESSAGE,
+					null,
+					compilationsArray,
+					if (compilationsArray.isNotEmpty())
+					{
+						compilationsArray[0]
+					}
+					else
+					{
+						null
+					})
+				when (selectedCompilation)
+				{
+					is ModuleCompilation ->
+					{
+						val bytes =
+							repository.repository!![
+								selectedCompilation.recordNumberOfPhrasePaths]
+						val phrasePathsRecord = PhrasePathRecord(bytes)
+						val string = buildString {
+							phrasePathsRecord.phraseNodesDo { node ->
+								newlineTab(node.depth())
+								append(node)
+							}
+						}
+						workbench.outputStream.println(string)
+					}
+					is Any -> assert(false) { "Unknown type selected" }
+				}
 			}
 		}
 	}
@@ -71,6 +109,6 @@ class ExamineRepositoryAction constructor(
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"Examine the repository for the current module root")
+			"Show phrase paths for an existing module compilation")
 	}
 }

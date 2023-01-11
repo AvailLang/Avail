@@ -149,6 +149,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor.StaticInit
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -258,6 +259,7 @@ import avail.utility.ObjectTracer
 import avail.utility.WorkStealingQueue
 import avail.utility.cast
 import avail.utility.evaluation.OnceSupplier
+import avail.utility.iterableWith
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
 import avail.utility.parallelDoThen
@@ -1292,6 +1294,7 @@ class AvailRuntime constructor(
 			put(SpecialAtom.STATIC_TOKENS_KEY.atom)
 
 			at(160)
+			put(SpecialAtom.STATIC_TOKEN_INDICES_KEY.atom)
 			put(TokenType.END_OF_FILE.atom)
 			put(TokenType.KEYWORD.atom)
 			put(TokenType.LITERAL.atom)
@@ -1303,9 +1306,9 @@ class AvailRuntime constructor(
 			put(
 				continuationTypeForFunctionType(
 					functionTypeReturning(Types.TOP.o)))
-			put(CharacterDescriptor.nonemptyStringOfDigitsType)
 
 			at(170)
+			put(CharacterDescriptor.nonemptyStringOfDigitsType)
 			put(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
@@ -1343,12 +1346,14 @@ class AvailRuntime constructor(
 			put(PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
 			put(zeroOrOneOf(stylerFunctionType))
 			put(zeroOrOneOf(PhraseKind.PARSE_PHRASE.mostGeneralType))
+
+			at(180)
 			put(
 				PhraseKind.LITERAL_PHRASE.create(
 					LiteralTokenTypeDescriptor.literalTokenType(
 						stringType)))
+			at(181)
 
-			at(180)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
@@ -1381,6 +1386,7 @@ class AvailRuntime constructor(
 			put(SpecialAtom.SERVER_SOCKET_KEY.atom)
 			put(SpecialAtom.SOCKET_KEY.atom)
 			put(SpecialAtom.STATIC_TOKENS_KEY.atom)
+			put(SpecialAtom.STATIC_TOKEN_INDICES_KEY.atom)
 			put(SpecialAtom.TRUE.atom)
 			put(SpecialAtom.DONT_DEBUG_KEY.atom)
 			put(SpecialMethodAtom.ABSTRACT_DEFINER.atom)
@@ -1749,7 +1755,7 @@ class AvailRuntime constructor(
 					if (surplus == 1)
 					{
 						// This is the last interpreter task finishing up.
-						var queuedSafeTasks = old.postponedSafeTasks
+						val queuedSafeTasks = old.postponedSafeTasks
 						val new = old.copy(
 							interpreterSurplus = -queuedSafeTasks.length,
 							postponedSafeTasks = null)
@@ -1761,11 +1767,9 @@ class AvailRuntime constructor(
 						// state's negative counter.  It can't race up to zero,
 						// since we haven't activated the tasks that are able to
 						// increment the counter.
-						while (queuedSafeTasks !== null)
-						{
-							execute(queuedSafeTasks.first)
-							queuedSafeTasks = queuedSafeTasks.rest
-						}
+						queuedSafeTasks
+							.iterableWith { it.rest }
+							.forEach { execute(it.first) }
 						break
 					}
 					else
@@ -1852,7 +1856,7 @@ class AvailRuntime constructor(
 						// the queued interpreter tasks, if any, to all launch
 						// at once.
 						assert(old.postponedSafeTasks == null)
-						var queuedInterpreterTasks =
+						val queuedInterpreterTasks =
 							old.postponedInterpreterTasks
 						val new = old.copy(
 							interpreterSurplus = queuedInterpreterTasks.length,
@@ -1865,11 +1869,9 @@ class AvailRuntime constructor(
 						// state's positive counter.  It can't race down to
 						// zero, since we haven't activated the tasks that are
 						// able to decrement the counter.
-						while (queuedInterpreterTasks !== null)
-						{
-							execute(queuedInterpreterTasks.first)
-							queuedInterpreterTasks = queuedInterpreterTasks.rest
-						}
+						queuedInterpreterTasks
+							.iterableWith { it.rest }
+							.forEach { execute(it.first) }
 						break
 					}
 					else

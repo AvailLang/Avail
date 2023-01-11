@@ -39,6 +39,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.LiteralPhraseDescriptor.ObjectSlots.TOKEN
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -50,7 +51,10 @@ import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -85,8 +89,7 @@ class LiteralPhraseDescriptor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.LITERAL_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -240,6 +243,9 @@ class LiteralPhraseDescriptor(
 			else -> tuple(token)
 		}
 	}
+
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
+		generateIntTupleFrom(self.tokens.tupleSize) { 0 }
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

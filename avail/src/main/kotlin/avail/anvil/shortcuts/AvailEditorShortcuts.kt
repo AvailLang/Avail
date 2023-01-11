@@ -36,6 +36,7 @@ import avail.anvil.AvailEditor
 import avail.anvil.editor.GoToDialog
 import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 import avail.anvil.shortcuts.ModifierKey.SHIFT
+import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 
 /**
@@ -82,6 +83,18 @@ object OpenStructureViewShortcut
 {
 	override val actionMapKey: String = "open-structure-view"
 	override val description: String = "Open Structure View"
+}
+
+/**
+ * The [AvailEditorShortcut] to open the [PhraseViewPanel].
+ *
+ * @author Mark van Gulik
+ */
+object OpenPhraseViewShortcut
+	: AvailEditorShortcut(KeyCode.VK_P.with(menuShortcutKeyMaskEx, SHIFT))
+{
+	override val actionMapKey: String = "open-phrase-view"
+	override val description: String = "Open Phrase View"
 }
 
 /**

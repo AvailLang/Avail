@@ -48,8 +48,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class TraceLoadedStatementsAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Trace statement loading/compiling")
+class TraceLoadedStatementsAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Trace statement loading/compiling")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

@@ -32,9 +32,9 @@
 
 package avail.anvil.actions
 
-import avail.builder.AvailBuilder
 import avail.anvil.AvailWorkbench
 import avail.anvil.tasks.GraphTask
+import avail.builder.AvailBuilder
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor
 import java.awt.event.ActionEvent

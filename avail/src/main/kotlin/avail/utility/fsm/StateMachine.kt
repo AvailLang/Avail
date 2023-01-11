@@ -120,12 +120,10 @@ internal constructor(
 	 * The complete transition table, a [map][EnumMap] from states to
 	 * [state&#32;summaries][StateSummary].
 	 */
-	private val transitionTable: EnumMap<
-			State, StateSummary<State, Event, GuardKey, ActionKey, Memento>> =
-		EnumMap<
-				State,
-				StateSummary<State, Event, GuardKey, ActionKey, Memento>>(
-			initialState.declaringClass)
+	private val transitionTable = EnumMap<
+			State,
+			StateSummary<State, Event, GuardKey, ActionKey, Memento>>(
+		initialState.declaringClass)
 
 	/**
 	 * Add the specified [state&#32;summary][StateSummary] to the transition

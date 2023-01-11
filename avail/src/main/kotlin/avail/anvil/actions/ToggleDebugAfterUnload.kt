@@ -50,8 +50,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ToggleDebugAfterUnload constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Debug references after unload")
+class ToggleDebugAfterUnload constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Debug references after unload")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

@@ -1109,8 +1109,7 @@ Public macro "«_‡«=|≥|>»!»" is
 			else [
 				if operatorIndex = 2 then [⟦⦊get1⦉ ≥ ⦊get2⦉⟧]
 				else [⟦⦊get1⦉ > ⦊get2⦉⟧]];
-		negation ::= send $"¬_" with <comparison> → list phrase : boolean;
-		statements ++= <⟦ Exit ⦊getExit⦉ with false if ⦊negation⦉; ⟧>;
+		statements ++= <⟦ Exit ⦊getExit⦉ with false if ¬ ⦊comparison⦉; ⟧>;
 		true
 	];
 	statements ++= <⟦true⟧>;
@@ -1625,8 +1624,12 @@ Method "_→float" is stable at [number]→float;
 Method "_→double" is stable at [number]→double;
 Method "_<_" is stable at [number, number]→boolean;
 Method "_≤_" is stable at [number, number]→boolean;
-Method "«_‡max»" is stable at [<number…|3..>]→number;
-Method "«_‡min»" is stable at [<number…|3..>]→number;
+Method "_②>_①" is stable at [number, number]→boolean
+	compute with [a : number, b : number | a > b];
+Method "_②≥_①" is stable at [number, number]→boolean
+	compute with [a : number, b : number | a ≥ b];
+Method "«_‡max»" is stable at [<number…|2..>]→number;
+Method "«_‡min»" is stable at [<number…|2..>]→number;
 Method "_+_" is stable at [number, number]→number;
 Method "_-_" is stable at [number, number]→number;
 Method "_×_" is stable at [number, number]→number;

@@ -32,9 +32,8 @@
 
 package avail.anvil.actions
 
-import avail.AvailRuntime
-import avail.descriptor.fiber.FiberDescriptor
 import avail.anvil.AvailWorkbench
+import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.StylingRecord
 import java.awt.event.ActionEvent
@@ -45,26 +44,20 @@ import javax.swing.JOptionPane
  * An [ExamineStylingAction] presents information about the styling that was produced
  * for a selected compilation.
  *
- * @property runtime
- *   The active [AvailRuntime].
- *
  * @constructor
  * Construct a new [ExamineStylingAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param runtime
- *   The active [AvailRuntime].
  */
 class ExamineStylingAction constructor (
 	workbench: AvailWorkbench,
-	private val runtime: AvailRuntime
 ) : AbstractWorkbenchAction(workbench, "Examine styling")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
-		runtime.execute(FiberDescriptor.commandPriority)
+		workbench.runtime.execute(FiberDescriptor.commandPriority)
 		execute@{
 			val moduleName = workbench.selectedModule()!!
 			moduleName.repository.use { repository ->
@@ -93,9 +86,8 @@ class ExamineStylingAction constructor (
 				{
 					is ModuleCompilation ->
 					{
-						val stylingBytes =
-							repository.repository!![
-								selectedCompilation.recordNumberOfStyling]
+						val stylingBytes = repository.repository!![
+							selectedCompilation.recordNumberOfStyling]
 						val stylingRecord = StylingRecord(stylingBytes)
 						workbench.outputStream.println(
 							stylingRecord.styleRuns.joinToString("\n"))

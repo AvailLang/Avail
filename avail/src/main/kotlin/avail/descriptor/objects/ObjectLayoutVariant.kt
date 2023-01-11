@@ -41,6 +41,7 @@ import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsLock
 import avail.descriptor.representation.Mutability
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.isSubsetOf
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.utility.safeWrite

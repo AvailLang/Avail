@@ -46,6 +46,7 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.Companion.newPrimiti
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.TokenDescriptor.TokenType
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf

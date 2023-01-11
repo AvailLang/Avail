@@ -141,8 +141,8 @@ object P_BootstrapBlockMacroStyler :
 			loader.lockStyles {
 				val lines = tokens.groupBy { it.lineNumber() }
 				lines.forEach { (_, line) ->
-					val start = line.first().start().toLong()
-					val pastEnd = line.last().pastEnd().toLong()
+					val start = line.first().start()
+					val pastEnd = line.last().pastEnd()
 					edit(start, pastEnd) { old ->
 						val new = SystemStyle.RETURN_VALUE.kotlinString
 						when (old)

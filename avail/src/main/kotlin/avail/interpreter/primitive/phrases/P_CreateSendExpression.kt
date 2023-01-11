@@ -101,7 +101,8 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 					E_INCONSISTENT_ARGUMENT_REORDERING)
 			}
 			return interpreter.primitiveSuccess(
-				newSendNode(emptyTuple(), bundle, argsListPhrase, returnType))
+				newSendNode(
+					emptyTuple, emptyTuple, bundle, argsListPhrase, returnType))
 		}
 		catch (e: MalformedMessageException)
 		{

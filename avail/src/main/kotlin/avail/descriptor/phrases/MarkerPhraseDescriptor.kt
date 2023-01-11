@@ -70,8 +70,7 @@ class MarkerPhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.MARKER_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -171,8 +170,6 @@ class MarkerPhraseDescriptor private constructor(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
-
-	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
 
 	/** Marker phrases should have been replaced before validation. */
 	override fun o_ValidateLocally(self: AvailObject): Unit = unsupported

@@ -42,6 +42,7 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.APPLY
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize

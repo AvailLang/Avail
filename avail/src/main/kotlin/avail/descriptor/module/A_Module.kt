@@ -61,6 +61,7 @@ import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.primitive.modules.P_PublishName
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 
 /**
@@ -506,5 +507,19 @@ interface A_Module : A_BasicObject
 		 */
 		fun A_Module.stylingRecord(): StylingRecord =
 			dispatch { o_StylingRecord(it) }
+
+		/**
+		 * Set the record number under which this module's [PhrasePathRecord]
+		 * has been recorded.
+		 */
+		fun A_Module.setPhrasePathRecordIndex(recordNumber: Long) =
+			dispatch { o_SetPhrasePathRecordIndex(it, recordNumber) }
+
+		/**
+		 * Get the module's [StylingRecord], which is used for syntax coloring
+		 * the module source.  This may involve reading the repository.
+		 */
+		fun A_Module.phrasePathRecord(): PhrasePathRecord =
+			dispatch { o_PhrasePathRecord(it) }
 	}
 }

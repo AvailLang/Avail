@@ -34,6 +34,7 @@ package avail.anvil.nodes
 
 import avail.compiler.ModuleManifestEntry
 import avail.anvil.AvailEditor
+import avail.anvil.AvailEditor.ManifestEntryInDocument
 import avail.anvil.icons.structure.SideEffectIcons
 import avail.utility.ifZero
 import javax.swing.ImageIcon
@@ -52,11 +53,12 @@ import javax.swing.tree.DefaultMutableTreeNode
  */
 class ManifestEntryNode constructor(
 	val editor: AvailEditor,
-	val entry: ModuleManifestEntry
+	val entry: ManifestEntryInDocument
 ): DefaultMutableTreeNode(), Comparable<ManifestEntryNode>
 {
 	override fun compareTo(other: ManifestEntryNode): Int =
-		entry.topLevelStartingLine - other.entry.topLevelStartingLine
+		entry.entry.topLevelStartingLine.compareTo(
+			other.entry.entry.topLevelStartingLine)
 
 	/**
 	 * Return a suitable icon to display for this instance with the given line
@@ -67,5 +69,5 @@ class ManifestEntryNode constructor(
 	 * @return The icon.
 	 */
 	fun icon(lineHeight: Int): ImageIcon =
-		SideEffectIcons.icon(lineHeight.ifZero { 16 }, entry.kind)
+		SideEffectIcons.icon(lineHeight.ifZero { 16 }, entry.entry.kind)
 }
