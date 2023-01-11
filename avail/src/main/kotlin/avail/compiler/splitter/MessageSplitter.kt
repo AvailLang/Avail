@@ -1251,7 +1251,7 @@ private constructor(messageName: A_String)
 		{
 			group = group.applyCaseInsensitive()
 			// Rebuild the group, but including the '~'.
-			group = group.apply {
+			group = group.run {
 				Group(
 					startInName,
 					currentPositionForEnd,  // Include the '~'.
@@ -1285,7 +1285,7 @@ private constructor(messageName: A_String)
 				group.underscoreCount > 0 ->
 				{
 					// A complex group just gets bounded to [0..1] occurrences.
-					group = group.apply {
+					group = group.run {
 						Group(
 							startInName,
 							currentPositionForEnd,  // Include the '?'.

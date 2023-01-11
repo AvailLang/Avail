@@ -88,6 +88,7 @@ import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.PrimitiveTypeDescriptor

@@ -446,7 +446,7 @@ class AvailEditor constructor(
 
 	/** The scroll wrapper around the [sourcePane]. */
 	private val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-		workbench.globalSettings.editorGuideLines)
+		workbench, workbench.globalSettings.editorGuideLines)
 
 	/** The [styling&#32;record][StylingRecord] for the module. */
 	private var stylingRecord: StylingRecord? = null
@@ -656,10 +656,6 @@ class AvailEditor constructor(
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
 
-		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-			workbench,
-			workbench.globalSettings.editorGuideLines
-		)
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
 			setHorizontalGroup(

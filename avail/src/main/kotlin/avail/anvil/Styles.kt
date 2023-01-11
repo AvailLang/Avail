@@ -43,11 +43,14 @@ import avail.anvil.StyleRuleContextState.RUNNING
 import avail.anvil.StyleRuleExecutor.endOfSequenceLiteral
 import avail.anvil.StyleRuleExecutor.run
 import avail.anvil.StyleRuleInstructionCoder.Companion.decodeInstruction
+import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.interpreter.execution.AvailLoader
 import avail.io.NybbleArray
 import avail.io.NybbleInputStream
 import avail.io.NybbleOutputStream
+import avail.persistence.cache.Repository.PhraseNode
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.StyleRun
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
@@ -60,6 +63,8 @@ import java.awt.Color
 import java.lang.ref.SoftReference
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.SwingUtilities
+import javax.swing.text.AttributeSet
+import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
 import javax.swing.text.StyleConstants.setBackground
@@ -3125,8 +3130,7 @@ object PhrasePathStyleApplicator
 	 *   The [PhrasePathRecord] containing information about phrase structure
 	 *   that should be applied as invisible styles to the [StyledDocument].
 	 */
-	fun StyledDocument.applyPhrasePaths(
-		phrasePathsRecord: PhrasePathRecord)
+	fun StyledDocument.applyPhrasePaths(phrasePathsRecord: PhrasePathRecord)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
 		phrasePathsRecord.phraseNodesDo { phraseNode ->
@@ -3157,7 +3161,8 @@ object PhrasePathStyleApplicator
 	 */
 	data class TokenStyle(
 		val phraseNode: PhraseNode,
-		val tokenIndexInName: Int)
+		val tokenIndexInName: Int
+	)
 
 	/**
 	 * An object to use as a key in an [AttributeSet], where the value is a
