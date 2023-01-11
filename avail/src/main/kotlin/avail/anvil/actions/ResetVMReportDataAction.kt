@@ -48,8 +48,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ResetVMReportDataAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Clear VM report")
+class ResetVMReportDataAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Clear VM report")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

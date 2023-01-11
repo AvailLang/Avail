@@ -486,6 +486,13 @@ interface A_BasicObject : JSONFriendly
 	val notNil get() = this !== nil
 
 	/**
+	 * If the receiver [isNil], evaluate the [action].  Answer either the
+	 * non-nil receiver, or the result of the action.
+	 */
+	fun <T : A_BasicObject> ifNil(action: ()->T): T =
+		if (this === nil) action() else cast()
+
+	/**
 	 * If the receiver is [notNil], evaluate the [action] with it.
 	 */
 	fun <T : A_BasicObject> ifNotNil(action: (T)->Unit)
@@ -494,7 +501,9 @@ interface A_BasicObject : JSONFriendly
 	}
 
 	/**
-	 * If the receiver is [notNil], evaluate the [action] with it.
+	 * If the receiver is [notNil], evaluate the [action] with it, answering the
+	 * value produced by the action.  If the receiver was [nil], answer [nil]
+	 * cast to the action's output type.
 	 */
 	fun <T : A_BasicObject, O : A_BasicObject> mapNotNil(action: (T)->O): O =
 		if (notNil) action(this.cast()) else nil.cast()
@@ -1148,13 +1157,6 @@ interface A_BasicObject : JSONFriendly
 
 	companion object
 	{
-		/**
-		 * If the receiver [isNil], evaluate the [action].  Answer either the
-		 * non-nil receiver, or the result of the action.
-		 */
-		fun <T : A_BasicObject> T.ifNil(action: ()->T): T =
-			if (this === nil) action() else this
-
 		/**
 		 * Dispatcher helper function for routing messages to the descriptor.
 		 *

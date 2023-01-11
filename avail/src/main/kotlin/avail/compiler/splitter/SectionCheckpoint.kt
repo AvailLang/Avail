@@ -62,14 +62,16 @@ import avail.descriptor.types.A_Type
  *
  * Construct a `SectionCheckpoint`.
  *
- * @param positionInName
+ * @param startInName
  *   The section checkpoint's position in the message name.
  * @param subscript
  *   This section checkpoint's one-based index.
  */
 internal class SectionCheckpoint constructor(
-	positionInName: Int,
-	private val subscript: Int) : Expression(positionInName)
+	startInName: Int,
+	pastEndInName: Int,
+	private val subscript: Int
+) : Expression(startInName, pastEndInName)
 {
 	override fun applyCaseInsensitive(): SectionCheckpoint = this
 
@@ -78,6 +80,8 @@ internal class SectionCheckpoint constructor(
 	{
 		sectionCheckpoints.add(this)
 	}
+
+	override fun children(): List<Expression> = emptyList()
 
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{

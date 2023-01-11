@@ -49,7 +49,7 @@ import java.io.IOException
  * Create a [ModuleManifestEntry].
  *
  * @property kind
- *   The [Kind] of manifest entry that this is.
+ *   The [kind][SideEffectKind] of manifest entry that this is.
  * @property summaryText
  *   A short textual description of the item being defined, without mentioning
  *   the [kind].
@@ -62,12 +62,12 @@ import java.io.IOException
  * @property bodyFunction
  *   The [A_Function] that best acts as the body of this entry, such as a method
  *   definition's body function, or a lexer definition's body function. This is
- *   null if a body is inapplicable or unavailable.  It is always null after
+ *   `null` if a body is inapplicable or unavailable.  It is *always* null after
  *   reading a [ModuleManifestEntry] from the repository.
  * @property bodyPhraseIndexNumber
  *   The index into the current module's tuple of phrases, accessible via
- *   [A_Module.originatingPhraseAtIndex].  If this has not yet been computed,
- *   it will be `-1`, and the [bodyFunction] will be some [A_Function].  If there
+ *   [A_Module.originatingPhraseAtIndex].  If this has not yet been computed, it
+ *   will be `-1`, and the [bodyFunction] will be some [A_Function].  If there
  *   is no suitable body, or if it's not something that was serialized with the
  *   module, it will also be `-1`, but the [bodyFunction] will be `null`.
  *

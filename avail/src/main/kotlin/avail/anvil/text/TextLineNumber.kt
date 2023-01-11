@@ -79,7 +79,7 @@ constructor(
 	 * The Color used to render the current line digits. Default is [Color.RED].
 	 * If set to null, it uses the foreground color.
 	 */
-	var currentLineForeground: Color? = Color.RED
+	private var currentLineForeground: Color? = Color.RED
 
 	//  Keep history information to reduce the number of times the component
 	//  needs to be repainted
@@ -87,7 +87,7 @@ constructor(
 
 	private var lastHeight = 0
 
-	private var lastLines: IntRange = -1..-1
+	private var lastLines = -1..-1
 
 	init
 	{
@@ -136,7 +136,7 @@ constructor(
 		// Determine the rows to draw within the clipped bounds.
 		val root = component.document.defaultRootElement
 		val clip = g.clipBounds
-		val firstLine = root.getElementIndex(
+		val firstLine: Int = root.getElementIndex(
 			component.viewToModel2D(Point(0, clip.minY.toInt())))
 		val lastLine = root.getElementIndex(
 			component.viewToModel2D(Point(0, clip.maxY.toInt())))

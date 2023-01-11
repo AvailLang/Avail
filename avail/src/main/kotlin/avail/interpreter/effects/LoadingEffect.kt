@@ -53,6 +53,9 @@ abstract class LoadingEffect
 	 *
 	 * @param writer
 	 *   An [L1InstructionWriter].
+	 * @param startLine
+	 *   The initial line number at which the code that causes this effect is
+	 *   located.
 	 */
-	abstract fun writeEffectTo(writer: L1InstructionWriter)
+	abstract fun writeEffectTo(writer: L1InstructionWriter, startLine: Int)
 }

@@ -39,8 +39,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -94,7 +94,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		val priority = interpreter.argument(5)
 
 		// Transform the process arguments into native strings.
-		val processArgs = processArgsTuple.map(AvailObject::asNativeString)
+		val processArgs = processArgsTuple.map { it.asNativeString() }
 		// Set up the process builder, taking care to explicitly redirect the
 		// external process's streams to interface with us.
 		val builder = ProcessBuilder(processArgs)

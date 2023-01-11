@@ -53,7 +53,6 @@ import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.generateInModule
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
 import avail.descriptor.phrases.PhraseDescriptor
@@ -68,6 +67,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -699,8 +699,7 @@ class FunctionDescriptor private constructor(
 				tuple(phrase),
 				TOP.o,
 				emptySet,
-				lineNumber,
-				phrase.tokens)
+				lineNumber)
 			recursivelyValidate(block)
 			val compiledBlock = block.generateInModule(module)
 			assert(compiledBlock.numOuters == 0)

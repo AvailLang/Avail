@@ -91,9 +91,8 @@ class PermutedListPhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.PERMUTED_LIST_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java
-) {
+	ObjectSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -242,8 +241,6 @@ class PermutedListPhraseDescriptor private constructor(
 		}
 		return tupleTypeForTypes(*types)
 	}
-
-	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(LIST).tokens
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

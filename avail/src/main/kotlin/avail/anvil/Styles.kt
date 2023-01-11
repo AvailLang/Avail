@@ -3105,3 +3105,64 @@ enum class SystemStyleClassifier(val classifier: String)
 		StyleAttributes(foreground = colorName)
 	)
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Phrases.                                    //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Utility for applying [PhrasePathRecord]'s information to token ranges in a
+ * [StyledDocument].
+ */
+object PhrasePathStyleApplicator
+{
+	/**
+	 * Apply all [style&#32;runs] to the receiver. Each style name is treated as
+	 * a comma-separated composite. Rendered styles compose rather than replace.
+	 * **This must only be invoked on the Swing UI thread.**
+	 *
+	 * @param phrasePathsRecord
+	 *   The [PhrasePathRecord] containing information about phrase structure
+	 *   that should be applied as invisible styles to the [StyledDocument].
+	 */
+	fun StyledDocument.applyPhrasePaths(
+		phrasePathsRecord: PhrasePathRecord)
+	{
+		assert(SwingUtilities.isEventDispatchThread())
+		phrasePathsRecord.phraseNodesDo { phraseNode ->
+			phraseNode.tokenSpans.forEach { (start, pastEnd, indexInName) ->
+				val styleForToken = SimpleAttributeSet().apply {
+					addAttribute(
+						PhraseNodeAttributeKey,
+						TokenStyle(phraseNode, indexInName))
+				}
+				this.setCharacterAttributes(
+					start - 1, pastEnd - start, styleForToken, false)
+			}
+		}
+	}
+
+	/**
+	 * A [TokenStyle] contains information about which [PhraseNode] is
+	 * applicable for a span of source having this invisible style (under the
+	 * [PhraseNodeAttributeKey]), as well as which of the phrase's atom's
+	 * [MessageSplitter] parts occurred in this span of the source.
+	 *
+	 * @property phraseNode
+	 *   The [PhraseNode] that this invisible style represents.
+	 * @property tokenIndexInName
+	 *   The one-based index of a message part within the split message name
+	 *   being sent.  When this style is applied to a span of source code, this
+	 *   field indicates the corresponding static token of the message name.
+	 */
+	data class TokenStyle(
+		val phraseNode: PhraseNode,
+		val tokenIndexInName: Int)
+
+	/**
+	 * An object to use as a key in an [AttributeSet], where the value is a
+	 * [PhraseNode].  This is applied to the [StyledDocument] for the span of
+	 * each token that is part of that [PhraseNode].
+	 */
+	object PhraseNodeAttributeKey
+}

@@ -84,25 +84,26 @@ import avail.exceptions.SignatureException
  *
  * Create a `Sequence` with no elements.
  *
- * @param positionInName
+ * @param startInName
  *   The position that this `Sequence` begins within the method name.
+ * @param expressions
+ *   The [List] of [Expression]s that I comprise.
  */
 internal class Sequence constructor(
-	positionInName: Int
-) : Expression(positionInName)
+	startInName: Int,
+	pastEndInName: Int,
+	val expressions: List<Expression>
+) : Expression(startInName, pastEndInName)
 {
 	override val recursivelyContainsReorders: Boolean
 		get() = isReordered ||
-			expressions.any { it.recursivelyContainsReorders }
-
-	/** The sequence of expressions that I comprise. */
-	val expressions = mutableListOf<Expression>()
+			expressions.any(Expression::recursivelyContainsReorders)
 
 	/**
 	 * Which of my [expressions] is an argument, ellipsis, or group? These are
 	 * in the order they occur in the `expressions` list.
 	 */
-	val yielders = mutableListOf<Expression>()
+	val yielders = expressions.filter { it.yieldsValue }
 
 	/**
 	 * My one-based permutation that takes argument expressions from the order
@@ -122,56 +123,16 @@ internal class Sequence constructor(
 	override val isLowerCase: Boolean
 		get() = expressions.all(Expression::isLowerCase)
 
-	override fun applyCaseInsensitive(): Sequence {
-		val copy = Sequence(positionInName)
-		expressions.forEach {
-			copy.addExpression(it.applyCaseInsensitive())
-		}
-		return copy
-	}
+	override fun applyCaseInsensitive(): Sequence =
+		Sequence(
+			startInName,
+			pastEndInName,
+			expressions.map(Expression::applyCaseInsensitive))
 
 	/** A cache of places at which code splitting can take place. */
 	@Volatile
 	private var cachedRunsForCodeSplitting: List<List<Pair<Expression, Int>>>? =
 		null
-
-	/**
-	 * Add an [expression][Expression] to the `Sequence`.
-	 *
-	 * @param e
-	 *   The expression to add.
-	 * @throws MalformedMessageException
-	 *   If the absence or presence of argument numbering would be inconsistent
-	 *   within this `Sequence`.
-	 */
-	@Throws(MalformedMessageException::class)
-	fun addExpression(e: Expression)
-	{
-		expressions.add(e)
-		if (e.yieldsValue)
-		{
-			assert(e.canBeReordered)
-			val alsoReordered = e.explicitOrdinal != -1
-			if (yielders.isEmpty())
-			{
-				isReordered = alsoReordered
-			}
-			else
-			{
-				// Check that the reordering agrees with the current consensus.
-				if (isReordered != alsoReordered)
-				{
-					throwMalformedMessageException(
-						E_INCONSISTENT_ARGUMENT_REORDERING,
-						"The sequence of subexpressions before or after a " +
-							"double-dagger (‡) in a group must have either " +
-							"all or none of its arguments or direct " +
-							"subgroups numbered for reordering")
-				}
-			}
-			yielders.add(e)
-		}
-	}
 
 	@Deprecated("Not applicable to Sequence")
 	override val yieldsValue: Boolean
@@ -191,6 +152,8 @@ internal class Sequence constructor(
 			expression.extractSectionCheckpointsInto(sectionCheckpoints)
 		}
 	}
+
+	override fun children() = expressions
 
 	/**
 	 * Check that the given type signature is appropriate for this top-level

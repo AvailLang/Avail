@@ -32,12 +32,12 @@
 
 package avail.anvil.tasks
 
-import avail.builder.ResolvedModuleName
-import avail.descriptor.module.ModuleDescriptor
 import avail.anvil.AvailWorkbench
 import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
 import avail.anvil.text.centerCurrentLine
 import avail.anvil.text.setCaretFrom
+import avail.builder.ResolvedModuleName
+import avail.descriptor.module.ModuleDescriptor
 import java.awt.Cursor
 import javax.swing.SwingUtilities
 
@@ -84,14 +84,15 @@ constructor (
 					val r = editor.range
 					editor.populateSourcePane {
 						it.sourcePane.setCaretFrom(r)
-						SwingUtilities.invokeLater {
-							it.sourcePane.centerCurrentLine()
-						}
-					}
-					editor.updateManifestEntriesList {
-						if (workbench.structureView?.editor == editor)
+						it.sourcePane.centerCurrentLine()
+						it.fetchManifestEntries()
+						if (workbench.structureViewPanel.editor == editor)
 						{
-							editor.openStructureView(true)
+							editor.openStructureView(false)
+						}
+						if (workbench.phraseViewPanel.editor == editor)
+						{
+							editor.updatePhraseStructure()
 						}
 					}
 				}

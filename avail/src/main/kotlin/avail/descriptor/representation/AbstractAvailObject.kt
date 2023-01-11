@@ -51,7 +51,7 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
  *   how its fields are laid out.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @author Mark van Gulik &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 abstract class AbstractAvailObject protected constructor(
 	initialDescriptor: AbstractDescriptor)

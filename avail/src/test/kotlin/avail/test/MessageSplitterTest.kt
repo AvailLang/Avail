@@ -64,6 +64,7 @@ import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.parsing.A_DefinitionParsingPlan
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
@@ -1348,7 +1349,7 @@ class MessageSplitterTest private constructor ()
 	{
 		val msgString = splitCase.message
 		val message = stringFrom(msgString)
-		val splitter = MessageSplitter(message)
+		val splitter = MessageSplitter.split(message)
 		val parts = splitter.messageParts
 		assert(splitCase.tokens.size == parts.size)
 		for (i in parts.indices)

@@ -49,9 +49,7 @@ import javax.swing.Action
 class ToggleVisibleRootsAction
 constructor (
 	workbench: AvailWorkbench,
-) : AbstractWorkbenchAction(
-	workbench,
-	"Show invisible roots")
+) : AbstractWorkbenchAction(workbench, "Show invisible roots")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

@@ -66,16 +66,17 @@ import avail.descriptor.types.A_Type
  * token in the name, and the absolute index of this argument in the entire
  * message name.
  *
- * @param positionInName
+ * @param startInName
  *   The one-based position of the start of the token in the message name.
  * @param absoluteUnderscoreIndex
  *   The one-based index of this argument within the entire message name's list
  *   of arguments.
  */
 internal class ArgumentForMacroOnly constructor(
-	positionInName: Int,
-	absoluteUnderscoreIndex: Int)
-: Argument(positionInName, absoluteUnderscoreIndex)
+	startInName: Int,
+	pastEndInName: Int,
+	absoluteUnderscoreIndex: Int
+) : Argument(startInName, pastEndInName, absoluteUnderscoreIndex)
 {
 	/**
 	 * Parse an argument expression which might be top-valued.

@@ -48,6 +48,9 @@ import avail.compiler.problems.ProblemType
 import avail.compiler.problems.ProblemType.EXECUTION
 import avail.compiler.problems.ProblemType.INTERNAL
 import avail.compiler.scanning.LexingState
+import avail.descriptor.atoms.A_Atom
+import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
@@ -78,25 +81,36 @@ import avail.descriptor.methods.A_Styler.Companion.function
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.allAncestors
+import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.module.A_Module.Companion.phrasePathRecord
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.numbers.A_Number
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
+import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
+import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_BasicObject.Companion.ifNil
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.A_Token
+import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
@@ -144,6 +158,8 @@ import avail.interpreter.levelOne.L1Decompiler
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
+import avail.persistence.cache.Repository.PhraseNode
+import avail.persistence.cache.Repository.PhraseNode.PhraseNodeToken
 import avail.serialization.Serializer
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
@@ -240,8 +256,8 @@ class CompilationContext constructor(
 	 * [compiler][AvailCompiler] to facilitate the loading of
 	 * [modules][ModuleDescriptor].
 	 */
-	val loader = AvailLoader(runtime, module, textInterface).also {
-		it.manifestEntries = mutableListOf()
+	val loader = AvailLoader(runtime, module, textInterface).apply {
+		manifestEntries = mutableListOf()
 	}
 
 	/** The number of work units that have been queued. */
@@ -780,16 +796,14 @@ class CompilationContext constructor(
 		effects: MutableList<Triple<Int, A_Phrase, LoadingEffect>>)
 	{
 		if (effects.isEmpty()) return
-		var currentLine = effects.first().first
 		val writer = L1InstructionWriter(
-			module, currentLine, effects.first().second)
+			module, effects.first().first, effects.first().second)
 		writer.argumentTypes()
 		writer.returnType = TOP.o
 		writer.returnTypeIfPrimitiveFails = TOP.o
 		effects.forEachIndexed { i, (line, _, effect) ->
-			if (i > 0) writer.write(currentLine, L1Operation.L1_doPop)
-			currentLine = line
-			effect.writeEffectTo(writer)
+			if (i > 0) writer.write(0, L1Operation.L1_doPop)
+			effect.writeEffectTo(writer, line)
 		}
 		val summaryFunction = createFunction(writer.compiledCode(), emptyTuple)
 		if (AvailLoader.debugUnsummarizedStatements)
@@ -1176,7 +1190,7 @@ class CompilationContext constructor(
 	 * body.  It should be cleared any time a new styler is introduced (within
 	 * the scope of the current module), or alternatively just before styling
 	 * a top-level statement.  If a styler cannot be found for the method, store
-	 * nil as the value to cache a negative search.
+	 * [nil] as the value to cache a negative search.
 	 */
 	private val styleCache = ConcurrentHashMap<A_Method, A_Function>()
 
@@ -1311,12 +1325,100 @@ class CompilationContext constructor(
 					action()
 					return
 				}
-				StylingNotWaiting -> StylingAndWaiting(action)
+				is StylingNotWaiting -> StylingAndWaiting(action)
 				// Only one post-styling action is allowed.
 				is StylingAndWaiting -> throw IllegalStateException()
 			}
 		}
 		while (!stylingState.compareAndSet(oldState, newState))
+	}
+
+
+	/**
+	 * Capture the tree of [PhraseNode]s that describe this top-level phrase.
+	 *
+	 * @param rootPhrase
+	 *   A top-level phrase for which to record a [PhraseNode] tree.
+	 */
+	fun recordPathForTopLevelPhrase(rootPhrase: A_Phrase)
+	{
+		val fakeRoot = PhraseNode(null, null, emptyList(), parent = null)
+		// Each pair holds the PhraseNode having its children converted, and an
+		// iterator that produces subphrases of the phrase that the PhraseNode
+		// was built from.
+		val workStack = mutableListOf(fakeRoot to listOf(rootPhrase).iterator())
+		while (workStack.isNotEmpty())
+		{
+			val (parent, iterator) = workStack.last()
+			if (!iterator.hasNext())
+			{
+				workStack.removeLast()
+				continue
+			}
+			var phrase = iterator.next()
+			var moduleName: A_String? = null
+			var atomName: A_String? = null
+			phrase.apparentSendName.ifNotNil { atom: A_Atom ->
+				atom.issuingModule.ifNotNil { module: A_Module ->
+					moduleName = module.moduleName
+				}
+				atomName = atom.atomName
+			}
+			phrase = when
+			{
+				phrase.isMacroSubstitutionNode ->
+					phrase.macroOriginalSendNode
+				!phrase.phraseKindIsUnder(LITERAL_PHRASE) -> phrase
+				// Prefer the generatingPhrase, if present.
+				phrase.token.generatingPhrase.notNil ->
+					phrase.token.generatingPhrase
+				// Otherwise use the literal value, if it's a phrase.
+				phrase.token.literal()
+						.isInstanceOfKind(PARSE_PHRASE.mostGeneralType) ->
+					phrase.token.literal()
+				else -> phrase
+			}
+			if (atomName === null)
+			{
+				phrase.apparentSendName.ifNotNil { atom: A_Atom ->
+					atom.issuingModule.ifNotNil { module: A_Module ->
+						moduleName = module.moduleName
+					}
+					atomName = atom.atomName
+				}
+			}
+			val tokenSpans =
+				(phrase.tokens zip phrase.tokenIndicesInName).mapNotNull {
+						(token: A_Token, indexInName: A_Number) ->
+					if (!token.isInCurrentModule(module)) return@mapNotNull null
+					val start = surrogateIndexConverter.availIndexToJavaIndex(
+						token.start())
+					val pastEnd = surrogateIndexConverter.availIndexToJavaIndex(
+						token.pastEnd())
+					PhraseNodeToken(start, pastEnd, indexInName.extractInt)
+				}
+			val phraseNode = PhraseNode(
+				moduleName, atomName, tokenSpans, parent = parent)
+			parent.children.add(phraseNode)
+			val children = mutableListOf<A_Phrase>()
+			val childrenProvider = when
+			{
+				// Skip past the sole child of a send, the list phrase of
+				// arguments.  Treat that list phrase's children as the send's
+				// children instead.
+				phrase.phraseKindIsUnder(SEND_PHRASE) ->
+					phrase.argumentsListNode
+				phrase.phraseKindIsUnder(LITERAL_PHRASE)
+					&& phrase.token.literal().isInstanceOfKind(
+						PARSE_PHRASE.mostGeneralType) -> phrase.token.literal()
+				else -> phrase
+			}
+			childrenProvider.childrenDo(children::add)
+			workStack.add(phraseNode to children.iterator())
+		}
+		val root = fakeRoot.children.single()
+		root.parent = null
+		module.phrasePathRecord().rootTrees.add(root)
 	}
 
 	companion object

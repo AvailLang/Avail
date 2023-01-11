@@ -481,7 +481,8 @@ internal class LinearMapBinDescriptor private constructor(
 			union, i ->
 			union.typeUnion(self.slot(BIN_SLOT_AT_, i).kind())
 		}
-		if (isShared) {
+		if (isShared)
+		{
 			keyType = keyType.makeShared()
 		}
 		return keyType
@@ -521,7 +522,8 @@ internal class LinearMapBinDescriptor private constructor(
 			union, i ->
 			union.typeUnion(self.slot(BIN_SLOT_AT_, i).kind())
 		}
-		if (isShared) {
+		if (isShared)
+		{
 			valueType = valueType.makeShared()
 		}
 		return valueType

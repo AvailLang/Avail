@@ -52,15 +52,17 @@ import avail.exceptions.SignatureException
  *
  * Construct a new `CaseInsensitive`.
  *
- * @param positionInName
+ * @param startInName
  *   The position of this expression in the message name.
  * @param expression
  *   The [expression][Expression] whose keywords should be matched
  *   case-insensitively.
  */
 internal class CaseInsensitive constructor(
-	positionInName: Int,
-	val expression: Expression) : Expression(positionInName)
+	startInName: Int,
+	pastEndInName: Int,
+	val expression: Expression
+) : Expression(startInName, pastEndInName)
 {
 	override val recursivelyContainsReorders: Boolean
 		get() = expression.recursivelyContainsReorders
@@ -97,6 +99,8 @@ internal class CaseInsensitive constructor(
 			sectionCheckpoints: MutableList<SectionCheckpoint>) =
 		expression.extractSectionCheckpointsInto(sectionCheckpoints)
 
+	override fun children() = listOf(expression)
+
 	@Throws(SignatureException::class)
 	override fun checkType(
 		argumentType: A_Type,
@@ -108,10 +112,9 @@ internal class CaseInsensitive constructor(
 		generator: InstructionGenerator,
 		wrapState: WrapState): WrapState
 	{
-		val oldInsensitive = generator.caseInsensitive
-		generator.caseInsensitive = true
-		val newWrapState = expression.emitOn(phraseType, generator, wrapState)
-		generator.caseInsensitive = oldInsensitive
+		val newWrapState = generator.beCaseInsensitiveWhile {
+			expression.emitOn(phraseType, generator, wrapState)
+		}
 		return newWrapState
 	}
 

@@ -46,6 +46,7 @@ import avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
 import avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
+import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
 import avail.compiler.splitter.WrapState.PUSHED_LIST
 import avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
@@ -127,37 +128,44 @@ import kotlin.math.min
  * elements: <<1,2>,<3,4>,<5>>.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [Group], given a [Sequence] before the double-dagger, and a
+ * [Sequence] after the double-dagger.  If the double-dagger did not occur,
+ * the [afterDagger] should be an empty sequence, and [hasDagger] should be
+ * false.
+ *
+ * @param startInName
+ *   The position of the group in the message name, specifically just before the
+ *   "«".
+ * @param pastEndInName
+ *   The position just past the end of the group, which should be just after the
+ *   "»" or any suffix characters that don't just wrap the group.
+ * @param beforeDagger
+ *   The [Sequence] before the double-dagger, or in the entire subexpression if
+ *   no double-dagger was present.
+ * @param hasDagger
+ *   True iff a [DOUBLE_DAGGER] ("‡") occurred.
+ * @param afterDagger
+ *   The [Sequence] after the double-dagger, or an empty sequence if there was
+ *   no double-dagger.
+ * @param maximumCardinality
+ *   The maximum number of occurrences accepted for this group, or the default
+ *   [Integer.MAX_VALUE] if it's unbounded.
  */
-internal class Group : Expression
+internal class Group
+constructor(
+	startInName: Int,
+	pastEndInName: Int,
+	val beforeDagger: Sequence,
+	val hasDagger: Boolean,
+	val afterDagger: Sequence,
+	var maximumCardinality: Int = Integer.MAX_VALUE
+) : Expression(startInName, pastEndInName)
 {
 	override val recursivelyContainsReorders: Boolean
 		get() = beforeDagger.recursivelyContainsReorders ||
 			afterDagger.recursivelyContainsReorders
-
-	/**
-	 * Whether a [double&#32;dagger][Metacharacter.DOUBLE_DAGGER] (‡) has been
-	 * encountered in the tokens for this group.
-	 */
-	val hasDagger: Boolean
-
-	/**
-	 * The [Sequence] of [Expression]s that appeared before the
-	 * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER], or in the entire
-	 * subexpression if no double dagger is present.
-	 */
-	val beforeDagger: Sequence
-
-	/**
-	 * The [Sequence] of [Expression]s that appear after the
-	 * [double&#32;dagger][Metacharacter.DOUBLE_DAGGER], or an empty sequence if
-	 * no double dagger is present.
-	 */
-	val afterDagger: Sequence
-
-	/**
-	 * The maximum number of occurrences accepted for this group.
-	 */
-	private var maximumCardinality = Integer.MAX_VALUE
 
 	override val yieldsValue: Boolean
 		get() = true
@@ -167,43 +175,6 @@ internal class Group : Expression
 
 	override val isLowerCase: Boolean
 		get() = beforeDagger.isLowerCase && afterDagger.isLowerCase
-
-	/**
-	 * Construct a new `Group` having a double-dagger (‡).
-	 *
-	 * @param positionInName
-	 *   The position of the group in the message name.
-	 * @param beforeDagger
-	 *   The [Sequence] before the double-dagger.
-	 * @param afterDagger
-	 *   The [Sequence] after the double-dagger.
-	 */
-	constructor(
-		positionInName: Int,
-		beforeDagger: Sequence,
-		afterDagger: Sequence) : super(positionInName)
-	{
-		this.beforeDagger = beforeDagger
-		this.hasDagger = true
-		this.afterDagger = afterDagger
-	}
-
-	/**
-	 * Construct a new `Group` that does not contain a double-dagger (‡).
-	 *
-	 * @param positionInName
-	 *   The position of the group in the message name.
-	 * @param beforeDagger
-	 *   The [Sequence] of [Expression]s in the group.
-	 */
-	constructor(
-		positionInName: Int,
-		beforeDagger: Sequence) : super(positionInName)
-	{
-		this.beforeDagger = beforeDagger
-		this.hasDagger = false
-		this.afterDagger = Sequence(positionInName + 1)
-	}
 
 	@Throws(MalformedMessageException::class)
 	override fun applyCaseInsensitive(): Group
@@ -216,25 +187,17 @@ internal class Group : Expression
 				"Tilde (~) may only occur after a lowercase token or a group " +
 					"of lowercase tokens")
 		}
-		return when {
-			hasDagger -> Group(
-				positionInName,
-				beforeDagger.applyCaseInsensitive(),
-				afterDagger.applyCaseInsensitive())
-			else -> Group(positionInName, beforeDagger.applyCaseInsensitive())
-		}
+		return Group(
+			startInName,
+			pastEndInName,
+			beforeDagger.applyCaseInsensitive(),
+			hasDagger,
+			afterDagger.applyCaseInsensitive(),
+			maximumCardinality)
 	}
 
 	override val underscoreCount: Int
 		get() = beforeDagger.underscoreCount + afterDagger.underscoreCount
-
-	/**
-	 * Set the maximum number of times this group may occur to 1.
-	 */
-	fun beOptional()
-	{
-		maximumCardinality = 1
-	}
 
 	/**
 	 * Determine if this group should generate a [tuple][TupleDescriptor] of
@@ -247,7 +210,7 @@ internal class Group : Expression
 	 */
 	private val needsDoubleWrapping: Boolean
 		get() =
-			beforeDagger.yielders.size != 1 || afterDagger.yielders.size != 0
+			beforeDagger.yielders.size != 1 || afterDagger.yielders.isNotEmpty()
 
 	override fun extractSectionCheckpointsInto(
 		sectionCheckpoints: MutableList<SectionCheckpoint>)
@@ -255,6 +218,8 @@ internal class Group : Expression
 		beforeDagger.extractSectionCheckpointsInto(sectionCheckpoints)
 		afterDagger.extractSectionCheckpointsInto(sectionCheckpoints)
 	}
+
+	override fun children() = listOf(beforeDagger, afterDagger)
 
 	/**
 	 * Check if the given type is suitable for holding values generated by
@@ -422,7 +387,7 @@ internal class Group : Expression
 			 */
 			generator.partialListsCount++
 			assert(beforeDagger.yielders.size == 1)
-			assert(afterDagger.yielders.size == 0)
+			assert(afterDagger.yielders.isEmpty())
 			var hasWrapped = false
 			val `$skip` = Label()
 			if (minSize == 0)

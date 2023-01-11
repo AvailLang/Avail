@@ -109,6 +109,7 @@ object P_BootstrapDefineSpecialObjectMacro
 		val literalType = specialObjectLiteral.phraseExpressionType
 		val defineMethod = newSendNode(
 			emptyTuple,
+			emptyTuple,
 			METHOD_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -119,8 +120,7 @@ object P_BootstrapDefineSpecialObjectMacro
 						tuple(specialObjectLiteral),
 						literalType,
 						emptySet,
-						0,
-						emptyTuple),
+						0),
 					emptyListNode())),
 			TOP.o)
 		// Create a send of the bootstrap macro definer that, when actually
@@ -128,11 +128,13 @@ object P_BootstrapDefineSpecialObjectMacro
 		val getValue =
 			newSendNode(
 				emptyTuple,
+				emptyTuple,
 				bundle,
 				newListNode(emptyTuple),
 				literalType)
 		val createLiteralToken =
 			newSendNode(
+				emptyTuple,
 				emptyTuple,
 				CREATE_LITERAL_TOKEN.bundle,
 				newListNode(
@@ -149,11 +151,13 @@ object P_BootstrapDefineSpecialObjectMacro
 		val createLiteralNode =
 			newSendNode(
 				emptyTuple,
+				emptyTuple,
 				CREATE_LITERAL_PHRASE.bundle,
 				newListNode(tuple(createLiteralToken)),
 				LITERAL_PHRASE.create(literalType))
 		val defineMacro =
 			newSendNode(
+				emptyTuple,
 				emptyTuple,
 				MACRO_DEFINER.bundle,
 				newListNode(
@@ -167,8 +171,7 @@ object P_BootstrapDefineSpecialObjectMacro
 							LITERAL_PHRASE.create(
 								literalType),
 							emptySet,
-							0,
-							emptyTuple),
+							0),
 						emptyListNode())),
 				TOP.o)
 		return interpreter.primitiveSuccess(

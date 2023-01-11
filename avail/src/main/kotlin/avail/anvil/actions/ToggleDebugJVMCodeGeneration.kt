@@ -49,8 +49,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ToggleDebugJVMCodeGeneration constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Debug JVM code generation")
+class ToggleDebugJVMCodeGeneration constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Debug JVM code generation")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

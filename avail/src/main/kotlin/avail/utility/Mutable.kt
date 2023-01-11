@@ -32,10 +32,10 @@
 package avail.utility
 
 /**
- * Support explicit mutable wrapping of variables. This is used specifically for
- * allowing non-final variables to be used by inner classes. The uses were
- * generated automatically by the Smalltalk → Java translator after flow
- * analysis.
+ * Support explicit mutable wrapping of variables.  This was useful when the
+ * VM was in Java, since values captured by inner classes and lambdas could only
+ * be immutable.  Kotlin introduces its own mutable wrappers for captured vars,
+ * but this is still occasionally useful.
  *
  * @param T
  *   The type of mutable object.
@@ -58,6 +58,8 @@ class Mutable<T> constructor (var value: T)
 	 * Update the [Mutable] via an extension function.  Within the function, the
 	 * receiver will be the old value of the Mutable, and the function must
 	 * return a replacement value.
+	 *
+	 * Note that this is *not* an atomic operation.
 	 *
 	 * @param updater
 	 *   An extension function taking a receiver T, the old value, and

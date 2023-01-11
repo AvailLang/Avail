@@ -92,7 +92,6 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.Strings.traceFor
-import avail.utility.cast
 import avail.utility.trace
 import org.availlang.json.JSONWriter
 import org.jetbrains.annotations.Debug.Renderer
@@ -354,37 +353,9 @@ class AvailObject private constructor(
 	override fun addDependentChunk(chunk: L2Chunk) =
 		descriptor().o_AddDependentChunk(this, chunk)
 
-	/**
-	 * Construct a Java [string][String] from the receiver, an Avail
-	 * [string][StringDescriptor].
-	 *
-	 * @return
-	 *   The corresponding Java string.
-	 */
-	override fun asNativeString() = descriptor().o_AsNativeString(this)
-
 	override fun clearValue() = descriptor().o_ClearValue(this)
 
 	override fun function() = descriptor().o_Function(this)
-
-	/**
-	 * A convenience method that exposes the fact that a subtuple of a string is
-	 * also a string.
-	 *
-	 * @param start
-	 *   The start of the range to extract.
-	 * @param end
-	 *   The end of the range to extract.
-	 * @param canDestroy
-	 *   Whether the original object may be destroyed if mutable.
-	 * @return
-	 *   The substring.
-	 */
-	override fun copyStringFromToCanDestroy(
-		start: Int, end: Int, canDestroy: Boolean
-	): A_String = descriptor()
-		.o_CopyTupleFromToCanDestroy(this, start, end, canDestroy)
-		.cast()
 
 	/**
 	 * Answer whether the receiver and the argument, both [AvailObject]s, are
@@ -1163,7 +1134,7 @@ class AvailObject private constructor(
 		/**
 		 * Combine two hash values into one.  If two values are truly being
 		 * combined, to avoid systematic collisions it might be best to use
-		 * combine3() instead, with a usage-specific constant,
+		 * combine3() instead, with a usage-specific constant salt.
 		 */
 		fun combine2(i1: Int, i2: Int): Int
 		{
@@ -1245,6 +1216,7 @@ class AvailObject private constructor(
 		 * Combine multiple hash values into one.  To avoid systematic
 		 * collisions, one of these should be a usage-specific constant salt.
 		 */
+		@Suppress("unused")
 		fun combine7(
 			i1: Int,
 			i2: Int,

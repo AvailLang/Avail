@@ -42,6 +42,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.childAt
 import avail.descriptor.tuples.A_Tuple.Companion.childCount
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
+import avail.descriptor.tuples.A_Tuple.Companion.lastIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
@@ -310,6 +312,34 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 	): Boolean =
 		self.slot(ORIGIN_TUPLE).equals(
 			(aTuple as AvailObject).slot(ORIGIN_TUPLE))
+
+	override fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		val origin = self.slot(ORIGIN_TUPLE)
+		val size = origin.tupleSize
+		return origin.lastIndexOf(
+			value,
+			size + 1 - startIndex,
+			size + 1 - endIndex)
+	}
+
+	override fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		val origin = self.slot(ORIGIN_TUPLE)
+		val size = origin.tupleSize
+		return origin.firstIndexOf(
+			value,
+			size + 1 - startIndex,
+			size + 1 - endIndex)
+	}
 
 	override fun o_TreeTupleLevel(self: AvailObject): Int =
 		self.slot(ORIGIN_TUPLE).treeTupleLevel

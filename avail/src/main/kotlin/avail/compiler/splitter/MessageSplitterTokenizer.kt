@@ -41,6 +41,7 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.SPACE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -87,7 +88,7 @@ class MessageSplitterTokenizer
 	private val messageNameSize: Int = messageName.tupleSize
 
 	/** The current one-based index into the messageName. */
-	private var positionInName = 1
+	private var startInName = 1
 
 	/**
 	 * The individual tokens ([strings][StringDescriptor]) constituting the
@@ -123,10 +124,10 @@ class MessageSplitterTokenizer
 				buildString {
 					val annotated = tuple(
 						messageName.copyStringFromToCanDestroy(
-							1, positionInName, false),
+							1, startInName, false),
 						stringFrom(errorIndicatorSymbol),
 						messageName.copyStringFromToCanDestroy(
-							positionInName + 1, messageNameSize, false)
+							startInName + 1, messageNameSize, false)
 					).concatenateTuplesCanDestroy(false)
 					append(e.describeProblem())
 					append(". See arrow (")
@@ -155,32 +156,32 @@ class MessageSplitterTokenizer
 			}
 		})
 
-	private fun atEnd(): Boolean = positionInName > messageNameSize
+	private fun atEnd(): Boolean = startInName > messageNameSize
 
-	private fun peek(): Int = messageName.tupleCodePointAt(positionInName)
+	private fun peek(): Int = messageName.tupleCodePointAt(startInName)
 
 	private fun peek(metacharacter: Metacharacter): Boolean {
 		val peeked = !atEnd() && peek() == metacharacter.codepoint
-		if (peeked) positionInName++
+		if (peeked) startInName++
 		return peeked
 	}
 
 	private fun peek(vararg metacharacters: Metacharacter): Boolean {
-		val save = positionInName
+		val save = startInName
 		return if (metacharacters.all(this::peek)) true
 		else
 		{
-			positionInName = save
+			startInName = save
 			false
 		}
 	}
 
 	private fun previous(n: Int = 1): Int =
-		messageName.tupleCodePointAt(positionInName - n)
+		messageName.tupleCodePointAt(startInName - n)
 
-	private fun backup(n: Int = 1) { positionInName -= n }
+	private fun backup(n: Int = 1) { startInName -= n }
 
-	private fun skip(n: Int = 1) { positionInName += n }
+	private fun skip(n: Int = 1) { startInName += n }
 
 	private fun accept(start: Int, end: Int = start) {
 		messagePartsList.add(
@@ -209,7 +210,7 @@ class MessageSplitterTokenizer
 	{
 		while (!atEnd())
 		{
-			val start = positionInName
+			val start = startInName
 			when
 			{
 				peek(SPACE) ->
@@ -265,27 +266,27 @@ class MessageSplitterTokenizer
 							// sequence, then produce a single token that
 							// includes the underscores (but not the
 							// backquotes).
-							acceptStripped(start until positionInName)
+							acceptStripped(start until startInName)
 						}
 						else
 						{
 							// If we never saw a regular character, then produce
 							// a token for each backquote and each underscore.
-							(start until positionInName).forEach(
+							(start until startInName).forEach(
 								this@MessageSplitterTokenizer::accept)
 						}
 					}
 					else -> {
 						// We didn't find an underscore, so we need to deal with
 						// the backquote in the usual way.
-						accept(positionInName - 1)
-						accept(positionInName)
+						accept(startInName - 1)
+						accept(startInName)
 						skip()
 					}
 				}
 				isUnderscoreOrSpaceOrOperator(peek()) ->
 				{
-					accept(positionInName)
+					accept(startInName)
 					skip()
 				}
 				else ->
@@ -295,7 +296,7 @@ class MessageSplitterTokenizer
 						if (!isUnderscoreOrSpaceOrOperator(peek())) skip()
 						else if (!peek(BACK_QUOTE, UNDERSCORE)) break@loop
 					}
-					acceptStripped(start until positionInName)
+					acceptStripped(start until startInName)
 				}
 			}
 		}

@@ -70,8 +70,7 @@ class SuperCastPhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.SUPER_CAST_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -156,9 +155,6 @@ class SuperCastPhraseDescriptor private constructor(
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type =
 		self.slot(TYPE_FOR_LOOKUP)
-
-	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

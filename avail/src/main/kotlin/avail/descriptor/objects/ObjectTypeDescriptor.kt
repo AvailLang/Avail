@@ -79,6 +79,7 @@ import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
@@ -466,8 +467,7 @@ class ObjectTypeDescriptor internal constructor(
 			{
 				0 -> append("object")
 				else -> append(
-					names.map(AvailObject::asNativeString)
-						.sorted()
+					names.sortedBy { it.asNativeString() }
 						.joinToString(" ∩ "))
 			}
 		}

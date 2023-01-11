@@ -439,3 +439,28 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> t(
 	t9: T9,
 	t10: T10
 ) = Tuple10(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
+
+/**
+ * Create an [Iterable], starting with the receiver.  The iterator produces
+ * successive values by applying [advance] until `null` is reached.  The
+ * receiver is also allowed to be `null`, which indicates an empty iterator.
+ *
+ * @receiver
+ *   The initial value, if any, returned by the iterator.
+ * @param advance
+ *   A function to extract the next value from the current value, such as by
+ *   traversing a null-terminated singly-linked list.
+ * @return
+ *   An Iterable<X>.  If the action is non-destructive, an [Iterator] of [X] can
+ *   be constructed multiple times, each time beginning from the same starting
+ *   point.
+ */
+fun <X> X?.iterableWith(advance: (X)->X?): Iterable<X> = object : Iterable<X>
+{
+	override fun iterator() = object : Iterator<X>
+	{
+		var current = this@iterableWith
+		override fun hasNext() = current !== null
+		override fun next() = current!!.also { current = advance(it) }
+	}
+}

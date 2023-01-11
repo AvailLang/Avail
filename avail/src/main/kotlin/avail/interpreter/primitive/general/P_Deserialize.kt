@@ -54,6 +54,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.serialization.Deserializer
+import avail.utility.iterableWith
 import java.io.ByteArrayInputStream
 import java.nio.ByteBuffer
 
@@ -106,12 +107,9 @@ object P_Deserialize : Primitive(2, CanInline)
 		val values = mutableListOf<A_BasicObject>()
 		try
 		{
-			var value: A_BasicObject? = deserializer.deserialize()
-			while (value !== null)
-			{
-				values.add(value)
-				value = deserializer.deserialize()
-			}
+			values.addAll(
+				deserializer.deserialize()
+					.iterableWith { deserializer.deserialize() })
 		}
 		catch (e: Exception)
 		{

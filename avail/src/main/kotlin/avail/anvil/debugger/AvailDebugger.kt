@@ -822,7 +822,8 @@ class AvailDebugger internal constructor (
 			val numLocals = code.numLocals
 			val numConstants = code.numConstants
 			val numOuters = code.numOuters
-			val names = code.declarationNames.map(AvailObject::asNativeString)
+			val names = code.declarationNames
+				.map { it.asNativeString() }
 				.iterator()
 			var frameIndex = 1
 			repeat (numArgs)

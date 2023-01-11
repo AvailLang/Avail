@@ -161,9 +161,7 @@ constructor (
 	private fun gettersForClass(cls: Class<*>): List<(Any)->Any?> =
 		cacheByClass.computeIfAbsent(cls) { theClass ->
 			val getters = mutableListOf<(Any)->Any?>()
-			var eachCls: Class<*>? = theClass
-			while (eachCls !== null)
-			{
+			theClass.iterableWith { it.superclass }.forEach { eachCls ->
 				eachCls.declaredFields.forEach { field ->
 					if (!isStatic(field.modifiers)
 						&& !field.type.isPrimitive
@@ -172,7 +170,6 @@ constructor (
 						getters.add(field::get)
 					}
 				}
-				eachCls = eachCls.superclass
 			}
 			getters
 		}

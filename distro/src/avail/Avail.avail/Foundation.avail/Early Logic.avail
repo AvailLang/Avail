@@ -363,3 +363,8 @@ Grammatical restriction {"_=_", "_≠_"} (set of string) is
 	{"_∧_", "_∨_"} (set of string),
 	{"_∧_", "_∨_"} (set of string)
 > (tuple of set of string);
+
+threeOrMore ::= integer range from 3 (inclusive=true) to ∞ (inclusive=false);
+threeOrMoreValues ::= <<>, any…|threeOrMore>;
+Method "«_‡=»" is stable at function accepting <threeOrMoreValues>
+		and returning boolean;

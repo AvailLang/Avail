@@ -47,8 +47,9 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ToggleDebugInterpreterPrimitives constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Debug interpreter primitives")
+class ToggleDebugInterpreterPrimitives constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Debug interpreter primitives")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

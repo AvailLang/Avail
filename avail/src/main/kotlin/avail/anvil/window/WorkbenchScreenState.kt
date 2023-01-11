@@ -35,6 +35,7 @@ package avail.anvil.window
 import avail.builder.ModuleName
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
+import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.json.JSONFriendly
@@ -57,10 +58,14 @@ import java.util.concurrent.ConcurrentHashMap
  * @property structureViewLayoutConfig
  *   The [LayoutConfiguration.stringToStore] for the [StructureViewPanel] or
  *   an empty string if not open.
+ * @property phraseViewLayoutConfig
+ *   The [LayoutConfiguration.stringToStore] for the [PhraseViewPanel] or
+ *   an empty string if not open.
  */
 class WorkbenchScreenState constructor(
 	var workbenchLayoutConfig: String = "",
-	var structureViewLayoutConfig: String = ""
+	var structureViewLayoutConfig: String = "",
+	var phraseViewLayoutConfig: String = ""
 ): JSONFriendly
 {
 	// TODO use JTextComponent.setCaretFrom to position caret
@@ -95,6 +100,9 @@ class WorkbenchScreenState constructor(
 			}
 			at(WorkbenchScreenState::structureViewLayoutConfig.name) {
 				write(structureViewLayoutConfig)
+			}
+			at(WorkbenchScreenState::phraseViewLayoutConfig.name) {
+				write(phraseViewLayoutConfig)
 			}
 			at(WorkbenchScreenState::openEditors.name) {
 				writeArray {
@@ -155,22 +163,16 @@ class WorkbenchScreenState constructor(
 		 */
 		fun from (obj: JSONObject): WorkbenchScreenState
 		{
-			val wb =
-				if (obj.containsKey(
-						WorkbenchScreenState::workbenchLayoutConfig.name))
-				{
-					obj.getString(WorkbenchScreenState::workbenchLayoutConfig.name)
-				}
-				else ""
-			val sv =
-				if (obj.containsKey(
-						WorkbenchScreenState::structureViewLayoutConfig.name))
-				{
-					obj.getString(
-						WorkbenchScreenState::structureViewLayoutConfig.name)
-				}
-				else ""
-			return WorkbenchScreenState(wb, sv).apply {
+			val wb = obj.getString(
+				WorkbenchScreenState::workbenchLayoutConfig.name
+			) { "" }
+			val sv = obj.getString(
+				WorkbenchScreenState::structureViewLayoutConfig.name
+			) { "" }
+			val pv = obj.getString(
+				WorkbenchScreenState::phraseViewLayoutConfig.name
+			) { "" }
+			return WorkbenchScreenState(wb, sv, pv).apply {
 				if (obj.containsKey(WorkbenchScreenState::openEditors.name))
 				{
 					obj.getArray(WorkbenchScreenState::openEditors.name).forEach {

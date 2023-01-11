@@ -64,14 +64,14 @@ internal class LoadingEffectToAddMacro constructor(
 	internal val bundle: A_Bundle,
 	internal val macro: A_Macro
 ) : LoadingEffect() {
-	override fun writeEffectTo(writer: L1InstructionWriter)
+	override fun writeEffectTo(writer: L1InstructionWriter, startLine: Int)
 	{
 		val atom = bundle.message
 		with(writer) {
 			// NOTE: The prefix functions are dealt with as separate effects.
 			// Push the bundle's atom.
 			write(
-				0,
+				startLine,
 				L1Operation.L1_doPushLiteral,
 				addLiteral(atom))
 			// Push the tuple of macro prefix functions.
