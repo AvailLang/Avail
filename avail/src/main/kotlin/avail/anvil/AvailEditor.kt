@@ -355,15 +355,15 @@ class AvailEditor constructor(
 		if (!workbench.phraseViewIsOpen) return
 		val doc = sourcePane.styledDocument
 		// First look to the right of the cursor position.
-		val mark = range.markPosition.offset
-		var element = doc.getCharacterElement(min(mark + 1, doc.length))
+		val dot = range.dotPosition.offset
+		var element = doc.getCharacterElement(dot)
 		var tokenStyle = element.attributes.getAttribute(PhraseNodeAttributeKey)
 			as? TokenStyle
 		if (tokenStyle == null)
 		{
 			// If there's no phrase structure information for the character to
 			// the right of the cursor, try looking to the left.
-			element = doc.getCharacterElement(mark)
+			element = doc.getCharacterElement(max(dot - 1, 0))
 			tokenStyle = element.attributes.getAttribute(PhraseNodeAttributeKey)
 				as? TokenStyle
 		}
@@ -385,12 +385,21 @@ class AvailEditor constructor(
 	).apply {
 		registerStyles()
 		addCaretListener {
+			val doc = styledDocument
 			range = markToDotRange()
-			val offset = range.markPosition.offset
-			val element = styledDocument.getCharacterElement(offset)
-			val style = element.attributes.getAttribute(
+			val dot = range.dotPosition.offset
+			val element = doc.getCharacterElement(dot)
+			var styleName = element.attributes.getAttribute(
 				StyleConstants.NameAttribute)
-			caretRangeLabel.text = "$style $range"
+			if (styleName == "default")
+			{
+				// There's nothing interesting to the right, so look to the left
+				// for a style name to present in the caretRangeLabel.
+				val leftElement = doc.getCharacterElement(max(dot - 1, 0))
+				styleName = leftElement.attributes.getAttribute(
+					StyleConstants.NameAttribute)
+			}
+			caretRangeLabel.text = "$styleName $range"
 			updatePhraseStructure()
 		}
 

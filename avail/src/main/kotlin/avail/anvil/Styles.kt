@@ -47,6 +47,7 @@ import avail.persistence.cache.Repository.PhraseNode
 import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.StyleRun
 import java.awt.Color
+import java.lang.String.*
 import javax.swing.SwingUtilities
 import javax.swing.text.AttributeSet
 import javax.swing.text.SimpleAttributeSet
@@ -151,11 +152,28 @@ class DefaultBoundSystemStyleBuilder(private val flags: MutableSet<StyleFlag>)
  * to cover Swing's styling capabilities comprehensively, only to provide those
  * options that will be exercised by one or more system styles.
  *
+ *
+ * @constructor
+ * Create a [DefaultBoundSystemStyle] for the specified [SystemStyle].  The
+ * setup function is given a [DefaultBoundSystemStyleBuilder] as an implicit
+ * receiver.
+ *
+ * @param systemStyle
+ *   The [SystemStyle] that should have this [DefaultBoundSystemStyle] applied
+ *   to it.
+ * @param setup
+ *   The initialization function to apply to a [DefaultBoundSystemStyleBuilder]
+ *   that will be constructed for this purpose.
+ *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-enum class DefaultBoundSystemStyle: BoundStyle
+enum class DefaultBoundSystemStyle
+constructor (
+	systemStyle: SystemStyle,
+	setup: DefaultBoundSystemStyleBuilder.()->Unit
+) : BoundStyle
 {
 	/** Default style for [SystemStyle.BLOCK]. */
 	BLOCK(SystemStyle.BLOCK, { foreground = SystemColors::mustard }),
@@ -469,34 +487,16 @@ enum class DefaultBoundSystemStyle: BoundStyle
 		strikeThrough()
 	});
 
-	/**
-	 * Create a [DefaultBoundSystemStyle] for the specified [SystemStyle].  The
-	 * [setup] function is given a [DefaultBoundSystemStyleBuilder] as an
-	 * implicit receiver.
-	 */
-	@Suppress("ConvertSecondaryConstructorToPrimary")
-	constructor(
-		systemStyle: SystemStyle,
-		setup: DefaultBoundSystemStyleBuilder.()->Unit)
-	{
-		this.systemStyle = systemStyle
-		styleName = systemStyle.kotlinString
-		booleanFlags = mutableSetOf()
-		val builder = DefaultBoundSystemStyleBuilder(booleanFlags)
-		builder.setup()
-		family = builder.family
-		foreground = builder.foreground
-		background = builder.background
-	}
-
-	/**
-	 * The [SystemStyle] that should have this [DefaultBoundSystemStyle] applied
-	 * to it.
-	 */
-	private val systemStyle: SystemStyle
-
 	/** The name of this style.  Should begin with '#'. */
-	override val styleName: String
+	override val styleName: String = systemStyle.kotlinString
+
+	/**
+	 * Extract the [CharacterConstants] provided as varargs in the constructor.
+	 * If any argument is not a [CharacterConstants], fail right away.  The
+	 * idiotic API of Swing *goes out of its way* to throw away all of the
+	 * useful type information for no reason at all.
+	 */
+	private val booleanFlags = mutableSetOf<StyleFlag>()
 
 	/** The font family name.  Defaults to `"Monospaced"`. */
 	private val family: String
@@ -513,13 +513,14 @@ enum class DefaultBoundSystemStyle: BoundStyle
 	 */
 	private val background: ((SystemColors)->Color)
 
-	/**
-	 * Extract the [CharacterConstants] provided as varargs in the constructor.
-	 * If any argument is not a [CharacterConstants], fail right away.  The
-	 * idiotic API of Swing *goes out of its way* to throw away all of the
-	 * useful type information for no reason at all.
-	 */
-	private val booleanFlags: Set<StyleFlag>
+	init
+	{
+		val builder = DefaultBoundSystemStyleBuilder(booleanFlags)
+		builder.setup()
+		family = builder.family
+		foreground = builder.foreground
+		background = builder.background
+	}
 
 	override fun lightStyle(doc: StyledDocument): Style
 	{
@@ -677,10 +678,7 @@ object StyleApplicator
 			}
 			style?.let {
 				setCharacterAttributes(
-					range.first - 1,
-					range.last - range.first + 1,
-					style,
-					replace)
+					range.first - 1, range.count(), style, replace)
 			}
 		}
 	}
@@ -713,7 +711,7 @@ object PhrasePathStyleApplicator
 						TokenStyle(phraseNode, indexInName))
 				}
 				this.setCharacterAttributes(
-					start, pastEnd - start, styleForToken, false)
+					start - 1, pastEnd - start, styleForToken, false)
 			}
 		}
 	}

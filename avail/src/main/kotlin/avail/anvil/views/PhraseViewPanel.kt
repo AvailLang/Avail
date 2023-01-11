@@ -38,6 +38,7 @@ import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.createScrollPane
 import avail.anvil.window.LayoutConfiguration
 import avail.anvil.window.WorkbenchFrame
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -45,6 +46,7 @@ import avail.persistence.cache.Repository.PhraseNode
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.escapedForHTML
 import avail.utility.iterableWith
+import avail.utility.mapToSet
 import avail.utility.structures.RunTree
 import java.awt.BorderLayout
 import java.awt.Component
@@ -203,8 +205,7 @@ class PhraseViewPanel constructor (
 			{
 				val node = nodes[i++]
 				val usedIndices = node.tokenSpans
-					.map { it.tokenIndexInName }
-					.toSet()
+					.mapToSet { it.tokenIndexInName }
 				val runs = RunTree<List<String>>()
 				if (node.atomName !== null)
 				{
@@ -213,6 +214,28 @@ class PhraseViewPanel constructor (
 					var subindices = (i until nodesSize)
 						.takeWhile { nodes[it].atomName === null }
 						.map { nodes[it].indexInParent }
+					// Start by coloring the whole name as metacharacters, and
+					// then apply markings to indicate the current token or
+					// argument, the Simple tokens that occur in this call, and
+					// the Simple tokens that do not occur in this call.
+					runs.edit(0, node.atomName.tupleSize) {
+						// Eventually style with SystemStyle.METHOD_NAME
+						PhraseExplanation.metacharacterStyle
+					}
+					// Dim any Simple tokens that didn't actually occur.
+					val splitter = node.splitter!!
+					splitter.allSimpleLeafIndices.forEach { index ->
+						val range = splitter.rangeToHighlightForPartIndex(index)
+						// This range is a Simple that doesn't occur at this
+						// call site, so de-emphasize it.
+						runs.edit(range.first, range.last + 1) {
+							when (index in usedIndices)
+							{
+								true -> PhraseExplanation.usedTokenStyle
+								else -> PhraseExplanation.unusedTokenStyle
+							}
+						}
+					}
 					// Consume the chain of indices.
 					i += subindices.size
 					// Add the indexInParent of the next child as well, but
@@ -228,41 +251,20 @@ class PhraseViewPanel constructor (
 						// message this was.
 						if (tokenIndexInName > 0)
 						{
-							node.splitter!!
+							splitter
 								.rangeToHighlightForPartIndex(tokenIndexInName)
 								.let { range ->
-									runs.edit(
-										range.first + 0L,
-										range.last + 1L
-									) { old ->
-										(old ?: emptyList()).append(
-											"font color='red'")
+									runs.edit(range.first, range.last + 1) {
+										PhraseExplanation.currentTokenStyle
 									}
 								}
 						}
 					}
 					else
 					{
-						val range =
-							node.splitter!!.highlightRangeForPath(subindices)
-						runs.edit(range.first + 0L, range.last + 1L) { old ->
-							(old ?: emptyList()).append("font color='red'")
-						}
-					}
-					// Dim any Simple tokens that didn't actually occur.
-					val splitter = node.splitter!!
-					val simpleIndices = splitter.allSimpleLeafIndices
-					for (index in simpleIndices - usedIndices)
-					{
-						val range =
-							splitter.rangeToHighlightForPartIndex(index)
-						// This range is a Simple that doesn't occur at this
-						// call site, so de-emphasize it.
-						runs.edit(
-							range.first + 0L,
-							range.last + 1L
-						) { old ->
-							(old ?: emptyList()).append("font color='gray'")
+						val range = splitter.highlightRangeForPath(subindices)
+						runs.edit(range.first, range.last + 1) {
+							PhraseExplanation.currentTokenStyle
 						}
 					}
 				}
@@ -294,6 +296,9 @@ class PhraseViewPanel constructor (
 	 *   phrase.
 	 * @param siblingsCount
 	 *   The number of children that my parent has, including me.
+	 * @param htmlTagRuns
+	 *   A [RunTree] of [SystemStyle]s that indicate how to highlight the method
+	 *   name.
 	 */
 	data class PhraseExplanation(
 		val phraseNode: PhraseNode,
@@ -339,6 +344,27 @@ class PhraseViewPanel constructor (
 					append(trailer.asNativeString().escapedForHTML())
 				}
 			}
+		}
+
+		companion object
+		{
+			/** The style for metacharacters in the phrase view. */
+			val metacharacterStyle = listOf("font color='#906020'")
+
+			/** The style for non-occurring tokens in the phrase view. */
+			val unusedTokenStyle = listOf("font color='#808080'")
+
+			/**
+			 * The style for tokens in the phrase view that actually occur in
+			 * the relevant call site (except the current selected one).
+			 */
+			val usedTokenStyle = listOf("bold")
+
+			/**
+			 * The style for the current selected token, as shown in the phrase
+			 * view.
+			 */
+			val currentTokenStyle = listOf("bold", "font color='#FF4040'")
 		}
 	}
 

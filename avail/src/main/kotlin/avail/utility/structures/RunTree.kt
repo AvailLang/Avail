@@ -136,6 +136,23 @@ class RunTree<Value>: Iterable<Triple<Long, Long, Value>>
 	}
 
 	/**
+	 * Run the edit action for each [Value] or `null` within the given range,
+	 * to produce an alternative [Value].  This form takes [Int] arguments as a
+	 * convenience.
+	 *
+	 * @param start
+	 *   The start of the range to insert.
+	 * @param pastEnd
+	 *   The index just past the end of the range to insert.
+	 * @param edit
+	 *   The function to evaluate to map from the old value of some range to a
+	 *   new value for that range.  The input and/or output may be null,
+	 *   indicating an absent range.
+	 */
+	fun edit(start: Int, pastEnd: Int, edit: (Value?)->Value?) =
+		edit(start.toLong(), pastEnd.toLong(), edit)
+
+	/**
 	 * Insert a range that is currently not in the tree, and is assumed not to
 	 * overlap any range in the tree.  This operation deals with left and/or
 	 * right neighbors that are contiguous with the new range and have a value
@@ -168,8 +185,7 @@ class RunTree<Value>: Iterable<Triple<Long, Long, Value>>
 	 * ranges are [Triple]s of the form <start, pastEnd, value>.
 	 */
 	override fun iterator(): Iterator<Triple<Long, Long, Value>> =
-		tree.iterator()
-			.asSequence()
+		tree.asSequence()
 			.map { Triple(it.key, it.value.first, it.value.second) }
 			.iterator()
 }

@@ -551,9 +551,7 @@ constructor(
 	{
 		if (!token.isInCurrentModule(module)) return
 		lockStyles {
-			val start = token.start().toLong()
-			val pastEnd = token.pastEnd().toLong()
-			edit(start, pastEnd) { old ->
+			edit(token.start(), token.pastEnd()) { old ->
 				when (overwrite)
 				{
 					true -> style.kotlinString
@@ -605,9 +603,7 @@ constructor(
 			tokens.forEach { token ->
 				if (token.isInCurrentModule(module))
 				{
-					val start = token.start().toLong()
-					val pastEnd = token.pastEnd().toLong()
-					edit(start, pastEnd) { old ->
+					edit(token.start(), token.pastEnd()) { old ->
 						when (overwrite)
 						{
 							true -> style.kotlinString
@@ -654,9 +650,7 @@ constructor(
 	{
 		if (!token.isInCurrentModule(module)) return
 		lockStyles {
-			val start = token.start().toLong()
-			val pastEnd = token.pastEnd().toLong()
-			edit(start, pastEnd) { old ->
+			edit(token.start(), token.pastEnd()) { old ->
 				when (overwrite)
 				{
 					true -> style
@@ -702,9 +696,7 @@ constructor(
 		tokens.forEach { token ->
 			if (token.isInCurrentModule(module))
 			{
-				val start = token.start().toLong()
-				val pastEnd = token.pastEnd().toLong()
-				edit(start, pastEnd) { old ->
+				edit(token.start(), token.pastEnd()) { old ->
 					when (overwrite)
 					{
 						true -> style
@@ -859,14 +851,14 @@ constructor(
 			// don't attempt to style it as such.
 			return
 		}
-		var start = stringLiteralToken.start().toLong()
+		var start = stringLiteralToken.start()
 		lockStyles {
 			val characters =
 				stringLiteralToken.string().iterator() as
 					ListIterator<A_Character>
 			while (characters.hasNext())
 			{
-				var count = 0L
+				var count = 0
 				when (characters.next().codePoint)
 				{
 					'"'.code ->
@@ -1080,11 +1072,11 @@ constructor(
 	{
 		if (!useToken.isInCurrentModule(module)) return
 		if (!declarationToken.isInCurrentModule(module)) return
-		val useStart = useToken.start().toLong()
-		val declarationRange = declarationToken.start().toLong() ..
+		val useStart = useToken.start()
+		val declarationRange = declarationToken.start().toLong()..
 			declarationToken.end().toLong()
 		styledRangesLock.safeWrite {
-			usesToDefinitions.edit(useStart, useToken.pastEnd().toLong()) {
+			usesToDefinitions.edit(useStart, useToken.pastEnd()) {
 				// Just overwrite it, in the unexpected case of a conflict.
 				declarationRange
 			}
