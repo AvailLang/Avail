@@ -35,6 +35,7 @@ package avail.compiler
 import avail.compiler.scanning.LexingState
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
@@ -156,10 +157,8 @@ enum class PragmaKind constructor(val lexeme: String)
 			val pragmaPrim = parts[0].trim { it <= ' ' }
 			val macroName = parts[1].trim { it <= ' ' }
 			val primNameStrings = pragmaPrim.split(",")
-			val primNames = arrayOfNulls<String>(primNameStrings.size)
-			for (i in primNames.indices)
-			{
-				val primName = primNameStrings[i]
+			val primNames = Array(primNameStrings.size) { zeroIndex ->
+				val primName = primNameStrings[zeroIndex]
 				val prim = primitiveByName(primName)
 				if (prim === null)
 				{
@@ -170,15 +169,10 @@ enum class PragmaKind constructor(val lexeme: String)
 							"not '$primName'")
 					return
 				}
-				primNames[i] = primName
+				primName
 			}
-			@Suppress("UNCHECKED_CAST")
 			compiler.bootstrapMacroThen(
-				state,
-				pragmaToken,
-				macroName,
-				primNames as Array<String>,
-				success)
+				state, pragmaToken, macroName, primNames, success)
 		}
 	},
 
@@ -216,6 +210,7 @@ enum class PragmaKind constructor(val lexeme: String)
 					val atom = atoms.single()
 					val send = newSendNode(
 						tuple(pragmaToken),
+						tuple(zero),
 						DECLARE_STRINGIFIER.bundle,
 						newListNode(tuple(syntheticLiteralNodeFor(atom))),
 						TOP.o)

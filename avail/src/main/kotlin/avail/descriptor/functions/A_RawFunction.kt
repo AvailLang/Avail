@@ -348,8 +348,10 @@ interface A_RawFunction : A_BasicObject {
 
 		/**
 		 * The index into the [module]'s lazily-loaded tuple of phrases, or -1
-		 * if the phrase was not written to a module, in which case the
-		 * [originatingPhrase] must already contain the [A_Phrase].
+		 * if the phrase was not written to a module, in which case
+		 * [originatingPhrase] must already contain the [A_Phrase].  If this
+		 * code was generated (say from a pragma), this may be -1, and the
+		 * [originatingPhrase] will be [nil].
 		 */
 		var A_RawFunction.originatingPhraseIndex: Int
 			get() = dispatch { o_OriginatingPhraseIndex(it) }

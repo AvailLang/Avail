@@ -68,6 +68,7 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
@@ -411,6 +412,13 @@ open class AtomDescriptor protected constructor (
 		 * mentioned by name in the method name.
 		 */
 		STATIC_TOKENS_KEY("Static tokens"),
+
+		/**
+		 * The atom used as a key in a [ParserState]'s
+		 * [ParserState.clientDataMap] to accumulate the tuple of one-based
+		 * indices of the static tokens associated with [STATIC_TOKENS_KEY].
+		 */
+		STATIC_TOKEN_INDICES_KEY("Static token indices"),
 
 		/**
 		 * The atom used to identify the entry in a [ParserState]'s

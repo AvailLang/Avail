@@ -48,6 +48,7 @@ import avail.anvil.shortcuts.KebabCaseShortcut
 import avail.anvil.shortcuts.LowercaseShortcut
 import avail.anvil.shortcuts.MoveLineDownShortcut
 import avail.anvil.shortcuts.MoveLineUpShortcut
+import avail.anvil.shortcuts.OpenPhraseViewShortcut
 import avail.anvil.shortcuts.OpenStructureViewShortcut
 import avail.anvil.shortcuts.OutdentShortcut
 import avail.anvil.shortcuts.PascalCaseShortcut
@@ -59,6 +60,7 @@ import avail.anvil.shortcuts.UppercaseShortcut
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
+import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 import avail.utility.Strings.tabs
 import java.awt.Point
@@ -142,6 +144,7 @@ class AvailEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
 	override val defaultActions = super.defaultActions + arrayOf<Action>(
 		GoToDialogAction,
 		OpenStructureView,
+		OpenPhraseView,
 		Refresh
 	)
 }
@@ -377,6 +380,18 @@ private object OpenStructureView
 	override fun actionPerformed(e: ActionEvent)
 	{
 		e.editor.openStructureView(false)
+	}
+}
+
+/**
+ * Open the [PhraseViewPanel].
+ */
+private object OpenPhraseView
+	: TextAction(OpenPhraseViewShortcut.actionMapKey)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		e.editor.openPhraseView()
 	}
 }
 

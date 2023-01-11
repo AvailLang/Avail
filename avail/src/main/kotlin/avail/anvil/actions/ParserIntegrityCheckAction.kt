@@ -32,10 +32,9 @@
 
 package avail.anvil.actions
 
-import avail.AvailRuntime
+import avail.anvil.AvailWorkbench
 import avail.compiler.AvailCompiler
 import avail.descriptor.fiber.FiberDescriptor
-import avail.anvil.AvailWorkbench
 import java.awt.event.ActionEvent
 import javax.swing.Action
 
@@ -43,26 +42,22 @@ import javax.swing.Action
  * A `ParserIntegrityCheckAction` checks critical data structures used by
  * the [AvailCompiler].
  *
- * @property runtime
- *   The active [AvailRuntime].
- *
  * @constructor
  * Construct a new `ParserIntegrityCheckAction`.
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param runtime
- *   The active [AvailRuntime].
  */
 class ParserIntegrityCheckAction constructor (
-		workbench: AvailWorkbench, private val runtime: AvailRuntime)
-	: AbstractWorkbenchAction(workbench, "Integrity check")
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Integrity check")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
-		runtime.execute(
-			FiberDescriptor.commandPriority) { runtime.integrityCheck() }
+		workbench.runtime.execute(FiberDescriptor.commandPriority) {
+			workbench.runtime.integrityCheck()
+		}
 	}
 
 	init

@@ -68,6 +68,7 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKEN_INDICES_KEY
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.lookupMacroByPhraseTuple
@@ -155,6 +156,7 @@ import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
@@ -189,6 +191,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.A_Phrase.Companion.stripMacro
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
@@ -229,6 +232,7 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import avail.descriptor.tokens.TokenDescriptor.TokenType.OPERATOR
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
@@ -246,6 +250,7 @@ import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
+import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
 import avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
@@ -898,7 +903,7 @@ class AvailCompiler constructor(
 			expression,
 			{ phrase, _, _ -> phrase },
 			nil,
-			mutableListOf(),
+			emptyList(),
 			declarationRemap)
 		val phraseFailure = { e: Throwable ->
 			when (e)
@@ -973,6 +978,7 @@ class AvailCompiler constructor(
 						val varType = variableTypeFor(innerType)
 						val creationSend = newSendNode(
 							emptyTuple,
+							emptyTuple,
 							CREATE_MODULE_VARIABLE.bundle,
 							newListNode(
 								tuple(
@@ -1020,7 +1026,6 @@ class AvailCompiler constructor(
 						val assign = newAssignment(
 							newUse(replacement.token, newDeclaration),
 							valueExpression,
-							expression.tokens,
 							false)
 						val assignFunction = createFunctionForPhrase(
 							assign,
@@ -1059,6 +1064,7 @@ class AvailCompiler constructor(
 				val varType = variableTypeFor(replacement.declaredType)
 				val creationSend = newSendNode(
 					emptyTuple,
+					emptyTuple,
 					CREATE_MODULE_VARIABLE.bundle,
 					newListNode(
 						tuple(
@@ -1091,7 +1097,6 @@ class AvailCompiler constructor(
 					val assign = newAssignment(
 						newUse(replacement.token, newDeclaration),
 						replacement.initializationExpression,
-						tuple(expression.token),
 						false)
 					val assignFunction = createFunctionForPhrase(
 						assign, module, replacement.token.lineNumber())
@@ -1155,7 +1160,7 @@ class AvailCompiler constructor(
 		excludedStrings: Set<A_String>)
 	{
 		where.expected(MEDIUM) { withString ->
-			val builder = buildString {
+			val string = buildString {
 				if (caseInsensitive)
 				{
 					append("one of the following case-insensitive tokens:")
@@ -1166,60 +1171,62 @@ class AvailCompiler constructor(
 				}
 				val sorted = mutableListOf<String>()
 				val detail = incomplete.mapSize < 10
-				incomplete.forEach { availTokenString, nextTree ->
-					if (!excludedStrings.contains(availTokenString))
+				incomplete.forEach { availTokenString, submap ->
+					if (!detail)
 					{
-						if (!detail)
+						sorted.add(availTokenString.asNativeString())
+						return@forEach
+					}
+					submap.forEach { _, nextTree ->
+						if (!excludedStrings.contains(availTokenString))
 						{
-							sorted.add(availTokenString.asNativeString())
-							return@forEach
-						}
-						// Collect the plans-in-progress and deduplicate them by
-						// their string representation (including the indicator
-						// at the current parsing location). We can't just
-						// deduplicate by bundle, since the current bundle tree
-						// might be eligible for continued parsing at multiple
-						// positions.
-						val strings = mutableSetOf<String>()
-						nextTree.allParsingPlansInProgress.forEach {
-								bundle, definitions ->
-							definitions.forEach { _, plans ->
-								plans.forEach { inProgress ->
-									val previousPlan = newPlanInProgress(
-										inProgress.parsingPlan,
-										max(inProgress.parsingPc - 1, 1))
-									val issuingModule =
-										bundle.message.issuingModule
-									val moduleName =
-										if (issuingModule.isNil)
-											"(built-in)"
-										else
-											issuingModule.moduleName
-												.asNativeString()
-									val shortModuleName =
-										moduleName.substring(
-											moduleName.lastIndexOf('/') + 1)
-									strings.add(
-										previousPlan.nameHighlightingPc
-											+ " from "
-											+ shortModuleName)
+							// Collect the plans-in-progress and deduplicate
+							// them by their string representation (including
+							// the indicator at the current parsing location).
+							// We can't just deduplicate by bundle, since the
+							// current bundle tree might be eligible for
+							// continued parsing at multiple positions.
+							val strings = mutableSetOf<String>()
+							nextTree.allParsingPlansInProgress.forEach {
+									bundle, definitions ->
+								definitions.forEach { _, plans ->
+									plans.forEach { inProgress ->
+										val previousPlan = newPlanInProgress(
+											inProgress.parsingPlan,
+											max(inProgress.parsingPc - 1, 1))
+										val issuingModule =
+											bundle.message.issuingModule
+										val moduleName =
+											if (issuingModule.isNil)
+												"(built-in)"
+											else
+												issuingModule.moduleName
+													.asNativeString()
+										val shortModuleName =
+											moduleName.substring(
+												moduleName.lastIndexOf('/') + 1)
+										strings.add(
+											previousPlan.nameHighlightingPc
+												+ " from "
+												+ shortModuleName)
+									}
 								}
 							}
-						}
-						val sortedStrings = strings.sorted()
-						val buffer = buildString {
-							append(availTokenString.asNativeString())
-							append("  (")
-							var first = true
-							for (progressString in sortedStrings)
-							{
-								if (!first) append(", ")
-								append(progressString)
-								first = false
+							val sortedStrings = strings.sorted()
+							val buffer = buildString {
+								append(availTokenString.asNativeString())
+								append("  (")
+								var first = true
+								for (progressString in sortedStrings)
+								{
+									if (!first) append(", ")
+									append(progressString)
+									first = false
+								}
+								append(')')
 							}
-							append(')')
+							sorted.add(buffer)
 						}
-						sorted.add(buffer)
 					}
 				}
 				sorted.sort()
@@ -1249,7 +1256,7 @@ class AvailCompiler constructor(
 				}
 			}
 			compilationContext.eventuallyDo(where.lexingState) {
-				withString(builder)
+				withString(string)
 			}
 		}
 	}
@@ -1435,13 +1442,16 @@ class AvailCompiler constructor(
 								"Completed send/macro: ${bundle.message} "
 									+ "$args")
 						}
+						val (tokens, tokenIndices) =
+							stepState.staticTokens.unzip()
 						completedSendNode(
 							stepState.initialTokenPosition,
 							stepState.start,
 							args,
 							bundle,
 							definitions,
-							stepState.consumedStaticTokens,
+							tokens,
+							tokenIndices,
 							stepState.continuation)
 					}
 				}
@@ -1509,7 +1519,7 @@ class AvailCompiler constructor(
 				{
 					// Also be silent if no static tokens have been consumed
 					// yet.
-					if (stepState.consumedStaticTokens.isNotEmpty())
+					if (stepState.staticTokens.isNotEmpty())
 					{
 						stepState.start.expected(MEDIUM) { withDescription ->
 							compilationContext.runtime.stringifyThen(
@@ -1598,15 +1608,21 @@ class AvailCompiler constructor(
 							continue
 						}
 						foundOne = true
-						val string =
-							if (caseInsensitive) token.lowerCaseString()
-							else token.string()
 						if (tokenType != KEYWORD && tokenType != OPERATOR)
 						{
 							continue
 						}
+						val string =
+							if (caseInsensitive) token.lowerCaseString()
+							else token.string()
 						val timeBefore = captureNanos()
-						val successor = tokenMap.mapAtOrNull(string) ?: continue
+						val submap: A_Map =
+							tokenMap.mapAtOrNull(string) ?: continue
+						recognized = true
+						// Record this token for the call site.
+						val afterToken = ParserState(
+							token.nextLexingState(),
+							stepState.start.clientDataMap)
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							val insensitive =
@@ -1614,31 +1630,27 @@ class AvailCompiler constructor(
 								else "token"
 							println(
 								"Matched $insensitive: $string " +
-									"@${token.lineNumber()} for $successor")
+									"@${token.lineNumber()} for $submap")
 						}
-						recognized = true
-						// Record this token for the call site.
-						val afterToken = ParserState(
-							token.nextLexingState(),
-							stepState.start.clientDataMap)
-						val stepStateCopy = stepState.copy {
-							start = afterToken
-							consumedStaticTokens =
-								consumedStaticTokens.append(token)
-							consumedAnything = true
+						submap.forEach { keywordIndex, successor ->
+							eventuallyParseRestOfSendNode(
+								successor,
+								stepState.copy {
+									start = afterToken
+									staticTokens = staticTokens.append(
+										token to keywordIndex.extractInt)
+									consumedAnything = true
+								})
 						}
-						eventuallyParseRestOfSendNode(successor, stepStateCopy)
-						val timeAfter = captureNanos()
 						val stat =
 							if (caseInsensitive) matchTokenInsensitivelyStat
 							else matchTokenStat
-						stat.record(timeAfter - timeBefore)
+						stat.record(captureNanos() - timeBefore)
 					}
 					assert(foundOne)
 					// Only report if at least one static token had already been
 					// consumed.
-					if (!recognized &&
-						stepState.consumedStaticTokens.isNotEmpty())
+					if (!recognized && stepState.staticTokens.isNotEmpty())
 					{
 						val strings = tokens.mapTo(
 							mutableSetOf(),
@@ -1871,6 +1883,7 @@ class AvailCompiler constructor(
 				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
+		val (tokens, tokenIndices) = stepState.staticTokens.unzip()
 		val withTokens = stepState.start.clientDataMap
 			.mapAtPuttingCanDestroy(
 				ALL_TOKENS_KEY.atom,
@@ -1878,7 +1891,11 @@ class AvailCompiler constructor(
 				false)
 			.mapAtPuttingCanDestroy(
 				STATIC_TOKENS_KEY.atom,
-				tupleFromList(stepState.consumedStaticTokens),
+				tupleFromList(tokens),
+				false)
+			.mapAtPuttingCanDestroy(
+				STATIC_TOKEN_INDICES_KEY.atom,
+				tupleFromIntegerList(tokenIndices),
 				false)
 		fiber.fiberGlobals = fiber.fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, withTokens, true)
@@ -2285,6 +2302,10 @@ class AvailCompiler constructor(
 	 *   The list of all tokens collected for this send phrase.  This includes
 	 *   only those tokens that are operator or keyword tokens that correspond
 	 *   with parts of the method name itself, not the arguments.
+	 * @param consumedTokenIndices
+	 *   The indices of the [consumedTokens] collected for this send phrase.
+	 *   These are the one-based indices of the message parts within the split
+	 *   bundle name.
 	 * @param continuation
 	 *   What to do with the resulting send phrase.
 	 */
@@ -2295,6 +2316,7 @@ class AvailCompiler constructor(
 		bundle: A_Bundle,
 		reachedDefinitions: A_Set,
 		consumedTokens: List<A_Token>,
+		consumedTokenIndices: List<Int>,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
 		val method = bundle.bundleMethod
@@ -2468,6 +2490,7 @@ class AvailCompiler constructor(
 			{
 				val sendNode = newSendNode(
 					tupleFromList(consumedTokens),
+					tupleFromIntegerList(consumedTokenIndices),
 					bundle,
 					argumentsListNode,
 					expectedYieldType)
@@ -2483,7 +2506,8 @@ class AvailCompiler constructor(
 					argumentsListNode,
 					bundle,
 					reachedDefinitions,
-					consumedTokens,
+					tupleFromList(consumedTokens),
+					tupleFromIntegerList(consumedTokenIndices),
 					macro,
 					expectedYieldType,
 					continuation)
@@ -2708,6 +2732,10 @@ class AvailCompiler constructor(
 	 *   The list of all tokens collected for this send phrase.  This includes
 	 *   only those tokens that are operator or keyword tokens that correspond
 	 *   with parts of the method name itself, not the arguments.
+	 * @param consumedTokenIndices
+	 *   The indices of the [consumedTokens] collected for this send phrase.
+	 *   These are the one-based indices of the message parts within the split
+	 *   bundle name.
 	 * @param macroDefinitionToInvoke
 	 *   The actual [macro&#32;definition][MacroDescriptor] to invoke
 	 *   (statically).
@@ -2724,7 +2752,8 @@ class AvailCompiler constructor(
 		argumentsListNode: A_Phrase,
 		bundle: A_Bundle,
 		reachedDefinitions: A_Set,
-		consumedTokens: List<A_Token>,
+		consumedTokens: A_Tuple,
+		consumedTokenIndices: A_Tuple,
 		macroDefinitionToInvoke: A_Macro,
 		expectedYieldType: A_Type,
 		continuation: (ParserState, A_Phrase)->Unit)
@@ -2759,7 +2788,9 @@ class AvailCompiler constructor(
 		// Capture all tokens that comprised the entire macro send.
 		val withTokensAndBundle = stateAfterCall.clientDataMap
 			.mapAtPuttingCanDestroy(
-				STATIC_TOKENS_KEY.atom, tupleFromList(consumedTokens), false)
+				STATIC_TOKENS_KEY.atom, consumedTokens, false)
+			.mapAtPuttingCanDestroy(
+				STATIC_TOKEN_INDICES_KEY.atom, consumedTokenIndices, false)
 			.mapAtPuttingCanDestroy(
 				ALL_TOKENS_KEY.atom,
 				tupleFromList(stateAfterCall.lexingState.allTokens),
@@ -2809,12 +2840,15 @@ class AvailCompiler constructor(
 						// them in the adjusted replacement.  Otherwise use the
 						// static tokens that were actually parsed.
 						var tokens = replacement.tokens
+						var tokenIndices = replacement.tokenIndicesInName
 						if (tokens.tupleSize == 0)
 						{
-							tokens = tupleFromList(consumedTokens)
+							tokens = consumedTokens
+							tokenIndices = consumedTokenIndices
 						}
 						newSendNode(
 							tokens,
+							tokenIndices,
 							replacement.bundle,
 							replacement.argumentsListNode,
 							replacement.phraseExpressionType
@@ -2843,7 +2877,8 @@ class AvailCompiler constructor(
 				val stateAfter = stateAfterCall.withMap(
 					clientDataAfterRunning.value!!)
 				val original = newSendNode(
-					tupleFromList(consumedTokens),
+					consumedTokens,
+					consumedTokenIndices,
 					bundle,
 					argumentsListNode,
 					macroDefinitionToInvoke.bodySignature().returnType
@@ -2889,7 +2924,8 @@ class AvailCompiler constructor(
 									.typeIntersection(expectedYieldType)
 									.typeIntersection(newExpectedYieldType)
 							val sendNode = newSendNode(
-								tupleFromList(consumedTokens),
+								consumedTokens,
+								consumedTokenIndices,
 								bundle,
 								argumentsListNode,
 								strongType)
@@ -3017,6 +3053,7 @@ class AvailCompiler constructor(
 		).makeShared()
 		val send = newSendNode(
 			tuple(token),
+			tuple(zero),
 			METHOD_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3089,6 +3126,7 @@ class AvailCompiler constructor(
 		val bodyLiteral = functionLiterals.removeLast()
 		val send = newSendNode(
 			tuple(token),
+			tuple(zero),
 			MACRO_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3210,6 +3248,7 @@ class AvailCompiler constructor(
 		// Build a phrase to define the lexer.
 		val send = newSendNode(
 			tuple(token),
+			tuple(zero),
 			LEXER_DEFINER.bundle,
 			newListNode(
 				tuple(
@@ -3320,6 +3359,9 @@ class AvailCompiler constructor(
 				compilationContext.diagnostics.reportError()
 				return@parseModuleHeader
 			}
+			// Capture the phrase path structure of the original header phrase.
+			compilationContext.recordPathForTopLevelPhrase(headerPhrase)
+
 			// Style the header.
 			compilationContext.loader.phase = STYLING_HEADER
 			assert(headerPhrase.isMacroSubstitutionNode)
@@ -3327,7 +3369,7 @@ class AvailCompiler constructor(
 			afterHeader.lexingState.styleAllTokensThen {
 				compilationContext.styleSendThen(
 					headerPhrase.macroOriginalSendNode,
-					headerPhrase.outputPhrase,
+					headerPhrase.outputPhrase
 				) {
 					compilationContext.loader.prepareForCompilingModuleBody()
 					applyPragmasThen(afterHeader.lexingState) {
@@ -3393,6 +3435,10 @@ class AvailCompiler constructor(
 				}
 				return@parseOutermostStatement
 			}
+
+			// Capture the phrase path structure of the original top-level
+			// phrase.
+			compilationContext.recordPathForTopLevelPhrase(unambiguousStatement)
 
 			// In case the top level statement is compound, process the base
 			// statements individually.
@@ -3590,6 +3636,8 @@ class AvailCompiler constructor(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap,
 			STATIC_TOKENS_KEY.atom,
+			emptyTuple,
+			STATIC_TOKEN_INDICES_KEY.atom,
 			emptyTuple,
 			ALL_TOKENS_KEY.atom,
 			emptyTuple)
@@ -3899,7 +3947,9 @@ class AvailCompiler constructor(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap,
 			STATIC_TOKENS_KEY.atom,
-			emptyMap,
+			emptyTuple,
+			STATIC_TOKEN_INDICES_KEY.atom,
+			emptyTuple,
 			ALL_TOKENS_KEY.atom,
 			emptyTuple)
 		val state = ParserState(
@@ -4117,6 +4167,7 @@ class AvailCompiler constructor(
 		{
 			val send = newSendNode(
 				emptyTuple,
+				emptyTuple,
 				PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE.bundle,
 				newListNode(
 					tuple(
@@ -4135,6 +4186,7 @@ class AvailCompiler constructor(
 			// Deal with every atom that was not part of a complete import of
 			// its defining module.
 			val send = newSendNode(
+				emptyTuple,
 				emptyTuple,
 				PUBLISH_ATOMS.bundle,
 				newListNode(

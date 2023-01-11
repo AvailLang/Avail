@@ -52,7 +52,8 @@ import javax.swing.JLayer
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
-import javax.swing.ScrollPaneConstants
+import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.plaf.LayerUI
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
@@ -160,10 +161,11 @@ internal fun createScrollPane(
 	minWidth: Int = 100,
 	minHeight: Int = 50
 ): JScrollPane =
-	JScrollPane(innerComponent).apply {
-		horizontalScrollBarPolicy =
-			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-		verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+	JScrollPane(
+		innerComponent,
+		VERTICAL_SCROLLBAR_ALWAYS,
+		HORIZONTAL_SCROLLBAR_ALWAYS
+	).apply {
 		minimumSize = Dimension(minWidth, minHeight)
 	}
 

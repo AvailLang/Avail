@@ -50,7 +50,7 @@ import org.objectweb.asm.MethodVisitor
  * into the supplied [object&#32;register][L2BoxedRegister].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @author Mark van Gulik &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @ReadsHiddenVariable(GLOBAL_STATE::class)
 object L2_GET_INVALID_MESSAGE_SEND_FUNCTION : L2Operation(

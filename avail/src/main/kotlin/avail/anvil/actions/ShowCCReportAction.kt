@@ -32,12 +32,11 @@
 
 package avail.anvil.actions
 
-import avail.AvailRuntime
+import avail.anvil.AvailWorkbench
+import avail.anvil.streams.StreamStyle.INFO
 import avail.builder.AvailBuilder
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.codeCoverageReportsThen
-import avail.anvil.AvailWorkbench
-import avail.anvil.streams.StreamStyle.INFO
 import java.awt.event.ActionEvent
 import javax.swing.Action
 
@@ -47,23 +46,19 @@ import javax.swing.Action
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  *
- * @property runtime
- *   The current [AvailRuntime].
  * @constructor
  * Construct a new [ShowCCReportAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param runtime
- *   The current [AvailRuntime].
  */
 class ShowCCReportAction constructor(
-	workbench: AvailWorkbench, private val runtime: AvailRuntime)
-	: AbstractWorkbenchAction(workbench, "Generate Code Coverage Report")
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Generate Code Coverage Report")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{
-		runtime.execute(FiberDescriptor.commandPriority)
+		workbench.runtime.execute(FiberDescriptor.commandPriority)
 		{
 			codeCoverageReportsThen { reports ->
 				// Announce the beginning of the report dump.

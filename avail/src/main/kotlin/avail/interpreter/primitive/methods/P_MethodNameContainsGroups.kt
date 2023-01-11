@@ -64,7 +64,7 @@ object P_MethodNameContainsGroups : Primitive(1, CanFold, CanInline)
 		val splitter: MessageSplitter =
 			try
 			{
-				MessageSplitter(name)
+				MessageSplitter.split(name)
 			}
 			catch (e: MalformedMessageException)
 			{

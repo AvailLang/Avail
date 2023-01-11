@@ -50,8 +50,9 @@ import javax.swing.filechooser.FileFilter
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class SetDocumentationPathAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Set Documentation Path…")
+class SetDocumentationPathAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Set Documentation Path…")
 {
 	override fun actionPerformed(event: ActionEvent)
 	{

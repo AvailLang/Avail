@@ -132,7 +132,7 @@ import java.util.function.Function
  *   The [compiled&#32;code][CompiledCodeDescriptor] which is being decompiled.
  * @property tempGenerator
  *   Something to generate unique variable names from a prefix.
- * @author Mark van Gulik &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
  *
@@ -274,8 +274,7 @@ class L1Decompiler constructor(
 			tupleFromList(statements),
 			code.functionType().returnType,
 			code.functionType().declaredExceptions,
-			0,
-			emptyTuple)
+			0)
 	}
 
 	/**
@@ -382,7 +381,8 @@ class L1Decompiler constructor(
 			{
 				listNode = newPermutedListNode(listNode, permutationTuple)
 			}
-			val sendNode = newSendNode(emptyTuple, bundle, listNode, type)
+			val sendNode =
+				newSendNode(emptyTuple, emptyTuple, bundle, listNode, type)
 			pushExpression(sendNode)
 		}
 
@@ -523,8 +523,7 @@ class L1Decompiler constructor(
 			// This assignment wasn't the first mention of the variable.
 			val valueNode = popExpression()
 			val variableUse = newUse(declaration.token, declaration)
-			val assignmentNode = newAssignment(
-				variableUse, valueNode, emptyTuple, false)
+			val assignmentNode = newAssignment(variableUse, valueNode, false)
 			if (expressionStack.isEmpty()
 				|| peekExpression.phraseKind !== MARKER_PHRASE)
 			{
@@ -606,8 +605,7 @@ class L1Decompiler constructor(
 				}
 			val use = newUse(declaration.token, declaration)
 			val valueExpr = popExpression()
-			val assignmentNode = newAssignment(
-				use, valueExpr, emptyTuple, false)
+			val assignmentNode = newAssignment(use, valueExpr, false)
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode)
@@ -714,8 +712,7 @@ class L1Decompiler constructor(
 			val declaration = newModuleVariable(
 				globalToken, globalVar, nil, nil)
 			val varUse = newUse(globalToken, declaration)
-			val assignmentNode = newAssignment(
-				varUse, popExpression(), emptyTuple, false)
+			val assignmentNode = newAssignment(varUse, popExpression(), false)
 			if (expressionStack.isEmpty())
 			{
 				statements.add(assignmentNode)
@@ -767,7 +764,8 @@ class L1Decompiler constructor(
 			val nArgs = method.numArgs
 			val argsNode =
 				reconstructListWithSuperUnionType(nArgs, superUnionType)
-			val sendNode = newSendNode(emptyTuple, bundle, argsNode, type)
+			val sendNode =
+				newSendNode(emptyTuple, emptyTuple, bundle, argsNode, type)
 			pushExpression(sendNode)
 		}
 

@@ -87,8 +87,7 @@ class ListPhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.LIST_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -290,13 +289,6 @@ class ListPhraseDescriptor private constructor(
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.LIST_PHRASE
-
-	override fun o_Tokens(self: AvailObject): A_Tuple
-	{
-		val tokens = mutableListOf<A_Token>()
-		self.slot(EXPRESSIONS_TUPLE).forEach { tokens.addAll(it.tokens) }
-		return tupleFromList(tokens)
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

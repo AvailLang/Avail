@@ -54,6 +54,7 @@ import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.ARGUMENTS_LIST_
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.BUNDLE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKENS
+import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKEN_INDICES_IN_NAME
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
@@ -79,23 +80,30 @@ import java.util.IdentityHashMap
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class SendPhraseDescriptor private constructor(
+class SendPhraseDescriptor
+private constructor(
 	mutability: Mutability
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.SEND_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * The [tuple][A_Tuple] of [tokens][A_Token] that comprise this
 		 * [send][SendPhraseDescriptor].
 		 */
 		TOKENS,
+
+		/**
+		 * The [tuple][A_Tuple] of part numbers within the split [BUNDLE] name.
+		 *
+		 */
+		TOKEN_INDICES_IN_NAME,
 
 		/**
 		 * A [list&#32;phrase][ListPhraseDescriptor] containing the expressions
@@ -207,10 +215,16 @@ class SendPhraseDescriptor private constructor(
 
 	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
 
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
+		self.slot(TOKEN_INDICES_IN_NAME)
+
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("send phrase") }
 			at("tokens") { self.slot(TOKENS).writeTo(writer) }
+			at("token indices in name") {
+				self.slot(TOKEN_INDICES_IN_NAME).writeTo(writer)
+			}
 			at("arguments") { self.slot(ARGUMENTS_LIST_NODE).writeTo(writer) }
 			at("bundle") { self.slot(BUNDLE).writeTo(writer) }
 			at("return type") { self.slot(RETURN_TYPE).writeTo(writer) }
@@ -241,9 +255,14 @@ class SendPhraseDescriptor private constructor(
 		 * the send (the fixed tokens are the tokens occurring in the source
 		 * which match parts of the actual text of the message name).
 		 *
-		 * @param tokens
-		 *   The [tuple][A_Tuple] of [tokens][A_Token] that comprise the
-		 *   [send][SendPhraseDescriptor].
+		 * @param consumedTokens
+		 *   The list of all tokens collected for this send phrase.  This
+		 *   includes only the static tokens that occur literally within the
+		 *   method name itself.
+		 * @param consumedTokenIndices
+		 *   The indices of the [consumedTokens] collected for this send phrase.
+		 *   These are the one-based indices of the message parts within the
+		 *   split bundle name.
 		 * @param bundle
 		 *   The method bundle for which this represents an invocation.
 		 * @param argsListNode
@@ -254,7 +273,8 @@ class SendPhraseDescriptor private constructor(
 		 *   A new send phrase.
 		 */
 		fun newSendNode(
-			tokens: A_Tuple,
+			consumedTokens: A_Tuple,
+			consumedTokenIndices: A_Tuple,
 			bundle: A_Bundle,
 			argsListNode: A_Phrase,
 			returnType: A_Type
@@ -262,7 +282,8 @@ class SendPhraseDescriptor private constructor(
 			assert(bundle.isInstanceOfKind(MESSAGE_BUNDLE.o))
 			assert(argsListNode.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
 			return mutable.createShared {
-				setSlot(TOKENS, tokens)
+				setSlot(TOKENS, consumedTokens)
+				setSlot(TOKEN_INDICES_IN_NAME, consumedTokenIndices)
 				setSlot(ARGUMENTS_LIST_NODE, argsListNode)
 				setSlot(BUNDLE, bundle)
 				setSlot(RETURN_TYPE, returnType)

@@ -42,6 +42,7 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple

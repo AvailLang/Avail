@@ -39,25 +39,36 @@ import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
+import avail.compiler.splitter.MessageSplitter
+import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.tokens.CommentTokenDescriptor
+import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.*
 import avail.error.ErrorCode
+import avail.persistence.cache.Repository.PhraseNode.PhraseNodeToken
 import avail.resolver.ResolverReference
 import avail.serialization.Serializer
+import avail.utility.Mutable
 import avail.utility.decodeString
+import avail.utility.iterableWith
 import avail.utility.sizedString
 import avail.utility.unvlqInt
 import avail.utility.unvlqLong
+import avail.utility.unzigzagInt
 import avail.utility.unzigzagLong
 import avail.utility.vlq
 import avail.utility.zigzag
 import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.ByteArrayOutputStream
-import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import org.availlang.persistence.IndexedFileBuilder
 import org.availlang.persistence.IndexedFileException
 import java.io.ByteArrayInputStream
@@ -129,6 +140,7 @@ import kotlin.concurrent.withLock
  * 3. recordNumberOfBlockPhrases (long)
  * 4. recordNumberOfManifestEntries (long)
  * 5. recordNumberOfStyling (long)
+ * 6. recordNumberOfPhrasePaths (long)
  * ```
  *
  * @property rootName
@@ -163,7 +175,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V9")
+		"Avail compiled module repository V12")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
@@ -246,6 +258,9 @@ class Repository constructor(
 	 */
 	inner class ModuleArchive
 	{
+		/** Expose the enclosing Repository as a property. */
+		val repository: Repository get() = this@Repository
+
 		/** The latest `N` versions of this module. */
 		private val versions = LinkedHashMap<ModuleVersionKey, ModuleVersion>(
 			MAX_RECORDED_VERSIONS_PER_MODULE,
@@ -1000,38 +1015,45 @@ class Repository constructor(
 	 * [module][ModuleDescriptor].
 	 */
 	inner class ModuleCompilation
-	{
+	internal constructor(
 		/** The time at which this module was compiled. */
-		val compilationTime: Long
+		val compilationTime: Long,
 
 		/**
 		 * The persistent record number of this version of the compiled
 		 * [module][ModuleDescriptor].
 		 */
-		val recordNumber: Long
+		val recordNumber: Long,
 
 		/**
 		 * The record number at which a tuple of block phrases for this
 		 * compilation is stored.  This can be fetched on demand, separately
 		 * from the [A_RawFunction]s needed to load the module.
 		 */
-		val recordNumberOfBlockPhrases: Long
+		val recordNumberOfBlockPhrases: Long,
 
 		/**
 		 * The record number at which a [ByteArray] was recorded for this
-		 * module. That record should be fetched as needed and decoded into an
-		 * array of module manifest [entries][ModuleManifestEntry] and stored
-		 * in the [A_Module]'s [ModuleDescriptor.o_ManifestEntries].
+		 * module. That record should be fetched as needed and decoded into a
+		 * [ManifestRecord].
 		 */
-		val recordNumberOfManifestEntries: Long
+		val recordNumberOfManifest: Long,
 
 		/**
 		 * The record number at which a [ByteArray] was recorded for this
 		 * module. That record should be fetched as needed and decoded into a
 		 * [StylingRecord].
 		 */
-		val recordNumberOfStyling: Long
+		val recordNumberOfStyling: Long,
 
+		/**
+		 * The record number at which a [ByteArray] was recorded for this
+		 * module, in which is an encoding that can be used to convert from a
+		 * file position to a series of phrases (of descending extent) which
+		 * ultimately contain the token at that file position.
+		 */
+		val recordNumberOfPhrasePaths: Long
+	) {
 		/** The byte array containing a serialization of this compilation. */
 		val bytes: ByteArray
 			get() = lock.withLock { repository!![recordNumber] }
@@ -1052,19 +1074,21 @@ class Repository constructor(
 			binaryStream.writeLong(compilationTime)
 			binaryStream.zigzag(recordNumber)
 			binaryStream.zigzag(recordNumberOfBlockPhrases)
-			binaryStream.zigzag(recordNumberOfManifestEntries)
+			binaryStream.zigzag(recordNumberOfManifest)
 			binaryStream.zigzag(recordNumberOfStyling)
+			binaryStream.zigzag(recordNumberOfPhrasePaths)
 		}
 
 		override fun toString(): String =
 			String.format(
 				"Compilation(%tFT%<tTZ, rec=%d, phrases=%d, manifest=%d, " +
-					"styling=%d)",
+					"styling=%d, phrase paths=%d)",
 				compilationTime,
 				recordNumber,
 				recordNumberOfBlockPhrases,
-				recordNumberOfManifestEntries,
-				recordNumberOfStyling)
+				recordNumberOfManifest,
+				recordNumberOfStyling,
+				recordNumberOfPhrasePaths)
 
 		/**
 		 * Reconstruct a `ModuleCompilation`, having previously been written via
@@ -1076,63 +1100,133 @@ class Repository constructor(
 		 *   If I/O fails.
 		 */
 		@Throws(IOException::class)
-		internal constructor(binaryStream: DataInputStream)
+		internal constructor(binaryStream: DataInputStream) : this(
+			compilationTime = binaryStream.readLong(),
+			recordNumber = binaryStream.unzigzagLong(),
+			recordNumberOfBlockPhrases = binaryStream.unzigzagLong(),
+			recordNumberOfManifest = binaryStream.unzigzagLong(),
+			recordNumberOfStyling = binaryStream.unzigzagLong(),
+			recordNumberOfPhrasePaths = binaryStream.unzigzagLong())
+	}
+
+	/**
+	 * Construct a new `ModuleCompilation`, adding the serialized compiled
+	 * module bytes to the repository without committing.
+	 *
+	 * @param compilationTime
+	 *   The compilation time of this module.
+	 * @param serializedBody
+	 *   The [serialized][Serializer] form of the compiled module.
+	 * @param serializedBlockPhrases
+	 *   The [serialized][Serializer] form of the module's block phrases.
+	 * @param manifest
+	 *   The [ManifestRecord] containing each [ModuleManifestEntry] captured for
+	 *   this module during this just-completed compilation.
+	 * @param stylingRecord
+	 *   The [StylingRecord] that captures which symbolic styles should be
+	 *   applied to which parts of the source code.
+	 * @param phrasePaths
+	 *   The [PhrasePathRecord] containing information about file position
+	 *   ranges for tokens, and the trees of phrases containing them.
+	 */
+	fun createModuleCompilation(
+		compilationTime: Long,
+		serializedBody: ByteArray,
+		serializedBlockPhrases: ByteArray,
+		manifest: ManifestRecord,
+		stylingRecord: StylingRecord,
+		phrasePaths: PhrasePathRecord
+	) : ModuleCompilation
+	{
+		// No need to hold a lock during initialization.
+		val manifestBytes = ByteArrayOutputStream(4096)
+		manifest.write(DataOutputStream(manifestBytes))
+		val innerStylingRecordBytes = ByteArrayOutputStream(4096)
+		stylingRecord.write(DataOutputStream(innerStylingRecordBytes))
+		val innerPhrasePathsBytes = ByteArrayOutputStream(4096)
+		phrasePaths.write(DataOutputStream(innerPhrasePathsBytes))
+		return repository!!.run {
+			lock.withLock {
+				ModuleCompilation(
+					compilationTime = compilationTime,
+					recordNumber = add(serializedBody),
+					recordNumberOfBlockPhrases = add(serializedBlockPhrases),
+					recordNumberOfManifest = add(manifestBytes.toByteArray()),
+					recordNumberOfStyling = add(
+						innerStylingRecordBytes.toByteArray()),
+					recordNumberOfPhrasePaths = add(
+						innerPhrasePathsBytes.toByteArray()))
+			}
+		}
+	}
+
+	/**
+	 * Manifest information that was collected during compilation of a
+	 * [module][A_Module].  This keeps track of where certain declarations and
+	 * definitions occurred within a module during compilation, each summarized
+	 * as a [ModuleManifestEntry].
+	 */
+	class ManifestRecord
+	{
+		/**
+		 * The [List] of each [ModuleManifestEntry] present in this module.
+		 */
+		val manifestEntries: List<ModuleManifestEntry>
+
+		/**
+		 * Output this styling record to the provided [DataOutputStream].
+		 * It can later be reconstructed via the constructor taking a
+		 * [DataInputStream].
+		 *
+		 * @param binaryStream
+		 *   A DataOutputStream on which to write this styling record.
+		 * @throws IOException
+		 *   If I/O fails.
+		 */
+		@Throws(IOException::class)
+		internal fun write(binaryStream: DataOutputStream)
 		{
-			compilationTime = binaryStream.readLong()
-			recordNumber = binaryStream.unzigzagLong()
-			recordNumberOfBlockPhrases = binaryStream.unzigzagLong()
-			recordNumberOfManifestEntries = binaryStream.unzigzagLong()
-			recordNumberOfStyling = binaryStream.unzigzagLong()
+			manifestEntries.forEach { entry ->
+				entry.write(binaryStream)
+			}
+		}
+
+		override fun toString(): String =
+			String.format(
+				"ManifestRecord (%d entries)",
+				manifestEntries.size)
+
+		/**
+		 * Reconstruct a [ManifestRecord], having previously been written via
+		 * [write].
+		 *
+		 * @param bytes
+		 *   Where to read the [ManifestRecord] from.
+		 * @throws IOException
+		 *   If I/O fails.
+		 */
+		@Throws(IOException::class)
+		internal constructor(bytes: ByteArray)
+		{
+			val binaryStream = DataInputStream(ByteArrayInputStream(bytes))
+			val entries = mutableListOf<ModuleManifestEntry>()
+			while (binaryStream.available() > 0)
+			{
+				entries.add(ModuleManifestEntry(binaryStream))
+			}
+			manifestEntries = entries
 		}
 
 		/**
-		 * Construct a new `ModuleCompilation`, adding the serialized compiled
-		 * module bytes to the repository without committing.
+		 * Construct a new [ManifestRecord] from a [List] of each
+		 * [ModuleManifestEntry].
 		 *
-		 * @param compilationTime
-		 *   The compilation time of this module.
-		 * @param serializedBody
-		 *   The [serialized][Serializer] form of the compiled module.
-		 * @param serializedBlockPhrases
-		 *   The [serialized][Serializer] form of the module's block phrases.
-		 * @param manifestEntries
-		 *   The [List] of [entries][ModuleManifestEntry] captured for this
-		 *   module during this just-completed compilation.
+		 * @param entries
+		 *   The [List] of each [ModuleManifestEntry].
 		 */
-		constructor(
-			compilationTime: Long,
-			serializedBody: ByteArray,
-			serializedBlockPhrases: ByteArray,
-			manifestEntries: List<ModuleManifestEntry>,
-			stylingRecord: StylingRecord)
+		constructor(entries: List<ModuleManifestEntry>)
 		{
-			// No need to hold a lock during initialization.
-			this.compilationTime = compilationTime
-			val repo = repository!!
-			var indexOfRecord: Long
-			var indexOfBlockPhrasesRecord: Long
-			var indexOfManifestEntries: Long
-			var indexOfStyling: Long
-			val innerSerializedManifestEntries = ByteArrayOutputStream(4096)
-			val serializedManifestEntries =
-				DataOutputStream(innerSerializedManifestEntries)
-			manifestEntries.forEach { entry ->
-				entry.write(serializedManifestEntries)
-			}
-			appendCRC(innerSerializedManifestEntries)
-			val innerStylingRecordBytes = ByteArrayOutputStream(4096)
-			stylingRecord.write(DataOutputStream(innerStylingRecordBytes))
-			lock.withLock {
-				indexOfRecord = repo.add(serializedBody)
-				indexOfBlockPhrasesRecord = repo.add(serializedBlockPhrases)
-				indexOfManifestEntries = repo.add(
-					innerSerializedManifestEntries.toByteArray())
-				indexOfStyling = repo.add(innerStylingRecordBytes.toByteArray())
-			}
-			this.recordNumber = indexOfRecord
-			this.recordNumberOfBlockPhrases = indexOfBlockPhrasesRecord
-			this.recordNumberOfManifestEntries = indexOfManifestEntries
-			this.recordNumberOfStyling = indexOfStyling
+			this.manifestEntries = entries
 		}
 	}
 
@@ -1255,7 +1349,7 @@ class Repository constructor(
 				styleRuns.size)
 
 		/**
-		 * Reconstruct a `ModuleCompilation`, having previously been written via
+		 * Reconstruct a [StylingRecord], having previously been written via
 		 * [write].
 		 *
 		 * @param bytes
@@ -1321,11 +1415,11 @@ class Repository constructor(
 				previousDeclarationEnd = declStart + length
 			}
 			variableUses = usesToDeclarations
+			assert(binaryStream.available() == 0)
 		}
 
 		/**
-		 * Construct a new `ModuleCompilation`, adding the serialized compiled
-		 * module bytes to the repository without committing.
+		 * Construct a new [StylingRecord] from its parts.
 		 *
 		 * @param styleRuns
 		 *   An ascending sequence of non-overlapping, non-empty [IntRange]s,
@@ -1344,6 +1438,338 @@ class Repository constructor(
 	}
 
 	/**
+	 * A node of a tree that represents an occurrence of an [A_Phrase] in this
+	 * [A_Module].  If the phrase is a send or macro invocation, the information
+	 * about which atom's bundle was sent is available, as are the tokens that
+	 * are part of the phrase (but not its subphrases).
+	 *
+	 * @constructor
+	 * Create a [PhraseNode] from its parts.  The list of [children] is mutable,
+	 * and can be provided here or added later.
+	 *
+	 * @property atomModuleName
+	 *   If this node is a [SEND_PHRASE] or [MACRO_SUBSTITUTION_PHRASE], this is
+	 *   the name of the module in which the sent bundle's atom was defined.
+	 *   Otherwise `null`.
+	 * @property atomName
+	 *   If this node is a [SEND_PHRASE] or [MACRO_SUBSTITUTION_PHRASE], this is
+	 *   the name of the sent bundle's atom.  Otherwise `null`.
+	 * @property tokenSpans
+	 *   The regions of the file that tokens of this phrase occupy.  Each region
+	 *   is a [PhraseNodeToken] representing the one-based start and pastEnd
+	 *   positions in the source string, adjusted to UCS-2 ("Char") positions.
+	 *   It also contains an index into the [splitter]'s tuple of parts, to say
+	 *   what the token was, or zero if it was not a literal part of the message
+	 *   name.
+	 * @property children
+	 *   The children of this phrase, which roughly correspond to subphrases.
+	 *   For a send phrase or macro send phrase, these may be the argument
+	 *   phrases or the [list][ListPhraseDescriptor] phrases that group them,
+	 *   depending on the structure of the sent bundle's name (see
+	 *   [MessageSplitter]).
+	 * @property parent
+	 *   The node representing the optional parent phrase of this node's phrase.
+	 *   This can be provided here, or left null to be set later.
+	 */
+	class PhraseNode
+	constructor(
+		val atomModuleName: A_String?,
+		val atomName: A_String?,
+		val tokenSpans: List<PhraseNodeToken>,
+		val children: MutableList<PhraseNode> = mutableListOf(),
+		var parent: PhraseNode?)
+	{
+		/**
+		 * An entry in the [tokenSpans] of a PhraseNode.  The [start] and
+		 * [pastEnd] identify where the token occurs in the UCS-2 source
+		 * [String], but using one-based indices.  The [tokenIndexInName] is
+		 * either zero or a one-based index into the atom's [MessageSplitter]'s
+		 * [MessageSplitter.messageParts], indicating the part of the message
+		 * that this token matched during parsing.
+		 *
+		 * TODO 2022.12.19 - This just indicates the first equivalent token in
+		 *  the tokenized message, since we don't preserve which tokens matched
+		 *  what during parsing.  So when we parse "a<b<c" as invocation of
+		 *  "_<_<_", we can't (yet) tell afterward that the "<" between a and b
+		 *  was the first "<" in the method name, and the "<" between b and c
+		 *  was the second "<" in the method name.
+		 *
+		 *  @property start
+		 *    The one-based index into the UCS-2 [String] at which the token
+		 *    begins.
+		 *  @property pastEnd
+		 *    The one-based index into the UCS-2 [String] just past the token.
+		 *  @property tokenIndexInName
+		 *    Either zero to indicate this was not a token that occurred in the
+		 *    actual method name, or the one-based index into the [PhraseNode]'s
+		 *    [MessageSplitter]'s tuple of tokenized parts.
+		 */
+		data class PhraseNodeToken(
+			val start: Int,
+			val pastEnd: Int,
+			val tokenIndexInName: Int)
+
+		/**
+		 * If the [atomName] is not null, this is a lazily-computed
+		 * [MessageSplitter] derived from that name.  Otherwise this is null.
+		 */
+		var splitter: MessageSplitter? = null
+			get() = field ?: atomName?.let {
+				field = MessageSplitter.split(it)
+				field
+			}
+			private set
+
+		/**
+		 * This is the 1-based index of this node within its parent, or -1 if
+		 * there is no parent.
+		 */
+		@Volatile
+		var indexInParent: Int = -1
+			get()
+			{
+				if (field == -1)
+				{
+					// Fill in the index of every child, for efficiency.
+					parent?.children?.forEachIndexed { i, child ->
+						child.indexInParent = i + 1
+					}
+				}
+				return field
+			}
+			private set
+
+		/**
+		 * Write this [PhraseNode] to the provided stream.  Translate the
+		 * [atomModuleName] and [atomName], if present, to [Int]s using the
+		 * provided already-populated [Map]s.  Note that the indices in the
+		 * map values are 1-based.
+		 */
+		@Throws(IOException::class)
+		internal fun write(
+			binaryStream: DataOutputStream,
+			moduleNameMap: Map<A_String, Int>,
+			atomNameMap: Map<A_String, Int>,
+			tokenCursor: Mutable<Int>)
+		{
+			binaryStream.vlq(atomModuleName?.let(moduleNameMap::get) ?: 0)
+			binaryStream.vlq(atomName?.let(atomNameMap::get) ?: 0)
+			binaryStream.vlq(tokenSpans.size)
+			tokenSpans.forEach { (start, pastEnd, tokenIndexInName) ->
+				binaryStream.zigzag(start - tokenCursor.value)
+				tokenCursor.value = start
+				binaryStream.zigzag(pastEnd - tokenCursor.value)
+				tokenCursor.value = pastEnd
+				binaryStream.vlq(tokenIndexInName)
+			}
+		}
+
+		fun depth() = iterableWith(PhraseNode::parent).count()
+
+		override fun toString(): String
+		{
+			val indexInfo = when (val p = parent)
+			{
+				null -> ""
+				else -> "($indexInParent/${p.children.size}) "
+			}
+			return tokenSpans.joinToString(
+				", ",
+				"PhraseNode $indexInfo$atomName: "
+			) { (start, pastEnd, tokenIndex) ->
+				"[$start..$pastEnd #$tokenIndex)"
+			}
+		}
+
+		companion object
+		{
+			/**
+			 * Extract this node from the input [binaryStream], using the
+			 * pre-constructed lists of module names and atom names to decode
+			 * the atom information from the original phrase.
+			 *
+			 * This should mirror the data produced by [write].
+			 */
+			fun read(
+				binaryStream: DataInputStream,
+				moduleNameList: List<A_String>,
+				atomNameList: List<A_String>,
+				tokenCursor: Mutable<Int>
+			): PhraseNode
+			{
+				val atomModuleName = when (val index = binaryStream.unvlqInt())
+				{
+					0 -> null
+					else -> moduleNameList[index - 1]
+				}
+				val atomName = when (val index = binaryStream.unvlqInt())
+				{
+					0 -> null
+					else -> atomNameList[index - 1]
+				}
+				val tokenSpans = (1..binaryStream.unvlqInt()).map {
+					val start = tokenCursor.value + binaryStream.unzigzagInt()
+					tokenCursor.value = start
+					val pastEnd = tokenCursor.value + binaryStream.unzigzagInt()
+					tokenCursor.value = pastEnd
+					val tokenIndexInName = binaryStream.unvlqInt()
+					PhraseNodeToken(start, pastEnd, tokenIndexInName)
+				}
+				return PhraseNode(
+					atomModuleName, atomName, tokenSpans, parent = null)
+			}
+		}
+	}
+
+	/**
+	 * Information for efficiently navigating from any position in a module's
+	 * source to the hierarchy of [A_Phrase]s containing that position.
+	 *
+	 * @constructor
+	 * Construct an instance from an optional list of [PhraseNode]s.
+	 *
+	 * @property rootTrees
+	 *   The [PhraseNode]s representing the sequence of top-level phrases of the
+	 *   module.
+	 *
+	 */
+	class PhrasePathRecord
+	constructor (
+		val rootTrees: MutableList<PhraseNode> = mutableListOf())
+	{
+		/**
+		 * For each [PhraseNode] in this module, working top-down, invoke the
+		 * action with that [PhraseNode].
+		 *
+		 * @param action
+		 *   What to do with each [PhraseNode].
+		 */
+		fun phraseNodesDo(
+			action: (PhraseNode) -> Unit)
+		{
+			val workStack = mutableListOf<PhraseNode>()
+			workStack.addAll(rootTrees.reversed())
+			while (workStack.isNotEmpty())
+			{
+				val node = workStack.removeLast()
+				action(node)
+				workStack.addAll(node.children.reversed())
+			}
+		}
+
+		/**
+		 * Output information about all the [rootTrees] to the provided
+		 * [DataOutputStream]. It can later be reconstructed via the constructor
+		 * taking a [DataInputStream].
+		 *
+		 * @param binaryStream
+		 *   A DataOutputStream on which to write this phrase path record.
+		 * @throws IOException
+		 *   If I/O fails.
+		 */
+		@Throws(IOException::class)
+		internal fun write(binaryStream: DataOutputStream)
+		{
+			val moduleNameMap = mutableMapOf<A_String, Int>()
+			val atomNameMap = mutableMapOf<A_String, Int>()
+			// First pre-scan all the trees to populate the maps.
+			val workStack = rootTrees.reversed().toMutableList()
+			while (workStack.isNotEmpty())
+			{
+				val node = workStack.removeLast()
+				node.atomModuleName?.let {
+					moduleNameMap.computeIfAbsent(it) { moduleNameMap.size + 1 }
+				}
+				node.atomName?.let {
+					atomNameMap.computeIfAbsent(it) { atomNameMap.size + 1 }
+				}
+				workStack.addAll(node.children.reversed())
+			}
+			// Output these strings first, so they'll be available early during
+			// reconstruction.  Start with the module names.
+			binaryStream.vlq(moduleNameMap.size)
+			moduleNameMap.entries.sortedBy { it.value }.forEach { (string, _) ->
+				binaryStream.sizedString(string.asNativeString())
+			}
+			// Now do the same with all the atom names.
+			binaryStream.vlq(atomNameMap.size)
+			atomNameMap.entries.sortedBy { it.value }.forEach { (string, _) ->
+				binaryStream.sizedString(string.asNativeString())
+			}
+			// Now traverse it all again, producing instructions for assembling
+			// the trees.  Output the nodes top-down, left-to-right.
+			binaryStream.vlq(rootTrees.size)
+			workStack.addAll(rootTrees.reversed())
+			val tokenCursor = Mutable(0)
+			while (workStack.isNotEmpty())
+			{
+				val node = workStack.removeLast()
+				node.write(
+					binaryStream, moduleNameMap, atomNameMap, tokenCursor)
+				binaryStream.vlq(node.children.size)
+				workStack.addAll(node.children.reversed())
+			}
+		}
+
+		override fun toString(): String =
+			"PhrasePathRecord (${rootTrees.size} top-level phrases)"
+
+		/**
+		 * Reconstruct a [PhrasePathRecord], having previously been written via
+		 * [write].
+		 *
+		 * @param bytes
+		 *   Where to read the [PhrasePathRecord] from.
+		 * @throws IOException
+		 *   If I/O fails.
+		 */
+		@Throws(IOException::class)
+		internal constructor(bytes: ByteArray) : this()
+		{
+			val binaryStream = DataInputStream(ByteArrayInputStream(bytes))
+			val moduleNames = List(binaryStream.unvlqInt()) {
+				stringFrom(binaryStream.decodeString())
+			}
+			val atomNames = List(binaryStream.unvlqInt()) {
+				stringFrom(binaryStream.decodeString())
+			}
+			val fakeRoot = PhraseNode(
+				null, null, emptyList(), parent = null)
+			// A stack of phrases and countdowns, indicating how many more
+			// subphrases to add to the corresponding phrase before considering
+			// that phrase complete.  This allows reconstruction of the forest
+			// of PhraseNodes without recursion.
+			val phrasesWithCountdowns =
+				mutableListOf<Pair<PhraseNode, Mutable<Int>>>()
+			phrasesWithCountdowns.add(
+				fakeRoot to Mutable(binaryStream.unvlqInt()))
+			val tokenCursor = Mutable(0)
+			while (phrasesWithCountdowns.isNotEmpty())
+			{
+				val (parent, countdown) = phrasesWithCountdowns.last()
+				if (countdown.value == 0)
+				{
+					phrasesWithCountdowns.removeLast()
+					continue
+				}
+				countdown.value--
+				val child = PhraseNode.read(
+					binaryStream,
+					moduleNames,
+					atomNames,
+					tokenCursor)
+				child.parent = parent
+				parent.children.add(child)
+				phrasesWithCountdowns.add(
+					child to Mutable(binaryStream.unvlqInt()))
+			}
+			rootTrees.addAll(fakeRoot.children)
+			rootTrees.forEach { it.parent = null }
+			assert(binaryStream.available() == 0)
+		}
+	}
+
+	/**
 	 * Look up the [ModuleArchive] with the specified name, creating one
 	 * and adding it to my [moduleMap] if necessary.
 	 *
@@ -1355,8 +1781,7 @@ class Repository constructor(
 	fun getArchive(rootRelativeName: String): ModuleArchive =
 		lock.withLock {
 			assert(!rootRelativeName.startsWith("/"))
-			moduleMap.computeIfAbsent(
-				rootRelativeName, this::ModuleArchive)
+			moduleMap.computeIfAbsent(rootRelativeName, this::ModuleArchive)
 		}
 
 	/**

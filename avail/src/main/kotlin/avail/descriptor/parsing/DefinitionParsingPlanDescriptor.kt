@@ -69,6 +69,7 @@ import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize

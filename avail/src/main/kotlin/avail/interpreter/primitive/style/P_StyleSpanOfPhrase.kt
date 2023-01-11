@@ -43,7 +43,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple

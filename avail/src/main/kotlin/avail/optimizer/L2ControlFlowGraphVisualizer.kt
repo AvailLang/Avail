@@ -391,9 +391,7 @@ class L2ControlFlowGraphVisualizer constructor(
 									append(repeated("&nbsp;", 4))
 									edge.alwaysLiveInRegisters
 										.sortedBy { it.finalIndex() }
-										.joinTo(this, ", ") {
-											escape(it)
-										}
+										.joinTo(this, ", ") { escape(it) }
 								}
 								append("<br/>")
 							}

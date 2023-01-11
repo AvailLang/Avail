@@ -32,10 +32,10 @@
 
 package avail.anvil.actions
 
-import avail.builder.AvailBuilder
 import avail.anvil.AvailWorkbench
 import avail.anvil.shortcuts.GenerateDocumentationActionShortcut
 import avail.anvil.tasks.DocumentationTask
+import avail.builder.AvailBuilder
 import avail.stacks.StacksGenerator
 import java.awt.Cursor.WAIT_CURSOR
 import java.awt.Cursor.getPredefinedCursor

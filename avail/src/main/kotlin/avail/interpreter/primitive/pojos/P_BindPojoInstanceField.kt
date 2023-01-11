@@ -36,6 +36,7 @@ import avail.descriptor.pojos.PojoFieldDescriptor.Companion.pojoFieldVariableFor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeVariables

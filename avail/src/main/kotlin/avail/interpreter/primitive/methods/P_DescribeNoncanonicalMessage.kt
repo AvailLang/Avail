@@ -62,7 +62,7 @@ object P_DescribeNoncanonicalMessage
 		try
 		{
 			// Run for exceptions side-effect.
-			MessageSplitter(messageName)
+			MessageSplitter.split(messageName)
 		}
 		catch (e: MalformedMessageException)
 		{

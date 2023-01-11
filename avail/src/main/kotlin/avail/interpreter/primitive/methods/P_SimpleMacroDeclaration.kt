@@ -131,7 +131,7 @@ object P_SimpleMacroDeclaration : Primitive(4, CanSuspend, HasSideEffect)
 		}
 		try
 		{
-			val splitter = MessageSplitter(string)
+			val splitter = MessageSplitter.split(string)
 			if (prefixFunctions.tupleSize !=
 				splitter.numberOfSectionCheckpoints)
 			{

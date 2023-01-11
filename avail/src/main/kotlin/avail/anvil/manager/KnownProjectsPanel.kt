@@ -32,10 +32,10 @@
 package avail.anvil.manager
 
 import avail.anvil.createScrollPane
+import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.icons.ProjectManagerIcons.arrowDropDown
 import avail.anvil.icons.ProjectManagerIcons.arrowDropUp
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
-import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.SettingsView
 import java.awt.Color
@@ -51,7 +51,8 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JRadioButton
 import javax.swing.JScrollPane
-import javax.swing.ScrollPaneConstants
+import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
 import javax.swing.SwingUtilities
 
 /**
@@ -214,10 +215,8 @@ internal class KnownProjectsPanel constructor(
 	 * The [JScrollPane] that contains the [innerPanel].
 	 */
 	private val scrollPane: JScrollPane = createScrollPane(innerPanel).apply {
-		verticalScrollBarPolicy =
-			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-		horizontalScrollBarPolicy =
-			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+		verticalScrollBarPolicy = VERTICAL_SCROLLBAR_AS_NEEDED
+		horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
 	}
 
 	/**

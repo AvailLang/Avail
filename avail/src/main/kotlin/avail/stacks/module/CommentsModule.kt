@@ -47,6 +47,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tokens.CommentTokenDescriptor
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom

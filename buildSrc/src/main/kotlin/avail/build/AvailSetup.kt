@@ -36,7 +36,6 @@ import avail.build.AvailSetupContext.distroSrc
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Copy
-import java.net.URI
 import java.io.File
 
 /// Herein lies utility functions and state for use in gradle-related operations
@@ -44,7 +43,7 @@ import java.io.File
 
 /**
  * Construct a operating system-specific file path using [File.separator].
- * 
+ *
  * @param path
  *   The locations to join using the system separator.
  * @return
@@ -126,7 +125,7 @@ fun Project.relocateGeneratedPropertyFiles (task: Copy)
 {
 	val pathBootstrap =
 		fileTree(systemPath(
-			"${rootProject.projectDir}", 
+			"${rootProject.projectDir}",
 			AvailSetupContext.relativePathBootstrap))
 	val movedPropertyFiles = file(systemPath(
 		"$buildDir",

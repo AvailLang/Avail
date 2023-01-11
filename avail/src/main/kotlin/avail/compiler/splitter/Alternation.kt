@@ -57,14 +57,16 @@ import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhrase
  *
  * Construct a new `Alternation`.
  *
- * @param positionInName
+ * @param startInName
  *   The position of this expression in the message name.
  * @param alternatives
  *   The alternative [expressions][Expression].
  */
 internal class Alternation constructor(
-	positionInName: Int,
-	alternatives: List<Expression>) : Expression(positionInName)
+	startInName: Int,
+	pastEndInName: Int,
+	alternatives: List<Expression>
+) : Expression(startInName, pastEndInName)
 {
 	override val recursivelyContainsReorders: Boolean
 		get() = alternatives.any { it.recursivelyContainsReorders }
@@ -75,10 +77,11 @@ internal class Alternation constructor(
 	override val isLowerCase: Boolean
 		get() = alternatives.stream().allMatch(Expression::isLowerCase)
 
-	override fun applyCaseInsensitive(): Alternation {
-		return Alternation(
-			positionInName, alternatives.map(Expression::applyCaseInsensitive))
-	}
+	override fun applyCaseInsensitive(): Alternation =
+		Alternation(
+			startInName,
+			pastEndInName,
+			alternatives.map(Expression::applyCaseInsensitive))
 
 	override fun extractSectionCheckpointsInto(
 		sectionCheckpoints: MutableList<SectionCheckpoint>)
@@ -87,6 +90,8 @@ internal class Alternation constructor(
 			alternative.extractSectionCheckpointsInto(sectionCheckpoints)
 		}
 	}
+
+	override fun children() = alternatives
 
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{

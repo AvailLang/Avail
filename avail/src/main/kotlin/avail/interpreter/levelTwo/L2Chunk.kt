@@ -46,6 +46,7 @@ import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2Chunk.Generation

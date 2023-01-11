@@ -42,10 +42,12 @@ import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
 import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
@@ -373,6 +375,34 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
+	override fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		val size = self.slot(SIZE)
+		assert(startIndex in 1..size)
+		assert(endIndex in 1..size)
+		val adjustment = self.slot(START_INDEX) - 1
+		return self.slot(BASIS_TUPLE).firstIndexOf(
+			value, startIndex + adjustment, endIndex + adjustment)
+	}
+
+	override fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		val size = self.slot(SIZE)
+		assert(startIndex in 1..size)
+		assert(endIndex in 1..size)
+		val adjustment = self.slot(START_INDEX) - 1
+		return self.slot(BASIS_TUPLE).firstIndexOf(
+			value, startIndex + adjustment, endIndex + adjustment)
+	}
+
 	override fun o_TransferIntoByteBuffer(
 		self: AvailObject,
 		startIndex: Int,
@@ -468,6 +498,10 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		return leftPart.concatenateWith(rightPart, true)
 	}
 
+	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int =
+		self.slot(BASIS_TUPLE)
+			.tupleCodePointAt(index + self.slot(START_INDEX) - 1)
+
 	override fun o_TupleElementsInRangeAreInstancesOf(
 		self: AvailObject,
 		startIndex: Int,
@@ -479,19 +513,13 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			startIndex + offset, endIndex + offset, type)
 	}
 
-	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
-	{
-		assert(index in 1..self.slot(SIZE))
-		val adjustedIndex = index + self.slot(START_INDEX) - 1
-		return self.slot(BASIS_TUPLE).tupleIntAt(adjustedIndex)
-	}
+	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
+		self.slot(BASIS_TUPLE)
+			.tupleIntAt(index + self.slot(START_INDEX) - 1)
 
-	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
-	{
-		assert(index in 1..self.slot(SIZE))
-		val adjustedIndex = index + self.slot(START_INDEX) - 1
-		return self.slot(BASIS_TUPLE).tupleLongAt(adjustedIndex)
-	}
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
+		self.slot(BASIS_TUPLE)
+			.tupleLongAt(index + self.slot(START_INDEX) - 1)
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{

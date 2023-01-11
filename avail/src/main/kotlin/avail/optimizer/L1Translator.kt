@@ -77,6 +77,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
@@ -256,7 +257,7 @@ class L1Translator private constructor(
 	 */
 	private val slotNames =
 		code.declarationNamesWithoutOuters
-			.map(AvailObject::asNativeString)
+			.map { it.asNativeString() }
 			.subList(0, code.numArgs() + code.numLocals + code.numConstants)
 			.toTypedArray()
 

@@ -74,8 +74,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.FIRST_OF_SEQUENCE_PHRASE_TAG,
-	ObjectSlots::class.java,
-	PhraseDescriptor.IntegerSlots::class.java)
+	ObjectSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -184,8 +183,6 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
 	) = self.slot(STATEMENTS).forEach { it.statementsDo(continuation) }
-
-	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

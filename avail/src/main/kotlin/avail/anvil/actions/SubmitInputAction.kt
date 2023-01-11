@@ -32,8 +32,8 @@
 
 package avail.anvil.actions
 
-import avail.builder.AvailBuilder.CompiledCommand
 import avail.anvil.AvailWorkbench
+import avail.builder.AvailBuilder.CompiledCommand
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
 import avail.io.TextInterface

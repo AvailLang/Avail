@@ -32,9 +32,9 @@
 
 package avail.anvil.actions
 
-import avail.descriptor.fiber.A_Fiber
 import avail.anvil.AvailWorkbench
 import avail.anvil.debugger.AvailDebugger
+import avail.descriptor.fiber.A_Fiber
 import avail.anvil.shortcuts.DebugActionShortcut
 import java.awt.event.ActionEvent
 import javax.swing.Action

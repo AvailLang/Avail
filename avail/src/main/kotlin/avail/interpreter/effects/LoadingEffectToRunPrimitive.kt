@@ -69,19 +69,18 @@ internal class LoadingEffectToRunPrimitive constructor(
 		assert(primitiveBundle.bundleMethod.numArgs == arguments.size)
 	}
 
-	override fun writeEffectTo(writer: L1InstructionWriter)
+	override fun writeEffectTo(writer: L1InstructionWriter, startLine: Int)
 	{
 		// Push each argument.
-		for (argument in arguments)
-		{
+		arguments.forEachIndexed { index, argument ->
 			writer.write(
-				0,
+				if (index == 0) startLine else 0,
 				L1Operation.L1_doPushLiteral,
 				writer.addLiteral(argument))
 		}
 		// Call the primitive, leaving the return value on the stack.
 		writer.write(
-			0,
+			if (arguments.isEmpty()) startLine else 0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(primitiveBundle),
 			writer.addLiteral(TOP.o))

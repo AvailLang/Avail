@@ -243,12 +243,18 @@ class MessageBundleTreeDescriptor private constructor(
 	private var lazyComplete = emptyMap
 
 	/**
-	 * An [A_Map] from [A_String] to successor [A_BundleTree]s. During parsing,
-	 * if the next token is a key of this map then consume that token, look it
-	 * up in this map, and continue parsing with the corresponding message
-	 * bundle tree. Otherwise record a suitable parsing failure message for this
-	 * position in the source stream, in case this ends up being the rightmost
-	 * parse position to be reached.
+	 * An [A_Map] from [A_String] to an [A_Map] from keyword index to the
+	 * successor [A_BundleTree]s.  The intermediate map is only present to
+	 * ensure the correct keyword index can be captured along with the parsed
+	 * token along each path.
+	 *
+	 * During parsing, if the next token is a key of this map then consume that
+	 * token, look it up in this map to get another map, and for each keyword
+	 * index (key) in the next map, capture the (token, keyword index) pair
+	 * before continuing parsing in the associated message bundle tree.
+	 * Otherwise record a suitable parsing failure message for this position in
+	 * the source stream, in case this ends up being the rightmost parse
+	 * position to be reached.
 	 *
 	 * [A_Bundle]s only get added to this map if their current instruction is
 	 * the [ParsingOperation.PARSE_PART] instruction. There may be other
@@ -259,13 +265,18 @@ class MessageBundleTreeDescriptor private constructor(
 	private var lazyIncomplete = emptyMap
 
 	/**
-	 * An [A_Map] from lower-case [A_String] to successor [A_BundleTree]s.
+	 * An [A_Map] from lower-case [A_String] to an [A_Map] from keyword index
+	 * to the successor [A_BundleTree]s.  The intermediate map is only present
+	 * to ensure the correct keyword index can be capture along with the parsed
+	 * token along each path.
+	 *
 	 * During parsing, if the next token, following conversion to lower case, is
-	 * a key of this map then consume that token, look it up in this map, and
-	 * continue parsing with the corresponding message bundle tree. Otherwise
-	 * record a suitable parsing failure message for this position in the source
-	 * stream, in case this ends up being the rightmost parse position to be
-	 * reached.
+	 * a key of this map, then consume that token, look it up in this map to get
+	 * another map, and for each keyword index (key) in the next map, capture
+	 * the (token, keyword index) pair before continuing parsing in the
+	 * associated message bundle tree. Otherwise record a suitable parsing
+	 * failure message for this position in the source stream, in case this ends
+	 * up being the rightmost parse position to be reached.
 	 *
 	 * [A_Bundle]s only get added to this map if their current instruction is
 	 * the [ParsingOperation.PARSE_PART_CASE_INSENSITIVELY] instruction. There
@@ -752,7 +763,9 @@ class MessageBundleTreeDescriptor private constructor(
 					val keywordIndex = op.keywordIndex(instruction)
 					val keyword: A_String =
 						plan.bundle.messagePart(keywordIndex)
-					val successor: A_BundleTree = lazyIncomplete.mapAt(keyword)
+					val submap: A_Map = lazyIncomplete.mapAt(keyword)
+					val successor: A_BundleTree =
+						submap.mapAt(fromInt(keywordIndex))
 					treesToVisit.add(
 						successor to newPlanInProgress(plan, pc + 1))
 				}
@@ -762,8 +775,10 @@ class MessageBundleTreeDescriptor private constructor(
 					val keywordIndex = op.keywordIndex(instruction)
 					val keyword: A_String =
 						plan.bundle.messagePart(keywordIndex)
-					val successor: A_BundleTree =
+					val submap: A_Map =
 						lazyIncompleteCaseInsensitive.mapAt(keyword)
+					val successor: A_BundleTree =
+						submap.mapAt(fromInt(keywordIndex))
 					treesToVisit.add(
 						successor to newPlanInProgress(plan, pc + 1))
 				}
@@ -949,16 +964,20 @@ class MessageBundleTreeDescriptor private constructor(
 			{
 				// Parse a specific keyword.
 				val keywordIndex = op.keywordIndex(instruction)
+				val keyword = plan.bundle.messagePart(keywordIndex)
 				lazyIncomplete = lazyIncomplete.mapAtReplacingCanDestroy(
-					plan.bundle.messagePart(keywordIndex), nil, true
-				) { _, v ->
-					val subtree = when
-					{
-						v.isNil -> newBundleTree(latestBackward)
-						else -> v
+					keyword, emptyMap, true
+				) { _, submap ->
+					submap.mapAtReplacingCanDestroy(
+						fromInt(keywordIndex), nil, true
+					) { _, originalSubtree ->
+						val subtree: A_BundleTree = originalSubtree.ifNil {
+							newBundleTree(latestBackward)
+						}
+						subtree.addPlanInProgress(
+							newPlanInProgress(plan, pc + 1))
+						subtree
 					}
-					subtree.addPlanInProgress(newPlanInProgress(plan, pc + 1))
-					subtree
 				}
 				return
 			}
@@ -966,18 +985,21 @@ class MessageBundleTreeDescriptor private constructor(
 			{
 				// Parse a specific case-insensitive keyword.
 				val keywordIndex = op.keywordIndex(instruction)
+				val keyword = plan.bundle.messagePart(keywordIndex)
 				lazyIncompleteCaseInsensitive =
 					lazyIncompleteCaseInsensitive.mapAtReplacingCanDestroy(
-						plan.bundle.messagePart(keywordIndex), nil, true
-					) { _, v ->
-						val subtree = when
-						{
-							v.isNil -> newBundleTree(latestBackward)
-							else -> v
+						keyword, emptyMap, true
+					) { _, submap ->
+						submap.mapAtReplacingCanDestroy(
+							fromInt(keywordIndex), nil, true
+						) { _, originalSubtree ->
+							val subtree: A_BundleTree = originalSubtree.ifNil {
+								newBundleTree(latestBackward)
+							}
+							subtree.addPlanInProgress(
+								newPlanInProgress(plan, pc + 1))
+							subtree
 						}
-						subtree.addPlanInProgress(
-							newPlanInProgress(plan, pc + 1))
-						subtree
 					}
 				return
 			}

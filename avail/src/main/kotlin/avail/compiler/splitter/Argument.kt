@@ -59,15 +59,17 @@ import java.util.IdentityHashMap
  * Construct an argument, given the one-based position of the token in the
  * name, and the absolute index of this argument in the entire message name.
  *
- * @param positionInName
+ * @param startInName
  *   The one-based position of the start of the token in the message name.
  * @param absoluteUnderscoreIndex
  *   The one-based index of this argument within the entire message name's list
  *   of arguments.
  */
 internal open class Argument constructor(
-	positionInName: Int,
-	val absoluteUnderscoreIndex: Int) : Expression(positionInName)
+	startInName: Int,
+	pastEndInName: Int,
+	val absoluteUnderscoreIndex: Int
+) : Expression(startInName, pastEndInName)
 {
 	override val yieldsValue: Boolean
 		get() = true
@@ -78,6 +80,8 @@ internal open class Argument constructor(
 
 	override val underscoreCount: Int
 		get() = 1
+
+	override fun children(): List<Expression> = emptyList()
 
 	/**
 	 * A simple underscore/ellipsis can be arbitrarily restricted, other than

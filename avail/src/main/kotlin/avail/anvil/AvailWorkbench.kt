@@ -49,6 +49,7 @@ import avail.anvil.actions.DebugAction
 import avail.anvil.actions.DeleteModuleAction
 import avail.anvil.actions.ExamineCompilationAction
 import avail.anvil.actions.ExamineModuleManifest
+import avail.anvil.actions.ExaminePhrasePathsAction
 import avail.anvil.actions.ExamineRepositoryAction
 import avail.anvil.actions.ExamineSerializedPhrasesAction
 import avail.anvil.actions.ExamineStylingAction
@@ -113,6 +114,7 @@ import avail.anvil.streams.StreamStyle.INFO
 import avail.anvil.streams.StreamStyle.OUT
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
+import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
 import avail.anvil.window.WorkbenchScreenState
@@ -527,10 +529,10 @@ class AvailWorkbench internal constructor(
 	private val debugAction = DebugAction(this)
 
 	/** The [show CC report action][ShowCCReportAction]. */
-	private val showCCReportAction = ShowCCReportAction(this, runtime)
+	private val showCCReportAction = ShowCCReportAction(this)
 
 	/** The [reset CC report data action][ResetCCReportDataAction]. */
-	private val resetCCReportDataAction = ResetCCReportDataAction(this, runtime)
+	private val resetCCReportDataAction = ResetCCReportDataAction(this)
 
 	/** The [toggle trace macros action][TraceMacrosAction]. */
 	private val debugMacroExpansionsAction = TraceMacrosAction(this)
@@ -593,25 +595,30 @@ class AvailWorkbench internal constructor(
 
 	/** The [ParserIntegrityCheckAction]. */
 	private val parserIntegrityCheckAction =
-		ParserIntegrityCheckAction(this, runtime)
+		ParserIntegrityCheckAction(this)
 
 	/** The [ExamineRepositoryAction]. */
-	private val examineRepositoryAction = ExamineRepositoryAction(this, runtime)
+	private val examineRepositoryAction = ExamineRepositoryAction(this)
 
 	/** The [ExamineCompilationAction]. */
 	private val examineCompilationAction =
-		ExamineCompilationAction(this, runtime)
+		ExamineCompilationAction(this)
 
 	/** The [ExamineSerializedPhrasesAction]. */
 	private val examinePhrasesAction =
-		ExamineSerializedPhrasesAction(this, runtime)
+		ExamineSerializedPhrasesAction(this)
 
+	/** The [ExamineStylingAction]. */
 	private val examineStylingAction =
-		ExamineStylingAction(this, runtime)
+		ExamineStylingAction(this)
+
+	/** The [ExaminePhrasePathsAction]. */
+	private val examinePhrasePathsAction =
+		ExaminePhrasePathsAction(this)
 
 	/** The [ExamineModuleManifest]. */
 	private val examineModuleManifestAction =
-		ExamineModuleManifest(this, runtime)
+		ExamineModuleManifest(this)
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -1083,6 +1090,8 @@ class AvailWorkbench internal constructor(
 		examinePhrasesAction.isEnabled =
 			!busy && selectedModule() !== null
 		examineStylingAction.isEnabled =
+			!busy && selectedModule() !== null
+		examinePhrasePathsAction.isEnabled =
 			!busy && selectedModule() !== null
 		examineModuleManifestAction.isEnabled =
 			!busy && selectedModule() !== null
@@ -1719,31 +1728,31 @@ class AvailWorkbench internal constructor(
 	/**
 	 * The singular [StructureViewPanel] or `null` if none available.
 	 */
-	internal var structureView: StructureViewPanel? = null
-		private set
-
-	/**
-	 * The singular [StructureViewPanel].
-	 */
-	internal val structureViewPanel: StructureViewPanel get()
-	{
-		var v = structureView
-		if (v == null)
-		{
-			v = StructureViewPanel(this)
-			{
-				structureView = null
-			}
-			structureView = v
+	internal val structureViewPanel: StructureViewPanel =
+		StructureViewPanel(this) {
+			//TODO Do nothing for now, but we could record the fact that the
+			// window has been minimized, for restoring the session state.
 		}
-		return v
-	}
 
 	/**
 	 * `true` indicates a [structureViewPanel] is open; `false` indicates the
 	 * window is not open.
 	 */
-	internal val structureViewIsOpen get() = structureView != null
+	internal val structureViewIsOpen get() = structureViewPanel.isVisible
+
+	/**
+	 * The singular [PhraseViewPanel] or `null` if none available.
+	 */
+	internal val phraseViewPanel = PhraseViewPanel(this) {
+		//TODO Do nothing for now, but we could record the fact that the window
+		// has been minimized, for restoring the session state.
+	}
+
+	/**
+	 * `true` indicates a [PhraseViewPanel] is open; `false` indicates the
+	 * window is not open.
+	 */
+	internal val phraseViewIsOpen get() = phraseViewPanel.isVisible
 
 	/**
 	 * Close the provided [AvailEditor].
@@ -1754,12 +1763,17 @@ class AvailWorkbench internal constructor(
 	fun closeEditor (editor: AvailEditor)
 	{
 		openEditors.remove(editor.resolverReference.moduleName)
-		structureView?.closingEditor(editor)
+		structureViewPanel.closingEditor(editor)
+		phraseViewPanel.closingEditor(editor)
 	}
 
-
+	/** The splitter separating the left and right portions of the workbench. */
 	private val mainSplit: JSplitPane
 
+	/**
+	 * The splitter separating the top and bottom portions of the left side of
+	 * the workbench.
+	 */
 	private val leftPane: JSplitPane
 
 	// Get the existing preferences early for plugging in at the right times
@@ -1911,6 +1925,7 @@ class AvailWorkbench internal constructor(
 					item(examineCompilationAction)
 					item(examinePhrasesAction)
 					item(examineStylingAction)
+					item(examinePhrasePathsAction)
 					item(examineModuleManifestAction)
 					separator()
 					item(graphAction)
@@ -2166,13 +2181,18 @@ class AvailWorkbench internal constructor(
 			override fun windowClosing(e: WindowEvent)
 			{
 				saveWindowPosition()
-				val sv = structureView?.let {
-					it.saveWindowPosition()
-					it.layoutConfiguration.stringToStore()
-				} ?: ""
+				val sv = structureViewPanel.run {
+					saveWindowPosition()
+					layoutConfiguration.stringToStore()
+				}
+				val pv = phraseViewPanel.run {
+					saveWindowPosition()
+					layoutConfiguration.stringToStore()
+				}
 				val local = WorkbenchScreenState(
 					layoutConfiguration.stringToStore(),
-					sv)
+					sv,
+					pv)
 				local.refreshOpenEditors(this@AvailWorkbench)
 				File(workbenchScreenStatePath).writeText(local.fileContent)
 				openEditors.values.forEach {
@@ -2298,15 +2318,13 @@ class AvailWorkbench internal constructor(
 				}
 				if (screenState.structureViewLayoutConfig.isNotEmpty())
 				{
-					val editor = openEditors.values.first()
+					val editor = openEditors.values.firstOrNull()
 					structureViewPanel.apply {
 						layoutConfiguration.parseInput(
 							screenState.structureViewLayoutConfig)
-						layoutConfiguration.placement?.let {
-							this.bounds = it
-						}
-						this.extendedState = layoutConfiguration.extendedState
-						updateView(editor)
+						layoutConfiguration.placement?.let(::setBounds)
+						extendedState = layoutConfiguration.extendedState
+						editor?.let(::updateView)
 					}
 				}
 			}

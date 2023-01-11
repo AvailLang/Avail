@@ -32,12 +32,12 @@
 
 package avail.anvil.tasks
 
-import avail.builder.ResolvedModuleName
-import avail.descriptor.module.ModuleDescriptor
 import avail.anvil.AvailWorkbench
 import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
 import avail.anvil.text.centerCurrentLine
 import avail.anvil.text.setCaretFrom
+import avail.builder.ResolvedModuleName
+import avail.descriptor.module.ModuleDescriptor
 import java.awt.Cursor
 import javax.swing.SwingUtilities
 
@@ -82,17 +82,17 @@ constructor (
 				workbench.cursor = Cursor.getDefaultCursor()
 				workbench.openEditors.values.forEach { editor ->
 					val r = editor.range
-					editor.highlightCode {
-						it.sourcePane.setCaretFrom(r)
-						SwingUtilities.invokeLater {
-							it.sourcePane.centerCurrentLine()
-						}
+					editor.highlightCode()
+					editor.sourcePane.setCaretFrom(r)
+					editor.sourcePane.centerCurrentLine()
+					editor.fetchManifestEntries()
+					if (workbench.structureViewPanel.editor == editor)
+					{
+						editor.openStructureView(false)
 					}
-					editor.updateManifestEntriesList {
-						if (workbench.structureView?.editor == editor)
-						{
-							editor.openStructureView(true)
-						}
+					if (workbench.phraseViewPanel.editor == editor)
+					{
+						editor.updatePhraseStructure()
 					}
 				}
 				afterExecute()

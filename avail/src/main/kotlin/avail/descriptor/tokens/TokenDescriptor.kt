@@ -60,6 +60,7 @@ import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
 import avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor

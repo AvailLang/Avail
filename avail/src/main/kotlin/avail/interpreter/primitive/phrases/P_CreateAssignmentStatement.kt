@@ -40,7 +40,6 @@ import avail.descriptor.phrases.SequencePhraseDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -92,8 +91,7 @@ object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		val assignment = newAssignment(
-			variable, expression, emptyTuple, false)
+		val assignment = newAssignment(variable, expression, false)
 		return interpreter.primitiveSuccess(assignment)
 	}
 

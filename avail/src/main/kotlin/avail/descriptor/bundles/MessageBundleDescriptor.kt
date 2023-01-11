@@ -82,6 +82,7 @@ import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -571,6 +572,6 @@ class MessageBundleDescriptor private constructor(
 		 */
 		private val initialMutableDescriptor = MessageBundleDescriptor(
 			Mutability.MUTABLE,
-			MessageSplitter(stringFrom("dummy")))
+			MessageSplitter.split(stringFrom("dummy")))
 	}
 }

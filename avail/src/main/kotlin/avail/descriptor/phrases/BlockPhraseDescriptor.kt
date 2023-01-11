@@ -60,7 +60,6 @@ import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.NEEDED_VARIABL
 import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.PRIMITIVE_POJO
 import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.RESULT_TYPE
 import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.STATEMENTS_TUPLE
-import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.TOKENS
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
@@ -179,11 +178,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * types that are also present in the set).
 		 */
 		DECLARED_EXCEPTIONS,
-
-		/**
-		 * The tuple of tokens forming this block phrase, if any.
-		 */
-		TOKENS,
 
 		/**
 		 * Either [nil] or a raw [pojo][RawPojoDescriptor] holding the
@@ -446,8 +440,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		continuation: (A_Phrase) -> Unit
 	) = unsupported
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("block phrase") }
@@ -462,7 +454,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			at("declared exceptions") {
 				self.slot(DECLARED_EXCEPTIONS).writeTo(writer)
 			}
-			at("tokens") { self.slot(TOKENS).writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
@@ -619,8 +610,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			statements: A_Tuple,
 			resultType: A_Type,
 			declaredExceptions: A_Set,
-			lineNumber: Int,
-			tokens: A_Tuple
+			lineNumber: Int
 		): AvailObject
 		{
 			val flattenedStatements = mutableListOf<A_Phrase>()
@@ -644,7 +634,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 				setSlot(RESULT_TYPE, resultType)
 				setSlot(NEEDED_VARIABLES, nil)
 				setSlot(DECLARED_EXCEPTIONS, declaredExceptions)
-				setSlot(TOKENS, tokens)
 				setSlot(STARTING_LINE_NUMBER, lineNumber)
 				setSlot(PRIMITIVE_POJO, primitive?.let(::identityPojo) ?: nil)
 				initHash()
