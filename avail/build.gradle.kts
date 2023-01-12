@@ -52,7 +52,7 @@ val isReleaseVersion =
 dependencies {
 	api("org.availlang:avail-json:2.0.0")
 	api("org.availlang:avail-storage:1.1.1")
-	api("org.availlang:avail-artifact:2.0.0.alpha17")
+	api("org.availlang:avail-artifact:2.0.0.alpha18")
 	AvailModule.addDependencies(this)
 }
 
