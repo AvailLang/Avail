@@ -482,7 +482,8 @@ class AvailEditor constructor(
 				})
 		}
 		semaphore.acquire()
-		highlightCode { then(this) }
+		highlightCode()
+		then(this)
 	}
 
 	/**
@@ -494,23 +495,22 @@ class AvailEditor constructor(
 	/**
 	 * Apply style highlighting to the text in the
 	 * [source&#32;pane][sourcePane].
-	 *
-	 * @param then
-	 *   Action to perform after highlighting is complete.
 	 */
-	internal fun highlightCode(then: (AvailEditor)->Unit = {})
+	internal fun highlightCode()
 	{
 		val stylesheet = workbench.stylesheet
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
 		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 		codeGuide.guideColor = codeGuide.computeColor()
 		stylingRecord?.let {
-			sourcePane.styledDocument.applyStyleRuns(stylesheet, it.styleRuns)
+			sourcePane.styledDocument.applyStyleRuns(
+				stylesheet,
+				it.styleRuns
+			)
 		}
 		phrasePathRecord?.let {
 			sourcePane.styledDocument.applyPhrasePaths(it)
 		}
-		then(this)
 	}
 
 	/**

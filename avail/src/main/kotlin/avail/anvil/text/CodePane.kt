@@ -179,7 +179,7 @@ class CodePane constructor(
 	 */
 	internal fun computeBackground(stylesheet: Stylesheet) =
 		stylesheet[CODE_BACKGROUND.classifier]
-			.documentStyle.getAttribute(StyleConstants.Background) as Color
+			.documentAttributes.getAttribute(StyleConstants.Background) as Color
 
 	/**
 	 * Compute the foreground color from the given [stylesheet].
@@ -192,7 +192,7 @@ class CodePane constructor(
 	 */
 	internal fun computeForeground(stylesheet: Stylesheet) =
 		stylesheet[CODE_TEXT.classifier]
-			.documentStyle.getAttribute(StyleConstants.Foreground) as Color
+			.documentAttributes.getAttribute(StyleConstants.Foreground) as Color
 
 	/**
 	 * Change the font size to the provided font size.

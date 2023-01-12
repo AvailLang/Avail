@@ -131,7 +131,7 @@ class CodeGuide constructor(
 	 *   [CODE_GUIDE].
 	 */
 	fun computeColor() = workbench.stylesheet[CODE_GUIDE.classifier]
-		.documentStyle.getAttribute(StyleConstants.Foreground) as Color
+		.documentAttributes.getAttribute(StyleConstants.Foreground) as Color
 
 	override fun paint(g: Graphics, c: JComponent)
 	{

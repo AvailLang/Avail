@@ -68,15 +68,15 @@ import javax.swing.text.AttributeSet
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
-import javax.swing.text.StyleConstants.setBackground
-import javax.swing.text.StyleConstants.setBold
-import javax.swing.text.StyleConstants.setFontFamily
-import javax.swing.text.StyleConstants.setForeground
-import javax.swing.text.StyleConstants.setItalic
-import javax.swing.text.StyleConstants.setStrikeThrough
-import javax.swing.text.StyleConstants.setSubscript
-import javax.swing.text.StyleConstants.setSuperscript
-import javax.swing.text.StyleConstants.setUnderline
+import javax.swing.text.StyleConstants.Background
+import javax.swing.text.StyleConstants.Bold
+import javax.swing.text.StyleConstants.FontFamily
+import javax.swing.text.StyleConstants.Foreground
+import javax.swing.text.StyleConstants.Italic
+import javax.swing.text.StyleConstants.StrikeThrough
+import javax.swing.text.StyleConstants.Subscript
+import javax.swing.text.StyleConstants.Superscript
+import javax.swing.text.StyleConstants.Underline
 import javax.swing.text.StyleContext
 import javax.swing.text.StyleContext.getDefaultStyleContext
 import javax.swing.text.StyledDocument
@@ -2850,30 +2850,36 @@ class ValidatedRenderingContext constructor(
 ): RenderingContext(attrs)
 {
 	/**
-	 * The [document&#32;style][StyledDocument] to use when rendering to a
-	 * [StyledDocument]. its attributes are sourced from [attributes], which has
-	 * been fully resolved along all rendering dimensions.
+	 * The [document&#32;attributes][AttributeSet] to use when compute a
+	 * [style][Style] for a [StyledDocument]. Its attributes are sourced from
+	 * [attributes].
 	 */
-	val documentStyle: Style by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-		getDefaultStyleContext().NamedStyle(defaultDocumentStyle).apply {
+	val documentAttributes: AttributeSet
+	by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+		// Note: This was using getDefaultStyleContext().NamedStyle with nicely
+		// named helpers before, but had to be rewritten to use
+		// SimpleAttributeSet because NamedStyle was incapable of correctly
+		// setting the background. This took about a person week to identify
+		// and fix, so never use NamedStyle anywhere ever.
+		SimpleAttributeSet().apply {
 			attributes.run {
-				fontFamily?.let { setFontFamily(this@apply, it) }
+				fontFamily?.let { addAttribute(FontFamily, it) }
 				foreground?.let {
 					palette.colors[it]?.let { color ->
-						setForeground(this@apply, color)
+						addAttribute(Foreground, color)
 					}
 				}
 				background?.let {
 					palette.colors[it]?.let { color ->
-						setBackground(this@apply, color)
+						addAttribute(Background, color)
 					}
 				}
-				bold?.let { setBold(this@apply, it) }
-				italic?.let { setItalic(this@apply, it) }
-				underline?.let { setUnderline(this@apply, it) }
-				superscript?.let { setSuperscript(this@apply, it) }
-				subscript?.let { setSubscript(this@apply, it) }
-				strikethrough?.let { setStrikeThrough(this@apply, it) }
+				bold?.let { addAttribute(Bold, it) }
+				italic?.let { addAttribute(Italic, it) }
+				underline?.let { addAttribute(Underline, it) }
+				superscript?.let { addAttribute(Superscript, it) }
+				subscript?.let { addAttribute(Subscript, it) }
+				strikethrough?.let { addAttribute(StrikeThrough, it) }
 			}
 		}
 	}
@@ -2942,7 +2948,8 @@ class ValidatedRenderingContext constructor(
 		// This line is subtle, because it binds `classifiers` to a
 		// NameAttribute, which in turn makes the classifiers available for
 		// display in gutter of the AvailEditor.
-		val style = document.addStyle(classifiers, documentStyle)
+		val style = document.addStyle(classifiers, defaultDocumentStyle)
+		style.addAttributes(documentAttributes)
 		document.setCharacterAttributes(
 			range.first - 1,
 			range.last - range.first + 1,
@@ -2956,10 +2963,11 @@ class ValidatedRenderingContext constructor(
 	{
 		/**
 		 * The default [document&#32;style][Style], to serve as the parent for
-		 * new document styles.
+		 * new document styles. **Must only be called on the Swing UI thread.**
 		 */
 		val defaultDocumentStyle: Style
 		by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+			assert(SwingUtilities.isEventDispatchThread())
 			getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE)
 		}
 	}

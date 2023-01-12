@@ -401,7 +401,7 @@ class AvailWorkbench internal constructor(
 	 */
 	private fun computeInputBackground() =
 		stylesheet[INPUT_BACKGROUND.classifier]
-			.documentStyle.getAttribute(StyleConstants.Background) as Color
+			.documentAttributes.getAttribute(StyleConstants.Background) as Color
 
 	/**
 	 * The foreground color of the input field when a command is running.
@@ -418,7 +418,7 @@ class AvailWorkbench internal constructor(
 	 */
 	private fun computeInputForeground() =
 		stylesheet[INPUT_TEXT.classifier]
-			.documentStyle.getAttribute(StyleConstants.Foreground) as Color
+			.documentAttributes.getAttribute(StyleConstants.Foreground) as Color
 
 	/**
 	 * The [StyledDocument] into which to write both error and regular
@@ -1167,7 +1167,7 @@ class AvailWorkbench internal constructor(
 				document.insertString(
 					document.length, // The current length
 					entry.string,
-					context.documentStyle)
+					context.documentAttributes)
 				// Always use index 0, since this only happens in the UI thread.
 				insertStringStat.record(System.nanoTime() - before)
 			}
@@ -1833,7 +1833,7 @@ class AvailWorkbench internal constructor(
 			doc.insertString(
 				0,
 				string,
-				context.documentStyle)
+				context.documentAttributes)
 			// Always use index 0, since this only happens in the UI thread.
 			insertStringStat.record(System.nanoTime() - beforeInsert)
 		}

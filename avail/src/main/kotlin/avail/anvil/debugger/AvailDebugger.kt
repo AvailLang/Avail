@@ -727,16 +727,15 @@ class AvailDebugger internal constructor (
 								val doc = sourcePane.styledDocument
 								doc.remove(0, doc.length)
 								doc.insertString(0, source, null)
-								highlightCode {
-									// Setting the source does not immediately
-									// update the layout, so postpone scrolling
-									// to the selected line.
-									SwingUtilities.invokeLater {
-										highlightSourceLine(
-											frame.currentLineNumber(isTopFrame),
-											isTopFrame
-										)
-									}
+								highlightCode()
+								// Setting the source does not immediately
+								// update the layout, so postpone scrolling to
+								// the selected line.
+								SwingUtilities.invokeLater {
+									highlightSourceLine(
+										frame.currentLineNumber(isTopFrame),
+										isTopFrame
+									)
 								}
 							}
 						}
@@ -756,11 +755,8 @@ class AvailDebugger internal constructor (
 	/**
 	 * Apply style highlighting to the text in the
 	 * [source&#32;pane][sourcePane].
-	 *
-	 * @param then
-	 *   Action to perform after highlighting is complete.
 	 */
-	internal fun highlightCode(then: (AvailDebugger)->Unit = {})
+	internal fun highlightCode()
 	{
 		val stylesheet = workbench.stylesheet
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
@@ -769,7 +765,6 @@ class AvailDebugger internal constructor (
 		sourcePane.styledDocument.applyStyleRuns(
 			stylesheet,
 			currentSourceAndLineEndsAndStyling.third.styleRuns)
-		then(this)
 	}
 
 	/**
