@@ -34,6 +34,8 @@ package avail.anvil.shortcuts
 
 import avail.anvil.AvailEditor
 import avail.anvil.editor.GoToDialog
+import avail.anvil.shortcuts.ModifierKey.ALT
+import avail.anvil.shortcuts.ModifierKey.CTRL
 import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 import avail.anvil.shortcuts.ModifierKey.SHIFT
 import avail.anvil.text.BlockComment
@@ -132,9 +134,9 @@ object InsertLineCommentAtStartShortcut
  * @author Richard Arriaga
  */
 object InsertLineCommentAtTabShortcut
-	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx, SHIFT))
+	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx, ALT))
 {
-	override val actionMapKey: String = "insert-line-comment-at-start"
+	override val actionMapKey: String = "insert-line-comment-at-min-tab"
 	override val description: String = "Rebuild and Refresh Module"
 }
 
@@ -144,8 +146,8 @@ object InsertLineCommentAtTabShortcut
  * @author Richard Arriaga
  */
 object WrapInBlockCommentShortcut
-	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx))
+	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx, CTRL))
 {
-	override val actionMapKey: String = "insert-line-comment-at-start"
+	override val actionMapKey: String = "insert-block-comment"
 	override val description: String = "Rebuild and Refresh Module"
 }
