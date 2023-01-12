@@ -1285,11 +1285,18 @@ internal fun JTextPane.transform(transformer: String.()->String)
 	if (txt.selectionStart == txt.selectionEnd)
 	{
 		// No text is selected; do nothing
+		UIManager.getLookAndFeel().provideErrorFeedback(this)
 		return
 	}
 	val textToTransform = txt.selectedText
 	val startPosition = txt.selectionStart
 	val transformed = textToTransform.transformer()
+	if (transformed == textToTransform)
+	{
+		// There was no transformation so there is nothing to replace
+		UIManager.getLookAndFeel().provideErrorFeedback(this)
+		return
+	}
 	transaction {
 		txt.document.remove(startPosition, textToTransform.length)
 		txt.document.insertString(startPosition, transformed, null)
