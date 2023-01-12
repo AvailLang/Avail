@@ -39,9 +39,7 @@ import avail.anvil.CodeGuide
 import avail.anvil.MenuBarBuilder
 import avail.anvil.RenderingEngine.applyStyleRuns
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
-import avail.anvil.Stylesheet
 import avail.anvil.actions.FindAction
-import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.addWindowMenu
 import avail.anvil.scroll
 import avail.anvil.scrollTextWithLineNumbers
@@ -764,8 +762,12 @@ class AvailDebugger internal constructor (
 	 */
 	internal fun highlightCode(then: (AvailDebugger)->Unit = {})
 	{
+		val stylesheet = workbench.stylesheet
+		sourcePane.background = sourcePane.computeBackground(stylesheet)
+		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
+		codeGuide.guideColor = codeGuide.computeColor()
 		sourcePane.styledDocument.applyStyleRuns(
-			workbench.stylesheet,
+			stylesheet,
 			currentSourceAndLineEndsAndStyling.third.styleRuns)
 		then(this)
 	}
@@ -949,18 +951,6 @@ class AvailDebugger internal constructor (
 	 */
 	private val codeGuide get() = sourcePane.getClientProperty(
 		CodeGuide::class.java.name) as CodeGuide
-
-	/**
-	 * What to do after [refreshing][RefreshStylesheetAction] a
-	 * [stylesheet][Stylesheet].
-	 */
-	fun afterRefreshStylesheet()
-	{
-		val stylesheet = workbench.stylesheet
-		sourcePane.background = sourcePane.computeBackground(stylesheet)
-		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
-		codeGuide.guideColor = codeGuide.computeColor()
-	}
 
 	/** Construct the user interface and display it. */
 	fun open()

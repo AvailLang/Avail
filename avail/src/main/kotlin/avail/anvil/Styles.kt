@@ -36,6 +36,7 @@ import avail.anvil.StylePatternCompiler.Companion.compile
 import avail.anvil.StylePatternCompiler.ExactMatchToken
 import avail.anvil.StylePatternCompiler.FailedMatchToken
 import avail.anvil.StylePatternCompiler.SubsequenceToken
+import avail.anvil.StylePatternCompiler.SuccessionToken
 import avail.anvil.StyleRuleContextState.ACCEPTED
 import avail.anvil.StyleRuleContextState.PAUSED
 import avail.anvil.StyleRuleContextState.REJECTED
@@ -175,35 +176,20 @@ class Stylesheet constructor(
 	 * The [pattern][StylePattern] `"!"` handles renditions of classified
 	 * regions that do not match any other [pattern][StylePattern].
 	 */
-	private val noSolutionsRule = (rules as MutableSet).run {
-		val rule = firstOrNull { it.source == FailedMatchToken.lexeme }
-		rule?.let { remove(it) }
-		rule
-	}
-
-	/**
-	 * The [rendering&#32;context][ValidatedRenderingContext] to use when a
-	 * classified region does not match any [pattern][StylePattern].
-	 */
-	private val noSolutionsRuleRenderingContext
-	by lazy(LazyThreadSafetyMode.PUBLICATION) {
-		noSolutionsRule?.renderingContext ?: ValidatedRenderingContext(
-			StyleAttributes(),
-			palette
-		)
-	}
+	val noSolutionsRule: StyleRule
 
 	init
 	{
+		val rules = this.rules as MutableSet
 		// The stylesheet may not contain exact match rules for the system
-		// classifiers, so insert them here if necessary.
+		// classifiers, so insert them here if necessary. None of the
+		// compilations here should ever fail, and it should nuke the system if
+		// they do.
 		SystemStyleClassifier.values().forEach { systemStyleClassifier ->
 			val source = systemStyleClassifier.exactMatchSource
 			val rule = rules.firstOrNull { it.source == source }
 			if (rule === null)
 			{
-				// This should never fail. And if it does fail, then it should
-				// totally nuke the system.
 				val newRule = compile(
 					UnvalidatedStylePattern(
 						source,
@@ -211,9 +197,42 @@ class Stylesheet constructor(
 					),
 					systemStyleClassifier.palette
 				)
-				(rules as MutableSet).add(newRule)
+				rules.add(newRule)
 			}
 		}
+		// Ensure that a rule is present to handle unclassified source text.
+		val unclassifiedRule =
+			rules.firstOrNull { it.source == ExactMatchToken.lexeme }
+		unclassifiedRule ?: run {
+			rules.add(
+				compile(
+					UnvalidatedStylePattern(
+						ExactMatchToken.lexeme,
+						UnvalidatedRenderingContext(StyleAttributes())
+					),
+					palette
+				)
+			)
+		}
+		// Ensure that a rule is present to handle empty solution sets.
+		val noSolutionsRule =
+			rules.firstOrNull { it.source == FailedMatchToken.lexeme }
+		this.noSolutionsRule =
+			if (noSolutionsRule !== null)
+			{
+				rules.remove(noSolutionsRule)
+				noSolutionsRule
+			}
+			else
+			{
+				compile(
+					UnvalidatedStylePattern(
+						FailedMatchToken.lexeme,
+						UnvalidatedRenderingContext(StyleAttributes())
+					),
+					palette
+				)
+			}
 	}
 
 	/**
@@ -270,6 +289,37 @@ class Stylesheet constructor(
 		classifiersString: String
 	): ValidatedRenderingContext
 	{
+		val tree = findTree(classifiersString)
+		// We have reached the tree containing the solution set.
+		if (tree.solutions.isEmpty())
+		{
+			// There are no solutions, then apply the special rule for failed
+			// matches.
+			return noSolutionsRule.renderingContext
+		}
+		// Compute the solution frontier, i.e., the subset of maximally specific
+		// solutions from the solution set.
+		val solutions = mostSpecificSolutions(tree)
+		// Aggregate the final rendering context by combining the solutions in
+		// order, such that later solutions override earlier ones when aspects
+		// are in conflict.
+		return distillFinalSolution(solutions)
+	}
+
+	/**
+	 * Locate the [tree][StyleRuleTree] that contains the solutions for the
+	 * specified input text, which is a comma-separated list of style
+	 * classifiers, such as [styleToken][AvailLoader.styleToken] produces when
+	 * classifying regions of source code.
+	 *
+	 * @param classifiersString
+	 *   The classification label of some region of source text, as a
+	 *   comma-separated list of style classifiers.
+	 * @return
+	 *   The requested [tree][StyleRuleTree].
+	 */
+	fun findTree(classifiersString: String): StyleRuleTree
+	{
 		var tree = rootTree
 		// Augment the sequence with the special end-of-sequence literal.
 		val classifiers = (classifiersString.split(",")
@@ -285,27 +335,42 @@ class Stylesheet constructor(
 			// reference.
 			tree = tree[classifier.intern()]
 		}
-		// We have reached the tree containing the solution set.
-		if (tree.solutions.isEmpty())
-		{
-			// There are no solutions, then apply the special rule for failed
-			// matches.
-			return noSolutionsRuleRenderingContext
-		}
-		// Compute the solution frontier, i.e., the subset of maximally specific
-		// solutions from the solution set.
-		val solutions = tree.solutions.filter { solution ->
-			tree.solutions.none { other ->
-				solution.compareSpecificityTo(other).isLess()
-			}
-		}
-		// Aggregate the final rendering context by combining the solutions in
-		// order, such that later solutions override earlier ones when aspects
-		// are in conflict.
-		return solutions
-			.map { it.renderingContext }
-			.reduce { final, next -> final.overrideWith(next) }
+		return tree
 	}
+
+	/**
+	 * Answer the most [specific][StylePattern.compareSpecificityTo] solutions
+	 * resident in the specified [tree][StyleRuleTree].
+	 *
+	 * @param tree
+	 *   The [tree][StyleRuleTree] to query.
+	 * @return
+	 *   The most specific solutions available in this [tree].
+	 */
+	fun mostSpecificSolutions(
+		tree: StyleRuleTree
+	) = tree.solutions.filter { solution ->
+		tree.solutions.none { other ->
+			solution.compareSpecificityTo(other).isLess()
+		}
+	}
+
+	/**
+	 * Given the specified [solution&#32;set][solutions], compute the final
+	 * [rendering&#32;solution][ValidatedRenderingContext] by
+	 * [overriding][ValidatedRenderingContext.overrideWith] the solutions from
+	 * left to right, i.e., later contexts override earlier context.
+	 *
+	 * @param solutions
+	 *   The solution set to reduce to a final solution.
+	 * @return
+	 *   The final solution.
+	 */
+	fun distillFinalSolution(
+		solutions: List<ValidatedStylePattern>
+	) = solutions
+		.map { it.renderingContext }
+		.reduce { final, next -> final.overrideWith(next) }
 
 	companion object
 	{
@@ -374,7 +439,7 @@ class Stylesheet constructor(
  *   provide an outlet for venting when memory pressure is high.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-private class StyleRuleTree constructor(
+class StyleRuleTree constructor(
 	private val contexts: Set<StyleRuleContext>,
 	val solutions: List<ValidatedStylePattern> = emptyList())
 {
@@ -561,10 +626,10 @@ sealed class StylePattern constructor(
 		// more specific.
 		when
 		{
-			p.contains(q) ->
+			p.containsSubpattern(q) ->
 				// e.g., p: #a,#b,#b <=> q: #a,#b
 				return Order.MORE
-			q.contains(p) ->
+			q.containsSubpattern(p) ->
 				// e.g., p: #a,#b <=> q: #a,#b,#b
 				return Order.LESS
 		}
@@ -696,6 +761,61 @@ sealed class StylePattern constructor(
 		 */
 		private val findWhitespace by lazy(LazyThreadSafetyMode.PUBLICATION) {
 			"\\s+".toRegex()
+		}
+
+		/**
+		 * Determine whether the [receiver][String] contains the argument as
+		 * a subpattern.
+		 *
+		 * @param other
+		 *   The subpattern to detect.
+		 * @return
+		 *   `true` if the receiver contains [other], `false` otherwise.
+		 */
+		private fun String.containsSubpattern(other: String): Boolean
+		{
+			val list = split(findOperator)
+			val otherList = other.split(findOperator)
+			val otherIndex = list.firstIndexOfSublist(otherList)
+			if (otherIndex == -1) return false
+			// The operators were elided during the split, but now we have to
+			// check them exactly. Each non-last element of a list has an
+			// implicit trailing operator, so that tells us how to map the list
+			// index back onto a string index so that we can perform a substring
+			// comparison.
+			val offset = list
+				.subList(0, otherIndex)
+				.fold(otherIndex) { offset, classifier ->
+					offset + classifier.length
+				}
+			return substring(offset, offset + other.length) == other
+		}
+
+		/**
+		 * A [regular&#32;expression][Regex] to find any operator of a
+		 * [pattern][StylePattern].
+		 */
+		private val findOperator by lazy(LazyThreadSafetyMode.PUBLICATION) {
+			"[${SubsequenceToken.lexeme}${SuccessionToken.lexeme}]".toRegex()
+		}
+
+		/**
+		 * Locate the first occurrence of the [argument][List] as a sublist of
+		 * the [receiver][List].
+		 *
+		 * @param other
+		 *   The list to search for within the receiver.
+		 * @return
+		 *   The index of the first element of [other] within the receiver, or
+		 *   `-1` if [other] does not occur.
+		 */
+		private fun <T> List<T>.firstIndexOfSublist(other: List<T>): Int
+		{
+			if (other.size > size) return -1
+			(0 .. size - other.size).forEach {
+				if (subList(it, it + other.size) == other) return it
+			}
+			return -1
 		}
 
 		/**
@@ -1830,11 +1950,19 @@ class StyleRule constructor(
 		append("\nrenderingContext:")
 		val ugly = renderingContext.toString()
 		val pretty = ugly
-			.replace("StyleAttributes(", "\n\t")
+			.replace("RenderingContext(", "\n\t")
 			.replace("=", " = ")
 			.replace(", ", "\n\t")
 			.replace(")", "")
-		append(pretty)
+			.trimEnd()
+		if (pretty.isEmpty())
+		{
+			append("\n\t[no overrides]")
+		}
+		else
+		{
+			append(pretty)
+		}
 	}
 
 	companion object
@@ -2613,7 +2741,34 @@ sealed class RenderingContext constructor(val attributes: StyleAttributes)
 
 	override fun hashCode() = 13 + attributes.hashCode()
 
-	override fun toString() = attributes.toString()
+	override fun toString() = buildString {
+		val attributesString = attributes.toString()
+			.replace("StyleAttributes(", "RenderingContext(")
+			.replace(findNullField, "")
+			.replace(findTrailingComma, "")
+		append(attributesString)
+	}
+
+	companion object
+	{
+		/**
+		 * A [regular&#32;expression][Regex] to find a `null`-valued field in
+		 * the stringification of a [context][RenderingContext].
+		 */
+		private val findNullField by lazy(LazyThreadSafetyMode.PUBLICATION) {
+			"\\b\\w+?=null(?:, )?".toRegex()
+		}
+
+		/**
+		 * A [regular&#32;expression][Regex] to find a final field with a
+		 * trailing comma and space in the stringification of a
+		 * [context][RenderingContext].
+		 */
+		private val findTrailingComma
+		by lazy(LazyThreadSafetyMode.PUBLICATION) {
+			", (?=\\))".toRegex()
+		}
+	}
 }
 
 /**

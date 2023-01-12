@@ -34,12 +34,11 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
-import avail.anvil.RenderingEngine.applyStyleRuns
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.PhrasePathStyleApplicator.applyPhrasePaths
+import avail.anvil.RenderingEngine.applyStyleRuns
 import avail.anvil.actions.FindAction
-import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.shortcuts.AvailEditorShortcut
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.text.AvailEditorKit
@@ -436,14 +435,6 @@ class AvailEditor constructor(
 		}
 	}
 
-	init
-	{
-		populateSourcePane(afterTextLoaded)
-		range = sourcePane.markToDotRange()
-		caretRangeLabel.text = range.toString()
-		sourcePane.undoManager.discardAllEdits()
-	}
-
 	/** The scroll wrapper around the [sourcePane]. */
 	private val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
 		workbench, workbench.globalSettings.editorGuideLines)
@@ -495,6 +486,12 @@ class AvailEditor constructor(
 	}
 
 	/**
+	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 */
+	private val codeGuide get() = sourcePane.getClientProperty(
+		CodeGuide::class.java.name) as CodeGuide
+
+	/**
 	 * Apply style highlighting to the text in the
 	 * [source&#32;pane][sourcePane].
 	 *
@@ -503,9 +500,12 @@ class AvailEditor constructor(
 	 */
 	internal fun highlightCode(then: (AvailEditor)->Unit = {})
 	{
+		val stylesheet = workbench.stylesheet
+		sourcePane.background = sourcePane.computeBackground(stylesheet)
+		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
+		codeGuide.guideColor = codeGuide.computeColor()
 		stylingRecord?.let {
-			sourcePane.styledDocument.applyStyleRuns(
-				workbench.stylesheet, it.styleRuns)
+			sourcePane.styledDocument.applyStyleRuns(stylesheet, it.styleRuns)
 		}
 		phrasePathRecord?.let {
 			sourcePane.styledDocument.applyPhrasePaths(it)
@@ -590,28 +590,9 @@ class AvailEditor constructor(
 		throwable?.let { throw it }
 	}
 
-	/**
-	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
-	 */
-	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeGuide::class.java.name) as CodeGuide
-
-	/**
-	 * What to do after [refreshing][RefreshStylesheetAction] a
-	 * [stylesheet][Stylesheet].
-	 */
-	fun afterRefreshStylesheet()
-	{
-		val stylesheet = workbench.stylesheet
-		sourcePane.background = sourcePane.computeBackground(stylesheet)
-		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
-		codeGuide.guideColor = codeGuide.computeColor()
-	}
-
 	/** Open the editor window. */
 	init
 	{
-		highlightCode()
 		range = sourcePane.markToDotRange()
 		caretRangeLabel.text = range.toString()
 		jMenuBar = createMenuBar {
@@ -655,6 +636,10 @@ class AvailEditor constructor(
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
+		populateSourcePane(afterTextLoaded)
+		range = sourcePane.markToDotRange()
+		caretRangeLabel.text = range.toString()
+		sourcePane.undoManager.discardAllEdits()
 
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
@@ -673,9 +658,10 @@ class AvailEditor constructor(
 		preferredSize = Dimension(800, 1000)
 		add(panel)
 		pack()
-		afterTextLoaded(this@AvailEditor)
 		if (workbench.structureViewIsOpen)
+		{
 			updatePhraseStructure()
+		}
 		isVisible = true
 	}
 

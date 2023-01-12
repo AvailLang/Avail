@@ -380,18 +380,10 @@ class AvailWorkbench internal constructor(
 			inputBackgroundWhenRunning = computeInputBackground()
 			inputForegroundWhenRunning = computeInputForeground()
 			openEditors.values.forEach { editor ->
-				invokeLater {
-					editor.highlightCode {
-						editor.afterRefreshStylesheet()
-					}
-				}
+				invokeLater { editor.highlightCode() }
 			}
 			openDebuggers.forEach { debugger ->
-				invokeLater {
-					debugger.highlightCode {
-						debugger.afterRefreshStylesheet()
-					}
-				}
+				invokeLater { debugger.highlightCode() }
 			}
 		}
 

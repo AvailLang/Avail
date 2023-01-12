@@ -400,6 +400,30 @@ class StylesheetTest
 		assertEquals(expected, p.compareSpecificityTo(q))
 	}
 
+	/**
+	 * Test the [specificity&#32;exemplars][specificityRegressionExemplars] for
+	 * regression testing.
+	 *
+	 * @param pSource
+	 *   A source pattern.
+	 * @param qSource
+	 *   A source pattern
+	 * @param expected
+	 *   The expected result of the specificity comparison.
+	 */
+	@ParameterizedTest(name = "case: {0} <=> {1}")
+	@MethodSource("getSpecificityRegressionExemplars")
+	fun testSpecificityRegressionExemplars(
+		pSource: String,
+		qSource: String,
+		expected: Order
+	)
+	{
+		val p = UnvalidatedStylePattern(pSource, renderingContext)
+		val q = UnvalidatedStylePattern(qSource, renderingContext)
+		assertEquals(expected, p.compareSpecificityTo(q))
+	}
+
 	companion object
 	{
 		/**
@@ -461,15 +485,7 @@ class StylesheetTest
 					instructions:
 						[no instructions]
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"=",
@@ -480,15 +496,7 @@ class StylesheetTest
 					instructions:
 						@0: match end of sequence
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo",
@@ -500,15 +508,7 @@ class StylesheetTest
 						@0: match literal #0 <#foo>
 						@1: match end of sequence
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo,#baz",
@@ -521,15 +521,7 @@ class StylesheetTest
 						@1: match literal #1 <#baz>
 						@2: match end of sequence
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo,#baz,#foo",
@@ -543,15 +535,7 @@ class StylesheetTest
 						@2: match literal #0 <#foo>
 						@3: match end of sequence
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo,#foo",
@@ -564,15 +548,7 @@ class StylesheetTest
 						@1: match literal #0 <#foo>
 						@2: match end of sequence
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"=#foo,#foo,#foo",
@@ -586,15 +562,7 @@ class StylesheetTest
 						@2: match literal #0 <#foo>
 						@3: match end of sequence
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"=#a,#b,#c,#d,#e,#f,#g,#h",
@@ -613,15 +581,7 @@ class StylesheetTest
 						@10: match literal #7 <#h>
 						@12: match end of sequence
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#foo",
@@ -632,15 +592,7 @@ class StylesheetTest
 					instructions:
 						@0: match literal #0 <#foo> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#foo,#bar",
@@ -652,15 +604,7 @@ class StylesheetTest
 						@0: match literal #0 <#foo> or jump to @0
 						@2: match literal #1 <#bar> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#foo,#bar,#foo",
@@ -674,15 +618,7 @@ class StylesheetTest
 						@4: fork to @0
 						@5: match literal #0 <#foo> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b,#c,#d,#e,#f,#g,#h",
@@ -700,15 +636,7 @@ class StylesheetTest
 						@14: match literal #6 <#g> or jump to @0
 						@17: match literal #7 <#h> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#foo,#foo",
@@ -721,15 +649,7 @@ class StylesheetTest
 						@2: fork to @0
 						@3: match literal #0 <#foo> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#foo,#foo,#foo",
@@ -744,15 +664,7 @@ class StylesheetTest
 						@5: fork to @0
 						@6: match literal #0 <#foo> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#a,#a,#b",
@@ -768,15 +680,7 @@ class StylesheetTest
 						@6: match literal #0 <#a> or jump to @0
 						@8: match literal #1 <#b> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b,#a,#c",
@@ -791,15 +695,7 @@ class StylesheetTest
 						@5: match literal #0 <#a> or jump to @0
 						@7: match literal #2 <#c> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b,#a,#c,#a,#b,#a,#c,#d",
@@ -821,15 +717,7 @@ class StylesheetTest
 						@17: match literal #2 <#c> or jump to @0
 						@19: match literal #3 <#d> or jump to @0
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#foo<#bar",
@@ -841,15 +729,7 @@ class StylesheetTest
 						@0: match literal #0 <#foo> or jump to @0
 						@2: match literal #1 <#bar> or jump to @2
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#foo<#bar<#baz",
@@ -862,15 +742,7 @@ class StylesheetTest
 						@2: match literal #1 <#bar> or jump to @2
 						@4: match literal #2 <#baz> or jump to @4
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#a<#b<#c<#d<#e<#f<#g<#h",
@@ -888,15 +760,7 @@ class StylesheetTest
 						@16: match literal #6 <#g> or jump to @16
 						@20: match literal #7 <#h> or jump to @20
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b < #c,#d",
@@ -910,15 +774,7 @@ class StylesheetTest
 						@4: match literal #2 <#c> or jump to @4
 						@6: match literal #3 <#d> or jump to @4
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent()),
 			argumentsOf(
 				"#a,#b,#a,#b,#c < #c,#d,#c,#d,#e < #f",
@@ -941,15 +797,7 @@ class StylesheetTest
 						@26: match literal #4 <#e> or jump to @11
 						@30: match literal #5 <#f> or jump to @30
 					renderingContext:
-						fontFamily = null
-						foreground = null
-						background = null
-						bold = null
-						italic = null
-						underline = null
-						superscript = null
-						subscript = null
-						strikethrough = null
+						[no overrides]
 				""".trimIndent())
 		)
 
@@ -3304,6 +3152,24 @@ class StylesheetTest
 		)
 
 		/**
+		 * The exemplars to support [testSpecificityRegressionExemplars]. These
+		 * exemplars were identified empirically, through active testing.
+		 */
+		@JvmStatic
+		val specificityRegressionExemplars get(): Stream<Arguments> = streamOf(
+			argumentsOf(
+				"#module-header",
+				"#module-header-region",
+				INCOMPARABLE
+			),
+			argumentsOf(
+				"#module-header-region",
+				"#module-header",
+				INCOMPARABLE
+			)
+		)
+
+			/**
 		 * Match the specified [sequence] against the given pattern, using naive
 		 * techniques. This is used for determining the expected value of a
 		 * [rule&#32;match][ruleMatch].

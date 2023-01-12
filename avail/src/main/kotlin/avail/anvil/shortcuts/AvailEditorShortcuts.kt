@@ -120,3 +120,15 @@ object RefreshStylesheetShortcut: AvailEditorShortcut(KeyCode.VK_F5.with(SHIFT))
 	override val actionMapKey = "refresh-stylesheet"
 	override val description = "Refresh Stylesheet"
 }
+
+/**
+ * The [AvailEditorShortcut] for [PrintAllRenderingSolutions].
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+object PrintAllRenderingSolutionsShortcut
+	: AvailEditorShortcut(KeyCode.VK_F12.with())
+{
+	override val actionMapKey = "refresh-stylesheet"
+	override val description = "Refresh Stylesheet"
+}
