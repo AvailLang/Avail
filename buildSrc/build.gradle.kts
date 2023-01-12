@@ -31,8 +31,8 @@
  */
 
 plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
+	id("org.gradle.kotlin.kotlin-dsl") version "2.4.1"
+	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.1"
 	kotlin("jvm") version "1.7.0"
 }
 
