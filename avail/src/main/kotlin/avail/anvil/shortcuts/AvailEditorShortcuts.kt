@@ -122,13 +122,14 @@ object RefreshStylesheetShortcut: AvailEditorShortcut(KeyCode.VK_F5.with(SHIFT))
 }
 
 /**
- * The [AvailEditorShortcut] for [PrintAllRenderingSolutions].
+ * The [AvailEditorShortcut] for printing the style classifiers and rendering
+ * solutions at the caret.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object PrintAllRenderingSolutionsShortcut
 	: AvailEditorShortcut(KeyCode.VK_F12.with())
 {
-	override val actionMapKey = "refresh-stylesheet"
-	override val description = "Refresh Stylesheet"
+	override val actionMapKey = "print-styling-solutions"
+	override val description = "Print Styling Solutions"
 }

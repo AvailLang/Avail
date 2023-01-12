@@ -471,7 +471,17 @@ private object PrintAllRenderingSolutions: TextAction(
 			stylesheet.findTree(classifiers))
 		val finalSolution = stylesheet.distillFinalSolution(solutions)
 		val breakdown = buildString {
-			append("${editor.moduleName}: rendering solutions at caret:")
+			val title = "Styling Solutions Report"
+			val prologue = (78 - title.length - 2) / 2
+			val epilogue = prologue + prologue % 2
+			append("┏")
+			append("━".repeat(prologue))
+			append(" $title ")
+			append("━".repeat(epilogue))
+			append("┓\n")
+			append("${editor.moduleName}:")
+			append("classifiers at caret:\n\t$classifiers\n")
+			append("rendering solutions at caret:")
 			if (solutions.isEmpty())
 			{
 				solutions = listOf(stylesheet.noSolutionsRule.pattern)
@@ -494,6 +504,9 @@ private object PrintAllRenderingSolutions: TextAction(
 				append("\n>>> ${it.source} ⇒${prettify(it.renderingContext)}")
 			}
 			append("\n::: final rendering solution ⇒${prettify(finalSolution)}")
+			append("\n┗")
+			append("━".repeat(78))
+			append("┛\n")
 		}
 		workbench.writeText(breakdown, StreamStyle.INFO)
 	}

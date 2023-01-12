@@ -145,7 +145,7 @@ class PhraseViewPanel constructor (
 			}
 		})
 		pack()
-		isVisible = true
+		isVisible = false
 	}
 
 	/**

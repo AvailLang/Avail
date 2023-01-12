@@ -149,12 +149,19 @@
 				"??": "⁇"
 			},
 			"palette": {
+				"inputBackground": "#F7F7F7FF/02232EFF",
+				"inputText": "#000000FF/FFFFFFFF",
+				"codeBackground": "#E6E6E6FF/053646FF",
+				"codeText": "#000000EE/FFFFFFEE",
+				"codeGuide": "#00000077/FFFFFF77",
+				"streamInput": "#209020FF/379C1AFF",
+				"streamOutput": "#000000FF/EEEEEEFF",
+				"streamError": "#FF0000FF/FF6458FF",
+				"streamInfo": "#0000FFFF/5394ECFF",
+				"streamCommand": "#FF00FFFF/AE8ABEFF",
+				"streamBuildProgress": "#806000FF/DCC457FF",
 				"extreme": "#FFFFFFFF/000000FF",
 				"textBackground": "#FFFFFF4A/21121940",
-				"codeBackground": "#F7F7F7FF/02232EFF",
-				"consoleBackground": "#E6E6E6FF/053646FF",
-				"codeText": "#000000EE/FFFFFFEE",
-				"consoleText": "#000000FF/FFFFFFFF",
 				"strongGray": "#00000077/FFFFFF77",
 				"weakGray": "#00000044/FFFFFF44",
 				"lilac": "#8174FFFF/6659E2FF",
@@ -173,6 +180,39 @@
 				"deemphasize": "#80808080/60606080"
 			},
 			"stylesheet": {
+				"=#input-background": {
+					"background": "inputBackground"
+				},
+				"=#input-text": {
+					"foreground": "inputText"
+				},
+				"=#code-background": {
+					"background": "codeBackground"
+				},
+				"=#code-text": {
+					"foreground": "codeText"
+				},
+				"=#code-guide": {
+					"foreground": "codeGuide"
+				},
+				"=#stream-input": {
+					"foreground": "streamInput"
+				},
+				"=#stream-output": {
+					"foreground": "streamOutput"
+				},
+				"=#stream-error": {
+					"foreground": "streamError"
+				},
+				"=#stream-info": {
+					"foreground": "streamInfo"
+				},
+				"=#stream-command": {
+					"foreground": "streamCommand"
+				},
+				"=#stream-build-progress": {
+					"foreground": "streamBuildProgress"
+				},
 				"!": {
 					"foreground": "codeText",
 					"background": "rose"
@@ -199,12 +239,8 @@
 					"foreground": "magenta",
 					"bold": true
 				},
-				"#method-send": {
-					"foreground": "codeText"
-				},
-				"#macro-send": {
-					"foreground": "codeText"
-				},
+				"#method-send": {},
+				"#macro-send": {},
 				"#statement": {
 					"bold": true
 				},
@@ -277,6 +313,9 @@
 					"foreground": "transparentMagenta",
 					"bold": true
 				},
+				"#local-constant-use": {
+					"foreground": "transparentMagenta"
+				},
 				"#local-variable-definition": {
 					"foreground": "transparentMagenta",
 					"bold": true
@@ -323,7 +362,7 @@
 				"#other-literal": {
 					"foreground": "green"
 				},
-				"#condition": {
+				"#conditional": {
 					"foreground": "mustard"
 				},
 				"#loop": {
@@ -347,7 +386,7 @@
 				"#object-type-definition": {
 					"foreground": "rose"
 				},
-				"#special-object": {
+				"#special-object-definition": {
 					"foreground": "rose"
 				},
 				"#primitive-name": {
