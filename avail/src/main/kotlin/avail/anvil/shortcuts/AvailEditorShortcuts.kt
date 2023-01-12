@@ -36,6 +36,8 @@ import avail.anvil.AvailEditor
 import avail.anvil.editor.GoToDialog
 import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 import avail.anvil.shortcuts.ModifierKey.SHIFT
+import avail.anvil.text.BlockComment
+import avail.anvil.text.LineComment
 import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 
@@ -106,5 +108,44 @@ object OpenPhraseViewShortcut
 object RefreshShortcut: AvailEditorShortcut(KeyCode.VK_F5.with())
 {
 	override val actionMapKey: String = "refresh"
+	override val description: String = "Rebuild and Refresh Module"
+}
+
+/**
+ * The [AvailEditorShortcut] to prefix each selected line with a [LineComment]
+ * at the start of each line ([LineComment.commentAtLineStart]).
+ *
+ * @author Richard Arriaga
+ */
+object InsertLineCommentAtStartShortcut
+	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx))
+{
+	override val actionMapKey: String = "insert-line-comment-at-start"
+	override val description: String = "Rebuild and Refresh Module"
+}
+
+/**
+ * The [AvailEditorShortcut] to insert a [LineComment] after the tab position of
+ * line with the least tabs before a non-tab character
+ * ([LineComment.commentAtMinTab]).
+ *
+ * @author Richard Arriaga
+ */
+object InsertLineCommentAtTabShortcut
+	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx, SHIFT))
+{
+	override val actionMapKey: String = "insert-line-comment-at-start"
+	override val description: String = "Rebuild and Refresh Module"
+}
+
+/**
+ * The [AvailEditorShortcut] to wrap the text selection in a [BlockComment].
+ *
+ * @author Richard Arriaga
+ */
+object WrapInBlockCommentShortcut
+	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx))
+{
+	override val actionMapKey: String = "insert-line-comment-at-start"
 	override val description: String = "Rebuild and Refresh Module"
 }

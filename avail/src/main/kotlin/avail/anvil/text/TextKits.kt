@@ -43,6 +43,7 @@ import avail.anvil.shortcuts.DecreaseFontSizeShortcut
 import avail.anvil.shortcuts.ExpandTemplateShortcut
 import avail.anvil.shortcuts.GoToDialogShortcut
 import avail.anvil.shortcuts.IncreaseFontSizeShortcut
+import avail.anvil.shortcuts.InsertLineCommentAtStartShortcut
 import avail.anvil.shortcuts.InsertSpaceShortcut
 import avail.anvil.shortcuts.KebabCaseShortcut
 import avail.anvil.shortcuts.LowercaseShortcut
@@ -410,6 +411,26 @@ private object GoToDialogAction: TextAction(GoToDialogShortcut.actionMapKey)
  * Rebuild the open editor's module and refresh the screen style.
  */
 private object Refresh: TextAction(RefreshShortcut.actionMapKey)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val editor = e.editor
+		val workbench = editor.workbench
+		workbench.clearTranscript()
+		val buildTask = BuildTask(workbench, editor.resolvedName)
+		workbench.backgroundTask = buildTask
+		workbench.availBuilder.checkStableInvariants()
+		workbench.setEnablements()
+		buildTask.execute()
+	}
+}
+
+/**
+ * Prefix each selected line with a [LineComment] at the start of each line
+ * ([LineComment.commentAtLineStart]).
+ */
+private object InsertLineCommentAtStart:
+	TextAction(InsertLineCommentAtStartShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
