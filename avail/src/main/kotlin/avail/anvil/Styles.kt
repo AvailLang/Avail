@@ -129,7 +129,9 @@ import javax.swing.text.StyledDocument
  * @param originalRules
  *   The original [style&#32;rules][StyleRule] to inject into the
  *   [stylesheet][Stylesheet], prior to adding defaults for missing
- *   [system&#32;style&#32;classifiers][SystemStyleClassifier].
+ *   [system&#32;style&#32;classifiers][SystemStyleClassifier]. Should be
+ *   arranged in declaration order, as this order establishes the override order
+ *   during reduction of the final [rendering&#32;context][RenderingContext].
  * @property palette
  *   The [palette][Palette].
  */
@@ -144,7 +146,10 @@ class Stylesheet constructor(
 	 * [palette][Palette] for final color selection.
 	 *
 	 * @param map
-	 *   The map of source patterns to their desired style attributes.
+	 *   The map of source patterns to their desired style attributes. Should be
+	 *   arranged in declaration order, as this order establishes the override
+	 *   order during reduction of the final
+	 *   [rendering&#32;context][RenderingContext].
 	 * @param palette
 	 *   The palette.
 	 * @param errors

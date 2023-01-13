@@ -1099,7 +1099,7 @@ fun JTextComponent.centerCurrentLine()
 		).toInt()
 		viewport.viewPosition = Point(0, y)
 	}
-	catch (e: BadLocationException)
+	catch (e: Exception)
 	{
 		// We tried our best, but the caret was somehow invalid. Give up.
 	}
