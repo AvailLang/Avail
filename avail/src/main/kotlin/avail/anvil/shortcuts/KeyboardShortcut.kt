@@ -33,6 +33,7 @@
 package avail.anvil.shortcuts
 
 import avail.anvil.settings.KeyboardShortcutOverride
+import java.awt.event.KeyEvent
 import javax.swing.InputMap
 import javax.swing.KeyStroke
 
@@ -67,6 +68,26 @@ data class Key(val code: KeyCode, val modifiers: Set<ModifierKey>)
 	val keyAsString: String get() =
 		modifiers.sorted().joinToString("") { it.displayRepresentation } +
 			code.displayRepresentation
+
+	companion object
+	{
+		/**
+		 * Answer the [Key] capture in the provided [KeyEvent].
+		 *
+		 * @param keyEvent
+		 *   The [KeyEvent] to extract the [Key] from.
+		 * @return
+		 *   The extracted [Key] or `null` if [KeyEvent.keyCode] does not map
+		 *   to a known [KeyCode].
+		 */
+		fun from (keyEvent: KeyEvent): Key?
+		{
+			val kc = KeyCode.lookupByCode(keyEvent.keyCode)
+				?: KeyCode.lookup(keyEvent.keyChar)
+				?: return null
+			return Key(kc, ModifierKey.getModifiersFrom(keyEvent.modifiersEx))
+		}
+	}
 }
 
 /**

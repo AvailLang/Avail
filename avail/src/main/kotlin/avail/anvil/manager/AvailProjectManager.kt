@@ -36,9 +36,10 @@ import avail.AvailRuntimeConfiguration
 import avail.anvil.AvailWorkbench
 import avail.anvil.MenuBarBuilder
 import avail.anvil.addWindowMenu
-import avail.anvil.manager.AvailProjectManager.DisplayedPanel.*
 import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.environment.projectManagerLayoutFile
+import avail.anvil.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
+import avail.anvil.manager.AvailProjectManager.DisplayedPanel.KNOWN_PROJECTS
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.SettingsView
 import avail.anvil.versions.MavenCentralAPI
@@ -52,6 +53,8 @@ import java.awt.Taskbar
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JFileChooser
@@ -332,13 +335,25 @@ class AvailProjectManager constructor(
 			val rsp = SearchResponse.parse(it)
 			if (rsp == null)
 			{
-				System.err.println("Couldn't parse response:\n$it")
+				System.err.println(
+					"Failed to refresh latest Avail Standard Library version from " +
+						"Maven Central, couldn't parse response:\n$it")
 				return@searchAvailStdLib
 			}
 			latestVersion = rsp.latestLibVersion
 		}
-		){ c, m ->
-			System.err.println("Failed to get latest version: $c\n$m")
+		){ c, m, e ->
+			StringWriter().apply {
+				this.write(
+					"Failed to refresh latest Avail Standard Library version " +
+						"from Maven Central:\n\tResponse Code:$c\n\tResponse " +
+						"Message$m\n")
+				e?.let {
+					val pw = PrintWriter(this)
+					it.printStackTrace(pw)
+				}
+				System.err.println(this.toString())
+			}
 		}
 	}
 

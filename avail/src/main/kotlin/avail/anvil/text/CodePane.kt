@@ -158,6 +158,18 @@ constructor(
 		background = SystemColors.active.codeBackground
 		registerStyles()
 		registerKeystrokes()
+		addKeyListener(JTextPaneKeyTypedAdapter(
+			WrapInDoubleQuotes,
+			WrapInSingleQuotes,
+			WrapInDoubleSmartQuotes,
+			WrapInSingleSmartQuotes,
+			WrapInGuillemets,
+			WrapInBackticks,
+			WrapInParenthesis,
+			WrapInAngleBrackets,
+			WrapInBrackets,
+			WrapInBraces
+		))
 		if (isEditable)
 		{
 			installUndoSupport()

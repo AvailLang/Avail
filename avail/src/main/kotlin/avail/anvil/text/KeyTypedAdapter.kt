@@ -1,6 +1,6 @@
 /*
- * build.gradle.kts
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * KeyTypedAdapter.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
-	kotlin("jvm") version "1.7.0"
-}
+package avail.anvil.text
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+import avail.anvil.shortcuts.Key
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
+/**
+ * An abstract wrapper for a [Key] and a lambda that takes a [KeyEvent] that
+ * performs some action when the [Key] is [typed][KeyAdapter.keyTyped].
+ *
+ * @author Richard Arriaga
+ *
+ * @property key
+ *   The [Key] that, when matched to a [KeyEvent], should have an action run.
+ */
+internal abstract class KeyTypedOverride constructor (val key: Key)
 
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha19")
-}
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
-	}
-
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
-		}
-	}
+/**
+ * A [KeyAdapter] that specifically overrides [KeyAdapter.keyTyped] and contains
+ * a set of [KeyTypedOverride]s that will be run if the [KeyEvent] passed to
+ * [KeyAdapter.keyTyped] matches the [Key].
+ *
+ * ***Note:*** *Multiple [KeyTypedOverride]s with the same [Key] are permitted*
+ * *to be added to [keyTypedOverrides]. This allows for multiple actions to be*
+ * *performed on the same [Key] press.*
+ *
+ * @author Richard Arriaga
+ *
+ * @param Type
+ *   The [KeyTypedOverride] this [KeyTypedAdapter] expects in its
+ *   [keyTypedOverrides].
+ *
+ * @constructor
+ * Construct a [KeyTypedAdapter].
+ *
+ * @param keyTypedOverrides
+ *   The [KeyTypedOverride]s of type [Type] to add to this [KeyTypedAdapter].
+ */
+internal abstract class KeyTypedAdapter<Type: KeyTypedOverride> constructor(
+	vararg keyTypedOverrides: Type
+): KeyAdapter()
+{
+	/**
+	 * The set of [KeyTypedOverride]s that this [KeyTypedAdapter]
+	 */
+	protected val keyTypedOverrides = keyTypedOverrides.toSet()
 }

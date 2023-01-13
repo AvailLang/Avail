@@ -282,6 +282,9 @@ enum class FileExtensionCommentSyntax constructor(
 	/** Markdown does not support comments. */
 	MARKDOWN(".md", null, null),
 
+	/** Comment support for Python. */
+	PYTHON(".py", HashTagLineComment, null),
+
 	/** Comment support for XML files. */
 	XML(".xml", null, HTMLBlockComment),
 

@@ -123,7 +123,7 @@ object InsertLineCommentAtStartShortcut
 	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx))
 {
 	override val actionMapKey: String = "insert-line-comment-at-start"
-	override val description: String = "Rebuild and Refresh Module"
+	override val description: String = "Insert line comment at start of line(s)"
 }
 
 /**
@@ -137,7 +137,8 @@ object InsertLineCommentAtTabShortcut
 	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx, ALT))
 {
 	override val actionMapKey: String = "insert-line-comment-at-min-tab"
-	override val description: String = "Rebuild and Refresh Module"
+	override val description: String =
+		"Insert line comment at minimum tab location across all lines"
 }
 
 /**
@@ -149,5 +150,5 @@ object WrapInBlockCommentShortcut
 	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx, CTRL))
 {
 	override val actionMapKey: String = "insert-block-comment"
-	override val description: String = "Rebuild and Refresh Module"
+	override val description: String = "Wrap selection in block comment"
 }

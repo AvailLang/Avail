@@ -40,6 +40,8 @@ import java.awt.Color
 import java.awt.Dialog.ModalityType.DOCUMENT_MODAL
 import java.awt.Dimension
 import java.awt.Font
+import java.io.PrintWriter
+import java.io.StringWriter
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JDialog
@@ -93,13 +95,26 @@ class SettingsView constructor (
 					val rsp = SearchResponse.parse(it)
 					if (rsp == null)
 					{
-						System.err.println("Couldn't parse response:\n$it")
+						System.err.println(
+							"Failed to refresh latest Avail Standard Library " +
+								"version from Maven Central, couldn't parse " +
+								"response:\n$it")
 						return@searchAvailStdLib
 					}
 					this.latestVersion = rsp.latestLibVersion
 				}
-			) { c, m ->
-				System.err.println("Failed to get latest version: $c\n$m")
+			) { c, m, e->
+				StringWriter().apply {
+					this.write(
+						"Failed to refresh latest Avail Standard Library " +
+							"version from Maven Central:\n\tResponse " +
+							"Code:$c\n\tResponse Message$m\n")
+					e?.let {
+						val pw = PrintWriter(this)
+						it.printStackTrace(pw)
+					}
+					System.err.println(this.toString())
+				}
 			}
 		}
 	}
