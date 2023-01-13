@@ -650,6 +650,270 @@
 					"expansion": "⁇",
 					"markedForArtifactInclusion": true
 				}
+			},
+			"palette": {
+				"inputBackground": "#F7F7F7FF/02232EFF",
+				"inputText": "#000000FF/FFFFFFFF",
+				"codeBackground": "#E6E6E6FF/053646FF",
+				"codeText": "#000000EE/FFFFFFEE",
+				"codeGuide": "#00000077/FFFFFF77",
+				"streamInput": "#209020FF/379C1AFF",
+				"streamOutput": "#000000FF/EEEEEEFF",
+				"streamError": "#FF0000FF/FF6458FF",
+				"streamInfo": "#0000FFFF/5394ECFF",
+				"streamCommand": "#FF00FFFF/AE8ABEFF",
+				"streamBuildProgress": "#806000FF/DCC457FF",
+				"extreme": "#FFFFFFFF/000000FF",
+				"textBackground": "#FFFFFF4A/21121940",
+				"strongGray": "#00000077/FFFFFF77",
+				"weakGray": "#00000044/FFFFFF44",
+				"lilac": "#8174FFFF/6659E2FF",
+				"magenta": "#D03B83FF/D25B94FF",
+				"transparentMagenta": "#D03B83AA/D25B94AA",
+				"rose": "#DC4444FF",
+				"transparentRose": "#DC444488",
+				"faintTransparentRose": "#DC444422",
+				"mango": "#EE731BFF/FF8836FF",
+				"mustard": "#E8B000FF/FFD659FF",
+				"transparentMustard": "#E8B00018/FFD65918",
+				"green": "#4C853EFF/78B669FF",
+				"transparentGreen": "#4C853E88/78B66988",
+				"blue": "#2294C6FF/38B1E5FF",
+				"faintTransparentIndigo": "#4B35A920/3B279530",
+				"deemphasize": "#80808080/60606080"
+			},
+			"stylesheet": {
+				"=#input-background": {
+					"background": "inputBackground"
+				},
+				"=#input-text": {
+					"foreground": "inputText"
+				},
+				"=#code-background": {
+					"background": "codeBackground"
+				},
+				"=#code-text": {
+					"foreground": "codeText"
+				},
+				"=#code-guide": {
+					"foreground": "codeGuide"
+				},
+				"=#stream-input": {
+					"foreground": "streamInput"
+				},
+				"=#stream-output": {
+					"foreground": "streamOutput"
+				},
+				"=#stream-error": {
+					"foreground": "streamError"
+				},
+				"=#stream-info": {
+					"foreground": "streamInfo"
+				},
+				"=#stream-command": {
+					"foreground": "streamCommand"
+				},
+				"=#stream-build-progress": {
+					"foreground": "streamBuildProgress"
+				},
+				"!": {
+					"foreground": "codeText",
+					"background": "rose"
+				},
+				"=": {
+					"foreground": "codeText",
+					"background": "codeBackground"
+				},
+				"#block": {
+					"foreground": "mustard"
+				},
+				"#method-definition": {
+					"foreground": "rose"
+				},
+				"#method-name": {
+					"foreground": "mango",
+					"bold": true
+				},
+				"#parameter-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#parameter-use": {
+					"foreground": "magenta",
+					"bold": true
+				},
+				"#method-send": {},
+				"#macro-send": {},
+				"#statement": {
+					"bold": true
+				},
+				"#type": {
+					"foreground": "blue"
+				},
+				"#metatype": {
+					"foreground": "blue",
+					"italic": true
+				},
+				"#phrase-type": {
+					"foreground": "lilac",
+					"italic": true
+				},
+				"#module-header": {
+					"foreground": "transparentRose"
+				},
+				"#module-header-region": {
+					"background": "faintTransparentIndigo"
+				},
+				"#version": {
+					"background": "faintTransparentRose"
+				},
+				"#import": {
+					"background": "faintTransparentRose"
+				},
+				"#export": {
+					"background": "faintTransparentRose"
+				},
+				"#entry-point": {
+					"background": "faintTransparentRose",
+					"bold": true
+				},
+				"#pragma": {
+					"background": "faintTransparentRose",
+					"italic": true
+				},
+				"#comment": {
+					"foreground": "weakGray"
+				},
+				"#documentation": {
+					"foreground": "strongGray"
+				},
+				"#documentation-tag": {
+					"foreground": "strongGray",
+					"bold": true
+				},
+				"#module-constant-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#module-constant-use": {
+					"foreground": "magenta",
+					"italic": true
+				},
+				"#module-variable-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#module-variable-use": {
+					"foreground": "magenta",
+					"italic": true,
+					"underline": true
+				},
+				"#primitive-failure-reason-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#local-constant-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#local-constant-use": {
+					"foreground": "transparentMagenta"
+				},
+				"#local-variable-definition": {
+					"foreground": "transparentMagenta",
+					"bold": true
+				},
+				"#local-variable-use": {
+					"foreground": "magenta",
+					"underline": true
+				},
+				"#label-definition": {
+					"foreground": "mustard",
+					"background": "transparentMustard"
+				},
+				"#label-use": {
+					"foreground": "mustard"
+				},
+				"#string-literal": {
+					"foreground": "green"
+				},
+				"#string-escape-sequence": {
+					"foreground": "transparentGreen",
+					"bold": true
+				},
+				"#numeric-literal": {
+					"foreground": "green"
+				},
+				"#boolean-literal": {
+					"foreground": "green"
+				},
+				"#tuple-constructor": {
+					"foreground": "green"
+				},
+				"#set-constructor": {
+					"foreground": "green"
+				},
+				"#map-constructor": {
+					"foreground": "green"
+				},
+				"#character-literal": {
+					"foreground": "green"
+				},
+				"#atom-literal": {
+					"foreground": "green"
+				},
+				"#other-literal": {
+					"foreground": "green"
+				},
+				"#conditional": {
+					"foreground": "mustard"
+				},
+				"#loop": {
+					"foreground": "mustard"
+				},
+				"#lexer-definition": {
+					"foreground": "rose"
+				},
+				"#macro-definition": {
+					"foreground": "rose"
+				},
+				"#semantic-restriction-definition": {
+					"foreground": "rose"
+				},
+				"#grammatical-restriction-definition": {
+					"foreground": "rose"
+				},
+				"#seal-definition": {
+					"foreground": "rose"
+				},
+				"#object-type-definition": {
+					"foreground": "rose"
+				},
+				"#special-object-definition": {
+					"foreground": "rose"
+				},
+				"#primitive-name": {
+					"foreground": "rose",
+					"bold": true
+				},
+				"#phrase": {
+					"foreground": "lilac"
+				},
+				"#return-value": {
+					"background": "transparentMustard"
+				},
+				"#nonlocal-control": {
+					"foreground": "mustard"
+				},
+				"#math-exponent": {
+					"superscript": true
+				},
+				"#deemphasize": {
+					"foreground": "deemphasize"
+				},
+				"#excluded": {
+					"strikethrough": true
+				}
 			}
 		}
 	],

@@ -66,7 +66,7 @@ import java.lang.Integer.toHexString
  *   A mechanism to visually group blocks in the
  *   [L2ControlFlowGraphVisualizer], indicating the purpose of that group.
  */
-class L2BasicBlock @JvmOverloads constructor(
+class L2BasicBlock constructor(
 	private val name: String,
 	var isLoopHead: Boolean = false,
 	var zone: L2ControlFlowGraph.Zone? = null)

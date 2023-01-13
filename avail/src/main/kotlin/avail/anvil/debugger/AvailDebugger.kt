@@ -35,9 +35,10 @@ package avail.anvil.debugger
 import avail.AvailDebuggerModel
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
+import avail.anvil.CodeGuide
 import avail.anvil.MenuBarBuilder
+import avail.anvil.RenderingEngine.applyStyleRuns
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
-import avail.anvil.StyleApplicator.applyStyleRuns
 import avail.anvil.actions.FindAction
 import avail.anvil.addWindowMenu
 import avail.anvil.scroll
@@ -726,14 +727,15 @@ class AvailDebugger internal constructor (
 								val doc = sourcePane.styledDocument
 								doc.remove(0, doc.length)
 								doc.insertString(0, source, null)
-								doc.applyStyleRuns(stylingRecord.styleRuns)
+								highlightCode()
 								// Setting the source does not immediately
 								// update the layout, so postpone scrolling to
 								// the selected line.
 								SwingUtilities.invokeLater {
 									highlightSourceLine(
 										frame.currentLineNumber(isTopFrame),
-										isTopFrame)
+										isTopFrame
+									)
 								}
 							}
 						}
@@ -748,6 +750,21 @@ class AvailDebugger internal constructor (
 				}
 			}
 		}
+	}
+
+	/**
+	 * Apply style highlighting to the text in the
+	 * [source&#32;pane][sourcePane].
+	 */
+	internal fun highlightCode()
+	{
+		val stylesheet = workbench.stylesheet
+		sourcePane.background = sourcePane.computeBackground(stylesheet)
+		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
+		codeGuide.guideColor = codeGuide.computeColor()
+		sourcePane.styledDocument.applyStyleRuns(
+			stylesheet,
+			currentSourceAndLineEndsAndStyling.third.styleRuns)
 	}
 
 	/**
@@ -924,6 +941,12 @@ class AvailDebugger internal constructor (
 		}
 	}
 
+	/**
+	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 */
+	private val codeGuide get() = sourcePane.getClientProperty(
+		CodeGuide::class.java.name) as CodeGuide
+
 	/** Construct the user interface and display it. */
 	fun open()
 	{
@@ -951,6 +974,7 @@ class AvailDebugger internal constructor (
 		addWindowListener(object : WindowAdapter()
 		{
 			override fun windowClosing(e: WindowEvent) {
+				workbench.closeDebugger(this@AvailDebugger)
 				releaseAllFibers()
 				if (debuggerModel.isCapturingNewFibers)
 				{
@@ -983,6 +1007,7 @@ class AvailDebugger internal constructor (
 						.addComponent(disassemblyPane.scroll(), 100, 100, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
+								workbench,
 								workbench.globalSettings
 									.editorGuideLines),
 							100,
@@ -1009,8 +1034,8 @@ class AvailDebugger internal constructor (
 						.addComponent(disassemblyPane.scroll(), 150, 150, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
-								workbench.globalSettings
-									.editorGuideLines),
+								workbench,
+								workbench.globalSettings.editorGuideLines),
 							150,
 							150,
 							max))

@@ -161,7 +161,7 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 * The name of a parameter being declared. Does not include its type or
 		 * value.
 		 */
-		PARAMETER_DEFINITION("#parameter-name"),
+		PARAMETER_DEFINITION("#parameter-definition"),
 
 		/**
 		 * The usage of a parameter.

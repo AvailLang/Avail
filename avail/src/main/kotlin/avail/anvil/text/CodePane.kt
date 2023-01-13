@@ -33,11 +33,14 @@
 package avail.anvil.text
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.BoundStyle
-import avail.anvil.StyleRegistry
+import avail.anvil.Stylesheet
 import avail.anvil.SystemColors
+import avail.anvil.SystemStyleClassifier.CODE_BACKGROUND
+import avail.anvil.SystemStyleClassifier.CODE_TEXT
+import avail.anvil.ValidatedRenderingContext.Companion.defaultDocumentStyle
 import avail.anvil.shortcuts.CodePaneShortcut
 import avail.utility.PrefixTree.Companion.payloads
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.Toolkit.getDefaultToolkit
@@ -79,8 +82,7 @@ import javax.swing.undo.UndoManager
  * @param kit
  *   The [editor&#32;kit][CodeKit].
  */
-class CodePane
-constructor(
+class CodePane constructor(
 	internal val workbench: AvailWorkbench,
 	isEditable: Boolean = true,
 	kit: CodeKit = CodeKit(workbench)
@@ -154,9 +156,9 @@ constructor(
 		preferredSize = Dimension(0, 500)
 		font = Font.decode("${workbench.globalSettings.font} 13")
 		font = font.deriveFont(workbench.globalSettings.codePaneFontSize)
-		foreground = SystemColors.active.baseCode
-		background = SystemColors.active.codeBackground
-		registerStyles()
+		background = computeBackground(workbench.stylesheet)
+		foreground = computeForeground(workbench.stylesheet)
+		initializeStyles()
 		registerKeystrokes()
 		addKeyListener(JTextPaneKeyTypedAdapter(
 			WrapInDoubleQuotes,
@@ -177,6 +179,32 @@ constructor(
 			putClientProperty(CodePane::currentEdit.name, currentEdit)
 		}
 	}
+
+	/**
+	 * Compute the background color from the given [stylesheet].
+	 *
+	 * @param stylesheet
+	 *   The [stylesheet][Stylesheet].
+	 * @return
+	 *   The background color. Defaults to [SystemColors.codeBackground] if the
+	 *   [stylesheet] does not contain a rule that matches [CODE_BACKGROUND].
+	 */
+	internal fun computeBackground(stylesheet: Stylesheet) =
+		stylesheet[CODE_BACKGROUND.classifier]
+			.documentAttributes.getAttribute(StyleConstants.Background) as Color
+
+	/**
+	 * Compute the foreground color from the given [stylesheet].
+	 *
+	 * @param stylesheet
+	 *   The [stylesheet][Stylesheet].
+	 * @return
+	 *   The foreground color. Defaults to [SystemColors.codeText] if the
+	 *   [stylesheet] does not contain a rule that matches [CODE_TEXT].
+	 */
+	internal fun computeForeground(stylesheet: Stylesheet) =
+		stylesheet[CODE_TEXT.classifier]
+			.documentAttributes.getAttribute(StyleConstants.Foreground) as Color
 
 	/**
 	 * Change the font size to the provided font size.
@@ -203,18 +231,17 @@ constructor(
 	}
 
 	/**
-	 * Register all [BoundStyle]s with the underlying [StyledDocument].
+	 * Initialize styles for the underlying [StyledDocument].
 	 */
-	internal fun registerStyles()
+	internal fun initializeStyles()
 	{
 		val attributes = SimpleAttributeSet()
 		StyleConstants.setTabSet(attributes, tabSet)
 		StyleConstants.setFontFamily(attributes, "Monospaced")
 		styledDocument.run {
 			setParagraphAttributes(0, length, attributes, false)
-			val defaultStyle = BoundStyle.defaultStyle
+			val defaultStyle = defaultDocumentStyle
 			defaultStyle.addAttributes(attributes)
-			StyleRegistry.addAllStyles(this)
 		}
 	}
 

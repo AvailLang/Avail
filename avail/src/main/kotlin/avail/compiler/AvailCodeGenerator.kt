@@ -375,7 +375,7 @@ class AvailCodeGenerator private constructor(
 				"Some outers were unused: $unusedOuterDeclarations"
 			}
 		}
-		val nybblesArray = nybbles.toByteArray()
+		val nybblesArray = nybbles.toNybbleArray()
 		val nybbleTuple = generateNybbleTupleFrom(nybblesArray.size) {
 			i -> nybblesArray[i - 1].toInt()
 		}

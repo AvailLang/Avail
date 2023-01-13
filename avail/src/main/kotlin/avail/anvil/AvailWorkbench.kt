@@ -36,6 +36,8 @@ package avail.anvil
 import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.activeVersionSummary
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
+import avail.anvil.SystemStyleClassifier.INPUT_BACKGROUND
+import avail.anvil.SystemStyleClassifier.INPUT_TEXT
 import avail.anvil.actions.AboutAction
 import avail.anvil.actions.BuildAction
 import avail.anvil.actions.CancelAction
@@ -65,6 +67,7 @@ import avail.anvil.actions.OpenSettingsViewAction
 import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
 import avail.anvil.actions.RefreshAction
+import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.actions.RemoveRootAction
 import avail.anvil.actions.ResetCCReportDataAction
 import avail.anvil.actions.ResetVMReportDataAction
@@ -93,14 +96,14 @@ import avail.anvil.actions.TraceSummarizeStatementsAction
 import avail.anvil.actions.UnloadAction
 import avail.anvil.actions.UnloadAllAction
 import avail.anvil.debugger.AvailDebugger
+import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.manager.AvailProjectManager
+import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode
 import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
-import avail.anvil.environment.GlobalAvailSettings
-import avail.anvil.manager.AvailProjectManager
-import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
 import avail.anvil.streams.BuildInputStream
@@ -117,8 +120,8 @@ import avail.anvil.text.CodePane
 import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
-import avail.anvil.window.WorkbenchScreenState
 import avail.anvil.window.WorkbenchFrame
+import avail.anvil.window.WorkbenchScreenState
 import avail.builder.AvailBuilder
 import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
@@ -145,17 +148,24 @@ import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
 import avail.utility.isNullOr
+import avail.utility.launch
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
+import io.methvin.watcher.DirectoryChangeEvent.EventType
+import io.methvin.watcher.DirectoryWatcher
+import io.methvin.watcher.hashing.FileHasher
 import org.availlang.artifact.ResourceType
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.AvailProjectV1
+import org.availlang.artifact.environment.project.Palette
+import org.availlang.artifact.environment.project.StyleAttributes
 import org.availlang.json.JSONWriter
+import org.slf4j.helpers.NOPLogger
 import java.awt.Color
 import java.awt.Component
 import java.awt.Desktop
@@ -215,6 +225,7 @@ import javax.swing.SwingWorker
 import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
+import javax.swing.text.StyleConstants
 import javax.swing.text.StyledDocument
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
@@ -355,6 +366,57 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
+	 * The [stylesheet][Stylesheet] for rendition of all styled source reachable
+	 * from this [workbench][AvailWorkbench].
+	 */
+	var stylesheet: Stylesheet = buildStylesheet(availProject)
+		set(value)
+		{
+			field = value
+			inputBackgroundWhenRunning = computeInputBackground()
+			inputForegroundWhenRunning = computeInputForeground()
+			openEditors.values.forEach { editor ->
+				invokeLater { editor.highlightCode() }
+			}
+			openDebuggers.forEach { debugger ->
+				invokeLater { debugger.highlightCode() }
+			}
+		}
+
+	/**
+	 * The background color of the input field when a command is running.
+	 */
+	private var inputBackgroundWhenRunning = computeInputBackground()
+
+	/**
+	 * Compute the background color of the input field from the [stylesheet].
+	 *
+	 * @return
+	 *   The background color. Defaults to [SystemColors.inputBackground] if the
+	 *   [stylesheet] does not contain a rule that matches [INPUT_BACKGROUND].
+	 */
+	private fun computeInputBackground() =
+		stylesheet[INPUT_BACKGROUND.classifier]
+			.documentAttributes.getAttribute(StyleConstants.Background) as Color
+
+	/**
+	 * The foreground color of the input field when a command is running.
+	 */
+	private var inputForegroundWhenRunning = computeInputForeground()
+
+	/**
+	 * Compute the foreground color of the input field from the given
+	 * [stylesheet].
+	 *
+	 * @return
+	 *   The foreground color. Defaults to [SystemColors.inputText] if the
+	 *   [stylesheet] does not contain a rule that matches [INPUT_TEXT].
+	 */
+	private fun computeInputForeground() =
+		stylesheet[INPUT_TEXT.classifier]
+			.documentAttributes.getAttribute(StyleConstants.Foreground) as Color
+
+	/**
 	 * The [StyledDocument] into which to write both error and regular
 	 * output.  Lazily initialized.
 	 */
@@ -390,6 +452,55 @@ class AvailWorkbench internal constructor(
 	/** The current [background task][AbstractWorkbenchTask]. */
 	@Volatile
 	var backgroundTask: AbstractWorkbenchTask? = null
+
+	/**
+	 * The [DirectoryWatcher] that observes the [project][AvailProject]
+	 * configuration file for changes.
+	 */
+	@Suppress("unused")
+	private val configurationWatcher = DirectoryWatcher.builder()
+		.logger(NOPLogger.NOP_LOGGER)
+		.fileHasher(FileHasher.LAST_MODIFIED_TIME)
+		.path(File(availProjectFilePath).toPath())
+		.listener { event ->
+			try
+			{
+				when (event.eventType()!!)
+				{
+					EventType.DELETE ->
+					{
+						errorStream().println(
+							"configuration file deleted: "
+								+ availProjectFilePath
+						)
+					}
+					EventType.CREATE, EventType.MODIFY ->
+					{
+						refreshStylesheetAction.runAction()
+						writeText(
+							"configuration file refreshed: "
+								+ "$availProjectFilePath\n",
+							INFO
+						)
+					}
+					EventType.OVERFLOW ->
+					{
+						// No implementation required.
+					}
+				}
+			}
+			catch (e: Throwable)
+			{
+				errorStream().println(
+					"Failed to process configuration file update: "
+						+ "$event.eventType():\n"
+						+ "$availProjectFilePath:\n"
+						+ e.stackTraceToString()
+				)
+			}
+		}
+		.build()
+		.launch("configuration watcher: $availProjectFilePath")
 
 	/**
 	 * The documentation [path][Path] for the
@@ -471,8 +582,11 @@ class AvailWorkbench internal constructor(
 
 	/* Actions. */
 
-	/** The [refresh action][RefreshAction]. */
+	/** The [refresh&#32;action][RefreshAction]. */
 	val refreshAction = RefreshAction(this)
+
+	/** The [refresh&#32;action][RefreshStylesheetAction]. */
+	val refreshStylesheetAction = RefreshStylesheetAction(this)
 
 	/** The [FindAction] for finding/replacing text in a text area. */
 	private val findAction = FindAction(this, this)
@@ -680,7 +794,11 @@ class AvailWorkbench internal constructor(
 //	 */
 //	val resetCodeCoverageDataAction = ResetCodeCoverageDataAction(this, true)
 
+	/** The open [editors][AvailEditor]. */
 	val openEditors: MutableMap<ModuleName, AvailEditor> = ConcurrentHashMap()
+
+	/** The open [debuggers][AvailDebugger]. */
+	val openDebuggers: Queue<AvailDebugger> = ConcurrentLinkedQueue()
 
 	/** Whether an entry point invocation (command line) is executing. */
 	var isRunning = false
@@ -754,6 +872,52 @@ class AvailWorkbench internal constructor(
 	 * shown with an indication that they have been marked invisible.
 	 */
 	var showInvisibleRoots = false
+
+	/**
+	 * Build the [stylesheet][Stylesheet] from the specified [project].
+	 *
+	 * @param project
+	 *   The [project][AvailProject] to use for building the
+	 *   [stylesheet][Stylesheet].
+	 * @return
+	 *   The [stylesheet][Stylesheet].
+	 */
+	internal fun buildStylesheet(project: AvailProject): Stylesheet
+	{
+		val map = project.availProjectRoots.fold(
+			mutableMapOf<String, StyleAttributes>()
+		) { merged, root ->
+			merged.apply { putAll(root.stylesheet) }
+		}.apply {
+			putAll(project.stylesheet)
+		}
+		val palette = project.availProjectRoots.fold(
+			Palette.empty
+		) { merged, root ->
+			val palette = root.palette
+			Palette(
+				lightColors = merged.lightColors + palette.lightColors,
+				darkColors = merged.darkColors + palette.darkColors
+			)
+		}.run {
+			val palette = project.palette
+			Palette(
+				lightColors = lightColors + palette.lightColors,
+				darkColors = darkColors + palette.darkColors
+			)
+		}
+		val errors = mutableListOf<Pair<
+			UnvalidatedStylePattern, StylePatternException>>()
+		val stylesheet = Stylesheet(map, palette, errors)
+		if (errors.isNotEmpty())
+		{
+			writeText("Compiling stylesheet encountered errors:\n", ERR)
+		}
+		errors.forEach { (pattern, e) ->
+			writeText(">>> $pattern: ${e.localizedMessage}", ERR)
+		}
+		return stylesheet
+	}
 
 	/**
 	 * `AbstractWorkbenchTask` is a foundation for long-running [AvailBuilder]
@@ -995,10 +1159,11 @@ class AvailWorkbench internal constructor(
 			}
 			aggregatedEntries.forEach { entry ->
 				val before = System.nanoTime()
+				val context = stylesheet[entry.style.classifier]
 				document.insertString(
 					document.length, // The current length
 					entry.string,
-					entry.style.getStyle(document))
+					context.documentAttributes)
 				// Always use index 0, since this only happens in the UI thread.
 				insertStringStat.record(System.nanoTime() - before)
 			}
@@ -1069,6 +1234,7 @@ class AvailWorkbench internal constructor(
 		cleanModuleAction.isEnabled =
 			!busy && (selectedModuleRoot() !== null || selectedModule() !== null)
 		refreshAction.isEnabled = !busy
+		refreshStylesheetAction.isEnabled = !busy
 		setDocumentationPathAction.isEnabled = !busy
 		documentAction.isEnabled = !busy && selectedModule() !== null
 		graphAction.isEnabled = !busy && selectedModule() !== null
@@ -1095,9 +1261,9 @@ class AvailWorkbench internal constructor(
 			!busy && selectedEntryPointModule() !== null
 		inputLabel.text = if (isRunning) "Console Input:" else "Command:"
 		inputField.background =
-			if (isRunning) inputBackgroundWhenRunning.color else null
+			if (isRunning) inputBackgroundWhenRunning else null
 		inputField.foreground =
-			if (isRunning) inputForegroundWhenRunning.color else null
+			if (isRunning) inputForegroundWhenRunning else null
 	}
 
 	/**
@@ -1659,10 +1825,11 @@ class AvailWorkbench internal constructor(
 			removeStringStat.record(System.nanoTime() - beforeRemove)
 
 			val beforeInsert = System.nanoTime()
+			val context = stylesheet[BUILD_PROGRESS.classifier]
 			doc.insertString(
 				0,
 				string,
-				BUILD_PROGRESS.getStyle(doc))
+				context.documentAttributes)
 			// Always use index 0, since this only happens in the UI thread.
 			insertStringStat.record(System.nanoTime() - beforeInsert)
 		}
@@ -1751,17 +1918,29 @@ class AvailWorkbench internal constructor(
 	internal val phraseViewIsOpen get() = phraseViewPanel.isVisible
 
 	/**
-	 * Close the provided [AvailEditor].
+	 * Close the provided [editor][AvailEditor].
 	 *
 	 * @param editor
-	 *   The [AvailEditor] that is closing.
+	 *   The [editor][AvailEditor] that is closing.
 	 */
-	fun closeEditor (editor: AvailEditor)
+	fun closeEditor(editor: AvailEditor)
 	{
 		openEditors.remove(editor.resolverReference.moduleName)
 		structureViewPanel.closingEditor(editor)
 		phraseViewPanel.closingEditor(editor)
 	}
+
+	/**
+	 * Close the provided [debugger][AvailDebugger].
+	 *
+	 * @param debugger
+	 *   The [debugger][AvailDebugger] that is closing.
+	 */
+	fun closeDebugger(debugger: AvailDebugger)
+	{
+		openDebuggers.remove(debugger)
+	}
+
 
 	/** The splitter separating the left and right portions of the workbench. */
 	private val mainSplit: JSplitPane
@@ -1867,6 +2046,8 @@ class AvailWorkbench internal constructor(
 			menu("Edit")
 			{
 				item(findAction)
+				separator()
+				item(refreshStylesheetAction)
 			}
 			// TODO Stacks is not viable right now
 //			menu("Document")
@@ -2387,20 +2568,6 @@ class AvailWorkbench internal constructor(
 			System.getProperty(DARK_MODE_KEY)?.equals("true") ?: true
 
 		/**
-		 * The background color of the input field when a command is running.
-		 */
-		val inputBackgroundWhenRunning = AdaptiveColor(
-			light = LightColors.consoleBackground,
-			dark = DarkColors.consoleBackground)
-
-		/**
-		 * The foreground color of the input field when a command is running.
-		 */
-		val inputForegroundWhenRunning = AdaptiveColor(
-			light = LightColors.consoleText,
-			dark = DarkColors.consoleText)
-
-		/**
 		 * The numeric mask for the modifier key suitable for the current
 		 * platform.
 		 */
@@ -2646,6 +2813,7 @@ class AvailWorkbench internal constructor(
 			// Inject a breakpoint handler into the runtime to open a debugger.
 			runtime.breakpointHandler = { fiber ->
 				val debugger = AvailDebugger(bench)
+				bench.openDebuggers.add(debugger)
 				// Debug just the fiber that hit the breakpoint.
 				debugger.gatherFibers { listOf(fiber) }
 				debugger.open()

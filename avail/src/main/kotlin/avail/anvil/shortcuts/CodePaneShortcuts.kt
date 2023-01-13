@@ -176,7 +176,7 @@ object MoveLineUpShortcut: CodePaneShortcut(KeyCode.VK_UP.with(ALT, SHIFT))
  *
  * @author Richard Arriaga
  */
-object MoveLineDownShortcut: CodePaneShortcut( KeyCode.VK_DOWN.with(ALT, SHIFT))
+object MoveLineDownShortcut: CodePaneShortcut(KeyCode.VK_DOWN.with(ALT, SHIFT))
 {
 	override val actionMapKey: String = "move-line-down"
 	override val description: String = "Move the Selected Text Down One Line"

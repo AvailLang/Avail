@@ -33,6 +33,7 @@
 package avail.anvil.shortcuts
 
 import avail.anvil.AvailEditor
+import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.editor.GoToDialog
 import avail.anvil.shortcuts.ModifierKey.ALT
 import avail.anvil.shortcuts.ModifierKey.CTRL
@@ -111,6 +112,30 @@ object RefreshShortcut: AvailEditorShortcut(KeyCode.VK_F5.with())
 {
 	override val actionMapKey: String = "refresh"
 	override val description: String = "Rebuild and Refresh Module"
+}
+
+/**
+ * The [AvailEditorShortcut] for the [RefreshStylesheetAction].
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+object RefreshStylesheetShortcut: AvailEditorShortcut(KeyCode.VK_F5.with(SHIFT))
+{
+	override val actionMapKey = "refresh-stylesheet"
+	override val description = "Refresh Stylesheet"
+}
+
+/**
+ * The [AvailEditorShortcut] for printing the style classifiers and rendering
+ * solutions at the caret.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+object PrintAllRenderingSolutionsShortcut
+	: AvailEditorShortcut(KeyCode.VK_F12.with())
+{
+	override val actionMapKey = "print-styling-solutions"
+	override val description = "Print Styling Solutions"
 }
 
 /**

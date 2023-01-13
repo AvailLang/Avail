@@ -1,6 +1,6 @@
 /*
- * build.gradle.kts
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * DirectoryWatcherExtensions.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.1"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.1"
-	kotlin("jvm") version "1.7.0"
-}
+package avail.utility
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+import io.methvin.watcher.DirectoryWatcher
+import kotlin.concurrent.thread
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
-
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0.alpha19")
-}
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
-	}
-
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
+/**
+ * Run a daemon [thread][Thread] that drives the [receiver][DirectoryWatcher].
+ *
+ * @author Richard Arriaga
+ * @author Todd Smith &lt;todd@availlang.org&gt;
+ */
+fun DirectoryWatcher.launch(name: String) = apply {
+	thread (isDaemon = true, name = name) {
+		while (true)
+		{
+			try
+			{
+				watch()
+				break
+			}
+			catch (t: Throwable)
+			{
+				// Try again.
+			}
 		}
 	}
 }

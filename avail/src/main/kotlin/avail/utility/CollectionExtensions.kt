@@ -276,6 +276,21 @@ fun<E, K> List<E>.partitionRunsBy(
 	return result
 }
 
+/**
+ * Drain the elements of the receiver into a new [MutableSet], leaving the
+ * receiver empty.
+ *
+ * @return
+ *   A copy of the receiver.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+fun <T> MutableSet<T>.drain(): MutableSet<T>
+{
+	val elements = toMutableSet()
+	clear()
+	return elements
+}
+
 /** Tuple of length 1. */
 data class Tuple1<T1> constructor (val t1: T1)
 

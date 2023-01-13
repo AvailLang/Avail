@@ -489,9 +489,7 @@ class AvailProjectManager constructor(
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
 				val projectConfigFile = selectedFile
-				val projectPath = projectConfigFile.absolutePath
-					.removeSuffix(projectConfigFile.name)
-					.removeSuffix(File.separator)
+				val projectPath = selectedFile.parent
 				val project = try
 				{
 					AvailProject.from(

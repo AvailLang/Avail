@@ -364,10 +364,10 @@ class L1InstructionWriter constructor(
 	 */
 	private fun nybbles(): AvailObject
 	{
-		val size = stream.size()
-		val byteArray = stream.toByteArray()
+		val size = stream.size
+		val nybbleArray = stream.toNybbleArray()
 		val nybbles = generateNybbleTupleFrom(size) {
-			val nybble = byteArray[it - 1].toInt()
+			val nybble = nybbleArray[it - 1].toInt()
 			assert(nybble < 16)
 			nybble
 		}
