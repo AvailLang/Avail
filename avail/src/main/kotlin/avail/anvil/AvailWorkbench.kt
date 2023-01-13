@@ -2796,7 +2796,8 @@ class AvailWorkbench internal constructor(
 					availProjectFilePath,
 					workbenchWindowTitle,
 					projectManager)
-				// Inject a breakpoint handler into the runtime to open a debugger.
+				// Inject a breakpoint handler into the runtime to open a
+				// debugger.
 				runtime.breakpointHandler = { fiber ->
 					val debugger = AvailDebugger(bench)
 					bench.openDebuggers.add(debugger)
