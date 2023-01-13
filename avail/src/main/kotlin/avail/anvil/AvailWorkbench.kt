@@ -220,6 +220,7 @@ import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
+import javax.swing.SwingUtilities.invokeAndWait
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.SwingWorker
 import javax.swing.UIManager
@@ -2784,26 +2785,27 @@ class AvailWorkbench internal constructor(
 			swingReady.acquire()
 
 			// Display the UI.
-			val bench = AvailWorkbench(
-				project,
-				runtime,
-				fileManager,
-				resolver,
-				globalAvailSettings,
-				availProjectFilePath,
-				workbenchWindowTitle,
-				projectManager)
-			// Inject a breakpoint handler into the runtime to open a debugger.
-			runtime.breakpointHandler = { fiber ->
-				val debugger = AvailDebugger(bench)
-				bench.openDebuggers.add(debugger)
-				// Debug just the fiber that hit the breakpoint.
-				debugger.gatherFibers { listOf(fiber) }
-				debugger.open()
-			}
-			bench.createBufferStrategy(2)
-			bench.ignoreRepaint = true
-			invokeLater {
+			lateinit var bench: AvailWorkbench
+			invokeAndWait {
+				bench = AvailWorkbench(
+					project,
+					runtime,
+					fileManager,
+					resolver,
+					globalAvailSettings,
+					availProjectFilePath,
+					workbenchWindowTitle,
+					projectManager)
+				// Inject a breakpoint handler into the runtime to open a debugger.
+				runtime.breakpointHandler = { fiber ->
+					val debugger = AvailDebugger(bench)
+					bench.openDebuggers.add(debugger)
+					// Debug just the fiber that hit the breakpoint.
+					debugger.gatherFibers { listOf(fiber) }
+					debugger.open()
+				}
+				bench.createBufferStrategy(2)
+				bench.ignoreRepaint = true
 				val initialRefreshTask =
 					object : AbstractWorkbenchTask(bench, null)
 					{
