@@ -144,8 +144,7 @@ class PhraseViewPanel constructor (
 				onClose()
 			}
 		})
-		pack()
-		isVisible = true
+//		pack()
 	}
 
 	/**

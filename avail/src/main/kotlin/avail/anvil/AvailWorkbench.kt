@@ -2178,12 +2178,20 @@ class AvailWorkbench internal constructor(
 			{
 				saveWindowPosition()
 				val sv = structureViewPanel.run {
-					saveWindowPosition()
-					layoutConfiguration.stringToStore()
+					if (isVisible)
+					{
+						saveWindowPosition()
+						layoutConfiguration.stringToStore()
+					}
+					else ""
 				}
 				val pv = phraseViewPanel.run {
-					saveWindowPosition()
-					layoutConfiguration.stringToStore()
+					if (isVisible)
+					{
+						saveWindowPosition()
+						layoutConfiguration.stringToStore()
+					}
+					else ""
 				}
 				val local = WorkbenchScreenState(
 					layoutConfiguration.stringToStore(),
@@ -2321,6 +2329,19 @@ class AvailWorkbench internal constructor(
 						layoutConfiguration.placement?.let(::setBounds)
 						extendedState = layoutConfiguration.extendedState
 						editor?.let(::updateView)
+						isVisible = screenState.structureViewLayoutConfig
+							.isNotEmpty()
+					}
+				}
+				if (screenState.phraseViewLayoutConfig.isNotEmpty())
+				{
+					phraseViewPanel.apply {
+						layoutConfiguration.parseInput(
+							screenState.phraseViewLayoutConfig)
+						layoutConfiguration.placement?.let(::setBounds)
+						extendedState = layoutConfiguration.extendedState
+						isVisible = screenState.structureViewLayoutConfig
+							.isNotEmpty()
 					}
 				}
 			}
