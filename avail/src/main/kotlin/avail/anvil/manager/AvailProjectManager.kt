@@ -236,7 +236,7 @@ class AvailProjectManager constructor(
 	 */
 	private fun showProjectManager()
 	{
-		isVisible = true
+		redraw()
 	}
 
 	/**
@@ -294,6 +294,7 @@ class AvailProjectManager constructor(
 		setBounds(x, y, width, newHeight)
 		if (!initialOpenComplete)
 		{
+			initialOpenComplete = true
 			if (!openFavorite())
 			{
 				isVisible = true

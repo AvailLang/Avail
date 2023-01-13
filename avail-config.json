@@ -649,6 +649,11 @@
 				{
 					"expansion": "⁇",
 					"markedForArtifactInclusion": true
+				},
+				"/**":
+				{
+					"expansion": "/**\n * \u2041\n */",
+					"markedForArtifactInclusion": true
 				}
 			},
 			"palette": {
