@@ -220,7 +220,6 @@ import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
-import javax.swing.SwingUtilities.invokeAndWait
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.SwingWorker
 import javax.swing.UIManager
@@ -2786,7 +2785,7 @@ class AvailWorkbench internal constructor(
 
 			// Display the UI.
 			lateinit var bench: AvailWorkbench
-			invokeAndWait {
+			invokeAndWaitIfNecessary {
 				bench = AvailWorkbench(
 					project,
 					runtime,

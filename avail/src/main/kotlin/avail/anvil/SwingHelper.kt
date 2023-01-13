@@ -55,6 +55,7 @@ import javax.swing.JTextPane
 import javax.swing.KeyStroke
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+import javax.swing.SwingUtilities
 import javax.swing.plaf.LayerUI
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
@@ -308,8 +309,7 @@ fun MenuBarBuilder.addWindowMenu(frame: JFrame)
 	}
 }
 
-class WindowAction
-constructor(
+class WindowAction constructor(
 	name: String,
 	frame: JFrame,
 	keyStroke: KeyStroke? = null,
@@ -331,4 +331,19 @@ constructor(
 	{
 		action()
 	}
+}
+
+/**
+ * Perform the specified [action] on the
+ * [event&#32;dispatch&#32;thread][SwingUtilities.isEventDispatchThread] and
+ * wait for it to complete. If this _is_ the event dispatch thread, then
+ * just perform the [action] synchronously.
+ */
+@Suppress("NOTHING_TO_INLINE")
+inline fun invokeAndWaitIfNecessary(
+	noinline action: ()->Unit
+)
+{
+	if (SwingUtilities.isEventDispatchThread()) action()
+	else SwingUtilities.invokeAndWait(action)
 }
