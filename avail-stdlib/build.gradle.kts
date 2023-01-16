@@ -34,6 +34,7 @@ import avail.plugin.AvailExtension
 import org.availlang.artifact.AvailArtifactType.LIBRARY
 import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme.FILE
+import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -45,7 +46,7 @@ plugins {
 	id("org.availlang.avail-plugin")
 }
 
-version = "2.0.0.alpha19-1.6.1.alpha07"
+version = "2.0.0.alpha19-1.6.1.alpha08"
 
 avail {
 	projectDescription = "The Avail Standard Library"
@@ -61,6 +62,12 @@ avail {
 	artifact {
 		artifactType = LIBRARY
 		implementationTitle = "Avail Standard Library"
+		projectFileLocation =
+			ProjectHome(
+				"./../$CONFIG_FILE_NAME",
+				FILE,
+				project.projectDir.absolutePath,
+				null)
 	}
 }
 

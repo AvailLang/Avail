@@ -50,7 +50,6 @@ import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailEditorLayoutConfiguration
 import avail.anvil.window.LayoutConfiguration
-import avail.anvil.window.WorkbenchFrame
 import avail.builder.AvailBuilder
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName

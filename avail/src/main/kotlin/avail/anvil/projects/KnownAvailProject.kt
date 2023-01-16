@@ -70,6 +70,11 @@ data class KnownAvailProject constructor (
 	val configFilePath: String get() = File(projectConfigFile).absolutePath
 
 	/**
+	 * `true` indicates the file exists on disk; `false` otherwise.
+	 */
+	val exists: Boolean get() = File(projectConfigFile).exists()
+
+	/**
 	 * [lastOpened] as the local timezone string `MM/dd/yyyy HH:mm`.
 	 */
 	val lastOpenedTimestamp: String get()

@@ -1,5 +1,5 @@
 /*
- * WorkbenchFrame.kt
+ * OpenSettingsViewAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.window
+package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import javax.swing.JFrame
+import avail.anvil.settings.ProjectFileEditor
+import java.awt.event.ActionEvent
 
 /**
- * A [JFrame] that is directly associated with an [AvailWorkbench].
+ * The [AbstractWorkbenchAction] that opens the [ProjectFileEditor]
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Create a [WorkbenchFrame].
+ * Construct a new [OpenProjectFileEditorAction].
  *
- * @param title
- *   The [JFrame.title].
+ * @param workbench
+ *   The owning [AvailWorkbench].
  */
-abstract class WorkbenchFrame constructor(title: String): JFrame(title)
+class OpenProjectFileEditorAction constructor(
+	workbench: AvailWorkbench
+): AbstractWorkbenchAction(workbench, "Project")
 {
-	/**
-	 * The associated workbench.
-	 */
-	abstract val workbench: AvailWorkbench
-
-	/**
-	 * The [LayoutConfiguration] that describes the position of this
-	 * [WorkbenchFrame].
-	 */
-	internal abstract val layoutConfiguration: LayoutConfiguration
-
-	/**
-	 * Save this window position.
-	 */
-	internal open fun saveWindowPosition()
+	override fun actionPerformed(e: ActionEvent?)
 	{
-		layoutConfiguration.extendedState = extendedState
-		if (extendedState == NORMAL)
+		val pfee = workbench.projectFileEditor
+		if (pfee == null)
 		{
-			// Only capture the bounds if it's not zoomed or minimized.
-			layoutConfiguration.placement = bounds
+			workbench.projectFileEditor = ProjectFileEditor(workbench)
+		}
+		else
+		{
+			pfee.toFront()
 		}
 	}
 }

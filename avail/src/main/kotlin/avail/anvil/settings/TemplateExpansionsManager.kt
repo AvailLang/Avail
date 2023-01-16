@@ -51,6 +51,7 @@ import java.io.File
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
+import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JFileChooser
@@ -229,7 +230,9 @@ class RootTemplatesPanel constructor(
 				{
 					rootTemplateEditPanel.templateRow =
 						newEmptyTemplateRow().apply { select() }
-					root.templates.clear()
+					checkedRowsKeys.forEach {
+						root.templates.remove(it)
+					}
 					workbench.saveProjectFileToDisk()
 					redrawTemplates()
 				}
@@ -274,45 +277,6 @@ class RootTemplatesPanel constructor(
 			}
 		}
 	}
-
-//	/**
-//	 * Use this [JFileChooser] to import templates from an [AvailProject] file.
-//	 */
-//	private fun JFileChooser.importFromProject ()
-//	{
-//		dialogTitle = "Select Project File to Import From"
-//		fileSelectionMode = JFileChooser.FILES_ONLY
-//		fileFilter = FileNameExtensionFilter("*.json", "json")
-//		addChoosableFileFilter(
-//			object : FileFilter()
-//			{
-//				override fun getDescription(): String =
-//					"Project File (*.json)"
-//
-//				override fun accept(f: File): Boolean =
-//					f.isFile
-//						&& f.canWrite()
-//						&& f.absolutePath.lowercase().endsWith(".json")
-//			})
-//		val result = showDialog(
-//			this@RootTemplatesPanel,
-//			"Select Project File")
-//		if (result == JFileChooser.APPROVE_OPTION)
-//		{
-//			val obj = jsonReader(selectedFile.readText())
-//				.read() as JSONObject
-//			val ap = AvailProject.from(selectedFile.parent, obj)
-//			val templateSettings = TemplateSettings.combine(ap.roots
-//				.map { it.value.templateSettings }
-//				.toMutableSet()
-//				.apply { add(ap.templateSettings) })
-//			root.templates.putAll(templateSettings.templates)
-//			SwingUtilities.invokeLater {
-//				redrawTemplates()
-//				workbench.saveProjectFileToDisk()
-//			}
-//		}
-//	}
 
 	/**
 	 * Use this [JFileChooser] to export templates to a [TemplateSettings] file.
@@ -393,6 +357,16 @@ class RootTemplatesPanel constructor(
 			add(checkAllTemplate)
 			add(uncheckAllTemplate)
 			add(deleteSelectedTemplate)
+			add(
+				JCheckBox("Prevent templates import from library root").apply {
+					font = font.deriveFont(font.style or Font.BOLD)
+					toolTipText = "Checking this will prevent library roots from " +
+						"loading their packaged templates at start up."
+					isSelected = root.lockTemplates
+					addItemListener {
+						root.lockTemplates = it.stateChange == 1
+					}
+				})
 		})
 		add(JScrollPane(
 			templatesPanel,
@@ -605,6 +579,48 @@ class TemplateRow constructor(
 	}
 
 	/**
+	 * The [ImageIcon] representing whether or not a template is exported in an
+	 * Avail artifact build.
+	 */
+	private var favoriteIcon =
+		if (expansion.markedForArtifactInclusion)
+		{
+			exportIconChosen
+		}
+		else
+		{
+			exportIconNotChosen
+		}
+
+	/**
+	 * The button to toggle export of the template.
+	 */
+	@Suppress("unused")
+	private val exportWithArtifact: JButton =
+		JButton(favoriteIcon).apply {
+			isContentAreaFilled = false
+			isBorderPainted = false
+			addActionListener { _ ->
+				expansion.markedForArtifactInclusion =
+					!expansion.markedForArtifactInclusion
+				favoriteIcon =
+					if (expansion.markedForArtifactInclusion)
+					{
+						exportIconChosen
+					}
+					else
+					{
+						exportIconNotChosen
+					}
+				SwingUtilities.invokeLater {
+					this@TemplateRow.workbench.saveProjectFileToDisk()
+					this@TemplateRow.parentPanel.redrawTemplates()
+				}
+			}
+			templateEditDeletePanel.add(this)
+		}
+
+	/**
 	 * The button to remove the template.
 	 */
 	@Suppress("unused")
@@ -652,6 +668,18 @@ class TemplateRow constructor(
 		 */
 		private val deleteIcon get() =
 			ProjectManagerIcons.cancelFilled(scaledIconHeight)
+
+		/**
+		 * Icon indicating the template is exported in an Avail artifact.
+		 */
+		private val exportIconChosen =
+			ProjectManagerIcons.yellowStarFilled(scaledIconHeight)
+
+		/**
+		 * Icon indicating the template is not exported in an Avail artifact.
+		 */
+		private val exportIconNotChosen =
+			ProjectManagerIcons.yellowStarUnfilled(scaledIconHeight)
 	}
 }
 
@@ -709,6 +737,11 @@ class RootTemplateEditPanel constructor(
 				}
 			}
 			expansion != templateRow.expansion ->
+			{
+				applyChanges.isEnabled = true
+			}
+			expansion.markedForArtifactInclusion !=
+				templateRow.expansion.markedForArtifactInclusion ->
 			{
 				applyChanges.isEnabled = true
 			}
@@ -835,6 +868,22 @@ class RootTemplateEditPanel constructor(
 		}
 	}
 
+	/**
+	 * The [templateKey].
+	 */
+	@Suppress("unused")
+	private val templateKeyCheckBox: JCheckBox =
+		JCheckBox("Include in Avail artifact build").apply {
+			font = font.deriveFont(font.style or Font.BOLD)
+			toolTipText = "Checking this will cause this template to be " +
+				"included in the Avail manifest for the is Avail root when the " +
+				"root is packaged in an Avail artifact."
+			isSelected = expansion.markedForArtifactInclusion
+			addItemListener {
+				expansion.markedForArtifactInclusion = it.stateChange == 1
+			}
+		}
+
 	init
 	{
 		border = BorderFactory.createLineBorder(Color(0x616365))
@@ -855,7 +904,9 @@ class RootTemplateEditPanel constructor(
 		namePanel.add(applyChanges)
 		namePanel.add(Box.createRigidArea(Dimension(10, 25)))
 		namePanel.add(newTemplate)
-		namePanel.add(Box.createRigidArea(Dimension(400 - newTemplate.width, 25)))
+		namePanel.add(Box.createRigidArea(Dimension(10, 25)))
+		namePanel.add(templateKeyCheckBox)
+		namePanel.add(Box.createRigidArea(Dimension(200 - newTemplate.width, 25)))
 		add(namePanel)
 		add(JPanel().apply {
 			layout = (FlowLayout(FlowLayout.LEFT))

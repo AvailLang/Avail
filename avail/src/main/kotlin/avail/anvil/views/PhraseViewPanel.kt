@@ -37,7 +37,7 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.createScrollPane
 import avail.anvil.window.LayoutConfiguration
-import avail.anvil.window.WorkbenchFrame
+import avail.anvil.WorkbenchFrame
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy

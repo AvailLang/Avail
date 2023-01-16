@@ -66,7 +66,6 @@ tasks {
 	val generatePrimitivesList by creating(GenerateFileManifestTask::class) {
 		basePath = layout.projectDirectory.dir("src/main/kotlin").asFile.path
 		val prefix = "$basePath${File.separator}"
-		println("========basePath: $basePath")
 		inputs.files(
 			fileTree(basePath) {
 				include("avail/interpreter/primitive/**/P_*.kt")

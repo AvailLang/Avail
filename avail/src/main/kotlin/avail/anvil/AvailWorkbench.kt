@@ -56,6 +56,7 @@ import avail.anvil.actions.ExamineRepositoryAction
 import avail.anvil.actions.ExamineSerializedPhrasesAction
 import avail.anvil.actions.ExamineStylingAction
 import avail.anvil.actions.FindAction
+import avail.anvil.actions.GenerateArtifactAction
 import avail.anvil.actions.GenerateDocumentationAction
 import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
@@ -63,6 +64,7 @@ import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenModuleAction
 import avail.anvil.actions.OpenProjectAction
+import avail.anvil.actions.OpenProjectFileEditorAction
 import avail.anvil.actions.OpenSettingsViewAction
 import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
@@ -104,6 +106,7 @@ import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
+import avail.anvil.settings.ProjectFileEditor
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
 import avail.anvil.streams.BuildInputStream
@@ -120,7 +123,6 @@ import avail.anvil.text.CodePane
 import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
-import avail.anvil.window.WorkbenchFrame
 import avail.anvil.window.WorkbenchScreenState
 import avail.builder.AvailBuilder
 import avail.builder.ModuleName
@@ -184,6 +186,7 @@ import java.awt.event.WindowEvent
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.PrintStream
@@ -306,6 +309,31 @@ class AvailWorkbench internal constructor(
  	 */
 	val projectHomeDirectory =
 		availProjectFilePath.substringBeforeLast(File.separator)
+
+	/**
+	 * Backup the [availProject] file to "[availProjectFilePath].backup".
+	 */
+	fun backupProjectFile()
+	{
+		val projectFilePath = availProjectFilePath
+		if (projectFilePath.isNotEmpty())
+		{
+			val backupFile = File("$availProjectFilePath.backup")
+			FileInputStream(File(projectFilePath)).channel.use { src ->
+				FileOutputStream(backupFile).channel.use { dest ->
+					try
+					{
+						if (backupFile.exists()) backupFile.delete()
+						dest.transferFrom(src, 0, src.size())
+					}
+					catch (e: IOException)
+					{
+						e.printStackTrace()
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Save the [availProject] to disk in [availProjectFilePath].
@@ -597,6 +625,8 @@ class AvailWorkbench internal constructor(
 	/** The [build action][BuildAction]. */
 	internal val buildAction = BuildAction(this, false)
 
+	internal val generateArtifact= GenerateArtifactAction(this)
+
 	/** The [unload action][UnloadAction]. */
 	private val unloadAction = UnloadAction(this)
 
@@ -760,6 +790,10 @@ class AvailWorkbench internal constructor(
 	/** The action to open the [SettingsView]. */
 	private val openSettingsViewAction = OpenSettingsViewAction(this)
 
+	/** The action to open the [ProjectFileEditor]. */
+	private val openProjectFileEditorViewAction =
+		OpenProjectFileEditorAction(this)
+
 	/** The action to open the [TemplateExpansionsManager]. */
 	private val openTemplateExpansionManagerAction =
 		OpenTemplateExpansionsManagerAction(this)
@@ -807,6 +841,11 @@ class AvailWorkbench internal constructor(
 	 * The [TemplateExpansionsManager] view or `null` if not open.
 	 */
 	var templateExpansionManager: TemplateExpansionsManager? = null
+
+	/**
+	 * The [ProjectFileEditor] view or `null` if not open.
+	 */
+	var projectFileEditor: ProjectFileEditor? = null
 
 	/**
 	 * A monitor to serialize access to the current build status information.
@@ -2031,6 +2070,8 @@ class AvailWorkbench internal constructor(
 				separator()
 				//item(cleanModuleAction)  //TODO MvG Fix implementation and enable.
 				item(refreshAction)
+				separator()
+				item(generateArtifact)
 			}
 			menu("Module")
 			{
@@ -2064,6 +2105,7 @@ class AvailWorkbench internal constructor(
 			}
 			menu("Settings")
 			{
+				item(openProjectFileEditorViewAction)
 				item(openTemplateExpansionManagerAction)
 				item(openSettingsViewAction)
 			}

@@ -35,6 +35,7 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.icons.ProjectManagerIcons
 import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.projects.KnownAvailProject
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.GridBagConstraints
@@ -200,6 +201,10 @@ internal class KnownProjectRow constructor(
 		font = font.deriveFont(
 			font.style or Font.ITALIC,
 			(font.size - 3).toFloat())
+		if (!project.exists)
+		{
+			foreground = Color(0x73706F)
+		}
 		namePanel.add(this)
 	}
 
