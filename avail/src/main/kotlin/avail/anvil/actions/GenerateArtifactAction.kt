@@ -33,8 +33,19 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import org.availlang.artifact.AvailArtifactBuildPlan
+import java.awt.Color
+import java.awt.Dialog
+import java.awt.Dimension
+import java.awt.FlowLayout
 import java.awt.event.ActionEvent
 import javax.swing.Action
+import javax.swing.BorderFactory
+import javax.swing.BoxLayout
+import javax.swing.JButton
+import javax.swing.JComboBox
+import javax.swing.JDialog
+import javax.swing.JPanel
 
 /**
  * Open an editor on the selected module.
@@ -52,17 +63,93 @@ constructor (
 	workbench,
 	"Create Artifact")
 {
+
+	override fun isEnabled(): Boolean =
+		workbench.availProject.artifactBuildPlans.isNotEmpty()
+
 	override fun actionPerformed(event: ActionEvent)
 	{
+		val plans = workbench.availProject.artifactBuildPlans
 		// TODO create dialog drop down for choosing
-		workbench.availProject.artifactBuildPlans.firstOrNull()
-			?.buildAvailArtifactJar(
-				workbench.availProject,
-				{ println("Artifact created: $it") }
-			) { m, e ->
-				println("failed to create artifact: $m")
-				e?.printStackTrace()
+//		workbench.availProject.artifactBuildPlans.firstOrNull()
+//			?.buildAvailArtifactJar(
+//				workbench.availProject,
+//				{ println("Artifact created: $it") }
+//			) { m, e ->
+//				println("failed to create artifact: $m")
+//				e?.printStackTrace()
+//			}
+		var selected = plans.first()
+
+		val dialog =
+			JDialog(
+				workbench,
+				"Create Artifact",
+				Dialog.ModalityType.APPLICATION_MODAL
+			).apply {
+				minimumSize = Dimension(300, 150)
+				preferredSize = Dimension(300, 150)
+				maximumSize = Dimension(300, 150)
 			}
+		val cancel = JButton("Cancel").apply {
+			isOpaque = true
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 100, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			addActionListener { dialog.dispose() }
+		}
+
+		val buildButton = JButton("Build").apply {
+			isOpaque = true
+			border = BorderFactory.createLineBorder(
+				Color(0xBB, 0xBB, 0xBB), 1, true)
+			val currentHeight = height
+			val currentWidth = width
+			minimumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			preferredSize = Dimension(currentWidth + 100, currentHeight + 40)
+			maximumSize = Dimension(currentWidth + 100, currentHeight + 40)
+			addActionListener {
+				selected.buildAvailArtifactJar(
+					workbench.availProject,
+					{ println("Artifact created: $it") }
+				) { m, e ->
+					println("failed to create artifact: $m")
+					e?.printStackTrace()
+				}
+				dialog.dispose()
+			}
+		}
+		JPanel().apply {
+			layout = BoxLayout(this, BoxLayout.Y_AXIS)
+			add(JPanel().apply {
+				layout = (FlowLayout(FlowLayout.LEFT))
+				minimumSize = Dimension(300, 60)
+				preferredSize = Dimension(300, 60)
+				maximumSize = Dimension(300, 60)
+				add(JComboBox(plans.toTypedArray()).apply {
+					minimumSize = Dimension(290, 45)
+					preferredSize = Dimension(290, 45)
+					maximumSize = Dimension(290, 45)
+					addActionListener {
+						selectedItem?.let {
+							selected = it as AvailArtifactBuildPlan
+						}
+					}
+				})
+			})
+			add(JPanel().apply {
+				layout = (FlowLayout(FlowLayout.RIGHT))
+				minimumSize = Dimension(300, 50)
+				preferredSize = Dimension(300, 50)
+				maximumSize = Dimension(300, 50)
+				add(cancel)
+				add(buildButton)
+			})
+			dialog.add(this)
+		}
+		dialog.isVisible = true
 	}
 
 	init
