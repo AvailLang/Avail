@@ -33,6 +33,7 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.components.ComboWithLabel
 import org.availlang.artifact.AvailArtifactBuildPlan
 import java.awt.Color
 import java.awt.Dialog
@@ -43,9 +44,9 @@ import javax.swing.Action
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JButton
-import javax.swing.JComboBox
 import javax.swing.JDialog
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 /**
  * Open an editor on the selected module.
@@ -70,16 +71,6 @@ constructor (
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val plans = workbench.availProject.artifactBuildPlans
-		// TODO create dialog drop down for choosing
-//		workbench.availProject.artifactBuildPlans.firstOrNull()
-//			?.buildAvailArtifactJar(
-//				workbench.availProject,
-//				{ println("Artifact created: $it") }
-//			) { m, e ->
-//				println("failed to create artifact: $m")
-//				e?.printStackTrace()
-//			}
-		var selected = plans.first()
 
 		val dialog =
 			JDialog(
@@ -87,10 +78,24 @@ constructor (
 				"Create Artifact",
 				Dialog.ModalityType.APPLICATION_MODAL
 			).apply {
-				minimumSize = Dimension(300, 150)
-				preferredSize = Dimension(300, 150)
-				maximumSize = Dimension(300, 150)
+				minimumSize = Dimension(400, 160)
+				preferredSize = Dimension(400, 160)
+				maximumSize = Dimension(400, 160)
 			}
+		var selected: AvailArtifactBuildPlan = plans.first()
+		val combo = ComboWithLabel(
+			"Plan: ",
+			plans.toTypedArray(),
+		).apply {
+			minimumSize = Dimension(380, 45)
+			preferredSize = Dimension(380, 45)
+			maximumSize = Dimension(380, 45)
+			addComboActionListener {
+				selectedItem?.let {
+					selected = it as AvailArtifactBuildPlan
+				}
+			}
+		}
 		val cancel = JButton("Cancel").apply {
 			isOpaque = true
 			val currentHeight = height
@@ -125,31 +130,26 @@ constructor (
 			layout = BoxLayout(this, BoxLayout.Y_AXIS)
 			add(JPanel().apply {
 				layout = (FlowLayout(FlowLayout.LEFT))
-				minimumSize = Dimension(300, 60)
-				preferredSize = Dimension(300, 60)
-				maximumSize = Dimension(300, 60)
-				add(JComboBox(plans.toTypedArray()).apply {
-					minimumSize = Dimension(290, 45)
-					preferredSize = Dimension(290, 45)
-					maximumSize = Dimension(290, 45)
-					addActionListener {
-						selectedItem?.let {
-							selected = it as AvailArtifactBuildPlan
-						}
-					}
-				})
+				minimumSize = Dimension(390, 60)
+				preferredSize = Dimension(390, 60)
+				maximumSize = Dimension(390, 60)
+				add(combo)
 			})
 			add(JPanel().apply {
 				layout = (FlowLayout(FlowLayout.RIGHT))
-				minimumSize = Dimension(300, 50)
-				preferredSize = Dimension(300, 50)
-				maximumSize = Dimension(300, 50)
+				minimumSize = Dimension(390, 60)
+				preferredSize = Dimension(390, 60)
+				maximumSize = Dimension(390, 60)
+				border = BorderFactory.createEmptyBorder(10,10,10,10)
 				add(cancel)
 				add(buildButton)
 			})
 			dialog.add(this)
 		}
-		dialog.isVisible = true
+		SwingUtilities.invokeLater {
+			dialog.setLocationRelativeTo(workbench)
+			dialog.isVisible = true
+		}
 	}
 
 	init
