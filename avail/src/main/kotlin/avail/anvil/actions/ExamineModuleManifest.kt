@@ -33,9 +33,11 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.streams.StreamStyle
 import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.RepositoryDescriber
+import avail.utility.Strings.buildUnicodeBox
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JOptionPane
@@ -89,7 +91,12 @@ class ExamineModuleManifest constructor (
 						val describer = RepositoryDescriber(repository)
 						val description = describer.describeManifest(
 							selectedCompilation.recordNumberOfManifest)
-						workbench.outputStream.println(description)
+						val report = buildUnicodeBox(
+							"Module Manifest Report"
+						) {
+							append(description)
+						}
+						workbench.writeText(report, StreamStyle.REPORT)
 					}
 					is Any -> assert(false) { "Unknown type selected" }
 				}

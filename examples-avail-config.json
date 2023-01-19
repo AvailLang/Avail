@@ -1,16 +1,16 @@
 {
-	"id": "5060d6d0-cd5a-4d92-b3b4-3f7611b0ab39", 
-	"darkMode": true, 
-	"serializationVersion": 1, 
-	"name": "avail-examples", 
+	"id": "5060d6d0-cd5a-4d92-b3b4-3f7611b0ab39",
+	"darkMode": true,
+	"serializationVersion": 1,
+	"name": "avail-examples",
 	"repositoryLocation": {
-		"locationType": "availRepositories", 
-		"scheme": "FILE", 
+		"locationType": "availRepositories",
+		"scheme": "FILE",
 		"path": ""
-	}, 
+	},
 	"roots": [
 		{
-			"id": "16bb6b34-3596-463f-a8ec-10e4c89edf54", 
+			"id": "16bb6b34-3596-463f-a8ec-10e4c89edf54",
 			"name": "avail", 
 			"editable": true, 
 			"visible": true, 
@@ -19,1020 +19,952 @@
 				"locationType": "project", 
 				"scheme": "FILE", 
 				"path": "distro/src/avail"
-			}, 
-			"templates": 
+			},
+			"templates":
 			{
-				"a": 
+				"a":
 				{
-					"expansion": "\u2200", 
+					"expansion": "\u2200",
 					"markedForArtifactInclusion": true
-				}, 
-				"bottom": 
+				},
+				"bottom":
 				{
-					"expansion": "\u22A5", 
+					"expansion": "\u22A5",
 					"markedForArtifactInclusion": true
-				}, 
-				"ceiling": 
+				},
+				"ceiling":
 				{
-					"expansion": "\u2308\u2041\u2309", 
+					"expansion": "\u2308\u2041\u2309",
 					"markedForArtifactInclusion": true
-				}, 
-				"celsius": 
+				},
+				"celsius":
 				{
-					"expansion": "\u2103", 
+					"expansion": "\u2103",
 					"markedForArtifactInclusion": true
-				}, 
-				"cent": 
+				},
+				"cent":
 				{
-					"expansion": "\u00A2", 
+					"expansion": "\u00A2",
 					"markedForArtifactInclusion": true
-				}, 
-				"conjunction": 
+				},
+				"conjunction":
 				{
-					"expansion": "\u2227", 
+					"expansion": "\u2227",
 					"markedForArtifactInclusion": true
-				}, 
-				"convert": 
+				},
+				"convert":
 				{
-					"expansion": "\u224D", 
+					"expansion": "\u224D",
 					"markedForArtifactInclusion": true
-				}, 
-				"copyright": 
+				},
+				"copyright":
 				{
-					"expansion": "\u00A9", 
+					"expansion": "\u00A9",
 					"markedForArtifactInclusion": true
-				}, 
-				"cubed": 
+				},
+				"cubed":
 				{
-					"expansion": "\u00B3", 
+					"expansion": "\u00B3",
 					"markedForArtifactInclusion": true
-				}, 
-				"degree": 
+				},
+				"degree":
 				{
-					"expansion": "\u00B0", 
+					"expansion": "\u00B0",
 					"markedForArtifactInclusion": true
-				}, 
-				"delta": 
+				},
+				"delta":
 				{
-					"expansion": "\u0394", 
+					"expansion": "\u0394",
 					"markedForArtifactInclusion": true
-				}, 
-				"disjunction": 
+				},
+				"disjunction":
 				{
-					"expansion": "\u2228", 
+					"expansion": "\u2228",
 					"markedForArtifactInclusion": true
-				}, 
-				"divide": 
+				},
+				"divide":
 				{
-					"expansion": "\u00F7", 
+					"expansion": "\u00F7",
 					"markedForArtifactInclusion": true
-				}, 
-				"dot": 
+				},
+				"dot":
 				{
-					"expansion": "\u00B7", 
+					"expansion": "\u00B7",
 					"markedForArtifactInclusion": true
-				}, 
-				"doubledagger": 
+				},
+				"doubledagger":
 				{
-					"expansion": "\u2021", 
+					"expansion": "\u2021",
 					"markedForArtifactInclusion": true
-				}, 
-				"doubleexclamation": 
+				},
+				"doubleexclamation":
 				{
-					"expansion": "\u203C", 
+					"expansion": "\u203C",
 					"markedForArtifactInclusion": true
-				}, 
-				"doublequestion": 
+				},
+				"doublequestion":
 				{
-					"expansion": "\u2047", 
+					"expansion": "\u2047",
 					"markedForArtifactInclusion": true
-				}, 
-				"doublequotes": 
+				},
+				"doublequotes":
 				{
-					"expansion": "\u201C\u2041\u201D", 
+					"expansion": "\u201C\u2041\u201D",
 					"markedForArtifactInclusion": true
-				}, 
-				"downarrow": 
+				},
+				"downarrow":
 				{
-					"expansion": "\u2193", 
+					"expansion": "\u2193",
 					"markedForArtifactInclusion": true
-				}, 
-				"downtack": 
+				},
+				"downtack":
 				{
-					"expansion": "\u22A4", 
+					"expansion": "\u22A4",
 					"markedForArtifactInclusion": true
-				}, 
-				"e": 
+				},
+				"e":
 				{
-					"expansion": "\u2203", 
+					"expansion": "\u2203",
 					"markedForArtifactInclusion": true
-				}, 
-				"elementof": 
+				},
+				"elementof":
 				{
-					"expansion": "\u2208", 
+					"expansion": "\u2208",
 					"markedForArtifactInclusion": true
-				}, 
-				"ellipsis": 
+				},
+				"ellipsis":
 				{
-					"expansion": "\u2026", 
+					"expansion": "\u2026",
 					"markedForArtifactInclusion": true
-				}, 
-				"endash": 
+				},
+				"endash":
 				{
-					"expansion": "\u2013", 
+					"expansion": "\u2013",
 					"markedForArtifactInclusion": true
-				}, 
-				"emdash": 
+				},
+				"emdash":
 				{
-					"expansion": "\u2014", 
+					"expansion": "\u2014",
 					"markedForArtifactInclusion": true
-				}, 
-				"emptyset": 
+				},
+				"emptyset":
 				{
-					"expansion": "\u2205", 
+					"expansion": "\u2205",
 					"markedForArtifactInclusion": true
-				}, 
-				"enumeration": 
+				},
+				"enumeration":
 				{
-					"expansion": "{\u2041}\u1D40", 
+					"expansion": "{\u2041}\u1D40",
 					"markedForArtifactInclusion": true
-				}, 
-				"equivalent": 
+				},
+				"equivalent":
 				{
-					"expansion": "\u224D", 
+					"expansion": "\u224D",
 					"markedForArtifactInclusion": true
-				}, 
-				"exists": 
+				},
+				"exists":
 				{
-					"expansion": "\u2203", 
+					"expansion": "\u2203",
 					"markedForArtifactInclusion": true
-				}, 
-				"floor": 
+				},
+				"floor":
 				{
-					"expansion": "\u230A\u2041\u230B", 
+					"expansion": "\u230A\u2041\u230B",
 					"markedForArtifactInclusion": true
-				}, 
-				"forall": 
+				},
+				"forall":
 				{
-					"expansion": "\u2200", 
+					"expansion": "\u2200",
 					"markedForArtifactInclusion": true
-				}, 
-				"gte": 
+				},
+				"gte":
 				{
-					"expansion": "\u2265", 
+					"expansion": "\u2265",
 					"markedForArtifactInclusion": true
-				}, 
-				"guillemets": 
+				},
+				"guillemets":
 				{
-					"expansion": "\u00AB\u2041\u00BB", 
+					"expansion": "\u00AB\u2041\u00BB",
 					"markedForArtifactInclusion": true
-				}, 
-				"infinity": 
+				},
+				"infinity":
 				{
-					"expansion": "\u221E", 
+					"expansion": "\u221E",
 					"markedForArtifactInclusion": true
-				}, 
-				"interpunct": 
+				},
+				"interpunct":
 				{
-					"expansion": "\u2022", 
+					"expansion": "\u2022",
 					"markedForArtifactInclusion": true
-				}, 
-				"intersection": 
+				},
+				"intersection":
 				{
-					"expansion": "\u2229", 
+					"expansion": "\u2229",
 					"markedForArtifactInclusion": true
-				}, 
-				"leftarrow": 
+				},
+				"leftarrow":
 				{
-					"expansion": "\u2190", 
+					"expansion": "\u2190",
 					"markedForArtifactInclusion": true
-				}, 
-				"leftceiling": 
+				},
+				"leftceiling":
 				{
-					"expansion": "\u2308", 
+					"expansion": "\u2308",
 					"markedForArtifactInclusion": true
-				}, 
-				"leftdoublequote": 
+				},
+				"leftdoublequote":
 				{
-					"expansion": "\u201C", 
+					"expansion": "\u201C",
 					"markedForArtifactInclusion": true
-				}, 
-				"leftfloor": 
+				},
+				"leftfloor":
 				{
-					"expansion": "\u230A", 
+					"expansion": "\u230A",
 					"markedForArtifactInclusion": true
-				}, 
-				"leftguillemet": 
+				},
+				"leftguillemet":
 				{
-					"expansion": "\u00AB", 
+					"expansion": "\u00AB",
 					"markedForArtifactInclusion": true
-				}, 
-				"leftquote": 
+				},
+				"leftquote":
 				{
-					"expansion": "\u27E6", 
+					"expansion": "\u27E6",
 					"markedForArtifactInclusion": true
-				}, 
-				"leftsinglequote": 
+				},
+				"leftsinglequote":
 				{
-					"expansion": "\u2018", 
+					"expansion": "\u2018",
 					"markedForArtifactInclusion": true
-				}, 
-				"leftunquote": 
+				},
+				"leftunquote":
 				{
-					"expansion": "\u298A", 
+					"expansion": "\u298A",
 					"markedForArtifactInclusion": true
-				}, 
-				"lte": 
+				},
+				"lte":
 				{
-					"expansion": "\u2264", 
+					"expansion": "\u2264",
 					"markedForArtifactInclusion": true
-				}, 
-				"manicule": 
+				},
+				"manicule":
 				{
-					"expansion": "\uD83D\uDC49", 
+					"expansion": "\uD83D\uDC49",
 					"markedForArtifactInclusion": true
-				}, 
-				"map": 
+				},
+				"map":
 				{
-					"expansion": "{\u2041}", 
+					"expansion": "{\u2041}",
 					"markedForArtifactInclusion": true
-				}, 
-				"maplet": 
+				},
+				"maplet":
 				{
-					"expansion": "\u21A6", 
+					"expansion": "\u21A6",
 					"markedForArtifactInclusion": true
-				}, 
-				"mdash": 
+				},
+				"mdash":
 				{
-					"expansion": "\u2014", 
+					"expansion": "\u2014",
 					"markedForArtifactInclusion": true
-				}, 
-				"memberof": 
+				},
+				"memberof":
 				{
-					"expansion": "\u2208", 
+					"expansion": "\u2208",
 					"markedForArtifactInclusion": true
-				}, 
-				"mu": 
+				},
+				"mu":
 				{
-					"expansion": "\u00B5", 
+					"expansion": "\u00B5",
 					"markedForArtifactInclusion": true
-				}, 
-				"ndash": 
+				},
+				"ndash":
 				{
-					"expansion": "\u2013", 
+					"expansion": "\u2013",
 					"markedForArtifactInclusion": true
-				}, 
-				"ne": 
+				},
+				"ne":
 				{
-					"expansion": "\u2260", 
+					"expansion": "\u2260",
 					"markedForArtifactInclusion": true
-				}, 
-				"not": 
+				},
+				"not":
 				{
-					"expansion": "\u00AC", 
+					"expansion": "\u00AC",
 					"markedForArtifactInclusion": true
-				}, 
-				"notelementof": 
+				},
+				"notelementof":
 				{
-					"expansion": "\u2209", 
+					"expansion": "\u2209",
 					"markedForArtifactInclusion": true
-				}, 
-				"notmemberof": 
+				},
+				"notmemberof":
 				{
-					"expansion": "\u2209", 
+					"expansion": "\u2209",
 					"markedForArtifactInclusion": true
-				}, 
-				"notsubsetorequal": 
+				},
+				"notsubsetorequal":
 				{
-					"expansion": "\u2288", 
+					"expansion": "\u2288",
 					"markedForArtifactInclusion": true
-				}, 
-				"notsupersetorequal": 
+				},
+				"notsupersetorequal":
 				{
-					"expansion": "\u2289", 
+					"expansion": "\u2289",
 					"markedForArtifactInclusion": true
-				}, 
-				"o1": 
+				},
+				"o1":
 				{
-					"expansion": "\u2460", 
+					"expansion": "\u2460",
 					"markedForArtifactInclusion": true
-				}, 
-				"o2": 
+				},
+				"o2":
 				{
-					"expansion": "\u2461", 
+					"expansion": "\u2461",
 					"markedForArtifactInclusion": true
-				}, 
-				"o3": 
+				},
+				"o3":
 				{
-					"expansion": "\u2462", 
+					"expansion": "\u2462",
 					"markedForArtifactInclusion": true
-				}, 
-				"o4": 
+				},
+				"o4":
 				{
-					"expansion": "\u2463", 
+					"expansion": "\u2463",
 					"markedForArtifactInclusion": true
-				}, 
-				"o5": 
+				},
+				"o5":
 				{
-					"expansion": "\u2464", 
+					"expansion": "\u2464",
 					"markedForArtifactInclusion": true
-				}, 
-				"o6": 
+				},
+				"o6":
 				{
-					"expansion": "\u2465", 
+					"expansion": "\u2465",
 					"markedForArtifactInclusion": true
-				}, 
-				"o7": 
+				},
+				"o7":
 				{
-					"expansion": "\u2466", 
+					"expansion": "\u2466",
 					"markedForArtifactInclusion": true
-				}, 
-				"o8": 
+				},
+				"o8":
 				{
-					"expansion": "\u2467", 
+					"expansion": "\u2467",
 					"markedForArtifactInclusion": true
-				}, 
-				"o9": 
+				},
+				"o9":
 				{
-					"expansion": "\u2468", 
+					"expansion": "\u2468",
 					"markedForArtifactInclusion": true
-				}, 
-				"pi": 
+				},
+				"pi":
 				{
-					"expansion": "\u03C0", 
+					"expansion": "\u03C0",
 					"markedForArtifactInclusion": true
-				}, 
-				"picapital": 
+				},
+				"picapital":
 				{
-					"expansion": "\u220F", 
+					"expansion": "\u220F",
 					"markedForArtifactInclusion": true
-				}, 
-				"plusminus": 
+				},
+				"plusminus":
 				{
-					"expansion": "\u00B1", 
+					"expansion": "\u00B1",
 					"markedForArtifactInclusion": true
-				}, 
-				"prefix": 
+				},
+				"prefix":
 				{
-					"expansion": "\u00A7", 
+					"expansion": "\u00A7",
 					"markedForArtifactInclusion": true
-				}, 
-				"quote": 
+				},
+				"quote":
 				{
-					"expansion": "\u27E6\u2041\u27E7", 
+					"expansion": "\u27E6\u2041\u27E7",
 					"markedForArtifactInclusion": true
-				}, 
-				"rightarrow": 
+				},
+				"rightarrow":
 				{
-					"expansion": "\u2192", 
+					"expansion": "\u2192",
 					"markedForArtifactInclusion": true
-				}, 
-				"rightceiling": 
+				},
+				"rightceiling":
 				{
-					"expansion": "\u2309", 
+					"expansion": "\u2309",
 					"markedForArtifactInclusion": true
-				}, 
-				"rightdoublequote": 
+				},
+				"rightdoublequote":
 				{
-					"expansion": "\u201D", 
+					"expansion": "\u201D",
 					"markedForArtifactInclusion": true
-				}, 
-				"rightfloor": 
+				},
+				"rightfloor":
 				{
-					"expansion": "\u230B", 
+					"expansion": "\u230B",
 					"markedForArtifactInclusion": true
-				}, 
-				"rightguillemet": 
+				},
+				"rightguillemet":
 				{
-					"expansion": "\u00BB", 
+					"expansion": "\u00BB",
 					"markedForArtifactInclusion": true
-				}, 
-				"rightquote": 
+				},
+				"rightquote":
 				{
-					"expansion": "\u27E7", 
+					"expansion": "\u27E7",
 					"markedForArtifactInclusion": true
-				}, 
-				"rightsinglequote": 
+				},
+				"rightsinglequote":
 				{
-					"expansion": "\u2019", 
+					"expansion": "\u2019",
 					"markedForArtifactInclusion": true
-				}, 
-				"rightunquote": 
+				},
+				"rightunquote":
 				{
-					"expansion": "\u2989", 
+					"expansion": "\u2989",
 					"markedForArtifactInclusion": true
-				}, 
-				"root": 
+				},
+				"root":
 				{
-					"expansion": "\u221A", 
+					"expansion": "\u221A",
 					"markedForArtifactInclusion": true
-				}, 
-				"section": 
+				},
+				"section":
 				{
-					"expansion": "\u00A7", 
+					"expansion": "\u00A7",
 					"markedForArtifactInclusion": true
-				}, 
-				"set": 
+				},
+				"set":
 				{
-					"expansion": "{\u2041}", 
+					"expansion": "{\u2041}",
 					"markedForArtifactInclusion": true
-				}, 
-				"sigma": 
+				},
+				"sigma":
 				{
-					"expansion": "\u2211", 
+					"expansion": "\u2211",
 					"markedForArtifactInclusion": true
-				}, 
-				"singledagger": 
+				},
+				"singledagger":
 				{
-					"expansion": "\u2020", 
+					"expansion": "\u2020",
 					"markedForArtifactInclusion": true
-				}, 
-				"singlequotes": 
+				},
+				"singlequotes":
 				{
-					"expansion": "\u2018\u2041\u2019", 
+					"expansion": "\u2018\u2041\u2019",
 					"markedForArtifactInclusion": true
-				}, 
-				"squared": 
+				},
+				"squared":
 				{
-					"expansion": "\u00B2", 
+					"expansion": "\u00B2",
 					"markedForArtifactInclusion": true
-				}, 
-				"subsetorequal": 
+				},
+				"subsetorequal":
 				{
-					"expansion": "\u2286", 
+					"expansion": "\u2286",
 					"markedForArtifactInclusion": true
-				}, 
-				"sum": 
+				},
+				"sum":
 				{
-					"expansion": "\u2211", 
+					"expansion": "\u2211",
 					"markedForArtifactInclusion": true
-				}, 
-				"supersetorequal": 
+				},
+				"supersetorequal":
 				{
-					"expansion": "\u2287", 
+					"expansion": "\u2287",
 					"markedForArtifactInclusion": true
-				}, 
-				"supert": 
+				},
+				"supert":
 				{
-					"expansion": "\u1D40", 
+					"expansion": "\u1D40",
 					"markedForArtifactInclusion": true
-				}, 
-				"swoop": 
+				},
+				"swoop":
 				{
-					"expansion": "\u2937", 
+					"expansion": "\u2937",
 					"markedForArtifactInclusion": true
-				}, 
-				"t": 
+				},
+				"t":
 				{
-					"expansion": "\u1D40", 
+					"expansion": "\u1D40",
 					"markedForArtifactInclusion": true
-				}, 
-				"thereexists": 
+				},
+				"thereexists":
 				{
-					"expansion": "\u2203", 
+					"expansion": "\u2203",
 					"markedForArtifactInclusion": true
-				}, 
-				"thinspace": 
+				},
+				"thinspace":
 				{
-					"expansion": "\u2009", 
+					"expansion": "\u2009",
 					"markedForArtifactInclusion": true
-				}, 
-				"times": 
+				},
+				"times":
 				{
-					"expansion": "\u00D7", 
+					"expansion": "\u00D7",
 					"markedForArtifactInclusion": true
-				}, 
-				"top": 
+				},
+				"top":
 				{
-					"expansion": "\u22A4", 
+					"expansion": "\u22A4",
 					"markedForArtifactInclusion": true
-				}, 
-				"tuple": 
+				},
+				"tuple":
 				{
-					"expansion": "<\u2041>", 
+					"expansion": "<\u2041>",
 					"markedForArtifactInclusion": true
-				}, 
-				"union": 
+				},
+				"union":
 				{
-					"expansion": "\u222A", 
+					"expansion": "\u222A",
 					"markedForArtifactInclusion": true
-				}, 
-				"unquote": 
+				},
+				"unquote":
 				{
-					"expansion": "\u298A\u2041\u2989", 
+					"expansion": "\u298A\u2041\u2989",
 					"markedForArtifactInclusion": true
-				}, 
-				"uparrow": 
+				},
+				"uparrow":
 				{
-					"expansion": "\u2191", 
+					"expansion": "\u2191",
 					"markedForArtifactInclusion": true
-				}, 
-				"uptack": 
+				},
+				"uptack":
 				{
-					"expansion": "\u22A5", 
+					"expansion": "\u22A5",
 					"markedForArtifactInclusion": true
-				}, 
-				"xor": 
+				},
+				"xor":
 				{
-					"expansion": "\u2295", 
+					"expansion": "\u2295",
 					"markedForArtifactInclusion": true
-				}, 
-				"yields": 
+				},
+				"yields":
 				{
-					"expansion": "\u21D2", 
+					"expansion": "\u21D2",
 					"markedForArtifactInclusion": true
-				}, 
-				"1": 
+				},
+				"1":
 				{
-					"expansion": "\u00B9", 
+					"expansion": "\u00B9",
 					"markedForArtifactInclusion": true
-				}, 
-				"2": 
+				},
+				"2":
 				{
-					"expansion": "\u00B2", 
+					"expansion": "\u00B2",
 					"markedForArtifactInclusion": true
-				}, 
-				"3": 
+				},
+				"3":
 				{
-					"expansion": "\u00B3", 
+					"expansion": "\u00B3",
 					"markedForArtifactInclusion": true
-				}, 
-				"4": 
+				},
+				"4":
 				{
-					"expansion": "\u2074", 
+					"expansion": "\u2074",
 					"markedForArtifactInclusion": true
-				}, 
-				"5": 
+				},
+				"5":
 				{
-					"expansion": "\u2075", 
+					"expansion": "\u2075",
 					"markedForArtifactInclusion": true
-				}, 
-				"6": 
+				},
+				"6":
 				{
-					"expansion": "\u2076", 
+					"expansion": "\u2076",
 					"markedForArtifactInclusion": true
-				}, 
-				"7": 
+				},
+				"7":
 				{
-					"expansion": "\u2077", 
+					"expansion": "\u2077",
 					"markedForArtifactInclusion": true
-				}, 
-				"8": 
+				},
+				"8":
 				{
-					"expansion": "\u2078", 
+					"expansion": "\u2078",
 					"markedForArtifactInclusion": true
-				}, 
-				"9": 
+				},
+				"9":
 				{
-					"expansion": "\u2079", 
+					"expansion": "\u2079",
 					"markedForArtifactInclusion": true
-				}, 
-				"->": 
+				},
+				"->":
 				{
-					"expansion": "\u2192", 
+					"expansion": "\u2192",
 					"markedForArtifactInclusion": true
-				}, 
-				"=>": 
+				},
+				"=>":
 				{
-					"expansion": "\u21D2", 
+					"expansion": "\u21D2",
 					"markedForArtifactInclusion": true
-				}, 
-				"<-": 
+				},
+				"<-":
 				{
-					"expansion": "\u2190", 
+					"expansion": "\u2190",
 					"markedForArtifactInclusion": true
-				}, 
-				"*": 
+				},
+				"*":
 				{
-					"expansion": "\u00D7", 
+					"expansion": "\u00D7",
 					"markedForArtifactInclusion": true
-				}, 
-				"/": 
+				},
+				"/":
 				{
-					"expansion": "\u00F7", 
+					"expansion": "\u00F7",
 					"markedForArtifactInclusion": true
-				}, 
-				"<=": 
+				},
+				"<=":
 				{
-					"expansion": "\u2264", 
+					"expansion": "\u2264",
 					"markedForArtifactInclusion": true
-				}, 
-				">=": 
+				},
+				">=":
 				{
-					"expansion": "\u2265", 
+					"expansion": "\u2265",
 					"markedForArtifactInclusion": true
-				}, 
-				"!": 
+				},
+				"!":
 				{
-					"expansion": "\u00AC", 
+					"expansion": "\u00AC",
 					"markedForArtifactInclusion": true
-				}, 
-				"!!": 
+				},
+				"!!":
 				{
-					"expansion": "\u203C", 
+					"expansion": "\u203C",
 					"markedForArtifactInclusion": true
-				}, 
-				"!=": 
+				},
+				"!=":
 				{
-					"expansion": "\u2260", 
+					"expansion": "\u2260",
 					"markedForArtifactInclusion": true
-				}, 
-				"...": 
+				},
+				"...":
 				{
-					"expansion": "\u2026", 
+					"expansion": "\u2026",
 					"markedForArtifactInclusion": true
-				}, 
-				"??": 
+				},
+				"??":
 				{
-					"expansion": "\u2047", 
+					"expansion": "\u2047",
 					"markedForArtifactInclusion": true
-				}, 
-				"/**": 
+				},
+				"/**":
 				{
-					"expansion": "/**\n * \u2041\n */", 
+					"expansion": "/**\n * \u2041\n */",
 					"markedForArtifactInclusion": true
 				}
-			}, 
-			"palette": 
-			{
-				"inputBackground": "#F7F7F7FF/02232EFF", 
-				"inputText": "#000000FF/FFFFFFFF", 
-				"codeBackground": "#E6E6E6FF/053646FF", 
-				"codeText": "#000000EE/FFFFFFEE", 
-				"codeGuide": "#00000077/FFFFFF77", 
-				"streamInput": "#209020FF/379C1AFF", 
-				"streamOutput": "#000000FF/EEEEEEFF", 
-				"streamError": "#FF0000FF/FF6458FF", 
-				"streamInfo": "#0000FFFF/5394ECFF", 
-				"streamCommand": "#FF00FFFF/AE8ABEFF", 
-				"streamBuildProgress": "#806000FF/DCC457FF", 
-				"extreme": "#FFFFFFFF/000000FF", 
-				"textBackground": "#FFFFFF4A/21121940", 
-				"strongGray": "#00000077/FFFFFF77", 
-				"weakGray": "#00000044/FFFFFF44", 
-				"lilac": "#8174FFFF/6659E2FF", 
-				"magenta": "#D03B83FF/D25B94FF", 
-				"transparentMagenta": "#D03B83AA/D25B94AA", 
-				"rose": "#DC4444FF/DC4444FF", 
-				"transparentRose": "#DC444488/DC444488", 
-				"faintTransparentRose": "#DC444422/DC444422", 
-				"mango": "#EE731BFF/FF8836FF", 
-				"mustard": "#E8B000FF/FFD659FF", 
-				"transparentMustard": "#E8B00018/FFD65918", 
-				"green": "#4C853EFF/78B669FF", 
-				"transparentGreen": "#4C853E88/78B66988", 
-				"blue": "#2294C6FF/38B1E5FF", 
-				"faintTransparentIndigo": "#4B35A920/3B279530", 
+			},
+			"palette": {
+				"inputBackground": "#F7F7F7FF/02232EFF",
+				"inputText": "#000000FF/FFFFFFFF",
+				"codeBackground": "#E6E6E6FF/053646FF",
+				"codeText": "#000000EE/FFFFFFEE",
+				"codeGuide": "#00000077/FFFFFF77",
+				"streamInput": "#209020FF/379C1AFF",
+				"streamOutput": "#000000FF/EEEEEEFF",
+				"streamError": "#FF0000FF/FF6458FF",
+				"streamInfo": "#0000FFFF/9EC4F1FF",
+				"streamCommand": "#FF00FFFF/AE8ABEFF",
+				"streamBuildProgress": "#806000FF/DCC457FF",
+				"streamReport": "#AA0070FF/FB53ACFF",
+				"extreme": "#FFFFFFFF/000000FF",
+				"extremeText": "#000000FF/FFFFFFFF",
+				"textBackground": "#FFFFFF4A/21121940",
+				"strongGray": "#00000077/FFFFFF77",
+				"weakGray": "#00000044/FFFFFF44",
+				"lilac": "#8174FFFF/6659E2FF",
+				"magenta": "#D03B83FF/D25B94FF",
+				"transparentMagenta": "#D03B83AA/D25B94AA",
+				"rose": "#DC4444FF",
+				"transparentRose": "#DC444488",
+				"faintTransparentRose": "#DC444422",
+				"mango": "#EE731BFF/FF8836FF",
+				"mustard": "#E8B000FF/FFD659FF",
+				"transparentMustard": "#E8B00018/FFD65918",
+				"green": "#4C853EFF/78B669FF",
+				"transparentGreen": "#4C853E88/78B66988",
+				"blue": "#2294C6FF/38B1E5FF",
+				"faintTransparentIndigo": "#4B35A920/3B279530",
 				"deemphasize": "#80808080/60606080"
-			}, 
-			"stylesheet": 
-			{
-				"=#input-background": 
-				{
+			},
+			"stylesheet": {
+				"=#input-background": {
 					"background": "inputBackground"
-				}, 
-				"=#input-text": 
-				{
+				},
+				"=#input-text": {
 					"foreground": "inputText"
-				}, 
-				"=#code-background": 
-				{
+				},
+				"=#code-background": {
 					"background": "codeBackground"
-				}, 
-				"=#code-text": 
-				{
+				},
+				"=#code-text": {
 					"foreground": "codeText"
-				}, 
-				"=#code-guide": 
-				{
+				},
+				"=#code-guide": {
 					"foreground": "codeGuide"
-				}, 
-				"=#stream-input": 
-				{
+				},
+				"=#stream-input": {
 					"foreground": "streamInput"
-				}, 
-				"=#stream-output": 
-				{
+				},
+				"=#stream-output": {
 					"foreground": "streamOutput"
-				}, 
-				"=#stream-error": 
-				{
+				},
+				"=#stream-error": {
 					"foreground": "streamError"
-				}, 
-				"=#stream-info": 
-				{
+				},
+				"=#stream-info": {
 					"foreground": "streamInfo"
-				}, 
-				"=#stream-command": 
-				{
+				},
+				"=#stream-command": {
 					"foreground": "streamCommand"
-				}, 
-				"=#stream-build-progress": 
-				{
+				},
+				"=#stream-build-progress": {
 					"foreground": "streamBuildProgress"
-				}, 
-				"!": 
-				{
-					"foreground": "codeText", 
+				},
+				"=#stream-report": {
+					"foreground": "streamReport"
+				},
+				"!": {
+					"foreground": "codeText",
 					"background": "rose"
-				}, 
-				"=": 
-				{
-					"foreground": "codeText", 
+				},
+				"=": {
+					"foreground": "codeText",
 					"background": "codeBackground"
-				}, 
-				"#block": 
-				{
+				},
+				"#block": {
 					"foreground": "mustard"
-				}, 
-				"#method-definition": 
-				{
+				},
+				"#method-definition": {
 					"foreground": "rose"
-				}, 
-				"#method-name": 
-				{
-					"foreground": "mango", 
+				},
+				"#method-name": {
+					"foreground": "mango",
 					"bold": true
-				}, 
-				"#parameter-definition": 
-				{
-					"foreground": "transparentMagenta", 
+				},
+				"#parameter-definition": {
+					"foreground": "transparentMagenta",
 					"bold": true
-				}, 
-				"#parameter-use": 
-				{
-					"foreground": "magenta", 
+				},
+				"#parameter-use": {
+					"foreground": "magenta",
 					"bold": true
-				}, 
-				"#method-send": 
-				{
-				}, 
-				"#macro-send": 
-				{
-				}, 
-				"#statement": 
-				{
+				},
+				"#method-send": {},
+				"#macro-send": {},
+				"#statement": {
+					"foreground": "extremeText",
 					"bold": true
-				}, 
-				"#type": 
-				{
+				},
+				"#type": {
 					"foreground": "blue"
-				}, 
-				"#metatype": 
-				{
-					"foreground": "blue", 
+				},
+				"#metatype": {
+					"foreground": "blue",
 					"italic": true
-				}, 
-				"#phrase-type": 
-				{
-					"foreground": "lilac", 
+				},
+				"#phrase-type": {
+					"foreground": "lilac",
 					"italic": true
-				}, 
-				"#module-header": 
-				{
+				},
+				"#module-header": {
 					"foreground": "transparentRose"
-				}, 
-				"#module-header-region": 
-				{
+				},
+				"#module-header-region": {
 					"background": "faintTransparentIndigo"
-				}, 
-				"#version": 
-				{
+				},
+				"#version": {
 					"background": "faintTransparentRose"
-				}, 
-				"#import": 
-				{
+				},
+				"#import": {
 					"background": "faintTransparentRose"
-				}, 
-				"#export": 
-				{
+				},
+				"#export": {
 					"background": "faintTransparentRose"
-				}, 
-				"#entry-point": 
-				{
-					"background": "faintTransparentRose", 
+				},
+				"#entry-point": {
+					"background": "faintTransparentRose",
 					"bold": true
-				}, 
-				"#pragma": 
-				{
-					"background": "faintTransparentRose", 
+				},
+				"#pragma": {
+					"background": "faintTransparentRose",
 					"italic": true
-				}, 
-				"#comment": 
-				{
+				},
+				"#comment": {
 					"foreground": "weakGray"
-				}, 
-				"#documentation": 
-				{
+				},
+				"#documentation": {
 					"foreground": "strongGray"
-				}, 
-				"#documentation-tag": 
-				{
-					"foreground": "strongGray", 
+				},
+				"#documentation-tag": {
+					"foreground": "strongGray",
 					"bold": true
-				}, 
-				"#module-constant-definition": 
-				{
-					"foreground": "transparentMagenta", 
+				},
+				"#module-constant-definition": {
+					"foreground": "transparentMagenta",
 					"bold": true
-				}, 
-				"#module-constant-use": 
-				{
-					"foreground": "magenta", 
+				},
+				"#module-constant-use": {
+					"foreground": "magenta",
 					"italic": true
-				}, 
-				"#module-variable-definition": 
-				{
-					"foreground": "transparentMagenta", 
+				},
+				"#module-variable-definition": {
+					"foreground": "transparentMagenta",
 					"bold": true
-				}, 
-				"#module-variable-use": 
-				{
-					"foreground": "magenta", 
-					"italic": true, 
+				},
+				"#module-variable-use": {
+					"foreground": "magenta",
+					"italic": true,
 					"underline": true
-				}, 
-				"#primitive-failure-reason-definition": 
-				{
-					"foreground": "transparentMagenta", 
+				},
+				"#primitive-failure-reason-definition": {
+					"foreground": "transparentMagenta",
 					"bold": true
-				}, 
-				"#local-constant-definition": 
-				{
-					"foreground": "transparentMagenta", 
+				},
+				"#local-constant-definition": {
+					"foreground": "transparentMagenta",
 					"bold": true
-				}, 
-				"#local-constant-use": 
-				{
+				},
+				"#local-constant-use": {
 					"foreground": "transparentMagenta"
-				}, 
-				"#local-variable-definition": 
-				{
-					"foreground": "transparentMagenta", 
+				},
+				"#local-variable-definition": {
+					"foreground": "transparentMagenta",
 					"bold": true
-				}, 
-				"#local-variable-use": 
-				{
-					"foreground": "magenta", 
+				},
+				"#local-variable-use": {
+					"foreground": "magenta",
 					"underline": true
-				}, 
-				"#label-definition": 
-				{
-					"foreground": "mustard", 
+				},
+				"#label-definition": {
+					"foreground": "mustard",
 					"background": "transparentMustard"
-				}, 
-				"#label-use": 
-				{
+				},
+				"#label-use": {
 					"foreground": "mustard"
-				}, 
-				"#string-literal": 
-				{
+				},
+				"#string-literal": {
 					"foreground": "green"
-				}, 
-				"#string-escape-sequence": 
-				{
-					"foreground": "transparentGreen", 
+				},
+				"#string-escape-sequence": {
+					"foreground": "transparentGreen",
 					"bold": true
-				}, 
-				"#numeric-literal": 
-				{
+				},
+				"#numeric-literal": {
 					"foreground": "green"
-				}, 
-				"#boolean-literal": 
-				{
+				},
+				"#boolean-literal": {
 					"foreground": "green"
-				}, 
-				"#tuple-constructor": 
-				{
+				},
+				"#tuple-constructor": {
 					"foreground": "green"
-				}, 
-				"#set-constructor": 
-				{
+				},
+				"#set-constructor": {
 					"foreground": "green"
-				}, 
-				"#map-constructor": 
-				{
+				},
+				"#map-constructor": {
 					"foreground": "green"
-				}, 
-				"#character-literal": 
-				{
+				},
+				"#character-literal": {
 					"foreground": "green"
-				}, 
-				"#atom-literal": 
-				{
+				},
+				"#atom-literal": {
 					"foreground": "green"
-				}, 
-				"#other-literal": 
-				{
+				},
+				"#other-literal": {
 					"foreground": "green"
-				}, 
-				"#conditional": 
-				{
+				},
+				"#conditional": {
 					"foreground": "mustard"
-				}, 
-				"#loop": 
-				{
+				},
+				"#loop": {
 					"foreground": "mustard"
-				}, 
-				"#lexer-definition": 
-				{
+				},
+				"#lexer-definition": {
 					"foreground": "rose"
-				}, 
-				"#macro-definition": 
-				{
+				},
+				"#macro-definition": {
 					"foreground": "rose"
-				}, 
-				"#semantic-restriction-definition": 
-				{
+				},
+				"#semantic-restriction-definition": {
 					"foreground": "rose"
-				}, 
-				"#grammatical-restriction-definition": 
-				{
+				},
+				"#grammatical-restriction-definition": {
 					"foreground": "rose"
-				}, 
-				"#seal-definition": 
-				{
+				},
+				"#seal-definition": {
 					"foreground": "rose"
-				}, 
-				"#object-type-definition": 
-				{
+				},
+				"#object-type-definition": {
 					"foreground": "rose"
-				}, 
-				"#special-object-definition": 
-				{
+				},
+				"#special-object-definition": {
 					"foreground": "rose"
-				}, 
-				"#primitive-name": 
-				{
-					"foreground": "rose", 
+				},
+				"#primitive-name": {
+					"foreground": "rose",
 					"bold": true
-				}, 
-				"#phrase": 
-				{
+				},
+				"#phrase": {
 					"foreground": "lilac"
-				}, 
-				"#return-value": 
-				{
+				},
+				"#phrase<#statement": {
+					"foreground": "extremeText",
+					"bold": true
+				},
+				"#return-value": {
 					"background": "transparentMustard"
-				}, 
-				"#nonlocal-control": 
-				{
+				},
+				"#nonlocal-control": {
 					"foreground": "mustard"
-				}, 
-				"#math-exponent": 
-				{
+				},
+				"#math-exponent": {
 					"superscript": true
-				}, 
-				"#deemphasize": 
-				{
+				},
+				"#deemphasize": {
 					"foreground": "deemphasize"
-				}, 
-				"#excluded": 
-				{
+				},
+				"#excluded": {
 					"strikethrough": true
 				}
-			}, 
-			"rootCopyright": "/*\n * {{MOD}}.avail\n * Copyright \u00A9 1993-{{YEAR}}, The Avail Foundation, LLC.\n * All rights reserved.\n *\n * Redistribution and use in source and binary forms, with or without\n * modification, are permitted provided that the following conditions are met:\n *\n * * Redistributions of source code must retain the above copyright notice, this\n *   list of conditions and the following disclaimer.\n *\n * * Redistributions in binary form must reproduce the above copyright notice,\n *   this list of conditions and the following disclaimer in the documentation\n *   and/or other materials provided with the distribution.\n *\n * * Neither the name of the copyright holder nor the names of the contributors\n *   may be used to endorse or promote products derived from this software\n *   without specific prior written permission.\n *\n * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE\n * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\n * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\n * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\n * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n * POSSIBILITY OF SUCH DAMAGE.\n */\n"
+			}
 		},
 		{
-			"id": "0fd943b6-ad37-449c-a277-1c939104f0a7", 
-			"name": "builder-tests", 
-			"editable": true, 
-			"visible": true, 
-			"location": 
-			{
-				"locationType": "project", 
-				"scheme": "FILE", 
+			"id": "0fd943b6-ad37-449c-a277-1c939104f0a7",
+			"name": "builder-tests",
+			"editable": true,
+			"location": {
+				"locationType": "project",
+				"scheme": "FILE",
 				"path": "distro/src/builder-tests"
 			}, 
 			"rootCopyright": "/*\n * {{MOD}}.avail\n * Copyright \u00A9 1993-{{YEAR}}, The Avail Foundation, LLC.\n * All rights reserved.\n *\n * Redistribution and use in source and binary forms, with or without\n * modification, are permitted provided that the following conditions are met:\n *\n * * Redistributions of source code must retain the above copyright notice, this\n *   list of conditions and the following disclaimer.\n *\n * * Redistributions in binary form must reproduce the above copyright notice,\n *   this list of conditions and the following disclaimer in the documentation\n *   and/or other materials provided with the distribution.\n *\n * * Neither the name of the copyright holder nor the names of the contributors\n *   may be used to endorse or promote products derived from this software\n *   without specific prior written permission.\n *\n * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE\n * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\n * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\n * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\n * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n * POSSIBILITY OF SUCH DAMAGE.\n */\n"
 		},
 		{
-			"id": "566d8cd7-07e7-4cf3-8c9e-b28bbf244a98", 
-			"name": "examples", 
-			"editable": true, 
-			"visible": true, 
-			"location": 
+			"id": "566d8cd7-07e7-4cf3-8c9e-b28bbf244a98",
+			"name": "examples",
+			"editable": true,
+			"visible": true,
+			"location":
 			{
-				"locationType": "project", 
-				"scheme": "FILE", 
+				"locationType": "project",
+				"scheme": "FILE",
 				"path": "distro/src/examples"
-			}, 
+			},
 			"rootCopyright": "/*\n * {{MOD}}.avail\n * Copyright \u00A9 1993-{{YEAR}}, The Avail Foundation, LLC.\n * All rights reserved.\n *\n * Redistribution and use in source and binary forms, with or without\n * modification, are permitted provided that the following conditions are met:\n *\n * * Redistributions of source code must retain the above copyright notice, this\n *   list of conditions and the following disclaimer.\n *\n * * Redistributions in binary form must reproduce the above copyright notice,\n *   this list of conditions and the following disclaimer in the documentation\n *   and/or other materials provided with the distribution.\n *\n * * Neither the name of the copyright holder nor the names of the contributors\n *   may be used to endorse or promote products derived from this software\n *   without specific prior written permission.\n *\n * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE\n * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\n * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\n * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\n * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n * POSSIBILITY OF SUCH DAMAGE.\n */\n"
 		},
 		{
-			"id": "6d046c0c-448d-4a19-8c2d-ec4fb001d1bf", 
-			"name": "website", 
-			"editable": false, 
-			"visible": true, 
-			"location": 
+			"id": "6d046c0c-448d-4a19-8c2d-ec4fb001d1bf",
+			"name": "website",
+			"editable": false,
+			"visible": true,
+			"location":
 			{
-				"locationType": "project", 
-				"scheme": "FILE", 
+				"locationType": "project",
+				"scheme": "FILE",
 				"path": "distro/src/website"
-			}, 
+			},
 			"rootCopyright": "/*\n * {{MOD}}.avail\n * Copyright \u00A9 1993-{{YEAR}}, The Avail Foundation, LLC.\n * All rights reserved.\n *\n * Redistribution and use in source and binary forms, with or without\n * modification, are permitted provided that the following conditions are met:\n *\n * * Redistributions of source code must retain the above copyright notice, this\n *   list of conditions and the following disclaimer.\n *\n * * Redistributions in binary form must reproduce the above copyright notice,\n *   this list of conditions and the following disclaimer in the documentation\n *   and/or other materials provided with the distribution.\n *\n * * Neither the name of the copyright holder nor the names of the contributors\n *   may be used to endorse or promote products derived from this software\n *   without specific prior written permission.\n *\n * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS \"AS IS\"\n * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE\n * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE\n * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE\n * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR\n * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF\n * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS\n * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN\n * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE\n * POSSIBILITY OF SUCH DAMAGE.\n */\n"
 		}
-	], 
+	],
 	"projectCopyright": ""
 }

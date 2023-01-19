@@ -33,9 +33,11 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.streams.StreamStyle
 import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.StylingRecord
+import avail.utility.Strings.buildUnicodeBox
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JOptionPane
@@ -89,8 +91,14 @@ class ExamineStylingAction constructor (
 						val stylingBytes = repository.repository!![
 							selectedCompilation.recordNumberOfStyling]
 						val stylingRecord = StylingRecord(stylingBytes)
-						workbench.outputStream.println(
-							stylingRecord.styleRuns.joinToString("\n"))
+						val description =
+							stylingRecord.styleRuns.joinToString("\n")
+						val report = buildUnicodeBox(
+							"Style Classification Report"
+						) {
+							append(description)
+						}
+						workbench.writeText(report, StreamStyle.REPORT)
 					}
 					is Any -> assert(false) { "Unknown type selected" }
 				}

@@ -1911,9 +1911,9 @@ class AvailWorkbench internal constructor(
 		}
 		if (previous + size > maxDocumentSize + (maxDocumentSize shr 2))
 		{
-			// We're more than 125% capacity.  Discard old stuff that won't be
-			// displayed because it would be rolled off anyhow.  Since this has
-			// to happen within the dequeLock, it nicely blocks this writer
+			// We're at more than 125% capacity.  Discard old stuff that won't
+			// be displayed because it would be rolled off anyhow.  Since this
+			// has to happen within the dequeLock, it nicely blocks this writer
 			// while whoever owns the lock does its own cleanup.
 			val beforeLock = System.nanoTime()
 			dequeLock.safeWrite {
@@ -1925,8 +1925,8 @@ class AvailWorkbench internal constructor(
 				}
 				finally
 				{
-					// Record the stat just before unlocking, to avoid the need for
-					// a lock for the statistic itself.
+					// Record the stat just before unlocking, to avoid the need
+					// for a lock for the statistic itself.
 					writeTextStat.record(System.nanoTime() - before)
 				}
 			}
@@ -2849,26 +2849,28 @@ class AvailWorkbench internal constructor(
 			swingReady.acquire()
 
 			// Display the UI.
-			val bench = AvailWorkbench(
-				project,
-				runtime,
-				fileManager,
-				resolver,
-				globalAvailSettings,
-				availProjectFilePath,
-				workbenchWindowTitle,
-				projectManager)
-			// Inject a breakpoint handler into the runtime to open a debugger.
-			runtime.breakpointHandler = { fiber ->
-				val debugger = AvailDebugger(bench)
-				bench.openDebuggers.add(debugger)
-				// Debug just the fiber that hit the breakpoint.
-				debugger.gatherFibers { listOf(fiber) }
-				debugger.open()
-			}
-			bench.createBufferStrategy(2)
-			bench.ignoreRepaint = true
-			invokeLater {
+			lateinit var bench: AvailWorkbench
+			invokeAndWaitIfNecessary {
+				bench = AvailWorkbench(
+					project,
+					runtime,
+					fileManager,
+					resolver,
+					globalAvailSettings,
+					availProjectFilePath,
+					workbenchWindowTitle,
+					projectManager)
+				// Inject a breakpoint handler into the runtime to open a
+				// debugger.
+				runtime.breakpointHandler = { fiber ->
+					val debugger = AvailDebugger(bench)
+					bench.openDebuggers.add(debugger)
+					// Debug just the fiber that hit the breakpoint.
+					debugger.gatherFibers { listOf(fiber) }
+					debugger.open()
+				}
+				bench.createBufferStrategy(2)
+				bench.ignoreRepaint = true
 				val initialRefreshTask =
 					object : AbstractWorkbenchTask(bench, null)
 					{

@@ -665,10 +665,12 @@
 				"streamInput": "#209020FF/379C1AFF",
 				"streamOutput": "#000000FF/EEEEEEFF",
 				"streamError": "#FF0000FF/FF6458FF",
-				"streamInfo": "#0000FFFF/5394ECFF",
+				"streamInfo": "#0000FFFF/9EC4F1FF",
 				"streamCommand": "#FF00FFFF/AE8ABEFF",
 				"streamBuildProgress": "#806000FF/DCC457FF",
+				"streamReport": "#AA0070FF/FB53ACFF",
 				"extreme": "#FFFFFFFF/000000FF",
+				"extremeText": "#000000FF/FFFFFFFF",
 				"textBackground": "#FFFFFF4A/21121940",
 				"strongGray": "#00000077/FFFFFF77",
 				"weakGray": "#00000044/FFFFFF44",
@@ -721,6 +723,9 @@
 				"=#stream-build-progress": {
 					"foreground": "streamBuildProgress"
 				},
+				"=#stream-report": {
+					"foreground": "streamReport"
+				},
 				"!": {
 					"foreground": "codeText",
 					"background": "rose"
@@ -750,6 +755,7 @@
 				"#method-send": {},
 				"#macro-send": {},
 				"#statement": {
+					"foreground": "extremeText",
 					"bold": true
 				},
 				"#type": {
@@ -903,6 +909,10 @@
 				},
 				"#phrase": {
 					"foreground": "lilac"
+				},
+				"#phrase<#statement": {
+					"foreground": "extremeText",
+					"bold": true
 				},
 				"#return-value": {
 					"background": "transparentMustard"

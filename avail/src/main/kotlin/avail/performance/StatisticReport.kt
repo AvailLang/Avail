@@ -38,6 +38,7 @@ import avail.optimizer.StackReifier
 import avail.performance.ReportingUnit.BYTES
 import avail.performance.ReportingUnit.DIMENSIONLESS_INTEGRAL
 import avail.performance.ReportingUnit.NANOSECONDS
+import avail.utility.Strings.buildUnicodeBox
 import avail.utility.ifZero
 import java.text.Collator
 import java.util.EnumSet
@@ -214,20 +215,27 @@ enum class StatisticReport constructor(
 		 *   The specified reports as a single [String].
 		 */
 		fun produceReports(reports: EnumSet<StatisticReport>): String =
-			StringBuilder("\n").apply {
-				reports.forEach { report ->
-					append("\n${report.title}\n")
-					val pairs = report.sortedPairs()
-					if (pairs.isNotEmpty()) {
-						val total = PerInterpreterStatistic()
-						pairs.forEach { (_, stat) -> stat.addTo(total) }
-						pairs.add(0, "TOTAL" to total)
-						pairs.forEach { (name, stat) ->
-							stat.describeOn(this@apply, report.unit)
-							append(" $name\n")
+			buildString {
+				reports.forEachIndexed { index, report ->
+					val reportText = buildUnicodeBox(report.title) {
+						val pairs = report.sortedPairs()
+						if (pairs.isNotEmpty())
+						{
+							val total = PerInterpreterStatistic()
+							pairs.forEach { (_, stat) -> stat.addTo(total) }
+							pairs.add(0, "TOTAL" to total)
+							pairs.forEach { (name, stat) ->
+								stat.describeOn(
+									this@buildUnicodeBox,
+									report.unit
+								)
+								append(" $name\n")
+							}
 						}
 					}
+					append(reportText)
+					if (index != reports.size - 1) append("\n")
 				}
-			}.toString()
+			}
 	}
 }

@@ -71,6 +71,7 @@ import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
 import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
+import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.tabs
 import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Point
@@ -498,45 +499,34 @@ private object PrintAllRenderingSolutions: TextAction(
 		var solutions = stylesheet.mostSpecificSolutions(
 			stylesheet.findTree(classifiers))
 		val finalSolution = stylesheet.distillFinalSolution(solutions)
-		val breakdown = buildString {
-			val title = "Styling Solutions Report"
-			val prologue = (78 - title.length - 2) / 2
-			val epilogue = prologue + prologue % 2
-			append("┏")
-			append("━".repeat(prologue))
-			append(" $title ")
-			append("━".repeat(epilogue))
-			append("┓\n")
-			append("${editor.moduleName}:")
+		fun prettify(renderingContext: RenderingContext): String
+		{
+			var pretty = renderingContext.toString()
+				.replace("RenderingContext(", "\n\t")
+				.replace("=", " = ")
+				.replace(", ", "\n\t")
+				.replace(")", "")
+				.trimEnd()
+			if (pretty.isEmpty())
+			{
+				pretty = "\n\t[no overrides]"
+			}
+			return pretty
+		}
+		val breakdown = buildUnicodeBox("Styling Solutions Report") {
+			append("${editor.moduleName}:\n")
 			append("classifiers at caret:\n\t$classifiers\n")
 			append("rendering solutions at caret:")
 			if (solutions.isEmpty())
 			{
 				solutions = listOf(stylesheet.noSolutionsRule.pattern)
 			}
-			fun prettify(renderingContext: RenderingContext): String
-			{
-				var pretty = renderingContext.toString()
-					.replace("RenderingContext(", "\n\t")
-					.replace("=", " = ")
-					.replace(", ", "\n\t")
-					.replace(")", "")
-					.trimEnd()
-				if (pretty.isEmpty())
-				{
-					pretty = "\n\t[no overrides]"
-				}
-				return pretty
-			}
 			solutions.forEach {
 				append("\n>>> ${it.source} ⇒${prettify(it.renderingContext)}")
 			}
 			append("\n::: final rendering solution ⇒${prettify(finalSolution)}")
-			append("\n┗")
-			append("━".repeat(78))
-			append("┛\n")
 		}
-		workbench.writeText(breakdown, StreamStyle.INFO)
+		workbench.writeText(breakdown, StreamStyle.REPORT)
 	}
 }
 

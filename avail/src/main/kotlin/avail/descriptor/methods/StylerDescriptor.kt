@@ -255,11 +255,6 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		DOCUMENTATION("#documentation"),
 
 		/**
-		 * Tags used inside documentation blocks, but not their contents.
-		 */
-		DOCUMENTATION_TAG("#documentation-tag"),
-
-		/**
 		 * The name of a module constant at its definition site.
 		 */
 		MODULE_CONSTANT_DEFINITION("#module-constant-definition"),
@@ -348,21 +343,6 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		BOOLEAN_LITERAL("#boolean-literal"),
 
 		/**
-		 * The fixed syntax used to construct a tuple, but not its elements.
-		 */
-		TUPLE_CONSTRUCTOR("#tuple-literal"),
-
-		/**
-		 * The fixed syntax used to construct a set, but not its elements.
-		 */
-		SET_CONSTRUCTOR("#set-literal"),
-
-		/**
-		 * The fixed syntax used to construct a map, but not its keys or values.
-		 */
-		MAP_CONSTRUCTOR("#set-literal"),
-
-		/**
 		 * A character literal, including delimiters.
 		 */
 		CHARACTER_LITERAL("#character-literal"),
@@ -381,55 +361,12 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		OTHER_LITERAL("#other-literal"),
 
 		/**
-		 * The fixed syntax indicating a conditional expression, but not its
-		 * arguments, i.e., predicates or governed blocks.
-		 */
-		CONDITIONAL("#conditional"),
-
-		/**
-		 * The fixed syntax indicating a loop expression, but not its arguments,
-		 * i.e., predicates or governed blocks.
-		 */
-		LOOP("#loop"),
-
-		/**
-		 * The characters and whitespace that signal a lexer is being defined,
-		 * excluding the lexer name and definition block.
-		 */
-		LEXER_DEFINITION("#lexer-definition"),
-
-		/**
-		 * The characters and whitespace that signal a macro is being defined,
-		 * excluding the macro name and definition block.
-		 */
-		MACRO_DEFINITION("#macro-definition"),
-
-		/**
-		 * The characters and whitespace that signal a semantic restriction is
-		 * being defined for a method, excluding the method name and definition
-		 * block.
-		 */
-		SEMANTIC_RESTRICTION_DEFINITION("#semantic-restriction-definition"),
-
-		/**
 		 * The characters and whitespace that signal a grammatical restriction
 		 * is being defined for a method or macro, excluding the name and
 		 * definition block.
 		 */
 		GRAMMATICAL_RESTRICTION_DEFINITION(
 			"#grammatical-restriction-definition"),
-
-		/**
-		 * The characters and whitespace that signal a seal is being placed,
-		 * excluding the method name and signature types that the seal envelops.
-		 */
-		SEAL_DEFINITION("#seal-definition"),
-
-		/**
-		 * The characters and whitespace that signal an object type is being
-		 * defined, excluding any defined names.
-		 */
-		OBJECT_TYPE_DEFINITION("#object-type-definition"),
 
 		/**
 		 * The characters and whitespace that signal a special object is being
@@ -449,20 +386,6 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 * The return value of a block.
 		 */
 		RETURN_VALUE("#return-value"),
-
-		/**
-		 * The fixed syntax used to express a nonlocal control action, e.g.,
-		 * raising an exception, restarting or exiting a continuation, etc.
-		 */
-		NONLOCAL_CONTROL("#nonlocal-control"),
-
-		/**
-		 * The exponent in an exponential expression like `b` in `a^b`.
-		 */
-		MATH_EXPONENT("#math-exponent"),
-
-		/** The token should be visually ignored. */
-		DEEMPHASIZE("#deemphasize"),
 
 		/** The token should indicate it is being excluded from something. */
 		EXCLUDED("#excluded");
