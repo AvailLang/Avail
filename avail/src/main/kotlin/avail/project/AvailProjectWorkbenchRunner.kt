@@ -40,7 +40,6 @@ import org.availlang.artifact.environment.location.InvalidLocation
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 import org.availlang.artifact.environment.project.AvailProjectV1
-import org.availlang.json.jsonObject
 import java.io.File
 
 /**
@@ -84,13 +83,9 @@ object AvailProjectWorkbenchRunner
 						"config file.")
 			}
 		setupEnvironment()
-		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
-			.removeSuffix(File.separator)
 		val availProject = try
 		{
-			AvailProject.from(
-				projectPath,
-				jsonObject(configFile.readText(Charsets.UTF_8)))
+			AvailProject.from(configFile.absolutePath)
 		}
 		catch (e: Exception)
 		{

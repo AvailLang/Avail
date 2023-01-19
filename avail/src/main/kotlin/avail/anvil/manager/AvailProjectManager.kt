@@ -46,7 +46,6 @@ import avail.anvil.versions.MavenCentralAPI
 import avail.anvil.versions.SearchResponse
 import avail.anvil.window.LayoutConfiguration
 import org.availlang.artifact.environment.project.AvailProject
-import org.availlang.json.jsonObject
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Taskbar
@@ -490,12 +489,9 @@ class AvailProjectManager constructor(
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
 				val projectConfigFile = selectedFile
-				val projectPath = selectedFile.parent
 				val project = try
 				{
-					AvailProject.from(
-						projectPath,
-						jsonObject(projectConfigFile.readText(Charsets.UTF_8)))
+					AvailProject.from(selectedFile.absolutePath)
 				}
 				catch (e: Throwable)
 				{

@@ -311,6 +311,12 @@ class AvailWorkbench internal constructor(
 		availProjectFilePath.substringBeforeLast(File.separator)
 
 	/**
+	 * Read the [AvailProject] from [disk][availProjectFilePath].
+	 */
+	val projectFileFromDisk: AvailProject get() =
+		AvailProject.Companion.from(availProjectFilePath)
+
+	/**
 	 * Backup the [availProject] file to "[availProjectFilePath].backup".
 	 */
 	fun backupProjectFile()
