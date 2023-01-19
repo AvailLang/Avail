@@ -61,7 +61,11 @@ enum class StreamStyle constructor(
 	/** The stream style used to display error output. */
 	ERR(SystemStyleClassifier.STREAM_ERROR, SystemColors::streamError),
 
-	/** The stream style used to display informational text. */
+	/**
+	 * The stream style used to display informational text. Informational text
+	 * constitutes any byproduct text of a command, such as status, logging,
+	 * or timing messages, but does not include explicitly requested reports.
+	 */
 	INFO(SystemStyleClassifier.STREAM_INFO, SystemColors::streamInfo),
 
 	/** The stream style used to echo commands. */
@@ -71,6 +75,14 @@ enum class StreamStyle constructor(
 	BUILD_PROGRESS(
 		SystemStyleClassifier.STREAM_BUILD_PROGRESS,
 		SystemColors::streamBuildProgress
+	),
+
+	/**
+	 * The stream style used to display diagnostics and reports.
+	 */
+	REPORT(
+		SystemStyleClassifier.STREAM_REPORT,
+		SystemColors::streamReport
 	);
 
 	/** The style classifier. */

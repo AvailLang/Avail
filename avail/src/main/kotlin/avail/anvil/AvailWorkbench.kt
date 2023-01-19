@@ -1870,9 +1870,9 @@ class AvailWorkbench internal constructor(
 		}
 		if (previous + size > maxDocumentSize + (maxDocumentSize shr 2))
 		{
-			// We're more than 125% capacity.  Discard old stuff that won't be
-			// displayed because it would be rolled off anyhow.  Since this has
-			// to happen within the dequeLock, it nicely blocks this writer
+			// We're at more than 125% capacity.  Discard old stuff that won't
+			// be displayed because it would be rolled off anyhow.  Since this
+			// has to happen within the dequeLock, it nicely blocks this writer
 			// while whoever owns the lock does its own cleanup.
 			val beforeLock = System.nanoTime()
 			dequeLock.safeWrite {
@@ -1884,8 +1884,8 @@ class AvailWorkbench internal constructor(
 				}
 				finally
 				{
-					// Record the stat just before unlocking, to avoid the need for
-					// a lock for the statistic itself.
+					// Record the stat just before unlocking, to avoid the need
+					// for a lock for the statistic itself.
 					writeTextStat.record(System.nanoTime() - before)
 				}
 			}

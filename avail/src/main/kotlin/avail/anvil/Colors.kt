@@ -78,6 +78,9 @@ sealed class SystemColors
 	/** The default [color][Color] for [StreamStyle.BUILD_PROGRESS]. */
 	abstract val streamBuildProgress: Color
 
+	/** The default [color][Color] of [StreamStyle.REPORT]. */
+	abstract val streamReport: Color
+
 	companion object
 	{
 		/** The active palette. */
@@ -105,6 +108,7 @@ object LightColors: SystemColors()
 	override val streamInfo = Color(0x00, 0x00, 0xFF, 0xFF)
 	override val streamCommand = Color(0xFF, 0x00, 0xFF, 0xFF)
 	override val streamBuildProgress = Color(0x80, 0x60, 0x00, 0xFF)
+	override val streamReport = Color(0xAA, 0x00, 0x70, 0xFF)
 }
 
 /**
@@ -123,7 +127,8 @@ object DarkColors: SystemColors()
 	override val streamInput = Color(0x37, 0x9C, 0x1A, 0xFF)
 	override val streamOutput = Color(0xEE, 0xEE, 0xEE, 0xFF)
 	override val streamError = Color(0xFF, 0x64, 0x58, 0xFF)
-	override val streamInfo = Color(0x53, 0x94, 0xEC, 0xFF)
+	override val streamInfo = Color(0x9E, 0xC4, 0xF1, 0xFF)
 	override val streamCommand = Color(0xAE, 0x8A, 0xBE, 0xFF)
 	override val streamBuildProgress = Color(0xDC, 0xC4, 0x57, 0xFF)
+	override val streamReport = Color(0xFB, 0x53, 0xAC, 0xFF)
 }

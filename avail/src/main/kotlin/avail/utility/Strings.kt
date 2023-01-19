@@ -424,14 +424,24 @@ object Strings
 		borderColumns: Int = 80,
 		builder: StringBuilder.()->Unit
 	) = buildString {
-		val padding = if (title.isEmpty()) 0 else 2
-		val prologue = (borderColumns - title.length - padding - 2) / 2
-		val epilogue = prologue + prologue % 2
-		append("┏")
-		append("━".repeat(prologue))
-		append(" $title ")
-		append("━".repeat(epilogue))
-		append("┓\n")
+		if (title.isEmpty())
+		{
+			append("┏")
+			append("━".repeat(borderColumns - 2))
+			append("┓\n")
+		}
+		else
+		{
+			// The magic constant is an adjustment for padding around the title.
+			val totalBorder = borderColumns - title.length - 2
+			val prologue = totalBorder / 2
+			val epilogue = prologue + totalBorder % 2
+			append("┏")
+			append("━".repeat(prologue - 1))
+			append(" $title ")
+			append("━".repeat(epilogue - 1))
+			append("┓\n")
+		}
 		builder()
 		if (this[lastIndex] != '\n') append('\n')
 		append("┗")

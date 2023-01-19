@@ -44,6 +44,7 @@ import avail.anvil.StyleRuleContextState.RUNNING
 import avail.anvil.StyleRuleExecutor.endOfSequenceLiteral
 import avail.anvil.StyleRuleExecutor.run
 import avail.anvil.StyleRuleInstructionCoder.Companion.decodeInstruction
+import avail.anvil.streams.StreamStyle
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.interpreter.execution.AvailLoader
@@ -582,12 +583,11 @@ sealed class StylePattern constructor(
 	 *   match.
 	 * * For inexact matches, given two [patterns][StylePattern] `P` and `Q`,
 	 *   the following rules are applied in order:
-	 *    * If `P` contains `Q` and `|P| ≥ |Q|`, then `P` is
-	 *      _[more&#32;specific][Order.MORE]_.
+	 *    * If `P` contains `Q`, then `P` is _[more&#32;specific][Order.MORE]_.
 	 *    * If `|successions(P)| = `|successions(Q)|`, where `successions`
-	 *      computes the successions of its argument, and every succession of
-	 *      `P` is more specific than the corresponding succession of `Q`, then
-	 *      `P` is _[more&#32;specific][Order.MORE]_.
+	 *      computes the [successions][SuccessionToken] of its argument, and
+	 *      every succession of `P` is more specific than the corresponding
+	 *      succession of `Q`, then `P` is _[more&#32;specific][Order.MORE]_.
 	 *    * If `|successions(P)| = 1` and `|successions(Q)| > 1`, then `P` and
 	 *      `Q` are _[incomparable][Order.INCOMPARABLE]_.
 	 *    * If every succession of `P` occurs within `Q`, preserving order and
@@ -3204,45 +3204,60 @@ enum class SystemStyleClassifier(val classifier: String)
 		override val colorName = systemColor.name
 	},
 
-	/** The stream style used to echo user input. */
+	/** The [stream&#32;style][StreamStyle] used to echo user input. */
 	STREAM_INPUT("#stream-input")
 	{
 		override val systemColor = SystemColors::streamInput
 		override val colorName = systemColor.name
 	},
 
-	/** The stream style used to display normal output. */
+	/** The [stream&#32;style][StreamStyle] used to display normal output. */
 	STREAM_OUTPUT("#stream-output")
 	{
 		override val systemColor = SystemColors::streamOutput
 		override val colorName = systemColor.name
 	},
 
-	/** The stream style used to display error output. */
+	/** The [stream&#32;style][StreamStyle] used to display error output. */
 	STREAM_ERROR("#stream-error")
 	{
 		override val systemColor = SystemColors::streamError
 		override val colorName = systemColor.name
 	},
 
-	/** The stream style used to display informational text. */
+	/**
+	 * The [stream&#32;style][StreamStyle] used to display informational text.
+	 */
 	STREAM_INFO("#stream-info")
 	{
 		override val systemColor = SystemColors::streamInfo
 		override val colorName = systemColor.name
 	},
 
-	/** The stream style used to echo commands. */
+	/** The [stream&#32;style][StreamStyle] used to echo commands. */
 	STREAM_COMMAND("#stream-command")
 	{
 		override val systemColor = SystemColors::streamCommand
 		override val colorName = systemColor.name
 	},
 
-	/** The stream style used to provide build progress updates. */
+	/**
+	 * The [stream&#32;style][StreamStyle] used to provide build progress
+	 * updates.
+	 */
 	STREAM_BUILD_PROGRESS("#stream-build-progress")
 	{
 		override val systemColor = SystemColors::streamBuildProgress
+		override val colorName = systemColor.name
+	},
+
+	/**
+	 * The [stream&#32;style][StreamStyle] used to display diagnostics and
+	 * reports.
+	 */
+	STREAM_REPORT("#stream-report")
+	{
+		override val systemColor = SystemColors::streamReport
 		override val colorName = systemColor.name
 	};
 

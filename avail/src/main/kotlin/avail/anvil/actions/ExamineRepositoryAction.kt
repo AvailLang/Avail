@@ -33,9 +33,11 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.streams.StreamStyle
 import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.Repository
 import avail.persistence.cache.RepositoryDescriber
+import avail.utility.Strings.buildUnicodeBox
 import java.awt.event.ActionEvent
 import javax.swing.Action
 
@@ -62,7 +64,11 @@ class ExamineRepositoryAction constructor(
 			root.repository.use { repository ->
 				repository.reopenIfNecessary()
 				val describer = RepositoryDescriber(repository)
-				workbench.outputStream.println(describer.dumpAll())
+				val description = describer.dumpAll()
+				val report = buildUnicodeBox("Repository Report") {
+					append(description)
+				}
+				workbench.writeText(report, StreamStyle.REPORT)
 			}
 		}
 	}

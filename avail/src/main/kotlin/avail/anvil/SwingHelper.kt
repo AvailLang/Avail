@@ -338,6 +338,10 @@ class WindowAction constructor(
  * [event&#32;dispatch&#32;thread][SwingUtilities.isEventDispatchThread] and
  * wait for it to complete. If this _is_ the event dispatch thread, then
  * just perform the [action] synchronously.
+ *
+ * @param action
+ *   The action to perform on the
+ *   [event&#32;dispatch&#32;thread][SwingUtilities.isEventDispatchThread].
  */
 @Suppress("NOTHING_TO_INLINE")
 inline fun invokeAndWaitIfNecessary(
