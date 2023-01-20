@@ -905,10 +905,7 @@ Semantic restriction "`|_`|" is
 [
 	a : number's type
 |
-	if |a| = ∞ then
-	[
-		⊤
-	]
+	if |a| = ∞ then [⊤]
 	else
 	[
 		instances ::= a's instances → tuple;
@@ -1003,10 +1000,14 @@ Public macro "«_‡«=|≤|<»!»" is
 		get1 ::= «↓blockArgs[i]» ?→ phrase ⇒ number;
 		get2 ::= «↓blockArgs[i + 1]» ?→ phrase ⇒ number;
 		operatorIndex ::= operatorIndices[i];
-		comparison ::= if operatorIndex = 1 then [⟦⦊get1⦉ = ⦊get2⦉⟧]
-			else [
+		comparison ::=
+			if operatorIndex = 1
+			then [⟦⦊get1⦉ = ⦊get2⦉⟧]
+			else
+			[
 				if operatorIndex = 2 then [⟦⦊get1⦉ ≤ ⦊get2⦉⟧]
-				else [⟦⦊get1⦉ < ⦊get2⦉⟧]];
+				else [⟦⦊get1⦉ < ⦊get2⦉⟧]
+			];
 		statements ++= <⟦ Exit ⦊getExit⦉ with false if ¬ ⦊comparison⦉; ⟧>;
 		true
 	];

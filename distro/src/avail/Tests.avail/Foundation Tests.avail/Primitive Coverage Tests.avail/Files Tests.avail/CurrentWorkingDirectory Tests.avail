@@ -39,6 +39,6 @@ Body
 
 Test "CurrentWorkingDirectory ok" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

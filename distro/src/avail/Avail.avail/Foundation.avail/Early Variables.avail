@@ -196,7 +196,7 @@ Invoke
 				observed-variable-written-while-untraced code});
 			Invoke variableFailureFunction with <failureCode, f, <var, value>>;
 		] : ⊤;
-	Public method "_↑`?=_" is f;
+	Public method "_↑`?=_" is f styled by statement styler;
 	Alias "_`?=_" to atom for "_↑`?=_";
 ]
 with <>;
@@ -387,7 +387,8 @@ Invoke
 			expecting any
 		] : any;
 	Public method "atomically read_↑and store_" is f;
-	Alias "atomically read_and store_" to atom for "atomically read_↑and store_";
+	Alias "atomically read_and store_"
+		to atom for "atomically read_↑and store_";
 ]
 with <>;
 

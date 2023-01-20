@@ -321,7 +321,7 @@ Private method "minimum`|_after formatting`|" is
 		site : format site,
 		partial : whole number
 	|
-		cast partial - (|site[1]| + 2) into [ t : whole number | t ]
+		cast partial - (|site[1]| + 2) into [t : whole number | t]
 	]
 ] : whole number;
 
@@ -406,7 +406,7 @@ Public stable method "format_with_" is
 			text is
 			[
 				value ::= vars[site[1]] else missing;
-				cast value into [ t : string | t ] else badType
+				cast value into [t : string | t] else badType
 			],
 			escape is
 			[
@@ -459,8 +459,8 @@ Private method "format variable for_" is
 		literal : literal token
 	|
 		value ::= literal's value;
-		cast value into [ t : string | t ]
-		else [ “value” ]
+		cast value into [t : string | t]
+		else [“value”]
 	]
 	else
 	[
@@ -736,7 +736,7 @@ Public stable method "format_with unchecked_" is
 			[
 				varIndex ::= circledNumberValues[var] else badName;
 				value ::= if varIndex ≤ |vars|
-					then [ vars[varIndex] ]
+					then [vars[varIndex]]
 					else missing;
 				“value”
 			],
@@ -746,7 +746,7 @@ Public stable method "format_with unchecked_" is
 				value ::= if varIndex ≤ |vars|
 					then [ vars[varIndex] ]
 					else missing;
-				cast value into [ t : string | t ] else badType
+				cast value into [t : string | t] else badType
 			],
 			escape is
 			[

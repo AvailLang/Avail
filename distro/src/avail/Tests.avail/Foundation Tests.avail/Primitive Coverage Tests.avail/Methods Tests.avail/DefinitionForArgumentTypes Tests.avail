@@ -39,30 +39,30 @@ Body
 
 Test "DefinitionForArgumentTypes ok" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "DefinitionForArgumentTypes fails with incorrect-number-of-arguments exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-number-of-arguments exception;
 
 Test "DefinitionForArgumentTypes fails with no-method exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise no-method exception;
 
 Test "DefinitionForArgumentTypes fails with no-method-definition exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise no-method-definition exception;
 
 Test "DefinitionForArgumentTypes fails with ambiguous-method-definition exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise ambiguous-method-definition exception;
 

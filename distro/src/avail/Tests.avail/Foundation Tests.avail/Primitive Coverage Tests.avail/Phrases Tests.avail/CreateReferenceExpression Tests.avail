@@ -39,12 +39,12 @@ Body
 
 Test "CreateReferenceExpression ok" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "CreateReferenceExpression fails with declaration-kind-does-not-support-reference exception" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise declaration-kind-does-not-support-reference exception;
 

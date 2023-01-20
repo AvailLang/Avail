@@ -696,7 +696,8 @@ Public method "{«_→_‡,»}" is
 	bindings : key-value tuple
 |
 	bindings→map
-] : map;
+] : map
+styled by map styler;
 
 /**
  * If a lexical map is built only from expressions with statically well-known

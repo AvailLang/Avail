@@ -646,7 +646,8 @@ Public method "Require:_[_.._]is ever valid" is
 			++ “⌈sliceStart⌉”
 			++ ")"
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Construct and answer the tuple type that represents the specified tuple
@@ -1032,8 +1033,7 @@ Semantic restriction "_→map" is
 	[
 		index : natural number
 	|
-		bindingType ::= /*cast*/ tupleType[index]
-			/*into [ t : <<>, any…|[2..2]>'s type | t ]*/;
+		bindingType ::= tupleType[index];
 		keyType := cast eject keyType ∪ bindingType[1]
 			into [ t : any meta | t ];
 		valueType := cast eject valueType ∪ bindingType[2]
@@ -1273,7 +1273,8 @@ Public method "_↑++=_" is
 	t : tuple
 |
 	var ?= eject var ++ t;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Semantic restriction "_↑++=_" is
 [

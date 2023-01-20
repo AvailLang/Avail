@@ -39,6 +39,6 @@ Body
 
 Test "DoubleToLongBits ok" in primitive doubles test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

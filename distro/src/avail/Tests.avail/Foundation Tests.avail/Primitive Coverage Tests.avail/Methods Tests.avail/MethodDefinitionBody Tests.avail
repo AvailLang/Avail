@@ -39,6 +39,6 @@ Body
 
 Test "MethodDefinitionBody ok" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

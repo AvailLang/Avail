@@ -169,6 +169,7 @@
 				"transparentMagenta": "#D03B83AA/D25B94AA",
 				"rose": "#DC4444FF",
 				"transparentRose": "#DC444488",
+				"weakTransparentRose": "#DC444444",
 				"faintTransparentRose": "#DC444422",
 				"mango": "#EE731BFF/FF8836FF",
 				"mustard": "#E8B000FF/FFD659FF",
@@ -224,6 +225,20 @@
 					"foreground": "codeText",
 					"background": "codeBackground"
 				},
+				"=#method-send,#phrase": {
+					"foreground": "lilac"
+				},
+				"=#macro-send,#phrase": {
+					"foreground": "lilac"
+				},
+				"=#return-value,#method-send,#phrase": {
+					"foreground": "lilac",
+					"background": "transparentMustard"
+				},
+				"=#return-value,#macro-send,#phrase": {
+					"foreground": "lilac",
+					"background": "transparentMustard"
+				},
 				"#block": {
 					"foreground": "mustard"
 				},
@@ -251,9 +266,15 @@
 				"#type": {
 					"foreground": "blue"
 				},
+				"#type<#assert": {
+					"italic": true
+				},
 				"#metatype": {
 					"foreground": "blue",
 					"italic": true
+				},
+				"#metatype<#conditional": {
+					"foreground": "mustard"
 				},
 				"#phrase-type": {
 					"foreground": "lilac",
@@ -333,7 +354,8 @@
 					"background": "transparentMustard"
 				},
 				"#label-use": {
-					"foreground": "mustard"
+					"foreground": "mustard",
+					"underline": true
 				},
 				"#string-literal": {
 					"foreground": "green"
@@ -372,6 +394,10 @@
 				"#loop": {
 					"foreground": "mustard"
 				},
+				"#loop,#nonlocal-control": {
+					"foreground": "mustard",
+					"italic": true
+				},
 				"#lexer-definition": {
 					"foreground": "rose"
 				},
@@ -397,18 +423,27 @@
 					"foreground": "rose",
 					"bold": true
 				},
-				"#phrase": {
+				"#phrase": {},
+				"#phrase<#phrase<#phrase": {
 					"foreground": "lilac"
-				},
-				"#phrase<#statement": {
-					"foreground": "extremeText",
-					"bold": true
 				},
 				"#return-value": {
 					"background": "transparentMustard"
 				},
+				"#return-value<#assert-expression": {
+					"background": "weakTransparentRose"
+				},
 				"#nonlocal-control": {
 					"foreground": "mustard"
+				},
+				"#assert": {
+					"italic": true
+				},
+				"#assert-expression": {
+					"background": "weakTransparentRose"
+				},
+				"#assert-expression<#return-value": {
+					"background": "weakTransparentRose"
 				},
 				"#math-exponent": {
 					"superscript": true

@@ -229,7 +229,14 @@ Public method "_'s⁇classifier" is
 	aToken : token
 |
 	Primitive TokenClassifier;
-] : enumeration of {end of file, keyword, literal, operator, comment, whitespace};
+] : enumeration of {
+	end of file,
+	keyword,
+	literal,
+	operator,
+	comment,
+	whitespace
+};
 
 /**
  * Strengthen literal <em>phrase</em> building to covary with the type of object

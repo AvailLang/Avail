@@ -462,7 +462,8 @@ Method "Require:_accepts_" is
 				\|of the reader (but it only accepts “②”)"
 			with elementType, actionType[1]
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Iteratively apply {@param "action"} to each consecutive element of {@param

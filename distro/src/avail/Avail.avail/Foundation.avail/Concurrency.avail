@@ -101,7 +101,10 @@ Names
 	"the future of_",
 
 	/* Exceptions. */
-	"worker exception"
+	"worker exception",
+	
+	/* Stylers. */
+	"concurrent loop styler"
 Body
 
 /**
@@ -147,7 +150,8 @@ Private method "Require:forked_accepts_" is
 				\| function's parameter tuple"
 		];
 	];
-];
+]
+styled by assertion styler;
 
 /**
  * @method "Invoke_with_,⁇forked at priority_"
@@ -281,7 +285,8 @@ Method "current fiber[_]else_" is
 	if key ∈ current fiber
 	then [current fiber[key]]
 	else else
-] : any;
+] : any
+styled by conditional styler;
 
 /**
  * Fork a new {@type "fiber"} to apply the specified arity-0 {@type "function"}.
@@ -298,7 +303,8 @@ Public method "Fork_" is
 	aFunction : []→⊤
 |
 	Invoke aFunction with <> forked at priority current fiber's priority;
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
 
 /**
  * Fork a new {@type "fiber"} to apply the specified arity-0 {@type "function"}.
@@ -316,7 +322,8 @@ Public method "fork_" is
 	aFunction : []→⊤
 |
 	invoke aFunction with <> forked at priority current fiber's priority
-] : fiber;
+] : fiber
+styled by nonlocal control styler;
 
 /**
  * @method "fork_"
@@ -355,7 +362,8 @@ Public method "In_millisecond|milliseconds,⁇fork_" is
 	In delay milliseconds,
 		invoke aFunction with <>
 		forked at priority current fiber's priority;
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
 
 /**
  * When at least the specified number of milliseconds have elapsed, fork a new
@@ -500,7 +508,8 @@ Public method "the future of_" is
 		worker fiber ::= ↑worker,
 		product ::= ↑result,
 		killer ::= ↑ex
-] : future;
+] : future
+styled by nonlocal control styler;
 
 /**
  * @method "the future of_"
@@ -584,7 +593,32 @@ Public method "Cancel_" is
 		Request termination of worker;
 	]
 	intercept [e : cannot-read-unassigned-variable exception | /* Nothing. */];
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
+
+/**
+ * Answer a function that applies the system style sequence
+ * {@code "#loop,#nonlocal-control"} to the fixed tokens of an original
+ * {@method "send phrase"}, suitable for use in the styling clause of a
+ * method definition.
+ *
+ * @return "styler function"
+ *   The requested styler.
+ */
+Public method "concurrent loop styler" is
+[
+	[
+		optionalOriginal : send phrase?,
+		transformed : phrase
+	|
+		attempt extract optionalOriginal or transformed then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#loop,#nonlocal-control";
+		];
+	] : ⊤
+] : styler function;
 
 /**
  * Construct and answer an injector {@type "fiber"} that spawns worker {@type
@@ -636,7 +670,8 @@ Public method "injector from_to_by_doing_in parallel_-way" is
 	]
 	with <>
 	forked at priority 0 max current fiber's priority - 1
-] : fiber→⊤;
+] : fiber→⊤
+styled by concurrent loop styler;
 
 Semantic restriction "injector from_to_by_doing_in parallel_-way" is
 [
@@ -763,18 +798,19 @@ Private method "«indexed»?return type(_,_,_,_,_)" is
 	elementType ::= aTuple's strengthening function();
 	aTupleType ::= aTuple's semantic type;
 	optionalLimitType ::= optionalLimit's semantic type;
-	blockType ::= if indexed then
-	[
-		indexingType ::= (0 .. ⌈aTupleType⌉+1);
-		[elementType, indexingType]→(action's semantic type's return type)
-	] else
-	[
-		[elementType]→(action's semantic type's return type)
-	];
-
+	blockType ::=
+		if indexed then
+		[
+			indexingType ::= (0 .. ⌈aTupleType⌉+1);
+			[elementType, indexingType]→(action's semantic type's return type)
+		]
+		else
+		[
+			[elementType]→(action's semantic type's return type)
+		];
 	strengthen baseReturnType for call of anAtom
 		using <aTupleType, optionalLimitType, blockType>
-]:type;
+] : type;
 
 /**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
@@ -826,7 +862,8 @@ Public method "For each of⁇_in parallel«_-way»do_" is
 		Request termination of injector;
 		Raise a worker exception with causal exception ::= killer
 	];
-] : ⊤;
+] : ⊤
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
@@ -1005,7 +1042,8 @@ Private method "concurrent two-input tuple body function(_,_)" is
  */
 Public macro "For each…in|of_§in parallel«_-way»do_" is
 	a tuple iteration prefix function,
-	concurrent tuple body function($"For each of⁇_in parallel«_-way»do_", ⊤);
+	concurrent tuple body function($"For each of⁇_in parallel«_-way»do_", ⊤)
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "action"} to each consecutive element of {@param
@@ -1036,15 +1074,8 @@ Public macro "For each…in|of_§in parallel«_-way»do_" is
 Public macro "For each…,…in|of_§in parallel«_-way»do_" is
 	a two-input tuple iteration prefix function,
 	concurrent two-input tuple body function(
-		$"For each of⁇_in parallel«_-way»do_", ⊤);
-
-/*	Test code for building this set of macros
-For each n,i of 1 to 10 in parallel do
-[
-	Print: "i + n=";
-	Print: “i + n”;
-	Print: "\n";
-];*/
+		$"For each of⁇_in parallel«_-way»do_", ⊤)
+styled by concurrent loop styler;
 
 /*
  * Answer a function that computes a concurrent body function.
@@ -1314,7 +1345,8 @@ Private method "concurrent map body function(_,_)" is
  */
 Macro "For each…→…in|of_§in parallel«_-way»do_" is
 	a map iteration prefix function,
-	concurrent map body function($"For each of⁇_in parallel«_-way»do_", ⊤);
+	concurrent map body function($"For each of⁇_in parallel«_-way»do_", ⊤)
+styled by concurrent loop styler;
 
 "filler" is a new atom;
 
@@ -1379,7 +1411,8 @@ Public method "map_in parallel«_-way»through_" is
 		Raise a worker exception with causal exception ::= killer
 	];
 	results
-];
+]
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "transformer"} to each consecutive element of
@@ -1473,7 +1506,8 @@ Semantic restriction "map_in parallel«_-way»through_" is
  */
 Public macro "map each…in|of_§in parallel«_-way»through_" is
 	a tuple iteration prefix function,
-	concurrent tuple body function($"map_in parallel«_-way»through_", tuple);
+	concurrent tuple body function($"map_in parallel«_-way»through_", tuple)
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "transformer"} to each consecutive element of
@@ -1504,7 +1538,8 @@ Public macro "map each…in|of_§in parallel«_-way»through_" is
 Public macro "map each…,…in|of_§in parallel«_-way»through_" is
 	a two-input tuple iteration prefix function,
 	concurrent two-input tuple body function(
-		$"map_in parallel«_-way»through_", tuple);
+		$"map_in parallel«_-way»through_", tuple)
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "transformer"} to each element of a
@@ -1746,7 +1781,8 @@ Semantic restriction "map_in parallel«_-way»through_" is
 Public macro "map each…→…in|of_§in parallel«_-way»through_" is
 	a map iteration prefix function,
 	concurrent map body function(
-		$"map_in parallel«_-way»through_", map);
+		$"map_in parallel«_-way»through_", map)
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "filter"} to each consecutive element of {@param
@@ -1814,7 +1850,8 @@ Public method "filter_in parallel«_-way»by_" is
 		Raise a worker exception with causal exception ::= killer
 	];
 	select each a from results where [a ≠ filler]
-];
+]
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "filter"} to each consecutive element of {@param
@@ -2083,7 +2120,8 @@ Semantic restriction "filter_in parallel«_-way»by_" is
  */
 Public macro "select each…from_§in parallel«_-way»where_" is
 	a tuple iteration prefix function,
-	concurrent tuple body function($"filter_in parallel«_-way»by_", tuple);
+	concurrent tuple body function($"filter_in parallel«_-way»by_", tuple)
+styled by concurrent loop styler;
 
 /**
  *  Concurrently apply {@param "predicate"} to each consecutive element of
@@ -2121,7 +2159,8 @@ Public macro "select each…from_§in parallel«_-way»where_" is
 Public macro "select each…,…from_§in parallel«_-way»where_" is
 	a two-input tuple iteration prefix function,
 	concurrent two-input tuple body function(
-		$"filter_in parallel«_-way»by_", tuple);
+		$"filter_in parallel«_-way»by_", tuple)
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "predicate"} to each consecutive element of
@@ -2159,7 +2198,7 @@ Macro "select each…from_§in parallel«_-way»where_" is
 	concurrent set body function($"filter_in parallel«_-way»by_", set);
 
 /**
- *  Concurrently apply {@param "predicate"} to each consecutive pair of {@param
+ * Concurrently apply {@param "predicate"} to each consecutive pair of {@param
  * "aMap"}, collecting elements for which {@param "predicate"} answered
  * {@method "true"} into a new map.
  *
@@ -2191,7 +2230,8 @@ Macro "select each…from_§in parallel«_-way»where_" is
  */
 Public macro "select each…→…from_§in parallel«_-way»where_" is
 	a map iteration prefix function,
-	concurrent map body function($"filter_in parallel«_-way»by_", map);
+	concurrent map body function($"filter_in parallel«_-way»by_", map)
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "predicate"} to each consecutive element of
@@ -2262,7 +2302,8 @@ a tuple iteration prefix function,
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "predicate"} to each consecutive element of
@@ -2352,7 +2393,8 @@ a tuple iteration prefix function,
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "predicate"} to each consecutive element of
@@ -2524,7 +2566,8 @@ a set iteration prefix function,
 				newStatements
 			] : blockReturnType»
 		>» : returnType
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by concurrent loop styler;
 
 /**
  * Concurrently apply {@param "accumulator"} to each element of {@param
@@ -2605,7 +2648,8 @@ Public method "map and filter_in parallel«_-way»by_" is
 		Raise a worker exception with causal exception ::= killer
 	];
 	select each a from results where [a ≠ filler]
-];
+]
+styled by concurrent loop styler;
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.

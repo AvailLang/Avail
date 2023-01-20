@@ -302,4 +302,5 @@ Public method "Require:_are sensible" is
 		];
 		seen := eject seen + option;
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;

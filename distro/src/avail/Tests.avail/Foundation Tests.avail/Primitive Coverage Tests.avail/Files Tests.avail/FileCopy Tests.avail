@@ -39,30 +39,30 @@ Body
 
 Test "FileCopy ok" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "FileCopy fails with I/O exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise I/O exception;
 
 Test "FileCopy fails with permission-denied exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise permission-denied exception;
 
 Test "FileCopy fails with partial-success exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise partial-success exception;
 
 Test "FileCopy fails with invalid-path exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise invalid-path exception;
 

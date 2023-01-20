@@ -133,7 +133,8 @@ Public method "Completely seal method_" is
 	methodName : string
 |
 	Seal method methodName at |message methodName's parameters| of any;
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 /**
  * Completely seal the specified method. No further definitions may be

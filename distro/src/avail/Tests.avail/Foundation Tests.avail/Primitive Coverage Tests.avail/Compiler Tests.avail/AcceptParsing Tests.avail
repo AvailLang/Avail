@@ -39,12 +39,12 @@ Body
 
 Test "AcceptParsing ok" in primitive compiler test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "AcceptParsing fails with untimely-parse-acceptance exception" in primitive compiler test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise untimely-parse-acceptance exception;
 

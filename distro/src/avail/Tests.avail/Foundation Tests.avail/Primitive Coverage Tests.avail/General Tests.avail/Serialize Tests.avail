@@ -39,12 +39,12 @@ Body
 
 Test "Serialize ok" in primitive general test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "Serialize fails with serialization-failed exception" in primitive general test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise serialization-failed exception;
 

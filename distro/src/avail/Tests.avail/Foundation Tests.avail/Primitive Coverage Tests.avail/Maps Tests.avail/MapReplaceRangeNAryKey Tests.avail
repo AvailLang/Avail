@@ -51,28 +51,28 @@ Test "MapReplaceRangeNAryKey ok" in primitive maps test suite is
 Test "MapReplaceRangeNAryKey fails with subscript-out-of-bounds exception"
 in primitive maps test suite is
 [
-	m1["3"]["boo"][2..4]→<9,9,9>
+	Ignore: m1["3"]["boo"][2..4]→<9,9,9>;
 ]
 must raise subscript-out-of-bounds exception;
 
 Test "MapReplaceRangeNAryKey fails with incorrect-argument-type exception"
 in primitive maps test suite is
 [
-	m1["3"]["boo"][2][2..2]→<9,9,9>
+	Ignore: m1["3"]["boo"][2][2..2]→<9,9,9>;
 ]
 must raise incorrect-argument-type exception;
 
 Test "MapReplaceRangeNAryKey fails with key-not-found exception"
 in primitive maps test suite is
 [
-	m1["boo"][2][2..2]→<9,9>
+	Ignore: m1["boo"][2][2..2]→<9,9>;
 ]
 must raise key-not-found exception;
 
 Test "MapReplaceRangeNAryKey fails with negative-size exception"
 in primitive maps test suite is
 [
-	m1["3"]["boo"][11..4]→<9,9,9>
+	Ignore: m1["3"]["boo"][11..4]→<9,9,9>;
 	// TODO: verify smallest negative range raises this exception
 ]
 must raise negative-size exception;

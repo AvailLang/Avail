@@ -39,12 +39,12 @@ Body
 
 Test "MethodFromName ok" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "MethodFromName fails with no-method exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise no-method exception;
 

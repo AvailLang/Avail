@@ -121,7 +121,7 @@ styled by
 	original : send phrase?,
 	transformed : phrase
 |
-	cast original[1] else [transformed] into [
+	Cast original[1] else [transformed] into [
 		sendPhrase : send phrase
 	|
 		Style token sendPhrase's tokens[1] as #deemphasize;
@@ -299,24 +299,12 @@ Method "_^_" is
 	 */
 	if exponent = 0 then
 	[
-		If base ∈ {∞, -∞} then
-		[
-			Raise an arithmetic exception
-		];
+		If base ∈ {∞, -∞} then [Raise an arithmetic exception];
 		1
 	]
-	else if base = ∞ then
-	[
-		∞
-	]
-	else if base = -∞ then
-	[
-		if exponent is odd then [-∞] else [∞]
-	]
-	else
-	[
-		(base ?→ integer) simple^ exponent onto 1
-	]
+	else if base = ∞ then [∞]
+	else if base = -∞ then [if exponent is odd then [-∞] else [∞]]
+	else [(base ?→ integer) simple^ exponent onto 1]
 ] : extended integer;
 
 Method "_^_" is
@@ -580,7 +568,8 @@ Public method "_↑+=_" is
 	delta : number
 |
 	var ?= eject var + delta;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_+=_" to "_↑+=_";
 
@@ -603,7 +592,8 @@ Public method "_↑-=_" is
 	delta : number
 |
 	var ?= eject var - delta;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_-=_" to "_↑-=_";
 
@@ -626,7 +616,8 @@ Public method "_↑×=_" is
 	multiplier : number
 |
 	var ?= eject var × multiplier;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_×=_" to "_↑×=_";
 
@@ -650,7 +641,8 @@ Public method "_↑÷=_" is
 	divisor : number
 |
 	var ?= eject var ÷ divisor;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_÷=_" to "_↑÷=_";
 
@@ -716,27 +708,15 @@ Semantic restriction "low_bits of_" is
 |
 	max ::= cast ⌈bitsType⌉
 		into [maxBits : whole number | (1 << maxBits) - 1] else [∞];
-	if ⌊integerType⌋ < 0 then
-	[
-		/* It includes negatives, so let's assume pretty much any result is
-		 * possible.
-		 */
-		[0 .. max + 1)
-	]
-	else if max = ∞ then
-	[
-		/* Number of output bits may be arbitrarily large. */
-		integerType
-	]
-	else if ⌈integerType⌉ ≤ max then
-	[
-		/* It falls within the range, so no truncation can happen. */
-		integerType
-	]
-	else
-	[
-		[0 .. max)
-	]
+	/* It includes negatives, so let's assume pretty much any result is
+	 * possible.
+	 */
+	if ⌊integerType⌋ < 0 then [[0 .. max + 1)]
+	/* Number of output bits may be arbitrarily large. */
+	else if max = ∞ then [integerType]
+	/* It falls within the range, so no truncation can happen. */
+	else if ⌈integerType⌉ ≤ max then [integerType]
+	else [[0 .. max)]
 ];
 
 /**
@@ -987,7 +967,9 @@ Public method "⌊√_⌋" is
 	[
 		/* recursive bit-shifting */
 		candidate ::= 2 × ⌊√ (x >> 2)⌋;
-		if (candidate + 1) × (candidate + 1) > x then [candidate] else [candidate + 1]
+		if (candidate + 1) × (candidate + 1) > x
+		then [candidate]
+		else [candidate + 1]
 	]
 ];
 
@@ -1140,14 +1122,14 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
  * near the square root of n, checking values in the given range. If no such
  * pair can be found, return the sentinel value <0, 0>.
  *
- * @method "fermat's factorization of_«,⁇from_»?«,⁇to_»?"
+ * @method "Fermat's factorization of_«,⁇from_»?«,⁇to_»?"
  * @category "Integers"
  * @param "n" "natural number"
  * @param "start" "whole number?"
  * @param "end" "whole number?"
  * @returns "<whole number…|2>"
  */
-Private method "fermat's factorization of_«,⁇from_»?«,⁇to_»?" is
+Private method "Fermat's factorization of_«,⁇from_»?«,⁇to_»?" is
 [
 	n : natural number,
 	start : whole number?,
@@ -1179,7 +1161,7 @@ Forward method "_is prime" is [natural number]→boolean;
  * trial division and Fermat's factorization methods. If no factor is found,
  * return <n, 1>.
  *
- * @method "fermat's factorization of_«,⁇from_»?«,⁇to_»?"
+ * @method "Fermat's factorization of_«,⁇from_»?«,⁇to_»?"
  * @category "Integers"
  * @param "n" "natural number"
  * @param "start" "whole number?"
@@ -1230,7 +1212,7 @@ Private method "factor_by hybrid-fermat" is
 	Exit body with <sqrt, sqrt> if sqrt^2 = n;
 
 	// Phase IIb - Fermat's factorization to find factors near √n.
-	foundFactors := fermat's factorization of n, from sqrt+1 to fermatLimit;
+	foundFactors := Fermat's factorization of n, from sqrt+1 to fermatLimit;
 	Exit body with foundFactors if foundFactors ≠ <0, 0>;
 
 	// Phase III - Finish the rest of the possibilities with trial division.
@@ -1266,7 +1248,8 @@ Method "factor_" is
 		Restart loop with <
 			pair[1] ?→ natural number,
 			prime,
-			found ++ <prime>>
+			found ++ <prime>
+		>
 	](n, 2, <>)
 ];
 

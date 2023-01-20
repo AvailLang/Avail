@@ -39,6 +39,6 @@ Body
 
 Test "CompiledCodeNumStackSlots ok" in primitive rawfunctions test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

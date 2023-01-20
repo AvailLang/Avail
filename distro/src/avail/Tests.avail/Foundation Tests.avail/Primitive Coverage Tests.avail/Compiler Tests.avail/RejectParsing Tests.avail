@@ -39,12 +39,12 @@ Body
 
 Test "RejectParsing ok" in primitive compiler test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "RejectParsing fails with untimely-parse-rejection exception" in primitive compiler test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise untimely-parse-rejection exception;
 

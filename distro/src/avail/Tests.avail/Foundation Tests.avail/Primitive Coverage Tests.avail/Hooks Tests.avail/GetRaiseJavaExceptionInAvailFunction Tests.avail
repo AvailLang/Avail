@@ -39,6 +39,6 @@ Body
 
 Test "GetRaiseJavaExceptionInAvailFunction ok" in primitive hooks test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

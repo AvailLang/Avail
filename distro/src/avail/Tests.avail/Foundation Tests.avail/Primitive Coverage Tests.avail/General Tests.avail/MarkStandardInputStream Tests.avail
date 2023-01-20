@@ -39,12 +39,12 @@ Body
 
 Test "MarkStandardInputStream ok" in primitive general test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "MarkStandardInputStream fails with I/O exception" in primitive general test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise I/O exception;
 

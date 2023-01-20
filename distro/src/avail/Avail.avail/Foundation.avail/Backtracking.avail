@@ -96,7 +96,8 @@ Private method "Require:inside fence" is
 	[
 		Raise a no-backtracking-fence exception
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * A no-checkpoint exception indicates that a request was made to {@method
@@ -158,7 +159,8 @@ Public method "Backtracking fence_" is
 			Remove current fiber[checkpoint];
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
 
 /**
  * Establish a dynamic perimeter within which backtracking is permitted. Within
@@ -209,7 +211,8 @@ Public method "backtracking fence_" is
 			Remove current fiber[checkpoint];
 		];
 	]
-] : any;
+] : any
+styled by nonlocal control styler;
 
 Semantic restriction "backtracking fence_" is
 [
@@ -262,7 +265,8 @@ Public method "first try" is
 			];
 	]();
 	answer
-] : boolean;
+] : boolean
+styled by nonlocal control styler;
 
 /**
  * Establish a checkpoint for subsequent backtracking. Must be invoked within
@@ -304,7 +308,8 @@ Public method "trial`#of_" is
 		trialNumber++;
 	]();
 	answer
-] : natural number;
+] : natural number
+styled by nonlocal control styler;
 
 /**
  * @method "trial`#of_"
@@ -343,7 +348,8 @@ Public method "trial element of_" is
 		Exit body with element if first try;
 	];
 	Try again
-] : any;
+] : any
+styled by nonlocal control styler;
 
 /**
  * @method "trial element of_"
@@ -412,7 +418,8 @@ Public method "Try again" is
 [
 	Require: inside fence;
 	Cast current fiber[checkpoint] into [retry : $[]→any | Restart retry]
-] : ⊥;
+] : ⊥
+styled by nonlocal control styler;
 
 /**
  * Accumulate and answer all values of {@param "aFunction"} reachable via

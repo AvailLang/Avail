@@ -39,6 +39,6 @@ Body
 
 Test "BlockDeclaredExceptions ok" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

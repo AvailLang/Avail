@@ -1984,7 +1984,8 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 	objectMap ::= objectType→map;
 	expressions ::= optionalExpression's expressions;
 	weakDefs ::= expressions[1] else [<> → list phrase];
-	defs ::= cast weakDefs
+	defs ::=
+		cast weakDefs
 		into [phrases : list phrase ⇒ <atom, boolean, any…|3>* |
 			map each triple in phrases' expressions through [
 				cast triple

@@ -35,6 +35,7 @@ Versions
 	"Avail-1.6.1"
 Uses
 	"Bootstrap",
+	"Early Conditionals",
 	"Definers"
 Names
 	/* The definitions are provided by Tuples, Sets, and Maps, but the names
@@ -92,3 +93,22 @@ Method "_is collection" is stable at
 
 Method "_is collection type" is stable at
 	function accepting <any> and returning boolean;
+
+Style atom for "For each of⁇_do_" with loop styler;
+Style atom for "For each…in|of_§do_" with loop styler;
+Style atom for "Require:_accepts_" with assertion styler;
+Style atom for "any of_satisfies_" with loop styler;
+Style atom for "any…in|of_§satisfies_" with loop styler;
+Style atom for "count of_where_" with loop styler;
+Style atom for "count of…from|in|of_§where_" with loop styler;
+Style atom for "each of_satisfies_" with loop styler;
+Style atom for "each…in|of_§satisfies_" with loop styler;
+Style atom for "filter_by_" with loop styler;
+Style atom for "reject each…from_§where_" with loop styler;
+Style atom for "select each…from_§where_" with loop styler;
+Style atom for "group each…in|of_§by_" with loop styler;
+Style atom for "group_by_" with loop styler;
+Style atom for "map and filter_by_" with loop styler;
+Style atom for "map_through_" with loop styler;
+Style atom for "map each…in|of_§through_" with loop styler;
+Style atom for "_[_]else_" with conditional styler;

@@ -39,12 +39,12 @@ Body
 
 Test "GetContinuationOfOtherFiber ok" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "GetContinuationOfOtherFiber fails with fiber-is-terminated exception" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise fiber-is-terminated exception;
 

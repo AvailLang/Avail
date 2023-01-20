@@ -1945,7 +1945,6 @@ class AvailWorkbench internal constructor(
 		openDebuggers.remove(debugger)
 	}
 
-
 	/** The splitter separating the left and right portions of the workbench. */
 	private val mainSplit: JSplitPane
 

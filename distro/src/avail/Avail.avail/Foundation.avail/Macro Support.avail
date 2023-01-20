@@ -98,7 +98,8 @@ Public method "Declare loop variable_as_" is
 	varDecl ::= arg «varToken : varType»;
 	scope map := cast scope map + varName → varDecl into
 		[t : {nonempty string → declaration phrase ⇒ ⊤ | natural number} | t];
-];
+]
+styled by definition styler;
 
 /**
  * Remove a declaration from scope.
@@ -115,7 +116,8 @@ Public method "Undeclare_" is
 |
 	scope map := cast scope map - declarationName into
 		[t : {nonempty string → declaration phrase ⇒ ⊤ | whole number} | t];
-];
+]
+styled by definition styler;
 
 /**
  * A return type strengthening method that accepts a base return type, an

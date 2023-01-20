@@ -203,7 +203,7 @@ Semantic restriction "Cast|cast_into_else_" is
 			“value”,
 			" is a subtype of ",
 			“accept[1]”>;
-		cast messageTuple into
+		Cast messageTuple into
 		[
 			message : string
 		|
@@ -218,7 +218,7 @@ Semantic restriction "Cast|cast_into_else_" is
 			" and ",
 			“accept[1]”,
 			" are disjoint">;
-		cast messageTuple into
+		Cast messageTuple into
 		[
 			message : string
 		|
@@ -645,8 +645,8 @@ Semantic restriction "From_to_do_" is
 
 /* An error message for "Restart_with_". */
 sizesIncompatibleMessage ::=
-	"size of argument tuple to be compatible with size of\
-	\| continuation's parameter tuple";
+	"size of argument tuple to be compatible with size of \
+	\|continuation's parameter tuple";
 
 /**
  * Reject the current parse if the argument tuple cannot possibly match the

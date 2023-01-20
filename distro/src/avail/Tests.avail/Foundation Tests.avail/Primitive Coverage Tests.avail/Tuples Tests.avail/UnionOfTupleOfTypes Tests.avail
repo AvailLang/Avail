@@ -39,6 +39,6 @@ Body
 
 Test "UnionOfTupleOfTypes ok" in primitive tuples test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
