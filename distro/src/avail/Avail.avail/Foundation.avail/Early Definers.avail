@@ -770,7 +770,7 @@ Method "Grammatical restriction_is_" is
  *
  * @method "Public macro_is«_,»_«styled by_»?"
  * @param "macroName" "string"
- *        The name of the the new macro.
+ *        The name of the new macro.
  * @param "prefixFunctions" "function*"
  *        The prefix functions associated with this macro.
  * @param "body" "macro function"

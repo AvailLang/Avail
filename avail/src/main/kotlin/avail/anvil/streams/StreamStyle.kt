@@ -32,66 +32,46 @@
 
 package avail.anvil.streams
 
-import avail.anvil.StyleRule
-import avail.anvil.Stylesheet
-import avail.anvil.SystemColors
 import avail.anvil.SystemStyleClassifier
-import java.awt.Color
 
 /**
  * An abstraction of the styles of streams used by the workbench.
  *
- * @property classifier
+ * @property systemClassifier
  *   The governing style classifier.
- * @property selector
- *   The method selector for the [default&#32;color][defaultColor].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 enum class StreamStyle constructor(
-	val systemClassifier: SystemStyleClassifier,
-	private val selector: SystemColors.()->Color
+	private val systemClassifier: SystemStyleClassifier
 )
 {
 	/** The stream style used to echo user input. */
-	IN_ECHO(SystemStyleClassifier.STREAM_INPUT, SystemColors::streamInput),
+	IN_ECHO(SystemStyleClassifier.STREAM_INPUT),
 
 	/** The stream style used to display normal output. */
-	OUT(SystemStyleClassifier.STREAM_OUTPUT, SystemColors::streamOutput),
+	OUT(SystemStyleClassifier.STREAM_OUTPUT),
 
 	/** The stream style used to display error output. */
-	ERR(SystemStyleClassifier.STREAM_ERROR, SystemColors::streamError),
+	ERR(SystemStyleClassifier.STREAM_ERROR),
 
 	/**
 	 * The stream style used to display informational text. Informational text
 	 * constitutes any byproduct text of a command, such as status, logging,
 	 * or timing messages, but does not include explicitly requested reports.
 	 */
-	INFO(SystemStyleClassifier.STREAM_INFO, SystemColors::streamInfo),
+	INFO(SystemStyleClassifier.STREAM_INFO),
 
 	/** The stream style used to echo commands. */
-	COMMAND(SystemStyleClassifier.STREAM_COMMAND, SystemColors::streamCommand),
+	COMMAND(SystemStyleClassifier.STREAM_COMMAND),
 
 	/** The stream style used to provide build progress updates. */
-	BUILD_PROGRESS(
-		SystemStyleClassifier.STREAM_BUILD_PROGRESS,
-		SystemColors::streamBuildProgress
-	),
+	BUILD_PROGRESS(SystemStyleClassifier.STREAM_BUILD_PROGRESS),
 
 	/**
 	 * The stream style used to display diagnostics and reports.
 	 */
-	REPORT(
-		SystemStyleClassifier.STREAM_REPORT,
-		SystemColors::streamReport
-	);
+	REPORT(SystemStyleClassifier.STREAM_REPORT);
 
 	/** The style classifier. */
 	val classifier get() = systemClassifier.classifier
-
-	/**
-	 * The [default][SystemColors] [color][Color] for this [style][StreamStyle].
-	 * Only used when the active [stylesheet][Stylesheet] does not include any
-	 * [rules][StyleRule] for the [classifiers][classifier].
-	 */
-	val defaultColor get() = SystemColors.active.selector()
 }

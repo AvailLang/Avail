@@ -1405,7 +1405,6 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 						}
 					}
 				}
-
 			}
 		}
 

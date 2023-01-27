@@ -235,7 +235,7 @@ Public method "Whenever_changes,⁇do_" is
 		];
 	wrappedReactor(sentinel);
 ] : ⊤
-styled by conditional styler;
+styled by statement styler;
 
 Semantic restriction "Whenever_changes,⁇do_" is
 [
@@ -334,7 +334,7 @@ Public method "Observe|observe_" is
 	]
 	else observeFunction;
 ] : ⊤
-styled by conditional styler;
+styled by statement styler;
 
 Semantic restriction "Observe|observe_" is
 [

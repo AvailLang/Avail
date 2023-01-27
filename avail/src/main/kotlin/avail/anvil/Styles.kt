@@ -37,16 +37,32 @@ import avail.anvil.StylePatternCompiler.ExactMatchToken
 import avail.anvil.StylePatternCompiler.FailedMatchToken
 import avail.anvil.StylePatternCompiler.SubsequenceToken
 import avail.anvil.StylePatternCompiler.SuccessionToken
+import avail.anvil.StylePatternCompiler.Token.Companion.classifierPrefixCode
 import avail.anvil.StyleRuleContextState.ACCEPTED
 import avail.anvil.StyleRuleContextState.PAUSED
 import avail.anvil.StyleRuleContextState.REJECTED
 import avail.anvil.StyleRuleContextState.RUNNING
 import avail.anvil.StyleRuleExecutor.endOfSequenceLiteral
-import avail.anvil.StyleRuleExecutor.run
+import avail.anvil.StyleRuleExecutor.execute
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.FORK
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.FORK_N
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_END_OF_SEQUENCE
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_0
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_1
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_2
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_3
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_N
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_OR_JUMP_0
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_OR_JUMP_1
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_OR_JUMP_2
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_OR_JUMP_3
+import avail.anvil.StyleRuleInstruction.StyleRuleInstructionOpcode.MATCH_LITERAL_CLASSIFIER_OR_JUMP_N
 import avail.anvil.StyleRuleInstructionCoder.Companion.decodeInstruction
 import avail.anvil.streams.StreamStyle
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
+import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.interpreter.execution.AvailLoader
 import avail.io.NybbleArray
 import avail.io.NybbleInputStream
@@ -187,7 +203,7 @@ class Stylesheet constructor(
 	init
 	{
 		val rules = this.rules as MutableSet
-		// The stylesheet may not contain exact match rules for the system
+		// The stylesheet might not contain exact match rules for the system
 		// classifiers, so insert them here if necessary. None of the
 		// compilations here should ever fail, and it should nuke the system if
 		// they do.
@@ -368,7 +384,7 @@ class Stylesheet constructor(
 	 * left to right, i.e., later contexts override earlier context.
 	 *
 	 * @param solutions
-	 *   The solution set to reduce to a final solution.
+	 *   The solution set to reduce to a final solution. Must be nonempty.
 	 * @return
 	 *   The final solution.
 	 */
@@ -388,7 +404,7 @@ class Stylesheet constructor(
 		 * @param map
 		 *   The map of source patterns to their desired style attributes.
 		 * @param palette
-		 *   The palette.
+		 *   The [palette][Palette].
 		 * @param errors
 		 *   The accumulator for errors, as pairs of invalid
 		 *   [patterns][UnvalidatedStylePattern] and
@@ -427,22 +443,23 @@ class Stylesheet constructor(
 }
 
 /**
- * A [StyleRuleTree] comprises _(1)_ the complete [set][Set] of
- * live [contexts][StyleRuleContext] for some position `K` within a sequence
- * `S` of style classifiers, _(2)_ a lazily populated transition table from
- * possible next style classifiers to successor [trees][StyleRuleTree], and
- * _(3)_ the [solutions][ValidatedStylePattern] accumulated so far during a
- * traversal from the [root][Stylesheet.rootTree] [tree][StyleRuleTree].
+ * A [StyleRuleTree] comprises:
+ *
+ * 1. The complete [set][Set] of live [contexts][StyleRuleContext] for some
+ *  position `K` within a sequence `S` of style classifiers,
+ * 2. A lazily populated transition table from possible next style classifiers
+ *  to successor [trees][StyleRuleTree], and
+ * 3. The [solutions][ValidatedStylePattern] accumulated so far during a
+ *  traversal from the [root][Stylesheet.rootTree] [tree][StyleRuleTree].
  *
  * @property contexts
  *   The [paused][StyleRuleContextState.PAUSED] [contexts][StyleRuleContext] of
  *   all [rules][StyleRule] live at some position `K` within a sequence `S` of
  *   style classifiers, such that `K` corresponds to the enclosing
  *   [tree][StyleRule].
- * @property successors
- *   The lazy transition table from possible next style classifiers to successor
- *   [trees][StyleRuleTree]. Each successor is held [softly][SoftReference], to
- *   provide an outlet for venting when memory pressure is high.
+ * @property solutions
+ *   The final [rendering&#32;contexts][ValidatedRenderingContext] for the
+ *   classifier sequence that terminates at this [tree][StyleRuleTree].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class StyleRuleTree constructor(
@@ -529,7 +546,7 @@ class StyleRuleTree constructor(
 		{
 			running.drain().forEach { context ->
 				val nextContext =
-					run(context, classifier) { forked -> running.add(forked) }
+					execute(context, classifier) { forked -> running.add(forked) }
 				when (nextContext.state)
 				{
 					PAUSED -> paused.add(nextContext)
@@ -584,7 +601,7 @@ sealed class StylePattern constructor(
 	 * * For inexact matches, given two [patterns][StylePattern] `P` and `Q`,
 	 *   the following rules are applied in order:
 	 *    * If `P` contains `Q`, then `P` is _[more&#32;specific][Order.MORE]_.
-	 *    * If `|successions(P)| = `|successions(Q)|`, where `successions`
+	 *    * If `|successions(P)|` = `|successions(Q)|`, where `successions`
 	 *      computes the [successions][SuccessionToken] of its argument, and
 	 *      every succession of `P` is more specific than the corresponding
 	 *      succession of `Q`, then `P` is _[more&#32;specific][Order.MORE]_.
@@ -620,7 +637,7 @@ sealed class StylePattern constructor(
 				return (
 					// e.g., p: =#a <=> q: =#b | p: =#a <=> q: =#a,#b
 					if (q.first() == exactMatchOperator) Order.INCOMPARABLE
-					// e.g., =#a <=> #a
+					// e.g., p: =#a <=> q: #a | p: =#a <=> q: #b
 					else Order.MORE)
 			q.first() ->
 				// e.g., p: #a <=> q: =#b
@@ -667,13 +684,8 @@ sealed class StylePattern constructor(
 		}
 		// The two patterns have unequal succession counts. If either contains
 		// only a single succession, then the patterns are incomparable.
-		val shorter =
-			if (pSuccessions.size <= qSuccessions.size) pSuccessions
-			else qSuccessions
-		val longer = (
-			if (shorter === pSuccessions) qSuccessions
-			else pSuccessions
-		).toMutableList()
+		val (shorter, longer) =
+			listOf(pSuccessions, qSuccessions).sortedBy { it.size }
 		if (shorter.size == 1)
 		{
 			// e.g., p: #a,#b <=> q: #a<#b | p: #a,#b,#c <=> #a<#b<#c
@@ -684,9 +696,9 @@ sealed class StylePattern constructor(
 		// pattern, preserving order, then the longer pattern is more specific.
 		// Otherwise, the patterns are incomparable. Choose the shorter of the
 		// two patterns for the iteration, for a minor gain in efficiency.
-		val specificities = mutableListOf<Order>()
+		val specificities = mutableSetOf<Order>()
 		var index = 0
-		val indices = shorter.map { a ->
+		shorter.forEach { a ->
 			index = longer.subList(index, longer.size).indexOfFirst { b ->
 				// Find the earliest comparable element. Remember the result of
 				// the comparison, for use below.
@@ -698,15 +710,14 @@ sealed class StylePattern constructor(
 				}
 				false
 			}
-			index
-		}
-		if (indices.contains(-1))
-		{
-			// One of the successions of the smaller pattern was incomparable to
-			// any succession in the longer pattern. Therefore, the patterns are
-			// incomparable.
-			// e.g., p: #a<#b <=> q: #b<#a<#c
-			return Order.INCOMPARABLE
+			if (index == -1)
+			{
+				// One of the successions of the smaller pattern was incomparable to
+				// any succession in the longer pattern. Therefore, the patterns are
+				// incomparable.
+				// e.g., p: #a<#b <=> q: #b<#a<#c
+				return Order.INCOMPARABLE
+			}
 		}
 		return when
 		{
@@ -788,11 +799,8 @@ sealed class StylePattern constructor(
 			// implicit trailing operator, so that tells us how to map the list
 			// index back onto a string index so that we can perform a substring
 			// comparison.
-			val offset = list
-				.subList(0, otherIndex)
-				.fold(otherIndex) { offset, classifier ->
-					offset + classifier.length
-				}
+			val offset =
+				otherIndex + list.subList(0, otherIndex).sumOf(String::length)
 			return substring(offset, offset + other.length) == other
 		}
 
@@ -842,28 +850,25 @@ sealed class StylePattern constructor(
 		 *   The [relation][Order] of the two patterns with respect to
 		 *   specificity.
 		 */
-		private fun String.compareSuccessionSpecificityTo(other: String): Order
-		{
-			// If the patterns are identical, then they are equivalent.
-			if (this == other)
-			{
-				// e.g., p: #a <=> q: #a
-				return Order.EQUAL
-			}
-			// Determine if one of the successions embeds the other entirely. If
-			// so, then the larger of the two is the more specific.
+		private fun String.compareSuccessionSpecificityTo(other: String) =
 			when
 			{
+				// If the patterns are identical, then they are equivalent.
+				this == other ->
+					// e.g., p: #a <=> q: #a
+					Order.EQUAL
+				// Determine if one of the successions embeds the other entirely. If
+				// so, then the larger of the two is the more specific.
 				this.contains(other) ->
 					// e.g., p: #a,#b,#b <=> q: #a,#b
-					return Order.MORE
+					Order.MORE
 				other.contains(this) ->
 					// e.g., p: #a,#b <=> q: #a,#b,#b
-					return Order.LESS
+					Order.LESS
+				// The successions are incomparable.
+				else ->
+					Order.INCOMPARABLE
 			}
-			// The successions are incomparable.
-			return Order.INCOMPARABLE
-		}
 	}
 }
 
@@ -876,7 +881,7 @@ sealed class StylePattern constructor(
  *
  * @constructor
  *
- * Construct a [ValidatedStylePattern] from the specified source text and
+ * Construct an [UnvalidatedStylePattern] from the specified source text and
  * [unvalidated&#32;rendering&#32;context][UnvalidatedRenderingContext].
  *
  * @param source
@@ -927,7 +932,7 @@ class UnvalidatedStylePattern constructor(
  * @param renderingContext
  *   The [validated&#32;rendering&#32;context][ValidatedRenderingContext].
  */
-class ValidatedStylePattern constructor(
+class ValidatedStylePattern internal constructor(
 	source: String,
 	override val renderingContext: ValidatedRenderingContext
 ): StylePattern(source, renderingContext)
@@ -972,6 +977,14 @@ class StylePatternCompiler private constructor(
 		abstract val lexeme: String
 
 		final override fun toString() = lexeme
+
+		companion object
+		{
+			/**
+			 * The code point of the style classifier prefix.
+			 */
+			const val classifierPrefixCode = '#'.code
+		}
 	}
 
 	/**
@@ -1018,6 +1031,9 @@ class StylePatternCompiler private constructor(
 		{
 			/** The lexeme. */
 			const val lexeme = "="
+
+			/** The code point of the lexeme. */
+			val code = lexeme.first().code
 		}
 	}
 
@@ -1035,6 +1051,9 @@ class StylePatternCompiler private constructor(
 		{
 			/** The lexeme. */
 			const val lexeme = ","
+
+			/** The code point of the lexeme. */
+			val code = lexeme.first().code
 		}
 	}
 
@@ -1053,6 +1072,9 @@ class StylePatternCompiler private constructor(
 		{
 			/** The lexeme. */
 			const val lexeme = "<"
+
+			/** The code point of the lexeme. */
+			val code = lexeme.first().code
 		}
 	}
 
@@ -1075,6 +1097,9 @@ class StylePatternCompiler private constructor(
 		{
 			/** The lexeme. */
 			const val lexeme = "!"
+
+			/** The code point of the lexeme. */
+			val code = lexeme.first().code
 		}
 	}
 
@@ -1103,15 +1128,20 @@ class StylePatternCompiler private constructor(
 			i += Character.charCount(c)
 			when
 			{
-				c == '!'.code -> tokens.add(FailedMatchToken(start + 1))
-				c == '='.code -> tokens.add(ExactMatchToken(start + 1))
-				c == ','.code -> tokens.add(SuccessionToken(start + 1))
-				c == '<'.code -> tokens.add(SubsequenceToken(start + 1))
-				c == '#'.code ->
+				c == FailedMatchToken.code ->
+					tokens.add(FailedMatchToken(start + 1))
+				c == ExactMatchToken.code ->
+					tokens.add(ExactMatchToken(start + 1))
+				c == SuccessionToken.code ->
+					tokens.add(SuccessionToken(start + 1))
+				c == SubsequenceToken.code ->
+					tokens.add(SubsequenceToken(start + 1))
+				c == classifierPrefixCode ->
 				{
 					if (i == source.length)
 					{
-						tokens.add(InvalidToken(start + 1, c.toChar().toString()))
+						tokens.add(
+							InvalidToken(start + 1, c.toChar().toString()))
 					}
 					else
 					{
@@ -1231,8 +1261,8 @@ class StylePatternCompiler private constructor(
 		}
 
 		/**
-		 * Derive a successor [ParseContext] that reduces the top of the
-		 * [operand&#32;stack][operands] to a [SuccessionExpression].
+		 * Derive a successor [ParseContext] that reduces the top two operands
+		 * of the [operand&#32;stack][operands] to a [SuccessionExpression].
 		 *
 		 * @return
 		 *   The requested context.
@@ -1248,8 +1278,8 @@ class StylePatternCompiler private constructor(
 		}
 
 		/**
-		 * Derive a successor [ParseContext] that reduces the top of the
-		 * [operand&#32;stack][operands] to a [SubsequenceExpression].
+		 * Derive a successor [ParseContext] that reduces the top two operands
+		 * of the [operand&#32;stack][operands] to a [SubsequenceExpression].
 		 *
 		 * @return
 		 *   The requested context.
@@ -1349,8 +1379,7 @@ class StylePatternCompiler private constructor(
 	/**
 	 * A [SubsequenceExpression] constrains its right-hand
 	 * [subexpression][Expression] to match eventually, irrespective of the
-	 * number of intermediate positive-width matches the occur after the
-	 * left-hand subexpression.
+	 * matches that occur after the left-hand subexpression.
 	 *
 	 * @property left
 	 *   The left-hand [subexpression][Expression], which must match first.
@@ -1369,7 +1398,7 @@ class StylePatternCompiler private constructor(
 	}
 
 	/**
-	 * A [ForkExpression] mandates that that the [rule][StyleRule] needs to fork
+	 * A [ForkExpression] mandates that the [rule][StyleRule] needs to fork
 	 * another [context][StyleRuleContext] in order to correctly match a
 	 * self-similar pattern. For this purpose, a pattern is _self-similar_ if it
 	 * begins with a repeated prefix.
@@ -1819,6 +1848,7 @@ class StylePatternCompiler private constructor(
 		 *   [pattern]'s [rendering&#32;context][RenderingContext] failed for
 		 *   any reason.
 		 */
+		@Throws(RenderingContextValidationException::class)
 		fun compile(pattern: UnvalidatedStylePattern, palette: Palette) =
 			StylePatternCompiler(pattern, palette).rule
 	}
@@ -1869,7 +1899,7 @@ class StylePatternException(
  *   corresponding to the fixed style classifiers embedded in the
  *   [pattern][ValidatedStylePattern]. Will be [interned][intern] prior to
  *   internal storage, to accelerate matching during
- *   [execution][StyleRuleExecutor.run].
+ *   [execution][StyleRuleExecutor.execute].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -1886,7 +1916,7 @@ class StylePatternException(
  *   corresponding to the fixed style classifiers embedded in the
  *   [pattern][ValidatedStylePattern]. Will be [interned][intern] prior to
  *   internal storage, to accelerate matching during
- *   [execution][StyleRuleExecutor.run].
+ *   [execution][StyleRuleExecutor.execute].
  */
 class StyleRule constructor(
 	val pattern: ValidatedStylePattern,
@@ -1909,7 +1939,7 @@ class StyleRule constructor(
 	/**
 	 * Answer the literal value at the requested index. Should generally only be
 	 * invoked by a [StyleRuleInstruction] during its
-	 * [execution][StyleRuleExecutor.run].
+	 * [execution][StyleRuleExecutor.execute].
 	 *
 	 * @param index
 	 *   The index of the desired literal value.
@@ -1988,18 +2018,22 @@ class StyleRule constructor(
  * self-register simply by calling the superconstructor.
  *
  * @property opcode
- *   The opcode of the associated [instruction][StyleRuleInstruction].
+ *   The [opcode][StyleRuleInstructionOpcode] of the associated
+ *   [instruction][StyleRuleInstruction].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("LeakingThis")
-sealed class StyleRuleInstructionCoder constructor(val opcode: Int)
+sealed class StyleRuleInstructionCoder constructor(
+	val opcode: StyleRuleInstructionOpcode
+)
 {
 	init
 	{
-		assert(!opcodes.contains(opcode)) {
-			"opcode $opcode is already bound to ${opcodes[opcode]}"
+		val ordinal = opcode.ordinal
+		assert(!opcodes.contains(ordinal)) {
+			"opcode $ordinal is already bound to ${opcodes[ordinal]}"
 		}
-		opcodes[opcode] = this
+		opcodes[opcode.ordinal] = this
 	}
 
 	/**
@@ -2019,7 +2053,7 @@ sealed class StyleRuleInstructionCoder constructor(val opcode: Int)
 		nybbles: NybbleOutputStream,
 		vararg operands: Int)
 	{
-		nybbles.opcode(opcode)
+		nybbles.opcode(opcode.ordinal)
 		operands.forEach { nybbles.vlq(it) }
 	}
 
@@ -2074,6 +2108,347 @@ sealed class StyleRuleInstructionCoder constructor(val opcode: Int)
 sealed interface StyleRuleInstruction
 {
 	abstract override fun toString(): String
+
+	/**
+	 * A [StyleRuleInstructionOpcode] uses its [ordinal] to represent the opcode
+	 * for a [StyleRuleInstruction]. The variants must **not** be reordered.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	enum class StyleRuleInstructionOpcode
+	{
+		/** Opcode for [MatchLiteralClassifier0]. */
+		MATCH_LITERAL_CLASSIFIER_0 // 0x0
+		{
+			override fun literalIndex(reader: NybbleInputStream) = 0
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifier(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifier1]. */
+		MATCH_LITERAL_CLASSIFIER_1 // 0x1
+		{
+			override fun literalIndex(reader: NybbleInputStream) = 1
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifier(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifier2]. */
+		MATCH_LITERAL_CLASSIFIER_2 // 0x2
+		{
+			override fun literalIndex(reader: NybbleInputStream) = 2
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifier(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifier3]. */
+		MATCH_LITERAL_CLASSIFIER_3 // 0x3
+		{
+			override fun literalIndex(reader: NybbleInputStream) = 3
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifier(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifierN]. */
+		MATCH_LITERAL_CLASSIFIER_N // 0x4
+		{
+			override fun literalIndex(reader: NybbleInputStream) =
+				reader.unvlq() + 4
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifier(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifierOrJump0]. */
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_0 // 0x5
+		{
+			override fun literalIndex(reader: NybbleInputStream) = 0
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifierOrJump(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.unvlq(),
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifierOrJump1]. */
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_1 // 0x6
+		{
+			override fun literalIndex(reader: NybbleInputStream) = 1
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifierOrJump(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.unvlq(),
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifierOrJump2]. */
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_2 // 0x7
+		{
+			override fun literalIndex(reader: NybbleInputStream) = 2
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifierOrJump(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.unvlq(),
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifierOrJump3]. */
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_3 // 0x8
+		{
+			override fun literalIndex(reader: NybbleInputStream) = 3
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifierOrJump(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.unvlq(),
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchLiteralClassifierOrJumpN]. */
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_N // 0x9
+		{
+			override fun literalIndex(reader: NybbleInputStream) =
+				reader.unvlq() + 4
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifierOrJump(
+				context,
+				classifier,
+				literal(rule, reader)!!,
+				reader.unvlq(),
+				reader.position
+			)
+		},
+
+		/** Opcode for [Fork]. */
+		FORK // 0xA
+		{
+			override fun literalIndex(reader: NybbleInputStream) = -1
+
+			override fun literal(rule: StyleRule, reader: NybbleInputStream) =
+				null
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeFork(
+				context,
+				0,
+				injector,
+				reader.position
+			)
+		},
+
+		/** Opcode for [ForkN]. */
+		FORK_N // 0xB
+		{
+			override fun literalIndex(reader: NybbleInputStream) = -1
+
+			override fun literal(
+				rule: StyleRule,
+				reader: NybbleInputStream
+			): String?
+			{
+				// Consume the program counter.
+				reader.unvlq()
+				return null
+			}
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeFork(
+				context,
+				reader.unvlq() + 1,
+				injector,
+				reader.position
+			)
+		},
+
+		/** Opcode for [MatchEndOfSequence]. */
+		MATCH_END_OF_SEQUENCE // 0xC
+		{
+			override fun literalIndex(reader: NybbleInputStream) = -1
+			override fun literal(rule: StyleRule, reader: NybbleInputStream) =
+				endOfSequenceLiteral
+
+			override fun execute(
+				classifier: String,
+				context: StyleRuleContext,
+				rule: StyleRule,
+				reader: NybbleInputStream,
+				injector: (StyleRuleContext)->Unit
+			) = StyleRuleExecutor.executeMatchLiteralClassifier(
+				context,
+				classifier,
+				endOfSequenceLiteral,
+				reader.position
+			)
+		};
+
+		/**
+		 * Answer the index of the target literal within a [StyleRule],
+		 * reading nybbles from the [reader] only if necessary.
+		 *
+		 * @param reader
+		 *   A [NybbleInputStream] for decoding additional operands, as
+		 *   necessary. Not all implementations will consume data from the
+		 *   reader.
+		 * @return
+		 *   The requested index, or `-1` if no literal index is associated
+		 *   with the specified instruction.
+		 */
+		protected abstract fun literalIndex(reader: NybbleInputStream): Int
+
+		/**
+		 * Answer the literal associated with the
+		 * [instruction][StyleRuleInstruction] associated with the receiver.
+		 *
+		 * @param rule
+		 *   The [rule][StyleRule] whose literal is desired.
+		 * @param reader
+		 *   A [NybbleInputStream] for decoding additional operands, as
+		 *   necessary. Not all invocations will consume data from the reader.
+		 *   After the call, the reader is positioned after the
+		 *   [instruction][StyleRuleInstruction].
+		 * @return
+		 *   The requested literal value, or `null` if no literal is
+		 *   associated with [instructions][StyleRuleInstruction] of this kind.
+		 */
+		open fun literal(rule: StyleRule, reader: NybbleInputStream): String? =
+			rule.literalAt(literalIndex(reader))
+
+		/**
+		 * Execute the [instruction][StyleRuleInstruction] associated with the
+		 * receiver.
+		 *
+		 * @param classifier
+		 *   The style classifier.
+		 * @param context
+		 *   The [context][StyleRuleContext] just prior to execution of the
+		 *   instruction.
+		 * @param rule
+		 *   The [rule][StyleRule] of which the
+		 *   [instruction][StyleRuleInstruction] is a part.
+		 * @param reader
+		 *   A [NybbleInputStream] for decoding additional operands, as
+		 *   necessary. Not all invocations will consume data from the reader.
+		 *   After the call, the reader is positioned after the
+		 *   [instruction][StyleRuleInstruction].
+		 * @param injector
+		 *   How to inject a forked [context][StyleRuleContext] into the pool of
+		 *   pending contexts.
+		 * @return
+		 *   The successor [context][StyleRuleContext].
+		 */
+		abstract fun execute(
+			classifier: String,
+			context: StyleRuleContext,
+			rule: StyleRule,
+			reader: NybbleInputStream,
+			injector: (StyleRuleContext)->Unit
+		): StyleRuleContext
+	}
 }
 
 /**
@@ -2085,7 +2460,8 @@ sealed interface StyleRuleInstruction
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object MatchLiteralClassifier0:
-	StyleRuleInstructionCoder(0x0), StyleRuleInstruction
+	StyleRuleInstructionCoder(MATCH_LITERAL_CLASSIFIER_0),
+	StyleRuleInstruction
 {
 	override fun toString() = "match literal #0"
 
@@ -2102,7 +2478,8 @@ object MatchLiteralClassifier0:
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object MatchLiteralClassifier1:
-	StyleRuleInstructionCoder(0x1), StyleRuleInstruction
+	StyleRuleInstructionCoder(MATCH_LITERAL_CLASSIFIER_1),
+	StyleRuleInstruction
 {
 	override fun toString() = "match literal #1"
 
@@ -2119,7 +2496,8 @@ object MatchLiteralClassifier1:
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object MatchLiteralClassifier2:
-	StyleRuleInstructionCoder(0x2), StyleRuleInstruction
+	StyleRuleInstructionCoder(MATCH_LITERAL_CLASSIFIER_2),
+	StyleRuleInstruction
 {
 	override fun toString() = "match literal #2"
 
@@ -2136,7 +2514,8 @@ object MatchLiteralClassifier2:
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object MatchLiteralClassifier3:
-	StyleRuleInstructionCoder(0x3), StyleRuleInstruction
+	StyleRuleInstructionCoder(MATCH_LITERAL_CLASSIFIER_3),
+	StyleRuleInstruction
 {
 	override fun toString() = "match literal #3"
 
@@ -2167,12 +2546,12 @@ class MatchLiteralClassifierN constructor(
 
 	override fun toString() = "match literal #$literalIndex"
 
-	companion object : StyleRuleInstructionCoder(0x4)
+	companion object : StyleRuleInstructionCoder(MATCH_LITERAL_CLASSIFIER_N)
 	{
 		override fun emitOn(nybbles: NybbleOutputStream, vararg operands: Int)
 		{
 			assert(operands[0] >= 4) { "literal index must be ≥ 4" }
-			nybbles.opcode(opcode)
+			nybbles.opcode(opcode.ordinal)
 			nybbles.vlq(operands[0] - 4)
 		}
 
@@ -2199,7 +2578,9 @@ class MatchLiteralClassifierOrJump0 constructor(
 {
 	override fun toString() = "match literal #0 or jump to @$jumpTarget"
 
-	companion object : StyleRuleInstructionCoder(0x5)
+	companion object : StyleRuleInstructionCoder(
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_0
+	)
 	{
 		override fun decodeOperands(nybbles: NybbleInputStream) =
 			MatchLiteralClassifierOrJump0(nybbles.unvlq())
@@ -2224,7 +2605,9 @@ class MatchLiteralClassifierOrJump1 constructor(
 {
 	override fun toString() = "match literal #1 or jump to @$jumpTarget"
 
-	companion object : StyleRuleInstructionCoder(0x6)
+	companion object : StyleRuleInstructionCoder(
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_1
+	)
 	{
 		override fun decodeOperands(nybbles: NybbleInputStream) =
 			MatchLiteralClassifierOrJump1(nybbles.unvlq())
@@ -2249,7 +2632,9 @@ class MatchLiteralClassifierOrJump2 constructor(
 {
 	override fun toString() = "match literal #2 or jump to @$jumpTarget"
 
-	companion object : StyleRuleInstructionCoder(0x7)
+	companion object : StyleRuleInstructionCoder(
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_2
+	)
 	{
 		override fun decodeOperands(nybbles: NybbleInputStream) =
 			MatchLiteralClassifierOrJump2(nybbles.unvlq())
@@ -2274,7 +2659,9 @@ class MatchLiteralClassifierOrJump3 constructor(
 {
 	override fun toString() = "match literal #3 or jump to @$jumpTarget"
 
-	companion object : StyleRuleInstructionCoder(0x8)
+	companion object : StyleRuleInstructionCoder(
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_3
+	)
 	{
 		override fun decodeOperands(nybbles: NybbleInputStream) =
 			MatchLiteralClassifierOrJump3(nybbles.unvlq())
@@ -2310,12 +2697,14 @@ class MatchLiteralClassifierOrJumpN constructor(
 	override fun toString() =
 		"match literal #$literalIndex or jump to @$jumpTarget"
 
-	companion object : StyleRuleInstructionCoder(0x9)
+	companion object : StyleRuleInstructionCoder(
+		MATCH_LITERAL_CLASSIFIER_OR_JUMP_N
+	)
 	{
 		override fun emitOn(nybbles: NybbleOutputStream, vararg operands: Int)
 		{
 			assert(operands[0] >= 4) { "literal index must be ≥ 4" }
-			nybbles.opcode(opcode)
+			nybbles.opcode(opcode.ordinal)
 			nybbles.vlq(operands[0] - 4)
 			nybbles.vlq(operands[1])
 		}
@@ -2333,7 +2722,7 @@ class MatchLiteralClassifierOrJumpN constructor(
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object Fork: StyleRuleInstructionCoder(0xA), StyleRuleInstruction
+object Fork: StyleRuleInstructionCoder(FORK), StyleRuleInstruction
 {
 	override fun toString() = "fork to @0"
 	override fun decodeOperands(nybbles: NybbleInputStream) = Fork
@@ -2364,12 +2753,12 @@ class ForkN constructor(
 
 	override fun toString() = "fork to @$forkTarget"
 
-	companion object : StyleRuleInstructionCoder(0xB)
+	companion object : StyleRuleInstructionCoder(FORK_N)
 	{
 		override fun emitOn(nybbles: NybbleOutputStream, vararg operands: Int)
 		{
 			assert(operands[0] >= 1) { "fork target must be ≥ 1" }
-			nybbles.opcode(opcode)
+			nybbles.opcode(opcode.ordinal)
 			nybbles.vlq(operands[0] - 1)
 		}
 
@@ -2385,7 +2774,9 @@ class ForkN constructor(
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object MatchEndOfSequence: StyleRuleInstructionCoder(0xC), StyleRuleInstruction
+object MatchEndOfSequence:
+	StyleRuleInstructionCoder(MATCH_END_OF_SEQUENCE),
+	StyleRuleInstruction
 {
 	override fun toString() = "match end of sequence"
 	override fun decodeOperands(nybbles: NybbleInputStream) = MatchEndOfSequence
@@ -2426,28 +2817,12 @@ data class StyleRuleContext constructor(
 		val reader = rule.instructions.inputStream(programCounter)
 		while (true)
 		{
-			when (val opcode = reader.read())
-			{
-				MatchLiteralClassifier0.opcode,
-				MatchLiteralClassifier1.opcode,
-				MatchLiteralClassifier2.opcode,
-				MatchLiteralClassifier3.opcode ->
-					return rule.literalAt(
-						opcode - MatchLiteralClassifier0.opcode)
-				MatchLiteralClassifierN.opcode ->
-					return rule.literalAt(reader.unvlq() + 4)
-				MatchLiteralClassifierOrJump0.opcode,
-				MatchLiteralClassifierOrJump1.opcode,
-				MatchLiteralClassifierOrJump2.opcode,
-				MatchLiteralClassifierOrJump3.opcode ->
-					return rule.literalAt(
-						opcode - MatchLiteralClassifierOrJump0.opcode)
-				MatchLiteralClassifierOrJumpN.opcode ->
-					return rule.literalAt(reader.unvlq() + 4)
-				Fork.opcode -> {}
-				ForkN.opcode -> reader.unvlq()
-				MatchEndOfSequence.opcode -> return endOfSequenceLiteral
-				-1 -> return null
+			val ordinal = reader.read()
+			if (ordinal == -1) return null
+			StyleRuleInstructionOpcode.values()[ordinal].let { opcode ->
+				opcode.literal(rule, reader).let { literal ->
+					return literal
+				}
 			}
 		}
 	}
@@ -2501,7 +2876,7 @@ enum class StyleRuleContextState
 
 /**
  * The [StyleRuleExecutor] is a stateless virtual machine that accepts a
- * [context][StyleRuleContext] and [executes][run] one or more instructions of
+ * [context][StyleRuleContext] and [executes][execute] one or more instructions of
  * its [rule][StyleRule], returning control immediately upon detecting that a
  * derivative of the initial context has left the
  * [RUNNING]&nbsp;[state][StyleRuleContextState]. The executor uses a supplied
@@ -2535,7 +2910,7 @@ object StyleRuleExecutor
 	 * @return
 	 *   The context after leaving the [RUNNING] state.
 	 */
-	fun run(
+	fun execute(
 		initialContext: StyleRuleContext,
 		classifier: String,
 		injector: (StyleRuleContext) -> Unit
@@ -2548,61 +2923,14 @@ object StyleRuleExecutor
 		while (context.state == RUNNING)
 		{
 			reader.goTo(context.programCounter)
-			context = when (val opcode = reader.opcode())
-			{
-				MatchLiteralClassifier0.opcode,
-						MatchLiteralClassifier1.opcode,
-						MatchLiteralClassifier2.opcode,
-						MatchLiteralClassifier3.opcode ->
-					executeMatchLiteralClassifier(
-						context,
-						classifier,
-						rule.literalAt(opcode - MatchLiteralClassifier0.opcode),
-						reader.position)
-				MatchLiteralClassifierN.opcode ->
-					executeMatchLiteralClassifier(
-						context,
-						classifier,
-						rule.literalAt(reader.unvlq() + 4),
-						reader.position)
-				MatchLiteralClassifierOrJump0.opcode,
-						MatchLiteralClassifierOrJump1.opcode,
-						MatchLiteralClassifierOrJump2.opcode,
-						MatchLiteralClassifierOrJump3.opcode ->
-					executeMatchLiteralClassifierOrJump(
-						context,
-						classifier,
-						rule.literalAt(
-							opcode - MatchLiteralClassifierOrJump0.opcode),
-						reader.unvlq(),
-						reader.position)
-				MatchLiteralClassifierOrJumpN.opcode ->
-					executeMatchLiteralClassifierOrJump(
-						context,
-						classifier,
-						rule.literalAt(reader.unvlq() + 4),
-						reader.unvlq(),
-						reader.position)
-				Fork.opcode ->
-					executeFork(
-						context,
-						0,
-						injector,
-						reader.position)
-				ForkN.opcode ->
-					executeFork(
-						context,
-						reader.unvlq() + 1,
-						injector,
-						reader.position)
-				MatchEndOfSequence.opcode ->
-					executeMatchLiteralClassifier(
-						context,
-						classifier,
-						endOfSequenceLiteral,
-						reader.position)
-				else -> throw IllegalStateException("invalid opcode: $opcode")
+			val ordinal = reader.opcode()
+			val opcode = StyleRuleInstructionOpcode.values().getOrElse(
+				ordinal
+			) {
+				throw IllegalStateException("invalid opcode: $ordinal")
 			}
+			context =
+				opcode.execute(classifier, context, rule, reader, injector)
 		}
 		return context
 	}
@@ -2628,7 +2956,7 @@ object StyleRuleExecutor
 	 * @return
 	 *   The context just after execution of the instruction.
 	 */
-	private fun executeMatchLiteralClassifier(
+	internal fun executeMatchLiteralClassifier(
 		context: StyleRuleContext,
 		classifier: String,
 		literal: String,
@@ -2666,7 +2994,7 @@ object StyleRuleExecutor
 	 * @return
 	 *   The context just after execution of the instruction.
 	 */
-	private fun executeMatchLiteralClassifierOrJump(
+	internal fun executeMatchLiteralClassifierOrJump(
 		context: StyleRuleContext,
 		classifier: String,
 		literal: String,
@@ -2700,12 +3028,15 @@ object StyleRuleExecutor
 	 *   [instruction][StyleRuleInstruction] for resumption by the forked
 	 *   [context][StyleRuleContext]. The offset is relative to the start of the
 	 *   instruction stream.
+	 * @param injector
+	 *   How to inject a forked [context][StyleRuleContext] into the pool of
+	 *   pending contexts.
 	 * @param programCounter
 	 *   The program counter just after decoding the instruction.
 	 * @return
 	 *   The context just after execution of the instruction.
 	 */
-	private fun executeFork(
+	internal fun executeFork(
 		context : StyleRuleContext,
 		forkTarget: Int,
 		injector: (StyleRuleContext) -> Unit,
@@ -2744,15 +3075,12 @@ sealed class RenderingContext constructor(val attributes: StyleAttributes)
 		return true
 	}
 
-	override fun hashCode() = 13 + attributes.hashCode()
+	override fun hashCode() = combine2(attributes.hashCode(), 0x56B40BC3)
 
-	override fun toString() = buildString {
-		val attributesString = attributes.toString()
-			.replace("StyleAttributes(", "RenderingContext(")
-			.replace(findNullField, "")
-			.replace(findTrailingComma, "")
-		append(attributesString)
-	}
+	override fun toString() = attributes.toString()
+		.replace("StyleAttributes(", "RenderingContext(")
+		.replace(findNullField, "")
+		.replace(findTrailingComma, "")
 
 	companion object
 	{
@@ -2761,7 +3089,7 @@ sealed class RenderingContext constructor(val attributes: StyleAttributes)
 		 * the stringification of a [context][RenderingContext].
 		 */
 		private val findNullField by lazy(LazyThreadSafetyMode.PUBLICATION) {
-			"\\b\\w+?=null(?:, )?".toRegex()
+			"\\b\\w+=null(?:, )?".toRegex()
 		}
 
 		/**
@@ -2821,7 +3149,7 @@ class UnvalidatedRenderingContext constructor(
 		return ValidatedRenderingContext(attributes, palette)
 	}
 
-	override fun hashCode() = 41 * super.hashCode()
+	override fun hashCode() = combine2(super.hashCode(), 0x25E819A5)
 }
 
 /**
@@ -2908,7 +3236,7 @@ class ValidatedRenderingContext constructor(
 		val a = attributes
 		val o = other.attributes
 		return ValidatedRenderingContext(
-			attributes.copy(
+			StyleAttributes(
 				fontFamily = o.fontFamily ?: a.fontFamily,
 				foreground = o.foreground ?: a.foreground,
 				background = o.background ?: a.background,
@@ -2962,7 +3290,7 @@ class ValidatedRenderingContext constructor(
 			replace)
 	}
 
-	override fun hashCode() = 31 * super.hashCode()
+	override fun hashCode() = combine2(super.hashCode(), 0x41AC8F15)
 
 	companion object
 	{
@@ -3006,9 +3334,9 @@ class RenderingContextValidationException(message: String): Exception(message)
 object RenderingEngine
 {
 	/**
-	 * Apply all [style&#32;runs] to the [receiver][StyledDocument], using the
-	 * supplied [stylesheet] to obtain an appropriate
-	 * [rendering&#32;contexts][ValidatedRenderingContext] for each run. **Must
+	 * Apply all [style&#32;runs][runs] to the [receiver][StyledDocument], using
+	 * the supplied [stylesheet] to obtain an appropriate
+	 * [rendering&#32;context][ValidatedRenderingContext] for each run. **Must
 	 * be invoked on the Swing UI thread.**
 	 *
 	 * @param stylesheet
@@ -3046,7 +3374,7 @@ object RenderingEngine
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param value
- *   The value to encode.
+ *   The value to encode. Must be ≥0.
  */
 fun NybbleOutputStream.opcode(value: Int)
 {
@@ -3097,7 +3425,7 @@ fun NybbleInputStream.opcode(): Int
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param value
- *   The value to encode.
+ *   The value to encode. Must be ≥ 0.
  * @see <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">
  *   Variable-length quantity</a>
  */
@@ -3156,6 +3484,9 @@ fun NybbleInputStream.unvlq(): Int
 /**
  * [SystemStyleClassifier] enumerates the style classifiers that are well-known
  * to Anvil.
+ *
+ * @property classifier
+ *   The style classifier.
  */
 enum class SystemStyleClassifier(val classifier: String)
 {

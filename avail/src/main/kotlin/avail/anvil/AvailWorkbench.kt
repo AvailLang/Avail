@@ -1956,7 +1956,8 @@ class AvailWorkbench internal constructor(
 
 	// Get the existing preferences early for plugging in at the right times
 	// during construction.
-	private var screenState = WorkbenchScreenState.from(File(workbenchScreenStatePath))
+	private var screenState =
+		WorkbenchScreenState.from(File(workbenchScreenStatePath))
 
 	override val layoutConfiguration =
 		AvailWorkbenchLayoutConfiguration.from(
