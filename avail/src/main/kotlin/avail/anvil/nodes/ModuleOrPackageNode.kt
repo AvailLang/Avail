@@ -115,6 +115,7 @@ class ModuleOrPackageNode constructor(
 	 * repaint in [AvailWorkbench.eventuallyUpdatePerModuleProgress]. A real
 	 * solution is welcome.
 	 */
+	// TODO HACK - Please do better
 	private val suffix: String get() =
 		workbench.perModuleProgress[resolvedModuleName]?.let {
 			"&nbsp;${it.percentCompleteString}"
