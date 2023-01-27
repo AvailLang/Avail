@@ -32,6 +32,7 @@
 
 package avail.anvil
 
+import avail.anvil.SystemStyleClassifier.CODE_GUIDE
 import avail.anvil.text.TextLineNumber
 import avail.utility.cast
 import java.awt.Color
@@ -54,11 +55,13 @@ import javax.swing.JTextPane
 import javax.swing.KeyStroke
 import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+import javax.swing.SwingUtilities
 import javax.swing.plaf.LayerUI
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.JTextComponent
 import javax.swing.text.Position.Bias
+import javax.swing.text.StyleConstants
 import javax.swing.text.View
 import kotlin.math.max
 
@@ -66,14 +69,25 @@ import kotlin.math.max
  * Either places the receiver JTextArea inside a JScrollPane with line numbers
  * presented as row headers, or answers the JScrollPane that it's already
  * inside.
+ *
+ * @param workbench
+ *   The owning [workbench][AvailWorkbench].
+ * @param guideLines
+ *   The list of after how many (character) columns to display a guide line.
+ *   Defaults to a single guideline at `80`.
+ * @return
+ *   The requested [JLayer].
  */
 fun JTextPane.scrollTextWithLineNumbers(
-	guideLines: List<Int>
+	workbench: AvailWorkbench,
+	guideLines: List<Int> = listOf(80)
 ): JLayer<JScrollPane>
 {
 	parent?.parent?.parent?.let { return it.cast() }
 	val scrollPane = JScrollPane(this)
-	val guidePane = JLayer(scrollPane, CodeGuide(this, guideLines))
+	val codeGuide = CodeGuide(workbench, this, guideLines)
+	val guidePane = JLayer(scrollPane, codeGuide)
+	putClientProperty(CodeGuide::class.java.name, codeGuide)
 	val lines = TextLineNumber(this)
 	scrollPane.setRowHeaderView(lines)
 	// Make sure that the font is available in several places, for convenience.
@@ -83,20 +97,42 @@ fun JTextPane.scrollTextWithLineNumbers(
 }
 
 /**
- * Draws a code guide after the 80th column on the decorated [JScrollPane].
+ * Draws code guides on the decorated [JScrollPane] after the appropriate
+ * columns.
  *
+ * @property workbench
+ *   The owning [workbench][AvailWorkbench].
+ * @property jTextPane
+ *   The owning [text&#32;pane][JTextPane].
  * @property guideLines
  *   The list of after how many (character) columns to display a guide line.
  *   Defaults to a single guideline at `80`.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga
  */
 class CodeGuide constructor(
+	private val workbench: AvailWorkbench,
 	private val jTextPane: JTextPane,
 	private val guideLines: List<Int> = listOf(80)
 ): LayerUI<JScrollPane>()
 {
 	/** The X-offset for the guide. */
 	var x: Int? = null
+
+	/** The color of the code guide. */
+	var guideColor = computeColor()
+
+	/**
+	 * Compute the color of the guide lines from the [workbench]'s
+	 * [stylesheet][Stylesheet].
+	 *
+	 * @return
+	 *   The color. Defaults to [SystemColors.codeGuide] if the
+	 *   [stylesheet][Stylesheet] does not contain a rule that matches
+	 *   [CODE_GUIDE].
+	 */
+	fun computeColor() = workbench.stylesheet[CODE_GUIDE.classifier]
+		.documentAttributes.getAttribute(StyleConstants.Foreground) as Color
 
 	override fun paint(g: Graphics, c: JComponent)
 	{
@@ -118,19 +154,10 @@ class CodeGuide constructor(
 			}
 			val x = x!!
 			val deltaX = view.viewport.viewPosition.x
-			g.color = guide.color
+			g.color = guideColor
 			g.drawLine(x - deltaX, bounds.y, x - deltaX, bounds.height)
 			this.x = null
 		}
-	}
-
-	companion object
-	{
-		/** The color of the guide. */
-		val guide = AdaptiveColor(
-			light = LightColors.strongGray,
-			dark = DarkColors.strongGray
-		)
 	}
 }
 
@@ -282,8 +309,7 @@ fun MenuBarBuilder.addWindowMenu(frame: JFrame)
 	}
 }
 
-class WindowAction
-constructor(
+class WindowAction constructor(
 	name: String,
 	frame: JFrame,
 	keyStroke: KeyStroke? = null,
@@ -305,4 +331,23 @@ constructor(
 	{
 		action()
 	}
+}
+
+/**
+ * Perform the specified [action] on the
+ * [event&#32;dispatch&#32;thread][SwingUtilities.isEventDispatchThread] and
+ * wait for it to complete. If this _is_ the event dispatch thread, then
+ * just perform the [action] synchronously.
+ *
+ * @param action
+ *   The action to perform on the
+ *   [event&#32;dispatch&#32;thread][SwingUtilities.isEventDispatchThread].
+ */
+@Suppress("NOTHING_TO_INLINE")
+inline fun invokeAndWaitIfNecessary(
+	noinline action: ()->Unit
+)
+{
+	if (SwingUtilities.isEventDispatchThread()) action()
+	else SwingUtilities.invokeAndWait(action)
 }

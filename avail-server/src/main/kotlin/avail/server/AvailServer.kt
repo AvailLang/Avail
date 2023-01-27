@@ -990,7 +990,6 @@ class AvailServer constructor(
 		 * @return
 		 *   A message.
 		 */
-		@JvmOverloads
 		internal fun newErrorMessage(
 			channel: AvailServerChannel,
 			command: CommandMessage?,

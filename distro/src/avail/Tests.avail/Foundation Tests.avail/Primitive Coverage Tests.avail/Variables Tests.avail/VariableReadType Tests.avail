@@ -39,6 +39,6 @@ Body
 
 Test "VariableReadType ok" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

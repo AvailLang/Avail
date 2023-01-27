@@ -756,8 +756,8 @@ open class VariableDescriptor protected constructor(
 						if (writeReactors !== null)
 						{
 							discardInvalidWriteReactors(writeReactors)
-							// If there are write reactors, but write tracing isn't
-							// active, then raise an exception.
+							// If there are write reactors, but write tracing
+							// isn't active, then raise an exception.
 							if (writeReactors.isNotEmpty())
 							{
 								throw VariableSetException(

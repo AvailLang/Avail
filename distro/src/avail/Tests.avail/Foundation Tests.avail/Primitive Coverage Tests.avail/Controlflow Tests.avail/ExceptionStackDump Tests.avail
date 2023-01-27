@@ -39,12 +39,12 @@ Body
 
 Test "ExceptionStackDump ok" in primitive controlflow test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "ExceptionStackDump fails with incorrect-argument-type exception" in primitive controlflow test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-argument-type exception;
 

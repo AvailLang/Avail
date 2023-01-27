@@ -54,7 +54,7 @@ Test "BitShiftWithTruncation ok" in primitive integers test suite is
 Test "BitShiftWithTruncation fails with too-large-to-represent exception" in primitive integers test suite is
 [
 	b : whole number := 999999999999999998;
-	123 << 17 keeping b bits
+	Ignore: 123 << 17 keeping b bits;
 ]
 must raise too-large-to-represent exception;
 

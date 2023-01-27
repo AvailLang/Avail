@@ -48,7 +48,7 @@ Test "AtomSetProperty ok" in primitive atoms test suite is
 
 Test "AtomSetProperty fails with special-atom exception" in primitive atoms test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise special-atom exception;
 

@@ -39,12 +39,12 @@ Body
 
 Test "AddUnloadFunction ok" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "AddUnloadFunction fails with loading-is-over exception" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise loading-is-over exception;
 

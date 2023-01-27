@@ -219,8 +219,8 @@ Private method "extract constant value from_" is
 	[
 		i : natural number
 	|
-		elementExpression ::= cast expressions[i]
-			into [e : expression phrase | e];
+		elementExpression ::=
+			cast expressions[i] into [e : expression phrase | e];
 		value ::= extract constant value from elementExpression;
 		valueTuple := concatenate <eject valueTuple, <value>>;
 		true
@@ -492,7 +492,7 @@ styled by definition styler;
  * known value when all arguments are themselves precisely known.
  *
  * @method "Stable abstract method_is_"
- * @param "methodAtom" "atam"
+ * @param "methodAtom" "atom"
  *        The atom representing the abstract method to declare.
  * @param "aFunctionType" "function meta"
  *        The signature.

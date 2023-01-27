@@ -325,7 +325,8 @@ Method "Require:_accepts_«(check indices)»?" is
 			++ “action[2]”
 			++ ")"
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Ensure that the function will accept all elements and indices of the tuple.
@@ -4146,7 +4147,6 @@ Public macro "quicksort…,…in|of_§by_" is
 	a two-input tuple prefix function,
 	two-input tuple body function($"merge sort_with_", tuple);
 
-
 /**
  * Take two sorted tuples and merge them into one sorted tuple based upon the
  * criteria provided in the comparison function.
@@ -4442,7 +4442,8 @@ Public method "_↑-=_" is
 |
 	value ::= eject var;
 	var ?= value - doomed;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_-=_" to "_↑-=_";
 
@@ -4518,7 +4519,8 @@ Public method "_[_.._]else_" is
 	then [aTuple[cast start into [t : natural number | t]..
 		cast end into [t : whole number | t]]]
 	else else
-] : any;
+] : any
+styled by conditional styler;
 
 /**
  * @method "_[_.._]else_"
@@ -4588,7 +4590,8 @@ Public method "_[.._]else_" is
 	else : function accepting <> and returning any
 |
 	aTuple[1..end] else else
-] : any;
+] : any
+styled by conditional styler;
 
 /**
  * @method "_[.._]else_"
@@ -4649,7 +4652,8 @@ Public method "_[_..]else_" is
 	else : function accepting <> and returning any
 |
 	aTuple[start..|aTuple|] else else
-] : any;
+] : any
+styled by conditional styler;
 
 /**
  * @method "_[_..]else_"
@@ -4745,7 +4749,8 @@ Private method "self overlap_" is
  * @author "Richard Arriaga"
  * @category "Tuples" "Queries"
  */
-Public stable abstract method "first index of_in_" is [tuple,tuple]→whole number;
+Public stable abstract method "first index of_in_"
+	is [tuple,tuple]→whole number;
 
 Method "first index of_in_" is
 [

@@ -39,6 +39,6 @@ Body
 
 Test "FloatTimesTwoPower ok" in primitive floats test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

@@ -39,12 +39,12 @@ Body
 
 Test "ObjectTypeToMap ok" in primitive objects test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "ObjectTypeToMap fails with no-such-field exception" in primitive objects test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise no-such-field exception;
 

@@ -252,7 +252,8 @@ Method "Require:_accepts_" is
 			++ “action[1]”
 			++ ")"
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Ensure that the function will accept all elements of the set. If the set is
@@ -1010,7 +1011,14 @@ Semantic restriction "_⊂_" is
 	 * be false. Otherwise all bets are off.
 	 */
 	basicRule ::=
-		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ ⊤ ] ];
+		[
+			if elementA = ⊥ then [true's type]
+			else
+			[
+				if elementA ∩ elementB = ⊥ then [false's type]
+				else [⊤]
+			]
+		];
 	sizesB ::= ||typeB||;
 	/* This is finesse. If `typeB` is definitely the set of all possible
 	 * instances of its (enumeration) element type, then `typeA`'s instances
@@ -1051,8 +1059,8 @@ Public stable method "_⊇_" is
  */
 Semantic restriction "_⊇_" is
 [
-	typeB : set's type,
-	typeA : set's type
+	typeA : set's type,
+	typeB : set's type
 |
 	elementA ::= typeA's element type;
 	elementB ::= typeB's element type;
@@ -1061,16 +1069,23 @@ Semantic restriction "_⊇_" is
 	 * be false. Otherwise all bets are off.
 	 */
 	basicRule ::=
-		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ boolean ] ];
-	sizesB ::= ||typeB||;
-	/* This is finesse. If `typeB` is definitely the set of all possible
-	 * instances of its (enumeration) element type, then `typeA`'s instances
-	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
-	 * subtype of `typeB`'s element type.
+		[
+			if elementB = ⊥ then [true's type]
+			else
+			[
+				if elementA ∩ elementB = ⊥ then [false's type]
+				else [⊤]
+			]
+		];
+	sizesA ::= ||typeA||;
+	/* This is finesse. If `typeA` is definitely the set of all possible
+	 * instances of its (enumeration) element type, then `typeB`'s instances
+	 * must be subsets of `typeA`'s instance if `typeB`'s element type is a
+	 * subtype of `typeA`'s element type.
 	 */
-	if |elementB| ≠ ∞ ∧ ⌊sizesB⌋ = ⌈sizesB⌉ ∧ |elementB| = ⌊sizesB⌋ then
+	if |elementA| ≠ ∞ ∧ ⌊sizesA⌋ = ⌈sizesA⌉ ∧ |elementA| = ⌊sizesA⌋ then
 	[
-		if elementA ⊆ elementB then [true's type]
+		if elementB ⊆ elementA then [true's type]
 		else basicRule
 	]
 	else basicRule

@@ -39,6 +39,6 @@ Body
 
 Test "AtomIsSpecial ok" in primitive atoms test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

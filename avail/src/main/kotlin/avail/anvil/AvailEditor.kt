@@ -37,7 +37,7 @@ import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.PhrasePathStyleApplicator.applyPhrasePaths
-import avail.anvil.StyleApplicator.applyStyleRuns
+import avail.anvil.RenderingEngine.applyStyleRuns
 import avail.anvil.actions.FindAction
 import avail.anvil.shortcuts.AvailEditorShortcut
 import avail.anvil.shortcuts.KeyboardShortcut
@@ -383,7 +383,7 @@ class AvailEditor constructor(
 				.notNullAnd { editable },
 		AvailEditorKit(workbench)
 	).apply {
-		registerStyles()
+		initializeStyles()
 		addCaretListener {
 			val doc = styledDocument
 			range = markToDotRange()
@@ -435,20 +435,20 @@ class AvailEditor constructor(
 		}
 	}
 
-	init
-	{
-		highlightCode()
-		range = sourcePane.markToDotRange()
-		caretRangeLabel.text = range.toString()
-		sourcePane.undoManager.discardAllEdits()
-	}
-
 	/** The scroll wrapper around the [sourcePane]. */
 	private val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-		workbench.globalSettings.editorGuideLines)
+		workbench, workbench.globalSettings.editorGuideLines)
+
+	/** The [styling&#32;record][StylingRecord] for the module. */
+	private var stylingRecord: StylingRecord? = null
+
+	/** The [phrase&#32;path&#32;record][PhrasePathRecord] for the module. */
+	private var phrasePathRecord: PhrasePathRecord? = null
 
 	/**
-	 * Apply style highlighting to the text in the [JTextPane].
+	 * Populate the [source&#32;pane][sourcePane] and obtain the most recently
+	 * recorded [styling&#32;record][StylingRecord] for the underlying
+	 * [module][A_Module]. [Highlight][highlightCode] the source code.
 	 *
 	 * Also apply the semantic styling that associates a [PhraseNode] with each
 	 * token that was part of a parsed phrase.
@@ -457,11 +457,12 @@ class AvailEditor constructor(
 	 * can navigate to the correct line even after edits (as long as the file
 	 * had no edits since the last compilation at the time that the editor was
 	 * opened).
+	 *
+	 * @param then
+	 *   Action to perform after population and then highlighting are complete.
 	 */
-	internal fun highlightCode()
+	internal fun populateSourcePane(then: (AvailEditor) -> Unit = {})
 	{
-		var stylingRecord: StylingRecord? = null
-		var phrasePathRecord: PhrasePathRecord? = null
 		val semaphore = Semaphore(0)
 		val info = SourceCodeInfo(runtime, resolverReference)
 		info.sourceAndDelimiter.withValue { (normalizedText, delimiter) ->
@@ -481,8 +482,31 @@ class AvailEditor constructor(
 				})
 		}
 		semaphore.acquire()
+		highlightCode()
+		then(this)
+	}
+
+	/**
+	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 */
+	private val codeGuide get() = sourcePane.getClientProperty(
+		CodeGuide::class.java.name) as CodeGuide
+
+	/**
+	 * Apply style highlighting to the text in the
+	 * [source&#32;pane][sourcePane].
+	 */
+	internal fun highlightCode()
+	{
+		val stylesheet = workbench.stylesheet
+		sourcePane.background = sourcePane.computeBackground(stylesheet)
+		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
+		codeGuide.guideColor = codeGuide.computeColor()
 		stylingRecord?.let {
-			sourcePane.styledDocument.applyStyleRuns(it.styleRuns)
+			sourcePane.styledDocument.applyStyleRuns(
+				stylesheet,
+				it.styleRuns
+			)
 		}
 		phrasePathRecord?.let {
 			sourcePane.styledDocument.applyPhrasePaths(it)
@@ -569,7 +593,6 @@ class AvailEditor constructor(
 	/** Open the editor window. */
 	init
 	{
-		highlightCode()
 		range = sourcePane.markToDotRange()
 		caretRangeLabel.text = range.toString()
 		jMenuBar = createMenuBar {
@@ -613,9 +636,11 @@ class AvailEditor constructor(
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
+		populateSourcePane(afterTextLoaded)
+		range = sourcePane.markToDotRange()
+		caretRangeLabel.text = range.toString()
+		sourcePane.undoManager.discardAllEdits()
 
-		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-			workbench.globalSettings.editorGuideLines)
 		panel.layout = GroupLayout(panel).apply {
 			autoCreateGaps = true
 			setHorizontalGroup(
@@ -633,9 +658,10 @@ class AvailEditor constructor(
 		preferredSize = Dimension(800, 1000)
 		add(panel)
 		pack()
-		afterTextLoaded(this@AvailEditor)
 		if (workbench.structureViewIsOpen)
+		{
 			updatePhraseStructure()
+		}
 		isVisible = true
 	}
 

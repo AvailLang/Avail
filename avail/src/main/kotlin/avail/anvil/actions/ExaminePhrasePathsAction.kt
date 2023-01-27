@@ -33,9 +33,11 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.streams.StreamStyle
 import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.PhrasePathRecord
+import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.newlineTab
 import java.awt.event.ActionEvent
 import javax.swing.Action
@@ -91,13 +93,16 @@ class ExaminePhrasePathsAction constructor (
 							repository.repository!![
 								selectedCompilation.recordNumberOfPhrasePaths]
 						val phrasePathsRecord = PhrasePathRecord(bytes)
-						val string = buildString {
+						val description = buildString {
 							phrasePathsRecord.phraseNodesDo { node ->
 								newlineTab(node.depth())
 								append(node)
 							}
 						}
-						workbench.outputStream.println(string)
+						val report = buildUnicodeBox("Phrase Paths Report") {
+							append(description)
+						}
+						workbench.writeText(report, StreamStyle.REPORT)
 					}
 					is Any -> assert(false) { "Unknown type selected" }
 				}

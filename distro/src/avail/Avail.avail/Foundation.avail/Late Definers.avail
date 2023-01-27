@@ -75,7 +75,8 @@ Public method "Require:_is canonical" is
 				nameType's instance's name,
 				non-canonical problem with nameType's instance's name
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
@@ -135,7 +136,8 @@ Public method "Require:_is unambiguous" is
 					“all atoms for name” (as disjunctive list with serial comma)
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 For each name of
 <

@@ -1208,7 +1208,6 @@ Public stable method "_is uppercase" is
 	c : character
 |
 	(c's code point) ∈ uppercaseCharacter
-
 ] : boolean;
 
 /**
@@ -1225,7 +1224,6 @@ Public stable method "_is lowercase" is
 	c : character
 |
 	(c's code point) ∈ lowercaseCharacter
-
 ] : boolean;
 
 /**
@@ -1246,7 +1244,6 @@ Public stable method "_is titlecase" is
 	c : character
 |
 	(c's code point) ∈ titlecaseCharacter
-
 ] : boolean;
 
 /**

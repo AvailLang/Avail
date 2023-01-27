@@ -124,6 +124,14 @@ Test "set not proper subset" in set test suite is
 	Require: ∅ ⊅ a;
 ];
 
+Test "empty set subset or equals semantic restriction regression" in set test suite is
+[
+	a : set := {1,2,3,4,5};
+	Require: ∅ ⊆ a;
+	Require: ∅ ⊂ a;
+	Require: a ⊇ ∅;
+];
+
 Test "set is a superset" in set test suite is
 [
 	a ::= {1,2,3,4};

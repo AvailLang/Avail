@@ -39,12 +39,12 @@ Body
 
 Test "AttemptJoinFiber ok" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "AttemptJoinFiber fails with fiber-cannot-join-itself exception" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise fiber-cannot-join-itself exception;
 

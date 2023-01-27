@@ -405,4 +405,47 @@ object Strings
 			}
 		}
 	}
+
+	/**
+	 * Build a Unicode box whose contents are populated by the specified
+	 * [builder] function. Only top and bottom borders are drawn.
+	 *
+	 * @param title
+	 *   The title of the box, if any. Defaults to `""`, i.e., untitled.
+	 * @param borderColumns
+	 *   The number of columns for the top and bottom borders.
+	 * @param builder
+	 *   How to populate the box with text.
+	 * @return
+	 *   The Unicode box.
+	 */
+	fun buildUnicodeBox(
+		title: String = "",
+		borderColumns: Int = 80,
+		builder: StringBuilder.()->Unit
+	) = buildString {
+		if (title.isEmpty())
+		{
+			append("┏")
+			append("━".repeat(borderColumns - 2))
+			append("┓\n")
+		}
+		else
+		{
+			// The magic constant is an adjustment for padding around the title.
+			val totalBorder = borderColumns - title.length - 2
+			val prologue = totalBorder / 2
+			val epilogue = prologue + totalBorder % 2
+			append("┏")
+			append("━".repeat(prologue - 1))
+			append(" $title ")
+			append("━".repeat(epilogue - 1))
+			append("┓\n")
+		}
+		builder()
+		if (this[lastIndex] != '\n') append('\n')
+		append("┗")
+		append("━".repeat(borderColumns - 2))
+		append("┛\n")
+	}
 }

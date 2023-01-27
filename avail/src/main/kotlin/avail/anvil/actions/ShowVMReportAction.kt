@@ -33,7 +33,7 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.streams.StreamStyle.INFO
+import avail.anvil.streams.StreamStyle.REPORT
 import avail.performance.StatisticReport
 import java.awt.event.ActionEvent
 import java.util.EnumSet
@@ -56,7 +56,7 @@ class ShowVMReportAction constructor(
 	{
 		val reports = EnumSet.allOf(StatisticReport::class.java)
 		val reportsString = StatisticReport.produceReports(reports)
-		workbench.writeText(reportsString, INFO)
+		workbench.writeText(reportsString, REPORT)
 	}
 
 	init

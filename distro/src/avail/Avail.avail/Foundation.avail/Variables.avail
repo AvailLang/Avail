@@ -169,7 +169,6 @@ Semantic restriction "Swap_↑and_↑" is
 	]
 ];
 
-
 /**
  * Construct and answer a new variable with the specified containment type and
  * initial value.
@@ -272,7 +271,8 @@ Public method "_↑++" is
 	var : read number/write ⊥
 |
 	var ?= eject var + 1;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_++" to "_↑++";
 
@@ -342,7 +342,8 @@ Public method "++_↑" is
 	var : read number/write ⊥
 |
 	var ?= eject var + 1;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "++_" to "++_↑";
 
@@ -422,7 +423,8 @@ Public method "_↑--" is
 	var : read number/write ⊥
 |
 	var ?= eject var - 1;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_--" to "_↑--";
 
@@ -492,7 +494,8 @@ Public method "--_↑" is
 	var : read number/write ⊥
 |
 	var ?= eject var - 1;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "--_" to "--_↑";
 
@@ -597,7 +600,8 @@ Public method "↓_else_" is
 	else : function accepting <> and returning any
 |
 	if var is assigned then [↓var] else else
-] : any;
+] : any
+styled by conditional styler;
 
 /**
  * @method "↓_else_"
@@ -699,7 +703,8 @@ Public macro "«…‡,»::=_;" is
 		true
 	];
 	seq «strongBindings»
-];
+]
+styled by statement styler;
 
 /**
  * Destructure a {@type "tuple meta" tuple type} into a {@type "sequence"} of
@@ -817,7 +822,6 @@ Public method "Register_→_in_" is
 		var -= key;
 	];
 ];
-
 
 /**
  * Strengthen the key and value types against the type of map in the variable.

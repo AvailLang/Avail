@@ -39,30 +39,30 @@ Body
 
 Test "ClearValue ok" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "ClearValue fails with cannot-overwrite-write-once-variable exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise cannot-overwrite-write-once-variable exception;
 
 Test "ClearValue fails with observed-variable-written-while-untraced exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise observed-variable-written-while-untraced exception;
 
 Test "ClearValue fails with Java-marshaling-failed exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise Java-marshaling-failed exception;
 
 Test "ClearValue fails with cannot-modify-final-Java-field exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise cannot-modify-final-Java-field exception;
 

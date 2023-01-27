@@ -39,5 +39,5 @@ Body
 
 Test "CreateAnonymousModule ok" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ];

@@ -48,15 +48,11 @@ import javax.swing.SwingUtilities.invokeLater
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class RefreshAction
-constructor(
+class RefreshAction constructor(
 	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(workbench, "Refresh", WorkbenchRefreshShortcut)
+): AbstractWorkbenchAction(workbench, "Refresh", WorkbenchRefreshShortcut)
 {
-	override fun actionPerformed(event: ActionEvent)
-	{
-		runAction()
-	}
+	override fun actionPerformed(event: ActionEvent) = runAction()
 
 	/**
 	 * Actually perform a refresh, causing the workbench's tree to be rebuilt.

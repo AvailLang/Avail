@@ -34,6 +34,8 @@ package avail.anvil.text
 
 import avail.anvil.AvailEditor.Companion.editor
 import avail.anvil.AvailWorkbench
+import avail.anvil.RenderingContext
+import avail.anvil.Stylesheet
 import avail.anvil.editor.GoToDialog
 import avail.anvil.shortcuts.BreakLineShortcut
 import avail.anvil.shortcuts.CamelCaseShortcut
@@ -52,17 +54,22 @@ import avail.anvil.shortcuts.OpenPhraseViewShortcut
 import avail.anvil.shortcuts.OpenStructureViewShortcut
 import avail.anvil.shortcuts.OutdentShortcut
 import avail.anvil.shortcuts.PascalCaseShortcut
+import avail.anvil.shortcuts.PrintAllRenderingSolutionsShortcut
 import avail.anvil.shortcuts.RedoShortcut
 import avail.anvil.shortcuts.RefreshShortcut
+import avail.anvil.shortcuts.RefreshStylesheetShortcut
 import avail.anvil.shortcuts.SnakeCaseShortcut
 import avail.anvil.shortcuts.UndoShortcut
 import avail.anvil.shortcuts.UppercaseShortcut
+import avail.anvil.streams.StreamStyle
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
 import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
+import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.tabs
+import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Point
 import java.awt.event.ActionEvent
 import javax.swing.Action
@@ -75,6 +82,7 @@ import javax.swing.text.Caret
 import javax.swing.text.Document
 import javax.swing.text.EditorKit
 import javax.swing.text.JTextComponent
+import javax.swing.text.StyleConstants
 import javax.swing.text.StyledEditorKit
 import javax.swing.text.TextAction
 import javax.swing.undo.CompoundEdit
@@ -143,9 +151,11 @@ class AvailEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
 {
 	override val defaultActions = super.defaultActions + arrayOf<Action>(
 		GoToDialogAction,
-		OpenStructureView,
 		OpenPhraseView,
-		Refresh
+		OpenStructureView,
+		Refresh,
+		RefreshStylesheet,
+		PrintAllRenderingSolutions
 	)
 }
 
@@ -421,6 +431,74 @@ private object Refresh: TextAction(RefreshShortcut.actionMapKey)
 		workbench.availBuilder.checkStableInvariants()
 		workbench.setEnablements()
 		buildTask.execute()
+	}
+}
+
+/**
+ * Refresh the [stylesheet][Stylesheet] from the [project][AvailProject]'s
+ * configuration file.
+ */
+private object RefreshStylesheet: TextAction(
+	RefreshStylesheetShortcut.actionMapKey
+)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val editor = e.editor
+		val workbench = editor.workbench
+		workbench.refreshStylesheetAction.runAction()
+	}
+}
+
+/**
+ * Dump all of the possible rendering solutions for the region enclosing the
+ * caret.
+ */
+private object PrintAllRenderingSolutions: TextAction(
+	PrintAllRenderingSolutionsShortcut.actionMapKey
+)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		val editor = e.editor
+		val sourcePane = editor.sourcePane
+		val document = sourcePane.styledDocument
+		val element = document.getCharacterElement(sourcePane.caret.dot)
+		val classifiers = element.attributes.getAttribute(
+			StyleConstants.NameAttribute) as String
+		val workbench = editor.workbench
+		val stylesheet = workbench.stylesheet
+		var solutions = stylesheet.mostSpecificSolutions(
+			stylesheet.findTree(classifiers))
+		val finalSolution = stylesheet.distillFinalSolution(solutions)
+		fun prettify(renderingContext: RenderingContext): String
+		{
+			var pretty = renderingContext.toString()
+				.replace("RenderingContext(", "\n\t")
+				.replace("=", " = ")
+				.replace(", ", "\n\t")
+				.replace(")", "")
+				.trimEnd()
+			if (pretty.isEmpty())
+			{
+				pretty = "\n\t[no overrides]"
+			}
+			return pretty
+		}
+		val breakdown = buildUnicodeBox("Styling Solutions Report") {
+			append("${editor.moduleName}:\n")
+			append("classifiers at caret:\n\t$classifiers\n")
+			append("rendering solutions at caret:")
+			if (solutions.isEmpty())
+			{
+				solutions = listOf(stylesheet.noSolutionsRule.pattern)
+			}
+			solutions.forEach {
+				append("\n>>> ${it.source} ⇒${prettify(it.renderingContext)}")
+			}
+			append("\n::: final rendering solution ⇒${prettify(finalSolution)}")
+		}
+		workbench.writeText(breakdown, StreamStyle.REPORT)
 	}
 }
 
@@ -1011,7 +1089,7 @@ fun JTextComponent.centerCurrentLine()
 		).toInt()
 		viewport.viewPosition = Point(0, y)
 	}
-	catch (e: BadLocationException)
+	catch (e: Exception)
 	{
 		// We tried our best, but the caret was somehow invalid. Give up.
 	}
@@ -1284,6 +1362,7 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 			{
 				append(textToTransform[0].lowercase())
 			}
+			@Suppress("KotlinConstantConditions")
 			textToTransform.substring(1).forEach {
 				if (it == '-' || it == '_')
 				{
@@ -1326,7 +1405,6 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 						}
 					}
 				}
-
 			}
 		}
 
@@ -1348,10 +1426,10 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 			var previousIsDelimiter = false
 			append(textToTransform[0].lowercase())
 			textToTransform.substring(1).forEach {
-				if (it == '-' || it == '_')
+				previousIsDelimiter = if (it == '-' || it == '_')
 				{
 					append(delimiter)
-					previousIsDelimiter = true
+					true
 				}
 				else
 				{
@@ -1360,7 +1438,7 @@ internal class StringCaseTransformQueue constructor(toTransform: String)
 						append(delimiter)
 					}
 					append(it.lowercase())
-					previousIsDelimiter = false
+					false
 				}
 			}
 		}

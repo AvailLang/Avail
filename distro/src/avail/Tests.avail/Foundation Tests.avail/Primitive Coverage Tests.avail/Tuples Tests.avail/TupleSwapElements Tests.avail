@@ -39,12 +39,12 @@ Body
 
 Test "TupleSwapElements ok" in primitive tuples test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "TupleSwapElements fails with subscript-out-of-bounds exception" in primitive tuples test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise subscript-out-of-bounds exception;
 

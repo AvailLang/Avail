@@ -196,7 +196,8 @@ Private method "Require:_accepts_" is
 			++ “action[2]”
 			++ ")"
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Ensure that the function will accept all bindings of the map. If the map is

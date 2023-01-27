@@ -82,17 +82,18 @@ constructor (
 				workbench.cursor = Cursor.getDefaultCursor()
 				workbench.openEditors.values.forEach { editor ->
 					val r = editor.range
-					editor.highlightCode()
-					editor.sourcePane.setCaretFrom(r)
-					editor.sourcePane.centerCurrentLine()
-					editor.fetchManifestEntries()
-					if (workbench.structureViewPanel.editor == editor)
-					{
-						editor.openStructureView(false)
-					}
-					if (workbench.phraseViewPanel.editor == editor)
-					{
-						editor.updatePhraseStructure()
+					editor.populateSourcePane {
+						it.sourcePane.setCaretFrom(r)
+						it.sourcePane.centerCurrentLine()
+						it.fetchManifestEntries()
+						if (workbench.structureViewPanel.editor == editor)
+						{
+							editor.openStructureView(false)
+						}
+						if (workbench.phraseViewPanel.editor == editor)
+						{
+							editor.updatePhraseStructure()
+						}
 					}
 				}
 				afterExecute()

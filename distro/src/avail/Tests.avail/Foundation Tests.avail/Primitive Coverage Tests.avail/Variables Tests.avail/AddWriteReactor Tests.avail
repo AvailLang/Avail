@@ -39,12 +39,12 @@ Body
 
 Test "AddWriteReactor ok" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "AddWriteReactor fails with special-atom exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise special-atom exception;
 

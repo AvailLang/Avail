@@ -294,4 +294,5 @@ Method "Require:_named_does not shadow" is
 				" to have a name that doesn't shadow another local declaration"
 			>
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;

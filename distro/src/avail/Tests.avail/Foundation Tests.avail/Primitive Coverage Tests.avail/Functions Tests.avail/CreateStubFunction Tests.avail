@@ -39,6 +39,6 @@ Body
 
 Test "CreateStubFunction ok" in primitive functions test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

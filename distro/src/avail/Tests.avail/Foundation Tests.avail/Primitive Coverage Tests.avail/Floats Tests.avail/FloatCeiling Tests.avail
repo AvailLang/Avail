@@ -39,6 +39,6 @@ Body
 
 Test "FloatCeiling ok" in primitive floats test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

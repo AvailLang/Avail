@@ -1359,7 +1359,8 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 				\|but the following included characters are Avail message \
         		\|metacharacters: " ++ “metachars” (as simple list)
 	];
-];
+]
+styled by assertion styler;
 
 /**
  * Reject the current parse unless the specified {@type "string"} is statically

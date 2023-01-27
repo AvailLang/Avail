@@ -39,24 +39,24 @@ Body
 
 Test "PojoArraySet ok" in primitive pojos test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "PojoArraySet fails with cannot-store-incorrectly-typed-value exception" in primitive pojos test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise cannot-store-incorrectly-typed-value exception;
 
 Test "PojoArraySet fails with subscript-out-of-bounds exception" in primitive pojos test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise subscript-out-of-bounds exception;
 
 Test "PojoArraySet fails with Java-marshaling-failed exception" in primitive pojos test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise Java-marshaling-failed exception;
 

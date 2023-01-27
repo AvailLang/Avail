@@ -47,7 +47,7 @@ import java.nio.charset.StandardCharsets
  *   The wrapped [OutputStream].
  * @throws UnsupportedEncodingException
  *   Because Java won't let you catch the pointless exception thrown by the
- *   super constructor.
+ *   superconstructor.
  */
 internal class BuildPrintStream
 @Throws(UnsupportedEncodingException::class) constructor(

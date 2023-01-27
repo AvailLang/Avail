@@ -33,9 +33,11 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.streams.StreamStyle.REPORT
 import avail.descriptor.fiber.FiberDescriptor
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.RepositoryDescriber
+import avail.utility.Strings.buildUnicodeBox
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JOptionPane
@@ -90,7 +92,10 @@ class ExamineSerializedPhrasesAction constructor (
 						val describer = RepositoryDescriber(repository)
 						val description = describer.describeCompilation(
 							selectedCompilation.recordNumberOfBlockPhrases)
-						workbench.outputStream.println(description)
+						val report = buildUnicodeBox("Phrase Report") {
+							append(description)
+						}
+						workbench.writeText(report, REPORT)
 					}
 					is Any -> assert(false) { "Unknown type selected" }
 				}

@@ -39,12 +39,12 @@ Body
 
 Test "FileIsAbsolute ok" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "FileIsAbsolute fails with invalid-path exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise invalid-path exception;
 

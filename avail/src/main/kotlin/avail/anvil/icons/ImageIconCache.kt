@@ -106,5 +106,18 @@ class ImageIconCache<Key: IconKey> constructor(
 	 * @return
 	 *   The requested [ImageIcon].
 	 */
-	operator fun get (k: Key): ImageIcon = cache[k]
+	operator fun get(k: Key): ImageIcon =
+		try
+		{
+			val icon = cache[k]
+			// Yeah, as if. I have seen this return null, recently even
+			// (2023.01.26).
+			@Suppress("SENSELESS_COMPARISON")
+			check(icon !== null)
+			icon
+		}
+		catch (e: Throwable)
+		{
+			throw RuntimeException("Could not locate ${k.resourceName}", e)
+		}
 }

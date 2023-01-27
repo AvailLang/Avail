@@ -60,7 +60,7 @@ Test "BitShiftLeft fails with too-large-to-represent exception"
 in primitive integers test suite is
 [
 	a : integer := 999999999999999999;
-	123 << a
+	Ignore: 123 << a;
 ]
 must raise too-large-to-represent exception;
 
