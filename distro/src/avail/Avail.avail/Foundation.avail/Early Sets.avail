@@ -141,7 +141,14 @@ Semantic restriction "_⊆_" is
 	 * be false. Otherwise all bets are off.
 	 */
 	basicRule ::=
-		[if elementA ∩ elementB = ⊥ then [false's type] else [⊤]];
+		[
+			if elementA = ⊥ then [true's type]
+			else
+			[
+				if elementA ∩ elementB = ⊥ then [false's type]
+				else [⊤]
+			]
+		];
 	sizesB ::= ||typeB||;
 	/* This is finesse. If typeB is definitely the set of all possible
 	 * instances of its (enumeration) element type, then typeA's instances

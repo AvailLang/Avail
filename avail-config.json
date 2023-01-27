@@ -91,6 +91,8 @@
 				"picapital": "∏",
 				"plusminus": "±",
 				"prefix": "§",
+				"propersubset": "⊂",
+				"propersuperset": "⊃",
 				"quote": "⟦⁁⟧",
 				"rightarrow": "→",
 				"rightceiling": "⌉",
