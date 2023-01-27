@@ -39,12 +39,12 @@ Body
 
 Test "CreateSequenceOfStatements ok" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "CreateSequenceOfStatements fails with sequence-contains-invalid-statements exception" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise sequence-contains-invalid-statements exception;
 

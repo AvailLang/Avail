@@ -42,7 +42,7 @@ import avail.anvil.StyleRuleContextState.PAUSED
 import avail.anvil.StyleRuleContextState.REJECTED
 import avail.anvil.StyleRuleContextState.RUNNING
 import avail.anvil.StyleRuleExecutor.endOfSequenceLiteral
-import avail.anvil.StyleRuleExecutor.run
+import avail.anvil.StyleRuleExecutor.execute
 import avail.anvil.Stylesheet
 import avail.anvil.UnvalidatedRenderingContext
 import avail.anvil.UnvalidatedStylePattern
@@ -195,7 +195,7 @@ class StylesheetTest
 	{
 		val pattern = UnvalidatedStylePattern(source, renderingContext)
 		val rule = compile(pattern, palette)
-		val interned = sequence.map { it.intern() }
+		val interned = sequence.map(String::intern)
 		assertEquals(expected, ruleMatch(rule, interned))
 	}
 
@@ -280,7 +280,7 @@ class StylesheetTest
 			TimeUnit.SECONDS,
 			WorkStealingQueue<Task>(availableProcessors)
 				as BlockingQueue<Runnable>,
-			{ Thread(it) },
+			::Thread,
 			ThreadPoolExecutor.AbortPolicy())
 		val symbols = ('a' until 'a' + vocabularySize).map { "#$it".intern() }
 		// The operations and data in support of counting are deliberately kept
@@ -472,7 +472,7 @@ class StylesheetTest
 
 		/**
 		 * The positive exemplars, as pairs of source pattern and expected
-		 * disassemblies.
+		 * disassemblies. Requires [JvmStatic] for use with [MethodSource].
 		 */
 		@JvmStatic
 		val positiveExemplars get(): Stream<Arguments> = streamOf(
@@ -803,7 +803,8 @@ class StylesheetTest
 
 		/**
 		 * The negative exemplars, as triples of source pattern, expected
-		 * error position, and expected error message.
+		 * error position, and expected error message. Requires [JvmStatic] for
+		 * use with [MethodSource].
 		 */
 		@JvmStatic
 		val negativeExemplars get(): Stream<Arguments> = streamOf(
@@ -846,7 +847,8 @@ class StylesheetTest
 		 * The exemplars to support [testNaiveMatch] and [testRuleMatch]. This
 		 * supports meta-testing, for building confidence in the implementation
 		 * of the test suite itself, in furtherance of the
-		 * [exhausted][testExhaustive] test.
+		 * [exhausted][testExhaustive] test. Requires [JvmStatic] for use with
+		 * [MethodSource].
 		 */
 		@JvmStatic
 		val executionExemplars get(): Stream<Arguments> = streamOf(
@@ -930,7 +932,8 @@ class StylesheetTest
 
 		/**
 		 * The exemplars to support [testRegressions], mostly discovered and
-		 * emitted by [testExhaustive].
+		 * emitted by [testExhaustive]. Requires [JvmStatic] for use with
+		 * [MethodSource].
 		 */
 		@JvmStatic
 		val regressionExemplars get(): Stream<Arguments> = streamOf(
@@ -1206,6 +1209,8 @@ class StylesheetTest
 		 * * `c<b,a`
 		 * * `c<a<b`
 		 * * `c<b<a`
+		 *
+		 * Requires [JvmStatic] for use with [MethodSource].
 		 */
 		@JvmStatic
 		val specificityExemplars get(): Stream<Arguments> = streamOf(
@@ -3106,6 +3111,7 @@ class StylesheetTest
 		 * The exemplars to support [testSpecificityCommentExemplars], taken
 		 * directly from the internal comments of
 		 * [compareSpecificityTo][StylePattern.compareSpecificityTo].
+		 * Requires [JvmStatic] for use with [MethodSource].
 		 */
 		@JvmStatic
 		val specificityCommentExemplars get(): Stream<Arguments> = streamOf(
@@ -3154,6 +3160,7 @@ class StylesheetTest
 		/**
 		 * The exemplars to support [testSpecificityRegressionExemplars]. These
 		 * exemplars were identified empirically, through active testing.
+		 * Requires [JvmStatic] for use with [MethodSource].
 		 */
 		@JvmStatic
 		val specificityRegressionExemplars get(): Stream<Arguments> = streamOf(
@@ -3257,7 +3264,7 @@ class StylesheetTest
 				{
 					running.drain().forEach { context ->
 						val nextContext =
-							run(context, classifier) { forked ->
+							execute(context, classifier) { forked ->
 								assertEquals(RUNNING, forked.state)
 								running.add(forked)
 							}
@@ -3442,7 +3449,7 @@ class StylesheetTest
 	{
 		var first = true
 		var symbolIndices = mutableListOf<Int>()
-		val makeSequence = { symbolIndices.map { symbols[it] } }
+		val makeSequence = { symbolIndices.map(symbols::get) }
 		return generateSequence {
 			if (first)
 			{
@@ -3537,6 +3544,6 @@ class StylesheetTest
 		when (n)
 		{
 			0, 1 -> 1
-			else -> (2 .. n).reduce { p, t -> p * t }
+			else -> (2 .. n).reduce(Int::times)
 		}
 }

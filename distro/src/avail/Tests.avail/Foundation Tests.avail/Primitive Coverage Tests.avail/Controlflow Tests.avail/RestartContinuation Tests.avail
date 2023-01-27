@@ -39,6 +39,6 @@ Body
 
 Test "RestartContinuation ok" in primitive controlflow test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

@@ -39,12 +39,12 @@ Body
 
 Test "DisableTraceVariableReadsBeforeWrites ok" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "DisableTraceVariableReadsBeforeWrites fails with illegal-trace-mode exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise illegal-trace-mode exception;
 

@@ -39,6 +39,6 @@ Body
 
 Test "CompiledCodeNumOuters ok" in primitive rawfunctions test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

@@ -39,18 +39,18 @@ Body
 
 Test "RemoveWriteReactor ok" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "RemoveWriteReactor fails with key-not-found exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise key-not-found exception;
 
 Test "RemoveWriteReactor fails with special-atom exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise special-atom exception;
 

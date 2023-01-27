@@ -39,6 +39,6 @@ Body
 
 Test "IsSubtypeOf ok" in primitive types test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

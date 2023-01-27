@@ -39,12 +39,12 @@ Body
 
 Test "CurrentMacroName ok" in primitive compiler test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "CurrentMacroName fails with not-evaluating-macro exception" in primitive compiler test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise not-evaluating-macro exception;
 

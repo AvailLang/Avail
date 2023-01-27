@@ -398,7 +398,8 @@ Private method "Private guard_intercept_ensure_" is
 				Mark guard variable failureCode with unwind-sentinel code;
 			];
 		];
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
 
 /**
  * A cascade exception retains the exception that originally caused it.
@@ -528,7 +529,8 @@ Private method "Handle_handler_unwind_" is
 	[
 		Raise preemptiveException caused by originalException
 	];
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
 
 Private method "Handle_handler_unwind_" is
 [
@@ -710,7 +712,8 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 		(wrappedHandlers ++ if needCatchAll then [<catchAll()>] else [<>])
 			→ list phrase ?→ list phrase ⇒ <[⊥]→⊤…|>;
 	⟦Private guard ⦊bodyPhrase⦉ intercept ⦊realHandlers⦉ ensure ⦊unwind⦉⟧
-];
+]
+styled by conditional styler;
 
 /**
  * Attempt {@param "protected"}. If it does not raise an {@type "exception"},
@@ -734,7 +737,8 @@ Public method "try_else_" is
 	else : []→any
 |
 	guard protected intercept [e : exception | else()]
-] : any;
+] : any
+styled by conditional styler;
 
 /**
  * @method "try_else_"

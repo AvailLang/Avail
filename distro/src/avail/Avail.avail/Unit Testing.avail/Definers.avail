@@ -193,7 +193,8 @@ Public method "New test suite,⁇_,⁇extends_" is
 		 */
 		After the current module is unloaded, do [Forget suite;];
 	];
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 /**
  * Define a unit test suite.
@@ -214,7 +215,8 @@ Public method "_is a new test suite" is
 	id : atom
 |
 	New test suite id extends root test suite ID;
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 /**
  * Define a test fixture setup operation that will occur exactly once before the
@@ -253,7 +255,8 @@ Public method "Before running_,⁇do_" is
 				id → suite's suite fixture setup ::= without;
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 Private method "fixture semantic restriction function" is
 [
@@ -312,7 +315,8 @@ Public method "Before running each test in_,⁇do_" is
 			];
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 Semantic restriction "Before running each test in_,⁇do_"
 	is fixture semantic restriction function;
@@ -334,7 +338,8 @@ Public method "Do not run tests in_in parallel" is
 	id : atom
 |
 	Before running each test in id, do [];
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 /**
  * Define a test-fixture tear-down operation that will occur exactly once after
@@ -373,7 +378,8 @@ Public method "After running_,⁇do_" is
 				id → suite's suite fixture tear down ::= without;
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 Semantic restriction "After running_,⁇do_"
 	is fixture semantic restriction function;
@@ -506,21 +512,26 @@ is
 		 */
 	];
 	After the current module is unloaded, do [Forget unitTest;];
-] : ⊤;
+] : ⊤
+styled by definition styler;
 
 /**
  * Reject the current parse if the test's return type is not exactly ⊤.
  *
- * @method "Test_in_is_«must raise_»"
+ * @method "Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»"
  * @restricts "string's type"
+ * @restricts "boolean's type"
  * @restricts "atom's type"
  * @restricts "([]→⊤)'s type"
  * @restricts "exception's type?'s type"
  */
-Semantic restriction "Test_in_is_«must raise_»" is
+Semantic restriction
+	"Test_in_«,⁇if supported«on this platform»⁇,⁇»?is_«must raise_»"
+is
 [
 	name : string's type,
 	suiteID : atom's type,
+	platformOptionality : boolean's type,
 	test : ([]→⊤)'s type,
 	optionalException : exception's type?'s type
 |

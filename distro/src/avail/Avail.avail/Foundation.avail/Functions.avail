@@ -335,7 +335,7 @@ Semantic restriction "_(_,`…)" is
 		Reject parse, expected:
 			"function for partial evaluation to take at least two arguments"
 	];
-	If ¬ firstValue ⊆ argumentsType[1] then
+	If ¬firstValue ⊆ argumentsType[1] then
 	[
 		Reject parse, expected:
 			"first argument (" ++ “firstValue” ++ ") to agree with function's \

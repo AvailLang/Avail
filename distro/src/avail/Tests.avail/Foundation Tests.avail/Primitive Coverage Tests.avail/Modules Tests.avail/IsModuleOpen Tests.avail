@@ -39,6 +39,6 @@ Body
 
 Test "IsModuleOpen ok" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

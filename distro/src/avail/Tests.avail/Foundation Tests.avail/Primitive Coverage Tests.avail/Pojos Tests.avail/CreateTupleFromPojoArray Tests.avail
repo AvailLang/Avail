@@ -39,6 +39,6 @@ Body
 
 Test "CreateTupleFromPojoArray ok" in primitive pojos test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

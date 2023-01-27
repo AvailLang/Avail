@@ -7,6 +7,8 @@
 /modules
 /workspace.xml
 /modules.xml
+/ClojureProjectResolveSettings.xml
 /compiler.xml
-/**/*.iml
+/GrepConsole.xml
 /misc.xml
+/**/*.iml

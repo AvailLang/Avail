@@ -96,7 +96,8 @@ Method "{«_‡,»}" is
 	elements : <<>, any…|natural number>
 |
 	Primitive TupleToSet;
-] : set;
+] : set
+styled by set styler;
 
 /*
  * Here are some early grammatical restrictions to improve the performance of
@@ -110,7 +111,8 @@ Method "<«_‡,»>(tuple of string)" is
 	elements : tuple
 |
 	elements
-] : tuple;
+] : tuple
+styled by tuple styler;
 
 Semantic restriction "<«_‡,»>(tuple of string)" is
 [
@@ -124,7 +126,8 @@ Method "<«_‡,»>(tuple of set of string)" is
 	elements : tuple
 |
 	elements
-] : tuple;
+] : tuple
+styled by tuple styler;
 
 Semantic restriction "<«_‡,»>(tuple of set of string)" is
 [
@@ -138,7 +141,8 @@ Method "{«_‡,»}(set of string)" is
 	elements : tuple
 |
 	Primitive TupleToSet;
-] : set;
+] : set
+styled by set styler;
 
 Semantic restriction "{«_‡,»}(set of string)" is
 [
@@ -159,16 +163,16 @@ blockMacro ::= "\
 	\|«^«_†‡,»»?";
 
 bootstrapMacroExpression ::=
-{
-	blockMacro,
-	"…:_†;",
-	"…::=_;",
-	"…:_†:=_;",
-	"…:=§_;",
-	"…",
-	"_!;",
-	"(_::_†)"
-} (set of string);
+	{
+		blockMacro,
+		"…:_†;",
+		"…::=_;",
+		"…:_†:=_;",
+		"…:=§_;",
+		"…",
+		"_!;",
+		"(_::_†)"
+	} (set of string);
 
 badStatementExpression ::=
 	{

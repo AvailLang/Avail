@@ -39,24 +39,24 @@ Body
 
 Test "PublishName ok" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "PublishName fails with ambiguous-name exception" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise ambiguous-name exception;
 
 Test "PublishName fails with cannot-define-during-compilation exception" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise cannot-define-during-compilation exception;
 
 Test "PublishName fails with loading-is-over exception" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise loading-is-over exception;
 

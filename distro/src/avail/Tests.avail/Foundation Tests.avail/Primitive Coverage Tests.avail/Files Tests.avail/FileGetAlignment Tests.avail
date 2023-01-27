@@ -39,12 +39,12 @@ Body
 
 Test "FileGetAlignment ok" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "FileGetAlignment fails with invalid-handle exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise invalid-handle exception;
 

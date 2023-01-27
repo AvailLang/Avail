@@ -99,12 +99,12 @@ Public method "Fail test:_" is
  * Skip the currently running unit test.
  *
  * @method "Skip test"
- * @returns "⊥"
+ * @returns "⊤"
  * @raises "unsupported-operation exception"
  *         Always.
  * @category "Unit Testing"
  */
-Public method "Skip test" is [Raise an unsupported-operation exception] : ⊥;
+Public method "Skip test" is [Raise an unsupported-operation exception] : ⊤;
 
 /**
  * An exception that indicates that a unit test requirement failed.
@@ -126,7 +126,9 @@ Public explicit class "failed-requirement exception" extends exception;
  *         If {@param "predicate"} is false.
  * @category "Unit Testing"
  */
-Public method "Require:_" is [predicate : boolean |] : ⊤;
+Public method "Require:_" is [predicate : boolean |] : ⊤
+	styled by assertion styler;
+
 Method "Require:_" is
 [
 	predicate : false's type
@@ -134,7 +136,9 @@ Method "Require:_" is
 	Raise a failed-requirement exception
 ] : ⊥;
 
-Private method "Require:__" is [predicate : boolean, message : []→string |] : ⊤;
+Private method "Require:__" is [predicate : boolean, message : []→string |] : ⊤
+	styled by assertion styler;
+
 Private method "Require:__" is
 [
 	predicate : false's type,
@@ -168,7 +172,8 @@ Public macro "Require:_(_)" is
 			predicate,
 			«[<message>] : message's semantic type»
 		>» : ⊤
-];
+]
+styled by assertion styler;
 
 /**
  * Require that the arguments are equal.
@@ -192,7 +197,8 @@ Public method "Require:_=_" is
 			error message ::=
 				format "expected=“①”, actual=“②”" with expected, actual
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Reject the current parse if the arguments are guaranteed unequal.
@@ -230,7 +236,8 @@ Private method "Require:_=__" is
 				format "“①”: expected=“②”, actual=“③”"
 				with message(), expected, actual
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Require that the arguments are equal.
@@ -263,7 +270,8 @@ Public macro "Require:_=_(_)" is
 			expected,
 			«[<message>] : message's semantic type»
 		>» : ⊤
-];
+]
+styled by assertion styler;
 
 /**
  * Require that the {@param "aFunction"} raises an exception of type
@@ -304,7 +312,8 @@ Public method "Require:_raises_" is
 					with exceptionType, e
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 Private method "Require:_raises__" is
 [
@@ -360,7 +369,8 @@ Public macro "Require:_raises_(_)" is
 			exceptionType,
 			«[<message>] : message's semantic type»
 		>» : ⊤
-];
+]
+styled by assertion styler;
 
 /**
  * Require that {@param "aFunction"} answers {@method "true"} or raises an

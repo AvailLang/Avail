@@ -39,6 +39,6 @@ Body
 
 Test "DeclarationType ok" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

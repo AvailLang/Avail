@@ -39,12 +39,12 @@ Body
 
 Test "Deserialize ok" in primitive general test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "Deserialize fails with deserialization-failed exception" in primitive general test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise deserialization-failed exception;
 

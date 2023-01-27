@@ -39,6 +39,6 @@ Body
 
 Test "ExitContinuationIf ok" in primitive controlflow test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

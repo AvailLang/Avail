@@ -39,6 +39,6 @@ Body
 
 Test "SetDifference ok" in primitive sets test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

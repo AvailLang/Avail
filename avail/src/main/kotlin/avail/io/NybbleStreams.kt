@@ -156,7 +156,7 @@ class NybbleArray constructor(
 	{
 		if (index !in 0 until size) throw IndexOutOfBoundsException(index)
 		val byte = bytes[index ushr 1].toInt()
-		val nybble = (if (index and 1 == 1) byte ushr 4 else byte) and 0x0F
+		val nybble = byte ushr (index and 1 shl 2) and 0x0F
 		return nybble.toByte()
 	}
 

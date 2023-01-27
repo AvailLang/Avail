@@ -61,7 +61,7 @@ Test "TupleReplaceAtNAry ok" in primitive tuples test suite is
 Test "TupleReplaceAtNAry fails with subscript-out-of-bounds exception" in primitive tuples test suite is
 [
 	a : tuple := <4, <5, 18, <1, 2, 3>, 11, 12>, 6>;
-	a[2][35][1] → 0
+	Ignore: a[2][35][1] → 0;
 ]
 must raise subscript-out-of-bounds exception;
 
@@ -88,7 +88,7 @@ Test "TupleReplaceAtNAry fails with key-not-found exception" in primitive tuples
 		5 → {5 → {"foo" → <4, <9, "q", {1, 4}>>}},
 		6 → {6 → {"moo" → <4, <9, "q", {1, 4}>>}}
 	}>;
-	a[1][5][5]["moo"][2] → <2, "market", {99, 44}>
+	Ignore: a[1][5][5]["moo"][2] → <2, "market", {99, 44}>;
 ]
 must raise key-not-found exception;
 

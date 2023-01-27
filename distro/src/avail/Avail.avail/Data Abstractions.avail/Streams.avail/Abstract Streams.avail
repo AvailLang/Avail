@@ -497,7 +497,8 @@ Method "Require:_accepts_" is
 				\|of the stream (but it only accepts “②”)"
 			with elementType, actionType[1]
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 Semantic restriction "For each of⁇_do_" is
 [

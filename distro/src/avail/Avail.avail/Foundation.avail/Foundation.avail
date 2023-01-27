@@ -1376,9 +1376,13 @@ Extends
 		"Reject parse(confidence=_),expected:_",
 		"Shouldn't happen",
 		"Shouldn't happen(_)",
+		"assertion styler",
 		"conditional styler",
 		"loop styler",
-		"nonlocal control styler"
+		"map styler",
+		"nonlocal control styler",
+		"set styler",
+		"tuple styler"
 	)
 Body
 

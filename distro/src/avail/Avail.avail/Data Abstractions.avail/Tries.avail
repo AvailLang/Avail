@@ -202,7 +202,8 @@ Public method "Require:_is valid key type of_" is
 			format "key type to be ⊆ “①” (instead of “②”)"
 			with expectedKeyType, keyType
 	];
-];
+]
+styled by assertion styler;
 
 /**
  * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
@@ -227,7 +228,8 @@ Public method "Require:_is valid value type of_" is
 			format "value type to be ⊆ “①” (instead of “②”)"
 			with expectedPayloadType, valueType
 	];
-];
+]
+styled by assertion styler;
 
 /**
  * Does {@param "key"} have an associated value in the {@type "trie"}?

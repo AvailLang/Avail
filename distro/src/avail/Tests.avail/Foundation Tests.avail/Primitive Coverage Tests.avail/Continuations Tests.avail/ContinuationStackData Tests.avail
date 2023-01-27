@@ -39,6 +39,6 @@ Body
 
 Test "ContinuationStackData ok" in primitive continuations test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

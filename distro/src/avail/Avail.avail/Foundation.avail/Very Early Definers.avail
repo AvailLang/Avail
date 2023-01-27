@@ -51,12 +51,19 @@ Names
 	"Shouldn't happen(_)",
 	"definition styler",
 	"special object styler",
+	"statement styler",
+
+	/* Utilities. */
+	"attempt extract_or_then_",
 
 	/* Stylers. */
-	"attempt extract_or_then_",
+	"assertion styler",
 	"conditional styler",
 	"loop styler",
-	"nonlocal control styler"
+	"map styler",
+	"nonlocal control styler",
+	"set styler",
+	"tuple styler"
 Body
 
 Primitive "{«_‡,»}" is
@@ -179,6 +186,85 @@ Primitive "attempt extract_or_then_" is
 	Invoke action with <transformedPhrase>;
 ];
 
+tupleStyler ::=
+	[
+		optionalOriginal : optionalSendType,
+		transformed : phrase
+	|
+		attempt extract optionalOriginal or transformed then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#tuple-constructor";
+		];
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named
+ * {@code "#tuple-constructor"} to the fixed tokens of an original
+ * {@method "send phrase"}, suitable for use in the styling clause of a method
+ * definition.
+ *
+ * @method "tuple styler"
+ * @return "styler function"
+ *   The requested styler.
+ */
+Primitive "tuple styler" is [tupleStyler];
+
+Style atom for "<«_‡,»>" with tuple styler;
+
+setStyler ::=
+	[
+		optionalOriginal : optionalSendType,
+		transformed : phrase
+	|
+		attempt extract optionalOriginal or transformed then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#set-constructor";
+		];
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named
+ * {@code "#set-constructor"} to the fixed tokens of an original
+ * {@method "send phrase"}, suitable for use in the styling clause of a method
+ * definition.
+ *
+ * @method "set styler"
+ * @return "styler function"
+ *   The requested styler.
+ */
+Primitive "set styler" is [setStyler];
+
+Style atom for "{«_‡,»}" with set styler;
+
+mapStyler ::=
+	[
+		optionalOriginal : optionalSendType,
+		transformed : phrase
+	|
+		attempt extract optionalOriginal or transformed then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#map-constructor";
+		];
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named
+ * {@code "#map-constructor"} to the fixed tokens of an original
+ * {@method "send phrase"}, suitable for use in the styling clause of a method
+ * definition.
+ *
+ * @method "map styler"
+ * @return "styler function"
+ *   The requested styler.
+ */
+Primitive "map styler" is [mapStyler];
+
 conditionalStyler ::=
 	[
 		optionalOriginal : optionalSendType,
@@ -197,6 +283,7 @@ conditionalStyler ::=
  * to the fixed tokens of an original {@method "send phrase"}, suitable for
  * use in the styling clause of a method definition.
  *
+ * @method "conditional styler"
  * @return "styler function"
  *   The requested styler.
  */
@@ -220,6 +307,7 @@ loopStyler ::=
  * fixed tokens of an original {@method "send phrase"}, suitable for use in the
  * styling clause of a method definition.
  *
+ * @method "loop styler"
  * @return "styler function"
  *   The requested styler.
  */
@@ -246,10 +334,36 @@ nonlocalControlStyler ::=
  * span covered by {@code "send phrase"}, suitable for use in the styling
  * clause of a method definition.
  *
+ * @method "nonlocal control styler"
  * @return "styler function"
  *   The requested styler.
  */
 Primitive "nonlocal control styler" is [nonlocalControlStyler];
+
+statementStyler ::=
+	[
+		optionalOriginal : optionalSendType,
+		transformed : phrase
+	|
+		attempt extract optionalOriginal or transformed then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#statement";
+		];
+	] : ⊤;	
+
+/**
+ * Answer a function that applies the system style named
+ * {@code "#statement"} to the fixed tokens of an original
+ * {@method "send phrase"}, suitable for use in the styling clause of a method
+ * definition.
+ *
+ * @method "statement styler"
+ * @return "styler function"
+ *   The requested styler.
+ */
+Primitive "statement styler" is [statementStyler];
 
 Style atom for "Cast|cast_into_else_" with conditional styler;
 Style atom for "Crash:_" with nonlocal control styler;
@@ -307,6 +421,7 @@ Primitive "Method_is_«styled by_»?" is
  * Answer a function that applies system definition styling to the new definition,
  * suitable for use in the styling clause of a method definer.
  *
+ * @method "definition styler"
  * @returns "styler function"
  */
 Method "definition styler" is
@@ -321,10 +436,18 @@ Method "definition styler" is
 	] : ⊤
 ];
 
+Style atom for "Alias_to_" with definition styler;
+Style atom for "Copy macros from_to_" with definition styler;
+Style atom for "After the current module is unloaded,⁇do_"
+	with definition styler;
+Style atom for "Unname_from_" with definition styler;
+Style atom for "Seal method_at_" with definition styler;
+
 /**
  * Answer a function that applies system definition styling to the new definition,
  * suitable for use in the styling clause of a special object definer.
  *
+ * @method "special object styler"
  * @returns "styler function"
  */
 Method "special object styler" is
@@ -657,13 +780,40 @@ emptyTuple ::= <>;
 nullaryFunctionReturningString ::=
 	function accepting emptyTuple and returning string;
 
+assertStyler ::=	
+	[
+		optionalOriginal : optionalSendType,
+		transformed : phrase
+	|
+		attempt extract optionalOriginal or transformed then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#assert";
+			Style span of original with "#assert-expression";
+		];
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named {@code "#assert"} to
+ * the fixed tokens of an original {@code "send phrase"} and
+ * {@code "#assert"} to the span covered by that {@code "send phrase"}, suitable
+ * for use in the styling clause of a method definition.
+ *
+ * @method "assertion styler"
+ * @return "styler function"
+ *   The requested styler.
+ */
+Primitive "assertion styler" is [assertStyler];
+	
 Method "Assert:_with function_" is
 [
 	predicate : boolean,
 	message : nullaryFunctionReturningString
 |
 	/* No implementation required. */
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 Method "Assert:_with function_" is
 [
@@ -698,7 +848,8 @@ Macro "Assert:_(_)" is
 |
 	messageBlock ::= «[emptyTuple |Primitive "" <message>]: string ^ ∅»;
 	send assertWithFunctionAtom with <predicate, messageBlock> → list phrase : ⊤
-];
+]
+styled by assertion styler;
 
 /**
  * Statically detect assertions that are always false.
@@ -733,7 +884,8 @@ Method "Assert:_" is
 	condition : boolean
 |
 	/* Do nothing by default. */
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Override the {@code "Assert:_"} method for {@code false} as its argument.  It
@@ -777,7 +929,7 @@ Method "Shouldn't happen" is
 	Invoke assertionFailureFunction with
 		<"This should not be possible; debug the VM and/or system library.">
 ] : ⊤
-styled by nonlocal control styler;
+styled by assertion styler;
 
 /**
  * It would be hard to bootstrap this method to have a bottom return type, so
@@ -810,7 +962,8 @@ Method "Shouldn't happen(_)" is
 		else [
 			messageText := "Unable to assemble message for assertion failure";];
 	Invoke assertionFailureFunction with <messageText>
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 Semantic restriction "Shouldn't happen(_)" is
 [

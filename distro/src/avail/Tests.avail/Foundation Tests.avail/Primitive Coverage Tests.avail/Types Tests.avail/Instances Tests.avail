@@ -39,12 +39,12 @@ Body
 
 Test "Instances ok" in primitive types test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "Instances fails with not-an-enumeration exception" in primitive types test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise not-an-enumeration exception;
 

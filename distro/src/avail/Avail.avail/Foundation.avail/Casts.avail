@@ -128,7 +128,8 @@ Public method "Cast|cast_into_" is
 	Raise a bad-cast exception with
 		source type ::= value's type,
 		destination type ::= accept's type[1]
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Reject the parse if the cast is either unnecessary or disallowed.
@@ -240,7 +241,8 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 		Restart body with <index + 1>
 	](1);
 	invoke block with <value>;
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Strengthen the return type so the method may be used as a value-producing
@@ -326,7 +328,8 @@ Public method "Cast|cast each of_into_" is
 			source type ::= valueTypes' type,
 			destination type ::= paramTypes' type
 	];
-];
+]
+styled by conditional styler;
 
 /**
  * Reject the parse if the cast is either unnecessary or disallowed.
@@ -412,7 +415,8 @@ Public method "Cast|cast each of_into_else_" is
 	ok ::= each t of zipped satisfies [t[1] ⊆ t[2]];
 	if ok then [invoke accept with values;]
 	else reject;
-];
+]
+styled by conditional styler;
 
 /**
  * Reject the parse if the cast is either unnecessary or disallowed.
@@ -494,7 +498,8 @@ Public method "_`?→_†else_" is
 	elseFunction : []→any
 |
 	if value ∈ strongerType then [value] else elseFunction
-];
+]
+styled by conditional styler;
 
 /**
  * Cast the value into the specified <em>statically evaluated</em> type.  If the

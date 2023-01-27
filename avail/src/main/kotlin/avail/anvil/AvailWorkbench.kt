@@ -1940,7 +1940,6 @@ class AvailWorkbench internal constructor(
 		openDebuggers.remove(debugger)
 	}
 
-
 	/** The splitter separating the left and right portions of the workbench. */
 	private val mainSplit: JSplitPane
 
@@ -1952,7 +1951,8 @@ class AvailWorkbench internal constructor(
 
 	// Get the existing preferences early for plugging in at the right times
 	// during construction.
-	private var screenState = WorkbenchScreenState.from(File(workbenchScreenStatePath))
+	private var screenState =
+		WorkbenchScreenState.from(File(workbenchScreenStatePath))
 
 	override val layoutConfiguration =
 		AvailWorkbenchLayoutConfiguration.from(
