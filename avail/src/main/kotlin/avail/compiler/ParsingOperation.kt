@@ -94,7 +94,7 @@ import avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
 import avail.utility.evaluation.Describer
-import avail.utility.trace
+import avail.utility.stackToString
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -868,7 +868,7 @@ enum class ParsingOperation constructor(
 					stepState.start.expected(STRONG) {
 						it(
 							"evaluation of expression not to have "
-								+ "thrown Java exception:\n${trace(e)}")
+								+ "thrown Java exception:\n${e.stackToString}")
 					}
 				})
 		}

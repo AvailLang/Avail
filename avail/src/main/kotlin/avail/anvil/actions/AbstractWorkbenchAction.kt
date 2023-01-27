@@ -33,6 +33,7 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.FeatureCategory
 import avail.anvil.shortcuts.KeyboardShortcut
 import javax.swing.AbstractAction
 import javax.swing.Action
@@ -68,6 +69,27 @@ abstract class AbstractWorkbenchAction constructor(
 	private val rootPane: JRootPane = workbench.rootPane
 ) : AbstractAction(name)
 {
+	/**
+	 * The lambda that indicates whether or not this should be enabled.
+	 */
+	open var checkEnabled: () -> Boolean = { true }
+
+	/**
+	 * Update [isEnabled] to reflect whether or not this
+	 * [AbstractWorkbenchAction] should be be enabled at the time of calling
+	 * this function.
+	 *
+	 * @param busy
+	 *   Indicator of whether the [AvailWorkbench]
+	 *   [is busy][AvailWorkbench.isBusy].
+	 */
+	abstract fun updateIsEnabled (busy: Boolean)
+
+	/**
+	 * The [FeatureCategory] this [AbstractWorkbenchAction] belongs to.
+	 */
+	open val featureCategory: FeatureCategory? = null
+
 	fun name(): String = getValue(Action.NAME) as String
 
 	init
@@ -79,5 +101,11 @@ abstract class AbstractWorkbenchAction constructor(
 			rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
 				keyStroke, this)
 		}
+		// There is no chance of leaking this action before construction is
+		// complete. Doing this here replaces calling this line of code
+		// elsewhere for every action. Not doing this here can lead to bugs
+		// that miss the registration of this action.
+		@Suppress("LeakingThis")
+		workbench.registeredActionList.add(this)
 	}
 }

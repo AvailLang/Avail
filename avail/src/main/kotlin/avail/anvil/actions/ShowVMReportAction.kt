@@ -52,6 +52,9 @@ class ShowVMReportAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Generate VM report")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val reports = EnumSet.allOf(StatisticReport::class.java)

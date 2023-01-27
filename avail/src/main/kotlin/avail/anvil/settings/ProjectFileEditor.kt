@@ -32,12 +32,14 @@
 
 package avail.anvil.settings
 
+import avail.anvil.AbstractJSONFileEditor
 import avail.anvil.AvailWorkbench
-import avail.anvil.CodeEditor
 import avail.anvil.shortcuts.KeyboardShortcut
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 
 /**
- * An editor for an Avail project file.
+ * An [AbstractJSONFileEditor] for an Avail project file.
  *
  * @author Richard Arriaga
  *
@@ -52,17 +54,25 @@ import avail.anvil.shortcuts.KeyboardShortcut
 class ProjectFileEditor constructor(
 	workbench: AvailWorkbench,
 	afterTextLoaded: (ProjectFileEditor) -> Unit = {}
-) : CodeEditor<ProjectFileEditor>(
-	workbench, "Project: ${workbench.availProject.name}")
+) : AbstractJSONFileEditor<ProjectFileEditor>(
+	workbench,
+	workbench.availProjectFilePath,
+	"Project: ${workbench.availProject.name}",
+	afterTextLoaded)
 {
-	override val shortcuts: List<KeyboardShortcut>
-		get() = TODO("Not yet implemented")
-	override val fileLocation: String get() = workbench.availProjectFilePath
+	override val shortcuts: List<KeyboardShortcut> = listOf()
 
 	init
 	{
 		workbench.backupProjectFile()
 		finalizeInitialization(afterTextLoaded)
+		addWindowListener(object : WindowAdapter()
+		{
+			override fun windowClosed(e: WindowEvent?)
+			{
+				workbench.openFileEditors.remove(fileLocation)
+			}
+		})
 	}
 
 	override fun populateSourcePane(then: (ProjectFileEditor)->Unit)

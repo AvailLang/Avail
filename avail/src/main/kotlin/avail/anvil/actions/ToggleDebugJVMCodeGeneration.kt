@@ -53,6 +53,9 @@ class ToggleDebugJVMCodeGeneration constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Debug JVM code generation")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 

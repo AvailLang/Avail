@@ -51,6 +51,9 @@ class ToggleDebugWorkUnits constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Debug work units")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		Interpreter.debugWorkUnits = Interpreter.debugWorkUnits xor true

@@ -51,6 +51,9 @@ class TraceSummarizeStatementsAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Trace statement summarizations")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailLoader.debugUnsummarizedStatements =

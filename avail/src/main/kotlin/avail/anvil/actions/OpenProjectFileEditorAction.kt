@@ -33,6 +33,7 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.nodes.AvailProjectNode
 import avail.anvil.settings.ProjectFileEditor
 import java.awt.event.ActionEvent
 
@@ -49,18 +50,16 @@ import java.awt.event.ActionEvent
  */
 class OpenProjectFileEditorAction constructor(
 	workbench: AvailWorkbench
-): AbstractWorkbenchAction(workbench, "Project")
+): AbstractWorkbenchAction(workbench, "Edit Project")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = workbench.selectedModuleTreeNode is AvailProjectNode
+	}
+
 	override fun actionPerformed(e: ActionEvent?)
 	{
-		val pfee = workbench.projectFileEditor
-		if (pfee == null)
-		{
-			workbench.projectFileEditor = ProjectFileEditor(workbench)
-		}
-		else
-		{
-			pfee.toFront()
-		}
+		workbench.projectFileEditor.toFront()
 	}
 }

@@ -51,6 +51,9 @@ class OpenTemplateExpansionsManagerAction constructor(
 	workbench: AvailWorkbench
 ): AbstractWorkbenchAction(workbench, "Templates")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(e: ActionEvent?)
 	{
 		val tem = workbench.templateExpansionManager

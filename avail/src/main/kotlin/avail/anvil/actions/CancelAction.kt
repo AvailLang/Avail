@@ -55,6 +55,11 @@ constructor(
 	"Cancel Build",
 	CancelBuildActionShortcut)
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = busy
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val task = workbench.backgroundTask

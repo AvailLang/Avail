@@ -55,6 +55,9 @@ constructor (
 	"Open module…",
 	SearchOpenModuleDialogShortcut)
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		SearchOpenModuleDialog(workbench)

@@ -127,6 +127,7 @@ class NewModuleDialog constructor(
 	 * The [JCheckBox] that when check indicates the module should be created
 	 * with the project copyright if it exists and the module name.
 	 */
+	// TODO change to combo box
 	private val addHeader =
 		JCheckBox("Add Header").apply {
 			font = Font(font.name, font.style, 10)
@@ -284,10 +285,12 @@ class NewModuleDialog constructor(
 		file.createNewFile()
 		if (addHeader.isSelected)
 		{
+			// TODO populate from combobox.
 			var t = ""
-			if (workbench.availProject.projectCopyright.isNotEmpty())
+			if (workbench.availProject.moduleHeaders.isNotEmpty())
 			{
-				t = workbench.availProject.projectCopyright
+
+//				t = workbench.availProject.projectCopyright
 				t = t.replace("{{MOD}}", baseModuleName)
 				val date = Date.from(Instant.now())
 				val formatter = SimpleDateFormat("yyyy", Locale.getDefault())

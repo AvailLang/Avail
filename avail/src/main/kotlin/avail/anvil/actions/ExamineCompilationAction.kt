@@ -56,6 +56,11 @@ class ExamineCompilationAction constructor (
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Examine compilation")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && workbench.selectedModule() !== null
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()

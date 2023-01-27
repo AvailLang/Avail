@@ -1,5 +1,5 @@
 /*
- * OpenModuleAction.kt
+ * OpenFileAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,6 +34,9 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.components.ComboWithLabel
+import avail.anvil.streams.StreamStyle.ERR
+import avail.anvil.streams.StreamStyle.INFO
+import avail.utility.stackToString
 import org.availlang.artifact.AvailArtifactBuildPlan
 import java.awt.Color
 import java.awt.Dialog
@@ -64,6 +67,9 @@ constructor (
 	workbench,
 	"Create Artifact")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 
 	override fun isEnabled(): Boolean =
 		workbench.availProject.artifactBuildPlans.isNotEmpty()
@@ -118,9 +124,11 @@ constructor (
 			addActionListener {
 				selected.buildAvailArtifactJar(
 					workbench.availProject,
-					{ println("Artifact created: $it") }
+					{ workbench.writeText("Artifact created:\n\t$it", INFO) }
 				) { m, e ->
-					println("failed to create artifact: $m")
+					val message = "failed to create artifact: $m" +
+						(e?.let { "\n${it.stackToString}" } ?: "")
+					workbench.writeText(message, ERR)
 					e?.printStackTrace()
 				}
 				dialog.dispose()

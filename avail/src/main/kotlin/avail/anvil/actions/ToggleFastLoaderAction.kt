@@ -52,6 +52,9 @@ class ToggleFastLoaderAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Use fast-loading")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailLoader.enableFastLoader = AvailLoader.enableFastLoader xor true

@@ -50,6 +50,9 @@ class TraceStylingAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Trace styling")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailRuntimeConfiguration.debugStyling =

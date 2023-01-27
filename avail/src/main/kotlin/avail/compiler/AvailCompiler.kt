@@ -308,7 +308,7 @@ import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
-import avail.utility.trace
+import avail.utility.stackToString
 import java.util.Collections.emptyList
 import java.util.Formatter
 import java.util.concurrent.ConcurrentHashMap
@@ -4004,7 +4004,7 @@ class AvailCompiler constructor(
 					endState.lexingState,
 					"Unexpected exception encountered while processing "
 						+ "module header (ends at %s, line %d):",
-					trace(e))
+					e.stackToString)
 			}
 		}
 	}
@@ -4312,7 +4312,7 @@ class AvailCompiler constructor(
 								+ "\"{0}\": {1}\n{2}",
 							resolvedName,
 							e.localizedMessage,
-							trace(e))
+							e.stackToString)
 						{
 							override fun abortCompilation()
 							{

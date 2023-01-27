@@ -38,6 +38,9 @@ import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLocation.LocationType
 import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.environment.project.LocalSettings
+import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.TemplateGroup
 import org.availlang.artifact.jar.AvailArtifactJar
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -79,6 +82,11 @@ constructor (
 	workbench,
 	"Create root…")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val editor = AvailRootEditor(workbench)
@@ -105,10 +113,21 @@ constructor (
 			editor.relativePath(),
 			schema,
 			editor.rootNameInJar.selectedValue)
+		val rootName = editor.nameField.text
+		val rootConfigPath = AvailEnvironment.projectRootConfigPath(
+			workbench.projectName,
+			rootName,
+			workbench.projectHomeDirectory)
+		workbench.availProject
+			.optionallyInitializeConfigDirectory(rootConfigPath)
 		val newProjectRoot = AvailProjectRoot(
+			rootConfigPath,
 			workbench.projectHomeDirectory,
-			editor.nameField.text,
+			rootName,
 			location,
+			LocalSettings(rootConfigPath),
+			StylingGroup(),
+			TemplateGroup(),
 			editable = editor.editable.isSelected,
 			visible = editor.visible.isSelected)
 		val project = workbench.availProject

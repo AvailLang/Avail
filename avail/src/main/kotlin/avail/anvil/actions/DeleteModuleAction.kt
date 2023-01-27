@@ -35,6 +35,7 @@ package avail.anvil.actions
 import avail.anvil.AvailWorkbench
 import avail.anvil.streams.StreamStyle
 import avail.utility.isNullOr
+import avail.utility.notNullAnd
 import java.awt.event.ActionEvent
 import java.nio.file.Path
 import javax.swing.Action
@@ -61,6 +62,15 @@ constructor (
 	workbench,
 	"Delete module")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && workbench.selectedModule().notNullAnd {
+			moduleRoot.resolver.canSave &&
+				workbench.getProjectRoot(moduleRoot.name)
+					.notNullAnd { editable }
+		}
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val module = workbench.selectedModule()!!

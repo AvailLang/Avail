@@ -58,6 +58,9 @@ class SubmitInputAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Submit Input")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		if (workbench.inputField.isFocusOwner)

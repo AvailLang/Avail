@@ -51,6 +51,9 @@ class ToggleDebugInterpreterL2 constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Debug interpreter L2")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		Interpreter.debugL2 = Interpreter.debugL2 xor true

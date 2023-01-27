@@ -48,6 +48,7 @@ import java.awt.event.WindowListener
 import java.io.File
 import java.util.TimerTask
 import javax.swing.GroupLayout
+import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
@@ -63,14 +64,22 @@ import kotlin.math.max
  *
  * @author Richard Arriaga
  *
+ * @property fileLocation
+ *   The absolute path of the source code file.
+ *
  * @constructor
  * Construct an [CodeEditor].
  *
  * @param workbench
  *   The active [AvailWorkbench].
+ * @param fileLocation
+ *   The absolute path of the source code file.
+ * @param frameTitle
+ *   The [JFrame.title].
  */
 abstract class CodeEditor<CE> constructor(
 	final override val workbench: AvailWorkbench,
+	protected val fileLocation: String,
 	frameTitle: String
 ) : WorkbenchFrame(frameTitle)
 {
@@ -91,11 +100,6 @@ abstract class CodeEditor<CE> constructor(
 	 * Only access within the Swing UI thread.
 	 */
 	private var lastSaveTime = 0L
-
-	/**
-	 * The absolute path of the source code file.
-	 */
-	protected abstract val fileLocation: String
 
 	/**
 	 * The list of [KeyboardShortcut] specific to this [CodeEditor] type.

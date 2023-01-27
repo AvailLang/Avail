@@ -39,7 +39,7 @@ import avail.anvil.actions.CancelAction
 import avail.anvil.actions.DebugAction
 import avail.anvil.actions.GenerateDocumentationAction
 import avail.anvil.actions.NewModuleAction
-import avail.anvil.actions.OpenModuleAction
+import avail.anvil.actions.OpenFileAction
 import avail.anvil.actions.RefreshAction
 import avail.anvil.actions.SearchOpenModuleDialogAction
 import avail.anvil.actions.OpenSettingsViewAction
@@ -140,15 +140,15 @@ object GenerateDocumentationActionShortcut
 }
 
 /**
- * [WorkbenchShortcut]  for the [OpenModuleAction].
+ * [WorkbenchShortcut]  for the [OpenFileAction].
  *
  * @author Richard Arriaga
  */
-object OpenModuleShortcut
+object OpenFileShortcut
 	: WorkbenchShortcut(KeyCode.VK_O.with(menuShortcutKeyMaskEx))
 {
-	override val actionMapKey: String = "open-selected-module"
-	override val description: String = "Open the Selected Module"
+	override val actionMapKey: String = "open-selected-file"
+	override val description: String = "Open the Selected File"
 }
 
 /**

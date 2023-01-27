@@ -53,6 +53,13 @@ import javax.swing.Action
 class CleanModuleAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Clean Module")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled =
+			!busy && (workbench.selectedModuleRoot() !== null
+				|| workbench.selectedModule() !== null)
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)

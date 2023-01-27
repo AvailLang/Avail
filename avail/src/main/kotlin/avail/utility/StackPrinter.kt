@@ -35,21 +35,14 @@ import java.io.CharArrayWriter
 import java.io.PrintWriter
 
 /**
- * Produce a [String] representation of the stack trace captured in
- * the given [Throwable].
- *
- * @param t
- *   The [Throwable] containing a stack trace.
- * @return
- *   The [String] form of the stack trace.
+ * Produce a [String] representation of the stack trace captured in this
+ * [Throwable].
  */
-fun trace(t: Throwable): String
-{
-	val inner = CharArrayWriter()
-	val outer = PrintWriter(inner)
-	t.printStackTrace(outer)
-	return inner.toString()
-}
+val Throwable.stackToString: String get() =
+	CharArrayWriter().let {
+		printStackTrace(PrintWriter(it))
+		it.toString()
+	}
 
 /**
  * Produce a [String] representation of the current stack trace.  It throws a
@@ -66,6 +59,6 @@ fun currentTrace(): String
 	}
 	catch (e: Throwable)
 	{
-		trace(e)
+		e.stackToString
 	}
 }

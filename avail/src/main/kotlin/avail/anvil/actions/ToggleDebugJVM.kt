@@ -53,6 +53,9 @@ class ToggleDebugJVM constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Debug JVM translation")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		JVMTranslator.debugJVM = !JVMTranslator.debugJVM

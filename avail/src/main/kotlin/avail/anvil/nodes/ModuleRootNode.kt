@@ -58,11 +58,12 @@ class ModuleRootNode constructor(
 {
 	override fun modulePathString(): String = "/" + moduleRoot.name
 
-	override fun iconResourceName(): String? = when (isEditable)
-	{
-		true -> null
-		else -> "ReadOnlyModuleRoot"
-	}
+	override fun iconResourceName(): String =
+		when (isEditable)
+		{
+			true -> "root"
+			else -> "root-locked"
+		}
 
 	override fun text(selected: Boolean) = buildString {
 		append(moduleRoot.name)

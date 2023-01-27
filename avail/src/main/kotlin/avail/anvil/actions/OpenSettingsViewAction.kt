@@ -51,6 +51,9 @@ import java.awt.event.ActionEvent
 class OpenSettingsViewAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Settings", OpenSettingsViewShortcut)
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(e: ActionEvent?)
 	{
 		val workbenches =

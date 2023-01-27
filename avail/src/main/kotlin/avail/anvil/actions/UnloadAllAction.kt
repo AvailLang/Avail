@@ -52,6 +52,11 @@ class UnloadAllAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Unload All")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)

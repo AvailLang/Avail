@@ -52,6 +52,11 @@ class RetrievePreviousCommand constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "RetrievePreviousCommand")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(e: ActionEvent)
 	{
 		if (workbench.commandHistoryIndex == -1)

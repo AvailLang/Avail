@@ -60,6 +60,11 @@ constructor (
 	workbench,
 	"Remove root")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && workbench.selectedModuleRoot() != null
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val root = workbench.selectedModuleRoot()!!

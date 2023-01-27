@@ -62,6 +62,7 @@ object AvailProjectManagerRunner
 	{
 	// Do the slow Swing setup in parallel with other things...
 		val swingReady = Semaphore(0)
+		System.setProperty("apple.awt.application.name", "Anvil")
 		if (SystemInfo.isMacOS)
 		{
 			// enable screen menu bar

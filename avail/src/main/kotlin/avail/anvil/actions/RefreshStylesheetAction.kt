@@ -55,6 +55,11 @@ class RefreshStylesheetAction constructor(
 	"Refresh Stylesheet",
 	WorkbenchRefreshStylesheetShortcut)
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(e: ActionEvent) = runAction()
 
 	/**

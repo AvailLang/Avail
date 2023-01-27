@@ -38,6 +38,7 @@ import avail.anvil.components.TextFieldWithLabelAndButton
 import avail.anvil.icons.ProjectManagerIcons
 import avail.anvil.environment.GlobalAvailSettings
 import avail.anvil.environment.availStandardLibraries
+import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLibraries
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.location.ProjectHome
@@ -45,6 +46,9 @@ import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.AvailProjectV1
+import org.availlang.artifact.environment.project.LocalSettings
+import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.TemplateGroup
 import org.availlang.json.JSONWriter
 import java.awt.Color
 import java.awt.Dimension
@@ -100,32 +104,52 @@ class CreateProjectPanel constructor(
 		val fileName = projectFileName.textField.text
 		val projLocation = projectLocation.textField.text
 		val projectFilePath = "$projLocation/$fileName.json"
+		val configPath =
+			AvailEnvironment.projectConfigPath(fileName, projLocation)
+		AvailProject.optionallyInitializeConfigDirectory(configPath)
+		val localSettings = LocalSettings.from(File(configPath))
 		AvailProjectV1(
 			fileName,
 			true,
-			AvailRepositories(rootNameInJar = null)
+			AvailRepositories(rootNameInJar = null),
+			localSettings
 		).apply {
 			File(projLocation).mkdirs()
 			val rootsLocation = "${projLocation}/roots"
 			File(rootsLocation).mkdirs()
+			val rootName = rootNameField.textField.text
+			val rootConfigDir = AvailEnvironment.projectRootConfigPath(
+				fileName,
+				rootName,
+				projLocation)
 			val root = AvailProjectRoot(
+				rootConfigDir,
 				projLocation,
-				rootNameField.textField.text,
+				rootName,
 				ProjectHome(
 					"roots",
 					Scheme.FILE,
 					projLocation,
-					null))
+					null),
+					LocalSettings(rootConfigDir),
+					StylingGroup(),
+					TemplateGroup())
 			roots[root.name] = root
 			selectedLibrary?.let { lib ->
-				val rootName = libraryNameField.input
+				val libName = libraryNameField.input
 				val stdLib = AvailProjectRoot(
+					rootConfigDir,
 					projLocation,
-					rootName,
+					libName,
 					AvailLibraries(
 					"org/availlang/${lib.name}",
 						Scheme.JAR,
-						"avail"))
+						"avail"),
+					LocalSettings(
+						AvailEnvironment.projectRootConfigPath(
+							fileName,
+							"avail",
+							projLocation)))
 				roots[rootName] = stdLib
 			}
 

@@ -56,6 +56,11 @@ class ExamineModuleManifest constructor (
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Examine module manifest")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && workbench.selectedModule() !== null
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()

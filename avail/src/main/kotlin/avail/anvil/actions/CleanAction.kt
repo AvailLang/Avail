@@ -50,6 +50,11 @@ import javax.swing.Action
 class CleanAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Clean All")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.availBuilder.unloadTarget(null)

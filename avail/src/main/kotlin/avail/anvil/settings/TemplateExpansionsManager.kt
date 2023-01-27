@@ -365,6 +365,7 @@ class RootTemplatesPanel constructor(
 					isSelected = root.lockTemplates
 					addItemListener {
 						root.lockTemplates = it.stateChange == 1
+						workbench.saveProjectFileToDisk()
 					}
 				})
 		})
@@ -839,9 +840,10 @@ class RootTemplateEditPanel constructor(
 		toolTipText = "Apply Changes"
 		addActionListener {
 			SwingUtilities.invokeLater {
-				templateRow.root.templates[templateKey] = expansion
+				templateRow.root.templateGroup.templates[templateKey] =
+					expansion
 				templateRow.templateKey = templateKey
-				templateRow.workbench.saveProjectFileToDisk()
+				templateRow.root.saveTemplatesToDisk()
 				templateRow.parentPanel.redrawTemplates()
 				templateRow.workbench.refreshTemplates()
 			}
