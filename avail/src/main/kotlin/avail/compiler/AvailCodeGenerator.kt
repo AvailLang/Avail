@@ -471,7 +471,9 @@ class AvailCodeGenerator private constructor(
 	 */
 	fun setTokensWhile(tokens: A_Tuple, action: () -> Unit)
 	{
-		val filteredTokens = tokens.filter { it.lineNumber() != 0 }
+		val filteredTokens = tokens.filter {
+			it.isInCurrentModule(module) && it.lineNumber() != 0
+		}
 		if (filteredTokens.isEmpty())
 		{
 			action()
@@ -816,18 +818,18 @@ class AvailCodeGenerator private constructor(
 	 */
 	private fun addInstruction(instruction: AvailInstruction)
 	{
-		val usableTokens =
-			instruction.relevantTokens.filter { it.lineNumber() != 0}
-		if (usableTokens.isEmpty())
+		var relevant = tupleFromList(
+			instruction.relevantTokens.filter {
+				it.isInCurrentModule(module) && it.lineNumber() > 0
+			})
+		if (relevant.tupleSize == 0)
 		{
 			// Replace it with the nearest tuple from the stack, which should
 			// relate to the most specific position in the phrase tree for which
 			// tokens are known.
-			if (!tokensStack.isEmpty())
-			{
-				instruction.relevantTokens = tokensStack.last
-			}
+			relevant = tokensStack.lastOrNull() ?: emptyTuple
 		}
+		instruction.relevantTokens = relevant
 		instructions.add(instruction)
 	}
 

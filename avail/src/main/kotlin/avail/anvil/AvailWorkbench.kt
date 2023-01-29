@@ -233,6 +233,7 @@ import javax.swing.tree.DefaultTreeModel
 import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import kotlin.collections.MutableMap.MutableEntry
 import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -1521,9 +1522,7 @@ class AvailWorkbench internal constructor(
 	 */
 	private fun newEntryPointsTreeThen(withTreeNode: (TreeNode) -> Unit)
 	{
-		val mutex = ReentrantReadWriteLock()
-		val moduleNodes = synchronizedMap(
-			mutableMapOf<String, DefaultMutableTreeNode>())
+		val moduleNodes = ConcurrentHashMap<String, DefaultMutableTreeNode>()
 		availBuilder.traceDirectoriesThen(
 			action = { resolvedName, moduleVersion, after ->
 				val projectRoot = getProjectRoot(resolvedName.rootName)
@@ -1539,9 +1538,7 @@ class AvailWorkbench internal constructor(
 								availBuilder, resolvedName, entryPoint)
 							moduleNode.add(entryPointNode)
 						}
-						mutex.safeWrite {
-							moduleNodes[resolvedName.qualifiedName] = moduleNode
-						}
+						moduleNodes[resolvedName.qualifiedName] = moduleNode
 					}
 				}
 				after()
@@ -1549,11 +1546,10 @@ class AvailWorkbench internal constructor(
 			afterAll = {
 				val entryPointsTreeRoot =
 					DefaultMutableTreeNode("(entry points hidden root)")
-				val mapKeys = moduleNodes.keys.toTypedArray()
-				sort(mapKeys)
-				mapKeys.forEach { moduleLabel ->
-					entryPointsTreeRoot.add(moduleNodes[moduleLabel])
-				}
+				moduleNodes.entries
+					.sortedBy(MutableEntry<String, *>::key)
+					.map(MutableEntry<*, DefaultMutableTreeNode>::value)
+					.forEach(entryPointsTreeRoot::add)
 				val iterator: Iterator<DefaultMutableTreeNode> =
 					entryPointsTreeRoot.preorderEnumeration().iterator().cast()
 				// Skip the invisible top node.

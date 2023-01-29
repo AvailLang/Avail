@@ -1008,14 +1008,16 @@ Semantic restriction "_⊂_" is
 	elementB ::= typeB's element type;
 	/* The basic rule is this: If the type intersection of the element type
 	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-	 * be false. Otherwise all bets are off.
+	 * be false. Except if A is empty. Otherwise all bets are off.
 	 */
 	basicRule ::=
 		[
-			if elementA = ⊥ then [true's type]
+			/* Case: A is always empty, and B is always non-empty. */
+			if elementA = ⊥ ∧ ⌊typeB⌋ > 0 then [true's type]
 			else
 			[
-				if elementA ∩ elementB = ⊥ then [false's type]
+				/* Case: A is never empty, and the elements are disjoint. */
+				if ⌊typeA⌋ > 0 ∧ elementA ∩ elementB = ⊥ then [false's type]
 				else [⊤]
 			]
 		];
@@ -1062,33 +1064,27 @@ Semantic restriction "_⊇_" is
 	typeA : set's type,
 	typeB : set's type
 |
+	$restriction : type;
 	elementA ::= typeA's element type;
 	elementB ::= typeB's element type;
-	/* The basic rule is this: If the type intersection of the element type
-	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-	 * be false. Otherwise all bets are off.
+	/* The empty set is a subset of every set. */
+	Exit restriction with true's type if elementB = ⊥;
+	/*
+	 * This is finesse. If typeA is definitely the set of all possible instances
+	 * of its (enumeration) element type, then typeB's instances must be subsets
+	 * of typeA's instance if typeB's element type is a subtype of typeA's
+	 * element type.
 	 */
-	basicRule ::=
-		[
-			if elementB = ⊥ then [true's type]
-			else
-			[
-				if elementA ∩ elementB = ⊥ then [false's type]
-				else [⊤]
-			]
-		];
 	sizesA ::= ||typeA||;
-	/* This is finesse. If `typeA` is definitely the set of all possible
-	 * instances of its (enumeration) element type, then `typeB`'s instances
-	 * must be subsets of `typeA`'s instance if `typeB`'s element type is a
-	 * subtype of `typeA`'s element type.
+	Exit restriction with true's type
+		if |elementA| = ⌊sizesA⌋ = ⌈sizesA⌉ ∧ elementB ⊆ elementA;
+	/*
+	 * The basic rule is this: If the type intersection of the element type of
+	 * typeA and the element type of typeB is ⊥, then the result must be false.
+	 * But only if B can't be empty.  Otherwise all bets are off.
 	 */
-	if |elementA| ≠ ∞ ∧ ⌊sizesA⌋ = ⌈sizesA⌉ ∧ |elementA| = ⌊sizesA⌋ then
-	[
-		if elementB ⊆ elementA then [true's type]
-		else basicRule
-	]
-	else basicRule
+	Exit restriction with false's type if ⌊typeB⌋ > 0 ∧ elementA ∩ elementB = ⊥;
+	⊤
 ];
 
 /**
