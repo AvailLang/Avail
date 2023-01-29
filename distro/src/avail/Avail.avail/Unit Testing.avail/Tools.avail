@@ -129,12 +129,41 @@ Public explicit class "failed-requirement exception" extends exception;
 Public method "Require:_" is [predicate : boolean |] : ⊤
 	styled by assertion styler;
 
+/**
+ * Require that the specified predicate is true, but in the specific case where
+ * it's actually false.  We could strengthen the return result to bottom, but
+ * it's better to use a semantic restriction to improve the diagnostic.
+ *
+ * @method "Require:_"
+ * @param "predicate" "false"
+ *        A predicate that must be true, but happens to be false.
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "predicate"} is false.
+ * @category "Unit Testing"
+ */
 Method "Require:_" is
 [
 	predicate : false's type
 |
 	Raise a failed-requirement exception
-] : ⊥;
+] : ⊤;
+
+/**
+ * Reject the current parse if the arguments is guaranteed false.
+ *
+ * @method "Require:_"
+ * @restricts "false's type"
+ * @category "Unit Testing"
+ */
+Semantic restriction "Require:_" is
+[
+	predicate : false's type's type
+|
+	Reject parse strongly, expected:
+		"this Require clause to be possible \
+			\|(the argument supplied here is always false)."
+];
 
 Private method "Require:__" is [predicate : boolean, message : []→string |] : ⊤
 	styled by assertion styler;

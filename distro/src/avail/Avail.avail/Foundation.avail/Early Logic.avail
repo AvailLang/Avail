@@ -44,7 +44,8 @@ Names
 	"¬_",
 	"_∧_",
 	"_∨_",
-	"_≠_"
+	"_≠_",
+	"«_‡=»"
 Body
 
 /**
@@ -360,11 +361,60 @@ Grammatical restriction {"_∧_", "_∨_"} (set of string) is
 
 Grammatical restriction {"_=_", "_≠_"} (set of string) is
 <
-	{"_∧_", "_∨_"} (set of string),
-	{"_∧_", "_∨_"} (set of string)
+	{"_∧_", "_∨_", "_=_", "_≠_"} (set of string),
+	{"_∧_", "_∨_", "_=_", "_≠_"} (set of string)
 > (tuple of set of string);
 
 threeOrMore ::= integer range from 3 (inclusive=true) to ∞ (inclusive=false);
 threeOrMoreValues ::= <<>, any…|threeOrMore>;
-Method "«_‡=»" is stable at function accepting <threeOrMoreValues>
-		and returning boolean;
+
+/**
+ * Variadic equality.  Are all lexical arguments equal?
+ *
+ * @method "«_‡=»"
+ * @param "<any…|3..>" "aTuple"
+ * @returns "boolean"
+ *          {@method "true"} if all arguments are equal, {@method "false"}
+ *          otherwise.
+ * @category "Mathematics" "Relations"
+ */
+Public stable method "«_‡=»" is
+[
+	aTuple : threeOrMoreValues
+|
+	|aTuple→set| = 1
+] : boolean;
+
+/**
+ * If there is no valid type intersection (the result of any type intersection
+ * operation is ⊥) between the types in the tuple, then the equality comparison
+ * will always fail.
+ *
+ * @method "«_‡=»"
+ * @restricts "<any…|3..>'s type"
+ */
+Semantic restriction "«_‡=»" is
+[
+	aTupleType : threeOrMoreValues' type
+|
+	$body : type;
+	intersectionType : type := ⊤;
+	From 1 to |aTupleType's leading types|+1 do
+	[
+		index : natural number
+	|
+		intersectionType := intersectionType ∩ (aTupleType[index]);
+		Exit body with false's type if intersectionType = ⊥;
+		true
+	];
+	⊤
+] : type;
+
+/* Disallow mixing and recursive parsing of comparison operations. */
+binaryCompare ::= {"_=_", "_≠_", "_<_", "_②≥_①", "_②>_①"};
+binary ::= binaryCompare ∪ {"_∧_", "_∨_"};
+chains ::= {"«_‡=»"};
+restrictions ::= binary ∪ chains;
+Grammatical restriction chains is <restrictions> (tuple of set of string);
+Grammatical restriction binaryCompare is
+	<restrictions, restrictions> (tuple of set of string);

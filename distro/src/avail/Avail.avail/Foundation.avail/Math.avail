@@ -1642,3 +1642,15 @@ Method "_>>_" is stable at [integer, integer]→integer;
 Method "_bit∧_" is stable at [integer, integer]→integer;
 Method "_bit∨_" is stable at [integer, integer]→integer;
 Method "_bit⊕_" is stable at [integer, integer]→integer;
+
+/*
+ * Disallow mixing and recursive parsing of the chained inequality operations.
+ * We've already dealt with everything but the chained inequalities.
+ */
+[
+	binary ::= {"_=_", "_≠_", "_≤_", "_<_", "_②≥_①", "_②>_①"};
+	chains ::= {"«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"};
+	restrictions ::= binary ∪ chains;
+	Grammatical restriction chains is <restrictions>;
+	Grammatical restriction binary is <chains, chains>;
+]();

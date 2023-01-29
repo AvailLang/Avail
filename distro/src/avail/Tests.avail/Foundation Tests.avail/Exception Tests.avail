@@ -46,7 +46,12 @@ Test "one intercept, no exception (side-effect)" in exception test suite is
 [
 	ref : integer;
 	Guard [ref := 10 + 14;]
-	intercept [e : cannot-add-unlike-infinities exception | Require: false];
+	intercept
+	[
+		e : cannot-add-unlike-infinities exception
+	|
+		Raise a failed-requirement exception
+	];
 	Require: ref is assigned;
 	Require: ref = 24;
 ];
@@ -59,7 +64,7 @@ Test "one intercept, no exception (value-producing)" in exception test suite is
 		[
 			e : cannot-subtract-like-infinities exception
 		|
-			Require: false
+			Raise a failed-requirement exception
 		];
 	Require: ref is assigned;
 	Require: ref = 42;
@@ -95,7 +100,7 @@ Test "two intercepts (side-effect)" in exception test suite is
 	[
 		e : cannot-add-unlike-infinities exception
 	|
-		Require: false
+		Raise a failed-requirement exception
 	]
 	intercept
 	[
@@ -121,7 +126,7 @@ Test "two intercepts (side-effect)" in exception test suite is
 	[
 		e : cannot-add-unlike-infinities exception
 	|
-		Require: false
+		Raise a failed-requirement exception
 	];
 	Require: ref is assigned;
 	Require: ref = 7;
@@ -139,7 +144,7 @@ Test "two intercepts (value-producing)" in exception test suite is
 		[
 			e : cannot-add-unlike-infinities exception
 		|
-			Require: false
+			Raise a failed-requirement exception
 		]
 		intercept
 		[
@@ -166,7 +171,7 @@ Test "two intercepts (value-producing)" in exception test suite is
 		[
 			e : cannot-add-unlike-infinities exception
 		|
-			Require: false
+			Raise a failed-requirement exception
 		];
 	Require: ref is assigned;
 	Require: ref = 7;
@@ -215,7 +220,7 @@ Test "one intercept, unwind, no exception (side-effect)"
 	curry : string;
 	rice : string;
 	Guard [curry := "lemon";]
-	intercept [e : exception | Require: false]
+	intercept [e : exception | Raise a failed-requirement exception]
 	ensure [rice := "basmati";];
 	Require: curry is assigned;
 	Require: curry = "lemon";
@@ -229,7 +234,7 @@ Test "one intercept, unwind, no exception (value-producing)"
 	rice : string;
 	curry : string :=
 		guard ["lemon"]
-		intercept [e : exception | Require: false]
+		intercept [e : exception | Raise a failed-requirement exception]
 		ensure [rice := "basmati";];
 	Require: curry is assigned;
 	Require: curry = "lemon";
@@ -276,7 +281,7 @@ Test "two intercepts, unwind (side-effect)" in exception test suite is
 	[
 		e : cannot-add-unlike-infinities exception
 	|
-		Require: false
+		Raise a failed-requirement exception
 	]
 	intercept
 	[
@@ -309,7 +314,7 @@ Test "two intercepts, unwind (side-effect)" in exception test suite is
 	[
 		e : cannot-add-unlike-infinities exception
 	|
-		Require: false
+		Raise a failed-requirement exception
 	]
 	ensure
 	[
@@ -334,7 +339,7 @@ Test "two intercepts, unwind (value-producing)" in exception test suite is
 		[
 			e : cannot-add-unlike-infinities exception
 		|
-			Require: false
+			Raise a failed-requirement exception
 		]
 		intercept
 		[
@@ -368,7 +373,7 @@ Test "two intercepts, unwind (value-producing)" in exception test suite is
 		[
 			e : cannot-add-unlike-infinities exception
 		|
-			Require: false
+			Raise a failed-requirement exception
 		]
 		ensure
 		[
@@ -471,7 +476,7 @@ Test "bad intercept, no unwind, don't reenter" in exception test suite is
 	[
 		e : cannot-subtract-like-infinities exception
 	|
-		Require: false
+		Raise a failed-requirement exception
 	];
 ]
 must raise subscript-out-of-bounds exception;
