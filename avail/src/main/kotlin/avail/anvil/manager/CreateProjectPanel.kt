@@ -35,9 +35,11 @@ package avail.anvil.manager
 import avail.anvil.components.DirectoryChooser
 import avail.anvil.components.TextFieldWithLabel
 import avail.anvil.components.TextFieldWithLabelAndButton
+import avail.anvil.environment.AVAIL_STDLIB_ROOT_NAME
 import avail.anvil.icons.ProjectManagerIcons
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.availStandardLibraries
+import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLibraries
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.location.ProjectHome
@@ -45,6 +47,10 @@ import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.AvailProjectV1
+import org.availlang.artifact.environment.project.LocalSettings
+import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.TemplateGroup
+import org.availlang.artifact.jar.AvailArtifactJar
 import org.availlang.json.JSONWriter
 import java.awt.Color
 import java.awt.Dimension
@@ -63,14 +69,14 @@ import javax.swing.JPanel
  * @author Richard Arriaga
  *
  * @property config
- *   The [GlobalAvailSettings] for this machine.
+ *   The [GlobalEnvironmentSettings] for this machine.
  * @property onCreate
  *   The function that accepts the newly created [AvailProject].
  * @property onCancel
  *   The function to call if creating a new project is canceled.
  */
 class CreateProjectPanel constructor(
-	internal val config: GlobalAvailSettings,
+	internal val config: GlobalEnvironmentSettings,
 	private val onCreate: (AvailProject, String) -> Unit,
 	private val onCancel: () -> Unit
 ): JPanel(GridBagLayout())
@@ -100,33 +106,77 @@ class CreateProjectPanel constructor(
 		val fileName = projectFileName.textField.text
 		val projLocation = projectLocation.textField.text
 		val projectFilePath = "$projLocation/$fileName.json"
+		val configPath =
+			AvailEnvironment.projectConfigPath(fileName, projLocation)
+		AvailProject.optionallyInitializeConfigDirectory(configPath)
+		val localSettings = LocalSettings.from(File(configPath))
 		AvailProjectV1(
 			fileName,
 			true,
-			AvailRepositories(rootNameInJar = null)
+			AvailRepositories(rootNameInJar = null),
+			localSettings
 		).apply {
 			File(projLocation).mkdirs()
 			val rootsLocation = "${projLocation}/roots"
 			File(rootsLocation).mkdirs()
+			val rootName = rootNameField.textField.text
+			val rootConfigDir = AvailEnvironment.projectRootConfigPath(
+				fileName,
+				rootName,
+				projLocation)
 			val root = AvailProjectRoot(
+				rootConfigDir,
 				projLocation,
-				rootNameField.textField.text,
+				rootName,
 				ProjectHome(
 					"roots",
 					Scheme.FILE,
 					projLocation,
-					null))
-			roots[root.name] = root
+					null),
+					LocalSettings(rootConfigDir),
+					StylingGroup(),
+					TemplateGroup())
+			addRoot(root)
+			optionallyInitializeConfigDirectory(rootConfigDir)
 			selectedLibrary?.let { lib ->
-				val rootName = libraryNameField.input
+				val libName =
+					libraryNameField.input.ifEmpty { AVAIL_STDLIB_ROOT_NAME }
+				val libConfigDir = AvailEnvironment.projectRootConfigPath(
+					fileName, libName, projLocation)
+				optionallyInitializeConfigDirectory(libConfigDir)
+				val jar = AvailArtifactJar(lib.toURI())
+				val rootManifest = jar.manifest.roots[AVAIL_STDLIB_ROOT_NAME]
+				var sg = StylingGroup()
+				var tg = TemplateGroup()
+				val extensions = mutableListOf<String>()
+				var description = ""
+				rootManifest?.let {
+					sg = it.styles
+					tg = it.templates
+					extensions.addAll(it.availModuleExtensions)
+					description = it.description
+				}
 				val stdLib = AvailProjectRoot(
+					libConfigDir,
 					projLocation,
-					rootName,
+					libName,
 					AvailLibraries(
 					"org/availlang/${lib.name}",
 						Scheme.JAR,
-						"avail"))
-				roots[rootName] = stdLib
+						AVAIL_STDLIB_ROOT_NAME),
+					LocalSettings(
+						AvailEnvironment.projectRootConfigPath(
+							fileName,
+							libName,
+							projLocation)),
+					sg,
+					tg,
+					extensions)
+				stdLib.description = description
+				stdLib.saveLocalSettingsToDisk()
+				stdLib.saveTemplatesToDisk()
+				stdLib.saveStylesToDisk()
+				addRoot(stdLib)
 			}
 
 			if (projectFilePath.isNotEmpty())

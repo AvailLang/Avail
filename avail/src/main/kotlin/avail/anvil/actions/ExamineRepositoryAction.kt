@@ -55,6 +55,11 @@ class ExamineRepositoryAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Examine repository")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && workbench.selectedModuleRootNode() !== null
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()

@@ -57,6 +57,11 @@ class ExaminePhrasePathsAction constructor (
 	workbench: AvailWorkbench,
 ) : AbstractWorkbenchAction(workbench, "Examine phrase paths")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && workbench.selectedModule() !== null
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()

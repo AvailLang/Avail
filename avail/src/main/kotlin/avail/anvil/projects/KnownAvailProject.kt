@@ -36,7 +36,6 @@ import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
-import org.availlang.json.jsonObject
 import java.io.File
 import java.time.Instant
 import java.time.ZonedDateTime
@@ -70,6 +69,11 @@ data class KnownAvailProject constructor (
 	val configFilePath: String get() = File(projectConfigFile).absolutePath
 
 	/**
+	 * `true` indicates the file exists on disk; `false` otherwise.
+	 */
+	val exists: Boolean get() = File(projectConfigFile).exists()
+
+	/**
 	 * [lastOpened] as the local timezone string `MM/dd/yyyy HH:mm`.
 	 */
 	val lastOpenedTimestamp: String get()
@@ -97,13 +101,9 @@ data class KnownAvailProject constructor (
 		{
 			return null
 		}
-		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
-			.removeSuffix(File.separator)
 		return try
 		{
-			AvailProject.from(
-				projectPath,
-				jsonObject(configFile.readText(Charsets.UTF_8)))
+			AvailProject.from(configFile.absolutePath)
 		}
 		catch (e: Throwable)
 		{

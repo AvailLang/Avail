@@ -33,14 +33,14 @@
 package avail.project
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.setupEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
 import org.availlang.artifact.environment.location.InvalidLocation
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 import org.availlang.artifact.environment.project.AvailProjectV1
-import org.availlang.json.jsonObject
+import org.availlang.artifact.environment.project.LocalSettings
 import java.io.File
 
 /**
@@ -64,33 +64,43 @@ object AvailProjectWorkbenchRunner
 	@JvmStatic
 	fun main(args: Array<String>)
 	{
-		val configFile =
+		val pair =
 			when (args.size)
 			{
 				0 ->
 				{
-					File(
+					Pair(File(
 						getProjectRootDirectory("") +
 							File.separator +
-							CONFIG_FILE_NAME)
+							CONFIG_FILE_NAME),
+						"Anvil")
 				}
-				1 -> File(args[0])
+				1 ->
+				{
+					Pair(File(args[0]),  "Anvil")
+				}
+				2 ->
+				{
+					System.setProperty("apple.awt.application.name", args[1])
+					File(args[0])
+					Pair(File(args[0]),  args[1])
+				}
 				else -> throw RuntimeException(
 					"Avail project runner expects either" +
 						"\n\t0 arguments: The Avail Project config file, " +
 						"`environment-config.json`, is at the project directory " +
 						"where this is being run from" +
 						"\n\t1 argument: The path, with name, of the project " +
-						"config file.")
+						"config file." +
+						"\n\t2 arguments: The path, with name, of the project " +
+						"config file and the name of the app.")
 			}
+		val configFile = pair.first
+		System.setProperty("apple.awt.application.name", pair.second)
 		setupEnvironment()
-		val projectPath = configFile.absolutePath.removeSuffix(configFile.name)
-			.removeSuffix(File.separator)
 		val availProject = try
 		{
-			AvailProject.from(
-				projectPath,
-				jsonObject(configFile.readText(Charsets.UTF_8)))
+			AvailProject.from(configFile.absolutePath)
 		}
 		catch (e: Exception)
 		{
@@ -100,13 +110,14 @@ object AvailProjectWorkbenchRunner
 			AvailProjectV1(
 				"Unknown project",
 				true,
-				InvalidLocation("", "Unable to parse config file: $e", ""))
+				InvalidLocation("", "Unable to parse config file: $e", ""),
+				LocalSettings(""))
 		}
 		System.setProperty(
 			AvailWorkbench.DARK_MODE_KEY, availProject.darkMode.toString())
 
 		AvailWorkbench.launchSoloWorkbench(
-			GlobalAvailSettings.getGlobalSettings().apply {
+			GlobalEnvironmentSettings.getGlobalSettings().apply {
 				add(availProject, configFile.absolutePath)
 			},
 			availProject,

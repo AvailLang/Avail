@@ -49,6 +49,16 @@ import javax.swing.Action
 class CreateProgramAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Create Program File…")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		val selectedEntryPointModule = workbench.selectedEntryPointModule()
+		isEnabled =
+			(!busy && workbench.selectedEntryPoint() !== null
+				&& selectedEntryPointModule !== null
+				&& workbench.availBuilder
+					.getLoadedModule(selectedEntryPointModule) != null)
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)

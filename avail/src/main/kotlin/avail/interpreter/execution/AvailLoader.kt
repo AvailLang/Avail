@@ -234,7 +234,7 @@ import avail.io.TextInterface
 import avail.utility.evaluation.Combinator.recurse
 import avail.utility.safeWrite
 import avail.utility.structures.RunTree
-import avail.utility.trace
+import avail.utility.stackToString
 import java.util.ArrayDeque
 import java.util.TreeMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -391,7 +391,7 @@ constructor(
 				// Here's a good place for a breakpoint, to see why an
 				// expression couldn't be summarized.
 				val e = Throwable().fillInStackTrace()
-				println("Disabled summary:\n${trace(e)}")
+				println("Disabled summary:\n${e.stackToString}")
 			}
 			statementCanBeSummarized = summarizable
 		}

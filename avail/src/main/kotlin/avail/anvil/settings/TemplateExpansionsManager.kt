@@ -33,11 +33,15 @@
 package avail.anvil.settings
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.environment.GlobalEnvironmentSettings
+import avail.anvil.environment.globalTemplatesFile
+import avail.anvil.environment.systemDefaultTemplates
 import avail.anvil.icons.ProjectManagerIcons
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
-import org.availlang.json.JSONObject
-import org.availlang.json.jsonReader
+import org.availlang.artifact.environment.project.TemplateExpansion
+import org.availlang.artifact.environment.project.TemplateGroup
+import org.availlang.json.jsonObject
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
@@ -53,6 +57,7 @@ import java.io.File
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.BoxLayout
+import javax.swing.ImageIcon
 import javax.swing.JButton
 import javax.swing.JCheckBox
 import javax.swing.JFileChooser
@@ -88,13 +93,35 @@ class TemplateExpansionsManager constructor(
 	val tabs: JTabbedPane =
 		JTabbedPane(JTabbedPane.TOP, JTabbedPane.WRAP_TAB_LAYOUT)
 
+	/**
+	 * The global [TemplateGroup].
+	 */
+	private val globalTemplates = GlobalEnvironmentSettings.globalTemplates
+
 	init
 	{
 		workbench.availProject.roots.forEach {
 			 tabs.addTab(
 				 it.key,
-				 RootTemplatesPanel(it.value, workbench).redrawTemplates())
+				 TemplatesPanel(workbench, it.value.templateGroup)
+				 {
+					 it.value.saveTemplatesToDisk()
+				 }.redrawTemplates())
 		}
+		tabs.addTab(
+			"${workbench.availProject.name} (project)",
+			TemplatesPanel(workbench, workbench.availProject.templateGroup)
+			{
+				workbench.availProject.saveTemplatesToDisk(
+					workbench.projectConfigDirectory)
+			}.redrawTemplates())
+		tabs.addTab(
+			"Global Environment",
+			TemplatesPanel(workbench, globalTemplates)
+			{
+				File(globalTemplatesFile).writeText(
+					globalTemplates.jsonPrettyPrintedFormattedString)
+			}.redrawTemplates())
 		contentPane.add(tabs)
 		minimumSize = Dimension(950, 800)
 		preferredSize = Dimension(950, 800)
@@ -114,18 +141,18 @@ class TemplateExpansionsManager constructor(
 }
 
 /**
- * A [JPanel] that displays all the templates for a specific [AvailProjectRoot].
+ * A [JPanel] that displays all the project-level templates for an
+ * [AvailProject].
  *
  * @author Richard Arriaga
  *
- * @property root
- *   The [AvailProjectRoot] the templates are for.
  * @property workbench
  *   The active [AvailWorkbench].
  */
-class RootTemplatesPanel constructor(
-	val root: AvailProjectRoot,
-	val workbench: AvailWorkbench
+open class TemplatesPanel constructor(
+	val workbench: AvailWorkbench,
+	val templateGroup: TemplateGroup,
+	val saveAction: () -> Unit
 ) : JPanel()
 {
 	/**
@@ -138,10 +165,15 @@ class RootTemplatesPanel constructor(
 	 */
 	private val templatesPanel = JPanel().apply {
 		layout = BoxLayout(this, BoxLayout.Y_AXIS)
-		root.templates.forEach {
+		workbench.availProject.templateGroup.templates.forEach {
 			add(
 				TemplateRow(
-					it.key, it.value, root, workbench, this@RootTemplatesPanel))
+					it.key,
+					it.value,
+					templateGroup,
+					workbench,
+					this@TemplatesPanel,
+					saveAction))
 		}
 	}
 
@@ -150,7 +182,13 @@ class RootTemplatesPanel constructor(
 	 * [root].
 	 */
 	fun newEmptyTemplateRow (): TemplateRow =
-		TemplateRow("", "", root, workbench, this)
+		TemplateRow(
+			"",
+			TemplateExpansion(""),
+			templateGroup,
+			workbench,
+			this,
+			saveAction)
 
 	/**
 	 * The currently selected [TemplateRow] or `null` if no [TemplateRow] is
@@ -164,13 +202,13 @@ class RootTemplatesPanel constructor(
 	fun clearSelectedRow ()
 	{
 		selectedRow = newEmptyTemplateRow()
-		rootTemplateEditPanel.templateRow = selectedRow
+		templateEditPanel.templateRow = selectedRow
 	}
 
 	/**
-	 * The [RootTemplateEditPanel] at the bottom of the [RootTemplatesPanel].
+	 * The [TemplateEditPanel] at the bottom of the [TemplatesPanel].
 	 */
-	val rootTemplateEditPanel = RootTemplateEditPanel(this, selectedRow)
+	val templateEditPanel = TemplateEditPanel(this, selectedRow)
 
 	/**
 	 * Redraw the [templatesPanel].
@@ -179,19 +217,25 @@ class RootTemplatesPanel constructor(
 	 *   Check all the [TemplateRow.templateKeyCheckBox] if `true`; uncheck
 	 *   otherwise.
 	 * @return
-	 *   This [RootTemplatesPanel].
+	 *   This [TemplatesPanel].
 	 */
-	fun redrawTemplates (checkAll: Boolean = false): RootTemplatesPanel
+	fun redrawTemplates (checkAll: Boolean = false): TemplatesPanel
 	{
 		SwingUtilities.invokeLater {
 			templatesPanel.removeAll()
 			templatesPanel.revalidate()
-			root.templates.toList()
+			templateGroup.templates.toList()
 				.sortedBy { it.first }
 				.forEach {
 					templatesPanel.add(
 						TemplateRow(
-						it.first, it.second, root, workbench, this).apply {
+							it.first,
+							it.second,
+							templateGroup,
+							workbench,
+							this,
+							saveAction
+						).apply {
 							if (selectedRow.templateKey == templateKey)
 							{
 								select()
@@ -201,7 +245,7 @@ class RootTemplatesPanel constructor(
 								templateKeyCheckBox.isSelected = true
 								checkedRowsKeys.add(templateKey)
 							}
-					})
+						})
 				}
 			templatesPanel.repaint()
 		}
@@ -223,16 +267,18 @@ class RootTemplatesPanel constructor(
 		addActionListener {
 			SwingUtilities.invokeLater {
 				val selection = JOptionPane.showConfirmDialog(
-					this@RootTemplatesPanel,
+					this@TemplatesPanel,
 					"Delete Checked Rows?",
 					"Delete Templates",
 					JOptionPane.YES_NO_OPTION)
 				if (selection == 0)
 				{
-					rootTemplateEditPanel.templateRow =
+					templateEditPanel.templateRow =
 						newEmptyTemplateRow().apply { select() }
-					root.templates.clear()
-					workbench.saveProjectFileToDisk()
+					checkedRowsKeys.forEach {
+						templateGroup.templates.remove(it)
+					}
+					saveAction()
 					redrawTemplates()
 				}
 			}
@@ -240,19 +286,19 @@ class RootTemplatesPanel constructor(
 	}
 
 	/**
-	 * Use this [JFileChooser] to import templates from a [TemplateSettings]
+	 * Use this [JFileChooser] to import templates from a [TemplateGroup] file.
 	 * file.
 	 */
 	private fun JFileChooser.importSettings ()
 	{
-		dialogTitle = "Select Settings File to Import From"
+		dialogTitle = "Select Templates File to Import From"
 		fileSelectionMode = JFileChooser.FILES_ONLY
 		fileFilter = FileNameExtensionFilter("*.json", "json")
 		addChoosableFileFilter(
 			object : FileFilter()
 			{
 				override fun getDescription(): String =
-					"Settings File (*.json)"
+					"Templates File (*.json)"
 
 				override fun accept(f: File): Boolean =
 					f.isFile
@@ -260,82 +306,40 @@ class RootTemplatesPanel constructor(
 						&& f.absolutePath.lowercase().endsWith(".json")
 			})
 		val result = showDialog(
-			this@RootTemplatesPanel,
+			this@TemplatesPanel,
 			"Select Settings File")
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
-			val templateSettings =
-				TemplateSettings.readFromFile(selectedFile)
-			if (templateSettings != null)
-			{
-				root.templates.putAll(templateSettings.templates)
-				SwingUtilities.invokeLater {
-					redrawTemplates()
-					workbench.saveProjectFileToDisk()
-				}
-			}
-		}
-	}
-
-	/**
-	 * Use this [JFileChooser] to import templates from an [AvailProject] file.
-	 */
-	private fun JFileChooser.importFromProject ()
-	{
-		dialogTitle = "Select Project File to Import From"
-		fileSelectionMode = JFileChooser.FILES_ONLY
-		fileFilter = FileNameExtensionFilter("*.json", "json")
-		addChoosableFileFilter(
-			object : FileFilter()
-			{
-				override fun getDescription(): String =
-					"Project File (*.json)"
-
-				override fun accept(f: File): Boolean =
-					f.isFile
-						&& f.canWrite()
-						&& f.absolutePath.lowercase().endsWith(".json")
-			})
-		val result = showDialog(
-			this@RootTemplatesPanel,
-			"Select Project File")
-		if (result == JFileChooser.APPROVE_OPTION)
-		{
-			val obj = jsonReader(selectedFile.readText())
-				.read() as JSONObject
-			val ap = AvailProject.from(selectedFile.parent, obj)
-			val templateSettings = TemplateSettings.combine(ap.roots
-				.map { it.value.templateSettings }
-				.toMutableSet()
-				.apply { add(ap.templateSettings) })
-			root.templates.putAll(templateSettings.templates)
+			val tg =
+				TemplateGroup(jsonObject(selectedFile.readText()))
+			this@TemplatesPanel.templateGroup.templates.putAll(tg.templates)
 			SwingUtilities.invokeLater {
 				redrawTemplates()
-				workbench.saveProjectFileToDisk()
+				saveAction()
 			}
 		}
 	}
 
 	/**
-	 * Use this [JFileChooser] to export templates to a [TemplateSettings] file.
+	 * Use this [JFileChooser] to export templates to a [TemplateGroup] file.
 	 */
 	private fun JFileChooser.exportSettings ()
 	{
-		dialogTitle = "Select Settings File to Export To"
+		dialogTitle = "Select File to Export Templates To"
 		fileSelectionMode = JFileChooser.FILES_ONLY
 		fileFilter = FileNameExtensionFilter("*.json", "json")
 		addChoosableFileFilter(
 			object : FileFilter()
 			{
 				override fun getDescription(): String =
-					"Settings File (*.json)"
+					"Templates File (*.json)"
 
 				override fun accept(f: File): Boolean =
 					f.isFile
 						&& f.canWrite()
 						&& f.absolutePath.lowercase().endsWith(".json")
 			})
-		val result = showSaveDialog(this@RootTemplatesPanel)
+		val result = showSaveDialog(this@TemplatesPanel)
 		if (result == JFileChooser.APPROVE_OPTION)
 		{
 			val target =
@@ -347,7 +351,7 @@ class RootTemplatesPanel constructor(
 				{
 					File(selectedFile.absolutePath + ".json")
 				}
-			root.templateSettings.saveToDisk(target)
+			target.writeText(templateGroup.jsonPrettyPrintedFormattedString)
 		}
 	}
 
@@ -386,6 +390,7 @@ class RootTemplatesPanel constructor(
 			}
 		}
 
+		@Suppress("LeakingThis")
 		add(JPanel().apply {
 			layout = (FlowLayout(FlowLayout.LEFT))
 			minimumSize = Dimension(950, 50)
@@ -396,6 +401,7 @@ class RootTemplatesPanel constructor(
 			add(uncheckAllTemplate)
 			add(deleteSelectedTemplate)
 		})
+		@Suppress("LeakingThis")
 		add(JScrollPane(
 			templatesPanel,
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -405,9 +411,10 @@ class RootTemplatesPanel constructor(
 			maximumSize = Dimension(950, 400)
 		})
 
-		add(rootTemplateEditPanel)
+		@Suppress("LeakingThis")
+		add(templateEditPanel)
 
-		val importSettingsTemplates = JButton("Import From Settings").apply {
+		val importSettingsTemplates = JButton("Import From File").apply {
 			isOpaque = true
 			val currentHeight = height
 			val currentWidth = width
@@ -420,20 +427,20 @@ class RootTemplatesPanel constructor(
 			}
 		}
 
-		val importProjectTemplates = JButton("Import From Project").apply {
-			isOpaque = true
-			val currentHeight = height
-			val currentWidth = width
-			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
-			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
-			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
-			toolTipText = "Import expansion templates from project file"
-			addActionListener {
-				addActionListener {
-					JFileChooser().importFromProject()
-				}
-			}
-		}
+//		val importProjectTemplates = JButton("Import From Project").apply {
+//			isOpaque = true
+//			val currentHeight = height
+//			val currentWidth = width
+//			minimumSize = Dimension(currentWidth + 165, currentHeight + 40)
+//			preferredSize = Dimension(currentWidth + 165, currentHeight + 40)
+//			maximumSize = Dimension(currentWidth + 165, currentHeight + 40)
+//			toolTipText = "Import expansion templates from project file"
+//			addActionListener {
+//				addActionListener {
+//					JFileChooser().importFromProject()
+//				}
+//			}
+//		}
 
 		val importDefaultTemplates = JButton("Import Defaults").apply {
 			isOpaque = true
@@ -445,8 +452,8 @@ class RootTemplatesPanel constructor(
 			toolTipText = "Import system default expansion templates"
 			addActionListener {
 				SwingUtilities.invokeLater {
-					TemplateSettings.systemDefaultTemplates?.let {
-						root.templates.putAll(it.templates)
+					systemDefaultTemplates?.let {
+						templateGroup.templates.putAll(it.templates)
 						redrawTemplates()
 						workbench.saveProjectFileToDisk()
 					}
@@ -467,6 +474,7 @@ class RootTemplatesPanel constructor(
 			}
 		}
 
+		@Suppress("LeakingThis")
 		add(JPanel().apply {
 			layout = (FlowLayout(FlowLayout.RIGHT))
 			minimumSize = Dimension(950, 50)
@@ -474,7 +482,7 @@ class RootTemplatesPanel constructor(
 			maximumSize = Dimension(950, 50)
 			background = Color(0x3C, 0x3F, 0x41)
 			add(importSettingsTemplates)
-			add(importProjectTemplates)
+//			add(importProjectTemplates)
 			add(importDefaultTemplates)
 			add(exportTemplates)
 		})
@@ -489,20 +497,21 @@ class RootTemplatesPanel constructor(
  * @property templateKey
  *   The unique template key corresponding the target template expansion.
  * @property expansion
- *   The expanded template.
- * @property root
- *   The [AvailProjectRoot] this template belongs to.
+ *   The [TemplateExpansion].
+ * @property templateGroup
+ *   The [TemplateGroup] this template belongs to.
  * @property workbench
  *   The associated [AvailWorkbench]
  * @property parentPanel
- *   The [RootTemplatesPanel] this [TemplateRow] is in.
+ *   The [TemplatesPanel] this [TemplateRow] is in.
  */
 class TemplateRow constructor(
 	var templateKey: String,
-	val expansion: String,
-	val root: AvailProjectRoot,
+	val expansion: TemplateExpansion,
+	val templateGroup: TemplateGroup,
 	val workbench: AvailWorkbench,
-	val parentPanel: RootTemplatesPanel
+	val parentPanel: TemplatesPanel,
+	val saveAction: () -> Unit
 ): JPanel(GridBagLayout())
 {
 	/**
@@ -521,7 +530,7 @@ class TemplateRow constructor(
 			BorderFactory.createEmptyBorder()
 		border = BorderFactory.createLineBorder(Color.BLUE)
 		parentPanel.selectedRow = this
-		parentPanel.rootTemplateEditPanel.templateRow = this
+		parentPanel.templateEditPanel.templateRow = this
 		requestFocus()
 	}
 
@@ -589,7 +598,7 @@ class TemplateRow constructor(
 
 	init
 	{
-		toolTipText = expansion
+		toolTipText = expansion.expansion
 		add(
 			templateNamePanel,
 			constraints.apply {
@@ -607,6 +616,48 @@ class TemplateRow constructor(
 	}
 
 	/**
+	 * The [ImageIcon] representing whether or not a template is exported in an
+	 * Avail artifact build.
+	 */
+	private var favoriteIcon =
+		if (expansion.markedForArtifactInclusion)
+		{
+			exportIconChosen
+		}
+		else
+		{
+			exportIconNotChosen
+		}
+
+	/**
+	 * The button to toggle export of the template.
+	 */
+	@Suppress("unused")
+	private val exportWithArtifact: JButton =
+		JButton(favoriteIcon).apply {
+			isContentAreaFilled = false
+			isBorderPainted = false
+			addActionListener { _ ->
+				expansion.markedForArtifactInclusion =
+					!expansion.markedForArtifactInclusion
+				favoriteIcon =
+					if (expansion.markedForArtifactInclusion)
+					{
+						exportIconChosen
+					}
+					else
+					{
+						exportIconNotChosen
+					}
+				SwingUtilities.invokeLater {
+					this@TemplateRow.workbench.saveProjectFileToDisk()
+					this@TemplateRow.parentPanel.redrawTemplates()
+				}
+			}
+			templateEditDeletePanel.add(this)
+		}
+
+	/**
 	 * The button to remove the template.
 	 */
 	@Suppress("unused")
@@ -622,7 +673,7 @@ class TemplateRow constructor(
 					JOptionPane.YES_NO_OPTION)
 				if (selection == 0)
 				{
-					root.templates.remove(templateKey)
+					templateGroup.templates.remove(templateKey)
 					if (this@TemplateRow.parentPanel.selectedRow == this@TemplateRow)
 					{
 						this@TemplateRow.parentPanel.clearSelectedRow()
@@ -654,6 +705,18 @@ class TemplateRow constructor(
 		 */
 		private val deleteIcon get() =
 			ProjectManagerIcons.cancelFilled(scaledIconHeight)
+
+		/**
+		 * Icon indicating the template is exported in an Avail artifact.
+		 */
+		private val exportIconChosen =
+			ProjectManagerIcons.yellowStarFilled(scaledIconHeight)
+
+		/**
+		 * Icon indicating the template is not exported in an Avail artifact.
+		 */
+		private val exportIconNotChosen =
+			ProjectManagerIcons.yellowStarUnfilled(scaledIconHeight)
 	}
 }
 
@@ -662,14 +725,19 @@ class TemplateRow constructor(
  *
  * @author Richard Arriaga
  *
- * @constructor
- * Construct a new [RootTemplateEditPanel].
+ * @property parentPanel
+ *   The owning [TemplatesPanel].
  *
+ * @constructor
+ * Construct a new [TemplateEditPanel].
+ *
+ * @param parentPanel
+ *   The owining [TemplatesPanel].
  * @param initialTemplateRow
  *   The [TemplateRow] to initially populate this pane with.
  */
-class RootTemplateEditPanel constructor(
-	val parentPanel: RootTemplatesPanel,
+class TemplateEditPanel constructor(
+	val parentPanel: TemplatesPanel,
 	initialTemplateRow: TemplateRow
 ) : JPanel()
 {
@@ -700,7 +768,7 @@ class RootTemplateEditPanel constructor(
 			{
 				when
 				{
-					templateRow.root.templates.containsKey(templateKey) ->
+					templateRow.templateGroup.templates.containsKey(templateKey) ->
 					{
 						duplicates.text = "Template $templateKey already exists"
 					}
@@ -711,6 +779,11 @@ class RootTemplateEditPanel constructor(
 				}
 			}
 			expansion != templateRow.expansion ->
+			{
+				applyChanges.isEnabled = true
+			}
+			expansion.markedForArtifactInclusion !=
+				templateRow.expansion.markedForArtifactInclusion ->
 			{
 				applyChanges.isEnabled = true
 			}
@@ -747,25 +820,25 @@ class RootTemplateEditPanel constructor(
 	 * The [JTextArea] used to enter the template expansion text.
 	 */
 	private val expansionField = JTextArea(10, 80).apply {
-		text = expansion
+		text = expansion.expansion
 		document.addDocumentListener(
 			object: DocumentListener
 			{
 				override fun insertUpdate(e: DocumentEvent?)
 				{
-					expansion = text
+					expansion.expansion = text
 					validateUpdates()
 				}
 
 				override fun removeUpdate(e: DocumentEvent?)
 				{
-					expansion = text
+					expansion.expansion = text
 					validateUpdates()
 				}
 
 				override fun changedUpdate(e: DocumentEvent?)
 				{
-					expansion = text
+					expansion.expansion = text
 					validateUpdates()
 				}
 			})
@@ -782,7 +855,7 @@ class RootTemplateEditPanel constructor(
 			expansion = value.expansion
 			SwingUtilities.invokeLater {
 				templateNameTextField.text = templateKey
-				expansionField.text = expansion
+				expansionField.text = expansion.expansion
 			}
 		}
 
@@ -808,9 +881,10 @@ class RootTemplateEditPanel constructor(
 		toolTipText = "Apply Changes"
 		addActionListener {
 			SwingUtilities.invokeLater {
-				templateRow.root.templates[templateKey] = expansion
+				templateRow.templateGroup.templates[templateKey] =
+					expansion
 				templateRow.templateKey = templateKey
-				templateRow.workbench.saveProjectFileToDisk()
+				templateRow.saveAction()
 				templateRow.parentPanel.redrawTemplates()
 				templateRow.workbench.refreshTemplates()
 			}
@@ -831,11 +905,27 @@ class RootTemplateEditPanel constructor(
 		addActionListener {
 			SwingUtilities.invokeLater {
 				templateRow =
-					this@RootTemplateEditPanel.parentPanel
+					this@TemplateEditPanel.parentPanel
 						.newEmptyTemplateRow().apply { select() }
 			}
 		}
 	}
+
+	/**
+	 * The [templateKey].
+	 */
+	@Suppress("unused")
+	private val templateKeyCheckBox: JCheckBox =
+		JCheckBox("Include in Avail artifact build").apply {
+			font = font.deriveFont(font.style or Font.BOLD)
+			toolTipText = "Checking this will cause this template to be " +
+				"included in the Avail manifest for the is Avail root when the " +
+				"root is packaged in an Avail artifact."
+			isSelected = expansion.markedForArtifactInclusion
+			addItemListener {
+				expansion.markedForArtifactInclusion = it.stateChange == 1
+			}
+		}
 
 	init
 	{
@@ -857,7 +947,9 @@ class RootTemplateEditPanel constructor(
 		namePanel.add(applyChanges)
 		namePanel.add(Box.createRigidArea(Dimension(10, 25)))
 		namePanel.add(newTemplate)
-		namePanel.add(Box.createRigidArea(Dimension(400 - newTemplate.width, 25)))
+		namePanel.add(Box.createRigidArea(Dimension(10, 25)))
+		namePanel.add(templateKeyCheckBox)
+		namePanel.add(Box.createRigidArea(Dimension(200 - newTemplate.width, 25)))
 		add(namePanel)
 		add(JPanel().apply {
 			layout = (FlowLayout(FlowLayout.LEFT))

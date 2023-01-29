@@ -42,7 +42,7 @@ import avail.anvil.icons.structure.SortIcons
 import avail.anvil.nodes.ManifestEntryNameNode
 import avail.anvil.nodes.ManifestEntryNode
 import avail.anvil.window.LayoutConfiguration
-import avail.anvil.window.WorkbenchFrame
+import avail.anvil.WorkbenchFrame
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind
 import java.awt.BorderLayout

@@ -80,6 +80,9 @@ class FindAction constructor(
 	"Find/Replace…",
 	FindActionShortcut)
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	init
 	{
 		putValue(SHORT_DESCRIPTION, "Find/Replace…")

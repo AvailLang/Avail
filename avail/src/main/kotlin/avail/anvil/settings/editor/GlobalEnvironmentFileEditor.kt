@@ -1,5 +1,5 @@
 /*
- * Libraries.kt
+ * GlobalEnvironmentFileEditor.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,33 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.environment
+package avail.anvil.settings.editor
 
-import avail.anvil.projects.AvailStdLibVersion
-import org.availlang.artifact.environment.AvailEnvironment
-import java.io.File
-
-// Utilities for working with Avail libraries.
+import avail.anvil.AbstractJSONFileEditor
+import avail.anvil.AvailWorkbench
+import avail.anvil.environment.GlobalEnvironmentSettings
+import avail.anvil.environment.environmentConfigFile
+import avail.anvil.shortcuts.KeyboardShortcut
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 
 /**
- * The Avail standard libraries in [AvailEnvironment.availHomeLibs].
+ * An [AbstractJSONFileEditor] for an Avail [GlobalEnvironmentSettings] file.
+ *
+ * @author Richard Arriaga
+ *
+ * @constructor
+ * Construct an [GlobalEnvironmentFileEditor].
+ *
+ * @param workbench
+ *   The owning [AvailWorkbench].
+ * @param autoSave
+ *   Whether to auto save the backing file to disk after changes.
+ * @param afterTextLoaded
+ *   Action to perform after text has been loaded to [sourcePane].
  */
-val availStandardLibraries: Array<File> get() =
-	stdLibHome.let { home ->
-		val dir = File(home)
-		if (!dir.exists())
+class GlobalEnvironmentFileEditor constructor(
+	workbench: AvailWorkbench,
+	override val autoSave: Boolean = false,
+	afterTextLoaded: (GlobalEnvironmentFileEditor) -> Unit = {}
+) : AbstractJSONFileEditor<GlobalEnvironmentFileEditor>(
+	workbench,
+	environmentConfigFile,
+	"Global Environment Settings",
+	afterTextLoaded)
+{
+	override val shortcuts: List<KeyboardShortcut> = listOf()
+
+	init
+	{
+		workbench.backupProjectFile()
+		finalizeInitialization(afterTextLoaded)
+		addWindowListener(object : WindowAdapter()
 		{
-			dir.mkdirs()
-		}
-		val m = mutableListOf<AvailStdLibVersion?>()
-		val libs = dir.listFiles { _, name ->
-			name.endsWith(".jar") &&
-				name.startsWith("avail-stdlib")
-		} ?: arrayOf()
-		libs.sortByDescending {
-			val v = it.name.split("avail-stdlib-")
-				.last().split(".jar").first()
-			AvailStdLibVersion.versionOrNull(v).apply { m.add(this) }
-		}
-		libs
+			override fun windowClosing(e: WindowEvent?)
+			{
+				workbench.openFileEditors.remove(fileLocation)
+			}
+		})
 	}
+
+	override fun populateSourcePane(then: (GlobalEnvironmentFileEditor)->Unit)
+	{
+		highlightCode()
+		// TODO move code population here
+		then(this)
+	}
+}

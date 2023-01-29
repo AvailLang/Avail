@@ -36,22 +36,24 @@ import avail.AvailRuntimeConfiguration
 import avail.anvil.AvailWorkbench
 import avail.anvil.MenuBarBuilder
 import avail.anvil.addWindowMenu
-import avail.anvil.manager.AvailProjectManager.DisplayedPanel.*
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.projectManagerLayoutFile
+import avail.anvil.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
+import avail.anvil.manager.AvailProjectManager.DisplayedPanel.KNOWN_PROJECTS
 import avail.anvil.projects.KnownAvailProject
 import avail.anvil.settings.SettingsView
 import avail.anvil.versions.MavenCentralAPI
 import avail.anvil.versions.SearchResponse
 import avail.anvil.window.LayoutConfiguration
 import org.availlang.artifact.environment.project.AvailProject
-import org.availlang.json.jsonObject
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Taskbar
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JFileChooser
@@ -68,11 +70,11 @@ import javax.swing.filechooser.FileNameExtensionFilter
  * @author Richard Arriaga
  *
  * @property globalSettings
- *   The [GlobalAvailSettings] that provides information about the Avail
+ *   The [GlobalEnvironmentSettings] that provides information about the Avail
  *   environment for the entire computer.
  */
 class AvailProjectManager constructor(
-	val globalSettings: GlobalAvailSettings
+	val globalSettings: GlobalEnvironmentSettings
 ): JFrame("Avail")
 {
 	/**
@@ -233,7 +235,7 @@ class AvailProjectManager constructor(
 	 */
 	private fun showProjectManager()
 	{
-		isVisible = true
+		redraw()
 	}
 
 	/**
@@ -291,6 +293,7 @@ class AvailProjectManager constructor(
 		setBounds(x, y, width, newHeight)
 		if (!initialOpenComplete)
 		{
+			initialOpenComplete = true
 			if (!openFavorite())
 			{
 				isVisible = true
@@ -332,13 +335,25 @@ class AvailProjectManager constructor(
 			val rsp = SearchResponse.parse(it)
 			if (rsp == null)
 			{
-				System.err.println("Couldn't parse response:\n$it")
+				System.err.println(
+					"Failed to refresh latest Avail Standard Library version from " +
+						"Maven Central, couldn't parse response:\n$it")
 				return@searchAvailStdLib
 			}
 			latestVersion = rsp.latestLibVersion
 		}
-		){ c, m ->
-			System.err.println("Failed to get latest version: $c\n$m")
+		){ c, m, e ->
+			StringWriter().apply {
+				this.write(
+					"Failed to refresh latest Avail Standard Library version " +
+						"from Maven Central:\n\tResponse Code:$c\n\tResponse " +
+						"Message$m\n")
+				e?.let {
+					val pw = PrintWriter(this)
+					it.printStackTrace(pw)
+				}
+				System.err.println(this.toString())
+			}
 		}
 	}
 
@@ -433,7 +448,7 @@ class AvailProjectManager constructor(
 	}
 
 	/**
-	 * Open the [GlobalAvailSettings.favoriteKnownProject] if one is
+	 * Open the [GlobalEnvironmentSettings.favoriteKnownProject] if one is
 	 * selected.
 	 *
 	 * @return
@@ -474,12 +489,9 @@ class AvailProjectManager constructor(
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
 				val projectConfigFile = selectedFile
-				val projectPath = selectedFile.parent
 				val project = try
 				{
-					AvailProject.from(
-						projectPath,
-						jsonObject(projectConfigFile.readText(Charsets.UTF_8)))
+					AvailProject.from(selectedFile.absolutePath)
 				}
 				catch (e: Throwable)
 				{

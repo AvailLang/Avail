@@ -265,7 +265,7 @@ import avail.utility.javaWait
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.structures.EnumMap.Companion.enumMap
-import avail.utility.trace
+import avail.utility.stackToString
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.Timer
@@ -1741,7 +1741,8 @@ class AvailRuntime constructor(
 			catch (e: Exception)
 			{
 				System.err.println(
-					"\n\tException in running-interpreter task:\n\t${trace(e)}"
+					("\n\tException in running-interpreter task:\n\t" +
+						e.stackToString)
 						.trimIndent())
 			}
 			finally
@@ -1839,7 +1840,7 @@ class AvailRuntime constructor(
 			catch (e: Exception)
 			{
 				System.err.println(
-					"\n\tException in safe point task:\n\t${trace(e)}"
+					"\n\tException in safe point task:\n\t${e.stackToString}"
 						.trimIndent())
 			}
 			finally

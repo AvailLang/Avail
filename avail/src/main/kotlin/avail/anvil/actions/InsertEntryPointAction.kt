@@ -52,6 +52,11 @@ import javax.swing.Action
 class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Insert Entry Point")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && workbench.selectedEntryPoint() !== null
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)

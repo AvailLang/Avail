@@ -52,6 +52,9 @@ class ParserIntegrityCheckAction constructor (
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Integrity check")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()

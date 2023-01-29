@@ -64,7 +64,7 @@ class EntryPointNode constructor(
 	override fun modulePathString(): String =
 		throw UnsupportedOperationException()
 
-	override fun iconResourceName(): String? = null
+	override fun iconResourceName(): String = "play_circle_green"
 
 	override fun text(selected: Boolean): String = entryPointString
 

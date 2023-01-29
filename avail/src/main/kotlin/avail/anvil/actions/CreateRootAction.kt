@@ -38,6 +38,9 @@ import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLocation.LocationType
 import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.environment.project.LocalSettings
+import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.TemplateGroup
 import org.availlang.artifact.jar.AvailArtifactJar
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -79,6 +82,11 @@ constructor (
 	workbench,
 	"Create root…")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val editor = AvailRootEditor(workbench)
@@ -100,17 +108,48 @@ constructor (
 			"jar" -> Scheme.JAR
 			else -> Scheme.FILE
 		}
+		val rootNameInJar = editor.rootNameInJar.selectedValue
 		val location = locationType.location(
 			workbench.projectHomeDirectory,
 			editor.relativePath(),
 			schema,
-			editor.rootNameInJar.selectedValue)
+			rootNameInJar)
+		val rootName = editor.nameField.text
+		val rootConfigPath = AvailEnvironment.projectRootConfigPath(
+			workbench.projectName,
+			rootName,
+			workbench.projectHomeDirectory)
+		workbench.availProject
+			.optionallyInitializeConfigDirectory(rootConfigPath)
+		var sg = StylingGroup()
+		var tg = TemplateGroup()
+		val extensions = mutableListOf<String>()
+		var description = ""
+		if (schema == Scheme.JAR && rootNameInJar.isNotBlank())
+		{
+			val jar = AvailArtifactJar(editor.chooser.selectedFile.toURI())
+			jar.manifest.roots[rootNameInJar]?.let {
+				sg = it.styles
+				tg = it.templates
+				extensions.addAll(it.availModuleExtensions)
+				description = it.description
+			}
+		}
 		val newProjectRoot = AvailProjectRoot(
+			rootConfigPath,
 			workbench.projectHomeDirectory,
-			editor.nameField.text,
+			rootName,
 			location,
+			LocalSettings(rootConfigPath),
+			sg,
+			tg,
+			extensions,
 			editable = editor.editable.isSelected,
 			visible = editor.visible.isSelected)
+		newProjectRoot.description = description
+		newProjectRoot.saveLocalSettingsToDisk()
+		newProjectRoot.saveTemplatesToDisk()
+		newProjectRoot.saveStylesToDisk()
 		val project = workbench.availProject
 		project.addRoot(newProjectRoot)
 		// Update the runtime as well.

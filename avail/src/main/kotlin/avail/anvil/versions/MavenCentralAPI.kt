@@ -89,18 +89,26 @@ object MavenCentralAPI
 	private fun search (
 		url: URL,
 		success: (JSONReader) -> Unit,
-		failure: (Int, String?) -> Unit)
+		failure: (Int, String?, Throwable?) -> Unit)
 	{
-		val con = url.openConnection() as HttpURLConnection
-		con.requestMethod = "GET"
-		val rspCode = con.responseCode
-		if (rspCode != 200)
+		try
 		{
-			failure(rspCode, con.responseMessage)
-			return
+			val con = url.openConnection() as HttpURLConnection
+			con.requestMethod = "GET"
+			val rspCode = con.responseCode
+			if (rspCode != 200)
+			{
+				failure(rspCode, con.responseMessage, null)
+				return
+			}
+			val responseReader =
+				BufferedReader(InputStreamReader(con.inputStream))
+			success(JSONReader(responseReader))
 		}
-		val responseReader = BufferedReader(InputStreamReader(con.inputStream))
-		success(JSONReader(responseReader))
+		catch (e: Throwable)
+		{
+			failure(0, null, e)
+		}
 	}
 
 	/**
@@ -109,12 +117,13 @@ object MavenCentralAPI
 	 * @param success
 	 *   Accepts the [JSONReader] that contains the response.
 	 * @param failure
-	 *   Accepts the [HttpURLConnection.getResponseCode] and
-	 *   [HttpURLConnection.responseMessage] in the event of a failure.
+	 *   Accepts the [HttpURLConnection.getResponseCode] and nullable
+	 *   [HttpURLConnection.responseMessage] and nullable [Throwable] in the
+	 *   event of a failure.
 	 */
 	fun searchAvailStdLib (
 		success: (JSONReader) -> Unit,
-		failure: (Int, String?) -> Unit)
+		failure: (Int, String?, Throwable?) -> Unit)
 	{
 		search(searchAvailLibUrl, success, failure)
 	}
@@ -125,12 +134,13 @@ object MavenCentralAPI
 	 * @param success
 	 *   Accepts the [JSONReader] that contains the response.
 	 * @param failure
-	 *   Accepts the [HttpURLConnection.getResponseCode] and
-	 *   [HttpURLConnection.responseMessage] in the event of a failure.
+	 *   Accepts the [HttpURLConnection.getResponseCode] and nullable
+	 *   [HttpURLConnection.responseMessage] and nullable [Throwable] in the
+	 *   event of a failure.
 	 */
 	fun searchAvailSdk (
 		success: (JSONReader) -> Unit,
-		failure: (Int, String?) -> Unit)
+		failure: (Int, String?, Throwable?) -> Unit)
 	{
 		search(searchAvailSdkUrl, success, failure)
 	}

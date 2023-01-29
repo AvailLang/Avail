@@ -83,7 +83,7 @@ import avail.serialization.Serializer
 import avail.utility.Graph
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
-import avail.utility.trace
+import avail.utility.stackToString
 import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import java.io.File
@@ -1082,7 +1082,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							EXECUTION,
 							"Error executing command:{0}\n{1}",
 							if (e.message !== null) " " + e.message else "",
-							trace(e))
+							e.stackToString)
 						{
 							override fun abortCompilation() = onFailure()
 						}

@@ -54,6 +54,9 @@ class ToggleDebugAfterUnload constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Debug references after unload")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		Interpreter.debugCheckAfterUnload =

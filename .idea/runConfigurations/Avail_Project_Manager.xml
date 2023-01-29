@@ -3,7 +3,6 @@
     <option name="MAIN_CLASS_NAME" value="avail.project.AvailProjectManagerRunner" />
     <module name="avail.avail.main" />
     <shortenClasspath name="NONE" />
-    <option name="VM_PARAMETERS" value="-DavailDeveloper=true" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
       <option name="IS_SUBST" value="false" />

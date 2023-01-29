@@ -52,6 +52,9 @@ import java.awt.event.ActionEvent
 class CreateProjectAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "New…")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(e: ActionEvent?)
 	{
 		workbench.projectManager?.createProject(workbench)

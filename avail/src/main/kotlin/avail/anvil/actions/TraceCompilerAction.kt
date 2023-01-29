@@ -50,6 +50,9 @@ class TraceCompilerAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Trace compiler")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailRuntimeConfiguration.debugCompilerSteps =

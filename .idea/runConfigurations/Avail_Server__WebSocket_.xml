@@ -1,5 +1,15 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Avail Server (WebSocket)" type="JarApplication">
+    <extension name="net.ashald.envfile">
+      <option name="IS_ENABLED" value="false" />
+      <option name="IS_SUBST" value="false" />
+      <option name="IS_PATH_MACRO_SUPPORTED" value="false" />
+      <option name="IS_IGNORE_MISSING_FILES" value="false" />
+      <option name="IS_ENABLE_EXPERIMENTAL_INTEGRATIONS" value="false" />
+      <ENTRIES>
+        <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
+      </ENTRIES>
+    </extension>
     <option name="JAR_PATH" value="$PROJECT_DIR$/distro/lib/avail-server.jar" />
     <option name="VM_PARAMETERS" value="-ea -Xmx4g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/debug-logging.properties" />
     <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/distro/src/examples --webSocketAdapter" />

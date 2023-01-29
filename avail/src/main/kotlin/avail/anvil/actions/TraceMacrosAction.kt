@@ -51,6 +51,9 @@ class TraceMacrosAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Trace macros")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailRuntimeConfiguration.debugMacroExpansions =

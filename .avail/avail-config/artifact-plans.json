@@ -1,0 +1,26 @@
+[
+	{
+		"version": "2.0.0.alpha19-1.6.1.alpha08",
+		"artifactType": "LIBRARY",
+		"outputLocation":
+		{
+			"locationType": "project",
+			"scheme": "JAR",
+			"path": "avail-stdlib/build/libs/z/avail-stdlib-2.0.0.alpha20-1.6.1.alpha09.jar"
+		},
+		"implementationTitle" : "Avail Standard Library",
+		"jvmComponent": {
+			"hasJVMComponents": false,
+			"description": "",
+			"mains": []
+		},
+		"jarMainClass": "",
+		"artifactDescription": "The Avail Standard Library primary module root",
+		"rootNames": ["avail"],
+		"includedFiles": [],
+		"jarFileLocations": [],
+		"zipFileLocations": [],
+		"directoryLocations": [],
+		"customManifestItems": {}
+	}
+]

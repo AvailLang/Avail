@@ -52,6 +52,9 @@ class TraceLoadedStatementsAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Trace statement loading/compiling")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailLoader.debugLoadedStatements = AvailLoader.debugLoadedStatements xor true

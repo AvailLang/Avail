@@ -33,7 +33,7 @@
 package avail.anvil.settings.editor
 
 import avail.anvil.components.ComboWithLabel
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.GraphicsEnvironment
@@ -44,7 +44,7 @@ import javax.swing.JComponent
 
 /**
  * The [EditorSetting] for changing the
- * [GlobalAvailSettings.codePaneFontSize].
+ * [GlobalEnvironmentSettings.codePaneFontSize].
  *
  * @author Richard Arriaga
  */
@@ -53,7 +53,7 @@ internal class FontSetting constructor(
 	override val parent: JComponent
 ): EditorSetting
 {
-	/** The current value in [GlobalAvailSettings.editorGuideLines]. */
+	/** The current value in [GlobalEnvironmentSettings.editorGuideLines]. */
 	private var original: String = editorSettings.config.font
 
 	private val monospaceFonts =

@@ -163,7 +163,7 @@ import avail.persistence.cache.Repository.PhraseNode.PhraseNodeToken
 import avail.serialization.Serializer
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
-import avail.utility.trace
+import avail.utility.stackToString
 import org.availlang.persistence.IndexedFile
 import java.lang.String.format
 import java.util.concurrent.ConcurrentHashMap
@@ -288,7 +288,7 @@ class CompilationContext constructor(
 
 				val builder = StringBuilder()
 				val e = Throwable().fillInStackTrace()
-				builder.append(trace(e))
+				builder.append(e.stackToString)
 				val trace = builder.toString().replace(
 					"\\A.*?\\R((.*?\\R){6})(.|\\R)*?\\z".toRegex(), "$1")
 				logWorkUnits(
@@ -425,7 +425,7 @@ class CompilationContext constructor(
 			val completed = workUnitsCompleted
 			val builder = StringBuilder()
 			val e = Throwable().fillInStackTrace()
-			builder.append(trace(e))
+			builder.append(e.stackToString)
 			var lines: Array<String?> =
 				builder.toString().split("\n".toRegex(), 7).toTypedArray()
 			if (lines.size > 6)
@@ -917,7 +917,7 @@ class CompilationContext constructor(
 			INTERNAL,
 			"Internal error: {0}\n{1}",
 			e.message!!,
-			trace(e))
+			e.stackToString)
 		{
 			override fun abortCompilation()
 			{
@@ -970,7 +970,7 @@ class CompilationContext constructor(
 					EXECUTION,
 					"Execution error: {0}\n{1}",
 					e.message!!,
-					trace(e))
+					e.stackToString)
 				{
 					override fun abortCompilation()
 					{

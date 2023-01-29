@@ -92,7 +92,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.Strings.traceFor
-import avail.utility.trace
+import avail.utility.stackToString
 import org.availlang.json.JSONWriter
 import org.jetbrains.annotations.Debug.Renderer
 import java.util.IdentityHashMap
@@ -206,11 +206,11 @@ class AvailObject private constructor(
 		}
 		catch (e: Exception)
 		{
-			append("EXCEPTION while printing.${trace(e)}")
+			append("EXCEPTION while printing.${e.stackToString}")
 		}
 		catch (e: AssertionError)
 		{
-			append("ASSERTION ERROR while printing.${trace(e)}")
+			append("ASSERTION ERROR while printing.${e.stackToString}")
 		}
 	}
 

@@ -33,7 +33,7 @@
 package avail.anvil.settings.editor
 
 import avail.anvil.components.TextFieldWithLabelButtonValidationText
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.icons.ProjectManagerIcons
 import java.awt.Dimension
 import javax.swing.BorderFactory
@@ -41,7 +41,7 @@ import javax.swing.JComponent
 
 /**
  * The [EditorSetting] for changing the
- * [GlobalAvailSettings.codePaneFontSize].
+ * [GlobalEnvironmentSettings.codePaneFontSize].
  *
  * @author Richard Arriaga
  */
@@ -50,7 +50,7 @@ internal class FontSizeSetting constructor(
 	override val parent: JComponent
 ): EditorSetting
 {
-	/** The current value in [GlobalAvailSettings.editorGuideLines]. */
+	/** The current value in [GlobalEnvironmentSettings.editorGuideLines]. */
 	private var original: String =
 		"%.${1}f".format(editorSettings.config.codePaneFontSize)
 

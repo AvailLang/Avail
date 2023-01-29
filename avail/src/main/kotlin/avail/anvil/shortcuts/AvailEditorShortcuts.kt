@@ -35,8 +35,12 @@ package avail.anvil.shortcuts
 import avail.anvil.AvailEditor
 import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.editor.GoToDialog
+import avail.anvil.shortcuts.ModifierKey.ALT
+import avail.anvil.shortcuts.ModifierKey.CTRL
 import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 import avail.anvil.shortcuts.ModifierKey.SHIFT
+import avail.anvil.text.BlockComment
+import avail.anvil.text.LineComment
 import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 
@@ -132,4 +136,44 @@ object PrintAllRenderingSolutionsShortcut
 {
 	override val actionMapKey = "print-styling-solutions"
 	override val description = "Print Styling Solutions"
+}
+
+/**
+ * The [AvailEditorShortcut] to prefix each selected line with a [LineComment]
+ * at the start of each line ([LineComment.commentAtLineStart]).
+ *
+ * @author Richard Arriaga
+ */
+object InsertLineCommentAtStartShortcut
+	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx))
+{
+	override val actionMapKey: String = "insert-line-comment-at-start"
+	override val description: String = "Insert line comment at start of line(s)"
+}
+
+/**
+ * The [AvailEditorShortcut] to insert a [LineComment] after the tab position of
+ * line with the least tabs before a non-tab character
+ * ([LineComment.commentAtMinTab]).
+ *
+ * @author Richard Arriaga
+ */
+object InsertLineCommentAtTabShortcut
+	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx, ALT))
+{
+	override val actionMapKey: String = "insert-line-comment-at-min-tab"
+	override val description: String =
+		"Insert line comment at minimum tab location across all lines"
+}
+
+/**
+ * The [AvailEditorShortcut] to wrap the text selection in a [BlockComment].
+ *
+ * @author Richard Arriaga
+ */
+object WrapInBlockCommentShortcut
+	: AvailEditorShortcut(KeyCode.VK_SLASH.with(menuShortcutKeyMaskEx, CTRL))
+{
+	override val actionMapKey: String = "insert-block-comment"
+	override val description: String = "Wrap selection in block comment"
 }

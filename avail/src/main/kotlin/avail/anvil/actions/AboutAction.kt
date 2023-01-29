@@ -61,6 +61,9 @@ import javax.swing.border.EmptyBorder
 class AboutAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "About Avail…")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		showDialog()

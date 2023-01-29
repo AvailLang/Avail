@@ -33,8 +33,9 @@ package avail.anvil.manager
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.icons.ProjectManagerIcons
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.projects.KnownAvailProject
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Font
 import java.awt.GridBagConstraints
@@ -52,20 +53,20 @@ import javax.swing.SwingUtilities
 
 /**
  * The [JPanel] that displays a [KnownAvailProject] in
- * [GlobalAvailSettings.knownProjects].
+ * [GlobalEnvironmentSettings.knownProjects].
  *
  * @author Richard Arriaga
  *
  * @property project
  *   The [KnownAvailProject] to show.
  * @property config
- *   The [GlobalAvailSettings].
+ *   The [GlobalEnvironmentSettings].
  * @property parentPanel
  *   The [KnownProjectsPanel] this [KnownProjectRow] belongs to.
  */
 internal class KnownProjectRow constructor(
 	val project: KnownAvailProject,
-	val config: GlobalAvailSettings,
+	val config: GlobalEnvironmentSettings,
 	private val parentPanel: KnownProjectsPanel
 ): JPanel(GridBagLayout())
 {
@@ -85,7 +86,7 @@ internal class KnownProjectRow constructor(
 
 	/**
 	 * The [ImageIcon] representing whether or not [project] is the [config]
-	 * [favorite][GlobalAvailSettings.favorite] or not. Filled indicates
+	 * [favorite][GlobalEnvironmentSettings.favorite] or not. Filled indicates
 	 * it is; unfilled indicates it is not.
 	 */
 	private var favoriteIcon =
@@ -100,7 +101,7 @@ internal class KnownProjectRow constructor(
 
 	/**
 	 * The button to toggle to either choose the [project] as the
-	 * [GlobalAvailSettings.favorite] or to deselect it.
+	 * [GlobalEnvironmentSettings.favorite] or to deselect it.
 	 */
 	private val toggleFavorite: JButton =
 		JButton(favoriteIcon).apply {
@@ -200,6 +201,10 @@ internal class KnownProjectRow constructor(
 		font = font.deriveFont(
 			font.style or Font.ITALIC,
 			(font.size - 3).toFloat())
+		if (!project.exists)
+		{
+			foreground = Color(0x73706F)
+		}
 		namePanel.add(this)
 	}
 
@@ -245,14 +250,14 @@ internal class KnownProjectRow constructor(
 
 		/**
 		 * Icon indicating the [project] is the
-		 * [GlobalAvailSettings.favorite].
+		 * [GlobalEnvironmentSettings.favorite].
 		 */
 		private val favoriteIconChosen =
 			ProjectManagerIcons.yellowStarFilled(scaledIconHeight)
 
 		/**
 		 * Icon indicating the [project] is not the
-		 * [GlobalAvailSettings.favorite].
+		 * [GlobalEnvironmentSettings.favorite].
 		 */
 		private val favoriteIconNotChosen =
 			ProjectManagerIcons.yellowStarUnfilled(scaledIconHeight)

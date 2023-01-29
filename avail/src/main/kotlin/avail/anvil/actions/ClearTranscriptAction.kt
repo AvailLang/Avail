@@ -48,6 +48,9 @@ import javax.swing.Action
 class ClearTranscriptAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Clear Transcript")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(e: ActionEvent)
 	{
 		workbench.clearTranscript()

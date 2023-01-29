@@ -53,6 +53,11 @@ import javax.swing.Action
 class GenerateGraphAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Generate graph")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && workbench.selectedModule() !== null
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)

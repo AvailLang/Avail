@@ -54,6 +54,11 @@ class SetDocumentationPathAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Set Documentation Path…")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val chooser = JFileChooser()

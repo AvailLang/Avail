@@ -39,11 +39,14 @@ import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.SystemStyleClassifier.INPUT_BACKGROUND
 import avail.anvil.SystemStyleClassifier.INPUT_TEXT
 import avail.anvil.actions.AboutAction
+import avail.anvil.actions.AbstractWorkbenchAction
 import avail.anvil.actions.BuildAction
+import avail.anvil.actions.BuildFromEntryPointAction
 import avail.anvil.actions.CancelAction
 import avail.anvil.actions.CleanAction
 import avail.anvil.actions.CleanModuleAction
 import avail.anvil.actions.ClearTranscriptAction
+import avail.anvil.actions.CopyQualifiedNameAction
 import avail.anvil.actions.CreateProgramAction
 import avail.anvil.actions.CreateProjectAction
 import avail.anvil.actions.CreateRootAction
@@ -56,13 +59,16 @@ import avail.anvil.actions.ExamineRepositoryAction
 import avail.anvil.actions.ExamineSerializedPhrasesAction
 import avail.anvil.actions.ExamineStylingAction
 import avail.anvil.actions.FindAction
+import avail.anvil.actions.GenerateArtifactAction
 import avail.anvil.actions.GenerateDocumentationAction
 import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
+import avail.anvil.actions.LoadOnStartAction
 import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenKnownProjectAction
-import avail.anvil.actions.OpenModuleAction
+import avail.anvil.actions.OpenFileAction
 import avail.anvil.actions.OpenProjectAction
+import avail.anvil.actions.OpenProjectFileEditorAction
 import avail.anvil.actions.OpenSettingsViewAction
 import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
@@ -96,14 +102,18 @@ import avail.anvil.actions.TraceSummarizeStatementsAction
 import avail.anvil.actions.UnloadAction
 import avail.anvil.actions.UnloadAllAction
 import avail.anvil.debugger.AvailDebugger
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
+import avail.anvil.environment.GlobalEnvironmentSettings.Companion.globalTemplates
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode
+import avail.anvil.nodes.AvailProjectNode
 import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
+import avail.anvil.nodes.OpenableFileNode
+import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
 import avail.anvil.streams.BuildInputStream
@@ -120,7 +130,6 @@ import avail.anvil.text.CodePane
 import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
-import avail.anvil.window.WorkbenchFrame
 import avail.anvil.window.WorkbenchScreenState
 import avail.builder.AvailBuilder
 import avail.builder.ModuleName
@@ -148,24 +157,20 @@ import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
 import avail.utility.isNullOr
-import avail.utility.launch
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
-import io.methvin.watcher.DirectoryChangeEvent.EventType
-import io.methvin.watcher.DirectoryWatcher
-import io.methvin.watcher.hashing.FileHasher
+import org.availlang.artifact.AvailArtifact
 import org.availlang.artifact.ResourceType
+import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.AvailProjectV1
-import org.availlang.artifact.environment.project.Palette
-import org.availlang.artifact.environment.project.StyleAttributes
+import org.availlang.artifact.environment.project.LocalSettings
 import org.availlang.json.JSONWriter
-import org.slf4j.helpers.NOPLogger
 import java.awt.Color
 import java.awt.Component
 import java.awt.Desktop
@@ -184,6 +189,7 @@ import java.awt.event.WindowEvent
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStreamReader
 import java.io.PrintStream
@@ -195,9 +201,7 @@ import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
 import java.nio.file.Path
-import java.util.Arrays.sort
 import java.util.Collections
-import java.util.Collections.synchronizedMap
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
@@ -254,7 +258,7 @@ import kotlin.math.min
  * @property resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
  * @property globalSettings
- *   The [GlobalAvailSettings] for the environment this [AvailWorkbench] is
+ *   The [GlobalEnvironmentSettings] for the environment this [AvailWorkbench] is
  *   being launched in.
  * @property availProject
  *   The actively running [AvailProject].
@@ -273,7 +277,7 @@ import kotlin.math.min
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
  * @param globalSettings
- *  The [GlobalAvailSettings] for the environment this [AvailWorkbench] is
+ *  The [GlobalEnvironmentSettings] for the environment this [AvailWorkbench] is
  *  being launched in.
  * @param availProject
  *   The actively running [AvailProject].
@@ -288,25 +292,72 @@ class AvailWorkbench internal constructor(
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver,
-	val globalSettings: GlobalAvailSettings,
+	val globalSettings: GlobalEnvironmentSettings,
 	internal var availProjectFilePath: String = "",
-	windowTitle: String = "Avail Workbench",
+	windowTitle: String = "Anvil",
 	internal val projectManager: AvailProjectManager?
 ) : WorkbenchFrame(windowTitle)
 {
+	/**
+	 * The name of the open project.
+	 */
+	val projectName = File(availProjectFilePath).name.removeSuffix(".json")
+
 	override val workbench: AvailWorkbench get() = this
 
 	/**
 	 * The file path to the [WorkbenchScreenState].
 	 */
 	private val workbenchScreenStatePath get() =
-		availProjectFilePath.replace(".json", "-local-state.json")
+		"$projectConfigDirectory/$projectName-local-state.json"
 
 	/**
 	 * The directory which is the root of the project.
  	 */
 	val projectHomeDirectory =
 		availProjectFilePath.substringBeforeLast(File.separator)
+
+	/**
+	 * Read the [AvailProject] from [disk][availProjectFilePath].
+	 */
+	val projectFileFromDisk: AvailProject get() =
+		AvailProject.Companion.from(availProjectFilePath)
+
+	/**
+	 * The path to the project configuration directory.
+	 */
+	val projectConfigDirectory: String =
+		AvailEnvironment.projectConfigPath(projectName, projectHomeDirectory)
+
+	/**
+	 * Backup the [availProject] file to "[availProjectFilePath].backup".
+	 */
+	fun backupProjectFile()
+	{
+		val projectFilePath = availProjectFilePath
+		if (projectFilePath.isNotEmpty())
+		{
+			val backupFile = File(
+				"$projectConfigDirectory/$projectName.json.backup")
+			if (backupFile.exists())
+			{
+				backupFile.delete()
+			}
+			FileInputStream(File(projectFilePath)).channel.use { src ->
+				FileOutputStream(backupFile).channel.use { dest ->
+					try
+					{
+						if (backupFile.exists()) backupFile.delete()
+						dest.transferFrom(src, 0, src.size())
+					}
+					catch (e: IOException)
+					{
+						e.printStackTrace()
+					}
+				}
+			}
+		}
+	}
 
 	/**
 	 * Save the [availProject] to disk in [availProjectFilePath].
@@ -316,16 +367,7 @@ class AvailWorkbench internal constructor(
 		val projectFilePath = availProjectFilePath
 		if (projectFilePath.isNotEmpty())
 		{
-			val backup = File("$availProjectFilePath.backup")
-			if (backup.exists())
-			{
-				backup.delete()
-			}
-			val orig = File(projectFilePath)
-			if (orig.exists())
-			{
-				orig.renameTo(backup)
-			}
+			backupProjectFile()
 			// Update the backing project file.
 			val writer = JSONWriter.newPrettyPrinterWriter()
 			availProject.writeTo(writer)
@@ -342,14 +384,18 @@ class AvailWorkbench internal constructor(
 	{
 		val tree = PrefixTree<Int, MutableSet<String>>()
 		availProject.availProjectRoots.forEach { root ->
-			root.templates.forEach { (name, expansion) ->
+			root.templateGroup.templates.forEach { (name, expansion) ->
 				val expansions = tree.getOrPut(name) { mutableSetOf() }
-				expansions.add(expansion)
+				expansions.add(expansion.expansion)
 			}
 		}
-		availProject.templates.forEach { (name, expansion) ->
+		availProject.templateGroup.templates.forEach { (name, expansion) ->
 			val expansions = tree.getOrPut(name) { mutableSetOf() }
-			expansions.add(expansion)
+			expansions.add(expansion.expansion)
+		}
+		globalTemplates.templates.forEach { (name, expansion) ->
+			val expansions = tree.getOrPut(name) { mutableSetOf() }
+			expansions.add(expansion.expansion)
 		}
 		return tree
 	}
@@ -459,53 +505,11 @@ class AvailWorkbench internal constructor(
 	var backgroundTask: AbstractWorkbenchTask? = null
 
 	/**
-	 * The [DirectoryWatcher] that observes the [project][AvailProject]
-	 * configuration file for changes.
+	 * The [projectWatcher] that observes the [project][AvailProject]
+	 * configuration files for changes.
 	 */
 	@Suppress("unused")
-	private val configurationWatcher = DirectoryWatcher.builder()
-		.logger(NOPLogger.NOP_LOGGER)
-		.fileHasher(FileHasher.LAST_MODIFIED_TIME)
-		.path(File(availProjectFilePath).toPath())
-		.listener { event ->
-			try
-			{
-				when (event.eventType()!!)
-				{
-					EventType.DELETE ->
-					{
-						errorStream().println(
-							"configuration file deleted: "
-								+ availProjectFilePath
-						)
-					}
-					EventType.CREATE, EventType.MODIFY ->
-					{
-						refreshStylesheetAction.runAction()
-						writeText(
-							"configuration file refreshed: "
-								+ "$availProjectFilePath\n",
-							INFO
-						)
-					}
-					EventType.OVERFLOW ->
-					{
-						// No implementation required.
-					}
-				}
-			}
-			catch (e: Throwable)
-			{
-				errorStream().println(
-					"Failed to process configuration file update: "
-						+ "$event.eventType():\n"
-						+ "$availProjectFilePath:\n"
-						+ e.stackTraceToString()
-				)
-			}
-		}
-		.build()
-		.launch("configuration watcher: $availProjectFilePath")
+	private val projectWatcher = ProjectWatcher(this)
 
 	/**
 	 * The documentation [path][Path] for the
@@ -579,13 +583,21 @@ class AvailWorkbench internal constructor(
 	 */
 	var commandHistoryIndex = -1
 
+	////////////////////////////////////////////////////////////////////////////
+	//                                Actions                                 //
+	////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * The list of [AbstractWorkbenchAction]s that are registered with this
+	 * [AvailWorkbench]. These actions are
+	 */
+	internal val registeredActionList = mutableListOf<AbstractWorkbenchAction>()
+
 	/** Cycle one step backward in the command history. */
 	private val retrievePreviousAction = RetrievePreviousCommand(this)
 
 	/** Cycle one step forward in the command history. */
 	private val retrieveNextAction = RetrieveNextCommand(this)
-
-	/* Actions. */
 
 	/** The [refresh&#32;action][RefreshAction]. */
 	val refreshAction = RefreshAction(this)
@@ -600,7 +612,16 @@ class AvailWorkbench internal constructor(
 	private val aboutAction = AboutAction(this)
 
 	/** The [build action][BuildAction]. */
-	internal val buildAction = BuildAction(this, false)
+	internal val buildAction = BuildAction(this)
+
+	/** The [CopyQualifiedNameAction].  */
+	internal val copyQualifiedNameAction = CopyQualifiedNameAction(this)
+
+	/** The [LoadOnStartAction]. */
+	internal val loadOnStartAction = LoadOnStartAction(this)
+
+	/** The [GenerateArtifactAction] used to create an [AvailArtifact]. */
+	private val generateArtifact = GenerateArtifactAction(this)
 
 	/** The [unload action][UnloadAction]. */
 	private val unloadAction = UnloadAction(this)
@@ -629,8 +650,7 @@ class AvailWorkbench internal constructor(
 	private val graphAction = GenerateGraphAction(this)
 
 	/**
-	 * The
-	 * [documentation&#32;path&#32;dialog&#32;action][SetDocumentationPathAction].
+	 * The [documentation path dialog action][SetDocumentationPathAction].
 	 */
 	private val setDocumentationPathAction = SetDocumentationPathAction(this)
 
@@ -674,8 +694,7 @@ class AvailWorkbench internal constructor(
 	 * The
 	 * [toggle&#32;primitive&#32;debug&#32;action][ToggleDebugInterpreterPrimitives].
 	 */
-	private val toggleDebugPrimitives =
-		ToggleDebugInterpreterPrimitives(this)
+	private val toggleDebugPrimitives = ToggleDebugInterpreterPrimitives(this)
 
 	/**
 	 * The [toggle&#32;work-units&#32;debug&#32;action][ToggleDebugWorkUnits].
@@ -692,8 +711,7 @@ class AvailWorkbench internal constructor(
 	private val toggleDebugJVM = ToggleDebugJVM(this)
 
 	/** The [toggle JVM code generation][ToggleDebugJVMCodeGeneration]. */
-	private val toggleDebugJVMCodeGeneration =
-		ToggleDebugJVMCodeGeneration(this)
+	private val toggleDebugJVMCodeGeneration = ToggleDebugJVMCodeGeneration(this)
 
 	/**
 	 * The
@@ -705,35 +723,28 @@ class AvailWorkbench internal constructor(
 	/**
 	 * The [toggle&#32;load-tracing&#32;action][TraceLoadedStatementsAction].
 	 */
-	private val traceLoadedStatementsAction =
-		TraceLoadedStatementsAction(this)
+	private val traceLoadedStatementsAction = TraceLoadedStatementsAction(this)
 
 	/** The [ParserIntegrityCheckAction]. */
-	private val parserIntegrityCheckAction =
-		ParserIntegrityCheckAction(this)
+	private val parserIntegrityCheckAction = ParserIntegrityCheckAction(this)
 
 	/** The [ExamineRepositoryAction]. */
 	private val examineRepositoryAction = ExamineRepositoryAction(this)
 
 	/** The [ExamineCompilationAction]. */
-	private val examineCompilationAction =
-		ExamineCompilationAction(this)
+	private val examineCompilationAction = ExamineCompilationAction(this)
 
 	/** The [ExamineSerializedPhrasesAction]. */
-	private val examinePhrasesAction =
-		ExamineSerializedPhrasesAction(this)
+	private val examinePhrasesAction = ExamineSerializedPhrasesAction(this)
 
 	/** The [ExamineStylingAction]. */
-	private val examineStylingAction =
-		ExamineStylingAction(this)
+	private val examineStylingAction = ExamineStylingAction(this)
 
 	/** The [ExaminePhrasePathsAction]. */
-	private val examinePhrasePathsAction =
-		ExaminePhrasePathsAction(this)
+	private val examinePhrasePathsAction = ExaminePhrasePathsAction(this)
 
 	/** The [ExamineModuleManifest]. */
-	private val examineModuleManifestAction =
-		ExamineModuleManifest(this)
+	private val examineModuleManifestAction = ExamineModuleManifest(this)
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -745,13 +756,13 @@ class AvailWorkbench internal constructor(
 	internal val insertEntryPointAction = InsertEntryPointAction(this)
 
 	/** The [action][BuildAction] to build an entry point module. */
-	internal val buildEntryPointModuleAction = BuildAction(this, true)
+	internal val buildEntryPointModuleAction = BuildFromEntryPointAction(this)
 
 	/** The action to open a [new][NewModuleAction] module editor. */
 	private val newEditorAction = NewModuleAction(this)
 
-	/** The action to [edit][OpenModuleAction] a module. */
-	private val openEditorAction = OpenModuleAction(this)
+	/** The action to [edit][OpenFileAction] a module. */
+	private val openFileAction = OpenFileAction(this)
 
 	/** The action to open an [CreateProjectAction]. */
 	private val createProjectAction = CreateProjectAction(this)
@@ -764,6 +775,10 @@ class AvailWorkbench internal constructor(
 
 	/** The action to open the [SettingsView]. */
 	private val openSettingsViewAction = OpenSettingsViewAction(this)
+
+	/** The action to open the [ProjectFileEditor]. */
+	private val openProjectFileEditorViewAction =
+		OpenProjectFileEditorAction(this)
 
 	/** The action to open the [TemplateExpansionsManager]. */
 	private val openTemplateExpansionManagerAction =
@@ -799,6 +814,10 @@ class AvailWorkbench internal constructor(
 //	 */
 //	val resetCodeCoverageDataAction = ResetCodeCoverageDataAction(this, true)
 
+	////////////////////////////////////////////////////////////////////////////
+	//                             End Actions                                //
+	////////////////////////////////////////////////////////////////////////////
+
 	/** The open [editors][AvailEditor]. */
 	val openEditors: MutableMap<ModuleName, AvailEditor> = ConcurrentHashMap()
 
@@ -812,6 +831,30 @@ class AvailWorkbench internal constructor(
 	 * The [TemplateExpansionsManager] view or `null` if not open.
 	 */
 	var templateExpansionManager: TemplateExpansionsManager? = null
+
+	/**
+	 * The map from the absolute path to a file to a [FileEditor].
+	 */
+	internal val openFileEditors = ConcurrentHashMap<String, FileEditor<*>>()
+
+	/**
+	 * Open the file in a [FileEditor] at the indicated file path.
+	 *
+	 * @param path
+	 *   The absolute path to the file to open.
+	 * @param creator
+	 *   A lambda that creates the [FileEditor] if not already open.
+	 */
+	internal fun openFileEditor (
+		path: String,
+		creator: (String) -> FileEditor<*>)
+	{
+		val f = File(path)
+		if (!f.exists() || f.isDirectory) return
+		openFileEditors.computeIfAbsent(
+			path
+		) { creator(path) }.toFront()
+	}
 
 	/**
 	 * A monitor to serialize access to the current build status information.
@@ -843,11 +886,11 @@ class AvailWorkbench internal constructor(
 	private val perModuleProgressLock = ReentrantReadWriteLock()
 
 	/**
-	 * The progress map per module.  Protected by [perModuleProgressLock].
+	 * The progress build map per module.  Protected by [perModuleProgressLock].
 	 */
 	//@GuardedBy("perModuleProgressLock")
-	private val perModuleProgress =
-		mutableMapOf<ModuleName, Triple<Long, Long, Int>>()
+	internal val perModuleProgress =
+		mutableMapOf<ModuleName, ModuleBuildProgress>()
 
 	/**
 	 * Whether a user interface task for updating the visible per-module
@@ -889,31 +932,12 @@ class AvailWorkbench internal constructor(
 	 */
 	internal fun buildStylesheet(project: AvailProject): Stylesheet
 	{
-		val map = project.availProjectRoots.fold(
-			mutableMapOf<String, StyleAttributes>()
-		) { merged, root ->
-			merged.apply { putAll(root.stylesheet) }
-		}.apply {
-			putAll(project.stylesheet)
-		}
-		val palette = project.availProjectRoots.fold(
-			Palette.empty
-		) { merged, root ->
-			val palette = root.palette
-			Palette(
-				lightColors = merged.lightColors + palette.lightColors,
-				darkColors = merged.darkColors + palette.darkColors
-			)
-		}.run {
-			val palette = project.palette
-			Palette(
-				lightColors = lightColors + palette.lightColors,
-				darkColors = darkColors + palette.darkColors
-			)
-		}
+		val selected = globalSettings.stylingSelection.mergeOnto(
+			project.stylingSelection)
 		val errors = mutableListOf<Pair<
 			UnvalidatedStylePattern, StylePatternException>>()
-		val stylesheet = Stylesheet(map, palette, errors)
+		val stylesheet =
+			Stylesheet(selected.stylesheet, selected.palette, errors)
 		if (errors.isNotEmpty())
 		{
 			writeText("Compiling stylesheet encountered errors:\n", ERR)
@@ -1208,62 +1232,24 @@ class AvailWorkbench internal constructor(
 	fun outputStream(): PrintStream = outputStream
 
 	/**
+	 * An indicator of whether or not this [AvailWorkbench] is busy. This is
+	 * defined as:
+	 * [backgroundTask] !== `null` `||` [isRunning].
+	 */
+	internal val isBusy get() = backgroundTask !== null || isRunning
+
+	/**
 	 * Enable or disable controls and menu items based on the current state.
 	 */
 	fun setEnablements()
 	{
-		val busy = backgroundTask !== null || isRunning
+		val busy = isBusy
 		buildProgress.isEnabled = busy
 		buildProgress.isVisible = backgroundTask is BuildTask
 
-		createRootAction.isEnabled = !busy
-		removeRootAction.isEnabled = !busy && selectedModuleRoot() != null
-		toggleShowInvisibleRootAction.isEnabled = !busy
-		openEditorAction.isEnabled = !busy && selectedModule() !== null
-		newEditorAction.isEnabled = !busy && run {
-			val root = selectedModuleRoot() ?: (selectedModule()?.moduleRoot)
-			root.notNullAnd { getProjectRoot(name).notNullAnd { editable } }
-		}
-		deleteModuleAction.isEnabled = !busy && selectedModule().notNullAnd {
-			moduleRoot.resolver.canSave &&
-				getProjectRoot(moduleRoot.name).notNullAnd { editable }
-		}
 		inputField.isEnabled = !busy || isRunning
-		retrievePreviousAction.isEnabled = !busy
-		retrieveNextAction.isEnabled = !busy
-		cancelAction.isEnabled = busy
-		buildAction.isEnabled = !busy && selectedModule() !== null
-		unloadAction.isEnabled = !busy && selectedModuleIsLoaded()
-		unloadAllAction.isEnabled = !busy
-		cleanAction.isEnabled = !busy
-		cleanModuleAction.isEnabled =
-			!busy && (selectedModuleRoot() !== null || selectedModule() !== null)
-		refreshAction.isEnabled = !busy
-		refreshStylesheetAction.isEnabled = !busy
-		setDocumentationPathAction.isEnabled = !busy
-		documentAction.isEnabled = !busy && selectedModule() !== null
-		graphAction.isEnabled = !busy && selectedModule() !== null
-		insertEntryPointAction.isEnabled = !busy && selectedEntryPoint() !== null
-		val selectedEntryPointModule = selectedEntryPointModule()
-		createProgramAction.isEnabled =
-			(!busy && selectedEntryPoint() !== null
-				&& selectedEntryPointModule !== null
-				&& availBuilder.getLoadedModule(selectedEntryPointModule)
-				!= null)
-		examineRepositoryAction.isEnabled =
-			!busy && selectedModuleRootNode() !== null
-		examineCompilationAction.isEnabled =
-			!busy && selectedModule() !== null
-		examinePhrasesAction.isEnabled =
-			!busy && selectedModule() !== null
-		examineStylingAction.isEnabled =
-			!busy && selectedModule() !== null
-		examinePhrasePathsAction.isEnabled =
-			!busy && selectedModule() !== null
-		examineModuleManifestAction.isEnabled =
-			!busy && selectedModule() !== null
-		buildEntryPointModuleAction.isEnabled =
-			!busy && selectedEntryPointModule() !== null
+		registeredActionList.forEach { it.updateIsEnabled(busy) }
+
 		inputLabel.text = if (isRunning) "Console Input:" else "Command:"
 		inputField.background =
 			if (isRunning) inputBackgroundWhenRunning else null
@@ -1425,6 +1411,7 @@ class AvailWorkbench internal constructor(
 					})
 			},
 			then = {
+				treeRoot.add(AvailProjectNode(workbench))
 				sortedRootNodes.sort()
 				sortedRootNodes.forEach(treeRoot::add)
 				val iterator: Iterator<AbstractBuilderFrameTreeNode> =
@@ -1471,7 +1458,7 @@ class AvailWorkbench internal constructor(
 					{
 						val resolved = resolver.resolve(it.moduleName)
 						val node = ModuleOrPackageNode(
-							availBuilder, it.moduleName, resolved, false)
+							this, it.moduleName, resolved, false)
 						parentNode.add(node)
 					}
 					catch (e: UnresolvedDependencyException)
@@ -1497,7 +1484,7 @@ class AvailWorkbench internal constructor(
 					}
 
 					val node = ModuleOrPackageNode(
-						availBuilder, moduleName, resolved, true)
+						this, moduleName, resolved, true)
 					parentNode.add(node)
 					if (resolved.isRename)
 					{
@@ -1562,6 +1549,27 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
+	 * The node selected in the [moduleTree] or `null` if no selection is made.
+	 */
+	// This can be called during the constructor, so it can be null.
+	@Suppress("SAFE_CALL_WILL_CHANGE_NULLABILITY", "UNNECESSARY_SAFE_CALL")
+	internal val selectedModuleTreeNode: Any? get() =
+		moduleTree?.selectionPath?.lastPathComponent
+
+	/**
+	 * Answer the currently selected [AvailProjectNode], or null if not
+	 * selected.
+	 *
+	 * @return A [AvailProjectNode], or `null` if project is not selected.
+	 */
+	private fun selectedAvailProjectNode(): AvailProjectNode? =
+		when (val selection = selectedModuleTreeNode)
+		{
+			is AvailProjectNode -> selection
+			else -> null
+		}
+
+	/**
 	 * Answer the [path][TreePath] to the specified module name in the
 	 * [module&#32;tree][moduleTree].
 	 *
@@ -1595,18 +1603,12 @@ class AvailWorkbench internal constructor(
 	 *
 	 * @return A [ModuleRootNode], or `null` if no module root is selected.
 	 */
-	private fun selectedModuleRootNode(): ModuleRootNode?
-	{
-		// This can be called during the constructor, so it can be null.
-		@Suppress("SENSELESS_COMPARISON")
-		if (moduleTree === null) return null
-		val path = moduleTree.selectionPath ?: return null
-		return when (val selection = path.lastPathComponent)
+	internal fun selectedModuleRootNode(): ModuleRootNode? =
+		when (val selection = selectedModuleTreeNode)
 		{
 			is ModuleRootNode -> selection
 			else -> null
 		}
-	}
 
 	/**
 	 * Answer the [ModuleRoot] that is currently selected, otherwise `null`.
@@ -1621,18 +1623,12 @@ class AvailWorkbench internal constructor(
 	 *
 	 * @return A module node, or `null` if no module is selected.
 	 */
-	private fun selectedModuleNode(): ModuleOrPackageNode?
-	{
-		// This can be called during the constructor, so it can be null.
-		@Suppress("SENSELESS_COMPARISON")
-		if (moduleTree === null) return null
-		val path = moduleTree.selectionPath ?: return null
-		return when (val selection = path.lastPathComponent)
+	private fun selectedModuleNode(): ModuleOrPackageNode? =
+		when (val selection = selectedModuleTreeNode)
 		{
 			is ModuleOrPackageNode -> selection
 			else -> null
 		}
-	}
 
 	/**
 	 * Is the selected [module][ModuleDescriptor] loaded?
@@ -1640,7 +1636,7 @@ class AvailWorkbench internal constructor(
 	 * @return `true` if the selected module is loaded, `false` if no module is
 	 *   selected or the selected module is not loaded.
 	 */
-	private fun selectedModuleIsLoaded(): Boolean
+	internal fun selectedModuleIsLoaded(): Boolean
 	{
 		val node = selectedModuleNode()
 		return node !== null && node.isLoaded
@@ -1661,18 +1657,12 @@ class AvailWorkbench internal constructor(
 	 *
 	 * @return An entry point name, or `null` if no entry point is selected.
 	 */
-	fun selectedEntryPoint(): String?
-	{
-		// This can be called during the constructor, so it can be null.
-		@Suppress("SENSELESS_COMPARISON")
-		if (entryPointsTree === null) return null
-		val path = entryPointsTree.selectionPath ?: return null
-		return when (val selection = path.lastPathComponent)
+	fun selectedEntryPoint(): String? =
+		when (val selection = selectedModuleTreeNode)
 		{
 			is EntryPointNode -> selection.entryPointString
 			else -> null
 		}
-	}
 
 	/**
 	 * Answer the resolved name of the module selected in the [entryPointsTree],
@@ -1681,16 +1671,13 @@ class AvailWorkbench internal constructor(
 	 *
 	 * @return A [ResolvedModuleName] or `null`.
 	 */
-	fun selectedEntryPointModule(): ResolvedModuleName?
-	{
-		val path = entryPointsTree.selectionPath ?: return null
-		return when (val selection = path.lastPathComponent)
+	fun selectedEntryPointModule(): ResolvedModuleName? =
+		when (val selection = selectedModuleTreeNode)
 		{
 			is EntryPointNode -> selection.resolvedModuleName
 			is EntryPointModuleNode -> selection.resolvedModuleName
 			else -> null
 		}
-	}
 
 	/**
 	 * Ensure the new build position information will eventually be presented to
@@ -1778,7 +1765,7 @@ class AvailWorkbench internal constructor(
 			else
 			{
 				perModuleProgress[moduleName] =
-					Triple(position, moduleSize, line)
+					ModuleBuildProgress(position, moduleSize, line)
 			}
 			if (!hasQueuedPerModuleBuildUpdate)
 			{
@@ -1989,12 +1976,16 @@ class AvailWorkbench internal constructor(
 
 		// Build the pop-up menu for the modules area.
 		val buildMenu = MenuBuilder.menu("Module") {
+			item(openFileAction)
+			separator()
+			item(copyQualifiedNameAction)
+			item(loadOnStartAction)
+			separator()
 			item(createRootAction)
 			item(removeRootAction)
 			check(toggleShowInvisibleRootAction)
 			separator()
 			item(newEditorAction)
-			item(openEditorAction)
 			item(searchOpenModuleAction)
 			item(deleteModuleAction)
 			separator()
@@ -2031,6 +2022,8 @@ class AvailWorkbench internal constructor(
 				separator()
 				//item(cleanModuleAction)  //TODO MvG Fix implementation and enable.
 				item(refreshAction)
+				separator()
+				item(generateArtifact)
 			}
 			menu("Module")
 			{
@@ -2039,7 +2032,7 @@ class AvailWorkbench internal constructor(
 				check(toggleShowInvisibleRootAction)
 				separator()
 				item(newEditorAction)
-				item(openEditorAction)
+				item(openFileAction)
 				item(searchOpenModuleAction)
 				item(deleteModuleAction)
 			}
@@ -2131,6 +2124,44 @@ class AvailWorkbench internal constructor(
 			isRootVisible = false
 			addTreeSelectionListener { setEnablements() }
 			cellRenderer = treeRenderer
+			addMouseListener(
+				object : MouseAdapter()
+				{
+					override fun mouseClicked(e: MouseEvent)
+					{
+						if (buildAction.isEnabled
+							&& e.clickCount == 2
+							&& e.button == MouseEvent.BUTTON1)
+						{
+							e.consume()
+							buildAction.actionPerformed(
+								ActionEvent(moduleTree, -1, "Build"))
+						}
+						else if (openFileAction.isEnabled
+							&& e.clickCount == 2
+							&& e.button == MouseEvent.BUTTON1)
+						{
+							val node = selectedModuleTreeNode
+							if (node is OpenableFileNode)
+							{
+								e.consume()
+								node.open()
+							}
+						}
+						else if (openFileAction.isEnabled
+							&& e.clickCount == 1
+							&& e.button == MouseEvent.BUTTON1
+							&& e.isShiftDown)
+						{
+							val node = selectedModuleTreeNode
+							if (node is OpenableFileNode)
+							{
+								e.consume()
+								node.open()
+							}
+						}
+					}
+				})
 			addMouseListener(
 				object : MouseAdapter()
 				{
@@ -2359,12 +2390,20 @@ class AvailWorkbench internal constructor(
 			{
 				saveWindowPosition()
 				val sv = structureViewPanel.run {
-					saveWindowPosition()
-					layoutConfiguration.stringToStore()
+					if (isVisible)
+					{
+						saveWindowPosition()
+						layoutConfiguration.stringToStore()
+					}
+					else ""
 				}
 				val pv = phraseViewPanel.run {
-					saveWindowPosition()
-					layoutConfiguration.stringToStore()
+					if (isVisible)
+					{
+						saveWindowPosition()
+						layoutConfiguration.stringToStore()
+					}
+					else ""
 				}
 				val local = WorkbenchScreenState(
 					layoutConfiguration.stringToStore(),
@@ -2373,6 +2412,9 @@ class AvailWorkbench internal constructor(
 				local.refreshOpenEditors(this@AvailWorkbench)
 				File(workbenchScreenStatePath).writeText(local.fileContent)
 				openEditors.values.forEach {
+					it.dispatchEvent(WindowEvent(it, WindowEvent.WINDOW_CLOSING))
+				}
+				openFileEditors.values.forEach {
 					it.dispatchEvent(WindowEvent(it, WindowEvent.WINDOW_CLOSING))
 				}
 				templateExpansionManager?.apply {
@@ -2502,6 +2544,19 @@ class AvailWorkbench internal constructor(
 						layoutConfiguration.placement?.let(::setBounds)
 						extendedState = layoutConfiguration.extendedState
 						editor?.let(::updateView)
+						isVisible = screenState.structureViewLayoutConfig
+							.isNotEmpty()
+					}
+				}
+				if (screenState.phraseViewLayoutConfig.isNotEmpty())
+				{
+					phraseViewPanel.apply {
+						layoutConfiguration.parseInput(
+							screenState.phraseViewLayoutConfig)
+						layoutConfiguration.placement?.let(::setBounds)
+						extendedState = layoutConfiguration.extendedState
+						isVisible = screenState.structureViewLayoutConfig
+							.isNotEmpty()
 					}
 				}
 			}
@@ -2652,8 +2707,8 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
-		 * @param globalAvailSettings
-		 *   The [GlobalAvailSettings] for the environment this
+		 * @param globalEnvironmentSettings
+		 *   The [GlobalEnvironmentSettings] for the environment this
 		 *   [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2672,7 +2727,7 @@ class AvailWorkbench internal constructor(
 		 *   `true` indicates only the [AvailProject.name] should be used as the
 		 *   title for the entire workbench window; `false` indicates the
 		 *   [AvailProject.name] will appear in parenthesis:
-		 *   "Avail Workbench (<project name>)"
+		 *   "Anvil (<project name>)"
 		 * @param projectManager
 		 *   The [AvailProjectManager] that launched this workbench or
 		 *   `null` if not launched from an [AvailProjectManager].
@@ -2683,11 +2738,12 @@ class AvailWorkbench internal constructor(
 		@Throws(Exception::class)
 		@JvmStatic
 		fun launchWorkbench(
-			globalAvailSettings: GlobalAvailSettings,
+			globalEnvironmentSettings: GlobalEnvironmentSettings,
 			project: AvailProject = AvailProjectV1(
 				"--No Project--",
 				true,
-				AvailRepositories(rootNameInJar = null)),
+				AvailRepositories(rootNameInJar = null),
+				LocalSettings("")),
 			availProjectFilePath: String = "",
 			initial: String = "",
 			customWindowTitle: String = "",
@@ -2704,7 +2760,7 @@ class AvailWorkbench internal constructor(
 				{
 					customWindowTitle.isNotEmpty() -> customWindowTitle
 					useProjectNameAsFullTitle -> project.name
-					else -> "Avail Workbench (${project.name})"
+					else -> "Anvil (${project.name})"
 				}
 			val repositoryDirectory =
 				File(project.repositoryLocation.fullPathNoPrefix)
@@ -2787,7 +2843,7 @@ class AvailWorkbench internal constructor(
 					runtime,
 					fileManager,
 					resolver,
-					globalAvailSettings,
+					globalEnvironmentSettings,
 					availProjectFilePath,
 					workbenchWindowTitle,
 					projectManager)
@@ -2835,8 +2891,8 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
-		 * @param globalAvailSettings
-		 *   The [GlobalAvailSettings] for the environment this
+		 * @param globalEnvironmentSettings
+		 *   The [GlobalEnvironmentSettings] for the environment this
 		 *   [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2852,7 +2908,7 @@ class AvailWorkbench internal constructor(
 		 *   `true` indicates only the [AvailProject.name] should be used as the
 		 *   title for the entire workbench window; `false` indicates the
 		 *   [AvailProject.name] will appear in parenthesis:
-		 *   "Avail Workbench (<project name>)"
+		 *   "Anvil (<project name>)"
 		 * @param projectManager
 		 *   The [AvailProjectManager] that launched this workbench or `null` if
 		 *   not launched from an [AvailProjectManager].
@@ -2863,13 +2919,13 @@ class AvailWorkbench internal constructor(
 		@JvmStatic
 		fun launchWorkbenchWithProject(
 			project: AvailProject,
-			globalAvailSettings: GlobalAvailSettings,
+			globalEnvironmentSettings: GlobalEnvironmentSettings,
 			availProjectFilePath: String = "",
 			customWindowTitle: String = "",
 			useProjectNameAsFullTitle: Boolean = false,
 			projectManager: AvailProjectManager?
 		): AvailWorkbench = launchWorkbench(
-				globalAvailSettings,
+				globalEnvironmentSettings,
 				project,
 				availProjectFilePath,
 				"",
@@ -2881,8 +2937,8 @@ class AvailWorkbench internal constructor(
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench]
 		 * independent of any [AvailProjectManager].
 		 *
-		 * @param globalAvailSettings
-		 * 	 The [GlobalAvailSettings] for the environment this
+		 * @param globalEnvironmentSettings
+		 * 	 The [GlobalEnvironmentSettings] for the environment this
 		 * 	 [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2898,7 +2954,7 @@ class AvailWorkbench internal constructor(
 		 *   `true` indicates only the [AvailProject.name] should be used as the
 		 *   title for the entire workbench window; `false` indicates the
 		 *   [AvailProject.name] will appear in parenthesis:
-		 *   "Avail Workbench (<project name>)"
+		 *   "Anvil (<project name>)"
 		 * @throws Exception
 		 *   If something goes wrong.
 		 */
@@ -2906,7 +2962,7 @@ class AvailWorkbench internal constructor(
 		@JvmStatic
 		@Suppress("unused")
 		fun launchSoloWorkbench (
-			globalAvailSettings: GlobalAvailSettings,
+			globalEnvironmentSettings: GlobalEnvironmentSettings,
 			project: AvailProject,
 			availProjectFilePath: String = "",
 			customWindowTitle: String = "",
@@ -2915,7 +2971,7 @@ class AvailWorkbench internal constructor(
 		{
 			System.setProperty(DARK_MODE_KEY, project.darkMode.toString())
 			return launchWorkbench(
-				globalAvailSettings,
+				globalEnvironmentSettings,
 				project,
 				availProjectFilePath,
 				"",

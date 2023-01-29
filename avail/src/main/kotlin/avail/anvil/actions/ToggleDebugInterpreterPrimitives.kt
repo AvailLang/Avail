@@ -51,6 +51,9 @@ class ToggleDebugInterpreterPrimitives constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Debug interpreter primitives")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		Interpreter.debugPrimitives = Interpreter.debugPrimitives xor true

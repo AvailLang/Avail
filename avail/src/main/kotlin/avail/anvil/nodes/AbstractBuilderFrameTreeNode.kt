@@ -34,12 +34,14 @@ package avail.anvil.nodes
 
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
+import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Building
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Loaded
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Unloaded
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.NotRenamed
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.Renamed
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Selected
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Unselected
+import avail.anvil.tasks.BuildTask
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.resource
 import avail.builder.AvailBuilder
 import avail.utility.cast
@@ -148,6 +150,12 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		}
 
 	/**
+	 * Whether this [AbstractBuilderFrameTreeNode] represent an Avail module
+	 * that is actively being [built][BuildTask].
+	 */
+	open val isBuilding: Boolean = false
+
+	/**
 	 * Sort the direct children of this node.  The default sort order is
 	 * alphabetic by the nodes' [text] (passing false).
 	 */
@@ -170,49 +178,84 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 */
 	open val sortMajor: Int get() = 0
 
-	companion object {
-		enum class LoadedState {Loaded, Unloaded}
+	companion object
+	{
+		enum class LoadedState {Loaded, Unloaded, Building}
 		enum class RenamedState {Renamed, NotRenamed}
 		enum class SelectedState {Selected, Unselected}
 
+		internal data class NodePaletteType constructor(
+			val loadedState: LoadedState,
+			val renamedState: RenamedState,
+			val selectedState: SelectedState)
+
 		private val palette = mapOf(
-			Triple(Unloaded, NotRenamed, Unselected) to AdaptiveColor(
+			NodePaletteType(Unloaded, NotRenamed, Unselected) to AdaptiveColor(
 				light = Color.gray,
 				dark = Color.gray),
-			Triple(Unloaded, NotRenamed, Selected) to AdaptiveColor(
+			NodePaletteType(Unloaded, NotRenamed, Selected) to AdaptiveColor(
 				light = Color.lightGray,
 				dark = Color.lightGray),
-			Triple(Unloaded, Renamed, Unselected) to AdaptiveColor(
+			NodePaletteType(Unloaded, Renamed, Unselected) to AdaptiveColor(
 				light = Color(220, 170, 10),
 				dark = Color(110, 98, 43)),
-			Triple(Unloaded, Renamed, Selected) to AdaptiveColor(
+			NodePaletteType(Unloaded, Renamed, Selected) to AdaptiveColor(
 				light = Color(180, 145, 0),
 				dark = Color(180, 160, 72)),
-			Triple(Loaded, NotRenamed, Unselected) to AdaptiveColor(
+			NodePaletteType(Loaded, NotRenamed, Unselected) to AdaptiveColor(
 				light = Color.black,
 				dark = Color(169, 183, 198)),
-			Triple(Loaded, NotRenamed, Selected) to AdaptiveColor(
+			NodePaletteType(Loaded, NotRenamed, Selected) to AdaptiveColor(
 				light = Color.white,
 				dark = Color(169, 183, 198)),
-			Triple(Loaded, Renamed, Unselected) to AdaptiveColor(
+			NodePaletteType(Loaded, Renamed, Unselected) to AdaptiveColor(
 				light = Color(200, 160, 0),
 				dark = Color(180, 160, 72)),
-			Triple(Loaded, Renamed, Selected) to AdaptiveColor(
+			NodePaletteType(Loaded, Renamed, Selected) to AdaptiveColor(
+				light = Color(235, 190, 30),
+				dark = Color(180, 160, 72)),
+			NodePaletteType(Building, NotRenamed, Unselected) to AdaptiveColor(
+				light = Color.blue,
+				dark = Color(0xC6, 0x6C, 0x31)),
+			NodePaletteType(Building, NotRenamed, Selected) to AdaptiveColor(
+				light = Color(0xC6, 0x6C, 0x31),
+				dark = Color(0xC6, 0x6C, 0x31)),
+			NodePaletteType(Building, Renamed, Unselected) to AdaptiveColor(
+				light = Color(200, 160, 0),
+				dark = Color(180, 160, 72)),
+			NodePaletteType(Building, Renamed, Selected) to AdaptiveColor(
 				light = Color(235, 190, 30),
 				dark = Color(180, 160, 72)))
 
 		/**
 		 * Produce a style string that includes foreground and background
 		 * colors based on the given parameters and current light/dark mode.
+		 *
+		 * @param selected
+		 *   Whether the node in question is selected.
+		 * @param loaded
+		 *   Whether the node in question represents a module that is loaded.
+		 * @param renamed
+		 *   Whether the node in question represents an element that has been
+		 *   renamed.
+		 * @param isBuilding
+		 *   Whether the node in question represents a module that is in the
+		 *   process of being built.
 		 */
 		fun colorStyle(
 			selected: Boolean,
 			loaded: Boolean,
-			renamed: Boolean): String
+			renamed: Boolean,
+			isBuilding: Boolean = false): String
 		{
 			val fore: AdaptiveColor? = palette[
-				Triple(
-					if (loaded) Loaded else Unloaded,
+				NodePaletteType(
+					when
+					{
+						loaded -> Loaded
+						isBuilding -> Building
+						else -> Unloaded
+					},
 					if (renamed) Renamed else NotRenamed,
 					if (selected) Selected else Unselected)]
 			return "color:${fore!!.hex};"

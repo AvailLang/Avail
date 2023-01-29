@@ -1,5 +1,5 @@
 /*
- * GlobalAvailSettings.kt
+ * GlobalEnvironmentSettings.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -41,6 +41,10 @@ import avail.anvil.text.CodePane
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.availHome
 import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.environment.project.Palette
+import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.StylingSelection
+import org.availlang.artifact.environment.project.TemplateGroup
 import org.availlang.json.JSONFriendly
 import org.availlang.json.jsonObject
 import org.availlang.json.jsonPrettyPrintWriter
@@ -56,12 +60,12 @@ import java.nio.file.StandardCopyOption
  *
  * @author Richard Arriaga
  */
-sealed interface GlobalAvailSettings: JSONFriendly
+sealed interface GlobalEnvironmentSettings: JSONFriendly
 {
 	/**
-	 * The serialization version of this [GlobalAvailSettings] which
+	 * The serialization version of this [GlobalEnvironmentSettings] which
 	 * represents the structure of the [JSONFriendly]-based configuration file
-	 * that represents this [GlobalAvailSettings].
+	 * that represents this [GlobalEnvironmentSettings].
 	 */
 	val serializationVersion: Int
 
@@ -96,6 +100,17 @@ sealed interface GlobalAvailSettings: JSONFriendly
 	val shortcutSettings: ShortcutSettings
 
 	/**
+	 * The name of the [Palette] from [globalStylingGroup] to use for styling.
+	 */
+	var palette: String
+
+	/**
+	 * The [StylingSelection] from the [globalStylingGroup].
+	 */
+	val stylingSelection: StylingSelection get() =
+		globalStylingGroup.selection(palette)
+
+	/**
 	 * The [knownProjects] sorted by [KnownAvailProject.name] in ascending
 	 * alphabetical order.
 	 */
@@ -124,7 +139,7 @@ sealed interface GlobalAvailSettings: JSONFriendly
 		knownProjects.toList().sortedByDescending { it.lastOpened }
 
 	/**
-	 * Add the provided [AvailProject] to this [GlobalAvailSettings] as a
+	 * Add the provided [AvailProject] to this [GlobalEnvironmentSettings] as a
 	 * [KnownAvailProject].
 	 *
 	 * @param project
@@ -167,17 +182,17 @@ sealed interface GlobalAvailSettings: JSONFriendly
 	}
 
 	/**
-	 * The String contents of this [GlobalAvailSettings] that can be
+	 * The String contents of this [GlobalEnvironmentSettings] that can be
 	 * written to disk.
 	 */
 	@Suppress("unused")
 	val fileContent: String get() =
 		jsonPrettyPrintWriter {
-			this@GlobalAvailSettings.writeTo(this)
+			this@GlobalEnvironmentSettings.writeTo(this)
 		}.toString()
 
 	/**
-	 * Write this [GlobalAvailSettings] to disk.
+	 * Write this [GlobalEnvironmentSettings] to disk.
 	 */
 	fun saveToDisk ()
 	{
@@ -213,21 +228,33 @@ sealed interface GlobalAvailSettings: JSONFriendly
 		const val CONFIG_FILE_NAME = "environment-settings.json"
 
 		/**
-		 * The path to the [GlobalAvailSettings] file on disk.
+		 * The path to the [GlobalEnvironmentSettings] file on disk.
 		 */
-		private val configFilePath get() =
+		val configFilePath get() =
 			"$availHome${File.separator}$CONFIG_FILE_NAME"
 
-		val emptyConfig: GlobalAvailSettings
-			get() = GlobalAvailSettingsV1()
+		val emptyConfig: GlobalEnvironmentSettings
+			get() = GlobalEnvironmentSettingsV1()
+
+		/**
+		 * The global environment's [TemplateGroup].
+		 */
+		val globalTemplates: TemplateGroup get() =
+			TemplateGroup(jsonObject(File(globalTemplatesFile).readText()))
+
+		/**
+		 * The global environment's [StylingGroup].
+		 */
+		val globalStylingGroup: StylingGroup get() =
+			StylingGroup(jsonObject(File(globalStylesFile).readText()))
 
 		/**
 		 * @return
-		 *   The [GlobalAvailSettings] read from the
+		 *   The [GlobalEnvironmentSettings] read from the
 		 *   [AvailEnvironment.availHome] or the [emptyConfig] if not found or
 		 *   malformed.
 		 */
-		fun getGlobalSettings (): GlobalAvailSettings
+		fun getGlobalSettings (): GlobalEnvironmentSettings
 		{
 			val file = File(environmentConfigFile)
 			if (!file.exists())
@@ -251,11 +278,11 @@ sealed interface GlobalAvailSettings: JSONFriendly
 					throw e
 				}
 			val version = obj.getNumber(
-				GlobalAvailSettings::serializationVersion.name).int
+				GlobalEnvironmentSettings::serializationVersion.name).int
 
 			return when (version)
 			{
-				1 -> GlobalAvailSettingsV1.from(obj)
+				1 -> GlobalEnvironmentSettingsV1.from(obj)
 				else ->
 					throw IllegalStateException("Invalid Global Avail " +
 						"Configuration File: Version $version is not in the " +

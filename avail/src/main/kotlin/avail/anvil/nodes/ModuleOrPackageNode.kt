@@ -32,12 +32,13 @@
 
 package avail.anvil.nodes
 
-import avail.builder.AvailBuilder
+import avail.anvil.AvailEditor
+import avail.anvil.AvailWorkbench
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 
 /**
- * This is a tree node representing a module file or a package.
+ * This is a tree node representing a module file or a package. 🏗️
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -50,8 +51,8 @@ import avail.builder.ResolvedModuleName
  * @constructor
  *   Construct a new [ModuleOrPackageNode].
  *
- * @param builder
- *   The builder for which this node is being built.
+ * @param workbench
+ *   The [AvailWorkbench].
  * @param originalModuleName
  *   The name of the module/package prior to resolution (renames).
  * @param resolvedModuleName
@@ -60,10 +61,11 @@ import avail.builder.ResolvedModuleName
  *   Whether it's a package.
  */
 class ModuleOrPackageNode constructor(
-	builder: AvailBuilder,
+	workbench: AvailWorkbench,
 	private val originalModuleName: ModuleName,
 	val resolvedModuleName: ResolvedModuleName,
-	val isPackage: Boolean) : AbstractBuilderFrameTreeNode(builder)
+	val isPackage: Boolean
+): OpenableFileNode(workbench)
 {
 	override fun modulePathString(): String = when
 	{
@@ -105,12 +107,42 @@ class ModuleOrPackageNode constructor(
 		else
 		{
 			resolvedModuleName.localName
-		}
+		} + suffix
+
+	/**
+	 * A bad hack to preserve enough space in the HTML [text] to allow the
+	 * display of build progress in the event of a build. This is tied to the
+	 * repaint in [AvailWorkbench.eventuallyUpdatePerModuleProgress]. A real
+	 * solution is welcome.
+	 */
+	// TODO HACK - Please do better
+	private val suffix: String get() =
+		workbench.perModuleProgress[resolvedModuleName]?.let {
+			"&nbsp;${it.percentCompleteString}"
+		} ?: "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+
+	override val isBuilding: Boolean get() =
+		workbench.perModuleProgress[resolvedModuleName] != null
 
 	override fun htmlStyle(selected: Boolean): String =
 		fontStyle(bold = isPackage, italic = !isLoaded) +
-			colorStyle(selected, isLoaded, isRenamedSource)
+			colorStyle(selected, isLoaded, isRenamedSource, isBuilding)
 
 	override val sortMajor: Int
 		get() = if (isPackage) 10 else 20
+
+	override fun open()
+	{
+		var isNew = false
+		val moduleName =
+			workbench.selectedModule()!!.resolverReference.moduleName
+		val editor = workbench.openEditors.computeIfAbsent(moduleName) {
+			isNew = true
+			AvailEditor(workbench, moduleName)
+		}
+		if (!isNew)
+		{
+			editor.openStructureView(true)
+		}
+	}
 }

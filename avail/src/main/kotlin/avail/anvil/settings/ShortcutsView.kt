@@ -33,7 +33,7 @@
 package avail.anvil.settings
 
 import avail.anvil.icons.structure.EditIcons
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.shortcuts.KeyboardShortcutCategory
 import java.awt.Color
@@ -72,7 +72,7 @@ class ShortcutsPanel constructor(
 	/**
 	 * The environment settings.
 	 */
-	val globalSettings: GlobalAvailSettings get() = settingsView.globalSettings
+	val globalSettings: GlobalEnvironmentSettings get() = settingsView.globalSettings
 
 	/**
 	 * The panel that contains all the shortcuts.

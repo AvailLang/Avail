@@ -36,9 +36,7 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.Stylesheet
 import avail.anvil.shortcuts.WorkbenchRefreshStylesheetShortcut
 import org.availlang.artifact.environment.project.AvailProject
-import org.availlang.json.jsonObject
 import java.awt.event.ActionEvent
-import java.io.File
 import javax.swing.Action
 
 /**
@@ -57,6 +55,11 @@ class RefreshStylesheetAction constructor(
 	"Refresh Stylesheet",
 	WorkbenchRefreshStylesheetShortcut)
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(e: ActionEvent) = runAction()
 
 	/**
@@ -67,12 +70,9 @@ class RefreshStylesheetAction constructor(
 	{
 		try
 		{
-			val configurationPath = File(workbench.availProjectFilePath)
-			val directory = configurationPath.parent
-			val project = AvailProject.from(
-				directory,
-				jsonObject(configurationPath.readText(Charsets.UTF_8)))
-			workbench.stylesheet = workbench.buildStylesheet(project)
+			// TODO RAA revisit
+			workbench.stylesheet =
+				workbench.buildStylesheet(workbench.projectFileFromDisk)
 		}
 		catch (e: Exception)
 		{

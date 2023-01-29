@@ -35,64 +35,25 @@ package avail.anvil.actions
 import avail.anvil.AvailWorkbench
 import avail.anvil.shortcuts.WorkbenchBuildShortcut
 import avail.anvil.tasks.BuildTask
-import java.awt.Cursor.WAIT_CURSOR
-import java.awt.Cursor.getPredefinedCursor
-import java.awt.event.ActionEvent
+import avail.builder.ResolvedModuleName
 import javax.swing.Action
 
 /**
- * A `BuildAction` launches a [build task][BuildTask] in a Swing worker thread.
- *
- * @property forEntryPointModule
- *   Whether this action is for the currently selected entry point module rather
- *   than for the module tree's selection.
+ * An [AbstractBuildAction] launches a [build task][BuildTask] in a Swing worker
+ * thread for a selected [ResolvedModuleName].
  *
  * @constructor
- * Construct a new `BuildAction`.
+ * Construct a new [BuildAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param forEntryPointModule
- *   Whether this action is for the currently selected entry point module rather
- *   than for the module tree's selection.
  */
-class BuildAction
-constructor (
-	workbench: AvailWorkbench,
-	private val forEntryPointModule: Boolean
-) : AbstractWorkbenchAction(
-	workbench,
-	"Build",
-	when
-	{
-		forEntryPointModule -> null
-		else -> WorkbenchBuildShortcut
-	})
+class BuildAction constructor (
+	workbench: AvailWorkbench
+) : AbstractBuildAction(workbench, "Build", WorkbenchBuildShortcut)
 {
-	override fun actionPerformed(event: ActionEvent)
-	{
-		assert(workbench.backgroundTask === null)
-		val selectedModule = (if (forEntryPointModule)
-			workbench.selectedEntryPointModule()
-		else
-			workbench.selectedModule())!!
-
-		// Update the UI.
-		workbench.cursor = getPredefinedCursor(WAIT_CURSOR)
-		workbench.buildProgress.value = 0
-		workbench.inputField.requestFocusInWindow()
-		workbench.clearTranscript()
-
-		// Clear the build input stream.
-		workbench.inputStream().clear()
-
-		// Build the target module in a Swing worker thread.
-		val task = BuildTask(workbench, selectedModule)
-		workbench.backgroundTask = task
-		workbench.availBuilder.checkStableInvariants()
-		workbench.setEnablements()
-		task.execute()
-	}
+	override val targetModule: ResolvedModuleName?
+		get() = workbench.selectedModule()
 
 	init
 	{

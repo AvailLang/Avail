@@ -51,6 +51,11 @@ constructor (
 	workbench: AvailWorkbench,
 ) : AbstractWorkbenchAction(workbench, "Show invisible roots")
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.showInvisibleRoots = !workbench.showInvisibleRoots

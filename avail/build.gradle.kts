@@ -50,9 +50,9 @@ val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
 dependencies {
-	api("org.availlang:avail-json:2.0.0")
+	api("org.availlang:avail-json:2.1.1")
 	api("org.availlang:avail-storage:1.1.1")
-	api("org.availlang:avail-artifact:2.0.0.alpha18")
+	api("org.availlang:avail-artifact:2.0.0.alpha19")
 	AvailModule.addDependencies(this)
 }
 
@@ -66,7 +66,6 @@ tasks {
 	val generatePrimitivesList by creating(GenerateFileManifestTask::class) {
 		basePath = layout.projectDirectory.dir("src/main/kotlin").asFile.path
 		val prefix = "$basePath${File.separator}"
-		println("========basePath: $basePath")
 		inputs.files(
 			fileTree(basePath) {
 				include("avail/interpreter/primitive/**/P_*.kt")
@@ -101,6 +100,8 @@ tasks {
 		manifest.attributes["Build-Time"] = project.extra.get("builtTime")
 		manifest.attributes["SplashScreen-Image"] =
 			"resources/resources/workbench/AvailWBSplash.png"
+		manifest.attributes["Main-Class"] = "avail.project.AvailProjectManagerRunner"
+		manifest.attributes["Application-Name"] = "Anvil"
 		// The All_Primitives.txt file must be added to the build resources
 		// directory before we can build the jar.
 	}

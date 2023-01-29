@@ -227,6 +227,11 @@ class AvailDebugger internal constructor (
 		this,
 		"Inspect")
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		override fun actionPerformed(e: ActionEvent)
 		{
 			stackListPane.selectedValue?.let {
@@ -361,6 +366,11 @@ class AvailDebugger internal constructor (
 		"Into (F7)",
 		StepIntoShortcut)
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		override fun actionPerformed(e: ActionEvent) =
 			runtime.whenSafePointDo(debuggerPriority) {
 				runtime.runtimeLock.safeWrite {
@@ -386,6 +396,11 @@ class AvailDebugger internal constructor (
 		"Over (F8)",
 		StepOverShortcut)
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		init { isEnabled = false }
 
 		override fun actionPerformed(e: ActionEvent)
@@ -400,6 +415,11 @@ class AvailDebugger internal constructor (
 		"Out (⇧F8)",
 		StepOutShortcut)
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		init { isEnabled = false }
 
 		override fun actionPerformed(e: ActionEvent)
@@ -413,6 +433,11 @@ class AvailDebugger internal constructor (
 		this,
 		"To Line")
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		init { isEnabled = false }
 
 		override fun actionPerformed(e: ActionEvent)
@@ -427,6 +452,11 @@ class AvailDebugger internal constructor (
 		"Resume (⌘R)",
 		ResumeActionShortcut)
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		override fun actionPerformed(e: ActionEvent)
 		{
 			runtime.whenSafePointDo(debuggerPriority) {
@@ -443,6 +473,11 @@ class AvailDebugger internal constructor (
 		this,
 		"Restart")
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		init { isEnabled = false }
 
 		override fun actionPerformed(e: ActionEvent)
@@ -456,6 +491,11 @@ class AvailDebugger internal constructor (
 		this,
 		"Capture")
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		override fun actionPerformed(e: ActionEvent)
 		{
 			val checkBox = e.source as JCheckBox
@@ -478,6 +518,11 @@ class AvailDebugger internal constructor (
 		this,
 		"Inspect")
 	{
+		override fun updateIsEnabled(busy: Boolean)
+		{
+			// Do nothing
+		}
+
 		override fun actionPerformed(e: ActionEvent)
 		{
 			variablesPane.selectedValue?.run { inspect(name, value) }

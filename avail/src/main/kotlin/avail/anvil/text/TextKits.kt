@@ -32,8 +32,11 @@
 
 package avail.anvil.text
 
+import avail.anvil.AvailEditor
 import avail.anvil.AvailEditor.Companion.editor
 import avail.anvil.AvailWorkbench
+import avail.anvil.FileEditor
+import avail.anvil.FileEditor.Companion.fileEditor
 import avail.anvil.RenderingContext
 import avail.anvil.Stylesheet
 import avail.anvil.editor.GoToDialog
@@ -45,6 +48,8 @@ import avail.anvil.shortcuts.DecreaseFontSizeShortcut
 import avail.anvil.shortcuts.ExpandTemplateShortcut
 import avail.anvil.shortcuts.GoToDialogShortcut
 import avail.anvil.shortcuts.IncreaseFontSizeShortcut
+import avail.anvil.shortcuts.InsertLineCommentAtStartShortcut
+import avail.anvil.shortcuts.InsertLineCommentAtTabShortcut
 import avail.anvil.shortcuts.InsertSpaceShortcut
 import avail.anvil.shortcuts.KebabCaseShortcut
 import avail.anvil.shortcuts.LowercaseShortcut
@@ -58,10 +63,12 @@ import avail.anvil.shortcuts.PrintAllRenderingSolutionsShortcut
 import avail.anvil.shortcuts.RedoShortcut
 import avail.anvil.shortcuts.RefreshShortcut
 import avail.anvil.shortcuts.RefreshStylesheetShortcut
+import avail.anvil.shortcuts.SaveShortcut
 import avail.anvil.shortcuts.SnakeCaseShortcut
 import avail.anvil.shortcuts.UndoShortcut
 import avail.anvil.shortcuts.UppercaseShortcut
 import avail.anvil.streams.StreamStyle
+import avail.anvil.shortcuts.WrapInBlockCommentShortcut
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
@@ -75,6 +82,7 @@ import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JTextPane
 import javax.swing.JViewport
+import javax.swing.LookAndFeel
 import javax.swing.SwingUtilities.getAncestorOfClass
 import javax.swing.UIManager
 import javax.swing.text.BadLocationException
@@ -147,24 +155,69 @@ open class CodeKit constructor(
  * @param workbench
  *   The associated [AvailWorkbench].
  */
+class FileEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
+{
+	override val defaultActions = super.defaultActions + arrayOf<Action>(
+		SaveFile
+	)
+}
+
+/**
+ * A [CodeKit] that supports editing files in a [FileEditor].
+ *
+ * @author Richard Arriaga
+ *
+ * @constructor
+ *
+ * Construct an [AvailEditorKit].
+ *
+ * @param workbench
+ *   The associated [AvailWorkbench].
+ */
 class AvailEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
 {
 	override val defaultActions = super.defaultActions + arrayOf<Action>(
 		GoToDialogAction,
-		OpenPhraseView,
+		InsertLineCommentAtMinTab,
+		InsertLineCommentAtStart,
 		OpenStructureView,
+		OpenPhraseView,
 		Refresh,
+		WrapInBlockComment,
 		RefreshStylesheet,
 		PrintAllRenderingSolutions
 	)
 }
 
 /**
- * Replace the current selection with a space (U+0020) and start a new
- * [CompoundEdit] to aggregate further content updates.
+ * An text edit [TextAction] that may be prevented based on whether the
+ * [JTextPane.canEdit] flag is set to `false`. If `false` the action will be
+ * prevented and the [UIManager] will provide some kind of appropriate
+ * [error feedback][LookAndFeel.provideErrorFeedback].
+ *
+ * @author Richard Arriaga
+ *
+ * @constructor
+ * Construct a [RestrictableEditAction].
+ *
+ * @param actionName
+ *   The [TextAction] name.
  */
-private object InsertSpace : TextAction(InsertSpaceShortcut.actionMapKey)
+abstract class RestrictableEditAction constructor(
+	actionName: String
+) : TextAction(actionName)
 {
+	/**
+	 * The function that performs the actual edit action given
+	 * [JTextPane.canEdit] is true.
+	 *
+	 * @param e
+	 *   The [ActionEvent] to be processed.
+	 * @param sourcePane
+	 *   The [JTextPane] where the edit is occurring.
+	 */
+	abstract fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
+
 	override fun actionPerformed(e: ActionEvent)
 	{
 		val sourcePane = e.source as JTextPane
@@ -173,6 +226,19 @@ private object InsertSpace : TextAction(InsertSpaceShortcut.actionMapKey)
 			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
 			return
 		}
+		executeEditAction(e, sourcePane)
+	}
+}
+
+/**
+ * Replace the current selection with a space (U+0020) and start a new
+ * [CompoundEdit] to aggregate further content updates.
+ */
+private object InsertSpace
+	: RestrictableEditAction(InsertSpaceShortcut.actionMapKey)
+{
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
+	{
 		val currentEdit = sourcePane.getClientProperty(
 			CodePane::currentEdit.name) as? CompoundEdit
 		currentEdit?.end()
@@ -183,16 +249,11 @@ private object InsertSpace : TextAction(InsertSpaceShortcut.actionMapKey)
  * Break the current line by replacing the current selection with a linefeed
  * (U+000A) and as much horizontal tabulation (U+0009) as began the line.
  */
-private object BreakLine : TextAction(BreakLineShortcut.actionMapKey)
+private object BreakLine
+	: RestrictableEditAction(BreakLineShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
 		val document = sourcePane.document
 		val caretPosition = sourcePane.caretPosition
 		val lineStart = max(0, document.lineStartBefore(caretPosition - 1))
@@ -211,16 +272,10 @@ private object BreakLine : TextAction(BreakLineShortcut.actionMapKey)
  * previous line. Otherwise, insert a single horizontal tabulation (U+0009) at
  * the caret.
  */
-private object IncreaseIndentation : TextAction(indent)
+private object IncreaseIndentation : RestrictableEditAction(indent)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
 		val document = sourcePane.document
 		val selectionStart = sourcePane.selectionStart
 		val selectionEnd = sourcePane.selectionEnd
@@ -269,16 +324,11 @@ private object IncreaseIndentation : TextAction(indent)
  * no text is selected, then remove at most one horizontal tabulation (U+0009)
  * at the beginning of the line containing the caret.
  */
-private object DecreaseIndentation : TextAction(OutdentShortcut.actionMapKey)
+private object DecreaseIndentation
+	: RestrictableEditAction(OutdentShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
 		val document = sourcePane.document
 		val selectionStart = sourcePane.selectionStart
 		val selectionEnd = sourcePane.selectionEnd
@@ -435,6 +485,17 @@ private object Refresh: TextAction(RefreshShortcut.actionMapKey)
 }
 
 /**
+ * Save the open [FileEditor]'s file to disk.
+ */
+private object SaveFile: TextAction(SaveShortcut.actionMapKey)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		e.fileEditor.save()
+	}
+}
+
+/**
  * Refresh the [stylesheet][Stylesheet] from the [project][AvailProject]'s
  * configuration file.
  */
@@ -541,16 +602,11 @@ private object DecreaseFontSize
  * Move the current line of the [source&#32;component][JTextComponent] in its
  * enclosing [viewport][JViewport] up one line.
  */
-private object MoveLineUp: TextAction(MoveLineUpShortcut.actionMapKey)
+private object MoveLineUp
+	: RestrictableEditAction(MoveLineUpShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
 		val txt = e.source as JTextComponent
 		val lineStarts = txt.lineStartsInSelection()
 		if (lineStarts.size == 1 && lineStarts[0] == 0)
@@ -642,16 +698,11 @@ private object MoveLineUp: TextAction(MoveLineUpShortcut.actionMapKey)
  * Move the current line of the [source&#32;component][JTextComponent] in its
  * enclosing [viewport][JViewport] down one line.
  */
-private object MoveLineDown: TextAction(MoveLineDownShortcut.actionMapKey)
+private object MoveLineDown:
+	RestrictableEditAction(MoveLineDownShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
-		val sourcePane = e.source as JTextPane
-		if (!sourcePane.canEdit)
-		{
-			UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
-			return
-		}
 		val txt = e.source as JTextComponent
 		val lineEnds = txt.lineEndsInSelection()
 		val lastLineEnd = lineEnds.last()
@@ -780,44 +831,100 @@ private object MoveLineDown: TextAction(MoveLineDownShortcut.actionMapKey)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-//                                Change Case.                                //
+//                                 Comments.                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Transform the selected text and insert the result of the transformation where
- * the selected text is in this [JTextPane].
+ * An [AvailEditor]-specific [RestrictableEditAction] that involves commenting
+ * or uncommenting code.
  *
- * @param transformer
- *   A zero-argument function that transforms the selected text.
+ * @author Richard Arriaga
+ *
+ * @constructor
+ * Construct a [CommentAction].
+ *
+ * @param actionName
+ *   The [TextAction] name.
  */
-fun JTextPane.transform(transformer: String.()->String)
+internal abstract class CommentAction constructor (
+	actionName: String
+): RestrictableEditAction(actionName)
 {
-	if (!canEdit)
+	/**
+	 * Answer the [FileExtensionCommentSyntax] associated with the file type
+	 * open in the [AvailEditor].
+	 *
+	 * @param e
+	 *   The [AvailEditor] [ActionEvent].
+	 * @return
+	 *   The [FileExtensionCommentSyntax] to use for commenting code.
+	 */
+	protected fun commentSyntax (e: ActionEvent): FileExtensionCommentSyntax =
+		FileExtensionCommentSyntax[e.editor.resolverReference.localName]
+}
+
+/**
+ * Prefix each selected line with a [LineComment] at the start of each line
+ * ([LineComment.commentAtLineStart]).
+ */
+private object InsertLineCommentAtStart:
+	CommentAction(InsertLineCommentAtStartShortcut.actionMapKey)
+{
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
-		UIManager.getLookAndFeel().provideErrorFeedback(this)
-		return
-	}
-	val txt =this as JTextComponent
-	if (txt.selectionStart == txt.selectionEnd)
-	{
-		// No text is selected; do nothing
-		return
-	}
-	val textToTransform = txt.selectedText
-	val startPosition = txt.selectionStart
-	val transformed = textToTransform.transformer()
-	transaction {
-		txt.document.remove(startPosition, textToTransform.length)
-		txt.document.insertString(startPosition, transformed, null)
+		commentSyntax(e).lineComment?.let {
+			sourcePane.transformLines {
+				it.toggleComment(this, true, false)
+			}
+		} ?: UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
 	}
 }
 
 /**
+ * Comments out the provided text placing the [LineComment.prefix] on each line
+ * at the character position just after the [minTabCount] position for the
+ * target text.
+ */
+private object InsertLineCommentAtMinTab:
+	CommentAction(InsertLineCommentAtTabShortcut.actionMapKey)
+{
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
+	{
+		commentSyntax(e).lineComment?.let {
+			sourcePane.transformLines {
+				it.toggleComment(this, true, true)
+			}
+		} ?: UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+	}
+}
+
+/**
+ * Wrap the [JTextPane.getSelectedText] in a [BlockComment].
+ */
+private object WrapInBlockComment:
+	CommentAction(WrapInBlockCommentShortcut.actionMapKey)
+{
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
+	{
+		commentSyntax(e).blockComment?.let {
+			sourcePane.transform {
+				it.toggleComment(this, false, false)
+			}
+		} ?: UIManager.getLookAndFeel().provideErrorFeedback(sourcePane)
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                                Change Case.                                //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
  * Change the selection to all uppercase characters.
  */
-private object ToUppercase: TextAction(UppercaseShortcut.actionMapKey)
+private object ToUppercase
+	: RestrictableEditAction(UppercaseShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
 		(e.source as JTextPane).transform(String::uppercase)
 	}
@@ -826,9 +933,10 @@ private object ToUppercase: TextAction(UppercaseShortcut.actionMapKey)
 /**
  * Change the selection to all lowercase characters.
  */
-private object ToLowercase: TextAction(LowercaseShortcut.actionMapKey)
+private object ToLowercase
+	: RestrictableEditAction(LowercaseShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
 		(e.source as JTextPane).transform(String::lowercase)
 	}
@@ -837,9 +945,10 @@ private object ToLowercase: TextAction(LowercaseShortcut.actionMapKey)
 /**
  * Change the selection to camel case: "foo_bar" -> "fooBar".
  */
-private object ToCamelCase: TextAction(CamelCaseShortcut.actionMapKey)
+private object ToCamelCase
+	: RestrictableEditAction(CamelCaseShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
 		(e.source as JTextPane).transform { toCamelCase(this) }
 	}
@@ -848,9 +957,10 @@ private object ToCamelCase: TextAction(CamelCaseShortcut.actionMapKey)
 /**
  * Change the selection to Pascal case: "fooBar" -> "FooBar".
  */
-private object ToPascalCase: TextAction(PascalCaseShortcut.actionMapKey)
+private object ToPascalCase
+	: RestrictableEditAction(PascalCaseShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
 		(e.source as JTextPane).transform { toPascalCase(this) }
 	}
@@ -859,9 +969,10 @@ private object ToPascalCase: TextAction(PascalCaseShortcut.actionMapKey)
 /**
  * Change the selection to snake case: "fooBar" -> "foo_bar".
  */
-private object ToSnakeCase: TextAction(SnakeCaseShortcut.actionMapKey)
+private object ToSnakeCase
+	: RestrictableEditAction(SnakeCaseShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
 		(e.source as JTextPane).transform { toSnakeCase(this) }
 	}
@@ -870,9 +981,10 @@ private object ToSnakeCase: TextAction(SnakeCaseShortcut.actionMapKey)
 /**
  * Change the selection to kebab case: "fooBar" -> "foo-bar".
  */
-private object ToKebabCase: TextAction(KebabCaseShortcut.actionMapKey)
+private object ToKebabCase
+	: RestrictableEditAction(KebabCaseShortcut.actionMapKey)
 {
-	override fun actionPerformed(e: ActionEvent)
+	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
 		(e.source as JTextPane).transform { toKebabCase(this) }
 	}
@@ -1162,6 +1274,15 @@ fun JTextComponent.lineStartsInSelection(): List<Int>
 }
 
 /**
+ * Locate the position of the beginning of the first line enclosing the active
+ * selection.
+ * @return
+ *   The position of the desired linefeed (U+0009) character.
+ */
+fun JTextComponent.firstLineStartInSelection (): Int =
+	lineStartsInSelection().first()
+
+/**
  * Locate the ends of all lines enclosing the active selection. If no text
  * is selected, then locate the end of the line containing the caret.
  *
@@ -1200,6 +1321,33 @@ fun JTextComponent.lineEndsInSelection(): List<Int>
 }
 
 /**
+ * Locate the position of the end of the last line enclosing the active
+ * selection.
+ * @return
+ *   The position of the desired linefeed (U+0009) character.
+ */
+fun JTextComponent.lastLineEndInSelection (): Int =
+	lineEndsInSelection().last()
+
+/**
+ * @return
+ *   The String the represents the text of the entire lines the
+ *   [JTextPane.getSelectedText] covers. This includes all the text up to the
+ *   start of the line of the line where the
+ *   [selected text][JTextPane.getSelectedText] starts and all the text up until
+ *   the end of the line where the [selected text][JTextPane.getSelectedText]
+ *   ends. If no text is selected, this returns the text of the entire line
+ *   where the cursor is located.
+ */
+internal fun JTextPane.selectedLinesText(): String
+{
+	val txt = this as JTextComponent
+	val start = txt.firstLineStartInSelection()
+	val end = txt.lastLineEndInSelection()
+	return txt.document.getText(start, end - start)
+}
+
+/**
  * Aggregate edits on the receiver, such that they may be undone/redone with a
  * single action. Assumes that the an [UndoManager] is available via a
  * [client&#32;property][JTextPane.getClientProperty] (called
@@ -1232,6 +1380,69 @@ internal inline fun JTextPane.transaction(edit: JTextPane.()->Unit)
 		{
 			compoundEdit.end()
 		}
+	}
+}
+
+/**
+ * Transform the selected text and insert the result of the transformation where
+ * the selected text is in this [JTextPane].
+ *
+ * @param transformer
+ *   A zero-argument function that transforms the selected text.
+ */
+internal fun JTextPane.transform(transformer: String.()->String)
+{
+	val txt = this as JTextComponent
+	if (txt.selectionStart == txt.selectionEnd)
+	{
+		// No text is selected; do nothing
+		UIManager.getLookAndFeel().provideErrorFeedback(this)
+		return
+	}
+	val textToTransform = txt.selectedText
+	val startPosition = txt.selectionStart
+	val transformed = textToTransform.transformer()
+	if (transformed == textToTransform)
+	{
+		// There was no transformation so there is nothing to replace
+		UIManager.getLookAndFeel().provideErrorFeedback(this)
+		return
+	}
+	transaction {
+		txt.document.remove(startPosition, textToTransform.length)
+		txt.document.insertString(startPosition, transformed, null)
+		txt.selectionStart = startPosition
+		txt.selectionEnd = startPosition + transformed.length
+	}
+}
+
+/**
+ * Transform the [entire lines][JTextPane.selectedLinesText] spanning the
+ * selected text and insert the result of the transformation overwriting the
+ * entirety of the selected lines.
+ *
+ * @param transformer
+ *   A zero-argument function that transforms the selected text.
+ */
+internal fun JTextPane.transformLines(transformer: String.()->String)
+{
+	val txt = this as JTextComponent
+	val start = txt.firstLineStartInSelection()
+	val end = txt.lastLineEndInSelection()
+	val length = end - start
+	val textToTransform = txt.document.getText(start, length)
+	val transformed = textToTransform.transformer()
+	if (transformed == textToTransform)
+	{
+		// There was no transformation so there is nothing to replace
+		UIManager.getLookAndFeel().provideErrorFeedback(this)
+		return
+	}
+	transaction {
+		txt.document.remove(start, length)
+		txt.document.insertString(start, transformed, null)
+		txt.selectionStart = start
+		txt.selectionEnd = start + transformed.length
 	}
 }
 

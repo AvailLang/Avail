@@ -160,6 +160,18 @@ class CodePane constructor(
 		foreground = computeForeground(workbench.stylesheet)
 		initializeStyles()
 		registerKeystrokes()
+		addKeyListener(JTextPaneKeyTypedAdapter(
+			WrapInDoubleQuotes,
+			WrapInSingleQuotes,
+			WrapInDoubleSmartQuotes,
+			WrapInSingleSmartQuotes,
+			WrapInGuillemets,
+			WrapInBackticks,
+			WrapInParenthesis,
+			WrapInAngleBrackets,
+			WrapInBrackets,
+			WrapInBraces
+		))
 		if (isEditable)
 		{
 			installUndoSupport()

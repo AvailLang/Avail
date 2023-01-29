@@ -37,6 +37,7 @@ import avail.anvil.dialogs.NewModuleDialog
 import avail.anvil.shortcuts.NewModuleActionShortcut
 import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
+import avail.utility.notNullAnd
 import java.awt.event.ActionEvent
 import java.io.File
 import javax.swing.Action
@@ -58,6 +59,16 @@ constructor (
 	"New module",
 	NewModuleActionShortcut)
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy && run {
+			val root = workbench.selectedModuleRoot()
+				?: (workbench.selectedModule()?.moduleRoot)
+			root.notNullAnd { workbench.getProjectRoot(name)
+				.notNullAnd { editable } }
+		}
+	}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.selectedModule()?.let {

@@ -32,7 +32,8 @@
 
 package avail.anvil.settings
 
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.AvailWorkbench
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.settings.editor.EditorSettingsSelection
 import avail.anvil.versions.MavenCentralAPI
 import avail.anvil.versions.SearchResponse
@@ -40,6 +41,8 @@ import java.awt.Color
 import java.awt.Dialog.ModalityType.DOCUMENT_MODAL
 import java.awt.Dimension
 import java.awt.Font
+import java.io.PrintWriter
+import java.io.StringWriter
 import javax.swing.BorderFactory
 import javax.swing.BoxLayout
 import javax.swing.JDialog
@@ -54,20 +57,20 @@ import javax.swing.ScrollPaneConstants
  * @author Richard Arriaga
  *
  * @property globalSettings
- *   The environment's [GlobalAvailSettings] window.
+ *   The environment's [GlobalEnvironmentSettings] window.
  *
  * @constructor
  * Construct a [SettingsView].
  *
  * @param globalSettings
- *   The environment's [GlobalAvailSettings] window.
+ *   The environment's [GlobalEnvironmentSettings] window.
  * @param parent
  *   The parent [JFrame] that owns this [SettingsView].
  * @param latestVersion
  *   The latest Avail Standard Library version or an empty string if not known.
  */
 class SettingsView constructor (
-	internal val globalSettings: GlobalAvailSettings,
+	internal val globalSettings: GlobalEnvironmentSettings,
 	parent: JFrame,
 	latestVersion: String = "",
 	internal val onUpdate: (Set<SettingsCategory>) -> Unit = {}
@@ -93,13 +96,26 @@ class SettingsView constructor (
 					val rsp = SearchResponse.parse(it)
 					if (rsp == null)
 					{
-						System.err.println("Couldn't parse response:\n$it")
+						System.err.println(
+							"Failed to refresh latest Avail Standard Library " +
+								"version from Maven Central, couldn't parse " +
+								"response:\n$it")
 						return@searchAvailStdLib
 					}
 					this.latestVersion = rsp.latestLibVersion
 				}
-			) { c, m ->
-				System.err.println("Failed to get latest version: $c\n$m")
+			) { c, m, e->
+				StringWriter().apply {
+					this.write(
+						"Failed to refresh latest Avail Standard Library " +
+							"version from Maven Central:\n\tResponse " +
+							"Code:$c\n\tResponse Message$m\n")
+					e?.let {
+						val pw = PrintWriter(this)
+						it.printStackTrace(pw)
+					}
+					System.err.println(this.toString())
+				}
 			}
 		}
 	}
@@ -128,6 +144,10 @@ class SettingsView constructor (
 		}
 		selected = editor
 		add(editor)
+		if (parent is AvailWorkbench)
+		{
+			add(GlobalSettingsSelection(this@SettingsView, parent))
+		}
 		add(ShortcutsSelection(this@SettingsView))
 		add(StandardLibrariesSelection(this@SettingsView))
 	}

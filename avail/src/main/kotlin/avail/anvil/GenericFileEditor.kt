@@ -1,6 +1,6 @@
 /*
- * WorkbenchFrame.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * GenericFileEditor.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,45 +30,54 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.window
+package avail.anvil
 
-import avail.anvil.AvailWorkbench
-import javax.swing.JFrame
+import avail.anvil.shortcuts.KeyboardShortcut
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 
 /**
- * A [JFrame] that is directly associated with an [AvailWorkbench].
+ * An editor for a generic file.
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Create a [WorkbenchFrame].
+ * Construct an [GenericFileEditor].
  *
- * @param title
- *   The [JFrame.title].
+ * @param workbench
+ *   The owning [AvailWorkbench].
+ * @param fileLocation
+ *   The absolute path of the source code file.
+ * @param autoSave
+ *   Whether to auto save the backing file to disk after changes.
+ * @param afterTextLoaded
+ *   Action to perform after text has been loaded to [sourcePane].
  */
-abstract class WorkbenchFrame constructor(title: String): JFrame(title)
+class GenericFileEditor constructor(
+	workbench: AvailWorkbench,
+	fileLocation: String,
+	override val autoSave: Boolean = false,
+	afterTextLoaded: (GenericFileEditor) -> Unit = {}
+) : FileEditor<GenericFileEditor>(workbench, fileLocation, fileLocation)
 {
-	/**
-	 * The associated workbench.
-	 */
-	abstract val workbench: AvailWorkbench
+	override val shortcuts: List<KeyboardShortcut> = listOf()
 
-	/**
-	 * The [LayoutConfiguration] that describes the position of this
-	 * [WorkbenchFrame].
-	 */
-	internal abstract val layoutConfiguration: LayoutConfiguration
-
-	/**
-	 * Save this window position.
-	 */
-	internal open fun saveWindowPosition()
+	init
 	{
-		layoutConfiguration.extendedState = extendedState
-		if (extendedState == NORMAL)
+		finalizeInitialization(afterTextLoaded)
+		addWindowListener(object : WindowAdapter()
 		{
-			// Only capture the bounds if it's not zoomed or minimized.
-			layoutConfiguration.placement = bounds
-		}
+			override fun windowClosing(e: WindowEvent?)
+			{
+				workbench.openFileEditors.remove(fileLocation)
+			}
+		})
+	}
+
+	override fun populateSourcePane(then: (GenericFileEditor)->Unit)
+	{
+		highlightCode()
+		// TODO move code population here
+		then(this)
 	}
 }

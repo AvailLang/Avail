@@ -58,6 +58,8 @@ class EntryPointModuleNode constructor(
 	override fun modulePathString(): String =
 		throw UnsupportedOperationException()
 
+
+
 	/**
 	 * Is the [module&#32;or&#32;package][ModuleOrPackageNode] loaded?
 	 *

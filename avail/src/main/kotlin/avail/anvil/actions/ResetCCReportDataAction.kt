@@ -53,6 +53,9 @@ class ResetCCReportDataAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Clear code coverage data")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.runtime.execute(FiberDescriptor.commandPriority) {

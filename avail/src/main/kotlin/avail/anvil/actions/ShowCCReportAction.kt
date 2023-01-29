@@ -56,6 +56,9 @@ class ShowCCReportAction constructor(
 	workbench: AvailWorkbench
 ) : AbstractWorkbenchAction(workbench, "Generate Code Coverage Report")
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.runtime.execute(FiberDescriptor.commandPriority)

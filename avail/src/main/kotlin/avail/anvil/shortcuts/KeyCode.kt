@@ -51,7 +51,8 @@ import java.awt.event.KeyEvent
 enum class KeyCode constructor(
 	val code: Int,
 	val lookupKey: String,
-	val displayRepresentation: String = lookupKey)
+	val displayRepresentation: String = lookupKey,
+	vararg mappedChars: Char)
 {
 	/** The [Enter][KeyEvent.VK_ENTER] key. */
 	VK_ENTER(KeyEvent.VK_ENTER, "Enter", "⏎"),
@@ -114,139 +115,139 @@ enum class KeyCode constructor(
 	VK_DOWN(KeyEvent.VK_DOWN, "Down Arrow", "↓"),
 
 	/** The [Comma][KeyEvent.VK_COMMA] key. */
-	VK_COMMA(KeyEvent.VK_COMMA, ","),
+	VK_COMMA(KeyEvent.VK_COMMA, ",", ",", '<'),
 
 	/** The [Minus][KeyEvent.VK_MINUS] key. */
-	VK_MINUS(KeyEvent.VK_MINUS, "-"),
+	VK_MINUS(KeyEvent.VK_MINUS, "-", "-", '_'),
 
 	/** The [Period][KeyEvent.VK_PERIOD] key. */
-	VK_PERIOD(KeyEvent.VK_PERIOD, "."),
+	VK_PERIOD(KeyEvent.VK_PERIOD, ".", ".", '>'),
 
 	/** The [Forward Slash][KeyEvent.VK_SLASH] key. */
-	VK_SLASH(KeyEvent.VK_SLASH, "/"),
+	VK_SLASH(KeyEvent.VK_SLASH, "/", "/", '?'),
 
 	/** The [0][KeyEvent.VK_0] key. */
-	VK_0(KeyEvent.VK_0, "0"),
+	VK_0(KeyEvent.VK_0, "0", "0", ')'),
 
 	/** The [1][KeyEvent.VK_1] key. */
-	VK_1(KeyEvent.VK_1, "1"),
+	VK_1(KeyEvent.VK_1, "1", "1", '!'),
 
 	/** The [2][KeyEvent.VK_2] key. */
-	VK_2(KeyEvent.VK_2, "2"),
+	VK_2(KeyEvent.VK_2, "2", "2", '@'),
 
 	/** The [3][KeyEvent.VK_3] key. */
-	VK_3(KeyEvent.VK_3, "3"),
+	VK_3(KeyEvent.VK_3, "3", "3", '#'),
 
 	/** The [4][KeyEvent.VK_4] key. */
-	VK_4(KeyEvent.VK_4, "4"),
+	VK_4(KeyEvent.VK_4, "4", "4", '$'),
 
 	/** The [5][KeyEvent.VK_5] key. */
-	VK_5(KeyEvent.VK_5, "5"),
+	VK_5(KeyEvent.VK_5, "5", "5", '%'),
 
 	/** The [6][KeyEvent.VK_6] key. */
-	VK_6(KeyEvent.VK_6, "6"),
+	VK_6(KeyEvent.VK_6, "6", "6", '^'),
 
 	/** The [7][KeyEvent.VK_7] key. */
-	VK_7(KeyEvent.VK_7, "7"),
+	VK_7(KeyEvent.VK_7, "7", "7", '&'),
 
 	/** The [8][KeyEvent.VK_8] key. */
-	VK_8(KeyEvent.VK_8, "8"),
+	VK_8(KeyEvent.VK_8, "8", "8 '*"),
 
 	/** The [9][KeyEvent.VK_9] key. */
-	VK_9(KeyEvent.VK_9, "9"),
+	VK_9(KeyEvent.VK_9, "9", "9", '('),
 
 	/** The [Semicolon][KeyEvent.VK_SEMICOLON] key. */
-	VK_SEMICOLON(KeyEvent.VK_SEMICOLON, ";"),
+	VK_SEMICOLON(KeyEvent.VK_SEMICOLON, ";", ";", ':'),
 
 	/** The [Equals][KeyEvent.VK_EQUALS] key. */
-	VK_EQUALS(KeyEvent.VK_EQUALS, "="),
+	VK_EQUALS(KeyEvent.VK_EQUALS, "=", "=", '+'),
 
 	/** The [A][KeyEvent.VK_A] key. */
-	VK_A(KeyEvent.VK_A, "A"),
+	VK_A(KeyEvent.VK_A, "A", "A", 'a'),
 
 	/** The [B][KeyEvent.VK_B] key. */
-	VK_B(KeyEvent.VK_B, "B"),
+	VK_B(KeyEvent.VK_B, "B", "B", 'b'),
 
 	/** The [C][KeyEvent.VK_C] key. */
-	VK_C(KeyEvent.VK_C, "C"),
+	VK_C(KeyEvent.VK_C, "C", "C", 'c'),
 
 	/** The [D][KeyEvent.VK_D] key. */
-	VK_D(KeyEvent.VK_D, "D"),
+	VK_D(KeyEvent.VK_D, "D", "D", 'd'),
 
 	/** The [E][KeyEvent.VK_E] key. */
-	VK_E(KeyEvent.VK_E, "E"),
+	VK_E(KeyEvent.VK_E, "E", "E", 'e'),
 
 	/** The [F][KeyEvent.VK_F] key. */
-	VK_F(KeyEvent.VK_F, "F"),
+	VK_F(KeyEvent.VK_F, "F", "F", 'f'),
 
 	/** The [G][KeyEvent.VK_G] key. */
-	VK_G(KeyEvent.VK_G, "G"),
+	VK_G(KeyEvent.VK_G, "G", "G", 'g'),
 
 	/** The [H][KeyEvent.VK_H] key. */
-	VK_H(KeyEvent.VK_H, "H"),
+	VK_H(KeyEvent.VK_H, "H", "H", 'h'),
 
 	/** The [I][KeyEvent.VK_I] key. */
-	VK_I(KeyEvent.VK_I, "I"),
+	VK_I(KeyEvent.VK_I, "I", "I", 'i'),
 
 	/** The [J][KeyEvent.VK_J] key. */
-	VK_J(KeyEvent.VK_J, "J"),
+	VK_J(KeyEvent.VK_J, "J", "J", 'j'),
 
 	/** The [K][KeyEvent.VK_K] key. */
-	VK_K(KeyEvent.VK_K, "K"),
+	VK_K(KeyEvent.VK_K, "K", "K", 'k'),
 
 	/** The [L][KeyEvent.VK_L] key. */
-	VK_L(KeyEvent.VK_L, "L"),
+	VK_L(KeyEvent.VK_L, "L", "L", 'l'),
 
 	/** The [M][KeyEvent.VK_BACK_SPACE] key. */
-	VK_M(KeyEvent.VK_M, "M"),
+	VK_M(KeyEvent.VK_M, "M", "M", 'm'),
 
 	/** The [N][KeyEvent.VK_N] key. */
-	VK_N(KeyEvent.VK_N, "N"),
+	VK_N(KeyEvent.VK_N, "N", "N", 'n'),
 
 	/** The [O][KeyEvent.VK_O] key. */
-	VK_O(KeyEvent.VK_O, "O"),
+	VK_O(KeyEvent.VK_O, "O", "O", 'o'),
 
 	/** The [P][KeyEvent.VK_P] key. */
-	VK_P(KeyEvent.VK_P, "P"),
+	VK_P(KeyEvent.VK_P, "P", "P", 'p'),
 
 	/** The [Q][KeyEvent.VK_Q] key. */
-	VK_Q(KeyEvent.VK_Q, "Q"),
+	VK_Q(KeyEvent.VK_Q, "Q", "Q", 'q'),
 
 	/** The [R][KeyEvent.VK_R] key. */
-	VK_R(KeyEvent.VK_R, "R"),
+	VK_R(KeyEvent.VK_R, "R", "R", 'r'),
 
 	/** The [S][KeyEvent.VK_S] key. */
-	VK_S(KeyEvent.VK_S, "S"),
+	VK_S(KeyEvent.VK_S, "S", "S", 's'),
 
 	/** The [T][KeyEvent.VK_T] key. */
-	VK_T(KeyEvent.VK_T, "T"),
+	VK_T(KeyEvent.VK_T, "T", "T", 't'),
 
 	/** The [U][KeyEvent.VK_U] key. */
-	VK_U(KeyEvent.VK_U, "U"),
+	VK_U(KeyEvent.VK_U, "U", "U", 'u'),
 
 	/** The [V][KeyEvent.VK_ENTER] key. */
-	VK_V(KeyEvent.VK_V, "V"),
+	VK_V(KeyEvent.VK_V, "V", "V", 'v'),
 
 	/** The [W][KeyEvent.VK_W] key. */
-	VK_W(KeyEvent.VK_W, "W"),
+	VK_W(KeyEvent.VK_W, "W", "W", 'w'),
 
 	/** The [X][KeyEvent.VK_X] key. */
-	VK_X(KeyEvent.VK_X, "X"),
+	VK_X(KeyEvent.VK_X, "X", "X", 'x'),
 
 	/** The [Y][KeyEvent.VK_Y] key. */
-	VK_Y(KeyEvent.VK_Y, "Y"),
+	VK_Y(KeyEvent.VK_Y, "Y", "Y", 'y'),
 
 	/** The [Z][KeyEvent.VK_ENTER] key. */
-	VK_Z(KeyEvent.VK_Z, "Z"),
+	VK_Z(KeyEvent.VK_Z, "Z", "Z", 'z'),
 
 	/** The [Open Square Bracket][KeyEvent.VK_OPEN_BRACKET] key. */
-	VK_OPEN_BRACKET(KeyEvent.VK_OPEN_BRACKET, "["),
+	VK_OPEN_BRACKET(KeyEvent.VK_OPEN_BRACKET, "[", "[", '{', '“'),
 
 	/** The [BackSlash][KeyEvent.VK_BACK_SLASH] key. */
-	VK_BACK_SLASH(KeyEvent.VK_BACK_SLASH, "\\"),
+	VK_BACK_SLASH(KeyEvent.VK_BACK_SLASH, "\\", "\\", '|', '«'),
 
 	/** The [Close Square Bracket][KeyEvent.VK_CLOSE_BRACKET] key. */
-	VK_CLOSE_BRACKET(KeyEvent.VK_CLOSE_BRACKET, "]"),
+	VK_CLOSE_BRACKET(KeyEvent.VK_CLOSE_BRACKET, "]", "]", '}', '‘'),
 
 	/** The [Numpad 0][KeyEvent.VK_NUMPAD0] key. */
 	VK_NUMPAD0(KeyEvent.VK_NUMPAD0, "Num 0"),
@@ -387,10 +388,10 @@ enum class KeyCode constructor(
 	VK_META(KeyEvent.VK_META, "Virtual Meta"),
 
 	/** The [Backtick][KeyEvent.VK_BACK_QUOTE] key. */
-	VK_BACK_QUOTE(KeyEvent.VK_BACK_QUOTE, "`"),
+	VK_BACK_QUOTE(KeyEvent.VK_BACK_QUOTE, "`", "`", '~'),
 
 	/** The [][KeyEvent.VK_QUOTE] key. */
-	VK_QUOTE(KeyEvent.VK_QUOTE, "'"),
+	VK_QUOTE(KeyEvent.VK_QUOTE, "'", "'", '"'),
 
 	/** The [Numpad Up][KeyEvent.VK_KP_UP] key. */
 	VK_KP_UP(KeyEvent.VK_KP_UP, "Num Up"),
@@ -403,6 +404,15 @@ enum class KeyCode constructor(
 
 	/** The [Numpad Right][KeyEvent.VK_KP_RIGHT] key. */
 	VK_KP_RIGHT(KeyEvent.VK_KP_RIGHT, "Num Right");
+
+	/**
+	 * The set of characters that may also be mapped to this [KeyCode] on a
+	 * keyboard.
+	 */
+	val overLapCharacters = mutableSetOf<Char>().apply {
+		if (lookupKey.length == 1) add(lookupKey[0])
+		addAll(mappedChars.toList())
+	}
 
 	/**
 	 * Answer the [Key] represented by this [KeyCode] and the provided
@@ -435,6 +445,18 @@ enum class KeyCode constructor(
 		 */
 		fun lookup (lookupKey: String): KeyCode? =
 			keyCodes.firstOrNull { lookupKey == it.lookupKey }
+
+		/**
+		 * Answer the [KeyCode] that matches the provided Char in the
+		 * [KeyCode.overLapCharacters].
+		 *
+		 * @param char
+		 *   The char in the overLapCharacters to retrieve.
+		 * @return
+		 *   The matching [KeyCode] of `null` if not found.
+		 */
+		fun lookup (char: Char): KeyCode? =
+			keyCodes.firstOrNull { it.overLapCharacters.contains(char) }
 
 		/**
 		 * Answer the [KeyCode] that matches the provided [code].

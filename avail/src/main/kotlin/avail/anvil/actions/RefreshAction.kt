@@ -52,6 +52,11 @@ class RefreshAction constructor(
 	workbench: AvailWorkbench
 ): AbstractWorkbenchAction(workbench, "Refresh", WorkbenchRefreshShortcut)
 {
+	override fun updateIsEnabled(busy: Boolean)
+	{
+		isEnabled = !busy
+	}
+
 	override fun actionPerformed(event: ActionEvent) = runAction()
 
 	/**

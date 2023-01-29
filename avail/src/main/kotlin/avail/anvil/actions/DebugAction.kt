@@ -56,6 +56,9 @@ constructor(
 	"Debug",
 	DebugActionShortcut)
 {
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
+
 	override fun actionPerformed(event: ActionEvent)
 	{
 		val debugger = AvailDebugger(workbench)

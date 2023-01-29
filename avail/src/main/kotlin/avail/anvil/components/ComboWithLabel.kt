@@ -35,6 +35,8 @@ package avail.anvil.components
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.event.ActionEvent
+import java.awt.event.ActionListener
 import javax.swing.BorderFactory
 import javax.swing.Box
 import javax.swing.JComboBox
@@ -100,6 +102,21 @@ class ComboWithLabel<SelectionType> constructor(
 				gridy = 0
 				gridwidth = 1
 			})
+	}
+
+	/**
+	 * Add an [ActionListener] to the [combo].
+	 *
+	 * @param action
+	 *   The [JComboBox] action called from [combo] that accepts the
+	 *   [ActionEvent] that has occurred.
+	 */
+	fun addComboActionListener (
+		action: JComboBox<SelectionType>.(ActionEvent) -> Unit)
+	{
+		combo.addActionListener {
+			combo.action(it)
+		}
 	}
 
 	init
