@@ -33,7 +33,7 @@
 package avail.project
 
 import avail.anvil.manager.AvailProjectManager
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.setupEnvironment
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
@@ -91,6 +91,6 @@ object AvailProjectManagerRunner
 		}
 		swingReady.acquire()
 		setupEnvironment()
-		AvailProjectManager(GlobalAvailSettings.getGlobalSettings())
+		AvailProjectManager(GlobalEnvironmentSettings.getGlobalSettings())
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * GlobalAvailSettingsV1.kt
+ * GlobalEnvironmentSettingsV1.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -39,11 +39,11 @@ import org.availlang.json.JSONWriter
 import java.awt.Font
 
 /**
- * Version 1 of [GlobalAvailSettings].
+ * Version 1 of [GlobalEnvironmentSettings].
  *
  * @author Richard Arriaga
  */
-class GlobalAvailSettingsV1: GlobalAvailSettings
+class GlobalEnvironmentSettingsV1: GlobalEnvironmentSettings
 {
 	override val serializationVersion: Int = 1
 	override val knownProjects = mutableSetOf<KnownAvailProject>()
@@ -52,6 +52,7 @@ class GlobalAvailSettingsV1: GlobalAvailSettings
 	override var font: String = Font.MONOSPACED
 	override val editorGuideLines = mutableListOf<Int>()
 	override val shortcutSettings = ShortcutSettings.readEnvOverrides()
+	override var palette: String = ""
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -83,32 +84,32 @@ class GlobalAvailSettingsV1: GlobalAvailSettings
 	companion object
 	{
 		/**
-		 * Answer a [GlobalAvailSettingsV1] from the provided [JSONObject].
+		 * Answer a [GlobalEnvironmentSettingsV1] from the provided [JSONObject].
 		 *
 		 * @param obj
 		 *   The [JSONObject] to extract data from.
 		 * @return
-		 *   The [GlobalAvailSettingsV1] read from disk.
+		 *   The [GlobalEnvironmentSettingsV1] read from disk.
 		 */
-		fun from (obj: JSONObject): GlobalAvailSettingsV1
+		fun from (obj: JSONObject): GlobalEnvironmentSettingsV1
 		{
-			val config = GlobalAvailSettingsV1()
+			val config = GlobalEnvironmentSettingsV1()
 
-			obj.getStringOrNull(GlobalAvailSettingsV1::favorite.name)?.let {
+			obj.getStringOrNull(GlobalEnvironmentSettingsV1::favorite.name)?.let {
 				config.favorite = it
 			}
-			obj.getStringOrNull(GlobalAvailSettingsV1::font.name)?.let {
+			obj.getStringOrNull(GlobalEnvironmentSettingsV1::font.name)?.let {
 				config.font = it
 			}
 			obj.getFloatOrNull(
-				GlobalAvailSettingsV1::codePaneFontSize.name)?.let {
+				GlobalEnvironmentSettingsV1::codePaneFontSize.name)?.let {
 					config.codePaneFontSize = it
 			}
 			obj.getArrayOrNull(
-				GlobalAvailSettingsV1::editorGuideLines.name)?.let {
+				GlobalEnvironmentSettingsV1::editorGuideLines.name)?.let {
 					config.editorGuideLines.addAll(it.ints)
 			} ?: config.editorGuideLines.add(80)
-			obj.getArrayOrNull(GlobalAvailSettingsV1::knownProjects.name)
+			obj.getArrayOrNull(GlobalEnvironmentSettingsV1::knownProjects.name)
 				?.forEach { data ->
 					if (data.isObject)
 					{

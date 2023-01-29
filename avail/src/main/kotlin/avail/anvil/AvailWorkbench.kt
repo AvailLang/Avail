@@ -102,7 +102,8 @@ import avail.anvil.actions.TraceSummarizeStatementsAction
 import avail.anvil.actions.UnloadAction
 import avail.anvil.actions.UnloadAllAction
 import avail.anvil.debugger.AvailDebugger
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
+import avail.anvil.environment.GlobalEnvironmentSettings.Companion.globalTemplates
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractBuilderFrameTreeNode
@@ -258,7 +259,7 @@ import kotlin.math.min
  * @property resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
  * @property globalSettings
- *   The [GlobalAvailSettings] for the environment this [AvailWorkbench] is
+ *   The [GlobalEnvironmentSettings] for the environment this [AvailWorkbench] is
  *   being launched in.
  * @property availProject
  *   The actively running [AvailProject].
@@ -277,7 +278,7 @@ import kotlin.math.min
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
  * @param globalSettings
- *  The [GlobalAvailSettings] for the environment this [AvailWorkbench] is
+ *  The [GlobalEnvironmentSettings] for the environment this [AvailWorkbench] is
  *  being launched in.
  * @param availProject
  *   The actively running [AvailProject].
@@ -292,7 +293,7 @@ class AvailWorkbench internal constructor(
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver,
-	val globalSettings: GlobalAvailSettings,
+	val globalSettings: GlobalEnvironmentSettings,
 	internal var availProjectFilePath: String = "",
 	windowTitle: String = "Anvil",
 	internal val projectManager: AvailProjectManager?
@@ -339,6 +340,10 @@ class AvailWorkbench internal constructor(
 		{
 			val backupFile = File(
 				"$projectConfigDirectory/$projectName.json.backup")
+			if (backupFile.exists())
+			{
+				backupFile.delete()
+			}
 			FileInputStream(File(projectFilePath)).channel.use { src ->
 				FileOutputStream(backupFile).channel.use { dest ->
 					try
@@ -363,16 +368,7 @@ class AvailWorkbench internal constructor(
 		val projectFilePath = availProjectFilePath
 		if (projectFilePath.isNotEmpty())
 		{
-			val backup = File("$availProjectFilePath.backup")
-			if (backup.exists())
-			{
-				backup.delete()
-			}
-			val orig = File(projectFilePath)
-			if (orig.exists())
-			{
-				orig.renameTo(backup)
-			}
+			backupProjectFile()
 			// Update the backing project file.
 			val writer = JSONWriter.newPrettyPrinterWriter()
 			availProject.writeTo(writer)
@@ -389,10 +385,18 @@ class AvailWorkbench internal constructor(
 	{
 		val tree = PrefixTree<Int, MutableSet<String>>()
 		availProject.availProjectRoots.forEach { root ->
-			root.templates.forEach { (name, expansion) ->
+			root.templateGroup.templates.forEach { (name, expansion) ->
 				val expansions = tree.getOrPut(name) { mutableSetOf() }
 				expansions.add(expansion.expansion)
 			}
+		}
+		availProject.templateGroup.templates.forEach { (name, expansion) ->
+			val expansions = tree.getOrPut(name) { mutableSetOf() }
+			expansions.add(expansion.expansion)
+		}
+		globalTemplates.templates.forEach { (name, expansion) ->
+			val expansions = tree.getOrPut(name) { mutableSetOf() }
+			expansions.add(expansion.expansion)
 		}
 		return tree
 	}
@@ -940,7 +944,8 @@ class AvailWorkbench internal constructor(
 	 */
 	internal fun buildStylesheet(project: AvailProject): Stylesheet
 	{
-		val selected = project.stylingSelection
+		val selected = globalSettings.stylingSelection.mergeOnto(
+			project.stylingSelection)
 		val errors = mutableListOf<Pair<
 			UnvalidatedStylePattern, StylePatternException>>()
 		val stylesheet =
@@ -2719,8 +2724,8 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
-		 * @param globalAvailSettings
-		 *   The [GlobalAvailSettings] for the environment this
+		 * @param globalEnvironmentSettings
+		 *   The [GlobalEnvironmentSettings] for the environment this
 		 *   [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2750,7 +2755,7 @@ class AvailWorkbench internal constructor(
 		@Throws(Exception::class)
 		@JvmStatic
 		fun launchWorkbench(
-			globalAvailSettings: GlobalAvailSettings,
+			globalEnvironmentSettings: GlobalEnvironmentSettings,
 			project: AvailProject = AvailProjectV1(
 				"--No Project--",
 				true,
@@ -2855,7 +2860,7 @@ class AvailWorkbench internal constructor(
 					runtime,
 					fileManager,
 					resolver,
-					globalAvailSettings,
+					globalEnvironmentSettings,
 					availProjectFilePath,
 					workbenchWindowTitle,
 					projectManager)
@@ -2903,8 +2908,8 @@ class AvailWorkbench internal constructor(
 		/**
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
 		 *
-		 * @param globalAvailSettings
-		 *   The [GlobalAvailSettings] for the environment this
+		 * @param globalEnvironmentSettings
+		 *   The [GlobalEnvironmentSettings] for the environment this
 		 *   [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2931,13 +2936,13 @@ class AvailWorkbench internal constructor(
 		@JvmStatic
 		fun launchWorkbenchWithProject(
 			project: AvailProject,
-			globalAvailSettings: GlobalAvailSettings,
+			globalEnvironmentSettings: GlobalEnvironmentSettings,
 			availProjectFilePath: String = "",
 			customWindowTitle: String = "",
 			useProjectNameAsFullTitle: Boolean = false,
 			projectManager: AvailProjectManager?
 		): AvailWorkbench = launchWorkbench(
-				globalAvailSettings,
+				globalEnvironmentSettings,
 				project,
 				availProjectFilePath,
 				"",
@@ -2949,8 +2954,8 @@ class AvailWorkbench internal constructor(
 		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench]
 		 * independent of any [AvailProjectManager].
 		 *
-		 * @param globalAvailSettings
-		 * 	 The [GlobalAvailSettings] for the environment this
+		 * @param globalEnvironmentSettings
+		 * 	 The [GlobalEnvironmentSettings] for the environment this
 		 * 	 [AvailWorkbench] is being launched in.
 		 * @param project
 		 *   The [AvailProject] to use to launch the workbench.
@@ -2974,7 +2979,7 @@ class AvailWorkbench internal constructor(
 		@JvmStatic
 		@Suppress("unused")
 		fun launchSoloWorkbench (
-			globalAvailSettings: GlobalAvailSettings,
+			globalEnvironmentSettings: GlobalEnvironmentSettings,
 			project: AvailProject,
 			availProjectFilePath: String = "",
 			customWindowTitle: String = "",
@@ -2983,7 +2988,7 @@ class AvailWorkbench internal constructor(
 		{
 			System.setProperty(DARK_MODE_KEY, project.darkMode.toString())
 			return launchWorkbench(
-				globalAvailSettings,
+				globalEnvironmentSettings,
 				project,
 				availProjectFilePath,
 				"",

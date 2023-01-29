@@ -36,7 +36,7 @@ import avail.AvailRuntimeConfiguration
 import avail.anvil.AvailWorkbench
 import avail.anvil.MenuBarBuilder
 import avail.anvil.addWindowMenu
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.projectManagerLayoutFile
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.CREATE_PROJECT
 import avail.anvil.manager.AvailProjectManager.DisplayedPanel.KNOWN_PROJECTS
@@ -70,11 +70,11 @@ import javax.swing.filechooser.FileNameExtensionFilter
  * @author Richard Arriaga
  *
  * @property globalSettings
- *   The [GlobalAvailSettings] that provides information about the Avail
+ *   The [GlobalEnvironmentSettings] that provides information about the Avail
  *   environment for the entire computer.
  */
 class AvailProjectManager constructor(
-	val globalSettings: GlobalAvailSettings
+	val globalSettings: GlobalEnvironmentSettings
 ): JFrame("Avail")
 {
 	/**
@@ -448,7 +448,7 @@ class AvailProjectManager constructor(
 	}
 
 	/**
-	 * Open the [GlobalAvailSettings.favoriteKnownProject] if one is
+	 * Open the [GlobalEnvironmentSettings.favoriteKnownProject] if one is
 	 * selected.
 	 *
 	 * @return

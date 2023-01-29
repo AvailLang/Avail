@@ -48,11 +48,14 @@ import java.awt.event.WindowEvent
  *
  * @param workbench
  *   The owning [AvailWorkbench].
+ * @param autoSave
+ *   Whether to auto save the backing file to disk after changes.
  * @param afterTextLoaded
  *   Action to perform after text has been loaded to [sourcePane].
  */
 class ProjectFileEditor constructor(
 	workbench: AvailWorkbench,
+	override val autoSave: Boolean = false,
 	afterTextLoaded: (ProjectFileEditor) -> Unit = {}
 ) : AbstractJSONFileEditor<ProjectFileEditor>(
 	workbench,
@@ -68,7 +71,7 @@ class ProjectFileEditor constructor(
 		finalizeInitialization(afterTextLoaded)
 		addWindowListener(object : WindowAdapter()
 		{
-			override fun windowClosed(e: WindowEvent?)
+			override fun windowClosing(e: WindowEvent?)
 			{
 				workbench.openFileEditors.remove(fileLocation)
 			}

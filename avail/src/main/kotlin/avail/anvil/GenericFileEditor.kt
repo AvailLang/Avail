@@ -48,12 +48,15 @@ import java.awt.event.WindowEvent
  *   The owning [AvailWorkbench].
  * @param fileLocation
  *   The absolute path of the source code file.
+ * @param autoSave
+ *   Whether to auto save the backing file to disk after changes.
  * @param afterTextLoaded
  *   Action to perform after text has been loaded to [sourcePane].
  */
 class GenericFileEditor constructor(
 	workbench: AvailWorkbench,
 	fileLocation: String,
+	override val autoSave: Boolean = false,
 	afterTextLoaded: (GenericFileEditor) -> Unit = {}
 ) : CodeEditor<GenericFileEditor>(workbench, fileLocation, fileLocation)
 {
@@ -64,7 +67,7 @@ class GenericFileEditor constructor(
 		finalizeInitialization(afterTextLoaded)
 		addWindowListener(object : WindowAdapter()
 		{
-			override fun windowClosed(e: WindowEvent?)
+			override fun windowClosing(e: WindowEvent?)
 			{
 				workbench.openFileEditors.remove(fileLocation)
 			}

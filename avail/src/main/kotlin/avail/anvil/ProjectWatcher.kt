@@ -38,6 +38,9 @@ import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import io.methvin.watcher.hashing.FileHasher
 import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.environment.project.AvailProject.Companion.STYLE_FILE_NAME
+import org.availlang.artifact.environment.project.AvailProject.Companion.TEMPLATE_FILE_NAME
+import org.availlang.artifact.environment.project.LocalSettings.Companion.LOCAL_SETTINGS_FILE
 import org.slf4j.helpers.NOPLogger
 import java.io.File
 
@@ -72,7 +75,70 @@ class ProjectWatcher constructor(val workbench: AvailWorkbench)
 					DirectoryChangeEvent.EventType.CREATE,
 					DirectoryChangeEvent.EventType.MODIFY ->
 					{
+						val parent = event.path().toFile().parent
+						val isRoot = workbench.projectConfigDirectory != parent
+						when
+						{
+							event.path().endsWith(TEMPLATE_FILE_NAME) ->
+							{
+								if (isRoot)
+								{
+									workbench.availProject
+										.rootFromConfigDirPath(parent)
+										?.refreshTemplates(parent)
+								}
+								else
+								{
+									workbench.availProject.refreshTemplates(
+										workbench.projectConfigDirectory)
+								}
+								workbench.refreshTemplates()
+								workbench.writeText(
+									"configuration file refreshed: "
+										+ "${event.path()}\n",
+									StreamStyle.INFO)
+							}
+							event.path().endsWith(STYLE_FILE_NAME) ->
+							{
+								if (isRoot)
+								{
+									workbench.availProject
+										.rootFromConfigDirPath(parent)
+										?.refreshStyles(parent)
+								}
+								else
+								{
+									workbench.availProject.refreshStyles(
+										workbench.projectConfigDirectory)
+								}
+								workbench.refreshStylesheetAction.runAction()
+								workbench.writeText(
+									"configuration file refreshed: "
+										+ "${event.path()}\n",
+									StreamStyle.INFO)
+							}
+							event.path().endsWith(LOCAL_SETTINGS_FILE) ->
+							{
+								if (isRoot)
+								{
+									workbench.availProject
+										.rootFromConfigDirPath(parent)
+										?.refreshLocalSettings(parent)
+								}
+								else
+								{
+									workbench.availProject.refreshLocalSettings(
+										workbench.projectConfigDirectory)
+								}
+								workbench.refreshStylesheetAction.runAction()
+								workbench.writeText(
+									"configuration file refreshed: "
+										+ "${event.path()}\n",
+									StreamStyle.INFO)
+							}
+						}
 						workbench.refreshStylesheetAction.runAction()
+						workbench.refreshTemplates()
 						workbench.writeText(
 							// TODO what do we need to report here
 							"configuration file refreshed: "

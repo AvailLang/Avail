@@ -126,6 +126,6 @@ constructor (
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"Create a new module.")
+			"Delete a module.")
 	}
 }

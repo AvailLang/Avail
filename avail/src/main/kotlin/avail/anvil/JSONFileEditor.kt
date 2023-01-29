@@ -50,6 +50,8 @@ import java.awt.event.WindowEvent
  *   The path to the file.
  * @param frameTitle
  *   The window title.
+ * @param autoSave
+ *   Whether to auto save the backing file to disk after changes.
  * @param afterTextLoaded
  *   Action to perform after text has been loaded to [sourcePane].
  */
@@ -57,6 +59,7 @@ class JSONFileEditor constructor(
 	workbench: AvailWorkbench,
 	filePath: String,
 	frameTitle: String,
+	override val autoSave: Boolean = false,
 	afterTextLoaded: (JSONFileEditor) -> Unit = {}
 ) : AbstractJSONFileEditor<JSONFileEditor>(
 	workbench,
@@ -72,7 +75,7 @@ class JSONFileEditor constructor(
 		finalizeInitialization(afterTextLoaded)
 		addWindowListener(object : WindowAdapter()
 		{
-			override fun windowClosed(e: WindowEvent?)
+			override fun windowClosing(e: WindowEvent?)
 			{
 				workbench.openFileEditors.remove(fileLocation)
 			}

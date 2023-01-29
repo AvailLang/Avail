@@ -32,14 +32,15 @@
 
 package avail.anvil.environment
 
-import avail.anvil.environment.GlobalAvailSettings.Companion.CONFIG_FILE_NAME
+import avail.anvil.environment.GlobalEnvironmentSettings.Companion.CONFIG_FILE_NAME
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.settings.ShortcutSettings
-import avail.anvil.settings.TemplateSettings
 import avail.anvil.window.LayoutConfiguration
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.availHome
 import org.availlang.artifact.environment.AvailEnvironment.availHomeLibs
+import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.TemplateGroup
 import java.io.File
 
 // Herein lies constants that represent file locations
@@ -55,7 +56,7 @@ val stdLibHome = "$availHomeLibs/org/availlang"
 val envSettingsHome = "$availHome/settings"
 
 /**
- * The [GlobalAvailSettings] environment file location.
+ * The [GlobalEnvironmentSettings] environment file location.
  */
 val environmentConfigFile = "$envSettingsHome/$CONFIG_FILE_NAME"
 
@@ -63,6 +64,11 @@ val environmentConfigFile = "$envSettingsHome/$CONFIG_FILE_NAME"
  * The file where the global expansion templates file is stored.
  */
 val globalTemplatesFile = "$envSettingsHome/global-templates.json"
+
+/**
+ * The file where the global styles file is stored.
+ */
+val globalStylesFile = "$envSettingsHome/global-styles.json"
 
 /**
  * The text file that stores the [LayoutConfiguration] information for the
@@ -92,7 +98,13 @@ fun setupEnvironment ()
 	File(globalTemplatesFile).apply {
 		if (!exists())
 		{
-			TemplateSettings(mutableMapOf()).saveToDisk(this)
+			writeText(TemplateGroup().jsonPrettyPrintedFormattedString)
+		}
+	}
+	File(globalStylesFile).apply {
+		if (!exists())
+		{
+			writeText(StylingGroup().jsonPrettyPrintedFormattedString)
 		}
 	}
 	File(projectManagerLayoutFile).apply {
@@ -104,7 +116,7 @@ fun setupEnvironment ()
 	File(environmentConfigFile).apply {
 		if (!exists())
 		{
-			this.writeText(GlobalAvailSettings.emptyConfig.fileContent)
+			this.writeText(GlobalEnvironmentSettings.emptyConfig.fileContent)
 		}
 	}
 }

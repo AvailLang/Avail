@@ -37,7 +37,6 @@ import avail.anvil.AvailWorkbench
 import org.availlang.artifact.AvailArtifactBuildPlan
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.project.AvailProject
-import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.LocalSettings
 import java.awt.Color
 import java.io.File
@@ -106,9 +105,9 @@ class AvailProjectNode constructor(
 						add(ArtifactPlansNode(workbench, it.absolutePath))
 					it.name == LocalSettings.LOCAL_SETTINGS_FILE ->
 						add(LocalSettingsNode(workbench, it.absolutePath))
-					it.name == AvailProjectRoot.STYLE_FILE_NAME ->
+					it.name == AvailProject.STYLE_FILE_NAME ->
 						add(StylesNode(workbench, it.absolutePath))
-					it.name == AvailProjectRoot.TEMPLATE_FILE_NAME ->
+					it.name == AvailProject.TEMPLATE_FILE_NAME ->
 						add(TemplatesNode(workbench, it.absolutePath))
 					it.name.endsWith(".mhd") ->
 						add(ModuleHeaderTemplateNode(

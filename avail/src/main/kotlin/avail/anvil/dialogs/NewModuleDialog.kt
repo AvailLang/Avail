@@ -37,10 +37,12 @@ import avail.builder.ModuleRoot
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
 import avail.anvil.actions.RefreshAction
+import avail.anvil.components.ComboWithLabel
 import avail.anvil.streams.StreamStyle
 import avail.resolver.ModuleRootResolver
 import avail.utility.notNullAnd
 import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.environment.project.ModuleHeaderFileMetadata
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
@@ -59,9 +61,9 @@ import java.util.Date
 import java.util.Locale
 import java.util.UUID
 import javax.swing.BorderFactory
+import javax.swing.BoxLayout
 import javax.swing.JButton
 import javax.swing.JCheckBox
-import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLabel
@@ -113,6 +115,16 @@ class NewModuleDialog constructor(
 	private val baseModuleName get() = moduleNameTextField.text
 
 	/**
+	 * Available [ModuleHeaderFileMetadata] that represent templates.
+	 */
+	private val headers: Array<ModuleHeaderFileMetadata> =
+		targetProjectRoot.moduleHeaders.toMutableSet().apply {
+			addAll(workbench.availProject.moduleHeaders)
+		}.toMutableList().apply {
+			sortBy { it.name }
+		}.toTypedArray()
+
+	/**
 	 * The [JCheckBox] that when check indicates a Module Package is being
 	 * created which requires creating both a new package and a package
 	 * representative inside of it. If unchecked, a normal package is being
@@ -124,16 +136,20 @@ class NewModuleDialog constructor(
 		}
 
 	/**
-	 * The [JCheckBox] that when check indicates the module should be created
-	 * with the project copyright if it exists and the module name.
+	 * The [ComboWithLabel] used to pick the appropriate module file header to
+	 * prefix the file with.
 	 */
-	// TODO change to combo box
-	private val addHeader =
-		JCheckBox("Add Header").apply {
-			font = Font(font.name, font.style, 10)
-			isSelected = true
-			toolTipText = "Adds project copyright and module to created file"
-		}
+	private val modulePicker = ComboWithLabel(
+		"Moduel Header: ", headers
+	).apply {
+		toolTipText = "Adds project module header template to created file"
+	}
+
+	/**
+	 * The selected module file extension.
+	 */
+	private val selectedHeader: ModuleHeaderFileMetadata? get() =
+	modulePicker.combo.selectedItem as? ModuleHeaderFileMetadata?
 
 	/**
 	 * `true` indicates a Module Package is being created which requires
@@ -148,21 +164,22 @@ class NewModuleDialog constructor(
 	private var errorMessage = ""
 
 	/**
-	 * The selected module file extension.
+	 * The [ComboWithLabel] used to pick the appropriate module file extension
+	 * if the selected [AvailProjectRoot.availModuleExtensions] has more than
+	 * one option.
 	 */
-	private var selectedFileExtension = extensionOptions[0]
+	private val fileExtensionPicker = ComboWithLabel(
+		"Extension: ",
+		extensionOptions
+	).apply {
+			toolTipText = "Pick file extension for new module"
+	}
 
 	/**
-	 * The [JComboBox] used to pick the appropriate module file extension if
-	 * the selected [AvailProjectRoot.availModuleExtensions] has more than one
-	 * option.
+	 * The selected module file extension.
 	 */
-	private val fileExtensionPicker = JComboBox(extensionOptions).apply {
-		addActionListener {
-			selectedFileExtension = selectedItem?.toString()
-				?: extensionOptions[0]
-		}
-	}
+	private val selectedFileExtension get() =
+		fileExtensionPicker.combo.selectedItem as? String
 
 	/**
 	 * The variable that holds onto the proposed module name.
@@ -196,9 +213,10 @@ class NewModuleDialog constructor(
 	 */
 	private val centerPanel = JPanel(BorderLayout())
 
-	val optionsPanel = JPanel(FlowLayout(FlowLayout.RIGHT)).apply {
-		add(modulePackageCB, BorderLayout.PAGE_END)
-		add(addHeader, BorderLayout.PAGE_END)
+	val optionsPanel = JPanel().apply {
+		layout = BoxLayout(this, BoxLayout.Y_AXIS)
+		add(modulePicker)
+		add(modulePackageCB)
 	}
 
 	/**
@@ -215,8 +233,8 @@ class NewModuleDialog constructor(
 			extensionOptions.size > 1
 		centerPanel.apply {
 			add(errorMessageLabel, BorderLayout.PAGE_START)
-			add(optionsPanel, BorderLayout.CENTER)
-			add(fileExtensionPicker, BorderLayout.PAGE_END)
+			add(fileExtensionPicker, BorderLayout.CENTER)
+			add(optionsPanel, BorderLayout.PAGE_END)
 		}
 	}
 
@@ -283,22 +301,16 @@ class NewModuleDialog constructor(
 			else -> File(targetLocationAbsolutePath)
 		}
 		file.createNewFile()
-		if (addHeader.isSelected)
+		val sh = selectedHeader
+		if (sh != null)
 		{
-			// TODO populate from combobox.
-			var t = ""
-			if (workbench.availProject.moduleHeaders.isNotEmpty())
-			{
-
-//				t = workbench.availProject.projectCopyright
-				t = t.replace("{{MOD}}", baseModuleName)
-				val date = Date.from(Instant.now())
-				val formatter = SimpleDateFormat("yyyy", Locale.getDefault())
-				val year = formatter.format(date)
-				t = t.replace("{{YEAR}}", year)
-				t = "$t\n"
-			}
-			t = "${t}Module \"$baseModuleName\""
+			var t = sh.fileContents
+			t = t.replace("{{MOD}}", baseModuleName)
+			val date = Date.from(Instant.now())
+			val formatter = SimpleDateFormat("yyyy", Locale.getDefault())
+			val year = formatter.format(date)
+			t = t.replace("{{YEAR}}", year)
+			t = "$t\n"
 			file.writeText(t)
 		}
 		dispatchEvent(WindowEvent(this, WindowEvent.WINDOW_CLOSING))

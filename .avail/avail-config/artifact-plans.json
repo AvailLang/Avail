@@ -6,7 +6,7 @@
 		{
 			"locationType": "project",
 			"scheme": "JAR",
-			"path": "avail-stdlib/build/libs/avail-stdlib-2.0.0.alpha19-1.6.1.alpha08.jar"
+			"path": "avail-stdlib/build/libs/z/avail-stdlib-2.0.0.alpha20-1.6.1.alpha09.jar"
 		},
 		"implementationTitle" : "Avail Standard Library",
 		"jvmComponent": {

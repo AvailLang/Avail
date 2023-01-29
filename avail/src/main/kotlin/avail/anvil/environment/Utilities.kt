@@ -1,5 +1,5 @@
 /*
- * Libraries.kt
+ * Utilities.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,11 +32,27 @@
 
 package avail.anvil.environment
 
+import avail.anvil.AnvilException
 import avail.anvil.projects.AvailStdLibVersion
 import org.availlang.artifact.environment.AvailEnvironment
+import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.environment.project.TemplateGroup
+import org.availlang.json.jsonObject
 import java.io.File
 
-// Utilities for working with Avail libraries.
+// Utilities for working with Avail libraries and other environment related
+// functionality.
+
+/**
+ * The [AvailProjectRoot.name] for the Avail standard library.
+ */
+const val AVAIL_STDLIB_ROOT_NAME = "avail"
+
+/**
+ * The prefix name of the JAR file that contains a version of the Avail Standard
+ * Library.
+ */
+const val AVAIL_STDLIB_JAR_NAME_PREFIX = "avail-stdlib"
 
 /**
  * The Avail standard libraries in [AvailEnvironment.availHomeLibs].
@@ -51,12 +67,36 @@ val availStandardLibraries: Array<File> get() =
 		val m = mutableListOf<AvailStdLibVersion?>()
 		val libs = dir.listFiles { _, name ->
 			name.endsWith(".jar") &&
-				name.startsWith("avail-stdlib")
+				name.startsWith(AVAIL_STDLIB_JAR_NAME_PREFIX)
 		} ?: arrayOf()
 		libs.sortByDescending {
-			val v = it.name.split("avail-stdlib-")
+			val v = it.name.split("$AVAIL_STDLIB_JAR_NAME_PREFIX-")
 				.last().split(".jar").first()
 			AvailStdLibVersion.versionOrNull(v).apply { m.add(this) }
 		}
 		libs
+	}
+
+/**
+ * The resource path to the default templates [TemplateGroup] file.
+ */
+private const val defaultTemplatesPath = "/defaultTemplates.json"
+
+/**
+ * The system's default [TemplateGroup] or `null` if there is a
+ * problem retrieving the default [TemplateGroup].
+ */
+val systemDefaultTemplates: TemplateGroup? get() =
+	try
+	{
+		TemplateGroup(
+			jsonObject(File(TemplateGroup::class.java.getResource(
+				defaultTemplatesPath)!!.path).readText()))
+	}
+	catch (e: Throwable)
+	{
+		AnvilException(
+			"Could not retrieve system default templates",
+			e).printStackTrace()
+		null
 	}

@@ -34,7 +34,7 @@ package avail.anvil.settings
 
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 
 /**
  * The different settings categories that can be changed.
@@ -49,7 +49,7 @@ enum class SettingsCategory
 	EDITOR
 	{
 		override fun update(
-			settings: GlobalAvailSettings,
+			settings: GlobalEnvironmentSettings,
 			workbench: AvailWorkbench)
 		{
 			workbench.transcript.changeFont(
@@ -64,25 +64,12 @@ enum class SettingsCategory
 	},
 
 	/**
-	 * Expansion template settings.
-	 */
-	TEMPLATES
-	{
-		override fun update(
-			settings: GlobalAvailSettings,
-			workbench: AvailWorkbench)
-		{
-			workbench.refreshTemplates()
-		}
-	},
-
-	/**
 	 * Keyboard shortcut settings.
 	 */
 	SHORTCUTS
 	{
 		override fun update(
-			settings: GlobalAvailSettings,
+			settings: GlobalEnvironmentSettings,
 			workbench: AvailWorkbench)
 		{
 			workbench.openEditors.values.forEach { editor ->
@@ -96,11 +83,11 @@ enum class SettingsCategory
 	 * [SettingsCategory].
 	 *
 	 * @param settings
-	 *   The [GlobalAvailSettings].
+	 *   The [GlobalEnvironmentSettings].
 	 * @param workbench
 	 *   The [AvailWorkbench] to update the settings for.
 	 */
 	abstract fun update (
-		settings: GlobalAvailSettings,
+		settings: GlobalEnvironmentSettings,
 		workbench: AvailWorkbench)
 }

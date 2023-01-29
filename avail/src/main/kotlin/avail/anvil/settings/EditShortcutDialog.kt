@@ -32,7 +32,7 @@
 
 package avail.anvil.settings
 
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.shortcuts.Key
 import avail.anvil.shortcuts.KeyCode
 import avail.anvil.shortcuts.KeyboardShortcut
@@ -59,7 +59,7 @@ import javax.swing.SwingUtilities
  * @author Richard Arriaga
  *
  * @property globalSettings
- *   The [GlobalAvailSettings].
+ *   The [GlobalEnvironmentSettings].
  * @property parent
  *   The parent [ShortcutsPanel].
  * @property shortcut
@@ -72,9 +72,9 @@ class EditShortcutDialog constructor(
 ): JFrame(shortcut.descriptionDisplay)
 {
 	/**
-	 * The [GlobalAvailSettings].
+	 * The [GlobalEnvironmentSettings].
 	 */
-	private val globalSettings: GlobalAvailSettings get() =
+	private val globalSettings: GlobalEnvironmentSettings get() =
 		settingsView.globalSettings
 
 	/**

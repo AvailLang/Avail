@@ -42,8 +42,6 @@ import avail.anvil.window.LayoutConfiguration
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
 import java.awt.event.WindowListener
 import java.io.File
 import java.util.TimerTask
@@ -83,6 +81,11 @@ abstract class CodeEditor<CE> constructor(
 	frameTitle: String
 ) : WorkbenchFrame(frameTitle)
 {
+	/**
+	 * Whether to auto save the backing file to disk after changes.
+	 */
+	open val autoSave: Boolean = true
+
 	/**
 	 * When the first edit was after a save, or the first ever.
 	 * Only access within the Swing UI thread.
@@ -208,7 +211,10 @@ abstract class CodeEditor<CE> constructor(
 		{
 			// This is the first change since the latest save.
 			firstUnsavedEditTime = lastEditTime
-			eventuallySave()
+			if (autoSave)
+			{
+				eventuallySave()
+			}
 		}
 	}
 
@@ -218,6 +224,7 @@ abstract class CodeEditor<CE> constructor(
 	 */
 	private fun eventuallySave()
 	{
+		if (!autoSave) return
 		val maximumStaleness = 10_000L  //ms
 		val idleBeforeWrite = 200L  //ms
 		workbench.runtime.timer.schedule(
@@ -267,12 +274,6 @@ abstract class CodeEditor<CE> constructor(
 			}
 			addWindowMenu(this@CodeEditor)
 		}
-		addWindowListener(object : WindowAdapter()
-		{
-			override fun windowClosing(e: WindowEvent) {
-				if (lastSaveTime < lastEditTime) forceWrite()
-			}
-		})
 		setLocationRelativeTo(workbench)
 	}
 

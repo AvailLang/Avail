@@ -33,8 +33,6 @@
 package avail.anvil
 
 import avail.anvil.shortcuts.KeyboardShortcut
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
 
 /**
  * An abstract [CodeEditor] for an JSON file.
@@ -63,12 +61,5 @@ abstract class AbstractJSONFileEditor<CE> constructor(
 	init
 	{
 		finalizeInitialization(afterTextLoaded)
-		addWindowListener(object : WindowAdapter()
-		{
-			override fun windowClosed(e: WindowEvent?)
-			{
-				workbench.openFileEditors.remove(fileLocation)
-			}
-		})
 	}
 }

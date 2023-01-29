@@ -32,7 +32,7 @@
 
 package avail.anvil.settings.editor
 
-import avail.anvil.environment.GlobalAvailSettings
+import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.settings.SettingPanelSelection
 import avail.anvil.settings.SettingsCategory
 import avail.anvil.settings.SettingsView
@@ -61,7 +61,7 @@ class EditorSettingsSelection constructor(
 ): SettingPanelSelection("Editor", settingsView)
 {
 
-	/** The [GlobalAvailSettings]. */
+	/** The [GlobalEnvironmentSettings]. */
 	internal val config get() = settingsView.globalSettings
 
 	override fun updateSettingsPane()

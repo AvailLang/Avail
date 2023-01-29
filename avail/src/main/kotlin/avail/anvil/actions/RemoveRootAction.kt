@@ -35,12 +35,14 @@ package avail.anvil.actions
 import avail.anvil.AvailWorkbench
 import avail.utility.notNullAnd
 import java.awt.event.ActionEvent
+import java.io.File
 import javax.swing.Action
 import javax.swing.JOptionPane
 import javax.swing.JOptionPane.CANCEL_OPTION
 import javax.swing.JOptionPane.NO_OPTION
 import javax.swing.JOptionPane.WARNING_MESSAGE
 import javax.swing.JOptionPane.YES_NO_CANCEL_OPTION
+import javax.swing.JOptionPane.YES_NO_OPTION
 import javax.swing.JOptionPane.YES_OPTION
 import kotlin.io.path.toPath
 
@@ -95,7 +97,7 @@ constructor (
 		}
 		val project = workbench.availProject
 		val projectRoot = workbench.getProjectRoot(root.name)!!
-		val removedRoot = project.removeRoot(projectRoot.id)
+		val removedRoot = project.removeRoot(projectRoot.name)
 		if (removedRoot == null)
 		{
 			JOptionPane.showMessageDialog(
@@ -122,6 +124,29 @@ constructor (
 					"Unable to delete some of the files and directories.",
 					"Warning",
 					WARNING_MESSAGE)
+			}
+		}
+		val response = JOptionPane.showOptionDialog(
+			workbench,
+			"Delete ${projectRoot.name}'s entire root configuration " +
+				"directory?",
+			"Confirm directory deletion",
+			YES_NO_OPTION,
+			WARNING_MESSAGE,
+			null,
+			arrayOf("Delete directory", "Cancel"),
+			"Delete directory")
+		when (response)
+		{
+			YES_OPTION ->
+			{
+				File(projectRoot.rootConfigDirectory).deleteRecursively()
+			}
+			NO_OPTION -> {}
+			else ->
+			{
+				println("Unknown response: $response")
+				return
 			}
 		}
 		// Refresh it visually to eliminate the root from the workbench.

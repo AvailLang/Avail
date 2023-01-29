@@ -108,11 +108,12 @@ constructor (
 			"jar" -> Scheme.JAR
 			else -> Scheme.FILE
 		}
+		val rootNameInJar = editor.rootNameInJar.selectedValue
 		val location = locationType.location(
 			workbench.projectHomeDirectory,
 			editor.relativePath(),
 			schema,
-			editor.rootNameInJar.selectedValue)
+			rootNameInJar)
 		val rootName = editor.nameField.text
 		val rootConfigPath = AvailEnvironment.projectRootConfigPath(
 			workbench.projectName,
@@ -120,16 +121,35 @@ constructor (
 			workbench.projectHomeDirectory)
 		workbench.availProject
 			.optionallyInitializeConfigDirectory(rootConfigPath)
+		var sg = StylingGroup()
+		var tg = TemplateGroup()
+		val extensions = mutableListOf<String>()
+		var description = ""
+		if (schema == Scheme.JAR && rootNameInJar.isNotBlank())
+		{
+			val jar = AvailArtifactJar(editor.chooser.selectedFile.toURI())
+			jar.manifest.roots[rootNameInJar]?.let {
+				sg = it.styles
+				tg = it.templates
+				extensions.addAll(it.availModuleExtensions)
+				description = it.description
+			}
+		}
 		val newProjectRoot = AvailProjectRoot(
 			rootConfigPath,
 			workbench.projectHomeDirectory,
 			rootName,
 			location,
 			LocalSettings(rootConfigPath),
-			StylingGroup(),
-			TemplateGroup(),
+			sg,
+			tg,
+			extensions,
 			editable = editor.editable.isSelected,
 			visible = editor.visible.isSelected)
+		newProjectRoot.description = description
+		newProjectRoot.saveLocalSettingsToDisk()
+		newProjectRoot.saveTemplatesToDisk()
+		newProjectRoot.saveStylesToDisk()
 		val project = workbench.availProject
 		project.addRoot(newProjectRoot)
 		// Update the runtime as well.

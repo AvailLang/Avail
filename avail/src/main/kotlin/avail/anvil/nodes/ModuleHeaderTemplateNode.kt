@@ -33,7 +33,7 @@
 package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.JSONFileEditor
+import avail.anvil.GenericFileEditor
 import java.io.File
 
 /**
@@ -69,7 +69,7 @@ class ModuleHeaderTemplateNode constructor(
 	{
 		workbench.openGenericFile(filePath)
 		{
-			JSONFileEditor(workbench, it, it)
+			GenericFileEditor(workbench, it)
 		}
 	}
 }

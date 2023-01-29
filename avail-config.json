@@ -21,14 +21,15 @@
 			},
 			"availModuleExtensions": [
 				"avail"
-			],
-			"moduleHeaders": [
-				{
-					"name": "Module Header w/ Copyright",
-					"filename": "module-header.txt",
-					"description": "Contains a copyright and the Avail module header."
-				}
 			]
+		}
+	],
+	"moduleHeaders":
+	[
+		{
+			"name": "Module Header w/ Copyright",
+			"fileName": "module-header.mhd",
+			"description": "Contains an Avail-specific copyright and the Avail module header."
 		}
 	]
 }

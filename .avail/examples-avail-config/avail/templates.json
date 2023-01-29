@@ -1,642 +1,647 @@
 {
-	"a":
+	"a": 
 	{
-		"expansion": "\u2200",
+		"expansion": "\u2200", 
 		"markedForArtifactInclusion": true
-	},
-	"bottom":
+	}, 
+	"bottom": 
 	{
-		"expansion": "\u22A5",
+		"expansion": "\u22A5", 
 		"markedForArtifactInclusion": true
-	},
-	"ceiling":
+	}, 
+	"ceiling": 
 	{
-		"expansion": "\u2308\u2041\u2309",
+		"expansion": "\u2308\u2041\u2309", 
 		"markedForArtifactInclusion": true
-	},
-	"celsius":
+	}, 
+	"celsius": 
 	{
-		"expansion": "\u2103",
+		"expansion": "\u2103", 
 		"markedForArtifactInclusion": true
-	},
-	"cent":
+	}, 
+	"cent": 
 	{
-		"expansion": "\u00A2",
+		"expansion": "\u00A2", 
 		"markedForArtifactInclusion": true
-	},
-	"conjunction":
+	}, 
+	"conjunction": 
 	{
-		"expansion": "\u2227",
+		"expansion": "\u2227", 
 		"markedForArtifactInclusion": true
-	},
-	"convert":
+	}, 
+	"convert": 
 	{
-		"expansion": "\u224D",
+		"expansion": "\u224D", 
 		"markedForArtifactInclusion": true
-	},
-	"copyright":
+	}, 
+	"copyright": 
 	{
-		"expansion": "\u00A9",
+		"expansion": "\u00A9", 
 		"markedForArtifactInclusion": true
-	},
-	"cubed":
+	}, 
+	"cubed": 
 	{
-		"expansion": "\u00B3",
+		"expansion": "\u00B3", 
 		"markedForArtifactInclusion": true
-	},
-	"degree":
+	}, 
+	"degree": 
 	{
-		"expansion": "\u00B0",
+		"expansion": "\u00B0", 
 		"markedForArtifactInclusion": true
-	},
-	"delta":
+	}, 
+	"delta": 
 	{
-		"expansion": "\u0394",
+		"expansion": "\u0394", 
 		"markedForArtifactInclusion": true
-	},
-	"disjunction":
+	}, 
+	"disjunction": 
 	{
-		"expansion": "\u2228",
+		"expansion": "\u2228", 
 		"markedForArtifactInclusion": true
-	},
-	"divide":
+	}, 
+	"divide": 
 	{
-		"expansion": "\u00F7",
+		"expansion": "\u00F7", 
 		"markedForArtifactInclusion": true
-	},
-	"dot":
+	}, 
+	"dot": 
 	{
-		"expansion": "\u00B7",
+		"expansion": "\u00B7", 
 		"markedForArtifactInclusion": true
-	},
-	"doubledagger":
+	}, 
+	"doubledagger": 
 	{
-		"expansion": "\u2021",
+		"expansion": "\u2021", 
 		"markedForArtifactInclusion": true
-	},
-	"doubleexclamation":
+	}, 
+	"doubleexclamation": 
 	{
-		"expansion": "\u203C",
+		"expansion": "\u203C", 
 		"markedForArtifactInclusion": true
-	},
-	"doublequestion":
+	}, 
+	"doublequestion": 
 	{
-		"expansion": "\u2047",
+		"expansion": "\u2047", 
 		"markedForArtifactInclusion": true
-	},
-	"doublequotes":
+	}, 
+	"doublequotes": 
 	{
-		"expansion": "\u201C\u2041\u201D",
+		"expansion": "\u201C\u2041\u201D", 
 		"markedForArtifactInclusion": true
-	},
-	"downarrow":
+	}, 
+	"downarrow": 
 	{
-		"expansion": "\u2193",
+		"expansion": "\u2193", 
 		"markedForArtifactInclusion": true
-	},
-	"downtack":
+	}, 
+	"downtack": 
 	{
-		"expansion": "\u22A4",
+		"expansion": "\u22A4", 
 		"markedForArtifactInclusion": true
-	},
-	"e":
+	}, 
+	"e": 
 	{
-		"expansion": "\u2203",
+		"expansion": "\u2203", 
 		"markedForArtifactInclusion": true
-	},
-	"elementof":
+	}, 
+	"elementof": 
 	{
-		"expansion": "\u2208",
+		"expansion": "\u2208", 
 		"markedForArtifactInclusion": true
-	},
-	"ellipsis":
+	}, 
+	"ellipsis": 
 	{
-		"expansion": "\u2026",
+		"expansion": "\u2026", 
 		"markedForArtifactInclusion": true
-	},
-	"endash":
+	}, 
+	"endash": 
 	{
-		"expansion": "\u2013",
+		"expansion": "\u2013", 
 		"markedForArtifactInclusion": true
-	},
-	"emdash":
+	}, 
+	"emdash": 
 	{
-		"expansion": "\u2014",
+		"expansion": "\u2014", 
 		"markedForArtifactInclusion": true
-	},
-	"emptyset":
+	}, 
+	"emptyset": 
 	{
-		"expansion": "\u2205",
+		"expansion": "\u2205", 
 		"markedForArtifactInclusion": true
-	},
-	"enumeration":
+	}, 
+	"enumeration": 
 	{
-		"expansion": "{\u2041}\u1D40",
+		"expansion": "{\u2041}\u1D40", 
 		"markedForArtifactInclusion": true
-	},
-	"equivalent":
+	}, 
+	"equivalent": 
 	{
-		"expansion": "\u224D",
+		"expansion": "\u224D", 
 		"markedForArtifactInclusion": true
-	},
-	"exists":
+	}, 
+	"exists": 
 	{
-		"expansion": "\u2203",
+		"expansion": "\u2203", 
 		"markedForArtifactInclusion": true
-	},
-	"floor":
+	}, 
+	"floor": 
 	{
-		"expansion": "\u230A\u2041\u230B",
+		"expansion": "\u230A\u2041\u230B", 
 		"markedForArtifactInclusion": true
-	},
-	"forall":
+	}, 
+	"forall": 
 	{
-		"expansion": "\u2200",
+		"expansion": "\u2200", 
 		"markedForArtifactInclusion": true
-	},
-	"gte":
+	}, 
+	"gte": 
 	{
-		"expansion": "\u2265",
+		"expansion": "\u2265", 
 		"markedForArtifactInclusion": true
-	},
-	"guillemets":
+	}, 
+	"guillemets": 
 	{
-		"expansion": "\u00AB\u2041\u00BB",
+		"expansion": "\u00AB\u2041\u00BB", 
 		"markedForArtifactInclusion": true
-	},
-	"infinity":
+	}, 
+	"infinity": 
 	{
-		"expansion": "\u221E",
+		"expansion": "\u221E", 
 		"markedForArtifactInclusion": true
-	},
-	"interpunct":
+	}, 
+	"interpunct": 
 	{
-		"expansion": "\u2022",
+		"expansion": "\u2022", 
 		"markedForArtifactInclusion": true
-	},
-	"intersection":
+	}, 
+	"intersection": 
 	{
-		"expansion": "\u2229",
+		"expansion": "\u2229", 
 		"markedForArtifactInclusion": true
-	},
-	"leftarrow":
+	}, 
+	"leftarrow": 
 	{
-		"expansion": "\u2190",
+		"expansion": "\u2190", 
 		"markedForArtifactInclusion": true
-	},
-	"leftceiling":
+	}, 
+	"leftceiling": 
 	{
-		"expansion": "\u2308",
+		"expansion": "\u2308", 
 		"markedForArtifactInclusion": true
-	},
-	"leftdoublequote":
+	}, 
+	"leftdoublequote": 
 	{
-		"expansion": "\u201C",
+		"expansion": "\u201C", 
 		"markedForArtifactInclusion": true
-	},
-	"leftfloor":
+	}, 
+	"leftfloor": 
 	{
-		"expansion": "\u230A",
+		"expansion": "\u230A", 
 		"markedForArtifactInclusion": true
-	},
-	"leftguillemet":
+	}, 
+	"leftguillemet": 
 	{
-		"expansion": "\u00AB",
+		"expansion": "\u00AB", 
 		"markedForArtifactInclusion": true
-	},
-	"leftquote":
+	}, 
+	"leftquote": 
 	{
-		"expansion": "\u27E6",
+		"expansion": "\u27E6", 
 		"markedForArtifactInclusion": true
-	},
-	"leftsinglequote":
+	}, 
+	"leftsinglequote": 
 	{
-		"expansion": "\u2018",
+		"expansion": "\u2018", 
 		"markedForArtifactInclusion": true
-	},
-	"leftunquote":
+	}, 
+	"leftunquote": 
 	{
-		"expansion": "\u298A",
+		"expansion": "\u298A", 
 		"markedForArtifactInclusion": true
-	},
-	"lte":
+	}, 
+	"lte": 
 	{
-		"expansion": "\u2264",
+		"expansion": "\u2264", 
 		"markedForArtifactInclusion": true
-	},
-	"manicule":
+	}, 
+	"manicule": 
 	{
-		"expansion": "\uD83D\uDC49",
+		"expansion": "\uD83D\uDC49", 
 		"markedForArtifactInclusion": true
-	},
-	"map":
+	}, 
+	"map": 
 	{
-		"expansion": "{\u2041}",
+		"expansion": "{\u2041}", 
 		"markedForArtifactInclusion": true
-	},
-	"maplet":
+	}, 
+	"maplet": 
 	{
-		"expansion": "\u21A6",
+		"expansion": "\u21A6", 
 		"markedForArtifactInclusion": true
-	},
-	"mdash":
+	}, 
+	"mdash": 
 	{
-		"expansion": "\u2014",
+		"expansion": "\u2014", 
 		"markedForArtifactInclusion": true
-	},
-	"memberof":
+	}, 
+	"memberof": 
 	{
-		"expansion": "\u2208",
+		"expansion": "\u2208", 
 		"markedForArtifactInclusion": true
-	},
-	"mu":
+	}, 
+	"mu": 
 	{
-		"expansion": "\u00B5",
+		"expansion": "\u00B5", 
 		"markedForArtifactInclusion": true
-	},
-	"ndash":
+	}, 
+	"ndash": 
 	{
-		"expansion": "\u2013",
+		"expansion": "\u2013", 
 		"markedForArtifactInclusion": true
-	},
-	"ne":
+	}, 
+	"ne": 
 	{
-		"expansion": "\u2260",
+		"expansion": "\u2260", 
 		"markedForArtifactInclusion": true
-	},
-	"not":
+	}, 
+	"not": 
 	{
-		"expansion": "\u00AC",
+		"expansion": "\u00AC", 
 		"markedForArtifactInclusion": true
-	},
-	"notelementof":
+	}, 
+	"notelementof": 
 	{
-		"expansion": "\u2209",
+		"expansion": "\u2209", 
 		"markedForArtifactInclusion": true
-	},
-	"notmemberof":
+	}, 
+	"notmemberof": 
 	{
-		"expansion": "\u2209",
+		"expansion": "\u2209", 
 		"markedForArtifactInclusion": true
-	},
-	"notsubsetorequal":
+	}, 
+	"notsubsetorequal": 
 	{
-		"expansion": "\u2288",
+		"expansion": "\u2288", 
 		"markedForArtifactInclusion": true
-	},
-	"notsupersetorequal":
+	}, 
+	"notsupersetorequal": 
 	{
-		"expansion": "\u2289",
+		"expansion": "\u2289", 
 		"markedForArtifactInclusion": true
-	},
-	"o1":
+	}, 
+	"o1": 
 	{
-		"expansion": "\u2460",
+		"expansion": "\u2460", 
 		"markedForArtifactInclusion": true
-	},
-	"o2":
+	}, 
+	"o2": 
 	{
-		"expansion": "\u2461",
+		"expansion": "\u2461", 
 		"markedForArtifactInclusion": true
-	},
-	"o3":
+	}, 
+	"o3": 
 	{
-		"expansion": "\u2462",
+		"expansion": "\u2462", 
 		"markedForArtifactInclusion": true
-	},
-	"o4":
+	}, 
+	"o4": 
 	{
-		"expansion": "\u2463",
+		"expansion": "\u2463", 
 		"markedForArtifactInclusion": true
-	},
-	"o5":
+	}, 
+	"o5": 
 	{
-		"expansion": "\u2464",
+		"expansion": "\u2464", 
 		"markedForArtifactInclusion": true
-	},
-	"o6":
+	}, 
+	"o6": 
 	{
-		"expansion": "\u2465",
+		"expansion": "\u2465", 
 		"markedForArtifactInclusion": true
-	},
-	"o7":
+	}, 
+	"o7": 
 	{
-		"expansion": "\u2466",
+		"expansion": "\u2466", 
 		"markedForArtifactInclusion": true
-	},
-	"o8":
+	}, 
+	"o8": 
 	{
-		"expansion": "\u2467",
+		"expansion": "\u2467", 
 		"markedForArtifactInclusion": true
-	},
-	"o9":
+	}, 
+	"o9": 
 	{
-		"expansion": "\u2468",
+		"expansion": "\u2468", 
 		"markedForArtifactInclusion": true
-	},
-	"pi":
+	}, 
+	"pi": 
 	{
-		"expansion": "\u03C0",
+		"expansion": "\u03C0", 
 		"markedForArtifactInclusion": true
-	},
-	"picapital":
+	}, 
+	"picapital": 
 	{
-		"expansion": "\u220F",
+		"expansion": "\u220F", 
 		"markedForArtifactInclusion": true
-	},
-	"plusminus":
+	}, 
+	"plusminus": 
 	{
-		"expansion": "\u00B1",
+		"expansion": "\u00B1", 
 		"markedForArtifactInclusion": true
-	},
-	"prefix":
+	}, 
+	"prefix": 
 	{
-		"expansion": "\u00A7",
+		"expansion": "\u00A7", 
 		"markedForArtifactInclusion": true
-	},
-	"propersubset":
+	}, 
+	"propersubset": 
 	{
-		"expansion": "⊂",
+		"expansion": "\u2282", 
 		"markedForArtifactInclusion": true
-	},
-	"propersuperset":
+	}, 
+	"propersuperset": 
 	{
-		"expansion": "⊃",
+		"expansion": "\u2283", 
 		"markedForArtifactInclusion": true
-	},
-	"quote":
+	}, 
+	"quote": 
 	{
-		"expansion": "\u27E6\u2041\u27E7",
+		"expansion": "\u27E6\u2041\u27E7", 
 		"markedForArtifactInclusion": true
-	},
-	"rightarrow":
+	}, 
+	"rightarrow": 
 	{
-		"expansion": "\u2192",
+		"expansion": "\u2192", 
 		"markedForArtifactInclusion": true
-	},
-	"rightceiling":
+	}, 
+	"rightceiling": 
 	{
-		"expansion": "\u2309",
+		"expansion": "\u2309", 
 		"markedForArtifactInclusion": true
-	},
-	"rightdoublequote":
+	}, 
+	"rightdoublequote": 
 	{
-		"expansion": "\u201D",
+		"expansion": "\u201D", 
 		"markedForArtifactInclusion": true
-	},
-	"rightfloor":
+	}, 
+	"rightfloor": 
 	{
-		"expansion": "\u230B",
+		"expansion": "\u230B", 
 		"markedForArtifactInclusion": true
-	},
-	"rightguillemet":
+	}, 
+	"rightguillemet": 
 	{
-		"expansion": "\u00BB",
+		"expansion": "\u00BB", 
 		"markedForArtifactInclusion": true
-	},
-	"rightquote":
+	}, 
+	"rightquote": 
 	{
-		"expansion": "\u27E7",
+		"expansion": "\u27E7", 
 		"markedForArtifactInclusion": true
-	},
-	"rightsinglequote":
+	}, 
+	"rightsinglequote": 
 	{
-		"expansion": "\u2019",
+		"expansion": "\u2019", 
 		"markedForArtifactInclusion": true
-	},
-	"rightunquote":
+	}, 
+	"rightunquote": 
 	{
-		"expansion": "\u2989",
+		"expansion": "\u2989", 
 		"markedForArtifactInclusion": true
-	},
-	"root":
+	}, 
+	"root": 
 	{
-		"expansion": "\u221A",
+		"expansion": "\u221A", 
 		"markedForArtifactInclusion": true
-	},
-	"section":
+	}, 
+	"section": 
 	{
-		"expansion": "\u00A7",
+		"expansion": "\u00A7", 
 		"markedForArtifactInclusion": true
-	},
-	"set":
+	}, 
+	"set": 
 	{
-		"expansion": "{\u2041}",
+		"expansion": "{\u2041}", 
 		"markedForArtifactInclusion": true
-	},
-	"sigma":
+	}, 
+	"sigma": 
 	{
-		"expansion": "\u2211",
+		"expansion": "\u2211", 
 		"markedForArtifactInclusion": true
-	},
-	"singledagger":
+	}, 
+	"singledagger": 
 	{
-		"expansion": "\u2020",
+		"expansion": "\u2020", 
 		"markedForArtifactInclusion": true
-	},
-	"singlequotes":
+	}, 
+	"singlequotes": 
 	{
-		"expansion": "\u2018\u2041\u2019",
+		"expansion": "\u2018\u2041\u2019", 
 		"markedForArtifactInclusion": true
-	},
-	"squared":
+	}, 
+	"squared": 
 	{
-		"expansion": "\u00B2",
+		"expansion": "\u00B2", 
 		"markedForArtifactInclusion": true
-	},
-	"subsetorequal":
+	}, 
+	"subsetorequal": 
 	{
-		"expansion": "\u2286",
+		"expansion": "\u2286", 
 		"markedForArtifactInclusion": true
-	},
-	"sum":
+	}, 
+	"sum": 
 	{
-		"expansion": "\u2211",
+		"expansion": "\u2211", 
 		"markedForArtifactInclusion": true
-	},
-	"supersetorequal":
+	}, 
+	"supersetorequal": 
 	{
-		"expansion": "\u2287",
+		"expansion": "\u2287", 
 		"markedForArtifactInclusion": true
-	},
-	"supert":
+	}, 
+	"supert": 
 	{
-		"expansion": "\u1D40",
+		"expansion": "\u1D40", 
 		"markedForArtifactInclusion": true
-	},
-	"swoop":
+	}, 
+	"swoop": 
 	{
-		"expansion": "\u2937",
+		"expansion": "\u2937", 
 		"markedForArtifactInclusion": true
-	},
-	"t":
+	}, 
+	"t": 
 	{
-		"expansion": "\u1D40",
+		"expansion": "\u1D40", 
 		"markedForArtifactInclusion": true
-	},
-	"thereexists":
+	}, 
+	"thereexists": 
 	{
-		"expansion": "\u2203",
+		"expansion": "\u2203", 
 		"markedForArtifactInclusion": true
-	},
-	"thinspace":
+	}, 
+	"thinspace": 
 	{
-		"expansion": "\u2009",
+		"expansion": "\u2009", 
 		"markedForArtifactInclusion": true
-	},
-	"times":
+	}, 
+	"times": 
 	{
-		"expansion": "\u00D7",
+		"expansion": "\u00D7", 
 		"markedForArtifactInclusion": true
-	},
-	"top":
+	}, 
+	"top": 
 	{
-		"expansion": "\u22A4",
+		"expansion": "\u22A4", 
 		"markedForArtifactInclusion": true
-	},
-	"tuple":
+	}, 
+	"tuple": 
 	{
-		"expansion": "<\u2041>",
+		"expansion": "<\u2041>", 
 		"markedForArtifactInclusion": true
-	},
-	"union":
+	}, 
+	"union": 
 	{
-		"expansion": "\u222A",
+		"expansion": "\u222A", 
 		"markedForArtifactInclusion": true
-	},
-	"unquote":
+	}, 
+	"unquote": 
 	{
-		"expansion": "\u298A\u2041\u2989",
+		"expansion": "\u298A\u2041\u2989", 
 		"markedForArtifactInclusion": true
-	},
-	"uparrow":
+	}, 
+	"uparrow": 
 	{
-		"expansion": "\u2191",
+		"expansion": "\u2191", 
 		"markedForArtifactInclusion": true
-	},
-	"uptack":
+	}, 
+	"uptack": 
 	{
-		"expansion": "\u22A5",
+		"expansion": "\u22A5", 
 		"markedForArtifactInclusion": true
-	},
-	"xor":
+	}, 
+	"xor": 
 	{
-		"expansion": "\u2295",
+		"expansion": "\u2295", 
 		"markedForArtifactInclusion": true
-	},
-	"yields":
+	}, 
+	"yields": 
 	{
-		"expansion": "\u21D2",
+		"expansion": "\u21D2", 
 		"markedForArtifactInclusion": true
-	},
-	"1":
+	}, 
+	"1": 
 	{
-		"expansion": "\u00B9",
+		"expansion": "\u00B9", 
 		"markedForArtifactInclusion": true
-	},
-	"2":
+	}, 
+	"2": 
 	{
-		"expansion": "\u00B2",
+		"expansion": "\u00B2", 
 		"markedForArtifactInclusion": true
-	},
-	"3":
+	}, 
+	"3": 
 	{
-		"expansion": "\u00B3",
+		"expansion": "\u00B3", 
 		"markedForArtifactInclusion": true
-	},
-	"4":
+	}, 
+	"4": 
 	{
-		"expansion": "\u2074",
+		"expansion": "\u2074", 
 		"markedForArtifactInclusion": true
-	},
-	"5":
+	}, 
+	"5": 
 	{
-		"expansion": "\u2075",
+		"expansion": "\u2075", 
 		"markedForArtifactInclusion": true
-	},
-	"6":
+	}, 
+	"6": 
 	{
-		"expansion": "\u2076",
+		"expansion": "\u2076", 
 		"markedForArtifactInclusion": true
-	},
-	"7":
+	}, 
+	"7": 
 	{
-		"expansion": "\u2077",
+		"expansion": "\u2077", 
 		"markedForArtifactInclusion": true
-	},
-	"8":
+	}, 
+	"8": 
 	{
-		"expansion": "\u2078",
+		"expansion": "\u2078", 
 		"markedForArtifactInclusion": true
-	},
-	"9":
+	}, 
+	"9": 
 	{
-		"expansion": "\u2079",
+		"expansion": "\u2079", 
 		"markedForArtifactInclusion": true
-	},
-	"->":
+	}, 
+	"->": 
 	{
-		"expansion": "\u2192",
+		"expansion": "\u2192", 
 		"markedForArtifactInclusion": true
-	},
-	"=>":
+	}, 
+	"=>": 
 	{
-		"expansion": "\u21D2",
+		"expansion": "\u21D2", 
 		"markedForArtifactInclusion": true
-	},
-	"<-":
+	}, 
+	"<-": 
 	{
-		"expansion": "\u2190",
+		"expansion": "\u2190", 
 		"markedForArtifactInclusion": true
-	},
-	"*":
+	}, 
+	"*": 
 	{
-		"expansion": "\u00D7",
+		"expansion": "\u00D7", 
 		"markedForArtifactInclusion": true
-	},
-	"/":
+	}, 
+	"/": 
 	{
-		"expansion": "\u00F7",
+		"expansion": "\u00F7", 
 		"markedForArtifactInclusion": true
-	},
-	"<=":
+	}, 
+	"<=": 
 	{
-		"expansion": "\u2264",
+		"expansion": "\u2264", 
 		"markedForArtifactInclusion": true
-	},
-	">=":
+	}, 
+	">=": 
 	{
-		"expansion": "\u2265",
+		"expansion": "\u2265", 
 		"markedForArtifactInclusion": true
-	},
-	"!":
+	}, 
+	"!": 
 	{
-		"expansion": "\u00AC",
+		"expansion": "\u00AC", 
 		"markedForArtifactInclusion": true
-	},
-	"!!":
+	}, 
+	"!!": 
 	{
-		"expansion": "\u203C",
+		"expansion": "\u203C", 
 		"markedForArtifactInclusion": true
-	},
-	"!=":
+	}, 
+	"!=": 
 	{
-		"expansion": "\u2260",
+		"expansion": "\u2260", 
 		"markedForArtifactInclusion": true
-	},
-	"...":
+	}, 
+	"...": 
 	{
-		"expansion": "\u2026",
+		"expansion": "\u2026", 
 		"markedForArtifactInclusion": true
-	},
-	"??":
+	}, 
+	"??": 
 	{
-		"expansion": "\u2047",
+		"expansion": "\u2047", 
 		"markedForArtifactInclusion": true
-	},
-	"/**":
+	}, 
+	"/**": 
 	{
-		"expansion": "/**\n * \u2041\n */",
+		"expansion": "/**\n * \u2041\n */", 
+		"markedForArtifactInclusion": true
+	}, 
+	"qq": 
+	{
+		"expansion": "qqqq", 
 		"markedForArtifactInclusion": true
 	}
 }
