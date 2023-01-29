@@ -35,7 +35,7 @@ package avail.anvil
 import avail.anvil.shortcuts.KeyboardShortcut
 
 /**
- * An abstract [CodeEditor] for an JSON file.
+ * An abstract [FileEditor] for an JSON file.
  *
  * @author Richard Arriaga
  *
@@ -54,7 +54,7 @@ abstract class AbstractJSONFileEditor<CE> constructor(
 	fileLocation: String,
 	frameTitle: String,
 	afterTextLoaded: (CE) -> Unit = {}
-) : CodeEditor<CE>(workbench, fileLocation, frameTitle)
+) : FileEditor<CE>(workbench, fileLocation, frameTitle)
 {
 	override val shortcuts: List<KeyboardShortcut> = listOf()
 

@@ -33,7 +33,7 @@
 package avail.anvil.settings.editor
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.CodeEditor
+import avail.anvil.FileEditor
 import avail.anvil.shortcuts.KeyboardShortcut
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
@@ -60,7 +60,7 @@ class ModuleHeaderTemplateEditor constructor(
 	fileLocation: String,
 	override val autoSave: Boolean = false,
 	afterTextLoaded: (ModuleHeaderTemplateEditor) -> Unit = {}
-) : CodeEditor<ModuleHeaderTemplateEditor>(workbench, fileLocation, fileLocation)
+) : FileEditor<ModuleHeaderTemplateEditor>(workbench, fileLocation, fileLocation)
 {
 	override val shortcuts: List<KeyboardShortcut> = listOf()
 

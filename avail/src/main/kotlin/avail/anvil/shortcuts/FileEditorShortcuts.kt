@@ -1,6 +1,6 @@
 /*
- * GenericFileEditor.kt
- * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * FileEditorShortcuts.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,54 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil
+package avail.anvil.shortcuts
 
-import avail.anvil.shortcuts.KeyboardShortcut
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
+import avail.anvil.FileEditor
+import avail.anvil.editor.GoToDialog
+import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
+
 
 /**
- * An editor for a generic file.
+ * A [KeyboardShortcut] that is used in the [FileEditor].
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct an [GenericFileEditor].
+ * Construct a [FileEditorShortcut].
  *
- * @param workbench
- *   The owning [AvailWorkbench].
- * @param fileLocation
- *   The absolute path of the source code file.
- * @param autoSave
- *   Whether to auto save the backing file to disk after changes.
- * @param afterTextLoaded
- *   Action to perform after text has been loaded to [sourcePane].
+ * @param defaultKey
+ *   The default [Key] when pressed triggers this shortcut.
+ * @param key
+ *   The [Key] used for this shortcut. Defaults to `defaultKey`.
  */
-class GenericFileEditor constructor(
-	workbench: AvailWorkbench,
-	fileLocation: String,
-	override val autoSave: Boolean = false,
-	afterTextLoaded: (GenericFileEditor) -> Unit = {}
-) : FileEditor<GenericFileEditor>(workbench, fileLocation, fileLocation)
+sealed class FileEditorShortcut constructor(
+	override val defaultKey: Key,
+	override var key: Key = defaultKey
+): KeyboardShortcut()
 {
-	override val shortcuts: List<KeyboardShortcut> = listOf()
+	override val category: KeyboardShortcutCategory
+		get() = KeyboardShortcutCategory.AVAIL_EDITOR
+}
 
-	init
-	{
-		finalizeInitialization(afterTextLoaded)
-		addWindowListener(object : WindowAdapter()
-		{
-			override fun windowClosing(e: WindowEvent?)
-			{
-				workbench.openFileEditors.remove(fileLocation)
-			}
-		})
-	}
-
-	override fun populateSourcePane(then: (GenericFileEditor)->Unit)
-	{
-		highlightCode()
-		// TODO move code population here
-		then(this)
-	}
+/**
+ * The [FileEditorShortcut] to open the [GoToDialog].
+ *
+ * @author Richard Arriaga
+ */
+object SaveShortcut
+	: FileEditorShortcut(KeyCode.VK_S.with(menuShortcutKeyMaskEx))
+{
+	override val actionMapKey: String = "save-file"
+	override val description: String = "Save the file in the code editor to disk"
 }

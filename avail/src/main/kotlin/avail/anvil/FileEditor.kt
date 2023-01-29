@@ -1,5 +1,5 @@
 /*
- * CodeEditor.kt
+ * FileEditor.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,14 +34,17 @@ package avail.anvil
 
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.actions.FindAction
+import avail.anvil.shortcuts.FileEditorShortcut
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.text.CodePane
+import avail.anvil.text.FileEditorKit
 import avail.anvil.text.MarkToDotRange
 import avail.anvil.text.markToDotRange
 import avail.anvil.window.LayoutConfiguration
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.event.ActionEvent
 import java.awt.event.WindowListener
 import java.io.File
 import java.util.TimerTask
@@ -49,6 +52,7 @@ import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextPane
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
@@ -58,17 +62,17 @@ import javax.swing.text.StyleConstants
 import kotlin.math.max
 
 /**
- * An editor for an arbitrary source code.
+ * An editor for an arbitrary text files.
  *
  * @author Richard Arriaga
  *
  * @param CE
- *   The concrete final type of this [CodeEditor].
+ *   The concrete final type of this [FileEditor].
  * @property fileLocation
  *   The absolute path of the source code file.
  *
  * @constructor
- * Construct an [CodeEditor].
+ * Construct an [FileEditor].
  *
  * @param workbench
  *   The active [AvailWorkbench].
@@ -77,7 +81,7 @@ import kotlin.math.max
  * @param frameTitle
  *   The [JFrame.title].
  */
-abstract class CodeEditor<CE> constructor(
+abstract class FileEditor<CE> constructor(
 	final override val workbench: AvailWorkbench,
 	protected val fileLocation: String,
 	frameTitle: String
@@ -107,7 +111,7 @@ abstract class CodeEditor<CE> constructor(
 	private var lastSaveTime = 0L
 
 	/**
-	 * The list of [KeyboardShortcut] specific to this [CodeEditor] type.
+	 * The list of [KeyboardShortcut] specific to this [FileEditor] type.
 	 */
 	protected abstract val shortcuts: List<KeyboardShortcut>
 
@@ -126,7 +130,10 @@ abstract class CodeEditor<CE> constructor(
 	private val caretRangeLabel = JLabel()
 
 	/** The editor pane. */
-	internal val sourcePane = CodePane(workbench).apply {
+	internal val sourcePane = CodePane(
+		workbench,
+		kit = FileEditorKit(workbench)
+	).apply {
 		addCaretListener {
 			val doc = styledDocument
 			range = markToDotRange()
@@ -145,17 +152,23 @@ abstract class CodeEditor<CE> constructor(
 			caretRangeLabel.text = "$styleName $range"
 		}
 
+		// To add a new shortcut, add it as a subtype of the sealed class
+		// FileEditorShortcut.
+		FileEditorShortcut::class.sealedSubclasses.forEach {
+			it.objectInstance?.addToInputMap(inputMap)
+		}
 		document.addDocumentListener(object : DocumentListener
 		{
 			override fun insertUpdate(e: DocumentEvent) = editorChanged()
 			override fun changedUpdate(e: DocumentEvent) = editorChanged()
 			override fun removeUpdate(e: DocumentEvent) = editorChanged()
 		})
+		putClientProperty(generalFileEditor, this@FileEditor)
 		text = File(fileLocation).readText()
 	}
 
 	/**
-	 * Refresh the [KeyboardShortcut]s for this [CodeEditor].
+	 * Refresh the [KeyboardShortcut]s for this [FileEditor].
 	 */
 	fun refreshShortcuts ()
 	{
@@ -220,6 +233,13 @@ abstract class CodeEditor<CE> constructor(
 		}
 	}
 
+	fun save ()
+	{
+		SwingUtilities.invokeLater {
+			forceWrite()
+		}
+	}
+
 	/**
 	 * Cause the modified module to be written to disk soon.
 	 * Only call within the Swing UI thread.
@@ -272,18 +292,18 @@ abstract class CodeEditor<CE> constructor(
 		jMenuBar = createMenuBar {
 			menu("Edit")
 			{
-				item(FindAction(workbench, this@CodeEditor))
+				item(FindAction(workbench, this@FileEditor))
 			}
-			addWindowMenu(this@CodeEditor)
+			addWindowMenu(this@FileEditor)
 		}
 		setLocationRelativeTo(workbench)
 	}
 
 	/**
-	 * Finalize the initialization of this [CodeEditor].
+	 * Finalize the initialization of this [FileEditor].
 	 *
 	 * @param afterTextLoaded
-	 *   Action that accepts this [CodeEditor] to perform after text has been
+	 *   Action that accepts this [FileEditor] to perform after text has been
 	 *   loaded to [sourcePane].
 	 */
 	protected fun finalizeInitialization (afterTextLoaded: (CE)->Unit = {})
@@ -338,5 +358,16 @@ abstract class CodeEditor<CE> constructor(
 	final override fun pack()
 	{
 		super.pack()
+	}
+
+	companion object
+	{
+		/** The client property key for a [FileEditor] from a [JTextPane]. */
+		const val generalFileEditor = "file-editor"
+
+		/** The [FileEditor] that sourced the [receiver][ActionEvent]. */
+		internal val ActionEvent.fileEditor get() =
+			(source as JTextPane).getClientProperty(generalFileEditor)
+				as FileEditor<*>
 	}
 }

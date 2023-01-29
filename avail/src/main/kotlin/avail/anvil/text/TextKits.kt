@@ -35,6 +35,8 @@ package avail.anvil.text
 import avail.anvil.AvailEditor
 import avail.anvil.AvailEditor.Companion.editor
 import avail.anvil.AvailWorkbench
+import avail.anvil.FileEditor
+import avail.anvil.FileEditor.Companion.fileEditor
 import avail.anvil.RenderingContext
 import avail.anvil.Stylesheet
 import avail.anvil.editor.GoToDialog
@@ -61,6 +63,7 @@ import avail.anvil.shortcuts.PrintAllRenderingSolutionsShortcut
 import avail.anvil.shortcuts.RedoShortcut
 import avail.anvil.shortcuts.RefreshShortcut
 import avail.anvil.shortcuts.RefreshStylesheetShortcut
+import avail.anvil.shortcuts.SaveShortcut
 import avail.anvil.shortcuts.SnakeCaseShortcut
 import avail.anvil.shortcuts.UndoShortcut
 import avail.anvil.shortcuts.UppercaseShortcut
@@ -144,6 +147,25 @@ open class CodeKit constructor(
  * An [EditorKit] that supports editing an Avail source module.
  *
  * @author Todd L Smith &lt;todd@availlong.org&gt;
+ *
+ * @constructor
+ *
+ * Construct an [AvailEditorKit].
+ *
+ * @param workbench
+ *   The associated [AvailWorkbench].
+ */
+class FileEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
+{
+	override val defaultActions = super.defaultActions + arrayOf<Action>(
+		SaveFile
+	)
+}
+
+/**
+ * A [CodeKit] that supports editing files in a [FileEditor].
+ *
+ * @author Richard Arriaga
  *
  * @constructor
  *
@@ -459,6 +481,17 @@ private object Refresh: TextAction(RefreshShortcut.actionMapKey)
 		workbench.availBuilder.checkStableInvariants()
 		workbench.setEnablements()
 		buildTask.execute()
+	}
+}
+
+/**
+ * Save the open [FileEditor]'s file to disk.
+ */
+private object SaveFile: TextAction(SaveShortcut.actionMapKey)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		e.fileEditor.save()
 	}
 }
 

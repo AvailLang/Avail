@@ -833,21 +833,21 @@ class AvailWorkbench internal constructor(
 	var templateExpansionManager: TemplateExpansionsManager? = null
 
 	/**
-	 * The map from the absolute path to a file to a [CodeEditor].
+	 * The map from the absolute path to a file to a [FileEditor].
 	 */
-	internal val openFileEditors = mutableMapOf<String, CodeEditor<*>>()
+	internal val openFileEditors = ConcurrentHashMap<String, FileEditor<*>>()
 
 	/**
-	 * Open the file in a [CodeEditor] at the indicated file path.
+	 * Open the file in a [FileEditor] at the indicated file path.
 	 *
 	 * @param path
 	 *   The absolute path to the file to open.
 	 * @param creator
-	 *   A lambda that creates the [CodeEditor] if not already open.
+	 *   A lambda that creates the [FileEditor] if not already open.
 	 */
 	internal fun openFileEditor (
 		path: String,
-		creator: (String) -> CodeEditor<*>)
+		creator: (String) -> FileEditor<*>)
 	{
 		val f = File(path)
 		if (!f.exists() || f.isDirectory) return
