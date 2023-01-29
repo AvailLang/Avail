@@ -1,5 +1,5 @@
 /*
- * JSONFileEditor.kt
+ * ArtifactPlansFileEditor.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,24 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil
+package avail.anvil.settings.editor
 
+import avail.anvil.AbstractJSONFileEditor
+import avail.anvil.AvailWorkbench
 import avail.anvil.shortcuts.KeyboardShortcut
+import org.availlang.artifact.AvailArtifactBuildPlan
+import org.availlang.artifact.AvailArtifactBuildPlan.Companion.ARTIFACT_PLANS_FILE
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.io.File
 
 /**
- * An [AbstractJSONFileEditor] for a generic JSON file.
+ * An [AbstractJSONFileEditor] for a [AvailArtifactBuildPlan]s file.
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct an [JSONFileEditor].
+ * Construct an [ArtifactPlansFileEditor].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param filePath
- *   The path to the file.
  * @param frameTitle
  *   The window title.
  * @param autoSave
@@ -55,15 +58,14 @@ import java.awt.event.WindowEvent
  * @param afterTextLoaded
  *   Action to perform after text has been loaded to [sourcePane].
  */
-class JSONFileEditor constructor(
+class ArtifactPlansFileEditor constructor(
 	workbench: AvailWorkbench,
-	filePath: String,
 	frameTitle: String,
 	override val autoSave: Boolean = false,
-	afterTextLoaded: (JSONFileEditor) -> Unit = {}
-) : AbstractJSONFileEditor<JSONFileEditor>(
+	afterTextLoaded: (ArtifactPlansFileEditor) -> Unit = {}
+) : AbstractJSONFileEditor<ArtifactPlansFileEditor>(
 	workbench,
-	filePath,
+	"${workbench.projectConfigDirectory}${File.separator}$ARTIFACT_PLANS_FILE",
 	frameTitle,
 	afterTextLoaded)
 {
@@ -82,7 +84,7 @@ class JSONFileEditor constructor(
 		})
 	}
 
-	override fun populateSourcePane(then: (JSONFileEditor)->Unit)
+	override fun populateSourcePane(then: (ArtifactPlansFileEditor)->Unit)
 	{
 		highlightCode()
 		// TODO move code population here

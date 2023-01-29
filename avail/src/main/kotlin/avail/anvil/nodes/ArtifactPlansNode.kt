@@ -1,5 +1,5 @@
 /*
- * ModuleRootNode.kt
+ * ArtifactPlansNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.JSONFileEditor
+import avail.anvil.settings.editor.ArtifactPlansFileEditor
 import org.availlang.artifact.AvailArtifactBuildPlan
 import org.availlang.artifact.environment.project.AvailProject
 
@@ -65,9 +65,9 @@ class ArtifactPlansNode constructor(
 
 	override fun open()
 	{
-		workbench.openGenericFile(filePath)
+		workbench.openFileEditor(filePath)
 		{
-			JSONFileEditor(workbench, it, it)
+			ArtifactPlansFileEditor(workbench, it)
 		}
 	}
 }

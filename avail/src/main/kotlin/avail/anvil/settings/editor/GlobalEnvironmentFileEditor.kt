@@ -1,21 +1,21 @@
 /*
- * AvailEditor.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * GlobalEnvironmentFileEditor.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,21 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.settings
+package avail.anvil.settings.editor
 
 import avail.anvil.AbstractJSONFileEditor
 import avail.anvil.AvailWorkbench
+import avail.anvil.environment.GlobalEnvironmentSettings
+import avail.anvil.environment.environmentConfigFile
 import avail.anvil.shortcuts.KeyboardShortcut
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 
 /**
- * An [AbstractJSONFileEditor] for an Avail project file.
+ * An [AbstractJSONFileEditor] for an Avail [GlobalEnvironmentSettings] file.
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct an [ProjectFileEditor].
+ * Construct an [GlobalEnvironmentFileEditor].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
@@ -53,14 +55,14 @@ import java.awt.event.WindowEvent
  * @param afterTextLoaded
  *   Action to perform after text has been loaded to [sourcePane].
  */
-class ProjectFileEditor constructor(
+class GlobalEnvironmentFileEditor constructor(
 	workbench: AvailWorkbench,
 	override val autoSave: Boolean = false,
-	afterTextLoaded: (ProjectFileEditor) -> Unit = {}
-) : AbstractJSONFileEditor<ProjectFileEditor>(
+	afterTextLoaded: (GlobalEnvironmentFileEditor) -> Unit = {}
+) : AbstractJSONFileEditor<GlobalEnvironmentFileEditor>(
 	workbench,
-	workbench.availProjectFilePath,
-	"Project: ${workbench.availProject.name}",
+	environmentConfigFile,
+	"Global Environment Settings",
 	afterTextLoaded)
 {
 	override val shortcuts: List<KeyboardShortcut> = listOf()
@@ -78,7 +80,7 @@ class ProjectFileEditor constructor(
 		})
 	}
 
-	override fun populateSourcePane(then: (ProjectFileEditor)->Unit)
+	override fun populateSourcePane(then: (GlobalEnvironmentFileEditor)->Unit)
 	{
 		highlightCode()
 		// TODO move code population here

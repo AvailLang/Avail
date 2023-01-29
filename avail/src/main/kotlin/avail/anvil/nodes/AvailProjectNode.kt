@@ -1,5 +1,5 @@
 /*
- * ModuleRootNode.kt
+ * AvailProjectNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,6 +34,7 @@ package avail.anvil.nodes
 
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
+import avail.anvil.settings.editor.ProjectFileEditor
 import org.availlang.artifact.AvailArtifactBuildPlan
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.project.AvailProject
@@ -53,7 +54,10 @@ class AvailProjectNode constructor(
 {
 	override fun open()
 	{
-		workbench.projectFileEditor.toFront()
+		workbench.openFileEditor(workbench.availProjectFilePath)
+		{
+			ProjectFileEditor(workbench)
+		}
 	}
 
 	override fun modulePathString(): String = workbench.projectName

@@ -33,7 +33,7 @@
 package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.JSONFileEditor
+import avail.anvil.settings.editor.LocalSettingsFileEditor
 import org.availlang.artifact.environment.project.AvailProject
 
 /**
@@ -64,9 +64,9 @@ class LocalSettingsNode constructor(
 
 	override fun open()
 	{
-		workbench.openGenericFile(filePath)
+		workbench.openFileEditor(filePath)
 		{
-			JSONFileEditor(workbench, it, it)
+			LocalSettingsFileEditor(workbench, it, it)
 		}
 	}
 }

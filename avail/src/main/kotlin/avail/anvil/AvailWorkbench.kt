@@ -113,7 +113,7 @@ import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.nodes.OpenableFileNode
-import avail.anvil.settings.ProjectFileEditor
+import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
 import avail.anvil.streams.BuildInputStream
@@ -201,9 +201,7 @@ import java.lang.System.currentTimeMillis
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
 import java.nio.file.Path
-import java.util.Arrays.sort
 import java.util.Collections
-import java.util.Collections.synchronizedMap
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentHashMap
@@ -835,30 +833,19 @@ class AvailWorkbench internal constructor(
 	var templateExpansionManager: TemplateExpansionsManager? = null
 
 	/**
-	 * The [ProjectFileEditor] view or `null` if not open.
-	 */
-	val projectFileEditor: ProjectFileEditor get()
-	{
-		val q = openFileEditors.computeIfAbsent(
-			availProjectFilePath
-		) { ProjectFileEditor(this) }
-		return q as ProjectFileEditor
-	}
-
-	/**
-	 * The map from the absolute path to a file to a [GenericFileEditor].
+	 * The map from the absolute path to a file to a [CodeEditor].
 	 */
 	internal val openFileEditors = mutableMapOf<String, CodeEditor<*>>()
 
 	/**
-	 * Open the file at the indicated file path.
+	 * Open the file in a [CodeEditor] at the indicated file path.
 	 *
 	 * @param path
 	 *   The absolute path to the file to open.
 	 * @param creator
 	 *   A lambda that creates the [CodeEditor] if not already open.
 	 */
-	internal fun openGenericFile (
+	internal fun openFileEditor (
 		path: String,
 		creator: (String) -> CodeEditor<*>)
 	{

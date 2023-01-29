@@ -1,5 +1,5 @@
 /*
- * ModuleRootNode.kt
+ * TemplatesNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.JSONFileEditor
+import avail.anvil.settings.editor.TemplatesFileEditor
 import org.availlang.artifact.environment.project.TemplateGroup
 
 /**
@@ -63,9 +63,9 @@ class TemplatesNode constructor(
 
 	override fun open()
 	{
-		workbench.openGenericFile(filePath)
+		workbench.openFileEditor(filePath)
 		{
-			JSONFileEditor(workbench, it, it)
+			TemplatesFileEditor(workbench, it, it)
 		}
 	}
 }

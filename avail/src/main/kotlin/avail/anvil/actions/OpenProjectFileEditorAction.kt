@@ -34,7 +34,7 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.nodes.AvailProjectNode
-import avail.anvil.settings.ProjectFileEditor
+import avail.anvil.settings.editor.ProjectFileEditor
 import java.awt.event.ActionEvent
 
 /**
@@ -60,6 +60,9 @@ class OpenProjectFileEditorAction constructor(
 
 	override fun actionPerformed(e: ActionEvent?)
 	{
-		workbench.projectFileEditor.toFront()
+		workbench.openFileEditor(workbench.availProjectFilePath)
+		{
+			ProjectFileEditor(workbench)
+		}
 	}
 }

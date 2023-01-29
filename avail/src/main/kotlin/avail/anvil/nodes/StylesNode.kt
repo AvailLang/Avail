@@ -1,5 +1,5 @@
 /*
- * ModuleRootNode.kt
+ * StylesNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.JSONFileEditor
+import avail.anvil.settings.editor.StylesFileEditor
 import org.availlang.artifact.environment.project.StylingGroup
 
 /**
@@ -63,9 +63,9 @@ class StylesNode constructor(
 
 	override fun open()
 	{
-		workbench.openGenericFile(filePath)
+		workbench.openFileEditor(filePath)
 		{
-			JSONFileEditor(workbench, it, it)
+			StylesFileEditor(workbench, it, it)
 		}
 	}
 }

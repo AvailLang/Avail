@@ -1,5 +1,5 @@
 /*
- * AbstractJSONFileEditor.kt
+ * ProjectFileEditor.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,36 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil
+package avail.anvil.settings.editor
 
+import avail.anvil.AbstractJSONFileEditor
+import avail.anvil.AvailWorkbench
 import avail.anvil.shortcuts.KeyboardShortcut
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 
 /**
- * An abstract [CodeEditor] for an JSON file.
+ * An [AbstractJSONFileEditor] for an Avail project file.
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct an [AbstractJSONFileEditor].
+ * Construct an [ProjectFileEditor].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param fileLocation
- *   The absolute path of the source code file.
+ * @param autoSave
+ *   Whether to auto save the backing file to disk after changes.
  * @param afterTextLoaded
  *   Action to perform after text has been loaded to [sourcePane].
  */
-abstract class AbstractJSONFileEditor<CE> constructor(
+class ProjectFileEditor constructor(
 	workbench: AvailWorkbench,
-	fileLocation: String,
-	frameTitle: String,
-	afterTextLoaded: (CE) -> Unit = {}
-) : CodeEditor<CE>(workbench, fileLocation, frameTitle)
+	override val autoSave: Boolean = false,
+	afterTextLoaded: (ProjectFileEditor) -> Unit = {}
+) : AbstractJSONFileEditor<ProjectFileEditor>(
+	workbench,
+	workbench.availProjectFilePath,
+	"Project: ${workbench.availProject.name}",
+	afterTextLoaded)
 {
 	override val shortcuts: List<KeyboardShortcut> = listOf()
 
 	init
 	{
+		workbench.backupProjectFile()
 		finalizeInitialization(afterTextLoaded)
+		addWindowListener(object : WindowAdapter()
+		{
+			override fun windowClosing(e: WindowEvent?)
+			{
+				workbench.openFileEditors.remove(fileLocation)
+			}
+		})
+	}
+
+	override fun populateSourcePane(then: (ProjectFileEditor)->Unit)
+	{
+		highlightCode()
+		// TODO move code population here
+		then(this)
 	}
 }

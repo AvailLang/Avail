@@ -1,5 +1,5 @@
 /*
- * AvailEditor.kt
+ * CodeEditor.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -62,6 +62,8 @@ import kotlin.math.max
  *
  * @author Richard Arriaga
  *
+ * @param CE
+ *   The concrete final type of this [CodeEditor].
  * @property fileLocation
  *   The absolute path of the source code file.
  *

@@ -230,7 +230,7 @@ sealed interface GlobalEnvironmentSettings: JSONFriendly
 		/**
 		 * The path to the [GlobalEnvironmentSettings] file on disk.
 		 */
-		private val configFilePath get() =
+		val configFilePath get() =
 			"$availHome${File.separator}$CONFIG_FILE_NAME"
 
 		val emptyConfig: GlobalEnvironmentSettings

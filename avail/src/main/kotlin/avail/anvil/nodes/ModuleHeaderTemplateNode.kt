@@ -1,5 +1,5 @@
 /*
- * ModuleRootNode.kt
+ * ModuleHeaderTemplateNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,7 +33,7 @@
 package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.GenericFileEditor
+import avail.anvil.settings.editor.ModuleHeaderTemplateEditor
 import java.io.File
 
 /**
@@ -67,9 +67,9 @@ class ModuleHeaderTemplateNode constructor(
 
 	override fun open()
 	{
-		workbench.openGenericFile(filePath)
+		workbench.openFileEditor(filePath)
 		{
-			GenericFileEditor(workbench, it)
+			ModuleHeaderTemplateEditor(workbench, it)
 		}
 	}
 }

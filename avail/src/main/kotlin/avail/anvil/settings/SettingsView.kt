@@ -32,6 +32,7 @@
 
 package avail.anvil.settings
 
+import avail.anvil.AvailWorkbench
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.settings.editor.EditorSettingsSelection
 import avail.anvil.versions.MavenCentralAPI
@@ -143,6 +144,10 @@ class SettingsView constructor (
 		}
 		selected = editor
 		add(editor)
+		if (parent is AvailWorkbench)
+		{
+			add(GlobalSettingsSelection(this@SettingsView, parent))
+		}
 		add(ShortcutsSelection(this@SettingsView))
 		add(StandardLibrariesSelection(this@SettingsView))
 	}

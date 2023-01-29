@@ -1,5 +1,5 @@
 /*
- * JSONFileEditor.kt
+ * LocalSettingsFileEditor.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,19 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil
+package avail.anvil.settings.editor
 
+import avail.anvil.AbstractJSONFileEditor
+import avail.anvil.AvailWorkbench
 import avail.anvil.shortcuts.KeyboardShortcut
+import org.availlang.artifact.environment.project.LocalSettings
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 
 /**
- * An [AbstractJSONFileEditor] for a generic JSON file.
+ * An [AbstractJSONFileEditor] for a [LocalSettings] file.
  *
  * @author Richard Arriaga
  *
  * @constructor
- * Construct an [JSONFileEditor].
+ * Construct an [LocalSettingsFileEditor].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
@@ -55,13 +58,13 @@ import java.awt.event.WindowEvent
  * @param afterTextLoaded
  *   Action to perform after text has been loaded to [sourcePane].
  */
-class JSONFileEditor constructor(
+class LocalSettingsFileEditor constructor(
 	workbench: AvailWorkbench,
 	filePath: String,
 	frameTitle: String,
 	override val autoSave: Boolean = false,
-	afterTextLoaded: (JSONFileEditor) -> Unit = {}
-) : AbstractJSONFileEditor<JSONFileEditor>(
+	afterTextLoaded: (LocalSettingsFileEditor) -> Unit = {}
+) : AbstractJSONFileEditor<LocalSettingsFileEditor>(
 	workbench,
 	filePath,
 	frameTitle,
@@ -82,7 +85,7 @@ class JSONFileEditor constructor(
 		})
 	}
 
-	override fun populateSourcePane(then: (JSONFileEditor)->Unit)
+	override fun populateSourcePane(then: (LocalSettingsFileEditor)->Unit)
 	{
 		highlightCode()
 		// TODO move code population here
