@@ -34,6 +34,7 @@ package avail.anvil.shortcuts
 
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
+import avail.anvil.FileEditor
 import avail.anvil.debugger.AvailDebugger
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.text.CodePane
@@ -88,6 +89,15 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 	{
 		override val shortcuts: List<KeyboardShortcut>
 			get() = AvailDebuggerShortcut::class.sealedSubclasses.map {
+				it.objectInstance!!
+			}
+	},
+
+	/** [KeyboardShortcut]s for the [FileEditor]. */
+	FILE_EDITOR("File Editor")
+	{
+		override val shortcuts: List<KeyboardShortcut>
+			get() = FileEditorShortcut::class.sealedSubclasses.map {
 				it.objectInstance!!
 			}
 	},
