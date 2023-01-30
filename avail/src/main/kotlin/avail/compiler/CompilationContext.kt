@@ -1342,7 +1342,7 @@ class CompilationContext constructor(
 	 */
 	fun recordPathForTopLevelPhrase(rootPhrase: A_Phrase)
 	{
-		val fakeRoot = PhraseNode(null, null, emptyList(), parent = null)
+		val fakeRoot = PhraseNode(null, null, emptyList(), null)
 		// Each pair holds the PhraseNode having its children converted, and an
 		// iterator that produces subphrases of the phrase that the PhraseNode
 		// was built from.
@@ -1397,8 +1397,8 @@ class CompilationContext constructor(
 						token.pastEnd())
 					PhraseNodeToken(start, pastEnd, indexInName.extractInt)
 				}
-			val phraseNode = PhraseNode(
-				moduleName, atomName, tokenSpans, parent = parent)
+			val phraseNode =
+				PhraseNode(moduleName, atomName, tokenSpans, parent)
 			parent.children.add(phraseNode)
 			val children = mutableListOf<A_Phrase>()
 			val childrenProvider = when

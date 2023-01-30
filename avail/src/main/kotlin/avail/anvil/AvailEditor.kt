@@ -36,8 +36,7 @@ import avail.AvailRuntime
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
-import avail.anvil.PhrasePathStyleApplicator.applyPhrasePaths
-import avail.anvil.RenderingEngine.applyStyleRuns
+import avail.anvil.RenderingEngine.applyStylesAndPhrasePaths
 import avail.anvil.actions.FindAction
 import avail.anvil.shortcuts.AvailEditorShortcut
 import avail.anvil.shortcuts.KeyboardShortcut
@@ -51,7 +50,6 @@ import avail.anvil.views.StructureViewPanel
 import avail.anvil.window.AvailEditorLayoutConfiguration
 import avail.anvil.window.LayoutConfiguration
 import avail.anvil.window.WorkbenchFrame
-import avail.builder.AvailBuilder
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleManifestEntry
@@ -175,66 +173,15 @@ class AvailEditor constructor(
 		val startInDocument: Position)
 
 	/**
-	 * The [List] of [ManifestEntryInDocument], if known, for the module.
+	 * The [List] of [ManifestEntryInDocument]s for the module.
 	 */
-	private var manifestEntriesInDocument: List<ManifestEntryInDocument>? =
-		null
+	private var manifestEntriesInDocument = emptyList<ManifestEntryInDocument>()
 
 	override fun saveWindowPosition()
 	{
 		super.saveWindowPosition()
 		(layoutConfiguration as AvailEditorLayoutConfiguration).range =
 			this@AvailEditor.sourcePane.markToDotRange()
-	}
-
-	/**
-	 * Locate the most recent compilation of the current document, fetch its
-	 * manifest entries, map them into [ManifestEntryInDocument]s, and update
-	 * [manifestEntriesInDocument] accordingly.  These entries are tied to
-	 * [Position]s in the document, so they will maintain "the same" textual
-	 * position as text is added and removed.
-	 */
-	internal fun fetchManifestEntries()
-	{
-		assert(SwingUtilities.isEventDispatchThread())
-		val semaphore = Semaphore(0)
-		// In case of an error, don't update the manifest list, since the
-		// previous version is as close as we can get.
-		var entriesInDocument = manifestEntriesInDocument
-		getActiveStylingAndPhrasePathRecords(
-			onSuccess = { _, _, manifestRecord ->
-				val entries = manifestRecord?.manifestEntries ?: emptyList()
-				val document = sourcePane.styledDocument
-				val root = document.defaultRootElement
-				entriesInDocument = entries.map { entry ->
-					val line = entry.topLevelStartingLine
-					val normalizedLine =
-						max(0, min(line - 1, root.elementCount - 1))
-					val element = root.getElement(normalizedLine)
-					val lineStart = element.startOffset
-					val position = document.createPosition(lineStart)
-					ManifestEntryInDocument(entry, position)
-				}
-				semaphore.release()
-			},
-			onError = {
-				semaphore.release()
-			})
-		semaphore.acquire()
-		manifestEntriesInDocument = entriesInDocument
-	}
-
-	/**
-	 * Get the [List] of [ManifestEntryInDocument]s for the associated
-	 * [AvailBuilder.LoadedModule].
-	 *
-	 * @return
-	 *  The [List] of [ManifestEntryInDocument]s.
-	 */
-	private fun manifestEntriesInDocument(): List<ManifestEntryInDocument>
-	{
-		manifestEntriesInDocument ?: fetchManifestEntries()
-		return manifestEntriesInDocument!!
 	}
 
 	/**
@@ -250,7 +197,7 @@ class AvailEditor constructor(
 	{
 		assert(SwingUtilities.isEventDispatchThread())
 		val structView = workbench.structureViewPanel
-		structView.updateView(this@AvailEditor, manifestEntriesInDocument())
+		structView.updateView(this@AvailEditor, manifestEntriesInDocument)
 		{
 			if (giveEditorFocus)
 			{
@@ -448,7 +395,7 @@ class AvailEditor constructor(
 	/**
 	 * Populate the [source&#32;pane][sourcePane] and obtain the most recently
 	 * recorded [styling&#32;record][StylingRecord] for the underlying
-	 * [module][A_Module]. [Highlight][highlightCode] the source code.
+	 * [module][A_Module]. [Highlight][styleCode] the source code.
 	 *
 	 * Also apply the semantic styling that associates a [PhraseNode] with each
 	 * token that was part of a parsed phrase.
@@ -469,9 +416,22 @@ class AvailEditor constructor(
 			lineEndDelimiter = delimiter
 			sourcePane.text = normalizedText
 			getActiveStylingAndPhrasePathRecords(
-				onSuccess = { stylingRec, phrasePathRec, _ ->
+				onSuccess = { stylingRec, phrasePathRec, manifestRec ->
 					stylingRecord = stylingRec
 					phrasePathRecord = phrasePathRec
+					val entries = manifestRec?.manifestEntries ?: emptyList()
+					val document = sourcePane.styledDocument
+					val root = document.defaultRootElement
+					val lastLine = root.elementCount - 1
+					manifestEntriesInDocument = entries.map { entry ->
+						val normalizedLine =
+							max(0,
+								min(entry.topLevelStartingLine - 1, lastLine))
+						val element = root.getElement(normalizedLine)
+						val position =
+							document.createPosition(element.startOffset)
+						ManifestEntryInDocument(entry, position)
+					}
 					semaphore.release()
 				},
 				onError = { e ->
@@ -482,7 +442,7 @@ class AvailEditor constructor(
 				})
 		}
 		semaphore.acquire()
-		highlightCode()
+		styleCode()
 		then(this)
 	}
 
@@ -493,24 +453,18 @@ class AvailEditor constructor(
 		CodeGuide::class.java.name) as CodeGuide
 
 	/**
-	 * Apply style highlighting to the text in the
-	 * [source&#32;pane][sourcePane].
+	 * Apply styles to the text in the [source&#32;pane][sourcePane].
 	 */
-	internal fun highlightCode()
+	internal fun styleCode()
 	{
 		val stylesheet = workbench.stylesheet
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
 		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 		codeGuide.guideColor = codeGuide.computeColor()
-		stylingRecord?.let {
-			sourcePane.styledDocument.applyStyleRuns(
-				stylesheet,
-				it.styleRuns
-			)
-		}
-		phrasePathRecord?.let {
-			sourcePane.styledDocument.applyPhrasePaths(it)
-		}
+		sourcePane.styledDocument.applyStylesAndPhrasePaths(
+			stylesheet,
+			stylingRecord,
+			phrasePathRecord)
 	}
 
 	/**
