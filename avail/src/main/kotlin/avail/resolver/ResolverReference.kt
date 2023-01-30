@@ -533,9 +533,9 @@ class ResolverReference constructor(
 			// If there's nothing to walk, then walk nothing.
 			return
 		}
-		val top = modules + LinkedList(
+		val top = LinkedList(
 			if (visitResources) childReferences(true)
-			else emptyList())
+			else modules)
 		afterAllVisited(
 			top.fold(0) { count, module ->
 				count + visitReference(module, visitResources, withReference)

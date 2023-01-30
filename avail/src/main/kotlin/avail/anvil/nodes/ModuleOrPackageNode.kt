@@ -34,11 +34,12 @@ package avail.anvil.nodes
 
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
+import avail.anvil.text.FileExtensionMetadata.AVAIL
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 
 /**
- * This is a tree node representing a module file or a package. 🏗️
+ * This is a tree node representing a module file or a package.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -95,7 +96,7 @@ class ModuleOrPackageNode constructor(
 		get() = resolvedModuleName.isRename
 
 	override fun iconResourceName(): String =
-		if (isPackage) "PackageInTree" else "ModuleInTree"
+		if (isPackage) "PackageInTree" else AVAIL.fileIcon
 
 	override fun text(selected: Boolean): String =
 		if (isRenamedSource)
@@ -145,4 +146,7 @@ class ModuleOrPackageNode constructor(
 			editor.openStructureView(true)
 		}
 	}
+
+	override fun toString(): String =
+		"${javaClass.simpleName}: ${text(false)}".removeSuffix(suffix)
 }

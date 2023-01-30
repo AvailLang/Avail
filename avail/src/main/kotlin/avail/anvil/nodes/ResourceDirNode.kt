@@ -1,5 +1,5 @@
 /*
- * EntryPointNode.kt
+ * RootConfigDirNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,46 +32,33 @@
 
 package avail.anvil.nodes
 
-import avail.builder.AvailBuilder
-import avail.builder.ResolvedModuleName
-
+import avail.anvil.AvailWorkbench
+import avail.resolver.ResolverReference
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.environment.project.AvailProjectRoot
 /**
- * This is a tree node representing an entry point of some module.  The parent
- * tree node should be an [EntryPointModuleNode].
+ * This is a tree node representing an [AvailProjectRoot]
+ * [resource directory][ResourceType.DIRECTORY].
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga
  *
- * @property resolvedModuleName
- *   The name of the module containing the entry point.
- * @property entryPointString
- *   The entry point, which is a [String].
- * @constructor
- *   Construct a new [EntryPointNode], given the name of the module and the name
- *   of the entry point.
- *
- * @param builder
- *   The builder for which this node is being built.
- * @param resolvedModuleName
- *   The name of the module defining the entry point.
- * @param entryPointString
- *   The name of the entry point.
+ * @property workbench
+ *   The [AvailWorkbench] this
+ * @property reference
+ *   `true` indicates this node is visible; `false` otherwise.
  */
-class EntryPointNode constructor(
-	builder: AvailBuilder,
-	val resolvedModuleName: ResolvedModuleName,
-	val entryPointString: String
-) : AbstractBuilderFrameTreeNode(builder) {
-	override fun modulePathString(): String =
-		throw UnsupportedOperationException()
+class ResourceDirNode constructor(
+	val workbench: AvailWorkbench,
+	val reference: ResolverReference
+) : AbstractBuilderFrameTreeNode(workbench.availBuilder)
+{
+	override fun modulePathString(): String = reference.localName
 
-	override fun iconResourceName(): String = "play_circle_green"
+	override fun iconResourceName(): String = "green_folder"
 
-	override fun text(selected: Boolean): String = entryPointString
+	override fun text(selected: Boolean) = reference.localName
 
 	override fun htmlStyle(selected: Boolean): String =
-		synchronized(builder) {
-			val loaded = builder.getLoadedModule(resolvedModuleName) !== null
-			fontStyle(italic = !loaded) +
-				colorStyle(selected, loaded, resolvedModuleName.isRename)
-		}
+		fontStyle(bold = true) +
+			colorStyle(selected, false, false)
 }

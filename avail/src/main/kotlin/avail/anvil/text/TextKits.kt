@@ -851,16 +851,16 @@ internal abstract class CommentAction constructor (
 ): RestrictableEditAction(actionName)
 {
 	/**
-	 * Answer the [FileExtensionCommentSyntax] associated with the file type
+	 * Answer the [FileExtensionMetadata] associated with the file type
 	 * open in the [AvailEditor].
 	 *
 	 * @param e
 	 *   The [AvailEditor] [ActionEvent].
 	 * @return
-	 *   The [FileExtensionCommentSyntax] to use for commenting code.
+	 *   The [FileExtensionMetadata] to use for commenting code.
 	 */
-	protected fun commentSyntax (e: ActionEvent): FileExtensionCommentSyntax =
-		FileExtensionCommentSyntax[e.editor.resolverReference.localName]
+	protected fun commentSyntax (e: ActionEvent): FileExtensionMetadata =
+		FileExtensionMetadata[e.editor.resolverReference.localName]
 }
 
 /**

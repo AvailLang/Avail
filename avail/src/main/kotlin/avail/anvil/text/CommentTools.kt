@@ -239,30 +239,37 @@ object ForwardSlashAsteriskBlockComment: BlockComment("/*", "*/")
 object HTMLBlockComment: BlockComment("<!--", "-->")
 
 /**
- * The enumeration of file extensions and their associated comment syntax.
+ * The enumeration of file extensions and their associated metadata:
+ * * comment syntax
+ * * Anvil file icon resources file name
  *
  * @author Richard Arriaga
  *
  * @property extension
  *   The file extension that represents the file type that this
- *   [FileExtensionCommentSyntax] is associated with.
+ *   [FileExtensionMetadata] is associated with.
  * @property lineComment
  *   The [LineComment] for the associated [extension] or `null` if
  *   [LineComment]s are not supported.
  * @property blockComment
  *   The [BlockComment] for the associated [extension] or `null` if
  *   [BlockComment]s are not supported.
+ * @property fileIcon
+ *   The name of the file type's associated icon located in the resources
+ *   directory.
  */
-enum class FileExtensionCommentSyntax constructor(
+enum class FileExtensionMetadata constructor(
 	val extension: String,
 	val lineComment: LineComment?,
-	val blockComment: BlockComment?)
+	val blockComment: BlockComment?,
+	val fileIcon: String = "file")
 {
 	/** The Avail module (`.avail`) default comment syntax. */
 	AVAIL(
 		".avail",
 		DoubleForwardSlashLineComment,
-		ForwardSlashAsteriskBlockComment),
+		ForwardSlashAsteriskBlockComment,
+		"ModuleInTree"),
 
 	/** Comment support for bash files. */
 	BASH(".sh", HashTagLineComment, null),
@@ -297,16 +304,16 @@ enum class FileExtensionCommentSyntax constructor(
 	companion object
 	{
 		/**
-		 * Answer the [FileExtensionCommentSyntax] for the provided file name.
+		 * Answer the [FileExtensionMetadata] for the provided file name.
 		 *
 		 * @param filename
 		 *   The name of the file to determine the comment strategy for.
 		 * @return
-		 *   The associated [FileExtensionCommentSyntax] if defined or
-		 *   [FileExtensionCommentSyntax.DEFAULT] if no express definition
+		 *   The associated [FileExtensionMetadata] if defined or
+		 *   [FileExtensionMetadata.DEFAULT] if no express definition
 		 *   located.
 		 */
-		operator fun get (filename: String): FileExtensionCommentSyntax =
+		operator fun get (filename: String): FileExtensionMetadata =
 			values().firstOrNull {
 				filename.lowercase().endsWith(it.extension)
 			} ?: DEFAULT

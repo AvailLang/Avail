@@ -113,6 +113,8 @@ import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
 import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.nodes.OpenableFileNode
+import avail.anvil.nodes.ResourceDirNode
+import avail.anvil.nodes.ResourceNode
 import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
@@ -1444,7 +1446,7 @@ class AvailWorkbench internal constructor(
 		val parentMap = mutableMapOf<String, DefaultMutableTreeNode>()
 		parentMap[parentRef.qualifiedName] = rootNode
 		parentRef.walkChildrenThen(
-			false,
+			true,
 			{
 				if (it.isRoot)
 				{
@@ -1452,48 +1454,60 @@ class AvailWorkbench internal constructor(
 				}
 				val parentNode = parentMap[it.parentName]
 					?: return@walkChildrenThen
-				if (it.type == ResourceType.MODULE)
+				when (it.type)
 				{
-					try
+					ResourceType.MODULE ->
 					{
-						val resolved = resolver.resolve(it.moduleName)
+						try
+						{
+							val resolved = resolver.resolve(it.moduleName)
+							val node = ModuleOrPackageNode(
+								this, it.moduleName, resolved, false)
+							parentNode.add(node)
+						}
+						catch (e: UnresolvedDependencyException)
+						{
+							// TODO MvG - Find a better way of reporting broken
+							//  dependencies. Ignore for now (during scan).
+							throw RuntimeException(e)
+						}
+					}
+					ResourceType.PACKAGE ->
+					{
+						val moduleName = it.moduleName
+						val resolved: ResolvedModuleName
+						try
+						{
+							resolved = resolver.resolve(moduleName)
+						}
+						catch (e: UnresolvedDependencyException)
+						{
+							// The directory didn't contain the necessary package
+							// representative, so simply skip the whole directory.
+							return@walkChildrenThen
+						}
+
 						val node = ModuleOrPackageNode(
-							this, it.moduleName, resolved, false)
+							this, moduleName, resolved, true)
+						parentNode.add(node)
+						if (resolved.isRename)
+						{
+							// Don't examine modules inside a package which is the
+							// source of a rename.  They wouldn't have resolvable
+							// dependencies anyhow.
+							return@walkChildrenThen
+						}
+						parentMap[it.qualifiedName] = node
+					}
+					ResourceType.DIRECTORY ->
+					{
+						val node = ResourceDirNode(this, it)
 						parentNode.add(node)
 					}
-					catch (e: UnresolvedDependencyException)
+					ResourceType.RESOURCE ->
 					{
-						// TODO MvG - Find a better way of reporting broken
-						//  dependencies. Ignore for now (during scan).
-						throw RuntimeException(e)
+						ResourceNode(this, it)
 					}
-				}
-				else if (it.type == ResourceType.PACKAGE)
-				{
-					val moduleName = it.moduleName
-					val resolved: ResolvedModuleName
-					try
-					{
-						resolved = resolver.resolve(moduleName)
-					}
-					catch (e: UnresolvedDependencyException)
-					{
-						// The directory didn't contain the necessary package
-						// representative, so simply skip the whole directory.
-						return@walkChildrenThen
-					}
-
-					val node = ModuleOrPackageNode(
-						this, moduleName, resolved, true)
-					parentNode.add(node)
-					if (resolved.isRename)
-					{
-						// Don't examine modules inside a package which is the
-						// source of a rename.  They wouldn't have resolvable
-						// dependencies anyhow.
-						return@walkChildrenThen
-					}
-					parentMap[it.qualifiedName] = node
 				}
 			},
 			afterCreated)
@@ -1658,7 +1672,7 @@ class AvailWorkbench internal constructor(
 	 * @return An entry point name, or `null` if no entry point is selected.
 	 */
 	fun selectedEntryPoint(): String? =
-		when (val selection = selectedModuleTreeNode)
+		when (val selection = entryPointsTree.selectionPath?.lastPathComponent)
 		{
 			is EntryPointNode -> selection.entryPointString
 			else -> null
@@ -1672,7 +1686,7 @@ class AvailWorkbench internal constructor(
 	 * @return A [ResolvedModuleName] or `null`.
 	 */
 	fun selectedEntryPointModule(): ResolvedModuleName? =
-		when (val selection = selectedModuleTreeNode)
+		when (val selection = entryPointsTree.selectionPath?.lastPathComponent)
 		{
 			is EntryPointNode -> selection.resolvedModuleName
 			is EntryPointModuleNode -> selection.resolvedModuleName
