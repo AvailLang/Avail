@@ -32,6 +32,8 @@
 
 package avail.anvil
 
+import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
+import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.StylePatternCompiler.Companion.compile
 import avail.anvil.StylePatternCompiler.ExactMatchToken
 import avail.anvil.StylePatternCompiler.FailedMatchToken
@@ -69,10 +71,12 @@ import avail.io.NybbleInputStream
 import avail.io.NybbleOutputStream
 import avail.persistence.cache.Repository.PhraseNode
 import avail.persistence.cache.Repository.PhrasePathRecord
+import avail.persistence.cache.Repository.StylingRecord
 import avail.persistence.cache.StyleRun
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
 import avail.utility.drain
+import avail.utility.structures.RunTree
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.Palette
 import org.availlang.artifact.environment.project.StyleAttributes
@@ -3334,30 +3338,67 @@ class RenderingContextValidationException(message: String): Exception(message)
 object RenderingEngine
 {
 	/**
-	 * Apply all [style&#32;runs][runs] to the [receiver][StyledDocument], using
-	 * the supplied [stylesheet] to obtain an appropriate
-	 * [rendering&#32;context][ValidatedRenderingContext] for each run. **Must
-	 * be invoked on the Swing UI thread.**
+	 * Apply all style runs from the [StylingRecord], and all [PhraseNode]
+	 * information from the [PhrasePathRecord], to the
+	 * [receiver][StyledDocument], using the supplied [stylesheet] to obtain an
+	 * appropriate [rendering&#32;context][ValidatedRenderingContext] for each
+	 * style run.
 	 *
+	 * **Must be invoked on the Swing UI thread.**
+	 *
+	 * @receiver
+	 *   The [StyledDocument] to update.
 	 * @param stylesheet
 	 *   The [stylesheet][Stylesheet].
-	 * @param runs
-	 *   The style runs to apply to the [document][StyledDocument].
+	 * @param styleRecord
+	 *   The [StylingRecord] containing runs to apply to the document.
+	 * @param phrasePathRecord
+	 *   The [PhrasePathRecord] containing [PhraseNode] runs to apply to the
+	 *   document.
 	 * @param replace
 	 *   Indicates whether or not the previous attributes should be cleared
-	 *   before the new attributes as set. If true, the operation will replace
+	 *   before the new attributes are set. If true, the operation will replace
 	 *   the previous attributes entirely. If false, the new attributes will be
 	 *   merged with the previous attributes.
 	 */
-	fun StyledDocument.applyStyleRuns(
+	fun StyledDocument.applyStylesAndPhrasePaths(
 		stylesheet: Stylesheet,
-		runs: List<StyleRun>,
+		styleRecord: StylingRecord?,
+		phrasePathRecord: PhrasePathRecord?,
 		replace: Boolean = true)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
-		runs.forEach { (range, classifiers) ->
-			val context = stylesheet[classifiers]
-			context.renderTo(this, classifiers, range, replace)
+		val classifiersTree = RunTree<String>()
+		styleRecord?.styleRuns?.forEach { (range, classifiers) ->
+			classifiersTree.edit(range.first, range.last + 1) { classifiers }
+		}
+		val phraseTree = RunTree<TokenStyle>()
+		phrasePathRecord?.phraseNodesDo { phraseNode ->
+			phraseNode.tokenSpans.forEach { (start, pastEnd, indexInName) ->
+				phraseTree.edit(start, pastEnd) {
+					TokenStyle(phraseNode, indexInName)
+				}
+			}
+		}
+		(classifiersTree zipRuns phraseTree).forEach { (start, pastEnd, pair) ->
+			pair.first?.let { classifiers ->
+				val context = stylesheet[classifiers]
+				context.renderTo(
+					this,
+					classifiers,
+					start.toInt() until pastEnd.toInt(),
+					replace)
+			}
+			pair.second?.let { tokenStyle ->
+				val styleForToken = SimpleAttributeSet().apply {
+					addAttribute(PhraseNodeAttributeKey, tokenStyle)
+				}
+				setCharacterAttributes(
+					start.toInt() - 1,
+					(pastEnd - start).toInt(),
+					styleForToken,
+					false)
+			}
 		}
 	}
 }
@@ -3635,31 +3676,6 @@ enum class SystemStyleClassifier(val classifier: String)
  */
 object PhrasePathStyleApplicator
 {
-	/**
-	 * Apply all [style&#32;runs] to the receiver. Each style name is treated as
-	 * a comma-separated composite. Rendered styles compose rather than replace.
-	 * **This must only be invoked on the Swing UI thread.**
-	 *
-	 * @param phrasePathsRecord
-	 *   The [PhrasePathRecord] containing information about phrase structure
-	 *   that should be applied as invisible styles to the [StyledDocument].
-	 */
-	fun StyledDocument.applyPhrasePaths(phrasePathsRecord: PhrasePathRecord)
-	{
-		assert(SwingUtilities.isEventDispatchThread())
-		phrasePathsRecord.phraseNodesDo { phraseNode ->
-			phraseNode.tokenSpans.forEach { (start, pastEnd, indexInName) ->
-				val styleForToken = SimpleAttributeSet().apply {
-					addAttribute(
-						PhraseNodeAttributeKey,
-						TokenStyle(phraseNode, indexInName))
-				}
-				this.setCharacterAttributes(
-					start - 1, pastEnd - start, styleForToken, false)
-			}
-		}
-	}
-
 	/**
 	 * A [TokenStyle] contains information about which [PhraseNode] is
 	 * applicable for a span of source having this invisible style (under the

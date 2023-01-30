@@ -201,23 +201,25 @@ constructor(private val instructionClass: Class<Instruction>)
 		.filter { L2Operand::class.java.isAssignableFrom(it.type) }
 		.map { OperandField<L2Operand>(it) }
 
+	@Suppress("UNCHECKED_CAST")
 	private val scalarReadOperandFields: List<OperandField<L2ReadOperand<*>>> =
 		operandFields
 			.filter { L2ReadOperand::class.java.isAssignableFrom(it.type) }
-			.cast()
+			as List<OperandField<L2ReadOperand<*>>>
 
+	@Suppress("UNCHECKED_CAST")
 	private val vectorReadOperandFields:
 			List<OperandField<L2ReadVectorOperand<*, *>>> =
 		operandFields
 			.filter {
 				L2ReadVectorOperand::class.java.isAssignableFrom(it.type)
-			}.cast()
+			} as List<OperandField<L2ReadVectorOperand<*, *>>>
 
+	@Suppress("UNCHECKED_CAST")
 	private val writeOperandFields: List<OperandField<L2WriteOperand<*>>> =
 		operandFields
 			.filter { L2WriteOperand::class.java.isAssignableFrom(it.type) }
-			.cast()
-
+			as List<OperandField<L2WriteOperand<*>>>
 
 	fun operands(instruction: Instruction) =
 		operandFields.map { it.get(instruction) }

@@ -37,7 +37,7 @@ import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
 import avail.anvil.CodeGuide
 import avail.anvil.MenuBarBuilder
-import avail.anvil.RenderingEngine.applyStyleRuns
+import avail.anvil.RenderingEngine.applyStylesAndPhrasePaths
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
 import avail.anvil.actions.FindAction
 import avail.anvil.addWindowMenu
@@ -93,6 +93,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.interpreter.levelOne.L1Disassembler
+import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.utility.safeWrite
 import java.awt.BorderLayout
@@ -617,14 +618,20 @@ class AvailDebugger internal constructor (
 	 */
 	private var currentModule: A_Module = nil
 
-	/**
-	 * A [Triple] consisting of the current source [String], a [List] of [Int]s
-	 * that indicate the position of each linefeed in the source, and the
-	 * [StylingRecord] to apply to the text.
-	 */
-	private var currentSourceAndLineEndsAndStyling:
-			Triple<String, List<Int>, StylingRecord> =
-		Triple("", emptyList(), StylingRecord(emptyList(), emptyList()))
+	/** The latest source that was used for styling. */
+	private var currentSource = ""
+
+	/** The string that was found to break lines within the file. */
+	private var lineDelimiter = ""
+
+	/** The list of line ends in the [currentSource]. */
+	private var lineEnds = emptyList<Int>()
+
+	/** The [StylingRecord] to apply to the text. */
+	private var stylingRecord = StylingRecord(emptyList(), emptyList())
+
+	/** The [PhrasePathRecord] to apply to the text for demarcating phrases. */
+	private var phrasePathRecord = PhrasePathRecord()
 
 	/**
 	 * The list of fibers has changed.  Refresh its visual presentation,
@@ -764,16 +771,17 @@ class AvailDebugger internal constructor (
 					if (module.notNil)
 					{
 						sourceWithInfoThen(runtime, module) {
-								source, _, lineEnds ->
-							val stylingRecord = module.stylingRecord()
-							currentSourceAndLineEndsAndStyling =
-								Triple(source, lineEnds, stylingRecord)
+								src, delim, ends ->
+							currentSource = src
+							lineDelimiter = delim
+							lineEnds = ends
+							stylingRecord = module.stylingRecord()
 							SwingUtilities.invokeLater {
 								val doc = sourcePane.styledDocument
 								doc.remove(0, doc.length)
-								doc.insertString(0, source, null)
-								highlightCode()
-								// Setting the source does not immediately
+								doc.insertString(0, src, null)
+								styleCode()
+								// Setting the src does not immediately
 								// update the layout, so postpone scrolling to
 								// the selected line.
 								SwingUtilities.invokeLater {
@@ -801,15 +809,16 @@ class AvailDebugger internal constructor (
 	 * Apply style highlighting to the text in the
 	 * [source&#32;pane][sourcePane].
 	 */
-	internal fun highlightCode()
+	internal fun styleCode()
 	{
 		val stylesheet = workbench.stylesheet
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
 		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 		codeGuide.guideColor = codeGuide.computeColor()
-		sourcePane.styledDocument.applyStyleRuns(
+		sourcePane.styledDocument.applyStylesAndPhrasePaths(
 			stylesheet,
-			currentSourceAndLineEndsAndStyling.third.styleRuns)
+			stylingRecord,
+			phrasePathRecord)
 	}
 
 	/**
@@ -820,7 +829,6 @@ class AvailDebugger internal constructor (
 		lineNumber: Int,
 		isTopFrame: Boolean)
 	{
-		val (source, lineEnds, _) = currentSourceAndLineEndsAndStyling
 		if (lineNumber == 0)
 		{
 			// Don't change the highlight if the line number is 0, indicating
@@ -831,14 +839,14 @@ class AvailDebugger internal constructor (
 		{
 			lineNumber <= 1 -> 0
 			lineNumber <= lineEnds.size + 1 -> lineEnds[lineNumber - 2] + 1
-			else -> source.length - 1
+			else -> currentSource.length - 1
 		}
 		val rangeEnd = when
 		{
-			lineEnds.isEmpty() -> source.length
+			lineEnds.isEmpty() -> currentSource.length
 			lineNumber <= 1 -> lineEnds[0]
 			lineNumber <= lineEnds.size -> lineEnds[lineNumber - 1]
-			else -> source.length
+			else -> currentSource.length
 		}
 		sourcePane.highlighter.addHighlight(
 			rangeStart,

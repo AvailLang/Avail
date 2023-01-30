@@ -256,7 +256,8 @@ class MapDescriptor private constructor(
 			fields[arrayIndex++] = AvailObjectFieldHelper(
 				self, FakeMapSlots.VALUE_, entryCount + 1, value)
 		}
-		return fields.cast()!!
+		@Suppress("UNCHECKED_CAST")
+		return fields as Array<AvailObjectFieldHelper>
 	}
 
 	override fun o_NameForDebugger(self: AvailObject) =
