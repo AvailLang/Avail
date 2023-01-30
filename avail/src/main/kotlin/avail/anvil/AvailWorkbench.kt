@@ -429,10 +429,10 @@ class AvailWorkbench internal constructor(
 			inputBackgroundWhenRunning = computeInputBackground()
 			inputForegroundWhenRunning = computeInputForeground()
 			openEditors.values.forEach { editor ->
-				invokeLater { editor.highlightCode() }
+				invokeLater { editor.styleCode() }
 			}
 			openDebuggers.forEach { debugger ->
-				invokeLater { debugger.highlightCode() }
+				invokeLater { debugger.styleCode() }
 			}
 		}
 
@@ -1710,15 +1710,9 @@ class AvailWorkbench internal constructor(
 			if (!hasQueuedGlobalBuildUpdate)
 			{
 				hasQueuedGlobalBuildUpdate = true
-				availBuilder.runtime.timer.schedule(
-					object : TimerTask()
-					{
-						override fun run()
-						{
-							invokeLater { updateBuildProgress() }
-						}
-					},
-					100)
+				availBuilder.runtime.timer.schedule(100) {
+					invokeLater(::updateBuildProgress)
+				}
 			}
 		}
 	}
@@ -2293,7 +2287,9 @@ class AvailWorkbench internal constructor(
 		// Subscribe to module loading events.
 		availBuilder.subscribeToModuleLoading { loadedModule, _ ->
 			// Postpone repaints up to 250ms to avoid thrash.
-			moduleTree.repaint(250)
+			availBuilder.runtime.timer.schedule(250) {
+				invokeLater(moduleTree::invalidate)
+			}
 			if (loadedModule.entryPoints.isNotEmpty())
 			{
 				// Postpone repaints up to 250ms to avoid thrash.

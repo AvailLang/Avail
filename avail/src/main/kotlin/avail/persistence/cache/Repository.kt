@@ -1461,23 +1461,23 @@ class Repository constructor(
 	 *   It also contains an index into the [splitter]'s tuple of parts, to say
 	 *   what the token was, or zero if it was not a literal part of the message
 	 *   name.
+	 * @property parent
+	 *   The node representing the optional parent phrase of this node's phrase.
+	 *   This can be provided here, or left null to be set later.
 	 * @property children
 	 *   The children of this phrase, which roughly correspond to subphrases.
 	 *   For a send phrase or macro send phrase, these may be the argument
 	 *   phrases or the [list][ListPhraseDescriptor] phrases that group them,
 	 *   depending on the structure of the sent bundle's name (see
 	 *   [MessageSplitter]).
-	 * @property parent
-	 *   The node representing the optional parent phrase of this node's phrase.
-	 *   This can be provided here, or left null to be set later.
 	 */
 	class PhraseNode
 	constructor(
 		val atomModuleName: A_String?,
 		val atomName: A_String?,
 		val tokenSpans: List<PhraseNodeToken>,
-		val children: MutableList<PhraseNode> = mutableListOf(),
-		var parent: PhraseNode?)
+		var parent: PhraseNode?,
+		val children: MutableList<PhraseNode> = mutableListOf())
 	{
 		/**
 		 * An entry in the [tokenSpans] of a PhraseNode.  The [start] and
@@ -1615,8 +1615,7 @@ class Repository constructor(
 					val tokenIndexInName = binaryStream.unvlqInt()
 					PhraseNodeToken(start, pastEnd, tokenIndexInName)
 				}
-				return PhraseNode(
-					atomModuleName, atomName, tokenSpans, parent = null)
+				return PhraseNode(atomModuleName, atomName, tokenSpans, null)
 			}
 		}
 	}
@@ -1733,8 +1732,7 @@ class Repository constructor(
 			val atomNames = List(binaryStream.unvlqInt()) {
 				stringFrom(binaryStream.decodeString())
 			}
-			val fakeRoot = PhraseNode(
-				null, null, emptyList(), parent = null)
+			val fakeRoot = PhraseNode(null, null, emptyList(), null)
 			// A stack of phrases and countdowns, indicating how many more
 			// subphrases to add to the corresponding phrase before considering
 			// that phrase complete.  This allows reconstruction of the forest

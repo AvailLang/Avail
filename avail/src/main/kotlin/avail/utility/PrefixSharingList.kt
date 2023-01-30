@@ -262,8 +262,7 @@ class PrefixSharingList<E> : AbstractList<E>
 			throw IndexOutOfBoundsException("toIndex = $toIndex")
 		}
 		require(fromIndex <= toIndex) {
-			"fromIndex(" + fromIndex +
-				") > toIndex(" + toIndex + ')'
+			"fromIndex($fromIndex) > toIndex($toIndex)"
 		}
 		return cacheFlatListOrMore().subList(fromIndex, toIndex).toMutableList()
 	}

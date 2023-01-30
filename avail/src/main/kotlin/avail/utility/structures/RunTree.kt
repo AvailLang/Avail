@@ -188,4 +188,70 @@ class RunTree<Value>: Iterable<Triple<Long, Long, Value>>
 		tree.asSequence()
 			.map { Triple(it.key, it.value.first, it.value.second) }
 			.iterator()
+
+	/**
+	 * Transform each (non-null) range of the receiver via a [transform]
+	 * function, yielding another [RunTree] with the same ranges and
+	 * corresponding transformed values.  If the [transform] produces a null,
+	 * that range is dropped in the output.  If two or more contiguous ranges
+	 * transform into non-null [ResultValue]s that are [equal][equals], they
+	 * will be collapsed into a single range in the output.
+	 */
+	fun<ResultValue> mapRuns(
+		transform: (Value)->ResultValue?
+	): RunTree<ResultValue> =
+		RunTree<ResultValue>().also { output ->
+			forEach { (start, pastEnd, value) ->
+				output.edit(start, pastEnd) { _ -> transform(value) }
+			}
+		}
+
+	/**
+	 * Given the receiver, which is a [RunTree]&lt;[Value]>, and the
+	 * [otherTree], which is a [RunTree]&lt;[OtherValue]>, produce an aggregate
+	 * [RunTree]&lt;[Pair]&lt;[Value]?, [OtherValue]?>.  The ranges will be
+	 * split as needed to ensure that the spans in the output have:
+	 *   1. the same [Pair.first] as the value in the receiver (or null if
+	 *     there was no such range in the receiver), and
+	 *   2. the same [Pair.second] as the value in the [otherTree] (or null if
+	 *     there was no such range in the [otherTree].
+	 *
+	 * The [Pair] (`null`, `null`) will not occur in the output.
+	 */
+	infix fun<OtherValue> zipRuns(
+		otherTree: RunTree<OtherValue>
+	): RunTree<Pair<Value?, OtherValue?>> =
+		RunTree<Pair<Value?, OtherValue?>>().also { output ->
+			forEach { (start, pastEnd, value) ->
+				output.edit(start, pastEnd) { _ -> value to null }
+			}
+			otherTree.forEach { (start, pastEnd, otherValue) ->
+				output.edit(start, pastEnd) { oldPair ->
+					oldPair?.first to otherValue
+				}
+			}
+		}
+
+
+	/**
+	 * Given the receiver, which is a [RunTree]&lt;[Value]>, and the
+	 * [otherTree], which is a [RunTree]&lt;[OtherValue]>, produce an aggregate
+	 * [RunTree]&lt;[OutputValue]>.  The [OutputValue] for each range will be
+	 * computed from a [transform] function taking a nullable [Value] and a
+	 * nullable [OtherValue] (but both won't be null), and producing a nullable
+	 * [OutputValue]. The resulting [RunTree] respects the normalization rules
+	 * of the class.
+	 *
+	 * @param otherTree
+	 *   The second source of runs (the first being the receiver).
+	 * @param transform
+	 *   A function taking a nullable run value from the receiver and a nullable
+	 *   run value from the [otherTree] and producing a nullable [OutputValue].
+	 * @return
+	 *   The [RunTree] of [OutputValue]s produced by the [transform] function.
+	 */
+	fun<OtherValue, OutputValue> zipMapRuns(
+		otherTree: RunTree<OtherValue>,
+		transform: (Value?, OtherValue?)->OutputValue?
+	) = (this zipRuns otherTree).mapRuns { (a, b) -> transform(a, b) }
 }
