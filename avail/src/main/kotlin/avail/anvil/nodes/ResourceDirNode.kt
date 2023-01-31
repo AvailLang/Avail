@@ -36,6 +36,9 @@ import avail.anvil.AvailWorkbench
 import avail.resolver.ResolverReference
 import org.availlang.artifact.ResourceType
 import org.availlang.artifact.environment.project.AvailProjectRoot
+import java.io.File
+import java.nio.file.Files
+
 /**
  * This is a tree node representing an [AvailProjectRoot]
  * [resource directory][ResourceType.DIRECTORY].
@@ -61,4 +64,65 @@ class ResourceDirNode constructor(
 	override fun htmlStyle(selected: Boolean): String =
 		fontStyle(bold = true) +
 			colorStyle(selected, false, false)
+
+	/**
+	 * The number of [children] this [ResourceDirNode] has.
+	 */
+	private val privateChildCount: Int? get() =
+		if (children == null)
+		{
+			null
+		}
+		else
+		{
+			children.size
+		}
+
+	override val sortMajor: Int = 10
+
+	/**
+	 * Conditionally populate this [ResourceDirNode] with its child contents.
+	 */
+	private fun conditionallyPopulate ()
+	{
+		val c = privateChildCount
+		if (c !== null && c > 0) return
+		if (children == null)
+		{
+			val f = File(reference.uri)
+			f.listFiles()?.forEach {
+				when
+				{
+					it.isDirectory -> add(
+						ResourceDirNode(
+							workbench,
+							ResolverReference(
+								reference.resolver,
+								it.toURI(),
+								"${reference.qualifiedName}/${it.name}",
+								ResourceType.DIRECTORY,
+								"",
+								0,
+								0)))
+					it.isFile -> add(
+						ResourceNode(
+							workbench,
+							ResolverReference(
+								reference.resolver,
+								it.toURI(),
+								"${reference.qualifiedName}/${it.name}",
+								ResourceType.RESOURCE,
+								"",
+								it.lastModified(),
+								Files.size(it.toPath()))))
+				}
+			}
+		}
+	}
+
+	override fun isLeaf(): Boolean
+	{
+		if (children == null) conditionallyPopulate()
+		return super.isLeaf()
+	}
 }

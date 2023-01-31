@@ -65,6 +65,8 @@ class ResourceNode constructor(
 		fontStyle(bold = false) +
 			colorStyle(selected, false, false)
 
+	override val sortMajor: Int = 20
+
 	override fun open()
 	{
 		workbench.openFileEditor(File(reference.uri).absolutePath)

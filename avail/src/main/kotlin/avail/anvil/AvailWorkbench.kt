@@ -1390,7 +1390,7 @@ class AvailWorkbench internal constructor(
 				root.resolver.provideModuleRootTree(
 					successHandler = {
 						val node = ModuleRootNode(
-							availBuilder,
+							this,
 							projRoot!!.editable,
 							root,
 							projRoot.visible)
@@ -1506,8 +1506,10 @@ class AvailWorkbench internal constructor(
 					}
 					ResourceType.RESOURCE ->
 					{
-						ResourceNode(this, it)
+						parentNode.add(ResourceNode(this, it))
 					}
+					else ->
+					{}
 				}
 			},
 			afterCreated)

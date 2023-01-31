@@ -32,7 +32,7 @@
 
 package avail.anvil.nodes
 
-import avail.builder.AvailBuilder
+import avail.anvil.AvailWorkbench
 import avail.builder.ModuleRoot
 
 /**
@@ -45,16 +45,17 @@ import avail.builder.ModuleRoot
  * @constructor
  *   Construct a new [ModuleRootNode].
  *
- * @param builder
- *   The builder for which this node is being built.
+ * @param workbench
+ *   The running [AvailWorkbench].
  * @param moduleRoot
  *   The [ModuleRoot] that this represents.
  */
 class ModuleRootNode constructor(
-	builder: AvailBuilder,
+	val workbench: AvailWorkbench,
 	private val isEditable: Boolean,
 	val moduleRoot: ModuleRoot,
-	val visible: Boolean) : AbstractBuilderFrameTreeNode(builder)
+	val visible: Boolean
+) : AbstractBuilderFrameTreeNode(workbench.availBuilder)
 {
 	override fun modulePathString(): String = "/" + moduleRoot.name
 

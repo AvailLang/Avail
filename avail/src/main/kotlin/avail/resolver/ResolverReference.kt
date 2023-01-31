@@ -531,6 +531,7 @@ class ResolverReference constructor(
 				&& type != ResourceType.DIRECTORY)
 		{
 			// If there's nothing to walk, then walk nothing.
+			afterAllVisited(0)
 			return
 		}
 		val top = LinkedList(
