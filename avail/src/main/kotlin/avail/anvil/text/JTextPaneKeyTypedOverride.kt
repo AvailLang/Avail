@@ -100,7 +100,7 @@ internal open class JTextPaneKeyTypedAdapter constructor(
 internal object WrapInDoubleQuotes : JTextPaneKeyTypedOverride(
 	KeyCode.VK_QUOTE.with(ModifierKey.SHIFT),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transform { "\"$this\"" }
 			e.consume()
@@ -116,7 +116,7 @@ internal object WrapInDoubleQuotes : JTextPaneKeyTypedOverride(
 internal object WrapInSingleQuotes : JTextPaneKeyTypedOverride(
 	KeyCode.VK_QUOTE.with(),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transform { "'$this'" }
 			e.consume()
@@ -132,7 +132,7 @@ internal object WrapInSingleQuotes : JTextPaneKeyTypedOverride(
 internal object WrapInDoubleSmartQuotes : JTextPaneKeyTypedOverride(
 	KeyCode.VK_OPEN_BRACKET.with(ModifierKey.ALT),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transform { "“$this“" }
 			e.consume()
@@ -148,7 +148,7 @@ internal object WrapInDoubleSmartQuotes : JTextPaneKeyTypedOverride(
 internal object WrapInSingleSmartQuotes : JTextPaneKeyTypedOverride(
 	KeyCode.VK_CLOSE_BRACKET.with(ModifierKey.ALT),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transform { "‘$this’" }
 			e.consume()
@@ -164,7 +164,7 @@ internal object WrapInSingleSmartQuotes : JTextPaneKeyTypedOverride(
 internal object WrapInGuillemets : JTextPaneKeyTypedOverride(
 	KeyCode.VK_BACK_SLASH.with(ModifierKey.ALT),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transform { "«$this»" }
 			e.consume()
@@ -179,7 +179,7 @@ internal object WrapInGuillemets : JTextPaneKeyTypedOverride(
 internal object WrapInBackticks : JTextPaneKeyTypedOverride(
 	KeyCode.VK_BACK_QUOTE.with(),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transform { "`$this`" }
 			e.consume()
@@ -195,7 +195,7 @@ internal object WrapInBackticks : JTextPaneKeyTypedOverride(
 internal object WrapInParenthesis : JTextPaneKeyTypedOverride(
 	KeyCode.VK_9.with(ModifierKey.SHIFT),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transform { "($this)" }
 			e.consume()
@@ -211,7 +211,7 @@ internal object WrapInParenthesis : JTextPaneKeyTypedOverride(
 internal object WrapInAngleBrackets : JTextPaneKeyTypedOverride(
 	KeyCode.VK_COMMA.with(ModifierKey.SHIFT),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transform { "<$this>" }
 			e.consume()
@@ -255,7 +255,7 @@ private fun wrapInBlock(text: String, prefix: String, suffix: String): String =
 internal object WrapInBrackets : JTextPaneKeyTypedOverride(
 	KeyCode.VK_OPEN_BRACKET.with(),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transformLines {
 				wrapInBlock(this, "[", "]")
@@ -273,7 +273,7 @@ internal object WrapInBrackets : JTextPaneKeyTypedOverride(
 internal object WrapInBraces : JTextPaneKeyTypedOverride(
 	KeyCode.VK_OPEN_BRACKET.with(ModifierKey.SHIFT),
 	{ e, pane ->
-		if (pane.selectedText.isNotEmpty())
+		if (!pane.selectedText.isNullOrEmpty())
 		{
 			pane.transformLines {
 				wrapInBlock(this, "{", "}")

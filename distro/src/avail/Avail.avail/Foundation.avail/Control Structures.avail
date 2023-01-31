@@ -274,7 +274,7 @@ Public method "Repeat__times" is
 	$loop : ⊤;
 	Exit loop if count < 1;
 	action();
-	nextCount ::= cast count - 1 into [i : [0..∞] | i];
+	nextCount ::= count - 1 ?→ [0..∞];
 	Restart loop with <action, nextCount>
 ] : ⊤
 styled by loop styler;
