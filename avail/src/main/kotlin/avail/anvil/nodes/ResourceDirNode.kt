@@ -91,31 +91,40 @@ class ResourceDirNode constructor(
 		{
 			val f = File(reference.uri)
 			f.listFiles()?.forEach {
-				when
+				val childRef = when
 				{
-					it.isDirectory -> add(
-						ResourceDirNode(
-							workbench,
-							ResolverReference(
-								reference.resolver,
-								it.toURI(),
-								"${reference.qualifiedName}/${it.name}",
-								ResourceType.DIRECTORY,
-								"",
-								0,
-								0)))
-					it.isFile -> add(
-						ResourceNode(
-							workbench,
-							ResolverReference(
-								reference.resolver,
-								it.toURI(),
-								"${reference.qualifiedName}/${it.name}",
-								ResourceType.RESOURCE,
-								"",
-								it.lastModified(),
-								Files.size(it.toPath()))))
+					it.isDirectory ->
+						ResolverReference(
+							reference.resolver,
+							it.toURI(),
+							"${reference.qualifiedName}/${it.name}",
+							ResourceType.DIRECTORY,
+							"",
+							0,
+							0)
+						.apply {
+							this@ResourceDirNode.add(
+								ResourceDirNode(workbench, this))
+						}
+					it.isFile ->
+						ResolverReference(
+							reference.resolver,
+							it.toURI(),
+							"${reference.qualifiedName}/${it.name}",
+							ResourceType.RESOURCE,
+							"",
+							it.lastModified(),
+							Files.size(it.toPath()))
+						.apply {
+							this@ResourceDirNode.add(
+								ResourceNode(workbench, this))
+						}
+					else -> null
 				}
+				childRef?.let { cr ->
+					reference.resources.add(cr)
+				}
+
 			}
 		}
 	}
