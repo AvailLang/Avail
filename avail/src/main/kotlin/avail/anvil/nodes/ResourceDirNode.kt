@@ -57,7 +57,7 @@ class ResourceDirNode constructor(
 {
 	override fun modulePathString(): String = reference.localName
 
-	override fun iconResourceName(): String = "green_folder"
+	override fun iconResourceName(): String = "avail-icon-directory-resource"
 
 	override fun text(selected: Boolean) = reference.localName
 

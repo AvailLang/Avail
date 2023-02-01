@@ -163,6 +163,6 @@ object SideEffectIcons
 	 */
 	private val cachedScaledIcons =
 		ImageIconCache<SideEffectIconKey>(
-			"/resources/workbench/structure-icons/",
+			"/workbench/structure-icons/",
 			SideEffectIcons::class.java)
 }

@@ -96,7 +96,7 @@ class ModuleOrPackageNode constructor(
 		get() = resolvedModuleName.isRename
 
 	override fun iconResourceName(): String =
-		if (isPackage) "PackageInTree" else AVAIL.fileIcon
+		if (isPackage) "avail-icon-directory-module" else AVAIL.fileIcon
 
 	override fun text(selected: Boolean): String =
 		if (isRenamedSource)

@@ -73,7 +73,7 @@ enum class ExpansionIcons(val fileName: String, val toolTip: String)
      */
     fun icon(lineHeight: Int): ImageIcon =
         ImageIconCache<ExpansionIconKey>(
-            "/resources/workbench/structure-icons/",
+            "/workbench/structure-icons/",
             SortIcons::class.java
         )[
             ExpansionIconKey(fileName, lineHeight)

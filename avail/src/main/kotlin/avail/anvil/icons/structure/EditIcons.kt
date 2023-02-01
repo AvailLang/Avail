@@ -71,7 +71,7 @@ enum class EditIcons(val fileName: String, val toolTip: String)
      */
     fun icon(lineHeight: Int): ImageIcon =
         ImageIconCache<EditIconKey>(
-            "/resources/general/",
+            "/general/",
             SortIcons::class.java
         )[
             EditIconKey(fileName, lineHeight)

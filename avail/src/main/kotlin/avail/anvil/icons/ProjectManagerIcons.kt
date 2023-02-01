@@ -119,6 +119,6 @@ object ProjectManagerIcons
 	 */
 	private val cachedScaledIcons =
 		ImageIconCache<BasicIconKey>(
-			"/resources/project-manager/",
+			"/project-manager/",
 			ProjectManagerIcons::class.java)
 }

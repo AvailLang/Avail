@@ -98,7 +98,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 
 	/**
 	 * The local file name `String` of an image file, relative to the
-	 * directory "/resources/workbench/".
+	 * directory "/workbench/".
 	 *
 	 * @return The local file name, or `null` to indicate not to display
 	 *   an icon.

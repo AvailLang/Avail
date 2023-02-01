@@ -127,7 +127,7 @@ open class LayoutConfiguration protected constructor ()
 		/**
 		 * The prefix string for resources related to the workbench.
 		 */
-		private const val resourcePrefix = "/resources/workbench/"
+		private const val resourcePrefix = "/workbench/"
 
 		/**
 		 * Answer a properly prefixed [String] for accessing the resource having

@@ -71,7 +71,7 @@ enum class SortIcons(val fileName: String, val toolTip: String)
      */
     fun icon(lineHeight: Int): ImageIcon =
         ImageIconCache<SortIconKey>(
-            "/resources/workbench/structure-icons/",
+            "/workbench/structure-icons/",
             SortIcons::class.java
         )[
             SortIconKey(fileName, lineHeight)

@@ -530,7 +530,7 @@ class AvailProjectManager constructor(
 			Taskbar.getTaskbar().run {
 				iconImage = ImageIcon(
 					AvailWorkbench::class.java.classLoader.getResource(
-						"resources/workbench/AvailHammer.png")
+						"workbench/AvailHammer.png")
 				).image
 				setIconBadge(AvailRuntimeConfiguration.activeVersionSummary)
 			}

@@ -84,7 +84,10 @@ class AvailProjectNode constructor(
 		workbench.availProject.roots.values.toMutableList()
 			.apply { sortBy { it.name } }
 			.forEach {
-				this.add(RootConfigDirNode(workbench, it, true))
+				if (it.visible)
+				{
+					this.add(RootConfigDirNode(workbench, it, true))
+				}
 			}
 		val configDir = path
 		val dir = File(configDir).apply {
