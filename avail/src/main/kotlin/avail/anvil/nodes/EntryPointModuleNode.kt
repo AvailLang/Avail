@@ -32,6 +32,7 @@
 
 package avail.anvil.nodes
 
+import avail.anvil.text.FileExtensionMetadata
 import avail.builder.AvailBuilder
 import avail.builder.ResolvedModuleName
 
@@ -71,7 +72,8 @@ class EntryPointModuleNode constructor(
 			return builder.getLoadedModule(resolvedModuleName) !== null
 		}
 
-	override fun iconResourceName(): String = "ModuleInTree"
+	override fun iconResourceName(): String =
+		FileExtensionMetadata.AVAIL.fileIcon
 
 	override fun text(selected: Boolean): String =
 		resolvedModuleName.qualifiedName

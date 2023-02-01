@@ -269,7 +269,7 @@ enum class FileExtensionMetadata constructor(
 		".avail",
 		DoubleForwardSlashLineComment,
 		ForwardSlashAsteriskBlockComment,
-		"ModuleInTree"),
+		"avail-icon-file-avail"),
 
 	/** Comment support for bash files. */
 	BASH(".sh", HashTagLineComment, null),
