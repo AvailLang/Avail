@@ -217,7 +217,7 @@ class PhraseViewPanel constructor (
 					// then apply markings to indicate the current token or
 					// argument, the Simple tokens that occur in this call, and
 					// the Simple tokens that do not occur in this call.
-					runs.edit(0, node.atomName.tupleSize) {
+					runs.edit(1, node.atomName.tupleSize + 1) {
 						// Eventually style with SystemStyle.METHOD_NAME
 						PhraseExplanation.metacharacterStyle
 					}
