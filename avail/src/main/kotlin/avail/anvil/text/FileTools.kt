@@ -1,5 +1,5 @@
 /*
- * CommentTools.kt
+ * FileTools.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -60,8 +60,12 @@ fun minTabCount (text: String): Int
 	return currentMin
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//                              Code Comment Types                            //
+////////////////////////////////////////////////////////////////////////////////
+
 /**
- * Therepresentation of comment syntax that can be used to comment text.
+ * The representation of comment syntax that can be used to comment text.
  *
  * @author Richard Arriaga
  */
@@ -129,7 +133,8 @@ open class LineComment constructor(private val prefix: String): CommentSyntax
 	 *   The commented text.
 	 */
 	private fun commentAtLineStart (targetText: String): String =
-		targetText.split("\n").joinToString("\n$prefix", prefix) { it }
+		targetText.split("\n")
+			.joinToString("\n$prefix", prefix) { it }
 
 	/**
 	 * Uncomment the provided text.
@@ -238,6 +243,9 @@ object ForwardSlashAsteriskBlockComment: BlockComment("/*", "*/")
  */
 object HTMLBlockComment: BlockComment("<!--", "-->")
 
+////////////////////////////////////////////////////////////////////////////////
+//                                 File Types                                 //
+////////////////////////////////////////////////////////////////////////////////
 /**
  * The enumeration of file extensions and their associated metadata:
  * * comment syntax
@@ -269,7 +277,7 @@ enum class FileExtensionMetadata constructor(
 		".avail",
 		DoubleForwardSlashLineComment,
 		ForwardSlashAsteriskBlockComment,
-		"avail-icon-file-avail"),
+		"anvilicon-file-avail-outline-smallear"),
 
 	/** Comment support for bash files. */
 	BASH(".sh", HashTagLineComment, null),
@@ -278,13 +286,13 @@ enum class FileExtensionMetadata constructor(
 	BATCH(".bat", HashTagLineComment, null),
 
 	/** Comment support for HTML files. */
-	HTML(".html", null, HTMLBlockComment),
+	HTML(".html", null, HTMLBlockComment, "html-file-icon"),
 
 	/** Comment support for HTML files alternate file extension, `htm`. */
-	HTM(".htm", null, HTMLBlockComment),
+	HTM(".htm", null, HTMLBlockComment, "html-file-icon"),
 
 	/** JSON does not support comments. */
-	JSON(".json", null, null),
+	JSON(".json", null, null, "json-file"),
 
 	/** Markdown does not support comments. */
 	MARKDOWN(".md", null, null),
