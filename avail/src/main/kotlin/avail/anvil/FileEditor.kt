@@ -206,7 +206,7 @@ abstract class FileEditor<CE> constructor(
 	 * Apply style highlighting to the text in the
 	 * [source&#32;pane][sourcePane].
 	 */
-	internal open fun highlightCode()
+	internal open fun styleCode()
 	{
 		val stylesheet = workbench.stylesheet
 		sourcePane.background = sourcePane.computeBackground(stylesheet)

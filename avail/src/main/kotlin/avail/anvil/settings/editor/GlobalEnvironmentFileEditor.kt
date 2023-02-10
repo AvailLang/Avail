@@ -82,7 +82,7 @@ class GlobalEnvironmentFileEditor constructor(
 
 	override fun populateSourcePane(then: (GlobalEnvironmentFileEditor)->Unit)
 	{
-		highlightCode()
+		styleCode()
 		// TODO move code population here
 		then(this)
 	}

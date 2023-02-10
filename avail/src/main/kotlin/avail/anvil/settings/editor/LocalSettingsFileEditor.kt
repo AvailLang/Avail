@@ -87,7 +87,7 @@ class LocalSettingsFileEditor constructor(
 
 	override fun populateSourcePane(then: (LocalSettingsFileEditor)->Unit)
 	{
-		highlightCode()
+		styleCode()
 		// TODO move code population here
 		then(this)
 	}

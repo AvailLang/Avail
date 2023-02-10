@@ -76,7 +76,7 @@ class GenericFileEditor constructor(
 
 	override fun populateSourcePane(then: (GenericFileEditor)->Unit)
 	{
-		highlightCode()
+		styleCode()
 		// TODO move code population here
 		then(this)
 	}

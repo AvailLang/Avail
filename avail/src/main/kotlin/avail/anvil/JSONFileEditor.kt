@@ -84,7 +84,7 @@ class JSONFileEditor constructor(
 
 	override fun populateSourcePane(then: (JSONFileEditor)->Unit)
 	{
-		highlightCode()
+		styleCode()
 		// TODO move code population here
 		then(this)
 	}

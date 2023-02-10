@@ -87,7 +87,7 @@ class StylesFileEditor constructor(
 
 	override fun populateSourcePane(then: (StylesFileEditor)->Unit)
 	{
-		highlightCode()
+		styleCode()
 		// TODO move code population here
 		then(this)
 	}

@@ -80,7 +80,7 @@ class ProjectFileEditor constructor(
 
 	override fun populateSourcePane(then: (ProjectFileEditor)->Unit)
 	{
-		highlightCode()
+		styleCode()
 		// TODO move code population here
 		then(this)
 	}

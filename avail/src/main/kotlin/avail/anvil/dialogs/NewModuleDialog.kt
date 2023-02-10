@@ -140,7 +140,7 @@ class NewModuleDialog constructor(
 	 * prefix the file with.
 	 */
 	private val modulePicker = ComboWithLabel(
-		"Moduel Header: ", headers
+		"Module Header: ", headers
 	).apply {
 		toolTipText = "Adds project module header template to created file"
 	}

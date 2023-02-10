@@ -86,7 +86,7 @@ class ArtifactPlansFileEditor constructor(
 
 	override fun populateSourcePane(then: (ArtifactPlansFileEditor)->Unit)
 	{
-		highlightCode()
+		styleCode()
 		// TODO move code population here
 		then(this)
 	}

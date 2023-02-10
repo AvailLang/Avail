@@ -78,7 +78,7 @@ class ModuleHeaderTemplateEditor constructor(
 
 	override fun populateSourcePane(then: (ModuleHeaderTemplateEditor)->Unit)
 	{
-		highlightCode()
+		styleCode()
 		// TODO move code population here
 		then(this)
 	}
