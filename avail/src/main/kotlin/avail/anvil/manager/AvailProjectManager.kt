@@ -294,10 +294,8 @@ class AvailProjectManager constructor(
 		if (!initialOpenComplete)
 		{
 			initialOpenComplete = true
-			if (!openFavorite())
-			{
-				isVisible = true
-			}
+			openFavorites()
+			isVisible = openWorkbenches.isEmpty()
 		}
 		else
 		{
@@ -448,18 +446,19 @@ class AvailProjectManager constructor(
 	}
 
 	/**
-	 * Open the [GlobalEnvironmentSettings.favoriteKnownProject] if one is
+	 * Open the [GlobalEnvironmentSettings.favoriteKnownProjects] if one is
 	 * selected.
 	 *
 	 * @return
-	 *   `true` if one is set and is being opened; `false` otherwise.
+	 *   `true` if any are set and is being opened; `false` otherwise.
 	 */
-	private fun openFavorite (): Boolean
+	private fun openFavorites (): Boolean
 	{
-		globalSettings.favoriteKnownProject?.let {
-			return openKnownProject(it)
+		var opened = false
+		globalSettings.favoriteKnownProjects.forEach {
+			opened = openKnownProject(it) || opened
 		}
-		return false
+		return opened
 	}
 
 	/**

@@ -102,7 +102,16 @@ class NewModuleDialog constructor(
 	 * configuration.
 	 */
 	private val extensionOptions get() =
-		targetProjectRoot.availModuleExtensions.toTypedArray()
+		targetProjectRoot.availModuleExtensions.let {
+			if (it.isEmpty())
+			{
+				listOf("avail")
+			}
+			else
+			{
+				it
+			}
+		}.toTypedArray()
 
 	/**
 	 * The [JTextField] field to use wto set the module name.

@@ -33,7 +33,14 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
+import avail.anvil.nodes.AbstractWorkbenchTreeNode
+import avail.anvil.nodes.ModuleOrPackageNode
+import avail.anvil.nodes.ModuleRootNode
+import avail.anvil.nodes.ResourceDirNode
+import avail.anvil.nodes.ResourceNode
+import avail.anvil.shortcuts.DeleteFileShortcut
 import avail.anvil.streams.StreamStyle
+import avail.builder.ModuleRoot
 import avail.utility.isNullOr
 import avail.utility.notNullAnd
 import java.awt.event.ActionEvent
@@ -60,22 +67,56 @@ constructor (
 	workbench: AvailWorkbench,
 ) : AbstractWorkbenchAction(
 	workbench,
-	"Delete module")
+	"Delete",
+	DeleteFileShortcut)
 {
 	override fun updateIsEnabled(busy: Boolean)
 	{
-		isEnabled = !busy && workbench.selectedModule().notNullAnd {
-			moduleRoot.resolver.canSave &&
-				workbench.getProjectRoot(moduleRoot.name)
+		isEnabled = !busy && workbench.selectedModuleTreeNode.notNullAnd {
+			val root = when (this)
+			{
+				is ModuleOrPackageNode ->
+					this.resolvedModuleName.moduleRoot
+				is ResourceDirNode ->
+					this.reference.resolver.moduleRoot
+				is ResourceNode ->
+					this.reference.resolver.moduleRoot
+				else -> return@notNullAnd false
+			}
+			root.resolver.canSave &&
+				workbench.getProjectRoot(root.name)
 					.notNullAnd { editable }
 		}
 	}
 
 	override fun actionPerformed(event: ActionEvent)
 	{
-		val module = workbench.selectedModule()!!
-		val resolverReference = module.resolverReference
-		val root = module.moduleRoot
+		val seleceted = workbench.selectedModuleTreeNode ?: return
+		val root: ModuleRoot
+		val parent: AbstractWorkbenchTreeNode
+		val reference =
+			when (seleceted)
+			{
+				is ModuleOrPackageNode ->
+				{
+					parent = seleceted.parent as AbstractWorkbenchTreeNode
+					root = seleceted.resolvedModuleName.moduleRoot
+					seleceted.resolvedModuleName.resolverReference
+				}
+				is ResourceDirNode ->
+				{
+					parent = seleceted.parent as AbstractWorkbenchTreeNode
+					root = seleceted.reference.resolver.moduleRoot
+					seleceted.reference
+				}
+				is ResourceNode ->
+				{
+					parent = seleceted.parent as AbstractWorkbenchTreeNode
+					root = seleceted.reference.resolver.moduleRoot
+					seleceted.reference
+				}
+				else -> return
+			}
 		val message: String
 		val title: String
 		val pathToDelete: Path
@@ -84,7 +125,7 @@ constructor (
 		{
 			JOptionPane.showMessageDialog(
 				workbench,
-				"Modules within this root (${root.name}) cannot "
+				"Content within this root (${root.name}) cannot "
 					+ "be modified.",
 				"Cannot modify",
 				ERROR_MESSAGE)
@@ -92,19 +133,27 @@ constructor (
 		}
 		when
 		{
-			resolverReference.isPackageRepresentative ->
+			reference.isPackageRepresentative ->
 			{
 				message = "Delete this package " +
-					"(${resolverReference.parentName}) " +
+					"(${reference.parentName}) " +
 					"and all modules within it?"
 				title = "Confirm package deletion"
-				pathToDelete = resolverReference.uri.toPath().parent
+				pathToDelete = reference.uri.toPath().parent
+			}
+			reference.isResource && reference.hasChildren ->
+			{
+				message = "Delete this resource directory " +
+					"(${reference.qualifiedName}) " +
+					"and all content within it?"
+				title = "Confirm directory deletion"
+				pathToDelete = reference.uri.toPath()
 			}
 			else ->
 			{
-				message = "Delete this module (${module.qualifiedName})?"
-				title = "Confirm module deletion"
-				pathToDelete = resolverReference.uri.toPath()
+				message = "Delete ${reference.qualifiedName}?"
+				title = "Confirm file deletion"
+				pathToDelete = reference.uri.toPath()
 			}
 		}
 		val ret = JOptionPane.showOptionDialog(
@@ -120,12 +169,40 @@ constructor (
 		workbench.writeText("Deleting: $pathToDelete...\n", StreamStyle.INFO)
 		pathToDelete.toFile().deleteRecursively()
 		workbench.writeText("Done.\n", StreamStyle.INFO)
+		val ref = when (parent)
+		{
+			is ModuleRootNode ->
+				parent.moduleRoot.resolver.moduleRootTree ?: return
+			is ModuleOrPackageNode ->
+				parent.resolvedModuleName.resolverReference
+			is ResourceDirNode ->
+				parent.reference
+			else -> return
+		}
+		if (seleceted is ModuleOrPackageNode)
+		{
+			if (reference.isPackageRepresentative)
+			{
+				val pr = ref.modules.firstOrNull {
+					it.qualifiedName == reference.parentName
+				} ?: return
+				ref.modules.remove(pr)
+			}
+			else
+			{
+				ref.modules.remove(reference)
+			}
+		}
+		else
+		{
+			ref.resources.remove(reference)
+		}
 	}
 
 	init
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"Delete a module.")
+			"Delete a module or resource.")
 	}
 }

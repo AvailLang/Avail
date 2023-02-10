@@ -47,7 +47,7 @@ class GlobalEnvironmentSettingsV1: GlobalEnvironmentSettings
 {
 	override val serializationVersion: Int = 1
 	override val knownProjects = mutableSetOf<KnownAvailProject>()
-	override var favorite: String? = null
+	override var favorites: MutableSet<String> = mutableSetOf()
 	override var codePaneFontSize: Float = 13.0f
 	override var font: String = Font.MONOSPACED
 	override val editorGuideLines = mutableListOf<Int>()
@@ -59,12 +59,9 @@ class GlobalEnvironmentSettingsV1: GlobalEnvironmentSettings
 		writer.writeObject {
 			at(::serializationVersion.name) { write(serializationVersion) }
 
-			at(::favorite.name)
+			at(::favorites.name)
 			{
-				favorite.let {
-					if (it == null) writeNull()
-					else write(it)
-				}
+				writeStrings(favorites)
 			}
 			at(::codePaneFontSize.name) { write(codePaneFontSize) }
 			at(::font.name) { write(font) }
@@ -95,8 +92,8 @@ class GlobalEnvironmentSettingsV1: GlobalEnvironmentSettings
 		{
 			val config = GlobalEnvironmentSettingsV1()
 
-			obj.getStringOrNull(GlobalEnvironmentSettingsV1::favorite.name)?.let {
-				config.favorite = it
+			obj.getArrayOrNull(GlobalEnvironmentSettingsV1::favorites.name)?.let {
+				config.favorites = it.strings.toMutableSet()
 			}
 			obj.getStringOrNull(GlobalEnvironmentSettingsV1::font.name)?.let {
 				config.font = it

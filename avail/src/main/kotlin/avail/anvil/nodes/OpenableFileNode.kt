@@ -44,8 +44,8 @@ import avail.anvil.AvailWorkbench
  *   The owning [AvailWorkbench].
  */
 abstract class OpenableFileNode constructor(
-	val workbench: AvailWorkbench
-) : AbstractBuilderFrameTreeNode(workbench.availBuilder)
+	workbench: AvailWorkbench
+) : AbstractWorkbenchTreeNode(workbench)
 {
 	/** Open the associated file. */
 	abstract fun open ()

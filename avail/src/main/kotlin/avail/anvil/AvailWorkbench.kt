@@ -106,7 +106,7 @@ import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.GlobalEnvironmentSettings.Companion.globalTemplates
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
-import avail.anvil.nodes.AbstractBuilderFrameTreeNode
+import avail.anvil.nodes.AbstractWorkbenchTreeNode
 import avail.anvil.nodes.AvailProjectNode
 import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
@@ -1339,13 +1339,13 @@ class AvailWorkbench internal constructor(
 			moduleTree.model = DefaultTreeModel(modules)
 			allExpanded.asSequence()
 				.map(TreePath::getLastPathComponent)
-				.filterIsInstance<AbstractBuilderFrameTreeNode>()
-				.map(AbstractBuilderFrameTreeNode::modulePathString)
+				.filterIsInstance<AbstractWorkbenchTreeNode>()
+				.map(AbstractWorkbenchTreeNode::modulePathString)
 				.mapNotNull(::modulePath)
 				.forEach(moduleTree::expandPath)
 			selection?.let { path ->
 				val node =
-					path.lastPathComponent as AbstractBuilderFrameTreeNode
+					path.lastPathComponent as AbstractWorkbenchTreeNode
 				moduleTree.selectionPath = modulePath(node.modulePathString())
 			}
 
@@ -1398,7 +1398,7 @@ class AvailWorkbench internal constructor(
 							sortedRootNodes.add(node)
 							for (each in node.preorderEnumeration())
 							{
-								(each as AbstractBuilderFrameTreeNode)
+								(each as AbstractWorkbenchTreeNode)
 									.sortChildren()
 							}
 							after()
@@ -1416,11 +1416,11 @@ class AvailWorkbench internal constructor(
 				treeRoot.add(AvailProjectNode(workbench))
 				sortedRootNodes.sort()
 				sortedRootNodes.forEach(treeRoot::add)
-				val iterator: Iterator<AbstractBuilderFrameTreeNode> =
+				val iterator: Iterator<AbstractWorkbenchTreeNode> =
 					treeRoot.preorderEnumeration().iterator().cast()
 				iterator.next()
 				iterator.forEachRemaining(
-					AbstractBuilderFrameTreeNode::sortChildren)
+					AbstractWorkbenchTreeNode::sortChildren)
 				withTreeNode(treeRoot)
 			})
 	}
@@ -1535,10 +1535,10 @@ class AvailWorkbench internal constructor(
 					if (entryPoints.isNotEmpty())
 					{
 						val moduleNode =
-							EntryPointModuleNode(availBuilder, resolvedName)
+							EntryPointModuleNode(this, resolvedName)
 						entryPoints.forEach { entryPoint ->
 							val entryPointNode = EntryPointNode(
-								availBuilder, resolvedName, entryPoint)
+								this, resolvedName, entryPoint)
 							moduleNode.add(entryPointNode)
 						}
 						moduleNodes[resolvedName.qualifiedName] = moduleNode
@@ -1558,7 +1558,7 @@ class AvailWorkbench internal constructor(
 				// Skip the invisible top node.
 				iterator.next()
 				iterator.forEachRemaining { node ->
-					(node as AbstractBuilderFrameTreeNode).sortChildren()
+					(node as AbstractWorkbenchTreeNode).sortChildren()
 				}
 				withTreeNode(entryPointsTreeRoot)
 			})
@@ -1606,7 +1606,7 @@ class AvailWorkbench internal constructor(
 		var node = model.root as DefaultMutableTreeNode
 		for (index in 1 until path.size)
 		{
-			val nodes: Sequence<AbstractBuilderFrameTreeNode> =
+			val nodes: Sequence<AbstractWorkbenchTreeNode> =
 				node.children().asSequence().cast()
 			node = nodes.firstOrNull { it.isSpecifiedByString(path[index]) }
 				?: return null
@@ -2693,7 +2693,7 @@ class AvailWorkbench internal constructor(
 			{
 				return when (value)
 				{
-					is AbstractBuilderFrameTreeNode ->
+					is AbstractWorkbenchTreeNode ->
 					{
 						val icon = value.icon(tree.rowHeight)
 						setLeafIcon(icon)

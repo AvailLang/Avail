@@ -131,7 +131,7 @@ constructor(
 	/**
 	 * The full [ModuleRoot] tree if available; or `null` if not yet set.
 	 */
-	protected var moduleRootTree: ResolverReference? = null
+	internal var moduleRootTree: ResolverReference? = null
 
 	/**
 	 * Answer all the [ResolverReference]s known by this [ModuleRootResolver]

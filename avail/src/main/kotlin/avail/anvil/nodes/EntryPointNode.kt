@@ -32,7 +32,7 @@
 
 package avail.anvil.nodes
 
-import avail.builder.AvailBuilder
+import avail.anvil.AvailWorkbench
 import avail.builder.ResolvedModuleName
 
 /**
@@ -49,18 +49,18 @@ import avail.builder.ResolvedModuleName
  *   Construct a new [EntryPointNode], given the name of the module and the name
  *   of the entry point.
  *
- * @param builder
- *   The builder for which this node is being built.
+ * @param workbench
+ *   The owning [AvailWorkbench].
  * @param resolvedModuleName
  *   The name of the module defining the entry point.
  * @param entryPointString
  *   The name of the entry point.
  */
 class EntryPointNode constructor(
-	builder: AvailBuilder,
+	workbench: AvailWorkbench,
 	val resolvedModuleName: ResolvedModuleName,
 	val entryPointString: String
-) : AbstractBuilderFrameTreeNode(builder) {
+) : AbstractWorkbenchTreeNode(workbench) {
 	override fun modulePathString(): String =
 		throw UnsupportedOperationException()
 

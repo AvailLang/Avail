@@ -34,6 +34,7 @@ package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
 import org.availlang.artifact.environment.AvailEnvironment
+import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.LocalSettings.Companion.LOCAL_SETTINGS_FILE
 import java.io.File
@@ -43,16 +44,17 @@ import java.io.File
  *
  * @author Richard Arriaga
  *
- * @property workbench
- *   The [AvailWorkbench] this
+ * @property root
+ *   The [AvailProjectRoot] of the [AvailProject] the represented resource
+ *   directory belongs to.
  * @property visible
  *   `true` indicates this node is visible; `false` otherwise.
  */
 class RootConfigDirNode constructor(
-	val workbench: AvailWorkbench,
+	workbench: AvailWorkbench,
 	val root: AvailProjectRoot,
 	val visible: Boolean
-) : AbstractBuilderFrameTreeNode(workbench.availBuilder)
+) : AbstractWorkbenchTreeNode(workbench)
 {
 	override fun modulePathString(): String = root.name
 

@@ -42,6 +42,9 @@ import avail.builder.ModuleRoot
  *
  * @property moduleRoot
  *   The [ModuleRoot] that this represents.
+ * @property visible
+ *   `true` indicates this node is visible; `false` otherwise.
+ *
  * @constructor
  *   Construct a new [ModuleRootNode].
  *
@@ -51,11 +54,11 @@ import avail.builder.ModuleRoot
  *   The [ModuleRoot] that this represents.
  */
 class ModuleRootNode constructor(
-	val workbench: AvailWorkbench,
+	workbench: AvailWorkbench,
 	private val isEditable: Boolean,
 	val moduleRoot: ModuleRoot,
 	val visible: Boolean
-) : AbstractBuilderFrameTreeNode(workbench.availBuilder)
+) : AbstractWorkbenchTreeNode(workbench)
 {
 	override fun modulePathString(): String = "/" + moduleRoot.name
 

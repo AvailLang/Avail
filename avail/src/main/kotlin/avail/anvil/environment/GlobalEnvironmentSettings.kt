@@ -70,11 +70,11 @@ sealed interface GlobalEnvironmentSettings: JSONFriendly
 	val serializationVersion: Int
 
 	/**
-	 * The [KnownAvailProject.id] of the project marked to be opened
+	 * The list of [KnownAvailProject.id]s of the projects marked to be opened
 	 * automatically at launch bypassing the [AvailProjectManager] or
 	 * `null` if only the [AvailProjectManager] should be opened.
 	 */
-	var favorite: String?
+	val favorites: MutableSet<String>
 
 	/** The desired font size for a [CodePane]. */
 	var codePaneFontSize: Float
@@ -160,11 +160,12 @@ sealed interface GlobalEnvironmentSettings: JSONFriendly
 	}
 
 	/**
-	 * The [favorite] [KnownAvailProject] or `null` if [favorite] is `null`.
+	 * The [favorite][favorites] [KnownAvailProject] or an empty if no
+	 * [favorites] are set.
 	 */
-	val favoriteKnownProject: KnownAvailProject? get() =
-		favorite?.let { fav ->
-			knownProjects.firstOrNull { it.id == fav }
+	val favoriteKnownProjects: List<KnownAvailProject> get() =
+		knownProjects.filter { k ->
+			favorites.contains(k.id)
 		}
 
 	/**

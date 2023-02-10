@@ -85,12 +85,12 @@ internal class KnownProjectRow constructor(
 	}
 
 	/**
-	 * The [ImageIcon] representing whether or not [project] is the [config]
-	 * [favorite][GlobalEnvironmentSettings.favorite] or not. Filled indicates
+	 * The [ImageIcon] representing whether or not [project] is one of the
+	 * [config] [GlobalEnvironmentSettings.favorites] or not. Filled indicates
 	 * it is; unfilled indicates it is not.
 	 */
 	private var favoriteIcon =
-		if (config.favorite == project.id)
+		if (config.favorites.contains(project.id))
 		{
 			favoriteIconChosen
 		}
@@ -101,7 +101,7 @@ internal class KnownProjectRow constructor(
 
 	/**
 	 * The button to toggle to either choose the [project] as the
-	 * [GlobalEnvironmentSettings.favorite] or to deselect it.
+	 * [GlobalEnvironmentSettings.favorites] or to deselect it.
 	 */
 	private val toggleFavorite: JButton =
 		JButton(favoriteIcon).apply {
@@ -109,14 +109,14 @@ internal class KnownProjectRow constructor(
 			isBorderPainted = false
 			addActionListener { _ ->
 				favoriteIcon =
-					if (config.favorite == project.id)
+					if (config.favorites.contains(project.id))
 					{
-						config.favorite = null
+						config.favorites.remove(project.id)
 						favoriteIconNotChosen
 					}
 					else
 					{
-						config.favorite = project.id
+						config.favorites.add(project.id)
 						favoriteIconChosen
 					}
 				config.saveToDisk()
@@ -133,7 +133,7 @@ internal class KnownProjectRow constructor(
 	internal fun updateFavoriteButtonIcon ()
 	{
 		favoriteIcon =
-			if (config.favorite == project.id)
+			if (config.favorites.contains(project.id))
 			{
 				favoriteIconChosen
 			}
@@ -226,10 +226,7 @@ internal class KnownProjectRow constructor(
 			isContentAreaFilled = false
 			isBorderPainted = false
 			addActionListener {
-				if (project.id == config.favorite)
-				{
-					config.favorite = null
-				}
+				config.favorites.remove(project.id)
 				config.removeProject(project.id)
 				parentPanel.repopulateProjects()
 			}
@@ -249,15 +246,15 @@ internal class KnownProjectRow constructor(
 		private const val scaledIconHeight = 25
 
 		/**
-		 * Icon indicating the [project] is the
-		 * [GlobalEnvironmentSettings.favorite].
+		 * Icon indicating the [project] is one of the
+		 * [GlobalEnvironmentSettings.favorites].
 		 */
 		private val favoriteIconChosen =
 			ProjectManagerIcons.yellowStarFilled(scaledIconHeight)
 
 		/**
-		 * Icon indicating the [project] is not the
-		 * [GlobalEnvironmentSettings.favorite].
+		 * Icon indicating the [project] is not one of the
+		 * [GlobalEnvironmentSettings.favorites].
 		 */
 		private val favoriteIconNotChosen =
 			ProjectManagerIcons.yellowStarUnfilled(scaledIconHeight)

@@ -1,5 +1,5 @@
 /*
- * AbstractBuilderFrameTreeNode.kt
+ * AbstractWorkbenchTreeNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,13 +34,13 @@ package avail.anvil.nodes
 
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
-import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Building
-import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Loaded
-import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Unloaded
-import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.NotRenamed
-import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.Renamed
-import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Selected
-import avail.anvil.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Unselected
+import avail.anvil.nodes.AbstractWorkbenchTreeNode.Companion.LoadedState.Building
+import avail.anvil.nodes.AbstractWorkbenchTreeNode.Companion.LoadedState.Loaded
+import avail.anvil.nodes.AbstractWorkbenchTreeNode.Companion.LoadedState.Unloaded
+import avail.anvil.nodes.AbstractWorkbenchTreeNode.Companion.RenamedState.NotRenamed
+import avail.anvil.nodes.AbstractWorkbenchTreeNode.Companion.RenamedState.Renamed
+import avail.anvil.nodes.AbstractWorkbenchTreeNode.Companion.SelectedState.Selected
+import avail.anvil.nodes.AbstractWorkbenchTreeNode.Companion.SelectedState.Unselected
 import avail.anvil.tasks.BuildTask
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.resource
 import avail.builder.AvailBuilder
@@ -53,24 +53,25 @@ import javax.swing.ImageIcon
 import javax.swing.tree.DefaultMutableTreeNode
 
 /**
- * An `AbstractBuilderFrameTreeNode` is a tree node used within some
- * [AvailWorkbench].
+ * A [DefaultMutableTreeNode] is a tree node used within an [AvailWorkbench].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @property builder
  *   The [AvailBuilder] for which this node presents information.
  * @constructor
- * Construct a new `AbstractBuilderFrameTreeNode` on behalf of the
- * given [AvailBuilder].
+ * Construct a new [AbstractWorkbenchTreeNode].
  *
- * @param builder
- *   The builder for which this node is being built.
+ * @param workbench
+ *   The [AvailWorkbench] this node is in.
  */
-abstract class AbstractBuilderFrameTreeNode internal constructor(
-	internal val builder: AvailBuilder
-) : DefaultMutableTreeNode(), Comparable<AbstractBuilderFrameTreeNode>
+abstract class AbstractWorkbenchTreeNode internal constructor(
+	internal val workbench: AvailWorkbench
+) : DefaultMutableTreeNode(), Comparable<AbstractWorkbenchTreeNode>
 {
+	/** The [AvailWorkbench.availBuilder]. */
+	internal val builder: AvailBuilder get() = workbench.availBuilder
+
 	/**
 	 * Answer a [String] suitable for identifying this node even after
 	 * refreshing the tree.
@@ -144,13 +145,13 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	/**
 	 * Order this node against another.
 	 */
-	override fun compareTo(other: AbstractBuilderFrameTreeNode): Int =
+	override fun compareTo(other: AbstractWorkbenchTreeNode): Int =
 		sortMajor.compareTo(other.sortMajor).ifZero {
 			text(false).compareTo(other.text(false))
 		}
 
 	/**
-	 * Whether this [AbstractBuilderFrameTreeNode] represent an Avail module
+	 * Whether this [AbstractWorkbenchTreeNode] represent an Avail module
 	 * that is actively being [built][BuildTask].
 	 */
 	open val isBuilding: Boolean = false
@@ -164,7 +165,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		if (children !== null)
 		{
 			// HACK to make children (Vector!) sortable
-			val temp: List<AbstractBuilderFrameTreeNode> =
+			val temp: List<AbstractWorkbenchTreeNode> =
 				children.toList().cast()
 			children.clear()
 			children.addAll(temp.sorted())
@@ -283,7 +284,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 			100, 20,
 			{ (iconResourceName, height) ->
 				val path = resource("$iconResourceName.png")
-				val thisClass = AbstractBuilderFrameTreeNode::class.java
+				val thisClass = AbstractWorkbenchTreeNode::class.java
 				val resource = thisClass.getResource(path)
 				val originalIcon = ImageIcon(resource)
 				val scaled = originalIcon.image.getScaledInstance(

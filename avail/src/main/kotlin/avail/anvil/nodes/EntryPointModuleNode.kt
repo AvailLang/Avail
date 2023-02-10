@@ -32,8 +32,8 @@
 
 package avail.anvil.nodes
 
+import avail.anvil.AvailWorkbench
 import avail.anvil.text.FileExtensionMetadata
-import avail.builder.AvailBuilder
 import avail.builder.ResolvedModuleName
 
 /**
@@ -47,19 +47,17 @@ import avail.builder.ResolvedModuleName
  * @constructor
  *   Construct a new [EntryPointNode].
  *
- * @param builder
- *   The builder for which this node is being built.
+ * @param workbench
+ *   The owning [AvailWorkbench].
  * @param resolvedModuleName
  *   The name of the represented module.
  */
 class EntryPointModuleNode constructor(
-		builder: AvailBuilder, val resolvedModuleName: ResolvedModuleName)
-	: AbstractBuilderFrameTreeNode(builder)
+		workbench: AvailWorkbench, val resolvedModuleName: ResolvedModuleName)
+	: AbstractWorkbenchTreeNode(workbench)
 {
 	override fun modulePathString(): String =
 		throw UnsupportedOperationException()
-
-
 
 	/**
 	 * Is the [module&#32;or&#32;package][ModuleOrPackageNode] loaded?

@@ -134,7 +134,7 @@ constructor (
 			YES_NO_OPTION,
 			WARNING_MESSAGE,
 			null,
-			arrayOf("Delete directory", "Cancel"),
+			arrayOf("Delete directory", "Do not delete directory"),
 			"Delete directory")
 		when (response)
 		{

@@ -232,7 +232,9 @@ class CreateProjectPanel constructor(
 	 * The [TextFieldWithLabel] used to set the standard library root name.
 	 */
 	private val libraryNameField =
-		TextFieldWithLabel("Standard Library Root Name: ")
+		TextFieldWithLabel("Standard Library Root Name: ").apply {
+			textField.text = "avail"
+		}
 
 	/**
 	 * Updated the [JComboBox] used to pick a standard library to add as a root.

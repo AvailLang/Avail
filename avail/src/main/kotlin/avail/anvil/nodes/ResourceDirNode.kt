@@ -51,9 +51,9 @@ import java.nio.file.Files
  *   `true` indicates this node is visible; `false` otherwise.
  */
 class ResourceDirNode constructor(
-	val workbench: AvailWorkbench,
+	workbench: AvailWorkbench,
 	val reference: ResolverReference
-) : AbstractBuilderFrameTreeNode(workbench.availBuilder)
+) : AbstractWorkbenchTreeNode(workbench)
 {
 	override fun modulePathString(): String = reference.localName
 

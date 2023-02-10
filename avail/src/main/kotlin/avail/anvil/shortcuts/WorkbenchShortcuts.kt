@@ -186,3 +186,16 @@ object OpenSettingsViewShortcut
 	override val actionMapKey: String = "settings"
 	override val description: String = "Open Settings Window"
 }
+
+/**
+ * [WorkbenchShortcut] to delete a module, package, resource directory or
+ * resource.
+ *
+ * @author Richard Arriaga
+ */
+object DeleteFileShortcut
+	: WorkbenchShortcut(KeyCode.VK_DELETE.with())
+{
+	override val actionMapKey: String = "delete-file"
+	override val description: String = "Delete the selected file/directory"
+}
