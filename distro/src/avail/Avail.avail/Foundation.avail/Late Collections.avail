@@ -139,7 +139,7 @@ Public method "single-expression tuple body function(_,_)" is
 		returnType ::=
 			return type(aTuple, actionBlock, baseReturnType, anAtom);
 		Undeclare name;
-		send ::= bootstrap restricted send anAtom with
+		send ::= restricted send anAtom with
 			«<aTuple, actionBlock>» : returnType;
 		send ?→ send phrase ⇒ any
 	] : send phrase ⇒ any
@@ -202,7 +202,7 @@ Public method "single-expression«indexed»?two-input tuple body function(_,_)" 
 			];
 		Undeclare firstInputName;
 		Undeclare secondInputName;
-		send ::= bootstrap restricted send anAtom with
+		send ::= restricted send anAtom with
 			«<aTuple, actionBlock>» : returnType;
 		send ?→ send phrase ⇒ any
 	] : send phrase ⇒ any
@@ -403,7 +403,7 @@ Public method "single-expression set body function(_,_)" is
 		returnType ::= strengthen baseReturnType for call of anAtom
 			using <setType, blockType>;
 		Undeclare name;
-		send ::= bootstrap restricted send anAtom with
+		send ::= restricted send anAtom with
 			«<aSet, actionBlock>» : returnType;
 		send ?→ send phrase ⇒ any
 	] : send phrase ⇒ any
@@ -540,7 +540,7 @@ Public method "single-expression map body function(_,_)" is
 			using <mapType, blockType>;
 		Undeclare keyName;
 		Undeclare valueName;
-		send ::= bootstrap restricted send anAtom with
+		send ::= restricted send anAtom with
 			«<aMap, actionBlock>» : returnType;
 		send ?→ send phrase ⇒ any
 	] : send phrase ⇒ any

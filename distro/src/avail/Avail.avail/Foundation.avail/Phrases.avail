@@ -403,6 +403,8 @@ Public method "`«[_]:_`»" is
 ];
 
 /**
+ * Zero-argument block phrases yield zero-argument functions.
+ *
  * @method "`«[_]:_`»"
  * @restricts "<<>, phrase…|whole number>'s type"
  * @restricts "type's type"
@@ -412,7 +414,7 @@ Semantic restriction "`«[_]:_`»" is
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block phrase ⇒ […]→returnType's instance
+	block phrase ⇒ function accepting <> and returning (returnType's instance)
 ];
 
 /**
@@ -672,15 +674,6 @@ Semantic restriction "Evaluate|evaluate_" is
 	phraseType : phrase's type
 |
 	phraseType's semantic type
-];
-
-Semantic restriction "bootstrap restricted send_with_:_" is
-[
-	messageType : atom's type,
-	argsType : list phrase's type,
-	basicReturnMeta : type's type
-|
-	send phrase ⇒ basicReturnMeta's instance
 ];
 
 Method "“_”" is

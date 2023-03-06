@@ -174,7 +174,7 @@ protected constructor(
 	// tuple isn't shared then only one thread can be reading or writing the
 	// hash field.  So either way we don't need synchronization.
 	override fun o_HashOrZero(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO)
+		self[HASH_OR_ZERO]
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,

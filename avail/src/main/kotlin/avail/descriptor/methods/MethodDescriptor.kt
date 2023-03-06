@@ -76,6 +76,7 @@ import avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIO
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.STYLERS
 import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.allAncestors
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
@@ -149,6 +150,7 @@ import avail.interpreter.primitive.continuations.P_ContinuationCaller
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.controlflow.P_ResumeContinuation
 import avail.interpreter.primitive.fibers.P_CreateFiberHeritableAtom
+import avail.interpreter.primitive.fibers.P_TerminateCurrentFiber
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.hooks.P_DeclareStringificationAtom
 import avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction
@@ -407,7 +409,7 @@ class MethodDescriptor private constructor(
 	): LookupTree<A_Definition, A_Tuple> {
 		var tree = methodTestingTree
 		if (tree === null) {
-			val numArgs = self.slot(NUM_ARGS)
+			val numArgs = self[NUM_ARGS]
 			val newTree = runtimeDispatcher.createRoot(
 				toList(self.volatileSlot(DEFINITIONS_TUPLE)),
 				nCopiesOfAnyRestriction(numArgs),
@@ -446,7 +448,9 @@ class MethodDescriptor private constructor(
 				else -> append("$size definitions")
 			}
 			append(" of ")
-			self.bundles.joinTo(this, " a.k.a. ") { it.message.toString() }
+			self.bundles
+				.sortedBy { it.message.issuingModule.allAncestors.setSize }
+				.joinTo(this, " a.k.a. ") { it.message.toString() }
 		}
 	}
 
@@ -470,18 +474,18 @@ class MethodDescriptor private constructor(
 		typeTuple: A_Tuple
 	) = synchronized(self) {
 		assert(typeTuple.isTuple)
-		val oldTuple: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		val oldTuple: A_Tuple = self[SEALED_ARGUMENTS_TYPES_TUPLE]
 		val newTuple = oldTuple.appendCanDestroy(typeTuple, true)
-		self.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple.makeShared())
+		self[SEALED_ARGUMENTS_TYPES_TUPLE] = newTuple.makeShared()
 	}
 
 	override fun o_AddSemanticRestriction(
 		self: AvailObject,
 		restriction: A_SemanticRestriction
 	) = synchronized(self) {
-		var set: A_Set = self.slot(SEMANTIC_RESTRICTIONS_SET)
+		var set: A_Set = self[SEMANTIC_RESTRICTIONS_SET]
 		set = set.setWithElementCanDestroy(restriction, true)
-		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
+		self[SEMANTIC_RESTRICTIONS_SET] = set.makeShared()
 	}
 
 	override fun o_Bundles(self: AvailObject): A_Set = owningBundles.get()
@@ -578,7 +582,7 @@ class MethodDescriptor private constructor(
 			it.bodySignature().acceptsListOfArgTypes(argTypes)
 		}
 
-	override fun o_Hash(self: AvailObject) = self.slot(HASH)
+	override fun o_Hash(self: AvailObject) = self[HASH]
 
 	/**
 	 * Test if the definition is present within this method.
@@ -593,15 +597,15 @@ class MethodDescriptor private constructor(
 
 	override fun o_IsMethodEmpty(self: AvailObject) = synchronized(self) {
 		self.volatileSlot(DEFINITIONS_TUPLE).tupleSize == 0
-			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize == 0
-			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize == 0
+			&& self[SEMANTIC_RESTRICTIONS_SET].setSize == 0
+			&& self[SEALED_ARGUMENTS_TYPES_TUPLE].tupleSize == 0
 			&& owningBundles.get().all { it.macrosTuple.tupleSize == 0 }
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type = METHOD.o
 
 	override fun o_Lexer(self: AvailObject): A_Lexer =
-		synchronized(self) { self.slot(LEXER_OR_NIL) }
+		synchronized(self) { self[LEXER_OR_NIL] }
 
 	/**
 	 * Look up the definition to invoke, given a tuple of argument types.
@@ -666,7 +670,7 @@ class MethodDescriptor private constructor(
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
 		val paramTypes = definition.bodySignature().argsTupleType
-		val seals: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		val seals: A_Tuple = self[SEALED_ARGUMENTS_TYPES_TUPLE]
 		seals.forEach { seal: A_Tuple ->
 			val sealType = tupleTypeForSizesTypesDefaultType(
 				singleInt(seal.tupleSize), seal, bottom)
@@ -692,7 +696,7 @@ class MethodDescriptor private constructor(
 	override fun o_MethodName(self: AvailObject): A_String =
 		self.chooseBundle(self.module).message.atomName
 
-	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
+	override fun o_NumArgs(self: AvailObject) = self[NUM_ARGS]
 
 	/**
 	 * Remove the definition from me. Causes dependent chunks to be invalidated.
@@ -739,33 +743,33 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		typeTuple: A_Tuple
 	) = synchronized(self) {
-		val oldTuple: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		val oldTuple: A_Tuple = self[SEALED_ARGUMENTS_TYPES_TUPLE]
 		val newTuple = tupleWithout(oldTuple, typeTuple)
 		assert(newTuple.tupleSize == oldTuple.tupleSize - 1)
-		self.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple.makeShared())
+		self[SEALED_ARGUMENTS_TYPES_TUPLE] = newTuple.makeShared()
 	}
 
 	override fun o_RemoveSemanticRestriction(
 		self: AvailObject,
 		restriction: A_SemanticRestriction
 	) = synchronized(self) {
-		var set: A_Set = self.slot(SEMANTIC_RESTRICTIONS_SET)
+		var set: A_Set = self[SEMANTIC_RESTRICTIONS_SET]
 		set = set.setWithoutElementCanDestroy(restriction, true)
-		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
+		self[SEMANTIC_RESTRICTIONS_SET] = set.makeShared()
 	}
 
 	override fun o_SealedArgumentsTypesTuple(self: AvailObject): A_Tuple =
-		self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		self[SEALED_ARGUMENTS_TYPES_TUPLE]
 
 	override fun o_SemanticRestrictions(self: AvailObject): A_Set =
-		synchronized(self) { self.slot(SEMANTIC_RESTRICTIONS_SET) }
+		synchronized(self) { self[SEMANTIC_RESTRICTIONS_SET] }
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.METHOD
 
 	override fun o_SetLexer(self: AvailObject, lexer: A_Lexer) =
-		synchronized(self) { self.setSlot(LEXER_OR_NIL, lexer) }
+		synchronized(self) { self[LEXER_OR_NIL] = lexer }
 
 	override fun o_TestingTree(
 		self: AvailObject
@@ -1023,6 +1027,10 @@ class MethodDescriptor private constructor(
 		SET_STYLER(
 			"vm add styler of bundle_is_",
 			P_SetStylerFunction),
+
+		TERMINATE_CURRENT_FIBER(
+			"vm terminate current fiber",
+			P_TerminateCurrentFiber),
 
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(

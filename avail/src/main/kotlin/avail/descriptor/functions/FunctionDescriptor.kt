@@ -144,14 +144,14 @@ class FunctionDescriptor private constructor(
 		phrase.printOnAvoidingIndent(builder, recursionMap, indent + 1)
 	}
 
-	override fun o_Code(self: AvailObject): A_RawFunction = self.slot(CODE)
+	override fun o_Code(self: AvailObject): A_RawFunction = self[CODE]
 
 	override fun o_DescribeForDebugger(
 		self: AvailObject
 	): Array<AvailObjectFieldHelper>
 	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
-		val code = self.slot(CODE)
+		val code = self[CODE]
 		val allDeclarationNames = code.declarationNames
 		val outerNames = allDeclarationNames.copyTupleFromToCanDestroy(
 			allDeclarationNames.tupleSize + 1 - code.numOuters,
@@ -205,7 +205,7 @@ class FunctionDescriptor private constructor(
 	// captured value.
 	override fun o_Hash(self: AvailObject): Int =
 		(1..self.makeImmutable().numOuterVars)
-			.fold(combine2(self.slot(CODE).hash(), 0x1386D4F6)) { h, i ->
+			.fold(combine2(self[CODE].hash(), 0x1386D4F6)) { h, i ->
 				combine3(h, self.outerVarAt(i).hash(), 0x3921A5F2)
 			}
 
@@ -217,7 +217,7 @@ class FunctionDescriptor private constructor(
 	 * [function&#32;type][FunctionTypeDescriptor].
 	 */
 	override fun o_Kind(self: AvailObject): A_Type =
-		self.slot(CODE).functionType()
+		self[CODE].functionType()
 
 	override fun o_NameForDebugger(self: AvailObject) =
 		super.o_NameForDebugger(self) +
@@ -235,20 +235,22 @@ class FunctionDescriptor private constructor(
 	{
 		if (isMutable)
 		{
-			self.setSlot(OUTER_VAR_AT_, index, nil)
+			self[OUTER_VAR_AT_, index] = nil
 			return true
 		}
 		return false
 	}
 
 	override fun o_OuterVarAt(self: AvailObject, index: Int): AvailObject =
-		self.slot(OUTER_VAR_AT_, index)
+		self[OUTER_VAR_AT_, index]
 
 	override fun o_OuterVarAtPut(
 		self: AvailObject,
 		index: Int,
-		value: AvailObject
-	) = self.setSlot(OUTER_VAR_AT_, index, value)
+		value: AvailObject)
+	{
+		self[OUTER_VAR_AT_, index] = value
+	}
 
 	@ThreadSafe
 	override fun o_SerializerOperation(
@@ -262,12 +264,12 @@ class FunctionDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("function") }
-			at("function implementation") { self.slot(CODE).writeTo(writer) }
+			at("function implementation") { self[CODE].writeTo(writer) }
 			at("outers") {
 				writeArray {
 					for (i in 1 .. self.variableObjectSlotsCount())
 					{
-						self.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer)
+						self[OUTER_VAR_AT_, i].writeSummaryTo(writer)
 					}
 				}
 			}
@@ -277,13 +279,13 @@ class FunctionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("function") }
 			at("function implementation") {
-				self.slot(CODE).writeSummaryTo(writer)
+				self[CODE].writeSummaryTo(writer)
 			}
 			at("outers") {
 				writeArray {
 					for (i in 1 .. self.variableObjectSlotsCount())
 					{
-						self.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer)
+						self[OUTER_VAR_AT_, i].writeSummaryTo(writer)
 					}
 				}
 			}

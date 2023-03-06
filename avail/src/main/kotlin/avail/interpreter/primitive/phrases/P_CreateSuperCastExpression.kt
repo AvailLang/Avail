@@ -49,7 +49,6 @@ import avail.exceptions.AvailErrorCode.E_SUPERCAST_EXPRESSION_MUST_NOT_ALSO_BE_A
 import avail.exceptions.AvailErrorCode.E_SUPERCAST_EXPRESSION_TYPE_MUST_NOT_BE_TOP_OR_BOTTOM
 import avail.exceptions.AvailErrorCode.E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 
@@ -61,7 +60,7 @@ import avail.interpreter.execution.Interpreter
  * supertype, or if it is top-valued or bottom-valued.
  */
 @Suppress("unused")
-object P_CreateSuperCastExpression : Primitive(2, CanFold, CanInline)
+object P_CreateSuperCastExpression : Primitive(2, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -81,7 +80,8 @@ object P_CreateSuperCastExpression : Primitive(2, CanFold, CanInline)
 					|| expressionType.equals(lookupType) ->
 				interpreter.primitiveFailure(
 					E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE)
-			else -> interpreter.primitiveSuccess(newSuperCastNode(expression, lookupType))
+			else -> interpreter.primitiveSuccess(
+				newSuperCastNode(expression, lookupType))
 		}
 	}
 

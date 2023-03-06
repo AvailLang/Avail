@@ -1289,7 +1289,7 @@ Public stable method "_→UUID" is
 		lowChar ::= hex[hexIndex + 1];
 		high ::= (hexToValue[highChar] bit∧ 15) << 4;
 		low ::= hexToValue[lowChar] bit∧ 15;
-		b ::= cast high bit∨ low into [b : byte | b];
+		b ::= high bit∨ low;
 		uuid := uuid[index] → b;
 	];
 	uuid

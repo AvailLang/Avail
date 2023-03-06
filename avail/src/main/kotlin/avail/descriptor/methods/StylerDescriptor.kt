@@ -395,19 +395,19 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int = combine4(
-		self.slot(FUNCTION).hash(),
-		self.slot(METHOD).hash(),
-		self.slot(MODULE).hash(),
+		self[FUNCTION].hash(),
+		self[METHOD].hash(),
+		self[MODULE].hash(),
 		0x443046b4)
 
 	override fun o_Function(self: AvailObject): A_Function =
-		self.slot(FUNCTION)
+		self[FUNCTION]
 
 	override fun o_StylerMethod(self: AvailObject): A_Method =
-		self.slot(METHOD)
+		self[METHOD]
 
 	override fun o_Module(self: AvailObject): A_Module =
-		self.slot(MODULE)
+		self[MODULE]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		self.sameAddressAs(another)

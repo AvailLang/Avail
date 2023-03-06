@@ -44,6 +44,7 @@ import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
@@ -138,7 +139,7 @@ private constructor(
 	}
 
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
-		self.slot(BUNDLE).message
+		self[BUNDLE].message
 
 	override fun o_ApplyStylesThen(
 		self: AvailObject,
@@ -154,14 +155,14 @@ private constructor(
 	}
 
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
-		self.slot(ARGUMENTS_LIST_NODE)
+		self[ARGUMENTS_LIST_NODE]
 
-	override fun o_Bundle(self: AvailObject): A_Bundle = self.slot(BUNDLE)
+	override fun o_Bundle(self: AvailObject): A_Bundle = self[BUNDLE]
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase)->Unit
-	) = action(self.slot(ARGUMENTS_LIST_NODE))
+	) = action(self[ARGUMENTS_LIST_NODE])
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
@@ -172,9 +173,9 @@ private constructor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val bundle: A_Bundle = self.slot(BUNDLE)
+		val bundle: A_Bundle = self[BUNDLE]
 		val argCount: Int = bundle.bundleMethod.numArgs
-		val arguments: A_Phrase = self.slot(ARGUMENTS_LIST_NODE)
+		val arguments: A_Phrase = self[ARGUMENTS_LIST_NODE]
 		arguments.emitAllValuesOn(codeGenerator)
 		val superUnionType = arguments.superUnionType
 		when {
@@ -194,13 +195,13 @@ private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(BUNDLE).equals(aPhrase.bundle)
-		&& self.slot(ARGUMENTS_LIST_NODE).equalsPhrase(
+		&& self[BUNDLE].equals(aPhrase.bundle)
+		&& self[ARGUMENTS_LIST_NODE].equalsPhrase(
 			aPhrase.argumentsListNode)
-		&& self.slot(RETURN_TYPE).equals(aPhrase.phraseExpressionType))
+		&& self[RETURN_TYPE].equals(aPhrase.phraseExpressionType))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(RETURN_TYPE)
+		self[RETURN_TYPE]
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEND_PHRASE
@@ -213,31 +214,31 @@ private constructor(
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
+	override fun o_Tokens(self: AvailObject): A_Tuple = self[TOKENS]
 
 	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
-		self.slot(TOKEN_INDICES_IN_NAME)
+		self[TOKEN_INDICES_IN_NAME]
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("send phrase") }
-			at("tokens") { self.slot(TOKENS).writeTo(writer) }
+			at("tokens") { self[TOKENS].writeTo(writer) }
 			at("token indices in name") {
-				self.slot(TOKEN_INDICES_IN_NAME).writeTo(writer)
+				self[TOKEN_INDICES_IN_NAME].writeTo(writer)
 			}
-			at("arguments") { self.slot(ARGUMENTS_LIST_NODE).writeTo(writer) }
-			at("bundle") { self.slot(BUNDLE).writeTo(writer) }
-			at("return type") { self.slot(RETURN_TYPE).writeTo(writer) }
+			at("arguments") { self[ARGUMENTS_LIST_NODE].writeTo(writer) }
+			at("bundle") { self[BUNDLE].writeTo(writer) }
+			at("return type") { self[RETURN_TYPE].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("send phrase") }
 			at("arguments") {
-				self.slot(ARGUMENTS_LIST_NODE).writeSummaryTo(writer)
+				self[ARGUMENTS_LIST_NODE].writeSummaryTo(writer)
 			}
-			at("bundle") { self.slot(BUNDLE).writeSummaryTo(writer) }
-			at("return type") { self.slot(RETURN_TYPE).writeSummaryTo(writer) }
+			at("bundle") { self[BUNDLE].writeSummaryTo(writer) }
+			at("return type") { self[RETURN_TYPE].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable

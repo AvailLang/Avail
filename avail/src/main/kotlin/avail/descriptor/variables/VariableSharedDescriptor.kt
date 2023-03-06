@@ -178,7 +178,7 @@ open class VariableSharedDescriptor protected constructor(
 		|| e === HASH_AND_MORE) // only for flags.
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(HASH_ALWAYS_SET)
+		self[HASH_ALWAYS_SET]
 
 	override fun o_Value(self: AvailObject): AvailObject
 	{
@@ -270,7 +270,7 @@ open class VariableSharedDescriptor protected constructor(
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		val outerKind: A_Type = self.slot(KIND)
+		val outerKind: A_Type = self[KIND]
 		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -298,7 +298,7 @@ open class VariableSharedDescriptor protected constructor(
 		try
 		{
 			handleVariableWriteTracing(self)
-			val outerKind = self.slot(KIND)
+			val outerKind = self[KIND]
 			if (!newValue.isInstanceOf(outerKind.writeType))
 			{
 				throw VariableSetException(
@@ -324,7 +324,7 @@ open class VariableSharedDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
+		if (!newValue.isInstanceOf(self[KIND].writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -391,7 +391,7 @@ open class VariableSharedDescriptor protected constructor(
 		value: A_BasicObject)
 	{
 		// Simply read, add, and compare-and-set until it succeeds.
-		val outerKind: A_Type = self.slot(KIND)
+		val outerKind: A_Type = self[KIND]
 		val writeType = outerKind.writeType
 		do
 		{
@@ -431,7 +431,7 @@ open class VariableSharedDescriptor protected constructor(
 		key: A_BasicObject)
 	{
 		// Simply read, remove, and compare-and-set until it succeeds.
-		val outerKind: A_Type = self.slot(KIND)
+		val outerKind: A_Type = self[KIND]
 		val writeType = outerKind.writeType
 		while (true) {
 			val oldValue = self.volatileSlot(VALUE)
@@ -501,7 +501,7 @@ open class VariableSharedDescriptor protected constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("variable") }
-			at("variable type") { self.slot(KIND).writeTo(writer) }
+			at("variable type") { self[KIND].writeTo(writer) }
 			at("value") { self.value().writeSummaryTo(writer) }
 		}
 
@@ -572,7 +572,7 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			val loader = AvailLoader.currentLoaderOrNull() ?: return
 			if (loader.statementCanBeSummarized()
-				&& self.slot(VALUE).notNil
+				&& self[VALUE].notNil
 				&& !self.valueWasStablyComputed())
 			{
 				loader.statementCanBeSummarized(false)

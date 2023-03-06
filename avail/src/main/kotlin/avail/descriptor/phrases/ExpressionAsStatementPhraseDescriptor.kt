@@ -33,16 +33,15 @@ package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.expression
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.ObjectSlots.EXPRESSION
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -83,13 +82,13 @@ class ExpressionAsStatementPhraseDescriptor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) = self.slot(EXPRESSION).printOnAvoidingIndent(
+	) = self[EXPRESSION].printOnAvoidingIndent(
 		builder, recursionMap, indent)
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase)->Unit
-	) = action(self.slot(EXPRESSION))
+	) = action(self[EXPRESSION])
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
@@ -99,22 +98,22 @@ class ExpressionAsStatementPhraseDescriptor(
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self.slot(EXPRESSION).emitEffectOn(codeGenerator)
+	) = self[EXPRESSION].emitEffectOn(codeGenerator)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self.slot(EXPRESSION).emitValueOn(codeGenerator)
+	) = self[EXPRESSION].emitValueOn(codeGenerator)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression))
+		&& self[EXPRESSION].equalsPhrase(aPhrase.expression))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
-		self.slot(EXPRESSION)
+		self[EXPRESSION]
 
 	/** Statements are always ⊤-valued. */
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
@@ -133,13 +132,13 @@ class ExpressionAsStatementPhraseDescriptor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("expression as statement phrase") }
-			at("expression") { self.slot(EXPRESSION).writeTo(writer) }
+			at("expression") { self[EXPRESSION].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("expression as statement phrase") }
-			at("expression") { self.slot(EXPRESSION).writeSummaryTo(writer) }
+			at("expression") { self[EXPRESSION].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable

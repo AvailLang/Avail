@@ -906,7 +906,7 @@ Macro "{«_‡,»}" is
 		];
 		‘values→set’
 	]
-	else [bootstrap restricted send $"{«_‡,»}" with «<exprs>» : set]
+	else [restricted send $"{«_‡,»}" with «<exprs>» : set]
 ];
 
 /**
@@ -960,7 +960,7 @@ Macro "{«_→_‡,»}" is
 	bindings ::= cast values
 		into [t : <<>, <<>, any… | 2's type>… | whole number> | t];
 	if literalizable then [‘bindings→map’]
-	else [bootstrap restricted send $"{«_→_‡,»}" with «<exprs>» : map]
+	else [restricted send $"{«_→_‡,»}" with «<exprs>» : map]
 ];
 
 /**

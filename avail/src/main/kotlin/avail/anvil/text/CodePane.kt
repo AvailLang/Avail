@@ -101,7 +101,9 @@ class CodePane constructor(
 	 * The [UndoManager] for supplying undo/redo for edits to the underlying
 	 * document.
 	 */
-	internal val undoManager = UndoManager().apply { limit = 1000 }
+	internal val undoManager = UndoManager().apply {
+		limit = if (isEditable) 1000 else 1
+	}
 
 	/**
 	 * The state of an ongoing template selection.

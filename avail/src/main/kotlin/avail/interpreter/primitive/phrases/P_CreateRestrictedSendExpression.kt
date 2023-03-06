@@ -49,6 +49,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.createFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_SEMANTIC_RESTRICTION
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.methods.A_Method.Companion.filterByTypes
 import avail.descriptor.methods.A_Method.Companion.semanticRestrictions
@@ -156,9 +157,10 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(e)
 		}
 
-		val argsTupleType = argsListPhrase.phraseExpressionType
+		val argsTupleType = argsListPhrase.phraseExpressionType.makeShared()
 		val argTypesList = (1 .. argsCount).map { index ->
-			argsTupleType.typeAtIndex(index).makeShared()
+			val argType = argsTupleType.typeAtIndex(index)
+			argType
 		}
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
@@ -228,6 +230,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 								P_CreateRestrictedSendExpression.simpleName)
 					}
 					forkedFiber.setGeneralFlag(CAN_REJECT_PARSE)
+					forkedFiber.setGeneralFlag(IS_SEMANTIC_RESTRICTION)
 					forkedFiber.heritableFiberGlobals =
 						originalFiber.heritableFiberGlobals
 					forkedFiber.setSuccessAndFailure(

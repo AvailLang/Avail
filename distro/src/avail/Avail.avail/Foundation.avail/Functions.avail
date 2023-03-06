@@ -134,7 +134,7 @@ Private method "_partial evaluator with_" is
 	innerFunction ::=
 		«[innerParams |
 			<
-				bootstrap restricted send invokeAtom with
+				restricted send invokeAtom with
 				«<
 					«↓functionItselfParam»,
 					allParamUses → list phrase
@@ -145,7 +145,7 @@ Private method "_partial evaluator with_" is
 		«[outerParams |
 			<innerFunction>
 		] : innerFunction's semantic type»;
-	bootstrap restricted send invokeAtom with
+	restricted send invokeAtom with
 	«<
 		outerFunction,
 		outerInvokeArgs → list phrase

@@ -176,7 +176,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	): Array<AvailObjectFieldHelper>
 	{
 		val fieldsArray = super.o_DescribeForDebugger(self)
-		val propertiesPojo = self.slot(PROPERTY_MAP_POJO)
+		val propertiesPojo = self[PROPERTY_MAP_POJO]
 		if (propertiesPojo.isNil)
 		{
 			return fieldsArray
@@ -207,7 +207,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		key: A_Atom
 	): AvailObject {
 		assert(key.isAtom)
-		val propertyMapPojo: A_BasicObject = self.slot(PROPERTY_MAP_POJO)
+		val propertyMapPojo: A_BasicObject = self[PROPERTY_MAP_POJO]
 		val propertyMap: Map<A_Atom, AvailObject> =
 			propertyMapPojo.javaObjectNotNull()
 		return propertyMap[key] ?: nil
@@ -225,7 +225,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		assert(mutability == Mutability.IMMUTABLE)
 		super.o_MakeImmutableInternal(self, queueToProcess, fixups)
 		// Scan the property map as well.
-		val map = self.slot(PROPERTY_MAP_POJO)
+		val map = self[PROPERTY_MAP_POJO]
 		// The map can only be nil in a subclasses, but it's always shared, so
 		// this code wouldn't be reached.
 		assert(map.notNil)
@@ -262,7 +262,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		value: A_BasicObject
 	) {
 		assert(key.isAtom)
-		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
+		val propertyMapPojo = self[PROPERTY_MAP_POJO]
 		val map: MutableMap<A_Atom, A_BasicObject> =
 			propertyMapPojo.javaObjectNotNull()
 		when {
@@ -272,7 +272,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	}
 
 	override fun propertyMapOrNil(self: AvailObject): AvailObject =
-		self.slot(PROPERTY_MAP_POJO)
+		self[PROPERTY_MAP_POJO]
 
 	override fun mutable() = mutable
 

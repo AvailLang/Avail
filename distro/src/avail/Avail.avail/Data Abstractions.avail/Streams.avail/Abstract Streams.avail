@@ -1021,7 +1021,7 @@ Semantic restriction "take«at most»?_from_" is
 	streamType : stream's type
 |
 	Assert: |laxity| = 1;
-	If ¬laxity's instance ∧ ∞ ∈ count then
+	If ¬(laxity's instance) ∧ ∞ ∈ count then
 	[
 		Reject parse, expected:
 			"'at most' clause to be specified when count may be ∞"

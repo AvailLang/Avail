@@ -80,8 +80,8 @@ abstract class AbstractWorkbenchAction constructor(
 	 * this function.
 	 *
 	 * @param busy
-	 *   Indicator of whether the [AvailWorkbench]
-	 *   [is busy][AvailWorkbench.isBusy].
+	 *   Indicator of whether the [AvailWorkbench] is
+	 *   [busy][AvailWorkbench.isBusy].
 	 */
 	abstract fun updateIsEnabled (busy: Boolean)
 

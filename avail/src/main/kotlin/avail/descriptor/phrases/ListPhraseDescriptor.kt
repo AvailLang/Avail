@@ -39,7 +39,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.stripMacro
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE
 import avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE
 import avail.descriptor.representation.A_BasicObject
@@ -49,7 +48,6 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -160,7 +158,7 @@ class ListPhraseDescriptor private constructor(
 		self: AvailObject,
 		newPhrase: A_Phrase
 	): A_Phrase = newListNode(
-		self.slot(EXPRESSIONS_TUPLE).appendCanDestroy(newPhrase, true))
+		self[EXPRESSIONS_TUPLE].appendCanDestroy(newPhrase, true))
 
 	/**
 	 * Create a new [list&#32;phrase][ListPhraseDescriptor] with phrases from a
@@ -177,7 +175,7 @@ class ListPhraseDescriptor private constructor(
 		self: AvailObject,
 		newListPhrase: A_Phrase
 	): A_Phrase = newListNode(
-		self.slot(EXPRESSIONS_TUPLE).concatenateWith(
+		self[EXPRESSIONS_TUPLE].concatenateWith(
 			newListPhrase.expressionsTuple, false))
 
 	override fun o_EmitAllValuesOn(
@@ -206,13 +204,13 @@ class ListPhraseDescriptor private constructor(
 		&& equalPhrases(self.expressionsTuple, aPhrase.expressionsTuple))
 
 	override fun o_ExpressionAt(self: AvailObject, index: Int): A_Phrase =
-		self.slot(EXPRESSIONS_TUPLE).tupleAt(index)
+		self[EXPRESSIONS_TUPLE].tupleAt(index)
 
 	override fun o_ExpressionsSize(self: AvailObject): Int =
-		self.slot(EXPRESSIONS_TUPLE).tupleSize
+		self[EXPRESSIONS_TUPLE].tupleSize
 
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSIONS_TUPLE)
+		self[EXPRESSIONS_TUPLE]
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type
 	{
@@ -222,7 +220,7 @@ class ListPhraseDescriptor private constructor(
 	}
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
-		self.slot(EXPRESSIONS_TUPLE).any { it.hasSuperCast }
+		self[EXPRESSIONS_TUPLE].any { it.hasSuperCast }
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -230,23 +228,26 @@ class ListPhraseDescriptor private constructor(
 	) = when {
 		!super.o_IsInstanceOfKind(self, aType) -> false
 		!aType.isSubtypeOf(PhraseKind.LIST_PHRASE.mostGeneralType) -> true
-		else -> self.slot(EXPRESSIONS_TUPLE).isInstanceOf(
+		else -> self[EXPRESSIONS_TUPLE].isInstanceOf(
 			aType.subexpressionsTupleType)
 	}
 
 	override fun o_LastExpression(self: AvailObject): A_Phrase
 	{
-		val tuple: A_Tuple = self.slot(EXPRESSIONS_TUPLE)
+		val tuple: A_Tuple = self[EXPRESSIONS_TUPLE]
 		return tuple.tupleAt(tuple.tupleSize)
 	}
+
+	override fun o_PermutedPhrases(self: AvailObject): List<A_Phrase> =
+		self[EXPRESSIONS_TUPLE].toList()
+
+	override fun o_PhraseKind(self: AvailObject): PhraseKind =
+		PhraseKind.LIST_PHRASE
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
-
-	override fun o_PhraseKind(self: AvailObject): PhraseKind =
-		PhraseKind.LIST_PHRASE
 
 	override fun o_StripMacro(self: AvailObject): A_Phrase
 	{
@@ -256,7 +257,7 @@ class ListPhraseDescriptor private constructor(
 		// restrictions, but the "root" phrases are what get passed into
 		// functions.
 		val expressionsTuple: A_Tuple =
-			self.slot(EXPRESSIONS_TUPLE).makeImmutable()
+			self[EXPRESSIONS_TUPLE].makeImmutable()
 		var anyStripped = false
 		val newExpressions = expressionsTuple.map {
 			val strippedElement = it.stripMacro
@@ -273,7 +274,7 @@ class ListPhraseDescriptor private constructor(
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type
 	{
-		val expressions: A_Tuple = self.slot(EXPRESSIONS_TUPLE)
+		val expressions: A_Tuple = self[EXPRESSIONS_TUPLE]
 		var anyNotBottom = false
 		val types = Array(expressions.tupleSize) { i ->
 			val lookupType = expressions.tupleAt(i + 1).superUnionType
@@ -293,14 +294,14 @@ class ListPhraseDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("list phrase") }
-			at("expressions") { self.slot(EXPRESSIONS_TUPLE).writeTo(writer) }
+			at("expressions") { self[EXPRESSIONS_TUPLE].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("list phrase") }
 			at("expressions") {
-				self.slot(EXPRESSIONS_TUPLE).writeSummaryTo(writer)
+				self[EXPRESSIONS_TUPLE].writeSummaryTo(writer)
 			}
 		}
 

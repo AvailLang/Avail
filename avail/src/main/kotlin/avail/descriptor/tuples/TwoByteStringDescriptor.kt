@@ -152,7 +152,7 @@ class TwoByteStringDescriptor private constructor(
 			// Enlarge it in place, using more of the final partial int field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
 			self.setShortSlot(RAW_LONGS_, newSize, intValue)
-			self.setSlot(HASH_OR_ZERO, 0)
+			self[HASH_OR_ZERO] = 0
 			return self
 		}
 		// Copy to a potentially larger TwoByteStringDescriptor.
@@ -162,7 +162,7 @@ class TwoByteStringDescriptor private constructor(
 			0,
 			if (originalSize and 3 == 0) 1 else 0)
 		result.setShortSlot(RAW_LONGS_, newSize, intValue)
-		result.setSlot(HASH_OR_ZERO, 0)
+		result[HASH_OR_ZERO] = 0
 		return result
 	}
 
@@ -416,7 +416,7 @@ class TwoByteStringDescriptor private constructor(
 				src++
 				dest++
 			}
-			result.setSlot(HASH_OR_ZERO, 0)
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		if (!canDestroy)
@@ -562,13 +562,11 @@ class TwoByteStringDescriptor private constructor(
 			// Aggregate four writes at a time for the bulk of the string.
 			for (slotIndex in 1..(size ushr 2))
 			{
-				result.setSlot(
-					RAW_LONGS_,
-					slotIndex,
+				result[RAW_LONGS_, slotIndex] =
 					generator(counter++).toLong() +
 						(generator(counter++).toLong() shl 16) +
 						(generator(counter++).toLong() shl 32) +
-						(generator(counter++).toLong() shl 48))
+						(generator(counter++).toLong() shl 48)
 			}
 			// Do the last 0-3 writes the slow way.
 			for (index in (size and 3.inv()) + 1 .. size)

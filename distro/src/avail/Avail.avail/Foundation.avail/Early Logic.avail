@@ -90,6 +90,30 @@ Public macro "¬_" is
 ] : expression phrase ⇒ true's type;
 
 /**
+ * Compute and answer the type-level logical negation, i.e., NOT, of the
+ * argument.
+ * 
+ * In particular, if a boolean expression b has semantic type t, the semantic
+ * type of the expression ¬b (i.e., some subclass of boolean) will be the
+ * result of this method applied to b's semantic type.
+ *
+ * @method "¬_"
+ * @param "predicate" "boolean's type"
+ *   Some subtype of boolean.
+ * @returns "boolean's type"
+ *   The boolean complement of the given type.
+ * @category "Logic"
+ */
+Public method "¬_" is
+[
+	predicate : boolean's type
+|
+	a ::= boolean's instances;
+	b ::= predicate's instances;
+	(enumeration of a \ b) ?→ boolean's type
+] : boolean's type;
+
+/**
  * Compute and answer the logical conjunction, i.e., AND, of the arguments.
  * Short-circuit the computation, i.e., only evaluate {@param "b"} if {@param
  * "a"} is {@method "true"}.

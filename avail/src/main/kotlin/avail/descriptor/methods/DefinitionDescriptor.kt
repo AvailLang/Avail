@@ -107,13 +107,13 @@ abstract class DefinitionDescriptor protected constructor(
 	abstract override fun o_BodySignature(self: AvailObject): A_Type
 
 	override fun o_DefinitionMethod(self: AvailObject): A_Method =
-		self.slot(DEFINITION_METHOD)
+		self[DEFINITION_METHOD]
 
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
-		self.slot(MODULE)
+		self[MODULE]
 
 	override fun o_DefinitionModuleName(self: AvailObject): A_String =
-		self.slot(MODULE).run {
+		self[MODULE].run {
 			if (isNil) builtInNoModuleName
 			else moduleName
 		}
@@ -139,7 +139,7 @@ abstract class DefinitionDescriptor protected constructor(
 		val sizes = argsTupleType.sizeRange
 		assert(sizes.lowerBound.extractInt == sizes.upperBound.extractInt)
 		assert(sizes.lowerBound.extractInt
-			== self.slot(DEFINITION_METHOD).numArgs)
+			== self[DEFINITION_METHOD].numArgs)
 		return createListPhraseType(
 			PhraseKind.LIST_PHRASE,
 			argsTupleType,

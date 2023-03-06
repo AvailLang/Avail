@@ -249,7 +249,7 @@ Macro "_++_" is
 	left : expression phrase ⇒ tuple,
 	right : expression phrase ⇒ tuple
 |
-	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -370,7 +370,7 @@ Macro "_++_" is
 					folded ::= ‘concatenate
 						<lit's token's value, right's token's value>’;
 					Exit body with
-						bootstrap restricted send $"concatenate_"
+						restricted send $"concatenate_"
 							with concatenate <unfolded, <folded>> → list phrase
 							: tuple
 				]
@@ -379,7 +379,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -426,7 +426,7 @@ Macro "_++_" is
 					unfolded ::= cast args[2 .. upper] into
 						[t : <<>, expression phrase ⇒ tuple…|whole number> | t];
 					Exit body with
-						bootstrap restricted send $"concatenate_"
+						restricted send $"concatenate_"
 							with concatenate <<folded>, unfolded> → list phrase
 							: tuple
 				]
@@ -435,7 +435,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -526,7 +526,7 @@ Macro "_++_" is
 						|
 							t
 						];
-					Exit body with bootstrap restricted send $"concatenate_"
+					Exit body with restricted send $"concatenate_"
 						with
 							(concatenate <leftUnfolded, folded, rightUnfolded>)
 								→ list phrase
@@ -537,7 +537,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -1340,12 +1340,12 @@ Macro "_↑++=_" is
 	varPhrase : variable reference phrase ⇒ read tuple/write ⊥,
 	elemPhrase : expression phrase ⇒ <<>, any…|[1..1]>
 |
-	bootstrap restricted send $"_`?=_" with
+	restricted send $"_`?=_" with
 	«<
 		varPhrase,
-		bootstrap restricted send $"_with_appended" with
+		restricted send $"_with_appended" with
 		«<
-			bootstrap restricted send $"eject_↑" with «<varPhrase>» : any,
+			restricted send $"eject_↑" with «<varPhrase>» : any,
 			cast elemPhrase into
 			[
 				lit : literal phrase ⇒ <<>, any…|[1..1]>
@@ -1354,7 +1354,7 @@ Macro "_↑++=_" is
 			]
 			else
 			[
-				bootstrap restricted send $"_[_]" with «<elemPhrase, ‘1’>» : any
+				restricted send $"_[_]" with «<elemPhrase, ‘1’>» : any
 			]
 		>» : tuple
 	>» : ⊤

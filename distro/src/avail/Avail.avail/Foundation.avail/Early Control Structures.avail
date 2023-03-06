@@ -45,7 +45,6 @@ Names
 	"Exit_with_",
 	"From_to_do_",
 	"Ignore:_",
-	"bootstrap restricted send_with_:_",
 	"(_)",
 	"((_))",
 	"_`?→_†"
@@ -401,7 +400,7 @@ optionalSendPhraseType ::= <<>, send phrase… | zeroOrOne>;
  * the current fiber.  This ignores unwind blocks, so don't export this
  * mechanism past Exceptions, where a safer form is created.
  *
- * @method "restricted send_with_:_"
+ * @method "bootstrap restricted send_with_:_"
  * @param "message" "atom"
  *        The atom that names the method to be invoked by the send phrase.
  * @param "args" "list phrase"
@@ -432,7 +431,7 @@ optionalSendPhraseType ::= <<>, send phrase… | zeroOrOne>;
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  */
-Public method "bootstrap restricted send_with_:_" is
+Method "bootstrap restricted send_with_:_" is
 [
 	message : atom,
 	args : list phrase,

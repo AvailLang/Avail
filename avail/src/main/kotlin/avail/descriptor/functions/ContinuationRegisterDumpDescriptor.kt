@@ -93,10 +93,10 @@ class ContinuationRegisterDumpDescriptor private constructor(
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
 	override fun o_ExtractDumpedObjectAt(self: AvailObject, index: Int) =
-		self.slot(OBJECT_SLOTS_, index)
+		self[OBJECT_SLOTS_, index]
 
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
-		self.slot(INTEGER_SLOTS_, index)
+		self[INTEGER_SLOTS_, index]
 
 	override fun mutable() = mutable
 

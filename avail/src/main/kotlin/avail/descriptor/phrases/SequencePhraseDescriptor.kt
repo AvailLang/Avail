@@ -48,7 +48,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -89,7 +88,7 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase)->Unit
-	) = self.slot(STATEMENTS).forEach(action)
+	) = self[STATEMENTS].forEach(action)
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
@@ -99,7 +98,7 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self.slot(STATEMENTS).forEach {
+	) = self[STATEMENTS].forEach {
 		it.emitEffectOn(codeGenerator)
 	}
 
@@ -107,7 +106,7 @@ class SequencePhraseDescriptor private constructor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val statements: A_Tuple = self.slot(STATEMENTS)
+		val statements: A_Tuple = self[STATEMENTS]
 		val statementsCount = statements.tupleSize
 		for (i in 1 until statementsCount) {
 			statements.tupleAt(i).emitEffectOn(codeGenerator)
@@ -122,10 +121,10 @@ class SequencePhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& equalPhrases(self.slot(STATEMENTS), aPhrase.statements))
+		&& equalPhrases(self[STATEMENTS], aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
-		val statements: A_Tuple = self.slot(STATEMENTS)
+		val statements: A_Tuple = self[STATEMENTS]
 		return when(statements.tupleSize) {
 			0 -> TOP.o
 			else -> statements.tupleAt(statements.tupleSize)
@@ -136,19 +135,19 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,
 		accumulatedStatements: MutableList<A_Phrase>
-	) = self.slot(STATEMENTS).forEach {
+	) = self[STATEMENTS].forEach {
 		it.flattenStatementsInto(accumulatedStatements)
 	}
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEQUENCE_PHRASE
 
-	override fun o_Statements(self: AvailObject): A_Tuple = self.slot(STATEMENTS)
+	override fun o_Statements(self: AvailObject): A_Tuple = self[STATEMENTS]
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	) = self.slot(STATEMENTS).forEach { it.statementsDo(continuation) }
+	) = self[STATEMENTS].forEach { it.statementsDo(continuation) }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SEQUENCE_PHRASE
@@ -156,13 +155,13 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("sequence phrase") }
-			at("statements") { self.slot(STATEMENTS).writeTo(writer) }
+			at("statements") { self[STATEMENTS].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("sequence phrase") }
-			at("statements") { self.slot(STATEMENTS).writeSummaryTo(writer) }
+			at("statements") { self[STATEMENTS].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable

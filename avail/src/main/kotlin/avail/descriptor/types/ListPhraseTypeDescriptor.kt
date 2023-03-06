@@ -200,24 +200,24 @@ class ListPhraseTypeDescriptor internal constructor(
 	{
 		assert(aListNodeType.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
 		return (self.phraseKind === aListNodeType.phraseKind
-			&& self.slot(EXPRESSION_TYPE).equals(
+			&& self[EXPRESSION_TYPE].equals(
 				aListNodeType.phraseTypeExpressionType)
-			&& self.slot(SUBEXPRESSIONS_TUPLE_TYPE).equals(
+			&& self[SUBEXPRESSIONS_TUPLE_TYPE].equals(
 				aListNodeType.subexpressionsTupleType))
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			combine4(
-				self.slot(EXPRESSION_TYPE).hash(),
+				self[EXPRESSION_TYPE].hash(),
 				kind.ordinal,
-				self.slot(SUBEXPRESSIONS_TUPLE_TYPE).hash(),
+				self[SUBEXPRESSIONS_TUPLE_TYPE].hash(),
 				0x6d386470
-			).also { self.setSlot(HASH_OR_ZERO, it) }
+			).also { self[HASH_OR_ZERO] = it }
 		}
 
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
-		self.slot(SUBEXPRESSIONS_TUPLE_TYPE)
+		self[SUBEXPRESSIONS_TUPLE_TYPE]
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfListNodeType(self)
@@ -228,9 +228,9 @@ class ListPhraseTypeDescriptor internal constructor(
 	): Boolean =
 		(aListNodeType.phraseKindIsUnder(self.phraseKind)
 			&& aListNodeType.phraseTypeExpressionType.isSubtypeOf(
-				self.slot(EXPRESSION_TYPE))
+				self[EXPRESSION_TYPE])
 			&& aListNodeType.subexpressionsTupleType.isSubtypeOf(
-				self.slot(SUBEXPRESSIONS_TUPLE_TYPE)))
+				self[SUBEXPRESSIONS_TUPLE_TYPE]))
 
 	override fun o_IsSupertypeOfPhraseType(
 		self: AvailObject,
@@ -323,9 +323,9 @@ class ListPhraseTypeDescriptor internal constructor(
 		writer.write("kind")
 		writer.write(self.phraseKind.jsonName)
 		writer.write("expression type")
-		self.slot(EXPRESSION_TYPE).writeTo(writer)
+		self[EXPRESSION_TYPE].writeTo(writer)
 		writer.write("subexpressions tuple type")
-		self.slot(SUBEXPRESSIONS_TUPLE_TYPE).writeTo(writer)
+		self[SUBEXPRESSIONS_TUPLE_TYPE].writeTo(writer)
 		writer.endObject()
 	}
 

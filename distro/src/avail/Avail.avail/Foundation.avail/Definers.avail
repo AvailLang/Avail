@@ -400,9 +400,9 @@ Public method "Method_is stable at_«compute with_»?" is
 		true
 	];
 	sendGetCurrentMacro ::=
-		bootstrap restricted send getCurrentMacroNameAtom with «<>» : atom;
+		restricted send getCurrentMacroNameAtom with «<>» : atom;
 	sendStabilityBody ::=
-		bootstrap restricted send stabilityBodyAtom
+		restricted send stabilityBodyAtom
 		with
 			«<
 				sendGetCurrentMacro,

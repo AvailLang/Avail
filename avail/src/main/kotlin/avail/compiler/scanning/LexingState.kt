@@ -48,7 +48,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.newStylerFiber
-import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_LEXER
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.methods.A_Method
@@ -311,12 +312,14 @@ class LexingState constructor(
 				lineNumber,
 				lexer,
 				loader.module.shortModuleNameNative)
+		}.apply {
+			heritableFiberGlobals =
+				heritableFiberGlobals.mapAtPuttingCanDestroy(
+					RUNNING_LEXER.atom, lexer, true
+				).makeShared()
+			setGeneralFlag(CAN_REJECT_PARSE)
+			setGeneralFlag(IS_LEXER)
 		}
-		fiber.heritableFiberGlobals =
-			fiber.heritableFiberGlobals.mapAtPuttingCanDestroy(
-				RUNNING_LEXER.atom, lexer, true
-			).makeShared()
-		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		setFiberContinuationsTrackingWork(
 			fiber,
 			{ newTokenRuns -> lexerBodyWasSuccessful(newTokenRuns, countdown) },

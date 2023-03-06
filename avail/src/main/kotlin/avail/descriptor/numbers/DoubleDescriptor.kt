@@ -240,7 +240,7 @@ class DoubleDescriptor private constructor(
 	override fun o_ExtractFloat(self: AvailObject) = getDouble(self).toFloat()
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(LONG_BITS).let { bits ->
+		self[LONG_BITS].let { bits ->
 			combine3((bits shr 32).toInt(), bits.toInt(), 0x47C453FD)
 		}
 
@@ -400,7 +400,7 @@ class DoubleDescriptor private constructor(
 		 *   The corresponding Java double.
 		 */
 		private fun getDouble(self: AvailObject): Double =
-			longBitsToDouble(self.slot(LONG_BITS))
+			longBitsToDouble(self[LONG_BITS])
 
 		/**
 		 * Compare two Java double-precision floating point numbers.
@@ -575,7 +575,7 @@ class DoubleDescriptor private constructor(
 				{
 					mutable.create()
 				}
-			result.setSlot(LONG_BITS, doubleToRawLongBits(aDouble))
+			result[LONG_BITS] = doubleToRawLongBits(aDouble)
 			return result
 		}
 
@@ -609,7 +609,7 @@ class DoubleDescriptor private constructor(
 				else -> mutable.create()
 			}
 			val castAsLong = doubleToRawLongBits(aDouble)
-			result.setSlot(LONG_BITS, castAsLong)
+			result[LONG_BITS] = castAsLong
 			return result
 		}
 

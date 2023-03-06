@@ -2716,7 +2716,7 @@ class L1Translator private constructor(
 	 * state just before reaching the specified [afterPc].
 	 */
 	fun createSemanticSlot(index: Int, afterPc: Int): L2SemanticValue =
-		generator.topFrame.slot(
+		generator.topFrame.semanticSlot(
 			index,
 			afterPc,
 			if (index <= slotNames.size) slotNames[index - 1] else null)

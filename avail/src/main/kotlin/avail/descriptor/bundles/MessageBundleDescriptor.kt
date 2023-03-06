@@ -151,7 +151,7 @@ class MessageBundleDescriptor private constructor(
 	 * constructed.
 	 */
 	@Volatile
-	private var macroTestingTree: LookupTree<A_Definition, A_Tuple>? = null
+	private var privateMacroTestingTree: LookupTree<A_Definition, A_Tuple>? = null
 
 	/**
 	 * The layout of object slots for my instances.
@@ -194,11 +194,11 @@ class MessageBundleDescriptor private constructor(
 	}
 
 	/**
-	 * Extract the current [macroTestingTree], creating one atomically, if
-	 * necessary.
+	 * Extract the current [privateMacroTestingTree], creating one atomically,
+	 * if necessary.
 	 *
 	 * @param self
-	 *   The [A_Method] for which to answer the [macroTestingTree].
+	 *   The [A_Method] for which to answer the [privateMacroTestingTree].
 	 * @return
 	 *   The [LookupTree] for looking up macro definitions.
 	 */
@@ -206,12 +206,12 @@ class MessageBundleDescriptor private constructor(
 		self: AvailObject
 	): LookupTree<A_Definition, A_Tuple>
 	{
-		var tree = macroTestingTree
+		var tree = privateMacroTestingTree
 		if (tree === null) {
-			val method = self.slot(METHOD)
+			val method = self[METHOD]
 			val numArgs = method.numArgs
 			val newTree = MethodDescriptor.runtimeDispatcher.createRoot(
-				toList(self.slot(MACROS_TUPLE)),
+				toList(self[MACROS_TUPLE]),
 				nCopies(
 					numArgs,
 					restrictionForType(
@@ -223,7 +223,7 @@ class MessageBundleDescriptor private constructor(
 				// fails, it means someone else already succeeded, so use that
 				// winner's tree.
 				macroTestingTreeUpdater.compareAndSet(this, null, newTree)
-				tree = macroTestingTree
+				tree = privateMacroTestingTree
 			}
 			while (tree === null)
 		}
@@ -286,7 +286,7 @@ class MessageBundleDescriptor private constructor(
 		self.updateSlotShared(MACROS_TUPLE) { appendCanDestroy(macro, true) }
 		// It's only a macro change, so don't invalidate dependent L2Chunks.
 		synchronized(self) {
-			macroTestingTree = null
+			privateMacroTestingTree = null
 			addDefinitionParsingPlan(self, plan)
 		}
 	}
@@ -295,7 +295,7 @@ class MessageBundleDescriptor private constructor(
 		self.mutableSlot(METHOD)
 
 	override fun o_DefinitionParsingPlans(self: AvailObject): A_Map =
-		self.slot(DEFINITION_PARSING_PLANS)
+		self[DEFINITION_PARSING_PLANS]
 
 	override fun o_DescribeForDebugger(
 		self: AvailObject
@@ -314,7 +314,7 @@ class MessageBundleDescriptor private constructor(
 				self,
 				DUMMY_DEBUGGER_SLOT,
 				-1,
-				arrayOf(macroTestingTree),
+				arrayOf(privateMacroTestingTree),
 				slotName = "macroTestingTree",
 				forcedName = "macroTestingTree"))
 		return fields.toTypedArray()
@@ -351,10 +351,10 @@ class MessageBundleDescriptor private constructor(
 	override fun o_MacrosTuple(self: AvailObject): A_Tuple
 	{
 		assert(isShared)
-		return synchronized(self) { self.slot(MACROS_TUPLE) }
+		return synchronized(self) { self[MACROS_TUPLE] }
 	}
 
-	override fun o_Message(self: AvailObject): A_Atom = self.slot(MESSAGE)
+	override fun o_Message(self: AvailObject): A_Atom = self[MESSAGE]
 
 	override fun o_MessagePart(self: AvailObject, index: Int): A_String =
 		// One-based index.
@@ -375,7 +375,7 @@ class MessageBundleDescriptor private constructor(
 	) = self.synchronizeIf(isShared) {
 		self.updateSlotShared(MACROS_TUPLE) { tupleWithout(this, macro) }
 		removePlanForSendable(self, macro)
-		macroTestingTree = null
+		privateMacroTestingTree = null
 	}
 
 	override fun o_RemovePlanForSendable(
@@ -398,14 +398,14 @@ class MessageBundleDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("message bundle") }
-			at("method") { self.slot(MESSAGE).atomName.writeTo(writer) }
-			at("macro definitions") { self.slot(MACROS_TUPLE).writeTo(writer) }
+			at("method") { self[MESSAGE].atomName.writeTo(writer) }
+			at("macro definitions") { self[MACROS_TUPLE].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("message bundle") }
-			at("method") { self.slot(MESSAGE).atomName.writeTo(writer) }
+			at("method") { self[MESSAGE].atomName.writeTo(writer) }
 		}
 
 	override fun printObjectOnAvoidingIndent(
@@ -439,12 +439,12 @@ class MessageBundleDescriptor private constructor(
 	override fun shared() = unsupported
 
 	companion object {
-		/** Atomic access to [macroTestingTree]. */
+		/** Atomic access to [privateMacroTestingTree]. */
 		private val macroTestingTreeUpdater =
 			AtomicReferenceFieldUpdater.newUpdater(
 				MessageBundleDescriptor::class.java,
 				LookupTree::class.java,
-				"macroTestingTree")
+				MessageBundleDescriptor::privateMacroTestingTree.name)
 
 		/**
 		 * Add an [A_DefinitionParsingPlan] to this bundle.  This is performed
@@ -460,9 +460,9 @@ class MessageBundleDescriptor private constructor(
 			self: AvailObject,
 			plan: A_DefinitionParsingPlan)
 		{
-			var plans: A_Map = self.slot(DEFINITION_PARSING_PLANS)
+			var plans: A_Map = self[DEFINITION_PARSING_PLANS]
 			plans = plans.mapAtPuttingCanDestroy(plan.definition, plan, true)
-			self.setSlot(DEFINITION_PARSING_PLANS, plans.makeShared())
+			self[DEFINITION_PARSING_PLANS] = plans.makeShared()
 		}
 
 		/**

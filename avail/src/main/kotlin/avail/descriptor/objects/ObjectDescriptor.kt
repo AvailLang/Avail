@@ -206,7 +206,7 @@ class ObjectDescriptor internal constructor(
 				self,
 				KIND,
 				-1,
-				self.slot(KIND)))
+				self[KIND]))
 		val otherAtoms = mutableListOf<A_Atom>()
 		variant.fieldToSlotIndex.forEach { (fieldKey, index) ->
 			when (index) {
@@ -216,7 +216,7 @@ class ObjectDescriptor internal constructor(
 						self,
 						DUMMY_DEBUGGER_SLOT,
 						-1,
-						self.slot(FIELD_VALUES_, index),
+						self[FIELD_VALUES_, index],
 						slotName = "FIELD " + fieldKey.atomName))
 			}
 		}
@@ -245,8 +245,8 @@ class ObjectDescriptor internal constructor(
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
-		var myHash = self.slot(HASH_OR_ZERO)
-		var otherHash = anObject.slot(HASH_OR_ZERO)
+		var myHash = self[HASH_OR_ZERO]
+		var otherHash = anObject[HASH_OR_ZERO]
 		when
 		{
 			myHash != 0 && otherHash == 0 -> otherHash = anObject.hash()
@@ -257,19 +257,19 @@ class ObjectDescriptor internal constructor(
 		// must be in corresponding positions because we share the same variant.
 		for (i in 1..self.variableObjectSlotsCount())
 		{
-			if (!self.slot(FIELD_VALUES_, i)
-					.equals(anObject.slot(FIELD_VALUES_, i)))
+			if (!self[FIELD_VALUES_, i]
+					.equals(anObject[FIELD_VALUES_, i]))
 				return false
 		}
-		val kind = self.slot(KIND).ifNil { anObject.slot(KIND) }
+		val kind = self[KIND].ifNil { anObject[KIND] }
 		if (!isShared)
 		{
-			anObject.setSlot(KIND, kind.makeImmutable())
+			anObject[KIND] = kind.makeImmutable()
 			self.becomeIndirectionTo(anObject)
 		}
 		else if (!anObject.descriptor().isShared)
 		{
-			self.setSlot(KIND, kind.makeImmutable())
+			self[KIND] = kind.makeImmutable()
 			anObject.becomeIndirectionTo(self)
 		}
 		return true
@@ -279,12 +279,12 @@ class ObjectDescriptor internal constructor(
 		// Fails with NullPointerException if key is not found.
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			0 -> field as AvailObject
-			else -> self.slot(FIELD_VALUES_, slotIndex!!)
+			else -> self[FIELD_VALUES_, slotIndex!!]
 		}
 
 	override fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject =
 		// One-based index must specify a real field, and be in range.
-		self.slot(FIELD_VALUES_, index)
+		self[FIELD_VALUES_, index]
 
 	override fun o_FieldAtOrNull(
 		self: AvailObject,
@@ -293,7 +293,7 @@ class ObjectDescriptor internal constructor(
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			null -> null
 			0 -> field as AvailObject
-			else -> self.slot(FIELD_VALUES_, slotIndex)
+			else -> self[FIELD_VALUES_, slotIndex]
 		}
 
 	override fun o_FieldAtPuttingCanDestroy(
@@ -320,7 +320,7 @@ class ObjectDescriptor internal constructor(
 						(setSlot(
 							FIELD_VALUES_,
 							newVariantSlotMap[key]!!,
-							self.slot(FIELD_VALUES_, value1)))
+							self[FIELD_VALUES_, value1]))
 					}
 					@Suppress("MapGetWithNotNullAssertionOperator")
 					val newVariantSlotIndex = newVariantSlotMap[field]!!
@@ -358,7 +358,7 @@ class ObjectDescriptor internal constructor(
 			map.mapAtPuttingCanDestroy(
 				field,
 				if (slotIndex == 0) field
-				else self.slot(FIELD_VALUES_, slotIndex),
+				else self[FIELD_VALUES_, slotIndex],
 				true)
 		}
 
@@ -368,18 +368,18 @@ class ObjectDescriptor internal constructor(
 		return generateObjectTupleFrom(variant.fieldToSlotIndex.size) {
 			val (field, slotIndex) = fieldIterator.next()
 			if (slotIndex == 0) tuple(field, field)
-			else tuple(field, self.slot(FIELD_VALUES_, slotIndex))
+			else tuple(field, self[FIELD_VALUES_, slotIndex])
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			// Don't lock if we're shared.  Multiple simultaneous computations
 			// of *the same* value are benign races.
 			(1..self.variableObjectSlotsCount())
 				.fold(combine2(variant.variantId, -0x7d4d2f29)) { h, i ->
-					combine3(h, self.slot(FIELD_VALUES_, i).hash(), 0x5cfd93e6)
-				}.also { self.setSlot(HASH_OR_ZERO, it) }
+					combine3(h, self[FIELD_VALUES_, i].hash(), 0x5cfd93e6)
+				}.also { self[HASH_OR_ZERO] = it }
 		}
 
 	override fun o_IsInstanceOfKind(
@@ -396,20 +396,20 @@ class ObjectDescriptor internal constructor(
 
 		// At this point, either a VettingsCache already exists, or one will be
 		// needed to store the positive/negative result.
-		var cachePojo = self.slot(TYPE_VETTINGS_CACHE)
+		var cachePojo = self[TYPE_VETTINGS_CACHE]
 		if (cachePojo.isNil)
 		{
 			cachePojo = identityPojo(VettingsCache()).makeShared()
 			// Store it into the object early, to slightly reduce dropped
 			// entries during (benign) races.
-			self.setSlot(TYPE_VETTINGS_CACHE, cachePojo)
+			self[TYPE_VETTINGS_CACHE] = cachePojo
 		}
 		val cache = cachePojo.javaObjectNotNull<VettingsCache>()
 		return cache.testObjectAgainstType(self, typeTraversed)
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type {
-		val kind = self.slot(KIND)
+		val kind = self[KIND]
 		if (kind.notNil) return kind
 		self.makeImmutable()
 		val objectType =
@@ -417,13 +417,12 @@ class ObjectDescriptor internal constructor(
 		// Make the object shared since it's being written to a mutable slot
 		// of a shared object. Don't lock, since multiple threads would
 		// compute equal values anyhow.
-		self.setSlot(
-			KIND,
+		self[KIND] =
 			when
 			{
 				isShared -> objectType.makeShared()
 				else -> objectType.makeImmutable()
-			})
+			}
 		return objectType
 	}
 
@@ -460,7 +459,7 @@ class ObjectDescriptor internal constructor(
 						val value = when (slotIndex)
 						{
 							0 -> field
-							else -> self.slot(FIELD_VALUES_, slotIndex)
+							else -> self[FIELD_VALUES_, slotIndex]
 						}
 						field.atomName.writeTo(writer)
 						value.writeTo(writer)
@@ -478,7 +477,7 @@ class ObjectDescriptor internal constructor(
 						val value = when (slotIndex)
 						{
 							0 -> field
-							else -> self.slot(FIELD_VALUES_, slotIndex)
+							else -> self[FIELD_VALUES_, slotIndex]
 						}
 						field.atomName.writeTo(writer)
 						value.writeSummaryTo(writer)
@@ -541,7 +540,7 @@ class ObjectDescriptor internal constructor(
 		 *   The value of the field at the specified slot index.
 		 */
 		fun getField(self: AvailObject, slotIndex: Int): AvailObject =
-			self.slot(FIELD_VALUES_, slotIndex)
+			self[FIELD_VALUES_, slotIndex]
 
 		/**
 		 * Update the field value at the specified slot index of the mutable
@@ -563,7 +562,7 @@ class ObjectDescriptor internal constructor(
 			slotIndex: Int,
 			value: A_BasicObject
 		): AvailObject {
-			self.setSlot(FIELD_VALUES_, slotIndex, value as AvailObject)
+			self[FIELD_VALUES_, slotIndex] = value as AvailObject
 			return self
 		}
 

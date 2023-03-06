@@ -54,7 +54,8 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SequenceAsExpressionSequence : Primitive(1, CannotFail, CanFold, CanInline)
+object P_SequenceAsExpressionSequence : Primitive(
+	1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

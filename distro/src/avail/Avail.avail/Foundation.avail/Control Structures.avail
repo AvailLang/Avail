@@ -40,7 +40,6 @@ Extends
 		"Exit_",
 		"Exit_with_",
 		"Ignore:_",
-		"bootstrap restricted send_with_:_",
 		"(_)",
 		"((_))",
 		"_`?→_†"
@@ -58,6 +57,7 @@ Uses
 	"Logic",
 	"Macro Support",
 	"Math",
+	"Phrases",
 	"Types",
 	"Variables"
 Names
@@ -113,7 +113,7 @@ Private method "block from_" is
 	sendPhrase : send phrase ⇒ ⊤
 |
 	returnType ::= sendPhrase's return type;
-	«[<sendPhrase>]:returnType» ?→ block phrase ⇒ []→⊤
+	«[<sendPhrase>]:returnType»
 ] : expression phrase ⇒ []→⊤;
 
 Private method "basic send phrase_conditional_then_else_" is
@@ -128,7 +128,7 @@ Private method "basic send phrase_conditional_then_else_" is
 	boolType ::= predicatePhrase's semantic type;
 	returnType ::= strengthen ⊤ for call of anAtom
 		using <boolType, thenBlockReturnType, elseBlockReturnType>;
-	bootstrap restricted send anAtom with
+	restricted send anAtom with
 		«<predicatePhrase, thenBlock, elseBlock>» : returnType
 ] : send phrase ⇒ ⊤;
 
@@ -654,23 +654,17 @@ Public macro "For each…from_to_by_§do_" is
 	action : block phrase ⇒ []→⊤
 |
 	name ::= counterPhrase's token's lexeme;
-	declaration ::= scope map[name];
+	declaration ::= scope map[name] ?→ argument phrase;
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
 	Undeclare name;
-	bootstrap restricted send $"From_to_by_do_" with
-		«<
-			start,
-			end,
-			step,
-			«[
-				<cast declaration into [d : argument phrase | d]>
-			|
-				statements
-			] : blockReturnType»
-		>» : ⊤
+	body ::= «[<declaration> | statements] : blockReturnType»
+		?→ block phrase ⇒ [⊥]→⊤;
+	⟦
+		From ⦊start⦉ to ⦊end⦉ by ⦊step⦉ do ⦊body⦉
+	⟧
 ] : send phrase ⇒ ⊤
 styled by loop styler;
 
@@ -816,7 +810,7 @@ Public macro "For each…from_to_§do_" is
 	action : block phrase ⇒ []→⊤
 |
 	name ::= counterPhrase's token's lexeme;
-	declaration ::= scope map[name];
+	declaration ::= scope map[name] ?→ argument phrase;
 	Undeclare name;
 	startType ::= start's semantic type;
 	endType ::= end's semantic type;
@@ -829,17 +823,12 @@ Public macro "For each…from_to_§do_" is
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-	bootstrap restricted send anAtom with
-		«<
-			start,
-			end,
-			‘1’,
-			«[
-				<cast declaration into [d : argument phrase | d]>
-			|
-				statements
-			] : blockReturnType»
-		>» : returnType
+
+	body ::= «[<declaration> | statements] : blockReturnType»
+		?→ block phrase ⇒ [⊥]→⊤;
+	⟦
+		From ⦊start⦉ to ⦊end⦉ by 1 do ⦊body⦉
+	⟧
 ] : send phrase ⇒ ⊤
 styled by loop styler;
 
@@ -1242,10 +1231,9 @@ Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
 		?→ <list phrase⇒<boolean, []→⊤…|2>…|1..∞>;
 	anAtom ::= $"Unless|unless_then_else_";
 	finalElseBlock ::= for anAtom nest elseBlock in elseUnlessPairTuple;
-	basic send phrase anAtom
-		conditional firstPredicate
-		then firstThenBlock
-		else finalElseBlock
+	⟦
+		Unless ⦊firstPredicate⦉ then ⦊firstThenBlock⦉ else ⦊finalElseBlock⦉
+	⟧
 ]: send phrase ⇒ ⊤
 styled by conditional styler;
 
@@ -1586,11 +1574,7 @@ Macro "While_do_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	action : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"While_do_" with
-		«<
-			«[<> | <expressionPhrase>] : boolean»,
-			action
-		>» : ⊤
+	⟦While ⦊«[<expressionPhrase>] : boolean»⦉ do ⦊action⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**

@@ -249,12 +249,12 @@ class ContinuationDescriptor private constructor(
 		stackp: Int)
 	{
 		assert(isMutable)
-		self.setSlot(PROGRAM_COUNTER, pc)
-		self.setSlot(STACK_POINTER, stackp)
+		self[PROGRAM_COUNTER] = pc
+		self[STACK_POINTER] = stackp
 	}
 
 	override fun o_FrameAt(self: AvailObject, index: Int): AvailObject =
-		self.slot(FRAME_AT_, index)
+		self[FRAME_AT_, index]
 
 	override fun o_FrameAtPut(
 		self: AvailObject,
@@ -262,11 +262,11 @@ class ContinuationDescriptor private constructor(
 		value: AvailObject
 	): AvailObject
 	{
-		self.setSlot(FRAME_AT_, index, value)
+		self[FRAME_AT_, index] = value
 		return self
 	}
 
-	override fun o_Caller(self: AvailObject): A_Continuation = self.slot(CALLER)
+	override fun o_Caller(self: AvailObject): A_Continuation = self[CALLER]
 
 	override fun o_CurrentLineNumber(
 		self: AvailObject,
@@ -300,11 +300,9 @@ class ContinuationDescriptor private constructor(
 	{
 		if (self.levelTwoChunk() != unoptimizedChunk)
 		{
-			self.setSlot(
-				LEVEL_TWO_CHUNK, unoptimizedChunk.chunkPojo)
-			self.setSlot(
-				LEVEL_TWO_OFFSET,
-				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
+			self[LEVEL_TWO_CHUNK] = unoptimizedChunk.chunkPojo
+			self[LEVEL_TWO_OFFSET] =
+				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk
 		}
 	}
 
@@ -411,16 +409,16 @@ class ContinuationDescriptor private constructor(
 		}
 	}
 
-	override fun o_Function(self: AvailObject): A_Function = self.slot(FUNCTION)
+	override fun o_Function(self: AvailObject): A_Function = self[FUNCTION]
 
 	// Hashing a continuation isn't expected to be common, but it's
 	// sufficiently expensive that we need to cache the hash value in the
 	// rare case that we do need it.
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			val caller = self.caller().traversed().cast()!!
 			var callerHash = 0
-			if (caller.notNil && caller.slot(HASH_OR_ZERO) == 0)
+			if (caller.notNil && caller[HASH_OR_ZERO] == 0)
 			{
 				// The caller isn't hashed yet either.  Iteratively hash the
 				// call chain bottom-up to avoid potentially deep recursion.
@@ -431,7 +429,7 @@ class ContinuationDescriptor private constructor(
 					chain.addFirst(ancestor)
 					ancestor = ancestor.caller().traversed()
 				}
-				while (ancestor.notNil && ancestor.slot(HASH_OR_ZERO) == 0)
+				while (ancestor.notNil && ancestor[HASH_OR_ZERO] == 0)
 				// Force the hashes to be computed, starting with the deepest.
 				chain.forEach { c ->
 					callerHash = c.hashCode()
@@ -453,7 +451,7 @@ class ContinuationDescriptor private constructor(
 				// tends to produce zero.  May as well play this one safely.
 				hash = 0x4693F664
 			}
-			self.setSlot(HASH_OR_ZERO, hash)
+			self[HASH_OR_ZERO] = hash
 			hash
 		}
 
@@ -526,10 +524,10 @@ class ContinuationDescriptor private constructor(
 	 */
 	override fun o_NumSlots(self: AvailObject) = self.variableObjectSlotsCount()
 
-	override fun o_Pc(self: AvailObject) = self.slot(PROGRAM_COUNTER)
+	override fun o_Pc(self: AvailObject) = self[PROGRAM_COUNTER]
 
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
-		self.slot(LEVEL_TWO_REGISTER_DUMP)
+		self[LEVEL_TWO_REGISTER_DUMP]
 
 	override fun o_ReplacingCaller(
 		self: AvailObject,
@@ -539,7 +537,7 @@ class ContinuationDescriptor private constructor(
 		val mutableVersion =
 			if (isMutable) self
 			else newLike(mutable, self, 0, 0)
-		mutableVersion.setSlot(CALLER, newCaller)
+		mutableVersion[CALLER] = newCaller
 		return mutableVersion
 	}
 
@@ -553,9 +551,9 @@ class ContinuationDescriptor private constructor(
 	 * based on just the stack area.
 	 */
 	override fun o_StackAt(self: AvailObject, slotIndex: Int): AvailObject =
-		self.slot(FRAME_AT_, slotIndex)
+		self[FRAME_AT_, slotIndex]
 
-	override fun o_Stackp(self: AvailObject) = self.slot(STACK_POINTER)
+	override fun o_Stackp(self: AvailObject) = self[STACK_POINTER]
 
 	override fun mutable() = mutable
 

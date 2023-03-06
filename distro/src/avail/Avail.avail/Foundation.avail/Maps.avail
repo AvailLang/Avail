@@ -48,6 +48,7 @@ Uses
 	"Logic",
 	"Macro Support",
 	"Math",
+	"Phrases",
 	"Sets",
 	"Tuples",
 	"Types",
@@ -282,7 +283,7 @@ Public method "map body function(_,_)" is
 		valueDeclaration ::= castToPhrase(valueName);
 		Undeclare keyName;
 		Undeclare valueName;
-		bootstrap restricted send anAtom with
+		restricted send anAtom with
 			«<
 				aMap,
 				«[
@@ -525,7 +526,7 @@ a map iteration prefix function,
 	keyPhrase : literal phrase ⇒ token,
 	valuePhrase : literal phrase ⇒ token,
 	aMap : expression phrase ⇒ map,
-	predicate : block phrase ⇒ []→⊤
+	predicate : block phrase ⇒ []→boolean
 |
 	keyName ::= keyPhrase's token's lexeme;
 	valueName ::= valuePhrase's token's lexeme;
@@ -533,7 +534,7 @@ a map iteration prefix function,
 	keyType ::= aMapType's key type;
 	valueType ::= aMapType's value type;
 	blockType ::=
-		[keyType, valueType]→(predicate's semantic type's return type);
+		[keyType, valueType] → ¬(predicate's semantic type's return type);
 
 	returnType ::= strengthen map for call of $"filter_by_"
 		using <aMapType, blockType>;
@@ -546,12 +547,9 @@ a map iteration prefix function,
 
 	newStatements ::= if size = 0 then [<>] else
 	[
-		end : whole number := cast size-1 into [w : whole number | w];
-		i : natural number := cast size into [n : natural number | n];
-		c : expression phrase⇒any := cast statements[i] into
-			[e : expression phrase⇒any | e];
-		statements[..end] ++
-			<bootstrap restricted send $"¬_" with «<c>» : boolean>
+		i ::= size ?→ natural number;
+		c ::= statements[i] ?→ expression phrase⇒boolean;
+		statements[..i - 1] ++ <⟦¬ ⦊c⦉⟧>
 	];
 
 	blockReturnType ::= cast newStatements
@@ -563,16 +561,17 @@ a map iteration prefix function,
 	Undeclare keyName;
 	Undeclare valueName;
 
-	bootstrap restricted send $"filter_by_" with
-		«<
-			aMap,
-			«[
+	negatedBlock ::=
+		«
+			[
 				<keyDeclaration, valueDeclaration>
 			|
 				newStatements
-			] : blockReturnType»
-		>» : returnType
-] : send phrase ⇒ ⊤
+			] : blockReturnType
+		» ?→ block phrase ⇒ [⊥, ⊥]→boolean;
+
+	⟦filter ⦊aMap⦉ by ⦊negatedBlock⦉⟧
+] : send phrase ⇒ map
 styled by loop styler;
 
 /**

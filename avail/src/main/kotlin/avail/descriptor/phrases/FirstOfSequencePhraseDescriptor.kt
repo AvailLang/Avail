@@ -48,7 +48,6 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TypeTag
@@ -96,7 +95,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase)->Unit
-	) = self.slot(STATEMENTS).forEach(action)
+	) = self[STATEMENTS].forEach(action)
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
@@ -121,7 +120,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val statements: A_Tuple = self.slot(STATEMENTS)
+		val statements: A_Tuple = self[STATEMENTS]
 		val statementsCount = statements.tupleSize
 		assert(statements.tupleSize > 0)
 		// Leave the first statement's value on the stack while evaluating the
@@ -137,10 +136,10 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& equalPhrases(self.slot(STATEMENTS), aPhrase.statements))
+		&& equalPhrases(self[STATEMENTS], aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
-		val statements: A_Tuple = self.slot(STATEMENTS)
+		val statements: A_Tuple = self[STATEMENTS]
 		assert(statements.tupleSize > 0)
 		return statements.tupleAt(1).phraseExpressionType
 	}
@@ -149,7 +148,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		self: AvailObject,
 		accumulatedStatements: MutableList<A_Phrase>
 	) {
-		val statements: A_Tuple = self.slot(STATEMENTS)
+		val statements: A_Tuple = self[STATEMENTS]
 		// Process the first expression, then grab the final value-producing
 		// expression back *off* the list.
 		statements.tupleAt(1).flattenStatementsInto(accumulatedStatements)
@@ -177,23 +176,23 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		SerializerOperation.FIRST_OF_SEQUENCE_PHRASE
 
 	override fun o_Statements(self: AvailObject): A_Tuple =
-		self.slot(STATEMENTS)
+		self[STATEMENTS]
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	) = self.slot(STATEMENTS).forEach { it.statementsDo(continuation) }
+	) = self[STATEMENTS].forEach { it.statementsDo(continuation) }
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("first-of-sequence phrase") }
-			at("statements") { self.slot(STATEMENTS).writeTo(writer) }
+			at("statements") { self[STATEMENTS].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("first-of-sequence phrase") }
-			at("statements") { self.slot(STATEMENTS).writeSummaryTo(writer) }
+			at("statements") { self[STATEMENTS].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable

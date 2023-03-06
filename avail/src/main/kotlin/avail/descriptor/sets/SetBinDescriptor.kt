@@ -100,7 +100,7 @@ abstract class SetBinDescriptor protected constructor(
 	}
 
 	override fun o_SetBinHash(self: AvailObject): Int =
-		self.slot(BIN_HASH)
+		self[BIN_HASH]
 
 	override fun o_IsSetBin(self: AvailObject) = true
 

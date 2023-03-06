@@ -946,9 +946,6 @@ class AvailObject private constructor(
 
 	override val isInstanceMeta get() = descriptor().o_IsInstanceMeta(this)
 
-	override fun equalsPhrase(aPhrase: A_Phrase) =
-		descriptor().o_EqualsPhrase(this, aPhrase)
-
 	/**
 	 * Answer the [method][MethodDescriptor] that this
 	 * [definition][DefinitionDescriptor] is for.

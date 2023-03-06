@@ -612,7 +612,7 @@ private constructor(
 		 *   The instance represented by the given instance type.
 		 */
 		private fun getInstance(self: AvailObject): AvailObject =
-			self.slot(INSTANCE)
+			self[INSTANCE]
 
 		/**
 		 * Answer the kind that is nearest to the given object, an

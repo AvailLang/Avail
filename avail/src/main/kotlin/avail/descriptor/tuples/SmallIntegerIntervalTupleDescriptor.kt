@@ -145,10 +145,10 @@ constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(self.slot(START))
+		builder.append(self[START])
 		builder.append(" to ")
-		builder.append(self.slot(END))
-		val delta = self.slot(DELTA)
+		builder.append(self[END])
+		val delta = self[DELTA]
 		if (delta != 1L)
 		{
 			builder.append(" by ")
@@ -162,8 +162,8 @@ constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val originalSize = self.tupleSize
-		val endValue = self.slot(END).toLong()
-		val deltaValue = self.slot(DELTA)
+		val endValue = self[END].toLong()
+		val deltaValue = self[DELTA]
 		val newElementStrong = newElement as AvailObject
 		if (newElementStrong.isInt)
 		{
@@ -174,19 +174,19 @@ constructor(
 				// Extend the interval.
 				if (canDestroy && isMutable)
 				{
-					self.setSlot(END, newElementValue)
-					self.setSlot(SIZE, originalSize + 1)
-					self.setSlot(HASH_OR_ZERO, 0)
+					self[END] = newElementValue
+					self[SIZE] = originalSize + 1
+					self[HASH_OR_ZERO] = 0 
 					return self
 				}
 				// Create another small integer interval.
 				return createSmallInterval(
-					self.slot(START), newElementValue, deltaValue)
+					self[START], newElementValue, deltaValue)
 			}
 			// The new value isn't consecutive, but it's still an int.
 			if (originalSize < maximumCopySize)
 			{
-				val start = self.slot(START)
+				val start = self[START]
 				return generateIntTupleFrom(originalSize + 1) {
 					if (it == originalSize) newElementValue
 					else start + ((it - 1) * deltaValue).toInt()
@@ -278,14 +278,14 @@ constructor(
 		if (otherTuple.isSmallIntegerIntervalTuple)
 		{
 			val otherDirect = otherTuple.traversed()
-			val delta = self.slot(DELTA)
+			val delta = self[DELTA]
 
 			// If the other's delta is the same as mine,
-			if (delta == otherDirect.slot(DELTA))
+			if (delta == otherDirect[DELTA])
 			{
-				val newSize = self.slot(SIZE) + otherDirect.slot(SIZE).toLong()
+				val newSize = self[SIZE] + otherDirect[SIZE].toLong()
 				// and the other's start is one delta away from my end,
-				if ((self.slot(END) + delta == otherDirect.slot(START).toLong()
+				if ((self[END] + delta == otherDirect[START].toLong()
 					&& newSize == newSize.toInt().toLong()))
 				{
 					// then we're adjacent.
@@ -294,23 +294,23 @@ constructor(
 					// use me for the return value.
 					if (isMutable)
 					{
-						self.setSlot(END, otherDirect.slot(END))
-						self.setSlot(SIZE, newSize.toInt())
+						self[END] = otherDirect[END]
+						self[SIZE] = newSize.toInt()
 						self.setHashOrZero(0)
 						return self
 					}
 					// Or the other one.
 					if (otherDirect.descriptor().isMutable)
 					{
-						otherDirect.setSlot(START, self.slot(START))
-						otherDirect.setSlot(SIZE, newSize.toInt())
+						otherDirect[START] = self[START]
+						otherDirect[SIZE] = newSize.toInt()
 						otherDirect.setHashOrZero(0)
 						return otherDirect
 					}
 
 					// Otherwise, create a new interval.
 					return createSmallInterval(
-						self.slot(START), otherDirect.slot(END), delta)
+						self[START], otherDirect[END], delta)
 				}
 			}
 		}
@@ -331,7 +331,7 @@ constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		// Ensure parameters are in bounds
-		val oldSize = self.slot(SIZE)
+		val oldSize = self[SIZE]
 		assert(start in 1..end + 1 && end <= oldSize)
 		val newSize = end - start + 1
 		if (newSize == oldSize)
@@ -345,8 +345,8 @@ constructor(
 		}
 
 		// The request is for a proper subrange.
-		val delta = self.slot(DELTA)
-		val oldStartValue = self.slot(START)
+		val delta = self[DELTA]
+		val oldStartValue = self[START]
 		val newStartValue = oldStartValue + delta * (start - 1)
 		assert(newStartValue == newStartValue.toInt().toLong())
 		val newEndValue = newStartValue + delta * (newSize - 1)
@@ -354,9 +354,9 @@ constructor(
 		if (isMutable && canDestroy)
 		{
 			// Recycle the object.
-			self.setSlot(START, newStartValue.toInt())
-			self.setSlot(END, newEndValue.toInt())
-			self.setSlot(SIZE, newSize)
+			self[START] = newStartValue.toInt()
+			self[END] = newEndValue.toInt()
+			self[SIZE] = newSize
 			return self
 		}
 		return createSmallInterval(newStartValue.toInt(), newEndValue.toInt(), delta)
@@ -381,17 +381,17 @@ constructor(
 		val secondTraversed = aSmallIntegerIntervalTuple.traversed()
 
 		// Check that the slots match.
-		val firstHash = firstTraversed.slot(HASH_OR_ZERO)
-		val secondHash = secondTraversed.slot(HASH_OR_ZERO)
+		val firstHash = firstTraversed[HASH_OR_ZERO]
+		val secondHash = secondTraversed[HASH_OR_ZERO]
 		when
 		{
 			firstHash != 0 && secondHash != 0 && firstHash != secondHash ->
 				return false
-			firstTraversed.slot(SIZE) != secondTraversed.slot(SIZE) ->
+			firstTraversed[SIZE] != secondTraversed[SIZE] ->
 				return false
-			firstTraversed.slot(DELTA) != secondTraversed.slot(DELTA) ->
+			firstTraversed[DELTA] != secondTraversed[DELTA] ->
 				return false
-			firstTraversed.slot(START) != secondTraversed.slot(START) ->
+			firstTraversed[START] != secondTraversed[START] ->
 				return false
 
 			// All the slots match. Indirect one to the other if it is not shared.
@@ -417,7 +417,7 @@ constructor(
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
 		assert(index >= 1 && index <= self.tupleSize)
-		val temp = self.slot(START) + (index - 1) * self.slot(DELTA)
+		val temp = self[START] + (index - 1) * self[DELTA]
 		assert(temp == temp.toInt().toLong())
 		return fromInt(temp.toInt())
 	}
@@ -441,9 +441,9 @@ constructor(
 			if (!canDestroy) self.makeImmutable()
 			return self
 		}
-		val start = self.slot(START)
-		val end = self.slot(END)
-		val delta = self.slot(DELTA)
+		val start = self[START]
+		val end = self[END]
+		val delta = self[DELTA]
 		val result = when
 		{
 			// Everything will be bytes. Synthesize a byte tuple. The tuple will
@@ -451,13 +451,13 @@ constructor(
 			start and 255.inv() == 0
 					&& end and 255.inv() == 0
 					&& newValueObject.isUnsignedByte ->
-				generateByteTupleFrom(self.slot(SIZE)) {
+				generateByteTupleFrom(self[SIZE]) {
 					if (it == index) (newValueObject as A_Number).extractInt
 					else start + ((it - 1) * delta).toInt()
 				}
 			// Synthesize a (reasonably small) general object tuple instead.
 			size < 256 ->
-				generateObjectTupleFrom(self.slot(SIZE)) {
+				generateObjectTupleFrom(self[SIZE]) {
 					if (it == index) newValueObject
 					else fromInt(start + ((it - 1) * delta).toInt())
 				}
@@ -514,8 +514,8 @@ constructor(
 		// START + (index-1) × DELTA
 		assert(index >= 1 && index <= self.tupleSize)
 		var temp = index - 1.toLong()
-		temp *= self.slot(DELTA)
-		temp += self.slot(START).toLong()
+		temp *= self[DELTA]
+		temp += self[START].toLong()
 		assert(temp == temp.toInt().toLong())
 		return temp.toInt()
 	}
@@ -526,31 +526,31 @@ constructor(
 		// START + (index-1) × DELTA
 		assert(index >= 1 && index <= self.tupleSize)
 		var temp = index - 1.toLong()
-		temp *= self.slot(DELTA)
-		temp += self.slot(START).toLong()
+		temp *= self[DELTA]
+		temp += self[START].toLong()
 		return temp
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		val newDelta = 0 - self.slot(DELTA)
+		val newDelta = 0 - self[DELTA]
 		// If tuple is small enough or is immutable, create a new interval.
 		if (!isMutable)
 		{
 			return createSmallInterval(
-				self.slot(END), self.slot(START), newDelta)
+				self[END], self[START], newDelta)
 		}
 
 		//The interval is mutable and large enough to warrant changing in place.
-		val newStart = self.slot(END)
-		val newEnd = self.slot(START)
-		self.setSlot(START, newStart)
-		self.setSlot(END, newEnd)
-		self.setSlot(DELTA, newDelta)
+		val newStart = self[END]
+		val newEnd = self[START]
+		self[START] = newStart
+		self[END] = newEnd
+		self[DELTA] = newDelta
 		return self
 	}
 
-	override fun o_TupleSize(self: AvailObject): Int = self.slot(SIZE)
+	override fun o_TupleSize(self: AvailObject): Int = self[SIZE]
 
 	override fun mutable(): SmallIntegerIntervalTupleDescriptor = mutable
 

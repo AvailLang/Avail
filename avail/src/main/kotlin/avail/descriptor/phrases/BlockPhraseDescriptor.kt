@@ -317,7 +317,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	) = e === NEEDED_VARIABLES
 
 	override fun o_ArgumentsTuple(self: AvailObject): A_Tuple =
-		self.slot(ARGUMENTS_TUPLE)
+		self[ARGUMENTS_TUPLE]
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
@@ -331,20 +331,20 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		self: AvailObject,
 		transformer: (A_Phrase)->A_Phrase
 	) {
-		var arguments: A_Tuple = self.slot(ARGUMENTS_TUPLE)
+		var arguments: A_Tuple = self[ARGUMENTS_TUPLE]
 		arguments = generateObjectTupleFrom(arguments.tupleSize) {
 			transformer(arguments.tupleAt(it))
 		}
-		self.setSlot(ARGUMENTS_TUPLE, arguments)
-		var statements = self.slot(STATEMENTS_TUPLE)
+		self[ARGUMENTS_TUPLE] = arguments
+		var statements = self[STATEMENTS_TUPLE]
 		statements = generateObjectTupleFrom(statements.tupleSize) {
 			transformer(statements.tupleAt(it))
 		}
-		self.setSlot(STATEMENTS_TUPLE, statements)
+		self[STATEMENTS_TUPLE] = statements
 	}
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
-		self.slot(DECLARED_EXCEPTIONS)
+		self[DECLARED_EXCEPTIONS]
 
 	/**
 	 * The expression `[`someExpression`]` has no effect, only a value (the
@@ -419,21 +419,21 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		BLOCK_PHRASE
 
 	override fun o_Primitive(self: AvailObject): Primitive? =
-		self.slot(PRIMITIVE_POJO).run {
+		self[PRIMITIVE_POJO].run {
 			if (isNil) null else javaObject<Primitive>()
 		}
 
 	override fun o_ResultType(self: AvailObject): A_Type =
-		self.slot(RESULT_TYPE)
+		self[RESULT_TYPE]
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.BLOCK_PHRASE
 
 	override fun o_StartingLineNumber(self: AvailObject): Int =
-		self.slot(STARTING_LINE_NUMBER)
+		self[STARTING_LINE_NUMBER]
 
 	override fun o_StatementsTuple(self: AvailObject): A_Tuple =
-		self.slot(STATEMENTS_TUPLE)
+		self[STATEMENTS_TUPLE]
 
 	override fun o_StatementsDo(
 		self: AvailObject,
@@ -444,15 +444,15 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		writer.writeObject {
 			at("kind") { write("block phrase") }
 			at("primitive") { write(self.primitive?.name ?: "") }
-			at("starting line") { write(self.slot(STARTING_LINE_NUMBER)) }
-			at("arguments") { self.slot(ARGUMENTS_TUPLE).writeTo(writer) }
-			at("statements") { self.slot(STATEMENTS_TUPLE).writeTo(writer) }
-			at("result type") { self.slot(RESULT_TYPE).writeTo(writer) }
+			at("starting line") { write(self[STARTING_LINE_NUMBER]) }
+			at("arguments") { self[ARGUMENTS_TUPLE].writeTo(writer) }
+			at("statements") { self[STATEMENTS_TUPLE].writeTo(writer) }
+			at("result type") { self[RESULT_TYPE].writeTo(writer) }
 			at("needed variables") {
-				self.slot(NEEDED_VARIABLES).writeTo(writer)
+				self[NEEDED_VARIABLES].writeTo(writer)
 			}
 			at("declared exceptions") {
-				self.slot(DECLARED_EXCEPTIONS).writeTo(writer)
+				self[DECLARED_EXCEPTIONS].writeTo(writer)
 			}
 		}
 
@@ -460,19 +460,19 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		writer.writeObject {
 			at("kind") { write("block phrase") }
 			at("primitive") { write(self.primitive?.name ?: "") }
-			at("starting line") { write(self.slot(STARTING_LINE_NUMBER)) }
+			at("starting line") { write(self[STARTING_LINE_NUMBER]) }
 			at("arguments") {
-				self.slot(ARGUMENTS_TUPLE).writeSummaryTo(writer)
+				self[ARGUMENTS_TUPLE].writeSummaryTo(writer)
 			}
 			at("statements") {
-				self.slot(STATEMENTS_TUPLE).writeSummaryTo(writer)
+				self[STATEMENTS_TUPLE].writeSummaryTo(writer)
 			}
-			at("result type") { self.slot(RESULT_TYPE).writeSummaryTo(writer) }
+			at("result type") { self[RESULT_TYPE].writeSummaryTo(writer) }
 			at("needed variables") {
-				self.slot(NEEDED_VARIABLES).writeSummaryTo(writer)
+				self[NEEDED_VARIABLES].writeSummaryTo(writer)
 			}
 			at("declared exceptions") {
-				self.slot(DECLARED_EXCEPTIONS).writeSummaryTo(writer)
+				self[DECLARED_EXCEPTIONS].writeSummaryTo(writer)
 			}
 		}
 

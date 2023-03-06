@@ -691,7 +691,7 @@ class MapDescriptor private constructor(
 		 *   The map's bin.
 		 */
 		private fun rootBin(map: A_Map): A_MapBin =
-			(map as AvailObject).slot(ROOT_BIN)
+			(map as AvailObject)[ROOT_BIN]
 
 		/**
 		 * Replace the [map][A_Map]'s root [bin][MapBinDescriptor].
@@ -701,8 +701,10 @@ class MapDescriptor private constructor(
 		 * @param bin
 		 *   The root bin for the map.
 		 */
-		private fun setRootBin(map: A_Map, bin: A_MapBin) =
-			(map as AvailObject).setSlot(ROOT_BIN, bin)
+		private fun setRootBin(map: AvailObject, bin: A_MapBin)
+		{
+			map[ROOT_BIN] = bin
+		}
 
 		/** The mutable [MapDescriptor]. */
 		private val mutable = MapDescriptor(MUTABLE)

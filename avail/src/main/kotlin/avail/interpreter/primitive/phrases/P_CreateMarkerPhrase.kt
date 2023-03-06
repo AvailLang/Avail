@@ -41,7 +41,6 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
@@ -53,7 +52,7 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateMarkerPhrase : Primitive(2, CannotFail, CanFold, CanInline)
+object P_CreateMarkerPhrase : Primitive(2, CannotFail, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

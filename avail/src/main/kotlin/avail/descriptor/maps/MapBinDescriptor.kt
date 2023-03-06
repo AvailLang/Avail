@@ -107,7 +107,7 @@ abstract class MapBinDescriptor protected constructor(
 	}
 
 	override fun o_MapBinKeysHash(self: AvailObject) =
-		self.slot(KEYS_HASH)
+		self[KEYS_HASH]
 
 	abstract override fun o_ForEachInMapBin(
 		self: AvailObject,

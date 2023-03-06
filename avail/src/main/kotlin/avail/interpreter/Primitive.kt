@@ -770,7 +770,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The number of arguments that the function will accept.
 	 */
 	open fun writeDefaultFailureCode(
-		lineNumber: Int, writer: L1InstructionWriter, numArgs: Int)
+		lineNumber: Int,
+		writer: L1InstructionWriter,
+		numArgs: Int)
 	{
 		if (!hasFlag(CannotFail))
 		{
@@ -804,10 +806,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The contention bin in which to add the sample.
 	 */
 	fun addNanosecondsRunning(
-		deltaNanoseconds: Long, interpreterIndex: Int)
-	{
-		runningNanos.record(deltaNanoseconds, interpreterIndex)
-	}
+		deltaNanoseconds: Long,
+		interpreterIndex: Int
+	) = runningNanos.record(deltaNanoseconds, interpreterIndex)
 
 	/**
 	 * Record that some number of nanoseconds were just expended checking the
@@ -819,8 +820,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The interpreterIndex of the current thread's interpreter.
 	 */
 	fun addNanosecondsCheckingResultType(
-		deltaNanoseconds: Long, interpreterIndex: Int) =
-			resultTypeCheckingNanos.record(deltaNanoseconds, interpreterIndex)
+		deltaNanoseconds: Long,
+		interpreterIndex: Int
+	) = resultTypeCheckingNanos.record(deltaNanoseconds, interpreterIndex)
 
 	/**
 	 * The primitive couldn't be folded out, and the primitive failed to produce
@@ -945,10 +947,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
 		translator: L1Translator,
-		callSiteHelper: CallSiteHelper): Boolean
-	{
-		return false
-	}
+		callSiteHelper: CallSiteHelper
+	): Boolean = false
 
 	/**
 	 * Attempt to generate a simplified, faster invocation of the given constant

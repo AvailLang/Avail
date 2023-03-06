@@ -47,13 +47,13 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
+import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TypeTag
 import avail.exceptions.MarshalingException
 import avail.serialization.SerializerOperation
-import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
+import org.availlang.json.JSONWriter
 import java.lang.String.format
 import java.util.IdentityHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -112,7 +112,7 @@ class CharacterDescriptor private constructor(
 		indent: Int
 	): Unit = with(builder) {
 		append("¢")
-		val codePoint = self.slot(CODE_POINT)
+		val codePoint = self[CODE_POINT]
 		// Check for linefeed, carriage return, tab, double quote ("), and
 		// backslash (\).  These have pretty escape forms inside string
 		// literals.
@@ -141,21 +141,21 @@ class CharacterDescriptor private constructor(
 		}
 	}
 
-	override fun o_CodePoint(self: AvailObject): Int = self.slot(CODE_POINT)
+	override fun o_CodePoint(self: AvailObject): Int = self[CODE_POINT]
 
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
 	): Boolean =
 		(another as A_Character).equalsCharacterWithCodePoint(
-			self.slot(CODE_POINT))
+			self[CODE_POINT])
 
 	override fun o_EqualsCharacterWithCodePoint(
 		self: AvailObject,
 		aCodePoint: Int
-	): Boolean = self.slot(CODE_POINT) == aCodePoint
+	): Boolean = self[CODE_POINT] == aCodePoint
 
-	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
+	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
 	override fun o_IsCharacter(self: AvailObject): Boolean = true
 
@@ -165,7 +165,7 @@ class CharacterDescriptor private constructor(
 		self: AvailObject,
 		classHint: Class<*>?
 	): Any {
-		val codePoint = self.slot(CODE_POINT)
+		val codePoint = self[CODE_POINT]
 		// Force marshaling to Java's primitive int type.
 		return when (classHint) {
 			Int::class.javaPrimitiveType,
@@ -195,7 +195,7 @@ class CharacterDescriptor private constructor(
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		when (self.slot(CODE_POINT)) {
+		when (self[CODE_POINT]) {
 			in 0..255 -> SerializerOperation.BYTE_CHARACTER
 			in 0..65535 -> SerializerOperation.SHORT_CHARACTER
 			else -> SerializerOperation.LARGE_CHARACTER

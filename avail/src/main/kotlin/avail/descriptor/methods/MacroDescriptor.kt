@@ -68,8 +68,8 @@ import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.ListPhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -143,11 +143,11 @@ class MacroDescriptor private constructor(
 	}
 
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
-		self.slot(MODULE)
+		self[MODULE]
 
 	override fun o_DefinitionModuleName(self: AvailObject): A_String
 	{
-		val module: A_Module = self.slot(MODULE)
+		val module: A_Module = self[MODULE]
 		return if (module.isNil) {
 			builtInNoModuleName
 		}
@@ -161,13 +161,13 @@ class MacroDescriptor private constructor(
 		another.traversed().sameAddressAs(self)
 
 	override fun o_BodyBlock(self: AvailObject): A_Function =
-		self.slot(BODY_BLOCK)
+		self[BODY_BLOCK]
 
 	override fun o_BodySignature(self: AvailObject): A_Type =
-		self.slot(BODY_BLOCK).kind()
+		self[BODY_BLOCK].kind()
 
 	override fun o_DefinitionBundle(self: AvailObject): A_Bundle =
-		self.slot(BUNDLE)
+		self[BUNDLE]
 
 	override fun o_Hash(self: AvailObject): Int =
 		combine2(self.bodyBlock().hash(), 0x67f6ec56)
@@ -185,12 +185,11 @@ class MacroDescriptor private constructor(
 		// A macro definition's parsing signature is a list phrase type whose
 		// covariant subexpressions type is the body block's kind's arguments
 		// type.
-		val argsTupleType = self.slot(BODY_BLOCK).kind().argsTupleType
+		val argsTupleType = self[BODY_BLOCK].kind().argsTupleType
 		val sizes = argsTupleType.sizeRange
 		assert(sizes.lowerBound.extractInt
 			== sizes.upperBound.extractInt)
-		assert(sizes.lowerBound.extractInt == self.slot(BUNDLE).numArgs)
-		// TODO MvG - 2016-08-21 deal with permutation of main list.
+		assert(sizes.lowerBound.extractInt == self[BUNDLE].numArgs)
 		return ListPhraseTypeDescriptor.createListPhraseType(
 			PhraseKind.LIST_PHRASE,
 			mappingElementTypes(argsTupleType) {
@@ -200,7 +199,7 @@ class MacroDescriptor private constructor(
 	}
 
 	override fun o_PrefixFunctions(self: AvailObject): A_Tuple =
-		self.slot(MACRO_PREFIX_FUNCTIONS)
+		self[MACRO_PREFIX_FUNCTIONS]
 
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.MACRO_DEFINITION
@@ -214,9 +213,9 @@ class MacroDescriptor private constructor(
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
-			at("body block") { self.slot(BODY_BLOCK).writeTo(writer) }
+			at("body block") { self[BODY_BLOCK].writeTo(writer) }
 			at("macro prefix functions") {
-				self.slot(MACRO_PREFIX_FUNCTIONS).writeTo(writer)
+				self[MACRO_PREFIX_FUNCTIONS].writeTo(writer)
 			}
 		}
 
@@ -229,9 +228,9 @@ class MacroDescriptor private constructor(
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
-			at("body block") { self.slot(BODY_BLOCK).writeSummaryTo(writer) }
+			at("body block") { self[BODY_BLOCK].writeSummaryTo(writer) }
 			at("macro prefix functions") {
-				self.slot(MACRO_PREFIX_FUNCTIONS).writeSummaryTo(writer)
+				self[MACRO_PREFIX_FUNCTIONS].writeSummaryTo(writer)
 			}
 		}
 

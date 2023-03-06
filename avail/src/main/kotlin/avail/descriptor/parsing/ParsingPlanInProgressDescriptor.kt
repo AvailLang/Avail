@@ -121,29 +121,29 @@ class ParsingPlanInProgressDescriptor private constructor(
 	}
 
 	override fun o_ParsingPc(self: AvailObject): Int =
-		self.slot(PARSING_PC)
+		self[PARSING_PC]
 
 	override fun o_ParsingPlan(self: AvailObject): A_DefinitionParsingPlan =
-		self.slot(PARSING_PLAN)
+		self[PARSING_PLAN]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
 		if (!another.kind().equals(PARSING_PLAN_IN_PROGRESS.o)) {
 			return false
 		}
 		val strongAnother = another as A_ParsingPlanInProgress
-		return (self.slot(PARSING_PLAN).equals(strongAnother.parsingPlan)
-			&& self.slot(PARSING_PC) == strongAnother.parsingPc)
+		return (self[PARSING_PLAN].equals(strongAnother.parsingPlan)
+			&& self[PARSING_PC] == strongAnother.parsingPc)
 	}
 
-	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
+	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		PARSING_PLAN_IN_PROGRESS.o
 
 	override fun o_IsBackwardJump(self: AvailObject): Boolean {
-		val plan: A_DefinitionParsingPlan = self.slot(PARSING_PLAN)
+		val plan: A_DefinitionParsingPlan = self[PARSING_PLAN]
 		val instructions = plan.parsingInstructions
-		val pc = self.slot(PARSING_PC)
+		val pc = self[PARSING_PC]
 		if (pc > instructions.tupleSize) {
 			return false
 		}
@@ -163,8 +163,8 @@ class ParsingPlanInProgressDescriptor private constructor(
 	 */
 	override fun o_NameHighlightingPc(self: AvailObject): String
 	{
-		val plan: A_DefinitionParsingPlan = self.slot(PARSING_PLAN)
-		val pc = self.slot(PARSING_PC)
+		val plan: A_DefinitionParsingPlan = self[PARSING_PLAN]
+		val pc = self[PARSING_PC]
 		return when {
 			pc <= 1 -> "(any method invocation)"
 			else -> plan.bundle.messageSplitter.highlightedNameFor(

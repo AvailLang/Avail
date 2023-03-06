@@ -34,6 +34,7 @@
 
 package avail.utility
 
+import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.structures.EnumMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -183,7 +184,7 @@ fun<E> Collection<E>.parallelDoThen(
  *   The target element type, produced by the action.
  */
 inline fun<S, reified T> Collection<S>.parallelMapThen(
-	crossinline action: (S, (T)->Unit)->Unit,
+	crossinline action: (S, afterEach: (T)->Unit)->Unit,
 	crossinline then: (List<T>)->Unit)
 {
 	if (isEmpty())
@@ -462,5 +463,26 @@ fun <X> X?.iterableWith(advance: (X)->X?): Iterable<X> = object : Iterable<X>
 		var current = this@iterableWith
 		override fun hasNext() = current !== null
 		override fun next() = current!!.also { current = advance(it) }
+	}
+}
+
+/**
+ * Given a [List] of [Iterable]s (over some [X]), execute the [action] for each
+ * combination of [X] values, one from each [Iterable].
+ *
+ * Use recursion for simplicity.
+ */
+fun <X> List<Iterable<X>>.cartesianProductForEach(action: (List<X>)->Unit)
+{
+	if (isEmpty())
+	{
+		action(emptyList())
+		return
+	}
+	val last = last()
+	subList(0, size - 1).cartesianProductForEach { butLastProduct ->
+		last.forEach { lastElement ->
+			action(butLastProduct.append(lastElement))
+		}
 	}
 }
