@@ -36,6 +36,7 @@ import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.token
@@ -183,7 +184,7 @@ class LiteralPhraseDescriptor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) = codeGenerator.emitPushLiteral(
-		tuple(self.token), self.slot(TOKEN).literal())
+		tuple(self.token), self[TOKEN].literal())
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
@@ -212,7 +213,7 @@ class LiteralPhraseDescriptor(
 		tupleFromList(self.map(::syntheticLiteralNodeFor))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
-		val token: A_Token = self.slot(TOKEN)
+		val token: A_Token = self[TOKEN]
 		assert(token.tokenType() === TokenType.LITERAL)
 		return instanceTypeOrMetaOn(token.literal()).makeImmutable()
 	}
@@ -228,11 +229,11 @@ class LiteralPhraseDescriptor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.LITERAL_PHRASE
 
-	override fun o_Token(self: AvailObject): A_Token = self.slot(TOKEN)
+	override fun o_Token(self: AvailObject): A_Token = self[TOKEN]
 
 	override fun o_Tokens(self: AvailObject): A_Tuple
 	{
-		val token: A_Token = self.slot(TOKEN)
+		val token: A_Token = self[TOKEN]
 		val literal = token.literal()
 		return when
 		{
@@ -250,13 +251,13 @@ class LiteralPhraseDescriptor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("literal phrase") }
-			at("token") { self.slot(TOKEN).writeTo(writer) }
+			at("token") { self[TOKEN].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("literal phrase") }
-			at("token") { self.slot(TOKEN).writeSummaryTo(writer) }
+			at("token") { self[TOKEN].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable

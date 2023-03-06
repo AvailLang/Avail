@@ -45,6 +45,4 @@ package avail.descriptor.representation
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface IntegerSlotsEnum : AbstractSlotsEnum {
-	// It's all declared in the superinterface.
-}
+interface IntegerSlotsEnum : AbstractSlotsEnum

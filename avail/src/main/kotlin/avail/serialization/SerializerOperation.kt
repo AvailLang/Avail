@@ -2696,8 +2696,7 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			assert(obj.descriptor() is PojoFinalFieldDescriptor)
-			val field = obj
-				.slot(PojoFinalFieldDescriptor.ObjectSlots.FIELD)
+			val field = obj[PojoFinalFieldDescriptor.ObjectSlots.FIELD]
 				.javaObjectNotNull<Field>()
 			val definingClass = field.declaringClass
 			val className = stringFrom(definingClass.name)

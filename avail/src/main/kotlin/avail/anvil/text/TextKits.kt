@@ -67,8 +67,8 @@ import avail.anvil.shortcuts.SaveShortcut
 import avail.anvil.shortcuts.SnakeCaseShortcut
 import avail.anvil.shortcuts.UndoShortcut
 import avail.anvil.shortcuts.UppercaseShortcut
-import avail.anvil.streams.StreamStyle
 import avail.anvil.shortcuts.WrapInBlockCommentShortcut
+import avail.anvil.streams.StreamStyle
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
@@ -78,6 +78,7 @@ import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.tabs
 import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Point
+import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JTextPane
@@ -1192,7 +1193,7 @@ fun JTextComponent.centerCurrentLine()
 	if (viewport === null) return
 	try
 	{
-		val bounds = modelToView2D(caretPosition)
+		val bounds = modelToView2D(caretPosition) ?: Rectangle()
 		val extentHeight = viewport.extentSize.height.toDouble()
 		val viewHeight = viewport.viewSize.height.toDouble()
 		val y = min(

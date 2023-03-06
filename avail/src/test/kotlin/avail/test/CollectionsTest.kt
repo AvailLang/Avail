@@ -1,5 +1,5 @@
 /*
- * CompilerSolution.kt
+ * CollectionsTest.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,62 +29,79 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.test
 
-package avail.compiler
-
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
-import avail.descriptor.phrases.PhraseDescriptor
+import avail.utility.cartesianProductForEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 /**
- * A `CompilerSolution` is a record of having parsed some
- * [phrase][PhraseDescriptor] from a stream of tokens, combined with the
- * [position&#32;and&#32;state][ParserState] of the parser after the phrase was
- * parsed.
+ * Unit tests for the functions in `CollectionExtensions.kt`.
  *
- * @property endState
- *   The parse position after this solution.
- * @property phrase
- *   A phrase that ends at the specified ending position.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @constructor
- *
- * Construct a new `CompilerSolution`.
- *
- * @param endState
- *   The [ParserState] after the specified phrase's tokens.
- * @param phrase
- *   The [phrase][PhraseDescriptor] that ends at the specified `endState`.
  */
-internal class CompilerSolution constructor(
-	internal val endState: ParserState,
-	internal val phrase: A_Phrase) : AbstractSolution
+class CollectionsTest
 {
-	override fun equals(other: Any?): Boolean
+	private fun <X> checkCartesianProduct(
+		inputLists: List<List<X>>,
+		expected: List<List<X>>)
 	{
-		if (other === null)
-		{
-			return false
-		}
-		if (other !is CompilerSolution)
-		{
-			return false
-		}
-		return endState == other.endState && phrase.equalsPhrase(other.phrase)
+		val accumulator = mutableListOf<List<X>>()
+		inputLists.cartesianProductForEach { accumulator.add(it) }
+		assertEquals(expected, accumulator)
 	}
 
-	override fun hashCode() = phrase.hash()
-
-	override fun toString(): String
+	@Test
+	fun testCartesianProduct()
 	{
-		return "Solution(@${endState.position}: ${endState.clientDataMap}) " +
-				"= $phrase"
+		checkCartesianProduct(emptyList<List<Int>>(), listOf(emptyList()))
+
+		checkCartesianProduct(
+			listOf(listOf(10, 20)),
+			listOf(listOf(10), listOf(20)))
+
+		checkCartesianProduct(sampleList1, sampleList1Product)
+
+		checkCartesianProduct(sampleList2, sampleList2Product)
 	}
 
-	/** Support Kotlin deconstructor syntax for (endState, phrase). */
-	operator fun component1() = endState
+	companion object
+	{
+		/** A [List] of [List]s of [Int] for testing. */
+		val sampleList1 = listOf(
+			listOf(10, 20),
+			listOf(3, 4, 5))
 
-	/** Support Kotlin deconstructor syntax for (endState, phrase). */
-	operator fun component2() = phrase
+		/** The expected Cartesian product of the lists in sampleList1. */
+		val sampleList1Product = listOf(
+			listOf(10, 3),
+			listOf(10, 4),
+			listOf(10, 5),
+			listOf(20, 3),
+			listOf(20, 4),
+			listOf(20, 5))
+
+		/**
+		 * A [List] of [List]s of [Int] for testing.
+		 */
+		val sampleList2 = listOf(
+			listOf(10, 20),
+			listOf(3, 4, 5),
+			listOf(6,7))
+
+		/** The expected Cartesian product of the lists in sampleList2. */
+		val sampleList2Product = listOf(
+			listOf(10, 3, 6),
+			listOf(10, 3, 7),
+			listOf(10, 4, 6),
+			listOf(10, 4, 7),
+			listOf(10, 5, 6),
+			listOf(10, 5, 7),
+			listOf(20, 3, 6),
+			listOf(20, 3, 7),
+			listOf(20, 4, 6),
+			listOf(20, 4, 7),
+			listOf(20, 5, 6),
+			listOf(20, 5, 7))
+	}
 }

@@ -566,16 +566,14 @@ Semantic restriction "(--_↑)" is
  */
 Invoke
 [
-	parens ::= cast <"(_)">→set into [ t : {string|natural number} | t ];
+	parens ::= {"(_)"};
 	forbid ::=
-		cast
-			<
-				"_↑++", "++_↑", "(_↑++)", "(++_↑)",
-				"_↑--", "--_↑", "(_↑--)", "(--_↑)",
-				"_++", "++_", "(_++)", "(++_)",
-				"_--", "--_", "(_--)", "(--_)"
-			>→set
-		into [ t : {string|whole number} | t ];
+		{
+			"_↑++", "++_↑", "(_↑++)", "(++_↑)",
+			"_↑--", "--_↑", "(_↑--)", "(--_↑)",
+			"_++", "++_", "(_++)", "(++_)",
+			"_--", "--_", "(_--)", "(--_)"
+		};
 	Grammatical restriction parens is <forbid>;
 ]
 with <>;
@@ -682,7 +680,7 @@ Public macro "«…‡,»::=_;" is
 		index : natural number
 	|
 		nameToken ::= strongNameTokens[index];
-		at ::= bootstrap restricted send $"_[_]"
+		at ::= restricted send $"_[_]"
 			with «<«↓tupleBinding», ‘index’>»
 			: tupleType[index];
 		binding ::= «nameToken ::= at»;
@@ -772,7 +770,7 @@ Public macro "«…‡,»::=_;" is
 		index : natural number
 	|
 		nameToken ::= strongNameTokens[index];
-		at ::= bootstrap restricted send $"_[_]"
+		at ::= restricted send $"_[_]"
 			with «<«↓tupleTypeBinding», ‘index’>»
 			: (tupleType[index]'s type);
 		binding ::= «nameToken ::= at»;

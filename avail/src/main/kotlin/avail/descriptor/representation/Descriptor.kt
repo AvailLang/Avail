@@ -2326,6 +2326,9 @@ protected constructor (
 	override fun o_Permutation (self: AvailObject): A_Tuple =
 		unsupported
 
+	override fun o_PermutedPhrases(self: AvailObject): List<A_Phrase> =
+		unsupported
+
 	override fun o_EmitAllValuesOn (
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator): Unit = unsupported

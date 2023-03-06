@@ -154,12 +154,12 @@ private constructor(
 		indent: Int)
 	{
 		builder.append(if (lowerInclusive) '[' else '(')
-		self.slot(LOWER_BOUND).printOnAvoidingIndent(
+		self[LOWER_BOUND].printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 		builder.append("..")
-		self.slot(UPPER_BOUND).printOnAvoidingIndent(
+		self[UPPER_BOUND].printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
@@ -168,8 +168,8 @@ private constructor(
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag
 	{
-		val lower = self.slot(LOWER_BOUND)
-		val upper = self.slot(UPPER_BOUND)
+		val lower = self[LOWER_BOUND]
+		val upper = self[UPPER_BOUND]
 		return when
 		{
 			!lower.isFinite && lowerInclusive -> TypeTag.EXTENDED_INTEGER_TAG
@@ -186,8 +186,8 @@ private constructor(
 	override fun o_EqualsIntegerRangeType(
 		self: AvailObject,
 		another: A_Type
-	): Boolean = (self.slot(LOWER_BOUND).equals(another.lowerBound)
-		&& self.slot(UPPER_BOUND).equals(another.upperBound)
+	): Boolean = (self[LOWER_BOUND].equals(another.lowerBound)
+		&& self[UPPER_BOUND].equals(another.upperBound)
 		&& lowerInclusive == another.lowerInclusive
 		&& upperInclusive == another.upperInclusive)
 
@@ -204,8 +204,8 @@ private constructor(
 	 */
 	override fun o_Hash(self: AvailObject): Int =
 		computeHash(
-			self.slot(LOWER_BOUND).hash(),
-			self.slot(UPPER_BOUND).hash(),
+			self[LOWER_BOUND].hash(),
+			self[UPPER_BOUND].hash(),
 			lowerInclusive,
 			upperInclusive)
 
@@ -230,7 +230,7 @@ private constructor(
 		anIntegerRangeType: A_Type): Boolean
 	{
 		val subMinObject = anIntegerRangeType.lowerBound
-		val superMinObject = self.slot(LOWER_BOUND)
+		val superMinObject = self[LOWER_BOUND]
 		if (subMinObject.lessThan(superMinObject))
 		{
 			return false
@@ -242,7 +242,7 @@ private constructor(
 			return false
 		}
 		val subMaxObject = anIntegerRangeType.upperBound
-		val superMaxObject: A_Number = self.slot(UPPER_BOUND)
+		val superMaxObject: A_Number = self[UPPER_BOUND]
 		return if (superMaxObject.lessThan(subMaxObject))
 		{
 			false
@@ -253,7 +253,7 @@ private constructor(
 	}
 
 	override fun o_LowerBound(self: AvailObject): A_Number =
-		self.slot(LOWER_BOUND)
+		self[LOWER_BOUND]
 
 	override fun o_LowerInclusive(self: AvailObject): Boolean =
 		lowerInclusive
@@ -281,7 +281,7 @@ private constructor(
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 	{
-		val lower: A_Number = self.slot(LOWER_BOUND)
+		val lower: A_Number = self[LOWER_BOUND]
 		val asInteger: A_Number
 		when
 		{
@@ -296,7 +296,7 @@ private constructor(
 				}
 			}
 		}
-		val upper: A_Number = self.slot(UPPER_BOUND)
+		val upper: A_Number = self[UPPER_BOUND]
 		return when
 		{
 			upper.isLong -> aLong <= upper.extractLong
@@ -370,7 +370,7 @@ private constructor(
 		self: AvailObject,
 		anIntegerRangeType: A_Type): A_Type
 	{
-		var minObject: A_Number = self.slot(LOWER_BOUND)
+		var minObject: A_Number = self[LOWER_BOUND]
 		var isMinInc = lowerInclusive
 		if (anIntegerRangeType.lowerBound.equals(minObject))
 		{
@@ -381,7 +381,7 @@ private constructor(
 			minObject = anIntegerRangeType.lowerBound
 			isMinInc = anIntegerRangeType.lowerInclusive
 		}
-		var maxObject: A_Number = self.slot(UPPER_BOUND)
+		var maxObject: A_Number = self[UPPER_BOUND]
 		var isMaxInc = upperInclusive
 		if (anIntegerRangeType.upperBound.equals(maxObject))
 		{
@@ -418,7 +418,7 @@ private constructor(
 		self: AvailObject,
 		anIntegerRangeType: A_Type): A_Type
 	{
-		var minObject: A_Number = self.slot(LOWER_BOUND)
+		var minObject: A_Number = self[LOWER_BOUND]
 		var isMinInc = lowerInclusive
 		if (anIntegerRangeType.lowerBound.equals(minObject))
 		{
@@ -429,7 +429,7 @@ private constructor(
 			minObject = anIntegerRangeType.lowerBound
 			isMinInc = anIntegerRangeType.lowerInclusive
 		}
-		var maxObject: A_Number = self.slot(UPPER_BOUND)
+		var maxObject: A_Number = self[UPPER_BOUND]
 		var isMaxInc = upperInclusive
 		if (anIntegerRangeType.upperBound.equals(maxObject))
 		{
@@ -449,7 +449,7 @@ private constructor(
 			Types.NUMBER.unionTypes[primitiveTypeEnum.ordinal]!!
 
 	override fun o_UpperBound(self: AvailObject): A_Number =
-		self.slot(UPPER_BOUND)
+		self[UPPER_BOUND]
 
 	override fun o_UpperInclusive(self: AvailObject): Boolean =
 		upperInclusive
@@ -460,9 +460,9 @@ private constructor(
 		writer.write("kind")
 		writer.write("integer type")
 		writer.write("lower bound")
-		self.slot(LOWER_BOUND).writeTo(writer)
+		self[LOWER_BOUND].writeTo(writer)
 		writer.write("upper bound")
-		self.slot(UPPER_BOUND).writeTo(writer)
+		self[UPPER_BOUND].writeTo(writer)
 		writer.endObject()
 	}
 

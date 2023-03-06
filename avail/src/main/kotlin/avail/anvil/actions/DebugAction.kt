@@ -34,8 +34,9 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.debugger.AvailDebugger
-import avail.descriptor.fiber.A_Fiber
 import avail.anvil.shortcuts.DebugActionShortcut
+import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.FiberDescriptor.FiberKind
 import java.awt.event.ActionEvent
 import javax.swing.Action
 
@@ -63,7 +64,9 @@ constructor(
 	{
 		val debugger = AvailDebugger(workbench)
 		workbench.openDebuggers.add(debugger)
-		debugger.debuggerModel.installFiberCapture(true)
+		FiberKind.all.forEach { kind ->
+			debugger.debuggerModel.installFiberCapture(kind, true)
+		}
 		debugger.gatherFibers { workbench.runtime.allFibers() }
 		debugger.open()
 	}

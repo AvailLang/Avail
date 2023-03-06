@@ -182,7 +182,7 @@ private constructor(
 	 */
 	private fun rawGetSuperkind(self: AvailObject): A_Type
 	{
-		var cached: A_Type = self.slot(CACHED_SUPERKIND)
+		var cached: A_Type = self[CACHED_SUPERKIND]
 		if (cached.isNil)
 		{
 			cached = bottom
@@ -198,7 +198,7 @@ private constructor(
 			{
 				cached = cached.traversed().makeShared()
 			}
-			self.setSlot(CACHED_SUPERKIND, cached)
+			self[CACHED_SUPERKIND] = cached
 		}
 		return cached
 	}
@@ -695,7 +695,7 @@ private constructor(
 		writer.write("kind")
 		getSuperkind(self).writeTo(writer)
 		writer.write("instances")
-		self.slot(INSTANCES).writeTo(writer)
+		self[INSTANCES].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -705,7 +705,7 @@ private constructor(
 		writer.write("kind")
 		getSuperkind(self).writeSummaryTo(writer)
 		writer.write("instances")
-		self.slot(INSTANCES).writeSummaryTo(writer)
+		self[INSTANCES].writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -741,7 +741,7 @@ private constructor(
 		 * @return
 		 *   The instances of this enumeration.
 		 */
-		fun getInstances(self: AvailObject): A_Set = self.slot(INSTANCES)
+		fun getInstances(self: AvailObject): A_Set = self[INSTANCES]
 
 		/**
 		 * Construct an enumeration type from a [set][SetDescriptor] with at

@@ -783,37 +783,37 @@ class ModuleDescriptor private constructor(
 		lock.read { versions }
 
 	override fun o_NewNames(self: AvailObject): A_Map =
-		lock.read { self.slot(NEW_NAMES) }
+		lock.read { self[NEW_NAMES] }
 
 	override fun o_ImportedNames(self: AvailObject): A_Map =
-		lock.read { self.slot(IMPORTED_NAMES) }
+		lock.read { self[IMPORTED_NAMES] }
 
 	override fun o_PrivateNames(self: AvailObject): A_Map =
-		lock.read { self.slot(PRIVATE_NAMES) }
+		lock.read { self[PRIVATE_NAMES] }
 
 	override fun o_EntryPoints(self: AvailObject): A_Map = entryPoints
 
 	override fun o_VisibleNames(self: AvailObject): A_Set =
-		lock.read { self.slot(VISIBLE_NAMES) }
+		lock.read { self[VISIBLE_NAMES] }
 
 	override fun o_ExportedNames(self: AvailObject): A_Set
 	{
 		lock.read {
-			self.slot(CACHED_EXPORTED_NAMES).let {
+			self[CACHED_EXPORTED_NAMES].let {
 				if (it.notNil) return it
 			}
 		}
 		return lock.safeWrite {
-			var exportedNames: A_Set = self.slot(CACHED_EXPORTED_NAMES)
+			var exportedNames: A_Set = self[CACHED_EXPORTED_NAMES]
 			if (exportedNames.isNil)
 			{
 				// Compute it.
 				exportedNames = emptySet
-				self.slot(IMPORTED_NAMES).forEach { _, value ->
+				self[IMPORTED_NAMES].forEach { _, value ->
 					exportedNames = exportedNames.setUnionCanDestroy(
 						value.makeShared(), true)
 				}
-				self.slot(PRIVATE_NAMES).forEach { _, value ->
+				self[PRIVATE_NAMES].forEach { _, value ->
 					exportedNames = exportedNames.setMinusCanDestroy(
 						value.makeShared(), true)
 				}
@@ -821,7 +821,7 @@ class ModuleDescriptor private constructor(
 				if (self.moduleState != Loading)
 				{
 					// The module is closed, so cache it for next time.
-					self.setSlot(CACHED_EXPORTED_NAMES, exportedNames)
+					self[CACHED_EXPORTED_NAMES] = exportedNames
 				}
 			}
 			exportedNames
@@ -829,13 +829,13 @@ class ModuleDescriptor private constructor(
 	}
 
 	override fun o_MethodDefinitions(self: AvailObject): A_Set =
-		lock.read { self.slot(METHOD_DEFINITIONS_SET) }
+		lock.read { self[METHOD_DEFINITIONS_SET] }
 
 	override fun o_VariableBindings(self: AvailObject): A_Map =
-		lock.read { self.slot(VARIABLE_BINDINGS) }
+		lock.read { self[VARIABLE_BINDINGS] }
 
 	override fun o_ConstantBindings(self: AvailObject): A_Map =
-		lock.read { self.slot(CONSTANT_BINDINGS) }
+		lock.read { self[CONSTANT_BINDINGS] }
 
 	override fun o_AddConstantBinding(
 		self: AvailObject,
@@ -917,7 +917,7 @@ class ModuleDescriptor private constructor(
 				set.setWithElementCanDestroy(trueName, true)
 			}
 		}
-		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
+		var privateNames: A_Map = self[PRIVATE_NAMES]
 		val set: A_Set? = privateNames.mapAtOrNull(string)
 		if (set !== null && set.hasElement(trueName))
 		{
@@ -934,7 +934,7 @@ class ModuleDescriptor private constructor(
 					set.setWithoutElementCanDestroy(trueName, true),
 					true)
 			}
-			self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
+			self[PRIVATE_NAMES] = privateNames.makeShared()
 		}
 		self.updateSlotShared(VISIBLE_NAMES) {
 			setWithElementCanDestroy(trueName, true)
@@ -947,8 +947,8 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		// Add the set of atoms to the current public scope.
 		assertState(Loading)
-		var importedNames: A_Map = self.slot(IMPORTED_NAMES)
-		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
+		var importedNames: A_Map = self[IMPORTED_NAMES]
+		var privateNames: A_Map = self[PRIVATE_NAMES]
 		for (trueName in trueNames)
 		{
 			val string: A_String = trueName.atomName
@@ -975,8 +975,8 @@ class ModuleDescriptor private constructor(
 				}
 			}
 		}
-		self.setSlot(IMPORTED_NAMES, importedNames.makeShared())
-		self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
+		self[IMPORTED_NAMES] = importedNames.makeShared()
+		self[PRIVATE_NAMES] = privateNames.makeShared()
 		self.updateSlotShared(VISIBLE_NAMES) {
 			setUnionCanDestroy(trueNames, true)
 		}
@@ -1023,8 +1023,8 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		// Add the set of atoms to the current private scope.
 		assertState(Loading)
-		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
-		var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
+		var privateNames: A_Map = self[PRIVATE_NAMES]
+		var visibleNames: A_Set = self[VISIBLE_NAMES]
 		visibleNames = visibleNames.setUnionCanDestroy(trueNames, true)
 		for (trueName in trueNames)
 		{
@@ -1035,8 +1035,8 @@ class ModuleDescriptor private constructor(
 				set.setWithElementCanDestroy(trueName, true)
 			}
 		}
-		self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
-		self.setSlot(VISIBLE_NAMES, visibleNames.makeShared())
+		self[PRIVATE_NAMES] = privateNames.makeShared()
+		self[VISIBLE_NAMES] = visibleNames.makeShared()
 	}
 
 	override fun o_AddLexer(
@@ -1266,10 +1266,10 @@ class ModuleDescriptor private constructor(
 		self.methodDefinitions.forEach(loader::removeDefinition)
 		macroDefinitions.forEach(loader::removeMacro)
 		// Remove semantic restrictions.
-		semanticRestrictions.forEach(runtime::removeTypeRestriction)
+		semanticRestrictions.forEach(runtime::removeSemanticRestriction)
 		grammaticalRestrictions.forEach(runtime::removeGrammaticalRestriction)
 		// Remove seals.
-		self.slot(SEALS).forEach { methodName, values ->
+		self[SEALS].forEach { methodName, values ->
 			values.forEach { seal ->
 				try
 				{
@@ -1285,11 +1285,11 @@ class ModuleDescriptor private constructor(
 		// Remove lexers.  Don't bother adjusting the loader, since it's not
 		// going to parse anything again.  Don't even bother removing it from
 		// the module, since that's being unloaded.
-		self.slot(LEXERS).forEach { lexer ->
+		self[LEXERS].forEach { lexer ->
 			lexer.lexerMethod.lexer = nil
 		}
 		// Remove bundles created by this module.
-		self.slot(BUNDLES).forEach { bundle ->
+		self[BUNDLES].forEach { bundle ->
 			// Remove the bundle from the atom.
 			bundle.message.setAtomBundle(nil)
 			// Remove the bundle from the method.
@@ -1369,21 +1369,21 @@ class ModuleDescriptor private constructor(
 	): A_Set
 	{
 		lock.read {
-			self.slot(NEW_NAMES).let { newNames ->
+			self[NEW_NAMES].let { newNames ->
 				newNames.mapAtOrNull(stringName)?.let {
 					return singletonSet(it)
 				}
 			}
 		}
 		lock.safeWrite {
-			self.slot(NEW_NAMES).let { newNames ->
+			self[NEW_NAMES].let { newNames ->
 				newNames.mapAtOrNull(stringName)?.let {
 					return singletonSet(it)
 				}
 			}
 			val publicNames: A_Set =
-				self.slot(IMPORTED_NAMES).mapAtOrNull(stringName) ?: emptySet
-			self.slot(PRIVATE_NAMES).mapAtOrNull(stringName)?.let { privates ->
+				self[IMPORTED_NAMES].mapAtOrNull(stringName) ?: emptySet
+			self[PRIVATE_NAMES].mapAtOrNull(stringName)?.let { privates ->
 				return when (publicNames.setSize)
 				{
 					0 -> privates
@@ -1470,7 +1470,7 @@ class ModuleDescriptor private constructor(
 		}
 
 	override fun o_ModuleStylers(self: AvailObject): A_Set =
-		lock.read { self.slot(STYLERS) }
+		lock.read { self[STYLERS] }
 
 	override fun o_ModuleState(self: AvailObject): State = stateField.get()
 
@@ -1497,7 +1497,7 @@ class ModuleDescriptor private constructor(
 			setWithElementCanDestroy(bundle, true)
 		}
 
-	override fun o_Bundles(self: AvailObject): A_Set = self.slot(BUNDLES)
+	override fun o_Bundles(self: AvailObject): A_Set = self[BUNDLES]
 
 	override fun o_GetAndSetTupleOfBlockPhrases(
 		self: AvailObject,

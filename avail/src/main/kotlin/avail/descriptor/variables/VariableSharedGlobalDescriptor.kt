@@ -190,15 +190,15 @@ class VariableSharedGlobalDescriptor private constructor(
 		|| e === HASH_AND_MORE) // only for flags.
 
 	override fun o_GlobalModule(self: AvailObject): A_Module =
-		self.slot(MODULE)
+		self[MODULE]
 
 	override fun o_GlobalName(self: AvailObject): A_String =
-		self.slot(GLOBAL_NAME)
+		self[GLOBAL_NAME]
 
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		val outerKind = self.slot(KIND)
+		val outerKind = self[KIND]
 		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(
@@ -308,13 +308,13 @@ class VariableSharedGlobalDescriptor private constructor(
 	{
 		// Only meaningful for write-once variables.
 		assert(writeOnce)
-		self.setSlot(VALUE_IS_STABLE, if (wasStablyComputed) 1 else 0)
+		self[VALUE_IS_STABLE] = if (wasStablyComputed) 1 else 0
 	}
 
 	override fun o_ValueWasStablyComputed(
 		self: AvailObject): Boolean =
 			// Can only be set for write-once variables.
-			self.slot(VALUE_IS_STABLE) != 0
+			self[VALUE_IS_STABLE] != 0
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.GLOBAL_VARIABLE

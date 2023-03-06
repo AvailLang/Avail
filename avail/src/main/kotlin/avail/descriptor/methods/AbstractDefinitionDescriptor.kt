@@ -100,10 +100,10 @@ class AbstractDefinitionDescriptor private constructor(
 	}
 
 	override fun o_BodySignature(self: AvailObject): A_Type =
-		self.slot(BODY_SIGNATURE)
+		self[BODY_SIGNATURE]
 
 	override fun o_Hash(self: AvailObject) =
-		combine2(self.slot(BODY_SIGNATURE).hash(), 0x201FE782)
+		combine2(self[BODY_SIGNATURE].hash(), 0x201FE782)
 
 	override fun o_Kind(self: AvailObject): AvailObject =
 		ABSTRACT_DEFINITION.o
@@ -117,13 +117,13 @@ class AbstractDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("abstract definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
+				self[DEFINITION_METHOD].methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
 			at("body signature") {
-				self.slot(BODY_SIGNATURE).writeTo(writer)
+				self[BODY_SIGNATURE].writeTo(writer)
 			}
 		}
 
@@ -131,13 +131,13 @@ class AbstractDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("abstract definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
+				self[DEFINITION_METHOD].methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
 			at("body signature") {
-				self.slot(BODY_SIGNATURE).writeSummaryTo(writer)
+				self[BODY_SIGNATURE].writeSummaryTo(writer)
 			}
 		}
 

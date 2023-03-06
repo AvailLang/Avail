@@ -534,7 +534,7 @@ private constructor(
 		 *   The set's bin.
 		 */
 		private fun rootBin(self: AvailObject): AvailObject =
-			self.slot(ROOT_BIN)
+			self[ROOT_BIN]
 
 		/**
 		 * Replace the [set][A_Set]'s root [bin][SetBinDescriptor]. The
@@ -545,10 +545,10 @@ private constructor(
 		 * @param bin
 		 *   The root bin for the set, or nil.
 		 */
-		private fun setRootBin(
-			set: AvailObject,
-			bin: A_BasicObject
-		) = set.setSlot(ROOT_BIN, bin)
+		private fun setRootBin(set: AvailObject, bin: A_BasicObject)
+		{
+			set[ROOT_BIN] = bin
+		}
 
 		/**
 		 * Write a Unicode code point that's either the start or end of a range,

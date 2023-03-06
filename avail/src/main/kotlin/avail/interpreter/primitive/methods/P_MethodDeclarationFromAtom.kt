@@ -36,10 +36,13 @@ import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
+import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
+import avail.descriptor.methods.SemanticRestrictionDescriptor.Companion.newSemanticRestriction
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -65,11 +68,14 @@ import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENT
 import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import avail.exceptions.AvailException
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.AvailLoader.Companion.addBootstrapStyler
+import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
+import avail.utility.notNullAnd
 
 /**
  * **Primitive:** Define a concrete method implementation.
@@ -104,6 +110,23 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 				val atomName = atom.atomName
 				val code = function.code()
 				code.methodName = stringFrom(atomName.toString())
+				// Only explicitly define the stability helper during
+				// compilation.  Fast-loader will just deserialize it.
+				if (loader.phase == EXECUTING_FOR_COMPILE)
+				{
+					if (code.codePrimitive().notNullAnd { hasFlag(CanFold) })
+					{
+						val restrictionBody =
+							P_SimpleMethodStabilityHelper.createRestrictionBody(
+								function)
+						val restriction = newSemanticRestriction(
+							restrictionBody,
+							atom.bundleOrNil.bundleMethod,
+							loader.module)
+						loader.addSemanticRestriction(restriction)
+					}
+				}
+
 				if (optionalStylerFunction.tupleSize == 1)
 				{
 					val stylerFunction = optionalStylerFunction.tupleAt(1)

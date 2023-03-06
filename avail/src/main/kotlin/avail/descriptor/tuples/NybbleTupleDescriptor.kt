@@ -159,12 +159,13 @@ class NybbleTupleDescriptor private constructor(
 
 	override fun o_DescribeForDebugger(
 		self: AvailObject
-	): Array<AvailObjectFieldHelper> = with(self) {
-		val nybblesCount = tupleSize
+	): Array<AvailObjectFieldHelper>
+	{
+		val nybblesCount = self.tupleSize
 		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
-		val longsCount = variableIntegerSlotsCount()
+		val longsCount = self.variableIntegerSlotsCount()
 		(1 .. longsCount).mapTo(fields) { longIndex ->
-			val value = slot(RAW_LONG_AT_, longIndex)
+			val value = self[RAW_LONG_AT_, longIndex]
 			val lowIndex = longIndex * 16 - 15
 			val highIndex = min(longIndex * 16, nybblesCount)
 			val text = buildString {
@@ -178,7 +179,7 @@ class NybbleTupleDescriptor private constructor(
 				(lowIndex .. highIndex).forEach { i ->
 					if (i and 3 == 1) append(" ")
 					append(" ")
-					append("0123456789ABCDEF"[tupleIntAt(i)])
+					append("0123456789ABCDEF"[self.tupleIntAt(i)])
 				}
 			}
 			AvailObjectFieldHelper(
@@ -255,7 +256,7 @@ class NybbleTupleDescriptor private constructor(
 					if (originalSize and 15 == 0) 1 else 0)
 			}
 			setNybble(result, newSize, intValue.toByte())
-			result.setSlot(HASH_OR_ZERO, 0)
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		// Transition to a tree tuple.
@@ -370,7 +371,7 @@ class NybbleTupleDescriptor private constructor(
 					0,
 					deltaSlots)
 			}
-			copy.setSlot(HASH_OR_ZERO, 0)
+			copy[HASH_OR_ZERO] = 0
 			var dest = size1 + 1
 			var result: A_Tuple = copy
 			var src = 1
@@ -623,7 +624,7 @@ class NybbleTupleDescriptor private constructor(
 		{
 			assert(nybbleIndex >= 1 && nybbleIndex <= self.tupleSize)
 			val longIndex = nybbleIndex + 15 ushr 4
-			val longValue = self.slot(RAW_LONG_AT_, longIndex)
+			val longValue = self[RAW_LONG_AT_, longIndex]
 			val shift = nybbleIndex - 1 and 15 shl 2
 			return (longValue ushr shift and 0x0F).toByte()
 		}
@@ -647,11 +648,11 @@ class NybbleTupleDescriptor private constructor(
 			assert(nybbleIndex >= 1 && nybbleIndex <= self.tupleSize)
 			assert(aNybble.toInt() and 15 == aNybble.toInt())
 			val longIndex = nybbleIndex + 15 ushr 4
-			var longValue = self.slot(RAW_LONG_AT_, longIndex)
+			var longValue = self[RAW_LONG_AT_, longIndex]
 			val leftShift = nybbleIndex - 1 and 15 shl 2
 			longValue = longValue and (0x0FL shl leftShift).inv()
 			longValue = longValue or (aNybble.toLong() shl leftShift)
-			self.setSlot(RAW_LONG_AT_, longIndex, longValue)
+			self[RAW_LONG_AT_, longIndex] = longValue
 		}
 
 		/**
@@ -694,7 +695,7 @@ class NybbleTupleDescriptor private constructor(
 					combined = combined or (nybble.toLong() shl shift)
 					shift += 4
 				}
-				result.setSlot(RAW_LONG_AT_, slotIndex, combined)
+				result[RAW_LONG_AT_, slotIndex] = combined
 				slotIndex++
 			}
 			// Do the last 0-15 writes the slow way.

@@ -61,6 +61,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.fiberName
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
+import avail.descriptor.fiber.FiberDescriptor.FiberKind
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
@@ -96,6 +97,7 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.utility.safeWrite
+import avail.utility.structures.EnumMap.Companion.enumMap
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
@@ -488,30 +490,34 @@ class AvailDebugger internal constructor (
 		}
 	}
 
-	private val captureAction = object : AbstractDebuggerAction(
-		this,
-		"Capture")
-	{
-		override fun updateIsEnabled(busy: Boolean)
+	private val captureActions: Map<FiberKind, Action> = enumMap { fiberKind ->
+		object : AbstractDebuggerAction(this, fiberKind.veryShortName)
 		{
-			// Do nothing
-		}
-
-		override fun actionPerformed(e: ActionEvent)
-		{
-			val checkBox = e.source as JCheckBox
-			val install = checkBox.isSelected
-			val installed = debuggerModel.installFiberCapture(install)
-			if (!installed)
+			override fun updateIsEnabled(busy: Boolean)
 			{
-				JOptionPane.showMessageDialog(
-					this@AvailDebugger,
-					"Could not " + (if (install) "" else "un") +
-						"install capture mode for this debugger",
-					"Warning",
-					JOptionPane.WARNING_MESSAGE)
+				isEnabled = debuggerModel.isCapturingNewFibers(fiberKind)
+					|| runtime.newFiberHandlers[fiberKind]!!.get() === null
 			}
-			checkBox.isSelected = debuggerModel.isCapturingNewFibers
+
+			override fun actionPerformed(e: ActionEvent)
+			{
+				val checkBox = e.source as JCheckBox
+				val install = checkBox.isSelected
+				val installed =
+					debuggerModel.installFiberCapture(fiberKind, install)
+				if (!installed)
+				{
+					val un = if (install) "" else "un"
+					JOptionPane.showMessageDialog(
+						this@AvailDebugger,
+						"Could not ${un}install capture mode for $fiberKind " +
+							"fibers for this debugger",
+						"Warning",
+						JOptionPane.WARNING_MESSAGE)
+				}
+				checkBox.isSelected =
+					debuggerModel.isCapturingNewFibers(fiberKind)
+			}
 		}
 	}
 
@@ -560,18 +566,16 @@ class AvailDebugger internal constructor (
 	private val stepToLineButton = JButton(stepToLineAction)
 	private val resumeButton = JButton(resumeAction)
 	private val restartButton = JButton(restartAction)
-	private val captureButton = JCheckBox(captureAction).also {
-		debuggerModel.isCapturingNewFibers
+	private val captureButtons = captureActions.map { (kind, action) ->
+		JCheckBox(action).apply { toolTipText = kind.name }
 	}
 
 	/** A view of the L1 disassembly for the selected frame. */
-	private val disassemblyPane =
-		CodePane(workbench, false)
+	private val disassemblyPane = CodePane(workbench, false)
 
 
 	/** A view of the source code for the selected frame. */
-	private val sourcePane =
-		CodePane(workbench, false)
+	private val sourcePane = CodePane(workbench, false)
 
 	/**
 	 * Change the font to the provided font name and size.
@@ -1029,9 +1033,11 @@ class AvailDebugger internal constructor (
 			override fun windowClosing(e: WindowEvent) {
 				workbench.closeDebugger(this@AvailDebugger)
 				releaseAllFibers()
-				if (debuggerModel.isCapturingNewFibers)
-				{
-					debuggerModel.installFiberCapture(false)
+				FiberKind.all.forEach { kind ->
+					if (debuggerModel.isCapturingNewFibers(kind))
+					{
+						debuggerModel.installFiberCapture(kind, false)
+					}
 				}
 			}
 		})
@@ -1055,14 +1061,16 @@ class AvailDebugger internal constructor (
 						.addComponent(stepToLineButton)
 						.addComponent(resumeButton)
 						.addComponent(restartButton)
-						.addComponent(captureButton))
+						.addGroup(
+							createSequentialGroup().apply {
+								captureButtons.forEach { addComponent(it) }
+							}))
 					.addGroup(createSequentialGroup()
 						.addComponent(disassemblyPane.scroll(), 100, 100, max)
 						.addComponent(
 							sourcePane.scrollTextWithLineNumbers(
 								workbench,
-								workbench.globalSettings
-									.editorGuideLines),
+								workbench.globalSettings.editorGuideLines),
 							100,
 							100,
 							max))
@@ -1082,7 +1090,12 @@ class AvailDebugger internal constructor (
 						.addComponent(stepToLineButton, pref, pref, pref)
 						.addComponent(resumeButton, pref, pref, pref)
 						.addComponent(restartButton, pref, pref, pref)
-						.addComponent(captureButton, pref, pref, pref))
+						.addGroup(
+							createParallelGroup().apply {
+								captureButtons.forEach {
+									addComponent(it, pref, pref, pref)
+								}
+							}))
 					.addGroup(createParallelGroup()
 						.addComponent(disassemblyPane.scroll(), 150, 150, max)
 						.addComponent(
@@ -1152,8 +1165,8 @@ class AvailDebugger internal constructor (
 	 * point (say, to compute a print representation or evaluate an expression)
 	 * will *not* be captured by this debugger.
 	 *
-	 * Note that this operation will block the current thread (which should be
-	 * a UI-spawned thread) while holding the runtime at a safe point, to ensure
+	 * Note that this operation will block the current thread (which should be a
+	 * UI-spawned thread) while holding the runtime at a safe point, to ensure
 	 * no other fibers are running, and to ensure other debuggers don't conflict
 	 * with this one.
 	 *
@@ -1167,7 +1180,9 @@ class AvailDebugger internal constructor (
 	{
 		val semaphore = Semaphore(0)
 		debuggerModel.gatherFibersThen(fibersProvider) {
-			captureButton.isSelected = debuggerModel.isCapturingNewFibers
+			(FiberKind.all zip captureButtons).forEach { (kind, button) ->
+				button.isSelected = debuggerModel.isCapturingNewFibers(kind)
+			}
 			semaphore.release()
 		}
 		semaphore.acquire()

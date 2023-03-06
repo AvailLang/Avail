@@ -103,7 +103,7 @@ class MethodDefinitionDescriptor private constructor(
 		self.bodyBlock().kind()
 
 	override fun o_BodyBlock(self: AvailObject): A_Function =
-		self.slot(BODY_BLOCK)
+		self[BODY_BLOCK]
 
 	override fun o_Hash(self: AvailObject) =
 		combine2(self.bodyBlock().hash(), 0x70B2B1A9)
@@ -121,24 +121,24 @@ class MethodDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("method definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
+				self[DEFINITION_METHOD].methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
-			at("body block") { self.slot(BODY_BLOCK).writeTo(writer) }
+			at("body block") { self[BODY_BLOCK].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
+				self[DEFINITION_METHOD].methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
-			at("body block") { self.slot(BODY_BLOCK).writeSummaryTo(writer) }
+			at("body block") { self[BODY_BLOCK].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable

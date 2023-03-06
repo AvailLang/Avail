@@ -57,7 +57,6 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NAME
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
@@ -70,7 +69,7 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
+object P_CreateBlockExpression : Primitive(5, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

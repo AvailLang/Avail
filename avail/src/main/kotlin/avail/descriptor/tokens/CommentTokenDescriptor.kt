@@ -181,9 +181,9 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 			at("token type") {
 				write(self.tokenType().name.lowercase().replace('_', ' '))
 			}
-			at("start") { write(self.slot(START)) }
-			at("line number") { write(self.slot(LINE_NUMBER)) }
-			at("lexeme") { self.slot(STRING).writeTo(writer) }
+			at("start") { write(self[START]) }
+			at("line number") { write(self[LINE_NUMBER]) }
+			at("lexeme") { self[STRING].writeTo(writer) }
 		}
 
 	override fun mutable() = mutable

@@ -784,7 +784,7 @@ class L2Simple_PushLastOuter(
 }
 
 /**
- * Construct a label for the restarting or exiting the current continuation. The
+ * Construct a label for restarting or exiting the current continuation. The
  * current [pc] isn't strictly needed here, since invalidation can't happen
  * during the reification and label creation, but it's provided to conform to
  * the parent class's protocol.

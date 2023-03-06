@@ -200,23 +200,23 @@ class LiteralTokenDescriptor private constructor(
 			String.format(
 				"%s ",
 				self.tokenType().name.lowercase().replace('_', ' ')))
-		self.slot(LITERAL).printOnAvoidingIndent(
+		self[LITERAL].printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 		builder.append(
 			String.format(
 				" (%s) @ %d:%d",
-				self.slot(STRING),
-				self.slot(START),
-				self.slot(LINE_NUMBER)))
+				self[STRING],
+				self[START],
+				self[LINE_NUMBER]))
 	}
 
 	override fun o_TokenType(self: AvailObject): TokenType =
 		TokenType.LITERAL
 
 	override fun o_Literal(self: AvailObject): AvailObject =
-		self.slot(LITERAL)
+		self[LITERAL]
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		LiteralTokenTypeDescriptor.literalTokenType(
@@ -227,13 +227,13 @@ class LiteralTokenDescriptor private constructor(
 		(aType.isSupertypeOfPrimitiveTypeEnum(
 			TOKEN)
 			|| aType.isLiteralTokenType
-			&& self.slot(LITERAL)
+			&& self[LITERAL]
 			.isInstanceOf(aType.literalType))
 
 	override fun o_IsLiteralToken(self: AvailObject): Boolean = true
 
 	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase =
-		self.slot(GENERATING_PHRASE)
+		self[GENERATING_PHRASE]
 
 	override fun o_SerializerOperation(self: AvailObject)
 		: SerializerOperation = SerializerOperation.LITERAL_TOKEN
@@ -245,19 +245,19 @@ class LiteralTokenDescriptor private constructor(
 				write(
 					self.tokenType().name.lowercase().replace('_', ' '))
 			}
-			at("start") { write(self.slot(START)) }
-			at("line number") { write(self.slot(LINE_NUMBER)) }
-			at("lexeme") { self.slot(STRING).writeTo(writer) }
-			at("literal") { self.slot(LITERAL).writeTo(writer) }
+			at("start") { write(self[START]) }
+			at("line number") { write(self[LINE_NUMBER]) }
+			at("lexeme") { self[STRING].writeTo(writer) }
+			at("literal") { self[LITERAL].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("token") }
-			at("start") { write(self.slot(START)) }
-			at("line number") { write(self.slot(LINE_NUMBER)) }
-			at("lexeme") { self.slot(STRING).writeTo(writer) }
-			at("literal") { self.slot(LITERAL).writeSummaryTo(writer) }
+			at("start") { write(self[START]) }
+			at("line number") { write(self[LINE_NUMBER]) }
+			at("lexeme") { self[STRING].writeTo(writer) }
+			at("literal") { self[LITERAL].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable

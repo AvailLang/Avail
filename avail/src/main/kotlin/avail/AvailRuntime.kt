@@ -70,6 +70,8 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RETIRED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.UNPAUSING
+import avail.descriptor.fiber.FiberDescriptor.FiberKind
+import avail.descriptor.fiber.FiberDescriptor.FiberKind.Companion.fiberKind
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
@@ -264,8 +266,8 @@ import avail.utility.javaNotifyAll
 import avail.utility.javaWait
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
-import avail.utility.structures.EnumMap.Companion.enumMap
 import avail.utility.stackToString
+import avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.Timer
@@ -916,7 +918,7 @@ class AvailRuntime constructor(
 	fun registerFiber(fiber: A_Fiber)
 	{
 		allFibers.add(fiber)
-		newFiberHandler.get()?.invoke(fiber)
+		newFiberHandlers[fiber.fiberKind]!!.get()?.invoke(fiber)
 	}
 
 	/**
@@ -1419,6 +1421,7 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.CREATE_HERITABLE_ATOM.atom)
 			put(SpecialMethodAtom.CREATE_EXPLICIT_SUBCLASS_ATOM.atom)
 			put(SpecialMethodAtom.SET_STYLER.atom)
+			put(SpecialMethodAtom.TERMINATE_CURRENT_FIBER.atom)
 			put(Exceptions.exceptionAtom)
 			put(Exceptions.stackDumpAtom)
 			put(pojoSelfTypeAtom())
@@ -1591,7 +1594,7 @@ class AvailRuntime constructor(
 	 *   A [semantic restriction][SemanticRestrictionDescriptor] that validates
 	 *   the static types of arguments at call sites.
 	 */
-	fun removeTypeRestriction(restriction: A_SemanticRestriction)
+	fun removeSemanticRestriction(restriction: A_SemanticRestriction)
 	{
 		runtimeLock.safeWrite {
 			val method = restriction.definitionMethod()
@@ -2112,7 +2115,6 @@ class AvailRuntime constructor(
 		resumingPrimitive: Primitive,
 		result: A_BasicObject)
 	{
-		assert(aFiber.continuation.notNil)
 		assert(aFiber.executionState === SUSPENDED)
 		assert(
 			aFiber.suspendingFunction.code().codePrimitive()
@@ -2126,19 +2128,19 @@ class AvailRuntime constructor(
 			setLatestResult(result)
 			returningFunction = aFiber.suspendingFunction
 			aFiber.suspendingFunction = nil
-			exitNow = false
+			returnNow = false
 			if (continuation.isNil)
 			{
 				// Return from outer function, which was the
 				// (successful) suspendable primitive itself.
-				returnNow = true
+				exitNow = true
 				function = null
 				chunk = null
 				offset = Int.MAX_VALUE
 			}
 			else
 			{
-				returnNow = false
+				exitNow = false
 				function = continuation.function()
 				chunk = continuation.levelTwoChunk()
 				offset = continuation.levelTwoOffset()
@@ -2304,15 +2306,16 @@ class AvailRuntime constructor(
 	}
 
 	/**
-	 * Attempt to write the [newValue] into the [newFiberHandler], but only if
-	 * it currently contains [oldValue].  Answer whether it wos successful.  If
-	 * it was not successful due to the [oldValue] not being the current value,
-	 * make no change and answer false.
+	 * Attempt to write the [newValue] into the specified [newFiberHandlers],
+	 * but only if it currently contains [oldValue].  Answer whether it wos
+	 * successful.  If it was not successful due to the [oldValue] not being the
+	 * current value, make no change and answer false.
 	 */
 	fun compareAndSetFiberCaptureFunction(
+		fiberKind: FiberKind,
 		oldValue: ((A_Fiber) -> Unit)?,
 		newValue: ((A_Fiber) -> Unit)?
-	): Boolean = newFiberHandler.compareAndSet(oldValue, newValue)
+	): Boolean = newFiberHandlers[fiberKind]!!.compareAndSet(oldValue, newValue)
 
 	/**
 	 * A call-out to allow tools like debuggers to intercept breakpoints. Only
@@ -2323,9 +2326,11 @@ class AvailRuntime constructor(
 	var breakpointHandler: (A_Fiber)->Unit = {  }
 
 	/**
-	 * A call-out invoked when a new fiber is created and scheduled for the
+	 * A map of [FiberKind] to [AtomicReference] containing an optional function
+	 * to invoke when a fiber (of that kind) is created and scheduled for the
 	 * first time.  This mechanism is used to capture new fibers in a debugger's
 	 * list of fibers.
 	 */
-	val newFiberHandler = AtomicReference<((A_Fiber)->Unit)?>(null)
+	val newFiberHandlers = enumMap { _: FiberKind ->
+		AtomicReference<((A_Fiber)->Unit)?>(null) }
 }

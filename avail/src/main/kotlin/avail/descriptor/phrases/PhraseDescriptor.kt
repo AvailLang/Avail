@@ -37,6 +37,7 @@ import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
@@ -257,7 +258,7 @@ abstract class PhraseDescriptor protected constructor(
 		accumulatedStatements.add(self)
 	}
 
-	override fun o_Hash(self: AvailObject) = self.slot(HASH)
+	override fun o_Hash(self: AvailObject) = self[HASH]
 
 	/**
 	 * Terminate the recursion through the recursive list structure.  If this
@@ -478,7 +479,7 @@ abstract class PhraseDescriptor protected constructor(
 			val list1 = phrases1.toList()
 			val list2 = phrases2.toList()
 			if (list1.size != list2.size) return false
-			return list1.zip(list2).all { (phrase1, phrase2) ->
+			return (list1 zip list2).all { (phrase1, phrase2) ->
 				phrase1.equalsPhrase(phrase2)
 			}
 		}

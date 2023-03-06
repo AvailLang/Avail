@@ -316,6 +316,21 @@ interface A_Phrase : A_BasicObject {
 			get() = dispatch { o_ExpressionsTuple(it) }
 
 		/**
+		 * Test whether the receiver and [aPhrase] are effectively equivalent,
+		 * for the purpose of describing ambiguous parses.  Note that this is
+		 * not used to determine whether the two phrases are [equal][equals].
+		 *
+		 * @receiver
+		 *   A phrase to compare.
+		 * @param aPhrase
+		 *   The other phrase to compare.
+		 * @return
+		 *   True iff the phrases are equivalent.
+		 */
+		fun A_Phrase.equalsPhrase(aPhrase: A_Phrase): Boolean =
+			dispatch { o_EqualsPhrase(it, aPhrase) }
+
+		/**
 		 * Return the phrase's expression type, which is the type of object that
 		 * will be produced by this phrase.
 		 *
@@ -486,6 +501,20 @@ interface A_Phrase : A_BasicObject {
 		 */
 		val A_Phrase.outputPhrase: A_Phrase
 			get() = dispatch { o_OutputPhrase(it) }
+
+		/**
+		 * If this is a list phrase, answer a [List] of its expressions.  If
+		 * this is a permuted list phrase, answer its expressions after
+		 * permutation, in the order that the call site expects to receive them
+		 * (not the order that they appear in the code).
+		 *
+		 * DO NOT perform any permutations within sublists.
+		 *
+		 * @return
+		 *   The [List] of top-level [A_Phrase]s in permuted order.
+		 */
+		val A_Phrase.permutedPhrases: List<A_Phrase>
+			get() = dispatch { o_PermutedPhrases(it) }
 
 		/**
 		 * Answer this phrase's [PhraseKind].

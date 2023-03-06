@@ -233,7 +233,7 @@ class ObjectTypeDescriptor internal constructor(
 						self,
 						DUMMY_DEBUGGER_SLOT,
 						-1,
-						self.slot(FIELD_TYPES_, index),
+						self[FIELD_TYPES_, index],
 						slotName = "FIELD TYPE ${fieldKey.atomName}"))
 			}
 		}
@@ -262,8 +262,8 @@ class ObjectTypeDescriptor internal constructor(
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
-		var myHash = self.slot(HASH_OR_ZERO)
-		var otherHash = anObjectType.slot(HASH_OR_ZERO)
+		var myHash = self[HASH_OR_ZERO]
+		var otherHash = anObjectType[HASH_OR_ZERO]
 		when
 		{
 			myHash != 0 && otherHash == 0 -> otherHash = anObjectType.hash()
@@ -274,8 +274,8 @@ class ObjectTypeDescriptor internal constructor(
 		// corresponding positions because we share the same variant.
 		for (i in 1..self.variableObjectSlotsCount())
 		{
-			if (!self.slot(FIELD_TYPES_, i).equals(
-					anObjectType.slot(FIELD_TYPES_, i)))
+			if (!self[FIELD_TYPES_, i].equals(
+					anObjectType[FIELD_TYPES_, i]))
 				return false
 		}
 		when
@@ -291,11 +291,11 @@ class ObjectTypeDescriptor internal constructor(
 		// Fails with NullPointerException if key is not found.
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			0 -> instanceType(field)
-			else -> self.slot(FIELD_TYPES_, slotIndex!!)
+			else -> self[FIELD_TYPES_, slotIndex!!]
 		}
 
 	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
-		self.slot(FIELD_TYPES_, index)
+		self[FIELD_TYPES_, index]
 
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject,
@@ -304,7 +304,7 @@ class ObjectTypeDescriptor internal constructor(
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			null -> null
 			0 -> instanceType(field)
-			else -> self.slot(FIELD_TYPES_, slotIndex)
+			else -> self[FIELD_TYPES_, slotIndex]
 		}
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map
@@ -315,7 +315,7 @@ class ObjectTypeDescriptor internal constructor(
 			map.mapAtPuttingCanDestroy(
 				field,
 				if (slotIndex == 0) instanceType(field)
-				else self.slot(FIELD_TYPES_, slotIndex),
+				else self[FIELD_TYPES_, slotIndex],
 				true)
 		}
 	}
@@ -326,18 +326,18 @@ class ObjectTypeDescriptor internal constructor(
 		return generateObjectTupleFrom(variant.fieldToSlotIndex.size) {
 			val (field, slotIndex) = fieldIterator.next()
 			if (slotIndex == 0) tuple(field, instanceType(field))
-			else tuple(field, self.slot(FIELD_TYPES_, slotIndex))
+			else tuple(field, self[FIELD_TYPES_, slotIndex])
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
 	override fun o_Hash(self: AvailObject) =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			// Don't lock if we're shared.  Multiple simultaneous
 			// computations of *the same* value are benign races.
 			(1..self.variableObjectSlotsCount())
 				.fold(combine2(variant.variantId, -0x1ca9e0ea)) { h, i ->
-					combine3(h, self.slot(FIELD_TYPES_, i).hash(), 0x60727dac)
-				}.also { self.setSlot(HASH_OR_ZERO, it) }
+					combine3(h, self[FIELD_TYPES_, i].hash(), 0x60727dac)
+				}.also { self[HASH_OR_ZERO] = it }
 		}
 
 	override fun o_HasObjectInstance(
@@ -350,7 +350,7 @@ class ObjectTypeDescriptor internal constructor(
 			// in lock-step doing instance checks.
 			return (1..variant.realSlotCount).all {
 				ObjectDescriptor.getField(potentialInstance, it)
-					.isInstanceOf(self.slot(FIELD_TYPES_, it))
+					.isInstanceOf(self[FIELD_TYPES_, it])
 			}
 		}
 		// The variants disagree.  For each field type in this object type,
@@ -367,7 +367,7 @@ class ObjectTypeDescriptor internal constructor(
 					assert(instanceSlotIndex != 0)
 					val fieldValue: A_BasicObject = ObjectDescriptor.getField(
 						potentialInstance, instanceSlotIndex)
-					fieldValue.isInstanceOf(self.slot(FIELD_TYPES_, slotIndex))
+					fieldValue.isInstanceOf(self[FIELD_TYPES_, slotIndex])
 				}
 			}
 		}
@@ -386,8 +386,8 @@ class ObjectTypeDescriptor internal constructor(
 			// The potential subtype and I share a variant, so blast through the
 			// fields in lock-step doing subtype checks.
 			return (1..variant.realSlotCount).all {
-				val subtypeFieldType = anObjectType.slot(FIELD_TYPES_, it)
-				val myFieldType = self.slot(FIELD_TYPES_, it)
+				val subtypeFieldType = anObjectType[FIELD_TYPES_, it]
+				val myFieldType = self[FIELD_TYPES_, it]
 				subtypeFieldType.isSubtypeOf(myFieldType)
 			}
 		}
@@ -412,9 +412,9 @@ class ObjectTypeDescriptor internal constructor(
 						?: return false
 					assert(subtypeSlotIndex != 0)
 					val subtypeFieldType =
-						anObjectType.slot(FIELD_TYPES_, subtypeSlotIndex)
+						anObjectType[FIELD_TYPES_, subtypeSlotIndex]
 					val supertypeFieldType =
-						self.slot(FIELD_TYPES_, supertypeSlotIndex)
+						self[FIELD_TYPES_, supertypeSlotIndex]
 					subtypeFieldType.isSubtypeOf(supertypeFieldType)
 				}
 			}
@@ -423,7 +423,7 @@ class ObjectTypeDescriptor internal constructor(
 
 	override fun o_IsVacuousType(self: AvailObject) =
 		(1..self.variableObjectSlotsCount()).any {
-			self.slot(FIELD_TYPES_, it).isVacuousType
+			self[FIELD_TYPES_, it].isVacuousType
 		}
 
 	override fun o_MakeSharedInternal(
@@ -503,8 +503,8 @@ class ObjectTypeDescriptor internal constructor(
 			) {
 				(1..variant.realSlotCount).forEach {
 					val fieldIntersection =
-						self.slot(FIELD_TYPES_, it).typeIntersection(
-							anObjectType.slot(FIELD_TYPES_, it))
+						self[FIELD_TYPES_, it].typeIntersection(
+							anObjectType[FIELD_TYPES_, it])
 					if (fieldIntersection.isBottom) {
 						// Abandon the partially built object type.
 						return bottom
@@ -532,17 +532,14 @@ class ObjectTypeDescriptor internal constructor(
 					val fieldType = when
 					{
 						mySlotIndex === null ->
-							anObjectType.slot(FIELD_TYPES_, otherSlotIndex!!)
+							anObjectType[FIELD_TYPES_, otherSlotIndex!!]
 						otherSlotIndex === null ->
-							self.slot(FIELD_TYPES_, mySlotIndex)
+							self[FIELD_TYPES_, mySlotIndex]
 						else ->
 						{
-							val intersection = self
-								.slot(FIELD_TYPES_, mySlotIndex)
+							val intersection = self[FIELD_TYPES_, mySlotIndex]
 								.typeIntersection(
-									anObjectType.slot(
-										FIELD_TYPES_,
-										otherSlotIndex))
+									anObjectType[FIELD_TYPES_, otherSlotIndex])
 							if (intersection.isBottom) return bottom
 							intersection
 						}
@@ -578,8 +575,8 @@ class ObjectTypeDescriptor internal constructor(
 				variant.realSlotCount
 			) {
 				(1..variant.realSlotCount).forEach {
-					val fieldUnion = self.slot(FIELD_TYPES_, it).typeUnion(
-						anObjectType.slot(FIELD_TYPES_, it))
+					val fieldUnion = self[FIELD_TYPES_, it].typeUnion(
+						anObjectType[FIELD_TYPES_, it])
 					setSlot(FIELD_TYPES_, it, fieldUnion)
 				}
 				setSlot(HASH_OR_ZERO, 0)
@@ -602,10 +599,8 @@ class ObjectTypeDescriptor internal constructor(
 					val mySlotIndex = mySlotMap[field]!!
 					@Suppress("MapGetWithNotNullAssertionOperator")
 					val otherSlotIndex = otherSlotMap[field]!!
-					val fieldType = self
-						.slot(FIELD_TYPES_, mySlotIndex)
-						.typeUnion(
-							anObjectType.slot(FIELD_TYPES_, otherSlotIndex))
+					val fieldType = self[FIELD_TYPES_, mySlotIndex]
+						.typeUnion(anObjectType[FIELD_TYPES_, otherSlotIndex])
 					setSlot(FIELD_TYPES_, resultSlotIndex, fieldType)
 				}
 			}
@@ -695,7 +690,7 @@ class ObjectTypeDescriptor internal constructor(
 		fun getFieldType(
 			self: AvailObject,
 			slotIndex: Int
-		): AvailObject = self.slot(FIELD_TYPES_, slotIndex)
+		): AvailObject = self[FIELD_TYPES_, slotIndex]
 
 		/**
 		 * Create an `object type` using the given [A_Map] from [A_Atom]s to

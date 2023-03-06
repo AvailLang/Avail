@@ -37,6 +37,7 @@ import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.token
@@ -173,7 +174,7 @@ class VariableUsePhraseDescriptor private constructor(
 		self: AvailObject,
 		action: (A_Phrase)->Unit)
 	{
-		action(self.slot(DECLARATION))
+		action(self[DECLARATION])
 	}
 
 	override fun o_ChildrenMap(
@@ -184,13 +185,13 @@ class VariableUsePhraseDescriptor private constructor(
 	}
 
 	override fun o_Declaration(self: AvailObject): A_Phrase =
-		self.slot(DECLARATION)
+		self[DECLARATION]
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val declaration: A_Phrase = self.slot(DECLARATION)
+		val declaration: A_Phrase = self[DECLARATION]
 		declaration.declarationKind().emitVariableValueForOn(
 			self.tokens, declaration, codeGenerator)
 	}
@@ -200,22 +201,22 @@ class VariableUsePhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(USE_TOKEN).equals(aPhrase.token)
-		&& self.slot(DECLARATION).equalsPhrase(aPhrase.declaration))
+		&& self[USE_TOKEN].equals(aPhrase.token)
+		&& self[DECLARATION].equalsPhrase(aPhrase.declaration))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(DECLARATION).declaredType
+		self[DECLARATION].declaredType
 
 	override fun o_IsLastUse(
 		self: AvailObject,
 		isLastUse: Boolean
 	) = self.synchronizeIf(isShared) {
-		self.setSlot(LAST_USE, if (isLastUse) 1 else 0)
+		self[LAST_USE] = if (isLastUse) 1 else 0
 	}
 
 	override fun o_IsLastUse(self: AvailObject): Boolean =
 		self.synchronizeIf(isShared) {
-			self.slot(LAST_USE) != 0
+			self[LAST_USE] != 0
 		}
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
@@ -229,25 +230,25 @@ class VariableUsePhraseDescriptor private constructor(
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
 
-	override fun o_Token(self: AvailObject): A_Token = self.slot(USE_TOKEN)
+	override fun o_Token(self: AvailObject): A_Token = self[USE_TOKEN]
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		tuple(self.slot(USE_TOKEN))
+		tuple(self[USE_TOKEN])
 
 	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple = tuple(zero)
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("variable use phrase") }
-			at("token") { self.slot(USE_TOKEN).writeTo(writer) }
-			at("declaration") { self.slot(DECLARATION).writeTo(writer) }
+			at("token") { self[USE_TOKEN].writeTo(writer) }
+			at("declaration") { self[DECLARATION].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("variable use phrase") }
-			at("token") { self.slot(USE_TOKEN).writeSummaryTo(writer) }
-			at("declaration") { self.slot(DECLARATION).writeSummaryTo(writer) }
+			at("token") { self[USE_TOKEN].writeSummaryTo(writer) }
+			at("declaration") { self[DECLARATION].writeSummaryTo(writer) }
 		}
 
 	override fun printObjectOnAvoidingIndent(
@@ -256,7 +257,7 @@ class VariableUsePhraseDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		builder.append(self.slot(USE_TOKEN).string().asNativeString())
+		builder.append(self[USE_TOKEN].string().asNativeString())
 	}
 
 	override fun mutable() = mutable

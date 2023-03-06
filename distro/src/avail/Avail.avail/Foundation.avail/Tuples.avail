@@ -514,7 +514,7 @@ Public method "tuple body function(_,_)" is
 		name ::= elementPhrase's token's lexeme;
 		declaration ::= scope map[name];
 		Undeclare name;
-		bootstrap restricted send anAtom with
+		restricted send anAtom with
 			«<
 				aTuple,
 				«[
@@ -578,7 +578,7 @@ Public method "«indexed»?two-input tuple body function(_,_)" is
 		Undeclare firstInputName;
 		Undeclare secondInputName;
 
-		bootstrap restricted send anAtom with
+		restricted send anAtom with
 			«<
 				aTuple,
 				«[
@@ -990,40 +990,41 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 [
 	elementPhrase : literal phrase ⇒ token,
 	aTuple : expression phrase ⇒ tuple,
-	action : block phrase ⇒ []→⊤
+	predicate : block phrase ⇒ []→boolean
 |
-	returnType ::=
-			return type(aTuple, action, tuple, $"filter_by_");
+	tupleType ::= aTuple's semantic type;
+	elementType ::= ∪ tupleType[1..∞];
+	blockType ::= [elementType] → ¬(predicate's semantic type's return type);
 
-	statements ::= action's statements;
+	returnType ::=
+			return type(aTuple, predicate, tuple, $"filter_by_");
+
+	statements ::= predicate's statements;
 	name ::= elementPhrase's token's lexeme;
 	size ::= |statements|;
 	newStatements ::= if size = 0 then [<>] else
 	[
-		end : whole number := cast size-1 into [w : whole number | w];
-		i : natural number := cast size into [n : natural number | n];
-		c : expression phrase⇒any := cast statements[i] into
-			[e : expression phrase⇒any | e];
-		statements[..end] ++
-			<bootstrap restricted send $"¬_" with «<c>» : boolean>
+		i ::= size ?→ natural number;
+		c ::= statements[i] ?→ expression phrase⇒boolean;
+		statements[..i - 1] ++ <⟦¬ ⦊c⦉⟧>
 	];
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
 
-	declaration ::= scope map[name];
+	declaration ::= scope map[name] ?→ argument phrase;
 	Undeclare name;
 
-	bootstrap restricted send $"filter_by_" with
-		«<
-			aTuple,
-			«[
-				<cast declaration into [d : argument phrase | d]>
+	negatedBlock ::=
+		«
+			[
+				<declaration>
 			|
 				newStatements
-			] : blockReturnType»
-		>» : returnType
-] : send phrase ⇒ ⊤
+			] : blockReturnType
+		» ?→ block phrase ⇒ [⊥]→boolean;
+	⟦filter ⦊aTuple⦉ by ⦊negatedBlock⦉⟧
+] : send phrase ⇒ tuple
 styled by loop styler;
 
 /**
@@ -1080,7 +1081,7 @@ Macro "reject each…,…from_§where_" is
 		i : natural number := cast size into [n : natural number | n];
 		c : expression phrase⇒any := cast statements[i] into
 			[e : expression phrase⇒any | e];
-		<bootstrap restricted send $"¬_" with «<c>» : boolean>
+		<restricted send $"¬_" with «<c>» : boolean>
 	] else
 	[
 		end : natural number := cast size-1 into [n : natural number | n];
@@ -1088,7 +1089,7 @@ Macro "reject each…,…from_§where_" is
 		c : expression phrase⇒any := cast statements[i] into
 			[e : expression phrase⇒any | e];
 		statements[..end] ++
-			<bootstrap restricted send $"¬_" with «<c>» : boolean>
+			<restricted send $"¬_" with «<c>» : boolean>
 	];
 
 	elementDeclaration ::= castToPhrase(elementName);
@@ -1096,7 +1097,7 @@ Macro "reject each…,…from_§where_" is
 	Undeclare elementName;
 	Undeclare indexName;
 
-	bootstrap restricted send $"filter_by_" with
+	restricted send $"filter_by_" with
 		«<
 			aTuple,
 			«[

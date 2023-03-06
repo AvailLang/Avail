@@ -43,8 +43,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -151,10 +149,10 @@ class MarkerPhraseDescriptor private constructor(
 		&& self.markerValue.equals(aPhrase.markerValue))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(EXPRESSION_TYPE)
+		self[EXPRESSION_TYPE]
 
 	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
-		self.slot(MARKER_VALUE)
+		self[MARKER_VALUE]
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.MARKER_PHRASE

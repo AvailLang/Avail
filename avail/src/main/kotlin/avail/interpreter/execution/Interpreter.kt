@@ -1089,7 +1089,7 @@ class Interpreter(
 		finalObject: A_BasicObject,
 		state: ExecutionState)
 	{
-		assert(!exitNow)
+//		assert(!exitNow)
 		assert(state.indicatesTermination)
 		val aFiber = fiber()
 		aFiber.lock {

@@ -184,7 +184,7 @@ private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(self.slot(NAME).asNativeString())
+		builder.append(self[NAME].asNativeString())
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -195,10 +195,10 @@ private constructor(
 		self: AvailObject,
 		aPrimitiveType: A_Type): Boolean = self.sameAddressAs(aPrimitiveType)
 
-	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
+	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
 	override fun o_Parent(self: AvailObject): A_BasicObject =
-		self.slot(PARENT)
+		self[PARENT]
 
 	// Check if object (a type) is a subtype of aType (should also be a
 	// type).
@@ -391,7 +391,7 @@ private constructor(
 	{
 		writer.startObject()
 		writer.write("kind")
-		writer.write("${self.slot(NAME).asNativeString().lowercase()} type")
+		writer.write("${self[NAME].asNativeString().lowercase()} type")
 		writer.endObject()
 	}
 
@@ -408,7 +408,7 @@ private constructor(
 		parentType: A_Type)
 	{
 		assert(mutability === Mutability.SHARED)
-		self.setSlot(PARENT, parentType)
+		self[PARENT] = parentType
 		self.setDescriptor(this)
 	}
 

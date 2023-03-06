@@ -107,7 +107,7 @@ private constructor(
 			self.tokenType() === aTokenType.tokenType
 
 	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.slot(TOKEN_TYPE_CODE).toInt(), -0x32659c49)
+		combine2(self[TOKEN_TYPE_CODE].toInt(), -0x32659c49)
 
 	override fun o_IsTokenType(self: AvailObject): Boolean = true
 
@@ -121,7 +121,7 @@ private constructor(
 			self.tokenType() === aTokenType.tokenType
 
 	override fun o_TokenType(self: AvailObject): TokenType =
-		lookupTokenType(self.slot(TOKEN_TYPE_CODE).toInt())
+		lookupTokenType(self[TOKEN_TYPE_CODE].toInt())
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.TOKEN_TYPE

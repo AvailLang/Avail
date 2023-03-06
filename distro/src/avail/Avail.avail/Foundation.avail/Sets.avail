@@ -329,7 +329,7 @@ Public method "set body function(_,_)" is
 			else [⊤];
 		declaration ::= scope map[name];
 		Undeclare name;
-		bootstrap restricted send anAtom with
+		restricted send anAtom with
 			«<
 				aSet,
 				«[
@@ -558,13 +558,13 @@ a set iteration prefix function,
 [
 	elementPhrase : literal phrase ⇒ token,
 	aSet : expression phrase ⇒ set,
-	predicate : block phrase ⇒ []→⊤
+	predicate : block phrase ⇒ []→boolean
 |
 	anAtom ::= $"filter_by_";
 	name ::= elementPhrase's token's lexeme;
 	aSetType ::= aSet's semantic type;
 	elementType ::= aSetType's element type;
-	blockType ::= [elementType]→predicate's semantic type's return type;
+	blockType ::= [elementType] → ¬(predicate's semantic type's return type);
 
 	returnType ::= strengthen set for call of anAtom
 			using <aSetType, blockType>;
@@ -573,30 +573,27 @@ a set iteration prefix function,
 	size ::= |statements|;
 	newStatements ::= if size = 0 then [<>] else
 	[
-		end : whole number := cast size-1 into [w : whole number | w];
-		i : natural number := cast size into [n : natural number | n];
-		c : expression phrase⇒any := cast statements[i] into
-			[e : expression phrase⇒any | e];
-		statements[..end] ++
-			<bootstrap restricted send $"¬_" with «<c>» : boolean>
+		i ::= size ?→ natural number;
+		c ::= statements[i] ?→ expression phrase⇒boolean;
+		statements[..i - 1] ++ <⟦¬ ⦊c⦉⟧>
 	];
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
 
-	declaration ::= scope map[name];
+	declaration ::= scope map[name] ?→ argument phrase;
 	Undeclare name;
 
-	bootstrap restricted send anAtom with
-		«<
-			aSet,
-			«[
-				<cast declaration into [d : argument phrase | d]>
+	negatedBlock ::=
+		«
+			[
+				<declaration>
 			|
 				newStatements
-			] : blockReturnType»
-		>» : returnType
-] : send phrase ⇒ ⊤
+			] : blockReturnType
+		» ?→ block phrase ⇒ [⊥]→boolean;
+	⟦filter ⦊aSet⦉ by ⦊negatedBlock⦉⟧
+] : send phrase ⇒ set
 styled by loop styler;
 
 /**

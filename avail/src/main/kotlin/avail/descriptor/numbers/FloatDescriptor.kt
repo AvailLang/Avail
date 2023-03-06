@@ -221,7 +221,7 @@ class FloatDescriptor private constructor(
 		floatToRawIntBits(getFloat(self)) == floatToRawIntBits(aFloat)
 
 	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.slot(RAW_INT), 0x16AE2BFD)
+		combine2(self[RAW_INT], 0x16AE2BFD)
 
 	override fun o_IsFloat(self: AvailObject) = true
 
@@ -392,7 +392,7 @@ class FloatDescriptor private constructor(
 		 *   The corresponding Java float.
 		 */
 		private fun getFloat(self: AvailObject): Float =
-			intBitsToFloat(self.slot(RAW_INT))
+			intBitsToFloat(self[RAW_INT])
 
 		/**
 		 * Extract a Java [Double] from the argument, an Avail
@@ -447,7 +447,7 @@ class FloatDescriptor private constructor(
 				{
 					mutable.create()
 				}
-			result.setSlot(RAW_INT, floatToRawIntBits(aFloat))
+			result[RAW_INT] = floatToRawIntBits(aFloat)
 			return result
 		}
 
@@ -480,7 +480,7 @@ class FloatDescriptor private constructor(
 					recyclable2 as AvailObject
 				else -> mutable.create()
 			}
-			result.setSlot(RAW_INT, floatToRawIntBits(aFloat))
+			result[RAW_INT] = floatToRawIntBits(aFloat)
 			return result
 		}
 

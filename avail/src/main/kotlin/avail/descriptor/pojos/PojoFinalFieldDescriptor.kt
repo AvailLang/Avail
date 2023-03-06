@@ -111,17 +111,17 @@ class PojoFinalFieldDescriptor(
 		E_CANNOT_MODIFY_FINAL_JAVA_FIELD)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
-		another.equalsPojoField(self.slot(FIELD), self.slot(RECEIVER))
+		another.equalsPojoField(self[FIELD], self[RECEIVER])
 
 	override fun o_EqualsPojoField(
 		self: AvailObject,
 		field: AvailObject,
 		receiver: AvailObject
-	): Boolean = (self.slot(FIELD).equals(field)
-		&& self.slot(RECEIVER).equals(receiver))
+	): Boolean = (self[FIELD].equals(field)
+		&& self[RECEIVER].equals(receiver))
 
 	override fun o_GetValue(self: AvailObject): AvailObject =
-		self.slot(CACHED_VALUE)
+		self[CACHED_VALUE]
 
 	/**
 	 * The clear will fail, but for correctness we have to attempt the read
@@ -132,18 +132,18 @@ class PojoFinalFieldDescriptor(
 		self.getValue().also { self.clearValue() }
 
 	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(FIELD).hash(),
-		self.slot(RECEIVER).hash(),
+		self[FIELD].hash(),
+		self[RECEIVER].hash(),
 		0x2199C0C3)
 
 	// A pojo final field has a value by definition.
 	override fun o_HasValue(self: AvailObject): Boolean = true
 
-	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
+	override fun o_Kind(self: AvailObject): A_Type = self[KIND]
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
 	{
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
 		if (field.modifiers and Modifier.STATIC != 0)
 		{
 			return SerializerOperation.STATIC_POJO_FIELD
@@ -162,7 +162,7 @@ class PojoFinalFieldDescriptor(
 	}
 
 	override fun o_Value(self: AvailObject): AvailObject =
-		self.slot(CACHED_VALUE)
+		self[CACHED_VALUE]
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -183,17 +183,17 @@ class PojoFinalFieldDescriptor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
 		if (!Modifier.isStatic(field.modifiers))
 		{
 			builder.append('(')
-			self.slot(RECEIVER).printOnAvoidingIndent(
+			self[RECEIVER].printOnAvoidingIndent(
 				builder, recursionMap, indent + 1)
 			builder.append(")'s ")
 		}
 		builder.append(field)
 		builder.append(" = ")
-		self.slot(CACHED_VALUE).printOnAvoidingIndent(
+		self[CACHED_VALUE].printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 	}
 

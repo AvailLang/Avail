@@ -45,6 +45,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK
@@ -97,6 +98,7 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.io.TextInterface
+import avail.utility.isNullOr
 import org.availlang.json.JSONWriter
 import java.util.TimerTask
 import java.util.WeakHashMap
@@ -401,8 +403,20 @@ class FiberDescriptor private constructor(
 		/** See [GeneralFlag.CAN_REJECT_PARSE]. */
 		CAN_REJECT_PARSE(7),
 
-		/** See [GeneralFlag.CAN_REJECT_PARSE]. */
-		IS_EVALUATING_MACRO(8);
+		/** See [GeneralFlag.IS_EVALUATING_MACRO]. */
+		IS_EVALUATING_MACRO(8),
+
+		/** See [GeneralFlag.IS_SEMANTIC_RESTRICTION]. */
+		IS_SEMANTIC_RESTRICTION(9),
+
+		/** See [GeneralFlag.IS_LEXER]. */
+		IS_LEXER(10),
+
+		/** See [GeneralFlag.IS_RUNNING_TOP_STATEMENT]. */
+		IS_RUNNING_TOP_STATEMENT(11),
+
+		/** See [GeneralFlag.IS_RUNNING_COMMAND]. */
+		IS_RUNNING_COMMAND(12);
 
 		/** The [Int] mask corresponding with the [shift]. */
 		override val mask = 1 shl shift
@@ -491,15 +505,76 @@ class FiberDescriptor private constructor(
 	 */
 	enum class GeneralFlag(override val flag: Flag) : FlagGroup
 	{
-		/**
-		 * Was the fiber started to apply a semantic restriction?
-		 */
+		/** Was the fiber started to apply a semantic restriction? */
 		CAN_REJECT_PARSE(Flag.CAN_REJECT_PARSE),
 
 		/**
-		 * Was the fiber started to evaluate a macro invocation?
+		 * Was the fiber started to evaluate a macro invocation (or a prefix
+		 * function for a macro)?
 		 */
-		IS_EVALUATING_MACRO(Flag.IS_EVALUATING_MACRO);
+		IS_EVALUATING_MACRO(Flag.IS_EVALUATING_MACRO),
+
+		/** Was the fiber started to evaluate a semantic restriction? */
+		IS_SEMANTIC_RESTRICTION(Flag.IS_SEMANTIC_RESTRICTION),
+
+		/** Was the fiber started to run a lexer (i.e., to produce a token)? */
+		IS_LEXER(Flag.IS_LEXER),
+
+		/** Was the fiber started to run a top-level statement of module? */
+		IS_RUNNING_TOP_STATEMENT(Flag.IS_RUNNING_TOP_STATEMENT),
+
+		/** Was the fiber started to run a command or entry point? */
+		IS_RUNNING_COMMAND(Flag.IS_RUNNING_COMMAND)
+	}
+
+	/**
+	 * A [FiberKind] is a broad categorization of [A_Fiber], useful, say, for
+	 * filtering which fibers are captured by a debugger.
+	 */
+	enum class FiberKind
+	constructor(private val flag: GeneralFlag? = null)
+	{
+		/** The fiber is evaluating a macro or macro prefix. */
+		MACRO(GeneralFlag.IS_EVALUATING_MACRO),
+
+		/** The fiber is evaluating a semantic restriction. */
+		RESTRICTION(GeneralFlag.IS_SEMANTIC_RESTRICTION),
+
+		/** The fiber is evaluating a lexer (attempting to produce a token). */
+		LEXER(GeneralFlag.IS_LEXER),
+
+		/** The fiber is evaluating a top-level statement of a module. */
+		STATEMENT(GeneralFlag.IS_RUNNING_TOP_STATEMENT),
+
+		/**
+		 * The fiber is evaluating a command, for example an invocation of an
+		 * entry point.
+		 */
+		COMMAND(GeneralFlag.IS_RUNNING_COMMAND),
+
+		/**
+		 * The fiber is for some other, unknown purpose.  Note that this has to
+		 * be the final entry, and it must be the only enum value with null as
+		 * its [flag].
+		 */
+		OTHER(null);
+
+		/**
+		 * Answer a very short name for this [FiberKind], preferably only one
+		 * or two characters.
+		 */
+		val veryShortName: String = name.substring(0..0)
+
+		companion object
+		{
+			/** A pre-extracted [Array] of each [FiberKind]. */
+			val all = FiberKind.values()
+
+			/** Extract an [A_Fiber]'s [FiberKind]. */
+			val A_Fiber.fiberKind: FiberKind
+				get() = all.first { kind ->
+					kind.flag.isNullOr { this@fiberKind.generalFlag(this) } }
+		}
 	}
 
 	/**
@@ -917,10 +992,10 @@ class FiberDescriptor private constructor(
 	override fun o_Hash(self: AvailObject): Int = helper.hash
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		FiberTypeDescriptor.fiberType(self.slot(RESULT_TYPE))
+		FiberTypeDescriptor.fiberType(self[RESULT_TYPE])
 
 	override fun o_FiberResultType(self: AvailObject): A_Type =
-		self.slot(RESULT_TYPE)
+		self[RESULT_TYPE]
 
 	override fun o_WhenContinuationIsAvailableDo(
 		self: AvailObject,
@@ -987,11 +1062,11 @@ class FiberDescriptor private constructor(
 			suspendingFunction.isNil
 				|| suspendingFunction.code().codePrimitive()!!
 					.hasFlag(CanSuspend))
-		self.setSlot(SUSPENDING_FUNCTION, suspendingFunction)
+		self[SUSPENDING_FUNCTION] = suspendingFunction
 	}
 
 	override fun o_SuspendingFunction(self: AvailObject): A_Function =
-		self.slot(SUSPENDING_FUNCTION)
+		self[SUSPENDING_FUNCTION]
 
 	override fun o_DebugLog(self: AvailObject): StringBuilder = helper.debugLog
 

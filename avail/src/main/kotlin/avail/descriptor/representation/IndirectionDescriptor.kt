@@ -389,6 +389,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
 import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.expression
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
@@ -407,6 +408,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.markerValue
 import avail.descriptor.phrases.A_Phrase.Companion.neededVariables
 import avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.permutation
+import avail.descriptor.phrases.A_Phrase.Companion.permutedPhrases
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.sequence
@@ -730,7 +732,7 @@ class IndirectionDescriptor private constructor(
 	 * next time if possible.
 	 */
 	override fun o_Traversed(self: AvailObject): AvailObject {
-		var next = self.slot(INDIRECTION_TARGET)
+		var next = self[INDIRECTION_TARGET]
 		if (next.descriptor() !is IndirectionDescriptor)
 		{
 			// This indirection is already pointing to a non-indirection.
@@ -739,15 +741,15 @@ class IndirectionDescriptor private constructor(
 		// Find the final target iteratively.
 		do
 		{
-			next = next.slot(INDIRECTION_TARGET)
+			next = next[INDIRECTION_TARGET]
 		} while (next.descriptor() is IndirectionDescriptor)
 		// Flatten the path for each intervening indirection.
 		val finalTarget = next
 		next = self
 		do
 		{
-			val nextNext = next.slot(INDIRECTION_TARGET)
-			next.setSlot(INDIRECTION_TARGET, finalTarget)
+			val nextNext = next[INDIRECTION_TARGET]
+			next[INDIRECTION_TARGET] = finalTarget
 			next = nextNext
 		} while (next.descriptor() is IndirectionDescriptor)
 		return finalTarget
@@ -761,7 +763,7 @@ class IndirectionDescriptor private constructor(
 	 */
 	override fun o_TraversedWhileMakingImmutable(self: AvailObject): AvailObject
 	{
-		val next = self.slot(INDIRECTION_TARGET)
+		val next = self[INDIRECTION_TARGET]
 		val finalObject = next.traversedWhileMakingImmutable()
 		if (!finalObject.sameAddressAs(next)) {
 			// Allow immutable -> mutable pointers, since we're doing an
@@ -780,7 +782,7 @@ class IndirectionDescriptor private constructor(
 	 */
 	override fun o_TraversedWhileMakingShared(self: AvailObject): AvailObject
 	{
-		val next = self.slot(INDIRECTION_TARGET)
+		val next = self[INDIRECTION_TARGET]
 		val finalObject = next.traversedWhileMakingShared()
 		if (!finalObject.sameAddressAs(next)) {
 			// Allow shared -> unshared pointers, since we're doing an iterative
@@ -4016,4 +4018,7 @@ class IndirectionDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int
 	): Int = self .. { lastIndexOf(value, startIndex, endIndex) }
+
+	override fun o_PermutedPhrases(self: AvailObject): List<A_Phrase> =
+		self .. { permutedPhrases }
 }

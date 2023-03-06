@@ -115,6 +115,7 @@ import avail.descriptor.sets.SetDescriptor.SetIterator
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithAnyTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteStringStartingAt
@@ -460,8 +461,7 @@ abstract class AbstractDescriptor protected constructor (
 						self,
 						it as IntegerSlotsEnum,
 						-1,
-						AvailIntegerValueHelper(
-							self.slot(it as IntegerSlotsEnum)))
+						AvailIntegerValueHelper(self[it]))
 				}
 			val slot = slots[slots.size - 1]
 			if (getAnnotation(slot, HideFieldInDebugger::class.java) === null)
@@ -470,7 +470,7 @@ abstract class AbstractDescriptor protected constructor (
 					.mapTo(fields) {
 						val subscript = it - fixed + 1
 						val enumSlot = slot as IntegerSlotsEnum
-						val value = self.slot(enumSlot, subscript)
+						val value = self[enumSlot, subscript]
 						AvailObjectFieldHelper(
 							self,
 							enumSlot,
@@ -501,7 +501,7 @@ abstract class AbstractDescriptor protected constructor (
 							self,
 							slot as ObjectSlotsEnum,
 							-1,
-							self.slot(slot as ObjectSlotsEnum)))
+							self[slot]))
 				}
 			}
 			val slot = slots[slots.size - 1]
@@ -516,7 +516,7 @@ abstract class AbstractDescriptor protected constructor (
 							self,
 							slot as ObjectSlotsEnum,
 							subscript,
-							self.slot(slot as ObjectSlotsEnum, subscript)))
+							self[slot, subscript]))
 				}
 			}
 		}
@@ -720,7 +720,7 @@ abstract class AbstractDescriptor protected constructor (
 				}
 				else
 				{
-					val value = self.slot(intSlot)
+					val value = self[intSlot]
 					if (bitFields.isEmpty())
 					{
 						append(slotName)
@@ -776,14 +776,14 @@ abstract class AbstractDescriptor protected constructor (
 					append('[')
 					append(subscript)
 					append("] = ")
-					self.slot(objectSlot, subscript).printOnAvoidingIndent(
+					self[objectSlot, subscript].printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
 				}
 				else
 				{
 					append(slotName)
 					append(" = ")
-					self.slot(objectSlot).printOnAvoidingIndent(
+					self[objectSlot].printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
 				}
 			}
@@ -2064,7 +2064,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   An Avail string.
 	 * @return
 	 *   The corresponding Java string.
-	 * @see AvailObject.asNativeString
+	 * @see A_String.asNativeString
 	 */
 	abstract fun o_AsNativeString (self: AvailObject): String
 
@@ -3730,6 +3730,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_Permutation (self: AvailObject): A_Tuple
 
+	abstract fun o_PermutedPhrases(self: AvailObject): List<A_Phrase>
+
 	abstract fun o_EmitAllValuesOn (
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator)
@@ -4276,7 +4278,7 @@ abstract class AbstractDescriptor protected constructor (
 					var first = true
 					for (bitField in bitFields)
 					{
-						val fieldValue = self.slot(bitField)
+						val fieldValue = self[bitField]
 						val string = when (val presenter = bitField.presenter)
 						{
 							null -> buildString {

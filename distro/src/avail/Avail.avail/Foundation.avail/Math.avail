@@ -1626,9 +1626,9 @@ Method "_→double" is stable at [number]→double;
 Method "_<_" is stable at [number, number]→boolean;
 Method "_≤_" is stable at [number, number]→boolean;
 Method "_②>_①" is stable at [number, number]→boolean
-	compute with [a : number, b : number | a > b];
+	compute with [b : number, a : number | a > b];
 Method "_②≥_①" is stable at [number, number]→boolean
-	compute with [a : number, b : number | a ≥ b];
+	compute with [b : number, a : number | a ≥ b];
 Method "«_‡max»" is stable at [<number…|2..>]→number;
 Method "«_‡min»" is stable at [<number…|2..>]→number;
 Method "_+_" is stable at [number, number]→number;

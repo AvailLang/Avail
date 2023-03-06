@@ -33,6 +33,7 @@ package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.expression
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -59,7 +60,6 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -137,20 +137,20 @@ class AssignmentPhraseDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		builder.append(self.slot(VARIABLE).token.string().asNativeString())
+		builder.append(self[VARIABLE].token.string().asNativeString())
 		builder.append(" := ")
-		self.slot(EXPRESSION).printOnAvoidingIndent(
+		self[EXPRESSION].printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 	}
 
-	override fun o_Variable(self: AvailObject): A_Phrase = self.slot(VARIABLE)
+	override fun o_Variable(self: AvailObject): A_Phrase = self[VARIABLE]
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
-		self.slot(EXPRESSION)
+		self[EXPRESSION]
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		when {
-			isInline(self) -> self.slot(EXPRESSION).phraseExpressionType
+			isInline(self) -> self[EXPRESSION].phraseExpressionType
 			else -> TOP.o
 		}
 
@@ -159,17 +159,17 @@ class AssignmentPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(VARIABLE).equalsPhrase(aPhrase.variable)
-		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression))
+		&& self[VARIABLE].equalsPhrase(aPhrase.variable)
+		&& self[EXPRESSION].equalsPhrase(aPhrase.expression))
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val declaration = self.slot(VARIABLE).declaration
+		val declaration = self[VARIABLE].declaration
 		val declarationKind = declaration.declarationKind()
 		assert(declarationKind.isVariable)
-		self.slot(EXPRESSION).emitValueOn(codeGenerator)
+		self[EXPRESSION].emitValueOn(codeGenerator)
 		declarationKind.emitVariableAssignmentForOn(
 			self.tokens, declaration, codeGenerator)
 	}
@@ -178,10 +178,10 @@ class AssignmentPhraseDescriptor private constructor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val declaration = self.slot(VARIABLE).declaration
+		val declaration = self[VARIABLE].declaration
 		val declarationKind = declaration.declarationKind()
 		assert(declarationKind.isVariable)
-		self.slot(EXPRESSION).emitValueOn(codeGenerator)
+		self[EXPRESSION].emitValueOn(codeGenerator)
 		when {
 			isInline(self) -> {
 				codeGenerator.emitDuplicate()
@@ -211,8 +211,8 @@ class AssignmentPhraseDescriptor private constructor(
 		self: AvailObject,
 		action: (A_Phrase)->Unit
 	) {
-		action(self.slot(EXPRESSION))
-		action(self.slot(VARIABLE))
+		action(self[EXPRESSION])
+		action(self[VARIABLE])
 	}
 
 	override fun o_StatementsDo(
@@ -222,7 +222,7 @@ class AssignmentPhraseDescriptor private constructor(
 
 	override fun o_ValidateLocally(
 		self: AvailObject
-	) = when (self.slot(VARIABLE).declaration.declarationKind()) {
+	) = when (self[VARIABLE].declaration.declarationKind()) {
 		ARGUMENT -> error("Can't assign to argument")
 		LABEL -> error("Can't assign to label")
 		LOCAL_CONSTANT,
@@ -241,15 +241,15 @@ class AssignmentPhraseDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("assignment phrase") }
-			at("target") { self.slot(VARIABLE).writeTo(writer) }
-			at("expression") { self.slot(EXPRESSION).writeTo(writer) }
+			at("target") { self[VARIABLE].writeTo(writer) }
+			at("expression") { self[EXPRESSION].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("assignment phrase") }
-			at("target") { self.slot(VARIABLE).writeSummaryTo(writer) }
-			at("expression") { self.slot(EXPRESSION).writeSummaryTo(writer) }
+			at("target") { self[VARIABLE].writeSummaryTo(writer) }
+			at("expression") { self[EXPRESSION].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable
@@ -268,7 +268,7 @@ class AssignmentPhraseDescriptor private constructor(
 		 *   `true` if the object represents an inline assignment, `false`
 		 *   otherwise.
 		 */
-		fun isInline(self: AvailObject): Boolean = self.slot(IS_INLINE) != 0
+		fun isInline(self: AvailObject): Boolean = self[IS_INLINE] != 0
 
 		/**
 		 * Create a new assignment phrase using the given

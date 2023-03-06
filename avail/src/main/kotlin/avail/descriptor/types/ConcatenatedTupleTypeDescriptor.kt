@@ -142,8 +142,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_DefaultType(self: AvailObject): A_Type
 	{
-		val a: A_Type = self.slot(FIRST_TUPLE_TYPE)
-		val b: A_Type = self.slot(SECOND_TUPLE_TYPE)
+		val a: A_Type = self[FIRST_TUPLE_TYPE]
+		val b: A_Type = self[SECOND_TUPLE_TYPE]
 		return defaultTypeOfConcatenation(a, b)
 	}
 
@@ -211,7 +211,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 * I'm not a very time-efficient representation of a tuple type.
 	 */
 	override fun o_RepresentationCostOfTupleType(self: AvailObject): Int =
-		self.slot(TUPLE_TYPE_COMPLEXITY)
+		self[TUPLE_TYPE_COMPLEXITY]
 
 	/**
 	 * Answer what range of tuple sizes my instances could be. Note that this
@@ -220,8 +220,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_SizeRange(self: AvailObject): A_Type
 	{
-		val sizeRange1 = self.slot(FIRST_TUPLE_TYPE).sizeRange
-		val sizeRange2 = self.slot(SECOND_TUPLE_TYPE).sizeRange
+		val sizeRange1 = self[FIRST_TUPLE_TYPE].sizeRange
+		val sizeRange2 = self[SECOND_TUPLE_TYPE].sizeRange
 		return sizeRangeOfConcatenation(sizeRange1, sizeRange2)
 	}
 
@@ -273,8 +273,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	override fun o_IsTupleType(self: AvailObject): Boolean = true
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		(self.slot(FIRST_TUPLE_TYPE).isVacuousType
-			|| self.slot(SECOND_TUPLE_TYPE).isVacuousType)
+		(self[FIRST_TUPLE_TYPE].isVacuousType
+			|| self[SECOND_TUPLE_TYPE].isVacuousType)
 
 	override fun o_MakeSharedInternal(
 		self: AvailObject,
@@ -314,8 +314,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type
 	{
-		val firstTupleType = self.slot(FIRST_TUPLE_TYPE)
-		val secondTupleType = self.slot(SECOND_TUPLE_TYPE)
+		val firstTupleType = self[FIRST_TUPLE_TYPE]
+		val secondTupleType = self[SECOND_TUPLE_TYPE]
 		return elementOfConcatenation(firstTupleType, secondTupleType, index)
 	}
 
@@ -455,8 +455,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		{
 			return bottom
 		}
-		val firstTupleType: A_Type = self.slot(FIRST_TUPLE_TYPE)
-		val secondTupleType: A_Type = self.slot(SECOND_TUPLE_TYPE)
+		val firstTupleType: A_Type = self[FIRST_TUPLE_TYPE]
+		val secondTupleType: A_Type = self[SECOND_TUPLE_TYPE]
 		val firstUpper = firstTupleType.sizeRange.upperBound
 		val secondUpper = secondTupleType.sizeRange.upperBound
 		val totalUpper = firstUpper.noFailPlusCanDestroy(secondUpper, false)
@@ -518,8 +518,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		// sharing.
 		assert(!isShared)
 		val newObject = reallyConcatenate(
-			self.slot(FIRST_TUPLE_TYPE),
-			self.slot(SECOND_TUPLE_TYPE))
+			self[FIRST_TUPLE_TYPE],
+			self[SECOND_TUPLE_TYPE])
 		self.becomeIndirectionTo(newObject)
 	}
 

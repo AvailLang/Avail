@@ -590,7 +590,7 @@ class MessageBundleTreeDescriptor private constructor(
 		unclassified = layeredMapWithPlan(unclassified, planInProgress)
 		if (planInProgress.isBackwardJump)
 		{
-			self.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1)
+			self[HAS_BACKWARD_JUMP_INSTRUCTION] = 1
 		}
 	}
 
@@ -620,10 +620,10 @@ class MessageBundleTreeDescriptor private constructor(
 			// Figure out what the latestBackwardJump will be for any successor
 			// bundle trees that need to be created.
 			val latestBack: A_BundleTree
-			if (self.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0)
+			if (self[HAS_BACKWARD_JUMP_INSTRUCTION] != 0)
 			{
 				// New descendants will point to me as a potential target.
-				if (self.slot(IS_SOURCE_OF_CYCLE) != 0)
+				if (self[IS_SOURCE_OF_CYCLE] != 0)
 				{
 					// It was already the source of a backward link.  We don't
 					// need to create any more descendants here.
@@ -639,7 +639,7 @@ class MessageBundleTreeDescriptor private constructor(
 						// This ancestor is equivalent to me, so mark me as a
 						// backward cyclic link and plug that exact ancestor
 						// into the LATEST_BACKWARD_JUMP slot.
-						self.setSlot(IS_SOURCE_OF_CYCLE, 1)
+						self[IS_SOURCE_OF_CYCLE] = 1
 						latestBackwardJump = ancestor
 						// The caller will deal with fully expanding the
 						// ancestor.
@@ -797,7 +797,7 @@ class MessageBundleTreeDescriptor private constructor(
 		}
 	}
 
-	override fun o_Hash(self: AvailObject) = self.slot(HASH)
+	override fun o_Hash(self: AvailObject) = self[HASH]
 
 	override fun o_Kind(self: AvailObject) = Types.MESSAGE_BUNDLE_TREE.o
 
@@ -847,15 +847,17 @@ class MessageBundleTreeDescriptor private constructor(
 		lock.read { latestBackwardJump }
 
 	override fun o_HasBackwardJump(self: AvailObject): Boolean =
-		self.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0
+		self[HAS_BACKWARD_JUMP_INSTRUCTION] != 0
 
 	override fun o_IsSourceOfCycle(self: AvailObject): Boolean =
-		self.slot(IS_SOURCE_OF_CYCLE) != 0
+		self[IS_SOURCE_OF_CYCLE] != 0
 
 	override fun o_IsSourceOfCycle(
 		self: AvailObject,
-		isSourceOfCycle: Boolean
-	) = self.setSlot(IS_SOURCE_OF_CYCLE, if (isSourceOfCycle) 1 else 0)
+		isSourceOfCycle: Boolean)
+	{
+		self[IS_SOURCE_OF_CYCLE] = if (isSourceOfCycle) 1 else 0
+	}
 
 	override fun mutable() = unsupported
 
@@ -920,7 +922,7 @@ class MessageBundleTreeDescriptor private constructor(
 		module: A_Module)
 	{
 		val hasBackwardJump =
-			bundleTree.slot(HAS_BACKWARD_JUMP_INSTRUCTION) != 0
+			bundleTree[HAS_BACKWARD_JUMP_INSTRUCTION] != 0
 		val latestBackward: A_BundleTree =
 			if (hasBackwardJump) bundleTree
 			else bundleTree.latestBackwardJump
@@ -943,7 +945,7 @@ class MessageBundleTreeDescriptor private constructor(
 				{
 					// We just discovered the first backward jump in any
 					// parsing-plan-in-progress at this node.
-					bundleTree.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1)
+					bundleTree[HAS_BACKWARD_JUMP_INSTRUCTION] = 1
 				}
 				// Bubble control flow right out of the bundle trees. There
 				// should never be a JUMP or BRANCH in an actionMap. Rather, the

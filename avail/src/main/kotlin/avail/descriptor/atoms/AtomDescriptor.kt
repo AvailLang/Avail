@@ -199,7 +199,7 @@ open class AtomDescriptor protected constructor (
 				append("\$$nativeName")
 			else -> append("\$\"$nativeName\"")
 		}
-		val issuer: A_Module = self.slot(ISSUING_MODULE)
+		val issuer: A_Module = self[ISSUING_MODULE]
 		if (issuer.notNil) {
 			val issuerName = issuer.moduleNameNative
 			val localIssuer =
@@ -208,7 +208,7 @@ open class AtomDescriptor protected constructor (
 		}
 	}
 
-	override fun o_AtomName(self: AvailObject): A_String = self.slot(NAME)
+	override fun o_AtomName(self: AvailObject): A_String = self[NAME]
 
 	@Throws(MalformedMessageException::class)
 	override fun o_BundleOrCreate (self: AvailObject): A_Bundle
@@ -230,10 +230,10 @@ open class AtomDescriptor protected constructor (
 	override fun o_GetAtomProperty (self: AvailObject, key: A_Atom) = nil
 
 	override fun o_Hash (self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			// The shared subclass overrides to use synchronization.
 			AvailRuntimeSupport.nextNonzeroHash().also { hash ->
-				self.setSlot(HASH_OR_ZERO, hash)
+				self[HASH_OR_ZERO] = hash
 			}
 		}
 
@@ -247,7 +247,7 @@ open class AtomDescriptor protected constructor (
 	) = aType.isSupertypeOfPrimitiveTypeEnum(Types.ATOM)
 
 	override fun o_IssuingModule (self: AvailObject): A_Module =
-		self.slot(ISSUING_MODULE)
+		self[ISSUING_MODULE]
 
 	override fun o_Kind(self: AvailObject): AvailObject = Types.ATOM.o
 
@@ -282,10 +282,10 @@ open class AtomDescriptor protected constructor (
 		}
 		val substituteAtom: AvailObject =
 			AtomWithPropertiesSharedDescriptor.shared.createInitialized(
-				self.slot(NAME),
-				self.slot(ISSUING_MODULE),
+				self[NAME],
+				self[ISSUING_MODULE],
 				map,
-				self.slot(HASH_OR_ZERO))
+				self[HASH_OR_ZERO])
 
 		assert(substituteAtom.descriptor().isShared)
 
@@ -316,9 +316,9 @@ open class AtomDescriptor protected constructor (
 		assert(!isShared)
 		val substituteAtom: AvailObject =
 			AtomWithPropertiesDescriptor.createWithProperties(
-				self.slot(NAME),
-				self.slot(ISSUING_MODULE),
-				self.slot(HASH_OR_ZERO))
+				self[NAME],
+				self[ISSUING_MODULE],
+				self[HASH_OR_ZERO])
 		self.becomeIndirectionTo(substituteAtom)
 		substituteAtom.setAtomProperty(key, value)
 	}
@@ -329,8 +329,8 @@ open class AtomDescriptor protected constructor (
 	override fun o_WriteTo (self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("atom") }
-			at("atom name") { self.slot(NAME).writeTo(writer) }
-			val module = self.slot(ISSUING_MODULE)
+			at("atom name") { self[NAME].writeTo(writer) }
+			val module = self[ISSUING_MODULE]
 			if (module.notNil) {
 				at("issuing module") { module.writeSummaryTo(writer) }
 			}

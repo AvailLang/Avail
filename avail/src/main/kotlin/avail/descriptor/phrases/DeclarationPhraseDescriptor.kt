@@ -68,7 +68,6 @@ import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -601,19 +600,19 @@ class DeclarationPhraseDescriptor(
 		}
 	}
 
-	override fun o_Token(self: AvailObject): A_Token = self.slot(TOKEN)
+	override fun o_Token(self: AvailObject): A_Token = self[TOKEN]
 
 	override fun o_DeclaredType(self: AvailObject): A_Type =
-		self.slot(DECLARED_TYPE)
+		self[DECLARED_TYPE]
 
 	override fun o_TypeExpression(self: AvailObject): A_Phrase =
-		self.slot(TYPE_EXPRESSION)
+		self[TYPE_EXPRESSION]
 
 	override fun o_InitializationExpression(self: AvailObject): AvailObject =
-		self.slot(INITIALIZATION_EXPRESSION)
+		self[INITIALIZATION_EXPRESSION]
 
 	override fun o_LiteralObject(self: AvailObject): A_BasicObject =
-		self.slot(LITERAL_OBJECT)
+		self[LITERAL_OBJECT]
 
 	override fun o_DeclarationKind(self: AvailObject): DeclarationKind =
 		declarationKind
@@ -680,21 +679,21 @@ class DeclarationPhraseDescriptor(
 			at("kind") {
 				write(self.declarationKind().kindName().toString() + " phrase")
 			}
-			at("token") { self.slot(TOKEN).writeTo(writer) }
-			at("declared type") { self.slot(DECLARED_TYPE).writeTo(writer) }
-			val typeExpression = self.slot(TYPE_EXPRESSION)
+			at("token") { self[TOKEN].writeTo(writer) }
+			at("declared type") { self[DECLARED_TYPE].writeTo(writer) }
+			val typeExpression = self[TYPE_EXPRESSION]
 			if (typeExpression.notNil)
 			{
 				at("type expression") { typeExpression.writeTo(writer) }
 			}
-			val initializationExpression = self.slot(INITIALIZATION_EXPRESSION)
+			val initializationExpression = self[INITIALIZATION_EXPRESSION]
 			if (initializationExpression.notNil)
 			{
 				at("initialization expression") {
 					initializationExpression.writeTo(writer)
 				}
 			}
-			val literal = self.slot(LITERAL_OBJECT)
+			val literal = self[LITERAL_OBJECT]
 			if (literal.notNil)
 			{
 				at("literal") { literal.writeTo(writer) }

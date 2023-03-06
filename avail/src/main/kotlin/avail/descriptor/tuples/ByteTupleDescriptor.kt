@@ -161,7 +161,7 @@ class ByteTupleDescriptor private constructor(
 			// Enlarge it in place, using more of the final partial int field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
 			self.setByteSlot(RAW_LONG_AT_, newSize, intValue.toShort())
-			self.setSlot(HASH_OR_ZERO, 0)
+			self[HASH_OR_ZERO] = 0
 			return self
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
@@ -172,7 +172,7 @@ class ByteTupleDescriptor private constructor(
 			if (originalSize and 7 == 0) 1 else 0)
 		result.setByteSlot(
 			RAW_LONG_AT_, newSize, intValue.toShort())
-		result.setSlot(HASH_OR_ZERO, 0)
+		result[HASH_OR_ZERO] = 0
 		return result
 	}
 
@@ -284,7 +284,7 @@ class ByteTupleDescriptor private constructor(
 				source++
 				destination++
 			}
-			result.setSlot(HASH_OR_ZERO, 0)
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		if (!canDestroy)
@@ -604,7 +604,7 @@ class ByteTupleDescriptor private constructor(
 					combined += c shl shift
 					shift += 8
 				}
-				result.setSlot(RAW_LONG_AT_, slotIndex, combined)
+				result[RAW_LONG_AT_, slotIndex] = combined
 				slotIndex++
 			}
 			// Do the last 0-7 writes the slow way.

@@ -199,30 +199,30 @@ class DefinitionParsingPlanDescriptor private constructor(
 		return fields.toTypedArray()
 	}
 
-	override fun o_Bundle(self: AvailObject): A_Bundle = self.slot(BUNDLE)
+	override fun o_Bundle(self: AvailObject): A_Bundle = self[BUNDLE]
 
 	override fun o_Definition(self: AvailObject): A_Definition =
-		self.slot(DEFINITION)
+		self[DEFINITION]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
 		if (!another.kind().equals(DEFINITION_PARSING_PLAN.o)) {
 			return false
 		}
 		val strongAnother = another as A_DefinitionParsingPlan
-		return (self.slot(DEFINITION) === strongAnother.definition
-			&& self.slot(BUNDLE) === strongAnother.bundle)
+		return (self[DEFINITION] === strongAnother.definition
+			&& self[BUNDLE] === strongAnother.bundle)
 	}
 
 	override fun o_Hash(self: AvailObject) = combine3(
-		self.slot(DEFINITION).hash(),
-		self.slot(BUNDLE).hash(),
+		self[DEFINITION].hash(),
+		self[BUNDLE].hash(),
 		-0x6d5d9ebe)
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		DEFINITION_PARSING_PLAN.o
 
 	override fun o_ParsingInstructions(self: AvailObject): A_Tuple =
-		self.slot(PARSING_INSTRUCTIONS)
+		self[PARSING_INSTRUCTIONS]
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,

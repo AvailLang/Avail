@@ -158,7 +158,7 @@ internal class LinearMapBinDescriptor private constructor(
 		|| e === BIN_VALUE_UNION_KIND_OR_NIL
 
 	override fun o_BinElementAt(self: AvailObject, index: Int) =
-		self.slot(BIN_SLOT_AT_, index)
+		self[BIN_SLOT_AT_, index]
 
 	override fun o_ForEachInMapBin(
 		self: AvailObject,
@@ -169,8 +169,8 @@ internal class LinearMapBinDescriptor private constructor(
 		while (i <= limit)
 		{
 			action(
-				self.slot(BIN_SLOT_AT_, i++),
-				self.slot(BIN_SLOT_AT_, i++))
+				self[BIN_SLOT_AT_, i++],
+				self[BIN_SLOT_AT_, i++])
 		}
 	}
 
@@ -189,8 +189,8 @@ internal class LinearMapBinDescriptor private constructor(
 			index = self.intLinearSearch(
 				KEY_HASHES_AREA_, index, limit, keyHash)
 			if (index == 0) return null
-			if (self.slot(BIN_SLOT_AT_, (index shl 1) - 1).equals(key))
-				return self.slot(BIN_SLOT_AT_, index shl 1)
+			if (self[BIN_SLOT_AT_, (index shl 1) - 1].equals(key))
+				return self[BIN_SLOT_AT_, index shl 1]
 			index++
 		}
 	}
@@ -244,9 +244,9 @@ internal class LinearMapBinDescriptor private constructor(
 						}
 						else
 						{
-							eachKey = self.slot(BIN_SLOT_AT_, (i shl 1) - 1)
+							eachKey = self[BIN_SLOT_AT_, (i shl 1) - 1]
 							eachHash = self.intSlot(KEY_HASHES_AREA_, i)
-							eachValue = self.slot(BIN_SLOT_AT_, i shl 1)
+							eachValue = self[BIN_SLOT_AT_, i shl 1]
 						}
 						assert(result.descriptor().isMutable)
 						val localAddResult =
@@ -267,16 +267,16 @@ internal class LinearMapBinDescriptor private constructor(
 					2,
 					// Grow if it had an even number of ints
 					oldSize and 1 xor 1)
-				result.setSlot(KEYS_HASH, self.mapBinKeysHash + keyHash)
-				result.setSlot(VALUES_HASH_OR_ZERO, 0)
+				result[KEYS_HASH] = self.mapBinKeysHash + keyHash
+				result[VALUES_HASH_OR_ZERO] = 0
 				result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash)
-				result.setSlot(BIN_SLOT_AT_, (oldSize shl 1) + 1, key)
-				result.setSlot(BIN_SLOT_AT_, (oldSize shl 1) + 2, value)
+				result[BIN_SLOT_AT_, (oldSize shl 1) + 1] = key
+				result[BIN_SLOT_AT_, (oldSize shl 1) + 2] = value
 
 				// Clear the key/value kind fields.  We could be more precise,
 				// but that has a cost that's probably not worthwhile.
-				result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
-				result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+				result[BIN_KEY_UNION_KIND_OR_NIL] = nil
+				result[BIN_VALUE_UNION_KIND_OR_NIL] = nil
 				when
 				{
 					canDestroy && isMutable ->
@@ -289,9 +289,9 @@ internal class LinearMapBinDescriptor private constructor(
 				check(result)
 				return result
 			}
-			if (self.slot(BIN_SLOT_AT_, (index shl 1) - 1).equals(key))
+			if (self[BIN_SLOT_AT_, (index shl 1) - 1].equals(key))
 			{
-				val oldValue = self.slot(BIN_SLOT_AT_, index shl 1)
+				val oldValue = self[BIN_SLOT_AT_, index shl 1]
 				if (oldValue.equals(value))
 				{
 					// The (key,value) pair is present.
@@ -303,8 +303,8 @@ internal class LinearMapBinDescriptor private constructor(
 						// the resulting set is written back to the map.  If we
 						// didn't clear the values hash here, it would stay
 						// wrong after this compound operation.
-						self.setSlot(VALUES_HASH_OR_ZERO, 0)
-						self.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+						self[VALUES_HASH_OR_ZERO] = 0
+						self[BIN_VALUE_UNION_KIND_OR_NIL] = nil
 						// No need to clear the key union kind, since the keys
 						// didn't change.
 						if (!canDestroy)
@@ -326,11 +326,11 @@ internal class LinearMapBinDescriptor private constructor(
 							newLike(descriptorFor(MUTABLE, level), self, 0, 0)
 						}
 					}
-				newBin.setSlot(BIN_SLOT_AT_, index shl 1, value)
-				newBin.setSlot(VALUES_HASH_OR_ZERO, 0)
+				newBin[BIN_SLOT_AT_, index shl 1] = value
+				newBin[VALUES_HASH_OR_ZERO] = 0
 				// The keys didn't change.
-				// newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
-				newBin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+				// newBin[BIN_KEY_UNION_KIND_OR_NIL] = nil;
+				newBin[BIN_VALUE_UNION_KIND_OR_NIL] = nil
 				check(newBin)
 				return newBin
 			}
@@ -362,7 +362,7 @@ internal class LinearMapBinDescriptor private constructor(
 				check(self)
 				return self
 			}
-			if (self.slot(BIN_SLOT_AT_, (index shl 1) - 1).equals(key))
+			if (self[BIN_SLOT_AT_, (index shl 1) - 1].equals(key))
 			{
 				// Found the key.
 				if (oldSize == 1) return emptyLinearMapBin(level)
@@ -376,20 +376,16 @@ internal class LinearMapBinDescriptor private constructor(
 						KEY_HASHES_AREA_,
 						index,
 						self.intSlot(KEY_HASHES_AREA_, oldSize))
-					result.setSlot(
-						BIN_SLOT_AT_,
-						(index shl 1) - 1,
-						self.slot(BIN_SLOT_AT_, (oldSize shl 1) - 1))
-					result.setSlot(
-						BIN_SLOT_AT_,
-						index shl 1,
-						self.slot(BIN_SLOT_AT_, oldSize shl 1))
+					result[BIN_SLOT_AT_, (index shl 1) - 1] =
+						self[BIN_SLOT_AT_, (oldSize shl 1) - 1]
+					result[BIN_SLOT_AT_, index shl 1] =
+						self[BIN_SLOT_AT_, oldSize shl 1]
 				}
 				// Adjust keys hash by the removed key.
 				result.updateSlot(KEYS_HASH) { minus(keyHash) }
-				result.setSlot(VALUES_HASH_OR_ZERO, 0)
-				result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
-				result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+				result[VALUES_HASH_OR_ZERO] = 0
+				result[BIN_KEY_UNION_KIND_OR_NIL] = nil
+				result[BIN_VALUE_UNION_KIND_OR_NIL] = nil
 				if (!canDestroy) {
 					result.makeSubobjectsImmutable()
 				}
@@ -433,19 +429,19 @@ internal class LinearMapBinDescriptor private constructor(
 					canDestroy)
 			}
 		}
-		while (!self.slot(BIN_SLOT_AT_, (index shl 1) - 1).equals(key))
+		while (!self[BIN_SLOT_AT_, (index shl 1) - 1].equals(key))
 
 		// The key is present.
-		val oldValue = self.slot(BIN_SLOT_AT_, index shl 1)
+		val oldValue = self[BIN_SLOT_AT_, index shl 1]
 		val newValue = transformer(key, oldValue)
 		if (newValue === oldValue)
 		{
 			if (isMutable)
 			{
-				self.setSlot(VALUES_HASH_OR_ZERO, 0)
+				self[VALUES_HASH_OR_ZERO] = 0
 				// The keys didn't change.
-				// newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
-				self.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+				// newBin[BIN_KEY_UNION_KIND_OR_NIL] = nil;
+				self[BIN_VALUE_UNION_KIND_OR_NIL] = nil
 				if (!canDestroy) self.makeImmutable()
 			}
 			return self
@@ -459,11 +455,11 @@ internal class LinearMapBinDescriptor private constructor(
 				newLike(descriptorFor(MUTABLE, level), self, 0, 0)
 			}
 		}
-		newBin.setSlot(BIN_SLOT_AT_, index shl 1, newValue)
-		newBin.setSlot(VALUES_HASH_OR_ZERO, 0)
+		newBin[BIN_SLOT_AT_, index shl 1] = newValue
+		newBin[VALUES_HASH_OR_ZERO] = 0
 		// The keys didn't change.
-		// newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
-		newBin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+		// newBin[BIN_KEY_UNION_KIND_OR_NIL] = nil;
+		newBin[BIN_VALUE_UNION_KIND_OR_NIL] = nil
 		check(newBin)
 		return newBin
 	}
@@ -479,7 +475,7 @@ internal class LinearMapBinDescriptor private constructor(
 	private fun computeKeyKind(self: AvailObject): A_Type {
 		var keyType = (1 until (entryCount(self) shl 1) step 2).fold(bottom) {
 			union, i ->
-			union.typeUnion(self.slot(BIN_SLOT_AT_, i).kind())
+			union.typeUnion(self[BIN_SLOT_AT_, i].kind())
 		}
 		if (isShared)
 		{
@@ -498,10 +494,10 @@ internal class LinearMapBinDescriptor private constructor(
 	 *   The union of the key types as a kind.
 	 */
 	private fun mapBinKeyUnionKind(self: AvailObject): A_Type {
-		var keyType: A_Type = self.slot(BIN_KEY_UNION_KIND_OR_NIL)
+		var keyType: A_Type = self[BIN_KEY_UNION_KIND_OR_NIL]
 		if (keyType.isNil) {
 			keyType = computeKeyKind(self)
-			self.setSlot(BIN_KEY_UNION_KIND_OR_NIL, keyType)
+			self[BIN_KEY_UNION_KIND_OR_NIL] = keyType
 		}
 		return keyType
 	}
@@ -520,7 +516,7 @@ internal class LinearMapBinDescriptor private constructor(
 	private fun computeValueKind(self: AvailObject): A_Type {
 		var valueType = (2 .. (entryCount(self) shl 1) step 2).fold(bottom) {
 			union, i ->
-			union.typeUnion(self.slot(BIN_SLOT_AT_, i).kind())
+			union.typeUnion(self[BIN_SLOT_AT_, i].kind())
 		}
 		if (isShared)
 		{
@@ -539,10 +535,10 @@ internal class LinearMapBinDescriptor private constructor(
 	 *   The union of the kinds of this bin's values.
 	 */
 	private fun mapBinValueUnionKind(self: AvailObject): A_Type {
-		var valueType: A_Type = self.slot(BIN_VALUE_UNION_KIND_OR_NIL)
+		var valueType: A_Type = self[BIN_VALUE_UNION_KIND_OR_NIL]
 		if (valueType.isNil) {
 			valueType = computeValueKind(self)
-			self.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, valueType)
+			self[BIN_VALUE_UNION_KIND_OR_NIL] = valueType
 		}
 		return valueType
 	}
@@ -564,9 +560,9 @@ internal class LinearMapBinDescriptor private constructor(
 					throw NoSuchElementException()
 				}
 				entry.setKeyAndHashAndValue(
-					self.slot(BIN_SLOT_AT_, (index shl 1) - 1),
+					self[BIN_SLOT_AT_, (index shl 1) - 1],
 					self.intSlot(KEY_HASHES_AREA_, index),
-					self.slot(BIN_SLOT_AT_, index shl 1))
+					self[BIN_SLOT_AT_, index shl 1])
 				index--
 				return entry
 			}
@@ -609,14 +605,14 @@ internal class LinearMapBinDescriptor private constructor(
 				var computedValueHashSum = 0
 				for (i in 1..numEntries) {
 					val keyHash = self.intSlot(KEY_HASHES_AREA_, i)
-					val key = self.slot(BIN_SLOT_AT_, (i shl 1) - 1)
-					val value = self.slot(BIN_SLOT_AT_, i shl 1)
+					val key = self[BIN_SLOT_AT_, (i shl 1) - 1]
+					val value = self[BIN_SLOT_AT_, i shl 1]
 					assert(key.hash() == keyHash)
 					computedKeyHashSum += keyHash
 					computedValueHashSum += value.hash()
 				}
-				assert(self.slot(KEYS_HASH) == computedKeyHashSum)
-				val storedValueHashSum = self.slot(VALUES_HASH_OR_ZERO)
+				assert(self[KEYS_HASH] == computedKeyHashSum)
+				val storedValueHashSum = self[VALUES_HASH_OR_ZERO]
 				assert(storedValueHashSum == 0
 					|| storedValueHashSum == computedValueHashSum)
 			}
@@ -644,12 +640,12 @@ internal class LinearMapBinDescriptor private constructor(
 		 *   The bin's value hash.
 		 */
 		private fun mapBinValuesHash(self: AvailObject): Int {
-			var valuesHash = self.slot(VALUES_HASH_OR_ZERO)
+			var valuesHash = self[VALUES_HASH_OR_ZERO]
 			if (valuesHash == 0) {
 				(2..(entryCount(self) shl 1) step 2).forEach {
-					valuesHash += self.slot(BIN_SLOT_AT_, it).hash()
+					valuesHash += self[BIN_SLOT_AT_, it].hash()
 				}
-				self.setSlot(VALUES_HASH_OR_ZERO, valuesHash)
+				self[VALUES_HASH_OR_ZERO] = valuesHash
 			}
 			return valuesHash
 		}
@@ -667,10 +663,10 @@ internal class LinearMapBinDescriptor private constructor(
 		): AvailObject {
 			val bin = newObjectIndexedIntegerIndexedDescriptor(
 				0, 0, descriptorFor(MUTABLE, myLevel))
-			bin.setSlot(KEYS_HASH, 0)
-			bin.setSlot(VALUES_HASH_OR_ZERO, 0)
-			bin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, bottom)
-			bin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, bottom)
+			bin[KEYS_HASH] = 0
+			bin[VALUES_HASH_OR_ZERO] = 0
+			bin[BIN_KEY_UNION_KIND_OR_NIL] = bottom
+			bin[BIN_VALUE_UNION_KIND_OR_NIL] = bottom
 			check(bin)
 			return bin
 		}
@@ -697,13 +693,13 @@ internal class LinearMapBinDescriptor private constructor(
 		): AvailObject {
 			val bin = newObjectIndexedIntegerIndexedDescriptor(
 				2, 1, descriptorFor(MUTABLE, myLevel))
-			bin.setSlot(KEYS_HASH, keyHash)
-			bin.setSlot(VALUES_HASH_OR_ZERO, 0)
-			bin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
-			bin.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+			bin[KEYS_HASH] = keyHash
+			bin[VALUES_HASH_OR_ZERO] = 0
+			bin[BIN_KEY_UNION_KIND_OR_NIL] = nil
+			bin[BIN_VALUE_UNION_KIND_OR_NIL] = nil
 			bin.setIntSlot(KEY_HASHES_AREA_, 1, keyHash)
-			bin.setSlot(BIN_SLOT_AT_, 1, key)
-			bin.setSlot(BIN_SLOT_AT_, 2, value)
+			bin[BIN_SLOT_AT_, 1] = key
+			bin[BIN_SLOT_AT_, 2] = value
 			check(bin)
 			return bin
 		}

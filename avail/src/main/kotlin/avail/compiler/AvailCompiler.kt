@@ -93,7 +93,9 @@ import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
-import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_SEMANTIC_RESTRICTION
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -176,6 +178,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.childrenMap
 import avail.descriptor.phrases.A_Phrase.Companion.copyMutablePhrase
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.expression
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
@@ -184,6 +187,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
 import avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
+import avail.descriptor.phrases.A_Phrase.Companion.permutedPhrases
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
@@ -801,7 +805,8 @@ class AvailCompiler constructor(
 				if (mod.isNil) "no module" else mod.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
-		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
+		fiber.setGeneralFlag(CAN_REJECT_PARSE)
+		fiber.setGeneralFlag(IS_SEMANTIC_RESTRICTION)
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber, onSuccess, onFailure)
 		compilationContext.runtime.runOutermostFunction(fiber, function, args)
@@ -853,8 +858,8 @@ class AvailCompiler constructor(
 				if (mod.isNil) "no module" else mod.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
-		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
-		fiber.setGeneralFlag(GeneralFlag.IS_EVALUATING_MACRO)
+		fiber.setGeneralFlag(CAN_REJECT_PARSE)
+		fiber.setGeneralFlag(IS_EVALUATING_MACRO)
 		fiber.fiberGlobals = fiber.fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
 		lexingState.setFiberContinuationsTrackingWork(
@@ -1882,7 +1887,9 @@ class AvailCompiler constructor(
 				modName,
 				code.codeStartingLineNumber)
 		}
-		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
+		fiber.setGeneralFlag(CAN_REJECT_PARSE)
+		// This could be made more precise if needed.
+		fiber.setGeneralFlag(IS_EVALUATING_MACRO)
 		val (tokens, tokenIndices) = stepState.staticTokens.unzip()
 		val withTokens = stepState.start.clientDataMap
 			.mapAtPuttingCanDestroy(
@@ -1972,7 +1979,6 @@ class AvailCompiler constructor(
 		argTypes.forEach { it.makeShared() }
 		val method = bundle.bundleMethod
 		val methodDefinitions = method.definitionsTuple
-		val restrictions = method.semanticRestrictions
 		// Filter the definitions down to those that are locally most specific.
 		// Fail if more than one survives.
 		if (methodDefinitions.tupleSize > 0)
@@ -2024,7 +2030,7 @@ class AvailCompiler constructor(
 		}
 		// Determine which semantic restrictions are relevant.
 		val restrictionsToTry = mutableListOf<A_SemanticRestriction>()
-		restrictions.forEach { restriction ->
+		method.semanticRestrictions.forEach { restriction ->
 			val definitionModule = restriction.definitionModule()
 			if (definitionModule.isNil
 				|| compilationContext.module.hasAncestor(definitionModule))
@@ -2054,7 +2060,7 @@ class AvailCompiler constructor(
 					restriction,
 					argTypes,
 					state.lexingState,
-					{ restrictionType: AvailObject ->
+					onSuccess = { restrictionType: AvailObject ->
 						assert(restrictionType.isType)
 						outstandingLock.safeWrite {
 							if (failureCount.get() == 0)
@@ -2064,38 +2070,41 @@ class AvailCompiler constructor(
 							}
 						}
 						after()
-					}
-				) { e ->
-					when (e)
-					{
-						is AvailAcceptedParseException ->
+					},
+					onFailure = { e ->
+						when (e)
 						{
-							// Not an error or rejection.
-							after()
-							return@evaluateSemanticRestrictionFunctionThen
+							is AvailAcceptedParseException ->
+							{
+								// Not an error or rejection.
+								after()
+								return@evaluateSemanticRestrictionFunctionThen
+							}
+
+							is AvailRejectedParseException -> state.expected(
+								e.level,
+								e.rejectionString.asNativeString()
+									+ " (while parsing send of "
+									+ bundle.message
+									.atomName.asNativeString()
+									+ ")")
+
+							is FiberTerminationException -> state.expected(
+								STRONG,
+								"semantic restriction not to raise an "
+									+ "unhandled exception (while parsing "
+									+ "send of "
+									+ bundle.message.atomName.asNativeString()
+									+ "):\n\t"
+									+ e)
+
+							else -> state.expected(
+								STRONG,
+								FormattingDescriber("unexpected error: %s", e))
 						}
-						is AvailRejectedParseException -> state.expected(
-							e.level,
-							e.rejectionString.asNativeString()
-								+ " (while parsing send of "
-								+ bundle.message
-								.atomName.asNativeString()
-								+ ")")
-						is FiberTerminationException -> state.expected(
-							STRONG,
-							"semantic restriction not to raise an "
-								+ "unhandled exception (while parsing "
-								+ "send of "
-								+ bundle.message.atomName.asNativeString()
-								+ "):\n\t"
-								+ e)
-						else -> state.expected(
-							STRONG,
-							FormattingDescriber("unexpected error: %s", e))
-					}
-					failureCount.incrementAndGet()
-					after()
-				}
+						failureCount.incrementAndGet()
+						after()
+					})
 			},
 			then = {
 				// The last applicable semantic restriction has finished.
@@ -2758,7 +2767,7 @@ class AvailCompiler constructor(
 		expectedYieldType: A_Type,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
-		val argumentsList = argumentsListNode.expressionsTuple.toList()
+		val argumentsList = argumentsListNode.permutedPhrases
 		if (bundle.messageSplitter.numberOfSectionCheckpoints > 0
 			&& !reachedDefinitions.hasElement(macroDefinitionToInvoke))
 		{
@@ -2816,7 +2825,7 @@ class AvailCompiler constructor(
 			withTokensAndBundle,
 			clientDataAfterRunning,
 			stateAfterCall.lexingState,
-			{ replacement ->
+			onSuccess = { replacement ->
 				assert(clientDataAfterRunning.value !== null)
 				// In theory a fiber can produce anything, although you have to
 				// mess with continuations to get it wrong.
@@ -2898,22 +2907,21 @@ class AvailCompiler constructor(
 				}
 				stateAfter.workUnitDo { continuation(stateAfter, substitution) }
 			},
-			{ e ->
+			onFailure = { e ->
 				when (e)
 				{
 					is AvailAcceptedParseException ->
 					{
 						// The macro said to accept the parse, which is a
 						// convenient way of allowing the underlying machinery
-						// to construct a regular send node instead what the
+						// to construct a regular send node instead of what the
 						// macro would have produced.  Note that we have to do
 						// another validateArgumentTypes() to determine what the
 						// *methods* indicate for an expected type, since the
 						// first time through we only checked the macros.
 						validateArgumentTypes(
 							bundle,
-							argumentsListNode.expressionsTuple
-								.map { it.phraseExpressionType },
+							argumentsList.map { it.phraseExpressionType },
 							nil,
 							stateAfterCall
 						) { newExpectedYieldType ->

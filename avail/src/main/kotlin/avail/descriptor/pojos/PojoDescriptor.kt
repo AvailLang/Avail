@@ -86,7 +86,7 @@ class PojoDescriptor private constructor(
 		when
 		{
 			self.sameAddressAs(aPojo) -> true
-			!self.slot(RAW_POJO).equals(aPojo.slot(RAW_POJO)) -> false
+			!self[RAW_POJO].equals(aPojo[RAW_POJO]) -> false
 			else ->
 			{
 				when
@@ -101,23 +101,23 @@ class PojoDescriptor private constructor(
 		}
 
 	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(RAW_POJO).hash(),
-		self.slot(KIND).hash(),
+		self[RAW_POJO].hash(),
+		self[KIND].hash(),
 		0x749101DD)
 
 	override fun o_IsPojo(self: AvailObject): Boolean = true
 
-	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
+	override fun o_Kind(self: AvailObject): A_Type = self[KIND]
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?
-	): Any? = self.slot(RAW_POJO).javaObject()
+	): Any? = self[RAW_POJO].javaObject()
 
-	override fun o_RawPojo(self: AvailObject): AvailObject = self.slot(RAW_POJO)
+	override fun o_RawPojo(self: AvailObject): AvailObject = self[RAW_POJO]
 
 	override fun <T : Any> o_JavaObject(self: AvailObject): T? =
-		self.slot(RAW_POJO).javaObject()
+		self[RAW_POJO].javaObject()
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject): Boolean =
 		false
@@ -125,18 +125,18 @@ class PojoDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("pojo") }
-			at("pojo type") { self.slot(KIND).writeTo(writer) }
+			at("pojo type") { self[KIND].writeTo(writer) }
 			at("description") {
-				write(self.slot(RAW_POJO).javaObject<String>())
+				write(self[RAW_POJO].javaObject<String>())
 			}
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("pojo") }
-			at("pojo type") { self.slot(KIND).writeSummaryTo(writer) }
+			at("pojo type") { self[KIND].writeSummaryTo(writer) }
 			at("description") {
-				write(self.slot(RAW_POJO).javaObject<String>())
+				write(self[RAW_POJO].javaObject<String>())
 			}
 		}
 
@@ -146,9 +146,9 @@ class PojoDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(self.slot(RAW_POJO).javaObject<Any>())
+		builder.append(self[RAW_POJO].javaObject<Any>())
 		builder.append(" ∈ ")
-		self.slot(KIND).printOnAvoidingIndent(builder, recursionMap, indent)
+		self[KIND].printOnAvoidingIndent(builder, recursionMap, indent)
 	}
 
 	override fun mutable() = mutable

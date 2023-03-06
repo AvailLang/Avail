@@ -41,6 +41,7 @@ import avail.descriptor.methods.A_Method.Companion.lexer
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addLexer
+import avail.descriptor.module.A_Module.Companion.allAncestors
 import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.LexerDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.parsing.LexerDescriptor.IntegerSlots.LATIN1_BIT_VECTORS_
@@ -57,6 +58,7 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -64,11 +66,11 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.LEXER
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.LEXER
 import avail.descriptor.types.TypeTag
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -174,24 +176,26 @@ class LexerDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		self.lexerMethod.bundles.joinTo(
-			buffer = builder,
-			separator = " a.k.a. ",
-			prefix = "Lexer for ")
+		self.lexerMethod.bundles
+			.sortedBy { it.allAncestors.setSize }
+			.joinTo(
+				buffer = builder,
+				separator = " a.k.a. ",
+				prefix = "Lexer for ")
 		{
 			it.message.toString()
 		}
 	}
 
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
-		self.slot(DEFINITION_MODULE)
+		self[DEFINITION_MODULE]
 
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
 	): Boolean = another.traversed().sameAddressAs(self)
 
-	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
+	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
 	override fun o_Kind(self: AvailObject): A_Type = LEXER.o
 
@@ -229,13 +233,13 @@ class LexerDescriptor private constructor(
 	}
 
 	override fun o_LexerBodyFunction(self: AvailObject): A_Function =
-		self.slot(LEXER_BODY_FUNCTION)
+		self[LEXER_BODY_FUNCTION]
 
 	override fun o_LexerFilterFunction(self: AvailObject): A_Function =
-		self.slot(LEXER_FILTER_FUNCTION)
+		self[LEXER_FILTER_FUNCTION]
 
 	override fun o_LexerMethod(self: AvailObject): A_Method =
-		self.slot(LEXER_METHOD)
+		self[LEXER_METHOD]
 
 	/**
 	 * @see [o_LexerApplicability].
@@ -256,21 +260,21 @@ class LexerDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("lexer") }
-			at("filter") { self.slot(LEXER_FILTER_FUNCTION).writeTo(writer) }
-			at("body") { self.slot(LEXER_BODY_FUNCTION).writeTo(writer) }
-			at("method") { self.slot(LEXER_METHOD).writeTo(writer) }
-			at("module") { self.slot(DEFINITION_MODULE).writeTo(writer) }
+			at("filter") { self[LEXER_FILTER_FUNCTION].writeTo(writer) }
+			at("body") { self[LEXER_BODY_FUNCTION].writeTo(writer) }
+			at("method") { self[LEXER_METHOD].writeTo(writer) }
+			at("module") { self[DEFINITION_MODULE].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("lexer") }
 			at("filter") {
-				self.slot(LEXER_FILTER_FUNCTION).writeSummaryTo(writer)
+				self[LEXER_FILTER_FUNCTION].writeSummaryTo(writer)
 			}
-			at("body") { self.slot(LEXER_BODY_FUNCTION).writeSummaryTo(writer) }
-			at("method") { self.slot(LEXER_METHOD).writeSummaryTo(writer) }
-			at("module") { self.slot(DEFINITION_MODULE).writeSummaryTo(writer) }
+			at("body") { self[LEXER_BODY_FUNCTION].writeSummaryTo(writer) }
+			at("method") { self[LEXER_METHOD].writeSummaryTo(writer) }
+			at("module") { self[DEFINITION_MODULE].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable

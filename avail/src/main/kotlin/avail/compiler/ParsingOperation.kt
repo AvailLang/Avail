@@ -960,7 +960,7 @@ enum class ParsingOperation constructor(
 	/**
 	 * `16*N+9` - Permute the elements of the list phrase on the top of the
 	 * stack via the permutation found via [MessageSplitter.permutationAtIndex].
-	 *  The list phrase must be the same size as the permutation.
+	 * The list phrase must be the same size as the permutation.
 	 */
 	PERMUTE_LIST(9, true, true)
 	{

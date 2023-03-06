@@ -772,9 +772,9 @@ open class CompiledCodeDescriptor protected constructor(
 	) = self.sameAddressAs(aCompiledCode)
 
 	override fun o_FunctionType(self: AvailObject) =
-		self.slot(FUNCTION_TYPE)
+		self[FUNCTION_TYPE]
 
-	override fun o_Hash(self: AvailObject) = self.slot(HASH)
+	override fun o_Hash(self: AvailObject) = self[HASH]
 
 	override fun o_Kind(self: AvailObject): AvailObject =
 		compiledCodeTypeForFunctionType(self.functionType())
@@ -791,7 +791,7 @@ open class CompiledCodeDescriptor protected constructor(
 		lineNumberEncodedDeltas
 
 	override fun o_LiteralAt(self: AvailObject, index: Int) =
-		self.slot(LITERAL_AT_, index)
+		self[LITERAL_AT_, index]
 
 	override fun o_LocalTypeAt(self: AvailObject, index: Int): A_Type
 	{
@@ -816,14 +816,14 @@ open class CompiledCodeDescriptor protected constructor(
 	override fun o_NameForDebugger(self: AvailObject) =
 		super.o_NameForDebugger(self) + ": " + methodName
 
-	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
+	override fun o_NumArgs(self: AvailObject) = self[NUM_ARGS]
 
-	override fun o_NumConstants(self: AvailObject) = self.slot(NUM_CONSTANTS)
+	override fun o_NumConstants(self: AvailObject) = self[NUM_CONSTANTS]
 
 	override fun o_NumLiterals(self: AvailObject) =
 		self.variableObjectSlotsCount()
 
-	override fun o_NumLocals(self: AvailObject) = self.slot(NUM_LOCALS)
+	override fun o_NumLocals(self: AvailObject) = self[NUM_LOCALS]
 
 	override fun o_NumNybbles(self: AvailObject): Int
 	{
@@ -833,14 +833,14 @@ open class CompiledCodeDescriptor protected constructor(
 			// Special case: when there are no nybbles, don't reserve any longs.
 			return 0
 		}
-		val firstLong = self.slot(NYBBLECODES_, 1)
+		val firstLong = self[NYBBLECODES_, 1]
 		val unusedNybbles = firstLong.toInt() and 15
 		return (longCount shl 4) - unusedNybbles - 1
 	}
 
-	override fun o_NumOuters(self: AvailObject) = self.slot(NUM_OUTERS)
+	override fun o_NumOuters(self: AvailObject) = self[NUM_OUTERS]
 
-	override fun o_NumSlots(self: AvailObject) = self.slot(FRAME_SLOTS)
+	override fun o_NumSlots(self: AvailObject) = self[FRAME_SLOTS]
 
 	override fun o_Nybbles(self: AvailObject): A_Tuple
 	{
@@ -1050,13 +1050,13 @@ open class CompiledCodeDescriptor protected constructor(
 		writeFunctionType: A_Type.()->Unit
 	) = writer.writeObject {
 		at("kind") { write("function implementation") }
-		at("outers") { write(self.slot(NUM_OUTERS)) }
-		at("arguments") { write(self.slot(NUM_ARGS)) }
-		at("locals") { write(self.slot(NUM_LOCALS)) }
-		at("constants") { write(self.slot(NUM_CONSTANTS)) }
-		at("maximum stack depth") { write(self.slot(FRAME_SLOTS)) }
+		at("outers") { write(self[NUM_OUTERS]) }
+		at("arguments") { write(self[NUM_ARGS]) }
+		at("locals") { write(self[NUM_LOCALS]) }
+		at("constants") { write(self[NUM_CONSTANTS]) }
+		at("maximum stack depth") { write(self[FRAME_SLOTS]) }
 		at("nybbles") { self.nybbles.writeTo(writer) }
-		at("function type") { self.slot(FUNCTION_TYPE).writeFunctionType() }
+		at("function type") { self[FUNCTION_TYPE].writeFunctionType() }
 		at("method") { self.methodName.writeTo(writer) }
 		if (module.notNil)
 		{
@@ -1068,7 +1068,7 @@ open class CompiledCodeDescriptor protected constructor(
 				val limit = self.variableObjectSlotsCount()
 				for (i in 1 .. limit)
 				{
-					var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
+					var literal: A_BasicObject = self[LITERAL_AT_, i]
 					if (literal.isNil)
 					{
 						// Value doesn't matter, but it can't be nil.  Use zero.
@@ -1331,12 +1331,12 @@ open class CompiledCodeDescriptor protected constructor(
 				numLiterals + numOuters + numLocals + numConstants,
 				if (nybbleCount == 0) 0 else nybbleCount + 16 shr 4,
 				initialMutableDescriptor)
-			code.setSlot(FRAME_SLOTS, numSlots)
-			code.setSlot(NUM_ARGS, numArgs)
-			code.setSlot(NUM_LOCALS, numLocals)
-			code.setSlot(NUM_CONSTANTS, numConstants)
-			code.setSlot(NUM_OUTERS, numOuters)
-			code.setSlot(FUNCTION_TYPE, functionType.makeShared())
+			code[FRAME_SLOTS] = numSlots
+			code[NUM_ARGS] = numArgs
+			code[NUM_LOCALS] = numLocals
+			code[NUM_CONSTANTS] = numConstants
+			code[NUM_OUTERS] = numOuters
+			code[FUNCTION_TYPE] = functionType.makeShared()
 
 			// Fill in the nybblecodes.
 			if (nybbleCount > 0)
@@ -1348,7 +1348,7 @@ open class CompiledCodeDescriptor protected constructor(
 					val subIndex = i and 15
 					if (subIndex == 0)
 					{
-						code.setSlot(NYBBLECODES_, longIndex++, currentLong)
+						code[NYBBLECODES_, longIndex++] = currentLong
 						currentLong = 0
 					}
 					val nybble = nybbles.tupleIntAt(i).toLong()
@@ -1356,7 +1356,7 @@ open class CompiledCodeDescriptor protected constructor(
 						currentLong or (nybble shl (subIndex shl 2))
 				}
 				// There's always a final write, either partial or full.
-				code.setSlot(NYBBLECODES_, longIndex, currentLong)
+				code[NYBBLECODES_, longIndex] = currentLong
 			}
 
 			// Fill in the literals.
@@ -1372,7 +1372,7 @@ open class CompiledCodeDescriptor protected constructor(
 					tuple.tupleSize)
 				literalIndex += tuple.tupleSize
 			}
-			code.setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
+			code[HASH] = AvailRuntimeSupport.nextNonzeroHash()
 			if (primitive != null)
 			{
 				code.setDescriptor(

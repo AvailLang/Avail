@@ -163,7 +163,7 @@ constructor (
 		{
 			return false
 		}
-		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
+		val ancestors: A_Map = self[JAVA_ANCESTORS]
 		val otherAncestors: A_Map = aPojoType.javaAncestors()
 		if (ancestors.mapSize != otherAncestors.mapSize)
 		{
@@ -209,7 +209,7 @@ constructor (
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean = true
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		self.slot(JAVA_ANCESTORS)
+		self[JAVA_ANCESTORS]
 
 	override fun o_JavaClass(self: AvailObject): AvailObject = nil
 
@@ -229,16 +229,16 @@ constructor (
 	 */
 	private fun pojoSelfType(self: AvailObject): AvailObject
 	{
-		var selfType = self.slot(SELF_TYPE)
+		var selfType = self[SELF_TYPE]
 		if (selfType.isNil)
 		{
 			selfType = SelfPojoTypeDescriptor.newSelfPojoType(
-				nil, self.slot(JAVA_ANCESTORS).keysAsSet)
+				nil, self[JAVA_ANCESTORS].keysAsSet)
 			if (isShared)
 			{
 				selfType = selfType.traversed().makeShared()
 			}
-			self.setSlot(SELF_TYPE, selfType)
+			self[SELF_TYPE] = selfType
 		}
 		return selfType
 	}
@@ -308,7 +308,7 @@ constructor (
 		{
 			// If any of the fused pojo type's ancestors are Java classes, then
 			// the intersection is pojo bottom.
-			for (ancestor in self.slot(JAVA_ANCESTORS).keysAsSet)
+			for (ancestor in self[JAVA_ANCESTORS].keysAsSet)
 			{
 				// Ignore java.lang.Object.
 				if (!ancestor.equals(rawObjectClass()))
@@ -397,11 +397,11 @@ constructor (
 	 */
 	private fun typeVariables(self: AvailObject): A_Map
 	{
-		var typeVars: A_Map = self.slot(TYPE_VARIABLES)
+		var typeVars: A_Map = self[TYPE_VARIABLES]
 		if (typeVars.isNil)
 		{
 			typeVars = emptyMap
-			self.slot(JAVA_ANCESTORS).forEach { key, value ->
+			self[JAVA_ANCESTORS].forEach { key, value ->
 				val ancestor = key.javaObjectNotNull<Class<*>>()
 				val vars = ancestor.typeParameters
 				val typeArgs: A_Tuple = value
@@ -417,7 +417,7 @@ constructor (
 					typeVars = typeVars.traversed().makeShared()
 				}
 			}
-			self.setSlot(TYPE_VARIABLES, typeVars)
+			self[TYPE_VARIABLES] = typeVars
 		}
 		return typeVars
 	}
@@ -437,7 +437,7 @@ constructor (
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
+		val ancestors: A_Map = self[JAVA_ANCESTORS]
 		val childless = mutableListOf<AvailObject>()
 		childless.addAll(childlessAmong(ancestors.keysAsSet))
 		childless.sortBy { o1 -> o1.javaObjectNotNull<Class<*>>().name }
@@ -497,14 +497,14 @@ constructor (
 		 *   The hash.
 		 */
 		private fun hash(self: AvailObject): Int =
-			self.slot(HASH_OR_ZERO).ifZero {
+			self[HASH_OR_ZERO].ifZero {
 				// Note that this definition produces a value compatible with a
 				// pojo self type; this is necessary to permit comparison
 				// between an unfused pojo type and its self type.
 				combine2(
-					self.slot(JAVA_ANCESTORS).keysAsSet.hash(),
+					self[JAVA_ANCESTORS].keysAsSet.hash(),
 					-0x5fea43bc
-				).also { self.setSlot(HASH_OR_ZERO, it) }
+				).also { self[HASH_OR_ZERO] = it }
 			}
 
 		/** The mutable [FusedPojoTypeDescriptor]. */

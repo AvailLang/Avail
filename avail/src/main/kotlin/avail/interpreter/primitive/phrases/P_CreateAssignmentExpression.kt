@@ -51,7 +51,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 
@@ -61,7 +60,7 @@ import avail.interpreter.execution.Interpreter
  * assigned value as its result, so it can be embedded as a subexpression.
  */
 @Suppress("unused")
-object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
+object P_CreateAssignmentExpression : Primitive(2, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

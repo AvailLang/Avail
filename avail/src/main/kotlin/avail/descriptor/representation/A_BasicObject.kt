@@ -41,7 +41,6 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.SHARED
@@ -934,12 +933,6 @@ interface A_BasicObject : JSONFriendly
 	 * @return
 	 */
 	val isInstanceMeta: Boolean
-
-	/**
-	 * @param aPhrase
-	 * @return
-	 */
-	fun equalsPhrase(aPhrase: A_Phrase): Boolean
 
 	/**
 	 * @return

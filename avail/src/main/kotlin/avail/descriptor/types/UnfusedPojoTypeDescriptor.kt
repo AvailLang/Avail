@@ -163,11 +163,11 @@ constructor(
 		{
 			return self.pojoSelfType().equalsPojoType(aPojoType)
 		}
-		if (!self.slot(JAVA_CLASS).equals(aPojoType.javaClass()))
+		if (!self[JAVA_CLASS].equals(aPojoType.javaClass()))
 		{
 			return false
 		}
-		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
+		val ancestors: A_Map = self[JAVA_ANCESTORS]
 		val otherAncestors: A_Map = aPojoType.javaAncestors()
 		if (ancestors.mapSize != otherAncestors.mapSize)
 		{
@@ -209,7 +209,7 @@ constructor(
 	override fun o_IsAbstract(self: AvailObject): Boolean
 	{
 		val javaClass =
-			self.slot(JAVA_CLASS).javaObjectNotNull<Class<*>>()
+			self[JAVA_CLASS].javaObjectNotNull<Class<*>>()
 		return Modifier.isAbstract(javaClass.modifiers)
 	}
 
@@ -218,15 +218,15 @@ constructor(
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean = false
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		self.slot(JAVA_ANCESTORS)
+		self[JAVA_ANCESTORS]
 
 	override fun o_JavaClass(self: AvailObject): AvailObject =
-		self.slot(JAVA_CLASS)
+		self[JAVA_CLASS]
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?
-	): Any? = self.slot(JAVA_CLASS).javaObject()
+	): Any? = self[JAVA_CLASS].javaObject()
 
 	/**
 	 * Lazily compute the self type of the specified
@@ -239,17 +239,17 @@ constructor(
 	 */
 	private fun pojoSelfType(self: AvailObject): A_Type
 	{
-		var selfType = self.slot(SELF_TYPE)
+		var selfType = self[SELF_TYPE]
 		if (selfType.isNil)
 		{
 			selfType = SelfPojoTypeDescriptor.newSelfPojoType(
-				self.slot(JAVA_CLASS),
-				self.slot(JAVA_ANCESTORS).keysAsSet)
+				self[JAVA_CLASS],
+				self[JAVA_ANCESTORS].keysAsSet)
 			if (isShared)
 			{
 				selfType = selfType.traversed().makeShared()
 			}
-			self.setSlot(SELF_TYPE, selfType)
+			self[SELF_TYPE] = selfType
 		}
 		return selfType
 	}
@@ -291,7 +291,7 @@ constructor(
 		aFusedPojoType: A_Type): A_Type
 	{
 		val javaClass =
-			self.slot(JAVA_CLASS).javaObjectNotNull<Class<*>>()
+			self[JAVA_CLASS].javaObjectNotNull<Class<*>>()
 		val modifiers = javaClass.modifiers
 		// If the unfused pojo type's class is final, then the intersection is
 		// pojo bottom.
@@ -335,7 +335,7 @@ constructor(
 		anUnfusedPojoType: A_Type): A_Type
 	{
 		val javaClass =
-			self.slot(JAVA_CLASS).javaObjectNotNull<Class<*>>()
+			self[JAVA_CLASS].javaObjectNotNull<Class<*>>()
 		val otherJavaClass =
 			anUnfusedPojoType.javaClass().javaObjectNotNull<Class<*>>()
 		val modifiers = javaClass.modifiers
@@ -427,11 +427,11 @@ constructor(
 	 */
 	private fun typeVariables(self: AvailObject): A_Map
 	{
-		var typeVars: A_Map = self.slot(TYPE_VARIABLES)
+		var typeVars: A_Map = self[TYPE_VARIABLES]
 		if (typeVars.isNil)
 		{
 			typeVars = emptyMap
-			for (entry in self.slot(JAVA_ANCESTORS).mapIterable)
+			for (entry in self[JAVA_ANCESTORS].mapIterable)
 			{
 				val ancestor = entry.key().javaObjectNotNull<Class<*>>()
 				val vars = ancestor.typeParameters
@@ -449,7 +449,7 @@ constructor(
 			{
 				typeVars = typeVars.makeShared()
 			}
-			self.setSlot(TYPE_VARIABLES, typeVars)
+			self[TYPE_VARIABLES] = typeVars
 		}
 		return typeVars
 	}
@@ -469,9 +469,9 @@ constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val javaClass = self.slot(JAVA_CLASS)
+		val javaClass = self[JAVA_CLASS]
 		builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
-		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
+		val ancestors: A_Map = self[JAVA_ANCESTORS]
 		val params: A_Tuple = ancestors.mapAt(javaClass)
 		if (params.tupleSize != 0)
 		{
@@ -519,15 +519,15 @@ constructor(
 		 */
 		private fun hash(self: AvailObject): Int
 		{
-			var hash = self.slot(HASH_OR_ZERO)
+			var hash = self[HASH_OR_ZERO]
 			if (hash == 0)
 			{
 				// Note that this definition produces a value compatible with a pojo
 				// self type; this is necessary to permit comparison between an
 				// unfused pojo type and its self type.
 				hash = combine2(
-					self.slot(JAVA_ANCESTORS).keysAsSet.hash(), -0x5fea43bc)
-				self.setSlot(HASH_OR_ZERO, hash)
+					self[JAVA_ANCESTORS].keysAsSet.hash(), -0x5fea43bc)
+				self[HASH_OR_ZERO] = hash
 			}
 			return hash
 		}

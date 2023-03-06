@@ -104,7 +104,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
-		self.slot(FUNCTION_TYPE)
+		self[FUNCTION_TYPE]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsCompiledCodeType(self)
@@ -143,7 +143,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		self.slot(FUNCTION_TYPE).isVacuousType
+		self[FUNCTION_TYPE].isVacuousType
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type) = when
 	{
@@ -200,7 +200,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("function implementation type")
 		writer.write("function type")
-		self.slot(FUNCTION_TYPE).writeTo(writer)
+		self[FUNCTION_TYPE].writeTo(writer)
 		writer.endObject()
 	}
 
