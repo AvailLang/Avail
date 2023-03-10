@@ -14,32 +14,64 @@ Avail is an open-source project that comprises a
 standard library, and an IDE. All three are released under the
 [3-clause BSD license](https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22Revised_BSD_License.22.2C_.22New_BSD_License.22.2C_or_.22Modified_BSD_License.22.29).
 
- * [Before Getting Started](#before-getting-started)
+ * [Quickstart](#quickstart)
  * [Before Obtaining Avail](#before-obtaining-avail)
  * [Obtaining Avail](#obtaining-avail)
- * [Before Installing](#before-installing)
  * [Building Anvil](#building)
  * [Running Anvil](#running)
+ * [Embedding Avail](#embedding-avail)
 
 This document describes the entire process of obtaining, installing,
 configuring, and running Anvil, for the purpose of developing software in Avail.
 
-BEFORE GETTING STARTED
+If you are an experienced software developer, already familiar with Git, Java,
+and Gradle, then you probably want to proceed directly to
+[Quickstart](#quickstart) so that you can begin using Avail as quickly as
+possible.
+
+If you prefer gentler guidance or more detailed information, then you should
+probably read the other sections below as well.
+
+
+QUICKSTART
 --------------------------------------------------------------------------------
 
-If you merely wish to embed Avail into a larger JVM project, for use as an
-extension language, you can import a prebuilt version of Avail as a dependency.
-See the
-[Avail Gradle Plugin](https://github.com/AvailLang/gradle-plugin) for more
-details on how to accomplish this. You can also refer to our
-[sample project](https://github.com/AvailLang/samples) to see how Avail can be
-incorporated into a JVM project.
+Herein is the fastest path to getting started, so that you can jump right into
+writing Avail. The steps below will:
+
+1. Clone Avail onto your system.
+2. Build Anvil from source code.
+3. Open Anvil on your desktop.
+
+If (1) you are using a Unix-based system, such as Linux, macOS, Minimalist GNU
+for Windows (MinGW), or Windows Subsystem for Linux (WSL), and (2) you already
+have access to Git:
+
+	$ git clone https://github.com/AvailLang/Avail.git $PROJ
+	$ cd $PROJ
+	$ ./gradlew :avail:packageAndRun
+
+If (1) you are using vanilla Windows and (2) you already have access to Git:
+
+	$ git.exe clone https://github.com/AvailLang/Avail.git $PROJ
+	$ cd $PROJ
+	$ .\gradlew.bat :avail:packageAndRun
+
+Anvil's project manager should open on your desktop. You can now:
+
+1. Explore the Avail standard library and official examples by opening [examples-avail-config.json](examples-avail-config.json), or
+2. Create your own Avail project, based on the Avail standard library.
+
+(Screenshots and additional guidance will follow, when the official release of
+Avail 2.0.0 approaches.)
 
 BEFORE OBTAINING AVAIL
 --------------------------------------------------------------------------------
 
-In order to obtain Avail you will need to make sure that you have obtained and
-installed the prerequisite software:
+In order to obtain Avail locally you will need to make sure that you have
+obtained and installed the prerequisite software:
+
+--------------------------------------------------------------------------------
 
 1) **Git**: This is the version control software used by the Avail team to
 develop and deliver Avail.
@@ -60,8 +92,32 @@ http://git-scm.com/
 Please follow any installation directions provided by the Git website or
 included with the Git product.
 
-The main command is called "git". Please make sure that "git" is available on
-your path.
+The main command is called `git`. Please make sure that it is available on your
+path.
+
+--------------------------------------------------------------------------------
+
+2) **Java**: You will need version 17 of the Java Development Kit (JDK) Standard
+   Edition (SE), _NOT_ an earlier version. Many modern systems already have some
+   version of the JDK, so you should check your JDK version before obtaining and
+   installing it from OpenJDK (or some other vendor). You can do so like this:
+
+   $ javac -version
+
+And hopefully you get back something like this:
+
+	javac 17.0.2
+
+Otherwise, the latest version of the JDK can be obtained at:
+
+https://jdk.java.net/
+
+Please follow any installation directions provided by the website or included
+with the JDK, especially with respect to setting up the appropriate environment
+variables for command-line use.
+
+The commands of interest are `java` and `javac`. Please make sure that these are
+on your path.
 
 
 OBTAINING AVAIL
@@ -83,49 +139,19 @@ probably want to choose a non-system directory to house the local copy of the
 Avail repository.
 
 
-BEFORE INSTALLING
---------------------------------------------------------------------------------
-
-Before installing Avail, you will need to make sure that you have obtained and
-installed the prerequisite software:
-
-1) **Java**: You will need version 17 of the Java Development Kit (JDK) Standard
-Edition (SE), _NOT_ an earlier version. Many modern systems already have some
-version of the JDK, so you should check your JDK version before obtaining and
-installing it from OpenJDK (or some other vendor). You can do so like this:
-
-	$ javac -version
-
-And hopefully you get back something like this:
-
-	javac 17.0.2
-
-Otherwise, the latest version of the JDK can be obtained at:
-
-https://jdk.java.net/
-
-Please follow any installation directions provided by the website or included
-with the JDK, especially with respect to setting up the appropriate environment
-variables for command-line use.
-
-The commands of interest are "java" and "javac". Please make sure that these are
-on your path.
-
-
 BUILDING
 --------------------------------------------------------------------------------
 
-You will need to compile Anvil using the provided Gradle wrapper. To build Anvil
-on a Unix-based system, such as Linux, macOS, Minimalist GNU for Windows
-(MinGW), or Windows Subsystem for Linux (WSL):
+To compile Anvil, without automatically running it thereafter, use the provided
+Gradle wrapper. On a Unix-based system:
 
 	$ cd $PROJ
-	$ ./gradlew :avail:anvil
+	$ ./gradlew :avail:package
 
-To build Anvil on vanilla Windows:
+On vanilla Windows:
 
     $ cd $PROJ
-    $ .\gradlew.bat :avail:anvil
+    $ .\gradlew.bat :avail:package
 
 You should see output similar to this:
 
@@ -157,8 +183,8 @@ you have done this.
 RUNNING
 --------------------------------------------------------------------------------
 
-You can launch Anvil using the provided Gradle wrapper. To launch Anvil
-on a Unix-based system:
+At any time after Anvil has been built, you can launch Anvil using the provided
+Gradle wrapper. To launch Anvil on a Unix-based system:
 
 	$ cd $PROJ
 	$ ./gradlew :avail:run
@@ -179,6 +205,19 @@ a Unix-based system:
 On vanilla Windows:
 
 	$ java.exe -jar $PROJ/anvil.jar
+
+
+EMBEDDING AVAIL
+--------------------------------------------------------------------------------
+
+If you wish to embed Avail into a larger JVM project, rather than use Avail as a
+standalone language, you can import a prebuilt version of Avail as a dependency.
+See the
+[Avail Gradle Plugin](https://github.com/AvailLang/gradle-plugin) for more
+details on how to accomplish this. You can also refer to our
+[sample project](https://github.com/AvailLang/samples) to see how Avail can be
+incorporated into a JVM project.
+
 
 --------------------------------------------------------------------------------
 

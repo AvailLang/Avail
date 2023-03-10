@@ -110,22 +110,30 @@ tasks {
 		archiveBaseName.set("anvil")
 		archiveClassifier.set("")
 		archiveVersion.set("")
+		destinationDirectory.set(file("../"))
 	}
 
-	val anvil by creating(Copy::class) {
+	val `package` by creating(DefaultTask::class) {
 		description = "Create Anvil Jar"
-		group = "avail"
+		group = "anvil"
+		description = "Package anvil.jar"
 		dependsOn(shadowJar)
-		from(layout.buildDirectory.file("libs/anvil.jar"))
-		into(layout.projectDirectory.dir("../"))
+
 	}
 
-	@Suppress("UNUSED_VARIABLE")
-	val run by creating(Exec::class) {
-		dependsOn(anvil)
-		group = "avail"
-		description = "Run the Avail Project Manager"
-		commandLine("java", "-jar", "../anvil.jar")
+	@Suppress("unused")
+	val packageAndRun by creating(JavaExec::class) {
+		dependsOn(`package`)
+		group = "anvil"
+		description = "Package anvil.jar and run the Avail Project Manager"
+		classpath = files("../anvil.jar")
+	}
+
+	@Suppress("unused")
+	val run by creating(JavaExec::class) {
+		group = "anvil"
+		description = "Run the Avail Project Manager for an already built anvil.jar"
+		classpath = files("../anvil.jar")
 	}
 
 	/**
