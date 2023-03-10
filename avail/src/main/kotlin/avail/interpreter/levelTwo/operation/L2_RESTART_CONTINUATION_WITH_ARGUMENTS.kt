@@ -79,7 +79,7 @@ object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
 		builder.append(' ')
 		builder.append(continuation.registerString())
 		builder.append("(")
-		builder.append(arguments.elements())
+		builder.append(arguments.elements)
 		builder.append(")")
 	}
 
@@ -95,7 +95,10 @@ object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
 		// ::    continuation, argsArray);
 		translator.loadInterpreter(method)
 		translator.load(method, continuation.register())
-		translator.objectArray(method, arguments.elements(), AvailObject::class.java)
+		translator.objectArray(
+			method,
+			arguments.elements,
+			AvailObject::class.java)
 		Interpreter.reifierToRestartWithArgumentsMethod.generateCall(method)
 		method.visitInsn(Opcodes.ARETURN)
 	}

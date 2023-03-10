@@ -55,16 +55,17 @@ import avail.descriptor.types.A_Type
  * position of the token in the name, and the absolute index of this argument in
  * the entire message name.
  *
- * @param positionInName
+ * @param startInName
  *   The one-based position of the start of the token in the message name.
  * @param absoluteUnderscoreIndex
  *   The one-based index of this argument within the entire message name's list
  *   of arguments.
  */
 internal class RawLiteralTokenArgument constructor(
-	positionInName: Int,
-	absoluteUnderscoreIndex: Int)
-: RawTokenArgument(positionInName, absoluteUnderscoreIndex)
+	startInName: Int,
+	pastEndInName: Int,
+	absoluteUnderscoreIndex: Int
+) : RawTokenArgument(startInName, pastEndInName, absoluteUnderscoreIndex)
 {
 	override fun emitOn(
 		phraseType: A_Type,

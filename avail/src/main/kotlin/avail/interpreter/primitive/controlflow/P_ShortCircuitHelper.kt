@@ -98,5 +98,4 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 			functionReg, emptyList(), true, callSiteHelper)
 		return true
 	}
-
 }

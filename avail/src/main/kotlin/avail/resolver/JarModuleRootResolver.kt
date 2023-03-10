@@ -32,28 +32,21 @@
 
 package avail.resolver
 
-import avail.builder.ModuleNameResolver.Companion.availExtension
-import avail.builder.ModuleNameResolver.Companion.availExtensionWithSlash
 import avail.builder.ModuleRoot
 import avail.builder.ModuleRootErrorCode
 import avail.error.ErrorCode
 import avail.error.StandardErrorCode
 import avail.files.FileErrorCode
 import avail.files.FileManager
-import avail.resolver.ResourceType.DIRECTORY
-import avail.resolver.ResourceType.MODULE
-import avail.resolver.ResourceType.PACKAGE
-import avail.resolver.ResourceType.REPRESENTATIVE
-import avail.resolver.ResourceType.RESOURCE
-import avail.resolver.ResourceType.ROOT
-import java.io.BufferedInputStream
-import java.io.DataInputStream
+import org.availlang.artifact.ResourceType.DIRECTORY
+import org.availlang.artifact.ResourceType.PACKAGE
+import org.availlang.artifact.ResourceType.ROOT
+import org.availlang.artifact.jar.AvailArtifactJar
 import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.util.UUID
 import java.util.concurrent.locks.ReentrantLock
-import java.util.jar.JarFile
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.withLock
 
@@ -89,14 +82,15 @@ constructor(
 
 	private val jarFileLock = ReentrantLock()
 
-	/** The jar file containing Avail source files. */
+	/**
+	 * The [AvailArtifactJar] that wraps the target jar.
+	 */
 	@GuardedBy("jarFileLock")
-	private var jarFile: JarFile? = null
+	private var artifactJar = AvailArtifactJar(uri)
 
 	override fun close() {
 		jarFileLock.withLock {
-			jarFile?.close()
-			jarFile = null
+			artifactJar.close()
 		}
 	}
 
@@ -109,81 +103,28 @@ constructor(
 		executeTask {
 			val map = mutableMapOf<String, ResolverReference>()
 			val rootPrefix = "/${moduleRoot.name}"
+			val rootInJar = uri.fragment
 			try
 			{
-				val digests = mutableMapOf<String, ByteArray>()
+				val digests: Map<String, ByteArray>
 				val entries = jarFileLock.withLock {
-					jarFile = JarFile(uri.path)
-					// First, fetch the digests file and populate the digestMap.
-					val digestEntry =
-						jarFile!!.getEntry(availDigestsPathInJar)!!
-					val bytes = ByteArray(digestEntry.size.toInt())
-					val stream = DataInputStream(
-						BufferedInputStream(
-							jarFile!!.getInputStream(digestEntry), 4096))
-					stream.readFully(bytes)
-					// Decode file as UTF-8.
-					val text = String(bytes)
-					text.lines()
-						.filter(String::isNotEmpty)
-						.forEach { line ->
-							val (innerFileName, digestString) = line.split(":")
-							val digestBytes =
-								ByteArray(digestString.length ushr 1) { i ->
-									digestString
-										.substring(i shl 1, (i shl 1) + 2)
-										.toInt(16)
-										.toByte()
-								}
-							digests[innerFileName] = digestBytes
-						}
-					jarFile!!.entries()
+					digests = artifactJar.extractDigestForRoot(rootInJar)
+					artifactJar.jarFileEntries
 				}
-				for (entry in entries.iterator())
-				{
-					var name = entry.name
-					if (!name.startsWith(availSourcesPathInJar)) continue
-					name = name.removePrefix(availSourcesPathInJar)
-					val type = when
-					{
-						entry.name.endsWith(availExtensionWithSlash) -> PACKAGE
-						name.endsWith("/") -> DIRECTORY
-						name.endsWith(availExtension) ->
-						{
-							assert(!entry.isDirectory)
-							val parts = name.split("/")
-							when
-							{
-								(parts.size >= 2
-									&& parts.last() == parts[parts.size - 2]
-								) -> REPRESENTATIVE
-								else -> MODULE
-							}
-						}
-						else -> RESOURCE
-					}
-					name = name.removeSuffix("/")
-					val qualifiedName = name
-						.split("/")
-						.joinToString("/", prefix = "$rootPrefix/") {
-							it.removeSuffix(availExtension)
-						}
-					val mimeType = when (type)
-					{
-						MODULE, REPRESENTATIVE -> "text/plain"
-						else -> ""
-					}
+				artifactJar.extractFileMetadataForRoot(
+					name, rootInJar, entries, digests
+				).forEach {
 					val reference = ResolverReference(
 						this,
 						// exact relative path within jar
-						URI(null, entry.name, null),
-						qualifiedName,
-						type,
-						mimeType,
-						entry.lastModifiedTime.toMillis(),
-						entry.size,
-						forcedDigest = digests[name])
-					map[qualifiedName] = reference
+						URI(null, it.path, null),
+						it.qualifiedName,
+						it.type,
+						it.mimeType,
+						it.lastModified,
+						it.size,
+						forcedDigest = digests[it.path])
+					map[it.qualifiedName] = reference
 				}
 				// Add the root.
 				map[rootPrefix] = ResolverReference(
@@ -260,7 +201,7 @@ constructor(
 	{
 		// Within a jar file, the digest file is the authoritative mechanism for
 		// distinguishing versions.  There's nothing to refresh, since the
-		// digest and timestamp were capture during jar construction.
+		// digest and timestamp were captured during jar construction.
 		when (val digest = reference.forcedDigest)
 		{
 			null -> failureHandler(
@@ -347,13 +288,9 @@ constructor(
 			jarFileLock.withLock {
 				// We stashed the exact path within the jar inside the
 				// schemaSpecificPart of the URI.
-				val entry = jarFile!!.getEntry(reference.uri.schemeSpecificPart)
-				assert(entry.size.toInt().toLong() == entry.size)
-				val bytes = ByteArray(entry.size.toInt())
-				val stream = DataInputStream(
-					BufferedInputStream(jarFile!!.getInputStream(entry), 4096))
-				stream.readFully(bytes)
-				bytes
+				artifactJar.extractRootFile(
+					reference.resolver.uri.fragment,
+					reference.uri.schemeSpecificPart)
 			}
 		}
 		catch (e: IOException)
@@ -361,21 +298,14 @@ constructor(
 			failureHandler(StandardErrorCode.IO_EXCEPTION, e)
 			return
 		}
+		catch (e: Throwable)
+		{
+			failureHandler(StandardErrorCode.UNSPECIFIED, e)
+			return
+		}
 		withContents(fileContent, null)
 	}
 
-	companion object
-	{
-		/**
-		 * The prefix of paths of Avail *source* file names within this jar
-		 * file.
-		 */
-		const val availSourcesPathInJar = "Avail-Sources/"
-
-		/**
-		 * The path within this jar file of the digests file.  The file contains
-		 * a series of entries of the form ```<path>:<digest>\n```.
-		 */
-		const val availDigestsPathInJar = "Avail-Digests/all_digests.txt"
-	}
+	override fun toString(): String =
+		"$name - $uri"
 }

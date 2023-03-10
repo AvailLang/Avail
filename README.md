@@ -1,5 +1,7 @@
 OVERVIEW
 --------------------------------------------------------------------------------
+[![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha20-0f824e)](https://search.maven.org/artifact/org.availlang/avail)
+
 Avail is a multi-paradigmatic general purpose programming language whose feature
 set emphasizes support for articulate programming. Avail is an open-source 
 project that comprises a 
@@ -201,7 +203,7 @@ the user needing to prefix its exact path or change the working directory.
 3) Set the AVAIL_ROOTS environment variable to a valid module roots path so
 that Avail can find its modules, or …
 
-4) … alternatively, you may start the Avail workbench without specifying
+4) … [OBSOLETE 2022-10-29] alternatively, you may start the Avail workbench without specifying
 AVAIL_HOME and use the "Preferences…" menu item to enter the module roots path,
 one module root at a time. Upon exiting the Avail workbench, this information is
 persisted for future sessions.

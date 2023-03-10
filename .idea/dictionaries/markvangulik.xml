@@ -13,9 +13,11 @@
       <w>boundedly</w>
       <w>calendrical</w>
       <w>canonicalized</w>
+      <w>canonicity</w>
       <w>cardinalities</w>
       <w>cellspacing</w>
       <w>checkable</w>
+      <w>cislyn</w>
       <w>combinatoric</w>
       <w>comparables</w>
       <w>contravariants</w>
@@ -23,7 +25,9 @@
       <w>darcula</w>
       <w>dbff</w>
       <w>debugger's</w>
+      <w>decl's</w>
       <w>decompilable</w>
+      <w>deemphasize</w>
       <w>deoptimize</w>
       <w>deoptimized</w>
       <w>devirtualize</w>
@@ -34,14 +38,17 @@
       <w>enablements</w>
       <w>enqueuer</w>
       <w>exponentiating</w>
+      <w>fernflower</w>
       <w>ffff</w>
       <w>fileanalyzer</w>
       <w>fillcolor</w>
+      <w>fixups</w>
       <w>genericity</w>
       <w>getenv</w>
       <w>hasher</w>
       <w>hexadecitets</w>
       <w>hmmss</w>
+      <w>iconified</w>
       <w>incomparables</w>
       <w>inet</w>
       <w>inliner</w>
@@ -66,18 +73,23 @@
       <w>metainvariance</w>
       <w>metametatype</w>
       <w>metatype's</w>
+      <w>metavariance</w>
       <w>methvin</w>
       <w>misconnected</w>
       <w>mutable's</w>
+      <w>mutables</w>
       <w>noncanonical</w>
       <w>noninline</w>
       <w>nonlocal</w>
       <w>nonprimitive</w>
+      <w>nontype</w>
       <w>nulled</w>
       <w>nullness</w>
       <w>nybblecoded</w>
       <w>observerless</w>
+      <w>opcode's</w>
       <w>optional's</w>
+      <w>parameterizations</w>
       <w>parameters'type</w>
       <w>postinvoke</w>
       <w>pragma's</w>
@@ -86,6 +98,7 @@
       <w>primfail</w>
       <w>printability</w>
       <w>pseudoprimes</w>
+      <w>readded</w>
       <w>recanonicalize</w>
       <w>recurses</w>
       <w>recursing</w>
@@ -103,25 +116,32 @@
       <w>send's</w>
       <w>sendable</w>
       <w>setfile</w>
+      <w>shareds</w>
       <w>situ</w>
       <w>spliterate</w>
       <w>spliterated</w>
       <w>spliterating</w>
       <w>stackless</w>
+      <w>standardly</w>
       <w>steradian</w>
       <w>subbin</w>
       <w>subblock</w>
       <w>subgraphs</w>
+      <w>subindices</w>
       <w>subkey</w>
       <w>sublists</w>
       <w>submap</w>
       <w>subnode</w>
       <w>subphrase</w>
+      <w>subphrases</w>
+      <w>subqueue</w>
+      <w>subqueues</w>
       <w>subrange</w>
       <w>subranges</w>
       <w>subregion</w>
       <w>subtable</w>
       <w>subtags</w>
+      <w>subtuple's</w>
       <w>subtyped</w>
       <w>subvalue</w>
       <w>subvariant</w>
@@ -129,6 +149,7 @@
       <w>summarizable</w>
       <w>supercall</w>
       <w>supercast's</w>
+      <w>superclass's</w>
       <w>supernode</w>
       <w>superunion</w>
       <w>supremum</w>
@@ -138,6 +159,7 @@
       <w>uncaptured</w>
       <w>undeclare</w>
       <w>underflows</w>
+      <w>ungenerated</w>
       <w>unname</w>
       <w>unparameterized</w>
       <w>unparking</w>
@@ -147,6 +169,7 @@
       <w>unreified</w>
       <w>unreturnable</w>
       <w>unreversed</w>
+      <w>unstyled</w>
       <w>unsummarized</w>
       <w>unsynchronized</w>
       <w>untraced</w>

@@ -66,6 +66,7 @@ import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -80,8 +81,9 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.serialization.Serializer
 import avail.utility.Graph
-import avail.utility.StackPrinter.Companion.trace
+import avail.utility.parallelDoThen
 import avail.utility.safeWrite
+import avail.utility.stackToString
 import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import java.io.File
@@ -519,7 +521,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   What to do after building everything.  This may run in another
 	 *   [Thread], possibly long after this method returns.
 	 */
-	@Suppress("MemberVisibilityCanBePrivate")
 	fun buildTargetThen(
 		target: ModuleName,
 		localTracker: CompilerProgressReporter,
@@ -850,18 +851,31 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			if (outstanding.decrementAndGet() == 0)
 			{
 				processParsedCommand(
-					allSolutions, // no longer changing
-					allProblems, // no longer changing
+					// collection is no longer changing.
+					allSolutions,
+					// collection is no longer changing.
+					allProblems,
 					onAmbiguity,
 					onSuccess,
-					parallelCombine(allCleanups), // no longer changing
-					onFailure)
+					// collection is no longer changing.
+					postSuccessCleanup = { postAction ->
+						allCleanups.parallelDoThen(
+							action = { action, after ->
+								runtime.execute(commandPriority) {
+									action(after)
+								}
+							},
+							then = postAction)
+					},
+					onFailure
+				)
 			}
 		}
 
 		for (loadedModule in modulesWithEntryPoints)
 		{
 			val module = newModule(
+				runtime,
 				stringFrom(
 					loadedModule.module.moduleNameNative + " (command)"))
 			val loader = AvailLoader(runtime, module, runtime.textInterface())
@@ -908,7 +922,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						decider(false)
 					}
 
-					@Suppress("RedundantLambdaArrow")
 					override fun handleInternal(
 						problem: Problem,
 						decider: (Boolean)->Unit
@@ -922,7 +935,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						}
 					}
 
-					@Suppress("RedundantLambdaArrow")
 					override fun handleExternal(
 						problem: Problem,
 						decider: (Boolean)->Unit)
@@ -944,30 +956,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					decrement()
 				},
 				decrement)
-		}
-	}
-
-	/**
-	 * Given a [Collection] of actions, each of which expects a continuation
-	 * (called the post-action activity) that instructs it on how to proceed
-	 * when it has completed, produce a single action that evaluates this
-	 * collection in parallel and defers the post-action activity until every
-	 * member has completed.
-	 *
-	 * @param actions
-	 *   A collection of actions.
-	 * @return
-	 *   The combined action.
-	 */
-	private fun parallelCombine(
-		actions: Collection<(()->Unit)->Unit>): (()->Unit)->Unit
-	{
-		return { postAction ->
-			val count = AtomicInteger(actions.size)
-			val decrement = { if (count.decrementAndGet() == 0) postAction() }
-			actions.forEach { action ->
-				runtime.execute(commandPriority) { action(decrement) }
-			}
 		}
 	}
 
@@ -1094,7 +1082,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							EXECUTION,
 							"Error executing command:{0}\n{1}",
 							if (e.message !== null) " " + e.message else "",
-							trace(e))
+							e.stackToString)
 						{
 							override fun abortCompilation() = onFailure()
 						}
@@ -1149,7 +1137,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 */
 		internal fun log(level: Level, format: String, vararg args: Any)
 		{
-			@Suppress("ConstantConditionIf")
 			if (debugBuilder)
 			{
 				if (logger.isLoggable(level))
@@ -1177,7 +1164,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			format: String,
 			vararg args: Any)
 		{
-			@Suppress("ConstantConditionIf")
 			if (debugBuilder)
 			{
 				if (logger.isLoggable(level))

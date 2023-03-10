@@ -43,6 +43,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -102,6 +103,25 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		builder.append(" = ")
 		builder.append(constant.constant)
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+	}
+
+	override fun generateReplacement(
+		instruction: L2Instruction,
+		regenerator: L2Regenerator)
+	{
+		val value = regenerator.transformOperand(
+			instruction.operand<L2ReadBoxedOperand>(0))
+		val constant = regenerator.transformOperand(
+			instruction.operand<L2ConstantOperand>(1))
+		val ifEqual = regenerator.transformOperand(
+			instruction.operand<L2PcOperand>(2))
+		val ifUnequal = regenerator.transformOperand(
+			instruction.operand<L2PcOperand>(3))
+		regenerator.targetGenerator.jumpIfEqualsConstant(
+			value,
+			constant.constant,
+			ifEqual.targetBlock(),
+			ifUnequal.targetBlock())
 	}
 
 	override fun translateToJVM(

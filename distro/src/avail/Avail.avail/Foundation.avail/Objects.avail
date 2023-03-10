@@ -56,12 +56,40 @@ Names
 	"extend_with«_:_‡,»",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
-		\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+		\|«with immutable⁇field|fields««public»?«reconstructible»?\
+			\|_:_«(accessor⁇_)»‡,»»\
 		\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
 			\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 		\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
-	"_as_«with«_::=_‡,»»"
+	"_as_«with«_::=_‡,»»",
+
+	/** Stylers. */
+	"object type styler"
 Body
+
+objectTypeStyler ::=
+	[
+		optionalOriginal : send phrase?,
+		transformed : phrase
+	|
+		attempt extract optionalOriginal or transformed then
+		[
+			original : send phrase
+		|
+			Style fixed tokens of original with "#object-type-definition";
+		];
+	] : ⊤;
+
+/**
+ * Answer a function that applies the system style named
+ * {@code "object-type-definition"} to the fixed tokens of an original
+ * {@method "send phrase"}, suitable for use in the styling clause of a method
+ * definition.
+ *
+ * @return "styler function"
+ *   The requested styler.
+ */
+Public method "object type styler" is [objectTypeStyler];
 
 /**
  * Strengthen object field extraction ({@method "_[_]"}).
@@ -78,6 +106,7 @@ Semantic restriction "_[_]" is
 ] : any's type;
 
 Method "_→object type" is stable at [field type map]→object meta;
+Style $"_→object type" with object type styler;
 
 /**
  * @method "_→object type"
@@ -337,6 +366,8 @@ Public stable method "extend_with«_:_‡,»" is
 	];
 	subtype
 ] : object meta;
+
+Style $"extend_with«_:_‡,»" with object type styler;
 
 /**
  * Object type extension statically requires that:
@@ -1336,6 +1367,14 @@ is
 	];
 ] : ⊤;
 
+Style $"«Public»?«Explicit|explicit»?\
+	\|Class|class_extends_\
+	\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
+	\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
+		\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
+	\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»"
+with object type styler;
+
 /**
  * Class definition statically requires that:
  *
@@ -1938,14 +1977,15 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 	$body : expression phrase ⇒ object;
 	exit ::= [
 		Exit body with
-			bootstrap restricted send $"a|an_«with«_«:»?:=_‡,»»"
+			restricted send $"a|an_«with«_«:»?:=_‡,»»"
 			with <objectTypeExpression, optionalExpression> → list phrase
 			: object];
 	objectType ::= objectTypeExpression's token's value;
 	objectMap ::= objectType→map;
 	expressions ::= optionalExpression's expressions;
 	weakDefs ::= expressions[1] else [<> → list phrase];
-	defs ::= cast weakDefs
+	defs ::=
+		cast weakDefs
 		into [phrases : list phrase ⇒ <atom, boolean, any…|3>* |
 			map each triple in phrases' expressions through [
 				cast triple
@@ -1985,7 +2025,7 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 			varType ::= cast objectMap[fieldAtom] else exit
 				into [t : variable's type | t's read type]
 				else exit;
-			createVar ::= bootstrap restricted send $"new`↑_initialized to_"
+			createVar ::= restricted send $"new`↑_initialized to_"
 				with <`varType` → literal phrase, valueExpr> → list phrase
 				: read varType / write varType;
 			tuplePhrases ++= <«<atomExpr, createVar>»>;
@@ -2024,10 +2064,7 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 					readType ::= cast varType's read type
 						into [t : any meta | t];
 					fieldAtomToken ::= `fieldAtom`(fieldAtom's name);
-					createVar ::= bootstrap restricted send
-							$"new`↑_"
-						with <`readType` → literal phrase> → list phrase
-						: varType;
+					createVar ::= ⟦new ↑⦊`readType` → literal phrase⦉⟧;
 					tuplePhrases ++= <«<
 						fieldAtomToken → literal phrase,
 						createVar>»>;
@@ -2040,7 +2077,7 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 		];
 	];
 	/* Instantiate the object and certify its type. */
-	bootstrap restricted send $"_→object"
+	restricted send $"_→object"
 		with <tuplePhrases → list phrase> → list phrase
 		: objectType
 ] : phrase ⇒ object;
@@ -2073,7 +2110,7 @@ Semantic restriction "a|an_«with«_«:»?:=_‡,»»" is
 		def ::= optional[1][index];
 		atomType ::= def[1];
 		Exit body with objectType if |def[2]| ≠ 1;
-		assign ::= ¬def[2]'s instance;
+		assign ::= ¬(def[2]'s instance);
 		valueType ::= def[3];
 		Exit body with objectType if |atomType| ≠ 1;
 		fieldAtom ::= atomType's instance;

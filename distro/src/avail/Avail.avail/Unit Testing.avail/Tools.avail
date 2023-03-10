@@ -99,12 +99,12 @@ Public method "Fail test:_" is
  * Skip the currently running unit test.
  *
  * @method "Skip test"
- * @returns "⊥"
+ * @returns "⊤"
  * @raises "unsupported-operation exception"
  *         Always.
  * @category "Unit Testing"
  */
-Public method "Skip test" is [Raise an unsupported-operation exception] : ⊥;
+Public method "Skip test" is [Raise an unsupported-operation exception] : ⊤;
 
 /**
  * An exception that indicates that a unit test requirement failed.
@@ -126,15 +126,48 @@ Public explicit class "failed-requirement exception" extends exception;
  *         If {@param "predicate"} is false.
  * @category "Unit Testing"
  */
-Public method "Require:_" is [predicate : boolean |] : ⊤;
+Public method "Require:_" is [predicate : boolean |] : ⊤
+	styled by assertion styler;
+
+/**
+ * Require that the specified predicate is true, but in the specific case where
+ * it's actually false.  We could strengthen the return result to bottom, but
+ * it's better to use a semantic restriction to improve the diagnostic.
+ *
+ * @method "Require:_"
+ * @param "predicate" "false"
+ *        A predicate that must be true, but happens to be false.
+ * @returns "⊤"
+ * @raises "failed-requirement exception"
+ *         If {@param "predicate"} is false.
+ * @category "Unit Testing"
+ */
 Method "Require:_" is
 [
 	predicate : false's type
 |
 	Raise a failed-requirement exception
-] : ⊥;
+] : ⊤;
 
-Private method "Require:__" is [predicate : boolean, message : []→string |] : ⊤;
+/**
+ * Reject the current parse if the arguments is guaranteed false.
+ *
+ * @method "Require:_"
+ * @restricts "false's type"
+ * @category "Unit Testing"
+ */
+Semantic restriction "Require:_" is
+[
+	predicate : false's type's type
+|
+	Reject parse strongly, expected:
+		"this Require clause to be possible \
+			\|(the argument supplied here is always false)."
+];
+
+Private method "Require:__" is [predicate : boolean, message : []→string |] : ⊤
+	styled by assertion styler;
+
 Private method "Require:__" is
 [
 	predicate : false's type,
@@ -168,7 +201,8 @@ Public macro "Require:_(_)" is
 			predicate,
 			«[<message>] : message's semantic type»
 		>» : ⊤
-];
+]
+styled by assertion styler;
 
 /**
  * Require that the arguments are equal.
@@ -192,7 +226,8 @@ Public method "Require:_=_" is
 			error message ::=
 				format "expected=“①”, actual=“②”" with expected, actual
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Reject the current parse if the arguments are guaranteed unequal.
@@ -230,7 +265,8 @@ Private method "Require:_=__" is
 				format "“①”: expected=“②”, actual=“③”"
 				with message(), expected, actual
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Require that the arguments are equal.
@@ -263,7 +299,8 @@ Public macro "Require:_=_(_)" is
 			expected,
 			«[<message>] : message's semantic type»
 		>» : ⊤
-];
+]
+styled by assertion styler;
 
 /**
  * Require that the {@param "aFunction"} raises an exception of type
@@ -304,7 +341,8 @@ Public method "Require:_raises_" is
 					with exceptionType, e
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 Private method "Require:_raises__" is
 [
@@ -360,7 +398,8 @@ Public macro "Require:_raises_(_)" is
 			exceptionType,
 			«[<message>] : message's semantic type»
 		>» : ⊤
-];
+]
+styled by assertion styler;
 
 /**
  * Require that {@param "aFunction"} answers {@method "true"} or raises an

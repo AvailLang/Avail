@@ -41,6 +41,7 @@ import avail.serialization.DeserializerDescriber
 import avail.utility.Strings.newlineTab
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import org.availlang.persistence.MalformedSerialStreamException
+import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.lang.String.format
 
@@ -89,7 +90,11 @@ class RepositoryDescriber constructor(
 						newlineTab(3)
 						append("Phrases #$recordNumberOfBlockPhrases")
 						newlineTab(3)
-						append("Manifest #$recordNumberOfManifestEntries")
+						append("Manifest #$recordNumberOfManifest")
+						newlineTab(3)
+						append("Styling #$recordNumberOfStyling")
+						newlineTab(3)
+						append("PhrasePaths #$recordNumberOfPhrasePaths")
 					}
 				}
 			}
@@ -125,7 +130,7 @@ class RepositoryDescriber constructor(
 	{
 		val record = repository.repository!![recordNumberOfManifestEntries]
 		return buildString {
-			val input = DataInputStream(validatedBytesFrom(record))
+			val input = DataInputStream(ByteArrayInputStream(record))
 			while (input.available() > 0)
 			{
 				ModuleManifestEntry(input).run {
@@ -144,11 +149,12 @@ class RepositoryDescriber constructor(
 	 * @param recordNumberOfManifestEntries
 	 *   The record number to use to look up the manifest entries.
 	 */
-	fun manifestEntries(recordNumberOfManifestEntries: Long): List<ModuleManifestEntry>
+	fun manifestEntries(
+		recordNumberOfManifestEntries: Long
+	): List<ModuleManifestEntry>
 	{
-		val record =
-			repository.repository!![recordNumberOfManifestEntries]
-		val input = DataInputStream(validatedBytesFrom(record))
+		val record = repository.repository!![recordNumberOfManifestEntries]
+		val input = DataInputStream(ByteArrayInputStream(record))
 		val entries = mutableListOf<ModuleManifestEntry>()
 		while (input.available() > 0)
 		{

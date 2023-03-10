@@ -32,6 +32,7 @@
 package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
@@ -43,6 +44,7 @@ import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
@@ -53,17 +55,17 @@ import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.ARGUMENTS_LIST_
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.BUNDLE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE
 import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKENS
+import avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKEN_INDICES_IN_NAME
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
+import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -79,23 +81,30 @@ import java.util.IdentityHashMap
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class SendPhraseDescriptor private constructor(
+class SendPhraseDescriptor
+private constructor(
 	mutability: Mutability
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.SEND_PHRASE_TAG,
-	ObjectSlots::class.java,
-	null
-) {
+	ObjectSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * The [tuple][A_Tuple] of [tokens][A_Token] that comprise this
 		 * [send][SendPhraseDescriptor].
 		 */
 		TOKENS,
+
+		/**
+		 * The [tuple][A_Tuple] of part numbers within the split [BUNDLE] name.
+		 *
+		 */
+		TOKEN_INDICES_IN_NAME,
 
 		/**
 		 * A [list&#32;phrase][ListPhraseDescriptor] containing the expressions
@@ -130,31 +139,43 @@ class SendPhraseDescriptor private constructor(
 	}
 
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
-		self.slot(BUNDLE).message
+		self[BUNDLE].message
+
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		if (!visitedSet.add(self)) return then()
+		// Process the children, then this phrase.
+		styleDescendantsThen(self, context, visitedSet) {
+			context.styleSendThen(null, self, then)
+		}
+	}
 
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
-		self.slot(ARGUMENTS_LIST_NODE)
+		self[ARGUMENTS_LIST_NODE]
 
-	override fun o_Bundle(self: AvailObject): A_Bundle = self.slot(BUNDLE)
+	override fun o_Bundle(self: AvailObject): A_Bundle = self[BUNDLE]
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
-	) = action(self.slot(ARGUMENTS_LIST_NODE))
+		action: (A_Phrase)->Unit
+	) = action(self[ARGUMENTS_LIST_NODE])
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(ARGUMENTS_LIST_NODE,
-		transformer(self.slot(ARGUMENTS_LIST_NODE)))
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(ARGUMENTS_LIST_NODE, transformer)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val bundle: A_Bundle = self.slot(BUNDLE)
+		val bundle: A_Bundle = self[BUNDLE]
 		val argCount: Int = bundle.bundleMethod.numArgs
-		val arguments: A_Phrase = self.slot(ARGUMENTS_LIST_NODE)
+		val arguments: A_Phrase = self[ARGUMENTS_LIST_NODE]
 		arguments.emitAllValuesOn(codeGenerator)
 		val superUnionType = arguments.superUnionType
 		when {
@@ -174,18 +195,13 @@ class SendPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(BUNDLE).equals(aPhrase.bundle)
-		&& self.slot(ARGUMENTS_LIST_NODE).equals(aPhrase.argumentsListNode)
-		&& self.slot(RETURN_TYPE).equals(aPhrase.phraseExpressionType))
+		&& self[BUNDLE].equals(aPhrase.bundle)
+		&& self[ARGUMENTS_LIST_NODE].equalsPhrase(
+			aPhrase.argumentsListNode)
+		&& self[RETURN_TYPE].equals(aPhrase.phraseExpressionType))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(RETURN_TYPE)
-
-	override fun o_Hash(self: AvailObject): Int = combine4(
-		self.slot(ARGUMENTS_LIST_NODE).hash(),
-		self.slot(BUNDLE).hash(),
-		self.slot(RETURN_TYPE).hash(),
-		-0x6f1c64b3)
+		self[RETURN_TYPE]
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEND_PHRASE
@@ -198,48 +214,56 @@ class SendPhraseDescriptor private constructor(
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(TOKENS)
+	override fun o_Tokens(self: AvailObject): A_Tuple = self[TOKENS]
 
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
+		self[TOKEN_INDICES_IN_NAME]
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("send phrase") }
-			at("tokens") { self.slot(TOKENS).writeTo(writer) }
-			at("arguments") { self.slot(ARGUMENTS_LIST_NODE).writeTo(writer) }
-			at("bundle") { self.slot(BUNDLE).writeTo(writer) }
-			at("return type") { self.slot(RETURN_TYPE).writeTo(writer) }
+			at("tokens") { self[TOKENS].writeTo(writer) }
+			at("token indices in name") {
+				self[TOKEN_INDICES_IN_NAME].writeTo(writer)
+			}
+			at("arguments") { self[ARGUMENTS_LIST_NODE].writeTo(writer) }
+			at("bundle") { self[BUNDLE].writeTo(writer) }
+			at("return type") { self[RETURN_TYPE].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("send phrase") }
 			at("arguments") {
-				self.slot(ARGUMENTS_LIST_NODE).writeSummaryTo(writer)
+				self[ARGUMENTS_LIST_NODE].writeSummaryTo(writer)
 			}
-			at("bundle") { self.slot(BUNDLE).writeSummaryTo(writer) }
-			at("return type") { self.slot(RETURN_TYPE).writeSummaryTo(writer) }
+			at("bundle") { self[BUNDLE].writeSummaryTo(writer) }
+			at("return type") { self[RETURN_TYPE].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable
+
+	override fun immutable() = immutable
 
 	override fun shared() = shared
 
 	companion object {
 		/**
-		 * Create a new [send#&#32;phrase][SendPhraseDescriptor] from the
-		 * specified [A_Bundle], [list#&#32;phrase][ListPhraseDescriptor] of
-		 * argument expressions, and return [type][TypeDescriptor].  Also take
-		 * a [tuple][A_Tuple] of [tokens][A_Token].
+		 * Create a new [send][SendPhraseDescriptor] phrase from the specified
+		 * [A_Bundle], [list][ListPhraseDescriptor] phrase of argument
+		 * expressions, and return [type][TypeDescriptor].  Also capture a
+		 * [tuple][A_Tuple] of [tokens][A_Token], which are all fixed tokens of
+		 * the send (the fixed tokens are the tokens occurring in the source
+		 * which match parts of the actual text of the message name).
 		 *
-		 * @param tokens
-		 *   The [tuple][A_Tuple] of [tokens][A_Token] that comprise the
-		 *   [send][SendPhraseDescriptor].
+		 * @param consumedTokens
+		 *   The list of all tokens collected for this send phrase.  This
+		 *   includes only the static tokens that occur literally within the
+		 *   method name itself.
+		 * @param consumedTokenIndices
+		 *   The indices of the [consumedTokens] collected for this send phrase.
+		 *   These are the one-based indices of the message parts within the
+		 *   split bundle name.
 		 * @param bundle
 		 *   The method bundle for which this represents an invocation.
 		 * @param argsListNode
@@ -250,7 +274,8 @@ class SendPhraseDescriptor private constructor(
 		 *   A new send phrase.
 		 */
 		fun newSendNode(
-			tokens: A_Tuple,
+			consumedTokens: A_Tuple,
+			consumedTokenIndices: A_Tuple,
 			bundle: A_Bundle,
 			argsListNode: A_Phrase,
 			returnType: A_Type
@@ -258,15 +283,20 @@ class SendPhraseDescriptor private constructor(
 			assert(bundle.isInstanceOfKind(MESSAGE_BUNDLE.o))
 			assert(argsListNode.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
 			return mutable.createShared {
-				setSlot(TOKENS, tokens)
+				setSlot(TOKENS, consumedTokens)
+				setSlot(TOKEN_INDICES_IN_NAME, consumedTokenIndices)
 				setSlot(ARGUMENTS_LIST_NODE, argsListNode)
 				setSlot(BUNDLE, bundle)
 				setSlot(RETURN_TYPE, returnType)
+				initHash()
 			}
 		}
 
 		/** The mutable [SendPhraseDescriptor]. */
 		private val mutable = SendPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SendPhraseDescriptor]. */
+		private val immutable = SendPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SendPhraseDescriptor]. */
 		private val shared = SendPhraseDescriptor(Mutability.SHARED)

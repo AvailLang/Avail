@@ -50,7 +50,7 @@ Extends
 		/* Statements. */
 		"_!;" → "_!.",
 		"…",
-		"…:=_;" → "…:=_.",
+		"…:=§_;" → "…:=_.",
 
 		/* Literals. */
 		"true",
@@ -159,7 +159,7 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 				partial[2] ++ selectorPiecePhrase's token's lexeme ++ ":_"
 			>
 		];
-	send $"Method_is_" with
+	send $"Method_is_«styled by_»?" with
 	«<
 		‘selector’,
 		«[
@@ -170,7 +170,8 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 			++ map each lit of stmtsPhrase's expressions
 				?→ ((literal phrase ⇒ statement phrase)*) through
 					[lit's token's value]
-		] : ⊤»
+		] : ⊤»,
+		<> → list phrase
 	>» : ⊤ → statement phrase
 ];
 
@@ -203,7 +204,7 @@ Public macro "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!" is
 	stmtsPhrase : list phrase ⇒ statement phrase*
 |
 	selector ::= "self " ++ selectorPhrase's token' lexeme;
-	send $"Method_is_" with
+	send $"Method_is_«styled by_»?" with
 	«<
 		‘selector’,
 		«[
@@ -212,7 +213,8 @@ Public macro "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!" is
 			++ map each lit of stmtsPhrase's expressions
 				?→ ((literal phrase ⇒ statement phrase)*) through
 					[lit's token's value]
-		] : ⊤»
+		] : ⊤»,
+		<> → list phrase
 	>» : ⊤ → statement phrase
 ];
 
@@ -230,14 +232,15 @@ Public macro "`!Game class methodsFor:'wumping'`!…«_!»`!`!" is
 	stmtsPhrase : list phrase ⇒ statement phrase*
 |
 	selector ::= "self " ++ selectorPhrase's token' lexeme;
-	send $"Method_is_" with
+	send $"Method_is_«styled by_»?" with
 	«<
 		‘selector’,
 		«[
 			map each lit of stmtsPhrase's expressions
 				?→ ((literal phrase ⇒ statement phrase)*) through
 					[lit's token's value]
-		] : ⊤»
+		] : ⊤»,
+		<> → list phrase
 	>» : ⊤ → statement phrase
 ];
 

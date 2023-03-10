@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 5/9/22, 11:29 PM
+ * * Last Generated: 12/24/22, 12:55 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -137,6 +137,7 @@ Uses
 		"_[_]",
 		"_\\_",
 		"_^_",
+		"_bit test_",
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
@@ -1499,6 +1500,28 @@ Primitive "primitive description of_" is
 |
 	Primitive ToString;
 ] : string;
+
+/**
+ * Test a bit of the value, treated as a 2's complement signed integer.  If the
+ * bit is 1, answer `true`, otherwise answer `false`.  The bitIndex starts at 0,
+ * representing the low bit of the integer.
+ *
+ * @category "Primitives"
+ * @method "_bit test_"
+ * @param "value" "(-∞..∞)"
+ *        The integer to examine.
+ * @param "bitIndex" "[0..∞)"
+ *        The zero-based index of the bit to examine.
+ * @returns "boolean"
+ *    Whether that bit was 1.
+ */
+Primitive "_bit test_" is
+[
+	value : integer,
+	bitIndex : whole number
+|
+	Primitive BitTest;
+] : boolean;
 
 /**
  * Compute and answer the bitwise {@code "AND"} of the arguments.

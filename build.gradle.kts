@@ -38,15 +38,14 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 import avail.build.BuildContext
 
 /**
- * The build version string of the form:
- * [version]."yyyyMMdd.HHmmss", representing the time of the
- * build.
+ * The build version string of the form: "yyyyMMdd.HHmmss", representing the
+ * time of the build.
  *
  * It simply represents the time the build was completed and the base [version]
  * of said build.
  */
-val buildVersion by lazy {
-	BuildContext.buildVersion
+val builtTime by lazy {
+	BuildContext.built
 }
 
 plugins {
@@ -56,9 +55,8 @@ plugins {
 	id("com.github.johnrengelman.shadow") version Versions.shadow apply false
 	`maven-publish`
 	publishing
-	id("org.jetbrains.compose") version Versions.compose apply false
-	id("org.jetbrains.intellij") version Versions.intellij apply false
-	id("org.jetbrains.dokka") version "1.6.21" apply false
+	id("org.jetbrains.dokka") version "1.7.10" apply false
+	id("org.availlang.avail-plugin") version "2.0.0.alpha19" apply false
 }
 
 java {
@@ -69,18 +67,17 @@ java {
 
 kotlin {
 	jvmToolchain {
-		(this as JavaToolchainSpec).languageVersion.set(
-			JavaLanguageVersion.of(Versions.jvmTargetString))
+		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTargetString))
 	}
 }
 
 allprojects {
 	group = "org.availlang"
-	version = "1.6.1"
+	version = "2.0.0.alpha21"
 
 	// Define versions in a single place
 	extra.apply{
-		set("buildVersion", buildVersion)
+		set("builtTime", builtTime)
 	}
 	repositories {
 		mavenLocal()

@@ -37,10 +37,9 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.AssignmentPhraseDescriptor
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import avail.descriptor.phrases.SequencePhraseDescriptor
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -55,7 +54,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 
@@ -68,10 +66,10 @@ import avail.interpreter.execution.Interpreter
  * used as subexpressions), we actually produce a
  * [sequence&#32;phrase][SequencePhraseDescriptor] here, consisting of the
  * assignment phrase proper (whose output is effectively discarded) and a
- * literal [null&#32;value][NilDescriptor.nil].
+ * literal [nil].
  */
 @Suppress("unused")
-object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
+object P_CreateAssignmentStatement : Primitive(2, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -92,8 +90,7 @@ object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		val assignment = newAssignment(
-			variable, expression, emptyTuple, false)
+		val assignment = newAssignment(variable, expression, false)
 		return interpreter.primitiveSuccess(assignment)
 	}
 

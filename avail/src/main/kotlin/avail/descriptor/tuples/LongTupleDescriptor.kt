@@ -157,8 +157,8 @@ private constructor(
 		val newSize = originalSize + 1
 		// Copy to a larger LongTupleDescriptor.
 		val result = newLike(mutable, self, 0, 1)
-		result.setSlot(LONG_AT_, newSize, longValue)
-		result.setSlot(HASH_OR_ZERO, 0)
+		result[LONG_AT_, newSize] = longValue
+		result[HASH_OR_ZERO] = 0
 		return result
 	}
 
@@ -176,7 +176,7 @@ private constructor(
 		// Compare the argument's bytes to my longs.
 		var index2 = startIndex2
 		return (startIndex1..endIndex1).all {
-			self.slot(LONG_AT_, it) == aByteTuple.tupleLongAt(index2++)
+			self[LONG_AT_, it] == aByteTuple.tupleLongAt(index2++)
 		}
 	}
 
@@ -194,7 +194,7 @@ private constructor(
 		// Compare the argument's bytes to my longs.
 		var index2 = startIndex2
 		return (startIndex1..endIndex1).all {
-			(self.slot(LONG_AT_, it) == anIntTuple.tupleLongAt(index2++))
+			(self[LONG_AT_, it] == anIntTuple.tupleLongAt(index2++))
 		}
 	}
 
@@ -220,7 +220,7 @@ private constructor(
 		for (index in end downTo start)
 		{
 			val itemHash =
-				computeHashOfLong(self.slot(LONG_AT_, index)) xor preToggle
+				computeHashOfLong(self[LONG_AT_, index]) xor preToggle
 			hash = (hash + itemHash) * multiplier
 		}
 		return hash
@@ -257,10 +257,9 @@ private constructor(
 			val result: AvailObject = newLike(mutable, self, 0, deltaSlots)
 			var destination = size1 + 1
 			(1..size2).forEach {
-				result.setSlot(
-					LONG_AT_, destination++, otherTuple.tupleLongAt(it))
+				result[LONG_AT_, destination++] = otherTuple.tupleLongAt(it)
 			}
-			result.setSlot(HASH_OR_ZERO, 0)
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		if (!canDestroy)
@@ -285,7 +284,7 @@ private constructor(
 	{
 		// Verify that the values are in range.
 		return generateIntTupleFrom(self.tupleSize) {
-			self.slot(LONG_AT_, it).toInt()
+			self[LONG_AT_, it].toInt()
 		}
 	}
 
@@ -313,7 +312,7 @@ private constructor(
 			// newLike() if start is 1.
 			var source = start
 			val result = generateLongTupleFrom(size) {
-				self.slot(LONG_AT_, source++)
+				self[LONG_AT_, source++]
 			}
 			if (canDestroy)
 			{
@@ -396,7 +395,7 @@ private constructor(
 			self.tupleSize != aLongTuple.tupleSize -> return false
 			self.hash() != aLongTuple.hash() -> return false
 			(1..self.tupleSize).any {
-				self.slot(LONG_AT_, it) != strongLongTuple.slot(LONG_AT_, it)
+				self[LONG_AT_, it] != strongLongTuple[LONG_AT_, it]
 			} -> return false
 			// They're equal (but occupy disjoint storage). If possible, then
 			// replace one with an indirection to the other to keep down the
@@ -426,7 +425,7 @@ private constructor(
 		{
 			for (i in 1 .. tupleSize)
 			{
-				val element = self.slot(LONG_AT_, i)
+				val element = self[LONG_AT_, i]
 				if (element != element and 255)
 				{
 					return false
@@ -459,7 +458,7 @@ private constructor(
 		val breakIndex = min(self.tupleSize, typeTuple.tupleSize)
 		for (i in 1 .. breakIndex)
 		{
-			if (!typeTuple.tupleAt(i).rangeIncludesLong(self.slot(LONG_AT_, i)))
+			if (!typeTuple.tupleAt(i).rangeIncludesLong(self[LONG_AT_, i]))
 				return false
 		}
 		if (!(1 .. breakIndex).all {
@@ -480,24 +479,6 @@ private constructor(
 
 	override fun o_IsLongTuple(self: AvailObject): Boolean = true
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(immutable())
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(shared())
-		}
-		return self
-	}
-
 	override fun o_TransferIntoByteBuffer(
 		self: AvailObject,
 		startIndex: Int,
@@ -506,7 +487,7 @@ private constructor(
 	{
 		for (index in startIndex .. endIndex)
 		{
-			val mustBeByte = self.slot(LONG_AT_, index)
+			val mustBeByte = self[LONG_AT_, index]
 			assert(mustBeByte == mustBeByte and 255)
 			outputByteBuffer.put(mustBeByte.toByte())
 		}
@@ -517,7 +498,7 @@ private constructor(
 		index: Int): AvailObject
 	{
 		// Answer the element at the given index in the tuple object.
-		return fromLong(self.slot(LONG_AT_, index))
+		return fromLong(self[LONG_AT_, index])
 	}
 
 	override fun o_TupleAtPuttingCanDestroy(
@@ -539,8 +520,8 @@ private constructor(
 		val result =
 			if (canDestroy && isMutable) self
 			else newLike(mutable(), self, 0, 0)
-		result.setSlot(LONG_AT_, index, newValueStrong.extractLong)
-		result.setSlot(HASH_OR_ZERO, 0)
+		result[LONG_AT_, index] = newValueStrong.extractLong
+		result[HASH_OR_ZERO] = 0
 		return result
 	}
 
@@ -575,7 +556,7 @@ private constructor(
 					else -> return false
 				}
 				(startIndex .. endIndex).all {
-					self.slot(LONG_AT_, it) in lower .. upper
+					self[LONG_AT_, it] in lower .. upper
 				}
 			}
 		}
@@ -583,14 +564,14 @@ private constructor(
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		val longValue = self.slot(LONG_AT_, index)
+		val longValue = self[LONG_AT_, index]
 		val intValue = longValue.toInt()
 		assert(intValue.toLong() == longValue)
 		return intValue
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
-		self.slot(LONG_AT_, index)
+		self[LONG_AT_, index]
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
@@ -604,7 +585,7 @@ private constructor(
 			// It's not empty or singular, but it's reasonably small.
 			var i = tupleSize
 			return generateLongTupleFrom(tupleSize) {
-				self.slot(LONG_AT_, i--)
+				self[LONG_AT_, i--]
 			}
 		}
 		return super.o_TupleReverse(self)

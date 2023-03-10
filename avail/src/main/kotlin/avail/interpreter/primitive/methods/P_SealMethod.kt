@@ -75,16 +75,14 @@ object P_SealMethod : Primitive(2, CanInline, HasSideEffect)
 		val argumentTypes = interpreter.argument(1)
 		val loader = interpreter.availLoaderOrNull() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		try
 		{
-			loader.addSeal(
-				loader.lookupName(methodName),
-				argumentTypes)
+			loader.addSeal(loader.lookupName(methodName), argumentTypes)
 		}
 		catch (e: MalformedMessageException)
 		{
@@ -108,9 +106,9 @@ object P_SealMethod : Primitive(2, CanInline, HasSideEffect)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
-					E_LOADING_IS_OVER,
-					E_CANNOT_DEFINE_DURING_COMPILATION,
-					E_AMBIGUOUS_NAME,
-					E_INCORRECT_NUMBER_OF_ARGUMENTS)
-				.setUnionCanDestroy(possibleErrors, true))
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_AMBIGUOUS_NAME,
+				E_INCORRECT_NUMBER_OF_ARGUMENTS
+			).setUnionCanDestroy(possibleErrors, true))
 }

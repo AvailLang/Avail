@@ -412,7 +412,7 @@ private constructor(
 		 *   The instance represented by the given instance type.
 		 */
 		private fun getInstance(self: AvailObject): AvailObject =
-			self.slot(INSTANCE)
+			self[INSTANCE]
 
 		/** The mutable [InstanceMetaDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =

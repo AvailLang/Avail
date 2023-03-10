@@ -34,11 +34,13 @@ package avail.interpreter.primitive.bootstrap.lexing
 
 import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -49,6 +51,7 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapLexerSlashStarCommentBodyStyler
 
 /**
  * The `P_BootstrapLexerSlashStarCommentBody` primitive is used for parsing
@@ -123,10 +126,13 @@ object P_BootstrapLexerSlashStarCommentBody
 			source.copyStringFromToCanDestroy(
 				startPosition, position - 1, false),
 			startPosition,
-			startingLineNumber.extractInt)
+			startingLineNumber.extractInt,
+			interpreter.fiber().currentLexer)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		lexerBodyFunctionType()
+
+	override fun bootstrapStyler() = P_BootstrapLexerSlashStarCommentBodyStyler
 }

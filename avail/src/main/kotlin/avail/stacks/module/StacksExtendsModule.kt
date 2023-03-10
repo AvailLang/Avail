@@ -33,6 +33,7 @@
 package avail.stacks.module
 
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.stacks.CommentGroup
 import avail.stacks.StacksFilename
 import avail.stacks.comment.GrammaticalRestrictionComment

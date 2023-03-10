@@ -368,7 +368,22 @@ Public macro "$…#" is
 	tokenPhrase : literal phrase ⇒ literal token ⇒ string
 |
 	‘atom for tokenPhrase's token's value's value’
-] : literal phrase ⇒ atom;
+] : literal phrase ⇒ atom
+styled by
+[
+	optionalOriginal : <<>, send phrase…|[0..1]>,
+	transformed : phrase ⇒ ⊤
+|
+	If |optionalOriginal| = 1 then
+	[
+		original ::= optionalOriginal[1] ?→ send phrase;
+		dollar ::= original's tokens[1] ?→ token;
+		Style token dollar as "#method-definition";
+		arguments ::= original's arguments' expressions;
+		methodNameToken ::= arguments[1] ?→ literal phrase⇒literal token⇒string;
+		Style method name methodNameToken;
+	];
+];
 
 /**
  * Construct a {@type "character"} {@type "literal phrase" literal} from an
@@ -399,6 +414,17 @@ Public macro "¢…!" is
 				\|literal"
 	];
 	‘lexeme[1]’
+]
+styled by
+[
+	original : <<send phrase>, ⊥…|[0..1]>,
+	transformed : phrase
+|
+	If original ≠ <> then
+	[
+		sendPhrase ::= original[1] ?→ send phrase;
+		Style span of sendPhrase with "#character-literal";
+	];
 ];
 
 /**
@@ -670,7 +696,8 @@ Public method "{«_→_‡,»}" is
 	bindings : key-value tuple
 |
 	bindings→map
-] : map;
+] : map
+styled by map styler;
 
 /**
  * If a lexical map is built only from expressions with statically well-known
@@ -879,7 +906,7 @@ Macro "{«_‡,»}" is
 		];
 		‘values→set’
 	]
-	else [bootstrap restricted send $"{«_‡,»}" with «<exprs>» : set]
+	else [restricted send $"{«_‡,»}" with «<exprs>» : set]
 ];
 
 /**
@@ -933,7 +960,7 @@ Macro "{«_→_‡,»}" is
 	bindings ::= cast values
 		into [t : <<>, <<>, any… | 2's type>… | whole number> | t];
 	if literalizable then [‘bindings→map’]
-	else [bootstrap restricted send $"{«_→_‡,»}" with «<exprs>» : map]
+	else [restricted send $"{«_→_‡,»}" with «<exprs>» : map]
 ];
 
 /**

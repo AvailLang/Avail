@@ -50,7 +50,7 @@ Test "TupleAt ok" in primitive tuples test suite is
 Test "TupleAt fails with subscript-out-of-bounds exception" in primitive tuples test suite is
 [
 	t : tuple := <>;
-	t[1]
+	Ignore: t[1];
 ]
 must raise subscript-out-of-bounds exception;
 

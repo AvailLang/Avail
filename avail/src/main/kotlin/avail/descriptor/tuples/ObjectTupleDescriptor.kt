@@ -40,7 +40,7 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLi
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithObjectTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -134,8 +134,8 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			}
 		}
 		val newTuple = newLike(mutable, self, 1, 0)
-		newTuple.setSlot(TUPLE_AT_, originalSize + 1, newElement)
-		newTuple.setSlot(HASH_OR_ZERO, 0)
+		newTuple[TUPLE_AT_, originalSize + 1] = newElement
+		newTuple[HASH_OR_ZERO] = 0
 		return newTuple
 	}
 
@@ -220,7 +220,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			val deltaSlots = newSize - self.variableObjectSlotsCount()
 			val result = newLike(mutable(), self, deltaSlots, 0)
 			result.setSlotsFromTuple(TUPLE_AT_, size1 + 1, otherTuple, 1, size2)
-			result.setSlot(HASH_OR_ZERO, 0)
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		if (!canDestroy)
@@ -278,7 +278,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			{
 				result.makeSubobjectsImmutable()
 			}
-			result.setSlot(HASH_OR_ZERO, 0)
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		return super.o_CopyTupleFromToCanDestroy(self, start, end, canDestroy)
@@ -330,7 +330,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		{
 			for (i in 1 .. tupleSize)
 			{
-				if (!self.slot(TUPLE_AT_, i).isUnsignedByte)
+				if (!self[TUPLE_AT_, i].isUnsignedByte)
 				{
 					return false
 				}
@@ -351,7 +351,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		{
 			for (i in 1 .. tupleSize)
 			{
-				if (!self.slot(TUPLE_AT_, i).isInt)
+				if (!self[TUPLE_AT_, i].isInt)
 				{
 					return false
 				}
@@ -369,7 +369,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		// or end of other long-tuples.
 		val tupleSize = self.tupleSize
 		return tupleSize <= 5 &&
-			(1 .. tupleSize).all { self.slot(TUPLE_AT_, it).isLong }
+			(1 .. tupleSize).all { self[TUPLE_AT_, it].isLong }
 	}
 
 	/**
@@ -385,7 +385,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 	 *   The tuple over which to iterate.
 	 */
 	private class ObjectTupleIterator constructor(
-		private val tuple: AvailObject) : Iterator<AvailObject>
+		private val tuple: AvailObject) : ListIterator<AvailObject>
 	{
 		/**
 		 * The size of the tuple.
@@ -399,6 +399,12 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 
 		override fun hasNext(): Boolean = index <= size
 
+		/**
+		 * **Warning**: To conform to [nextIndex], the index must be
+		 * **0**-based, even though tuple access is ordinarily **1**-based.
+		 */
+		override fun nextIndex() = index - 1
+
 		override fun next(): AvailObject
 		{
 			if (index > size)
@@ -410,7 +416,29 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			// or immutable, no other thread can be changing it (and the caller
 			// shouldn't while iterating), and if the tuple is shared, its
 			// descriptor cannot be changed.
-			return tuple.slot(TUPLE_AT_, index++)
+			return tuple[TUPLE_AT_, index++]
+		}
+
+		override fun hasPrevious() = size > 0 && index >= 1
+
+		/**
+		 * **Warning**: To conform to [nextIndex], the index must be
+		 * **0**-based, even though tuple access is ordinarily **1**-based.
+		 */
+		override fun previousIndex() = index - 2
+
+		override fun previous(): AvailObject
+		{
+			if (size == 0 || index < 1)
+			{
+				throw NoSuchElementException()
+			}
+
+			// It's safe to access the slot directly.  If the tuple is mutable
+			// or immutable, no other thread can be changing it (and the caller
+			// shouldn't while iterating), and if the tuple is shared, its
+			// descriptor cannot be changed.
+			return tuple[TUPLE_AT_, --index]
 		}
 	}
 
@@ -421,7 +449,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject =
-		self.slot(TUPLE_AT_, index)
+		self[TUPLE_AT_, index]
 
 	override fun o_TupleAtPuttingCanDestroy(
 		self: AvailObject,
@@ -443,12 +471,12 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			result = newLike(mutable, self, 0, 0)
 			if (isMutable)
 			{
-				result.setSlot(TUPLE_AT_, index, NilDescriptor.nil)
+				result[TUPLE_AT_, index] = nil
 				result.makeSubobjectsImmutable()
 			}
 		}
-		result.setSlot(TUPLE_AT_, index, newValueObject)
-		result.setSlot(HASH_OR_ZERO, 0)
+		result[TUPLE_AT_, index] = newValueObject
+		result[HASH_OR_ZERO] = 0
 		return result
 	}
 
@@ -462,7 +490,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		else
 		{
 			generateReversedFrom(size)
-				{ self.slot(TUPLE_AT_, size + 1 - it) }
+				{ self[TUPLE_AT_, size + 1 - it] }
 		}
 	}
 
@@ -516,12 +544,9 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		{
 			if (size == 0) return emptyTuple
 			val result = createUninitialized(size)
-			// Initialize it for safe GC within the loop below.  Might be
-			// unnecessary if the substrate already initialized it safely.
-			result.fillSlots(TUPLE_AT_, 1, size, NilDescriptor.nil)
 			for (i in 1 .. size)
 			{
-				result.setSlot(TUPLE_AT_, i, generator(i))
+				result[TUPLE_AT_, i] = generator(i)
 			}
 			return result
 		}
@@ -541,18 +566,12 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 */
 		inline fun generateReversedFrom(
 			size: Int,
-			generator: (Int)->A_BasicObject): AvailObject
-		{
-			val result = mutable.create(size)
-			// Initialize it for safe GC within the loop below.  Might be
-			// unnecessary if the substrate already initialized it safely.
-			//
-			//result.fillSlots(TUPLE_AT_, 1, size, NilDescriptor.nil)
+			generator: (Int)->A_BasicObject
+		): AvailObject = mutable.create(size) {
 			for (i in size downTo 1)
 			{
-				result.setSlot(TUPLE_AT_, i, generator(i))
+				setSlot(TUPLE_AT_, i, generator(i))
 			}
-			return result
 		}
 
 		/**
@@ -579,7 +598,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 
 		/** Access to the [tupleFromArray] method. */
-		var tupleFromArrayMethod = staticMethod(
+		val tupleFromArrayMethod = staticMethod(
 			ObjectTupleDescriptor::class.java,
 			::tupleFromArray.name,
 			A_Tuple::class.java,
@@ -599,7 +618,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		fun tuple(element1: A_BasicObject): A_Tuple
 		{
 			val result = createUninitialized(1)
-			result.setSlot(TUPLE_AT_, 1, element1)
+			result[TUPLE_AT_, 1] = element1
 			return result
 		}
 
@@ -629,8 +648,8 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		fun tuple(element1: A_BasicObject, element2: A_BasicObject): A_Tuple
 		{
 			val result = createUninitialized(2)
-			result.setSlot(TUPLE_AT_, 1, element1)
-			result.setSlot(TUPLE_AT_, 2, element2)
+			result[TUPLE_AT_, 1] = element1
+			result[TUPLE_AT_, 2] = element2
 			return result
 		}
 
@@ -666,9 +685,9 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			element3: A_BasicObject): A_Tuple
 		{
 			val result = createUninitialized(3)
-			result.setSlot(TUPLE_AT_, 1, element1)
-			result.setSlot(TUPLE_AT_, 2, element2)
-			result.setSlot(TUPLE_AT_, 3, element3)
+			result[TUPLE_AT_, 1] = element1
+			result[TUPLE_AT_, 2] = element2
+			result[TUPLE_AT_, 3] = element3
 			return result
 		}
 
@@ -708,10 +727,10 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			element4: A_BasicObject): A_Tuple
 		{
 			val result = createUninitialized(4)
-			result.setSlot(TUPLE_AT_, 1, element1)
-			result.setSlot(TUPLE_AT_, 2, element2)
-			result.setSlot(TUPLE_AT_, 3, element3)
-			result.setSlot(TUPLE_AT_, 4, element4)
+			result[TUPLE_AT_, 1] = element1
+			result[TUPLE_AT_, 2] = element2
+			result[TUPLE_AT_, 3] = element3
+			result[TUPLE_AT_, 4] = element4
 			return result
 		}
 
@@ -755,11 +774,11 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			element5: A_BasicObject): A_Tuple
 		{
 			val result = createUninitialized(5)
-			result.setSlot(TUPLE_AT_, 1, element1)
-			result.setSlot(TUPLE_AT_, 2, element2)
-			result.setSlot(TUPLE_AT_, 3, element3)
-			result.setSlot(TUPLE_AT_, 4, element4)
-			result.setSlot(TUPLE_AT_, 5, element5)
+			result[TUPLE_AT_, 1] = element1
+			result[TUPLE_AT_, 2] = element2
+			result[TUPLE_AT_, 3] = element3
+			result[TUPLE_AT_, 4] = element4
+			result[TUPLE_AT_, 5] = element5
 			return result
 		}
 
@@ -790,7 +809,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @param E
 		 *   The specialization of the input [List]'s elements.
 		 */
-		fun <E : A_BasicObject?> tupleFromList(list: List<E>): A_Tuple
+		fun <E : A_BasicObject> tupleFromList(list: List<E>): A_Tuple
 		{
 			val size = list.size
 			if (size == 0)

@@ -51,14 +51,14 @@ in primitive variables test suite if supported is
 [
 	// Because of the Semantic Restriction on Swap_and_, this exception cannot
 	// be reached. Requires eval to test compilation failure.
-	Skip test
+	Skip test;
 ]
 must raise cannot-swap-contents-of-differently-typed-variables exception;
 
 Test "Swap fails with observed-variable-written-while-untraced exception"
 in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise observed-variable-written-while-untraced exception;
 

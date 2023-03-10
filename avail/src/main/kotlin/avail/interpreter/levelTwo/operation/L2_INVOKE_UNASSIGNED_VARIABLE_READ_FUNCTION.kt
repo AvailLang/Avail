@@ -102,7 +102,7 @@ object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
 		translator.intConstant(method, stackp.value)
 		// :: interpreter, pc, stackp
 		translator.objectArray(
-			method, frameValues.elements(), AvailObject::class.java)
+			method, frameValues.elements, AvailObject::class.java)
 		// :: interpreter, pc, stackp, frameArray
 		reportUnassignedVariableReadMethod.generateCall(method)
 		// :: stackReifier

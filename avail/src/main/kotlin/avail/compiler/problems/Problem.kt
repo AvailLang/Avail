@@ -91,7 +91,8 @@ import java.text.MessageFormat
  * @param arguments
  *   The arguments with which to parameterize the messagePattern.
  */
-abstract class Problem constructor(
+abstract class Problem
+constructor(
 	val moduleName: ModuleName?,
 	val lineNumber: Int,
 	val characterInFile: Long,

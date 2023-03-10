@@ -491,20 +491,21 @@ open class PhraseTypeDescriptor protected constructor(
 		/** The descriptor for mutable instances of this kind. */
 		val mutableDescriptor: PhraseTypeDescriptor
 
+		/** The descriptor for mutable instances of this kind. */
+		val immutableDescriptor: PhraseTypeDescriptor
+
 		/** The descriptor for shared instances of this kind. */
 		val sharedDescriptor: PhraseTypeDescriptor
 
 		init
 		{
-			depth = if (parentKind !== null)
+			depth = when
 			{
-				parentKind.depth + 1
-			}
-			else
-			{
-				0
+				parentKind === null -> 0
+				else -> parentKind.depth + 1
 			}
 			mutableDescriptor = createDescriptor(Mutability.MUTABLE)
+			immutableDescriptor = createDescriptor(Mutability.IMMUTABLE)
 			sharedDescriptor = createDescriptor(Mutability.SHARED)
 		}
 
@@ -693,7 +694,7 @@ open class PhraseTypeDescriptor protected constructor(
 	 *   by a phrase of this type.
 	 */
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
-		self.slot(EXPRESSION_TYPE)
+		self[EXPRESSION_TYPE]
 
 	/**
 	 * {@inheritDoc}
@@ -714,7 +715,7 @@ open class PhraseTypeDescriptor protected constructor(
 		self: AvailObject,
 		aPhraseType: A_Type): Boolean =
 			(kind === aPhraseType.phraseKind
-				&& self.slot(EXPRESSION_TYPE).equals(
+				&& self[EXPRESSION_TYPE].equals(
 					aPhraseType.phraseTypeExpressionType))
 
 	/**
@@ -722,12 +723,12 @@ open class PhraseTypeDescriptor protected constructor(
 	 * must implement [A_BasicObject.hash].
 	 */
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			combine3(
-				self.slot(EXPRESSION_TYPE).hash(),
+				self[EXPRESSION_TYPE].hash(),
 				kind.ordinal,
 				0x237bc5d2
-			).also { self.setSlot(HASH_OR_ZERO, it) }
+			).also { self[HASH_OR_ZERO] = it }
 		}
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
@@ -771,7 +772,7 @@ open class PhraseTypeDescriptor protected constructor(
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
 		// Only applicable if the expression type is a tuple type.
 		TupleTypeDescriptor.mappingElementTypes(
-			self.slot(EXPRESSION_TYPE)) { yieldType: A_Type ->
+			self[EXPRESSION_TYPE]) { yieldType: A_Type ->
 				PhraseKind.PARSE_PHRASE.create(yieldType)
 		}
 
@@ -805,7 +806,7 @@ open class PhraseTypeDescriptor protected constructor(
 		// It should be safe to assume the mostGeneralType of a subkind is
 		// always a subtype of the mostGeneralType of a superkind.
 		return intersectionKind.createNoCheck(
-			self.slot(EXPRESSION_TYPE).typeIntersection(
+			self[EXPRESSION_TYPE].typeIntersection(
 				aPhraseType.phraseTypeExpressionType))
 	}
 
@@ -833,7 +834,7 @@ open class PhraseTypeDescriptor protected constructor(
 	{
 		val unionKind = kind.commonAncestorWith(aPhraseType.phraseKind)
 		return unionKind.createNoCheck(
-			self.slot(EXPRESSION_TYPE).typeUnion(
+			self[EXPRESSION_TYPE].typeUnion(
 				aPhraseType.phraseTypeExpressionType))
 	}
 
@@ -843,7 +844,7 @@ open class PhraseTypeDescriptor protected constructor(
 		writer.write("kind")
 		writer.write(kind.jsonName)
 		writer.write("expression type")
-		self.slot(EXPRESSION_TYPE).writeTo(writer)
+		self[EXPRESSION_TYPE].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -881,7 +882,7 @@ open class PhraseTypeDescriptor protected constructor(
 	override fun mutable(): PhraseTypeDescriptor = kind.mutableDescriptor
 
 	// There are no immutable descriptors.
-	override fun immutable(): PhraseTypeDescriptor = kind.sharedDescriptor
+	override fun immutable(): PhraseTypeDescriptor = kind.immutableDescriptor
 
 	override fun shared(): PhraseTypeDescriptor = kind.sharedDescriptor
 }

@@ -39,12 +39,12 @@ Body
 
 Test "GetObjectTypeField ok" in primitive objects test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "GetObjectTypeField fails with no-such-field exception" in primitive objects test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise no-such-field exception;
 

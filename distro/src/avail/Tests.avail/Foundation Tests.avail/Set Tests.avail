@@ -124,6 +124,29 @@ Test "set not proper subset" in set test suite is
 	Require: ∅ ⊅ a;
 ];
 
+Test "empty set subset or equals semantic restriction regression" in set test suite is
+[
+	a : {[1..8]|} := {1,2,3,4,5};
+
+	Require: ∅ ⊆ a;
+	Require: ∅ ⊂ a;
+	Require: a ⊇ ∅;
+
+	// Note that a2 is allowed to be ∅, which is a subtype of a.  First make
+	// sure it works when a2 is non-empty...
+	a2 : {{10, 11}ᵀ|};
+	a2 := {10};
+	Require: ¬a2 ⊆ a;
+	Require: ¬a2 ⊂ a;
+	Require: ¬a ⊇ a2;
+
+	// ...and now verify (a regression) that ∅ is a subset of a.
+	a2 := ∅;
+	Require: a2 ⊆ a;
+	Require: a2 ⊂ a;
+	Require: a ⊇ a2;
+];
+
 Test "set is a superset" in set test suite is
 [
 	a ::= {1,2,3,4};

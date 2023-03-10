@@ -131,12 +131,12 @@ internal class FreeList<Value>
 			link.value = value
 			freeSpace = link.next
 			link.next = null
-		} ?: {
+		} ?: run {
 			val link = Link(null, value)
 			val id = list.size
 			list.add(link)
 			id
-		}()
+		}
 
 	/**
 	 * Answer the `Value` at the provided [list] location.

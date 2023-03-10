@@ -41,23 +41,22 @@ import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 
 /**
- * An `Expression` represents a structural view of part of the
- * message name.
+ * An [Expression] represents a structural view of part of the message name.
  *
- * @property positionInName
+ * @property startInName
  *   The 1-based start position of this expression in the message name.
+ * @property pastEndInName
+ *   The 1-based position just past the end of this expression in the message
+ *   name.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- *
- * Create a new Expression, capturing its 1-based start position in the
- * message name.
- *
- * @param positionInName
- *   The 1-based position at which this expression starts in the message name
- *   string.
+ * Create a new Expression, capturing its 1-based start position in the message
+ * name.
  */
-internal abstract class Expression constructor(val positionInName: Int)
+internal abstract class Expression constructor(
+	val startInName: Int,
+	val pastEndInName: Int)
 {
 	/**
 	 * Answer whether reordering with respect to siblings is applicable to this
@@ -152,6 +151,11 @@ internal abstract class Expression constructor(val positionInName: Int)
 	}
 
 	/**
+	 * Produce a list of this [Expression]'s children.
+	 */
+	internal abstract fun children(): List<Expression>
+
+	/**
 	 * Answer whether this expression recursively contains any section
 	 * checkpoints.
 	 *
@@ -224,7 +228,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 		wrapState: WrapState
 	): WrapState
 
-	override fun toString(): String = this@Expression.javaClass.simpleName
+	override fun toString(): String = javaClass.simpleName
 
 	/**
 	 * Pretty-print this part of the message, using the provided argument

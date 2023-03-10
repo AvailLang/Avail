@@ -39,144 +39,144 @@ Body
 
 Test "AddSemanticRestrictionForAtom ok" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "AddSemanticRestrictionForAtom fails with incorrect-number-of-arguments exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-number-of-arguments exception;
 
 Test "AddSemanticRestrictionForAtom fails with incorrect-argument-type exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-argument-type exception;
 
 Test "AddSemanticRestrictionForAtom fails with type-restriction-must-accept-only-types exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise type-restriction-must-accept-only-types exception;
 
 Test "AddSemanticRestrictionForAtom fails with incorrect-type-for-group exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-type-for-group exception;
 
 Test "AddSemanticRestrictionForAtom fails with exclamation-mark-must-follow-an-alternation-group exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise exclamation-mark-must-follow-an-alternation-group exception;
 
 Test "AddSemanticRestrictionForAtom fails with incorrect-type-for-complex-group exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-type-for-complex-group exception;
 
 Test "AddSemanticRestrictionForAtom fails with incorrect-use-of-double-dagger exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-use-of-double-dagger exception;
 
 Test "AddSemanticRestrictionForAtom fails with unbalanced-guillemets exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise unbalanced-guillemets exception;
 
 Test "AddSemanticRestrictionForAtom fails with method-name-is-not-canonical exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise method-name-is-not-canonical exception;
 
 Test "AddSemanticRestrictionForAtom fails with expected-operator-after-backquote exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise expected-operator-after-backquote exception;
 
 Test "AddSemanticRestrictionForAtom fails with incorrect-type-for-boolean-group exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-type-for-boolean-group exception;
 
 Test "AddSemanticRestrictionForAtom fails with incorrect-type-for-counting-group exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-type-for-counting-group exception;
 
 Test "AddSemanticRestrictionForAtom fails with octothorp-must-follow-a-simple-group-or-ellipsis exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise octothorp-must-follow-a-simple-group-or-ellipsis exception;
 
 Test "AddSemanticRestrictionForAtom fails with question-mark-must-follow-a-simple-group exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise question-mark-must-follow-a-simple-group exception;
 
 Test "AddSemanticRestrictionForAtom fails with case-insensitive-expression-canonization exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise case-insensitive-expression-canonization exception;
 
 Test "AddSemanticRestrictionForAtom fails with double-question-mark-must-follow-a-token-or-simple-group exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise double-question-mark-must-follow-a-token-or-simple-group exception;
 
 Test "AddSemanticRestrictionForAtom fails with alternative-must-not-contain-arguments exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise alternative-must-not-contain-arguments exception;
 
 Test "AddSemanticRestrictionForAtom fails with vertical-bar-must-separate-tokens-or-simple-groups exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise vertical-bar-must-separate-tokens-or-simple-groups exception;
 
 Test "AddSemanticRestrictionForAtom fails with incorrect-type-for-numbered-choice exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-type-for-numbered-choice exception;
 
 Test "AddSemanticRestrictionForAtom fails with cannot-define-during-compilation exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise cannot-define-during-compilation exception;
 
 Test "AddSemanticRestrictionForAtom fails with loading-is-over exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise loading-is-over exception;
 
 Test "AddSemanticRestrictionForAtom fails with up-arrow-must-follow-argument exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise up-arrow-must-follow-argument exception;
 
 Test "AddSemanticRestrictionForAtom fails with inconsistent-argument-reordering exception" in primitive methods test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise inconsistent-argument-reordering exception;
 

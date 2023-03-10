@@ -90,8 +90,7 @@ object L2_REIFY : L2ControlFlowOperation(
 		ABANDON_BEFORE_RESTART_IN_L2;
 
 		/** [Statistic] for reifying in L1 interrupt-handler preamble. */
-		val statistic = Statistic(
-			REIFICATIONS, "Explicit L2_REIFY for $name")
+		val statistic = Statistic(REIFICATIONS, "Explicit L2_REIFY for $name")
 
 		companion object
 		{

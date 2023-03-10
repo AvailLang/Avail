@@ -39,12 +39,12 @@ Body
 
 Test "KeyInVariableMap ok" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "KeyInVariableMap fails with cannot-read-unassigned-variable exception" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise cannot-read-unassigned-variable exception;
 

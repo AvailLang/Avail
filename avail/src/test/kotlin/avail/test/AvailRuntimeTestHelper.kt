@@ -262,6 +262,7 @@ class AvailRuntimeTestHelper constructor (
 		line: Int,
 		@Suppress("UNUSED_PARAMETER") phrase: ()->A_Phrase?)
 	{
+		if (builder.shouldStopBuild) return
 		// Skip non-final per-module updates if they're too frequent.
 		if (position < moduleSize
 			&& System.currentTimeMillis() - lastUpdateMillis < updateRateMillis)
@@ -330,7 +331,13 @@ class AvailRuntimeTestHelper constructor (
 
 	/**
 	 * Create [ModuleRoots] from the information supplied in the
-	 * `availRoots` system property.
+	 * `availRoots` system property. Reads from the system property `user.dir`
+	 * to locate the current working directory. Note that the current working
+	 * directory is _deeply assumed_ to be a submodule of the root project,
+	 * e.g., `avail` or `avail-server`. Since there is nothing to prevent a user
+	 * from executing a brute force launch of the test harness from an arbitrary
+	 * directory, we are _fully justified_ in enforcing a specific subset of
+	 * locations from which the test harness may run.
 	 *
 	 * @param fileManager
 	 *   The [FileManager] used to access files.
@@ -339,18 +346,14 @@ class AvailRuntimeTestHelper constructor (
 	 */
 	private fun createModuleRoots(fileManager: FileManager): ModuleRoots
 	{
-		val userDir = System.getProperty("user.dir")
-		val path = userDir
-			.replace("/avail-server", "")
-			.replace("/avail", "")
-		val uri = "file://$path"
+		val uri = "file:///$rootDirectory"
 		val rootsList = mutableListOf(
-			"avail" to "$uri/distro/src/avail",
-			"examples" to "$uri/distro/src/examples",
-			"builder-tests" to "$uri/distro/src/builder-tests")
+			"avail" to systemPath(uri, "distro", "src", "avail"),
+			"examples" to  systemPath(uri, "distro", "src", "examples"),
+			"builder-tests" to  systemPath(uri, "distro", "src", "builder-tests"))
 		if (includeTemporaryTestsDirectory)
 		{
-			rootsList.add("tests" to "$testDirectory/tests")
+			rootsList.add("tests" to systemPath("$testDirectory", "tests"))
 		}
 		val roots = rootsList.joinToString(";") { (name, path) -> "$name=$path" }
 		val semaphore = Semaphore(0)
@@ -429,9 +432,50 @@ class AvailRuntimeTestHelper constructor (
 
 	companion object
 	{
+		/**
+		 * The root project directory. Reads from the system property `user.dir`
+		 * to locate the current working directory. Note that the current
+		 * working directory is _deeply assumed_ to be a submodule of the root
+		 * project, e.g., `avail` or `avail-server`. Since there is nothing to
+		 * prevent a user from executing a brute force launch of the test
+		 * harness from an arbitrary directory, we are _fully justified_ in
+		 * enforcing a specific subset of locations from which the test harness
+		 * may run.
+		 */
+		val rootDirectory = run {
+			// The submodules are nested one level deep inside the root project,
+			// so just toss the final path component in order to resolve the
+			// root project.
+			val currentWorkingDirectory = System.getProperty("user.dir")
+			val rootDirectory = currentWorkingDirectory
+				.split(File.separator)
+				.dropLast(1)
+				.joinToString(File.separator)
+			rootDirectory
+		}
+
 		/** Lazily create a test directory in which to perform the tests. */
 		val testDirectory: Path by lazy {
 			Files.createTempDirectory("for-AvailRuntimeTestHelper-")
 		}
+
+		/**
+		 * Construct a operating system-specific file path using
+		 * [File.separator].
+		 *
+		 * @param path
+		 *   The locations to join using the system separator.
+		 * @return
+		 *   The constructed String path.
+		 */
+		fun systemPath(vararg path: String): String =
+			path.toList().joinToString(File.separator) { it }
+
+		/**
+		 * `true` indicates this is running on Windows; `false` otherwise.
+		 */
+		@Suppress("unused")
+		val isWindows: Boolean get() =
+			System.getProperty("os.name").startsWith("Windows")
 	}
 }

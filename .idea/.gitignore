@@ -1,10 +1,14 @@
 # Default ignored files
 /dataSources.local.xml
 /jarRepositories.xml
+/kotlinc.xml
 /libraries
 /libraries-with-intellij-classes.xml
 /modules
 /workspace.xml
 /modules.xml
+/ClojureProjectResolveSettings.xml
 /compiler.xml
+/GrepConsole.xml
+/misc.xml
 /**/*.iml

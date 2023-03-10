@@ -122,13 +122,13 @@ private constructor(
 	}
 
 	override fun o_KeyType(self: AvailObject): A_Type =
-		self.slot(KEY_TYPE)
+		self[KEY_TYPE]
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self.slot(SIZE_RANGE)
+		self[SIZE_RANGE]
 
 	override fun o_ValueType(self: AvailObject): A_Type =
-		self.slot(VALUE_TYPE)
+		self[VALUE_TYPE]
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -136,9 +136,9 @@ private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		if (self.slot(KEY_TYPE).equals(ANY.o)
-			&& self.slot(VALUE_TYPE).equals(ANY.o)
-			&& self.slot(SIZE_RANGE).equals(wholeNumbers))
+		if (self[KEY_TYPE].equals(ANY.o)
+			&& self[VALUE_TYPE].equals(ANY.o)
+			&& self[SIZE_RANGE].equals(wholeNumbers))
 		{
 			builder.append("map")
 			return
@@ -150,7 +150,7 @@ private constructor(
 		self.valueType.printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 		builder.append('|')
-		val sizeRange: A_Type = self.slot(SIZE_RANGE)
+		val sizeRange: A_Type = self[SIZE_RANGE]
 		if (sizeRange.equals(wholeNumbers))
 		{
 			builder.append('}')
@@ -172,16 +172,16 @@ private constructor(
 
 	override fun o_EqualsMapType(self: AvailObject, aMapType: A_Type): Boolean =
 		if (self.sameAddressAs(aMapType)) true
-		else self.slot(SIZE_RANGE).equals(aMapType.sizeRange)
-			&& self.slot(KEY_TYPE).equals(aMapType.keyType)
-			&& self.slot(VALUE_TYPE).equals(aMapType.valueType)
+		else self[SIZE_RANGE].equals(aMapType.sizeRange)
+			&& self[KEY_TYPE].equals(aMapType.keyType)
+			&& self[VALUE_TYPE].equals(aMapType.valueType)
 
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.
 	override fun o_Hash(self: AvailObject): Int = combine4(
-		self.slot(SIZE_RANGE).hash(),
-		self.slot(KEY_TYPE).hash(),
-		self.slot(VALUE_TYPE).hash(),
+		self[SIZE_RANGE].hash(),
+		self[KEY_TYPE].hash(),
+		self[VALUE_TYPE].hash(),
 		0x4e53eb41)
 
 	override fun o_IsMapType(self: AvailObject): Boolean = true
@@ -196,26 +196,17 @@ private constructor(
 	override fun o_IsSupertypeOfMapType(
 		self: AvailObject,
 		aMapType: AvailObject): Boolean =
-			(aMapType.slot(SIZE_RANGE).isSubtypeOf(
-					self.slot(SIZE_RANGE))
-				&& aMapType.slot(KEY_TYPE).isSubtypeOf(
-					self.slot(KEY_TYPE))
-				&& aMapType.slot(VALUE_TYPE).isSubtypeOf(
-					self.slot(VALUE_TYPE)))
+			(aMapType[SIZE_RANGE].isSubtypeOf(
+					self[SIZE_RANGE])
+				&& aMapType[KEY_TYPE].isSubtypeOf(
+					self[KEY_TYPE])
+				&& aMapType[VALUE_TYPE].isSubtypeOf(
+					self[VALUE_TYPE]))
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		(!self.slot(SIZE_RANGE).lowerBound.equalsInt(0)
-			&& (self.slot(KEY_TYPE).isVacuousType
-				|| self.slot(VALUE_TYPE).isVacuousType))
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared, since there isn't an immutable
-			// descriptor.
-			self.makeShared()
-		}
-		else self
+		(!self[SIZE_RANGE].lowerBound.equalsInt(0)
+			&& (self[KEY_TYPE].isVacuousType
+				|| self[VALUE_TYPE].isVacuousType))
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.MAP_TYPE
@@ -289,13 +280,13 @@ private constructor(
 		self: AvailObject,
 		aMapType: A_Type): A_Type =
 			mapTypeForSizesKeyTypeValueType(
-				self.slot(SIZE_RANGE).typeIntersection(
+				self[SIZE_RANGE].typeIntersection(
 					aMapType.sizeRange
 				).makeImmutable(),
-				self.slot(KEY_TYPE).typeIntersection(
+				self[KEY_TYPE].typeIntersection(
 					aMapType.keyType
 				).makeImmutable(),
-				self.slot(VALUE_TYPE).typeIntersection(
+				self[VALUE_TYPE].typeIntersection(
 					aMapType.valueType
 				).makeImmutable())
 
@@ -320,13 +311,13 @@ private constructor(
 		self: AvailObject,
 		aMapType: A_Type): A_Type =
 			mapTypeForSizesKeyTypeValueType(
-				self.slot(SIZE_RANGE).typeUnion(
+				self[SIZE_RANGE].typeUnion(
 					aMapType.sizeRange
 				).makeImmutable(),
-				self.slot(KEY_TYPE).typeUnion(
+				self[KEY_TYPE].typeUnion(
 					aMapType.keyType
 				).makeImmutable(),
-				self.slot(VALUE_TYPE).typeUnion(
+				self[VALUE_TYPE].typeUnion(
 					aMapType.valueType
 				).makeImmutable())
 
@@ -336,11 +327,11 @@ private constructor(
 		writer.write("kind")
 		writer.write("map type")
 		writer.write("key type")
-		self.slot(KEY_TYPE).writeTo(writer)
+		self[KEY_TYPE].writeTo(writer)
 		writer.write("value type")
-		self.slot(VALUE_TYPE).writeTo(writer)
+		self[VALUE_TYPE].writeTo(writer)
 		writer.write("cardinality")
-		self.slot(SIZE_RANGE).writeTo(writer)
+		self[SIZE_RANGE].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -350,18 +341,17 @@ private constructor(
 		writer.write("kind")
 		writer.write("map type")
 		writer.write("key type")
-		self.slot(KEY_TYPE).writeSummaryTo(writer)
+		self[KEY_TYPE].writeSummaryTo(writer)
 		writer.write("value type")
-		self.slot(VALUE_TYPE).writeSummaryTo(writer)
+		self[VALUE_TYPE].writeSummaryTo(writer)
 		writer.write("cardinality")
-		self.slot(SIZE_RANGE).writeTo(writer)
+		self[SIZE_RANGE].writeTo(writer)
 		writer.endObject()
 	}
 
 	override fun mutable(): MapTypeDescriptor = mutable
 
-	// There is no immutable descriptor.
-	override fun immutable(): MapTypeDescriptor = shared
+	override fun immutable(): MapTypeDescriptor = immutable
 
 	override fun shared(): MapTypeDescriptor = shared
 
@@ -472,6 +462,9 @@ private constructor(
 
 		/** The mutable [MapTypeDescriptor]. */
 		private val mutable = MapTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [MapTypeDescriptor]. */
+		private val immutable = MapTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [MapTypeDescriptor]. */
 		private val shared = MapTypeDescriptor(Mutability.SHARED)

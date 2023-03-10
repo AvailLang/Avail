@@ -39,6 +39,6 @@ Body
 
 Test "VariableWriteType ok" in primitive variables test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

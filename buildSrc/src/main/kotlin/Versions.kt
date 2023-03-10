@@ -39,10 +39,7 @@
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.6.21"
-
-	/** The Kotlin Desktop Compose version [org.jetbrains.compose]. */
-	const val compose = "1.0.0"
+	const val kotlin = "1.7.21"
 
 	/** The Avail version. */
 	const val avail = "1.6.0"
@@ -51,16 +48,16 @@ object Versions
 	const val shadow = "7.1.2"
 
 	/** The `org.jetbrains:annotations` version. */
-	const val kotlinAnnotations="23.0.0"
+	const val kotlinAnnotations = "23.0.0"
 
 	/** The `org.ow2.asm` version. */
-	const val asmVersion="9.2"
+	const val asmVersion = "9.2"
 
 	/** The `com.github.weisj:darklaf-core` version.*/
 	const val flatlafVersion = "2.1"
 
 	/** The `io.methvin:directory-watcher` version. */
-	const val directoryWatcherVersion = "0.15.0"
+	const val directoryWatcherVersion = "0.16.1"
 
 	/** The `com.google.code.findbugs:jsr305` version. */
 	const val jsrVersion = "3.0.2"
@@ -77,18 +74,6 @@ object Versions
 	/** The JVM target version for Kotlin. */
 	const val jvmTargetString = jvmTarget.toString()
 
-	/**
-	 * The version of `org.availlang:avail-json`.
-	 */
-	const val availJsonVersion = "1.1.1"
-
-	/**
-	 * The version of `org.availlang:avail-storage`.
-	 */
-	const val availStorageVersion = "1.1.0"
-
-	/** The JVM target version for Kotlin. */
-	const val intellij = "1.3.1"
 
 	/**
 	 * The list of compile-time arguments to be used during Kotlin compilation.

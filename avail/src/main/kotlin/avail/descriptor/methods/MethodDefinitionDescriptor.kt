@@ -40,15 +40,12 @@ import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.BODY_BLOCK
 import avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.MODULE
-import avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.STYLERS
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD_DEFINITION
 import avail.serialization.SerializerOperation
@@ -85,12 +82,6 @@ class MethodDefinitionDescriptor private constructor(
 		MODULE,
 
 		/**
-		 * The [A_Set] of [A_Styler]s that have been added to this definition.
-		 */
-		@HideFieldJustForPrinting
-		STYLERS,
-
-		/**
 		 * The [function][FunctionDescriptor] to invoke when this
 		 * message is sent with applicable arguments.
 		 */
@@ -104,9 +95,6 @@ class MethodDefinitionDescriptor private constructor(
 				assert(
 					DefinitionDescriptor.ObjectSlots.MODULE.ordinal
 						== MODULE.ordinal)
-				assert(
-					DefinitionDescriptor.ObjectSlots.STYLERS.ordinal
-						== STYLERS.ordinal)
 			}
 		}
 	}
@@ -115,7 +103,7 @@ class MethodDefinitionDescriptor private constructor(
 		self.bodyBlock().kind()
 
 	override fun o_BodyBlock(self: AvailObject): A_Function =
-		self.slot(BODY_BLOCK)
+		self[BODY_BLOCK]
 
 	override fun o_Hash(self: AvailObject) =
 		combine2(self.bodyBlock().hash(), 0x70B2B1A9)
@@ -133,24 +121,24 @@ class MethodDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("method definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
+				self[DEFINITION_METHOD].methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
-			at("body block") { self.slot(BODY_BLOCK).writeTo(writer) }
+			at("body block") { self[BODY_BLOCK].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
+				self[DEFINITION_METHOD].methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
-			at("body block") { self.slot(BODY_BLOCK).writeSummaryTo(writer) }
+			at("body block") { self[BODY_BLOCK].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable
@@ -182,7 +170,6 @@ class MethodDefinitionDescriptor private constructor(
 		): A_Definition = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
-			setSlot(STYLERS, emptySet)
 			setSlot(BODY_BLOCK, bodyBlock)
 		}
 

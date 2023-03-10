@@ -55,13 +55,12 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.TypeDescriptor
 import avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 
@@ -75,7 +74,7 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
+object P_CreateSendExpression : Primitive(3, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -101,7 +100,8 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 					E_INCONSISTENT_ARGUMENT_REORDERING)
 			}
 			return interpreter.primitiveSuccess(
-				newSendNode(emptyTuple(), bundle, argsListPhrase, returnType))
+				newSendNode(
+					emptyTuple, emptyTuple, bundle, argsListPhrase, returnType))
 		}
 		catch (e: MalformedMessageException)
 		{

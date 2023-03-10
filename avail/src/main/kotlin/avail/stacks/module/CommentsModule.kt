@@ -47,6 +47,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tokens.CommentTokenDescriptor
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -928,12 +929,12 @@ class CommentsModule constructor(
 				{
 					filteredMap[key]?.let {
 						it[modName] = implementation
-					} ?: {
+					} ?: run {
 						val modToImplement =
 							mutableMapOf<String, CommentGroup>()
 						modToImplement[modName] = implementation
 						filteredMap[key] = modToImplement
-					}()
+					}
 
 					for (category in implementation.categories())
 					{
@@ -980,12 +981,12 @@ class CommentsModule constructor(
 					if (filteredMap.containsKey(key))
 					filteredMap[key]?.let {
 						it[tempEntry.key] = implementation
-					} ?: {
+					} ?: run {
 						val modToImplement =
 							mutableMapOf<String, CommentGroup>()
 						modToImplement[tempEntry.key] = implementation
 						filteredMap[key] = modToImplement
-					}()
+					}
 
 					for (category in implementation.categories())
 					{

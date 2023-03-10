@@ -119,7 +119,7 @@ object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
 		translator.intConstant(method, stackp.value)
 		// :: interpreter, value, expected, pc, stackp
 		translator.objectArray(
-			method, frameValues.elements(), AvailObject::class.java)
+			method, frameValues.elements, AvailObject::class.java)
 		// :: interpreter, value, expected, pc, stackp, frameArray
 		reportWrongReturnTypeMethod.generateCall(method)
 		// :: stackReifier

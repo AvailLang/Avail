@@ -60,7 +60,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -73,8 +73,8 @@ import avail.files.FileManager
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.primitive.floats.P_FloatFloor
 import avail.serialization.Deserializer
-import org.availlang.persistence.MalformedSerialStreamException
 import avail.serialization.Serializer
+import org.availlang.persistence.MalformedSerialStreamException
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -86,6 +86,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.File.separator
 import java.io.StringReader
 import java.util.Random
 import java.util.concurrent.Semaphore
@@ -124,12 +125,13 @@ class SerializerTest
 	{
 		val semaphore = Semaphore(0)
 		val projectDirectory = File(".").absolutePath
-			.replace("/avail", "")
+			.replace("${separator}avail$separator", separator)
 		val rootDirectory =
 			projectDirectory.substring(0..(projectDirectory.length - 2))
 		val availRoot =
 			File(rootDirectory).resolve("distro/src/avail").absolutePath
-		val roots = ModuleRoots(fileManager, "avail=$availRoot")
+		val availRootUri = "file:///$availRoot"
+		val roots = ModuleRoots(fileManager, "avail=$availRootUri")
 		{
 			if (it.isNotEmpty())
 			{
@@ -449,8 +451,8 @@ class SerializerTest
 	@Throws(MalformedSerialStreamException::class)
 	fun testAtoms()
 	{
-		val inputModule = newModule(stringFrom("Imported"))
-		val currentModule = newModule(stringFrom("Current"))
+		val inputModule = newModule(runtime(), stringFrom("Imported"))
+		val currentModule = newModule(runtime(), stringFrom("Current"))
 		val atom1: A_Atom = createAtom(stringFrom("importAtom1"), inputModule)
 		inputModule.addPrivateName(atom1)
 		val atom2: A_Atom = createAtom(
@@ -483,8 +485,7 @@ class SerializerTest
 	@Throws(MalformedSerialStreamException::class)
 	fun testFunctions()
 	{
-		val writer = L1InstructionWriter(
-			NilDescriptor.nil, 0, NilDescriptor.nil)
+		val writer = L1InstructionWriter(nil, 0, nil)
 		writer.argumentTypes(Types.FLOAT.o)
 		writer.primitive = P_FloatFloor
 		writer.returnType = Types.FLOAT.o

@@ -165,7 +165,7 @@ private constructor(
 	): Boolean = e === HASH_AND_MORE
 
 	override fun o_ContentType(self: AvailObject): A_Type =
-		self.slot(CONTENT_TYPE)
+		self[CONTENT_TYPE]
 
 	override fun o_EqualsPojoType(
 		self: AvailObject,
@@ -176,8 +176,8 @@ private constructor(
 			aPojoType.equalsPojoBottomType() -> return false
 			aPojoType.isPojoSelfType ->
 				return self.pojoSelfType().equalsPojoType(aPojoType)
-			!self.slot(SIZE_RANGE).equals(aPojoType.sizeRange)
-				|| !self.slot(CONTENT_TYPE)
+			!self[SIZE_RANGE].equals(aPojoType.sizeRange)
+				|| !self[CONTENT_TYPE]
 					.equals(aPojoType.contentType) -> return false
 			// The objects are known to be equal and not reference identical
 			// (checked by a caller), so coalesce them if possible.
@@ -205,7 +205,7 @@ private constructor(
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean = false
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		self.slot(JAVA_ANCESTORS)
+		self[JAVA_ANCESTORS]
 
 	override fun o_JavaClass(self: AvailObject): AvailObject =
 		equalityPojo(PojoArray::class.java)
@@ -214,7 +214,7 @@ private constructor(
 		self: AvailObject,
 		classHint: Class<*>?): Any
 	{
-		val elementType: A_BasicObject = self.slot(CONTENT_TYPE)
+		val elementType: A_BasicObject = self[CONTENT_TYPE]
 		return Array.newInstance(
 			elementType.marshalToJava(classHint) as Class<*>?, 0)
 				.javaClass
@@ -223,10 +223,10 @@ private constructor(
 	override fun o_PojoSelfType(self: AvailObject): A_Type =
 		SelfPojoTypeDescriptor.newSelfPojoType(
 			equalityPojo(PojoArray::class.java),
-			self.slot(JAVA_ANCESTORS))
+			self[JAVA_ANCESTORS])
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self.slot(SIZE_RANGE)
+		self[SIZE_RANGE]
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -241,8 +241,8 @@ private constructor(
 			self.pojoSelfType().typeIntersectionOfPojoType(aPojoType)
 		// Compute the type intersection of the two pojo array types.
 		aPojoType.isPojoArrayType -> arrayPojoType(
-			self.slot(CONTENT_TYPE).typeIntersection(aPojoType.contentType),
-			self.slot(SIZE_RANGE).typeIntersection(aPojoType.sizeRange))
+			self[CONTENT_TYPE].typeIntersection(aPojoType.contentType),
+			self[SIZE_RANGE].typeIntersection(aPojoType.sizeRange))
 		// A Java array type is effectively final, so the type intersection of a
 		// pojo array type and a singleton pojo type is pojo bottom.
 		else -> BottomPojoTypeDescriptor.pojoBottom()
@@ -330,10 +330,10 @@ private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		self.slot(CONTENT_TYPE).printOnAvoidingIndent(
+		self[CONTENT_TYPE].printOnAvoidingIndent(
 			builder, recursionMap, indent)
 		builder.append('[')
-		val range = self.slot(SIZE_RANGE)
+		val range = self[SIZE_RANGE]
 		when
 		{
 			range.lowerBound.equals(range.upperBound) ->
@@ -364,9 +364,9 @@ private constructor(
 		writer.write("kind")
 		writer.write("array pojo type")
 		writer.write("content type")
-		self.slot(CONTENT_TYPE).writeTo(writer)
+		self[CONTENT_TYPE].writeTo(writer)
 		writer.write("size range")
-		self.slot(SIZE_RANGE).writeTo(writer)
+		self[SIZE_RANGE].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -389,15 +389,15 @@ private constructor(
 		 */
 		private fun hash(self: AvailObject): Int
 		{
-			var hash = self.slot(HASH_OR_ZERO)
+			var hash = self[HASH_OR_ZERO]
 			if (hash == 0)
 			{
 				// Note that this definition produces a value compatible with a
 				// pojo self type; this is necessary to permit comparison
 				// between an unfused pojo type and its self type.
 				hash = combine2(
-					self.slot(JAVA_ANCESTORS).keysAsSet.hash(), -0x5fea43bc)
-				self.setSlot(HASH_OR_ZERO, hash)
+					self[JAVA_ANCESTORS].keysAsSet.hash(), -0x5fea43bc)
+				self[HASH_OR_ZERO] = hash
 			}
 			return hash
 		}

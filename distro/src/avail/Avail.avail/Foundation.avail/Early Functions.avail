@@ -229,10 +229,7 @@ Semantic restriction "_[_]" is
 	 * In this case we don't know anything about the types of the parameters, so
 	 * don't strengthen the primitive's answer.
 	 */
-	if parametersType = ⊥ then
-	[
-		⊤
-	]
+	if parametersType = ⊥ then [⊤]
 	else
 	[
 		limit ::= cast ⌈parametersType⌉
@@ -264,14 +261,8 @@ Semantic restriction "_[_]" is
 		 * parameters in the specified range. In this case, don't strengthen the
 		 * primitive's answer.
 		 */
-		if result = ⊥ then
-		[
-			⊤
-		]
-		else
-		[
-			result's type
-		]
+		if result = ⊥ then [⊤]
+		else [result's type]
 	]
 ];
 

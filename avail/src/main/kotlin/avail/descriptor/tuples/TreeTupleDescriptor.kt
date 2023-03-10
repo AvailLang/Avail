@@ -167,7 +167,7 @@ class TreeTupleDescriptor internal constructor(
 	override fun o_BitsPerEntry(self: AvailObject): Int = 65
 
 	override fun o_ChildAt(self: AvailObject, childIndex: Int): A_Tuple =
-		self.slot(SUBTUPLE_AT_, childIndex)
+		self[SUBTUPLE_AT_, childIndex]
 
 	override fun o_ChildCount(self: AvailObject): Int =
 		self.variableObjectSlotsCount()
@@ -202,7 +202,7 @@ class TreeTupleDescriptor internal constructor(
 		val endChildIndex = childSubscriptForIndex(self, endIndex1)
 		for (childIndex in startChildIndex until endChildIndex)
 		{
-			val child: A_Tuple = self.slot(SUBTUPLE_AT_, childIndex)
+			val child: A_Tuple = self[SUBTUPLE_AT_, childIndex]
 			val childOffset = offsetForChildSubscript(self, childIndex)
 			val childSize =
 				(self.intSlot(CUMULATIVE_SIZES_AREA_, childIndex) - childOffset)
@@ -308,7 +308,7 @@ class TreeTupleDescriptor internal constructor(
 				self.intSlot(CUMULATIVE_SIZES_AREA_, i)
 			val startIndexInChild = max(0, start - startOfChild) + 1
 			val endIndexInChild = min(endOfChild, end) - startOfChild + 1
-			val child: A_Tuple = self.slot(SUBTUPLE_AT_, i)
+			val child: A_Tuple = self[SUBTUPLE_AT_, i]
 			var sectionHash =
 				child.hashFromTo(startIndexInChild, endIndexInChild)
 			val indexAdjustment = startOfChild + startIndexInChild - 2
@@ -389,8 +389,8 @@ class TreeTupleDescriptor internal constructor(
 			var src = lowChildIndex + 1
 			while (src < highChildIndex)
 			{
-				val completeChild: A_Tuple = self.slot(SUBTUPLE_AT_, src)
-				innerSection.setSlot(SUBTUPLE_AT_, dest, completeChild)
+				val completeChild: A_Tuple = self[SUBTUPLE_AT_, src]
+				innerSection[SUBTUPLE_AT_, dest] = completeChild
 				innerSection.setIntSlot(
 					CUMULATIVE_SIZES_AREA_,
 					dest,
@@ -399,7 +399,7 @@ class TreeTupleDescriptor internal constructor(
 				dest++
 			}
 			assert(dest == innerSection.childCount + 1)
-			innerSection.setSlot(HASH_OR_ZERO, 0)
+			innerSection[HASH_OR_ZERO] = 0
 			check(innerSection)
 			accumulator = accumulator.concatenateWith(innerSection, true)
 		}
@@ -410,7 +410,7 @@ class TreeTupleDescriptor internal constructor(
 			for (childIndex in lowChildIndex + 1 until highChildIndex)
 			{
 				accumulator = accumulator.concatenateWith(
-					self.slot(SUBTUPLE_AT_, childIndex),
+					self[SUBTUPLE_AT_, childIndex],
 					true)
 			}
 		}
@@ -450,22 +450,22 @@ class TreeTupleDescriptor internal constructor(
 		newFirst: A_Tuple): A_Tuple
 	{
 		assert(newFirst.treeTupleLevel == level - 1)
-		val oldChild: A_Tuple = self.slot(SUBTUPLE_AT_, 1)
+		val oldChild: A_Tuple = self[SUBTUPLE_AT_, 1]
 		val replacementSize = newFirst.tupleSize
 		val delta = replacementSize - oldChild.tupleSize
 		val result =
 			if (isMutable) self
 			else newLike(mutable(), self, 0, 0)
-		val oldHash = self.slot(HASH_OR_ZERO)
+		val oldHash = self[HASH_OR_ZERO]
 		if (oldHash != 0)
 		{
 			val hashMinusFirstChild = oldHash - oldChild.hash()
 			val rescaledHashWithoutFirstChild =
 				hashMinusFirstChild * multiplierRaisedTo(delta)
 			val newHash = rescaledHashWithoutFirstChild + newFirst.hash()
-			result.setSlot(HASH_OR_ZERO, newHash)
+			result[HASH_OR_ZERO] = newHash
 		}
-		result.setSlot(SUBTUPLE_AT_, 1, newFirst)
+		result[SUBTUPLE_AT_, 1] = newFirst
 		val childCount = self.childCount
 		if (delta != 0)
 		{
@@ -530,7 +530,7 @@ class TreeTupleDescriptor internal constructor(
 	{
 		val childSubscript = childSubscriptForIndex(self, index)
 		val offset = offsetForChildSubscript(self, childSubscript)
-		val child: A_Tuple = self.slot(SUBTUPLE_AT_, childSubscript)
+		val child: A_Tuple = self[SUBTUPLE_AT_, childSubscript]
 		return child.tupleAt(index - offset)
 	}
 
@@ -553,17 +553,16 @@ class TreeTupleDescriptor internal constructor(
 		}
 		val subtupleSubscript = childSubscriptForIndex(self, index)
 		val oldSubtuple: A_Tuple =
-			self.slot(SUBTUPLE_AT_, subtupleSubscript)
+			self[SUBTUPLE_AT_, subtupleSubscript]
 		val delta = offsetForChildSubscript(self, subtupleSubscript)
-		val oldHash = self.slot(HASH_OR_ZERO)
+		val oldHash = self[HASH_OR_ZERO]
 		if (oldHash != 0)
 		{
 			// Maintain the already-computed hash.
 			val oldValue: A_BasicObject = oldSubtuple.tupleAt(index - delta)
 			val adjustment = newValueObject.hash() - oldValue.hash()
 			val scaledAdjustment = adjustment * multiplierRaisedTo(index)
-			result.setSlot(
-				HASH_OR_ZERO, oldHash + scaledAdjustment)
+			result[HASH_OR_ZERO] = oldHash + scaledAdjustment
 		}
 		val newSubtuple = oldSubtuple.tupleAtPuttingCanDestroy(
 			index - delta, newValueObject, canDestroy)
@@ -571,8 +570,7 @@ class TreeTupleDescriptor internal constructor(
 		if (newLevel == level - 1)
 		{
 			// Most common case
-			result.setSlot(
-				SUBTUPLE_AT_, subtupleSubscript, newSubtuple)
+			result[SUBTUPLE_AT_, subtupleSubscript] = newSubtuple
 			check(result)
 			return result
 		}
@@ -617,7 +615,7 @@ class TreeTupleDescriptor internal constructor(
 			val startIndexInChild =
 				max(0, startIndex - startOfChild) + 1
 			val endIndexInChild = min(endOfChild, endIndex) - startOfChild + 1
-			val child: A_Tuple = self.slot(SUBTUPLE_AT_, i)
+			val child: A_Tuple = self[SUBTUPLE_AT_, i]
 			if (!child.tupleElementsInRangeAreInstancesOf(
 					startIndexInChild, endIndexInChild, type))
 			{
@@ -631,7 +629,7 @@ class TreeTupleDescriptor internal constructor(
 	{
 		val childSubscript = childSubscriptForIndex(self, index)
 		val offset = offsetForChildSubscript(self, childSubscript)
-		val child: A_Tuple = self.slot(SUBTUPLE_AT_, childSubscript)
+		val child: A_Tuple = self[SUBTUPLE_AT_, childSubscript]
 		return child.tupleIntAt(index - offset)
 	}
 
@@ -639,7 +637,7 @@ class TreeTupleDescriptor internal constructor(
 	{
 		val childSubscript = childSubscriptForIndex(self, index)
 		val offset = offsetForChildSubscript(self, childSubscript)
-		val child: A_Tuple = self.slot(SUBTUPLE_AT_, childSubscript)
+		val child: A_Tuple = self[SUBTUPLE_AT_, childSubscript]
 		return child.tupleLongAt(index - offset)
 	}
 
@@ -697,14 +695,14 @@ class TreeTupleDescriptor internal constructor(
 				while (src <= count2)
 				{
 					val child = tuple2.childAt(src)
-					newNode.setSlot(SUBTUPLE_AT_, dest, child)
+					newNode[SUBTUPLE_AT_, dest] = child
 					size += child.tupleSize
 					newNode.setIntSlot(
 						CUMULATIVE_SIZES_AREA_, dest, size)
 					src++
 					dest++
 				}
-				newNode.setSlot(HASH_OR_ZERO, newHash)
+				newNode[HASH_OR_ZERO] = newHash
 				check(newNode)
 				return newNode
 			}
@@ -736,7 +734,7 @@ class TreeTupleDescriptor internal constructor(
 						size = 0
 					}
 					size += child.tupleSize
-					target.setSlot(SUBTUPLE_AT_, dest, child)
+					target[SUBTUPLE_AT_, dest] = child
 					target.setIntSlot(CUMULATIVE_SIZES_AREA_, dest, size)
 					src++
 					dest++
@@ -813,7 +811,7 @@ class TreeTupleDescriptor internal constructor(
 						withoutLast.setIntSlot(
 							CUMULATIVE_SIZES_AREA_, childCount1, 0)
 					}
-					withoutLast.setSlot(HASH_OR_ZERO, 0)
+					withoutLast[HASH_OR_ZERO] = 0
 					return concatenateSameLevel(withoutLast, newLast)
 				}
 				assert(newLast.treeTupleLevel == level1 - 1)
@@ -827,13 +825,13 @@ class TreeTupleDescriptor internal constructor(
 					{
 						newLike(descriptors[MUTABLE]!![level1], tuple1, 0, 0)
 					}
-				result.setSlot(SUBTUPLE_AT_, childCount1, newLast)
+				result[SUBTUPLE_AT_, childCount1] = newLast
 				result.setIntSlot(
 					CUMULATIVE_SIZES_AREA_,
 					childCount1,
 					tuple1.intSlot(
 						CUMULATIVE_SIZES_AREA_, childCount1) + size2)
-				result.setSlot(HASH_OR_ZERO, newHash)
+				result[HASH_OR_ZERO] = newHash
 				check(result)
 				return result
 			}
@@ -855,12 +853,11 @@ class TreeTupleDescriptor internal constructor(
 				{
 					val child = tuple2.childAt(src)
 					size += child.tupleSize
-					withoutFirst.setSlot(
-						SUBTUPLE_AT_, src - 1, child)
+					withoutFirst[SUBTUPLE_AT_, src - 1] = child
 					withoutFirst.setIntSlot(
 						CUMULATIVE_SIZES_AREA_, src - 1, size)
 				}
-				withoutFirst.setSlot(HASH_OR_ZERO, 0)
+				withoutFirst[HASH_OR_ZERO] = 0
 				check(withoutFirst)
 				return concatenateSameLevel(newFirst, withoutFirst)
 			}
@@ -950,7 +947,7 @@ class TreeTupleDescriptor internal constructor(
 			for (childIndex in 1 .. childCount)
 			{
 				val child: A_Tuple =
-					self.slot(SUBTUPLE_AT_, childIndex)
+					self[SUBTUPLE_AT_, childIndex]
 				assert(child.treeTupleLevel == myLevelMinusOne)
 				assert(myLevelMinusOne == 0
 						|| child.childCount >= minWidthOfNonRoot)
@@ -982,7 +979,7 @@ class TreeTupleDescriptor internal constructor(
 				size,
 				size + 1 shr 1,
 				descriptors[MUTABLE]!![level])
-			instance.setSlot(HASH_OR_ZERO, 0)
+			instance[HASH_OR_ZERO] = 0
 			return instance
 		}
 
@@ -1012,15 +1009,15 @@ class TreeTupleDescriptor internal constructor(
 			assert(left.tupleSize > 0)
 			assert(right.tupleSize > 0)
 			val newNode = createUninitializedTree(newLevel, 2)
-			newNode.setSlot(SUBTUPLE_AT_, 1, left)
-			newNode.setSlot(SUBTUPLE_AT_, 2, right)
+			newNode[SUBTUPLE_AT_, 1] = left
+			newNode[SUBTUPLE_AT_, 2] = right
 			newNode.setIntSlot(CUMULATIVE_SIZES_AREA_, 1, left.tupleSize)
 			newNode.setIntSlot(
 				CUMULATIVE_SIZES_AREA_,
 				2,
 				left.tupleSize +
 				right.tupleSize)
-			newNode.setSlot(HASH_OR_ZERO, newHashOrZero)
+			newNode[HASH_OR_ZERO] = newHashOrZero
 			check(newNode)
 			return newNode
 		}
@@ -1046,15 +1043,14 @@ class TreeTupleDescriptor internal constructor(
 			while (src > 0)
 			{
 				val child = self.childAt(src)
-				newTree.setSlot(
-					SUBTUPLE_AT_, dest, child.tupleReverse())
+				newTree[SUBTUPLE_AT_, dest] = child.tupleReverse()
 				cumulativeSize += child.tupleSize
 				newTree.setIntSlot(CUMULATIVE_SIZES_AREA_, dest, cumulativeSize)
 				src--
 				dest++
 			}
 			assert(cumulativeSize == self.tupleSize)
-			newTree.setSlot(HASH_OR_ZERO, 0)
+			newTree[HASH_OR_ZERO] = 0
 			return newTree
 		}
 

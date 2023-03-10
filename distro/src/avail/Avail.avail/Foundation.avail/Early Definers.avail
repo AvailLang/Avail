@@ -42,12 +42,12 @@ Uses
 Names
 	"Private abstract method_is_",
 	"Private forward method_is_",
-	"Private method_is_",
-	"Private macro_is«_,»_",
+	"Private method_is_«styled by_»?",
+	"Private macro_is«_,»_«styled by_»?",
 	"Public abstract method_is_",
 	"Public forward method_is_",
-	"Public method_is_",
-	"Public macro_is«_,»_",
+	"Public method_is_«styled by_»?",
+	"Public macro_is«_,»_«styled by_»?",
 	"Require:_is public",
 	"Require:_is private",
 	"_'s⁇instance"
@@ -129,7 +129,8 @@ Method "Require:_is public" is
 			with <methodName>
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Reject the current parse is the argument is not included in the current
@@ -224,7 +225,8 @@ Method "Require:_is private" is
 			/* This is the happy path: do nothing. */
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Reject the current parse is the argument is included in the current module's
@@ -402,23 +404,29 @@ Semantic restriction "Public forward method_is_" is
 	⊤
 ];
 
+/* The range from zero to one. */
+zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
+
 /**
  * Define a new public method. The semantic restriction ensures that the method
  * is named in the current module's "Names" section. This should not be used to
  * extend existing methods.
  *
- * @method "Public method_is_"
+ * @method "Public method_is_«styled by_»?"
  * @param "methodName" "string"
  *        The name of the new method.
  * @param "function" "function"
  *        The original implementation of the method.
+ * @param "styler" "optionalStylerFunction"
+ *        The optional {@type "styler function"}.
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Method "Public method_is_" is
+Method "Public method_is_«styled by_»?" is
 [
 	methodName : string,
-	function : function
+	function : function,
+	styler : optionalStylerFunction
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -427,14 +435,15 @@ Method "Public method_is_" is
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
  *
- * @method "Public method_is_"
+ * @method "Public method_is_«styled by_»?"
  * @restricts "string's type"
  * @restricts "function meta"
  */
-Semantic restriction "Public method_is_" is
+Semantic restriction "Public method_is_«styled by_»?" is
 [
 	nameType : string's type,
-	functionType : function meta
+	functionType : function meta,
+	styler : optionalStylerFunction's type
 |
 	Require: nameType is public;
 	⊤
@@ -445,7 +454,7 @@ Semantic restriction "Public method_is_" is
  * is named in the current module's "Names" section. This should not be used to
  * extend existing methods.
  *
- * @method "Public method_is_"
+ * @method "Public method_is_«styled by_»?"
  * @param "methodName" "atom"
  *        The atom that uniquely names the new method.
  * @param "function" "function"
@@ -453,10 +462,11 @@ Semantic restriction "Public method_is_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Public method "Public method_is_" is
+Public method "Public method_is_«styled by_»?" is
 [
 	methodName : atom,
-	function : function
+	function : function,
+	styler : optionalStylerFunction
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -465,14 +475,15 @@ Public method "Public method_is_" is
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
  *
- * @method "Public method_is_"
+ * @method "Public method_is_«styled by_»?"
  * @restricts "atom's type"
  * @restricts "function meta"
  */
-Semantic restriction "Public method_is_" is
+Semantic restriction "Public method_is_«styled by_»?" is
 [
 	nameType : atom's type,
-	functionType : function meta
+	functionType : function meta,
+	styler : optionalStylerFunction's type
 |
 	Require: nameType is public;
 	⊤
@@ -607,7 +618,7 @@ Semantic restriction "Private forward method_is_" is
  * is not named in the module's "Names" section. This should not be used to
  * extend existing methods.
  *
- * @method "Private method_is_"
+ * @method "Private method_is_«styled by_»?"
  * @param "methodName" "string"
  *        The name of the new method.
  * @param "function" "function"
@@ -615,10 +626,11 @@ Semantic restriction "Private forward method_is_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Public method "Private method_is_" is
+Public method "Private method_is_«styled by_»?" is
 [
 	methodName : string,
-	function : function
+	function : function,
+	styler : optionalStylerFunction
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -627,14 +639,15 @@ Public method "Private method_is_" is
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
  *
- * @method "Private method_is_"
+ * @method "Private method_is_«styled by_»?"
  * @restricts "string's type"
  * @restricts "function meta"
  */
-Semantic restriction "Private method_is_" is
+Semantic restriction "Private method_is_«styled by_»?" is
 [
 	nameType : string's type,
-	functionType : function meta
+	functionType : function meta,
+	styler : optionalStylerFunction's type
 |
 	Require: nameType is private;
 	⊤
@@ -645,7 +658,7 @@ Semantic restriction "Private method_is_" is
  * is not named in the module's "Names" section. This should not be used to
  * extend existing methods.
  *
- * @method "Private method_is_"
+ * @method "Private method_is_«styled by_»?"
  * @param "methodName" "atom"
  *        The atom that uniquely names the new method.
  * @param "function" "function"
@@ -653,10 +666,11 @@ Semantic restriction "Private method_is_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Public method "Private method_is_" is
+Public method "Private method_is_«styled by_»?" is
 [
 	methodName : atom,
-	function : function
+	function : function,
+	styler : optionalStylerFunction
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -665,14 +679,15 @@ Public method "Private method_is_" is
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
  *
- * @method "Private method_is_"
+ * @method "Private method_is_«styled by_»?"
  * @restricts "atom's type"
  * @restricts "function meta"
  */
-Semantic restriction "Private method_is_" is
+Semantic restriction "Private method_is_«styled by_»?" is
 [
 	nameType : atom's type,
-	functionType : function meta
+	functionType : function meta,
+	stylerType : optionalStylerFunction's type
 |
 	Require: nameType is private;
 	⊤
@@ -753,9 +768,9 @@ Method "Grammatical restriction_is_" is
  * is named in the current module's "Names" section. This should not be used to
  * extend existing macros.
  *
- * @method "Public macro_i«_,»s_"
+ * @method "Public macro_is«_,»_«styled by_»?"
  * @param "macroName" "string"
- *        The name of the the new macro.
+ *        The name of the new macro.
  * @param "prefixFunctions" "function*"
  *        The prefix functions associated with this macro.
  * @param "body" "macro function"
@@ -763,11 +778,12 @@ Method "Grammatical restriction_is_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Method "Public macro_is«_,»_" is
+Method "Public macro_is«_,»_«styled by_»?" is
 [
 	macroName : string,
 	prefixFunctions : tuple of function,
-	body : macro function
+	body : macro function,
+	optionalStyler : optionalStylerFunction
 |
 	Primitive SimpleMacroDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -776,15 +792,17 @@ Method "Public macro_is«_,»_" is
 /**
  * Ensure that the new macro is introduced by the module's "Names" section.
  *
- * @method "Public macro_is«_,»_"
+ * @method "Public macro_is«_,»_«styled by_»?"
  * @restricts "string's type"
  * @restricts "function meta's type"
  */
-Semantic restriction "Public macro_is«_,»_" is
+Semantic restriction "Public macro_is«_,»_«styled by_»?" is
 [
 	macroNameType : string's type,
 	prefixFunctionsType : tuple of function's type,
-	bodyType : macro function's type
+	bodyType : macro function's type,
+	optionalStyler : optionalStylerFunction's type
+
 |
 	Require: macroNameType is public;
 	⊤
@@ -795,7 +813,7 @@ Semantic restriction "Public macro_is«_,»_" is
  * is not named in the current module's "Names" section. This should not be used
  * to extend existing macros.
  *
- * @method "Private macro_is«_,»_"
+ * @method "Private macro_is«_,»_«styled by_»?"
  * @param "macroName" "string"
  *        The name of the new macro.
  * @param "prefixFunctions" "function*"
@@ -805,11 +823,12 @@ Semantic restriction "Public macro_is«_,»_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Method "Private macro_is«_,»_" is
+Method "Private macro_is«_,»_«styled by_»?" is
 [
 	macroName : string,
 	prefixFunctions : tuple of function,
-	body : macro function
+	body : macro function,
+	optionalStyler : optionalStylerFunction
 |
 	Primitive SimpleMacroDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -818,15 +837,16 @@ Method "Private macro_is«_,»_" is
 /**
  * Ensure that the new macro is not introduced by the module's "Names" section.
  *
- * @method "Private macro_is«_,»_"
+ * @method "Private macro_is«_,»_«styled by_»?"
  * @restricts "string's type"
  * @restricts "function meta's type"
  */
-Semantic restriction "Private macro_is«_,»_" is
+Semantic restriction "Private macro_is«_,»_«styled by_»?" is
 [
 	macroNameType : string's type,
 	prefixFunctionsType : tuple of function's type,
-	bodyType : macro function's type
+	bodyType : macro function's type,
+	optionalStyler : optionalStylerFunction's type
 |
 	Require: macroNameType is private;
 	⊤

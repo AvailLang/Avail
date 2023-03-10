@@ -33,19 +33,17 @@ package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.sequence
 import avail.descriptor.phrases.A_Phrase.Companion.statements
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.SequenceAsExpressionPhraseDescriptor.ObjectSlots.SEQUENCE
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TypeTag
@@ -71,9 +69,8 @@ class SequenceAsExpressionPhraseDescriptor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.SEQUENCE_AS_EXPRESSION_PHRASE_TAG,
-	ObjectSlots::class.java,
-	null
-) {
+	ObjectSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -92,7 +89,7 @@ class SequenceAsExpressionPhraseDescriptor(
 		indent: Int)
 	{
 		builder.append("sequence-as-expression(")
-		self.slot(SEQUENCE).statements.forEach { statement ->
+		self[SEQUENCE].statements.forEach { statement ->
 			builder.newlineTab(indent)
 			statement.printOnAvoidingIndent(builder, recursionMap, indent + 1)
 			builder.append(";")
@@ -102,39 +99,36 @@ class SequenceAsExpressionPhraseDescriptor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
-	) = action(self.slot(SEQUENCE))
+		action: (A_Phrase)->Unit
+	) = action(self[SEQUENCE])
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self.updateSlot(SEQUENCE, transformer)
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self.slot(SEQUENCE).emitEffectOn(codeGenerator)
+	) = self[SEQUENCE].emitEffectOn(codeGenerator)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self.slot(SEQUENCE).emitValueOn(codeGenerator)
+	) = self[SEQUENCE].emitValueOn(codeGenerator)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(SEQUENCE).equals(aPhrase.sequence))
+		&& self[SEQUENCE].equalsPhrase(aPhrase.sequence))
 
 	override fun o_Sequence(self: AvailObject): A_Phrase =
-		self.slot(SEQUENCE)
+		self[SEQUENCE]
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(SEQUENCE).phraseExpressionType
-
-	override fun o_Hash(self: AvailObject) =
-		combine2(self.slot(SEQUENCE).hash(), 0x46D8127F)
+		self[SEQUENCE].phraseExpressionType
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE
@@ -147,29 +141,21 @@ class SequenceAsExpressionPhraseDescriptor(
 		continuation: (A_Phrase) -> Unit
 	) = continuation(self)
 
-	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(SEQUENCE).tokens
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("sequence as expression phrase") }
-			at("sequence") { self.slot(SEQUENCE).writeTo(writer) }
+			at("sequence") { self[SEQUENCE].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("sequence as expression phrase") }
-			at("sequence") { self.slot(SEQUENCE).writeSummaryTo(writer) }
+			at("sequence") { self[SEQUENCE].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable
+
+	override fun immutable() = immutable
 
 	override fun shared() = shared
 
@@ -188,11 +174,16 @@ class SequenceAsExpressionPhraseDescriptor(
 		fun newSequenceAsExpression(sequence: A_Phrase): A_Phrase =
 			mutable.createShared {
 				setSlot(SEQUENCE, sequence)
+				initHash()
 			}
 
 		/** The mutable [SequenceAsExpressionPhraseDescriptor]. */
 		private val mutable =
 			SequenceAsExpressionPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SequenceAsExpressionPhraseDescriptor]. */
+		private val immutable =
+			SequenceAsExpressionPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SequenceAsExpressionPhraseDescriptor]. */
 		private val shared =

@@ -81,12 +81,12 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumber
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.zeroOrOne
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots
 import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.DEFAULT_TYPE
 import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.SIZE_RANGE
 import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.TYPE_TUPLE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
@@ -160,16 +160,16 @@ private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		if (self.slot(TYPE_TUPLE).tupleSize == 0)
+		if (self[TYPE_TUPLE].tupleSize == 0)
 		{
-			if (self.slot(SIZE_RANGE).equals(wholeNumbers))
+			if (self[SIZE_RANGE].equals(wholeNumbers))
 			{
-				if (self.slot(DEFAULT_TYPE).equals(ANY.o))
+				if (self[DEFAULT_TYPE].equals(ANY.o))
 				{
 					builder.append("tuple")
 					return
 				}
-				if (self.slot(DEFAULT_TYPE).equals(CHARACTER.o))
+				if (self[DEFAULT_TYPE].equals(CHARACTER.o))
 				{
 					builder.append("string")
 					return
@@ -185,7 +185,7 @@ private constructor(
 			}
 		}
 		builder.append('<')
-		val end = self.slot(TYPE_TUPLE).tupleSize
+		val end = self[TYPE_TUPLE].tupleSize
 		for (i in 1 .. end)
 		{
 			self.typeAtIndex(i).printOnAvoidingIndent(
@@ -194,12 +194,12 @@ private constructor(
 				indent + 1)
 			builder.append(", ")
 		}
-		self.slot(DEFAULT_TYPE).printOnAvoidingIndent(
+		self[DEFAULT_TYPE].printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 		builder.append("…|")
-		val sizeRange: A_Type = self.slot(SIZE_RANGE)
+		val sizeRange: A_Type = self[SIZE_RANGE]
 		sizeRange.lowerBound.printOnAvoidingIndent(
 			builder,
 			recursionMap,
@@ -216,7 +216,7 @@ private constructor(
 	}
 
 	override fun o_DefaultType(self: AvailObject): A_Type =
-		self.slot(DEFAULT_TYPE)
+		self[DEFAULT_TYPE]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsTupleType(self)
@@ -231,9 +231,9 @@ private constructor(
 		self: AvailObject,
 		aTupleType: A_Type): Boolean =
 			(self.sameAddressAs(aTupleType)
-				|| (self.slot(SIZE_RANGE).equals(aTupleType.sizeRange)
-				&& self.slot(DEFAULT_TYPE).equals(aTupleType.defaultType)
-				&& self.slot(TYPE_TUPLE).equals(aTupleType.typeTuple)))
+				|| (self[SIZE_RANGE].equals(aTupleType.sizeRange)
+				&& self[DEFAULT_TYPE].equals(aTupleType.defaultType)
+				&& self[TYPE_TUPLE].equals(aTupleType.typeTuple)))
 
 	override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
@@ -244,9 +244,9 @@ private constructor(
 	override fun o_RepresentationCostOfTupleType(self: AvailObject): Int = 1
 
 	override fun o_Hash(self: AvailObject): Int = combine4(
-		self.slot(SIZE_RANGE).hash(),
-		self.slot(TYPE_TUPLE).hash(),
-		self.slot(DEFAULT_TYPE).hash(),
+		self[SIZE_RANGE].hash(),
+		self[TYPE_TUPLE].hash(),
+		self[DEFAULT_TYPE].hash(),
 		-0x749f6826)
 
 	/**
@@ -305,12 +305,12 @@ private constructor(
 			return true
 		}
 		if (!aTupleType.sizeRange.isSubtypeOf(
-				self.slot(SIZE_RANGE)))
+				self[SIZE_RANGE]))
 		{
 			return false
 		}
 		val subTuple = aTupleType.typeTuple
-		val superTuple: A_Tuple = self.slot(TYPE_TUPLE)
+		val superTuple: A_Tuple = self[TYPE_TUPLE]
 		var end = max(subTuple.tupleSize, superTuple.tupleSize) + 1
 		val smallUpper = aTupleType.sizeRange.upperBound
 		if (smallUpper.isInt)
@@ -335,7 +335,7 @@ private constructor(
 				}
 				else
 				{
-					self.slot(DEFAULT_TYPE)
+					self[DEFAULT_TYPE]
 				}
 			if (!subType.isSubtypeOf(superType))
 			{
@@ -359,7 +359,7 @@ private constructor(
 		// after the variations (i.e., just after the leading typeTuple).
 		val minSize = min(
 			minSizeObject.extractInt,
-			self.slot(TYPE_TUPLE).tupleSize + 1)
+			self[TYPE_TUPLE].tupleSize + 1)
 		for (i in 1 .. minSize)
 		{
 			if (self.typeAtIndex(i).isVacuousType)
@@ -384,7 +384,7 @@ private constructor(
 		SerializerOperation.TUPLE_TYPE
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self.slot(SIZE_RANGE)
+		self[SIZE_RANGE]
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
@@ -493,7 +493,7 @@ private constructor(
 		{
 			return bottom
 		}
-		val upper = self.slot(SIZE_RANGE).upperBound
+		val upper = self[SIZE_RANGE].upperBound
 		if (upper.isInt)
 		{
 			if (upper.extractInt < index)
@@ -505,12 +505,12 @@ private constructor(
 		{
 			return bottom
 		}
-		val leading: A_Tuple = self.slot(TYPE_TUPLE)
+		val leading: A_Tuple = self[TYPE_TUPLE]
 		return if (index <= leading.tupleSize)
 		{
 			leading.tupleAt(index)
 		}
-		else self.slot(DEFAULT_TYPE)
+		else self[DEFAULT_TYPE]
 	}
 
 	override fun o_TypeIntersection(
@@ -528,8 +528,8 @@ private constructor(
 		aTupleType: A_Type): A_Type
 	{
 		var newSizesObject =
-			self.slot(SIZE_RANGE).typeIntersection(aTupleType.sizeRange)
-		val lead1: A_Tuple = self.slot(TYPE_TUPLE)
+			self[SIZE_RANGE].typeIntersection(aTupleType.sizeRange)
+		val lead1: A_Tuple = self[TYPE_TUPLE]
 		val lead2 = aTupleType.typeTuple
 		var newLeading: A_Tuple
 		newLeading =
@@ -577,7 +577,7 @@ private constructor(
 	}
 
 	override fun o_TypeTuple(self: AvailObject): A_Tuple =
-		self.slot(TYPE_TUPLE)
+		self[TYPE_TUPLE]
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -592,8 +592,8 @@ private constructor(
 		aTupleType: A_Type): A_Type
 	{
 		val newSizesObject =
-			self.slot(SIZE_RANGE).typeUnion(aTupleType.sizeRange)
-		val lead1: A_Tuple = self.slot(TYPE_TUPLE)
+			self[SIZE_RANGE].typeUnion(aTupleType.sizeRange)
+		val lead1: A_Tuple = self[TYPE_TUPLE]
 		val lead2 = aTupleType.typeTuple
 		var newLeading: A_Tuple
 		newLeading =
@@ -627,11 +627,11 @@ private constructor(
 		writer.write("kind")
 		writer.write("tuple type")
 		writer.write("leading types")
-		self.slot(TYPE_TUPLE).writeTo(writer)
+		self[TYPE_TUPLE].writeTo(writer)
 		writer.write("default type")
-		self.slot(DEFAULT_TYPE).writeTo(writer)
+		self[DEFAULT_TYPE].writeTo(writer)
 		writer.write("cardinality")
-		self.slot(SIZE_RANGE).writeTo(writer)
+		self[SIZE_RANGE].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -641,11 +641,11 @@ private constructor(
 		writer.write("kind")
 		writer.write("tuple type")
 		writer.write("leading types")
-		self.slot(TYPE_TUPLE).writeSummaryTo(writer)
+		self[TYPE_TUPLE].writeSummaryTo(writer)
 		writer.write("default type")
-		self.slot(DEFAULT_TYPE).writeSummaryTo(writer)
+		self[DEFAULT_TYPE].writeSummaryTo(writer)
 		writer.write("cardinality")
-		self.slot(SIZE_RANGE).writeSummaryTo(writer)
+		self[SIZE_RANGE].writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -787,7 +787,7 @@ private constructor(
 				bottom)
 
 		/** Access the method [tupleTypeForTypes]. */
-		var tupleTypesForTypesArrayMethod = staticMethod(
+		val tupleTypesForTypesArrayMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
 			::tupleTypeForTypes.name,
 			A_Type::class.java,

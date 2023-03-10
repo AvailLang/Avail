@@ -197,7 +197,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		synchronized(self) {
 			bundle = self.volatileSlot(BUNDLE_OR_NIL)
 			if (bundle.notNil) return bundle
-			val splitter = MessageSplitter(self.slot(NAME))
+			val splitter = MessageSplitter.split(self[NAME])
 			val method: A_Method = newMethod(splitter.numberOfArguments)
 			bundle = newBundle(self, method, splitter)
 			self.setVolatileSlot(BUNDLE_OR_NIL, bundle)
@@ -224,16 +224,18 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 	}
 
 	// Always set (to non-zero) during construction of a shared atom.
-	override fun o_Hash(self: AvailObject): Int = self.slot(HASH_OR_ZERO)
+	override fun o_Hash(self: AvailObject): Int = self[HASH_OR_ZERO]
 
 	override fun o_IsAtomSpecial(self: AvailObject) = isSpecial
 
 	override fun o_IsBoolean (self: AvailObject) =
 		this === sharedForTrue || this === sharedForFalse
 
-	override fun o_MakeImmutable(self: AvailObject) = self
-
-	override fun o_MakeShared(self: AvailObject): AvailObject = self
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>
+	) = unsupported
 
 	override fun o_MarshalToJava (
 		self: AvailObject,

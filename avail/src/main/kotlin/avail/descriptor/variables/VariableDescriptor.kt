@@ -204,24 +204,25 @@ open class VariableDescriptor protected constructor(
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean =
-			e === VALUE
-				|| e === IntegerSlots.HASH_AND_MORE
-				|| e === WRITE_REACTORS
+		e: AbstractSlotsEnum
+	): Boolean =
+		e === VALUE
+			|| e === IntegerSlots.HASH_AND_MORE
+			|| e === WRITE_REACTORS
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			synchronized(self) {
-				self.slot(HASH_OR_ZERO).ifZero {
+				self[HASH_OR_ZERO].ifZero {
 					AvailRuntimeSupport.nextNonzeroHash().also { hash ->
-						self.setSlot(HASH_OR_ZERO, hash)
+						self[HASH_OR_ZERO] = hash
 					}
 				}
 			}
 		}
 
 	override fun o_Value(self: AvailObject): AvailObject =
-		self.slot(VALUE)
+		self[VALUE]
 
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject
@@ -242,7 +243,7 @@ open class VariableDescriptor protected constructor(
 		}
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
-		val value = self.slot(VALUE)
+		val value = self[VALUE]
 		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -270,13 +271,13 @@ open class VariableDescriptor protected constructor(
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.  Note that we do *not* have to make the retrieved
 		// value immutable, since the variable drops its reference.
-		val value = self.slot(VALUE)
+		val value = self[VALUE]
 		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		handleVariableWriteTracing(self)
-		self.setSlot(VALUE, nil)
+		self[VALUE] = nil
 		return value
 	}
 
@@ -296,7 +297,7 @@ open class VariableDescriptor protected constructor(
 		{
 			// No implementation required.
 		}
-		val value = self.slot(VALUE)
+		val value = self[VALUE]
 		return value.notNil
 	}
 
@@ -306,7 +307,7 @@ open class VariableDescriptor protected constructor(
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
+		if (!newValue.isInstanceOf(self[KIND].writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -319,8 +320,11 @@ open class VariableDescriptor protected constructor(
 	{
 		assert(newValue.notNil)
 		handleVariableWriteTracing(self)
-		self.setSlot(
-			VALUE, if (isMutable) newValue else newValue.makeImmutable())
+		self[VALUE] =
+			if (isMutable) newValue
+			else
+				//TODO Mark/Todd – This is probably unnecessary.
+				newValue.makeImmutable()
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -328,7 +332,7 @@ open class VariableDescriptor protected constructor(
 		self: AvailObject, newValue: A_BasicObject): AvailObject
 	{
 		handleVariableWriteTracing(self)
-		val outerKind = self.slot(KIND)
+		val outerKind = self[KIND]
 		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -336,12 +340,12 @@ open class VariableDescriptor protected constructor(
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
-		val value = self.slot(VALUE)
+		val value = self[VALUE]
 		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
-		self.setSlot(VALUE, newValue)
+		self[VALUE] = newValue
 		if (mutability === Mutability.MUTABLE)
 		{
 			value.makeImmutable()
@@ -355,7 +359,7 @@ open class VariableDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
+		if (!newValue.isInstanceOf(self[KIND].writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -363,7 +367,7 @@ open class VariableDescriptor protected constructor(
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
-		val value = self.slot(VALUE)
+		val value = self[VALUE]
 		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -371,7 +375,7 @@ open class VariableDescriptor protected constructor(
 		val swap = value.equals(reference)
 		if (swap)
 		{
-			self.setSlot(VALUE, newValue)
+			self[VALUE] = newValue
 		}
 		if (mutability === Mutability.MUTABLE)
 		{
@@ -390,9 +394,9 @@ open class VariableDescriptor protected constructor(
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
-		val oldValue = self.slot(VALUE)
+		val oldValue = self[VALUE]
 		if (oldValue.isNil || !oldValue.equals(reference)) return false
-		self.setSlot(VALUE, newValue)
+		self[VALUE] = newValue
 		if (mutability === Mutability.MUTABLE)
 		{
 			oldValue.makeImmutable()
@@ -405,13 +409,13 @@ open class VariableDescriptor protected constructor(
 		self: AvailObject, addend: A_Number): A_Number
 	{
 		handleVariableWriteTracing(self)
-		val outerKind: A_Type = self.slot(KIND)
+		val outerKind: A_Type = self[KIND]
 		assert(outerKind.readType.isSubtypeOf(
 			IntegerRangeTypeDescriptor.extendedIntegers))
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
-		val value: A_Number = self.slot(VALUE)
+		val value: A_Number = self[VALUE]
 		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -421,7 +425,7 @@ open class VariableDescriptor protected constructor(
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		self.setSlot(VALUE, newValue)
+		self[VALUE] = newValue
 		if (mutability === Mutability.MUTABLE)
 		{
 			value.makeImmutable()
@@ -436,9 +440,9 @@ open class VariableDescriptor protected constructor(
 		value: A_BasicObject)
 	{
 		handleVariableWriteTracing(self)
-		val outerKind: A_Type = self.slot(KIND)
+		val outerKind: A_Type = self[KIND]
 		val writeType = outerKind.writeType
-		val oldMap: A_Map = self.slot(VALUE)
+		val oldMap: A_Map = self[VALUE]
 		if (oldMap.isNil)
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		if (!oldMap.isMap)
@@ -465,7 +469,7 @@ open class VariableDescriptor protected constructor(
 		}
 		// We already checked the key, value, and resulting size, so we can skip
 		// a separate type check.
-		self.setSlot(VALUE, newMap.makeShared())
+		self[VALUE] = newMap.makeShared()
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -474,9 +478,9 @@ open class VariableDescriptor protected constructor(
 		key: A_BasicObject)
 	{
 		handleVariableWriteTracing(self)
-		val outerKind: A_Type = self.slot(KIND)
+		val outerKind: A_Type = self[KIND]
 		val writeType = outerKind.writeType
-		val oldMap: A_Map = self.slot(VALUE)
+		val oldMap: A_Map = self[VALUE]
 		if (oldMap.isNil)
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		if (!oldMap.isMap)
@@ -501,7 +505,7 @@ open class VariableDescriptor protected constructor(
 		}
 		// We already checked the new size was ok, and we're not introducing any
 		// new keys or values, so the new map must still be type-safe.
-		self.setSlot(VALUE, newMap.makeShared())
+		self[VALUE] = newMap.makeShared()
 	}
 
 	@Throws(VariableGetException::class)
@@ -509,10 +513,10 @@ open class VariableDescriptor protected constructor(
 		self: AvailObject, key: A_BasicObject): Boolean
 	{
 		handleVariableWriteTracing(self)
-		val outerKind: A_Type = self.slot(KIND)
+		val outerKind: A_Type = self[KIND]
 		val readType = outerKind.readType
 		assert(readType.isMapType)
-		val oldMap: A_Map = self.slot(VALUE)
+		val oldMap: A_Map = self[VALUE]
 		if (oldMap.isNil)
 		{
 			throw VariableGetException(
@@ -524,7 +528,7 @@ open class VariableDescriptor protected constructor(
 	override fun o_ClearValue(self: AvailObject)
 	{
 		handleVariableWriteTracing(self)
-		self.setSlot(VALUE, nil)
+		self[VALUE] = nil
 	}
 
 	override fun o_AddDependentChunk(self: AvailObject, chunk: L2Chunk)
@@ -549,7 +553,7 @@ open class VariableDescriptor protected constructor(
 	{
 		withWriteReactorsToModify(self, true) { writeReactors ->
 			discardInvalidWriteReactors(writeReactors!!)
-			writeReactors[key] = reactor
+			writeReactors[key.makeShared()] = reactor
 		}
 	}
 
@@ -585,34 +589,68 @@ open class VariableDescriptor protected constructor(
 		}
 	}
 
-	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
+	override fun o_Kind(self: AvailObject): A_Type = self[KIND]
 
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
 	): Boolean = another.traversed().sameAddressAs(self)
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
+	override fun o_MakeImmutableInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		// If I am being frozen (a variable), I don't need to freeze my current
-		// value. I do, on the other hand, have to freeze my kind object.
-		if (isMutable)
-		{
-			self.setDescriptor(immutable)
-			self.slot(KIND).makeImmutable()
+		assert(super.mutability == Mutability.IMMUTABLE) {
+			"The descriptor should have been switched to immutable already"
 		}
-		return self
+		val value = self[VALUE]
+		self.scanSubobjects { subobject ->
+			// If I am being frozen (a variable), I don't need to freeze my
+			// current value. I do, on the other hand, have to freeze my kind
+			// object, and any other fields that my subclasses define.  It's
+			// safe to just identity check against the current value, because if
+			// it's mutable, there are no other references to it from other
+			// fields, and if it's not, we don't care.
+			if (subobject.sameAddressAs(value))
+			{
+				// Eliminate indirections during this step.
+				val traversed = subobject.traversedWhileMakingImmutable()
+				val descriptor = traversed.descriptor()
+				if (descriptor.isMutable)
+				{
+					traversed.setDescriptor(descriptor.immutable())
+					queueToProcess.add(traversed)
+				}
+				traversed
+			}
+			else subobject
+		}
 	}
 
-	override fun o_MakeShared(self: AvailObject): AvailObject
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		assert(!isShared)
-		//TODO: Determine if we should be transferring the write-reactors.
-		return VariableSharedDescriptor.createSharedFrom(
-			self.slot(KIND),
+		assert(this === transientShared)
+		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		val newVariable = VariableSharedDescriptor.createSharedLike(
+			self[KIND],
 			self.hash(),
-			self.slot(VALUE),
-			self)
+			self[VALUE],
+			self[WRITE_REACTORS])
+		assert(newVariable.descriptor().isShared)
+
+		// The old variable (self) was marked as shared when it was added to the
+		// queueToProcess.  Therefore, it's not truly shared yet, as other
+		// threads cannot actually see it.  Since shared objects can't become
+		// indirections, we switch the descriptor back to its mutable form
+		// before making it an indirection to the newVariable.
+		self.setDescriptor(self.descriptor().mutable())
+		self.becomeIndirectionTo(newVariable)
+		// Make the indirection shared, too.
+		self.setDescriptor(self.descriptor().shared())
 	}
 
 	override fun o_IsInitializedWriteOnceVariable(self: AvailObject)
@@ -630,16 +668,16 @@ open class VariableDescriptor protected constructor(
 	}
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
-		self.slot(VALUE)
+		self[VALUE]
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("variable") }
-			at("variable type") { self.slot(KIND).writeTo(writer) }
-			if (self.slot(VALUE).notNil)
+			at("variable type") { self[KIND].writeTo(writer) }
+			if (self[VALUE].notNil)
 			{
 				at("value") {
-					self.slot(VALUE).writeSummaryTo(writer)
+					self[VALUE].writeSummaryTo(writer)
 				}
 			}
 		}
@@ -648,7 +686,7 @@ open class VariableDescriptor protected constructor(
 		writer.writeObject {
 			at("kind") { write("variable") }
 			at("variable type") {
-				self.slot(KIND).writeSummaryTo(writer)
+				self[KIND].writeSummaryTo(writer)
 			}
 		}
 
@@ -667,7 +705,7 @@ open class VariableDescriptor protected constructor(
 	 *   A function that runs with either this variable's [MutableMap] from
 	 *   [A_Atom] to [VariableAccessReactor], or `null`.
 	 */
-	open fun<T> withWriteReactorsToModify(
+	open fun <T> withWriteReactorsToModify(
 		self: AvailObject,
 		toModify: Boolean,
 		body: (MutableMap<A_Atom, VariableAccessReactor>?)->T): T
@@ -685,7 +723,6 @@ open class VariableDescriptor protected constructor(
 		}
 		return body(pojo.javaObjectNotNull())
 	}
-
 
 	/**
 	 * If [variable&#32;write&#32;tracing][Interpreter.traceVariableWrites]
@@ -718,8 +755,8 @@ open class VariableDescriptor protected constructor(
 						if (writeReactors !== null)
 						{
 							discardInvalidWriteReactors(writeReactors)
-							// If there are write reactors, but write tracing isn't
-							// active, then raise an exception.
+							// If there are write reactors, but write tracing
+							// isn't active, then raise an exception.
 							if (writeReactors.isNotEmpty())
 							{
 								throw VariableSetException(
@@ -740,7 +777,11 @@ open class VariableDescriptor protected constructor(
 
 	override fun immutable() = immutable
 
-	override fun shared() = VariableSharedDescriptor.shared
+	/**
+	 * This should only be used transiently when transitioning to a
+	 * [VariableSharedDescriptor].
+	 */
+	override fun shared() = transientShared
 
 	companion object
 	{
@@ -776,20 +817,26 @@ open class VariableDescriptor protected constructor(
 
 		/**
 		 * Create a `VariableDescriptor variable` which can only contain values
-		 * of the specified type.  The new variable initially holds no value.
+		 * of the specified type.  The new variable initially holds no value,
+		 * unless one is specified as the [optionalInitialValue].
 		 *
 		 * @param contentType
 		 *   The type of objects the new variable can contain.
+		 * @param optionalInitialValue
+		 *   The optional *unchecked* initial value of the variable, or null.
 		 * @return
 		 *   A new variable able to hold the specified type of objects.
 		 */
-		fun newVariableWithContentType(contentType: A_Type): AvailObject =
-			newVariableWithOuterType(variableTypeFor(contentType))
+		fun newVariableWithContentType(
+			contentType: A_Type,
+			optionalInitialValue: A_BasicObject? = null
+		): AvailObject = newVariableWithOuterType(
+			variableTypeFor(contentType), optionalInitialValue)
 
 		/**
-		 * Create a `variable` of the specified
-		 * [variable&#32;type][VariableTypeDescriptor].  The new variable
-		 * initially holds no value.
+		 * Create a `variable` of the specified variable
+		 * [type][VariableTypeDescriptor].  The new variable initially holds no
+		 * value, unless one is specified as the [optionalInitialValue].
 		 *
 		 * Note that [WRITE_REACTORS] and [VALUE] can be initialized with
 		 * ordinary slot writes here, because should the variable become
@@ -803,13 +850,15 @@ open class VariableDescriptor protected constructor(
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun newVariableWithOuterType(variableType: A_Type?): AvailObject =
-			mutable.create {
-				setSlot(KIND, variableType!!)
-				setSlot(HASH_OR_ZERO, 0)
-				setSlot(VALUE, nil)
-				setSlot(WRITE_REACTORS, nil)
-			}
+		fun newVariableWithOuterType(
+			variableType: A_Type,
+			optionalInitialValue: A_BasicObject? = null
+		): AvailObject = mutable.create {
+			setSlot(KIND, variableType)
+			setSlot(HASH_OR_ZERO, 0)
+			setSlot(VALUE, optionalInitialValue ?: nil)
+			setSlot(WRITE_REACTORS, nil)
+		}
 
 		/**
 		 * The [CheckedMethod] for [newVariableWithOuterType].
@@ -818,7 +867,8 @@ open class VariableDescriptor protected constructor(
 			VariableDescriptor::class.java,
 			::newVariableWithOuterType.name,
 			AvailObject::class.java,
-			A_Type::class.java)
+			A_Type::class.java,
+			A_BasicObject::class.java)
 
 		/** The mutable [VariableDescriptor]. */
 		private val mutable = VariableDescriptor(
@@ -830,6 +880,16 @@ open class VariableDescriptor protected constructor(
 		/** The immutable [VariableDescriptor]. */
 		private val immutable = VariableDescriptor(
 			Mutability.IMMUTABLE,
+			TypeTag.VARIABLE_TAG,
+			ObjectSlots::class.java,
+			IntegerSlots::class.java)
+
+		/**
+		 * The shared [VariableDescriptor], which is only used transiently
+		 * during a transition to a [VariableSharedDescriptor].
+		 */
+		private val transientShared = VariableDescriptor(
+			Mutability.SHARED,
 			TypeTag.VARIABLE_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)

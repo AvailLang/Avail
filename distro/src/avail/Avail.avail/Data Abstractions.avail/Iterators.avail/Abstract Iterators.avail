@@ -88,6 +88,7 @@ Body
  * @category "Data Abstractions" "Iterators"
  * @type "iterator"
  */
+
 Public explicit class "iterator" extends object
 	with fields
 		element type : any's type;
@@ -461,7 +462,8 @@ Method "Require:_accepts_" is
 				\|of the reader (but it only accepts “②”)"
 			with elementType, actionType[1]
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Iteratively apply {@param "action"} to each consecutive element of {@param

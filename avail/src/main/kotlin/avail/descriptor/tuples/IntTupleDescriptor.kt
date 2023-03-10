@@ -169,7 +169,7 @@ class IntTupleDescriptor private constructor(
 			// Enlarge it in place, using more of the final partial int field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
 			self.setIntSlot(RAW_LONG_AT_, newSize, intValue)
-			self.setSlot(HASH_OR_ZERO, 0)
+			self[HASH_OR_ZERO] = 0
 			return self
 		}
 		// Copy to a potentially larger IntTupleDescriptor.
@@ -179,7 +179,7 @@ class IntTupleDescriptor private constructor(
 			0,
 			if (originalSize and 1 == 0) 1 else 0)
 		result.setIntSlot(RAW_LONG_AT_, newSize, intValue)
-		result.setSlot(HASH_OR_ZERO, 0)
+		result[HASH_OR_ZERO] = 0
 		return result
 	}
 
@@ -316,7 +316,7 @@ class IntTupleDescriptor private constructor(
 				source++
 				destination++
 			}
-			result.setSlot(HASH_OR_ZERO, 0)
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		if (!canDestroy)
@@ -531,26 +531,6 @@ class IntTupleDescriptor private constructor(
 		return true
 	}
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(
-				descriptorFor(Mutability.IMMUTABLE, self.tupleSize))
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(
-				descriptorFor(Mutability.SHARED, self.tupleSize))
-		}
-		return self
-	}
-
 	override fun o_TransferIntoByteBuffer(
 		self: AvailObject,
 		startIndex: Int,
@@ -708,6 +688,7 @@ class IntTupleDescriptor private constructor(
 		 * @return
 		 *   An `IntTupleDescriptor`.
 		 */
+		@Suppress("SameParameterValue")
 		private fun descriptorFor(
 			flag: Mutability,
 			size: Int): IntTupleDescriptor =
@@ -766,7 +747,7 @@ class IntTupleDescriptor private constructor(
 				var combined =
 					(generator(tupleIndex++).toLong() and 0xFFFFFFFFL)
 				combined += generator(tupleIndex++).toLong() shl 32
-				result.setSlot(RAW_LONG_AT_, slotIndex, combined)
+				result[RAW_LONG_AT_, slotIndex] = combined
 				slotIndex++
 			}
 			if (size and 1 == 1)

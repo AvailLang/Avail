@@ -33,6 +33,7 @@
 package avail.compiler
 
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.PhraseDescriptor
 
 /**
@@ -70,7 +71,7 @@ internal class CompilerSolution constructor(
 		{
 			return false
 		}
-		return endState == other.endState && phrase.equals(other.phrase)
+		return endState == other.endState && phrase.equalsPhrase(other.phrase)
 	}
 
 	override fun hashCode() = phrase.hash()

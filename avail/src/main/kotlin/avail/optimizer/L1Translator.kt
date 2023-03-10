@@ -49,6 +49,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
@@ -76,6 +77,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
@@ -125,9 +127,9 @@ import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelOne.L1OperationDispatcher
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2Chunk.Companion.countdownForNewlyOptimizedCode
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
@@ -194,11 +196,11 @@ import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.backEdgeTo
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.L2Generator.OptimizationLevel
 import avail.optimizer.L2Generator.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.L2Generator.SpecialBlock.RESTART_LOOP_HEAD
 import avail.optimizer.L2Generator.SpecialBlock.START
 import avail.optimizer.L2Generator.SpecialBlock.UNREACHABLE
+import avail.optimizer.OptimizationLevel.UNOPTIMIZED
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticValue
 import avail.performance.Statistic
@@ -255,38 +257,38 @@ class L1Translator private constructor(
 	 */
 	private val slotNames =
 		code.declarationNamesWithoutOuters
-			.map(AvailObject::asNativeString)
+			.map { it.asNativeString() }
+			.subList(0, code.numArgs() + code.numLocals + code.numConstants)
 			.toTypedArray()
-
-	/**
-	 * An array of names of arguments, if available, to make it easier to follow
-	 * [L2ControlFlowGraph]s.
-	 */
-	val outerNames = Array(code.numOuters) { "Outer#${it+1}" }
 
 	/**
 	 * The [L2SemanticValue]s corresponding with the slots of the virtual
 	 * continuation.  These indices are zero-based, but the slot numbering is
 	 * one-based.
 	 */
-	private val semanticSlots: Array<L2SemanticValue>
+	private val semanticSlots: Array<L2SemanticValue> =
+		Array(numSlots) { createSemanticSlot(it + 1, 1) }
 
 	/**
 	 * The current level one nybblecode position during naive translation to
 	 * level two.
 	 */
-	val instructionDecoder = L1InstructionDecoder()
+	val instructionDecoder = L1InstructionDecoder().also { decoder ->
+		code.setUpInstructionDecoder(decoder)
+		decoder.pc(1)
+	}
 
 	/**
 	 * The current stack depth during naive translation to level two.
 	 */
-	var stackp: Int
+	var stackp: Int = numSlots + 1
 
 	/**
 	 * The exact function that we're translating, if known.  This is only
 	 * non-null if the function captures no outers.
 	 */
-	private val exactFunctionOrNull: A_Function?
+	private val exactFunctionOrNull: A_Function? =
+		computeExactFunctionOrNullForCode(code)
 
 	/**
 	 * Return the top [Frame] for code generation.
@@ -1683,13 +1685,24 @@ class L1Translator private constructor(
 			narrowedArgTypes.add(argument.restriction().type)
 			narrowedArguments.add(argument)
 		}
-		val generated = primitive.tryToGenerateSpecialPrimitiveInvocation(
+		// Let the primitive generate specialized code if possible.
+		var generated = primitive.tryToGenerateSpecialPrimitiveInvocation(
 			functionToCallReg,
 			rawFunction,
 			narrowedArguments,
 			narrowedArgTypes,
 			this,
 			callSiteHelper)
+		if (!generated)
+		{
+			// Try a general infallible invocation, if possible.
+			generated = primitive.tryToGenerateGeneralPrimitiveInvocation(
+				rawFunction,
+				narrowedArguments,
+				narrowedArgTypes,
+				this,
+				callSiteHelper)
+		}
 		if (generated && generator.currentlyReachable())
 		{
 			// The top-of-stack was replaced, but it wasn't convenient to do
@@ -1937,7 +1950,8 @@ class L1Translator private constructor(
 		generator.startBlock(onReificationDuringFailure)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+			L2IntImmediateOperand(
+				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 			L2CommentOperand(
 				"Transient - cannot be invalid."))
 		reify(bottom, ChunkEntryPoint.TO_RETURN_INTO)
@@ -2191,14 +2205,15 @@ class L1Translator private constructor(
 				"If invalid, reenter «default» at the beginning."))
 
 		// Do any reoptimization before capturing arguments.
-		if (generator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)
+		val optimization = generator.optimizationLevel
+		val newCountdown = optimization.countdown
+		code.countdownToReoptimize(newCountdown)
+		if (newCountdown < Long.MAX_VALUE)
 		{
 			// Optimize it again if it's called frequently enough.
-			code.countdownToReoptimize(countdownForNewlyOptimizedCode)
 			addInstruction(
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO,
-				L2IntImmediateOperand(
-					OptimizationLevel.FIRST_TRANSLATION.ordinal),
+				L2IntImmediateOperand(optimization.ordinal + 1),
 				L2IntImmediateOperand(0))
 			// If it was reoptimized, it would have jumped to the
 			// afterOptionalInitialPrimitiveBlock in the new chunk.
@@ -2350,17 +2365,14 @@ class L1Translator private constructor(
 
 	override fun L1_doCall()
 	{
-		val bundle: A_Bundle =
-			code.literalAt(instructionDecoder.getOperand())
-		val expectedType: A_Type =
-			code.literalAt(instructionDecoder.getOperand())
+		val bundle = code.literalAt(instructionDecoder.getOperand())
+		val expectedType = code.literalAt(instructionDecoder.getOperand())
 		generateCall(bundle, expectedType, bottom)
 	}
 
 	override fun L1_doPushLiteral()
 	{
-		val constant =
-			code.literalAt(instructionDecoder.getOperand())
+		val constant = code.literalAt(instructionDecoder.getOperand())
 		stackp--
 		moveConstantToSlot(constant, stackp)
 	}
@@ -2378,8 +2390,7 @@ class L1Translator private constructor(
 	{
 		val localIndex = instructionDecoder.getOperand()
 		stackp--
-		val sourceRegister =
-			generator.makeImmutable(readSlot(localIndex))
+		val sourceRegister = generator.makeImmutable(readSlot(localIndex))
 		forceSlotRegister(stackp, pc, sourceRegister)
 		forceSlotRegister(localIndex, pc, sourceRegister)
 	}
@@ -2437,10 +2448,7 @@ class L1Translator private constructor(
 		// Now we have to nil the stack slot which held the value that we
 		// assigned.  This same slot potentially captured the expectedType in a
 		// continuation if we needed to reify during the failure path.
-		forceSlotRegister(
-			stackp,
-			pc,
-			generator.boxedConstant(nil))
+		forceSlotRegister(stackp, pc, generator.boxedConstant(nil))
 		stackp++
 	}
 
@@ -2490,8 +2498,7 @@ class L1Translator private constructor(
 	{
 		val outerIndex = instructionDecoder.getOperand()
 		val outerType = code.outerTypeAt(outerIndex)
-		val tempVarReg =
-			getOuterRegister(outerIndex, outerType)
+		val tempVarReg = getOuterRegister(outerIndex, outerType)
 		emitSetVariableOffRamp(
 			L2_SET_VARIABLE_NO_CHECK,
 			tempVarReg,
@@ -2695,7 +2702,7 @@ class L1Translator private constructor(
 		generateCall(bundle, expectedType, superUnionType)
 	}
 
-	override fun L1Ext_doSetSlot()
+	override fun L1Ext_doSetLocalSlot()
 	{
 		val destinationIndex = instructionDecoder.getOperand()
 		val source = readSlot(stackp)
@@ -2709,7 +2716,7 @@ class L1Translator private constructor(
 	 * state just before reaching the specified [afterPc].
 	 */
 	fun createSemanticSlot(index: Int, afterPc: Int): L2SemanticValue =
-		generator.topFrame.slot(
+		generator.topFrame.semanticSlot(
 			index,
 			afterPc,
 			if (index <= slotNames.size) slotNames[index - 1] else null)
@@ -2756,7 +2763,7 @@ class L1Translator private constructor(
 
 		/**
 		 * Generate the [L2ControlFlowGraph] of [L2Instruction]s for the
-		 * [L2Chunk.unoptimizedChunk].
+		 * [unoptimizedChunk].
 		 *
 		 * @param initialBlock
 		 *   The block to initially entry the default chunk for a call.
@@ -2788,7 +2795,7 @@ class L1Translator private constructor(
 			reenterFromInterruptBlock.makeIrremovable()
 			unreachableBlock.makeIrremovable()
 			val generator = L2Generator(
-				OptimizationLevel.UNOPTIMIZED,
+				UNOPTIMIZED,
 				Frame(null, nil, "top frame"),
 				"default chunk")
 
@@ -2804,8 +2811,7 @@ class L1Translator private constructor(
 			generator.startBlock(reenterFromRestartBlock)
 			generator.addInstruction(
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO,
-				L2IntImmediateOperand(
-					OptimizationLevel.FIRST_TRANSLATION.ordinal),
+				L2IntImmediateOperand(UNOPTIMIZED.ordinal + 1),
 				L2IntImmediateOperand(1))
 			// 2. Build registers, get arguments, create locals, capture primitive
 			// failure value, if any.
@@ -2937,18 +2943,5 @@ class L1Translator private constructor(
 			assert(dependencyCount < array.size)
 			array[dependencyCount].record(1)
 		}
-	}
-
-
-	init
-	{
-		stackp = numSlots + 1
-		exactFunctionOrNull = computeExactFunctionOrNullForCode(code)
-		semanticSlots = Array(numSlots)
-		{
-			createSemanticSlot(it + 1, 1)
-		}
-		code.setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc(1)
 	}
 }

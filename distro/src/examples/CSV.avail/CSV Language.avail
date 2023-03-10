@@ -336,7 +336,8 @@ Public method "Display CSV(as a table«with headers»?)" is
 	/**
 	 * Convert line feed characters into occurrences of a special {@type
 	 * "atom"}, for the purpose of eliminating the ambiguity in top-level
-	 * parsing.
+	 * parsing.  Also accept carriage-return + linefeed, or a single
+	 * carriage-return.
 	 *
 	 * @lexer "CSV end of line lexer"
 	 * @param "source" "string"
@@ -349,13 +350,30 @@ Public method "Display CSV(as a table«with headers»?)" is
 	 *          The possible lexes discovered at {@code "position"}.
 	 */
 	Lexer $"CSV end of line lexer"
-	when [c : character | c = ¢"\n"]
+	when [c : character | c = ¢"\n" ∨ c = ¢"\r"]
 	is
 	[
 		source : string,
 		position : natural number,
 		line : natural number
 	|
-		{<`end-of-line marker` (source[position..position]) @ position:line>}
+		firstChar ::= source[position];
+		secondChar ::= source[position + 1] else ["past end"];
+		chars ::= if firstChar = ¢"\n" then
+		[
+			"\n"
+		]
+		else if firstChar = ¢"\r" ∧ secondChar = ¢"\n" then
+		[
+			/* Deal with Windows. */
+			"\r\n"
+		]
+		else
+		[
+			/* Not likely to encounter a pre-OSX Mac file, but be nice. */
+			Assert: firstChar = ¢"\r";
+			"\r"
+		];
+		{<`end-of-line marker` (chars) @ position:line>}
 	];
 ]();

@@ -334,14 +334,24 @@ class L2PcOperand constructor (
 	 * These arrays are suitable arguments for creating a
 	 * [ContinuationRegisterDumpDescriptor] instance.
 	 *
+	 *  If [skipIfEmpty] is true, and both of the arrays would be empty, don't
+	 *  generate anything, but answer `false`.  Otherwise answer `true`.
+	 *
 	 * @param translator
 	 *   The [JVMTranslator] in which to record the saved register layout.
 	 * @param method
 	 *   The [MethodVisitor] on which to write code to push the register dump.
+	 * @param skipIfEmpty
+	 *   Whether we can skip generating code to push the two arrays, if they
+	 *   would be empty.
+	 * @return
+	 *   Whether code to push two arrays was generated.
 	 */
 	fun createAndPushRegisterDumpArrays(
 		translator: JVMTranslator,
-		method: MethodVisitor)
+		method: MethodVisitor,
+		skipIfEmpty: Boolean
+	): Boolean
 	{
 		// Capture both the constant L2 offset of the target, and a register
 		// dump containing the state of all live registers.  A subsequent
@@ -360,6 +370,11 @@ class L2PcOperand constructor (
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =
 			liveMap
 
+		if (skipIfEmpty && liveMap.values.all { it.isEmpty() })
+		{
+			// The stack was not affected.
+			return false
+		}
 		// Emit code to save those registers' values.  Start with the objects.
 		// :: array = new «arrayClass»[«limit»];
 		// :: array[0] = ...; array[1] = ...;
@@ -418,6 +433,7 @@ class L2PcOperand constructor (
 			}
 		}
 		// The stack is now AvailObject[], long[].
+		return true
 	}
 
 	/**

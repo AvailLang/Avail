@@ -48,6 +48,7 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
+import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticUnboxedInt
@@ -200,23 +201,25 @@ constructor(private val instructionClass: Class<Instruction>)
 		.filter { L2Operand::class.java.isAssignableFrom(it.type) }
 		.map { OperandField<L2Operand>(it) }
 
+	@Suppress("UNCHECKED_CAST")
 	private val scalarReadOperandFields: List<OperandField<L2ReadOperand<*>>> =
 		operandFields
 			.filter { L2ReadOperand::class.java.isAssignableFrom(it.type) }
-			.cast()
+			as List<OperandField<L2ReadOperand<*>>>
 
+	@Suppress("UNCHECKED_CAST")
 	private val vectorReadOperandFields:
 			List<OperandField<L2ReadVectorOperand<*, *>>> =
 		operandFields
 			.filter {
 				L2ReadVectorOperand::class.java.isAssignableFrom(it.type)
-			}.cast()
+			} as List<OperandField<L2ReadVectorOperand<*, *>>>
 
+	@Suppress("UNCHECKED_CAST")
 	private val writeOperandFields: List<OperandField<L2WriteOperand<*>>> =
 		operandFields
 			.filter { L2WriteOperand::class.java.isAssignableFrom(it.type) }
-			.cast()
-
+			as List<OperandField<L2WriteOperand<*>>>
 
 	fun operands(instruction: Instruction) =
 		operandFields.map { it.get(instruction) }
@@ -284,7 +287,7 @@ class ExampleUsage
 	fun testPrintInstruction()
 	{
 		val generator = L2Generator(
-			L2Generator.OptimizationLevel.FIRST_TRANSLATION,
+			OptimizationLevel.FIRST_JVM_TRANSLATION,
 			Frame(null, nil, "top frame"),
 			"Example code")
 		val startBlock: L2BasicBlock =

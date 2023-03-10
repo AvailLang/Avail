@@ -33,6 +33,8 @@
 Module "Early Sets"
 Versions
 	"Avail-1.6.1"
+Extends
+	"Collections" = ("_is collection", "_is collection type")
 Uses
 	"Bootstrap",
 	"Definers",
@@ -44,6 +46,9 @@ Uses
 	"Literals",
 	"Types"
 Body
+
+Method "_is collection" is [x : set | true];
+Method "_is collection type" is [x : set meta | true];
 
 Method "{_`|_.._}" is stable at [any meta, whole number, [0..∞]]→set meta;
 Method "{_`|_..}" is stable at [any meta, whole number]→set meta;
@@ -129,26 +134,27 @@ Semantic restriction "_⊆_" is
 	typeA : set meta,
 	typeB : set meta
 |
+	$restriction : type;
 	elementA ::= typeA's element type;
 	elementB ::= typeB's element type;
-	/* The basic rule is this: If the type intersection of the element type
-	 * of typeA and the element type of typeB is ⊥, then the result must
-	 * be false. Otherwise all bets are off.
+	/* The empty set is a subset of every set. */
+	Exit restriction with true's type if elementA = ⊥;
+	/*
+	 * This is finesse. If typeB is definitely the set of all possible instances
+	 * of its (enumeration) element type, then typeA's instances must be subsets
+	 * of typeB's instance if typeA's element type is a subtype of typeB's
+	 * element type.
 	 */
-	basicRule ::=
-		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ ⊤ ] ];
 	sizesB ::= ||typeB||;
-	/* This is finesse. If typeB is definitely the set of all possible
-	 * instances of its (enumeration) element type, then typeA's instances
-	 * must be subsets of typeB's instance if typeA's element type is a
-	 * subtype of typeB's element type.
+	Exit restriction with true's type
+		if |elementB| = ⌊sizesB⌋ = ⌈sizesB⌉ ∧ elementA ⊆ elementB;
+	/*
+	 * The basic rule is this: If the type intersection of the element type of
+	 * typeA and the element type of typeB is ⊥, then the result must be false.
+	 * But only if A can't be empty.  Otherwise all bets are off.
 	 */
-	if |elementB| ≠ ∞ ∧ ⌊sizesB⌋ = ⌈sizesB⌉ ∧ |elementB| = ⌊sizesB⌋ then
-	[
-		if elementA ⊆ elementB then [true's type]
-		else basicRule
-	]
-	else basicRule
+	Exit restriction with false's type if ⌊typeA⌋ > 0 ∧ elementA ∩ elementB = ⊥;
+	⊤
 ];
 
 Method "_∈_" is stable at [any, set]→boolean;
@@ -194,10 +200,10 @@ Semantic restriction "_\\_" is
 |
 	subtrahendUpper ::=
 		if minuendType's element type ∩ (subtrahendType's element type) = ⊥
-		then [ 0 ]
-		else [ ⌈subtrahendType⌉ ];
+		then [0]
+		else [⌈subtrahendType⌉];
 	lower ::= cast (⌊minuendType⌋ - subtrahendUpper) max 0
-		into [ t : whole number | t ];
+		into [t : whole number | t];
 	{minuendType's element type | lower..⌈minuendType⌉}
 ];
 

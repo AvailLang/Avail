@@ -76,6 +76,7 @@
       <w>deserializer</w>
       <w>deserializing</w>
       <w>desiccated</w>
+      <w>disassemblies</w>
       <w>disassembly</w>
       <w>disassociate</w>
       <w>disestablish</w>
@@ -196,6 +197,8 @@
       <w>osargs</w>
       <w>ostensibly</w>
       <w>outbound</w>
+      <w>outdent</w>
+      <w>outdenting</w>
       <w>parametrically</w>
       <w>parsable</w>
       <w>penultimate</w>
@@ -210,6 +213,7 @@
       <w>polymorphically</w>
       <w>polymorphism</w>
       <w>populator</w>
+      <w>positionless</w>
       <w>pragma</w>
       <w>pragmas</w>
       <w>pre</w>
@@ -240,6 +244,7 @@
       <w>reifying</w>
       <w>reinterpretation</w>
       <w>relativized</w>
+      <w>renderable</w>
       <w>reoptimization</w>
       <w>reoptimize</w>
       <w>reoptimized</w>
@@ -280,6 +285,7 @@
       <w>subnodes</w>
       <w>subobject</w>
       <w>subobjects</w>
+      <w>subpatterns</w>
       <w>subtuple</w>
       <w>subtuples</w>
       <w>subtype</w>
@@ -287,7 +293,9 @@
       <w>suicided</w>
       <w>supercast</w>
       <w>supercasts</w>
+      <w>superconstructor</w>
       <w>superexpressions</w>
+      <w>superimplementation</w>
       <w>superkind</w>
       <w>supernodes</w>
       <w>supertype</w>
@@ -308,6 +316,7 @@
       <w>transliteration</w>
       <w>tripped</w>
       <w>twiddle</w>
+      <w>unanchored</w>
       <w>unbind</w>
       <w>unboxed</w>
       <w>unconstructible</w>

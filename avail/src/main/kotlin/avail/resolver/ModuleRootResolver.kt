@@ -33,6 +33,7 @@
 package avail.resolver
 
 import avail.AvailThread
+import avail.anvil.AvailWorkbench
 import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
 import avail.builder.ModuleNameResolver.Companion.availExtension
@@ -46,6 +47,9 @@ import avail.files.FileErrorCode
 import avail.files.FileManager
 import avail.files.ManagedFileWrapper
 import avail.persistence.cache.Repository
+import avail.utility.Strings.matchesAbbreviation
+import org.availlang.artifact.ResourceType
+import java.io.File
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -95,7 +99,11 @@ constructor(
 	val uri: URI,
 	val fileManager: FileManager)
 {
-	/** Answer whether data can be written to modules under this resolver. */
+	/**
+	 * Answer whether data can be written to modules under this resolver.  Note
+	 * that this may be further restricted by choosing to use the root as a
+	 * read-only source.  See [AvailWorkbench.getProjectRoot].
+	 */
 	abstract val canSave: Boolean
 
 	/**
@@ -103,17 +111,12 @@ constructor(
 	 */
 	@Suppress("LeakingThis")
 	val moduleRoot: ModuleRoot = ModuleRoot(name, this)
+
 	/**
 	 * The map from the [ModuleName.qualifiedName] string to the respective
 	 * [ResolverReference].
 	 */
 	protected val referenceMap = mutableMapOf<String, ResolverReference>()
-
-	/**
-	 * The [exception][Throwable] that prevented most recent attempt at
-	 * accessing the source location of this [ModuleRootResolver].
-	 */
-	var accessException: Throwable? = null
 
 	/**
 	 * The [Map] from a UUID that represents an interested party to a lambda
@@ -128,7 +131,51 @@ constructor(
 	/**
 	 * The full [ModuleRoot] tree if available; or `null` if not yet set.
 	 */
-	protected var moduleRootTree: ResolverReference? = null
+	internal var moduleRootTree: ResolverReference? = null
+
+	/**
+	 * Answer all the [ResolverReference]s known by this [ModuleRootResolver]
+	 * that have a qualified name that matches the supplied abbreviation.
+	 *
+	 * @param abbreviation
+	 *   The abbreviation for the search. Any results will include every
+	 *   character of the abbreviation, according to the order given by the
+	 *   abbreviation, but _not necessarily_ contiguously.
+	 * @param ignoreCase
+	 *   Whether to ignore case. Defaults to `false`.
+	 * @return
+	 *   The list of [ResolverReference]s that match the abbreviation, which
+	 *   will be empty if no items match.
+	 */
+	fun referencesMatchingAbbreviation (
+		abbreviation: String,
+		ignoreCase: Boolean = false
+	) = referenceMap.values
+		.filter {
+			it.isModule && it.matchesAbbreviation(abbreviation, ignoreCase)
+		}
+		.toList()
+
+	/**
+	 * Find the characters of [abbreviation] within the
+	 * [qualified&#32;name][ResolverReference.qualifiedName] of the
+	 * [receiver][ResolverReference], in the order specified by [abbreviation]
+	 * but not necessarily contiguously.
+	 *
+	 * @param abbreviation
+	 *   The abbreviation.
+	 * @param ignoreCase
+	 *   Whether to ignore case. Defaults to `false`.
+	 * @return
+	 *   `true` if the abbreviation matches, `false` otherwise.
+	 */
+	private fun ResolverReference.matchesAbbreviation(
+		abbreviation: String,
+		ignoreCase: Boolean = false
+	) = qualifiedName.matchesAbbreviation(
+			abbreviation,
+			ignoreCase = ignoreCase
+		).isNotEmpty()
 
 	/**
 	 * Provide the non-`null` [ResolverReference] that represents the
@@ -553,10 +600,12 @@ constructor(
 	 */
 	fun getQualifiedName(targetURI: String): String
 	{
-		assert(targetURI.startsWith(uri.path)) {
+		// Re-normalize the uri path, which must a be file-like URI.
+		val uriPath = File(uri.path).toString()
+		assert(targetURI.startsWith(uriPath)) {
 			"$targetURI is not in ModuleRoot, $moduleRoot"
 		}
-		val relative = targetURI.split(uri.path)[1]
+		val relative = targetURI.split(uriPath)[1]
 		val cleansedRelative = relative.replace(availExtension, "")
 		return "/${moduleRoot.name}" +
 			(if (relative.startsWith("/")) "" else "/") +

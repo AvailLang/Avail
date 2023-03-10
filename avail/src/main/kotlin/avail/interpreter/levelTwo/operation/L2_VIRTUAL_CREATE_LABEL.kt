@@ -36,8 +36,8 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -280,7 +280,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 
 		generator.startBlock(fallThrough)
 		val frameSizeInt = frameSize.value
-		val slots = arguments.elements().toMutableList()
+		val slots = arguments.elements.toMutableList()
 		val nilRead = generator.boxedConstant(nil)
 		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }
 		generator.addInstruction(
@@ -304,7 +304,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		instruction: L2Instruction)
 	{
 		throw UnsupportedOperationException(
-			"${this@L2_VIRTUAL_CREATE_LABEL.javaClass.simpleName} should " +
+			"${javaClass.simpleName} should " +
 				"have been replaced during optimization")
 	}
 }

@@ -118,7 +118,7 @@ protected constructor(
 	{
 		if (typeTag == TypeTag.UNKNOWN_TAG) {
 			throw UnsupportedOperationException(
-				"${this::class.simpleName} should have overridden this " +
+				"${javaClass.simpleName} should have overridden this " +
 					"because its typeTag is UNKNOWN_TAG")
 		}
 		throw UnsupportedOperationException(

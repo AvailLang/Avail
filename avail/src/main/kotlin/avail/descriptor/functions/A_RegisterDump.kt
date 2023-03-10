@@ -76,7 +76,7 @@ interface A_RegisterDump : A_BasicObject
 		/**
 		 * A [CheckedMethod] for invoking the method [extractDumpedObjectAt].
 		 */
-		var extractDumpedObjectAtMethod = instanceMethod(
+		val extractDumpedObjectAtMethod = instanceMethod(
 			A_RegisterDump::class.java,
 			A_RegisterDump::extractDumpedObjectAt.name,
 			AvailObject::class.java,
@@ -85,7 +85,7 @@ interface A_RegisterDump : A_BasicObject
 		/**
 		 * A [CheckedMethod] for invoking the method [extractDumpedLongAt].
 		 */
-		var extractDumpedLongAtMethod = instanceMethod(
+		val extractDumpedLongAtMethod = instanceMethod(
 			A_RegisterDump::class.java,
 			A_RegisterDump::extractDumpedLongAt.name,
 			Long::class.javaPrimitiveType!!,

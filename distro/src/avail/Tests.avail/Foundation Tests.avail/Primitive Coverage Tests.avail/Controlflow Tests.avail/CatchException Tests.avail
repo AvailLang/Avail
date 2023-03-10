@@ -39,7 +39,7 @@ Body
 
 Test "CatchException ok" in primitive controlflow test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 // TODO: CatchException does not use an enumeration type over natural numbers, and thus

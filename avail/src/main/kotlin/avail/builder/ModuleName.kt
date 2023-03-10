@@ -117,7 +117,7 @@ constructor(
 	 * @throws IllegalArgumentException
 	 *   If the argument was malformed.
 	 */
-	@Throws(IllegalArgumentException::class) @JvmOverloads constructor(
+	@Throws(IllegalArgumentException::class) constructor(
 		packageName: String,
 		localName: String,
 		isRename: Boolean = false) : this("$packageName/$localName", isRename)

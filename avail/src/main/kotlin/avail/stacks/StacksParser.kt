@@ -102,7 +102,7 @@ class StacksParser private constructor(
 		internal val lexeme: String)
 	{
 		/**
-		 * The author keyword indicates the method implementation author.
+		 * The alias keyword indicates another name for the definition.
 		 */
 		ALIAS("@alias")
 		{

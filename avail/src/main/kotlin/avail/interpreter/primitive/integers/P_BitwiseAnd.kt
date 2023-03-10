@@ -137,8 +137,12 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
 		},
 		fallbackBody = {
-			generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
+			tryToGenerateGeneralPrimitiveInvocation(
+				rawFunction,
+				arguments,
+				argumentTypes,
+				translator,
+				callSiteHelper)
 		})
 
 	override fun privateBlockTypeRestriction(): A_Type =

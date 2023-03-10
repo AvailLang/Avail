@@ -81,6 +81,25 @@ internal class InstructionGenerator
 
 	/** Whether to emit case-insensitive keyword matches at the moment. */
 	var caseInsensitive = false
+		private set
+
+	/**
+	 * Switch the generator to case-insensitive mode while executing the given
+	 * [action].  Answer the result of running the action, if any.
+	 */
+	fun <O> beCaseInsensitiveWhile(action: ()->O): O
+	{
+		val old = caseInsensitive
+		caseInsensitive = true
+		return try
+		{
+			action()
+		}
+		finally
+		{
+			caseInsensitive = old
+		}
+	}
 
 	/**
 	 * The number of layers of lists that have been partially assembled at this

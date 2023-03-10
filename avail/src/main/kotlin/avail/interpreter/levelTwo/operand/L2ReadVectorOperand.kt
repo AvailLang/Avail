@@ -83,14 +83,6 @@ constructor(elements: List<RR>) : L2Operand()
 	abstract override val operandType: L2OperandType
 
 	/**
-	 * Answer my [List] of [L2ReadOperand]s.
-	 *
-	 * @return
-	 *   The requested operands.
-	 */
-	fun elements(): List<RR> = elements
-
-	/**
 	 * Answer a [List] of my elements' [L2Register]s.
 	 *
 	 * @return

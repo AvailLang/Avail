@@ -39,6 +39,6 @@ Body
 
 Test "MapTypeSizes ok" in primitive maps test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

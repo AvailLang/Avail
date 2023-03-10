@@ -63,7 +63,12 @@ Test "basic cast" in cast test suite is
 			/*Do nothing*/
 		];
 	]
-	intercept [e : bad-cast exception | Require: false];
+	intercept
+	[
+		e : bad-cast exception
+	|
+		Raise a failed-requirement exception
+	];
 ];
 
 Test "bad cast exception" in cast test suite is

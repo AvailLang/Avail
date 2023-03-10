@@ -33,23 +33,29 @@ package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.AvailCompiler
+import avail.compiler.CompilationContext
+import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.module.A_Module
+import avail.descriptor.phrases.PhraseDescriptor.Companion.treeDoWithParent
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
@@ -67,6 +73,27 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
  */
 interface A_Phrase : A_BasicObject {
 	companion object {
+		/**
+		 * Apply styles for this phrase in the [context].  Apply the styles for
+		 * interesting subcomponents first.  After these styles have been
+		 * applied, invoke the [then] continuation action.
+		 *
+		 * The [visitedSet] is passed along on this journey.  At this point, it
+		 * does not contain the receiver.
+		 *
+		 * @param context
+		 *   The [CompilationContext] in which to write style information.
+		 * @param visitedSet
+		 *   The [MutableSet] of [A_Phrase]s that have been visited so far.
+		 * @param then
+		 *   What to do after this phrase has been styled.
+		 */
+		fun A_Phrase.applyStylesThen(
+			context: CompilationContext,
+			visitedSet: MutableSet<A_Phrase>,
+			then: ()->Unit
+		) = dispatch { o_ApplyStylesThen(it, context, visitedSet, then) }
+
 		/**
 		 * Answer the [A_Atom] that this phrase is a
 		 * [send][SendPhraseDescriptor] of.  If this is a
@@ -289,6 +316,21 @@ interface A_Phrase : A_BasicObject {
 			get() = dispatch { o_ExpressionsTuple(it) }
 
 		/**
+		 * Test whether the receiver and [aPhrase] are effectively equivalent,
+		 * for the purpose of describing ambiguous parses.  Note that this is
+		 * not used to determine whether the two phrases are [equal][equals].
+		 *
+		 * @receiver
+		 *   A phrase to compare.
+		 * @param aPhrase
+		 *   The other phrase to compare.
+		 * @return
+		 *   True iff the phrases are equivalent.
+		 */
+		fun A_Phrase.equalsPhrase(aPhrase: A_Phrase): Boolean =
+			dispatch { o_EqualsPhrase(it, aPhrase) }
+
+		/**
 		 * Return the phrase's expression type, which is the type of object that
 		 * will be produced by this phrase.
 		 *
@@ -461,6 +503,20 @@ interface A_Phrase : A_BasicObject {
 			get() = dispatch { o_OutputPhrase(it) }
 
 		/**
+		 * If this is a list phrase, answer a [List] of its expressions.  If
+		 * this is a permuted list phrase, answer its expressions after
+		 * permutation, in the order that the call site expects to receive them
+		 * (not the order that they appear in the code).
+		 *
+		 * DO NOT perform any permutations within sublists.
+		 *
+		 * @return
+		 *   The [List] of top-level [A_Phrase]s in permuted order.
+		 */
+		val A_Phrase.permutedPhrases: List<A_Phrase>
+			get() = dispatch { o_PermutedPhrases(it) }
+
+		/**
 		 * Answer this phrase's [PhraseKind].
 		 *
 		 * Also declared in [A_Type] for
@@ -615,8 +671,84 @@ interface A_Phrase : A_BasicObject {
 		val A_Phrase.tokens: A_Tuple get() = dispatch { o_Tokens(it) }
 
 		/**
+		 * Answer the [tuple][A_Token] of the one-based indices of the tokens
+		 * that contributed to this phrase.  The indices refer to the sent
+		 * [A_Bundle]'s tuple of parts produced by the [MessageSplitter].
+		 *
+		 * If the phrase is not a send or macro, or if the phrase was not parsed
+		 * from source, these indices will be zero.
+		 *
+		 * @return
+		 *   The requested tuple of [tokens][A_Token].
+		 */
+		val A_Phrase.tokenIndicesInName: A_Tuple get() =
+			dispatch { o_TokenIndicesInName(it) }
+
+		/**
+		 * Answer all [tokens][A_Token] belong to the receiver or its
+		 * subexpressions, lexically ordered, without positionless synthetic
+		 * tokens.
+		 *
+		 * @return
+		 *   The requested tuple of tokens.
+		 */
+		val A_Phrase.allTokens: A_Tuple get()
+		{
+			val tokens = mutableSetOf<A_Token>()
+			val exclude = mutableSetOf<A_Phrase>()
+			treeDoWithParent(
+				this,
+				children = { phrase, withChild ->
+					when
+					{
+						// Traverse through the original macro send phrase, not
+						// the substitute.
+						phrase.isMacroSubstitutionNode ->
+						{
+							exclude.add(phrase)
+							withChild(phrase.macroOriginalSendNode)
+						}
+						// Do not traverse into the (nonlocal) declaration that
+						// created the used variable.
+						phrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> {}
+						// Literal phrases may require additional traversal, if
+						// they were produced in special circumstances, e.g.,
+						// by _† or _!.
+						phrase.phraseKindIsUnder(LITERAL_PHRASE) ->
+						{
+							val token = phrase.token
+							val value = token.literal()
+							val generator = token.generatingPhrase
+							// This deals with: _†
+							if (generator.notNil)
+							{
+								exclude.add(phrase)
+								withChild(generator)
+							}
+							// This deals with: _!
+							else if (value.isInstanceOf(
+								PARSE_PHRASE.mostGeneralType))
+							{
+								exclude.add(phrase)
+								withChild(value)
+							}
+						}
+						else -> phrase.childrenDo(withChild)
+					}
+				},
+				aBlock = { phrase, _ ->
+					if (!exclude.contains(phrase))
+					{
+						tokens.addAll(phrase.tokens.filter { it.start() != 0 })
+					}
+				})
+			val sorted = tokens.sortedBy { it.start() }
+			return tupleFromList(sorted)
+		}
+
+		/**
 		 * Answer the [phrase][A_Phrase] that produced the type of the
-		 * declaration. Answer [nil][NilDescriptor.nil] if there was no such
+		 * declaration. Answer [nil] if there was no such
 		 * phrase.
 		 *
 		 * @return
@@ -626,14 +758,9 @@ interface A_Phrase : A_BasicObject {
 			get() = dispatch { o_TypeExpression(it) }
 
 		/**
-		 * Validate this phrase, without also validating
-		 * [block][BlockPhraseDescriptor] phrases that occur within this phrase.
-		 *
-		 * @param parent
-		 *   The phrase that contains this phrase, or `null`.
+		 * Validate this phrase without also visiting its subphrases.
 		 */
-		fun A_Phrase.validateLocally(parent: A_Phrase?) =
-			dispatch { o_ValidateLocally(it, parent) }
+		fun A_Phrase.validateLocally() = dispatch { o_ValidateLocally(it) }
 
 		/**
 		 * Answer the [variable&#32;use][VariableUsePhraseDescriptor] phrase

@@ -79,7 +79,9 @@ object P_CreateExplicitSubclassAtom : Primitive(1, CanInline)
 		{
 			try
 			{
-				atom = loader.lookupName(name, true)
+				atom = loader.lookupName(name) {
+					setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
+				}
 			}
 			catch (e: AmbiguousNameException)
 			{

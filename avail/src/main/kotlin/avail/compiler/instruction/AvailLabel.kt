@@ -66,4 +66,14 @@ class AvailLabel constructor(relevantTokens: A_Tuple)
 		// A label pseudo-instruction has no actual nybblecode instructions
 		// generated for it.
 	}
+
+	override fun writeLineNumberDeltasOn(
+		encodedLineNumberDeltas: MutableList<Int>,
+		currentLineNumber: Int
+	): Int
+	{
+		// A label pseudo-instruction produces no instructions, so there are no
+		// line number deltas to generate.
+		return currentLineNumber
+	}
 }

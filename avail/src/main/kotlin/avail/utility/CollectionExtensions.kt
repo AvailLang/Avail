@@ -34,6 +34,7 @@
 
 package avail.utility
 
+import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.structures.EnumMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -139,6 +140,73 @@ inline fun <A: Iterable<B>, B, C, D> A.deepForEach (
 fun<E> MutableList<E>.removeLast(): E = this.removeAt(size - 1)
 
 /**
+ * For each element in the collection, execute the [action], passing a
+ * zero-argument function to run exactly once afterward (in this [Thread] or
+ * another).  When the last element's zero-argument function has been invoked,
+ * or immediately if the collection is empty, invoke [then].
+ *
+ * @param action
+ *   What to do with each element.  It should invoke the second argument when
+ *   processing of that element is considered complete.
+ * @param then
+ *   What to do after each element has reported completion.
+ */
+fun<E> Collection<E>.parallelDoThen(
+	action: (E, ()->Unit)->Unit,
+	then: ()->Unit)
+{
+	if (isEmpty())
+	{
+		then()
+		return
+	}
+	val countdown = AtomicInteger(size)
+	val decrement = {
+		if (countdown.decrementAndGet() == 0) then()
+	}
+	forEach { e -> action(e, decrement) }
+}
+
+/**
+ * For each element in the collection, execute the [action], passing a
+ * zero-argument function to run exactly once afterward (in this [Thread] or
+ * another).  When the last element's zero-argument function has been invoked,
+ * or immediately if the collection is empty, invoke [then].
+ *
+ * @param action
+ *   What to do with each element.  It should invoke the second argument when
+ *   processing of that element is considered complete.
+ * @param then
+ *   What to do after each element has reported completion.
+ * @param S
+ *   The source element type.
+ * @param T
+ *   The target element type, produced by the action.
+ */
+inline fun<S, reified T> Collection<S>.parallelMapThen(
+	crossinline action: (S, afterEach: (T)->Unit)->Unit,
+	crossinline then: (List<T>)->Unit)
+{
+	if (isEmpty())
+	{
+		then(emptyList())
+		return
+	}
+	val resultsArray = arrayOfNulls<T>(size)
+	val countdown = AtomicInteger(size)
+	val decrement = { i: Int, target: T ->
+		resultsArray[i] = target
+		if (countdown.decrementAndGet() == 0)
+		{
+			then(resultsArray.toList().cast())
+		}
+	}
+	forEachIndexed { i, source ->
+		action(source) { target -> decrement(i, target) }
+	}
+}
+
+/**
  * Partition the receiver into [partitions] approximately equal sublists.  Some
  * may be empty if count is larger than the receiver's size.  Invoke the
  * supplied [body] for each sublist.  The body must eventually, perhaps in
@@ -159,22 +227,19 @@ fun<E, R> List<E>.partitionedMap(
 	after: (List<R>)->Unit)
 {
 	val size = size
+	if (size == 0)
+	{
+		after(emptyList())
+		return
+	}
 	val sublists = (0L until partitions).map { i ->
 		subList(
 			(i * size / partitions).toInt(),
 			((i + 1) * size / partitions).toInt())
 	}
-	val countdown = AtomicInteger(partitions)
-	val outputLists = MutableList<List<R>?>(partitions) { null }
-	sublists.forEachIndexed { i, sublist ->
-		body(sublist) { transformed ->
-			outputLists[i] = transformed
-			if (countdown.decrementAndGet() == 0)
-			{
-				after(outputLists.flatMap { it!! })
-			}
-		}
-	}
+	sublists.parallelMapThen(
+		action = body,
+		then = { outputLists -> after(outputLists.flatten()) })
 }
 
 /**
@@ -210,6 +275,21 @@ fun<E, K> List<E>.partitionRunsBy(
 	}
 	result.add(currentGroup)
 	return result
+}
+
+/**
+ * Drain the elements of the receiver into a new [MutableSet], leaving the
+ * receiver empty.
+ *
+ * @return
+ *   A copy of the receiver.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+fun <T> MutableSet<T>.drain(): MutableSet<T>
+{
+	val elements = toMutableSet()
+	clear()
+	return elements
 }
 
 /** Tuple of length 1. */
@@ -360,3 +440,49 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> t(
 	t9: T9,
 	t10: T10
 ) = Tuple10(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10)
+
+/**
+ * Create an [Iterable], starting with the receiver.  The iterator produces
+ * successive values by applying [advance] until `null` is reached.  The
+ * receiver is also allowed to be `null`, which indicates an empty iterator.
+ *
+ * @receiver
+ *   The initial value, if any, returned by the iterator.
+ * @param advance
+ *   A function to extract the next value from the current value, such as by
+ *   traversing a null-terminated singly-linked list.
+ * @return
+ *   An Iterable<X>.  If the action is non-destructive, an [Iterator] of [X] can
+ *   be constructed multiple times, each time beginning from the same starting
+ *   point.
+ */
+fun <X> X?.iterableWith(advance: (X)->X?): Iterable<X> = object : Iterable<X>
+{
+	override fun iterator() = object : Iterator<X>
+	{
+		var current = this@iterableWith
+		override fun hasNext() = current !== null
+		override fun next() = current!!.also { current = advance(it) }
+	}
+}
+
+/**
+ * Given a [List] of [Iterable]s (over some [X]), execute the [action] for each
+ * combination of [X] values, one from each [Iterable].
+ *
+ * Use recursion for simplicity.
+ */
+fun <X> List<Iterable<X>>.cartesianProductForEach(action: (List<X>)->Unit)
+{
+	if (isEmpty())
+	{
+		action(emptyList())
+		return
+	}
+	val last = last()
+	subList(0, size - 1).cartesianProductForEach { butLastProduct ->
+		last.forEach { lastElement ->
+			action(butLastProduct.append(lastElement))
+		}
+	}
+}

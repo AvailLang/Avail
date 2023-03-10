@@ -32,11 +32,13 @@
 
 package avail.interpreter.primitive.bootstrap.lexing
 
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -80,7 +82,8 @@ object P_BootstrapLexerKeywordBody
 				startPosition, position - 1, false),
 			startPosition,
 			lineNumberInteger.extractInt,
-			KEYWORD)
+			KEYWORD,
+			interpreter.fiber().currentLexer)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 

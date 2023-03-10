@@ -64,7 +64,7 @@ Verify story;
 Method "Play the Ship of Stories" is
 [
 	Print:
-		"[\"The Ship of Stories\" is copyright © 2013-2015, Cislyn Smith. It is \
+		"[\"The Ship of Stories\" is copyright © 2013-2022, Cislyn Smith. It is \
 		\|redistributed by The Avail Foundation, LLC, with her permission.]\n\n";
 	Play a game,
 		creating a context with [a game context],
@@ -74,7 +74,7 @@ Method "Play the Ship of Stories" is
 Method "Play the Ship of Stories by web" is
 [
 	Print: <
-		"\"The Ship of Stories\" is copyright © 2013-2015, \
+		"\"The Ship of Stories\" is copyright © 2013-2022, \
 		\|<strong>Cislyn Smith</strong>.",
 		"It is redistributed by <strong>The Avail Foundation, LLC</strong>, \
 		\|with her permission."

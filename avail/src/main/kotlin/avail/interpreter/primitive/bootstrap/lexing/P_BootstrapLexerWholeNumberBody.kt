@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.bootstrap.lexing
 
+import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
@@ -43,6 +44,7 @@ import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -78,7 +80,11 @@ object P_BootstrapLexerWholeNumberBody
 			startPosition, startPosition + digitCount - 1, false)
 		val number = readInteger(string, 1, digitCount)
 		val token = literalToken(
-			string, startPosition, lineNumberInteger.extractInt, number)
+			string,
+			startPosition,
+			lineNumberInteger.extractInt,
+			number,
+			interpreter.fiber().currentLexer)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 

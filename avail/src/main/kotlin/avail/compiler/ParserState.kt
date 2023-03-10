@@ -40,6 +40,8 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.SimpleDescriber
@@ -102,7 +104,7 @@ class ParserState internal constructor(
 		val source = lexingState.compilationContext.source
 		return format(
 			"%s%n\tPOSITION = %d%n\tTOKENS = %s %s %s%n\tCLIENT_DATA = %s",
-			this@ParserState.javaClass.simpleName,
+			javaClass.simpleName,
 			lexingState.position,
 			source.copyStringFromToCanDestroy(
 				max(lexingState.position - 20, 1),

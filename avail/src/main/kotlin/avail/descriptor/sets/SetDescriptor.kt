@@ -47,7 +47,6 @@ import avail.descriptor.sets.A_Set.Companion.equalsSet
 import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_Set.Companion.setElementsAreAllInstancesOfKind
 import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.A_SetBin.Companion.binElementsAreAllInstancesOfKind
 import avail.descriptor.sets.A_SetBin.Companion.binHasElementWithHash
@@ -57,6 +56,7 @@ import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanD
 import avail.descriptor.sets.A_SetBin.Companion.setBinHash
 import avail.descriptor.sets.A_SetBin.Companion.setBinIterator
 import avail.descriptor.sets.A_SetBin.Companion.setBinSize
+import avail.descriptor.sets.A_SetBin.Companion.setBinUnion
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.createLinearSetBinPair
 import avail.descriptor.sets.LinearSetBinDescriptor.Companion.emptyLinearSetBin
 import avail.descriptor.sets.SetBinDescriptor.Companion.generateSetBinFrom
@@ -72,9 +72,9 @@ import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailErrorCode
 import avail.optimizer.jvm.CheckedMethod
@@ -337,14 +337,14 @@ private constructor(
 	override fun o_SetIntersects(
 		self: AvailObject,
 		otherSet: A_Set
-	): Boolean
+	): Boolean = when
 	{
-		val (smaller, larger) = when
+		self.setSize <= otherSet.setSize ->
+			self.any { otherSet.hasElement(it) }
+		else ->
 		{
-			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
-			else -> otherSet.traversed() to self
+			otherSet.traversed().any { self.hasElement(it) }
 		}
-		return smaller.any { larger.hasElement(it) }
 	}
 
 	/**
@@ -359,7 +359,7 @@ private constructor(
 	{
 		self.setSize <= otherSet.setSize ->
 		{
-			// Iterate self, keeping only those elements present in otherSet.
+			// Iterate self, keeping only those elements not in otherSet.
 			self.makeImmutable().fold(self as A_Set) { result, element ->
 				if (!otherSet.hasElement(element)) result
 				else result.setWithoutElementCanDestroy(element, true)
@@ -385,24 +385,27 @@ private constructor(
 		canDestroy: Boolean
 	): A_Set
 	{
-		// Compute the union of two sets. May destroy one of them if it's
-		// mutable and canDestroy is true.
-		val (smaller, larger) = when
+		if (!canDestroy)
 		{
-			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
-			else -> otherSet.traversed() to self
+			self.makeImmutable()
+			otherSet.makeImmutable()
 		}
-		if (!canDestroy && larger.descriptor().isMutable)
+		val other = otherSet.traversed()
+		when
 		{
-			larger.makeImmutable()
+			self.setSize == 0 -> return other
+			other.setSize == 0 -> return self
 		}
-		if (smaller.setSize == 0)
+		val newBin = rootBin(self).setBinUnion(rootBin(other), 0)
+		val out = when
 		{
-			return larger
+			!canDestroy -> mutable.create()
+			self.descriptor().isMutable -> self
+			other.descriptor().isMutable -> other
+			else -> mutable.create()
 		}
-		return smaller.fold(larger) { result: A_Set, element ->
-			result.setWithElementCanDestroy(element.makeImmutable(), true)
-		}
+		setRootBin(out, newBin)
+		return out
 	}
 
 	override fun o_SetWithElementCanDestroy(
@@ -531,7 +534,7 @@ private constructor(
 		 *   The set's bin.
 		 */
 		private fun rootBin(self: AvailObject): AvailObject =
-			self.slot(ROOT_BIN)
+			self[ROOT_BIN]
 
 		/**
 		 * Replace the [set][A_Set]'s root [bin][SetBinDescriptor]. The
@@ -542,10 +545,10 @@ private constructor(
 		 * @param bin
 		 *   The root bin for the set, or nil.
 		 */
-		private fun setRootBin(
-			set: AvailObject,
-			bin: A_BasicObject
-		) = set.setSlot(ROOT_BIN, bin)
+		private fun setRootBin(set: AvailObject, bin: A_BasicObject)
+		{
+			set[ROOT_BIN] = bin
+		}
 
 		/**
 		 * Write a Unicode code point that's either the start or end of a range,

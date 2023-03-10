@@ -31,23 +31,29 @@
  */
 package avail.descriptor.phrases
 
+import avail.AvailRuntimeSupport
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.PhraseDescriptor.IntegerSlots
+import avail.descriptor.phrases.PhraseDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AbstractDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.phraseKind
@@ -79,7 +85,8 @@ import avail.serialization.SerializerOperation
  *   object's object slots layout, or `null` if there are no object slots.
  * @param integerSlotsEnumClass
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
- *   object's object slots layout, or `null` if there are no integer slots.
+ *   object's object slots layout.  The [IntegerSlots] class defined below is
+ *   used if none is specified.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -87,9 +94,26 @@ abstract class PhraseDescriptor protected constructor(
 	mutability: Mutability,
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum> =
+		IntegerSlots::class.java
 ) : Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
+	/**
+	 * My slots of type [int][Integer].
+	 */
+	enum class IntegerSlots : IntegerSlotsEnum
+	{
+		/**
+		 * A slot containing multiple [BitField]s, potentially.
+		 */
+		HASH_AND_MORE;
+
+		companion object {
+			/** The random hash of this object. */
+			val HASH = BitField(HASH_AND_MORE, 0, 32) { null }
+		}
+	}
+
 	override fun maximumIndent(): Int = Int.MAX_VALUE
 
 	/**
@@ -98,6 +122,19 @@ abstract class PhraseDescriptor protected constructor(
 	 * [macro][MacroSubstitutionPhraseDescriptor] is always [nil].
 	 */
 	override fun o_ApparentSendName(self: AvailObject): A_Atom = nil
+
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		if (!visitedSet.add(self)) return then()
+		// By default, just visit the children and do nothing else with this
+		// phrase.  Subclasses may invoke the super behavior with an altered
+		// 'then'.
+		styleDescendantsThen(self, context, visitedSet, then)
+	}
 
 	/**
 	 * Visit every phrase constituting this parse tree, invoking the passed
@@ -110,7 +147,8 @@ abstract class PhraseDescriptor protected constructor(
 	 */
 	abstract override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit)
+		action: (A_Phrase)->Unit
+	)
 
 	/**
 	 * Visit and transform the direct descendants of this phrase.  Map this
@@ -124,7 +162,8 @@ abstract class PhraseDescriptor protected constructor(
 	 */
 	abstract override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase)
+		transformer: (A_Phrase)->A_Phrase
+	)
 
 	/**
 	 * If the receiver is immutable, make an equivalent mutable copy of that
@@ -188,8 +227,15 @@ abstract class PhraseDescriptor protected constructor(
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
-	): Boolean = another.equalsPhrase(self)
+	): Boolean = another.traversed().sameAddressAs(self)
 
+	/**
+	 * Note: This is only used to eliminate duplicate equivalent phrases
+	 * produced by the parallel parsing plan mechanism.  Each definition has to
+	 * be parsed as a separate potential entity in the message bundle tree, and
+	 * multiple applicable sites might be found for the same bundle, but
+	 * different definitions.
+	 */
 	abstract override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
@@ -212,15 +258,7 @@ abstract class PhraseDescriptor protected constructor(
 		accumulatedStatements.add(self)
 	}
 
-	/**
-	 * [Phrases][A_Phrase] must implement this.
-	 *
-	 * @param self
-	 *   The phrase.
-	 * @return
-	 *   The hash of the phrase.
-	 */
-	abstract override fun o_Hash(self: AvailObject): Int
+	override fun o_Hash(self: AvailObject) = self[HASH]
 
 	/**
 	 * Terminate the recursion through the recursive list structure.  If this
@@ -244,13 +282,6 @@ abstract class PhraseDescriptor protected constructor(
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		self.phraseKind.create(self.phraseExpressionType)
-
-	/**
-	 * None of the subclasses define an immutable descriptor, so make the
-	 * argument shared instead.
-	 */
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable) self.makeShared() else self
 
 	/**
 	 * Return the [PhraseKind] that this phrase's type implements.
@@ -279,48 +310,106 @@ abstract class PhraseDescriptor protected constructor(
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type = bottom
 
-	abstract override fun o_Tokens(self: AvailObject): A_Tuple
+	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
+
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple = emptyTuple
 
 	/**
-	 * Validate this phrase, throwing an exception if there is a problem.
+	 * Validate this phrase, throwing an exception if there is a problem.  Do
+	 * not recurse into its subphrases, as those have already been validated.
 	 *
 	 * @param self
 	 *   The [A_Phrase] to validate.
-	 * @param parent
-	 *   The optional [A_Phrase] which contains the phrase to validate as its
-	 *   sub-phrase.
 	 */
-	abstract override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?)
+	override fun o_ValidateLocally(
+		self: AvailObject)
+	{
+		// Do nothing by default.
+	}
 
 	/**
 	 * Subclasses do not have an immutable descriptor, so use the shared one
 	 * instead.
 	 */
-	override fun immutable() = shared()
+	abstract override fun immutable(): PhraseDescriptor
 
-	abstract override fun shared(): AbstractDescriptor
+	abstract override fun shared(): PhraseDescriptor
 
-	companion object {
+	companion object
+	{
+		/**
+		 * Initialize the phrase's hash value during construction.
+		 */
+		fun AvailObject.initHash(): Unit =
+			setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
+
 		/**
 		 * Visit the entire tree with the given consumer, children before
 		 * parents.  The block takes two arguments: the phrase and its parent.
 		 *
 		 * @param self
 		 *   The current [A_Phrase].
+		 * @param parentNode
+		 *   This phrase's parent, or `null`. Defaults to `null`.
 		 * @param aBlock
 		 *   What to do with each descendant.
-		 * @param parentNode
-		 *   This phrase's parent, or `null`.
 		 */
 		fun treeDoWithParent(
 			self: A_Phrase,
-			aBlock: (A_Phrase, A_Phrase?) -> Unit,
-			parentNode: A_Phrase?)
+			parentNode: A_Phrase? = null,
+			children: (A_Phrase, (A_Phrase)->Unit)->Unit =
+				{ phrase, withChild -> phrase.childrenDo(withChild) },
+			aBlock: (A_Phrase, parent: A_Phrase?)->Unit)
 		{
-			self.childrenDo { child -> treeDoWithParent(child, aBlock, self) }
-			aBlock(self, parentNode)
+			TreeIterator(children, aBlock).visitAll(self, parentNode)
+		}
+
+		/**
+		 * A helper for traversing a phrase tree without recursion.
+		 *
+		 * @property childrenExtractor
+		 *   A function that takes a phrase and a function that accepts a
+		 *   phrase, and evaluates the passed function with each child of the
+		 *   phrase.
+		 * @property aBlock
+		 *   What to execute with each phrase in the tree and its optional (only
+		 *   for the top phrase) parent.
+		 */
+		class TreeIterator
+		constructor(
+			val childrenExtractor: (A_Phrase, (A_Phrase)->Unit)->Unit,
+			val aBlock: (A_Phrase, parent: A_Phrase?)->Unit)
+		{
+			/** The work stack of nullary actions to run. */
+			private val stack = ArrayDeque<()->Unit>()
+
+			/** Visit a phrase, with the provided optional parent. */
+			private fun traceOne(phrase: A_Phrase, parent: A_Phrase?)
+			{
+				// This will run after the children are processed.
+				stack.add { aBlock(phrase, parent) }
+				// Process the children.  Reverse the order of the children on
+				// the stack, since we will be popping values from the end of
+				// the deque.
+				val temp = mutableListOf<()->Unit>()
+				childrenExtractor(phrase) { child ->
+					temp.add { traceOne(child, phrase) }
+				}
+				stack.addAll(temp.asReversed())
+			}
+
+			/**
+			 * Visit all phrases in the tree, in bottom-up order, invoking
+			 * aBlock for each, and also passing the phrase's optional parent.
+			 */
+			fun visitAll(phrase: A_Phrase, parent: A_Phrase?)
+			{
+				traceOne(phrase, parent)
+				while (stack.isNotEmpty())
+				{
+					stack.removeLast()()
+				}
+			}
 		}
 
 		/**
@@ -371,5 +460,43 @@ abstract class PhraseDescriptor protected constructor(
 			return true
 		}
 
+		/**
+		 * Given two [Iterable]s of [A_Phrase]s, check that they have the same
+		 * length, and that their corresponding elements are
+		 * [A_Phrase.equalsPhrase].
+		 *
+		 * @param phrases1
+		 *   The first source of phrases.
+		 * @param phrases2
+		 *   The other source of phrases.
+		 * @return
+		 *   Whether the phrases were all equivalent.
+		 */
+		fun equalPhrases(
+			phrases1: Iterable<A_Phrase>,
+			phrases2: Iterable<A_Phrase>): Boolean
+		{
+			val list1 = phrases1.toList()
+			val list2 = phrases2.toList()
+			if (list1.size != list2.size) return false
+			return (list1 zip list2).all { (phrase1, phrase2) ->
+				phrase1.equalsPhrase(phrase2)
+			}
+		}
+
+		/**
+		 * Recursively style all descendants of the given phrase.
+		 *
+		 */
+		fun styleDescendantsThen(
+			phrase: A_Phrase,
+			context: CompilationContext,
+			visitedSet: MutableSet<A_Phrase>,
+			then: ()->Unit)
+		{
+			val children = mutableListOf<A_Phrase>()
+			phrase.childrenDo(children::add)
+			context.visitAll(children, visitedSet, then)
+		}
 	}
 }

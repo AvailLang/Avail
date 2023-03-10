@@ -35,33 +35,30 @@ import java.io.CharArrayWriter
 import java.io.PrintWriter
 
 /**
- * I provide a static method for extracting a stack trace from an exception,
- * something *REALLY OBVIOUSLY* omitted by the Java library writers.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * Produce a [String] representation of the stack trace captured in this
+ * [Throwable].
  */
-enum class StackPrinter
-{
-	;
+val Throwable.stackToString: String get() =
+	CharArrayWriter().let {
+		printStackTrace(PrintWriter(it))
+		it.toString()
+	}
 
-	companion object
+/**
+ * Produce a [String] representation of the current stack trace.  It throws a
+ * [Throwable] and catches it, which will show up in the trace.
+ *
+ * @return
+ *   The [String] form of the stack trace.
+ */
+fun currentTrace(): String
+{
+	return try
 	{
-		// No instances of this enum, just using it to store static methods.
-		/**
-		 * Produce a [String] representation of the stack trace captured in
-		 * the given [Throwable].
-		 *
-		 * @param t
-		 *   The [Throwable] containing a stack trace.
-		 * @return
-		 *   The [String] form of the stack trace.
-		 */
-		fun trace(t: Throwable): String
-		{
-			val inner = CharArrayWriter()
-			val outer = PrintWriter(inner)
-			t.printStackTrace(outer)
-			return inner.toString()
-		}
+		throw Throwable()
+	}
+	catch (e: Throwable)
+	{
+		e.stackToString
 	}
 }

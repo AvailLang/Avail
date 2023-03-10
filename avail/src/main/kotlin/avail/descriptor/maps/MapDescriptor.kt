@@ -43,7 +43,7 @@ import avail.descriptor.maps.A_MapBin.Companion.forEachInMapBin
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHash
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinIterable
+import avail.descriptor.maps.A_MapBin.Companion.mapBinIterator
 import avail.descriptor.maps.A_MapBin.Companion.mapBinKeyUnionKind
 import avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
 import avail.descriptor.maps.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
@@ -66,6 +66,7 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
@@ -209,16 +210,16 @@ class MapDescriptor private constructor(
 	}
 
 	/**
-	 * Use the [map&#32;iterable][MapIterable] to build the list of keys and
-	 * values to present.  Hide the bin structure.
+	 * Use the [mapIterable] to build the list of keys and values to present.
+	 * Hide the bin structure.
 	 */
 	override fun o_DescribeForDebugger(
 		self: AvailObject
 	): Array<AvailObjectFieldHelper> {
 		if (self.isInstanceOfKind(
 				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, stringType, ANY.o))
-		) {
+					wholeNumbers, stringType, ANY.o)))
+		{
 			// The keys are all strings.
 			return self.keysAsSet
 				.sortedBy { it.asNativeString() }
@@ -255,7 +256,8 @@ class MapDescriptor private constructor(
 			fields[arrayIndex++] = AvailObjectFieldHelper(
 				self, FakeMapSlots.VALUE_, entryCount + 1, value)
 		}
-		return fields.cast()!!
+		@Suppress("UNCHECKED_CAST")
+		return fields as Array<AvailObjectFieldHelper>
 	}
 
 	override fun o_NameForDebugger(self: AvailObject) =
@@ -433,19 +435,21 @@ class MapDescriptor private constructor(
 		transformer: (AvailObject, AvailObject) -> A_BasicObject
 	): A_Map {
 		val oldRoot = rootBin(self)
-		val traversedKey: A_BasicObject = key.traversed()
+		val traversedKey = key.traversed()
 		val newRoot = oldRoot.mapBinAtHashReplacingLevelCanDestroy(
-			traversedKey.cast(),
+			traversedKey,
 			traversedKey.hash(),
 			notFoundValue.cast(),
 			0,
 			canDestroy,
 			transformer)
-		if (canDestroy && isMutable) {
+		if (canDestroy && isMutable)
+		{
 			setRootBin(self, newRoot)
 			return self
 		}
-		if (isMutable) {
+		if (isMutable)
+		{
 			self.makeImmutable()
 		}
 		return createFromBin(newRoot)
@@ -457,7 +461,7 @@ class MapDescriptor private constructor(
 	 */
 	override fun o_KeysAsSet(self: AvailObject): A_Set
 	{
-		return generateSetFrom(self.mapSize, self.mapIterable) {
+		return generateSetFrom(self.mapSize, self.mapIterable.iterator()) {
 			(key, _) -> key.makeImmutable()
 		}
 	}
@@ -468,9 +472,9 @@ class MapDescriptor private constructor(
 	 */
 	override fun o_ValuesAsTuple(self: AvailObject): A_Tuple
 	{
-		val mapIterable = self.mapIterable
+		val iterator = self.mapIterable.iterator()
 		return generateObjectTupleFrom(self.mapSize) {
-			mapIterable.next().value().makeImmutable() }
+			iterator.next().value().makeImmutable() }
 	}
 
 	override fun o_MapWithoutKeyCanDestroy(
@@ -498,8 +502,10 @@ class MapDescriptor private constructor(
 
 	override fun o_MapSize(self: AvailObject) = rootBin(self).mapBinSize
 
-	override fun o_MapIterable(self: AvailObject): MapIterable =
-		rootBin(self).mapBinIterable
+	override fun o_MapIterable(self: AvailObject): Iterable<Entry> =
+		object : Iterable<Entry> {
+			override fun iterator() = rootBin(self).mapBinIterator
+		}
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
@@ -574,17 +580,17 @@ class MapDescriptor private constructor(
 	class Entry
 	{
 		/**
-		 * The key at some [MapIterable]'s current position.
+		 * The key at some [MapIterator]'s current position.
 		 */
 		private var key: AvailObject? = null
 
 		/**
-		 * The hash of the key at some [MapIterable]'s current position.
+		 * The hash of the key at some [MapIterator]'s current position.
 		 */
 		private var keyHash = 0
 
 		/**
-		 * The value associated with the key at some [MapIterable]'s
+		 * The value associated with the key at some [MapIterator]'s
 		 * current position.
 		 */
 		private var value: AvailObject? = null
@@ -649,30 +655,22 @@ class MapDescriptor private constructor(
 	}
 
 	/**
-	 * [MapIterable] is returned by [A_Map.mapIterable] to
+	 * [MapIterator] is returned by [A_MapBin.mapBinIterator] to
 	 * support use of Java's "foreach" control structure on [maps][A_Map].
 	 *
 	 * @constructor
-	 *   Construct a new `MapIterable`.
+	 *   Construct a new [MapIterator].
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
-	abstract class MapIterable
-		protected constructor() : MutableIterator<Entry>, Iterable<Entry>
+	abstract class MapIterator
+	protected constructor() : Iterator<Entry>
 	{
 		/**
 		 * The [Entry] to be reused for each <key, value> pair while iterating
 		 * over this [map][MapDescriptor].
 		 */
 		protected val entry = Entry()
-
-		/**
-		 * Convert trivially between an Iterable and an Iterator, since this
-		 * class supports both protocols.
-		 */
-		override fun iterator(): MapIterable = this
-
-		override fun remove() = throw UnsupportedOperationException()
 	}
 
 	override fun mutable() = mutable
@@ -693,7 +691,7 @@ class MapDescriptor private constructor(
 		 *   The map's bin.
 		 */
 		private fun rootBin(map: A_Map): A_MapBin =
-			(map as AvailObject).slot(ROOT_BIN)
+			(map as AvailObject)[ROOT_BIN]
 
 		/**
 		 * Replace the [map][A_Map]'s root [bin][MapBinDescriptor].
@@ -703,8 +701,10 @@ class MapDescriptor private constructor(
 		 * @param bin
 		 *   The root bin for the map.
 		 */
-		private fun setRootBin(map: A_Map, bin: A_MapBin) =
-			(map as AvailObject).setSlot(ROOT_BIN, bin)
+		private fun setRootBin(map: AvailObject, bin: A_MapBin)
+		{
+			map[ROOT_BIN] = bin
+		}
 
 		/** The mutable [MapDescriptor]. */
 		private val mutable = MapDescriptor(MUTABLE)

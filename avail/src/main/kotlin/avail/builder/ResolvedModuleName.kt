@@ -67,7 +67,8 @@ internal constructor(
 	qualifiedName: ModuleName,
 	private val moduleRoots: ModuleRoots,
 	val resolverReference: ResolverReference,
-	isRename: Boolean) : ModuleName(qualifiedName.qualifiedName, isRename)
+	isRename: Boolean
+) : ModuleName(qualifiedName.qualifiedName, isRename)
 {
 	/**
 	 * `true` iff the [resolved&#32;module&#32;name][ResolvedModuleName]
@@ -78,7 +79,7 @@ internal constructor(
 	/**
 	 * The [ModuleRoot] that this [ResolvedModuleName] belongs to.
 	 */
-	private val moduleRoot get() = moduleRoots.moduleRootFor(rootName)!!
+	internal val moduleRoot get() = moduleRoots.moduleRootFor(rootName)!!
 
 	/**
 	 * The [resolved][ModuleNameResolver.resolve]

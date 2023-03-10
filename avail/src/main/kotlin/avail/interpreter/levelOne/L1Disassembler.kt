@@ -40,6 +40,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.CompiledCodeDescriptor
@@ -49,10 +50,13 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
+import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
@@ -364,7 +368,7 @@ class L1Disassembler constructor(
 	{
 		if (depth > 3)
 		{
-			builder.append("***depth***")
+			builder.append(" = ***depth***")
 			return
 		}
 		val (print, expand) = simplePrintable(value)
@@ -380,7 +384,7 @@ class L1Disassembler constructor(
 		if (value.isInstanceOf(mostGeneralVariableType))
 		{
 			// Allow
-			builder.append("var(")
+			builder.append(" = var(")
 			val variableValue = value.value()
 			printIfSimple(variableValue, builder, null, depth + 1)
 			builder.append(")")
@@ -444,6 +448,10 @@ class L1Disassembler constructor(
 				value.traversed().descriptor() is PrimitiveTypeDescriptor ->
 					value to false
 				value.isBottom -> value to false
+				value.isInstanceOf(mostGeneralCompiledCodeType()) ->
+					value.methodName to true
+				value.isInstanceOf(mostGeneralFunctionType()) ->
+					value.code().methodName to true
 				else -> null to true
 			}
 	}

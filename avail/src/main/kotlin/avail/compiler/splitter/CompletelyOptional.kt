@@ -62,14 +62,16 @@ import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhrase
  *
  * Construct a new `CompletelyOptional`.
  *
- * @param positionInName
+ * @param startInName
  *   The position of the start of this phrase in the message name.
  * @param sequence
  *   The governed [sequence][Sequence].
  */
 internal class CompletelyOptional constructor(
-	positionInName: Int,
-	private val sequence: Sequence) : Expression(positionInName)
+	startInName: Int,
+	pastEndInName: Int,
+	private val sequence: Sequence
+) : Expression(startInName, pastEndInName)
 {
 	override val recursivelyContainsReorders: Boolean
 		get() = sequence.recursivelyContainsReorders
@@ -78,7 +80,10 @@ internal class CompletelyOptional constructor(
 		get() = sequence.isLowerCase
 
 	override fun applyCaseInsensitive(): Expression =
-		CompletelyOptional(positionInName, sequence.applyCaseInsensitive())
+		CompletelyOptional(
+			startInName,
+			pastEndInName,
+			sequence.applyCaseInsensitive())
 
 	override val underscoreCount: Int
 		get()
@@ -90,6 +95,8 @@ internal class CompletelyOptional constructor(
 	override fun extractSectionCheckpointsInto(
 			sectionCheckpoints: MutableList<SectionCheckpoint>)
 		= sequence.extractSectionCheckpointsInto(sectionCheckpoints)
+
+	override fun children() = listOf(sequence)
 
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
@@ -136,7 +143,7 @@ internal class CompletelyOptional constructor(
 	}
 
 	override fun toString(): String =
-		"${this@CompletelyOptional.javaClass.simpleName}(${sequence.expressions})"
+		"${javaClass.simpleName}(${sequence.expressions})"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

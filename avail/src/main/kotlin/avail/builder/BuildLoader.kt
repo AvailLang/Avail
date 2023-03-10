@@ -35,6 +35,7 @@ package avail.builder
 import avail.AvailRuntime
 import avail.builder.AvailBuilder.LoadedModule
 import avail.compiler.AvailCompiler
+import avail.compiler.CompilationContext
 import avail.compiler.CompilerProgressReporter
 import avail.compiler.GlobalProgressReporter
 import avail.compiler.ModuleHeader
@@ -49,17 +50,20 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
+import avail.descriptor.module.A_Module.Companion.phrasePathRecord
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.serializedObjects
+import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setPhrasePathRecordIndex
+import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
-import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -67,10 +71,13 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter
 import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ManifestRecord
+import avail.persistence.cache.Repository.ModuleArchive
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleCompilationKey
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.Deserializer
 import avail.serialization.Serializer
 import avail.utility.evaluation.Combinator.recurse
@@ -78,7 +85,6 @@ import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import org.availlang.persistence.MalformedSerialStreamException
-import java.lang.String.format
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -213,7 +219,7 @@ internal class BuildLoader constructor(
 			// we run it right now in the current thread, it will recurse,
 			// potentially deeply, as the already-loaded part of the module
 			// graph is skipped in this way.  To avoid this deep stack, queue a
-			// task run the completionAction.
+			// task to run the completionAction.
 			availBuilder.runtime.execute(loaderPriority, completionAction)
 		}
 		else
@@ -241,11 +247,9 @@ internal class BuildLoader constructor(
 						catch (e: UnresolvedDependencyException)
 						{
 							availBuilder.stopBuildReason =
-								format(
-									"A module predecessor was malformed or absent: "
-										+ "%s -> %s\n",
-									moduleName.qualifiedName,
-									localName)
+								"A module predecessor was malformed or " +
+									"absent: ${moduleName.qualifiedName} " +
+									"-> $localName\n"
 							completionAction()
 							return@digestForFile
 						}
@@ -279,11 +283,10 @@ internal class BuildLoader constructor(
 					{
 						// Compile the module and cache its compiled form.
 						compileModule(
-							moduleName,
-							compilationKey,
-							completionAction)
+							moduleName, compilationKey, completionAction)
 					}
-				}) { code, ex ->
+				}
+			) { code, ex ->
 				// TODO figure out what to do with these!!! Probably report them?
 				System.err.println(
 					"Received ErrorCode: $code with exception:\n")
@@ -320,11 +323,16 @@ internal class BuildLoader constructor(
 		completionAction: ()->Unit)
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L, 0) { null }
-		val module = newModule(stringFrom(moduleName.qualifiedName))
+		val module = newModule(
+			availBuilder.runtime, stringFrom(moduleName.qualifiedName))
 		// Set up the block phrases field with an A_Number, so that requests for
 		// block phrases will retrieve them from the repository.
 		module.getAndSetTupleOfBlockPhrases(
 			fromLong(compilation.recordNumberOfBlockPhrases))
+		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
+		module.setPhrasePathRecordIndex(compilation.recordNumberOfPhrasePaths)
+		module.setManifestEntriesIndex(
+			compilation.recordNumberOfManifest)
 		val availLoader = AvailLoader(
 			availBuilder.runtime, module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
@@ -397,7 +405,7 @@ internal class BuildLoader constructor(
 
 		// Run each zero-argument block, one after another.
 		recurse { runNext ->
-			availLoader.setPhase(Phase.LOADING)
+			availLoader.phase = Phase.LOADING
 			val function: A_Function?
 			try
 			{
@@ -440,7 +448,7 @@ internal class BuildLoader constructor(
 							runNext()
 						},
 						fail)
-					availLoader.setPhase(Phase.EXECUTING_FOR_LOAD)
+					availLoader.phase = Phase.EXECUTING_FOR_LOAD
 					if (AvailLoader.debugLoadedStatements)
 					{
 						println(
@@ -476,9 +484,9 @@ internal class BuildLoader constructor(
 	}
 
 	/**
-	 * Compile the specified [module][ModuleDescriptor], store it into the
-	 * [repository][Repository], and then load it into the
-	 * [Avail&#32;runtime][AvailRuntime].
+	 * Compile the [module][ModuleDescriptor] with the specified [moduleName]
+	 * into the current [AvailRuntime], and then store its compilation into the
+	 * [repository][Repository].
 	 *
 	 * Note that the predecessors of this module must have already been loaded.
 	 *
@@ -512,7 +520,8 @@ internal class BuildLoader constructor(
 					availBuilder.runtime,
 					availBuilder.textInterface,
 					availBuilder.pollForAbort,
-					{ moduleName2, moduleSize, position, line, phrase ->
+					reporter = {
+							moduleName2, moduleSize, position, line, phrase ->
 						assert(moduleName == moduleName2)
 						// Don't reach the full module size yet.  A separate
 						// update at 100% will be sent after post-loading
@@ -528,102 +537,31 @@ internal class BuildLoader constructor(
 							globalCodeSize)
 						lastPosition = position
 					},
-					{
+					afterFail = {
 						postLoad(moduleName, lastPosition)
 						completionAction()
 					},
-					problemHandler
-				) { compiler: AvailCompiler ->
-					compiler.parseModule(
-						{ module ->
-							val old = ranOnce.getAndSet(true)
-							assert(!old) {
-								"Completed module compilation twice!"
-							}
-							val stream = compiler.compilationContext
-								.serializerOutputStream
-							appendCRC(stream)
-
-							// Also produce the serialization of the module's
-							// tuple of block phrases.
-							val blockPhrasesOutputStream =
-								IndexedFile.ByteArrayOutputStream(5000)
-							val bodyObjectsTuple = compiler.compilationContext
-								.serializer.serializedObjectsTuple()
-							val bodyObjectsMap =
-								mutableMapOf<AvailObject, Int>()
-							bodyObjectsTuple.forEachIndexed {
-									zeroIndex, element ->
-								bodyObjectsMap[element] = zeroIndex + 1
-							}
-							// Ensure the primed objects are always at strictly
-							// negative indices.
-							val delta = bodyObjectsMap.size + 1
-							val blockPhraseSerializer = Serializer(
-								blockPhrasesOutputStream,
-								module
-							) { obj ->
-								when (val i = bodyObjectsMap[obj])
-								{
-									null -> 0
-									else -> i - delta
+					problemHandler,
+					succeed = { compiler: AvailCompiler ->
+						compiler.parseModule(
+							onSuccess = {
+								val old = ranOnce.getAndSet(true)
+								assert(!old) {
+									"Completed module compilation twice!"
 								}
-							}
-							blockPhraseSerializer.serialize(
-								module.getAndSetTupleOfBlockPhrases(nil))
-							appendCRC(blockPhrasesOutputStream)
-							val manifestEntries = compiler.compilationContext
-								.loader.manifestEntries!!
-							module.getAndSetManifestEntries(
-								identityPojo(manifestEntries))
-
-							// This is the moment of compilation.
-							val compilationTime = System.currentTimeMillis()
-							val compilation = repository.ModuleCompilation(
-								compilationTime,
-								stream.toByteArray(),
-								blockPhrasesOutputStream.toByteArray(),
-								manifestEntries)
-							archive.putCompilation(
-								versionKey, compilationKey, compilation)
-
-							// Serialize the Stacks comments.
-							val out = IndexedFile.ByteArrayOutputStream(100)
-							// TODO MvG - Capture "/**" comments for Stacks.
-							//		final A_Tuple comments = fromList(
-							//         module.commentTokens());
-							//val comments = emptyTuple
-							//val stacksSerializer = Serializer(out, module)
-							//stacksSerializer.serialize(comments)
-							appendCRC(out)
-							val version = archive.getVersion(versionKey)!!
-							version.putComments(out.toByteArray())
-
-							module.getAndSetTupleOfBlockPhrases(
-								fromLong(
-									compilation.recordNumberOfBlockPhrases))
-							module.getAndSetManifestEntries(
-								fromLong(
-									compilation.recordNumberOfManifestEntries))
-							repository.commitIfStaleChanges(
-								AvailBuilder.maximumStaleRepositoryMs)
-							postLoad(moduleName, lastPosition)
-							module.serializedObjects(bodyObjectsTuple)
-							availBuilder.putLoadedModule(
-								moduleName,
-								LoadedModule(
-									moduleName,
-									versionKey.sourceDigest,
-									module,
-									version,
-									compilation))
-							completionAction()
-						},
-						{
-							postLoad(moduleName, lastPosition)
-							completionAction()
-						})
-				}
+								completedCompilation(
+									compiler.compilationContext,
+									archive,
+									versionKey,
+									compilationKey,
+									lastPosition)
+								completionAction()
+							},
+							afterFail = {
+								postLoad(moduleName, lastPosition)
+								completionAction()
+							})
+					})
 			}
 		) { code, ex ->
 			// TODO figure out what to do with these!!! Probably report them?
@@ -631,6 +569,154 @@ internal class BuildLoader constructor(
 				"Received ErrorCode: $code with exception:\n")
 			ex?.printStackTrace()
 		}
+	}
+
+	/**
+	 * The given [module] has just been compiled using the given [context],
+	 * which has accumulated additional information to record, such as styling.
+	 * Write everything about this particular module's compilation to the
+	 * repository captured by the [archive].
+	 *
+	 * The write is not committed unless the repository is sufficiently stale
+	 * that it warrants being committed, to slow the growth of the repository
+	 * file. If the process is terminated before this commit happens, at most a
+	 * few seconds of work must be re-performed when loading the same modules in
+	 * a subsequent process.
+	 *
+	 * @param context
+	 *   The [CompilationContext] that was used to compile the module.
+	 * @param archive
+	 *   The [ModuleArchive] associated with this module in that archive's
+	 *   captured [Repository].
+	 * @param versionKey
+	 *   The [ModuleVersionKey] which indicates which version of the module was
+	 *   created.  This includes the source's cryptographic hash.
+	 * @param compilationKey
+	 *   The [ModuleCompilationKey] which captures, for a particular
+	 *   [versionKey], the compilation times of the immediate predecessor
+	 *   modules.  During subsequent use of the [Repository], the particular
+	 *   compilation of this module (written by this method) will only be
+	 *   fast-loaded (loaded from its compiled form) if the versionKey matches
+	 *   the file's hash *and* the predecessor modules' compilation times agree
+	 *   with those in some compilationKey.  If it loads successfully this way,
+	 *   the compilation time associated with the loaded module will be set to
+	 *   the value captured in the compilation, so that downstream modules may
+	 *   be able to reuse their compilations as well.
+	 * @param lastPosition
+	 *   The last compilation position that has been reported for this module
+	 *   compilation, always less than the length of the file.  This method will
+	 *   report completion of compilation of the remaining portion of the file.
+	 */
+	private fun completedCompilation(
+		context: CompilationContext,
+		archive: ModuleArchive,
+		versionKey: ModuleVersionKey,
+		compilationKey: ModuleCompilationKey,
+		lastPosition: Long)
+	{
+		val module = context.module
+		val moduleName = context.moduleHeader!!.moduleName
+		val stream = context.serializerOutputStream
+		appendCRC(stream)
+
+		// Also produce the serialization of the module's tuple of block
+		// phrases.
+		val blockPhrasesOutputStream = IndexedFile.ByteArrayOutputStream(5000)
+		val bodyObjectsTuple = context.serializer.serializedObjectsTuple()
+		val bodyObjectsMap = mutableMapOf<AvailObject, Int>()
+		bodyObjectsTuple.forEachIndexed { zeroIndex, element ->
+			bodyObjectsMap[element] = zeroIndex + 1
+		}
+		// Ensure the primed objects are always at strictly negative indices.
+		val delta = bodyObjectsMap.size + 1
+		val blockPhraseSerializer = Serializer(
+			blockPhrasesOutputStream,
+			module
+		) { obj ->
+			when (val i = bodyObjectsMap[obj])
+			{
+				null -> 0
+				else -> i - delta
+			}
+		}
+		val blockPhrases: A_Tuple = module.getAndSetTupleOfBlockPhrases(nil)
+		blockPhraseSerializer.serialize(blockPhrases)
+		appendCRC(blockPhrasesOutputStream)
+		val manifestEntries = context.loader.manifestEntries!!
+		val repository = archive.repository
+		val compilation = repository.createModuleCompilation(
+			// Now is the moment of compilation.
+			System.currentTimeMillis(),
+			stream.toByteArray(),
+			blockPhrasesOutputStream.toByteArray(),
+			ManifestRecord(manifestEntries),
+			assembleStylingRecord(context),
+			module.phrasePathRecord())
+		archive.putCompilation(versionKey, compilationKey, compilation)
+
+		// Serialize the Stacks comments.
+		val out = IndexedFile.ByteArrayOutputStream(100)
+		// TODO MvG - Capture "/**" comments for Stacks.
+		//		final A_Tuple comments = fromList(
+		//         module.commentTokens());
+		//val comments = emptyTuple
+		//val stacksSerializer = Serializer(out, module)
+		//stacksSerializer.serialize(comments)
+		appendCRC(out)
+		val version = archive.getVersion(versionKey)!!
+		version.putComments(out.toByteArray())
+
+		module.getAndSetTupleOfBlockPhrases(
+			fromLong(compilation.recordNumberOfBlockPhrases))
+		module.setManifestEntriesIndex(
+			compilation.recordNumberOfManifest)
+		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
+		module.setPhrasePathRecordIndex(compilation.recordNumberOfPhrasePaths)
+		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)
+		postLoad(moduleName, lastPosition)
+		module.serializedObjects(bodyObjectsTuple)
+		availBuilder.putLoadedModule(
+			moduleName,
+			LoadedModule(
+				moduleName,
+				versionKey.sourceDigest,
+				module,
+				version,
+				compilation))
+
+	}
+
+	private fun assembleStylingRecord(
+		context: CompilationContext
+	): StylingRecord
+	{
+		val loader = context.loader
+		val converter = context.surrogateIndexConverter
+		val styleRanges = loader.lockStyles {
+			map { (start, pastEnd, style) ->
+				val utf16Start =
+					converter.availIndexToJavaIndex(start.toInt())
+				val utf16PastEnd =
+					converter.availIndexToJavaIndex(pastEnd.toInt())
+				(utf16Start until utf16PastEnd) to style
+			}
+		}
+		val uses = loader.lockUsesToDefinitions {
+			map { (useStart, usePastEnd, defRange) ->
+				val utf16UseStart =
+					converter.availIndexToJavaIndex(useStart.toInt())
+				val utf16UsePastEnd =
+					converter.availIndexToJavaIndex(usePastEnd.toInt())
+				val utf16DefStart =
+					converter.availIndexToJavaIndex(defRange.first.toInt())
+				val utf16DefEnd =
+					converter.availIndexToJavaIndex(defRange.last.toInt())
+				Pair(
+					(utf16UseStart until utf16UsePastEnd),
+					(utf16DefStart .. utf16DefEnd))
+			}
+		}
+		return StylingRecord(styleRanges, uses)
 	}
 
 	/**
@@ -647,10 +733,15 @@ internal class BuildLoader constructor(
 	private fun postLoad(moduleName: ResolvedModuleName, lastPosition: Long)
 	{
 		val moduleSize = moduleName.moduleSize
-		globalTracker(
-			bytesCompiled.addAndGet(moduleSize - lastPosition),
-			globalCodeSize)
-		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) { null }
+		val newPosition = bytesCompiled.addAndGet(moduleSize - lastPosition)
+		// Don't report progress if the build is canceled.
+		if (!availBuilder.shouldStopBuild)
+		{
+			globalTracker(newPosition, globalCodeSize)
+		}
+		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) {
+			null
+		}
 	}
 
 	/**

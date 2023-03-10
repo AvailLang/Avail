@@ -35,6 +35,7 @@ import avail.AvailRuntime.Companion.specialObject
 import avail.AvailRuntimeConfiguration.availableProcessors
 import avail.AvailRuntimeConfiguration.maxInterpreters
 import avail.AvailThread.Companion.current
+import avail.ImmutableList.Companion.length
 import avail.annotations.ThreadSafe
 import avail.builder.ModuleNameResolver
 import avail.builder.ModuleRoots
@@ -69,6 +70,8 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RETIRED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.UNPAUSING
+import avail.descriptor.fiber.FiberDescriptor.FiberKind
+import avail.descriptor.fiber.FiberDescriptor.FiberKind.Companion.fiberKind
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
@@ -107,6 +110,7 @@ import avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
 import avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -131,8 +135,6 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
@@ -149,6 +151,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor.StaticInit
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -199,6 +202,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapMeta
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
@@ -241,40 +245,43 @@ import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Result
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.debugCheckAfterUnload
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.general.P_ToString
+import avail.interpreter.primitive.style.P_DefaultStyler
 import avail.io.IOSystem
 import avail.io.TextInterface
 import avail.io.TextInterface.Companion.systemTextInterface
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.utility.StackPrinter.Companion.trace
+import avail.utility.ObjectTracer
 import avail.utility.WorkStealingQueue
+import avail.utility.cast
 import avail.utility.evaluation.OnceSupplier
+import avail.utility.iterableWith
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
+import avail.utility.parallelDoThen
 import avail.utility.safeWrite
+import avail.utility.stackToString
 import avail.utility.structures.EnumMap.Companion.enumMap
-import java.util.Collections.emptyList
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.Timer
 import java.util.TimerTask
 import java.util.WeakHashMap
+import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.fixedRateTimer
 import kotlin.concurrent.read
-import kotlin.concurrent.withLock
 import kotlin.math.min
 
 /**
@@ -357,13 +364,20 @@ class AvailRuntime constructor(
 	/**
 	 * The [ThreadPoolExecutor] for running tasks and fibers of this
 	 * [AvailRuntime].
+	 *
+	 * Note that the WorkStealingQueue plugged in as the workQueue only accepts
+	 * [AvailTask]s, but the [ThreadPoolExecutor] mechanism is supposed to
+	 * accept any [Runnable], not just ones that are [Comparable].  So don't
+	 * queue anything in it but [AvailTask]s, and everything will be ok.
 	 */
+	@Suppress("UNCHECKED_CAST")
 	val executor = ThreadPoolExecutor(
 		min(availableProcessors, maxInterpreters),
 		maxInterpreters,
 		10L,
 		TimeUnit.SECONDS,
-		WorkStealingQueue(maxInterpreters),
+		WorkStealingQueue<AvailTask>(maxInterpreters)
+			as BlockingQueue<Runnable>,
 		{
 			val interpreter = Interpreter(this)
 			interpreterHolders[interpreter.interpreterIndex].set(interpreter)
@@ -622,7 +636,7 @@ class AvailRuntime constructor(
 		}
 
 	/**
-	 * A `HookType` describes an abstract missing behavior in the virtual
+	 * A [HookType] describes an abstract missing behavior in the virtual
 	 * machine, where an actual hook will have to be constructed to hold an
 	 * [A_Function] within each separate `AvailRuntime`.
 	 *
@@ -647,7 +661,7 @@ class AvailRuntime constructor(
 		primitive: Primitive?)
 	{
 		/**
-		 * The `HookType` for a hook that holds the stringification function.
+		 * The [HookType] for a hook that holds the stringification function.
 		 */
 		STRINGIFICATION(
 			"«stringification»",
@@ -655,7 +669,7 @@ class AvailRuntime constructor(
 			P_ToString),
 
 		/**
-		 * The `HookType` for a hook that holds the function to invoke whenever
+		 * The [HookType] for a hook that holds the function to invoke whenever
 		 * an unassigned variable is read.
 		 */
 		READ_UNASSIGNED_VARIABLE(
@@ -664,7 +678,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the function to invoke whenever
+		 * The [HookType] for a hook that holds the function to invoke whenever
 		 * a returned value disagrees with the expected type.
 		 */
 		RESULT_DISAGREED_WITH_EXPECTED_TYPE(
@@ -678,7 +692,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the function to invoke whenever
+		 * The [HookType] for a hook that holds the function to invoke whenever
 		 * an [A_Method] send fails for a definitional reason.
 		 */
 		INVALID_MESSAGE_SEND(
@@ -698,7 +712,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the [A_Function] to invoke
+		 * The [HookType] for a hook that holds the [A_Function] to invoke
 		 * whenever an [A_Variable] with
 		 * [write&#32;reactors][VariableDescriptor.VariableAccessReactor] is
 		 * written to when
@@ -715,7 +729,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the [A_Function] to invoke when
+		 * The [HookType] for a hook that holds the [A_Function] to invoke when
 		 * an exception is caught in a Pojo invocation of a Java method or
 		 * [CallbackSystem.Callback].
 		 */
@@ -728,7 +742,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the [A_Function] to invoke at
+		 * The [HookType] for a hook that holds the [A_Function] to invoke at
 		 * the outermost stack frame to run a fiber.  This function is passed a
 		 * function to execute and the arguments to supply to it.  The result
 		 * returned by the passed function is returned from this frame.
@@ -740,16 +754,31 @@ class AvailRuntime constructor(
 					mostGeneralFunctionType(),
 					mostGeneralTupleType),
 				Types.TOP.o),
-			P_InvokeWithTuple);
+			P_InvokeWithTuple),
+
+		/**
+		 * The [HookType] for a hook that holds the [A_Function] to invoke when
+		 * a method or macro send is ready to be styled (a top-level statement
+		 * was parsed unambiguously, and this phrase's children have had their
+		 * chance to apply styling), but the most specific method/macro
+		 * definition being invoked does not specify its own styler.
+		 */
+		DEFAULT_STYLER(
+			"«default styler»",
+			functionType(
+				tuple(
+					PhraseKind.PARSE_PHRASE.mostGeneralType),
+				Types.TOP.o),
+			P_DefaultStyler
+		);
 
 		/** The name to attach to functions plugged into this hook. */
-		private val hookName: A_String = stringFrom(hookName).makeShared()
+		val hookName: A_String = stringFrom(hookName).makeShared()
 
 		/**
 		 * A [supplier][OnceSupplier] of a default [A_Function] to use for this
 		 * hook type.
 		 */
-		@Suppress("LeakingThis")
 		val defaultFunctionSupplier: OnceSupplier<A_Function> =
 			produceDefaultFunctionSupplier(hookName, primitive)
 
@@ -777,44 +806,37 @@ class AvailRuntime constructor(
 				OnceSupplier { createFunction(code, emptyTuple).makeShared() }
 			}
 		}
-
-		/**
-		 * Extract the current [A_Function] for this hook from the given
-		 * runtime.
-		 *
-		 * @param runtime
-		 *   The [AvailRuntime] to examine.
-		 * @return
-		 *   The [A_Function] currently in that hook.
-		 */
-		operator fun get(runtime: AvailRuntime): A_Function =
-			runtime.hooks[this]!!.function
-
-		/**
-		 * Set this hook for the given runtime to the given function.
-		 *
-		 * @param runtime
-		 *   The [AvailRuntime] to examine.
-		 * @param function
-		 *   The [A_Function] to plug into this hook.
-		 */
-		operator fun set(runtime: AvailRuntime, function: A_Function)
-		{
-			assert(function.isInstanceOf(functionType))
-			function.code().methodName = hookName
-			runtime.hooks[this]!!.function = function.makeShared()
-		}
 	}
 
-	/** A volatile holder, to ensure visibility of writes to readers. */
-	data class VolatileHookEntry(
-		/** The assignable function for some hook. */
-		@Volatile
-		var function: A_Function)
+	/**
+	 * Extract the current [A_Function] for the given hook from this runtime.
+	 *
+	 * @param hookType
+	 *   The [HookType] to examine.
+	 * @return
+	 *   The [A_Function] currently in that hook.
+	 */
+	operator fun get(hookType: HookType): A_Function =
+		hooks[hookType]!!.get()
+
+	/**
+	 * Set the given hook's function for this runtime.
+	 *
+	 * @param hookType
+	 *   The [HookType] to modify for this runtime.
+	 * @param function
+	 *   The [A_Function] to plug into this hook.
+	 */
+	operator fun set(hookType: HookType, function: A_Function)
+	{
+		assert(function.isInstanceOf(hookType.functionType))
+		function.code().methodName = hookType.hookName
+		hooks[hookType]!!.set(function.makeShared())
+	}
 
 	/** The collection of hooks for this runtime. */
 	val hooks = enumMap { hook: HookType ->
-		VolatileHookEntry(hook.defaultFunctionSupplier())
+		AtomicReference(hook.defaultFunctionSupplier())
 	}
 
 	/**
@@ -832,7 +854,7 @@ class AvailRuntime constructor(
 	@ThreadSafe
 	@ReferencedInGeneratedCode
 	fun resultDisagreedWithExpectedTypeFunction(): A_Function =
-		HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE[this]
+		get(HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE)
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever a
@@ -846,7 +868,7 @@ class AvailRuntime constructor(
 	 */
 	@ThreadSafe
 	@ReferencedInGeneratedCode
-	fun implicitObserveFunction(): A_Function = HookType.IMPLICIT_OBSERVE[this]
+	fun implicitObserveFunction(): A_Function = get(HookType.IMPLICIT_OBSERVE)
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever a
@@ -859,7 +881,7 @@ class AvailRuntime constructor(
 	@ThreadSafe
 	@ReferencedInGeneratedCode
 	fun invalidMessageSendFunction(): A_Function =
-		HookType.INVALID_MESSAGE_SEND[this]
+		get(HookType.INVALID_MESSAGE_SEND)
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever an
@@ -872,7 +894,7 @@ class AvailRuntime constructor(
 	@ThreadSafe
 	@ReferencedInGeneratedCode
 	fun unassignedVariableReadFunction(): A_Function =
-		HookType.READ_UNASSIGNED_VARIABLE[this]
+		get(HookType.READ_UNASSIGNED_VARIABLE)
 
 	/**
 	 * All [fibers][A_Fiber] that have not yet [retired][RETIRED] *or* been
@@ -896,7 +918,7 @@ class AvailRuntime constructor(
 	fun registerFiber(fiber: A_Fiber)
 	{
 		allFibers.add(fiber)
-		newFiberHandler.get()?.invoke(fiber)
+		newFiberHandlers[fiber.fiberKind]!!.get()?.invoke(fiber)
 	}
 
 	/**
@@ -1274,6 +1296,7 @@ class AvailRuntime constructor(
 			put(SpecialAtom.STATIC_TOKENS_KEY.atom)
 
 			at(160)
+			put(SpecialAtom.STATIC_TOKEN_INDICES_KEY.atom)
 			put(TokenType.END_OF_FILE.atom)
 			put(TokenType.KEYWORD.atom)
 			put(TokenType.LITERAL.atom)
@@ -1285,9 +1308,9 @@ class AvailRuntime constructor(
 			put(
 				continuationTypeForFunctionType(
 					functionTypeReturning(Types.TOP.o)))
-			put(CharacterDescriptor.nonemptyStringOfDigitsType)
 
 			at(170)
+			put(CharacterDescriptor.nonemptyStringOfDigitsType)
 			put(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
@@ -1323,8 +1346,16 @@ class AvailRuntime constructor(
 								// Wildcard.
 								booleanType)))))
 			put(PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
+			put(zeroOrOneOf(stylerFunctionType))
+			put(zeroOrOneOf(PhraseKind.PARSE_PHRASE.mostGeneralType))
 
-			at(177)
+			at(180)
+			put(
+				PhraseKind.LITERAL_PHRASE.create(
+					LiteralTokenTypeDescriptor.literalTokenType(
+						stringType)))
+			at(181)
+
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
@@ -1357,6 +1388,7 @@ class AvailRuntime constructor(
 			put(SpecialAtom.SERVER_SOCKET_KEY.atom)
 			put(SpecialAtom.SOCKET_KEY.atom)
 			put(SpecialAtom.STATIC_TOKENS_KEY.atom)
+			put(SpecialAtom.STATIC_TOKEN_INDICES_KEY.atom)
 			put(SpecialAtom.TRUE.atom)
 			put(SpecialAtom.DONT_DEBUG_KEY.atom)
 			put(SpecialMethodAtom.ABSTRACT_DEFINER.atom)
@@ -1385,6 +1417,11 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.SEMANTIC_RESTRICTION.atom)
 			put(SpecialMethodAtom.LEXER_DEFINER.atom)
 			put(SpecialMethodAtom.PUBLISH_NEW_NAME.atom)
+			put(SpecialMethodAtom.CREATE_ATOM.atom)
+			put(SpecialMethodAtom.CREATE_HERITABLE_ATOM.atom)
+			put(SpecialMethodAtom.CREATE_EXPLICIT_SUBCLASS_ATOM.atom)
+			put(SpecialMethodAtom.SET_STYLER.atom)
+			put(SpecialMethodAtom.TERMINATE_CURRENT_FIBER.atom)
 			put(Exceptions.exceptionAtom)
 			put(Exceptions.stackDumpAtom)
 			put(pojoSelfTypeAtom())
@@ -1395,12 +1432,6 @@ class AvailRuntime constructor(
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
 			put(StaticInit.tokenTypeOrdinalKey)
-			put(Styles.subclassAtom)
-			put(Styles.semanticClassifierAtom)
-			put(Styles.methodNameAtom)
-			put(Styles.sourceModuleAtom)
-			put(Styles.generatedAtom)
-			put(Styles.lineNumberAtom)
 		}.list().onEach { assert(it.isAtomSpecial) }
 	}
 
@@ -1445,6 +1476,17 @@ class AvailRuntime constructor(
 			modules = modules.mapWithoutKeyCanDestroy(
 				module.moduleName, true
 			).makeShared()
+			if (debugCheckAfterUnload)
+			{
+				// Figure out if something is holding onto this unloaded module.
+				val tracer = ObjectTracer(this, module)
+				val result = tracer.scan()
+				if (result != null)
+				{
+					// This is a good line to breakpoint.
+					println("chain = $result")
+				}
+			}
 		}
 	}
 
@@ -1552,7 +1594,7 @@ class AvailRuntime constructor(
 	 *   A [semantic restriction][SemanticRestrictionDescriptor] that validates
 	 *   the static types of arguments at call sites.
 	 */
-	fun removeTypeRestriction(restriction: A_SemanticRestriction)
+	fun removeSemanticRestriction(restriction: A_SemanticRestriction)
 	{
 		runtimeLock.safeWrite {
 			val method = restriction.definitionMethod()
@@ -1621,64 +1663,53 @@ class AvailRuntime constructor(
 	}
 
 	/**
-	 * The [ReentrantLock] that guards access to the [safePointTasks] and
-	 * [interpreterTasks] and their associated incomplete execution counters.
+	 * This [AtomicReference] implements a lock-free algorithm for queueing
+	 * tasks that must run when interpreters are running, or during a
+	 * safe-point.  Those two modes of execution are mutually exclusive.
 	 *
-	 * For example, an [L2Chunk] may not be invalidated while any [A_Fiber] is
-	 * actively running. These two activities are mutually exclusive.
+	 * While running interpreter tasks, safe-point tasks are queued for later,
+	 * and vice-versa.  Also, interpreter tasks are queued if there are any
+	 * safe-point tasks queue, since that condition will cause the interpreter
+	 * tasks to exit as soon as possible, to reach the safe-point.
 	 */
-	private val safePointLock = ReentrantLock()
+	private val activeDiversionQueue =
+		AtomicReference(DiversionQueue(0, null, null))
 
 	/**
-	 * The [List] of tasks to run at the next safe point.  Such tasks may only
-	 * execute when there are no [interpreterTasks] running.
+	 * An immutable state object that can atomically replace the current state
+	 * in [activeDiversionQueue] via a
+	 * [compare-and-set][AtomicReference.compareAndSet] (with retries).
 	 *
-	 * For example, an [L2Chunk] may not be invalidated while any [A_Fiber] is
-	 * actively running. These two activities are mutually exclusive.
+	 * @property interpreterSurplus
+	 *   If zero, no tasks are running.  If positive, that many interpreter
+	 *   tasks have been sent to the [executor] and have not yet completed.  If
+	 *   negative, the magnitude says how many safe point tasks have been sent
+	 *   to the [executor] and have not yet completed.
+	 * @property postponedSafeTasks
+	 *   The queue of safe-point tasks that should run when we're next at a
+	 *   safe point.  Null indicates an empty queue.  Safe-point tasks have
+	 *   priority over interpreter tasks, so new interpreter tasks should not
+	 *   be started if there are any safe-point tasks queued here, or if the
+	 *   [interpreterSurplus] is negative, indicating it's processing safe-point
+	 *   tasks already.
+	 * @property postponedInterpreterTasks
+	 *   The queue of interpreter tasks that should run when we're next able to
+	 *   run interpreter tasks.  Null indicates an empty queue.  Safe-point
+	 *   tasks have precedence, so if there are any outstanding safe point
+	 *   tasks, or if any are queued, then queue new interpreter tasks here
+	 *   instead of allowing them to execute.
 	 */
-	@GuardedBy("safePointLock")
-	private val safePointTasks = mutableListOf<AvailTask>()
+	data class DiversionQueue(
+		val interpreterSurplus: Int,
+		val postponedSafeTasks: ImmutableList<AvailTask>?,
+		val postponedInterpreterTasks: ImmutableList<AvailTask>?)
+	{
+		val safePointRequested
+			get() = interpreterSurplus > 0 && postponedSafeTasks !== null
+	}
 
-	/**
-	 * The [List] of tasks that run when interpreters are allowed to run.  This
-	 * includes tasks that actually run fibers, but may include any other task
-	 * which must not execute at the same time as any [safePointTasks].
-	 */
-	@GuardedBy("safePointLock")
-	private val interpreterTasks = mutableListOf<AvailTask>()
-
-	/**
-	 * The number of [safePointTasks] that have been scheduled for
-	 * [execution][executor] but have not yet reached completion.  This also
-	 * includes safe-point tasks that have been added to the executor but not
-	 * yet started.
-	 */
-	@GuardedBy("safePointLock")
-	private var incompleteSafePointTasks = 0
-
-	/**
-	 * The number of [interpreterTasks] that have been scheduled for
-	 * [execution][executor] but have not yet reached completion.  This also
-	 * includes interpreter tasks that have been added to the executor but not
-	 * yet started.
-	 */
-	@GuardedBy("safePointLock")
-	private var incompleteInterpreterTasks = 0
-
-	/**
-	 * Has a safe-point been requested?
-	 */
-	@Volatile
-	private var safePointRequested = false
-
-	/**
-	 * Has a safe point been requested?  During a safe point, no interpreters
-	 * are allowed to be running fibers.
-	 *
-	 * @return
-	 *   `true` if a safe point has been requested, `false` otherwise.
-	 */
-	fun safePointRequested(): Boolean = safePointRequested
+	/** Determine whether any safe-point tasks have been queued for later. */
+	val safePointRequested get() = activeDiversionQueue.get().safePointRequested
 
 	/**
 	 * Assert that we're currently inside a safe point.  This should only be
@@ -1687,13 +1718,14 @@ class AvailRuntime constructor(
 	 */
 	fun assertInSafePoint()
 	{
-		val isSafe = safePointLock.withLock { incompleteSafePointTasks > 0 }
-		assert(isSafe)
+		assert(activeDiversionQueue.get().interpreterSurplus < 0)
 	}
 
 	/**
 	 * Request that the specified [action] be executed when interpreter tasks
-	 * are allowed to run.
+	 * are allowed to run.  If there are any postponed safe-point tasks, that
+	 * means we're either in or waiting for a safe-point to be reached, so don't
+	 * start another interpreter task – queue it instead.
 	 *
 	 * @param priority
 	 *   The priority of the [AvailTask] to queue.  It must be in the range
@@ -1703,7 +1735,7 @@ class AvailRuntime constructor(
 	 */
 	fun whenRunningInterpretersDo(priority: Int, action: ()->Unit)
 	{
-		val wrapped = AvailTask(priority)
+		val task = AvailTask(priority)
 		{
 			try
 			{
@@ -1712,49 +1744,93 @@ class AvailRuntime constructor(
 			catch (e: Exception)
 			{
 				System.err.println(
-					"\n\tException in running-interpreter task:\n\t${trace(e)}"
+					("\n\tException in running-interpreter task:\n\t" +
+						e.stackToString)
 						.trimIndent())
 			}
 			finally
 			{
-				safePointLock.withLock {
-					incompleteInterpreterTasks--
-					if (incompleteInterpreterTasks == 0)
+				// Deal with this interpreter task having just completed.
+				while (true)
+				{
+					val old = activeDiversionQueue.get()
+					val surplus = old.interpreterSurplus
+					assert(surplus > 0)
+					if (surplus == 1)
 					{
-						assert(incompleteSafePointTasks == 0)
-						incompleteSafePointTasks = safePointTasks.size
-						// Run all queued safe point tasks sequentially.
-						safePointTasks.forEach(this::execute)
-						safePointTasks.clear()
+						// This is the last interpreter task finishing up.
+						val queuedSafeTasks = old.postponedSafeTasks
+						val new = old.copy(
+							interpreterSurplus = -queuedSafeTasks.length,
+							postponedSafeTasks = null)
+						if (!activeDiversionQueue.compareAndSet(old, new))
+							continue
+						// The replacement was successful, which means we're now
+						// processing safe-point tasks.  Add the ones from the
+						// queue, which are already accounted for in the new
+						// state's negative counter.  It can't race up to zero,
+						// since we haven't activated the tasks that are able to
+						// increment the counter.
+						queuedSafeTasks
+							.iterableWith { it.rest }
+							.forEach { execute(it.first) }
+						break
+					}
+					else
+					{
+						val new = old.copy(interpreterSurplus = surplus - 1)
+						if (!activeDiversionQueue.compareAndSet(old, new))
+							continue
+						// It decremented correctly (to non-zero).
+						break
 					}
 				}
 			}
 		}
-		safePointLock.withLock {
-			// Hasten the execution of safe-point tasks by postponing this task
-			// if there are any safe-point tasks waiting to run.
-			if (incompleteSafePointTasks == 0 && safePointTasks.isEmpty())
+		// Now try to add the new interpreter task.
+		while (true)
+		{
+			val old = activeDiversionQueue.get()
+			val surplus = old.interpreterSurplus
+			if (surplus >= 0 && old.postponedSafeTasks === null)
 			{
-				assert(!safePointRequested)
-				incompleteInterpreterTasks++
-				execute(wrapped)
+				// We're running interpreter tasks AND there are no queued safe
+				// point tasks.
+				val new = old.copy(interpreterSurplus = surplus + 1)
+				if (!activeDiversionQueue.compareAndSet(old, new)) continue
+				// We successfully incremented the surplus, and there's no way
+				// it can go back to zero until we start the task, which we do
+				// now.
+				execute(task)
+				break
 			}
 			else
 			{
-				interpreterTasks.add(wrapped)
+				// We're either at a safe point already or there is a safe-point
+				// task already waiting, so don't let any more interpreter tasks
+				// through until we've dealt with the safe point.
+				val new = old.copy(
+					postponedInterpreterTasks =
+						ImmutableList(task, old.postponedInterpreterTasks)
+				)
+				if (!activeDiversionQueue.compareAndSet(old, new)) continue
+				// We successfully added the interpreter task to the postponed
+				// queue, while still running in a safe point, or striving for
+				// one.
+				break
 			}
 		}
 	}
 
 	/**
-	 * Request that the specified action be executed at the next safe point.
-	 * No interpreter tasks are running at a safe point.
+	 * Request that the specified action be executed at the next safe-point.
+	 * No interpreter tasks are running at a safe-point.
 	 *
 	 * @param priority
 	 *   The priority of the [AvailTask] to queue.  It must be in the range
 	 *   [0..255].
 	 * @param safeAction
-	 *   The action to execute at the next safe point.
+	 *   The action to execute at the next safe-point.
 	 */
 	fun whenSafePointDo(priority: Int, safeAction: ()->Unit)
 	{
@@ -1767,44 +1843,92 @@ class AvailRuntime constructor(
 			catch (e: Exception)
 			{
 				System.err.println(
-					"\n\tException in safe point task:\n\t${trace(e)}"
+					"\n\tException in safe point task:\n\t${e.stackToString}"
 						.trimIndent())
 			}
 			finally
 			{
-				safePointLock.withLock {
-					incompleteSafePointTasks--
-					if (incompleteSafePointTasks == 0)
+				// Deal with this safe-point task having just completed.
+				while (true)
+				{
+					val old = activeDiversionQueue.get()
+					val surplus = old.interpreterSurplus
+					assert(surplus < 0)
+					if (surplus == -1)
 					{
-						assert(incompleteInterpreterTasks == 0)
-						safePointRequested = false
-						incompleteInterpreterTasks = interpreterTasks.size
-						interpreterTasks.forEach(this::execute)
-						interpreterTasks.clear()
+						// This is the last safe-point task finishing up.  Allow
+						// the queued interpreter tasks, if any, to all launch
+						// at once.
+						assert(old.postponedSafeTasks == null)
+						val queuedInterpreterTasks =
+							old.postponedInterpreterTasks
+						val new = old.copy(
+							interpreterSurplus = queuedInterpreterTasks.length,
+							postponedInterpreterTasks = null)
+						if (!activeDiversionQueue.compareAndSet(old, new))
+							continue
+						// The replacement was successful, which means we're now
+						// processing interpreter tasks.  Add the ones from the
+						// queue, which are already accounted for in the new
+						// state's positive counter.  It can't race down to
+						// zero, since we haven't activated the tasks that are
+						// able to decrement the counter.
+						queuedInterpreterTasks
+							.iterableWith { it.rest }
+							.forEach { execute(it.first) }
+						break
+					}
+					else
+					{
+						val new = old.copy(interpreterSurplus = surplus + 1)
+						if (!activeDiversionQueue.compareAndSet(old, new))
+							continue
+						// It incremented correctly (to non-zero).
+						break
 					}
 				}
 			}
 		}
-		safePointLock.withLock {
-			safePointRequested = true
-			if (incompleteInterpreterTasks == 0)
+		// Now try to add the new safe-point task.
+		while (true)
+		{
+			val old = activeDiversionQueue.get()
+			val surplus = old.interpreterSurplus
+			if (surplus <= 0)
 			{
-				incompleteSafePointTasks++
+				// We're already at a safe point (or idle).
+				val new = old.copy(interpreterSurplus = surplus - 1)
+				if (!activeDiversionQueue.compareAndSet(old, new)) continue
+				// We successfully decremented the surplus, and there's no way
+				// it can go back up to zero until we start the task, which we
+				// do now.
 				execute(task)
+				break
 			}
 			else
 			{
-				safePointTasks.add(task)
+				// We're running interpreter tasks, so queue the safe-point task
+				// for later.  The presence of the queued safe-point task also
+				// acts as a gate that prevents new interpreter tasks from
+				// starting, since that would delay us from reaching a safe
+				// point.
+				val new = old.copy(
+					postponedSafeTasks =
+						ImmutableList(task, old.postponedSafeTasks)
+				)
+				if (!activeDiversionQueue.compareAndSet(old, new)) continue
+				// We successfully added the safe-point task to the postponed
+				// queue, while still running interpreter tasks.
+				break
 			}
 		}
 	}
 
 	/**
 	 * Schedule the specified [suspended][ExecutionState.indicatesSuspension]
-	 * fiber to execute for a while as an
-	 * [interpreter][AvailRuntime.interpreterTasks] task. If the fiber completes
-	 * normally, then call its [A_Fiber.resultContinuation] with its final
-	 * answer. If the fiber terminates abnormally, then call its
+	 * fiber to execute for a while as an interpreter task. If the fiber
+	 * completes normally, then call its [A_Fiber.resultContinuation] with its
+	 * final answer. If the fiber terminates abnormally, then call its
 	 * [A_Fiber.failureContinuation] with the terminal [Throwable].
 	 *
 	 * @param aFiber
@@ -1813,7 +1937,7 @@ class AvailRuntime constructor(
 	 *   How to set up the interpreter prior to running the fiber for a
 	 *   while. Pass in the interpreter as the receiver.
 	 */
-	fun executeFiber(
+	private fun executeFiber(
 		aFiber: A_Fiber,
 		setup: Interpreter.()->Unit)
 	{
@@ -1875,7 +1999,7 @@ class AvailRuntime constructor(
 			assert(aFiber.continuation.isNil)
 			// Invoke the base-frame (hook) function with the given function
 			// and its arguments collected as a tuple.
-			val baseFrameFunction = HookType.BASE_FRAME[runtime]
+			val baseFrameFunction = get(HookType.BASE_FRAME)
 			exitNow = false
 			returnNow = false
 			setReifiedContinuation(nil)
@@ -1991,7 +2115,6 @@ class AvailRuntime constructor(
 		resumingPrimitive: Primitive,
 		result: A_BasicObject)
 	{
-		assert(aFiber.continuation.notNil)
 		assert(aFiber.executionState === SUSPENDED)
 		assert(
 			aFiber.suspendingFunction.code().codePrimitive()
@@ -2005,19 +2128,19 @@ class AvailRuntime constructor(
 			setLatestResult(result)
 			returningFunction = aFiber.suspendingFunction
 			aFiber.suspendingFunction = nil
-			exitNow = false
+			returnNow = false
 			if (continuation.isNil)
 			{
 				// Return from outer function, which was the
 				// (successful) suspendable primitive itself.
-				returnNow = true
+				exitNow = true
 				function = null
 				chunk = null
 				offset = Int.MAX_VALUE
 			}
 			else
 			{
-				returnNow = false
+				exitNow = false
 				function = continuation.function()
 				chunk = continuation.levelTwoChunk()
 				offset = continuation.levelTwoOffset()
@@ -2067,7 +2190,7 @@ class AvailRuntime constructor(
 			setLatestResult(failureValue)
 			val startingChunk = code.startingChunk
 			chunk = startingChunk
-			offset = startingChunk.offsetAfterInitialTryPrimitive()
+			offset = startingChunk.offsetAfterInitialTryPrimitive
 			exitNow = false
 			returnNow = false
 		}
@@ -2097,7 +2220,7 @@ class AvailRuntime constructor(
 		setup: A_Fiber.()->Unit = { },
 		continuation: (String)->Unit)
 	{
-		val stringifierFunction = HookType.STRINGIFICATION[this]
+		val stringifierFunction = get(HookType.STRINGIFICATION)
 		// If the stringifier function is not defined, then use the basic
 		// mechanism for stringification.
 		// Create the fiber that will execute the function.
@@ -2146,26 +2269,19 @@ class AvailRuntime constructor(
 		continuation: (List<String>)->Unit)
 	{
 		val valuesCount = values.size
-		if (valuesCount == 0)
-		{
-			continuation(emptyList())
-			return
-		}
 		// Deduplicate the list of values for performance…
 		val map = values.indices.groupBy(values::get)
-		val outstanding = AtomicInteger(map.size)
 		val strings = arrayOfNulls<String>(valuesCount)
-		map.forEach { (key, indicesToWrite) ->
-			stringifyThen(key, textInterface) { arg ->
-				indicesToWrite.forEach { indexToWrite ->
-					strings[indexToWrite] = arg
+		map.entries.parallelDoThen(
+			action = { (key, indicesToWrite), after ->
+				stringifyThen(key, textInterface) { arg ->
+					indicesToWrite.forEach { indexToWrite ->
+						strings[indexToWrite] = arg
+					}
+					after()
 				}
-				if (outstanding.decrementAndGet() == 0)
-				{
-					continuation(strings.map { it!! })
-				}
-			}
-		}
+			},
+			then = { continuation(listOf(*strings).cast()) })
 	}
 
 	/**
@@ -2190,15 +2306,16 @@ class AvailRuntime constructor(
 	}
 
 	/**
-	 * Attempt to write the [newValue] into the [newFiberHandler], but only if
-	 * it currently contains [oldValue].  Answer whether it wos successful.  If
-	 * it was not successful due to the [oldValue] not being the current value,
-	 * make no change and answer false.
+	 * Attempt to write the [newValue] into the specified [newFiberHandlers],
+	 * but only if it currently contains [oldValue].  Answer whether it wos
+	 * successful.  If it was not successful due to the [oldValue] not being the
+	 * current value, make no change and answer false.
 	 */
 	fun compareAndSetFiberCaptureFunction(
+		fiberKind: FiberKind,
 		oldValue: ((A_Fiber) -> Unit)?,
 		newValue: ((A_Fiber) -> Unit)?
-	): Boolean = newFiberHandler.compareAndSet(oldValue, newValue)
+	): Boolean = newFiberHandlers[fiberKind]!!.compareAndSet(oldValue, newValue)
 
 	/**
 	 * A call-out to allow tools like debuggers to intercept breakpoints. Only
@@ -2209,9 +2326,11 @@ class AvailRuntime constructor(
 	var breakpointHandler: (A_Fiber)->Unit = {  }
 
 	/**
-	 * A call-out invoked when a new fiber is created and scheduled for the
+	 * A map of [FiberKind] to [AtomicReference] containing an optional function
+	 * to invoke when a fiber (of that kind) is created and scheduled for the
 	 * first time.  This mechanism is used to capture new fibers in a debugger's
 	 * list of fibers.
 	 */
-	val newFiberHandler = AtomicReference<((A_Fiber)->Unit)?>(null)
+	val newFiberHandlers = enumMap { _: FiberKind ->
+		AtomicReference<((A_Fiber)->Unit)?>(null) }
 }

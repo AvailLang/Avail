@@ -39,12 +39,12 @@ Body
 
 Test "CastInto ok" in primitive types test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "CastInto fails with incorrect-argument-type exception" in primitive types test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise incorrect-argument-type exception;
 

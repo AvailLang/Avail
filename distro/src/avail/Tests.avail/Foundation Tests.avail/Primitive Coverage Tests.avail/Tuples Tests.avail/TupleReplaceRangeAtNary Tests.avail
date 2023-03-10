@@ -56,28 +56,28 @@ Test "TupleReplaceRangeAtNary ok" in primitive tuples test suite is
 Test "TupleReplaceRangeAtNary fails with subscript-out-of-bounds exception"
 in primitive tuples test suite is
 [
-	t1[4][3][2..5]→<9,9,9>
+	Ignore: t1[4][3][2..5]→<9,9,9>;
 ]
 must raise subscript-out-of-bounds exception;
 
 Test "TupleReplaceRangeAtNary fails with incorrect-argument-type exception"
 in primitive tuples test suite is
 [
-	t4[4][3..3]→<9,9>
+	Ignore: t4[4][3..3]→<9,9>;
 ]
 must raise incorrect-argument-type exception;
 
 Test "TupleReplaceRangeAtNary fails with key-not-found exception"
 in primitive tuples test suite is
 [
-	t4[4]["boo"][2][2..2]→<9,9>
+	Ignore: t4[4]["boo"][2][2..2]→<9,9>;
 ]
 must raise key-not-found exception;
 
 Test "TupleReplaceRangeAtNary fails with negative-size exception"
 in primitive tuples test suite is
 [
-	t1[4][3][4..0]→<9,9,9>
+	Ignore: t1[4][3][4..0]→<9,9,9>;
 	// TODO: verify smallest negative range raises this exception
 ]
 must raise negative-size exception;

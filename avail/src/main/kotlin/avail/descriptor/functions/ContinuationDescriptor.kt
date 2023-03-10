@@ -35,10 +35,8 @@ import avail.AvailRuntime
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.functions.A_Continuation.Companion.callDepth
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
-import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.highlightPc
@@ -54,7 +52,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.CompiledCodeDescriptor.*
-import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.CALL_DEPTH
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
@@ -80,9 +77,9 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -98,6 +95,8 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.primitive.continuations.P_ContinuationStackData
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
@@ -147,10 +146,10 @@ class ContinuationDescriptor private constructor(
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * A composite field containing the [PROGRAM_COUNTER], the
-		 * [STACK_POINTER], and the [CALL_DEPTH].
+		 * A composite field containing the [PROGRAM_COUNTER] and the
+		 * [STACK_POINTER].
 		 */
-		PC_STACK_POINTER_AND_CALL_DEPTH,
+		PC_AND_STACK_POINTER,
 
 		/**
 		 * A composite field containing the [LEVEL_TWO_OFFSET], and the cached
@@ -164,7 +163,7 @@ class ContinuationDescriptor private constructor(
 			 * code's tuple of nybblecodes at which execution will next occur.
 			 */
 			val PROGRAM_COUNTER = BitField(
-				PC_STACK_POINTER_AND_CALL_DEPTH, 44, 20, Int::toString)
+				PC_AND_STACK_POINTER, 32, 32, Int::toString)
 
 			/**
 			 * An index into this continuation's [frame&#32;slots][FRAME_AT_].
@@ -172,18 +171,10 @@ class ContinuationDescriptor private constructor(
 			 * just abuts the last local variable.
 			 */
 			val STACK_POINTER = BitField(
-				PC_STACK_POINTER_AND_CALL_DEPTH, 28, 16, Int::toString)
+				PC_AND_STACK_POINTER, 0, 32, Int::toString)
 
 			/**
-			 * The number of continuations in my caller chain.  It can be as low
-			 * as zero, indicating this is a base frame.
-			 */
-			val CALL_DEPTH = BitField(
-				PC_STACK_POINTER_AND_CALL_DEPTH, 0, 28, Int::toString)
-
-			/**
-			 * The Level Two [instruction][L2Chunk.instructions] index at
-			 * which to resume.
+			 * The Level Two instruction index at which to resume.
 			 */
 			val LEVEL_TWO_OFFSET = BitField(
 				LEVEL_TWO_OFFSET_AND_HASH, 32, 32, Int::toString)
@@ -227,10 +218,10 @@ class ContinuationDescriptor private constructor(
 		 * collection of [AvailObject] and [Long] values. These values are
 		 * stored in the continuation for an [L2Chunk] to use as it wishes, but
 		 * it's simply ignored when a chunk becomes invalid, since the
-		 * [L2Chunk.unoptimizedChunk] and its [L1InstructionStepper] always rely
+		 * [unoptimizedChunk] and its [L1InstructionStepper] always rely
 		 * solely on the pure L1 state.
 		 *
-		 * This slot can be [NilDescriptor.nil] if it's not needed.
+		 * This slot can be [nil] if it's not needed.
 		 */
 		LEVEL_TWO_REGISTER_DUMP,
 
@@ -258,12 +249,12 @@ class ContinuationDescriptor private constructor(
 		stackp: Int)
 	{
 		assert(isMutable)
-		self.setSlot(PROGRAM_COUNTER, pc)
-		self.setSlot(STACK_POINTER, stackp)
+		self[PROGRAM_COUNTER] = pc
+		self[STACK_POINTER] = stackp
 	}
 
 	override fun o_FrameAt(self: AvailObject, index: Int): AvailObject =
-		self.slot(FRAME_AT_, index)
+		self[FRAME_AT_, index]
 
 	override fun o_FrameAtPut(
 		self: AvailObject,
@@ -271,13 +262,11 @@ class ContinuationDescriptor private constructor(
 		value: AvailObject
 	): AvailObject
 	{
-		self.setSlot(FRAME_AT_, index, value)
+		self[FRAME_AT_, index] = value
 		return self
 	}
 
-	override fun o_CallDepth(self: AvailObject): Int = self.slot(CALL_DEPTH)
-
-	override fun o_Caller(self: AvailObject): A_Continuation = self.slot(CALLER)
+	override fun o_Caller(self: AvailObject): A_Continuation = self[CALLER]
 
 	override fun o_CurrentLineNumber(
 		self: AvailObject,
@@ -307,19 +296,14 @@ class ContinuationDescriptor private constructor(
 		return lineNumber
 	}
 
-	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
+	override fun o_DeoptimizeForDebugger(self: AvailObject)
 	{
-		AvailRuntime.currentRuntime().assertInSafePoint()
-		val mutableCopy = self.ensureMutable() as AvailObject
-		if (mutableCopy.levelTwoChunk() != L2Chunk.unoptimizedChunk)
+		if (self.levelTwoChunk() != unoptimizedChunk)
 		{
-			mutableCopy.setSlot(
-				LEVEL_TWO_CHUNK, L2Chunk.unoptimizedChunk.chunkPojo)
-			mutableCopy.setSlot(
-				LEVEL_TWO_OFFSET,
-				L2Chunk.ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
+			self[LEVEL_TWO_CHUNK] = unoptimizedChunk.chunkPojo
+			self[LEVEL_TWO_OFFSET] =
+				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk
 		}
-		return mutableCopy
 	}
 
 	override fun o_DescribeForDebugger(
@@ -402,7 +386,6 @@ class ContinuationDescriptor private constructor(
 	{
 		var a: A_Continuation = self
 		var b = aContinuation
-		if (a.callDepth() != b.callDepth()) return false
 		// Iterate over the potentially deep call chain, rather than recurse.
 		while (true)
 		{
@@ -418,25 +401,24 @@ class ContinuationDescriptor private constructor(
 			}
 			a = a.caller()
 			b = b.caller()
-			if (a.isNil)
+			when
 			{
-				// We already checked that the depths agree before the loop.
-				assert(b.isNil)
-				return true
+				a.isNil -> return b.isNil
+				b.isNil -> return a.isNil
 			}
 		}
 	}
 
-	override fun o_Function(self: AvailObject): A_Function = self.slot(FUNCTION)
+	override fun o_Function(self: AvailObject): A_Function = self[FUNCTION]
 
 	// Hashing a continuation isn't expected to be common, but it's
 	// sufficiently expensive that we need to cache the hash value in the
 	// rare case that we do need it.
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			val caller = self.caller().traversed().cast()!!
 			var callerHash = 0
-			if (caller.notNil && caller.slot(HASH_OR_ZERO) == 0)
+			if (caller.notNil && caller[HASH_OR_ZERO] == 0)
 			{
 				// The caller isn't hashed yet either.  Iteratively hash the
 				// call chain bottom-up to avoid potentially deep recursion.
@@ -447,7 +429,7 @@ class ContinuationDescriptor private constructor(
 					chain.addFirst(ancestor)
 					ancestor = ancestor.caller().traversed()
 				}
-				while (ancestor.notNil && ancestor.slot(HASH_OR_ZERO) == 0)
+				while (ancestor.notNil && ancestor[HASH_OR_ZERO] == 0)
 				// Force the hashes to be computed, starting with the deepest.
 				chain.forEach { c ->
 					callerHash = c.hashCode()
@@ -469,7 +451,7 @@ class ContinuationDescriptor private constructor(
 				// tends to produce zero.  May as well play this one safely.
 				hash = 0x4693F664
 			}
-			self.setSlot(HASH_OR_ZERO, hash)
+			self[HASH_OR_ZERO] = hash
 			hash
 		}
 
@@ -500,7 +482,7 @@ class ContinuationDescriptor private constructor(
 	{
 		val chunk: L2Chunk =
 			self.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull()
-		if (chunk != L2Chunk.unoptimizedChunk && chunk.isValid) {
+		if (chunk != unoptimizedChunk && chunk.isValid) {
 			L2Chunk.Generation.usedChunk(chunk)
 		}
 		return chunk
@@ -542,10 +524,10 @@ class ContinuationDescriptor private constructor(
 	 */
 	override fun o_NumSlots(self: AvailObject) = self.variableObjectSlotsCount()
 
-	override fun o_Pc(self: AvailObject) = self.slot(PROGRAM_COUNTER)
+	override fun o_Pc(self: AvailObject) = self[PROGRAM_COUNTER]
 
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
-		self.slot(LEVEL_TWO_REGISTER_DUMP)
+		self[LEVEL_TWO_REGISTER_DUMP]
 
 	override fun o_ReplacingCaller(
 		self: AvailObject,
@@ -555,7 +537,7 @@ class ContinuationDescriptor private constructor(
 		val mutableVersion =
 			if (isMutable) self
 			else newLike(mutable, self, 0, 0)
-		mutableVersion.setSlot(CALLER, newCaller)
+		mutableVersion[CALLER] = newCaller
 		return mutableVersion
 	}
 
@@ -569,9 +551,9 @@ class ContinuationDescriptor private constructor(
 	 * based on just the stack area.
 	 */
 	override fun o_StackAt(self: AvailObject, slotIndex: Int): AvailObject =
-		self.slot(FRAME_AT_, slotIndex)
+		self[FRAME_AT_, slotIndex]
 
-	override fun o_Stackp(self: AvailObject) = self.slot(STACK_POINTER)
+	override fun o_Stackp(self: AvailObject) = self[STACK_POINTER]
 
 	override fun mutable() = mutable
 
@@ -628,8 +610,6 @@ class ContinuationDescriptor private constructor(
 				setSlot(LEVEL_TWO_REGISTER_DUMP, nil)
 				setSlot(PROGRAM_COUNTER, 0) // Indicates this is a label.
 				setSlot(STACK_POINTER, frameSize + 1)
-				setSlot(
-					CALL_DEPTH, if (caller.isNil) 0 else caller.callDepth() + 1)
 				setSlot(LEVEL_TWO_CHUNK, startingChunk.chunkPojo)
 				setSlot(LEVEL_TWO_OFFSET, startingOffset)
 				//  Set up arguments...
@@ -687,8 +667,6 @@ class ContinuationDescriptor private constructor(
 				setSlot(LEVEL_TWO_REGISTER_DUMP, registerDump)
 				setSlot(PROGRAM_COUNTER, pc)
 				setSlot(STACK_POINTER, stackp)
-				setSlot(
-					CALL_DEPTH, if (caller.isNil) 0 else caller.callDepth() + 1)
 				setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo)
 				setSlot(LEVEL_TWO_OFFSET, levelTwoOffset)
 				fillSlots(FRAME_AT_, 1, frameSize, nil)
@@ -796,7 +774,6 @@ class ContinuationDescriptor private constructor(
 				createRegisterDump(boxedRegisters, unboxedRegisters))
 			setSlot(PROGRAM_COUNTER, -1)
 			setSlot(STACK_POINTER, -1)
-			setSlot(CALL_DEPTH, -1)
 			setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo)
 			setSlot(LEVEL_TWO_OFFSET, levelTwoOffset)
 		}

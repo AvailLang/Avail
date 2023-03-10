@@ -32,6 +32,8 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
+import avail.descriptor.parsing.A_Lexer
+import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -43,8 +45,11 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.START
+import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.GENERATING_LEXER
+import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.GENERATING_PHRASE
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.LITERAL
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.STRING
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor
@@ -139,19 +144,42 @@ class LiteralTokenDescriptor private constructor(
 		 */
 		NEXT_LEXING_STATE_POJO,
 
+		/**
+		 * During compilation, tokens constructed by the compiler capture the
+		 * module that was under compilation.  This field holds the module
+		 * reliably only while the module is being compiled.  At other times, it
+		 * may be either the module that it's a part of or nil.  The serializer
+		 * makes no effort to reconstruct this field.
+		 */
+		ORIGINATING_MODULE,
+
+		/**
+		 * The [A_Lexer] responsible for creating this token, or [nil] if the
+		 * token was not constructed by a lexer.
+		 */
+		GENERATING_LEXER,
+
 		/** The actual [AvailObject] wrapped by this token. */
-		LITERAL;
+		LITERAL,
+
+		/**
+		 * The [A_Phrase] that produced this literal token, if known, otherwise
+		 * [nil].
+		 */
+		GENERATING_PHRASE;
 
 		companion object
 		{
 			init
 			{
-				assert(
-					TokenDescriptor.ObjectSlots.STRING.ordinal
-						== STRING.ordinal)
-				assert(
-					TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
-						== NEXT_LEXING_STATE_POJO.ordinal)
+				assert(TokenDescriptor.ObjectSlots.STRING.ordinal
+					== STRING.ordinal)
+				assert(TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
+					== NEXT_LEXING_STATE_POJO.ordinal)
+				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+					== ORIGINATING_MODULE.ordinal)
+				assert(TokenDescriptor.ObjectSlots.GENERATING_LEXER.ordinal
+					== GENERATING_LEXER.ordinal)
 			}
 		}
 	}
@@ -159,6 +187,7 @@ class LiteralTokenDescriptor private constructor(
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
 		(e === NEXT_LEXING_STATE_POJO
+			|| e === ORIGINATING_MODULE
 			|| super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun printObjectOnAvoidingIndent(
@@ -171,23 +200,23 @@ class LiteralTokenDescriptor private constructor(
 			String.format(
 				"%s ",
 				self.tokenType().name.lowercase().replace('_', ' ')))
-		self.slot(LITERAL).printOnAvoidingIndent(
+		self[LITERAL].printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 		builder.append(
 			String.format(
 				" (%s) @ %d:%d",
-				self.slot(STRING),
-				self.slot(START),
-				self.slot(LINE_NUMBER)))
+				self[STRING],
+				self[START],
+				self[LINE_NUMBER]))
 	}
 
 	override fun o_TokenType(self: AvailObject): TokenType =
 		TokenType.LITERAL
 
 	override fun o_Literal(self: AvailObject): AvailObject =
-		self.slot(LITERAL)
+		self[LITERAL]
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		LiteralTokenTypeDescriptor.literalTokenType(
@@ -198,10 +227,13 @@ class LiteralTokenDescriptor private constructor(
 		(aType.isSupertypeOfPrimitiveTypeEnum(
 			TOKEN)
 			|| aType.isLiteralTokenType
-			&& self.slot(LITERAL)
+			&& self[LITERAL]
 			.isInstanceOf(aType.literalType))
 
 	override fun o_IsLiteralToken(self: AvailObject): Boolean = true
+
+	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase =
+		self[GENERATING_PHRASE]
 
 	override fun o_SerializerOperation(self: AvailObject)
 		: SerializerOperation = SerializerOperation.LITERAL_TOKEN
@@ -213,19 +245,19 @@ class LiteralTokenDescriptor private constructor(
 				write(
 					self.tokenType().name.lowercase().replace('_', ' '))
 			}
-			at("start") { write(self.slot(START)) }
-			at("line number") { write(self.slot(LINE_NUMBER)) }
-			at("lexeme") { self.slot(STRING).writeTo(writer) }
-			at("literal") { self.slot(LITERAL).writeTo(writer) }
+			at("start") { write(self[START]) }
+			at("line number") { write(self[LINE_NUMBER]) }
+			at("lexeme") { self[STRING].writeTo(writer) }
+			at("literal") { self[LITERAL].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("token") }
-			at("start") { write(self.slot(START)) }
-			at("line number") { write(self.slot(LINE_NUMBER)) }
-			at("lexeme") { self.slot(STRING).writeTo(writer) }
-			at("literal") { self.slot(LITERAL).writeSummaryTo(writer) }
+			at("start") { write(self[START]) }
+			at("line number") { write(self[LINE_NUMBER]) }
+			at("lexeme") { self[STRING].writeTo(writer) }
+			at("literal") { self[LITERAL].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable
@@ -248,6 +280,11 @@ class LiteralTokenDescriptor private constructor(
 		 *   The line number on which the token occurred.
 		 * @param literal
 		 *   The literal value.
+		 * @param generatingPhrase
+		 *   Either [nil] or the phrase that generated this token.
+		 * @param generatingLexer
+		 *   The [A_Lexer] responsible for creating this token, or nil if the
+		 *   token was not constructed by a lexer.
 		 * @return
 		 *   The new literal token.
 		 */
@@ -255,17 +292,19 @@ class LiteralTokenDescriptor private constructor(
 			string: A_String,
 			start: Int,
 			lineNumber: Int,
-			literal: A_BasicObject
+			literal: A_BasicObject,
+			generatingLexer: A_Lexer,
+			generatingPhrase: A_Phrase = nil
 		): AvailObject = mutable.createShared {
 			setSlot(STRING, string)
 			setSlot(START, start)
 			setSlot(LINE_NUMBER, lineNumber)
 			setSlot(LITERAL, literal)
-			if (literal.isInstanceOfKind(TOKEN.o)) {
-				// We're wrapping another token, so share that token's
-				// nextLexingState pojo, if set.
-				val innerToken: A_Token = literal.traversed()
-				val nextStatePojo = innerToken.nextLexingStatePojo()
+			setSlot(GENERATING_PHRASE, generatingPhrase)
+			setSlot(GENERATING_LEXER, generatingLexer)
+			if (literal.isInstanceOfKind(TOKEN.o))
+			{
+				val nextStatePojo = (literal as A_Token).nextLexingStatePojo()
 				setSlot(NEXT_LEXING_STATE_POJO, nextStatePojo)
 				// Also add this token to the same CompilationContext that the
 				// inner token might also be inside.  Even if it isn't, the new
@@ -276,13 +315,14 @@ class LiteralTokenDescriptor private constructor(
 				{
 					val nextState: LexingState =
 						nextStatePojo.javaObjectNotNull()
-					nextState.compilationContext.recordToken(innerToken)
+					nextState.compilationContext.recordToken(this)
 				}
 			}
 			else
 			{
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
 			}
+			setSlot(ORIGINATING_MODULE, nil)
 		}
 
 		/** The mutable [LiteralTokenDescriptor]. */

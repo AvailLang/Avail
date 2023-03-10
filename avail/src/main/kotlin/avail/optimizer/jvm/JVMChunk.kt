@@ -44,7 +44,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 /**
- * A `JVMChunk` is an [ExecutableChunk] for the Java Virtual Machine. It is
+ * A [JVMChunk] is an [ExecutableChunk] for the Java Virtual Machine. It is
  * produced by a [JVMTranslator] on behalf of an [L2Generator] that has just
  * completed a
  * [translation&#32;or&#32;optimization][L1Translator.translateToLevelTwo].
@@ -59,8 +59,9 @@ import java.nio.file.Paths
  * @constructor
  *   Construct a `JVMChunk`.
  */
-abstract class JVMChunk @ReferencedInGeneratedCode constructor()
-	: ExecutableChunk
+abstract class JVMChunk
+@ReferencedInGeneratedCode
+constructor() : ExecutableChunk
 {
 	/**
 	 * The L1 source code, if any is available; `null` otherwise. Primarily
@@ -118,9 +119,9 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		val noLongs = LongArray(0)
 
 		/** Access to the field [noLongs]. */
-		var noLongsField: CheckedField = CheckedField.staticField(
+		val noLongsField: CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
-			"noLongs",
+			::noLongs.name,
 			LongArray::class.java)
 
 		/** An empty [AvailObject] array. */
@@ -129,9 +130,9 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		val noObjects = arrayOf<AvailObject>()
 
 		/** Access to the field [noObjects]. */
-		var noObjectsField: CheckedField = CheckedField.staticField(
+		val noObjectsField: CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
-			"noObjects",
+			::noObjects.name,
 			Array<AvailObject>::class.java)
 
 		/**

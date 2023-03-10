@@ -32,7 +32,7 @@
 package avail.descriptor.maps
 
 import avail.descriptor.maps.MapDescriptor.Entry
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
@@ -241,11 +241,11 @@ interface A_MapBin : A_BasicObject {
 		val A_MapBin.mapBinValuesHash get() = dispatch { o_MapBinValuesHash(it) }
 
 		/**
-		 * Create a [MapIterable] that produces each [Entry] of the [A_Map].
+		 * Create an [MapIterator] that produces each [Entry] of the [A_MapBin].
 		 *
 		 * @return
-		 *   A [MapIterable] that visits each [Entry] once, in arbitrary order.
+		 *   A [MapIterator] that visits each [Entry] once, in arbitrary order.
 		 */
-		val A_MapBin.mapBinIterable get() = dispatch { o_MapBinIterable(it) }
+		val A_MapBin.mapBinIterator get() = dispatch { o_MapBinIterator(it) }
 	}
 }

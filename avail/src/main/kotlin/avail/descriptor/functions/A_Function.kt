@@ -34,7 +34,7 @@ package avail.descriptor.functions
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
@@ -99,10 +99,10 @@ interface A_Function : A_BasicObject
 
 		/**
 		 * An outer variable or constant of this function has been used for the
-		 * last time.  Replace it with [nil][NilDescriptor.nil] if the function
-		 * is mutable, and answer true.  If the function is immutable then
-		 * something besides the [Interpreter] or a fiber's chain of
-		 * [A_Continuation]s might be referring to it, so answer false.
+		 * last time.  Replace it with [nil] if the function is mutable, and
+		 * answer true.  If the function is immutable then something besides the
+		 * [Interpreter] or a fiber's chain of [A_Continuation]s might be
+		 * referring to it, so answer false.
 		 *
 		 * @param index
 		 *   Which outer variable or constant is no longer needed.

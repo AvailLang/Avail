@@ -83,6 +83,8 @@ object P_EmergencyExit : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val errorMessageProducer = interpreter.argument(0)
+
+		assert(interpreter.unreifiedCallDepth() == 0)
 		val fiber = interpreter.fiber()
 		val continuation = interpreter.getReifiedContinuation()!!
 		interpreter.primitiveSuspend(interpreter.function!!)

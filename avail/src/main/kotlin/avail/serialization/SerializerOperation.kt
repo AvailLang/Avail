@@ -150,6 +150,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
+import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.A_Phrase.Companion.variable
@@ -193,7 +194,6 @@ import avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.asTuple
 import avail.descriptor.sets.A_Set.Companion.setSize
@@ -205,6 +205,7 @@ import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
 import avail.descriptor.tuples.A_Tuple.Companion.component1
@@ -291,9 +292,9 @@ import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
-import avail.interpreter.levelTwo.L2Chunk.Companion.unoptimizedChunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RESTART
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RETURN_INTO
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction
 import avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction
 import avail.performance.Statistic
@@ -699,7 +700,7 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * Produce the Avail [nil][NilDescriptor.nil] during deserialization.
+	 * Produce the Avail [nil] during deserialization.
 	 */
 	NIL(false, 15)
 	{
@@ -1289,6 +1290,7 @@ enum class SerializerOperation constructor(
 					|| serializer.module === null
 					|| !serializer.module.hasAncestor(module)
 				-> obj.originatingPhrase
+				obj.originatingPhrase.isNil -> nil
 				else ->
 				{
 					val index = module.recordBlockPhrase(obj.originatingPhrase)
@@ -1589,7 +1591,8 @@ enum class SerializerOperation constructor(
 				string,
 				start.extractInt,
 				lineNumber.extractInt,
-				lookupTokenType(tokenTypeOrdinal.extractInt))
+				lookupTokenType(tokenTypeOrdinal.extractInt),
+				nil)
 		}
 	},
 
@@ -1620,7 +1623,7 @@ enum class SerializerOperation constructor(
 		{
 			val (string, literal, start, lineNumber) = subobjects
 			return literalToken(
-				string, start.extractInt, lineNumber.extractInt, literal)
+				string, start.extractInt, lineNumber.extractInt, literal, nil)
 		}
 	},
 
@@ -1649,7 +1652,7 @@ enum class SerializerOperation constructor(
 		{
 			val (string, start, lineNumber) = subobjects
 			return newCommentToken(
-				string, start.extractInt, lineNumber.extractInt)
+				string, start.extractInt, lineNumber.extractInt, nil)
 		}
 	},
 
@@ -1725,10 +1728,8 @@ enum class SerializerOperation constructor(
 				pcInteger.extractInt,
 				stackpInteger.extractInt,
 				unoptimizedChunk,
-				if (pcInteger.equalsInt(0))
-					TO_RESTART.offsetInDefaultChunk
-				else
-					TO_RETURN_INTO.offsetInDefaultChunk,
+				if (pcInteger.equalsInt(0)) TO_RESTART.offsetInDefaultChunk
+				else TO_RETURN_INTO.offsetInDefaultChunk,
 				toList(frameSlots),
 				0)
 			return continuation.makeImmutable()
@@ -2132,7 +2133,6 @@ enum class SerializerOperation constructor(
 			{
 				throw AvailRuntimeException(E_JAVA_METHOD_NOT_AVAILABLE)
 			}
-
 		}
 	},
 
@@ -2177,7 +2177,6 @@ enum class SerializerOperation constructor(
 			{
 				throw AvailRuntimeException(E_JAVA_METHOD_NOT_AVAILABLE)
 			}
-
 		}
 	},
 
@@ -2234,8 +2233,7 @@ enum class SerializerOperation constructor(
 		60,
 		BYTE.named("flags"),
 		OBJECT_REFERENCE.named("variable"),
-		OBJECT_REFERENCE.named("expression"),
-		OBJECT_REFERENCE.named("tokens"))
+		OBJECT_REFERENCE.named("expression"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2245,17 +2243,16 @@ enum class SerializerOperation constructor(
 			return array(
 				fromInt(if (isInline) 1 else 0),
 				obj.variable,
-				obj.expression,
-				obj.tokens)
+				obj.expression)
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (isInline, variableUse, expression, tokens) = subobjects
+			val (isInline, variableUse, expression) = subobjects
 			return newAssignment(
-				variableUse, expression, tokens, !isInline.equalsInt(0))
+				variableUse, expression, !isInline.equalsInt(0))
 		}
 	},
 
@@ -2269,8 +2266,7 @@ enum class SerializerOperation constructor(
 		TUPLE_OF_OBJECTS.named("statements tuple"),
 		OBJECT_REFERENCE.named("result type"),
 		TUPLE_OF_OBJECTS.named("declared exceptions"),
-		UNSIGNED_INT.named("starting line number"),
-		TUPLE_OF_OBJECTS.named("tokens"))
+		UNSIGNED_INT.named("starting line number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2287,8 +2283,7 @@ enum class SerializerOperation constructor(
 				obj.statementsTuple,
 				obj.resultType(),
 				obj.declaredExceptions.asTuple,
-				fromInt(obj.codeStartingLineNumber),
-				obj.tokens)
+				fromInt(obj.codeStartingLineNumber))
 		}
 
 		override fun compose(
@@ -2301,7 +2296,6 @@ enum class SerializerOperation constructor(
 			val resultType = subobjects[3]
 			val declaredExceptionsTuple = subobjects[4]
 			val startingLineNumber = subobjects[5]
-			val tokens = subobjects[6]
 			val primitive = when (primitiveName.tupleSize)
 			{
 				0 -> null
@@ -2313,8 +2307,7 @@ enum class SerializerOperation constructor(
 				statementsTuple,
 				resultType,
 				declaredExceptionsTuple.asSet,
-				startingLineNumber.extractInt,
-				tokens)
+				startingLineNumber.extractInt)
 		}
 	},
 
@@ -2537,7 +2530,8 @@ enum class SerializerOperation constructor(
 		OBJECT_REFERENCE.named("bundle"),
 		OBJECT_REFERENCE.named("arguments list phrase"),
 		OBJECT_REFERENCE.named("return type"),
-		TUPLE_OF_OBJECTS.named("tokens"))
+		TUPLE_OF_OBJECTS.named("tokens"),
+		COMPRESSED_INT_TUPLE.named("token indices in name"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2547,15 +2541,18 @@ enum class SerializerOperation constructor(
 				obj.bundle,
 				obj.argumentsListNode,
 				obj.phraseExpressionType,
-				obj.tokens)
+				obj.tokens,
+				obj.tokenIndicesInName)
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (bundle, argsListNode, returnType, tokens) = subobjects
-			return newSendNode(tokens, bundle, argsListNode, returnType)
+			val (bundle, argsListNode, returnType, tokens, tokenIndices) =
+				subobjects
+			return newSendNode(
+				tokens, tokenIndices, bundle, argsListNode, returnType)
 		}
 	},
 
@@ -2699,8 +2696,7 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			assert(obj.descriptor() is PojoFinalFieldDescriptor)
-			val field = obj
-				.slot(PojoFinalFieldDescriptor.ObjectSlots.FIELD)
+			val field = obj[PojoFinalFieldDescriptor.ObjectSlots.FIELD]
 				.javaObjectNotNull<Field>()
 			val definingClass = field.declaringClass
 			val className = stringFrom(definingClass.name)

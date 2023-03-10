@@ -40,7 +40,7 @@ import org.availlang.json.JSONWriter
 /**
  * The Avail comment "@code" tag. This is used for code like syntax styles.
  *
- * THIS IS LIKELY NOT USED AS IT IS A TAG IN DESCRIPTION TEXT
+ * THIS IS LIKELY NOT USED AS IT IS A TAG IN DESCRIPTION ALL_TEXT
  * DEPRECATED -- DELETE ME
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
@@ -79,8 +79,5 @@ class StacksCodeTag
 		//DO NOTHING
 	}
 
-	override fun toString(): String
-	{
-		return this@StacksCodeTag.javaClass.simpleName
-	}
+	override fun toString(): String = javaClass.simpleName
 }

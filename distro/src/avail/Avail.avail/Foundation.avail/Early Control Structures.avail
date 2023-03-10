@@ -45,7 +45,6 @@ Names
 	"Exit_with_",
 	"From_to_do_",
 	"Ignore:_",
-	"bootstrap restricted send_with_:_",
 	"(_)",
 	"((_))",
 	"_`?→_†"
@@ -177,7 +176,8 @@ Public method "Cast|cast_into_" is
 	s : string;
 	s ?= t;
 	Shouldn't happen (s)
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Strengthen the return type of {@method "Cast|cast_into_else"} so that it may
@@ -202,7 +202,7 @@ Semantic restriction "Cast|cast_into_else_" is
 			“value”,
 			" is a subtype of ",
 			“accept[1]”>;
-		cast messageTuple into
+		Cast messageTuple into
 		[
 			message : string
 		|
@@ -217,7 +217,7 @@ Semantic restriction "Cast|cast_into_else_" is
 			" and ",
 			“accept[1]”,
 			" are disjoint">;
-		cast messageTuple into
+		Cast messageTuple into
 		[
 			message : string
 		|
@@ -304,7 +304,8 @@ Public method "_`?→_†" is
 	strongerType : type
 |
 	value
-];
+]
+styled by conditional styler;
 
 /**
  * Cast the value into the specified <em>statically evaluated</em> type.  If the
@@ -399,7 +400,7 @@ optionalSendPhraseType ::= <<>, send phrase… | zeroOrOne>;
  * the current fiber.  This ignores unwind blocks, so don't export this
  * mechanism past Exceptions, where a safer form is created.
  *
- * @method "restricted send_with_:_"
+ * @method "bootstrap restricted send_with_:_"
  * @param "message" "atom"
  *        The atom that names the method to be invoked by the send phrase.
  * @param "args" "list phrase"
@@ -430,21 +431,22 @@ optionalSendPhraseType ::= <<>, send phrase… | zeroOrOne>;
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  */
-Public method "bootstrap restricted send_with_:_" is
+Method "bootstrap restricted send_with_:_" is
 [
 	message : atom,
 	args : list phrase,
 	basicReturnType : type
 |
 	pair ::= restricted report and send message with args : basicReturnType;
-	optionalPhrase ::= pair[1] ?→ optionalSendPhraseType;
-	If optionalPhrase = <> then
+	optionalSendPhrase ::= pair[1] ?→ optionalSendPhraseType;
+	If optionalSendPhrase = <> then
 	[
 		Reject parse strongly, expected: pair[2] ?→ string
 	];
-	optionalPhrase[1] ?→ send phrase
+	optionalSendPhrase[1] ?→ send phrase
 ] : send phrase;
 
+Style atom for "Exit_if_" with nonlocal control styler;
 
 /**
  * Reject the current parse unless the value supplied upon exit of a
@@ -475,6 +477,8 @@ Semantic restriction "Exit_with_if_" is
 	⊤
 ];
 
+Style atom for "Exit_with_if_" with nonlocal control styler;
+
 exitIfAtom ::= atom for "Exit_if_";
 
 /**
@@ -498,7 +502,8 @@ Public macro "Exit_" is
 		with <aContinuation, trueLiteral> → list phrase
 		: ⊥;
 	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
-] : send phrase ⇒ ⊥;
+] : send phrase ⇒ ⊥
+styled by nonlocal control styler;
 
 exitWithIfAtom ::= atom for "Exit_with_if_";
 
@@ -526,7 +531,8 @@ Public macro "Exit_with_" is
 		with <aContinuation, value, trueLiteral> → list phrase
 		: ⊥;
 	cast sendPhrase into [x : send phrase ⇒ ⊥ | x]
-] : send phrase ⇒ ⊥;
+] : send phrase ⇒ ⊥
+styled by nonlocal control styler;
 
 /**
  * Reject the current parse unless the value supplied upon exit of a
@@ -584,7 +590,8 @@ Public method "From_to_do_" is
 	shouldExit ::= invoke action with <start> = false;
 	Exit loop if shouldExit;
 	Restart loop with <start + 1, end, action>
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * Sanity check the function's arguments against the implied range of iteration.
@@ -637,8 +644,8 @@ Semantic restriction "From_to_do_" is
 
 /* An error message for "Restart_with_". */
 sizesIncompatibleMessage ::=
-	"size of argument tuple to be compatible with size of\
-	\| continuation's parameter tuple";
+	"size of argument tuple to be compatible with size of \
+	\|continuation's parameter tuple";
 
 /**
  * Reject the current parse if the argument tuple cannot possibly match the
@@ -671,6 +678,8 @@ Semantic restriction "Restart_with_" is
 	];
 	⊥
 ];
+
+Style atom for "Restart_with_" with nonlocal control styler;
 
 /* Don't permit (_)  as the second argument of  Assert:_(_). */
 Invoke

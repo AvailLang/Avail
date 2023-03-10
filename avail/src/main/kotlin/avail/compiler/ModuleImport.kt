@@ -44,7 +44,6 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.versions
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.isSubsetOf
@@ -130,7 +129,7 @@ class ModuleImport
 	/**
 	 * The [set][SetDescriptor] of names ([strings][String]) explicitly imported
 	 * through this import declaration.  If no names or renames were specified,
-	 * then this is [nil][NilDescriptor.nil] instead.
+	 * then this is [nil] instead.
 	 */
 	val names: A_Set
 

@@ -362,22 +362,46 @@ internal enum class SerializerOperandEncoding
 			return generateTwoByteString(tupleSize) {
 				val codePoint = readCompressedPositiveInt(deserializer)
 				assert(codePoint and 0xFFFF == codePoint)
-				codePoint
+				codePoint.toUShort()
 			}
 		}
 	},
 
 	/**
 	 * This is a [tuple][TupleDescriptor] of Unicode characters with arbitrary
-	 * code points.  Write the size of the tuple (not the number of bytes), then
-	 * a sequence of compressed integers, one per character.
+	 * code points.  Include a hint about a suitable string representation for
+	 * reconstruction.  Calculate the string size, s, times 4, plus a small
+	 * constant that indicates which representation should be used when decoding
+	 * later.  The constant is:
+	 *  * 0 - use ByteString.  Code points are bytes, uncompressed.
+	 *  * 1 - use TwoByteString.  Code points are in SMP, write them compressed.
+	 *  * 2 - use a 21-bit string representation (not yet implemented)
+	 *  * 3 - use ObjectTuple.  Code points are written compressed.
+	 * Then write the sequence of code points, either compressed or uncompressed
+	 * as indicated.
 	 */
 	COMPRESSED_ARBITRARY_CHARACTER_TUPLE
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
 			val tupleSize = obj.tupleSize
-			writeCompressedPositiveInt(tupleSize, serializer)
+			val shiftedTupleSize = tupleSize.toULong() shl 2
+			when
+			{
+				obj.isByteString ->
+				{
+					writeCompressedULong(shiftedTupleSize, serializer)
+					// Write uncompressed bytes.
+					(1..tupleSize).forEach { i ->
+						serializer.writeByte(obj.tupleCodePointAt(i))
+					}
+					return
+				}
+				obj.isTwoByteString ->
+					writeCompressedULong(shiftedTupleSize + 1_UL, serializer)
+				else ->
+					writeCompressedULong(shiftedTupleSize + 3_UL, serializer)
+			}
 			(1..tupleSize).forEach { i ->
 				writeCompressedPositiveInt(obj.tupleCodePointAt(i), serializer)
 			}
@@ -385,12 +409,22 @@ internal enum class SerializerOperandEncoding
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
-			val tupleSize = readCompressedPositiveInt(deserializer)
+			val shiftedTupleSize = readCompressedULong(deserializer)
+			val tupleSize = (shiftedTupleSize shr 2).toInt()
 			if (tupleSize == 0) return emptyTuple
-			// Update this when we have efficient 21-bit strings, three
-			// characters per 64-bit long.
-			return generateObjectTupleFrom(tupleSize) {
-				fromCodePoint(readCompressedPositiveInt(deserializer))
+			return when ((shiftedTupleSize and 3_UL).toInt())
+			{
+				0 -> generateByteString(tupleSize) {
+					deserializer.readByte()
+				}
+				1 -> generateTwoByteString(tupleSize) {
+					readCompressedPositiveInt(deserializer).toUShort()
+				}
+				// Update this when we have efficient 21-bit strings, three
+				// characters per 64-bit long.
+				else -> generateObjectTupleFrom(tupleSize) {
+					fromCodePoint(readCompressedPositiveInt(deserializer))
+				}
 			}
 		}
 	},
@@ -644,84 +678,147 @@ internal enum class SerializerOperandEncoding
 	companion object
 	{
 		/**
-		 * Write an unsigned integer in the range 0..2<sup>31</sup>-1.  Use a
-		 * form that uses less than 32 bits for small values.
+		 * Write an [Int] in the range 0..2<sup>31</sup> - 1.  Use a
+		 * form that uses fewer bytes for small values.
 		 *
-		 * @param index The integer to write.
+		 * @param value The [Int] to write.
 		 * @param serializer Where to write it.
 		 */
 		internal fun writeCompressedPositiveInt(
-			index: Int,
+			value: Int,
 			serializer: Serializer)
 		{
-			assert(index >= 0) { "Expected a positive int to write" }
-			when (index)
+			assert(value >= 0)
+			writeCompressedULong(value.toULong(), serializer)
+		}
+
+		/**
+		 * Write an unsigned long in the range 0..2<sup>64</sup>-1.  Use a
+		 * form that uses fewer bytes for small values.
+		 *
+		 * @param value The [ULong] to write.
+		 * @param serializer Where to write it.
+		 */
+		private fun writeCompressedULong(
+			value: ULong,
+			serializer: Serializer)
+		{
+			// 0..127 are written as a single byte.
+			if (value <= 0x7F_UL)
 			{
-				in 0..0x7F ->
-					// 0..127 are written as a single byte.
-					serializer.writeByte(index)
-				in 0x80..0x3FFF ->
-				{
-					// 128..16383 are written with six bits of the first byte
-					// used for the high byte (first byte is 128..191).  The
-					// second byte is the low byte.
-					// Note that the two-byte sequences 80,00 through 80,7F are
-					// an encoding hole that is not produced by this mechanism.
-					serializer.writeByte((index shr 8) + 0x80)
-					serializer.writeByte(index and 0xFF)
-				}
-				in 0x4000..0x003E_FFFF ->
-				{
-					// The first byte is 192..254, or almost six bits (after
-					// dealing with the 192 bias).  The middle and low bytes
-					// follow.  That allows up to 0x003E_FFFF to be written in
-					// only three bytes. The middle and low bytes follow.
-					// Note that three-byte sequences C0,00,00 through C0,3F,FF
-					// are an encoding hole not produced by this mechanism.
-					serializer.writeByte((index shr 16) + 0xC0)
-					serializer.writeShort(index and 0xFFFF)
-				}
-				else ->
-				{
-					// All the way up to 2^31-1.
-					// Note that five-byte sequences FF,00,00,00,00 through
-					// FF,00,3E,FF,FF will be written with a shorter form, and
-					// the long form is an encoding hole.
-					serializer.writeByte(0xFF)
-					serializer.writeInt(index)
-				}
+				serializer.writeByte(value.toInt())
+			}
+			else if (value <= 0x3FFF_UL)
+			{
+				// 128..16383 are written with six bits of the first byte
+				// used for the high byte (first byte is 128..191).  The
+				// second byte is the low byte.
+				// Note that the two-byte sequences 80,00 through 80,7F are
+				// an encoding hole that is not produced by this mechanism.
+				serializer.writeByte((value.toInt() shr 8) + 0x80)
+				serializer.writeByte(value.toInt() and 0xFF)
+			}
+			else if (value <= 0x003D_FFFF_UL)
+			{
+				// The first byte is 192..253, or almost six bits (after
+				// dealing with the 192 bias).  The middle and low bytes
+				// follow.  That allows up to 0x003D_FFFF to be written in
+				// only three bytes. The middle and low bytes follow.
+				// Note that three-byte sequences C0,00,00 through C0,3F,FF
+				// are an encoding hole not produced by this mechanism.
+				serializer.writeByte((value.toInt() shr 16) + 0xC0)
+				serializer.writeShort(value.toInt() and 0xFFFF)
+			}
+			else if (value <= 0xFFFF_FFFF_UL)
+			{
+				// Write an 0xFE byte, then four more bytes containing the
+				// 32-bit unsigned value.
+				// Note that five-byte sequences FE,00,00,00,00 through
+				// FE,00,3D,FF,FF will be written with a shorter form, and
+				// the long form is an encoding hole.
+				serializer.writeByte(0xFE)
+				serializer.writeInt(value.toInt())
+			}
+			else
+			{
+				// All the way up to 2^64-1.
+				// Note that nine-byte sequences FF,00,00,00,00,00,00,00,00,00
+				// through FF,00,00,00,00,FF,FF,FF,FF will be written with a
+				// shorter form, and the long form is an encoding hole.
+				serializer.writeByte(0xFF)
+				serializer.writeInt((value shr 32).toInt())
+				serializer.writeInt(value.toInt())
 			}
 		}
 
 		/**
-		 * Read a compressed positive int in the range 0..2<sup>31</sup>-1.  The
+		 * Read a compressed positive long in the range 0..2<sup>64</sup>-1. The
 		 * encoding supports:
 		 *
-		 *  * 0..127 in one byte
-		 *  * 128..16383 in two bytes
-		 *  * 16384..0x003effff in three bytes
-		 *  * 0x003f0000..0x7fffffff in five bytes.
+		 *  * 0x00..7F in one byte
+		 *  * 0x80..0x3FFF in two bytes
+		 *  * 0x4000..0x003D_FFFF in three bytes
+		 *  * 0x003E_0000..0xFFFF_FFFF in five bytes.
+		 *  * 0x0000_0001_0000_0000..0xFFFF_FFFF_FFFF_FFFF in nine bytes.
 		 *
 		 * @param deserializer
 		 *   Where to read the integer from.
 		 * @return
 		 *   The integer that was read.
 		 */
-		fun readCompressedPositiveInt(deserializer: AbstractDeserializer): Int =
-			when (val firstByte = deserializer.readByte())
+		fun readCompressedULong(
+			deserializer: AbstractDeserializer
+		): ULong
+		{
+			val firstByte = deserializer.readByte()
+			if (firstByte <= 0x7F)
 			{
-				in 0..0x7F ->
-					// One byte, 0..127
-					firstByte
-				in 0x80..0xBF ->
-					// Two bytes, 128..16383
-					(firstByte - 0x80 shl 8) + deserializer.readByte()
-				in 0xC0..0xFE ->
-					// Three bytes, 0x4000..0x3E_FFFF
-					(firstByte - 0xC0 shl 16) + deserializer.readShort()
-				else ->
-					// Five bytes, 0x3F_0000..0x7FFF_FFFF
-					deserializer.readInt()
+				// One byte, 0..127
+				return firstByte.toULong()
 			}
+			if (firstByte <= 0xBF)
+			{
+				// Two bytes, 128..16383
+				return (firstByte - 0x80 shl 8).toULong() +
+					deserializer.readByte().toULong()
+			}
+			if (firstByte <= 0xFD)
+			{
+				// Three bytes, 0x4000..0x3D_FFFF
+				return (firstByte - 0xC0 shl 16).toULong() +
+					deserializer.readShort().toULong()
+			}
+			if (firstByte == 0xFE)
+			{
+				// Five bytes, 0x3F_0000..0xFFFF_FFFF
+				return deserializer.readInt().toULong() and 0xFFFF_FFFF_UL
+			}
+			// Nine bytes, 0x0000_0001_0000_0000..0xFFFF_FFFF_FFFF_FFFF
+			return (deserializer.readInt().toULong() shl 32) +
+				(deserializer.readInt().toULong() and 0xFFFF_FFFF_UL)
+		}
+
+		/**
+		 * Read a compressed [Int] in the range 0..2<sup>31</sup> - 1. The
+		 * encoding supports:
+		 *
+		 *  * 0x00..7F in one byte
+		 *  * 0x80..0x3FFF in two bytes
+		 *  * 0x4000..0x003D_FFFF in three bytes
+		 *  * 0x003E_0000..0x7FFF_FFFF in five bytes.
+		 *
+		 * @param deserializer
+		 *   Where to read the integer from.
+		 * @return
+		 *   The integer that was read.
+		 */
+		fun readCompressedPositiveInt(
+			deserializer: AbstractDeserializer
+		): Int
+		{
+			val value = readCompressedULong(deserializer)
+			assert(value <= 0x7FFF_FFFF_UL)
+			return value.toInt()
+		}
 	}
 }

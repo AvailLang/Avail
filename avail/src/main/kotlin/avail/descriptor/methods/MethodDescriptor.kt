@@ -33,6 +33,7 @@ package avail.descriptor.methods
 
 import avail.AvailRuntimeSupport
 import avail.annotations.HideFieldInDebugger
+import avail.annotations.HideFieldJustForPrinting
 import avail.annotations.ThreadSafe
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -49,14 +50,18 @@ import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.bundles.A_Bundle.Companion.removePlanForSendable
 import avail.descriptor.bundles.MessageBundleDescriptor
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
+import avail.descriptor.maps.A_Map
 import avail.descriptor.methods.A_Method.Companion.bundles
 import avail.descriptor.methods.A_Method.Companion.chooseBundle
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.A_Method.Companion.membershipChanged
 import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
+import avail.descriptor.methods.A_Method.Companion.updateStylers
+import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
@@ -68,10 +73,14 @@ import avail.descriptor.methods.MethodDescriptor.ObjectSlots.DEFINITIONS_TUPLE
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.LEXER_OR_NIL
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE
 import avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET
+import avail.descriptor.methods.MethodDescriptor.ObjectSlots.STYLERS
+import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.allAncestors
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
+import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -81,7 +90,6 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
@@ -90,11 +98,13 @@ import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
@@ -112,6 +122,7 @@ import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
+import avail.descriptor.variables.A_Variable
 import avail.dispatch.LeafLookupTree
 import avail.dispatch.LookupStatistics
 import avail.dispatch.LookupTree
@@ -123,13 +134,14 @@ import avail.exceptions.MethodDefinitionException
 import avail.exceptions.MethodDefinitionException.Companion.extractUniqueMethod
 import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByClassName
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.DEPENDENCY_CHANGED
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.primitive.atoms.P_AtomRemoveProperty
 import avail.interpreter.primitive.atoms.P_AtomSetProperty
+import avail.interpreter.primitive.atoms.P_CreateAtom
+import avail.interpreter.primitive.atoms.P_CreateExplicitSubclassAtom
 import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckImportVersion
 import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleName
 import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleVersion
@@ -137,6 +149,8 @@ import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro
 import avail.interpreter.primitive.continuations.P_ContinuationCaller
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.controlflow.P_ResumeContinuation
+import avail.interpreter.primitive.fibers.P_CreateFiberHeritableAtom
+import avail.interpreter.primitive.fibers.P_TerminateCurrentFiber
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.hooks.P_DeclareStringificationAtom
 import avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction
@@ -160,6 +174,7 @@ import avail.interpreter.primitive.objects.P_RecordNewTypeName
 import avail.interpreter.primitive.phrases.P_CreateLiteralExpression
 import avail.interpreter.primitive.phrases.P_CreateLiteralToken
 import avail.interpreter.primitive.rawfunctions.P_SetCompiledCodeName
+import avail.interpreter.primitive.style.P_SetStylerFunction
 import avail.interpreter.primitive.variables.P_AtomicAddToMap
 import avail.interpreter.primitive.variables.P_AtomicRemoveFromMap
 import avail.interpreter.primitive.variables.P_GetValue
@@ -330,9 +345,54 @@ class MethodDescriptor private constructor(
 		SEALED_ARGUMENTS_TYPES_TUPLE,
 
 		/**
-		 * The method's [lexer][A_Lexer] or [nil][NilDescriptor.nil].
+		 * The method's [lexer][A_Lexer] or [nil].
 		 */
-		LEXER_OR_NIL
+		LEXER_OR_NIL,
+
+		/**
+		 * The [A_Set] of [A_Styler]s that have been added to this method. At
+		 * most one may be added to each method per module.
+		 *
+		 * Styling only happens when a top-level statement of a module has been
+		 * unambiguously compiled.  Child phrases are processed before their
+		 * parent.
+		 *
+		 * The function accepts four arguments:
+		 *   1. The send phrase, which is possibly the original phrase of a
+		 *      macro substitution.
+		 *   2. An [A_Variable] containing an [A_Map] from [A_Phrase] to a
+		 *      style, and
+		 *   3. An [A_Variable] containing a map from [A_Token] to style.
+		 *   3. An [A_Variable] containing a map from [A_Token] to [A_Token],
+		 *      where the key token is the use of some variable, and the value
+		 *      token identifies its points of declaration.  While not strictly
+		 *      a styling output, we take this opportunity nevertheless to
+		 *      introduce this local navigation helper.
+		 *
+		 * The maps will already have been populated by running the styling
+		 * function for each of the children (perhaps running all children in
+		 * parallel).  These variables should be updated to reflect how the
+		 * invocation of this bundle should be presented.
+		 *
+		 * These maps will later be used to produce a linear sequence of styled
+		 * substrings, suitable for passing to an IDE or other technology
+		 * capable of presenting styled text.
+		 *
+		 * The linearization of the fully populated style information proceeds
+		 * by scanning the map from phrase to style, and for each phrase adding
+		 * an entry to the map from token to style for each of the phrase's
+		 * static tokens.  If there is already an entry for some static token,
+		 * the map is not updated for that token.  Afterward, the token map is
+		 * sorted, and used to partition the module text.
+		 *
+		 * The resulting tuple of ranges and styles (perhaps with line numbers)
+		 * might even be accessed with a binary search, to deliver a windowed
+		 * view into the styled text.  This allows enormous files to be
+		 * presented in an IDE without having to transfer and decode all of the
+		 * styling information for the entire file.
+		 */
+		@HideFieldJustForPrinting
+		STYLERS
 	}
 
 	/**
@@ -349,7 +409,7 @@ class MethodDescriptor private constructor(
 	): LookupTree<A_Definition, A_Tuple> {
 		var tree = methodTestingTree
 		if (tree === null) {
-			val numArgs = self.slot(NUM_ARGS)
+			val numArgs = self[NUM_ARGS]
 			val newTree = runtimeDispatcher.createRoot(
 				toList(self.volatileSlot(DEFINITIONS_TUPLE)),
 				nCopiesOfAnyRestriction(numArgs),
@@ -373,6 +433,7 @@ class MethodDescriptor private constructor(
 		|| e === SEMANTIC_RESTRICTIONS_SET
 		|| e === SEALED_ARGUMENTS_TYPES_TUPLE
 		|| e === LEXER_OR_NIL
+		|| e === STYLERS
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -387,7 +448,9 @@ class MethodDescriptor private constructor(
 				else -> append("$size definitions")
 			}
 			append(" of ")
-			self.bundles.joinTo(this, " a.k.a. ") { it.message.toString() }
+			self.bundles
+				.sortedBy { it.message.issuingModule.allAncestors.setSize }
+				.joinTo(this, " a.k.a. ") { it.message.toString() }
 		}
 	}
 
@@ -411,18 +474,18 @@ class MethodDescriptor private constructor(
 		typeTuple: A_Tuple
 	) = synchronized(self) {
 		assert(typeTuple.isTuple)
-		val oldTuple: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		val oldTuple: A_Tuple = self[SEALED_ARGUMENTS_TYPES_TUPLE]
 		val newTuple = oldTuple.appendCanDestroy(typeTuple, true)
-		self.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple.makeShared())
+		self[SEALED_ARGUMENTS_TYPES_TUPLE] = newTuple.makeShared()
 	}
 
 	override fun o_AddSemanticRestriction(
 		self: AvailObject,
 		restriction: A_SemanticRestriction
 	) = synchronized(self) {
-		var set: A_Set = self.slot(SEMANTIC_RESTRICTIONS_SET)
+		var set: A_Set = self[SEMANTIC_RESTRICTIONS_SET]
 		set = set.setWithElementCanDestroy(restriction, true)
-		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
+		self[SEMANTIC_RESTRICTIONS_SET] = set.makeShared()
 	}
 
 	override fun o_Bundles(self: AvailObject): A_Set = owningBundles.get()
@@ -461,6 +524,9 @@ class MethodDescriptor private constructor(
 		self.definitionsTuple.filter {
 			it.bodySignature().couldEverBeInvokedWith(argRestrictions)
 		}
+
+	override fun o_MethodStylers(self: AvailObject): A_Set =
+		self.volatileSlot(STYLERS)
 
 	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple =
 		self.volatileSlot(DEFINITIONS_TUPLE)
@@ -516,7 +582,7 @@ class MethodDescriptor private constructor(
 			it.bodySignature().acceptsListOfArgTypes(argTypes)
 		}
 
-	override fun o_Hash(self: AvailObject) = self.slot(HASH)
+	override fun o_Hash(self: AvailObject) = self[HASH]
 
 	/**
 	 * Test if the definition is present within this method.
@@ -531,15 +597,15 @@ class MethodDescriptor private constructor(
 
 	override fun o_IsMethodEmpty(self: AvailObject) = synchronized(self) {
 		self.volatileSlot(DEFINITIONS_TUPLE).tupleSize == 0
-			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize == 0
-			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize == 0
+			&& self[SEMANTIC_RESTRICTIONS_SET].setSize == 0
+			&& self[SEALED_ARGUMENTS_TYPES_TUPLE].tupleSize == 0
 			&& owningBundles.get().all { it.macrosTuple.tupleSize == 0 }
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type = METHOD.o
 
 	override fun o_Lexer(self: AvailObject): A_Lexer =
-		synchronized(self) { self.slot(LEXER_OR_NIL) }
+		synchronized(self) { self[LEXER_OR_NIL] }
 
 	/**
 	 * Look up the definition to invoke, given a tuple of argument types.
@@ -559,7 +625,7 @@ class MethodDescriptor private constructor(
 	/**
 	 * Look up the definition to invoke, given a [List] of argument values. Use
 	 * the [methodTestingTree] to find the definition to invoke.  Answer
-	 * [nil][NilDescriptor.nil] if a lookup error occurs.
+	 * [nil] if a lookup error occurs.
 	 */
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByValuesFromList(
@@ -568,12 +634,6 @@ class MethodDescriptor private constructor(
 	) = extractUniqueMethod(
 		runtimeDispatcher.lookupByValues(
 			methodTestingTree(self), argumentList, Unit, dynamicLookupStats()))
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject {
-		// A method is always shared, except during construction.
-		assert(isShared)
-		return self
-	}
 
 	override fun o_MethodAddBundle(
 		self: AvailObject,
@@ -610,7 +670,7 @@ class MethodDescriptor private constructor(
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
 		val paramTypes = definition.bodySignature().argsTupleType
-		val seals: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		val seals: A_Tuple = self[SEALED_ARGUMENTS_TYPES_TUPLE]
 		seals.forEach { seal: A_Tuple ->
 			val sealType = tupleTypeForSizesTypesDefaultType(
 				singleInt(seal.tupleSize), seal, bottom)
@@ -636,7 +696,7 @@ class MethodDescriptor private constructor(
 	override fun o_MethodName(self: AvailObject): A_String =
 		self.chooseBundle(self.module).message.atomName
 
-	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
+	override fun o_NumArgs(self: AvailObject) = self[NUM_ARGS]
 
 	/**
 	 * Remove the definition from me. Causes dependent chunks to be invalidated.
@@ -683,37 +743,44 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		typeTuple: A_Tuple
 	) = synchronized(self) {
-		val oldTuple: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		val oldTuple: A_Tuple = self[SEALED_ARGUMENTS_TYPES_TUPLE]
 		val newTuple = tupleWithout(oldTuple, typeTuple)
 		assert(newTuple.tupleSize == oldTuple.tupleSize - 1)
-		self.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple.makeShared())
+		self[SEALED_ARGUMENTS_TYPES_TUPLE] = newTuple.makeShared()
 	}
 
 	override fun o_RemoveSemanticRestriction(
 		self: AvailObject,
 		restriction: A_SemanticRestriction
 	) = synchronized(self) {
-		var set: A_Set = self.slot(SEMANTIC_RESTRICTIONS_SET)
+		var set: A_Set = self[SEMANTIC_RESTRICTIONS_SET]
 		set = set.setWithoutElementCanDestroy(restriction, true)
-		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
+		self[SEMANTIC_RESTRICTIONS_SET] = set.makeShared()
 	}
 
 	override fun o_SealedArgumentsTypesTuple(self: AvailObject): A_Tuple =
-		self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
+		self[SEALED_ARGUMENTS_TYPES_TUPLE]
 
 	override fun o_SemanticRestrictions(self: AvailObject): A_Set =
-		synchronized(self) { self.slot(SEMANTIC_RESTRICTIONS_SET) }
+		synchronized(self) { self[SEMANTIC_RESTRICTIONS_SET] }
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
 		SerializerOperation.METHOD
 
 	override fun o_SetLexer(self: AvailObject, lexer: A_Lexer) =
-		synchronized(self) { self.setSlot(LEXER_OR_NIL, lexer) }
+		synchronized(self) { self[LEXER_OR_NIL] = lexer }
 
 	override fun o_TestingTree(
 		self: AvailObject
 	): LookupTree<A_Definition, A_Tuple> = methodTestingTree(self)
+
+	override fun o_UpdateStylers (
+		self: AvailObject,
+		updater: A_Set.() -> A_Set)
+	{
+		self.atomicUpdateSlot(STYLERS, 1, updater)
+	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -780,111 +847,112 @@ class MethodDescriptor private constructor(
 	 *   is a macro being defined, or null to indicate this is a non-macro. Note
 	 *   that if there are multiple primitives provided in the variadic argument
 	 *   below, each will use the same list of prefix functions.
-	 * @param primitiveNames
+	 * @param primitives
 	 *   The primitive to wrap into a method or macro definition.  Note that
 	 *   multiple overrides may be provided in this variadic argument.
 	 */
-	enum class SpecialMethodAtom constructor(
+	enum class SpecialMethodAtom
+	constructor(
 		name: String,
-		prefixFunctions: List<String>?,
-		vararg primitiveNames: String)
+		prefixFunctions: List<Primitive>?,
+		vararg primitives: Primitive)
 	{
 		/** The special atom for failing during bootstrap.  Must be first. */
 		CRASH(
 			"vm crash:_",
-			P_EmergencyExit::class.java.name),
+			P_EmergencyExit),
 
 		/** The special atom for defining abstract methods. */
 		ABSTRACT_DEFINER(
 			"vm abstract_for_",
-			P_AbstractMethodDeclarationForAtom::class.java.name),
+			P_AbstractMethodDeclarationForAtom),
 
 		/** The special atom for adding to a map inside a variable. */
 		ADD_TO_MAP_VARIABLE(
 			"vm_↑[_]:=_",
-			P_AtomicAddToMap::class.java.name),
+			P_AtomicAddToMap),
 
 		/** The special atom for removing from a map inside a variable. */
 		REMOVE_FROM_MAP_VARIABLE(
 			"vm_↑-=_",
-			P_AtomicRemoveFromMap::class.java.name),
+			P_AtomicRemoveFromMap),
 
 		/** The special atom for adding a module unload function. */
 		ADD_UNLOADER(
 			"vm on unload_",
-			P_AddUnloadFunction::class.java.name),
+			P_AddUnloadFunction),
 
 		/** The special atom for creating aliases of atoms. */
 		ALIAS(
 			"vm alias new name_to_",
-			P_Alias::class.java.name),
+			P_Alias),
 
 		/** The special atom for function application. */
 		APPLY(
 			"vm function apply_with tuple_",
-			P_InvokeWithTuple::class.java.name),
+			P_InvokeWithTuple),
 
 		/** The special atom for adding properties to atoms. */
 		ATOM_PROPERTY(
 			"vm atom_at property_put_",
-			P_AtomSetProperty::class.java.name),
+			P_AtomSetProperty),
 
 		/** The special atom for removing properties from atoms. */
 		ATOM_REMOVE_PROPERTY(
 			"vm atom_remove property_",
-			P_AtomRemoveProperty::class.java.name),
+			P_AtomRemoveProperty),
 
 		/** The special atom for extracting the caller of a continuation. */
 		CONTINUATION_CALLER(
 			"vm_'s caller",
-			P_ContinuationCaller::class.java.name),
+			P_ContinuationCaller),
 
 		/** The special atom for creating a literal phrase. */
 		CREATE_LITERAL_PHRASE(
 			"vm create literal phrase_",
-			P_CreateLiteralExpression::class.java.name),
+			P_CreateLiteralExpression),
 
 		/** The special atom for creating a literal token. */
 		CREATE_LITERAL_TOKEN(
-			"vm create literal token_,_,_,_",
-			P_CreateLiteralToken::class.java.name),
+			"vm create literal token_,_,_,_«from phrase_»?",
+			P_CreateLiteralToken),
 
 		/** The special atom for declaring the stringifier atom. */
 		DECLARE_STRINGIFIER(
 			"vm stringifier:=_",
-			P_DeclareStringificationAtom::class.java.name),
+			P_DeclareStringificationAtom),
 
 		/** The special atom for forward-defining methods. */
 		FORWARD_DEFINER(
 			"vm forward_for_",
-			P_ForwardMethodDeclarationForAtom::class.java.name),
+			P_ForwardMethodDeclarationForAtom),
 
 		/** The special atom for getting a variable's value. */
 		GET_VARIABLE(
 			"vm↓_",
-			P_GetValue::class.java.name),
+			P_GetValue),
 
 		/** The special atom for adding grammatical restrictions. */
 		GRAMMATICAL_RESTRICTION(
 			"vm grammatical restriction_is_",
-			P_GrammaticalRestrictionFromAtoms::class.java.name),
+			P_GrammaticalRestrictionFromAtoms),
 
 		/** The special atom for defining lexers. */
 		LEXER_DEFINER(
-			"vm lexer_filter is_body is_",
-			P_SimpleLexerDefinitionForAtom::class.java.name),
+			"vm lexer_filter is_body is_«styled by_»?",
+			P_SimpleLexerDefinitionForAtom),
 
 		/** The special atom for defining macros. */
 		MACRO_DEFINER(
-			"vm macro_is«_,»_",
-			P_SimpleMacroDeclaration::class.java.name,
-			P_SimpleMacroDefinitionForAtom::class.java.name),
+			"vm macro_is«_,»_«styled by_»?",
+			P_SimpleMacroDeclaration,
+			P_SimpleMacroDefinitionForAtom),
 
 		/** The special atom for defining methods. */
 		METHOD_DEFINER(
-			"vm method_is_",
-			P_SimpleMethodDeclaration::class.java.name,
-			P_MethodDeclarationFromAtom::class.java.name),
+			"vm method_is_«styled by_»?",
+			P_SimpleMethodDeclaration,
+			P_MethodDeclarationFromAtom),
 
 		/**
 		 * The special atom for explicitly attaching a name to compiled code.
@@ -892,54 +960,77 @@ class MethodDescriptor private constructor(
 		 */
 		SET_COMPILED_CODE_NAME(
 			"vm set name of raw function_to_",
-			P_SetCompiledCodeName::class.java.name),
+			P_SetCompiledCodeName),
+
+		/** The special atom for creating ordinary atoms. */
+		CREATE_ATOM(
+			"vm create atom_",
+			P_CreateAtom),
+
+		/** The special atom for creating fiber-heritable atoms. */
+		CREATE_HERITABLE_ATOM(
+			"vm create heritable atom_",
+			P_CreateFiberHeritableAtom),
+
+		/** The special atom for creating explicit-subclass atoms. */
+		CREATE_EXPLICIT_SUBCLASS_ATOM(
+			"vm create explicit subclass atom_",
+			P_CreateExplicitSubclassAtom),
 
 		/** The special atom for publishing atoms. */
 		PUBLISH_ATOMS(
 			"vm publish atom set_(public=_)",
-			P_DeclareAllExportedAtoms::class.java.name),
+			P_DeclareAllExportedAtoms),
 
 		/**
 		 * The special atom for publishing an atom created in the module body.
 		 */
 		PUBLISH_NEW_NAME(
 			"vm publish new atom_",
-			P_PublishName::class.java.name),
+			P_PublishName),
 
 		/** The special atom for publishing all atoms imported from a module. */
 		PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE(
 			"vm publish all atoms from modules named_(public=_)",
-			P_DeclareAllAtomsExportedFromAnotherModule::class.java.name),
+			P_DeclareAllAtomsExportedFromAnotherModule),
 
 		/** The special atom for recording a type's name. */
 		RECORD_TYPE_NAME(
 			"vm record type_name_",
-			P_RecordNewTypeName::class.java.name),
+			P_RecordNewTypeName),
 
 		/** The special atom for creating a module variable/constant. */
 		CREATE_MODULE_VARIABLE(
-			"vm in module_create_with variable type_«constant»?«stably computed»?",
-			P_PrivateCreateModuleVariable::class.java.name),
+			"vm in_create_with variable type_«constant»?«stably computed»?",
+			P_PrivateCreateModuleVariable),
 
 		/** The special atom for sealing methods. */
 		SEAL(
 			"vm seal_at_",
-			P_SealMethodByAtom::class.java.name),
+			P_SealMethodByAtom),
 
 		/** The special atom for adding semantic restrictions. */
 		SEMANTIC_RESTRICTION(
 			"vm semantic restriction_is_",
-			P_AddSemanticRestrictionForAtom::class.java.name),
+			P_AddSemanticRestrictionForAtom),
 
 		/** The special atom for resuming a continuation. */
 		RESUME_CONTINUATION(
 			"vm resume_",
-			P_ResumeContinuation::class.java.name),
+			P_ResumeContinuation),
 
 		/** The special atom for rethrowing a Java exception in Avail. */
 		GET_RETHROW_JAVA_EXCEPTION(
 			"vm get rethrow in Avail hook",
-			P_GetRaiseJavaExceptionInAvailFunction::class.java.name),
+			P_GetRaiseJavaExceptionInAvailFunction),
+
+		SET_STYLER(
+			"vm add styler of bundle_is_",
+			P_SetStylerFunction),
+
+		TERMINATE_CURRENT_FIBER(
+			"vm terminate current fiber",
+			P_TerminateCurrentFiber),
 
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(
@@ -959,10 +1050,32 @@ class MethodDescriptor private constructor(
 				+ "«Pragma«…#‡,»»"
 				+ "Body",
 			listOf(
-				P_ModuleHeaderPrefixCheckModuleName::class.java.name,
-				P_ModuleHeaderPrefixCheckModuleVersion::class.java.name,
-				P_ModuleHeaderPrefixCheckImportVersion::class.java.name),
-			P_ModuleHeaderPseudoMacro::class.java.name);
+				P_ModuleHeaderPrefixCheckModuleName,
+				P_ModuleHeaderPrefixCheckModuleVersion,
+				P_ModuleHeaderPrefixCheckImportVersion),
+			P_ModuleHeaderPseudoMacro)
+		{
+			init
+			{
+				val stylerPrim = (bundle.bundleMethod.definitionsTuple +
+						bundle.macrosTuple)
+					.map { it.bodyBlock().code().codePrimitive()!! }
+					.mapNotNull { it.bootstrapStyler() }
+					.singleOrNull()
+				if (stylerPrim != null)
+				{
+					val stylerCode = newPrimitiveRawFunction(stylerPrim, nil, 0)
+					stylerCode.methodName = stringFrom(
+						"Bootstrap styler ${stylerPrim.simpleName}")
+					val stylerFunction = createFunction(stylerCode, emptyTuple)
+					val styler = newStyler(
+						stylerFunction, bundle.bundleMethod, nil)
+					bundle.bundleMethod.updateStylers {
+						setWithElementCanDestroy(styler, true)
+					}
+				}
+			}
+		};
 
 		/**
 		 * Define a method.  Note that another variant of this constructor
@@ -970,16 +1083,15 @@ class MethodDescriptor private constructor(
 		 * constructed.
 		 *
 		 * @param name
-		 * The name of the method or macro being defined.
-		 * @param primitiveNames
-		 * The primitive to wrap into a method or macro definition.  Note
-		 * that multiple overrides may be provided in this variadic
-		 * argument.
+		 *   The name of the method or macro being defined.
+		 * @param primitives
+		 *   The primitive to wrap into a method or macro definition.  Note that
+		 *   multiple overrides may be provided in this variadic argument.
 		 */
 		constructor(
 			name: String,
-			vararg primitiveNames: String
-		) : this(name, null, *primitiveNames)
+			vararg primitives: Primitive
+		) : this(name, null, *primitives)
 
 		/** The special atom. */
 		val atom: A_Atom = createSpecialAtom(name)
@@ -997,10 +1109,9 @@ class MethodDescriptor private constructor(
 
 		init
 		{
-			primitiveNames.forEach { primitiveName ->
+			primitives.forEach { primitive ->
 				val function = createFunction(
-					newPrimitiveRawFunction(
-						holdersByClassName[primitiveName]!!.primitive, nil, 0),
+					newPrimitiveRawFunction(primitive, nil, 0),
 					emptyTuple())
 				try
 				{
@@ -1016,12 +1127,10 @@ class MethodDescriptor private constructor(
 								nil,
 								function,
 								tupleFromList(
-									prefixFunctions.map { prefixName ->
-										val holder =
-											holdersByClassName[prefixName]!!
+									prefixFunctions.map { prefixPrim ->
 										createFunction(
 											newPrimitiveRawFunction(
-												holder.primitive, nil, 0),
+												prefixPrim, nil, 0),
 											emptyTuple())
 									})),
 							true)
@@ -1113,6 +1222,7 @@ class MethodDescriptor private constructor(
 				setSlot(SEMANTIC_RESTRICTIONS_SET, emptySet)
 				setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple)
 				setSlot(LEXER_OR_NIL, nil)
+				setSlot(STYLERS, emptySet)
 				// Create and plug in a new shared descriptor.
 				setDescriptor(MethodDescriptor(Mutability.SHARED))
 			}

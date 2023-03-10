@@ -59,8 +59,8 @@ object P_PhraseTokens : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val decl = interpreter.argument(0)
-		return interpreter.primitiveSuccess(decl.tokens)
+		val phrase = interpreter.argument(0)
+		return interpreter.primitiveSuccess(phrase.tokens)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

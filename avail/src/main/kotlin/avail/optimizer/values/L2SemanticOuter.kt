@@ -51,7 +51,7 @@ internal class L2SemanticOuter
 constructor(
 	frame: Frame,
 	val outerIndex: Int,
-	val optionalName: String?
+	private val optionalName: String?
 ) : L2FrameSpecificSemanticValue(frame, outerIndex xor -0x22fc3786)
 {
 	// Ignore the optionalName.
@@ -62,11 +62,12 @@ constructor(
 
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer(frame) .let {
-				if (it == frame) this
-				else L2SemanticOuter(it, outerIndex, optionalName)
-			}
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticValue = when (val newFrame = frameTransformer(frame))
+	{
+		frame -> this
+		else -> L2SemanticOuter(newFrame, outerIndex, optionalName)
+	}
 
 	override fun primaryVisualSortKey() = PrimaryVisualSortKey.OUTER
 

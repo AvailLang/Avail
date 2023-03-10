@@ -42,8 +42,9 @@ import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyCo
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -58,6 +59,7 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
@@ -202,7 +204,7 @@ import javax.annotation.Nullable
  *
  * @param code
  *   The source [L1&#32;code][A_RawFunction], or `null` for the
- *   [unoptimized&#32;chunk][L2Chunk.unoptimizedChunk].
+ *   [unoptimized&#32;chunk][unoptimizedChunk].
  * @param chunkName
  *   The descriptive (non-unique) name of the chunk being translated.
  * @param sourceFileName
@@ -211,7 +213,7 @@ import javax.annotation.Nullable
  * @param controlFlowGraph
  *   The [L2ControlFlowGraph] which produced the sequence of instructions.
  * @param instructions
- *   The source [L2Instruction]s.
+ *   The source [L2Instruction]s to translate to JVM bytecodes.
  */
 @Suppress(
 	"PARAMETER_NAME_CHANGED_ON_OVERRIDE",
@@ -222,11 +224,8 @@ class JVMTranslator constructor(
 	private val chunkName: String,
 	private val sourceFileName: String?,
 	private val controlFlowGraph: L2ControlFlowGraph,
-	instructions: Array<L2Instruction>)
+	private val instructions: List<L2Instruction>)
 {
-	/** The array of [L2Instruction]s to translate to JVM bytecodes. */
-	val instructions: Array<L2Instruction> = instructions.clone()
-
 	/**
 	 * The [ClassWriter] responsible for writing the [JVMChunk] subclass. The
 	 * `ClassWriter` is configured to automatically compute stack map frames and
@@ -282,8 +281,8 @@ class JVMTranslator constructor(
 	 * order.
 	 *
 	 * First, we stash the live registers in a bogus continuation that will
-	 * resume at the specified target (onReification's target), which must be an
-	 * [L2_ENTER_L2_CHUNK]. Then we create an action to invoke that
+	 * resume at the specified target ([onReification]'s target), which must be
+	 * an [L2_ENTER_L2_CHUNK]. Then we create an action to invoke that
 	 * continuation, and push that action onto the current StackReifier's action
 	 * stack. Finally, we exit with the current reifier. When the
 	 * [L2_ENTER_L2_CHUNK] is reached later, it will restore the registers and
@@ -306,7 +305,7 @@ class JVMTranslator constructor(
 		// [reifier, interpreter]
 		Interpreter.interpreterFunctionField.generateRead(method)
 		// [reifier, function]
-		onReification.createAndPushRegisterDumpArrays(this, method)
+		onReification.createAndPushRegisterDumpArrays(this, method, false)
 		// [reifier, function, AvailObject[], long[]]
 		loadInterpreter(method)
 		Interpreter.chunkField.generateRead(method)
@@ -648,17 +647,17 @@ class JVMTranslator constructor(
 
 		override fun doOperand(vector: L2ReadBoxedVectorOperand)
 		{
-			vector.elements().forEach(this::doOperand)
+			vector.elements.forEach(this::doOperand)
 		}
 
 		override fun doOperand(vector: L2ReadIntVectorOperand)
 		{
-			vector.elements().forEach(this::doOperand)
+			vector.elements.forEach(this::doOperand)
 		}
 
 		override fun doOperand(vector: L2ReadFloatVectorOperand)
 		{
-			vector.elements().forEach(this::doOperand)
+			vector.elements.forEach(this::doOperand)
 		}
 
 		override fun doOperand(operand: L2SelectorOperand)
@@ -1641,12 +1640,10 @@ class JVMTranslator constructor(
 		}
 		method.visitLabel(methodHead)
 		// Emit the lookupswitch instruction to select among the entry points.
-		val offsets = IntArray(entryPoints.size)
-		val entries = arrayOfNulls<Label>(entryPoints.size)
-		entryPoints.entries.forEachIndexed { i, (key, value) ->
-			offsets[i] = key
-			entries[i] = value
-		}
+		// Thu lookupswitch requires its values to be in ascending order.
+		val entriesList = entryPoints.entries.sortedBy(Map.Entry<Int, *>::key)
+		val offsets = IntArray(entryPoints.size) { entriesList[it].key }
+		val entries = Array(entryPoints.size) { entriesList[it].value }
 		method.visitCode()
 		// :: switch (offset) {…}
 		method.visitVarInsn(ILOAD, offsetLocal())
@@ -1661,7 +1658,6 @@ class JVMTranslator constructor(
 				method.visitLabel(label)
 				method.visitLineNumber(instruction.offset, label)
 			}
-			@Suppress("ConstantConditionIf")
 			if (callTraceL2AfterEveryInstruction)
 			{
 				loadReceiver(method) // this, the executable chunk.
@@ -1800,7 +1796,7 @@ class JVMTranslator constructor(
 	{
 		val validParamSet =
 			literals.entries.filter { it.value.classLoaderIndex > -1 }
-		val parameters = Array<Any>(validParamSet.size) { NilDescriptor.nil }
+		val parameters = Array<Any>(validParamSet.size) { nil }
 		for ((key, value) in validParamSet)
 		{
 			parameters[value.classLoaderIndex] = key
@@ -1942,7 +1938,7 @@ class JVMTranslator constructor(
 		 * potential class name.
 		 */
 		private val classNameUnquoter =
-			Pattern.compile("^[\"](.*)[\"]([^\"]*)$")
+			Pattern.compile("^\"(.*)\"([^\"]*)$")
 
 		/**
 		 * A regex [Pattern] to find runs of characters that are forbidden in a
@@ -2002,15 +1998,11 @@ class JVMTranslator constructor(
 
 	init
 	{
-		val module = code?.module ?: NilDescriptor.nil
-		val moduleName =
-			if (module === NilDescriptor.nil)
+		val module = code?.module ?: nil
+		val moduleName = when
 			{
-				"NoModule"
-			}
-			else
-			{
-				moduleNameStripper.matcher(module.moduleNameNative)
+				module === nil -> "NoModule"
+				else -> moduleNameStripper.matcher(module.moduleNameNative)
 					.replaceAll("$1")
 			}
 

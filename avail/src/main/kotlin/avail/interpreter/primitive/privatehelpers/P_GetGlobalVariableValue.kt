@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.privatehelpers
 
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.types.A_Type
@@ -44,7 +45,12 @@ import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
 import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
@@ -114,5 +120,41 @@ object P_GetGlobalVariableValue : Primitive(
 			false)
 		callSiteHelper.useAnswer(valueReg)
 		return true
+	}
+
+	override fun attemptToGenerateSimpleInvocation(
+		simpleTranslator: L2SimpleTranslator,
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): TypeRestriction?
+	{
+		val variable = rawFunction.literalAt(1)
+		if (!variable.isInitializedWriteOnceVariable ||
+			!variable.valueWasStablyComputed() ||
+			!variable.hasValue())
+		{
+			// The variable is not an initialized stable global.
+			return super.attemptToGenerateSimpleInvocation(
+				simpleTranslator,
+				functionIfKnown,
+				rawFunction,
+				argRestrictions,
+				expectedType)
+		}
+		// The variable is permanently set to this value.
+		val constant = try
+		{
+			variable.getValue()
+		}
+		catch (e : VariableGetException)
+		{
+			throw RuntimeException(
+				"Assigned write-once variable should not fail in getValue()")
+		}
+		simpleTranslator.add(
+			L2Simple_MoveConstant(constant, simpleTranslator.stackp))
+		return restrictionForConstant(constant, BOXED_FLAG)
 	}
 }

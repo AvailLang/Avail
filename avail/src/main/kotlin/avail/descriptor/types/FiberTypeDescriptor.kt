@@ -94,7 +94,7 @@ constructor (
 	}
 
 	override fun o_ResultType(self: AvailObject): A_Type =
-		self.slot(RESULT_TYPE)
+		self[RESULT_TYPE]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsFiberType(self)
@@ -104,10 +104,10 @@ constructor (
 		aFiberType: A_Type): Boolean =
 			(self.sameAddressAs(aFiberType)
 				|| aFiberType.resultType().equals(
-					self.slot(RESULT_TYPE)))
+					self[RESULT_TYPE]))
 
 	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.slot(RESULT_TYPE).hash(), -0x43f7b58f)
+		combine2(self[RESULT_TYPE].hash(), -0x43f7b58f)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfFiberType(self)
@@ -115,7 +115,7 @@ constructor (
 	override fun o_IsSupertypeOfFiberType(
 		self: AvailObject,
 		aType: A_Type): Boolean =
-			aType.resultType().isSubtypeOf(self.slot(RESULT_TYPE))
+			aType.resultType().isSubtypeOf(self[RESULT_TYPE])
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -132,7 +132,7 @@ constructor (
 		self: AvailObject,
 		aFiberType: A_Type): A_Type =
 			fiberType(
-				self.slot(RESULT_TYPE)
+				self[RESULT_TYPE]
 					.typeIntersection(aFiberType.resultType()))
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type = when
@@ -146,20 +146,10 @@ constructor (
 		self: AvailObject,
 		aFiberType: A_Type
 	): A_Type =
-		fiberType(self.slot(RESULT_TYPE).typeUnion(aFiberType.resultType()))
+		fiberType(self[RESULT_TYPE].typeUnion(aFiberType.resultType()))
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.FIBER_TYPE
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		return if (isMutable)
-		{
-			// Make the object shared.
-			self.makeShared()
-		}
-		else self
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
@@ -167,7 +157,7 @@ constructor (
 		writer.write("kind")
 		writer.write("fiber type")
 		writer.write("result type")
-		self.slot(RESULT_TYPE).writeTo(writer)
+		self[RESULT_TYPE].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -177,7 +167,7 @@ constructor (
 		writer.write("kind")
 		writer.write("fiber type")
 		writer.write("result type")
-		self.slot(RESULT_TYPE).writeSummaryTo(writer)
+		self[RESULT_TYPE].writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -189,14 +179,13 @@ constructor (
 		indent: Int)
 	{
 		builder.append("fiber→")
-		self.slot(RESULT_TYPE).printOnAvoidingIndent(
+		self[RESULT_TYPE].printOnAvoidingIndent(
 			builder, recursionMap, indent)
 	}
 
 	override fun mutable(): FiberTypeDescriptor = mutable
 
-	// There is no immutable variation.
-	override fun immutable(): FiberTypeDescriptor = shared
+	override fun immutable(): FiberTypeDescriptor = immutable
 
 	override fun shared(): FiberTypeDescriptor = shared
 
@@ -204,6 +193,9 @@ constructor (
 	{
 		/** The mutable [FiberTypeDescriptor]. */
 		val mutable = FiberTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [FiberTypeDescriptor]. */
+		private val immutable = FiberTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [FiberTypeDescriptor]. */
 		private val shared = FiberTypeDescriptor(Mutability.SHARED)

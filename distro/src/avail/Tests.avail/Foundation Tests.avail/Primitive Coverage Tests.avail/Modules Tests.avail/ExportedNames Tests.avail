@@ -39,7 +39,7 @@ Body
 
 Test "ExportedNames ok" in primitive modules test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 // TODO: ExportedNames does not use an enumeration type over natural numbers, and thus

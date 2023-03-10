@@ -73,15 +73,15 @@ object L2_CREATE_MAP : L2Operation(
 		builder.append(map.registerString())
 		builder.append(" ← {")
 		var i = 0
-		val limit = keys.elements().size
+		val limit = keys.elements.size
 		while (i < limit)
 		{
 			if (i > 0)
 			{
 				builder.append(", ")
 			}
-			val key = keys.elements()[i]
-			val value = values.elements()[i]
+			val key = keys.elements[i]
+			val value = values.elements[i]
 			builder.append(key.registerString())
 			builder.append("→")
 			builder.append(value.registerString())
@@ -101,14 +101,14 @@ object L2_CREATE_MAP : L2Operation(
 
 		// :: map = MapDescriptor.emptyMap;
 		MapDescriptor.emptyMapMethod.generateCall(method)
-		val limit = keys.elements().size
-		assert(limit == values.elements().size)
+		val limit = keys.elements.size
+		assert(limit == values.elements.size)
 		for (i in 0 until limit)
 		{
 			// :: map = mapAtPuttingStatic(
 			// ::    map, «keysVector[i]», «valuesVector[i]»);
-			translator.load(method, keys.elements()[i].register())
-			translator.load(method, values.elements()[i].register())
+			translator.load(method, keys.elements[i].register())
+			translator.load(method, values.elements[i].register())
 			A_Map.mapAtPuttingStaticMethod.generateCall(method)
 		}
 		// :: destinationMap = map;

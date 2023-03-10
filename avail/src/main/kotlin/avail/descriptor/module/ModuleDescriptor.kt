@@ -74,16 +74,16 @@ import avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Definition.Companion.updateStylers
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.lexer
 import avail.descriptor.methods.A_Method.Companion.methodRemoveBundle
+import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Styler
-import avail.descriptor.methods.A_Styler.Companion.definition
+import avail.descriptor.methods.A_Styler.Companion.stylerMethod
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.ForwardDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
@@ -103,8 +103,6 @@ import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.versions
 import avail.descriptor.module.A_Module.Companion.visibleNames
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_BLOCK_PHRASES
-import avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_MANIFEST_ENTRIES
-import avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_TOP_PHRASE_STYLES
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.BUNDLES
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.CACHED_EXPORTED_NAMES
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.CONSTANT_BINDINGS
@@ -129,8 +127,6 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.pojos.RawPojoDescriptor
-import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -155,6 +151,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.asSet
@@ -167,6 +164,7 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -175,14 +173,17 @@ import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.AvailLoader
-import avail.interpreter.execution.AvailLoader.LexicalScanner
+import avail.interpreter.execution.LexicalScanner
+import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ManifestRecord
+import avail.persistence.cache.Repository.PhrasePathRecord
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.Deserializer
 import avail.serialization.SerializerOperation
 import avail.utility.safeWrite
 import avail.utility.structures.BloomFilter
 import org.availlang.json.JSONWriter
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
-import java.io.DataInputStream
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -212,10 +213,14 @@ import kotlin.concurrent.withLock
  *   The [mutability][Mutability] of the new descriptor.
  * @property moduleName
  *   The [A_String] name of the module.
+ * @property runtime
+ *   The [AvailRuntime] that will eventually hold the module using this
+ *   descriptor.
  */
 class ModuleDescriptor private constructor(
 	mutability: Mutability,
-	val moduleName: A_String
+	val moduleName: A_String,
+	val runtime: AvailRuntime?
 ) : Descriptor(mutability, TypeTag.MODULE_TAG, ObjectSlots::class.java, null)
 {
 	/**
@@ -257,7 +262,7 @@ class ModuleDescriptor private constructor(
 		/**
 		 * A redundant cached [set][A_Set] of [atoms][A_Atom] that have been
 		 * exported. These are precisely the [imported names][IMPORTED_NAMES]
-		 * less the [private names][PRIVATE_NAMES].  This is [nil] during module
+		 * less the [private][PRIVATE_NAMES] names.  This is [nil] during module
 		 * loading or compiling, but can be computed and cached if requested
 		 * afterward.
 		 */
@@ -276,8 +281,8 @@ class ModuleDescriptor private constructor(
 		METHOD_DEFINITIONS_SET,
 
 		/**
-		 * A [map][A_Map] from [strings][A_String] to
-		 * [module&#32;variables][A_Variable].
+		 * A [map][A_Map] from [strings][A_String] to module
+		 * [variables][A_Variable].
 		 */
 		VARIABLE_BINDINGS,
 
@@ -317,39 +322,7 @@ class ModuleDescriptor private constructor(
 		 * set by the loading mechanism to that same [A_Number], allowing the
 		 * block phrases to be fetched only if needed.
 		 */
-		ALL_BLOCK_PHRASES,
-
-		/**
-		 * An [A_Tuple] of all phrase styles produced during compilation, which
-		 * is when styling is produced.  Each entry indicates the starting line,
-		 * starting column, ending line, and ending column that is to be styled.
-		 * This is necessary because multiple top-level statements may occur on
-		 * the same line.
-		 *
-		 * The phrase style information *does not* include a way to get to the
-		 * corresponding phrases in [ALL_BLOCK_PHRASES] (which includes an entry
-		 * for each raw function, not just top-level ones).
-		 *
-		 * This field is populated during module compilation, and is written to
-		 * the repository immediately after, at which time the field is set to
-		 * an [A_Number] containing the [Long] index into the repository where
-		 * this tuple of styles is written.  It is expected that a development
-		 * environment will request this style tuple at the same time that the
-		 * source code is requested and displayed.
-		 */
-		ALL_TOP_PHRASE_STYLES,
-
-		/**
-		 * A raw [pojo][RawPojoDescriptor] containing an [Array`[]`][Array] of
-		 * all module manifest [entries][ModuleManifestEntry] created during
-		 * compilation of this module.  Immediately after compilation, the
-		 * entries are written to a DataOutputStream, converted to a
-		 * [ByteArray], and written directly as a record to the repository.
-		 * This field is then replaced by that record's [Long] index.  When a
-		 * request is made for the manifest entries, the record is read and
-		 * decoded into an [Array], wrapped in a pojo, and placed in this field.
-		 */
-		ALL_MANIFEST_ENTRIES
+		ALL_BLOCK_PHRASES;
 	}
 
 	/**
@@ -405,6 +378,61 @@ class ModuleDescriptor private constructor(
 	private var semanticRestrictions: A_Set = emptySet
 
 	/**
+	 * The repository's record number of the encoded module manifest
+	 * [entries][ModuleManifestEntry], captured after the module is compiled.
+	 */
+	@Volatile
+	private var manifestEntriesRecordIndex: Long = -1
+
+	/**
+	 * A [List] of all module manifest [entries][ModuleManifestEntry] created
+	 * by compilation of this module.  Immediately after compilation, the
+	 * entries are written to a DataOutputStream, converted to a [ByteArray],
+	 * and written directly as a record to the repository, and the record number
+	 * is written to [manifestEntriesRecordIndex].  This field remains null
+	 * until requested, at which point it's cached here.
+	 */
+	@Volatile
+	private var manifestEntries: List<ModuleManifestEntry>? = null
+
+	/**
+	 * This field is initially -1, but when a module has been compiled, the
+	 * [StylingRecord] is written to the repository, and this field is set to
+	 * that record number.
+	 */
+	@Volatile
+	private var stylingRecordIndex: Long = -1
+
+	/**
+	 * The [StylingRecord] for this module, used for syntax coloring and other
+	 * things.  During compilation, the styling record is written to the
+	 * [Repository], setting the [stylingRecordIndex] to the record number, and
+	 * this field remains null.  Any subsequent request for the styling record
+	 * will look it up in the repository, and cache it here.
+	 */
+	@Volatile
+	private var stylingRecord: StylingRecord? = null
+
+	/**
+	 * This field is initially -1, but when a module has been compiled, the
+	 * [PhrasePathRecord] is written to the repository, and this field is set to
+	 * that record number.
+	 */
+	@Volatile
+	private var phrasePathRecordIndex: Long = -1
+
+	/**
+	 * The [PhrasePathRecord] for this module, used for explanation and
+	 * navigation and possibly other things.  During compilation, the
+	 * [PhrasePathRecord] is written to the [Repository], setting the
+	 * [phrasePathRecordIndex] to the record number, and this field remains
+	 * null.  Any subsequent request for the phrase path record will look it up
+	 * in the repository, and cache it here.
+	 */
+	@Volatile
+	var phrasePathRecord: PhrasePathRecord? = null
+
+	/**
 	 * The lock used to control access to this module's modifiable parts.
 	 */
 	private val lock = ReentrantReadWriteLock()
@@ -452,6 +480,7 @@ class ModuleDescriptor private constructor(
 	private val stateField = AtomicReference(Loading)
 
 	/** Assert that the module is still open. */
+	@Suppress("SameParameterValue")
 	private fun assertState(expectedState: State)
 	{
 		if (stateField.get() != expectedState)
@@ -527,7 +556,7 @@ class ModuleDescriptor private constructor(
 		moduleHeader: ModuleHeader): String?
 	{
 		assertState(Loading)
-		val runtime = AvailRuntime.currentRuntime()
+		val runtime = loader.runtime
 		val resolver = runtime.moduleNameResolver
 		versions = setFromCollection(moduleHeader.versions).makeShared()
 		val newAtoms = moduleHeader.exportedNames.fold(emptySet) { set, name ->
@@ -645,8 +674,8 @@ class ModuleDescriptor private constructor(
 				{
 					val oldBundle = oldAtom.bundleOrCreate()
 					val method = oldBundle.bundleMethod
-					newBundle =
-						newBundle(newAtom, method, MessageSplitter(newString))
+					newBundle = newBundle(
+						newAtom, method, MessageSplitter.split(newString))
 					newAtom.setAtomBundle(newBundle)
 					atomsToImport =
 						atomsToImport.setWithElementCanDestroy(newAtom, true)
@@ -676,13 +705,10 @@ class ModuleDescriptor private constructor(
 			}
 
 			// Actually make the atoms available in this module.
-			if (moduleImport.isExtension)
+			when
 			{
-				self.addImportedNames(atomsToImport)
-			}
-			else
-			{
-				self.addPrivateNames(atomsToImport)
+				moduleImport.isExtension -> self.addImportedNames(atomsToImport)
+				else -> self.addPrivateNames(atomsToImport)
 			}
 		}
 
@@ -705,11 +731,10 @@ class ModuleDescriptor private constructor(
 					1 ->
 					{
 						// Just validate the name.
-						MessageSplitter(name)
+						MessageSplitter.split(name)
 						trueName = trueNames.single()
 					}
-					else -> return (
-						"entry point $name to be unambiguous")
+					else -> return ("entry point $name to be unambiguous")
 				}
 				entryPoints = entryPoints.mapAtPuttingCanDestroy(
 					name, trueName, true
@@ -758,37 +783,37 @@ class ModuleDescriptor private constructor(
 		lock.read { versions }
 
 	override fun o_NewNames(self: AvailObject): A_Map =
-		lock.read { self.slot(NEW_NAMES) }
+		lock.read { self[NEW_NAMES] }
 
 	override fun o_ImportedNames(self: AvailObject): A_Map =
-		lock.read { self.slot(IMPORTED_NAMES) }
+		lock.read { self[IMPORTED_NAMES] }
 
 	override fun o_PrivateNames(self: AvailObject): A_Map =
-		lock.read { self.slot(PRIVATE_NAMES) }
+		lock.read { self[PRIVATE_NAMES] }
 
 	override fun o_EntryPoints(self: AvailObject): A_Map = entryPoints
 
 	override fun o_VisibleNames(self: AvailObject): A_Set =
-		lock.read { self.slot(VISIBLE_NAMES) }
+		lock.read { self[VISIBLE_NAMES] }
 
 	override fun o_ExportedNames(self: AvailObject): A_Set
 	{
 		lock.read {
-			self.slot(CACHED_EXPORTED_NAMES).let {
+			self[CACHED_EXPORTED_NAMES].let {
 				if (it.notNil) return it
 			}
 		}
 		return lock.safeWrite {
-			var exportedNames: A_Set = self.slot(CACHED_EXPORTED_NAMES)
+			var exportedNames: A_Set = self[CACHED_EXPORTED_NAMES]
 			if (exportedNames.isNil)
 			{
 				// Compute it.
 				exportedNames = emptySet
-				self.slot(IMPORTED_NAMES).forEach { _, value ->
+				self[IMPORTED_NAMES].forEach { _, value ->
 					exportedNames = exportedNames.setUnionCanDestroy(
 						value.makeShared(), true)
 				}
-				self.slot(PRIVATE_NAMES).forEach { _, value ->
+				self[PRIVATE_NAMES].forEach { _, value ->
 					exportedNames = exportedNames.setMinusCanDestroy(
 						value.makeShared(), true)
 				}
@@ -796,7 +821,7 @@ class ModuleDescriptor private constructor(
 				if (self.moduleState != Loading)
 				{
 					// The module is closed, so cache it for next time.
-					self.setSlot(CACHED_EXPORTED_NAMES, exportedNames)
+					self[CACHED_EXPORTED_NAMES] = exportedNames
 				}
 			}
 			exportedNames
@@ -804,13 +829,13 @@ class ModuleDescriptor private constructor(
 	}
 
 	override fun o_MethodDefinitions(self: AvailObject): A_Set =
-		lock.read { self.slot(METHOD_DEFINITIONS_SET) }
+		lock.read { self[METHOD_DEFINITIONS_SET] }
 
 	override fun o_VariableBindings(self: AvailObject): A_Map =
-		lock.read { self.slot(VARIABLE_BINDINGS) }
+		lock.read { self[VARIABLE_BINDINGS] }
 
 	override fun o_ConstantBindings(self: AvailObject): A_Map =
-		lock.read { self.slot(CONSTANT_BINDINGS) }
+		lock.read { self[CONSTANT_BINDINGS] }
 
 	override fun o_AddConstantBinding(
 		self: AvailObject,
@@ -892,7 +917,7 @@ class ModuleDescriptor private constructor(
 				set.setWithElementCanDestroy(trueName, true)
 			}
 		}
-		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
+		var privateNames: A_Map = self[PRIVATE_NAMES]
 		val set: A_Set? = privateNames.mapAtOrNull(string)
 		if (set !== null && set.hasElement(trueName))
 		{
@@ -909,7 +934,7 @@ class ModuleDescriptor private constructor(
 					set.setWithoutElementCanDestroy(trueName, true),
 					true)
 			}
-			self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
+			self[PRIVATE_NAMES] = privateNames.makeShared()
 		}
 		self.updateSlotShared(VISIBLE_NAMES) {
 			setWithElementCanDestroy(trueName, true)
@@ -922,8 +947,8 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		// Add the set of atoms to the current public scope.
 		assertState(Loading)
-		var importedNames: A_Map = self.slot(IMPORTED_NAMES)
-		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
+		var importedNames: A_Map = self[IMPORTED_NAMES]
+		var privateNames: A_Map = self[PRIVATE_NAMES]
 		for (trueName in trueNames)
 		{
 			val string: A_String = trueName.atomName
@@ -950,8 +975,8 @@ class ModuleDescriptor private constructor(
 				}
 			}
 		}
-		self.setSlot(IMPORTED_NAMES, importedNames.makeShared())
-		self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
+		self[IMPORTED_NAMES] = importedNames.makeShared()
+		self[PRIVATE_NAMES] = privateNames.makeShared()
 		self.updateSlotShared(VISIBLE_NAMES) {
 			setUnionCanDestroy(trueNames, true)
 		}
@@ -998,8 +1023,9 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		// Add the set of atoms to the current private scope.
 		assertState(Loading)
-		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
-		var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
+		var privateNames: A_Map = self[PRIVATE_NAMES]
+		var visibleNames: A_Set = self[VISIBLE_NAMES]
+		visibleNames = visibleNames.setUnionCanDestroy(trueNames, true)
 		for (trueName in trueNames)
 		{
 			val string: A_String = trueName.atomName
@@ -1008,10 +1034,9 @@ class ModuleDescriptor private constructor(
 			) { _, set: A_Set ->
 				set.setWithElementCanDestroy(trueName, true)
 			}
-			visibleNames = visibleNames.setWithElementCanDestroy(trueName, true)
 		}
-		self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
-		self.setSlot(VISIBLE_NAMES, visibleNames.makeShared())
+		self[PRIVATE_NAMES] = privateNames.makeShared()
+		self[VISIBLE_NAMES] = visibleNames.makeShared()
 	}
 
 	override fun o_AddLexer(
@@ -1042,13 +1067,6 @@ class ModuleDescriptor private constructor(
 		combine2(moduleName.hash(), -0x20c7c074)
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.MODULE.o
-
-	// Modules are always shared, never immutable.
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		when {
-			isMutable -> self.makeShared()
-			else -> self
-		}
 
 	override fun o_ModuleAddGrammaticalRestriction(
 		self: AvailObject,
@@ -1081,9 +1099,9 @@ class ModuleDescriptor private constructor(
 				return nil
 			}
 			val phrasesKey = phrases.extractLong
-			val runtime = AvailRuntime.currentRuntime()
 			val moduleName = ModuleName(moduleNameNative)
-			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
+			val resolved =
+				runtime!!.moduleNameResolver.resolve(moduleName, null)
 			val record = resolved.repository.run {
 				reopenIfNecessary()
 				lock.withLock { repository!![phrasesKey] }
@@ -1102,31 +1120,30 @@ class ModuleDescriptor private constructor(
 		return phrases.tupleAt(index)
 	}
 
+	override fun o_SetManifestEntriesIndex(
+		self: AvailObject,
+		recordNumber: Long)
+	{
+		manifestEntriesRecordIndex = recordNumber
+	}
+
 	override fun o_ManifestEntries(
 		self: AvailObject
 	): List<ModuleManifestEntry>
 	{
-		var entries = self.volatileSlot(ALL_MANIFEST_ENTRIES)
-		if (entries.isLong)
+		if (manifestEntries === null)
 		{
-			val recordNumber = entries.extractLong
-			val runtime = AvailRuntime.currentRuntime()
 			val moduleName = ModuleName(moduleNameNative)
-			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
-			val record = resolved.repository.run {
+			val resolved =
+				runtime!!.moduleNameResolver.resolve(moduleName, null)
+			val bytes = resolved.repository.run {
 				reopenIfNecessary()
-				lock.withLock { repository!![recordNumber] }
+				lock.withLock { repository!![manifestEntriesRecordIndex] }
 			}
-			val bytes = DataInputStream(validatedBytesFrom(record))
-			val entriesList = mutableListOf<ModuleManifestEntry>()
-			while (bytes.available() > 0)
-			{
-				entriesList.add(ModuleManifestEntry(bytes))
-			}
-			entries = identityPojo(entriesList.toTypedArray())
-			self.setVolatileSlot(ALL_MANIFEST_ENTRIES, entries)
+			val record = ManifestRecord(bytes)
+			manifestEntries = record.manifestEntries
 		}
-		return entries.javaObjectNotNull()
+		return manifestEntries!!
 	}
 
 	override fun o_RecordBlockPhrase(
@@ -1134,11 +1151,64 @@ class ModuleDescriptor private constructor(
 		blockPhrase: A_Phrase
 	): Int = lock.safeWrite {
 		assertState(Loading)
+		assert(blockPhrase.isInstanceOfKind(PARSE_PHRASE.mostGeneralType))
 		val newTuple = self.atomicUpdateSlot(ALL_BLOCK_PHRASES) {
 			assert(isTuple)
 			appendCanDestroy(blockPhrase.makeShared(), false)
 		}
 		newTuple.tupleSize
+	}
+
+	override fun o_SetStylingRecordIndex(self: AvailObject, recordNumber: Long)
+	{
+		stylingRecordIndex = recordNumber
+	}
+
+	override fun o_StylingRecord(self: AvailObject): StylingRecord
+	{
+		stylingRecord?.let { return it }
+		val moduleName = ModuleName(moduleNameNative)
+		val resolved = runtime!!.moduleNameResolver.resolve(moduleName, null)
+		stylingRecord = if (stylingRecordIndex == -1L)
+		{
+			StylingRecord(emptyList(), emptyList())
+		}
+		else
+		{
+			val bytes = resolved.repository.run {
+				reopenIfNecessary()
+				lock.withLock { repository!![stylingRecordIndex] }
+			}
+			StylingRecord(bytes)
+		}
+		return stylingRecord!!
+	}
+
+	override fun o_SetPhrasePathRecordIndex(
+		self: AvailObject,
+		recordNumber: Long)
+	{
+		phrasePathRecordIndex = recordNumber
+	}
+
+	override fun o_PhrasePathRecord(self: AvailObject): PhrasePathRecord
+	{
+		phrasePathRecord?.let { return it }
+		val moduleName = ModuleName(moduleNameNative)
+		val resolved = runtime!!.moduleNameResolver.resolve(moduleName, null)
+		phrasePathRecord = if (phrasePathRecordIndex == -1L)
+		{
+			PhrasePathRecord()
+		}
+		else
+		{
+			val bytes = resolved.repository.run {
+				reopenIfNecessary()
+				lock.withLock { repository!![phrasePathRecordIndex] }
+			}
+			PhrasePathRecord(bytes)
+		}
+		return phrasePathRecord!!
 	}
 
 	override fun o_RemoveFrom(
@@ -1188,7 +1258,7 @@ class ModuleDescriptor private constructor(
 		val runtime = loader.runtime
 		// Remove stylers.
 		(self as A_Module).stylers.forEach { styler ->
-			styler.definition.updateStylers {
+			styler.stylerMethod.updateStylers {
 				setWithoutElementCanDestroy(styler, true)
 			}
 		}
@@ -1196,10 +1266,10 @@ class ModuleDescriptor private constructor(
 		self.methodDefinitions.forEach(loader::removeDefinition)
 		macroDefinitions.forEach(loader::removeMacro)
 		// Remove semantic restrictions.
-		semanticRestrictions.forEach(runtime::removeTypeRestriction)
+		semanticRestrictions.forEach(runtime::removeSemanticRestriction)
 		grammaticalRestrictions.forEach(runtime::removeGrammaticalRestriction)
 		// Remove seals.
-		self.slot(SEALS).forEach { methodName, values ->
+		self[SEALS].forEach { methodName, values ->
 			values.forEach { seal ->
 				try
 				{
@@ -1215,11 +1285,11 @@ class ModuleDescriptor private constructor(
 		// Remove lexers.  Don't bother adjusting the loader, since it's not
 		// going to parse anything again.  Don't even bother removing it from
 		// the module, since that's being unloaded.
-		self.slot(LEXERS).forEach { lexer ->
+		self[LEXERS].forEach { lexer ->
 			lexer.lexerMethod.lexer = nil
 		}
 		// Remove bundles created by this module.
-		self.slot(BUNDLES).forEach { bundle ->
+		self[BUNDLES].forEach { bundle ->
 			// Remove the bundle from the atom.
 			bundle.message.setAtomBundle(nil)
 			// Remove the bundle from the method.
@@ -1250,9 +1320,6 @@ class ModuleDescriptor private constructor(
 			setSlot(UNLOAD_FUNCTIONS, nil)
 			setSlot(LEXERS, nil)
 			setSlot(STYLERS, nil)
-			//setSlot(ALL_BLOCK_PHRASES, nil)
-			//setSlot(ALL_TOP_PHRASE_STYLES, nil)
-			//setSlot(ALL_MANIFEST_ENTRIES, nil)
 		}
 	}
 
@@ -1302,21 +1369,21 @@ class ModuleDescriptor private constructor(
 	): A_Set
 	{
 		lock.read {
-			self.slot(NEW_NAMES).let { newNames ->
+			self[NEW_NAMES].let { newNames ->
 				newNames.mapAtOrNull(stringName)?.let {
 					return singletonSet(it)
 				}
 			}
 		}
 		lock.safeWrite {
-			self.slot(NEW_NAMES).let { newNames ->
+			self[NEW_NAMES].let { newNames ->
 				newNames.mapAtOrNull(stringName)?.let {
 					return singletonSet(it)
 				}
 			}
 			val publicNames: A_Set =
-				self.slot(IMPORTED_NAMES).mapAtOrNull(stringName) ?: emptySet
-			self.slot(PRIVATE_NAMES).mapAtOrNull(stringName)?.let { privates ->
+				self[IMPORTED_NAMES].mapAtOrNull(stringName) ?: emptySet
+			self[PRIVATE_NAMES].mapAtOrNull(stringName)?.let { privates ->
 				return when (publicNames.setSize)
 				{
 					0 -> privates
@@ -1388,7 +1455,7 @@ class ModuleDescriptor private constructor(
 				}
 			}
 		}
-		val lexicalScanner = LexicalScanner()
+		val lexicalScanner = LexicalScanner { shortModuleNameNative }
 		lexers.forEach(lexicalScanner::addLexer)
 		return lexicalScanner
 	}
@@ -1403,7 +1470,7 @@ class ModuleDescriptor private constructor(
 		}
 
 	override fun o_ModuleStylers(self: AvailObject): A_Set =
-		lock.read { self.slot(STYLERS) }
+		lock.read { self[STYLERS] }
 
 	override fun o_ModuleState(self: AvailObject): State = stateField.get()
 
@@ -1430,17 +1497,12 @@ class ModuleDescriptor private constructor(
 			setWithElementCanDestroy(bundle, true)
 		}
 
-	override fun o_Bundles(self: AvailObject): A_Set = self.slot(BUNDLES)
+	override fun o_Bundles(self: AvailObject): A_Set = self[BUNDLES]
 
 	override fun o_GetAndSetTupleOfBlockPhrases(
 		self: AvailObject,
 		newValue: AvailObject
 	): AvailObject = self.getAndSetVolatileSlot(ALL_BLOCK_PHRASES, newValue)
-
-	override fun o_GetAndSetManifestEntries(
-		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject = self.getAndSetVolatileSlot(ALL_MANIFEST_ENTRIES, newValue)
 
 	override fun o_HasAncestor(
 		self: AvailObject,
@@ -1468,12 +1530,19 @@ class ModuleDescriptor private constructor(
 		 * Construct a new empty `module`.  Pre-add the module itself to its
 		 * [set][SetDescriptor] of ancestor modules.
 		 *
+		 * @param runtime
+		 *   The current [AvailRuntime] that will eventually have this module
+		 *   added to it.  Capturing this now makes it easier to ensure we can
+		 *   access needed repository structures from any thread.
 		 * @param moduleName
 		 *   The fully qualified [name][StringDescriptor] of the module.
 		 * @return
 		 *   The new module.
 		 */
-		fun newModule(moduleName: A_String): A_Module =
+		fun newModule(
+			runtime: AvailRuntime,
+			moduleName: A_String
+		): A_Module =
 			initialMutableDescriptor.create {
 				setSlot(NEW_NAMES, emptyMap)
 				setSlot(IMPORTED_NAMES, emptyMap)
@@ -1489,9 +1558,12 @@ class ModuleDescriptor private constructor(
 				setSlot(STYLERS, emptySet)
 				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
-				setSlot(ALL_TOP_PHRASE_STYLES, emptyTuple)
-				setSlot(ALL_MANIFEST_ENTRIES, nil)
-				setDescriptor(ModuleDescriptor(SHARED, moduleName.makeShared()))
+				// Create a new shared descriptor.
+				setDescriptor(
+					ModuleDescriptor(
+						SHARED,
+						moduleName.makeShared(),
+						runtime))
 			}
 
 		/**
@@ -1499,7 +1571,7 @@ class ModuleDescriptor private constructor(
 		 * new [A_Module], prior to replacing it with a new shared descriptor.
 		 */
 		private val initialMutableDescriptor = ModuleDescriptor(
-			Mutability.MUTABLE, emptyTuple)
+			Mutability.MUTABLE, emptyTuple, null)
 
 		/**
 		 * Create an empty [BloomFilter] for use as a module serialization

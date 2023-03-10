@@ -41,7 +41,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
@@ -50,6 +50,7 @@ import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -108,10 +109,10 @@ constructor(
 	}
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		self.slot(JAVA_ANCESTORS)
+		self[JAVA_ANCESTORS]
 
 	override fun o_JavaClass(self: AvailObject): AvailObject =
-		self.slot(JAVA_CLASS)
+		self[JAVA_CLASS]
 
 	override fun o_EqualsPojoType(
 		self: AvailObject,
@@ -120,30 +121,30 @@ constructor(
 		// Callers have ensured that aPojoType is either an unfused pojo type
 		// or a self type.
 		val other: A_BasicObject = aPojoType.pojoSelfType()
-		return (self.slot(JAVA_CLASS).equals(other.javaClass())
-				&& self.slot(JAVA_ANCESTORS).equals(other.javaAncestors()))
+		return (self[JAVA_CLASS].equals(other.javaClass())
+				&& self[JAVA_ANCESTORS].equals(other.javaAncestors()))
 	}
 
 	// Note that this definition produces a value compatible with an unfused
 	// pojo type; this is necessary to permit comparison between an unfused
 	// pojo type and its self type.
 	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.slot(JAVA_ANCESTORS).hash(), -0x5fea43bc)
+		combine2(self[JAVA_ANCESTORS].hash(), -0x5fea43bc)
 
 	override fun o_IsAbstract(self: AvailObject): Boolean
 	{
-		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
+		val javaClass: A_BasicObject = self[JAVA_CLASS]
 		return (javaClass.isNil
 			|| Modifier.isAbstract(
 			javaClass.javaObjectNotNull<Class<*>>().modifiers))
 	}
 
 	override fun o_IsPojoArrayType(self: AvailObject): Boolean =
-		self.slot(JAVA_CLASS)
+		self[JAVA_CLASS]
 			.equals(equalityPojo(PojoArray::class.java))
 
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean =
-		self.slot(JAVA_CLASS).isNil
+		self[JAVA_CLASS].isNil
 
 	override fun o_IsPojoSelfType(self: AvailObject): Boolean = true
 
@@ -154,7 +155,7 @@ constructor(
 		// Check type compatibility by computing the set intersection of the
 		// ancestry of the arguments. If the result is not equal to the
 		// ancestry of object, then object is not a supertype of aPojoType.
-		val ancestors: A_Set = self.slot(JAVA_ANCESTORS)
+		val ancestors: A_Set = self[JAVA_ANCESTORS]
 		val otherAncestors: A_Set = aPojoType.pojoSelfType().javaAncestors()
 		val intersection =
 			ancestors.setIntersectionCanDestroy(otherAncestors, false)
@@ -163,17 +164,9 @@ constructor(
 
 	override fun o_PojoSelfType(self: AvailObject): A_Type = self
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared, since there's not an immutable variant.
-			self.makeShared()
-		}
-		else self
-
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
+		val javaClass: A_BasicObject = self[JAVA_CLASS]
 		return if (javaClass.isNil)
 		{
 			// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
@@ -191,7 +184,7 @@ constructor(
 		aPojoType: A_Type): A_Type
 	{
 		val other = aPojoType.pojoSelfType()
-		val ancestors: A_Set = self.slot(JAVA_ANCESTORS)
+		val ancestors: A_Set = self[JAVA_ANCESTORS]
 		val otherAncestors: A_Set = other.javaAncestors()
 		for (ancestor in ancestors)
 		{
@@ -212,7 +205,7 @@ constructor(
 			}
 		}
 		return newSelfPojoType(
-			NilDescriptor.nil,
+			nil,
 			ancestors.setUnionCanDestroy(otherAncestors, false))
 	}
 
@@ -235,7 +228,7 @@ constructor(
 		aPojoType: A_Type): A_Type
 	{
 		val intersection =
-			self.slot(JAVA_ANCESTORS).setIntersectionCanDestroy(
+			self[JAVA_ANCESTORS].setIntersectionCanDestroy(
 				aPojoType.pojoSelfType().javaAncestors(), false)
 		return newSelfPojoType(mostSpecificOf(intersection), intersection)
 	}
@@ -262,14 +255,14 @@ constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
+		val javaClass: A_BasicObject = self[JAVA_CLASS]
 		if (javaClass.notNil)
 		{
 			builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
 		}
 		else
 		{
-			val ancestors: A_Set = self.slot(JAVA_ANCESTORS)
+			val ancestors: A_Set = self[JAVA_ANCESTORS]
 			val childless = childlessAmong(ancestors).sortedBy {
 				it.javaObjectNotNull<Class<*>>().name
 			}
@@ -291,8 +284,7 @@ constructor(
 
 	override fun mutable(): SelfPojoTypeDescriptor = mutable
 
-	// There is no immutable descriptor.
-	override fun immutable(): SelfPojoTypeDescriptor = shared
+	override fun immutable(): SelfPojoTypeDescriptor = immutable
 
 	override fun shared(): SelfPojoTypeDescriptor = shared
 
@@ -300,6 +292,9 @@ constructor(
 	{
 		/** The mutable [SelfPojoTypeDescriptor]. */
 		private val mutable = SelfPojoTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SelfPojoTypeDescriptor]. */
+		private val immutable = SelfPojoTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SelfPojoTypeDescriptor]. */
 		private val shared = SelfPojoTypeDescriptor(Mutability.SHARED)
@@ -348,7 +343,7 @@ constructor(
 			val pojoClass = selfPojo.javaClass()
 			val mainClassName = if (pojoClass.isNil)
 			{
-				NilDescriptor.nil
+				nil
 			}
 			else
 			{
@@ -387,7 +382,7 @@ constructor(
 			val className: A_String = selfPojoProxy.tupleAt(1)
 			val mainRawType = if (className.isNil)
 			{
-				NilDescriptor.nil
+				nil
 			}
 			else
 			{

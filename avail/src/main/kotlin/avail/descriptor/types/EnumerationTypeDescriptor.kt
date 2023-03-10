@@ -49,7 +49,7 @@ import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
@@ -164,9 +164,8 @@ private constructor(
 		INSTANCES,
 
 		/**
-		 * Either [nil][NilDescriptor.nil] or
-		 * this enumeration's nearest superkind (i.e., the nearest type that
-		 * isn't a union}.
+		 * Either [nil] or this enumeration's nearest superkind (i.e., the
+		 * nearest type that isn't a union}.
 		 */
 		CACHED_SUPERKIND
 	}
@@ -183,7 +182,7 @@ private constructor(
 	 */
 	private fun rawGetSuperkind(self: AvailObject): A_Type
 	{
-		var cached: A_Type = self.slot(CACHED_SUPERKIND)
+		var cached: A_Type = self[CACHED_SUPERKIND]
 		if (cached.isNil)
 		{
 			cached = bottom
@@ -199,7 +198,7 @@ private constructor(
 			{
 				cached = cached.traversed().makeShared()
 			}
-			self.setSlot(CACHED_SUPERKIND, cached)
+			self[CACHED_SUPERKIND] = cached
 		}
 		return cached
 	}
@@ -696,7 +695,7 @@ private constructor(
 		writer.write("kind")
 		getSuperkind(self).writeTo(writer)
 		writer.write("instances")
-		self.slot(INSTANCES).writeTo(writer)
+		self[INSTANCES].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -706,7 +705,7 @@ private constructor(
 		writer.write("kind")
 		getSuperkind(self).writeSummaryTo(writer)
 		writer.write("instances")
-		self.slot(INSTANCES).writeSummaryTo(writer)
+		self[INSTANCES].writeSummaryTo(writer)
 		writer.endObject()
 	}
 
@@ -742,7 +741,7 @@ private constructor(
 		 * @return
 		 *   The instances of this enumeration.
 		 */
-		fun getInstances(self: AvailObject): A_Set = self.slot(INSTANCES)
+		fun getInstances(self: AvailObject): A_Set = self[INSTANCES]
 
 		/**
 		 * Construct an enumeration type from a [set][SetDescriptor] with at
@@ -759,7 +758,7 @@ private constructor(
 			assert(normalizedSet.setSize > 1)
 			return mutable.create {
 				setSlot(INSTANCES, normalizedSet.makeImmutable())
-				setSlot(CACHED_SUPERKIND, NilDescriptor.nil)
+				setSlot(CACHED_SUPERKIND, nil)
 			}
 		}
 

@@ -39,6 +39,6 @@ Body
 
 Test "CreateFiberType ok" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

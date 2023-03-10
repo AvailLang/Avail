@@ -32,6 +32,7 @@
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.literalObject
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -49,11 +50,13 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIM
 import avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -80,9 +83,8 @@ class ReferencePhraseDescriptor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.REFERENCE_PHRASE_TAG,
-	ObjectSlots::class.java,
-	null
-) {
+	ObjectSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -101,17 +103,17 @@ class ReferencePhraseDescriptor(
 		indent: Int
 	) {
 		builder.append("↑")
-		builder.append(self.slot(VARIABLE).token.string().asNativeString())
+		builder.append(self[VARIABLE].token.string().asNativeString())
 	}
 
-	override fun o_Variable(self: AvailObject): A_Phrase = self.slot(VARIABLE)
+	override fun o_Variable(self: AvailObject): A_Phrase = self[VARIABLE]
 
 	/**
 	 * The value I represent is a variable itself.  Answer an appropriate
 	 * variable type.
 	 */
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
-		val variable: A_Phrase = self.slot(VARIABLE)
+		val variable: A_Phrase = self[VARIABLE]
 		val declaration = variable.declaration
 		return when (declaration.declarationKind()) {
 			MODULE_VARIABLE -> instanceType(declaration.literalObject)
@@ -125,41 +127,36 @@ class ReferencePhraseDescriptor(
 	): Boolean {
 		return (!aPhrase.isMacroSubstitutionNode
 			&& self.phraseKind == aPhrase.phraseKind
-			&& self.slot(VARIABLE).equals(aPhrase.variable))
+			&& self[VARIABLE].equalsPhrase(aPhrase.variable))
 	}
-
-	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.variable.hash(), -0x180564c1)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val declaration = self.slot(VARIABLE).declaration
+		val declaration = self[VARIABLE].declaration
 		declaration.declarationKind().emitVariableReferenceForOn(
 			self.tokens, declaration, codeGenerator)
 	}
 
-	override fun o_ChildrenMap(
-		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(VARIABLE, transformer(self.slot(VARIABLE)))
-
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
-	) = action(self.slot(VARIABLE))
+		action: (A_Phrase)->Unit
+	) = action(self[VARIABLE])
+
+	override fun o_ChildrenMap(
+		self: AvailObject,
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(VARIABLE, transformer)
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
 
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?)
+	override fun o_ValidateLocally(self: AvailObject)
 	{
-		val decl: A_BasicObject = self.slot(VARIABLE).declaration
+		val decl: A_Phrase = self[VARIABLE].declaration
 		when (decl.declarationKind()) {
 			ARGUMENT -> error("You can't take the reference of an argument")
 			LABEL -> error("You can't take the reference of a label")
@@ -179,21 +176,26 @@ class ReferencePhraseDescriptor(
 		SerializerOperation.REFERENCE_PHRASE
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(VARIABLE).tokens
+		self[VARIABLE].tokens
+
+	override fun o_TokenIndicesInName(self: AvailObject): A_Tuple =
+		generateIntTupleFrom(self[VARIABLE].tokens.tupleSize) { 0 }
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("variable reference phrase") }
-			at("referent") { self.slot(VARIABLE).writeTo(writer) }
+			at("referent") { self[VARIABLE].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("variable reference phrase") }
-			at("referent") { self.slot(VARIABLE).writeSummaryTo(writer) }
+			at("referent") { self[VARIABLE].writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable
+
+	override fun immutable() = immutable
 
 	override fun shared() = shared
 
@@ -210,10 +212,14 @@ class ReferencePhraseDescriptor(
 		fun referenceNodeFromUse(variableUse: A_Phrase): A_Phrase =
 			mutable.createShared {
 				setSlot(VARIABLE, variableUse)
+				initHash()
 			}
 
 		/** The mutable [ReferencePhraseDescriptor]. */
 		private val mutable = ReferencePhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [ReferencePhraseDescriptor]. */
+		private val immutable = ReferencePhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [ReferencePhraseDescriptor]. */
 		private val shared = ReferencePhraseDescriptor(Mutability.SHARED)

@@ -37,11 +37,16 @@ import avail.AvailRuntimeSupport
 import avail.AvailTask
 import avail.annotations.HideFieldJustForPrinting
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.IS_STYLING
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.RUNNING_LEXER
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.CONTINUATION
@@ -59,6 +64,7 @@ import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor
@@ -83,6 +89,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.A_String
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
@@ -91,6 +98,7 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.io.TextInterface
+import avail.utility.isNullOr
 import org.availlang.json.JSONWriter
 import java.util.TimerTask
 import java.util.WeakHashMap
@@ -395,8 +403,20 @@ class FiberDescriptor private constructor(
 		/** See [GeneralFlag.CAN_REJECT_PARSE]. */
 		CAN_REJECT_PARSE(7),
 
-		/** See [GeneralFlag.CAN_REJECT_PARSE]. */
-		IS_EVALUATING_MACRO(8);
+		/** See [GeneralFlag.IS_EVALUATING_MACRO]. */
+		IS_EVALUATING_MACRO(8),
+
+		/** See [GeneralFlag.IS_SEMANTIC_RESTRICTION]. */
+		IS_SEMANTIC_RESTRICTION(9),
+
+		/** See [GeneralFlag.IS_LEXER]. */
+		IS_LEXER(10),
+
+		/** See [GeneralFlag.IS_RUNNING_TOP_STATEMENT]. */
+		IS_RUNNING_TOP_STATEMENT(11),
+
+		/** See [GeneralFlag.IS_RUNNING_COMMAND]. */
+		IS_RUNNING_COMMAND(12);
 
 		/** The [Int] mask corresponding with the [shift]. */
 		override val mask = 1 shl shift
@@ -485,15 +505,76 @@ class FiberDescriptor private constructor(
 	 */
 	enum class GeneralFlag(override val flag: Flag) : FlagGroup
 	{
-		/**
-		 * Was the fiber started to apply a semantic restriction?
-		 */
+		/** Was the fiber started to apply a semantic restriction? */
 		CAN_REJECT_PARSE(Flag.CAN_REJECT_PARSE),
 
 		/**
-		 * Was the fiber started to evaluate a macro invocation?
+		 * Was the fiber started to evaluate a macro invocation (or a prefix
+		 * function for a macro)?
 		 */
-		IS_EVALUATING_MACRO(Flag.IS_EVALUATING_MACRO);
+		IS_EVALUATING_MACRO(Flag.IS_EVALUATING_MACRO),
+
+		/** Was the fiber started to evaluate a semantic restriction? */
+		IS_SEMANTIC_RESTRICTION(Flag.IS_SEMANTIC_RESTRICTION),
+
+		/** Was the fiber started to run a lexer (i.e., to produce a token)? */
+		IS_LEXER(Flag.IS_LEXER),
+
+		/** Was the fiber started to run a top-level statement of module? */
+		IS_RUNNING_TOP_STATEMENT(Flag.IS_RUNNING_TOP_STATEMENT),
+
+		/** Was the fiber started to run a command or entry point? */
+		IS_RUNNING_COMMAND(Flag.IS_RUNNING_COMMAND)
+	}
+
+	/**
+	 * A [FiberKind] is a broad categorization of [A_Fiber], useful, say, for
+	 * filtering which fibers are captured by a debugger.
+	 */
+	enum class FiberKind
+	constructor(private val flag: GeneralFlag? = null)
+	{
+		/** The fiber is evaluating a macro or macro prefix. */
+		MACRO(GeneralFlag.IS_EVALUATING_MACRO),
+
+		/** The fiber is evaluating a semantic restriction. */
+		RESTRICTION(GeneralFlag.IS_SEMANTIC_RESTRICTION),
+
+		/** The fiber is evaluating a lexer (attempting to produce a token). */
+		LEXER(GeneralFlag.IS_LEXER),
+
+		/** The fiber is evaluating a top-level statement of a module. */
+		STATEMENT(GeneralFlag.IS_RUNNING_TOP_STATEMENT),
+
+		/**
+		 * The fiber is evaluating a command, for example an invocation of an
+		 * entry point.
+		 */
+		COMMAND(GeneralFlag.IS_RUNNING_COMMAND),
+
+		/**
+		 * The fiber is for some other, unknown purpose.  Note that this has to
+		 * be the final entry, and it must be the only enum value with null as
+		 * its [flag].
+		 */
+		OTHER(null);
+
+		/**
+		 * Answer a very short name for this [FiberKind], preferably only one
+		 * or two characters.
+		 */
+		val veryShortName: String = name.substring(0..0)
+
+		companion object
+		{
+			/** A pre-extracted [Array] of each [FiberKind]. */
+			val all = FiberKind.values()
+
+			/** Extract an [A_Fiber]'s [FiberKind]. */
+			val A_Fiber.fiberKind: FiberKind
+				get() = all.first { kind ->
+					kind.flag.isNullOr { this@fiberKind.generalFlag(this) } }
+		}
 	}
 
 	/**
@@ -911,10 +992,10 @@ class FiberDescriptor private constructor(
 	override fun o_Hash(self: AvailObject): Int = helper.hash
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		FiberTypeDescriptor.fiberType(self.slot(RESULT_TYPE))
+		FiberTypeDescriptor.fiberType(self[RESULT_TYPE])
 
 	override fun o_FiberResultType(self: AvailObject): A_Type =
-		self.slot(RESULT_TYPE)
+		self[RESULT_TYPE]
 
 	override fun o_WhenContinuationIsAvailableDo(
 		self: AvailObject,
@@ -981,11 +1062,11 @@ class FiberDescriptor private constructor(
 			suspendingFunction.isNil
 				|| suspendingFunction.code().codePrimitive()!!
 					.hasFlag(CanSuspend))
-		self.setSlot(SUSPENDING_FUNCTION, suspendingFunction)
+		self[SUSPENDING_FUNCTION] = suspendingFunction
 	}
 
 	override fun o_SuspendingFunction(self: AvailObject): A_Function =
-		self.slot(SUSPENDING_FUNCTION)
+		self[SUSPENDING_FUNCTION]
 
 	override fun o_DebugLog(self: AvailObject): StringBuilder = helper.debugLog
 
@@ -1013,6 +1094,9 @@ class FiberDescriptor private constructor(
 		helper.debuggerRunCondition = null
 		runtime.resumeIfPausedByDebugger(self)
 	}
+
+	override fun o_CurrentLexer(self: AvailObject): A_Lexer =
+		self.heritableFiberGlobals.mapAtOrNull(RUNNING_LEXER.atom) ?: nil
 
 	override fun <T> o_Lock(self: AvailObject, body: ()->T): T =
 		when (val interpreter = Interpreter.currentOrNull()) {
@@ -1194,6 +1278,43 @@ class FiberDescriptor private constructor(
 			loaderPriority,
 			{ },
 			nameSupplier)
+
+		/**
+		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
+		 * with the specified [AvailLoader], for the purpose of styling tokens
+		 * and phrases.  Such a fiber is the only place that styling is allowed.
+		 * Fibers launched from this fiber also allow styling, but they should
+		 * be joined by this fiber to ensure they are not making changes after
+		 * styling is supposed to have completed.  The priority is initially set
+		 * to [loaderPriority].
+		 *
+		 * @param loader
+		 *   An [AvailLoader].
+		 * @param nameSupplier
+		 *   A supplier that produces an Avail [string][A_String] to name this
+		 *   fiber on demand.  Please don't run Avail code to do so, since if
+		 *   this is evaluated during fiber execution it will cause the current
+		 *   [Thread]'s execution to block, potentially starving the execution
+		 *   pool.
+		 * @return
+		 *   The new fiber.
+		 */
+		fun newStylerFiber(
+			loader: AvailLoader,
+			nameSupplier: ()->A_String
+		): A_Fiber = createFiber(
+			TOP.o,
+			loader.runtime,
+			loader,
+			loader.textInterface,
+			loaderPriority,
+			setup =
+			{
+				fiberGlobals = fiberGlobals
+					.mapAtPuttingCanDestroy(IS_STYLING.atom, trueObject, true)
+					.makeShared()
+			},
+			nameSupplier = nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]

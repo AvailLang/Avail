@@ -103,6 +103,39 @@ interface A_SetBin : A_BasicObject
 				it, elementObject, elementObjectHash, myLevel, canDestroy)
 		}
 
+		/**
+		 * Construct a bin containing the union of the receiver and otherBin,
+		 * recycling or destroying either or both if they're mutable.
+		 */
+		fun A_SetBin.setBinUnion(
+			otherBin: A_SetBin,
+			level: Int
+		): A_SetBin = dispatch {
+			o_SetBinUnion(it, otherBin, level)
+		}
+
+		/**
+		 * Construct a bin containing the union of the receiver and [linearBin],
+		 * which is known to be a [linear][LinearSetBinDescriptor] set bin.
+		 */
+		fun A_SetBin.setBinUnionWithLinearBin(
+			linearBin: AvailObject,
+			level: Int
+		): A_SetBin = dispatch {
+			o_SetBinUnionWithLinearBin(it, linearBin, level)
+		}
+
+		/**
+		 * Construct a bin containing the union of the receiver and [hashedBin],
+		 * which is known to be a [hashed][HashedSetBinDescriptor] set bin.
+		 */
+		fun A_SetBin.setBinUnionWithHashedBin(
+			hashedBin: AvailObject,
+			level: Int
+		): A_SetBin = dispatch {
+			o_SetBinUnionWithHashedBin(it, hashedBin, level)
+		}
+
 		val A_SetBin.setBinHash: Int get() = dispatch { o_SetBinHash(it) }
 
 		val A_SetBin.setBinIterator: SetDescriptor.SetIterator

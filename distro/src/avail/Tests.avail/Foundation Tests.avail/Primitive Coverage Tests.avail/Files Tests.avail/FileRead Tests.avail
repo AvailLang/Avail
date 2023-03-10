@@ -39,30 +39,30 @@ Body
 
 Test "FileRead ok" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "FileRead fails with invalid-handle exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise invalid-handle exception;
 
 Test "FileRead fails with special-atom exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise special-atom exception;
 
 Test "FileRead fails with not-open-for-read exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise not-open-for-read exception;
 
 Test "FileRead fails with exceeds-VM-limit exception" in primitive files test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise exceeds-VM-limit exception;
 

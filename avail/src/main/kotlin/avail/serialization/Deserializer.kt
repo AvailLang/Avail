@@ -140,7 +140,7 @@ class Deserializer constructor(
 			}
 			val temp = producedObject
 			producedObject = null
-			return temp
+			return temp?.makeShared()
 		}
 		catch (e: Exception)
 		{

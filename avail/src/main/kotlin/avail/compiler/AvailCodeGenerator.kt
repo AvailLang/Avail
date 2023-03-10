@@ -87,6 +87,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tokens.A_Token
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -357,23 +358,8 @@ class AvailCodeGenerator private constructor(
 				unusedOuters.clear(i - 1)
 			}
 			instruction.writeNybblesOn(nybbles)
-			val nextLineNumber = instruction.lineNumber
-			if (nextLineNumber == -1)
-			{
-				// Indicate no change.
-				encodedLineNumberDeltas.add(0)
-			}
-			else
-			{
-				val delta = nextLineNumber - currentLineNumber
-				val encodedDelta =
-					if (delta < 0)
-						-delta shl 1 or 1
-					else
-						delta shl 1
-				encodedLineNumberDeltas.add(encodedDelta)
-				currentLineNumber = nextLineNumber
-			}
+			currentLineNumber = instruction.writeLineNumberDeltasOn(
+				encodedLineNumberDeltas, currentLineNumber)
 		}
 		if (!unusedOuters.isEmpty)
 		{
@@ -389,7 +375,7 @@ class AvailCodeGenerator private constructor(
 				"Some outers were unused: $unusedOuterDeclarations"
 			}
 		}
-		val nybblesArray = nybbles.toByteArray()
+		val nybblesArray = nybbles.toNybbleArray()
 		val nybbleTuple = generateNybbleTupleFrom(nybblesArray.size) {
 			i -> nybblesArray[i - 1].toInt()
 		}
@@ -485,12 +471,15 @@ class AvailCodeGenerator private constructor(
 	 */
 	fun setTokensWhile(tokens: A_Tuple, action: () -> Unit)
 	{
-		if (tokens.tupleSize == 0)
+		val filteredTokens = tokens.filter {
+			it.isInCurrentModule(module) && it.lineNumber() != 0
+		}
+		if (filteredTokens.isEmpty())
 		{
 			action()
 			return
 		}
-		tokensStack.addLast(tokens)
+		tokensStack.addLast(tupleFromList(filteredTokens))
 		try
 		{
 			action()
@@ -735,22 +724,18 @@ class AvailCodeGenerator private constructor(
 	fun emitPushLocalOrOuter(tokens: A_Tuple, variableDeclaration: A_Phrase)
 	{
 		increaseDepth()
-		if (varMap.containsKey(variableDeclaration))
-		{
-			addInstruction(AvailPushLocalVariable(
-				tokens, varMap[variableDeclaration]!!))
-			return
-		}
-		if (outerMap.containsKey(variableDeclaration))
-		{
-			addInstruction(AvailPushOuterVariable(
-				tokens, outerMap[variableDeclaration]!!))
-			return
-		}
-		assert(labelInstructions.containsKey(variableDeclaration)) {
-			"Consistency error - unknown variable."
-		}
-		addInstruction(AvailPushLabel(tokens))
+		addInstruction(
+			when (variableDeclaration)
+			{
+				in varMap -> AvailPushLocalVariable(
+					tokens, varMap[variableDeclaration]!!)
+				in outerMap -> AvailPushOuterVariable(
+					tokens, outerMap[variableDeclaration]!!)
+				in labelInstructions ->
+					AvailPushLabel(tokens)
+				else -> throw AssertionError(
+					"Consistency error - unknown variable.")
+			})
 	}
 
 	/**
@@ -833,16 +818,18 @@ class AvailCodeGenerator private constructor(
 	 */
 	private fun addInstruction(instruction: AvailInstruction)
 	{
-		if (instruction.relevantTokens.tupleSize == 0)
+		var relevant = tupleFromList(
+			instruction.relevantTokens.filter {
+				it.isInCurrentModule(module) && it.lineNumber() > 0
+			})
+		if (relevant.tupleSize == 0)
 		{
 			// Replace it with the nearest tuple from the stack, which should
 			// relate to the most specific position in the phrase tree for which
 			// tokens are known.
-			if (!tokensStack.isEmpty())
-			{
-				instruction.relevantTokens = tokensStack.last
-			}
+			relevant = tokensStack.lastOrNull() ?: emptyTuple
 		}
+		instruction.relevantTokens = relevant
 		instructions.add(instruction)
 	}
 

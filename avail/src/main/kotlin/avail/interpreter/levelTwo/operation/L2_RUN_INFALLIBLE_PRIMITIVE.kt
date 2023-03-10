@@ -58,8 +58,6 @@ import org.objectweb.asm.MethodVisitor
  * the specified register.  The primitive must not fail.  Don't check the result
  * type, since the VM has already guaranteed it is correct.
  *
- *
- *
  * Unlike for [L2_INVOKE] and related operations, we do not provide
  * the calling continuation here.  That's because by inlining the primitive
  * attempt we have avoided (or at worst postponed) construction of the
@@ -159,7 +157,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		builder.append(" ← ")
 		builder.append(primitive)
 		builder.append('(')
-		builder.append(arguments.elements())
+		builder.append(arguments.elements)
 		builder.append(')')
 	}
 
@@ -256,7 +254,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		{
 			assert(instruction.operation is L2_RUN_INFALLIBLE_PRIMITIVE)
 			val vector = instruction.operand<L2ReadBoxedVectorOperand>(2)
-			return vector.elements()
+			return vector.elements
 		}
 	}
 }

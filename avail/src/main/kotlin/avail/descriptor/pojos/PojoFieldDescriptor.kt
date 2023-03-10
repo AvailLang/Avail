@@ -103,8 +103,8 @@ class PojoFieldDescriptor private constructor(
 
 	override fun o_ClearValue(self: AvailObject)
 	{
-		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
+		val receiver = self[RECEIVER].javaObjectNotNull<Any>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
 		val fieldType = field.type
 		val defaultValue: Any?
 		// Sadly Java does not offer reflective access to the default values of
@@ -132,21 +132,21 @@ class PojoFieldDescriptor private constructor(
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
-		another.equalsPojoField(self.slot(FIELD), self.slot(RECEIVER))
+		another.equalsPojoField(self[FIELD], self[RECEIVER])
 
 	override fun o_EqualsPojoField(
 		self: AvailObject,
 		field: AvailObject,
 		receiver: AvailObject
-	): Boolean = (self.slot(FIELD).equals(field)
-		&& self.slot(RECEIVER).equals(receiver))
+	): Boolean = (self[FIELD].equals(field)
+		&& self[RECEIVER].equals(receiver))
 
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject
 	{
-		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		val expectedType = self.slot(KIND).readType
+		val receiver = self[RECEIVER].javaObjectNotNull<Any>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
+		val expectedType = self[KIND].readType
 		try
 		{
 			return synchronized(receiver) {
@@ -164,8 +164,8 @@ class PojoFieldDescriptor private constructor(
 		self.getValue().also { self.clearValue() }
 
 	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(FIELD).hash(),
-		self.slot(RECEIVER).hash(),
+		self[FIELD].hash(),
+		self[RECEIVER].hash(),
 		0x2199C0C3)
 
 	override fun o_HasValue(self: AvailObject): Boolean
@@ -175,13 +175,13 @@ class PojoFieldDescriptor private constructor(
 		return true
 	}
 
-	override fun o_Kind(self: AvailObject): A_Type = self.slot(KIND)
+	override fun o_Kind(self: AvailObject): A_Type = self[KIND]
 
 	override fun o_SerializerOperation(
 		self: AvailObject
 	): SerializerOperation
 	{
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
 		if (field.modifiers and Modifier.STATIC != 0)
 		{
 			return SerializerOperation.STATIC_POJO_FIELD
@@ -193,8 +193,8 @@ class PojoFieldDescriptor private constructor(
 		self: AvailObject,
 		newValue: A_BasicObject)
 	{
-		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
+		val receiver = self[RECEIVER].javaObjectNotNull<Any>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
 		val classHint = field.type
 		try
 		{
@@ -213,8 +213,8 @@ class PojoFieldDescriptor private constructor(
 		newValue: A_BasicObject)
 	{
 		// Actually check this write anyhow. Just in case.
-		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
+		val receiver = self[RECEIVER].javaObjectNotNull<Any>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
 		val classHint = field.type
 		try
 		{
@@ -230,9 +230,9 @@ class PojoFieldDescriptor private constructor(
 
 	override fun o_Value(self: AvailObject): AvailObject
 	{
-		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		val expectedType = self.slot(KIND).readType
+		val receiver = self[RECEIVER].javaObjectNotNull<Any>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
+		val expectedType = self[KIND].readType
 		try
 		{
 			return synchronized(receiver) {
@@ -264,11 +264,11 @@ class PojoFieldDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val field = self.slot(FIELD).javaObjectNotNull<Field>()
+		val field = self[FIELD].javaObjectNotNull<Field>()
 		if (!Modifier.isStatic(field.modifiers))
 		{
 			builder.append('(')
-			self.slot(RECEIVER).printOnAvoidingIndent(
+			self[RECEIVER].printOnAvoidingIndent(
 				builder, recursionMap, indent + 1)
 			builder.append(")'s ")
 		}

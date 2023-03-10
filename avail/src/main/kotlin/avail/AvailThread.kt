@@ -101,6 +101,17 @@ class AvailThread internal constructor(
 		 *   If the current thread isn't an `AvailThread`.
 		 */
 		@Throws(ClassCastException::class)
-		fun current(): AvailThread = currentThread().cast()
+		fun current(): AvailThread
+		{
+			try
+			{
+				return currentThread().cast()
+			}
+			catch (e: ClassCastException)
+			{
+				// A nice place to put a breakpoint...
+				throw e
+			}
+		}
 	}
 }

@@ -41,6 +41,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.releaseFromDebugger
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
+import avail.descriptor.fiber.FiberDescriptor.FiberKind
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.performance.Statistic
 import avail.performance.StatisticReport
@@ -77,8 +78,8 @@ class AvailDebuggerModel constructor (
 	 * Determine whether the current capture function hook for the runtime is
 	 * for this debugger.
 	 */
-	val isCapturingNewFibers: Boolean
-		get() = runtime.newFiberHandler.get() == fiberCaptureFunction
+	fun isCapturingNewFibers(fiberKind: FiberKind) =
+		runtime.newFiberHandlers[fiberKind]!!.get() === fiberCaptureFunction
 
 	/**
 	 * Allow the specified fiber to execute exactly one nybblecode.  Supersede
@@ -134,9 +135,10 @@ class AvailDebuggerModel constructor (
 	}
 
 	/**
-	 * A function for capturing newly launched fibers, if installed in the
-	 * [AvailRuntime.newFiberHandler].  Note that this function is compared *by
-	 * identity* when setting/clearing the new fiber handler.
+	 * An EnumMap from each [FiberKind] to a function for capturing newly
+	 * launched fibers, if it has that FiberKind, and if installed in the
+	 * [AvailRuntime.newFiberHandlers].  Note that this function is compared *by
+	 * identity* when setting/clearing the new fiber handlers.
 	 */
 	private val fiberCaptureFunction = { fiber: A_Fiber ->
 		// Do nothing if the debugger that launched this fiber (or a creation
@@ -159,11 +161,12 @@ class AvailDebuggerModel constructor (
 		}
 	}
 
-	fun installFiberCapture(install: Boolean): Boolean
+	fun installFiberCapture(kind: FiberKind, install: Boolean): Boolean = when
 	{
-		val oldValue = if (install) null else fiberCaptureFunction
-		val newValue = if (install) fiberCaptureFunction else null
-		return runtime.compareAndSetFiberCaptureFunction(oldValue, newValue)
+		install -> runtime.compareAndSetFiberCaptureFunction(
+			kind, null, fiberCaptureFunction)
+		else -> runtime.compareAndSetFiberCaptureFunction(
+			kind, fiberCaptureFunction, null)
 	}
 
 	/**

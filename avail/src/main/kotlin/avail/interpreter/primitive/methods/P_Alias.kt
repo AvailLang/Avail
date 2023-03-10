@@ -55,9 +55,9 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
@@ -88,7 +88,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 
 		val loader = interpreter.availLoaderOrNull()
 		loader ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -115,10 +115,10 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		{
 			val oldBundle = oldAtom.bundleOrCreate()
 			val method = oldBundle.bundleMethod
-			loader.recordEffect(
+			loader.recordEarlyEffect(
 				LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))
-			newBundle(newAtom, method, MessageSplitter(newString))
+			newBundle(newAtom, method, MessageSplitter.split(newString))
 		}
 		catch (e: MalformedMessageException)
 		{
@@ -126,9 +126,9 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		}
 
 		newAtom.setAtomBundle(newBundle)
-		if (loader.phase() == EXECUTING_FOR_COMPILE)
+		if (loader.phase == EXECUTING_FOR_COMPILE)
 		{
-			val root = loader.rootBundleTree()
+			val root = loader.rootBundleTree
 			loader.module.lock {
 				newBundle.definitionParsingPlans.forEach { _, value ->
 					root.addPlanInProgress(newPlanInProgress(value, 1))

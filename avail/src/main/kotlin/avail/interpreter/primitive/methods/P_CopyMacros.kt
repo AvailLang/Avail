@@ -39,7 +39,9 @@ import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import avail.descriptor.module.A_Module.Companion.allAncestors
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -63,7 +65,8 @@ import avail.interpreter.execution.Interpreter
 /**
  * **Primitive:** Copy all macros from the first [A_Atom]'s [A_Bundle] into the
  * second [A_Atom]'s [A_Bundle].  Fail if the second bundle has an incompatible
- * signature, or if there are duplicates with the same signature.
+ * signature, or if there are duplicates with the same signature.  Only copy the
+ * macros that are visible in the current module, or were defined by the system.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -77,7 +80,7 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 
 		val loader = interpreter.availLoaderOrNull()
 		loader ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -88,19 +91,28 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 		}
 
 		val oldBundle = oldAtom.bundleOrNil
-		if (oldBundle.isNil)
-			return interpreter.primitiveSuccess(nil)
+		if (oldBundle.isNil) return interpreter.primitiveSuccess(nil)
 
+		val currentModule = loader.module
 		return interpreter.suspendInSafePointThen {
 			try
 			{
 				for (macro in oldBundle.macrosTuple)
 				{
-					loader.addMacroBody(
-						newAtom,
-						macro.bodyBlock(),
-						macro.prefixFunctions(),
-						false)
+					val definitionModule = macro.definitionModule()
+					if (definitionModule.isNil
+						|| definitionModule.equals(currentModule)
+						|| currentModule.allAncestors.hasElement(
+							definitionModule))
+					{
+						// The macro definition is within the ancestry (or a
+						// system-defined macro), so it's safe to copy it over.
+						loader.addMacroBody(
+							newAtom,
+							macro.bodyBlock(),
+							macro.prefixFunctions(),
+							false)
+					}
 				}
 				succeed(nil)
 			}

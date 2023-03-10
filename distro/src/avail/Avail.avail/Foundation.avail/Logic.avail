@@ -50,7 +50,6 @@ Uses
 	"Types",
 	"Variables"
 Names
-	"«_‡=»",
 	"¬_=_",
 	"¬_≠_",
 	"_⊕_",
@@ -62,57 +61,6 @@ Names
 	"_↛_",
 	"_↚_"
 Body
-
-/**
- * Are all lexical arguments equal?
- *
- * @method "«_‡=»"
- * @param "<any…|3..>" "aTuple"
- * @returns "boolean"
- *          {@method "true"} if all arguments are equal, {@method "false"}
- *          otherwise.
- * @category "Mathematics" "Relations"
- */
-Public method "«_‡=»" is
-[
-	aTuple : <any…|3..>
-|
-	|aTuple→set| = 1
-] : boolean;
-
-/**
- * If there is no valid type intersection (the result of any type intersection
- * operation is ⊥) between the types in the tuple, then the equality comparison
- * will always fail.
- *
- * @method "«_‡=»"
- * @restricts "<any…|3..>'s type"
- */
-Semantic restriction "«_‡=»" is
-[
-	aTupleType : <any…|3..>'s type
-|
-	$body : type;
-	intersectionType : type := ⊤;
-	From 1 to |aTupleType's leading types|+1 do
-	[
-		index : natural number
-	|
-		intersectionType := (eject intersectionType) ∩ (aTupleType[index]);
-		Exit body with false's type if intersectionType = ⊥;
-		true
-	];
-	⊤
-] : type;
-
-/* Disallow mixing and recursive parsing of comparison operations. */
-[
-	binary ::= {"_=_", "_≤_", "_<_", "_②≥_①", "_②>_①"};
-	chains ::= {"«_‡=»", "«_‡«=|≤|<»!»", "«_‡«=|≥|>»!»"};
-	restrictions ::= binary ∪ chains;
-	Grammatical restriction chains is <restrictions>;
-	Grammatical restriction binary is <restrictions, restrictions>;
-]();
 
 /**
  * Compute and answer the logical exclusive disjunction, i.e., XOR, of the
@@ -349,11 +297,7 @@ Macro "_↓_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_↓_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ↓ [⦊b⦉]⟧
 ];
 
 /**

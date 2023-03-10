@@ -223,8 +223,8 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 				val version = archive.getVersion(versionKey)
 				if (version !== null)
 				{
-					// This version was already traced and recorded for a subsequent
-					// replay… like right now.  Reuse it.
+					// This version was already traced and recorded for a
+					// subsequent replay… like right now.  Reuse it.
 					val importNames = version.imports
 					traceModuleNames(
 						resolvedName, importNames, recursionSet, problemHandler)
@@ -251,7 +251,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 									}
 								},
 								this::indicateTraceCompleted)
-						compiler.parseModuleHeader {
+						compiler.parseModuleHeader { _, _ ->
 							val header = compiler.compilationContext.moduleHeader!!
 							val importNames = header.importedModuleNames
 							val entryPoints = header.entryPointNames

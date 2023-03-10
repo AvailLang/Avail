@@ -225,8 +225,8 @@ class LinkingFileMap
 	}
 
 	/**
-	 * Create a json file that has the the categories' methods
-	 * links.
+	 * Create a json file that has the categories' methods links.
+	 *
 	 * @return
 	 */
 	@Suppress("unused")

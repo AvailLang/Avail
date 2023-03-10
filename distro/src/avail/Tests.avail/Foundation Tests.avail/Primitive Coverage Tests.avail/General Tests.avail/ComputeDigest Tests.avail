@@ -39,6 +39,6 @@ Body
 
 Test "ComputeDigest ok" in primitive general test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

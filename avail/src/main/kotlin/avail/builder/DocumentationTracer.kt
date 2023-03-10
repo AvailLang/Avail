@@ -127,8 +127,9 @@ internal class DocumentationTracer constructor(
 		problemHandler: ProblemHandler,
 		completionAction: ()->Unit)
 	{
-		getVersion(moduleName,
-			{ version ->
+		getVersion(
+			moduleName,
+			withVersion = { version ->
 				if (version?.comments === null)
 				{
 					val problem = object : Problem(
@@ -213,25 +214,26 @@ internal class DocumentationTracer constructor(
 
 				generator.add(header, tuple)
 				completionAction()
-			}) { code, ex ->
-			val problem = object : Problem(
-				moduleName,
-				1,
-				0,
-				TRACE,
-				"Problem getting Module \"{0}\" to load comments: {1} - {2}",
-				moduleName,
-				code,
-				ex ?: "")
-			{
-				override fun abortCompilation()
+			},
+			failureHandler = { code, ex ->
+				val problem = object : Problem(
+					moduleName,
+					1,
+					0,
+					TRACE,
+					"Problem getting Module \"{0}\" to load comments: {1} - {2}",
+					moduleName,
+					code,
+					ex ?: "")
 				{
-					availBuilder.stopBuildReason = "Comment loading failed"
-					completionAction()
+					override fun abortCompilation()
+					{
+						availBuilder.stopBuildReason = "Comment loading failed"
+						completionAction()
+					}
 				}
-			}
-			problemHandler.handle(problem)
-		}
+				problemHandler.handle(problem)
+			})
 	}
 
 	/**

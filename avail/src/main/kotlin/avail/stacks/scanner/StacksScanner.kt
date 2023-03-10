@@ -35,6 +35,7 @@ package avail.stacks.scanner
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.CommentTokenDescriptor
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.stacks.LinkingFileMap
 import avail.stacks.StacksParser
 import avail.stacks.comment.AvailComment
@@ -827,7 +828,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 		 *
 		 * Treat it as whitespace even though Unicode says it isn't.
 		 */
-		ZEROWIDTHWHITESPACE
+		ZERO_WIDTH_WHITESPACE
 		{
 			// Do nothing
 			override fun scan(scanner: StacksScanner) = Unit
@@ -878,12 +879,12 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 	/**
 	 * Insert HTML tags in tokenized comments.
 	 *
-	 * @param htmltags the html text to add.
+	 * @param htmlTags the html text to add.
 	 */
-	fun addHTMLTokens(htmltags: String)
+	fun addHTMLTokens(htmlTags: String)
 	{
 		val token = StacksToken.create(
-			htmltags,
+			htmlTags,
 			position + filePosition,
 			lineNumber,
 			startOfTokenLinePosition(),

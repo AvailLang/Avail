@@ -39,6 +39,6 @@ Body
 
 Test "TupleTypeAt ok" in primitive tuples test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

@@ -39,9 +39,9 @@ import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.phrases.PhraseDescriptor.Companion.containsOnlyStatements
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -57,7 +57,6 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NAME
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
@@ -70,7 +69,7 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
+object P_CreateBlockExpression : Primitive(5, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -103,8 +102,7 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 			statements,
 			resultType,
 			exceptions,
-			0,
-			emptyTuple)
+			0)
 		return interpreter.primitiveSuccess(block)
 	}
 

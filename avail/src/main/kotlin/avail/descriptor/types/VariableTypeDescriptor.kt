@@ -99,17 +99,17 @@ private constructor(
 		indent: Int)
 	{
 		builder.append("↑")
-		self.slot(INNER_TYPE).printOnAvoidingIndent(
+		self[INNER_TYPE].printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 	}
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		self.slot(INNER_TYPE)
+		self[INNER_TYPE]
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		self.slot(INNER_TYPE)
+		self[INNER_TYPE]
 
 	override fun o_Equals(
 		self: AvailObject,
@@ -124,8 +124,8 @@ private constructor(
 			return true
 		}
 		val same =
-			(aType.readType.equals(self.slot(INNER_TYPE))
-				&& aType.writeType.equals(self.slot(INNER_TYPE)))
+			(aType.readType.equals(self[INNER_TYPE])
+				&& aType.writeType.equals(self[INNER_TYPE]))
 		if (same)
 		{
 			if (!isShared)
@@ -143,7 +143,7 @@ private constructor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.slot(INNER_TYPE).hash(), 0x7613E420)
+		combine2(self[INNER_TYPE].hash(), 0x7613E420)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfVariableType(self)
@@ -152,7 +152,7 @@ private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): Boolean
 	{
-		val innerType = self.slot(INNER_TYPE)
+		val innerType = self[INNER_TYPE]
 
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
@@ -172,7 +172,7 @@ private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type
 	{
-		val innerType: A_Type = self.slot(INNER_TYPE)
+		val innerType: A_Type = self[INNER_TYPE]
 		// The intersection of two variable types is a variable type whose
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
@@ -195,7 +195,7 @@ private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type
 	{
-		val innerType: A_Type = self.slot(INNER_TYPE)
+		val innerType: A_Type = self[INNER_TYPE]
 
 		// The union of two variable types is a variable type whose
 		// read type is the type union of the two incoming read types and whose
@@ -208,21 +208,13 @@ private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SIMPLE_VARIABLE_TYPE
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Since there isn't an immutable variant, make the object shared.
-			self.makeShared()
-		}
-		else self
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("variable type")
 		writer.write("write type")
-		val innerType = self.slot(INNER_TYPE)
+		val innerType = self[INNER_TYPE]
 		innerType.writeTo(writer)
 		writer.write("read type")
 		innerType.writeTo(writer)
@@ -235,7 +227,7 @@ private constructor(
 		writer.write("kind")
 		writer.write("variable type")
 		writer.write("write type")
-		val innerType = self.slot(INNER_TYPE)
+		val innerType = self[INNER_TYPE]
 		innerType.writeSummaryTo(writer)
 		writer.write("read type")
 		innerType.writeSummaryTo(writer)
@@ -244,8 +236,7 @@ private constructor(
 
 	override fun mutable(): VariableTypeDescriptor = mutable
 
-	// There is only a shared variant, not an immutable one.
-	override fun immutable(): VariableTypeDescriptor = shared
+	override fun immutable(): VariableTypeDescriptor = immutable
 
 	override fun shared(): VariableTypeDescriptor = shared
 
@@ -288,6 +279,9 @@ private constructor(
 
 		/** The mutable [VariableTypeDescriptor]. */
 		private val mutable = VariableTypeDescriptor(Mutability.MUTABLE)
+
+		/** The shared [VariableTypeDescriptor]. */
+		private val immutable = VariableTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [VariableTypeDescriptor]. */
 		private val shared = VariableTypeDescriptor(Mutability.SHARED)

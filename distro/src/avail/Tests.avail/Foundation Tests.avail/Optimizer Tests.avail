@@ -66,3 +66,20 @@ Test "multi-kind phi synonyms" in optimizer test suite is
 		];
 	] 1000 times;
 ];
+
+/*
+ * Regression for bug in Oct 2022 JVM code generation.  When calling Exit_if_,
+ * in a subblock from where the label was created (i.e., the block calling
+ * Exit_if_ captures the label), the generated JVM code failed to clear the
+ * JVM stack before returning to the label's caller.  This only happens in L2.
+ */
+Test "non-local Exit_if_ didn't clear JVM stack" in optimizer test suite is
+[
+	Repeat
+	[
+		$body : ⊤;
+		x : boolean := true;
+		If x then [Exit body];
+		Shouldn't happen
+	] 10001 times;
+];

@@ -32,9 +32,11 @@
 package avail.optimizer.values
 
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.interpreter.levelTwo.L2Chunk
+import avail.utility.iterableWith
 
 /**
  * An abstract representation of an invocation.  Note that this is not itself an
@@ -78,17 +80,7 @@ class Frame constructor(
 	 * @return
 	 *   The depth of the frame, where `1` is the outermost frame of a chunk.
 	 */
-	fun depth(): Int
-	{
-		var f = outerFrame
-		var depth = 1
-		while (f !== null)
-		{
-			depth++
-			f = f.outerFrame
-		}
-		return depth
-	}
+	fun depth(): Int = iterableWith(Frame::outerFrame).count()
 
 	override fun toString(): String = debugName
 
@@ -138,7 +130,7 @@ class Frame constructor(
 	 * @return
 	 *   The [L2SemanticValue] representing the specified slot.
 	 */
-	fun slot(
+	fun semanticSlot(
 		slotIndex: Int,
 		afterPc: Int,
 		optionalName: String?

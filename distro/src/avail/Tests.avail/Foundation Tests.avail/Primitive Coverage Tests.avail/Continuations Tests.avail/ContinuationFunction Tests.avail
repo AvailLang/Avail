@@ -39,6 +39,6 @@ Body
 
 Test "ContinuationFunction ok" in primitive continuations test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

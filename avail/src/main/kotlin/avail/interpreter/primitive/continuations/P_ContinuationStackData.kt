@@ -35,7 +35,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.ContinuationDescriptor.Companion.nilSubstitute
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -55,7 +55,7 @@ import avail.interpreter.execution.Interpreter
  * **Primitive:** Answer a [tuple][A_Tuple] containing the
  * [continuation][A_Continuation]'s stack data. Substitute an unassigned
  * [bottom][BottomTypeDescriptor]-typed [variable][A_Variable]
- * (unconstructible from Avail) for any [null][NilDescriptor.nil] values.
+ * (unconstructible from Avail) for any [nil] values.
  */
 @Suppress("unused")
 object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)

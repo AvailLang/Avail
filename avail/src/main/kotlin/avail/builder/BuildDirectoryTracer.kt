@@ -39,10 +39,10 @@ import avail.error.ErrorCode
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.resolver.ModuleRootResolver
+import avail.utility.parallelDoThen
 import java.net.URI
 import java.util.Collections.synchronizedSet
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.Level
 import javax.annotation.concurrent.GuardedBy
 
@@ -69,11 +69,13 @@ class BuildDirectoryTracer constructor(
 {
 	/** The trace requests that have been scheduled. */
 	@GuardedBy("this")
-	private val traceRequests = synchronizedSet(mutableSetOf<URI>())
+	private val traceRequests =
+		synchronizedSet(mutableSetOf<Pair<ModuleRootResolver, URI>>())
 
 	/** The traces that have been completed. */
 	@GuardedBy("this")
-	private val traceCompletions = synchronizedSet(mutableSetOf<URI>())
+	private val traceCompletions =
+		synchronizedSet(mutableSetOf<Pair<ModuleRootResolver, URI>>())
 
 	/** A flag to indicate when all requests have been queued. */
 	@GuardedBy("this")
@@ -122,25 +124,22 @@ class BuildDirectoryTracer constructor(
 		moduleAction: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit)
 	{
 		val moduleRoots = availBuilder.runtime.moduleRoots()
-		val countDown = AtomicInteger(moduleRoots.roots.size)
-		for (moduleRoot in moduleRoots)
-		{
-			traceAllModuleHeaders(
-				moduleRoot.resolver,
-				moduleAction,
-				{ _, _, _ ->
-					// Ignore exceptions during header tracing.
+		moduleRoots.toList().parallelDoThen(
+			action = { root, after ->
+				traceAllModuleHeaders(
+					root.resolver,
+					moduleAction,
+					{ _, _, _ ->
+						// Ignore exceptions during header tracing.
+					},
+					{ after() })
+			},
+			then = {
+				synchronized(this) {
+					allQueued = true
+					checkForCompletion()
 				}
-			) {
-				if (countDown.decrementAndGet() == 0)
-				{
-					synchronized(this) {
-						allQueued = true
-						checkForCompletion()
-					}
-				}
-			}
-		}
+			})
 	}
 
 	/**
@@ -155,6 +154,8 @@ class BuildDirectoryTracer constructor(
 	 * [BuildDirectoryTracer] trace requests. When a module header's parsing is
 	 * complete, add it to trace completions.
 	 *
+	 * @param resolver
+	 *   The [ModuleRootResolver] used for reading the files.
 	 * @param moduleAction
 	 *   What to do each time we've extracted or replayed a [ModuleVersion] from
 	 *   a valid module file.  It's passed a function to invoke when the module
@@ -175,57 +176,67 @@ class BuildDirectoryTracer constructor(
 		moduleFailureHandler: (String, ErrorCode, Throwable?) -> Unit,
 		afterAllQueued: (Int) -> Unit)
 	{
-		resolver.provideModuleRootTree({ refRoot ->
-			refRoot.walkChildrenThen(false, { visited ->
-				if (visited.isRoot || visited.isPackage)
-				{
-					// We don't want to trace packages.
-					return@walkChildrenThen
-				}
-				require(visited.isModule)
-				{
-					"BuildDirectoryTracer only operates on packages and " +
-						"modules but received $visited"
-				}
-				// It's a module file.
-				addTraceRequest(visited.uri)
-				resolver.fileManager.runtime().execute(tracerPriority) {
-					val moduleName = ModuleName(visited.qualifiedName)
-					val resolved = ResolvedModuleName(
-						moduleName,
-						resolver.fileManager.runtime().moduleRoots(),
-						visited,
-						false)
-					val ran = AtomicBoolean(false)
-					traceOneModuleHeader(resolved, moduleAction) {
-						val oldRan = ran.getAndSet(true)
-						assert(!oldRan) {
-							"${visited.localName} already ran " +
-								"BuildDirectoryTracer.traceOneModuleHeader"
+		resolver.provideModuleRootTree(
+			successHandler = { refRoot ->
+				refRoot.walkChildrenThen(
+					false,
+					{ visited ->
+						if (visited.isRoot || visited.isPackage)
+						{
+							// We don't want to trace packages.
+							return@walkChildrenThen
 						}
-						indicateFileCompleted(visited.uri)
-					}
-				}
+						require(visited.isModule)
+						{
+							"BuildDirectoryTracer only operates on packages " +
+								"and modules, but received $visited"
+						}
+						// It's a module file.
+						addTraceRequest(resolver, visited.uri)
+						// It wasn't already scanned yet (multiple scans
+						// could happen with overlapping roots).
+						availBuilder.runtime.execute(tracerPriority) {
+							val resolved = ResolvedModuleName(
+								ModuleName(visited.qualifiedName),
+								availBuilder.runtime.moduleRoots(),
+								visited,
+								false)
+							val ran = AtomicBoolean(false)
+							traceOneModuleHeader(resolved, moduleAction) {
+								val oldRan = ran.getAndSet(true)
+								assert(!oldRan) {
+									"${visited.localName} already ran " +
+										"BuildDirectoryTracer.traceOneModuleHeader"
+								}
+								indicateFileCompleted(resolver, visited.uri)
+							}
+						}
+					},
+					afterAllQueued)
 			},
-			afterAllQueued)
-		}) { code, ex ->
-			moduleFailureHandler(
-				"Could not get ${resolver.moduleRoot.name} ResolverReference",
-				code,
-				ex)
-		}
+			failureHandler = { code, ex ->
+				moduleFailureHandler(
+					"Could not get ${resolver.name} ResolverReference",
+					code,
+					ex)
+			})
 	}
 
 	/**
 	 * Add a module name to traceRequests while holding the monitor.
 	 *
+	 * @param moduleRootResolver
+	 *   The [ModuleRootResolver] that distinguishes this trace of a file from
+	 *   others, in case module root directories overlap.
 	 * @param moduleURI
 	 *   The [URI] to add to the requests.
 	 */
 	@Synchronized
-	fun addTraceRequest(moduleURI: URI)
+	fun addTraceRequest(
+		moduleRootResolver: ModuleRootResolver,
+		moduleURI: URI)
 	{
-		val added = traceRequests.add(moduleURI)
+		val added = traceRequests.add(moduleRootResolver to moduleURI)
 		assert(added) { "Attempting to trace file $moduleURI twice" }
 	}
 
@@ -254,8 +265,7 @@ class BuildDirectoryTracer constructor(
 		val repository = resolvedName.repository
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)
 		val sourceReference = resolvedName.resolverReference
-		val archive = repository.getArchive(
-			resolvedName.rootRelativeName)
+		val archive = repository.getArchive(resolvedName.rootRelativeName)
 		archive.digestForFile(
 			resolvedName,
 			false,
@@ -292,7 +302,7 @@ class BuildDirectoryTracer constructor(
 				) { compiler ->
 					compiler.compilationContext.diagnostics
 						.setSuccessAndFailureReporters({}, completedAction)
-					compiler.parseModuleHeader {
+					compiler.parseModuleHeader { _, _ ->
 						val header = compiler.compilationContext.moduleHeader!!
 						val importNames = header.importedModuleNames
 						val entryPoints = header.entryPointNames
@@ -317,13 +327,18 @@ class BuildDirectoryTracer constructor(
 	 * A module was just traced, so record that fact.  Note that the trace was
 	 * either successful or unsuccessful.
 	 *
+	 * @param moduleRootResolver
+	 *   The [ModuleRootResolver] that distinguishes this trace of a file from
+	 *   others, in case module root directories overlap.
 	 * @param moduleURI
 	 *   The [URI] for which a trace just completed.
 	 */
 	@Synchronized
-	fun indicateFileCompleted(moduleURI: URI)
+	fun indicateFileCompleted(
+		moduleRootResolver: ModuleRootResolver,
+		moduleURI: URI)
 	{
-		val added = traceCompletions.add(moduleURI)
+		val added = traceCompletions.add(moduleRootResolver to moduleURI)
 		require(added) {
 			"Completed trace of file $moduleURI twice"
 		}

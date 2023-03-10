@@ -88,7 +88,7 @@ constructor(
 	argumentPositionToTest: Int,
 	private val field: A_Atom,
 	private val fieldIndex: Int,
-	val childNode: InternalLookupTree<Element, Result>
+	private val childNode: InternalLookupTree<Element, Result>
 ) : DecisionStep<Element, Result>(argumentPositionToTest)
 {
 	override fun updateExtraValuesByValues(

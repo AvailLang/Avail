@@ -665,7 +665,7 @@ enum class BinaryCommand constructor(val id: Int)
 				.moduleRootFor(target.rootName)?.let { mr ->
 					mr.resolver.let {
 						val path = Paths.get(
-								it.uri.toString(), target.rootRelativeName)
+								it.uri.path, target.rootRelativeName)
 							.toString()
 						it.provideResolverReference(target.qualifiedName,
 						{ reference ->

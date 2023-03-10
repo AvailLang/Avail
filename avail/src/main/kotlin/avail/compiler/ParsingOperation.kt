@@ -45,6 +45,7 @@ import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.expand
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -69,7 +70,7 @@ import avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermut
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
-import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor
@@ -92,8 +93,8 @@ import avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
-import avail.utility.StackPrinter.Companion.trace
 import avail.utility.evaluation.Describer
+import avail.utility.stackToString
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -367,7 +368,7 @@ enum class ParsingOperation constructor(
 						// been encountered, so go ahead and report that we
 						// expected a variable.
 						afterUse.expected(
-							if (stepState.consumedStaticTokens.isEmpty()) WEAK
+							if (stepState.staticTokens.isEmpty()) WEAK
 							else STRONG,
 							describeWhyVariableUseIsExpected(successorTree))
 					}
@@ -464,7 +465,7 @@ enum class ParsingOperation constructor(
 				if (tokenType == END_OF_FILE)
 				{
 					stepState.start.expected(
-						if (stepState.consumedStaticTokens.isEmpty()) WEAK
+						if (stepState.staticTokens.isEmpty()) WEAK
 						else STRONG,
 						"any token, not end-of-file")
 					return@nextNonwhitespaceTokensDo
@@ -473,8 +474,10 @@ enum class ParsingOperation constructor(
 					token.string(),
 					token.start(),
 					token.lineNumber(),
-					token)
-				compiler.compilationContext.recordToken(syntheticToken)
+					token,
+					token.generatingLexer)
+				syntheticToken.setCurrentModule(
+					compiler.compilationContext.module)
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)
@@ -522,7 +525,7 @@ enum class ParsingOperation constructor(
 					if (stepState.consumedAnything)
 					{
 						stepState.start.expected(
-							if (stepState.consumedStaticTokens.isEmpty()) WEAK
+							if (stepState.staticTokens.isEmpty()) WEAK
 							else STRONG
 						) {
 							it(
@@ -541,8 +544,10 @@ enum class ParsingOperation constructor(
 					token.string(),
 					token.start(),
 					token.lineNumber(),
-					token)
-				compiler.compilationContext.recordToken(syntheticToken)
+					token,
+					token.generatingLexer)
+				syntheticToken.setCurrentModule(
+					compiler.compilationContext.module)
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)
@@ -590,7 +595,7 @@ enum class ParsingOperation constructor(
 					if (stepState.consumedAnything)
 					{
 						stepState.start.expected(
-							if (stepState.consumedStaticTokens.isEmpty()) WEAK
+							if (stepState.staticTokens.isEmpty()) WEAK
 							else STRONG
 						) {
 							it(
@@ -608,9 +613,10 @@ enum class ParsingOperation constructor(
 					token.string(),
 					token.start(),
 					token.lineNumber(),
-					token)
-				compiler.compilationContext.recordToken(syntheticToken)
-
+					token,
+					token.generatingLexer)
+				syntheticToken.setCurrentModule(
+					compiler.compilationContext.module)
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)
@@ -862,7 +868,7 @@ enum class ParsingOperation constructor(
 					stepState.start.expected(STRONG) {
 						it(
 							"evaluation of expression not to have "
-								+ "thrown Java exception:\n${trace(e)}")
+								+ "thrown Java exception:\n${e.stackToString}")
 					}
 				})
 		}
@@ -918,12 +924,12 @@ enum class ParsingOperation constructor(
 	 * N<sup>th</sup> prefix function associated with the macro.  Consume the
 	 * previously pushed copy of the parse stack.  The current [ParserState]'s
 	 * [ParserState.clientDataMap] is stashed in the new
-	 * [fiber][FiberDescriptor]'s [globals&#32;map][AvailObject.setFiberGlobals]
-	 * and retrieved afterward, so the prefix function and macros can alter the
-	 * scope or communicate with each other by manipulating this
-	 * [map][MapDescriptor].  This technique prevents chatter between separate
-	 * fibers (i.e., parsing can still be done in parallel) and between separate
-	 * linguistic abstractions (the keys are atoms and are therefore modular).
+	 * [fiber][FiberDescriptor]'s [globals&#32;map][fiberGlobals] and retrieved
+	 * afterward, so the prefix function and macros can alter the scope or
+	 * communicate with each other by manipulating this [map][MapDescriptor].
+	 * This technique prevents chatter between separate fibers (i.e., parsing
+	 * can still be done in parallel) and between separate linguistic
+	 * abstractions (the keys are atoms and are therefore modular).
 	 */
 	RUN_PREFIX_FUNCTION(8, false, true)
 	{
@@ -936,9 +942,9 @@ enum class ParsingOperation constructor(
 			// Look inside the only successor to find the only bundle.
 			val bundlesMap = successorTree.allParsingPlansInProgress
 			assert(bundlesMap.mapSize == 1)
-			val submap = bundlesMap.mapIterable.next().value()
+			val submap = bundlesMap.mapIterable.first().value()
 			assert(submap.mapSize == 1)
-			val definition = submap.mapIterable.next().key()
+			val definition = submap.mapIterable.first().key()
 			val prefixFunctions = definition.prefixFunctions()
 			val prefixIndex = operand(instruction)
 			val prefixFunction = prefixFunctions.tupleAt(prefixIndex)
@@ -954,7 +960,7 @@ enum class ParsingOperation constructor(
 	/**
 	 * `16*N+9` - Permute the elements of the list phrase on the top of the
 	 * stack via the permutation found via [MessageSplitter.permutationAtIndex].
-	 *  The list phrase must be the same size as the permutation.
+	 * The list phrase must be the same size as the permutation.
 	 */
 	PERMUTE_LIST(9, true, true)
 	{
@@ -1096,7 +1102,8 @@ enum class ParsingOperation constructor(
 				stringFrom(constant.toString()),
 				stepState.initialTokenPosition.position,
 				stepState.initialTokenPosition.lineNumber,
-				constant)
+				constant,
+				nil)
 			stepState.push(literalNodeFromToken(token))
 			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}

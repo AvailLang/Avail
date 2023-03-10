@@ -78,7 +78,7 @@ class ExtractPhraseTypeDecisionStep<
 	Result : A_BasicObject>
 constructor(
 	argumentPositionToTest: Int,
-	val childNode: InternalLookupTree<Element, Result>
+	private val childNode: InternalLookupTree<Element, Result>
 ) : DecisionStep<Element, Result>(argumentPositionToTest)
 {
 	override fun updateExtraValuesByValues(

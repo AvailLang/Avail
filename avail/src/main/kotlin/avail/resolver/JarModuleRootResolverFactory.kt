@@ -50,7 +50,7 @@ object JarModuleRootResolverFactory: ModuleRootResolverFactory
 		name: String,
 		uri: URI,
 		fileManager: FileManager
-	): ModuleRootResolver = JarModuleRootResolver(name, uri, fileManager)
+	) = JarModuleRootResolver(name, uri, fileManager)
 
 	override val scheme: String = "jar"
 }

@@ -176,7 +176,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	): Array<AvailObjectFieldHelper>
 	{
 		val fieldsArray = super.o_DescribeForDebugger(self)
-		val propertiesPojo = self.slot(PROPERTY_MAP_POJO)
+		val propertiesPojo = self[PROPERTY_MAP_POJO]
 		if (propertiesPojo.isNil)
 		{
 			return fieldsArray
@@ -207,33 +207,41 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		key: A_Atom
 	): AvailObject {
 		assert(key.isAtom)
-		val propertyMapPojo: A_BasicObject = self.slot(PROPERTY_MAP_POJO)
+		val propertyMapPojo: A_BasicObject = self[PROPERTY_MAP_POJO]
 		val propertyMap: Map<A_Atom, AvailObject> =
 			propertyMapPojo.javaObjectNotNull()
 		return propertyMap[key] ?: nil
 	}
 
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		assert(!isShared)
-		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
-		assert(propertyMapPojo.notNil)
-		val substituteAtom: AvailObject =
-			AtomWithPropertiesSharedDescriptor.shared.createInitialized(
-				self.slot(NAME),
-				self.slot(ISSUING_MODULE),
-				propertyMapPojo,
-				self.slot(HASH_OR_ZERO))
-		self.becomeIndirectionTo(substituteAtom)
-		// In case a property key is the atom itself, only make the property
-		// keys and atoms shared after making self shared.  Otherwise there
-		// could be unbounded recursion.
-		val propertyMap: Map<A_Atom, AvailObject> =
-			propertyMapPojo.javaObjectNotNull()
+	/**
+	 * Convert to use an [AtomWithPropertiesSharedDescriptor], replacing self
+	 * with an indirection.
+	 */
+	override fun o_MakeImmutableInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
+	{
+		assert(mutability == Mutability.IMMUTABLE)
+		super.o_MakeImmutableInternal(self, queueToProcess, fixups)
+		// Scan the property map as well.
+		val map = self[PROPERTY_MAP_POJO]
+		// The map can only be nil in a subclasses, but it's always shared, so
+		// this code wouldn't be reached.
+		assert(map.notNil)
+		val propertyMap: Map<A_Atom, AvailObject> = map.javaObjectNotNull()
 		propertyMap.forEach { (key, value) ->
-			key.makeShared()
-			value.makeShared()
+			if (key.descriptor().isMutable)
+			{
+				key.setDescriptor(key.descriptor().immutable())
+				queueToProcess.add(key as AvailObject)
+			}
+			if (value.descriptor().isMutable)
+			{
+				value.setDescriptor(value.descriptor().immutable())
+				queueToProcess.add(value)
+			}
 		}
-		return substituteAtom
 	}
 
 	override fun o_SerializerOperation (self: AvailObject) = when {
@@ -254,7 +262,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		value: A_BasicObject
 	) {
 		assert(key.isAtom)
-		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
+		val propertyMapPojo = self[PROPERTY_MAP_POJO]
 		val map: MutableMap<A_Atom, A_BasicObject> =
 			propertyMapPojo.javaObjectNotNull()
 		when {
@@ -263,9 +271,17 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		}
 	}
 
+	override fun propertyMapOrNil(self: AvailObject): AvailObject =
+		self[PROPERTY_MAP_POJO]
+
 	override fun mutable() = mutable
 
 	override fun immutable() = immutable
+
+	@Deprecated(
+		"Shared atoms are implemented in subclasses",
+		level = DeprecationLevel.HIDDEN)
+	override fun shared() = transientShared
 
 	companion object {
 		/**
@@ -314,5 +330,16 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
+
+		/**
+		 * The shared [AtomDescriptor] used *only* for marking the object prior
+		 * to adding it to the marking queue.
+		 */
+		private val transientShared = AtomWithPropertiesDescriptor(
+			Mutability.SHARED,
+			TypeTag.ATOM_TAG,
+			ObjectSlots::class.java,
+			IntegerSlots::class.java)
+
 	}
 }

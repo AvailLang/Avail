@@ -61,7 +61,7 @@ object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
 
-		val iterator = map.mapIterable
+		val iterator = map.mapIterable.iterator()
 		val bindings = generateObjectTupleFrom(map.mapSize) {
 			val (k, v) = iterator.next()
 			tuple(k, v)

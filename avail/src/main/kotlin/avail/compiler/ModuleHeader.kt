@@ -41,11 +41,13 @@ import avail.descriptor.module.A_Module.Companion.applyModuleHeader
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor
@@ -206,7 +208,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 		// Synthesize fake tokens for the pragma strings.
 		for (pragmaString in thePragmas)
 		{
-			pragmas.add(literalToken(pragmaString, 0, 0, pragmaString))
+			pragmas.add(literalToken(pragmaString, 0, 0, pragmaString, nil))
 		}
 		val positionInteger = deserializer.deserialize()!!
 		startOfBodyPosition = positionInteger.extractInt

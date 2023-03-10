@@ -142,8 +142,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_DefaultType(self: AvailObject): A_Type
 	{
-		val a: A_Type = self.slot(FIRST_TUPLE_TYPE)
-		val b: A_Type = self.slot(SECOND_TUPLE_TYPE)
+		val a: A_Type = self[FIRST_TUPLE_TYPE]
+		val b: A_Type = self[SECOND_TUPLE_TYPE]
 		return defaultTypeOfConcatenation(a, b)
 	}
 
@@ -211,7 +211,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 * I'm not a very time-efficient representation of a tuple type.
 	 */
 	override fun o_RepresentationCostOfTupleType(self: AvailObject): Int =
-		self.slot(TUPLE_TYPE_COMPLEXITY)
+		self[TUPLE_TYPE_COMPLEXITY]
 
 	/**
 	 * Answer what range of tuple sizes my instances could be. Note that this
@@ -220,8 +220,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_SizeRange(self: AvailObject): A_Type
 	{
-		val sizeRange1 = self.slot(FIRST_TUPLE_TYPE).sizeRange
-		val sizeRange2 = self.slot(SECOND_TUPLE_TYPE).sizeRange
+		val sizeRange1 = self[FIRST_TUPLE_TYPE].sizeRange
+		val sizeRange2 = self[SECOND_TUPLE_TYPE].sizeRange
 		return sizeRangeOfConcatenation(sizeRange1, sizeRange2)
 	}
 
@@ -273,17 +273,22 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	override fun o_IsTupleType(self: AvailObject): Boolean = true
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		(self.slot(FIRST_TUPLE_TYPE).isVacuousType
-			|| self.slot(SECOND_TUPLE_TYPE).isVacuousType)
+		(self[FIRST_TUPLE_TYPE].isVacuousType
+			|| self[SECOND_TUPLE_TYPE].isVacuousType)
 
-	override fun o_MakeShared(self: AvailObject): AvailObject
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		// Before an object using this descriptor can be shared, it must first
-		// become (an indirection to) a proper tuple type.
-		assert(!isShared)
+		// This was only surface shared at this point, and the internals have
+		// not yet been scanned, nor could any other threads access this object.
+		// Unshared it and flatten it into a real tuple type.
+		self.setDescriptor(mutable())
 		becomeRealTupleType(self)
-		self.makeShared()
-		return self.traversed()
+		self.setDescriptor(self.descriptor().shared())
+		// Process self, now that it's a surface-shared indirection object.
+		self.makeSharedInternal(queueToProcess, fixups)
 	}
 
 	override fun o_SerializerOperation(
@@ -309,8 +314,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	 */
 	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type
 	{
-		val firstTupleType = self.slot(FIRST_TUPLE_TYPE)
-		val secondTupleType = self.slot(SECOND_TUPLE_TYPE)
+		val firstTupleType = self[FIRST_TUPLE_TYPE]
+		val secondTupleType = self[SECOND_TUPLE_TYPE]
 		return elementOfConcatenation(firstTupleType, secondTupleType, index)
 	}
 
@@ -450,8 +455,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		{
 			return bottom
 		}
-		val firstTupleType: A_Type = self.slot(FIRST_TUPLE_TYPE)
-		val secondTupleType: A_Type = self.slot(SECOND_TUPLE_TYPE)
+		val firstTupleType: A_Type = self[FIRST_TUPLE_TYPE]
+		val secondTupleType: A_Type = self[SECOND_TUPLE_TYPE]
 		val firstUpper = firstTupleType.sizeRange.upperBound
 		val secondUpper = secondTupleType.sizeRange.upperBound
 		val totalUpper = firstUpper.noFailPlusCanDestroy(secondUpper, false)
@@ -513,8 +518,8 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		// sharing.
 		assert(!isShared)
 		val newObject = reallyConcatenate(
-			self.slot(FIRST_TUPLE_TYPE),
-			self.slot(SECOND_TUPLE_TYPE))
+			self[FIRST_TUPLE_TYPE],
+			self[SECOND_TUPLE_TYPE])
 		self.becomeIndirectionTo(newObject)
 	}
 
@@ -664,18 +669,37 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		{
 			val sizes1 = part1.sizeRange
 			val upper1 = sizes1.upperBound
-			val limit1 = if (upper1.isInt) upper1.extractInt
-			else max(
-				part1.typeTuple.tupleSize + 1,
-				sizes1.lowerBound.extractInt)
+			val limit1 = when
+			{
+				// Values near the limit are probably just manifestations of
+				// int32 limits produced by strengthened primitive return
+				// type guarantees.  We can't (and shouldn't) actually build
+				// a tuple of leading types that big, so we pretend it can
+				// be infinitely large instead.
+				upper1.isInt && upper1.extractInt < 0x7FFF_FF00 ->
+					upper1.extractInt
+				else -> max(
+					part1.typeTuple.tupleSize + 1,
+					sizes1.lowerBound.extractInt)
+			}
 			val sizes2 = part2.sizeRange
 			val upper2 = sizes2.upperBound
 			val limit2 =
-				if (upper2.isInt) upper2.extractInt
-				else part2.typeTuple.tupleSize + 1
-			val total = limit1 + limit2
+				when
+				{
+					// Values near the limit are probably just manifestations of
+					// int32 limits produced by strengthened primitive return
+					// type guarantees.  We can't (and shouldn't) actually build
+					// a tuple of leading types that big, so we pretend it can
+					// be infinitely large instead.
+					upper2.isInt && upper2.extractInt < 0x7FFF_FF00 ->
+						upper2.extractInt
+					else -> part2.typeTuple.tupleSize + 1
+				}
+			val total =
+				min(limit1.toLong() + limit2.toLong(), Int.MAX_VALUE.toLong())
 			val section1 = min(sizes1.lowerBound.extractInt, limit1)
-			val typeTuple: A_Tuple = generateObjectTupleFrom(total) {
+			val typeTuple: A_Tuple = generateObjectTupleFrom(total.toInt()) {
 				if (it <= section1) part1.typeAtIndex(it)
 				else elementOfConcatenation(part1, part2, it)
 			}

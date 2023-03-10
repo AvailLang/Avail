@@ -30,8 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import avail.build.AvailSetupContext.distroLib
-import avail.plugins.gradle.CreateDigestsFileTask
+import avail.plugin.AvailExtension
+import org.availlang.artifact.AvailArtifactType.LIBRARY
+import org.availlang.artifact.environment.location.ProjectHome
+import org.availlang.artifact.environment.location.Scheme.FILE
+import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -40,93 +43,83 @@ plugins {
 	publishing
 	signing
 	id("org.jetbrains.dokka")
+	id("org.availlang.avail-plugin")
 }
 
-version = "1.6.1"
+version = "2.0.0.alpha20-1.6.1.alpha09"
 
-dependencies {
-	// Avail.
-	implementation(project(":avail"))
+avail {
+	projectDescription = "The Avail Standard Library"
+	rootsDirectory = ProjectHome(
+		"distro/src",
+		FILE,
+		project.rootDir.absolutePath,
+		rootNameInJar = "avail")
+	projectRoot(
+		"avail",
+		entryPoints = mutableListOf("!_"),
+		description = "The Avail Standard Library primary module root" )
+	artifact {
+		artifactType = LIBRARY
+		implementationTitle = "Avail Standard Library"
+		projectFileLocation =
+			ProjectHome(
+				"./../$CONFIG_FILE_NAME",
+				FILE,
+				project.projectDir.absolutePath,
+				null)
+	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
-//                       Publish Utilities
-///////////////////////////////////////////////////////////////////////////////
-val ossrhUsername: String get() =
-	System.getenv("OSSRH_USER") ?: ""
-val ossrhPassword: String get() =
-	System.getenv("OSSRH_PASSWORD") ?: ""
-
-private val credentialsWarning =
-	"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
-		"JIRA account. Then ensure the user name, and password are available " +
-		"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
+val availExtension get() = project.extensions
+	.findByType(AvailExtension::class.java)!!
 
 /**
- * Check that the publish task has access to the necessary credentials.
+ * Copy the generated library jar to distro/lib to enable testing of workbench
+ * with jar file library.
  */
-fun checkCredentials ()
+fun copyArtifactToDistroLib ()
 {
-	if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
-	{
-		System.err.println(credentialsWarning)
+	val availExtension = project.extensions
+		.findByType(AvailExtension::class.java)!!
+	File(availExtension.targetOutputJar).apply {
+		copyTo(File("$rootDir/distro/lib/${name}"), true)
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
 tasks {
-	val sourcesRoot = "$projectDir/../distro/src/avail"
-	// Produce a JAR with the source of every module in the standard Avail library.
-	val standardLibraryName = "$buildDir/avail-standard-library.jar"
-	val digestsDirectory = "$buildDir/Avail-Digests"
-	val digestsLocalFileName = "all_digests.txt"
-
-	val createDigests by creating(CreateDigestsFileTask::class) {
-		basePath = sourcesRoot
-		inputs.files(fileTree(sourcesRoot))
-		outputs.file("$digestsDirectory/$digestsLocalFileName")
-	}
-
 	jar {
-		description = "The Avail standard library"
-		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
-		manifest.attributes["Implementation-Version"] = project.version
-		archiveFileName.set(standardLibraryName)
-		isZip64 = true
-		dependsOn(createDigests)
-		from(sourcesRoot) {
-			include("**/*.*")
-			into("Avail-Sources")
+		doLast {
+			// This re-creates the JAR, deleting the present JAR first. This
+			// is done due to the publishing sanity check introduced in Gradle
+			// 6.3 that does an internal check to confirm that the jar was
+			// effectively constructed by the standard JAR task in some
+			// predetermined internal order. This problem manifests with this
+			// error message:
+			// `Artifact <TARGET JAR>.jar wasn't produced by this build.`
+			// At the time of writing this was the only solution identified so
+			// far that overcame the issue.
+			availExtension.createArtifact()
 		}
-		from(digestsDirectory) {
-			include(digestsLocalFileName)
-			into("Avail-Digests")
-		}
-		// Eventually we will add Avail-Compilations or something, to capture
-		// serialized compiled modules, serialized phrases, manifest entries,
-		// style information, and navigation indices.
-		duplicatesStrategy = DuplicatesStrategy.FAIL
-		manifest.attributes["Implementation-Title"] = "Avail standard library"
-		manifest.attributes["Implementation-Version"] = project.version
-		// Even though the jar only includes .avail source files, we need the
-		// content to be available at runtime, so we use "" for the archive
-		// classifier instead of "sources".
-		archiveClassifier.set("")
 	}
 
-	// Copy the library into the distribution directory.
-	val releaseStandardLibrary by creating(Copy::class) {
-		group = "release"
-		from(standardLibraryName)
-		into("${rootProject.projectDir}/$distroLib")
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-		dependsOn(jar)
+	createProjectFile {
+		outputLocation = ProjectHome(
+			"",
+			FILE,
+			rootDir.absolutePath,
+			rootNameInJar = null)
 	}
 
-	// Update the dependencies of "assemble".
-	assemble { dependsOn(releaseStandardLibrary) }
+	// Copy the library into the distribution directory. This is used by the
+	// workbench configuration that uses the standard library jar to start the
+	// workbench with the Avail Standard Library.
+	@Suppress("UNUSED_VARIABLE")
+	val copyToDistroLib by creating(DefaultTask::class) {
+		dependsOn(availArtifactJar)
+		doLast { copyArtifactToDistroLib() }
+	}
+
 
 	val sourceJar by creating(Jar::class) {
 		description = "Creates sources JAR."
@@ -151,17 +144,16 @@ tasks {
 		add("archives", javadocJar)
 	}
 	publish {
-		checkCredentials()
-		dependsOn(build)
+		PublishingUtility.checkCredentials()
+		doLast { copyArtifactToDistroLib() }
+	}
+	publishToMavenLocal {
+		doLast { copyArtifactToDistroLib() }
 	}
 }
 
 val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
-
-rootProject.tasks.assemble {
-	dependsOn(tasks.getByName("releaseStandardLibrary"))
-}
 
 signing {
 	useGpgCmd()
@@ -184,8 +176,8 @@ publishing {
 			println("Publishing snapshot: $isReleaseVersion")
 			println("Publishing URL: $url")
 			credentials {
-				username = System.getenv("OSSRH_USER")
-				password = System.getenv("OSSRH_PASSWORD")
+				username = PublishingUtility.ossrhUsername
+				password = PublishingUtility.ossrhPassword
 			}
 		}
 	}

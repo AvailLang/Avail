@@ -57,6 +57,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_ModuleHeaderPseudoMacroStyler
 
 /**
  * The `P_ModuleHeaderPseudoMacro` primitive is used to parse module headers.
@@ -70,7 +71,6 @@ import avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Suppress("unused")
 object P_ModuleHeaderPseudoMacro
 	: Primitive(6, Private, Bootstrap, CannotFail, CanInline)
 {
@@ -87,7 +87,9 @@ object P_ModuleHeaderPseudoMacro
 		return interpreter.primitiveSuccess(
 			newExpressionAsStatement(
 				newSendNode(
-					// Don't bother collecting tokens in header.
+					// Don't bother collecting tokens in header, since the
+					// original phrase of this macro already has them.
+					emptyTuple,
 					emptyTuple,
 					MODULE_HEADER.bundle,
 					newListNode(
@@ -135,8 +137,10 @@ object P_ModuleHeaderPseudoMacro
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
 				// Optional entries.
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
-				// Optional pragma.
+				// Optional pragmas.
 				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
 			/* Shouldn't be invoked, so always fail. */
 			STATEMENT_PHRASE.mostGeneralType)
+
+	override fun bootstrapStyler() = P_ModuleHeaderPseudoMacroStyler
 }

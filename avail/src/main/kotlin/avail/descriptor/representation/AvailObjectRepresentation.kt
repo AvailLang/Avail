@@ -66,8 +66,8 @@ sealed class AvailObjectRepresentation constructor(
 	initialDescriptor: AbstractDescriptor,
 	objectSlotsSize: Int,
 	integerSlotsCount: Int
-) : AbstractAvailObject(initialDescriptor), A_BasicObject {
-
+) : AbstractAvailObject(initialDescriptor), A_BasicObject
+{
 	init
 	{
 		// Record the allocation in the statistic.
@@ -158,14 +158,18 @@ sealed class AvailObjectRepresentation constructor(
 			scanSubobjects(marker)
 			currentDescriptor = IndirectionDescriptor.mutable(
 				anotherTraversed.currentDescriptor.typeTag)
-			objectSlots[0] = anotherTraversed
+			// In a non-JVM system, we would convert the surrounding unused
+			// space into Fillers.
+			objectSlots = arrayOf(anotherTraversed)
 		}
 		else
 		{
 			anotherObject.makeImmutable()
 			currentDescriptor = IndirectionDescriptor.mutable(
 				anotherTraversed.currentDescriptor.typeTag)
-			objectSlots[0] = anotherTraversed
+			// In a non-JVM system, we would convert the surrounding unused
+			// space into Fillers.
+			objectSlots = arrayOf(anotherTraversed)
 			currentDescriptor = IndirectionDescriptor.immutable(
 				anotherTraversed.currentDescriptor.typeTag)
 		}
@@ -182,35 +186,50 @@ sealed class AvailObjectRepresentation constructor(
 	 */
 	private fun checkSlot(field: ObjectSlotsEnum)
 	{
-		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots)
 		{
-			val debugSlots = currentDescriptor.debugObjectSlots
-			val permittedFields = debugSlots[field.fieldOrdinal]
-			if (permittedFields !== null)
-			{
-				for (permittedField in permittedFields)
-				{
-					if (permittedField === field) return
-				}
-			}
-			// Check it the slow way.
-			val definitionClass = field.javaClass.enclosingClass
-			assert(definitionClass.isInstance(currentDescriptor))
-			// Cache that field for next time.
-			val newPermittedFields: Array<ObjectSlotsEnum>
-			when (permittedFields)
-			{
-				null -> newPermittedFields = arrayOf(field)
-				else ->
-				{
-					newPermittedFields = Arrays.copyOf(
-						permittedFields, permittedFields.size + 1)
-					newPermittedFields[permittedFields.size] = field
-				}
-			}
-			debugSlots[field.fieldOrdinal] = newPermittedFields
+			privateCheckSlot(field)
 		}
+	}
+
+	/**
+	 * Verify that the object slot is an appropriate way to access this object
+	 * (i.e., that the slot is defined in an enumeration within the class of
+	 * this object's descriptor).  It fails if it's inappropriate, and if
+	 * [shouldCheckSlots] is enabled.
+	 *
+	 * @param field
+	 *   The object slot to validate for the receiver.
+	 */
+	private fun privateCheckSlot(field: ObjectSlotsEnum)
+	{
+		val debugSlots = currentDescriptor.debugObjectSlots
+		val permittedFields = debugSlots[field.fieldOrdinal]
+		@Suppress("KotlinConstantConditions")
+		if (permittedFields !== null)
+		{
+			for (permittedField in permittedFields)
+			{
+				if (permittedField === field) return
+			}
+		}
+		// Check it the slow way.
+		val definitionClass = field.javaClass.enclosingClass
+		assert(definitionClass.isInstance(currentDescriptor))
+		// Cache that field for next time.
+		val newPermittedFields: Array<ObjectSlotsEnum>
+		@Suppress("KotlinConstantConditions")
+		when (permittedFields)
+		{
+			null -> newPermittedFields = arrayOf(field)
+			else ->
+			{
+				newPermittedFields = Arrays.copyOf(
+					permittedFields, permittedFields.size + 1)
+				newPermittedFields[permittedFields.size] = field
+			}
+		}
+		debugSlots[field.fieldOrdinal] = newPermittedFields
 	}
 
 	/**
@@ -224,10 +243,9 @@ sealed class AvailObjectRepresentation constructor(
 	 */
 	private fun checkSlot(field: IntegerSlotsEnum)
 	{
-		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots)
 		{
-			privateCheckSlots(field)
+			privateCheckSlot(field)
 		}
 	}
 
@@ -235,10 +253,11 @@ sealed class AvailObjectRepresentation constructor(
 	 * Check whether this slot is appropriate for accessing this object, based
 	 * on its descriptor.
 	 */
-	private fun privateCheckSlots(field: IntegerSlotsEnum)
+	private fun privateCheckSlot(field: IntegerSlotsEnum)
 	{
 		val debugSlots = currentDescriptor.debugIntegerSlots
 		val permittedFields = debugSlots[field.fieldOrdinal]
+		@Suppress("KotlinConstantConditions")
 		if (permittedFields !== null)
 		{
 			for (permittedField in permittedFields)
@@ -251,6 +270,7 @@ sealed class AvailObjectRepresentation constructor(
 		assert(definitionClass.isInstance(currentDescriptor))
 		// Cache that field for next time.
 		val newPermittedFields: Array<IntegerSlotsEnum>
+		@Suppress("KotlinConstantConditions")
 		when (permittedFields)
 		{
 			null -> newPermittedFields = arrayOf(field)
@@ -281,6 +301,16 @@ sealed class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Allow subscript notation to access a [BitField].
+	 *
+	 * @param bitField
+	 *   The [BitField] to extract within the receiver.
+	 * @return
+	 *   The value of the extracted bitfield as an [Int].
+	 */
+	operator fun get(bitField: BitField): Int = slot(bitField)
+
+	/**
 	 * Replace the value of the [BitField] within this object.
 	 *
 	 * @param bitField
@@ -296,6 +326,17 @@ sealed class AvailObjectRepresentation constructor(
 		value = bitField.replaceBits(value, anInteger)
 		longSlots[bitField.integerSlotIndex] = value
 	}
+
+	/**
+	 * Allow subscript notation to write to a [BitField].
+	 *
+	 * @param bitField
+	 *   The [BitField] to overwrite within the receiver.
+	 * @param value
+	 *   The [Int] value to write to the [BitField] in the receiver.
+	 */
+	operator fun set(bitField: BitField, value: Int): Unit =
+		setSlot(bitField, value)
 
 	/**
 	 * Extract the byte at the given one-based byte subscript within the
@@ -456,6 +497,16 @@ sealed class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Allow subscript notation to access an [IntegerSlotsEnum] field.
+	 *
+	 * @param field
+	 *   The [IntegerSlotsEnum] to extract within the receiver.
+	 * @return
+	 *   The extracted [Long].
+	 */
+	operator fun get(field: IntegerSlotsEnum): Long = slot(field)
+
+	/**
 	 * Store the (signed 64-bit) integer in the eight bytes starting at the
 	 * given field `enum` value.
 	 *
@@ -470,6 +521,17 @@ sealed class AvailObjectRepresentation constructor(
 		checkSlot(field)
 		longSlots[field.fieldOrdinal] = anInteger
 	}
+
+	/**
+	 * Allow subscript notation to write to an [IntegerSlotsEnum] field.
+	 *
+	 * @param field
+	 *   The [IntegerSlotsEnum] to change within the receiver.
+	 * @param value
+	 *   The [Long] to write to the slot.
+	 */
+	operator fun set(field: IntegerSlotsEnum, value: Long): Unit =
+		setSlot(field, value)
 
 	/**
 	 * Extract the (signed 64-bit) integer at the given field enum value.
@@ -488,6 +550,21 @@ sealed class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Allow subscript notation to access an indexed [IntegerSlotsEnum] field.
+	 * The first subscript is the field, which must be the last declared integer
+	 * field (and end with "_"), and the second is the one-based index.
+	 *
+	 * @param field
+	 *   The [IntegerSlotsEnum] to extract within the receiver.
+	 * @param subscript
+	 *   The one-based index within the repeating field.
+	 * @return
+	 *   The extracted [Long].
+	 */
+	operator fun get(field: IntegerSlotsEnum, subscript: Int): Long =
+		slot(field, subscript)
+
+	/**
 	 * Store the (signed 64-bit) integer in the eight bytes starting at the
 	 * given field `enum` value.
 	 *
@@ -504,6 +581,24 @@ sealed class AvailObjectRepresentation constructor(
 		checkSlot(field)
 		longSlots[field.fieldOrdinal + subscript - 1] = anInteger
 	}
+
+	/**
+	 * Allow subscript notation to write to an indexed [IntegerSlotsEnum] field.
+	 * The first subscript is the field, which must be the last declared integer
+	 * field (and end with "_"), and the second is the one-based index.
+	 *
+	 * @param field
+	 *   The [IntegerSlotsEnum] to write within the receiver.
+	 * @param subscript
+	 *   The one-based index within the repeating field.
+	 * @param value
+	 *   The [Long] to write.
+	 */
+	operator fun set(
+		field: IntegerSlotsEnum,
+		subscript: Int,
+		value: Long
+	): Unit = setSlot(field, subscript, value)
 
 	/**
 	 * Extract the (signed 64-bit) integer for the given field `enum`
@@ -676,6 +771,16 @@ sealed class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Allow subscript notation to access an [ObjectSlotsEnum] field.
+	 *
+	 * @param field
+	 *   The [ObjectSlotsEnum] to extract within the receiver.
+	 * @return
+	 *   The extracted [AvailObject].
+	 */
+	operator fun get(field: ObjectSlotsEnum): AvailObject = slot(field)
+
+	/**
 	 * Store the [A_BasicObject] in the specified object slot of the receiver.
 	 *
 	 * @param field
@@ -692,6 +797,17 @@ sealed class AvailObjectRepresentation constructor(
 		checkWriteForField(field)
 		objectSlots[field.fieldOrdinal] = newValue as AvailObject
 	}
+
+	/**
+	 * Allow subscript notation to write to an [ObjectSlotsEnum] field.
+	 *
+	 * @param field
+	 *   The [ObjectSlotsEnum] to change within the receiver.
+	 * @param value
+	 *   The [A_BasicObject] to write to the slot.
+	 */
+	operator fun set(field: ObjectSlotsEnum, value: A_BasicObject): Unit =
+		setSlot(field, value)
 
 	/**
 	 * Extract the current value of the indexable object slot, pass it to the
@@ -796,7 +912,6 @@ sealed class AvailObjectRepresentation constructor(
 	 * Extract the current value of the slot, pass it to the supplied inline
 	 * Kotlin function, and write the result back to the slot.
 	 */
-	@Suppress("unused")
 	fun updateSlot(
 		field: ObjectSlotsEnum,
 		updater: AvailObject.()->A_BasicObject)
@@ -810,6 +925,40 @@ sealed class AvailObjectRepresentation constructor(
 		val newValue = oldValue.updater() as AvailObject
 		assert(!currentDescriptor.isShared || newValue.descriptor().isShared)
 		objectSlots[ordinal] = newValue
+	}
+
+	/**
+	 * Extract the current value of the [Long] slot, pass it to the supplied
+	 * inline Kotlin function, and write the resulting [Long] back to the slot.
+	 */
+	fun updateSlot(
+		field: IntegerSlotsEnum,
+		updater: Long.()->Long)
+	{
+		checkSlot(field)
+		checkWriteForField(field)
+		val ordinal = field.fieldOrdinal
+		longSlots[ordinal] = longSlots[ordinal].updater()
+	}
+
+	/**
+	 * Extract the current [Int] value of the [BitField], pass it to the
+	 * supplied inline Kotlin function, and write the result back to the
+	 * [BitField].  Note that this is not atomic, so other fields encoded in the
+	 * same [Long] field may get clobbered if simultaneously updated by multiple
+	 * threads.
+	 */
+	fun updateSlot(
+		bitField: BitField,
+		updater: Int.()->Int)
+	{
+		checkWriteForField(bitField.integerSlot)
+		checkSlot(bitField.integerSlot)
+		val oldLongValue = longSlots[bitField.integerSlotIndex]
+		val oldFieldValue = bitField.extractFromLong(oldLongValue)
+		val newFieldValue = oldFieldValue.updater()
+		val newLongValue = bitField.replaceBits(oldLongValue, newFieldValue)
+		longSlots[bitField.integerSlotIndex] = newLongValue
 	}
 
 	/**
@@ -875,6 +1024,21 @@ sealed class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Allow subscript notation to access an indexed [ObjectSlotsEnum] field.
+	 * The first subscript is the field, which must be the last declared object
+	 * field (and end with "_"), and the second is the one-based index.
+	 *
+	 * @param field
+	 *   The [ObjectSlotsEnum] to extract within the receiver.
+	 * @param subscript
+	 *   The one-based index within the repeating field.
+	 * @return
+	 *   The extracted [AvailObject].
+	 */
+	operator fun get(field: ObjectSlotsEnum, subscript: Int): AvailObject =
+		slot(field, subscript)
+
+	/**
 	 * Store the [AvailObject] in the specified slot of the receiver.
 	 *
 	 * @param field
@@ -898,6 +1062,24 @@ sealed class AvailObjectRepresentation constructor(
 		objectSlots[field.fieldOrdinal + subscript - 1] =
 			anAvailObject as AvailObject
 	}
+
+	/**
+	 * Allow subscript notation to write to an indexed [ObjectSlotsEnum] field.
+	 * The first subscript is the field, which must be the last declared object
+	 * field (and end with "_"), and the second is the one-based index.
+	 *
+	 * @param field
+	 *   The [ObjectSlotsEnum] to write within the receiver.
+	 * @param subscript
+	 *   The one-based index within the repeating field.
+	 * @param value
+	 *   The [A_BasicObject] to write.
+	 */
+	operator fun set(
+		field: ObjectSlotsEnum,
+		subscript: Int,
+		value: A_BasicObject
+	): Unit = setSlot(field, subscript, value)
 
 	/**
 	 * Write elements from the given [List] into consecutively numbered object
@@ -1043,6 +1225,44 @@ sealed class AvailObjectRepresentation constructor(
 			targetArray,
 			zeroBasedStartTargetSubscript,
 			count)
+	}
+
+	/**
+	 * Compare corresponding consecutive long slots from the receiver and the
+	 * [otherObject], starting at the beginning at the variable-length section
+	 * indicated by the [integerField]. Answer false if any differ, otherwise
+	 * true.
+	 *
+	 * The [integerField] must be suitable for accessing slots in both the
+	 * receiver and the [otherObject].
+	 *
+	 * @param otherObject
+	 *   The other [AvailObjectRepresentation] to compare against.
+	 * @param integerField
+	 *   The [IntegerSlotsEnum] that designates the starting field to scan the
+	 *   [longSlots] of both objects.
+	 * @return
+	 *   Whether the corresponding visited slots were equal.
+	 */
+	@Suppress("unused")
+	fun intSlotsCompare(
+		otherObject: AvailObjectRepresentation,
+		integerField: IntegerSlotsEnum
+	): Boolean
+	{
+		checkSlot(integerField)
+		otherObject.checkSlot(integerField)
+		val mySlots = longSlots
+		val otherSlots = otherObject.longSlots
+		val size = mySlots.size
+		assert(otherSlots.size == size)
+		var pos = integerField.fieldOrdinal
+		while (pos < size)
+		{
+			if (mySlots[pos] != otherSlots[pos]) return false
+			pos++
+		}
+		return true
 	}
 
 	/**
@@ -1747,6 +1967,26 @@ sealed class AvailObjectRepresentation constructor(
 				else -> tag
 			}
 		}
+
+	/**
+	 * Visit all of the object's object slots, passing the parent and child
+	 * objects to the provided visitor.
+	 *
+	 * @param visitor
+	 *   The visitor to invoke.
+	 */
+	final override fun scanSubobjects(visitor: (AvailObject) -> AvailObject)
+	{
+		for (i in objectSlots.indices)
+		{
+			val child = objectSlots[i]!!
+			val replacementChild = visitor(child)
+			if (replacementChild !== child)
+			{
+				objectSlots[i] = replacementChild
+			}
+		}
+	}
 
 	companion object
 	{

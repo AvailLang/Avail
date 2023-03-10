@@ -338,9 +338,7 @@ Public method "Prefer_for printing_" is
 	symbol : string,
 	aUnit : unit
 |
-	namesByUnit [aUnit] := symbol;
-	After the current module is unloaded,
-		do [↑namesByUnit -= aUnit;];
+	Register aUnit → symbol in ↑namesByUnit;
 ] : ⊤;
 
 /**

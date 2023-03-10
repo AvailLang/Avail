@@ -75,7 +75,8 @@ Public method "Require:_is canonical" is
 				nameType's instance's name,
 				non-canonical problem with nameType's instance's name
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * {@method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
@@ -135,17 +136,15 @@ Public method "Require:_is unambiguous" is
 					“all atoms for name” (as disjunctive list with serial comma)
 		];
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 For each name of
 <
-	"Method_is_",
 	"Private abstract method_is_",
 	"Private forward method_is_",
-	"Private method_is_",
 	"Public abstract method_is_",
 	"Public forward method_is_",
-	"Public method_is_",
 	"Private stable abstract method_is_",
 	"Private stable forward method_is_",
 	"Private stable method_is_",
@@ -172,6 +171,36 @@ do
 	[
 		nameType : atom's type,
 		definitionType : ([…]→⊤)'s type
+	|
+		Require: nameType is canonical;
+		⊤
+	];
+];
+
+For each name of
+<
+	"Method_is_«styled by_»?",
+	"Private method_is_«styled by_»?",
+	"Public method_is_«styled by_»?"
+>
+do
+[
+	Semantic restriction name is
+	[
+		nameType : string's type,
+		definitionType : ([…]→⊤)'s type,
+		styler : styler function?'s type
+	|
+		Require: nameType is unambiguous;
+		Require: nameType is canonical;
+		⊤
+	];
+
+	Semantic restriction name is
+	[
+		nameType : atom's type,
+		definitionType : ([…]→⊤)'s type,
+		styler : styler function?'s type
 	|
 		Require: nameType is canonical;
 		⊤

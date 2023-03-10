@@ -50,6 +50,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.bitsPerEntry
 import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -115,11 +116,13 @@ import java.util.stream.StreamSupport
  *   object's object slots layout, or null if there are no integer slots.
  */
 @Suppress("UNCHECKED_CAST")
-abstract class TupleDescriptor protected constructor(
-	mutability: Mutability?,
+abstract class TupleDescriptor
+protected constructor(
+	mutability: Mutability,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum?>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?) : Descriptor(
-	mutability!!,
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?
+) : Descriptor(
+	mutability,
 	TypeTag.TUPLE_TAG,
 	objectSlotsEnumClass,
 	integerSlotsEnumClass)
@@ -171,7 +174,7 @@ abstract class TupleDescriptor protected constructor(
 	// tuple isn't shared then only one thread can be reading or writing the
 	// hash field.  So either way we don't need synchronization.
 	override fun o_HashOrZero(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO)
+		self[HASH_OR_ZERO]
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -673,13 +676,40 @@ abstract class TupleDescriptor protected constructor(
 		return nyb.toByte()
 	}
 
-	// Compute object's hash value over the given range.
+	override fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		for (i in startIndex .. endIndex)
+		{
+			if (self.tupleAt(i).equals(value)) return i
+		}
+		return 0
+	}
+
+	// Compute tuple's hash value over the given range.
 	override fun o_HashFromTo(
 		self: AvailObject,
 		startIndex: Int,
-		endIndex: Int): Int =
-			if (startIndex == 1 && endIndex == self.tupleSize) self.hash()
-			else self.computeHashFromTo(startIndex, endIndex)
+		endIndex: Int
+	): Int =
+		if (startIndex == 1 && endIndex == self.tupleSize) self.hash()
+		else self.computeHashFromTo(startIndex, endIndex)
+
+	override fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		for (i in startIndex downTo endIndex)
+		{
+			if (self.tupleAt(i).equals(value)) return i
+		}
+		return 0
+	}
 
 	abstract override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 
@@ -886,12 +916,12 @@ abstract class TupleDescriptor protected constructor(
 	override fun o_AsNativeString(self: AvailObject): String
 	{
 		val size = self.tupleSize
-		val builder = StringBuilder(size)
-		for (i in 1 .. size)
-		{
-			builder.appendCodePoint(self.tupleCodePointAt(i))
+		return buildString(size) {
+			for (i in 1 .. size)
+			{
+				appendCodePoint(self.tupleCodePointAt(i))
+			}
 		}
-		return builder.toString()
 	}
 
 	/**
@@ -954,7 +984,7 @@ abstract class TupleDescriptor protected constructor(
 	 *   The tuple over which to iterate.
 	 */
 	private class TupleIterator(
-		private val tuple: AvailObject) : Iterator<AvailObject>
+		private val tuple: AvailObject) : ListIterator<AvailObject>
 	{
 		/**
 		 * The size of the tuple.
@@ -966,7 +996,13 @@ abstract class TupleDescriptor protected constructor(
 		 */
 		var index = 1
 
-		override fun hasNext(): Boolean = index <= size
+		override fun hasNext() = index <= size
+
+		/**
+		 * **Warning**: To conform to [nextIndex], the index must be
+		 * **0**-based, even though tuple access is ordinarily **1**-based.
+		 */
+		override fun nextIndex() = index - 1
 
 		override fun next(): AvailObject
 		{
@@ -975,6 +1011,23 @@ abstract class TupleDescriptor protected constructor(
 				throw NoSuchElementException()
 			}
 			return tuple.tupleAt(index++)
+		}
+
+		override fun hasPrevious() = size > 0 && index >= 1
+
+		/**
+		 * **Warning**: To conform to [nextIndex], the index must be
+		 * **0**-based, even though tuple access is ordinarily **1**-based.
+		 */
+		override fun previousIndex() = index - 2
+
+		override fun previous(): AvailObject
+		{
+			if (size == 0 || index < 1)
+			{
+				throw NoSuchElementException()
+			}
+			return tuple.tupleAt(--index)
 		}
 	}
 
@@ -1355,14 +1408,13 @@ abstract class TupleDescriptor protected constructor(
 		}
 
 		/**
-		 * Concatenate two `A_Tuple`s.
+		 * Concatenate two [A_Tuple]s, allowing either to be destroyed if it's
+		 * mutable.
 		 *
 		 * @param firstTuple
 		 *   The first tuple to concatenate.
 		 * @param secondTuple
 		 *   The second tuple to concatenate.
-		 * @param canDestroy
-		 *   Whether either input tuple may be destroyed if it's also mutable.
 		 * @return
 		 *   The concatenated tuple.
 		 */
@@ -1370,9 +1422,8 @@ abstract class TupleDescriptor protected constructor(
 		@JvmStatic
 		fun staticConcatenateTuples(
 			firstTuple: A_Tuple,
-			secondTuple: A_Tuple,
-			canDestroy: Boolean
-		): A_Tuple = firstTuple.concatenateWith(secondTuple, canDestroy)
+			secondTuple: A_Tuple
+		): A_Tuple = firstTuple.concatenateWith(secondTuple, true)
 
 		/** The [CheckedMethod] for [staticConcatenateTuples]. */
 		val concatenateTupleMethod = staticMethod(
@@ -1380,8 +1431,7 @@ abstract class TupleDescriptor protected constructor(
 			::staticConcatenateTuples.name,
 			A_Tuple::class.java,
 			A_Tuple::class.java,
-			A_Tuple::class.java,
-			Boolean::class.javaPrimitiveType!!)
+			A_Tuple::class.java)
 
 		/**
 		 * Answer the specified element of the tuple.

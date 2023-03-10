@@ -75,7 +75,7 @@ Extends
 		"…:_†;",
 		"…::=_;",
 		"…:_†:=_;",
-		"…:=_;",
+		"…:=§_;",
 		"…",
 		"_!;",
 		"(_::_†)",
@@ -99,8 +99,8 @@ Extends
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
 		"Invoke_with_,⁇forked at priority_",
-		"Lexer_when_is_",
-		"Macro_is«_,»_",
+		"Lexer_when_is_«styled by_»?",
+		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Park current fiber",
 		"Print:_",
@@ -118,6 +118,11 @@ Extends
 		"Semantic restriction_is_",
 		"Set name of function implementation_to_",
 		"Sleep for_millisecond|milliseconds",
+		"Style fixed tokens of_with_«overwriting»?",
+		"Style method name_",
+		"Style span of_with_«overwriting»?",
+		"Style token_as_«overwriting»?",
+		"Style_with_",
 		"Terminate current fiber",
 		"Unpark_",
 		"VM error codes",
@@ -241,6 +246,7 @@ Extends
 		"statement phrase",
 		"static method_._,⁇parameterized by_",
 		"string",
+		"string literal phrase",
 		"super cast phrase",
 		"termination requested",
 		"token",
@@ -262,7 +268,7 @@ Extends
 		"<_,_`…`|_>",
 		"[`…]→_",
 		"_(_)@_:_",
-		"``_``(_)@_:_",
+		"``_``(_)@_:_«from phrase_»?",
 		"`|_'s⁇local variables`|",
 		"`|_'s⁇outer variables`|",
 		"`|_'s⁇parameters`|",
@@ -288,6 +294,7 @@ Extends
 		"∪_[_.._]",
 		"⌈_⌉",
 		"⌊_⌋",
+		"_bit test_",
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
@@ -565,7 +572,6 @@ Extends
 		"each…in|of_§satisfies_",
 		"filter_by_",
 		"reject each…from_§where_",
-		"reject each…,…from_§where_",
 		"select each…from_§where_",
 		"group each…in|of_§by_",
 		"group_by_",
@@ -573,6 +579,8 @@ Extends
 		"map_through_",
 		"map each…in|of_§through_",
 		"only_",
+		"_is collection",
+		"_is collection type",
 		"_is empty",
 		"_[_]else_",
 		"_∉_"
@@ -919,21 +927,34 @@ Extends
 		"Foundation$…#",
 		"_[_]else_"
 	),
+	"Late Collections" =
+	(
+		"∃…∈_`|§_",
+		"∀…∈_`|§_",
+		"…∈_`|§_",
+		"…,…∈_`|§_",
+		"…∈_→§_",
+		"…,…∈_→§_",
+		"∃…→…∈_`|§_",
+		"∀…→…∈_`|§_",
+		"…→…∈_`|§_",
+		"…→…∈_→§_"
+	),
 	"Late Definers" =
 	(
 		"Method_is stable at_«compute with_»?",
-		"Method_is_",
+		"Method_is_«styled by_»?",
 		"Private abstract method_is_",
 		"Private forward method_is_",
-		"Private macro_is«_,»_",
-		"Private method_is_",
+		"Private macro_is«_,»_«styled by_»?",
+		"Private method_is_«styled by_»?",
 		"Private stable abstract method_is_",
 		"Private stable forward method_is_",
 		"Private stable method_is_",
 		"Public abstract method_is_",
 		"Public forward method_is_",
-		"Public macro_is«_,»_",
-		"Public method_is_",
+		"Public macro_is«_,»_«styled by_»?",
+		"Public method_is_«styled by_»?",
 		"Public stable abstract method_is_",
 		"Public stable forward method_is_",
 		"Public stable method_is_",
@@ -947,7 +968,9 @@ Extends
 		"Require:_is unambiguous",
 		"Stable abstract method_is_",
 		"Stable forward method_is_",
-		"Stable method_is_"
+		"Stable method_is_",
+		"definition styler",
+		"special object styler"
 	),
 	"Late Math" =
 	(
@@ -1009,7 +1032,8 @@ Extends
 		"hexadecimal integer lexer",
 		"floating point number lexer",
 		"raw string lexer",
-		"character set lexer"
+		"character set lexer",
+		"style lexer"
 	),
 	"Literals" =
 	(
@@ -1085,7 +1109,8 @@ Extends
 			\|«with mutable field|fields««public»?«shared»?«referable»?«read-only»?\
 				\|_:_«(««accessor|mutator|referrer»!_‡,»)»‡,»»\
 			\|«with reconstructor|reconstructors««public»?(«_‡,»)‡,»»",
-		"_as_«with«_::=_‡,»»"
+		"_as_«with«_::=_‡,»»",
+		"object type styler"
 	),
 	"Observing" =
 	(
@@ -1253,6 +1278,7 @@ Extends
 		"quicksort_",
 		"quicksort_with_",
 		"quicksort…,…in|of_§by_",
+		"reject each…,…from_§where_",
 		"relevant`|_`|",
 		"replace all occurrences of_in_with_",
 		"replace the first occurrence of_in_with_",
@@ -1315,6 +1341,7 @@ Extends
 	"Variables" =
 	(
 		"Clear_↑", "Clear_",
+		"Register_→_in_",
 		"Swap_↑and_↑", "Swap_and_",
 		"atomically compare_↑to_and,⁇if equal,⁇store_",
 			"atomically compare_to_and,⁇if equal,⁇store_",
@@ -1342,12 +1369,20 @@ Extends
 	),
 	"Very Early Definers" =
 	(
+		"Accept parse",
 		"Assert:_",
 		"Assert:_(_)",
 		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 		"Reject parse(confidence=_),expected:_",
 		"Shouldn't happen",
-		"Shouldn't happen(_)"
+		"Shouldn't happen(_)",
+		"assertion styler",
+		"conditional styler",
+		"loop styler",
+		"map styler",
+		"nonlocal control styler",
+		"set styler",
+		"tuple styler"
 	)
 Body
 

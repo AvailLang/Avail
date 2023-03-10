@@ -46,7 +46,7 @@ Test "CreateAtom ok" in primitive atoms test suite is
 
 Test "CreateAtom fails with ambiguous-name exception" in primitive atoms test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise ambiguous-name exception;
 

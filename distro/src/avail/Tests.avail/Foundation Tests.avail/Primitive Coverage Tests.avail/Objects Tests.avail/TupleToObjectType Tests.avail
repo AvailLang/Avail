@@ -39,6 +39,6 @@ Body
 
 Test "TupleToObjectType ok" in primitive objects test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

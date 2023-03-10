@@ -43,6 +43,8 @@ import avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
 import avail.descriptor.sets.A_SetBin.Companion.setBinAddingElementHashLevelCanDestroy
 import avail.descriptor.sets.A_SetBin.Companion.setBinHash
 import avail.descriptor.sets.A_SetBin.Companion.setBinSize
+import avail.descriptor.sets.A_SetBin.Companion.setBinUnionWithLinearBin
+import avail.descriptor.sets.HashedSetBinDescriptor.Companion.combineHashedAndLinear
 import avail.descriptor.sets.HashedSetBinDescriptor.Companion.createInitializedHashSetBin
 import avail.descriptor.sets.LinearSetBinDescriptor.IntegerSlots.Companion.BIN_HASH
 import avail.descriptor.sets.LinearSetBinDescriptor.ObjectSlots.BIN_ELEMENT_AT_
@@ -118,7 +120,7 @@ class LinearSetBinDescriptor private constructor(
 	override fun o_BinElementAt(
 		self: AvailObject,
 		index: Int
-	): AvailObject = self.slot(BIN_ELEMENT_AT_, index)
+	): AvailObject = self[BIN_ELEMENT_AT_, index]
 
 	override fun o_SetBinAddingElementHashLevelCanDestroy(
 		self: AvailObject,
@@ -156,8 +158,8 @@ class LinearSetBinDescriptor private constructor(
 			// Make a slightly larger linear bin and populate it.
 			result = newLike(
 				descriptorFor(Mutability.MUTABLE, level), self, 1, 0)
-			result.setSlot(BIN_ELEMENT_AT_, oldSize + 1, elementObject)
-			result.setSlot(BIN_HASH, oldHash + elementObjectHash)
+			result[BIN_ELEMENT_AT_, oldSize + 1] = elementObject
+			result[BIN_HASH] = oldHash + elementObjectHash
 			when {
 				!isMutable -> { }
 				canDestroy -> self.destroy()
@@ -171,7 +173,7 @@ class LinearSetBinDescriptor private constructor(
 		var bitPosition = elementObjectHash ushr shift and 63
 		var bitVector = 1L shl bitPosition
 		for (i in 1..oldSize) {
-			val element: A_BasicObject = self.slot(BIN_ELEMENT_AT_, i)
+			val element: A_BasicObject = self[BIN_ELEMENT_AT_, i]
 			bitPosition = element.hash() ushr shift and 63
 			bitVector = bitVector or (1L shl bitPosition)
 		}
@@ -180,7 +182,7 @@ class LinearSetBinDescriptor private constructor(
 		result.setBinAddingElementHashLevelCanDestroy(
 			elementObject, elementObjectHash, myLevel, true)
 		for (i in 1..oldSize) {
-			val eachElement: A_BasicObject = self.slot(BIN_ELEMENT_AT_, i)
+			val eachElement: A_BasicObject = self[BIN_ELEMENT_AT_, i]
 			val localAddResult = result.setBinAddingElementHashLevelCanDestroy(
 				eachElement, eachElement.hash(), myLevel, true)
 			assert(localAddResult.sameAddressAs(result)) {
@@ -195,12 +197,96 @@ class LinearSetBinDescriptor private constructor(
 		return result
 	}
 
+	override fun o_SetBinUnion(
+		self: AvailObject,
+		otherBin: A_SetBin,
+		level: Int
+	): A_SetBin = otherBin.setBinUnionWithLinearBin(self, level)
+
+	override fun o_SetBinUnionWithLinearBin(
+		self: AvailObject,
+		linearBin: AvailObject,
+		level: Int): A_SetBin
+	{
+		// Sets derived from the same set by incremental changes will tend to
+		// share a lot of bin structure.
+		if (self.sameAddressAs(linearBin)) return self
+		var size1 = self.variableObjectSlotsCount()
+		if (size1 == 0) return linearBin
+		var size2 = linearBin.variableObjectSlotsCount()
+		if (size2 == 0) return self
+		val small: AvailObject
+		val large: AvailObject
+		when
+		{
+			size1 < size2 ->
+			{
+				small = self
+				large = linearBin
+			}
+			else ->
+			{
+				small = linearBin
+				large = self
+				val t = size1
+				size1 = size2
+				size2 = t
+			}
+		}
+		val indicesOfNew = (1..size1).filter { i ->
+			val candidate = small[BIN_ELEMENT_AT_, i]
+			val candidateHash = candidate.hash()
+			(1..size2).none { j ->
+				val element = large[BIN_ELEMENT_AT_, j]
+				element.hash() == candidateHash && candidate.equals(element)
+			}
+		}
+		val countNew = indicesOfNew.size
+		if (countNew == 0)
+		{
+			// small is already a subset of large.
+			return large
+		}
+		var hash = large[BIN_HASH]
+		val smallHash = small[BIN_HASH]
+		val newBin = newLike(mutable(), large, countNew, 0)
+		if (countNew == size1)
+		{
+			// The bins are disjoint.
+			var j = size2 + 1
+			for (i in 1..size1)
+			{
+				newBin[BIN_ELEMENT_AT_, j++] = small[BIN_ELEMENT_AT_, i]
+			}
+			// Note that this only works because the bins are disjoint.
+			hash += smallHash
+		}
+		else
+		{
+			// There's partial overlap.
+			var j = size2 + 1
+			indicesOfNew.forEach { i ->
+				val element = small[BIN_ELEMENT_AT_, i]
+				newBin[BIN_ELEMENT_AT_, j++] = element
+				hash += element.hash()
+			}
+		}
+		newBin[BIN_HASH] = hash
+		return newBin
+	}
+
+	override fun o_SetBinUnionWithHashedBin(
+		self: AvailObject,
+		hashedBin: AvailObject,
+		level: Int
+	): A_SetBin = combineHashedAndLinear(hashedBin, self, level)
+
 	override fun o_BinHasElementWithHash(
 		self: AvailObject,
 		elementObject: A_BasicObject,
 		elementObjectHash: Int
 	): Boolean = (1..self.variableObjectSlotsCount()).any {
-		val element = self.slot(BIN_ELEMENT_AT_, it)
+		val element = self[BIN_ELEMENT_AT_, it]
 		element.hash() == elementObjectHash && elementObject.equals(element)
 	}
 
@@ -219,9 +305,9 @@ class LinearSetBinDescriptor private constructor(
 		assert(level == myLevel)
 		val oldSize = self.variableObjectSlotsCount()
 		(1..oldSize).forEach { searchIndex ->
-			if (self.slot(BIN_ELEMENT_AT_, searchIndex).equals(elementObject)) {
+			if (self[BIN_ELEMENT_AT_, searchIndex].equals(elementObject)) {
 				if (oldSize == 2) {
-					val survivor = self.slot(BIN_ELEMENT_AT_, 3 - searchIndex)
+					val survivor = self[BIN_ELEMENT_AT_, 3 - searchIndex]
 					if (!canDestroy) {
 						survivor.makeImmutable()
 					}
@@ -230,16 +316,14 @@ class LinearSetBinDescriptor private constructor(
 				// Produce a smaller copy, truncating the last entry, then
 				// replace the found element with the last entry of the original
 				// bin.  Note that this changes the (irrelevant) order.
-				val oldHash = self.slot(BIN_HASH)
+				val oldHash = self[BIN_HASH]
 				val result = newLike(
 					descriptorFor(Mutability.MUTABLE, level), self, -1, 0)
 				if (searchIndex != oldSize) {
-					result.setSlot(
-						BIN_ELEMENT_AT_,
-						searchIndex,
-						self.slot(BIN_ELEMENT_AT_, oldSize))
+					result[BIN_ELEMENT_AT_, searchIndex] =
+						self[BIN_ELEMENT_AT_, oldSize]
 				}
-				result.setSlot(BIN_HASH, oldHash - elementObjectHash)
+				result[BIN_HASH] = oldHash - elementObjectHash
 				if (!canDestroy) {
 					result.makeSubobjectsImmutable()
 				}
@@ -261,7 +345,7 @@ class LinearSetBinDescriptor private constructor(
 		potentialSuperset: A_Set
 	): Boolean {
 		return (1..self.variableObjectSlotsCount()).all {
-			self.slot(BIN_ELEMENT_AT_, it).isBinSubsetOf(potentialSuperset)
+			self[BIN_ELEMENT_AT_, it].isBinSubsetOf(potentialSuperset)
 		}
 	}
 
@@ -274,10 +358,10 @@ class LinearSetBinDescriptor private constructor(
 	override fun o_BinUnionKind(self: AvailObject): A_Type {
 		// Answer the nearest kind of the union of the types of this bin's
 		// elements. I'm supposed to be small, so recalculate it per request.
-		var unionKind = self.slot(BIN_ELEMENT_AT_, 1).kind()
+		var unionKind = self[BIN_ELEMENT_AT_, 1].kind()
 		for (index in 2..self.variableObjectSlotsCount()) {
 			unionKind = unionKind.typeUnion(
-				self.slot(BIN_ELEMENT_AT_, index).kind())
+				self[BIN_ELEMENT_AT_, index].kind())
 		}
 		return unionKind
 	}
@@ -286,7 +370,7 @@ class LinearSetBinDescriptor private constructor(
 		self: AvailObject,
 		kind: A_Type
 	): Boolean = (1..self.variableObjectSlotsCount()).all {
-		self.slot(BIN_ELEMENT_AT_, it).isInstanceOfKind(kind)
+		self[BIN_ELEMENT_AT_, it].isInstanceOfKind(kind)
 	}
 
 	override fun o_SetBinIterator(self: AvailObject): SetIterator =
@@ -297,7 +381,7 @@ class LinearSetBinDescriptor private constructor(
 			override fun next(): AvailObject {
 				if (index < 1)
 					throw NoSuchElementException()
-				return self.slot(BIN_ELEMENT_AT_, index--)
+				return self[BIN_ELEMENT_AT_, index--]
 			}
 
 			override fun hasNext() = index >= 1
@@ -331,13 +415,12 @@ class LinearSetBinDescriptor private constructor(
 		 *   A linear set bin.
 		 */
 		private fun checkBinHash(self: AvailObject) {
-			@Suppress("ConstantConditionIf")
 			if (checkBinHashes) {
 				assert(self.descriptor() is LinearSetBinDescriptor)
 				val stored = self.setBinHash
 				var calculated = 0
 				for (i in self.variableObjectSlotsCount() downTo 1) {
-					val subBin = self.slot(BIN_ELEMENT_AT_, i)
+					val subBin = self[BIN_ELEMENT_AT_, i]
 					val subBinHash = subBin.hash()
 					calculated += subBinHash
 				}
@@ -444,7 +527,8 @@ class LinearSetBinDescriptor private constructor(
 			level: Int,
 			size: Int,
 			generator: (Int)->A_BasicObject
-		): AvailObject {
+		): AvailObject
+		{
 			val hashes = IntArray(size)
 			var written = 0
 			val bin = descriptorFor(Mutability.MUTABLE, level).create(size) {
@@ -468,7 +552,7 @@ class LinearSetBinDescriptor private constructor(
 				setSlot(BIN_HASH, hash)
 			}
 			return when (written) {
-				1 -> bin.slot(BIN_ELEMENT_AT_, 1)
+				1 -> bin[BIN_ELEMENT_AT_, 1]
 				size -> bin
 				else -> newLike(bin.descriptor(), bin, written - size, 0)
 			}

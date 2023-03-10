@@ -63,6 +63,7 @@ import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapGrammaticalRestrictionStyler
 
 /**
  * **Primitive:** Message precedence declaration with [tuple][TupleDescriptor]
@@ -85,7 +86,7 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		val excludedStringSets = interpreter.argument(1)
 		val loader = interpreter.availLoaderOrNull() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -141,10 +142,13 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(
+		enumerationWith(
+			set(
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_AMBIGUOUS_NAME,
-				E_INCORRECT_NUMBER_OF_ARGUMENTS)
-			.setUnionCanDestroy(possibleErrors, true))
+				E_INCORRECT_NUMBER_OF_ARGUMENTS
+			).setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapGrammaticalRestrictionStyler
 }

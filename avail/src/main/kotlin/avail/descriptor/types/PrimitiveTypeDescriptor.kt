@@ -31,6 +31,7 @@
  */
 package avail.descriptor.types
 
+import avail.AvailRuntimeSupport
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCompiler
 import avail.descriptor.atoms.AtomDescriptor
@@ -52,7 +53,6 @@ import avail.descriptor.parsing.ParsingPlanInProgressDescriptor
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -61,6 +61,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -97,8 +98,9 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.execution.AvailLoader
+import avail.interpreter.execution.LexicalScanner
 import avail.serialization.SerializerOperation
+import avail.utility.iterableWith
 import org.availlang.json.JSONWriter
 import java.beans.MethodDescriptor
 import java.util.IdentityHashMap
@@ -182,7 +184,7 @@ private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(self.slot(NAME).asNativeString())
+		builder.append(self[NAME].asNativeString())
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -193,10 +195,10 @@ private constructor(
 		self: AvailObject,
 		aPrimitiveType: A_Type): Boolean = self.sameAddressAs(aPrimitiveType)
 
-	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
+	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
 	override fun o_Parent(self: AvailObject): A_BasicObject =
-		self.slot(PARENT)
+		self[PARENT]
 
 	// Check if object (a type) is a subtype of aType (should also be a
 	// type).
@@ -320,16 +322,6 @@ private constructor(
 	@ThreadSafe
 	override fun o_IsTop(self: AvailObject): Boolean = self.sameAddressAs(TOP.o)
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			// There is no immutable descriptor; use the shared one.
-			self.makeShared()
-		}
-		return self
-	}
-
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
 		for (type in all())
@@ -399,7 +391,7 @@ private constructor(
 	{
 		writer.startObject()
 		writer.write("kind")
-		writer.write("${self.slot(NAME).asNativeString().lowercase()} type")
+		writer.write("${self[NAME].asNativeString().lowercase()} type")
 		writer.endObject()
 	}
 
@@ -416,18 +408,13 @@ private constructor(
 		parentType: A_Type)
 	{
 		assert(mutability === Mutability.SHARED)
-		self.setSlot(PARENT, parentType)
+		self[PARENT] = parentType
 		self.setDescriptor(this)
 	}
 
 	override fun mutable(): PrimitiveTypeDescriptor = transientMutable
 
-	override fun immutable(): PrimitiveTypeDescriptor
-	{
-		// There are no immutable versions.
-		assert(mutability === Mutability.SHARED)
-		return this
-	}
+	override fun immutable(): PrimitiveTypeDescriptor = unsupported
 
 	override fun shared(): PrimitiveTypeDescriptor
 	{
@@ -467,7 +454,8 @@ private constructor(
 		 * Create a partially-initialized primitive type with the given name.
 		 * The type's parent will be set later, to facilitate arbitrary
 		 * construction order.  Set these fields to [nil][NilDescriptor] to
-		 * ensure pointer safety.
+		 * ensure pointer safety.  We will make all such objects shared after
+		 * all the linkages have been set up.
 		 *
 		 * @param typeNameString
 		 *   The name to give the object being initialized.
@@ -477,19 +465,16 @@ private constructor(
 		fun createMutablePrimitiveObjectNamed(
 			typeNameString: String
 		): AvailObject = transientMutable.create {
-			val name = stringFrom(typeNameString)
-			setSlot(NAME, name.makeShared())
+			setSlot(NAME, stringFrom(typeNameString).makeShared())
 			setSlot(PARENT, nil)
-			setSlot(HASH, typeNameString.hashCode() * multiplier)
+			setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 		}
 
 		/**
 		 * The sole mutable [PrimitiveTypeDescriptor], only used during early
 		 * instantiation.
 		 */
-		val transientMutable = PrimitiveTypeDescriptor(
-			Mutability.MUTABLE,
-			TOP)
+		val transientMutable = PrimitiveTypeDescriptor(Mutability.MUTABLE, TOP)
 	}
 
 	/**
@@ -535,10 +520,10 @@ private constructor(
 		 * This is the second-most general type in Avail's type lattice.  It is
 		 * the only direct descendant of [top&#32;(⊤)][TOP], and all types
 		 * except ⊤ are subtypes of it.  Like ⊤, all Avail objects are instances
-		 * of `ANY`. Technically there is also a [nil][NilDescriptor.nil], but
-		 * that is only used internally by the Avail machinery (e.g., the value
-		 * of an unassigned [variable][VariableDescriptor]) and can never be
-		 * manipulated by an Avail program.
+		 * of `ANY`. Technically there is also a [nil], but that is only used
+		 * internally by the Avail machinery (e.g., the value of an unassigned
+		 * [variable][VariableDescriptor]) and can never be manipulated by an
+		 * Avail program.
 		 */
 		ANY(TOP, TypeTag.ANY_TYPE_TAG, TypeTag.TOP_TAG),
 
@@ -644,8 +629,8 @@ private constructor(
 		 * [Tokens][TokenDescriptor] all have the same kind, except for
 		 * [literal&#32;tokens][LiteralTokenDescriptor], which are
 		 * parametrically typed by the type of value they contain.  They are
-		 * produced by a [lexical&#32;scanner][AvailLoader.LexicalScanner] and
-		 * are consumed by the [parser][AvailCompiler].
+		 * produced by a [LexicalScanner] and are consumed by the
+		 * [AvailCompiler].
 		 */
 		TOKEN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.TOKEN_TAG),
 
@@ -738,21 +723,10 @@ private constructor(
 					val descriptor = PrimitiveTypeDescriptor(
 						Mutability.SHARED, spec)
 					descriptor.finishInitializingPrimitiveTypeWithParent(
-						o,
-						if (spec.parent === null)
-						{
-							nil
-						}
-						else
-						{
-							spec.parent.o
-						})
-					var pointer: Types? = spec
-					while (pointer !== null)
-					{
-						val ancestorOrdinal: Int = pointer.ordinal
+						o, spec.parent?.o ?: nil)
+					spec.iterableWith { it.parent }.forEach { pointer ->
+						val ancestorOrdinal = pointer.ordinal
 						spec.superTests[ancestorOrdinal] = true
-						pointer = pointer.parent
 					}
 				}
 				// Precompute all type unions and type intersections.

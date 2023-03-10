@@ -55,6 +55,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.objects.ObjectTypeDescriptor
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -65,7 +66,9 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
@@ -84,7 +87,7 @@ import java.util.IdentityHashMap
 import java.util.regex.Pattern
 
 /**
- * An `atom` is an object that has identity by fiat, i.e., it is distinguished
+ * An _atom_ is an object that has identity by fiat, i.e., it is distinguished
  * from all other objects by the fact of its creation event and the history of
  * what happens to its references.  Not all objects in Avail have that property
  * (hence the acronym Advanced Value And Identity Language), unlike most
@@ -110,7 +113,7 @@ import java.util.regex.Pattern
  * representing `true` and another representing `false`. The boolean type itself
  * is merely an enumeration of these two values.  The only thing special about
  * booleans is that they are referenced by the Avail virtual machine.  In fact,
- * this very class, `AtomDescriptor`, contains these references in [trueObject]
+ * this very class, [AtomDescriptor], contains these references in [trueObject]
  * and [falseObject].
  *
  * @constructor
@@ -196,7 +199,7 @@ open class AtomDescriptor protected constructor (
 				append("\$$nativeName")
 			else -> append("\$\"$nativeName\"")
 		}
-		val issuer: A_Module = self.slot(ISSUING_MODULE)
+		val issuer: A_Module = self[ISSUING_MODULE]
 		if (issuer.notNil) {
 			val issuerName = issuer.moduleNameNative
 			val localIssuer =
@@ -205,7 +208,7 @@ open class AtomDescriptor protected constructor (
 		}
 	}
 
-	override fun o_AtomName(self: AvailObject): A_String = self.slot(NAME)
+	override fun o_AtomName(self: AvailObject): A_String = self[NAME]
 
 	@Throws(MalformedMessageException::class)
 	override fun o_BundleOrCreate (self: AvailObject): A_Bundle
@@ -227,10 +230,10 @@ open class AtomDescriptor protected constructor (
 	override fun o_GetAtomProperty (self: AvailObject, key: A_Atom) = nil
 
 	override fun o_Hash (self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			// The shared subclass overrides to use synchronization.
 			AvailRuntimeSupport.nextNonzeroHash().also { hash ->
-				self.setSlot(HASH_OR_ZERO, hash)
+				self[HASH_OR_ZERO] = hash
 			}
 		}
 
@@ -244,7 +247,7 @@ open class AtomDescriptor protected constructor (
 	) = aType.isSupertypeOfPrimitiveTypeEnum(Types.ATOM)
 
 	override fun o_IssuingModule (self: AvailObject): A_Module =
-		self.slot(ISSUING_MODULE)
+		self[ISSUING_MODULE]
 
 	override fun o_Kind(self: AvailObject): AvailObject = Types.ATOM.o
 
@@ -252,17 +255,49 @@ open class AtomDescriptor protected constructor (
 	 * Convert to use an [AtomWithPropertiesSharedDescriptor], replacing self
 	 * with an indirection.
 	 */
-	override fun o_MakeShared (self: AvailObject): AvailObject
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		assert(!isShared) // shared subclass should override.
+		assert(isShared)
+		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		val map = propertyMapOrNil(self)
+		if (map.notNil)
+		{
+			// Scan the property map as well.
+			val propertyMap: Map<A_Atom, AvailObject> = map.javaObjectNotNull()
+			propertyMap.forEach { (key, value) ->
+				if (!key.descriptor().isShared)
+				{
+					key.setDescriptor(key.descriptor().shared())
+					queueToProcess.add(key as AvailObject)
+				}
+				if (!value.descriptor().isShared)
+				{
+					value.setDescriptor(value.descriptor().shared())
+					queueToProcess.add(value)
+				}
+			}
+		}
 		val substituteAtom: AvailObject =
 			AtomWithPropertiesSharedDescriptor.shared.createInitialized(
-				self.slot(NAME),
-				self.slot(ISSUING_MODULE),
-				nil,  // subclass with properties should override.
-				self.slot(HASH_OR_ZERO))
+				self[NAME],
+				self[ISSUING_MODULE],
+				map,
+				self[HASH_OR_ZERO])
+
+		assert(substituteAtom.descriptor().isShared)
+
+		// The old atom (self) was marked as shared when it was added to the
+		// queueToProcess.  Therefore, it's not truly shared yet, as other
+		// threads cannot actually see it.  Since shared objects can't become
+		// indirections, we switch the descriptor back to its mutable form
+		// before making it an indirection to the substituteAtom.
+		self.setDescriptor(self.descriptor().mutable())
 		self.becomeIndirectionTo(substituteAtom)
-		return substituteAtom
+		// Make the indirection shared, too.
+		self.setDescriptor(self.descriptor().shared())
 	}
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle) =
@@ -281,9 +316,9 @@ open class AtomDescriptor protected constructor (
 		assert(!isShared)
 		val substituteAtom: AvailObject =
 			AtomWithPropertiesDescriptor.createWithProperties(
-				self.slot(NAME),
-				self.slot(ISSUING_MODULE),
-				self.slot(HASH_OR_ZERO))
+				self[NAME],
+				self[ISSUING_MODULE],
+				self[HASH_OR_ZERO])
 		self.becomeIndirectionTo(substituteAtom)
 		substituteAtom.setAtomProperty(key, value)
 	}
@@ -294,12 +329,14 @@ open class AtomDescriptor protected constructor (
 	override fun o_WriteTo (self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("atom") }
-			at("atom name") { self.slot(NAME).writeTo(writer) }
-			val module = self.slot(ISSUING_MODULE)
+			at("atom name") { self[NAME].writeTo(writer) }
+			val module = self[ISSUING_MODULE]
 			if (module.notNil) {
 				at("issuing module") { module.writeSummaryTo(writer) }
 			}
 		}
+
+	protected open fun propertyMapOrNil(self: AvailObject): AvailObject = nil
 
 	override fun mutable () = mutable
 
@@ -308,21 +345,23 @@ open class AtomDescriptor protected constructor (
 	@Deprecated(
 		"Shared atoms are implemented in subclasses",
 		level = DeprecationLevel.HIDDEN)
-	override fun shared () = unsupported
+	override fun shared () = transientShared
 
 	/**
-	 * `SpecialAtom` enumerates [atoms][A_Atom] that are known to the virtual
+	 * [SpecialAtom] enumerates [atoms][A_Atom] that are known to the virtual
 	 * machine.
 	 *
 	 * @constructor
 	 *
-	 * Create a `SpecialAtom` to hold the given already constructed [A_Atom].
+	 * Create a [SpecialAtom] to hold the given already constructed [A_Atom].
 	 *
 	 * @param atom
 	 *   The actual [A_Atom] to be held by this [SpecialAtom].
 	 */
 	enum class SpecialAtom
-	constructor (val atom: A_Atom)
+	constructor (
+		val atom: A_Atom,
+		val heritable: Boolean = false)
 	{
 		/** The atom representing the Avail concept "true". */
 		TRUE(
@@ -375,11 +414,40 @@ open class AtomDescriptor protected constructor (
 		STATIC_TOKENS_KEY("Static tokens"),
 
 		/**
+		 * The atom used as a key in a [ParserState]'s
+		 * [ParserState.clientDataMap] to accumulate the tuple of one-based
+		 * indices of the static tokens associated with [STATIC_TOKENS_KEY].
+		 */
+		STATIC_TOKEN_INDICES_KEY("Static token indices"),
+
+		/**
 		 * The atom used to identify the entry in a [ParserState]'s
 		 * [ParserState.clientDataMap] containing the bundle of the macro send
 		 * for which the current fiber is computing a replacement phrase.
 		 */
 		MACRO_BUNDLE_KEY("Macro bundle"),
+
+		/**
+		 * When this [A_Atom] occurs as a [heritable][HERITABLE_KEY] property of
+		 * an [A_Fiber] (with the lexer being evaluated as the value), the fiber
+		 * is permitted to run [A_Lexer]s on a module's source to produce
+		 * [A_Token]s.
+		 *
+		 * This also allows the current lexer to be extracted from the fiber,
+		 * avoiding the need to pass it.
+		 *
+		 * Not serializable.
+		 */
+		RUNNING_LEXER("running lexer", heritable = true),
+
+		/**
+		 * When this [A_Atom] occurs as a non-heritable property of an [A_Fiber]
+		 * (with [trueObject] as a property), the fiber is permitted to perform
+		 * styling operations on tokens and/or phrases.
+		 *
+		 * Not serializable.
+		 */
+		IS_STYLING("is styling"),
 
 		/**
 		 * The atom used as a key in a [fiber's][A_Fiber] global map to
@@ -424,11 +492,11 @@ open class AtomDescriptor protected constructor (
 		 * a way to mark fibers launched by the debugger itself, or forked by
 		 * such a fiber, say for stringification.
 		 *
-		 * Note that a fibers aren't currently (2022.05.02) serializable, and if
+		 * Note that fibers aren't currently (2022.05.02) serializable, and if
 		 * they were, we still wouldn't want to serialize one launched from a
 		 * debugger, so this atom itself doesn't need to be serializable.
 		 */
-		DONT_DEBUG_KEY("don't debug");
+		DONT_DEBUG_KEY("don't debug", heritable = true);
 
 		/**
 		 * Create a `SpecialAtom` to hold a new atom constructed with the given
@@ -436,14 +504,22 @@ open class AtomDescriptor protected constructor (
 		 *
 		 * @param name The name of the atom to be created.
 		 */
-		constructor (name: String) : this(createSpecialAtom(name))
+		constructor (
+			name: String,
+			heritable: Boolean = false
+		) : this(createSpecialAtom(name), heritable)
 
 		companion object
 		{
 			init
 			{
-				DONT_DEBUG_KEY.atom.setAtomProperty(
-					HERITABLE_KEY.atom, trueObject)
+				SpecialAtom.values().forEach { specialAtom ->
+					if (specialAtom.heritable)
+					{
+						specialAtom.atom.setAtomProperty(
+							HERITABLE_KEY.atom, trueObject)
+					}
+				}
 			}
 		}
 	}
@@ -460,6 +536,16 @@ open class AtomDescriptor protected constructor (
 		/** The immutable [AtomDescriptor]. */
 		private val immutable = AtomDescriptor(
 			Mutability.IMMUTABLE,
+			TypeTag.ATOM_TAG,
+			ObjectSlots::class.java,
+			IntegerSlots::class.java)
+
+		/**
+		 * The shared [AtomDescriptor] used *only* for marking the object prior
+		 * to adding it to the marking queue.
+		 */
+		private val transientShared = AtomDescriptor(
+			Mutability.SHARED,
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)

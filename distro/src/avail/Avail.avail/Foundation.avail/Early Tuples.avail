@@ -33,9 +33,10 @@
 Module "Early Tuples"
 Versions
 	"Avail-1.6.1"
+Extends
+	"Collections" = ("_[_]else_", "_is collection", "_is collection type")
 Uses
 	"Bootstrap",
-	"Collections" = ("_[_]else_"),
 	"Definers",
 	"Early Conditionals",
 	"Early Control Structures",
@@ -68,6 +69,9 @@ Names
 	"Require:_[_.._]is ever valid",
 	"tuple type of_[_.._]"
 Body
+
+Method "_is collection" is [x : tuple | true];
+Method "_is collection type" is [x : tuple meta | true];
 
 /**
  * @method "_'s⁇default type"
@@ -138,8 +142,8 @@ Semantic restriction "_[_]else_" is
 		else
 		[
 			min ::= ⌊index⌋ max 1;
-			max ::= cast ⌈index⌉ min (|tupleType's leading types| + 1)
-				into [t : whole number | t];
+			max ::= ⌈index⌉ min (min max (|tupleType's leading types| + 1))
+				?→ whole number;
 			union ::= ∪ tupleType[min..max];
 			if index ⊆ [1..⌊tupleType⌋] then [union]
 			else [union ∪ else's return type]
@@ -245,7 +249,7 @@ Macro "_++_" is
 	left : expression phrase ⇒ tuple,
 	right : expression phrase ⇒ tuple
 |
-	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -366,7 +370,7 @@ Macro "_++_" is
 					folded ::= ‘concatenate
 						<lit's token's value, right's token's value>’;
 					Exit body with
-						bootstrap restricted send $"concatenate_"
+						restricted send $"concatenate_"
 							with concatenate <unfolded, <folded>> → list phrase
 							: tuple
 				]
@@ -375,7 +379,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -422,7 +426,7 @@ Macro "_++_" is
 					unfolded ::= cast args[2 .. upper] into
 						[t : <<>, expression phrase ⇒ tuple…|whole number> | t];
 					Exit body with
-						bootstrap restricted send $"concatenate_"
+						restricted send $"concatenate_"
 							with concatenate <<folded>, unfolded> → list phrase
 							: tuple
 				]
@@ -431,7 +435,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -522,7 +526,7 @@ Macro "_++_" is
 						|
 							t
 						];
-					Exit body with bootstrap restricted send $"concatenate_"
+					Exit body with restricted send $"concatenate_"
 						with
 							(concatenate <leftUnfolded, folded, rightUnfolded>)
 								→ list phrase
@@ -533,7 +537,7 @@ Macro "_++_" is
 		]
 		else [/* Fall through. */];
 	];
-	bootstrap restricted send $"concatenate_" with «<«<left, right>»>» : tuple
+	restricted send $"concatenate_" with «<«<left, right>»>» : tuple
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -642,7 +646,8 @@ Public method "Require:_[_.._]is ever valid" is
 			++ “⌈sliceStart⌉”
 			++ ")"
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Construct and answer the tuple type that represents the specified tuple
@@ -1028,8 +1033,7 @@ Semantic restriction "_→map" is
 	[
 		index : natural number
 	|
-		bindingType ::= /*cast*/ tupleType[index]
-			/*into [ t : <<>, any…|[2..2]>'s type | t ]*/;
+		bindingType ::= tupleType[index];
 		keyType := cast eject keyType ∪ bindingType[1]
 			into [ t : any meta | t ];
 		valueType := cast eject valueType ∪ bindingType[2]
@@ -1269,7 +1273,8 @@ Public method "_↑++=_" is
 	t : tuple
 |
 	var ?= eject var ++ t;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Semantic restriction "_↑++=_" is
 [
@@ -1335,12 +1340,12 @@ Macro "_↑++=_" is
 	varPhrase : variable reference phrase ⇒ read tuple/write ⊥,
 	elemPhrase : expression phrase ⇒ <<>, any…|[1..1]>
 |
-	bootstrap restricted send $"_`?=_" with
+	restricted send $"_`?=_" with
 	«<
 		varPhrase,
-		bootstrap restricted send $"_with_appended" with
+		restricted send $"_with_appended" with
 		«<
-			bootstrap restricted send $"eject_↑" with «<varPhrase>» : any,
+			restricted send $"eject_↑" with «<varPhrase>» : any,
 			cast elemPhrase into
 			[
 				lit : literal phrase ⇒ <<>, any…|[1..1]>
@@ -1349,7 +1354,7 @@ Macro "_↑++=_" is
 			]
 			else
 			[
-				bootstrap restricted send $"_[_]" with «<elemPhrase, ‘1’>» : any
+				restricted send $"_[_]" with «<elemPhrase, ‘1’>» : any
 			]
 		>» : tuple
 	>» : ⊤

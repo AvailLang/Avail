@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 5/9/22, 11:29 PM
+ * * Last Generated: 12/24/22, 12:55 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -44,7 +44,7 @@ Versions
 Extends
 Uses
 Names
-	"Primitive_is_",
+	"Primitive_is_«styled by_»",
 	"special object_",
 	"Special object_is_;",
 	"whitespace lexer",
@@ -66,20 +66,20 @@ Names
 	"…:_†;",
 	"…::=_;",
 	"…:_†:=_;",
-	"…:=_;",
+	"…:=§_;",
 	"…",
 	"_!;",
 	"(_::_†)",
 	"…#"
 Pragma
-	"check=version=Avail-1.6.0",
+	"check=version=Avail-1.6.1",
 	"lexer=BootstrapLexerWhitespaceFilter,BootstrapLexerWhitespaceBody=whitespace lexer",
 	"lexer=BootstrapLexerSlashStarCommentFilter,BootstrapLexerSlashStarCommentBody=comment lexer",
 	"lexer=BootstrapLexerStringFilter,BootstrapLexerStringBody=string token lexer",
 	"lexer=BootstrapLexerWholeNumberFilter,BootstrapLexerWholeNumberBody=whole number lexer",
 	"lexer=BootstrapLexerKeywordFilter,BootstrapLexerKeywordBody=keyword lexer",
 	"lexer=BootstrapLexerOperatorFilter,BootstrapLexerOperatorBody=operator lexer",
-	"method=SimpleMethodDeclaration=Primitive_is_",
+	"method=SimpleMethodDeclaration=Primitive_is_«styled by_»",
 	"macro=SpecialObject=special object_",
 	"macro=BootstrapDefineSpecialObjectMacro=Special object_is_;",
 	"macro=\
@@ -102,7 +102,9 @@ Pragma
 	"macro=BootstrapVariableDeclarationMacro=…:_†;",
 	"macro=BootstrapConstantDeclarationMacro=…::=_;",
 	"macro=BootstrapInitializingVariableDeclarationMacro=…:_†:=_;",
-	"macro=BootstrapAssignmentStatementMacro=…:=_;",
+	"macro=\
+		\|BootstrapAssignmentStatementCheckMacro,\
+		\|BootstrapAssignmentStatementMacro=…:=§_;",
 	"macro=BootstrapVariableUseMacro=…",
 	"macro=BootstrapSendAsStatementMacro=_!;",
 	"macro=BootstrapSuperCastMacro=(_::_†)",
@@ -227,7 +229,7 @@ Body
  * Construct and answer an {@type "assignment phrase"} (wrapped inside an
  * {@type "expression-as-statement phrase"}.
  *
- * @macro "…:=_;"
+ * @macro "…:=§_;"
  * @param "varNamePhrase" "literal phrase⇒token"
  *        A {@type "literal phrase"} that answers the {@type "token"}
  *        corresponding to the identifier of the target {@type "variable"}.

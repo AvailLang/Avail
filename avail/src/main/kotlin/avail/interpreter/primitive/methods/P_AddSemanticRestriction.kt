@@ -49,8 +49,8 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
@@ -62,6 +62,7 @@ import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive:** Add a type restriction function.
@@ -78,7 +79,7 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 		val tupleType = functionType.argsTupleType
 		val loader = interpreter.availLoaderOrNull()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		if (!loader.phase().isExecuting)
+		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
@@ -130,4 +131,6 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 				E_TYPE_RESTRICTION_MUST_ACCEPT_ONLY_TYPES,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS
 			).setUnionCanDestroy(possibleErrors, true))
+
+	override fun bootstrapStyler() = P_BootstrapDefinitionStyler
 }

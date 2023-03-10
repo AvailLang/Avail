@@ -63,10 +63,10 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.SetTypeDescriptor.ObjectSlots
 import avail.descriptor.types.SetTypeDescriptor.ObjectSlots.CONTENT_TYPE
 import avail.descriptor.types.SetTypeDescriptor.ObjectSlots.SIZE_RANGE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -122,17 +122,17 @@ private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		if (self.slot(CONTENT_TYPE).equals(ANY.o)
-			&& self.slot(SIZE_RANGE).equals(wholeNumbers))
+		if (self[CONTENT_TYPE].equals(ANY.o)
+			&& self[SIZE_RANGE].equals(wholeNumbers))
 		{
 			builder.append("set")
 			return
 		}
 		builder.append('{')
-		self.slot(CONTENT_TYPE).printOnAvoidingIndent(
+		self[CONTENT_TYPE].printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 		builder.append('|')
-		val sizeRange: A_Type = self.slot(SIZE_RANGE)
+		val sizeRange: A_Type = self[SIZE_RANGE]
 		if (sizeRange.equals(wholeNumbers))
 		{
 			builder.append('}')
@@ -150,10 +150,10 @@ private constructor(
 	}
 
 	override fun o_ContentType(self: AvailObject): A_Type =
-		self.slot(CONTENT_TYPE)
+		self[CONTENT_TYPE]
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self.slot(SIZE_RANGE)
+		self[SIZE_RANGE]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsSetType(self)
@@ -161,8 +161,8 @@ private constructor(
 	// Set types are equal iff both their sizeRange and contentType match.
 	override fun o_EqualsSetType(self: AvailObject, aSetType: A_Type): Boolean =
 		if (self.sameAddressAs(aSetType)) true
-		else self.slot(SIZE_RANGE).equals(aSetType.sizeRange)
-			&& self.slot(CONTENT_TYPE)
+		else self[SIZE_RANGE].equals(aSetType.sizeRange)
+			&& self[CONTENT_TYPE]
 				.equals(aSetType.contentType)
 
 	// Answer a 32-bit integer that is always the same for equal objects,
@@ -181,14 +181,14 @@ private constructor(
 		// Set type A is a subtype of B if and only if their size ranges are
 		// covariant and their content types are covariant.
 		val otherType = aSetType as AvailObject
-		return (otherType.slot(SIZE_RANGE).isSubtypeOf(self.slot(SIZE_RANGE))
-			&& otherType.slot(CONTENT_TYPE).isSubtypeOf(
-				self.slot(CONTENT_TYPE)))
+		return (otherType[SIZE_RANGE].isSubtypeOf(self[SIZE_RANGE])
+			&& otherType[CONTENT_TYPE].isSubtypeOf(
+				self[CONTENT_TYPE]))
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		(!self.slot(SIZE_RANGE).lowerBound.equalsInt(0)
-			&& self.slot(CONTENT_TYPE).isVacuousType)
+		(!self[SIZE_RANGE].lowerBound.equalsInt(0)
+			&& self[CONTENT_TYPE].isVacuousType)
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
@@ -252,8 +252,8 @@ private constructor(
 		aSetType: A_Type): A_Type
 	{
 		return setTypeForSizesContentType(
-			self.slot(SIZE_RANGE).typeIntersection(aSetType.sizeRange),
-			self.slot(CONTENT_TYPE).typeIntersection(aSetType.contentType))
+			self[SIZE_RANGE].typeIntersection(aSetType.sizeRange),
+			self[CONTENT_TYPE].typeIntersection(aSetType.contentType))
 	}
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -269,23 +269,13 @@ private constructor(
 		self: AvailObject,
 		aSetType: A_Type): A_Type =
 			setTypeForSizesContentType(
-				self.slot(SIZE_RANGE).typeUnion(aSetType.sizeRange),
-				self.slot(CONTENT_TYPE).typeUnion(aSetType.contentType))
+				self[SIZE_RANGE].typeUnion(aSetType.sizeRange),
+				self[CONTENT_TYPE].typeUnion(aSetType.contentType))
 
 	override fun o_IsSetType(self: AvailObject): Boolean = true
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SET_TYPE
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			// Make the object shared, since there isn't an immutable choice.
-			self.makeShared()
-		}
-		return self
-	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
@@ -293,9 +283,9 @@ private constructor(
 		writer.write("kind")
 		writer.write("set type")
 		writer.write("content type")
-		self.slot(CONTENT_TYPE).writeTo(writer)
+		self[CONTENT_TYPE].writeTo(writer)
 		writer.write("cardinality")
-		self.slot(SIZE_RANGE).writeTo(writer)
+		self[SIZE_RANGE].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -305,16 +295,15 @@ private constructor(
 		writer.write("kind")
 		writer.write("set type")
 		writer.write("content type")
-		self.slot(CONTENT_TYPE).writeSummaryTo(writer)
+		self[CONTENT_TYPE].writeSummaryTo(writer)
 		writer.write("cardinality")
-		self.slot(SIZE_RANGE).writeTo(writer)
+		self[SIZE_RANGE].writeTo(writer)
 		writer.endObject()
 	}
 
 	override fun mutable(): SetTypeDescriptor = mutable
 
-	// There isn't an immutable descriptor, just the shared one.
-	override fun immutable(): SetTypeDescriptor = shared
+	override fun immutable(): SetTypeDescriptor = immutable
 
 	override fun shared(): SetTypeDescriptor = shared
 
@@ -430,6 +419,9 @@ private constructor(
 
 		/** The mutable [SetTypeDescriptor]. */
 		private val mutable = SetTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SetTypeDescriptor]. */
+		private val immutable = SetTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SetTypeDescriptor]. */
 		private val shared = SetTypeDescriptor(Mutability.SHARED)

@@ -39,18 +39,18 @@ Body
 
 Test "FiberResult ok" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "FiberResult fails with fiber-result-unavailable exception" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise fiber-result-unavailable exception;
 
 Test "FiberResult fails with fiber-produced-incorrectly-typed-result exception" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise fiber-produced-incorrectly-typed-result exception;
 

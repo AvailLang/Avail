@@ -39,7 +39,6 @@ import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE
 import avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.MODULE
-import avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.STYLERS
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -47,8 +46,6 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FORWARD_DEFINITION
@@ -96,12 +93,6 @@ class ForwardDefinitionDescriptor private constructor(
 		MODULE,
 
 		/**
-		 * The [A_Set] of [A_Styler]s that have been added to this definition.
-		 */
-		@HideFieldJustForPrinting
-		STYLERS,
-
-		/**
 		 * The [function&#32;type][FunctionTypeDescriptor] for which this
 		 * signature is being specified.
 		 */
@@ -117,9 +108,6 @@ class ForwardDefinitionDescriptor private constructor(
 				assert(
 					DefinitionDescriptor.ObjectSlots.MODULE.ordinal
 						== MODULE.ordinal)
-				assert(
-					DefinitionDescriptor.ObjectSlots.STYLERS.ordinal
-						== STYLERS.ordinal)
 			}
 		}
 	}
@@ -130,21 +118,21 @@ class ForwardDefinitionDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		self.slot(DEFINITION_METHOD)
-			.chooseBundle(self.slot(MODULE))
+		self[DEFINITION_METHOD]
+			.chooseBundle(self[MODULE])
 			.message
 			.printOnAvoidingIndent(builder, recursionMap, indent)
 		builder.append(' ')
-		self.slot(BODY_SIGNATURE).printOnAvoidingIndent(
+		self[BODY_SIGNATURE].printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 	}
 
 	override fun o_BodySignature(self: AvailObject): A_Type =
-		self.slot(BODY_SIGNATURE)
+		self[BODY_SIGNATURE]
 
 	override fun o_Hash(self: AvailObject) = combine3(
-		self.slot(BODY_SIGNATURE).hash(),
-		self.slot(DEFINITION_METHOD).hash(),
+		self[BODY_SIGNATURE].hash(),
+		self[DEFINITION_METHOD].hash(),
 		0x17d95098)
 
 	override fun o_Kind(self: AvailObject): A_Type =
@@ -159,25 +147,25 @@ class ForwardDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("forward definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
+				self[DEFINITION_METHOD].methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
-			at("body signature") { self.slot(BODY_SIGNATURE).writeTo(writer) }
+			at("body signature") { self[BODY_SIGNATURE].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("forward definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
+				self[DEFINITION_METHOD].methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
 			}
 			at("body signature") {
-				self.slot(BODY_SIGNATURE).writeSummaryTo(writer)
+				self[BODY_SIGNATURE].writeSummaryTo(writer)
 			}
 		}
 
@@ -207,10 +195,9 @@ class ForwardDefinitionDescriptor private constructor(
 			definitionMethod: A_BasicObject,
 			definitionModule: A_Module,
 			bodySignature: A_Type
-		): AvailObject = mutable.createShared {
+		): A_Definition = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
-			setSlot(STYLERS, emptySet)
 			setSlot(BODY_SIGNATURE, bodySignature)
 		}
 

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 5/9/22, 11:29 PM
+ * * Last Generated: 12/24/22, 12:55 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -61,12 +61,12 @@ Names
 	/*   2 */ "boolean",
 	/* 129 */ "byte",
 	/*   3 */ "character",
-	/* 167 */ "character type number",
+	/* 168 */ "character type number",
 	/*  38 */ "code point",
-	/* 164 */ "comment",
+	/* 165 */ "comment",
 	/*   9 */ "continuation",
 	/*  10 */ "continuation meta",
-	/* 168 */ "continuation returning top",
+	/* 169 */ "continuation returning top",
 	/*  92 */ "continuation variable",
 	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
@@ -74,7 +74,7 @@ Names
 	/*  12 */ "double",
 	/*  96 */ "empty map",
 	/* 104 */ "empty tuple",
-	/* 160 */ "end of file",
+	/* 161 */ "end of file",
 	/*  24 */ "exception",
 	/* 155 */ "explicit subclassing key",
 	/* 150 */ "expression as statement phrase",
@@ -100,12 +100,12 @@ Names
 	/* 147 */ "int64",
 	/*  17 */ "integer",
 	/*  95 */ "key-value tuple",
-	/* 161 */ "keyword",
+	/* 162 */ "keyword",
 	/*  63 */ "label phrase",
 	/* 158 */ "lexer body function",
 	/* 157 */ "lexer filter function",
 	/*  59 */ "list phrase",
-	/* 162 */ "literal",
+	/* 163 */ "literal",
 	/*  55 */ "literal phrase",
 	/* 116 */ "literal token",
 	/*  58 */ "literal token meta",
@@ -118,19 +118,19 @@ Names
 	/* 153 */ "map from string to atom",
 	/*  19 */ "map meta",
 	/* 156 */ "map variable",
-	/* 174 */ "marker phrase",
+	/* 175 */ "marker phrase",
 	/*  40 */ "message bundle",
 	/*  41 */ "message bundle tree",
 	/*  42 */ "method",
 	/*  46 */ "method definition",
 	/*  20 */ "module",
 	/*  67 */ "module constant phrase",
-	/* 175 */ "module imports tuple",
+	/* 176 */ "module imports tuple",
 	/*  66 */ "module variable phrase",
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
-	/* 169 */ "non-empty string of digits",
+	/* 170 */ "non-empty string of digits",
 	/* 136 */ "nonempty set of atom",
 	/* 135 */ "nonempty set of string",
 	/* 133 */ "nonempty string",
@@ -142,10 +142,12 @@ Names
 	/* 101 */ "nybble",
 	/*  22 */ "object",
 	/*  23 */ "object meta",
-	/* 163 */ "operator",
-	/* 170 */ "optional send phrase and report string",
+	/* 164 */ "operator",
+	/* 171 */ "optional send phrase and report string",
+	/* 179 */ "optionalPhrase",
+	/* 178 */ "optionalStylerFunction",
 	/* 143 */ "parse map key",
-	/* 166 */ "parse rejection level",
+	/* 167 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
 	/* 141 */ "permuted list phrase",
 	/*  50 */ "phrase",
@@ -169,7 +171,7 @@ Names
 	/* 107 */ "semantic restriction function",
 	/*  57 */ "send phrase",
 	/*  51 */ "sequence phrase",
-	/* 176 */ "sequence-as-expression phrase",
+	/* 177 */ "sequence-as-expression phrase",
 	/*  26 */ "set",
 	/*  27 */ "set meta",
 	/* 114 */ "set of atom",
@@ -177,13 +179,15 @@ Names
 	/*  75 */ "set of string",
 	/*  49 */ "stack dump key",
 	/* 148 */ "statement phrase",
+	/* 160 */ "static token indices in name key",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
-	/* 171 */ "styler function",
+	/* 180 */ "string literal phrase",
+	/* 172 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
-	/* 172 */ "token classifiers",
-	/* 173 */ "token tuple",
+	/* 173 */ "token classifiers",
+	/* 174 */ "token tuple",
 	/*  70 */ "true",
 	/*  32 */ "tuple",
 	/*  33 */ "tuple meta",
@@ -212,7 +216,7 @@ Names
 	/*   8 */ "variable meta",
 	/*  56 */ "variable reference phrase",
 	/*  60 */ "variable use phrase",
-	/* 165 */ "whitespace",
+	/* 166 */ "whitespace",
 	/*  36 */ "whole number",
 	/*  98 */ "whole number meta",
 	/* 124 */ "write-only variable",
@@ -2171,6 +2175,18 @@ Special object "lexer body function" is special object 158;
 Special object "static tokens key" is special object 159;
 
 /**
+ * The key within the client data fiber global that holds a tuple of whole,
+ * numbers, corresponding to one-based part indices of the method name, that
+ * contributed to the current macro whose prefix function or body is running.
+ *
+ * @category "Primitives" "Constants"
+ * @method "static token indices in name key"
+ * @type "atom"
+ * @returns "static token indices in name key's type"
+ */
+Special object "static token indices in name key" is special object 160;
+
+/**
  * An atom that designates the end-of-file token type.
  *
  * @category "Primitives" "Constants"
@@ -2178,7 +2194,7 @@ Special object "static tokens key" is special object 159;
  * @type "atom"
  * @returns "end of file's type"
  */
-Special object "end of file" is special object 160;
+Special object "end of file" is special object 161;
 
 /**
  * An atom that designates the keyword token type.
@@ -2188,7 +2204,7 @@ Special object "end of file" is special object 160;
  * @type "atom"
  * @returns "keyword's type"
  */
-Special object "keyword" is special object 161;
+Special object "keyword" is special object 162;
 
 /**
  * An atom that designates the literal token type.
@@ -2198,7 +2214,7 @@ Special object "keyword" is special object 161;
  * @type "atom"
  * @returns "literal's type"
  */
-Special object "literal" is special object 162;
+Special object "literal" is special object 163;
 
 /**
  * An atom that designates the operator token type.
@@ -2208,7 +2224,7 @@ Special object "literal" is special object 162;
  * @type "atom"
  * @returns "operator's type"
  */
-Special object "operator" is special object 163;
+Special object "operator" is special object 164;
 
 /**
  * An atom that designates the comment token type.
@@ -2218,7 +2234,7 @@ Special object "operator" is special object 163;
  * @type "atom"
  * @returns "comment's type"
  */
-Special object "comment" is special object 164;
+Special object "comment" is special object 165;
 
 /**
  * An atom that designates the whitespace token type.
@@ -2228,7 +2244,7 @@ Special object "comment" is special object 164;
  * @type "atom"
  * @returns "whitespace's type"
  */
-Special object "whitespace" is special object 165;
+Special object "whitespace" is special object 166;
 
 /**
  * The type for parse rejection levels, currently [1..4].
@@ -2237,7 +2253,7 @@ Special object "whitespace" is special object 165;
  * @type "[1..4]"
  * @alias "parse rejection level"
  */
-Special object "parse rejection level" is special object 166;
+Special object "parse rejection level" is special object 167;
 
 /**
  * An integer indicating the nature of some Unicode code point.  For details,
@@ -2247,7 +2263,7 @@ Special object "parse rejection level" is special object 166;
  * @type "[0..31]"
  * @alias "character type number"
  */
-Special object "character type number" is special object 167;
+Special object "character type number" is special object 168;
 
 /**
  * The continuation type for continuations based on ⊤-valued functions.
@@ -2256,7 +2272,7 @@ Special object "character type number" is special object 167;
  * @type "$[…]→⊤"
  * @alias "continuation returning top"
  */
-Special object "continuation returning top" is special object 168;
+Special object "continuation returning top" is special object 169;
 
 /**
  * The type for non-empty strings composed entirely of digit characters.
@@ -2265,7 +2281,7 @@ Special object "continuation returning top" is special object 168;
  * @type "¢[0-9]ᵀ+"
  * @alias "non-empty string of digits"
  */
-Special object "non-empty string of digits" is special object 169;
+Special object "non-empty string of digits" is special object 170;
 
 /**
  * The 2-element tuple type where the first element is itself a tuple of zero
@@ -2276,7 +2292,7 @@ Special object "non-empty string of digits" is special object 169;
  * @type "<(send phrase→⊤)?, string…|2>"
  * @alias "optional send phrase and report string"
  */
-Special object "optional send phrase and report string" is special object 170;
+Special object "optional send phrase and report string" is special object 171;
 
 /**
  * The type for styler functions.  These are passed:
@@ -2297,7 +2313,7 @@ Special object "optional send phrase and report string" is special object 170;
  * @type "[send phrase, ↑{send phrase→style|}, ↑{token→style|}]→⊤"
  * @alias "styler function"
  */
-Special object "styler function" is special object 171;
+Special object "styler function" is special object 172;
 
 /**
  * The enumeration of atoms that specify a token's type.
@@ -2305,7 +2321,7 @@ Special object "styler function" is special object 171;
  * @category "Primitives" "Types"
  * @type "token classifiers"
  */
-Special object "token classifiers" is special object 172;
+Special object "token classifiers" is special object 173;
 
 /**
  * The type of a tuple containing zero or more tokens.
@@ -2314,7 +2330,7 @@ Special object "token classifiers" is special object 172;
  * @type "{1}"
  * @alias "token tuple"
  */
-Special object "token tuple" is special object 173;
+Special object "token tuple" is special object 174;
 
 /**
  * The marker phrase type, instances of which are generally produced by an
@@ -2326,7 +2342,7 @@ Special object "token tuple" is special object 173;
  * @type "marker phrase⇒⊤"
  * @alias "marker phrase"
  */
-Special object "marker phrase" is special object 174;
+Special object "marker phrase" is special object 175;
 
 /**
  * The type for the module imports list for the CreateAnonymousModule
@@ -2336,7 +2352,7 @@ Special object "marker phrase" is special object 174;
  * @type "{1}"
  * @alias "module imports tuple"
  */
-Special object "module imports tuple" is special object 175;
+Special object "module imports tuple" is special object 176;
 
 /**
  * The most general sequence-as-expression phrase type.
@@ -2345,5 +2361,32 @@ Special object "module imports tuple" is special object 175;
  * @type "{1}"
  * @alias "sequence-as-expression phrase"
  */
-Special object "sequence-as-expression phrase" is special object 176;
+Special object "sequence-as-expression phrase" is special object 177;
+
+/**
+ * A tuple with zero or one occurrences of a styler function.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "optionalStylerFunction"
+ */
+Special object "optionalStylerFunction" is special object 178;
+
+/**
+ * A tuple with either zero or one phrase.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "optionalPhrase"
+ */
+Special object "optionalPhrase" is special object 179;
+
+/**
+ * A literal phrase on a string literal.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "string literal phrase"
+ */
+Special object "string literal phrase" is special object 180;
 

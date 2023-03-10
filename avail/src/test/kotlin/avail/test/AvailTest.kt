@@ -37,6 +37,7 @@ import avail.builder.RenamesFileParserException
 import avail.builder.UnresolvedDependencyException
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.representation.AvailObject
+import avail.test.AvailRuntimeTestHelper.Companion.rootDirectory
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -217,9 +218,7 @@ class AvailTest
 		@JvmStatic
 		fun eachShouldFailTest(): List<String>
 		{
-			val projectDirectory = System.getProperty("user.dir")
-				.replace("/avail", "")
-			val dir = File(projectDirectory)
+			val dir = File(rootDirectory)
 				.resolve("distro/src/builder-tests/Invalid Tests.avail")
 			return dir.list()!!.mapNotNull {
 				if (it == "Invalid Tests.avail" || !it.endsWith(".avail"))
@@ -241,8 +240,7 @@ class AvailTest
 		@JvmStatic
 		fun eachShouldPassTest(): List<String>
 		{
-			val projectDirectory = System.getProperty("user.dir")
-				.replace("/avail", "")
+			val projectDirectory = rootDirectory
 			val dir = File(projectDirectory)
 				.resolve("distro/src/builder-tests/Valid Tests.avail")
 			return dir.list()!!.mapNotNull {

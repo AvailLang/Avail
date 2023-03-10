@@ -42,10 +42,12 @@ import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
 import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleElementsInRangeAreInstancesOf
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
@@ -152,18 +154,18 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val startIndex = self.slot(START_INDEX)
-		val originalSize = self.slot(SIZE)
+		val startIndex = self[START_INDEX]
+		val originalSize = self[SIZE]
 		val endIndex = startIndex + originalSize - 1
-		val basisTuple = self.slot(BASIS_TUPLE)
+		val basisTuple = self[BASIS_TUPLE]
 		if (endIndex < basisTuple.tupleSize
 			&& basisTuple.tupleAt(endIndex).equals(newElement))
 		{
 			// We merely need to increase the range.
 			if (canDestroy && isMutable)
 			{
-				self.setSlot(SIZE, originalSize + 1)
-				self.setSlot(HASH_OR_ZERO, 0)
+				self[SIZE] = originalSize + 1
+				self[HASH_OR_ZERO] = 0 
 				return self
 			}
 			basisTuple.makeImmutable()
@@ -232,8 +234,8 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		{
 			return true
 		}
-		val offset = self.slot(START_INDEX)
-		if (!self.slot(BASIS_TUPLE).compareFromToWithStartingAt(
+		val offset = self[START_INDEX]
+		if (!self[BASIS_TUPLE].compareFromToWithStartingAt(
 				startIndex1 + offset - 1,
 				endIndex1 + offset - 1,
 				anotherObject,
@@ -268,11 +270,11 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		start: Int,
 		end: Int): Int
 	{
-		val basis: A_Tuple = self.slot(BASIS_TUPLE)
-		val size = self.slot(SIZE)
+		val basis: A_Tuple = self[BASIS_TUPLE]
+		val size = self[SIZE]
 		assert(start in 1..size)
 		assert(end in start - 1..size)
-		val adjustment = self.slot(START_INDEX) - 1
+		val adjustment = self[START_INDEX] - 1
 		return basis.computeHashFromTo(start + adjustment, end + adjustment)
 	}
 
@@ -320,22 +322,22 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		end: Int,
 		canDestroy: Boolean): A_Tuple
 	{
-		val oldSize = self.slot(SIZE)
+		val oldSize = self[SIZE]
 		assert(start in 1..end + 1 && end <= oldSize)
 		val newSize = end - start + 1
 		if (newSize == 0)
 		{
 			return emptyTuple
 		}
-		val oldStartIndex = self.slot(START_INDEX)
+		val oldStartIndex = self[START_INDEX]
 		if (canDestroy && isMutable && newSize >= minSize)
 		{
 			// Modify the bounds in place.
-			self.setSlot(START_INDEX, oldStartIndex + start - 1)
-			self.setSlot(SIZE, newSize)
+			self[START_INDEX] = oldStartIndex + start - 1
+			self[SIZE] = newSize
 			return self
 		}
-		val basis = self.slot(BASIS_TUPLE)
+		val basis = self[BASIS_TUPLE]
 		if (!canDestroy)
 		{
 			basis.makeImmutable()
@@ -361,9 +363,9 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			self.hash() != aTuple.hash() -> return false
 			else ->
 			{
-				val startIndex = self.slot(START_INDEX)
-				val size = self.slot(SIZE)
-				return self.slot(BASIS_TUPLE)
+				val startIndex = self[START_INDEX]
+				val size = self[SIZE]
+				return self[BASIS_TUPLE]
 					.compareFromToWithStartingAt(
 						startIndex,
 						startIndex + size - 1,
@@ -373,17 +375,45 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		}
 	}
 
+	override fun o_FirstIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		val size = self[SIZE]
+		assert(startIndex in 1..size)
+		assert(endIndex in 1..size)
+		val adjustment = self[START_INDEX] - 1
+		return self[BASIS_TUPLE].firstIndexOf(
+			value, startIndex + adjustment, endIndex + adjustment)
+	}
+
+	override fun o_LastIndexOf(
+		self: AvailObject,
+		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		val size = self[SIZE]
+		assert(startIndex in 1..size)
+		assert(endIndex in 1..size)
+		val adjustment = self[START_INDEX] - 1
+		return self[BASIS_TUPLE].firstIndexOf(
+			value, startIndex + adjustment, endIndex + adjustment)
+	}
+
 	override fun o_TransferIntoByteBuffer(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int,
 		outputByteBuffer: ByteBuffer)
 	{
-		val basis: A_Tuple = self.slot(BASIS_TUPLE)
-		val size = self.slot(SIZE)
+		val basis: A_Tuple = self[BASIS_TUPLE]
+		val size = self[SIZE]
 		assert(startIndex in 1..size)
 		assert(endIndex in startIndex - 1..size)
-		val adjustment = self.slot(START_INDEX) - 1
+		val adjustment = self[START_INDEX] - 1
 		basis.transferIntoByteBuffer(
 			startIndex + adjustment,
 			endIndex + adjustment,
@@ -395,9 +425,9 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 	 */
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
-		assert(index in 1..self.slot(SIZE))
-		val adjustedIndex = index + self.slot(START_INDEX) - 1
-		return self.slot(BASIS_TUPLE).tupleAt(adjustedIndex)
+		assert(index in 1..self[SIZE])
+		val adjustedIndex = index + self[START_INDEX] - 1
+		return self[BASIS_TUPLE].tupleAt(adjustedIndex)
 	}
 
 	/**
@@ -429,10 +459,10 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		// if it's mutable it might be worthwhile.  However, this could still be
 		// expensive if tupleAtPuttingCanDestroy has to transform the
 		// representation into something broader (e.g., nybbles -> objects).
-		val tupleSize = self.slot(SIZE)
+		val tupleSize = self[SIZE]
 		assert(index in 1 .. tupleSize)
-		val adjustment = self.slot(START_INDEX) - 1
-		val basis = self.slot(BASIS_TUPLE).traversed()
+		val adjustment = self[START_INDEX] - 1
+		val basis = self[BASIS_TUPLE].traversed()
 		if (!canDestroy)
 		{
 			basis.makeImmutable()
@@ -468,30 +498,28 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		return leftPart.concatenateWith(rightPart, true)
 	}
 
+	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int =
+		self[BASIS_TUPLE]
+			.tupleCodePointAt(index + self[START_INDEX] - 1)
+
 	override fun o_TupleElementsInRangeAreInstancesOf(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type): Boolean
 	{
-		val offset = self.slot(START_INDEX) - 1
-		return self.slot(BASIS_TUPLE).tupleElementsInRangeAreInstancesOf(
+		val offset = self[START_INDEX] - 1
+		return self[BASIS_TUPLE].tupleElementsInRangeAreInstancesOf(
 			startIndex + offset, endIndex + offset, type)
 	}
 
-	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
-	{
-		assert(index in 1..self.slot(SIZE))
-		val adjustedIndex = index + self.slot(START_INDEX) - 1
-		return self.slot(BASIS_TUPLE).tupleIntAt(adjustedIndex)
-	}
+	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
+		self[BASIS_TUPLE]
+			.tupleIntAt(index + self[START_INDEX] - 1)
 
-	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
-	{
-		assert(index in 1..self.slot(SIZE))
-		val adjustedIndex = index + self.slot(START_INDEX) - 1
-		return self.slot(BASIS_TUPLE).tupleLongAt(adjustedIndex)
-	}
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
+		self[BASIS_TUPLE]
+			.tupleLongAt(index + self[START_INDEX] - 1)
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
@@ -501,11 +529,11 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		return mutable.create {
 			setSlot(
 				BASIS_TUPLE,
-				self.slot(BASIS_TUPLE).tupleReverse())
+				self[BASIS_TUPLE].tupleReverse())
 			setSlot(
 				START_INDEX,
-				self.slot(BASIS_TUPLE).tupleSize + 2 -
-					(self.tupleSize + self.slot(START_INDEX)))
+				self[BASIS_TUPLE].tupleSize + 2 -
+					(self.tupleSize + self[START_INDEX]))
 			setSlot(SIZE, self.tupleSize)
 		}
 	}
@@ -513,7 +541,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 	/**
 	 * Answer the number of elements in the tuple as an int.
 	 */
-	override fun o_TupleSize(self: AvailObject): Int = self.slot(SIZE)
+	override fun o_TupleSize(self: AvailObject): Int = self[SIZE]
 
 	override fun mutable(): SubrangeTupleDescriptor = mutable
 

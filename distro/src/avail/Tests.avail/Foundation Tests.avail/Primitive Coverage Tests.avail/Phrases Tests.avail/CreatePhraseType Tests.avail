@@ -39,12 +39,12 @@ Body
 
 Test "CreatePhraseType ok" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "CreatePhraseType fails with bad-yield-type exception" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise bad-yield-type exception;
 

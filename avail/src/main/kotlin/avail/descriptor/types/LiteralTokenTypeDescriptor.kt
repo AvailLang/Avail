@@ -113,17 +113,9 @@ private constructor(
 			self.literalType.equals(aLiteralTokenType.literalType)
 
 	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.slot(LITERAL_TYPE).hash(), -0xb800e4f)
+		combine2(self[LITERAL_TYPE].hash(), -0xb800e4f)
 
 	override fun o_IsLiteralTokenType(self: AvailObject): Boolean = true
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// There is no immutable descriptor, so share the object.
-			self.makeShared()
-		}
-		else self
 
 	// Check if object (a type) is a subtype of aType (should also be a
 	// type).
@@ -136,10 +128,10 @@ private constructor(
 	): Boolean = aLiteralTokenType.literalType.isSubtypeOf(self.literalType)
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		self.slot(LITERAL_TYPE).isVacuousType
+		self[LITERAL_TYPE].isVacuousType
 
 	override fun o_LiteralType(self: AvailObject): A_Type =
-		self.slot(LITERAL_TYPE)
+		self[LITERAL_TYPE]
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.LITERAL_TOKEN_TYPE
@@ -204,14 +196,13 @@ private constructor(
 		writer.write("kind")
 		writer.write("literal token type")
 		writer.write("literal type")
-		self.slot(LITERAL_TYPE).writeTo(writer)
+		self[LITERAL_TYPE].writeTo(writer)
 		writer.endObject()
 	}
 
 	override fun mutable(): LiteralTokenTypeDescriptor = mutable
 
-	// There is no immutable variant.
-	override fun immutable(): LiteralTokenTypeDescriptor = shared
+	override fun immutable(): LiteralTokenTypeDescriptor = immutable
 
 	override fun shared(): LiteralTokenTypeDescriptor = shared
 
@@ -233,6 +224,9 @@ private constructor(
 
 		/** The mutable [LiteralTokenTypeDescriptor]. */
 		private val mutable = LiteralTokenTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [LiteralTokenTypeDescriptor]. */
+		private val immutable = LiteralTokenTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [LiteralTokenTypeDescriptor]. */
 		private val shared = LiteralTokenTypeDescriptor(Mutability.SHARED)

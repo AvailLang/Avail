@@ -81,10 +81,12 @@ import java.util.EnumSet
  *   The array of [L2Operand]s on which this instruction operates.  These must
  *   agree with the operation's array of [L2NamedOperandType]s.
  */
-class L2Instruction constructor(
+class L2Instruction
+constructor(
 	private var basicBlock: L2BasicBlock?,
 	val operation: L2Operation,
-	vararg theOperands: L2Operand)
+	vararg theOperands: L2Operand
+): L2AbstractInstruction()
 {
 	/**
 	 * The position of this instruction within its array of instructions.

@@ -39,7 +39,6 @@ import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
-import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
@@ -53,10 +52,6 @@ import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import avail.descriptor.module.A_Module
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.objects.ObjectDescriptor.Companion.createUninitializedObject
-import avail.descriptor.objects.ObjectDescriptor.Companion.setField
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
@@ -84,16 +79,15 @@ import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -105,31 +99,22 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.typeUnionOfObjectType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
-import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
-import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.ifZero
+import avail.utility.safeWrite
 import org.availlang.json.JSONWriter
-import java.lang.ref.WeakReference
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
 
 /**
  * [ObjectTypeDescriptor] represents an Avail object type. An object type
@@ -248,7 +233,7 @@ class ObjectTypeDescriptor internal constructor(
 						self,
 						DUMMY_DEBUGGER_SLOT,
 						-1,
-						self.slot(FIELD_TYPES_, index),
+						self[FIELD_TYPES_, index],
 						slotName = "FIELD TYPE ${fieldKey.atomName}"))
 			}
 		}
@@ -273,25 +258,28 @@ class ObjectTypeDescriptor internal constructor(
 		anObjectType: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObjectType)) return true
-		val otherVariant = anObjectType.objectTypeVariant
-		if (variant !== otherVariant) return false
+		if (variant !== anObjectType.objectTypeVariant) return false
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
-		var myHash = self.slot(HASH_OR_ZERO)
-		var otherHash = anObjectType.slot(HASH_OR_ZERO)
-		when {
+		var myHash = self[HASH_OR_ZERO]
+		var otherHash = anObjectType[HASH_OR_ZERO]
+		when
+		{
 			myHash != 0 && otherHash == 0 -> otherHash = anObjectType.hash()
 			otherHash != 0 && myHash == 0 -> myHash = self.hash()
 		}
+		if (myHash != otherHash) return false
 		// Hashes are equal.  Compare field types, which must be in
 		// corresponding positions because we share the same variant.
-		when {
-			myHash != otherHash -> return false
-			(1..self.variableObjectSlotsCount()).any {
-				!self.slot(FIELD_TYPES_, it).equals(
-					anObjectType.slot(FIELD_TYPES_, it))
-			} -> return false
+		for (i in 1..self.variableObjectSlotsCount())
+		{
+			if (!self[FIELD_TYPES_, i].equals(
+					anObjectType[FIELD_TYPES_, i]))
+				return false
+		}
+		when
+		{
 			!isShared -> self.becomeIndirectionTo(anObjectType)
 			!anObjectType.descriptor().isShared ->
 				anObjectType.becomeIndirectionTo(self)
@@ -303,11 +291,11 @@ class ObjectTypeDescriptor internal constructor(
 		// Fails with NullPointerException if key is not found.
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			0 -> instanceType(field)
-			else -> self.slot(FIELD_TYPES_, slotIndex!!)
+			else -> self[FIELD_TYPES_, slotIndex!!]
 		}
 
 	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
-		self.slot(FIELD_TYPES_, index)
+		self[FIELD_TYPES_, index]
 
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject,
@@ -316,7 +304,7 @@ class ObjectTypeDescriptor internal constructor(
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			null -> null
 			0 -> instanceType(field)
-			else -> self.slot(FIELD_TYPES_, slotIndex)
+			else -> self[FIELD_TYPES_, slotIndex]
 		}
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map
@@ -327,7 +315,7 @@ class ObjectTypeDescriptor internal constructor(
 			map.mapAtPuttingCanDestroy(
 				field,
 				if (slotIndex == 0) instanceType(field)
-				else self.slot(FIELD_TYPES_, slotIndex),
+				else self[FIELD_TYPES_, slotIndex],
 				true)
 		}
 	}
@@ -338,18 +326,18 @@ class ObjectTypeDescriptor internal constructor(
 		return generateObjectTupleFrom(variant.fieldToSlotIndex.size) {
 			val (field, slotIndex) = fieldIterator.next()
 			if (slotIndex == 0) tuple(field, instanceType(field))
-			else tuple(field, self.slot(FIELD_TYPES_, slotIndex))
+			else tuple(field, self[FIELD_TYPES_, slotIndex])
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
 	override fun o_Hash(self: AvailObject) =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			// Don't lock if we're shared.  Multiple simultaneous
 			// computations of *the same* value are benign races.
 			(1..self.variableObjectSlotsCount())
 				.fold(combine2(variant.variantId, -0x1ca9e0ea)) { h, i ->
-					combine3(h, self.slot(FIELD_TYPES_, i).hash(), 0x60727dac)
-				}.also { self.setSlot(HASH_OR_ZERO, it) }
+					combine3(h, self[FIELD_TYPES_, i].hash(), 0x60727dac)
+				}.also { self[HASH_OR_ZERO] = it }
 		}
 
 	override fun o_HasObjectInstance(
@@ -362,7 +350,7 @@ class ObjectTypeDescriptor internal constructor(
 			// in lock-step doing instance checks.
 			return (1..variant.realSlotCount).all {
 				ObjectDescriptor.getField(potentialInstance, it)
-					.isInstanceOf(self.slot(FIELD_TYPES_, it))
+					.isInstanceOf(self[FIELD_TYPES_, it])
 			}
 		}
 		// The variants disagree.  For each field type in this object type,
@@ -379,7 +367,7 @@ class ObjectTypeDescriptor internal constructor(
 					assert(instanceSlotIndex != 0)
 					val fieldValue: A_BasicObject = ObjectDescriptor.getField(
 						potentialInstance, instanceSlotIndex)
-					fieldValue.isInstanceOf(self.slot(FIELD_TYPES_, slotIndex))
+					fieldValue.isInstanceOf(self[FIELD_TYPES_, slotIndex])
 				}
 			}
 		}
@@ -398,8 +386,8 @@ class ObjectTypeDescriptor internal constructor(
 			// The potential subtype and I share a variant, so blast through the
 			// fields in lock-step doing subtype checks.
 			return (1..variant.realSlotCount).all {
-				val subtypeFieldType = anObjectType.slot(FIELD_TYPES_, it)
-				val myFieldType = self.slot(FIELD_TYPES_, it)
+				val subtypeFieldType = anObjectType[FIELD_TYPES_, it]
+				val myFieldType = self[FIELD_TYPES_, it]
 				subtypeFieldType.isSubtypeOf(myFieldType)
 			}
 		}
@@ -424,9 +412,9 @@ class ObjectTypeDescriptor internal constructor(
 						?: return false
 					assert(subtypeSlotIndex != 0)
 					val subtypeFieldType =
-						anObjectType.slot(FIELD_TYPES_, subtypeSlotIndex)
+						anObjectType[FIELD_TYPES_, subtypeSlotIndex]
 					val supertypeFieldType =
-						self.slot(FIELD_TYPES_, supertypeSlotIndex)
+						self[FIELD_TYPES_, supertypeSlotIndex]
 					subtypeFieldType.isSubtypeOf(supertypeFieldType)
 				}
 			}
@@ -435,38 +423,40 @@ class ObjectTypeDescriptor internal constructor(
 
 	override fun o_IsVacuousType(self: AvailObject) =
 		(1..self.variableObjectSlotsCount()).any {
-			self.slot(FIELD_TYPES_, it).isVacuousType
+			self[FIELD_TYPES_, it].isVacuousType
 		}
 
-	override fun o_MakeShared(self: AvailObject): AvailObject
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		if (isShared) return self
-		self.setDescriptor(variant.sharedObjectTypeDescriptor)
-		self.makeSubobjectsShared()
-		var canonical: AvailObject?
-		do
-		{
-			canonical = synchronized(sharedCanonicalTypes) {
-				sharedCanonicalTypes.getOrPut(self) {
-					// Self was made shared above, but has not been made visible
-					// to other fibers yet.  Clobber it into an indirection
-					WeakReference(self)
-				}.get()
+		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		fixups.add {
+			var canonical: AvailObject?
+			do
+			{
+				canonical = synchronized(sharedCanonicalTypes) {
+					sharedCanonicalTypes.getOrPut(self) {
+						WeakObjectTypeReference(self)
+					}.get()
+				}
+				// An older weak reference might have been found, then cleared
+				// by the JVM.  Just try again until we're successful (and
+				// therefore have a strong reference that prevents it from
+				// dissolving).
 			}
-			// An older soft reference might have been found, then cleared by
-			// the JVM.  Just try again until we're successful (and therefore
-			// have a strong reference that prevents it from dissolving).
+			while (canonical === null)
+			if (!canonical.sameAddressAs(self))
+			{
+				// Indirect self to be the canonical value.  This is safe
+				// because, even though self is shared now, no other thread has
+				// seen it.
+				self.setDescriptor(self.descriptor().mutable())
+				self.becomeIndirectionTo(canonical)
+				self.setDescriptor(self.descriptor().shared())
+			}
 		}
-		while (canonical === null)
-
-		if (canonical.sameAddressAs(self)) return canonical
-		// This newly shared instance was *not* the one in the map.
-		// Therefore, no other fiber has seen it yet, so clobber it into an
-		// indirection.
-		self.setDescriptor(self.descriptor().mutable())
-		self.becomeIndirectionTo(canonical)
-		self.makeShared()
-		return canonical
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String
@@ -477,8 +467,7 @@ class ObjectTypeDescriptor internal constructor(
 			{
 				0 -> append("object")
 				else -> append(
-					names.map(AvailObject::asNativeString)
-						.sorted()
+					names.sortedBy { it.asNativeString() }
 						.joinToString(" ∩ "))
 			}
 		}
@@ -514,8 +503,8 @@ class ObjectTypeDescriptor internal constructor(
 			) {
 				(1..variant.realSlotCount).forEach {
 					val fieldIntersection =
-						self.slot(FIELD_TYPES_, it).typeIntersection(
-							anObjectType.slot(FIELD_TYPES_, it))
+						self[FIELD_TYPES_, it].typeIntersection(
+							anObjectType[FIELD_TYPES_, it])
 					if (fieldIntersection.isBottom) {
 						// Abandon the partially built object type.
 						return bottom
@@ -543,17 +532,14 @@ class ObjectTypeDescriptor internal constructor(
 					val fieldType = when
 					{
 						mySlotIndex === null ->
-							anObjectType.slot(FIELD_TYPES_, otherSlotIndex!!)
+							anObjectType[FIELD_TYPES_, otherSlotIndex!!]
 						otherSlotIndex === null ->
-							self.slot(FIELD_TYPES_, mySlotIndex)
+							self[FIELD_TYPES_, mySlotIndex]
 						else ->
 						{
-							val intersection = self
-								.slot(FIELD_TYPES_, mySlotIndex)
+							val intersection = self[FIELD_TYPES_, mySlotIndex]
 								.typeIntersection(
-									anObjectType.slot(
-										FIELD_TYPES_,
-										otherSlotIndex))
+									anObjectType[FIELD_TYPES_, otherSlotIndex])
 							if (intersection.isBottom) return bottom
 							intersection
 						}
@@ -589,8 +575,8 @@ class ObjectTypeDescriptor internal constructor(
 				variant.realSlotCount
 			) {
 				(1..variant.realSlotCount).forEach {
-					val fieldUnion = self.slot(FIELD_TYPES_, it).typeUnion(
-						anObjectType.slot(FIELD_TYPES_, it))
+					val fieldUnion = self[FIELD_TYPES_, it].typeUnion(
+						anObjectType[FIELD_TYPES_, it])
 					setSlot(FIELD_TYPES_, it, fieldUnion)
 				}
 				setSlot(HASH_OR_ZERO, 0)
@@ -613,10 +599,8 @@ class ObjectTypeDescriptor internal constructor(
 					val mySlotIndex = mySlotMap[field]!!
 					@Suppress("MapGetWithNotNullAssertionOperator")
 					val otherSlotIndex = otherSlotMap[field]!!
-					val fieldType = self
-						.slot(FIELD_TYPES_, mySlotIndex)
-						.typeUnion(
-							anObjectType.slot(FIELD_TYPES_, otherSlotIndex))
+					val fieldType = self[FIELD_TYPES_, mySlotIndex]
+						.typeUnion(anObjectType[FIELD_TYPES_, otherSlotIndex])
 					setSlot(FIELD_TYPES_, resultSlotIndex, fieldType)
 				}
 			}
@@ -680,15 +664,17 @@ class ObjectTypeDescriptor internal constructor(
 		level = DeprecationLevel.HIDDEN)
 	override fun shared() = variant.sharedObjectTypeDescriptor
 
-	companion object {
+	companion object
+	{
 		/**
 		 * A canonical mapping of all object types that have become shared.
 		 * Without too much runtime cost, this should reduce the memory
-		 * footprint, as well as improve the efficiency of [ObjectDescriptor]'s
-		 * [vettings][ObjectDescriptor.ObjectSlots.TYPE_VETTINGS_CACHE] cache.
+		 * footprint, as well as improve the efficiency of the [VettingsCache],
+		 * stored inside each [ObjectDescriptor] that has been compared against
+		 * a shared object type.
 		 */
 		val sharedCanonicalTypes =
-			WeakHashMap<AvailObject, WeakReference<AvailObject>>()
+			WeakHashMap<AvailObject, WeakObjectTypeReference>()
 
 		/**
 		 * Extract the field type at the specified slot index.
@@ -704,7 +690,7 @@ class ObjectTypeDescriptor internal constructor(
 		fun getFieldType(
 			self: AvailObject,
 			slotIndex: Int
-		): AvailObject = self.slot(FIELD_TYPES_, slotIndex)
+		): AvailObject = self[FIELD_TYPES_, slotIndex]
 
 		/**
 		 * Create an `object type` using the given [A_Map] from [A_Atom]s to
@@ -764,6 +750,9 @@ class ObjectTypeDescriptor internal constructor(
 				setSlot(HASH_OR_ZERO, 0)
 			}
 
+		/** A lock for accessing information about object type names. */
+		private val objectNamesLock = ReentrantReadWriteLock()
+
 		/**
 		 * Assign a name to the specified `object type`.  If the only field key
 		 * [A_Atom]s in the object type are
@@ -788,8 +777,8 @@ class ObjectTypeDescriptor internal constructor(
 			allowSpecialAtomsToHoldName: Boolean
 		) {
 			assert(aString.isString)
-			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
-			synchronized(propertyKey) {
+			objectNamesLock.safeWrite {
+				val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 				var leastNames = Int.MAX_VALUE
 				var keyAtomWithLeastNames: A_Atom? = null
 				var keyAtomNamesMap: A_Map? = null
@@ -841,11 +830,11 @@ class ObjectTypeDescriptor internal constructor(
 			anObjectType: A_Type
 		) {
 			assert(aString.isString)
-			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
-			synchronized(propertyKey) {
+			objectNamesLock.safeWrite {
 				anObjectType.fieldTypeMap.forEach { atom, _ ->
 					if (!atom.isAtomSpecial)
 					{
+						val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
 						if (namesMap.notNil)
 						{
@@ -892,9 +881,9 @@ class ObjectTypeDescriptor internal constructor(
 		fun namesAndBaseTypesForObjectType(
 			anObjectType: A_Type
 		): A_Tuple {
-			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 			var applicable = emptyMap
-			synchronized(propertyKey) {
+			objectNamesLock.read {
+				val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 				anObjectType.fieldTypeMap.forEach { key, _ ->
 					val map: A_Map = key.getAtomProperty(propertyKey)
 					if (map.notNil) {
@@ -1009,131 +998,6 @@ class ObjectTypeDescriptor internal constructor(
 					tuple(tuple(exceptionAtom, instanceType(exceptionAtom))))
 				setNameForType(type, stringFrom("exception"), true)
 				type.makeShared()
-			}
-		}
-
-		/**
-		 * Declarations related to style objects, for styling phrases.
-		 */
-		object Styles
-		{
-			/**
-			 * The [A_Atom] used to indicate that an object is a *style*.  Style
-			 * objects are normally stored separate from the serialized sequence
-			 * of functions to invoke for fast-loading, and also separate from
-			 * the parse phrases corresponding to those functions.
-			 */
-			val subclassAtom =
-				createSpecialAtom("explicit-style").apply {
-					setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
-				}
-
-			/**
-			 * The field of a style object for identifying a semantic style name
-			 * with which to look up a concrete style for rendering a
-			 * subexpression.
-			 */
-			val semanticClassifierAtom = createSpecialAtom("semanticClassifier")
-
-			/**
-			 * The name of the method being invoked at this call site. This is
-			 * used with the [sourceModuleAtom] to ensure modular naming.
-			 */
-			val methodNameAtom = createSpecialAtom("methodName")
-
-			/**
-			 * The fully qualified module name that defined the atom named in
-			 * the [methodNameAtom] field.
-			 */
-			val sourceModuleAtom = createSpecialAtom("sourceModule")
-
-			/**
-			 * The field of a style object for identifying whether this send is
-			 * generated from a macro (true) or was parsed directly as a method
-			 * send (false).
-			 */
-			val generatedAtom = createSpecialAtom("generated")
-
-			/**
-			 * The line number in the [sourceModuleAtom] which acts as the
-			 * target of this call site.  If the call site is an ordinary send,
-			 * this should be the most specific applicable method definition.
-			 * If it was generated from a macro, it should lead to some function
-			 * that was "most responsible" for its definition.
-			 */
-			val lineNumberAtom = createSpecialAtom("lineNumber")
-
-			/**
-			 * The type for abstract code styles.
-			 */
-			val styleType: A_Type = run {
-				val type: A_Type = objectTypeFromTuple(
-					tupleFromArray(
-						tuple(subclassAtom, instanceType(subclassAtom)),
-						tuple(semanticClassifierAtom, stringType),
-						tuple(methodNameAtom, stringType),
-						tuple(sourceModuleAtom, zeroOrOneOf(
-							Types.MODULE.o)),
-						tuple(generatedAtom, booleanType),
-						tuple(lineNumberAtom, wholeNumbers)))
-				setNameForType(type, stringFrom("style"), true)
-				type.makeShared()
-			}
-
-			/**
-			 * The function type for styler functions.
-			 */
-			val stylerFunctionType: A_Type = functionType(
-				tuple(
-					SEND_PHRASE.mostGeneralType,
-					variableTypeFor(
-						mapTypeForSizesKeyTypeValueType(
-							wholeNumbers,
-							SEND_PHRASE.mostGeneralType,
-							styleType)),
-					variableTypeFor(
-						mapTypeForSizesKeyTypeValueType(
-							wholeNumbers,
-							TOKEN.o,
-							styleType))),
-				TOP.o)
-
-			private val variant = styleType.objectTypeVariant
-
-			private val semanticClassifierIndex =
-				variant.fieldToSlotIndex[semanticClassifierAtom]!!
-
-			private val methodNameIndex =
-				variant.fieldToSlotIndex[methodNameAtom]!!
-
-			private val sourceModuleIndex =
-				variant.fieldToSlotIndex[sourceModuleAtom]!!
-
-			private val generatedIndex =
-				variant.fieldToSlotIndex[generatedAtom]!!
-
-			private val lineNumberIndex =
-				variant.fieldToSlotIndex[lineNumberAtom]!!
-
-			/**
-			 * Create a style object from the given values.
-			 */
-			fun createStyle(
-				semanticClassifier: A_String,
-				methodName: A_String,
-				sourceModuleOrNil: A_Module,
-				generated: Boolean,
-				lineNumber: Int
-			): AvailObject = createUninitializedObject(variant).also { style ->
-				setField(style, semanticClassifierIndex, semanticClassifier)
-				setField(style, methodNameIndex, methodName as AvailObject)
-				setField(
-					style,
-					sourceModuleIndex,
-					if (sourceModuleOrNil.isNil) emptyTuple
-					else tuple(sourceModuleOrNil))
-				setField(style, generatedIndex, objectFromBoolean(generated))
-				setField(style, lineNumberIndex, fromInt(lineNumber))
 			}
 		}
 

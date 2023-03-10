@@ -32,10 +32,15 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
+import avail.descriptor.module.A_Module
+import avail.descriptor.parsing.A_Lexer
+import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 
 /**
  * `A_Token` is an interface that specifies the token-specific operations that
@@ -51,6 +56,32 @@ interface A_Token : A_BasicObject
 	 * Disconnect this token from its internal cache of what comes next.
 	 */
 	fun clearLexingState()
+
+	/**
+	 * Extract from this literal token the phrase that was responsible for
+	 * generating it.
+	 */
+	val generatingPhrase: A_Phrase
+		get() = dispatch { o_GeneratingPhrase(it) }
+
+	/**
+	 * Extract from this literal token the [A_Lexer] responsible for its
+	 * production, or [nil] if it was not created that way.
+	 */
+	val generatingLexer: A_Lexer
+		get() = dispatch { o_GeneratingLexer(it) }
+
+	/**
+	 * Given a module in the process of being compiled, answer whether this
+	 * token was constructed by the compiler from the module's source.
+	 */
+	fun isInCurrentModule(currentModule: A_Module): Boolean
+
+	/**
+	 * Given a module in the process of being compiled, alter this token to
+	 * indicate that it was created directly from that module's source.
+	 */
+	fun setCurrentModule(currentModule: A_Module)
 
 	/**
 	 * Answer whether this token is a
@@ -142,4 +173,24 @@ interface A_Token : A_BasicObject
 	 * token.  It should *not* be used for subsequent parsing/lexing.
 	 */
 	fun synthesizeCurrentLexingState(): LexingState
+
+	companion object
+	{
+		/**
+		 * Answer the token's final character position in the source file.
+		 *
+		 * @return
+		 *   The token's end position, inclusive.
+		 */
+		fun A_Token.end(): Int = start() + string().tupleSize - 1
+
+		/**
+		 * Answer this position in the source file just beyond the final
+		 * character of this token.
+		 *
+		 * @return
+		 *   The token's end position, exclusive.
+		 */
+		fun A_Token.pastEnd(): Int = start() + string().tupleSize
+	}
 }

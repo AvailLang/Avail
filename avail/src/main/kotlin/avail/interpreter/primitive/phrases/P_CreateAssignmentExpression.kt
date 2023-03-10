@@ -38,7 +38,6 @@ import avail.descriptor.phrases.AssignmentPhraseDescriptor
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -52,7 +51,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 
@@ -62,7 +60,7 @@ import avail.interpreter.execution.Interpreter
  * assigned value as its result, so it can be embedded as a subexpression.
  */
 @Suppress("unused")
-object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
+object P_CreateAssignmentExpression : Primitive(2, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -83,7 +81,7 @@ object P_CreateAssignmentExpression : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
-		val assignment = newAssignment(variable, expression, emptyTuple, true)
+		val assignment = newAssignment(variable, expression, true)
 		return interpreter.primitiveSuccess(assignment)
 	}
 

@@ -50,6 +50,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -143,7 +144,8 @@ interface A_RawFunction : A_BasicObject {
 		 */
 		fun A_RawFunction.decrementCountdownToReoptimize(
 			continuation: (Boolean) -> Unit
-		) = dispatch { o_DecrementCountdownToReoptimize(it, continuation) }
+		): Boolean =
+			dispatch { o_DecrementCountdownToReoptimize(it, continuation) }
 
 		/**
 		 * This raw function was found to be running in an interpreter during a
@@ -346,8 +348,10 @@ interface A_RawFunction : A_BasicObject {
 
 		/**
 		 * The index into the [module]'s lazily-loaded tuple of phrases, or -1
-		 * if the phrase was not written to a module, in which case the
-		 * [originatingPhrase] must already contain the [A_Phrase].
+		 * if the phrase was not written to a module, in which case
+		 * [originatingPhrase] must already contain the [A_Phrase].  If this
+		 * code was generated (say from a pragma), this may be -1, and the
+		 * [originatingPhrase] will be [nil].
 		 */
 		var A_RawFunction.originatingPhraseIndex: Int
 			get() = dispatch { o_OriginatingPhraseIndex(it) }
@@ -419,7 +423,7 @@ interface A_RawFunction : A_BasicObject {
 		 *
 		 * @return
 		 *   The backing chunk for this function implementation. This will be
-		 *   the special [L2Chunk.unoptimizedChunk] prior to conversion by the
+		 *   the special [unoptimizedChunk] prior to conversion by the
 		 *   [L2Generator].
 		 */
 		val A_RawFunction.startingChunk: L2Chunk

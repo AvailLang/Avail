@@ -39,6 +39,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -105,10 +106,11 @@ abstract class StringDescriptor protected constructor(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int,
-		type: A_Type): Boolean =
-			(CHARACTER.o.isSubtypeOf(type)
-				|| super.o_TupleElementsInRangeAreInstancesOf(
-					self, startIndex, endIndex, type))
+		type: A_Type
+	): Boolean =
+		(CHARACTER.o.isSubtypeOf(type)
+			|| super.o_TupleElementsInRangeAreInstancesOf(
+				self, startIndex, endIndex, type))
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
@@ -173,7 +175,7 @@ abstract class StringDescriptor protected constructor(
 				// Pack it into a TwoByteString, preserving surrogates.
 				generateTwoByteString(aNativeString.length)
 				{
-					aNativeString[it - 1].code
+					aNativeString[it - 1].code.toUShort()
 				}
 			}
 		}
@@ -259,7 +261,7 @@ abstract class StringDescriptor protected constructor(
 					codePoint <= 65535 ->
 					{
 						string = generateTwoByteString(size) {
-							string.tupleCodePointAt(it)
+							string.tupleCodePointAt(it).toUShort()
 						}
 						representationLimit = 65535
 					}

@@ -146,7 +146,7 @@ private constructor(
 	{
 		val oldVector: L2ReadVectorOperand<R, RR> = instruction.operand(0)
 		val destinationReg: L2WriteOperand<R> = instruction.operand(1)
-		val newSources = oldVector.elements().toMutableList()
+		val newSources = oldVector.elements.toMutableList()
 		newSources.removeAt(inputIndex)
 		val onlyOneRegister = newSources.size == 1
 		return if (onlyOneRegister)
@@ -187,7 +187,7 @@ private constructor(
 		val vectorOperand: L2ReadVectorOperand<R, RR> = instruction.operand(0)
 		val writeOperand: L2WriteOperand<R> = instruction.operand(1)
 		instruction.justRemoved()
-		val passedCopy = vectorOperand.elements().toMutableList()
+		val passedCopy = vectorOperand.elements.toMutableList()
 		updater(passedCopy)
 		val finalCopy: List<RR> = passedCopy.toList()
 		val replacementInstruction = L2Instruction(
@@ -215,13 +215,14 @@ private constructor(
 	{
 		assert(this == instruction.operation)
 		val sources: L2ReadVectorOperand<R, RR> = instruction.operand(0)
-		assert(sources.elements().size
-					== instruction.basicBlock().predecessorEdges().size)
+		assert(
+			sources.elements.size
+				== instruction.basicBlock().predecessorEdges().size)
 		val list = mutableListOf<L2BasicBlock>()
 		var i = 0
 		instruction.basicBlock().predecessorEdges().forEach {
 			edge: L2PcOperand ->
-			if (sources.elements()[i++].register() === usedRegister)
+			if (sources.elements[i++].register() === usedRegister)
 			{
 				list.add(edge.sourceBlock())
 			}
@@ -260,7 +261,7 @@ private constructor(
 	fun sourceRegisterReads(instruction: L2Instruction): List<RR>
 	{
 		val vector: L2ReadVectorOperand<R, RR> = instruction.operand(0)
-		return vector.elements()
+		return vector.elements
 	}
 
 	/**

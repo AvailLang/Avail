@@ -142,7 +142,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val size = self.slot(SIZE)
+		val size = self[SIZE]
 		if (size < minimumRepeatSize)
 		{
 			super.printObjectOnAvoidingIndent(
@@ -155,7 +155,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		{
 			builder.append(size)
 			builder.append(" of ")
-			self.slot(ELEMENT).printOnAvoidingIndent(
+			self[ELEMENT].printOnAvoidingIndent(
 				builder,
 				recursionMap,
 				indent + 1)
@@ -169,7 +169,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		canDestroy: Boolean): A_Tuple
 	{
 		// Ensure parameters are in bounds
-		val oldSize = self.slot(SIZE)
+		val oldSize = self[SIZE]
 		assert(start in 1..end + 1 && end <= oldSize)
 		val newSize = end - start + 1
 
@@ -179,11 +179,11 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			if (isMutable && canDestroy)
 			{
 				// Recycle the object.
-				self.setSlot(SIZE, newSize)
+				self[SIZE] = newSize
 				return self
 			}
 			return createRepeatedElementTuple(
-				newSize, self.slot(ELEMENT))
+				newSize, self[ELEMENT])
 		}
 
 		// Otherwise, this method is requesting a full copy of the original.
@@ -222,12 +222,12 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			// they're equal.
 			return true
 		}
-		if (self.slot(ELEMENT).equals(
+		if (self[ELEMENT].equals(
 				aRepeatedElementTuple.tupleAt(1)))
 		{
 			// The elements are the same, so the subranges must be as well.
 			// Coalesce equal tuples as a nicety.
-			if (self.slot(SIZE) == aRepeatedElementTuple.tupleSize)
+			if (self[SIZE] == aRepeatedElementTuple.tupleSize)
 			{
 				// Indirect one to the other if it is not shared.
 				if (!isShared)
@@ -267,26 +267,26 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		if (otherTuple.isRepeatedElementTuple)
 		{
 			val otherDirect = otherTuple.traversed()
-			val element = self.slot(ELEMENT)
+			val element = self[ELEMENT]
 
 			// If the other's element is the same as mine,
-			if (element.equals(otherDirect.slot(ELEMENT)))
+			if (element.equals(otherDirect[ELEMENT]))
 			{
 				// then we can be concatenated.
-				val newSize = self.slot(SIZE) + otherDirect.slot(SIZE)
+				val newSize = self[SIZE] + otherDirect[SIZE]
 
 				// If we can do replacement in place,
 				// use me for the return value.
 				if (isMutable)
 				{
-					self.setSlot(SIZE, newSize)
+					self[SIZE] = newSize
 					self.setHashOrZero(0)
 					return self
 				}
 				// Or the other one.
 				if (otherTuple.descriptor().isMutable)
 				{
-					otherDirect.setSlot(SIZE, newSize)
+					otherDirect[SIZE] = newSize
 					otherDirect.setHashOrZero(0)
 					return otherDirect
 				}
@@ -331,19 +331,17 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		val secondTraversed = aRepeatedElementTuple.traversed()
 
 		// Check that the slots match.
-		val firstHash = self.slot(HASH_OR_ZERO)
-		val secondHash = secondTraversed.slot(HASH_OR_ZERO)
+		val firstHash = self[HASH_OR_ZERO]
+		val secondHash = secondTraversed[HASH_OR_ZERO]
 		if (firstHash != 0 && secondHash != 0 && firstHash != secondHash)
 		{
 			return false
 		}
-		if (self.slot(SIZE) != secondTraversed.slot(
-				SIZE))
+		if (self[SIZE] != secondTraversed[SIZE])
 		{
 			return false
 		}
-		if (!self.slot(ELEMENT).equals(
-				secondTraversed.slot(ELEMENT)))
+		if (!self[ELEMENT].equals(secondTraversed[ELEMENT]))
 		{
 			return false
 		}
@@ -371,8 +369,8 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 	{
 		// Answer the value at the given index in the tuple object.
 		// Every element in this tuple is identical.
-		assert(index >= 1 && index <= self.slot(SIZE))
-		return self.slot(ELEMENT)
+		assert(index >= 1 && index <= self[SIZE])
+		return self[ELEMENT]
 	}
 
 	override fun o_TupleAtPuttingCanDestroy(
@@ -384,9 +382,9 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		val size = self.slot(SIZE)
+		val size = self[SIZE]
 		assert(index in 1 .. size)
-		val element = self.slot(ELEMENT)
+		val element = self[ELEMENT]
 		if (element.equals(newValueObject))
 		{
 			// Replacement is the same as the repeating element.
@@ -410,14 +408,13 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			else if (element.isCharacter)
 			{
 				// Make it a string.
-				val codePoint: Int = element.codePoint
-				if (codePoint <= 255)
+				when (val codePoint = element.codePoint)
 				{
-					result = generateByteString(size) { codePoint }
-				}
-				else if (codePoint <= 65535)
-				{
-					result = generateTwoByteString(size) { codePoint }
+					in 0 .. 0xFF ->
+						result = generateByteString(size) { codePoint }
+					in 0 .. 0xFFFF ->
+						result =
+							generateTwoByteString(size) { codePoint.toUShort() }
 				}
 			}
 			if (result === null)
@@ -443,13 +440,13 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		if (self.slot(ELEMENT).equals(newElement))
+		if (self[ELEMENT].equals(newElement))
 		{
 			val result =
 				if (canDestroy && isMutable) self
 				else newLike(mutable, self, 0, 0)
-			result.setSlot(SIZE, self.slot(SIZE) + 1)
-			result.setSlot(HASH_OR_ZERO, 0)
+			result[SIZE] = self[SIZE] + 1
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		// Transition to a tree tuple.
@@ -459,20 +456,20 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		assert(index in 1..self.slot(SIZE))
-		return self.slot(ELEMENT).extractInt
+		assert(index in 1..self[SIZE])
+		return self[ELEMENT].extractInt
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		assert(index in 1..self.slot(SIZE))
-		return self.slot(ELEMENT).extractLong
+		assert(index in 1..self[SIZE])
+		return self[ELEMENT].extractLong
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple = self
 
 	override fun o_TupleSize(self: AvailObject): Int =
-		self.slot(SIZE)
+		self[SIZE]
 
 	override fun o_TupleElementsInRangeAreInstancesOf(
 		self: AvailObject,
@@ -480,7 +477,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		endIndex: Int,
 		type: A_Type): Boolean
 	{
-		return self.slot(ELEMENT).isInstanceOf(type)
+		return self[ELEMENT].isInstanceOf(type)
 	}
 
 	override fun mutable(): RepeatedElementTupleDescriptor = mutable

@@ -44,8 +44,8 @@ import avail.descriptor.phrases.A_Phrase
  * * the module size in bytes,
  * * the current parse position in bytes within the module,
  * * the line number, or [Int.MAX_VALUE] if completed, and
- * * the compiled [top-level&#32;statement][A_Phrase], or `null` if no phrase is
- *   available.
+ * * a function that fetches the compiled [top-level&#32;statement][A_Phrase],
+ *   or `null` if no phrase is available.
  */
 typealias CompilerProgressReporter =
 		(ModuleName, Long, Long, Int, ()->A_Phrase?)->Unit

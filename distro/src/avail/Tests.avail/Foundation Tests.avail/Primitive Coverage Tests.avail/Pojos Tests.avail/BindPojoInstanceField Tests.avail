@@ -39,12 +39,12 @@ Body
 
 Test "BindPojoInstanceField ok" in primitive pojos test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "BindPojoInstanceField fails with Java-field-not-available exception" in primitive pojos test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise Java-field-not-available exception;
 

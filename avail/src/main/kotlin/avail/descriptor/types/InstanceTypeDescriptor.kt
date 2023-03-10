@@ -46,7 +46,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
@@ -411,7 +411,7 @@ private constructor(
 				else ->
 				{
 					assert(false) { "Unexpected instance for sizeRange" }
-					NilDescriptor.nil
+					nil
 				}
 			}
 		}
@@ -562,6 +562,13 @@ private constructor(
 		}
 	}
 
+	override fun o_LiteralType(self: AvailObject): A_Type
+	{
+		val token = getInstance(self)
+		val literal = token.literal()
+		return instanceTypeOrMetaOn(literal)
+	}
+
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
@@ -605,7 +612,7 @@ private constructor(
 		 *   The instance represented by the given instance type.
 		 */
 		private fun getInstance(self: AvailObject): AvailObject =
-			self.slot(INSTANCE)
+			self[INSTANCE]
 
 		/**
 		 * Answer the kind that is nearest to the given object, an

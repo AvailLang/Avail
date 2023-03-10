@@ -39,7 +39,7 @@ Body
 
 Test "ObjectTypeToTuple ok" in primitive objects test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 // TODO: ObjectTypeToTuple does not use an enumeration type over natural numbers, and thus

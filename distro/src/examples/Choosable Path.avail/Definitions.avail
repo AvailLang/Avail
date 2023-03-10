@@ -853,7 +853,7 @@ Private method "dynamic scene vault for_" is
 		] : ↑sceneVaultType»→function;
 	sceneVault ::= sceneVaultFunction();
 	sceneVault
-] : variable;
+] : read map / write ⊥;
 
 /**
  * Forward declare one or more {@type "scenes"}. This is a prerequisite to
@@ -901,9 +901,10 @@ Public method "Let«_‡,⁇and⁇»be a⁇scene|scenes" is
 		For each aBinding of sceneVaultUpdates do
 		[
 			sceneVar, internalName ::= aBinding;
-			sceneVaultMap ::=
-				cast ↓sceneVaultVar into [v : {variable→nonempty string|} | v];
-			sceneVaultVar ?= sceneVaultMap + sceneVar→internalName;
+			strongerSceneVaultVar ::=
+				sceneVaultVar ?→ read {variable→nonempty string|} / write ⊥;
+			Register sceneVar → internalName in strongerSceneVaultVar;
+			After the current module is unloaded, do [Clear sceneVar;];
 		];
 	];
 ] : ⊤;
@@ -1378,6 +1379,7 @@ is
 		described by describerWrapper,
 		with transitions transitions;
 	sceneVar ?= aScene;
+	After the current module is unloaded, do [Clear sceneVar;];
 ] : ⊤;
 
 Semantic restriction
@@ -1452,6 +1454,7 @@ Public method "Let_be the opening scene" is
 	sceneType ::= scene for contextType;
 	openingSceneVar ::= dynamic opening scene variable for sceneType;
 	openingSceneVar ?= ↓sceneVar;
+	After the current module is unloaded, do [Clear openingSceneVar;];
 ] : ⊤;
 
 Semantic restriction "Let_be the opening scene" is

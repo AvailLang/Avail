@@ -41,8 +41,9 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.Mutability.IMMUTABLE
+import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.A_Token
@@ -63,6 +64,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.cast
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -483,6 +485,29 @@ interface A_BasicObject : JSONFriendly
 	val notNil get() = this !== nil
 
 	/**
+	 * If the receiver [isNil], evaluate the [action].  Answer either the
+	 * non-nil receiver, or the result of the action.
+	 */
+	fun <T : A_BasicObject> ifNil(action: ()->T): T =
+		if (this === nil) action() else cast()
+
+	/**
+	 * If the receiver is [notNil], evaluate the [action] with it.
+	 */
+	fun <T : A_BasicObject> ifNotNil(action: (T)->Unit)
+	{
+		if (notNil) action(cast())
+	}
+
+	/**
+	 * If the receiver is [notNil], evaluate the [action] with it, answering the
+	 * value produced by the action.  If the receiver was [nil], answer [nil]
+	 * cast to the action's output type.
+	 */
+	fun <T : A_BasicObject, O : A_BasicObject> mapNotNil(action: (T)->O): O =
+		if (notNil) action(this.cast()) else nil.cast()
+
+	/**
 	 * Dispatch to the descriptor.
 	 */
 	fun fieldMap(): A_Map
@@ -695,10 +720,27 @@ interface A_BasicObject : JSONFriendly
 	fun scanSubobjects(visitor: (AvailObject) -> AvailObject)
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Follow indirections until a non-indirection is reached.  Replace each
+	 * indirection's target with the ultimate target.
 	 */
 	@ReferencedInGeneratedCode
 	fun traversed(): AvailObject
+
+	/**
+	 * Follow indirections until a non-indirection is reached.  Replace each
+	 * indirection's target with the ultimate target, even if it would cause the
+	 * otherwise-forbidden immutable->mutable references.  Only used during
+	 * [makeImmutable].
+	 */
+	fun traversedWhileMakingImmutable(): AvailObject
+
+	/**
+	 * Follow indirections until a non-indirection is reached.  Replace each
+	 * indirection's target with the ultimate target, even if it would cause the
+	 * otherwise-forbidden shared->unshared references.  Only used during
+	 * [makeShared].
+	 */
+	fun traversedWhileMakingShared(): AvailObject
 
 	/**
 	 * Dispatch to the descriptor.
@@ -893,12 +935,6 @@ interface A_BasicObject : JSONFriendly
 	val isInstanceMeta: Boolean
 
 	/**
-	 * @param aPhrase
-	 * @return
-	 */
-	fun equalsPhrase(aPhrase: A_Phrase): Boolean
-
-	/**
 	 * @return
 	 */
 	val isByteArrayTuple: Boolean
@@ -1079,6 +1115,38 @@ interface A_BasicObject : JSONFriendly
 	 *   The field's type or null.
 	 */
 	fun fieldTypeAtOrNull(field: A_Atom): A_Type?
+
+	/**
+	 * The receiver is marked with an [IMMUTABLE] descriptor, but its subobjects
+	 * have not yet been made immutable.  Scan them now, and do any additional
+	 * fix-ups necessary for the kind of object.
+	 *
+	 * @param queueToProcess
+	 *   The queue on which to add newly discovered mutable objects, after
+	 *   marking them as immutable (but not scanning them yet).
+	 * @param fixups
+	 *   The mutable list of actions to perform after the *entire* graph has
+	 *   been made immutable.
+	 */
+	fun makeImmutableInternal(
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
+
+	/**
+	 * The receiver is marked with a [SHARED] descriptor, but its subobjects
+	 * have not yet been made shared.  Scan them now, and do any additional
+	 * fix-ups necessary for the kind of object.
+	 *
+	 * @param queueToProcess
+	 *   The queue on which to add newly discovered unshared objects, after
+	 *   marking them as shared (but not scanning them yet).
+	 * @param fixups
+	 *   The mutable list of actions to perform after the *entire* graph has
+	 *   been shared.
+	 */
+	fun makeSharedInternal(
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 
 	companion object
 	{

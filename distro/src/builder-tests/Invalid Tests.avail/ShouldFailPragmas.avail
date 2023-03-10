@@ -35,7 +35,7 @@ Versions "Avail-1.6.1"
 Uses
 	"Avail"
 Pragma
-	"someUnknownPragmaKey=253=Primitive_is_"
+	"someUnknownPragmaKey=Primitive_is_"
 Body
 
 

@@ -39,6 +39,6 @@ Body
 
 Test "IfFalseThenElse ok" in primitive controlflow test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 

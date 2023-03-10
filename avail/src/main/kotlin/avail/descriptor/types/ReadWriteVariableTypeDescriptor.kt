@@ -103,22 +103,22 @@ private constructor(
 		indent: Int)
 	{
 		builder.append("read ")
-		self.slot(READ_TYPE).printOnAvoidingIndent(
+		self[READ_TYPE].printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 		builder.append("/write ")
-		self.slot(WRITE_TYPE).printOnAvoidingIndent(
+		self[WRITE_TYPE].printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent + 1)
 	}
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		self.slot(READ_TYPE)
+		self[READ_TYPE]
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		self.slot(WRITE_TYPE)
+		self[WRITE_TYPE]
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsVariableType(self)
@@ -127,8 +127,8 @@ private constructor(
 		when
 		{
 			self.sameAddressAs(aType) -> true
-			aType.readType.equals(self.slot(READ_TYPE))
-				&& aType.writeType.equals(self.slot(WRITE_TYPE)) ->
+			aType.readType.equals(self[READ_TYPE])
+				&& aType.writeType.equals(self[WRITE_TYPE]) ->
 			{
 				if (!isShared)
 				{
@@ -146,8 +146,8 @@ private constructor(
 		}
 
 	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(READ_TYPE).hash(),
-		self.slot(WRITE_TYPE).hash(),
+		self[READ_TYPE].hash(),
+		self[WRITE_TYPE].hash(),
 		0x05469E1A)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
@@ -158,8 +158,8 @@ private constructor(
 	override fun o_IsSupertypeOfVariableType(
 		self: AvailObject,
 		aVariableType: A_Type): Boolean =
-			(aVariableType.readType.isSubtypeOf(self.slot(READ_TYPE))
-				&& self.slot(WRITE_TYPE).isSubtypeOf(aVariableType.writeType))
+			(aVariableType.readType.isSubtypeOf(self[READ_TYPE])
+				&& self[WRITE_TYPE].isSubtypeOf(aVariableType.writeType))
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -176,8 +176,8 @@ private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type =
 			variableReadWriteType(
-				self.slot(READ_TYPE).typeIntersection(aVariableType.readType),
-				self.slot(WRITE_TYPE).typeUnion(aVariableType.writeType))
+				self[READ_TYPE].typeIntersection(aVariableType.readType),
+				self[WRITE_TYPE].typeUnion(aVariableType.writeType))
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -194,8 +194,8 @@ private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type =
 			variableReadWriteType(
-				self.slot(READ_TYPE).typeUnion(aVariableType.readType),
-				self.slot(WRITE_TYPE).typeIntersection(aVariableType.writeType))
+				self[READ_TYPE].typeUnion(aVariableType.readType),
+				self[WRITE_TYPE].typeIntersection(aVariableType.writeType))
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		if (self.readType.equals(self.writeType))
@@ -207,24 +207,15 @@ private constructor(
 			SerializerOperation.READ_WRITE_VARIABLE_TYPE
 		}
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared rather than immutable (since there isn't
-			// actually an immutable descriptor).
-			self.makeShared()
-		}
-		else self
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
 		writer.write("variable type")
 		writer.write("write type")
-		self.slot(WRITE_TYPE).writeTo(writer)
+		self[WRITE_TYPE].writeTo(writer)
 		writer.write("read type")
-		self.slot(READ_TYPE).writeTo(writer)
+		self[READ_TYPE].writeTo(writer)
 		writer.endObject()
 	}
 
@@ -234,16 +225,15 @@ private constructor(
 		writer.write("kind")
 		writer.write("variable type")
 		writer.write("write type")
-		self.slot(WRITE_TYPE).writeSummaryTo(writer)
+		self[WRITE_TYPE].writeSummaryTo(writer)
 		writer.write("read type")
-		self.slot(READ_TYPE).writeSummaryTo(writer)
+		self[READ_TYPE].writeSummaryTo(writer)
 		writer.endObject()
 	}
 
 	override fun mutable(): ReadWriteVariableTypeDescriptor = mutable
 
-	// There isn't an immutable variant.
-	override fun immutable(): ReadWriteVariableTypeDescriptor = shared
+	override fun immutable(): ReadWriteVariableTypeDescriptor = immutable
 
 	override fun shared(): ReadWriteVariableTypeDescriptor = shared
 
@@ -252,6 +242,10 @@ private constructor(
 		/** The mutable [ReadWriteVariableTypeDescriptor]. */
 		private val mutable =
 			ReadWriteVariableTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [ReadWriteVariableTypeDescriptor]. */
+		private val immutable =
+			ReadWriteVariableTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [ReadWriteVariableTypeDescriptor]. */
 		private val shared =

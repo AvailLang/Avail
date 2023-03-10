@@ -103,18 +103,18 @@ private constructor(mutability: Mutability) : Descriptor(
 	}
 
 	override fun o_Hash(self: AvailObject) = combine3(
-		self.slot(FUNCTION).hash(),
-		self.slot(DEFINITION_METHOD).hash(),
+		self[FUNCTION].hash(),
+		self[DEFINITION_METHOD].hash(),
 		0x0E0D9C10)
 
 	override fun o_Function(self: AvailObject): A_Function =
-		self.slot(FUNCTION)
+		self[FUNCTION]
 
 	override fun o_DefinitionMethod(self: AvailObject): A_Method =
-		self.slot(DEFINITION_METHOD)
+		self[DEFINITION_METHOD]
 
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
-		self.slot(DEFINITION_MODULE)
+		self[DEFINITION_MODULE]
 
 	/** Compare by identity. */
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =

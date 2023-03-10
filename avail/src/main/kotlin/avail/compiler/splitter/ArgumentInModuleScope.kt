@@ -62,16 +62,17 @@ import java.util.IdentityHashMap
  * of the token in the name, and the absolute index of this argument in the
  * entire message name.
  *
- * @param positionInName
+ * @param startInName
  *   The one-based position of the start of the token in the message name.
  * @param absoluteUnderscoreIndex
  *   The one-based index of this argument within the entire message name's list
  *   of arguments.
  */
 internal class ArgumentInModuleScope constructor(
-	positionInName: Int,
-	absoluteUnderscoreIndex: Int)
-: Argument(positionInName, absoluteUnderscoreIndex)
+	startInName: Int,
+	pastEndInName: Int,
+	absoluteUnderscoreIndex: Int
+) : Argument(startInName, pastEndInName, absoluteUnderscoreIndex)
 {
 	/**
 	 * First parse an argument subexpression, then check that it has an

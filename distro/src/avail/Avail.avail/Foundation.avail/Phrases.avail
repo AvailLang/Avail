@@ -229,7 +229,14 @@ Public method "_'s⁇classifier" is
 	aToken : token
 |
 	Primitive TokenClassifier;
-] : enumeration of {end of file, keyword, literal, operator, comment, whitespace};
+] : enumeration of {
+	end of file,
+	keyword,
+	literal,
+	operator,
+	comment,
+	whitespace
+};
 
 /**
  * Strengthen literal <em>phrase</em> building to covary with the type of object
@@ -396,6 +403,8 @@ Public method "`«[_]:_`»" is
 ];
 
 /**
+ * Zero-argument block phrases yield zero-argument functions.
+ *
  * @method "`«[_]:_`»"
  * @restricts "<<>, phrase…|whole number>'s type"
  * @restricts "type's type"
@@ -405,7 +414,7 @@ Semantic restriction "`«[_]:_`»" is
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block phrase ⇒ […]→returnType's instance
+	block phrase ⇒ function accepting <> and returning (returnType's instance)
 ];
 
 /**
@@ -475,12 +484,12 @@ Public method "restricted send_with_:_" is
 	basicReturnType : type
 |
 	pair ::= restricted report and send message with args : basicReturnType;
-	optionalPhrase ::= pair[1] ?→ tuple;
-	If optionalPhrase = <> then
+	optionalSendPhrase ::= pair[1] ?→ tuple;
+	If optionalSendPhrase = <> then
 	[
 		Reject parse strongly, expected: (pair[2] ?→ string)
 	];
-	optionalPhrase[1] ?→ send phrase
+	optionalSendPhrase[1] ?→ send phrase
 ] : send phrase;
 
 /**
@@ -667,15 +676,6 @@ Semantic restriction "Evaluate|evaluate_" is
 	phraseType's semantic type
 ];
 
-Semantic restriction "bootstrap restricted send_with_:_" is
-[
-	messageType : atom's type,
-	argsType : list phrase's type,
-	basicReturnMeta : type's type
-|
-	send phrase ⇒ basicReturnMeta's instance
-];
-
 Method "“_”" is
 [
 	lit : literal token ⇒ any
@@ -690,6 +690,7 @@ Method "“_”" is
 	“lit's token”
 ];
 
+zeroOrOne ::= integer range from 0 (inclusive=true) to 1 (inclusive=true);
 
 /**
  * A local helper for bootstrapping.  This will also be defined publicly in a
@@ -702,7 +703,22 @@ Macro "$…#" is
 	s ::= tokenPhrase's token's value's value;
 	a ::= atom for s;
 	`a` → literal phrase
-] : literal phrase ⇒ atom;
+] : literal phrase ⇒ atom
+styled by
+[
+	optionalOriginal : <<>, send phrase…|zeroOrOne>,
+	transformed : phrase ⇒ ⊤
+|
+	If |optionalOriginal| = 1 then
+	[
+		original ::= optionalOriginal[1] ?→ send phrase;
+		dollar ::= original's tokens[1] ?→ token;
+		Style token dollar as "#method-definition";
+		arguments ::= original's arguments' expressions;
+		methodNameToken ::= arguments[1] ?→ literal phrase⇒literal token⇒string;
+		Style method name methodNameToken;
+	];
+];
 
 
 /**
@@ -962,7 +978,7 @@ Method "T(_,_)" is
 	p : variable reference phrase,
 	decls : ↑declarationsMapType
 |
-	restricted send $"`«↑_`»"
+	restricted send $"`«`↑_`»"
 		with <
 			T(«↓p», decls)
 		> → list phrase

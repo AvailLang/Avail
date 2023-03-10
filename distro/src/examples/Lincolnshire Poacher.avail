@@ -244,5 +244,5 @@ Method "Eavesdrop" is
 	];
 ] : ⊤;
 
-/* Make sure that the server always get shut down. */
+/* Make sure that the server always gets shut down. */
 After the current module is unloaded, do [Stop Lincolnshire Poacher;];

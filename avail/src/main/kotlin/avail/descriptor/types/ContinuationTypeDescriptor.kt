@@ -138,7 +138,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			|| aContinuationType.functionType.equals(self.functionType))
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
-		self.slot(FUNCTION_TYPE)
+		self[FUNCTION_TYPE]
 
 	override fun o_Hash(self: AvailObject): Int =
 		combine2(self.functionType.hash(), 0x3E20409)
@@ -169,7 +169,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		self.slot(FUNCTION_TYPE).isVacuousType
+		self[FUNCTION_TYPE].isVacuousType
 
 	override fun o_TypeIntersection(
 		self: AvailObject,
@@ -240,7 +240,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("continuation type")
 		writer.write("function type")
-		self.slot(FUNCTION_TYPE).writeTo(writer)
+		self[FUNCTION_TYPE].writeTo(writer)
 		writer.endObject()
 	}
 

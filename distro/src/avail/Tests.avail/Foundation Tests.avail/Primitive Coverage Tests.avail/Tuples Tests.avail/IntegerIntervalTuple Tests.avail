@@ -56,7 +56,7 @@ Test "IntegerIntervalTuple fails with incorrect-argument-type exception"
 in primitive tuples test suite is
 [
     delta : integer := 0;
-	1 to 4 by delta
+	Ignore: 1 to 4 by delta;
 ]
 must raise incorrect-argument-type exception;
 

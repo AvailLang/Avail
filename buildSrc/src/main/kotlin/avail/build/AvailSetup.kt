@@ -33,14 +33,24 @@
 package avail.build
 
 import avail.build.AvailSetupContext.distroSrc
-import avail.plugins.gradle.AvailRoot
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Copy
-import java.net.URI
+import java.io.File
 
 /// Herein lies utility functions and state for use in gradle-related operations
 /// specific to Avail setup and build functions.
+
+/**
+ * Construct a operating system-specific file path using [File.separator].
+ *
+ * @param path
+ *   The locations to join using the system separator.
+ * @return
+ *   The constructed String path.
+ */
+fun systemPath(vararg path: String): String =
+	path.toList().joinToString(File.separator)
 
 object AvailSetupContext
 {
@@ -48,10 +58,10 @@ object AvailSetupContext
 	const val distroDir = "distro"
 
 	/** The relative path to the Avail distribution source directory. */
-	const val distroSrc = "$distroDir/src"
+	val distroSrc = systemPath(distroDir, "src")
 
 	/** The relative path to the Avail distribution lib directory. */
-	const val distroLib = "$distroDir/lib"
+	val distroLib = systemPath(distroDir, "lib")
 
 	/** The default list of [AvailRoot.name]s. */
 	val availTestRootNames =
@@ -60,19 +70,20 @@ object AvailSetupContext
 	/**
 	 *
 	 */
-	const val bootstrapPackagePath = "avail/tools/bootstrap"
+	val bootstrapPackagePath =
+		systemPath("avail", "tools", "bootstrap")
 
 	/**
 	 * The [Project.getProjectDir] relative path of the bootstrap package.
 	 */
-	const val relativePathBootstrap =
-		"src/main/kotlin/$bootstrapPackagePath"
+	val relativePathBootstrap =
+		systemPath("src", "main", "kotlin", bootstrapPackagePath)
 
 	/**
 	 * The [Project.getProjectDir] relative path of the built bootstrap package.
 	 */
-	const val relativePathBootstrapClasses =
-		"${BuildContext.buildClassesPath}/$bootstrapPackagePath"
+	val relativePathBootstrapClasses =
+		systemPath(BuildContext.buildClassesPath, bootstrapPackagePath)
 }
 
 /**
@@ -85,11 +96,12 @@ object AvailSetupContext
  */
 fun Project.availRoot(name: String): AvailRoot
 {
-	val rootURI = "${rootProject.projectDir}/$distroSrc/$name"
-	println("AvailRoot: $rootURI")
+	val rootURI = systemPath("${rootProject.projectDir}", distroSrc, name)
+	println("AvailRoot(${rootURI.length}): $rootURI")
+
 	return AvailRoot(
 		name,
-		URI(rootURI))
+		File(rootURI).toURI())
 }
 
 /**
@@ -112,11 +124,19 @@ fun Project.computeAvailRootsForTest (): String =
 fun Project.relocateGeneratedPropertyFiles (task: Copy)
 {
 	val pathBootstrap =
-		fileTree("${rootProject.projectDir}/${AvailSetupContext.relativePathBootstrap}")
-	val movedPropertyFiles =
-		file("$buildDir/classes/kotlin/main/avail/tools/bootstrap")
+		fileTree(systemPath(
+			"${rootProject.projectDir}",
+			AvailSetupContext.relativePathBootstrap))
+	val movedPropertyFiles = file(systemPath(
+		"$buildDir",
+		"classes",
+		"kotlin",
+		"main",
+		"avail",
+		"tools",
+		"bootstrap"))
 	val lang = System.getProperty("user.language")
-	pathBootstrap.include("**/*_${lang}.properties")
+	pathBootstrap.include(systemPath("**", "*_${lang}.properties"))
 	// This is a lie, but it ensures that this rule will not run until after the
 	// Kotlin source is compiled.
 	pathBootstrap.builtBy("compileKotlin")
@@ -137,13 +157,25 @@ fun Project.relocateGeneratedPropertyFiles (task: Copy)
  */
 fun Project.generateBootStrap(task: Copy)
 {
-	val source = "$projectDir/src/main/resources"
+	val source = systemPath("$projectDir", "src", "main", "resources")
 	val lang = System.getProperty("user.language")
-	val pathBootstrap = fileTree(
-		"$source/avail/tools/bootstrap/generated/$lang/Bootstrap.avail")
+	val pathBootstrap = fileTree(systemPath(
+		source,
+		"avail",
+		"tools",
+		"bootstrap",
+		"generated",
+		lang,
+		"Bootstrap.avail"))
 	task.inputs.files + pathBootstrap
 	val distroBootstrap =
-		file("${rootProject.projectDir}/$distroSrc/avail/Avail.avail/Foundation.avail/Bootstrap.avail")
+		file(systemPath(
+			"${rootProject.projectDir}",
+			distroSrc,
+			"avail",
+			"Avail.avail",
+			"Foundation.avail",
+			"Bootstrap.avail"))
 	task.outputs.dir(distroBootstrap)
 
 	group = "bootstrap"

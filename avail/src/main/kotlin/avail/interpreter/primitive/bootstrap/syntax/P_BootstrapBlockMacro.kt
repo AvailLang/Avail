@@ -61,6 +61,7 @@ import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -97,6 +98,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapBlockMacroStyler
 
 /**
  * The `P_BootstrapBlockMacro` primitive is used for bootstrapping the
@@ -127,7 +129,7 @@ import avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Suppress("unused", "GrazieInspection")
+@Suppress("unused")
 object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 {
 	/** The key to the client parsing data in the fiber's environment. */
@@ -397,8 +399,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			tupleFromList(allStatements),
 			returnType,
 			exceptionsSet,
-			lineNumber,
-			tokens)
+			lineNumber)
 		block.makeImmutable()
 		// Pop and discard the top entry from the scope stack.
 		val fiber = interpreter.fiber()
@@ -410,6 +411,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			clientDataKey, clientData, true)
 		return interpreter.primitiveSuccess(block)
 	}
+
+	override fun bootstrapStyler() = P_BootstrapBlockMacroStyler
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

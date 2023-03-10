@@ -34,10 +34,9 @@ Module "Early Maps"
 Versions
 	"Avail-1.6.1"
 Extends
-	"Collections" = ("_[_]else_")
+	"Collections" = ("_[_]else_", "_is collection", "_is collection type")
 Uses
 	"Bootstrap",
-	"Collections" = ("_[_]else_"),
 	"Definers",
 	"Early Conditionals",
 	"Early Control Structures",
@@ -53,6 +52,9 @@ Names
 	"${…}«else_»",
 	"${…#}«else_»"
 Body
+
+Method "_is collection" is [x : map | true];
+Method "_is collection type" is [x : map meta | true];
 
 Method "{_→_`|_.._}" is stable at
 	[any meta, any meta, whole number, [0..∞]]→map meta;
@@ -214,7 +216,7 @@ Semantic restriction "_+_→_" is
 	 * ⊥, then the new key cannot be present in the map. Adjust the
 	 * cardinality accordingly.
 	 */
-	if oldKeyType ∩ keyType = ⊥ then
+	If oldKeyType ∩ keyType = ⊥ then
 	[
 		lower := eject lower + 1;
 		bound := eject bound + 1;
@@ -248,7 +250,7 @@ Semantic restriction "_-_" is
 	 * ⊥, then the new key cannot be present in the map. Adjust the
 	 * cardinality accordingly.
 	 */
-	if mapType's key type ∩ keyType = ⊥ then
+	If mapType's key type ∩ keyType = ⊥ then
 	[
 		/* Do nothing. */
 	]
@@ -321,7 +323,7 @@ Semantic restriction "_[_]:=_" is
 	keyType : any meta,
 	valueType : any meta
 |
-	mapType ::= varType's write type ?→ map's type;
+	mapType ::= varType's read type;
 	Unless keyType ⊆ mapType's key type then
 	[
 		Reject parse, expected:
@@ -338,6 +340,8 @@ Semantic restriction "_[_]:=_" is
 	];
 	⊤
 ];
+
+Style $"_[_]:=_" with statement styler;
 
 /**
  * Answer the Avail virtual machine's environment as a {@type "map"} from
@@ -378,7 +382,8 @@ Public method "${…}«else_»" is
 				[[invoke early failure function with <key-not-found code>]]
 		with <>
 	]
-] : string;
+] : string
+styled by conditional styler;
 
 /**
  * Answer the value of the requested environment variable.
@@ -404,4 +409,5 @@ Public method "${…#}«else_»" is
 				[[invoke early failure function with <key-not-found code>]]
 		with <>
 	]
-] : string;
+] : string
+styled by conditional styler;

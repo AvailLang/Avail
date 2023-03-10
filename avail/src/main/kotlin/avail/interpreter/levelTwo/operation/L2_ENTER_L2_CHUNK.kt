@@ -36,8 +36,8 @@ import avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedObjectAt
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.COMMENT
 import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE

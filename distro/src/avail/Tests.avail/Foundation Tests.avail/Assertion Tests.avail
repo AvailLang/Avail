@@ -52,7 +52,12 @@ Test "basic assertions" in assertion test suite is
 		Assert: 5 < 6;
 		Assert: ∞ = ∞;
 	]
-	intercept [e : assertion-failed exception | Require: false];
+	intercept
+	[
+		e : assertion-failed exception
+	|
+		Raise a failed-requirement exception
+	];
 ];
 
 Test "assertion failed exception" in assertion test suite is

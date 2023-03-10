@@ -40,11 +40,11 @@ import avail.persistence.cache.Repositories
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry.createResolver
 import avail.resolver.ResolverReference
+import avail.utility.parallelDoThen
 import org.availlang.json.JSONWriter
 import java.net.URI
 import java.util.Collections.singletonList
 import java.util.Collections.synchronizedList
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.withLock
@@ -139,18 +139,9 @@ class ModuleRoots constructor(
 		val components =
 			if (modulePath.isEmpty()) listOf()
 			else modulePath.split(";")
-		val workCount = AtomicInteger(components.size)
-		val failures = mutableListOf<String>()
-		if (components.isEmpty())
-		{
-			// We have to deal with the no-roots case specially, since workCount
-			// will never decrement to zero – it starts there.
-			withFailures(emptyList())
-		}
-		else
-		{
-			for (component in components)
-			{
+		val failures = synchronizedList(mutableListOf<String>())
+		components.parallelDoThen(
+			action = { component, after ->
 				// An equals separates the root name from its paths.
 				val binding = component.split("=")
 				require(binding.size == 2) {
@@ -158,19 +149,11 @@ class ModuleRoots constructor(
 				}
 				val (rootName, location) = binding
 				addRoot(rootName, location) { newFailures ->
-					if (newFailures.isNotEmpty())
-					{
-						synchronized(failures) {
-							failures.addAll(newFailures)
-						}
-					}
-					if (workCount.decrementAndGet() == 0)
-					{
-						withFailures(failures)
-					}
+					failures.addAll(newFailures)
+					after()
 				}
-			}
-		}
+			},
+			then = { withFailures(failures.toList()) })
 	}
 
 	/**
@@ -180,7 +163,7 @@ class ModuleRoots constructor(
 	 *   The name for the new [ModuleRoot].
 	 * @param location
 	 *   The [String] representation of the [URI] for the base of the new
-	 *   [ModuleRoot]
+	 *   [ModuleRoot].
 	 * @param withFailures
 	 *   What to invoke, with a [List] of new failure report strings, after the
 	 *   root has been added and scanned.
@@ -197,7 +180,7 @@ class ModuleRoots constructor(
 				"Module root \"$rootName\" is missing a source URI"))
 			return
 		}
-		val rootUri = URI(location)
+		val rootUri =  URI(location.replace("\\", "/"))
 		val resolver = createResolver(rootName, rootUri, fileManager)
 		resolver.resolve(
 			successHandler = {
@@ -272,27 +255,23 @@ class ModuleRoots constructor(
 			List<Triple<String, ErrorCode, Throwable?>>)->Unit)
 	{
 		val rootsToAcquire = roots
-		val countdown = AtomicInteger(rootsToAcquire.size)
 		val references = synchronizedList(mutableListOf<ResolverReference>())
 		val failures = synchronizedList(
 			mutableListOf<Triple<String, ErrorCode, Throwable?>>())
-		rootsToAcquire.forEach { mr ->
-			mr.resolver.provideModuleRootTree(
-				successHandler = {
-					references.add(it)
-					if (countdown.decrementAndGet() == 0)
-					{
-						withResults(references, failures)
-					}
-				},
-				failureHandler = { code, ex ->
-					failures.add(Triple(mr.name, code, ex))
-					if (countdown.decrementAndGet() == 0)
-					{
-						withResults(references, failures)
-					}
-				})
-		}
+		rootsToAcquire.parallelDoThen(
+			action = { root, after ->
+				root.resolver.provideModuleRootTree(
+					successHandler = { ref ->
+						references.add(ref)
+						after()
+					},
+					failureHandler = { code, ex ->
+						failures.add(Triple(root.name, code, ex))
+						after()
+					})
+
+			},
+			then = { withResults(references, failures) })
 	}
 
 	init

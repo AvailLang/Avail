@@ -31,7 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.functions.ContinuationDescriptor
+import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationExceptFrameMethod
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
@@ -86,7 +86,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		val slots = instruction.operand<L2ReadBoxedVectorOperand>(4)
 		val destReg = instruction.operand<L2WriteBoxedOperand>(5)
 		//		final L2ReadIntOperand labelIntReg = instruction.operand(6);
-//		final L2ReadBoxedOperand registerDumpReg = instruction.operand(7);
+		//		final L2ReadBoxedOperand registerDumpReg = instruction.operand(7);
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(destReg)
@@ -96,7 +96,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		builder.append(levelOnePC)
 		builder.append("\n\tstack=[")
 		var first = true
-		for (slot in slots.elements())
+		for (slot in slots.elements)
 		{
 			if (!first)
 			{
@@ -144,11 +144,12 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		translator.loadInterpreter(method)
 		Interpreter.chunkField.generateRead(method)
 		translator.load(method, labelIntReg.register())
-		ContinuationDescriptor.createContinuationExceptFrameMethod.generateCall(method)
-		val slotCount = slots.elements().size
+		createContinuationExceptFrameMethod.generateCall(method)
+		val slotCount = slots.elements.size
+		var pushed = 0
 		for (i in 0 until slotCount)
 		{
-			val regRead = slots.elements()[i]
+			val regRead = slots.elements[i]
 			val constant: A_BasicObject? = regRead.constantOrNull()
 			// Skip if it's always nil, since the continuation was already
 			// initialized with nils.
@@ -157,11 +158,25 @@ object L2_CREATE_CONTINUATION : L2Operation(
 				// :: continuation.frameAtPut(«i + 1», «slots[i]»)...
 				// [continuation]
 				translator.intConstant(method, i + 1)
-				translator.load(method, slots.elements()[i].register())
-				AvailObject.frameAtPutMethod.generateCall(method)
-				// Method returns continuation to simplify stack handling.
-				// [continuation]
+				translator.load(method, slots.elements[i].register())
+				if (++pushed == 6)
+				{
+					AvailObject.frameAtPut6Method.generateCall(method)
+					// Method returns continuation to simplify stack handling.
+					// [continuation]
+					pushed = 0
+				}
 			}
+		}
+		when (pushed)
+		{
+			0 -> { }
+			1 -> AvailObject.frameAtPutMethod.generateCall(method)
+			2 -> AvailObject.frameAtPut2Method.generateCall(method)
+			3 -> AvailObject.frameAtPut3Method.generateCall(method)
+			4 -> AvailObject.frameAtPut4Method.generateCall(method)
+			5 -> AvailObject.frameAtPut5Method.generateCall(method)
+			else -> error("Internal error - wrong bulk write size for frame")
 		}
 		// [continuation]
 		translator.store(method, destReg.register())

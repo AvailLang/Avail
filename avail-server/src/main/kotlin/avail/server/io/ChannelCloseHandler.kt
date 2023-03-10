@@ -95,13 +95,13 @@ class ChannelCloseHandler constructor(
 			channel.parentId?.let { id ->
 				// Has command channel parent so should be part of a session
 				channel.server.sessions[id]?.removeChildChannel(channel)
-			} ?: {
+			} ?: run {
 				// Is possibly a command channel with own session
-				channel.server.sessions[channel.id]?.close(it) ?: {
+				channel.server.sessions[channel.id]?.close(it) ?: run {
 					// Is possibly an unupgraded channel
 					channel.server.newChannels.remove(channel.id)
-				}.invoke()
-			}.invoke()
+				}
+			}
 			it.log(logger, Level.FINER, channel.toString())
 		}
 		else

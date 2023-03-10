@@ -44,7 +44,8 @@ import java.util.regex.Pattern
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object Strings {
+object Strings
+{
 	/**
 	 * Produce an escaped variant of the specified [string][String].
 	 *
@@ -277,5 +278,174 @@ object Strings {
 		{
 			append("</$tag>")
 		}
+	}
+
+	/**
+	 * Find the characters of [abbreviation] within the receiver, in the order
+	 * specified by [abbreviation] but not necessarily contiguously.
+	 *
+	 * @param abbreviation
+	 *   The abbreviation.
+	 * @param allowPartials
+	 *   Whether to allow matches that do not account for every character of the
+	 *   abbreviation. Defaults to `false`.
+	 * @param ignoreCase
+	 *   Whether to ignore case. Defaults to `false`.
+	 * @return
+	 *   The positions within the receiver where matching characters occurred.
+	 *   Empty if the abbreviation does not match completely.
+	 */
+	fun String.matchesAbbreviation(
+		abbreviation: String,
+		allowPartials: Boolean = false,
+		ignoreCase: Boolean = false
+	): List<Pair<Int, Int>>
+	{
+		if (!allowPartials && abbreviation.length > length)
+		{
+			// The abbreviation is longer than the qualified name, so even on
+			// its face it can't match.
+			return listOf()
+		}
+		// The logic is a bit messy because it has been hand optimized for
+		// speed. The algorithm is straightforward though — walk the target
+		// string and the search string together, increment the target string on
+		// each iteration, and increment the search pointer only when a code
+		// point hit occurs.
+		val normalize =
+			if (ignoreCase) { s: String -> s.lowercase() }
+			else { s: String -> s }
+		val search = normalize(abbreviation)
+		val searchLength = search.length
+		val target = normalize(this)
+		val targetLength = target.length
+		val matches = mutableListOf<Pair<Int, Int>>()
+		var start: Int? = null
+		var scan = 0
+		var next = search.codePointAt(0)
+		var i = 0
+		var matchLength = 0
+		while (true)
+		{
+			val c = target.codePointAt(i)
+			if (next == c)
+			{
+				if (start === null)
+				{
+					start = i
+				}
+				scan++
+				if (scan >= searchLength)
+				{
+					matches.add(start to (i + 1))
+					matchLength += i - start + 1
+					break
+				}
+				next = search.codePointAt(scan)
+			}
+			else if (start !== null)
+			{
+				matches.add(start to i)
+				matchLength += i - start
+				start = null
+			}
+			i += Character.charCount(c)
+			if (i >= targetLength)
+			{
+				break
+			}
+		}
+		return (
+			if (allowPartials || matchLength == searchLength) matches
+			else listOf())
+	}
+
+	/**
+	 * If the receiver is more than [limit] characters, truncate it and append
+	 * the [ellipsis], ensuring the resulting string does not exceed the limit.
+	 * The limit must be at least the length of the ellipsis.
+	 */
+	fun String.truncateTo(limit: Int, ellipsis: String = "…"): String
+	{
+		assert(limit >= ellipsis.length)
+		return when {
+			length <= limit -> this
+			else -> substring(0, limit - ellipsis.length) + ellipsis
+		}
+	}
+
+	/**
+	 * A map translating [Char]s to their entity-escaped forms, suitable for use
+	 * in HTML text.
+	 */
+	private val escapesForHTML = mapOf(
+		'&' to "&amp;",
+		'<' to "&lt;",
+		'>' to "&gt;",
+		'"' to "&quot;",
+		'\'' to "&#x27;",
+		'/' to "&#x2F;")
+
+	/**
+	 * Convert a string into HTML-escaped form, allowing the original string to
+	 * be presented literally in a web browser or Swing component expecting
+	 * HTML text.
+	 *
+	 * @receiver
+	 *   The string to escape.
+	 * @return
+	 *   The HTML-escaped string.
+	 */
+	fun String.escapedForHTML() = buildString {
+		this@escapedForHTML.forEach { char ->
+			when (val transformed = escapesForHTML[char])
+			{
+				null -> append(char)
+				else -> append(transformed)
+			}
+		}
+	}
+
+	/**
+	 * Build a Unicode box whose contents are populated by the specified
+	 * [builder] function. Only top and bottom borders are drawn.
+	 *
+	 * @param title
+	 *   The title of the box, if any. Defaults to `""`, i.e., untitled.
+	 * @param borderColumns
+	 *   The number of columns for the top and bottom borders.
+	 * @param builder
+	 *   How to populate the box with text.
+	 * @return
+	 *   The Unicode box.
+	 */
+	fun buildUnicodeBox(
+		title: String = "",
+		borderColumns: Int = 80,
+		builder: StringBuilder.()->Unit
+	) = buildString {
+		if (title.isEmpty())
+		{
+			append("┏")
+			append("━".repeat(borderColumns - 2))
+			append("┓\n")
+		}
+		else
+		{
+			// The magic constant is an adjustment for padding around the title.
+			val totalBorder = borderColumns - title.length - 2
+			val prologue = totalBorder / 2
+			val epilogue = prologue + totalBorder % 2
+			append("┏")
+			append("━".repeat(prologue - 1))
+			append(" $title ")
+			append("━".repeat(epilogue - 1))
+			append("┓\n")
+		}
+		builder()
+		if (this[lastIndex] != '\n') append('\n')
+		append("┗")
+		append("━".repeat(borderColumns - 2))
+		append("┛\n")
 	}
 }

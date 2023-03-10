@@ -62,7 +62,7 @@ object L2_CREATE_OBJECT : L2Operation(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		warningStyleChange: (Boolean)->Unit)
 	{
 		assert(this == instruction.operation)
 		val variantOperand = instruction.operand<L2ArbitraryConstantOperand>(0)
@@ -74,11 +74,11 @@ object L2_CREATE_OBJECT : L2Operation(
 		builder.append(" ← {")
 		val variant: ObjectLayoutVariant = variantOperand.constant.cast()
 		val realSlots = variant.realSlots
-		val fieldSources = fieldsVector.elements()
+		val fieldSources = fieldsVector.elements
 		assert(realSlots.size == fieldSources.size)
 		var i = 0
 		realSlots.joinTo(builder, ",")
-			{ key -> "$key: ${fieldSources[i++].registerString()}" }
+		{ key -> "$key: ${fieldSources[i++].registerString()}" }
 	}
 
 	override fun translateToJVM(
@@ -93,7 +93,7 @@ object L2_CREATE_OBJECT : L2Operation(
 		val variant: ObjectLayoutVariant = variantOperand.constant.cast()
 		translator.literal(method, variant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
-		val fieldSources = fieldsVector.elements()
+		val fieldSources = fieldsVector.elements
 		val limit = fieldSources.size
 		for (i in 0 until limit)
 		{

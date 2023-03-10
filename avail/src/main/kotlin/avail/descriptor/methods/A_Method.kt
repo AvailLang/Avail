@@ -39,7 +39,7 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
@@ -175,8 +175,7 @@ interface A_Method : A_ChunkDependable {
 		 * Answer the [definition][A_Definition] of this [A_Method] that should
 		 * be invoked for the given values. Use the testing tree to select a
 		 * definition. If lookup fails, then write an appropriate
-		 * [error&#32;code][AvailErrorCode] into `errorCode` and answer
-		 * [nil][NilDescriptor.nil].
+		 * [error&#32;code][AvailErrorCode] into `errorCode` and answer [nil].
 		 *
 		 * @param argumentList
 		 *   The [List] of arguments, ordered by position.
@@ -327,7 +326,7 @@ interface A_Method : A_ChunkDependable {
 			dispatch { o_ChooseBundle(it, currentModule) }
 
 		/**
-		 * This method's lexer, or [NilDescriptor.nil].
+		 * This method's lexer, or [nil].
 		 */
 		var A_Method.lexer: A_Lexer
 			get() = dispatch { o_Lexer(it) }
@@ -348,5 +347,25 @@ interface A_Method : A_ChunkDependable {
 		 */
 		val A_Method.testingTree: LookupTree<A_Definition, A_Tuple>
 			get() = dispatch { o_TestingTree(it) }
+
+		/**
+		 * This method's [set][A_Set] of [A_Styler]s.  A module must not define
+		 * more than one styler on the same [A_Method].
+		 *
+		 * When styling a phrase, the invoked method's set of stylers is
+		 * filtered to just those defined by modules in the current module's
+		 * ancestry.  If there are multiple applicable stylers, choose the one
+		 * that's closest to the current module.  If there is a tie for most
+		 * specific module, style the phrase in a way that indicates a styling
+		 * conflict.
+		 */
+		val A_Method.methodStylers: A_Set
+			get() = dispatch { o_MethodStylers(it) }
+
+		/**
+		 * Atomically update this definition's set of stylers.
+		 */
+		fun A_Method.updateStylers(updater: A_Set.() -> A_Set) =
+			dispatch { o_UpdateStylers(it, updater) }
 	}
 }

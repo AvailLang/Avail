@@ -69,21 +69,21 @@ package avail.utility
  *   The number of spaces that all text should be, minimum, from the right side
  *   of the screen.
  */
-class ParagraphFormatter @JvmOverloads constructor(
-	val windowWidth: Int = 80,
-	val leftMargin: Int = 0,
-	val rightMargin: Int = 0,
-	val firstIndent: Int = 0,
-	val restIndent: Int = 0)
+class ParagraphFormatter constructor(
+	private val windowWidth: Int = 80,
+	private val leftMargin: Int = 0,
+	private val rightMargin: Int = 0,
+	private val firstIndent: Int = 0,
+	private val restIndent: Int = 0)
 {
 	/** The left margin, as a string of spaces. */
-	private val margin: String
+	private val margin: String = padding(leftMargin)
 
 	/** The paragraph-initial indent, as a string of spaces. */
-	private val fIndent: String
+	private val fIndent: String = padding(firstIndent)
 
 	/** The non-initial indent of a paragraph, as a string of spaces. */
-	private val rIndent: String
+	private val rIndent: String = padding(restIndent)
 
 	/**
 	 * Answer the supplied string reformatted with margins, indentation, and
@@ -100,8 +100,8 @@ class ParagraphFormatter @JvmOverloads constructor(
 		var input = str
 
 		// Replace all line separators with the system standard.
-		val nwln = System.getProperty("line.separator")
-		input = replaceSeparators(input, nwln)
+		val sep = System.getProperty("line.separator")
+		input = replaceSeparators(input, sep)
 
 		// Replace any remaining whitespace characters or sequences with a
 		// single space.
@@ -111,13 +111,13 @@ class ParagraphFormatter @JvmOverloads constructor(
 		while (input.isNotEmpty())
 		{
 			// Get the next paragraph.
-			var newlineIndex = input.indexOf(nwln)
+			var newlineIndex = input.indexOf(sep)
 
 			// If the next "paragraph" is itself a newline, output it skip the
 			// rest of the string manipulation.
 			if (newlineIndex == 0)
 			{
-				output.append(nwln)
+				output.append(sep)
 				input = input.substring(1)
 			}
 			else
@@ -166,7 +166,7 @@ class ParagraphFormatter @JvmOverloads constructor(
 					output.append(margin)
 					output.append(indent)
 					output.append(currentLine)
-					output.append(nwln)
+					output.append(sep)
 
 					// If that was the first line in the paragraph, switch to
 					// subsequent-line indentation.
@@ -220,12 +220,5 @@ class ParagraphFormatter @JvmOverloads constructor(
 			}
 			return padding.toString()
 		}
-	}
-
-	init
-	{
-		margin = padding(leftMargin)
-		fIndent = padding(firstIndent)
-		rIndent = padding(restIndent)
 	}
 }

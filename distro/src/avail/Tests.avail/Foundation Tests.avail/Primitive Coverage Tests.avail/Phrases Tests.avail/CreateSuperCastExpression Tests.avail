@@ -39,24 +39,24 @@ Body
 
 Test "CreateSuperCastExpression ok" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "CreateSuperCastExpression fails with supercast-expression-type-must-not-be-top-or-bottom exception" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise supercast-expression-type-must-not-be-top-or-bottom exception;
 
 Test "CreateSuperCastExpression fails with supercast-expression-must-not-also-be-a-supercast exception" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise supercast-expression-must-not-also-be-a-supercast exception;
 
 Test "CreateSuperCastExpression fails with supercast-must-be-strict-supertype-of-expression-type exception" in primitive phrases test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise supercast-must-be-strict-supertype-of-expression-type exception;
 

@@ -46,16 +46,18 @@ import avail.io.SimpleCompletionHandler
 import avail.resolver.ModuleRootResolver.WatchEventType.CREATE
 import avail.resolver.ModuleRootResolver.WatchEventType.DELETE
 import avail.resolver.ModuleRootResolver.WatchEventType.MODIFY
-import avail.resolver.ResourceType.DIRECTORY
-import avail.resolver.ResourceType.MODULE
-import avail.resolver.ResourceType.PACKAGE
-import avail.resolver.ResourceType.REPRESENTATIVE
-import avail.resolver.ResourceType.RESOURCE
-import avail.resolver.ResourceType.ROOT
+import avail.utility.launch
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryChangeEvent.EventType
 import io.methvin.watcher.DirectoryWatcher
 import io.methvin.watcher.hashing.FileHasher
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceType.DIRECTORY
+import org.availlang.artifact.ResourceType.MODULE
+import org.availlang.artifact.ResourceType.PACKAGE
+import org.availlang.artifact.ResourceType.REPRESENTATIVE
+import org.availlang.artifact.ResourceType.RESOURCE
+import org.availlang.artifact.ResourceType.ROOT
 import org.slf4j.helpers.NOPLogger
 import java.io.File
 import java.io.IOException
@@ -77,7 +79,6 @@ import java.util.ArrayDeque
 import java.util.EnumSet
 import java.util.LinkedList
 import java.util.UUID
-import kotlin.concurrent.thread
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.moveTo
 
@@ -219,31 +220,21 @@ class FileSystemModuleRootResolver constructor(
 	private fun determineResourceType (file: File): ResourceType
 	{
 		val fileName = file.absolutePath
-		return if (fileName.endsWith(availExtension))
+		val endsWithExtension = fileName.endsWith(availExtension)
+		val isDirectory = file.isDirectory
+		return when
 		{
-
-			if (file.isDirectory) PACKAGE
-			else
+			!endsWithExtension && isDirectory -> DIRECTORY
+			!endsWithExtension -> RESOURCE
+			isDirectory -> PACKAGE
+			else ->
 			{
-				val components = fileName.split("/")
-				val parent =
-					if (components.size > 1)
-					{
-						components[components.size - 2].split(availExtension)[0]
-					}
-					else ""
-
-				val localName = fileName.substring(
-					0,
-					fileName.length - availExtension.length)
-				if (parent == localName) REPRESENTATIVE
+				val localName = fileName.substringAfterLast('/')
+				val parent = fileName.substringBeforeLast('/', "")
+				val parentLocal = parent.substringAfterLast('/', "")
+				if (parentLocal == localName) REPRESENTATIVE
 				else MODULE
 			}
-		}
-		else
-		{
-			if (file.isDirectory) DIRECTORY
-			else RESOURCE
 		}
 	}
 
@@ -405,7 +396,7 @@ class FileSystemModuleRootResolver constructor(
 	{
 		val data = ByteBuffer.wrap(fileContents)
 		val path = Path.of(reference.uri)
-		val tempPath = path.parent.resolve("\$\$\$" + path.fileName)
+		val tempPath = path.parent.resolve(tempFilePrefix() + path.fileName)
 		val tempFile = fileManager.ioSystem.openFile(
 			tempPath,
 			EnumSet.of(
@@ -675,12 +666,13 @@ class FileSystemModuleRootResolver constructor(
 					throw IOException("alleged root is not a directory")
 				}
 
-				val fileName = file.fileName.toString()
-				if (fileName.uppercase() == ".DS_STORE")
+				if (shouldIgnorePath(file))
 				{
-					// Mac file to be ignored
+					// Either a Mac-specific file containing folder settings
+					// or a file still being written but not yet renamed.
 					return FileVisitResult.CONTINUE
 				}
+				val fileName = file.fileName.toString()
 
 				// A file with an Avail extension is an Avail module.
 				val parent = stack.peekFirst()!!
@@ -722,6 +714,23 @@ class FileSystemModuleRootResolver constructor(
 	}
 
 	/**
+	 * Answer whether to ignore notifications and visits for files with the
+	 * given name.
+	 */
+	private fun shouldIgnorePath(path: Path): Boolean
+	{
+		val fileName = path.fileName.toString()
+		return when
+		{
+			fileName.uppercase() == ".DS_STORE" -> true
+			fileName.startsWith(tempFilePrefix()) -> true
+			else -> false
+		}
+	}
+
+	override fun toString() = "$name - $uri"
+
+	/**
 	 * `FileSystemWatcher` manages the [WatchService] responsible for watching
 	 * the local file system directories of the [ModuleRoot]s loaded into the
 	 * AvailRuntime.
@@ -729,36 +738,27 @@ class FileSystemModuleRootResolver constructor(
 	inner class FileSystemWatcher
 	{
 		/**
-		 * The [WatchService] watching the [FileManager] directories where
+		 * The [DirectoryWatcher] watching the [FileManager] directories where
 		 * the [AvailRuntime] loaded [ModuleRoot]s are stored.
 		 */
 		private val directoryWatcher = DirectoryWatcher.builder()
 			.logger(NOPLogger.NOP_LOGGER)
 			.fileHasher(FileHasher.LAST_MODIFIED_TIME)
-			.listener { e -> resolveEvent(e) }
-			.path(Paths.get(moduleRoot.resolver.uri))
-			.build()!!
-			.apply {
-				// Allocate a dedicated thread to observing changes to the
-				// filesystem.
-				thread (
-					isDaemon = true,
-					name = "file system observer"
-				) {
-					while (true)
-					{
-						try
-						{
-							watch()
-							break
-						}
-						catch (t: Throwable)
-						{
-							// Try again.
-						}
-					}
+			.listener { event ->
+				try
+				{
+					resolveEvent(event)
+				}
+				catch (t: Throwable)
+				{
+					println(
+						"Processing ${event.eventType()}: ${event.path()},"
+						+ " encountered error: $t\n${t.stackTraceToString()}")
 				}
 			}
+			.path(Path.of(File(moduleRoot.resolver.uri).path))
+			.build()
+			.launch("module root observer")
 
 		/**
 		 * Shutdown this [FileSystemWatcher].
@@ -770,14 +770,10 @@ class FileSystemModuleRootResolver constructor(
 
 		private fun resolveEvent (event: DirectoryChangeEvent)
 		{
-			// Mac stuff to ignore.
 			val path = event.path()
-			if (path.endsWith(".DS_Store"))
-			{
-				return
-			}
+			if (shouldIgnorePath(path)) return
 			val base = moduleRoot.resolver.uri
-			val uri = event.path()?.toUri() ?: return
+			val uri = path?.toUri() ?: return
 			val file = File(base.resolve(uri))
 			val isDirectory = file.isDirectory
 			val eventType = event.eventType()
@@ -875,5 +871,15 @@ class FileSystemModuleRootResolver constructor(
 				else -> {}
 			}
 		}
+	}
+
+	companion object
+	{
+		/**
+		 * A prefix to use for files while they're being written.  We ignore
+		 * notifications from the watcher about files starting with this
+		 * prefix.
+		 */
+		private fun tempFilePrefix() = "\$\$\$TEMPFILE\$\$\$-"
 	}
 }

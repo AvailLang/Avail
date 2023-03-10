@@ -154,13 +154,14 @@ class PrimitiveCompiledCodeDescriptor internal constructor(
 		@HideFieldInDebugger
 		NYBBLECODES_;
 
+		@Suppress("MemberVisibilityCanBePrivate")
 		companion object
 		{
 			/**
 			 * The hash value of this [compiled][CompiledCodeDescriptor].  It is
 			 * computed at construction time.
 			 */
-			val HASH = BitField(HASH_AND_OUTERS, 32, 32, Int::toString)
+			val HASH = BitField(HASH_AND_OUTERS, 32, 32) { null }
 
 			/**
 			 * The number of outer variables that must be captured by my

@@ -47,7 +47,6 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.replacingCaller
 import avail.descriptor.functions.A_Function
@@ -92,6 +91,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailErrorCode
+import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
@@ -122,7 +122,9 @@ import avail.interpreter.levelOne.L1Operation.L1_doPushLocal
 import avail.interpreter.levelOne.L1Operation.L1_doPushOuter
 import avail.interpreter.levelOne.L1Operation.L1_doSetLocal
 import avail.interpreter.levelOne.L1Operation.L1_doSetOuter
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.AFTER_REIFICATION
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operation.L2_INTERPRET_LEVEL_ONE
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedMethod
@@ -251,15 +253,17 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				Level.FINER,
 				"{0}Started L1 run: {1}",
 				interpreter.debugModeString,
-				object {
-					override fun toString(): String =
-						whitespaces.matcher(function.toString()).replaceAll(" ")
-				})
+				whitespaces.matcher(function.toString()).replaceAll(" "))
 		}
 		val debugger = interpreter.debugger
 		code.setUpInstructionDecoder(instructionDecoder)
-		while (!instructionDecoder.atEnd())
+		while (true)
 		{
+			// Check the debugger *prior* to checking for running past the end
+			// of the nybblecodes (an implicit return), since we want to be able
+			// to pause before returning, say in a chain of returns, or when a
+			// breakpoint occurs as a top-level module statement at a point
+			// prior to installing the base frame hook.
 			if (debugger !== null)
 			{
 				val f = interpreter.fiber()
@@ -272,7 +276,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						registerDump = nil,
 						pc = pc(),
 						stackp = stackp,
-						levelTwoChunk = L2Chunk.unoptimizedChunk,
+						levelTwoChunk = unoptimizedChunk,
 						levelTwoOffset =
 							ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
 						frameValues = listOf(*pointers),
@@ -313,6 +317,27 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 				}
 			}
+
+			if (instructionDecoder.atEnd())
+			{
+				// It ran off the end of the nybblecodes, which is how a
+				// function returns in Level One. Pop the return result and
+				// return to the Kotlin caller.
+				interpreter.setLatestResult(pop())
+				assert(stackp == pointers.size)
+				interpreter.returnNow = true
+				interpreter.returningFunction = function
+				if (Interpreter.debugL1)
+				{
+					log(
+						Interpreter.loggerDebugL1,
+						Level.FINER,
+						"{0}L1 return",
+						interpreter.debugModeString)
+				}
+				return null
+			}
+
 			val operationOrdinal = instructionDecoder.getOperationOrdinal()
 			if (Interpreter.debugL1)
 			{
@@ -419,13 +444,10 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					val outerIndex = instructionDecoder.getOperand()
 					val outer: A_BasicObject = function.outerVarAt(outerIndex)
 					assert(outer.notNil)
-					if (function.optionallyNilOuterVar(outerIndex))
+					when (function.optionallyNilOuterVar(outerIndex))
 					{
-						push(outer)
-					}
-					else
-					{
-						push(outer.makeImmutable())
+						true -> push(outer)
+						else -> push(outer.makeImmutable())
 					}
 				}
 				L1_doClose.ordinal ->
@@ -457,10 +479,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val reifier = setVariable(
 						pointerAt(instructionDecoder.getOperand()), pop())
-					if (reifier !== null)
-					{
-						return reifier
-					}
+					if (reifier !== null) return reifier
 				}
 				L1_doGetLocalClearing.ordinal ->
 				{
@@ -468,12 +487,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						pointerAt(instructionDecoder.getOperand())
 					val valueOrReifier =
 						getVariableClearingIfMutable(localVariable)
-					if (valueOrReifier is StackReifier)
-					{
-						return valueOrReifier
-					}
-					val value = valueOrReifier as AvailObject
-					push(value)
+					if (valueOrReifier is StackReifier) return valueOrReifier
+					push(valueOrReifier as AvailObject)
 				}
 				L1_doPushOuter.ordinal ->
 				{
@@ -492,10 +507,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						function.outerVarAt(instructionDecoder.getOperand())
 					val valueOrReifier =
 						getVariableClearingIfMutable(outerVariable)
-					if (valueOrReifier is StackReifier)
-					{
-						return valueOrReifier
-					}
+					if (valueOrReifier is StackReifier) return valueOrReifier
 					val value = valueOrReifier as AvailObject
 					push(value.makeImmutable())
 				}
@@ -504,19 +516,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					val reifier = setVariable(
 						function.outerVarAt(instructionDecoder.getOperand()),
 						pop())
-					if (reifier !== null)
-					{
-						return reifier
-					}
+					if (reifier !== null) return reifier
 				}
 				L1_doGetLocal.ordinal ->
 				{
 					val valueOrReifier =
 						getVariable(pointerAt(instructionDecoder.getOperand()))
-					if (valueOrReifier is StackReifier)
-					{
-						return valueOrReifier
-					}
+					if (valueOrReifier is StackReifier) return valueOrReifier
 					push(valueOrReifier as AvailObject)
 				}
 				L1_doMakeTuple.ordinal ->
@@ -551,65 +557,89 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						assert(arg.notNil)
 						arg
 					}
-					assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
+					//assert(interpreter.chunk == unoptimizedChunk)
 					val savedFunction = interpreter.function!!
 					val savedPointers = pointers
 					val savedPc = pc()
 					val savedStackp = stackp
 
 					// Note that the locals are not present in the new
-					// continuation, just arguments.  The locals will be
-					// created by offsetToRestartUnoptimizedChunk()
-					// when the continuation is restarted.
+					// continuation, just arguments.  New locals will be
+					// created when the continuation is restarted.
 					// Freeze all fields of the new object, including
 					// its caller, function, and args.
-					// ...always a fresh copy, always mutable (uniquely
-					// owned).
+					// ...always a fresh copy, always mutable (uniquely owned).
 					// ...and continue running the chunk.
-					interpreter.isReifying = true
-					return StackReifier(
-						true,
-						reificationBeforeLabelCreationStat
-					) {
-						// The Java stack has been reified into Avail
-						// continuations.  Run this before continuing the L2
-						// interpreter.
-						interpreter.function = savedFunction
-						interpreter.chunk = L2Chunk.unoptimizedChunk
-						interpreter.setOffset(
-							ChunkEntryPoint.AFTER_REIFICATION
-								.offsetInDefaultChunk)
-						pointers = savedPointers
-						savedFunction.code().setUpInstructionDecoder(
-							instructionDecoder)
-						instructionDecoder.pc(savedPc)
-						stackp = savedStackp
-
+					if (interpreter.callerIsReified())
+					{
+						// The caller has already been reified, so we don't need
+						// to force reification here.
 						// Note that the locals are not present in the new
-						// continuation, just arguments.  The locals will be
-						// created by offsetToRestartUnoptimizedChunk()
-						// when the continuation is restarted.
-						val newContinuation =
-							createLabelContinuation(
+						// continuation, just arguments.
+						val newContinuation = createLabelContinuation(
+							savedFunction,
+							interpreter.getReifiedContinuation()!!,
+							unoptimizedChunk,
+							ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk,
+							args)
+						// Freeze all fields of the new object, including its
+						// caller, function, and args.
+						newContinuation.makeSubobjectsImmutable()
+						//assert(newContinuation.caller().isNil
+						//	|| !newContinuation.caller().descriptor().isMutable
+						//) {
+						//	"Caller should freeze because two continuations " +
+						//		"can see it"
+						//}
+						push(newContinuation)
+					}
+					else
+					{
+						// Unfortunately, the caller is not yet reified, so we
+						// have to force a reification to ensure the label's
+						// caller is set correctly.
+						interpreter.isReifying = true
+						return StackReifier(
+							true,
+							reificationBeforeLabelCreationStat
+						) {
+							// The Java stack has been reified into Avail
+							// continuations.  Run this before continuing the L2
+							// interpreter.
+							interpreter.function = savedFunction
+							interpreter.chunk = unoptimizedChunk
+							interpreter.setOffset(
+								AFTER_REIFICATION.offsetInDefaultChunk)
+							pointers = savedPointers
+							savedFunction.code().setUpInstructionDecoder(
+								instructionDecoder)
+							instructionDecoder.pc(savedPc)
+							stackp = savedStackp
+
+							// Note that the locals are not present in the new
+							// continuation, just arguments.
+							val newContinuation = createLabelContinuation(
 								savedFunction,
 								interpreter.getReifiedContinuation()!!,
-								L2Chunk.unoptimizedChunk,
+								unoptimizedChunk,
 								ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk,
 								args)
 
-						// Freeze all fields of the new object, including
-						// its caller, function, and args.
-						newContinuation.makeSubobjectsImmutable()
-						assert(newContinuation.caller().isNil
-								|| !newContinuation.caller().descriptor()
-							.isMutable) {
-							("Caller should freeze because two "
-								+ "continuations can see it")
+							// Freeze all fields of the new object, including
+							// its caller, function, and args.
+							newContinuation.makeSubobjectsImmutable()
+							//assert(newContinuation.caller().isNil
+							//		|| !newContinuation.caller().descriptor()
+							//	.isMutable
+							//) {
+							//	"Caller should freeze because two " +
+							//		"continuations can see it"
+							//}
+							push(newContinuation)
+							interpreter.returnNow = false
+							// ...and continue running the chunk.
+							interpreter.isReifying = false
 						}
-						push(newContinuation)
-						interpreter.returnNow = false
-						// ...and continue running the chunk.
-						interpreter.isReifying = false
 					}
 				}
 				L1Ext_doGetLiteral.ordinal ->
@@ -668,8 +698,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					interpreter.argsBuffer.clear()
 					var reversedStackp = stackp + numArgs
 					val typesTuple: A_Tuple =
-						generateObjectTupleFrom(numArgs)
-						{ index: Int ->
+						generateObjectTupleFrom(numArgs) { index: Int ->
 							val arg = pointerAt(--reversedStackp)
 							interpreter.argsBuffer.add(arg)
 							instanceTypeOrMetaOn(arg).typeUnion(
@@ -723,22 +752,6 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				}
 			}
 		}
-		// It ran off the end of the nybblecodes, which is how a function
-		// returns in Level One.  Capture the result and return to the Java
-		// caller.
-		interpreter.setLatestResult(pop())
-		assert(stackp == pointers.size)
-		interpreter.returnNow = true
-		interpreter.returningFunction = function
-		if (Interpreter.debugL1)
-		{
-			log(
-				Interpreter.loggerDebugL1,
-				Level.FINER,
-				"{0}L1 return",
-				interpreter.debugModeString)
-		}
-		return null
 	}
 
 	/**
@@ -765,7 +778,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			nil,
 			pc(),  // Right after the set-variable.
 			stackp,
-			L2Chunk.unoptimizedChunk,
+			unoptimizedChunk,
 			entryPoint.offsetInDefaultChunk,
 			listOf(*pointers),
 			1)
@@ -810,13 +823,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedOffset = interpreter.offset
 			val savedPc = pc()
 			val savedStackp = stackp
-			val implicitObserveFunction =
-				HookType.READ_UNASSIGNED_VARIABLE[interpreter.runtime]
+			val unassignedVariableFunction =
+				interpreter.runtime[HookType.READ_UNASSIGNED_VARIABLE]
 			interpreter.argsBuffer.clear()
 			val reifier =
-				interpreter.invokeFunction(implicitObserveFunction)!!
+				interpreter.invokeFunction(unassignedVariableFunction)!!
 			pointers = savedPointers
-			interpreter.chunk = L2Chunk.unoptimizedChunk
+			interpreter.chunk = unoptimizedChunk
 			interpreter.setOffset(savedOffset)
 			interpreter.function = savedFunction
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
@@ -825,7 +838,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			if (reifier.actuallyReify())
 			{
 				reifyCurrentFrame(
-					reifier, ChunkEntryPoint.UNREACHABLE,
+					reifier,
+					ChunkEntryPoint.UNREACHABLE,
 					"{0}Push reified continuation for L1 getVar "
 						+ "failure: {1}")
 			}
@@ -868,13 +882,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedOffset = interpreter.offset
 			val savedPc = pc()
 			val savedStackp = stackp
-			val implicitObserveFunction =
-				HookType.READ_UNASSIGNED_VARIABLE[interpreter.runtime]
+			val unassignedVariableFunction =
+				interpreter.runtime[HookType.READ_UNASSIGNED_VARIABLE]
 			interpreter.argsBuffer.clear()
 			val reifier =
-				interpreter.invokeFunction(implicitObserveFunction)!!
+				interpreter.invokeFunction(unassignedVariableFunction)!!
 			pointers = savedPointers
-			interpreter.chunk = L2Chunk.unoptimizedChunk
+			interpreter.chunk = unoptimizedChunk
 			interpreter.setOffset(savedOffset)
 			interpreter.function = savedFunction
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
@@ -883,7 +897,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			if (reifier.actuallyReify())
 			{
 				reifyCurrentFrame(
-					reifier, ChunkEntryPoint.UNREACHABLE,
+					reifier,
+					ChunkEntryPoint.UNREACHABLE,
 					"{0}Push reified continuation for L1 getVarClearing "
 						+ "failure: {1}")
 			}
@@ -915,8 +930,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		catch (e: VariableSetException)
 		{
 			assert(e.numericCode.equals(
-				AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
-					.numericCode()))
+				E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode()))
 			val savedFunction = interpreter.function!!
 			val savedPointers = pointers
 			val savedOffset = interpreter.offset
@@ -931,7 +945,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val reifier =
 				interpreter.invokeFunction(implicitObserveFunction)
 			pointers = savedPointers
-			interpreter.chunk = L2Chunk.unoptimizedChunk
+			interpreter.chunk = unoptimizedChunk
 			interpreter.setOffset(savedOffset)
 			interpreter.function = savedFunction
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
@@ -942,7 +956,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				if (reifier.actuallyReify())
 				{
 					reifyCurrentFrame(
-						reifier, ChunkEntryPoint.TO_RESUME,
+						reifier,
+						ChunkEntryPoint.TO_RESUME,
 						"{0}Push reified continuation for L1 setVar "
 							+ "failure: {1}")
 				}
@@ -980,7 +995,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)
 		}
 		val savedFunction = interpreter.function!!
-		assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
+		assert(interpreter.chunk == unoptimizedChunk)
 		val savedOffset = interpreter.offset
 		val savedPointers = pointers
 		val savedPc = pc()
@@ -988,7 +1003,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val functionToInvoke = matching.bodyBlock()
 		val reifier = interpreter.invokeFunction(functionToInvoke)
 		pointers = savedPointers
-		interpreter.chunk = L2Chunk.unoptimizedChunk
+		interpreter.chunk = unoptimizedChunk
 		interpreter.setOffset(savedOffset)
 		interpreter.function = savedFunction
 		savedFunction.code().setUpInstructionDecoder(instructionDecoder)
@@ -1008,7 +1023,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			if (reifier.actuallyReify())
 			{
 				reifyCurrentFrame(
-					reifier, ChunkEntryPoint.TO_RETURN_INTO,
+					reifier,
+					ChunkEntryPoint.TO_RETURN_INTO,
 					"{0}Push reified continuation for L1 call: {1}")
 			}
 		}
@@ -1055,7 +1071,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		if (!checkOk)
 		{
 			val savedFunction = interpreter.function!!
-			assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
+			assert(interpreter.chunk == unoptimizedChunk)
 			val savedOffset = interpreter.offset
 			val savedPointers = pointers
 			val savedPc = pc()
@@ -1071,7 +1087,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				interpreter.runtime.resultDisagreedWithExpectedTypeFunction()
 			)!!
 			pointers = savedPointers
-			interpreter.chunk = L2Chunk.unoptimizedChunk
+			interpreter.chunk = unoptimizedChunk
 			interpreter.setOffset(savedOffset)
 			interpreter.function = savedFunction
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
@@ -1111,7 +1127,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val arguments = tupleFromList(interpreter.argsBuffer)
 
 		val savedFunction = interpreter.function!!
-		assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
+		assert(interpreter.chunk == unoptimizedChunk)
 		val savedOffset = interpreter.offset
 		val savedPointers = pointers
 		val savedPc = pc()
@@ -1127,7 +1143,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		// The function cannot return, so we got a StackReifier back.
 
 		pointers = savedPointers
-		interpreter.chunk = L2Chunk.unoptimizedChunk
+		interpreter.chunk = unoptimizedChunk
 		interpreter.setOffset(savedOffset)
 		interpreter.function = savedFunction
 		savedFunction.code().setUpInstructionDecoder(instructionDecoder)

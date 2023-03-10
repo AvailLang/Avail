@@ -40,13 +40,19 @@ import avail.compiler.problems.ProblemType.PARSE
 import avail.compiler.scanning.LexingState
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
+import avail.descriptor.tuples.A_Tuple.Companion.lastIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -157,7 +163,6 @@ class CompilerDiagnostics constructor(
 	@Volatile
 	var compilationIsInvalid = false
 
-
 	/**
 	 * The continuation that reports success of compilation.
 	 */
@@ -169,6 +174,14 @@ class CompilerDiagnostics constructor(
 	 */
 	@Volatile
 	private var failureReporter: (()->Unit)? = null
+
+	/**
+	 * A tool for converting character positions between Avail's Unicode strings
+	 * and Java/Kotlin's UTF-16 representation.
+	 */
+	val surrogateIndexConverter: SurrogateIndexConverter by lazy {
+		SurrogateIndexConverter(source.asNativeString())
+	}
 
 	/**
 	 * These enumeration values form a priority scheme for reporting parsing
@@ -414,9 +427,8 @@ class CompilerDiagnostics constructor(
 
 			// Figure out where to start showing the file content.  Never show
 			// the content before the line on which startOfStatement resides.
-			val startOfFirstLine = 1 + lastIndexOf(
-				source,
-				'\n'.code,
+			val startOfFirstLine = 1 + source.lastIndexOf(
+				fromCodePoint('\n'.code),
 				startOfStatement!!.position - 1,
 				1)
 			val initialLineNumber = 1 + occurrencesInRange(
@@ -428,9 +440,8 @@ class CompilerDiagnostics constructor(
 			// be the line after the *end* of the last problem token.
 			val lastProblem = ascending[ascending.size - 1]
 			val finalLineNumber = lastProblem.lineNumber
-			var startOfNextLine = 1 + firstIndexOf(
-				source,
-				'\n'.code,
+			var startOfNextLine = 1 + source.firstIndexOf(
+				fromCodePoint('\n'.code),
 				lastProblem.lexingStateAfterToken.position,
 				source.tupleSize)
 			startOfNextLine =
@@ -438,9 +449,8 @@ class CompilerDiagnostics constructor(
 					startOfNextLine
 				else
 					source.tupleSize + 1
-			var startOfSecondNextLine = 1 + firstIndexOf(
-				source,
-				'\n'.code,
+			var startOfSecondNextLine = 1 + source.firstIndexOf(
+				fromCodePoint('\n'.code),
 				startOfNextLine,
 				source.tupleSize)
 			startOfSecondNextLine =
@@ -692,14 +702,9 @@ class CompilerDiagnostics constructor(
 			liveTokens = mutableListOf()
 			old
 		}
-
 		for (token in priorTokens)
 		{
 			token.clearLexingState()
-		}
-
-		liveTokensLock.safeWrite {
-			liveTokens = mutableListOf()
 		}
 	}
 
@@ -931,7 +936,8 @@ class CompilerDiagnostics constructor(
 					emptyTuple,
 					state.position,
 					state.lineNumber,
-					WHITESPACE)
+					WHITESPACE,
+					nil)
 				emptyToken.setNextLexingStateFromPrior(state)
 				continuation(emptyToken.makeShared())
 				return
@@ -946,76 +952,6 @@ class CompilerDiagnostics constructor(
 		 */
 		private const val expectationHeaderMessagePattern =
 			"Expected at %s, line %d..."
-
-		/**
-		 * Search for a particular code point in the Avail string, starting at
-		 * the given index and working forward.
-		 *
-		 * @param string
-		 *   The string in which to search.
-		 * @param codePoint
-		 *   The code point to search for.
-		 * @param startIndex
-		 *   The position at which to start scanning.
-		 * @param endIndex
-		 *   The position at which to stop scanning, which should be the
-		 *   startIndex for a non-empty range.
-		 * @return
-		 *   The first encountered index of the code point when scanning
-		 *   backward from the given initial index.  If the code point is not
-		 *   found, answer 0.
-		 */
-		@Suppress("SameParameterValue")
-		private fun firstIndexOf(
-			string: A_String,
-			codePoint: Int,
-			startIndex: Int,
-			endIndex: Int): Int
-		{
-			for (i in startIndex .. endIndex)
-			{
-				if (string.tupleCodePointAt(i) == codePoint)
-				{
-					return i
-				}
-			}
-			return 0
-		}
-
-		/**
-		 * Search for a particular code point in the Avail string, starting at
-		 * the given one-based index and working backward.
-		 *
-		 * @param string
-		 *   The string in which to search.
-		 * @param codePoint
-		 *   The code point to search for.
-		 * @param startIndex
-		 *   The position at which to start scanning backward.
-		 * @param endIndex
-		 *   The position at which to stop scanning; should be the startIndex
-		 *   for a non-empty range.
-		 * @return
-		 *   The first encountered index of the code point when scanning
-		 *   backward from the given initial index.  If the code point is not
-		 *   found, answer 0.
-		 */
-		@Suppress("SameParameterValue")
-		private fun lastIndexOf(
-			string: A_String,
-			codePoint: Int,
-			startIndex: Int,
-			endIndex: Int): Int
-		{
-			for (i in startIndex downTo endIndex)
-			{
-				if (string.tupleCodePointAt(i) == codePoint)
-				{
-					return i
-				}
-			}
-			return 0
-		}
 
 		/**
 		 * Search for a particular code point in the given range of the Avail

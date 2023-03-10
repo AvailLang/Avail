@@ -49,7 +49,7 @@ Test "AtomGetProperty fails with no-such-field exception" in primitive atoms tes
 [
 	k ::= new atom named "not going to be found";
 	o ::= new atom named "test atom";
-	o[k]
+	Ignore: o[k];
 ]
 must raise no-such-field exception;
 

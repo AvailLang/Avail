@@ -31,10 +31,10 @@
  */
 package avail.descriptor.functions
 
+import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -42,6 +42,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Chunk
+import avail.optimizer.jvm.CheckedField.Companion.staticField
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
@@ -92,10 +93,10 @@ class ContinuationRegisterDumpDescriptor private constructor(
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
 	override fun o_ExtractDumpedObjectAt(self: AvailObject, index: Int) =
-		self.slot(OBJECT_SLOTS_, index)
+		self[OBJECT_SLOTS_, index]
 
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
-		self.slot(INTEGER_SLOTS_, index)
+		self[INTEGER_SLOTS_, index]
 
 	override fun mutable() = mutable
 
@@ -120,29 +121,14 @@ class ContinuationRegisterDumpDescriptor private constructor(
 		fun createRegisterDump(
 			objects: Array<AvailObject>,
 			longs: LongArray
-		): AvailObject =
-			if (objects.isEmpty() && longs.isEmpty())
-			{
-				nil
+		): AvailObject = when
+		{
+			objects.isEmpty() && longs.isEmpty() -> emptyRegisterDump
+			else -> mutable.create(objects.size, longs.size) {
+				setSlotsFromArray(OBJECT_SLOTS_, 1, objects, 0, objects.size)
+				setSlotsFromArray(INTEGER_SLOTS_, 1, longs, 0, longs.size)
 			}
-			else
-			{
-				newObjectIndexedIntegerIndexedDescriptor(
-					objects.size, longs.size, mutable
-				).apply {
-					setSlotsFromArray(
-						OBJECT_SLOTS_, 1, objects, 0, objects.size)
-					setSlotsFromArray(INTEGER_SLOTS_, 1, longs, 0, longs.size)
-				}
-			}
-
-		/** Access the method [createRegisterDump]. */
-		var createRegisterDumpMethod = staticMethod(
-			ContinuationRegisterDumpDescriptor::class.java,
-			::createRegisterDump.name,
-			AvailObject::class.java,
-			Array<AvailObject>::class.java,
-			LongArray::class.java)
+		}
 
 		/** The mutable [ContinuationRegisterDumpDescriptor]. */
 		private val mutable =
@@ -155,5 +141,24 @@ class ContinuationRegisterDumpDescriptor private constructor(
 		/** The shared [ContinuationRegisterDumpDescriptor]. */
 		private val shared =
 			ContinuationRegisterDumpDescriptor(Mutability.SHARED)
+
+		/** A pre-built register dump with nothing in it. */
+		@ReferencedInGeneratedCode
+		@JvmField
+		val emptyRegisterDump: AvailObject = mutable.create().makeShared()
+
+		/** Access the method [createRegisterDump]. */
+		val createRegisterDumpMethod = staticMethod(
+			ContinuationRegisterDumpDescriptor::class.java,
+			::createRegisterDump.name,
+			AvailObject::class.java,
+			Array<AvailObject>::class.java,
+			LongArray::class.java)
+
+		/** Access the static field [emptyRegisterDump]. */
+		val emptyRegisterDumpField = staticField(
+			ContinuationRegisterDumpDescriptor::class.java,
+			::emptyRegisterDump.name,
+			AvailObject::class.java)
 	}
 }

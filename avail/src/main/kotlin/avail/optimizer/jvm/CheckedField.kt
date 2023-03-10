@@ -41,9 +41,9 @@ import java.lang.reflect.Modifier
  * A helper class for referring to a field.  It verifies at construction time
  * that the referenced field is marked with the [ReferencedInGeneratedCode]
  * annotation, and that the specified type agrees.  When it generates a read
- * (getfield/getstatic) or write (putfield/putstatic), it uses the appropriate
- * instruction.  It substitutes a literal if the field is final, and forbids
- * generating a write to it.
+ * (`getfield`/`getstatic`) or write (`putfield`/`putstatic`), it uses the
+ * appropriate instruction.  It substitutes a literal if the field is final, and
+ * forbids generating a write to it.
  *
  * The main power this class brings is the ability to check the type signature
  * prior to code generation, rather than have the JVM verifier be the failure
@@ -76,25 +76,55 @@ import java.lang.reflect.Modifier
  * @param fieldClass
  *   The type of the field.
  */
+@Suppress("SpellCheckingInspection")
 class CheckedField private constructor(
 	verifyAnnotation: Boolean,
 	private val isStatic: Boolean,
-	receiverClass: Class<*>,
+	private val receiverClass: Class<*>,
 	private val fieldNameString: String,
 	fieldClass: Class<*>)
 {
+	/** The reflected [Field] to be accessed. */
+	val field: Field = run {
+		val f = try
+		{
+			receiverClass.getField(fieldNameString)
+		}
+		catch (e: NoSuchFieldException)
+		{
+			throw RuntimeException(e)
+		}
+		catch (e: SecurityException)
+		{
+			throw RuntimeException(e)
+		}
+		if (verifyAnnotation)
+		{
+			// Check the annotation before anything else, in case we selected
+			// the wrong method.
+			@Suppress("UNUSED_VARIABLE")
+			val annotation = f.getAnnotation(
+				ReferencedInGeneratedCode::class.java) ?:
+			error(
+				"Field $fieldNameString should have had " +
+					"ReferencedInGeneratedCode annotation")
+		}
+		val modifiers = f.modifiers
+		assert(modifiers and Modifier.PUBLIC != 0)
+		assert(modifiers and Modifier.STATIC != 0 == isStatic)
+		assert(fieldClass == f.type)
+		f
+	}
 
 	/** Whether the method is final. */
-	private val isFinal: Boolean
-
-	/** If the field is static and final, this is the value of the field. */
-	private var valueIfFinalAndStatic: Any? = null
+	private val isFinal: Boolean = field.modifiers and Modifier.FINAL != 0
 
 	/** The canonical name of the class in which the method is defined. */
-	private val receiverClassInternalName: String
+	private val receiverClassInternalName =
+		Type.getInternalName(field.declaringClass)
 
 	/** The canonical name of the method arguments. */
-	private val fieldTypeDescriptorString: String
+	private val fieldTypeDescriptorString = Type.getDescriptor(field.type)
 
 	/**
 	 * Emit a read of this field.  The receiver, if this is not static, must
@@ -103,32 +133,20 @@ class CheckedField private constructor(
 	 * @param methodVisitor
 	 *   Which [MethodVisitor] to emit the read into.
 	 */
-	fun generateRead(
-		methodVisitor: MethodVisitor)
+	fun generateRead(methodVisitor: MethodVisitor) = when
 	{
-		if (isStatic)
-		{
-			if (isFinal && valueIfFinalAndStatic === null)
-			{
-				methodVisitor.visitInsn(Opcodes.ACONST_NULL)
-			}
-			else
-			{
-				methodVisitor.visitFieldInsn(
-					Opcodes.GETSTATIC,
-					receiverClassInternalName,
-					fieldNameString,
-					fieldTypeDescriptorString)
-			}
-		}
-		else
-		{
-			methodVisitor.visitFieldInsn(
-				Opcodes.GETFIELD,
-				receiverClassInternalName,
-				fieldNameString,
-				fieldTypeDescriptorString)
-		}
+		!isStatic -> methodVisitor.visitFieldInsn(
+			Opcodes.GETFIELD,
+			receiverClassInternalName,
+			fieldNameString,
+			fieldTypeDescriptorString)
+		isFinal && field.get(null) === null ->
+			methodVisitor.visitInsn(Opcodes.ACONST_NULL)
+		else -> methodVisitor.visitFieldInsn(
+			Opcodes.GETSTATIC,
+			receiverClassInternalName,
+			fieldNameString,
+			fieldTypeDescriptorString)
 	}
 
 	/**
@@ -216,9 +234,8 @@ class CheckedField private constructor(
 				fieldClass)
 
 		/**
-		 * Create a `CheckedField` for accessing an `enum` instance that has
-		 * been annotated with [ReferencedInGeneratedCode], failing if there is
-		 * a problem.
+		 * Create a `CheckedField` for accessing an `enum` instance, failing if
+		 * there is a problem.
 		 *
 		 * @param T
 		 *   The `enum` type.
@@ -229,10 +246,10 @@ class CheckedField private constructor(
 		 */
 		fun <T : Enum<T>> enumField(enumInstance: T): CheckedField
 		{
-			val clazz: Class<T> = enumInstance.javaClass
-			val zuper: Class<in T> = clazz.superclass
+			val theClass: Class<T> = enumInstance.javaClass
+			val theSuper: Class<in T> = theClass.superclass
 			val enumClass: Class<*> =
-				if (zuper == Enum::class.java) clazz else zuper
+				if (theSuper == Enum::class.java) theClass else theSuper
 			return CheckedField(
 				false,
 				true,
@@ -293,60 +310,5 @@ class CheckedField private constructor(
 				receiverClass,
 				fieldName,
 				fieldClass)
-	}
-
-	init
-	{
-		val field: Field =
-			try
-			{
-				receiverClass.getField(fieldNameString)
-			}
-			catch (e: NoSuchFieldException)
-			{
-				throw RuntimeException(e)
-			}
-			catch (e: SecurityException)
-			{
-				throw RuntimeException(e)
-			}
-		if (verifyAnnotation)
-		{
-			// Check the annotation before anything else, in case we selected
-			// the wrong method.
-			@Suppress("UNUSED_VARIABLE")
-			val annotation = field.getAnnotation(
-				ReferencedInGeneratedCode::class.java) ?:
-					error(
-						"Field $fieldNameString should have had " +
-							"ReferencedInGeneratedCode annotation")
-		}
-		val modifiers = field.modifiers
-		assert(modifiers and Modifier.PUBLIC != 0)
-		assert(modifiers and Modifier.STATIC != 0 == isStatic)
-		isFinal = modifiers and Modifier.FINAL != 0
-		val actualFieldType = field.type
-		assert(fieldClass == actualFieldType)
-		receiverClassInternalName = Type.getInternalName(field.declaringClass)
-		fieldTypeDescriptorString = Type.getDescriptor(field.type)
-		valueIfFinalAndStatic =
-			when
-			{
-				isStatic && isFinal ->
-				{
-					try
-					{
-						field[null]
-					}
-					catch (e: IllegalAccessException)
-					{
-						throw RuntimeException(e)
-					}
-				}
-				else ->
-				{
-					null
-				}
-			}
 	}
 }

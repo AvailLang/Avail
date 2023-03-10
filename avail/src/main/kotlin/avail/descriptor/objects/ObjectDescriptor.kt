@@ -51,6 +51,8 @@ import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.KIND
 import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.TYPE_VETTINGS_CACHE
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypesForObjectType
+import avail.descriptor.pojos.RawPojoDescriptor
+import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
@@ -67,29 +69,25 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.TupleDescriptor
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import avail.descriptor.types.A_Type.Companion.hasObjectInstance
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
+import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2Optimizer
 import avail.optimizer.jvm.CheckedMethod
@@ -106,7 +104,7 @@ import java.util.IdentityHashMap
  * They consist of a [map][MapDescriptor] of keys (field name
  * [atoms][AtomDescriptor]) and their associated field [types][A_Type].
  * Similarly, user-defined objects consist of a map from field names to field
- * values. An object instance conforms to an object type if and only the
+ * values. An object instance conforms to an object type if and only if the
  * instance's field keys are a superset of the type's field keys, and for each
  * field key in common, the field value is an instance of the field type.
  *
@@ -114,9 +112,12 @@ import java.util.IdentityHashMap
  * representation than a simple map, objects and object types are represented by
  * way of an [ObjectLayoutVariant], which, for any set of fields, defines a
  * unique layout into numbered slots which objects or object types having those
- * exact fields will provide.  The optimizer will eventually dispatch based on
- * the variant number, and capture that tested information for subsequent
- * alongside the type information, within [TypeRestriction]s.
+ * exact fields will provide.  The optimizer sometimes chooses to dispatch based
+ * on the variant number, and captures that tested information (positive or
+ * negative) for subsequent tests alongside the type information, within
+ * [TypeRestriction]s.
+ *
+ * [LookupTree]s can also decide to test by variant as well.
  *
  * @constructor
  *
@@ -169,35 +170,12 @@ class ObjectDescriptor internal constructor(
 		KIND,
 
 		/**
-		 * A 0-, 2-, or 4-tuple containing results from previous instance tests
-		 * against non-enumeration, [Mutability.SHARED] object types.
-		 *
-		 * The presence of an object type in element 1 (or 3, if present)
-		 * indicates that this object is an instance of that object type.  The
-		 * presence of an object type in element 2 (or 4, if present) indicates
-		 * that this object is *not* an instance of that object type.
-		 *
-		 * This is purely a cache for performance, and should be treated as such
-		 * by any custom garbage collector.  For now, we only capture object
-		 * types that are [Mutability.SHARED], since type tests for method
-		 * dispatching are always against shared object types, and that's the
-		 * case we're attempting to speed up.
-		 *
-		 * Note that object types cache their hash value once computed.  The two
-		 * sets can be quickly searched because different object types very
-		 * rarely have equal hashes, and equal ones merge via indirections after
-		 * a successful comparison.  Shared object types are placed in a
-		 * canonical weak map to ensure these comparisons are fast.
-		 *
-		 * For memory safety, we bound the set sizes to some reasonably large
-		 * value (to deal with large dispatch trees).  When this threshold is
-		 * reached, we extend the tuple from two to four values, moving the
-		 * first and second sets to the third and fourth, respectively,
-		 * replacing the first and second with empty sets.  This is a simple
-		 * approximate mechanism to retain the most commonly accessed vettings.
-		 * If there are already four elements in the tuple, the previous third
-		 * and fourth sets are simply discarded.  Note that all four sets must
-		 * be examined to determine the result of a previous vetting.
+		 * Either [nil] or a [raw&#32;pojo][RawPojoDescriptor] containing a
+		 * [VettingsCache], for caching the results of type checks against
+		 * object types that are already marked shared.  Since method and
+		 * function signatures are always shared, as well as types used by
+		 * [LookupTree]s, this improves lookup performance and argument/return
+		 * type checking substantially.
 		 */
 		@HideFieldInDebugger
 		TYPE_VETTINGS_CACHE,
@@ -223,6 +201,12 @@ class ObjectDescriptor internal constructor(
 		self: AvailObject
 	): Array<AvailObjectFieldHelper> {
 		val fields = mutableListOf<AvailObjectFieldHelper>()
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				KIND,
+				-1,
+				self[KIND]))
 		val otherAtoms = mutableListOf<A_Atom>()
 		variant.fieldToSlotIndex.forEach { (fieldKey, index) ->
 			when (index) {
@@ -232,7 +216,7 @@ class ObjectDescriptor internal constructor(
 						self,
 						DUMMY_DEBUGGER_SLOT,
 						-1,
-						self.slot(FIELD_VALUES_, index),
+						self[FIELD_VALUES_, index],
 						slotName = "FIELD " + fieldKey.atomName))
 			}
 		}
@@ -257,30 +241,36 @@ class ObjectDescriptor internal constructor(
 		anObject: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObject)) return true
-		val otherVariant = anObject.objectVariant
-		if (variant !== otherVariant) return false
+		if (variant !== anObject.objectVariant) return false
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
-		var myHash = self.slot(HASH_OR_ZERO)
-		var otherHash = anObject.slot(HASH_OR_ZERO)
-		when {
+		var myHash = self[HASH_OR_ZERO]
+		var otherHash = anObject[HASH_OR_ZERO]
+		when
+		{
 			myHash != 0 && otherHash == 0 -> otherHash = anObject.hash()
 			otherHash != 0 && myHash == 0 -> myHash = self.hash()
 		}
-		when {
-			myHash != otherHash -> return false
-			// Hashes are equal (perhaps both still zero).  Compare fields,
-			// which must be in corresponding positions because we share the
-			// same variant.
-			(1..self.variableObjectSlotsCount()).any {
-				!self.slot(FIELD_VALUES_, it)
-					.equals(anObject.slot(FIELD_VALUES_, it))
-			} -> return false
-			!isShared && self.slot(KIND).isNil ->
-				self.becomeIndirectionTo(anObject)
-			!anObject.descriptor().isShared ->
-				anObject.becomeIndirectionTo(self)
+		if (myHash != otherHash) return false
+		// Hashes are equal (perhaps both still zero).  Compare fields, which
+		// must be in corresponding positions because we share the same variant.
+		for (i in 1..self.variableObjectSlotsCount())
+		{
+			if (!self[FIELD_VALUES_, i]
+					.equals(anObject[FIELD_VALUES_, i]))
+				return false
+		}
+		val kind = self[KIND].ifNil { anObject[KIND] }
+		if (!isShared)
+		{
+			anObject[KIND] = kind.makeImmutable()
+			self.becomeIndirectionTo(anObject)
+		}
+		else if (!anObject.descriptor().isShared)
+		{
+			self[KIND] = kind.makeImmutable()
+			anObject.becomeIndirectionTo(self)
 		}
 		return true
 	}
@@ -289,12 +279,12 @@ class ObjectDescriptor internal constructor(
 		// Fails with NullPointerException if key is not found.
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			0 -> field as AvailObject
-			else -> self.slot(FIELD_VALUES_, slotIndex!!)
+			else -> self[FIELD_VALUES_, slotIndex!!]
 		}
 
 	override fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject =
 		// One-based index must specify a real field, and be in range.
-		self.slot(FIELD_VALUES_, index)
+		self[FIELD_VALUES_, index]
 
 	override fun o_FieldAtOrNull(
 		self: AvailObject,
@@ -303,7 +293,7 @@ class ObjectDescriptor internal constructor(
 		when (val slotIndex = variant.fieldToSlotIndex[field]) {
 			null -> null
 			0 -> field as AvailObject
-			else -> self.slot(FIELD_VALUES_, slotIndex)
+			else -> self[FIELD_VALUES_, slotIndex]
 		}
 
 	override fun o_FieldAtPuttingCanDestroy(
@@ -330,7 +320,7 @@ class ObjectDescriptor internal constructor(
 						(setSlot(
 							FIELD_VALUES_,
 							newVariantSlotMap[key]!!,
-							self.slot(FIELD_VALUES_, value1)))
+							self[FIELD_VALUES_, value1]))
 					}
 					@Suppress("MapGetWithNotNullAssertionOperator")
 					val newVariantSlotIndex = newVariantSlotMap[field]!!
@@ -338,7 +328,7 @@ class ObjectDescriptor internal constructor(
 						setSlot(FIELD_VALUES_, newVariantSlotIndex, value)
 					}
 					setSlot(KIND, nil)
-					setSlot(TYPE_VETTINGS_CACHE, emptyTuple())
+					setSlot(TYPE_VETTINGS_CACHE, nil)
 					setSlot(HASH_OR_ZERO, 0)
 				}
 			}
@@ -354,7 +344,7 @@ class ObjectDescriptor internal constructor(
 				}.apply {
 					setSlot(FIELD_VALUES_, slotIndex, value)
 					setSlot(KIND, nil)
-					setSlot(TYPE_VETTINGS_CACHE, emptyTuple())
+					setSlot(TYPE_VETTINGS_CACHE, nil)
 					setSlot(HASH_OR_ZERO, 0)
 				}
 			}
@@ -368,7 +358,7 @@ class ObjectDescriptor internal constructor(
 			map.mapAtPuttingCanDestroy(
 				field,
 				if (slotIndex == 0) field
-				else self.slot(FIELD_VALUES_, slotIndex),
+				else self[FIELD_VALUES_, slotIndex],
 				true)
 		}
 
@@ -378,18 +368,18 @@ class ObjectDescriptor internal constructor(
 		return generateObjectTupleFrom(variant.fieldToSlotIndex.size) {
 			val (field, slotIndex) = fieldIterator.next()
 			if (slotIndex == 0) tuple(field, field)
-			else tuple(field, self.slot(FIELD_VALUES_, slotIndex))
+			else tuple(field, self[FIELD_VALUES_, slotIndex])
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(HASH_OR_ZERO).ifZero {
+		self[HASH_OR_ZERO].ifZero {
 			// Don't lock if we're shared.  Multiple simultaneous computations
 			// of *the same* value are benign races.
 			(1..self.variableObjectSlotsCount())
 				.fold(combine2(variant.variantId, -0x7d4d2f29)) { h, i ->
-					combine3(h, self.slot(FIELD_VALUES_, i).hash(), 0x5cfd93e6)
-				}.also { self.setSlot(HASH_OR_ZERO, it) }
+					combine3(h, self[FIELD_VALUES_, i].hash(), 0x5cfd93e6)
+				}.also { self[HASH_OR_ZERO] = it }
 		}
 
 	override fun o_IsInstanceOfKind(
@@ -404,81 +394,36 @@ class ObjectDescriptor internal constructor(
 		if (!typeDescriptor.isShared)
 			return typeTraversed.hasObjectInstance(self)
 
-		// We want to test this instance against a shared object type.  First,
-		// search the vettings cache.
-		val answer: Boolean
-		var vettings: A_Tuple = self.slot(TYPE_VETTINGS_CACHE)
-		val tupleSize = vettings.tupleSize
-		vettings =
-			if (tupleSize == 0)
-			{
-				answer = typeTraversed.hasObjectInstance(self)
-				if (answer) tuple(singletonSet(typeTraversed), emptySet)
-				else tuple(emptySet, singletonSet(typeTraversed))
-			}
-			else
-			{
-				val set1: A_Set = vettings.tupleAt(1)
-				if (set1.hasElement(typeTraversed)) return true
-				val set2: A_Set = vettings.tupleAt(2)
-				if (set2.hasElement(typeTraversed)) return false
-				val set3: A_Set
-				val set4: A_Set
-				answer =
-					if (tupleSize == 2)
-					{
-						set3 = emptySet
-						set4 = emptySet
-						typeTraversed.hasObjectInstance(self)
-					}
-					else
-					{
-						assert(tupleSize == 4)
-						set3 = vettings.tupleAt(3)
-						set4 = vettings.tupleAt(4)
-						when
-						{
-							set3.hasElement(typeTraversed) -> true
-							set4.hasElement(typeTraversed) -> false
-							else -> typeTraversed.hasObjectInstance(self)
-						}
-					}
-				val set = if (answer) set1 else set2
-				when
-				{
-					set.setSize < maximumVettingSetSize ->
-						vettings.tupleAtPuttingCanDestroy(
-							if (answer) 1 else 2,
-							set.setWithElementCanDestroy(typeTraversed, true),
-							true)
-					answer ->
-						tuple(singletonSet(typeTraversed), set2, set1, set4)
-					else ->
-						tuple(set1, singletonSet(typeTraversed), set3, set2)
-				}
-			}
-		when (mutability)
+		// At this point, either a VettingsCache already exists, or one will be
+		// needed to store the positive/negative result.
+		var cachePojo = self[TYPE_VETTINGS_CACHE]
+		if (cachePojo.isNil)
 		{
-			Mutability.MUTABLE ->
-				self.setSlot(TYPE_VETTINGS_CACHE, vettings)
-			Mutability.IMMUTABLE ->
-				self.setSlot(TYPE_VETTINGS_CACHE, vettings.makeImmutable())
-			Mutability.SHARED ->
-				self.setMutableSlot(TYPE_VETTINGS_CACHE, vettings.makeShared())
+			cachePojo = identityPojo(VettingsCache()).makeShared()
+			// Store it into the object early, to slightly reduce dropped
+			// entries during (benign) races.
+			self[TYPE_VETTINGS_CACHE] = cachePojo
 		}
-		return answer
+		val cache = cachePojo.javaObjectNotNull<VettingsCache>()
+		return cache.testObjectAgainstType(self, typeTraversed)
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type {
-		val kind = self.slot(KIND)
+		val kind = self[KIND]
 		if (kind.notNil) return kind
 		self.makeImmutable()
-		return variant.mutableObjectTypeDescriptor.createFromObject(self).also {
-			// Make the object shared since it's being written to a mutable slot
-			// of a shared object. Don't lock, since multiple threads would
-			// compute equal values anyhow.
-			self.setSlot(KIND, if (isShared) it.makeShared() else it)
-		}
+		val objectType =
+			variant.mutableObjectTypeDescriptor.createFromObject(self)
+		// Make the object shared since it's being written to a mutable slot
+		// of a shared object. Don't lock, since multiple threads would
+		// compute equal values anyhow.
+		self[KIND] =
+			when
+			{
+				isShared -> objectType.makeShared()
+				else -> objectType.makeImmutable()
+			}
+		return objectType
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String
@@ -490,8 +435,7 @@ class ObjectDescriptor internal constructor(
 			{
 				0 -> append("object")
 				else -> append(
-					names.map(AvailObject::asNativeString)
-						.sorted()
+					names.sortedBy { it.asNativeString() }
 						.joinToString(" ∩ "))
 			}
 		}
@@ -515,7 +459,7 @@ class ObjectDescriptor internal constructor(
 						val value = when (slotIndex)
 						{
 							0 -> field
-							else -> self.slot(FIELD_VALUES_, slotIndex)
+							else -> self[FIELD_VALUES_, slotIndex]
 						}
 						field.atomName.writeTo(writer)
 						value.writeTo(writer)
@@ -533,7 +477,7 @@ class ObjectDescriptor internal constructor(
 						val value = when (slotIndex)
 						{
 							0 -> field
-							else -> self.slot(FIELD_VALUES_, slotIndex)
+							else -> self[FIELD_VALUES_, slotIndex]
 						}
 						field.atomName.writeTo(writer)
 						value.writeSummaryTo(writer)
@@ -596,7 +540,7 @@ class ObjectDescriptor internal constructor(
 		 *   The value of the field at the specified slot index.
 		 */
 		fun getField(self: AvailObject, slotIndex: Int): AvailObject =
-			self.slot(FIELD_VALUES_, slotIndex)
+			self[FIELD_VALUES_, slotIndex]
 
 		/**
 		 * Update the field value at the specified slot index of the mutable
@@ -618,12 +562,12 @@ class ObjectDescriptor internal constructor(
 			slotIndex: Int,
 			value: A_BasicObject
 		): AvailObject {
-			self.setSlot(FIELD_VALUES_, slotIndex, value as AvailObject)
+			self[FIELD_VALUES_, slotIndex] = value as AvailObject
 			return self
 		}
 
 		/** Access the [setField] method. */
-		var setFieldMethod = staticMethod(
+		val setFieldMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::setField.name,
 			AvailObject::class.java,
@@ -655,7 +599,7 @@ class ObjectDescriptor internal constructor(
 					}
 				}
 				setSlot(KIND, nil)
-				setSlot(TYPE_VETTINGS_CACHE, emptyTuple())
+				setSlot(TYPE_VETTINGS_CACHE, nil)
 				setSlot(HASH_OR_ZERO, 0)
 			}
 		}
@@ -704,24 +648,18 @@ class ObjectDescriptor internal constructor(
 		): AvailObject =
 			variant.mutableObjectDescriptor.create(variant.realSlotCount) {
 				setSlot(KIND, nil)
-				setSlot(TYPE_VETTINGS_CACHE, emptyTuple())
+				setSlot(TYPE_VETTINGS_CACHE, nil)
 				setSlot(HASH_OR_ZERO, 0)
 			}
 
 		/**
 		 * Access the [createUninitializedObject] static method.
 		 */
-		var createUninitializedObjectMethod = staticMethod(
+		val createUninitializedObjectMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::createUninitializedObject.name,
 			AvailObject::class.java,
 			ObjectLayoutVariant::class.java)
-
-		/**
-		 * The maximum size that one of the four sets in the
-		 * [TYPE_VETTINGS_CACHE] may be before taking action to reduce it.
-		 */
-		private const val maximumVettingSetSize = 20
 
 		/**
 		 * Produce the given object's [ObjectLayoutVariant]'s variantId.

@@ -226,21 +226,21 @@ abstract class L2Regenerator internal constructor(
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadBoxedVectorOperand(
-				operand.elements().map(this@L2Regenerator::transformOperand))
+				operand.elements.map(this@L2Regenerator::transformOperand))
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadIntVectorOperand(
-				operand.elements().map(this@L2Regenerator::transformOperand))
+				operand.elements.map(this@L2Regenerator::transformOperand))
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadFloatVectorOperand(
-				operand.elements().map(this@L2Regenerator::transformOperand))
+				operand.elements.map(this@L2Regenerator::transformOperand))
 		}
 
 		override fun doOperand(operand: L2SelectorOperand) = Unit
@@ -593,12 +593,11 @@ abstract class L2Regenerator internal constructor(
 	}
 
 	/**
-	 * A helper method for instruction postponement.  Given an
-	 * [L2Regenerator] and an [L2Instruction] from the old graph being
-	 * regenerated, emit a translated version of that instruction.  If the
-	 * instruction uses values that are not yet available in registers due
-	 * to postponement, first translate the instructions that produce those
-	 * values.
+	 * A helper method for instruction postponement.  Given an [L2Regenerator]
+	 * and an [L2Instruction] from the old graph being regenerated, emit a
+	 * translated version of that instruction.  If the instruction uses values
+	 * that are not yet available in registers due to postponement, first
+	 * translate the instructions that produce those values.
 	 *
 	 * TODO Make this iterative instead of recursive.
 	 */

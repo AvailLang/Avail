@@ -40,7 +40,6 @@ Extends
 		"Exit_",
 		"Exit_with_",
 		"Ignore:_",
-		"bootstrap restricted send_with_:_",
 		"(_)",
 		"((_))",
 		"_`?→_†"
@@ -58,6 +57,7 @@ Uses
 	"Logic",
 	"Macro Support",
 	"Math",
+	"Phrases",
 	"Types",
 	"Variables"
 Names
@@ -113,7 +113,7 @@ Private method "block from_" is
 	sendPhrase : send phrase ⇒ ⊤
 |
 	returnType ::= sendPhrase's return type;
-	«[<sendPhrase>]:returnType» ?→ block phrase ⇒ []→⊤
+	«[<sendPhrase>]:returnType»
 ] : expression phrase ⇒ []→⊤;
 
 Private method "basic send phrase_conditional_then_else_" is
@@ -128,7 +128,7 @@ Private method "basic send phrase_conditional_then_else_" is
 	boolType ::= predicatePhrase's semantic type;
 	returnType ::= strengthen ⊤ for call of anAtom
 		using <boolType, thenBlockReturnType, elseBlockReturnType>;
-	bootstrap restricted send anAtom with
+	restricted send anAtom with
 		«<predicatePhrase, thenBlock, elseBlock>» : returnType
 ] : send phrase ⇒ ⊤;
 
@@ -208,7 +208,8 @@ Public macro "If|if_then_«else if_then_»«else_»?" is
 		conditional firstPredicate
 		then firstThenBlock
 		else finalElseBlock
-] : send phrase ⇒ ⊤;
+] : send phrase ⇒ ⊤
+styled by conditional styler;
 
 /* These are error messages. */
 sizesIncompatibleMessage ::=
@@ -232,7 +233,8 @@ Public method "here" is
 [
 	$body : $[]→⊥;
 	body
-] : $[]→⊥;
+] : $[]→⊥
+styled by nonlocal control styler;
 
 /**
  * Basic unconditional loop. Repeatedly invoke {@param "action"}.
@@ -250,7 +252,8 @@ Public method "Repeat_" is
 	$loop;
 	action();
 	Restart loop
-] : ⊥;
+] : ⊥
+styled by loop styler;
 
 /**
  * Apply the specified function exactly {@param "count"} times.
@@ -271,9 +274,10 @@ Public method "Repeat__times" is
 	$loop : ⊤;
 	Exit loop if count < 1;
 	action();
-	nextCount ::= cast count - 1 into [i : [0..∞] | i];
+	nextCount ::= count - 1 ?→ [0..∞];
 	Restart loop with <action, nextCount>
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If the count is ∞, then answer ⊥ (because the loop will never terminate).
@@ -287,14 +291,7 @@ Semantic restriction "Repeat__times" is
 	action : ([]→⊤)'s type,
 	count : [0..∞]'s type
 |
-	if ⌊count⌋ = ∞ then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if ⌊count⌋ = ∞ then [⊥] else [⊤]
 ];
 
 /**
@@ -319,6 +316,8 @@ Semantic restriction "Repeat__times" is
  */
 Abstract method "From_to_by_do_" is
 	[integer, extended integer, integer, [⊥]→boolean]→⊤;
+
+Style $"From_to_by_do_" with loop styler;
 
 /**
  * Counting loop with customizable step and early exit support. Invoke {@param
@@ -404,20 +403,11 @@ Semantic restriction "From_to_by_do_" is
 	action : ([⊥]→boolean)'s type
 |
 	subscripts ::=
-		if step ⊆ [0..∞) then
-		[
-			(⌊start⌋ - 1 .. ⌈end⌉ + 1)
-		]
+		if step ⊆ [0..∞) then [(⌊start⌋ - 1 .. ⌈end⌉ + 1)]
 		else
 		[
-			if step ⊆ (-∞..-1] then
-			[
-				(⌊end⌋ - 1 .. ⌈start⌉ + 1)
-			]
-			else
-			[
-				(start ∪ end) ∩ integer
-			]
+			if step ⊆ (-∞..-1] then [(⌊end⌋ - 1 .. ⌈start⌉ + 1)]
+			else [(start ∪ end) ∩ integer]
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
@@ -430,20 +420,11 @@ Semantic restriction "From_to_by_do_" is
 	return ::= action's return type;
 	endSet ::= {⌊end⌋, ⌈end⌉};
 	definitelyRuns ::=
-		if step ⊆ [0..∞) then
-		[
-			⌈start⌉ ≤ ⌊end⌋
-		]
+		if step ⊆ [0..∞) then [⌈start⌉ ≤ ⌊end⌋]
 		else
 		[
-			if step ⊆ (-∞..-1] then
-			[
-				⌊start⌋ ≥ ⌈end⌉
-			]
-			else
-			[
-				false
-			]
+			if step ⊆ (-∞..-1] then [⌊start⌋ ≥ ⌈end⌉]
+			else [false]
 		];
 	/* These are four circumstances which lead to non-termination:
 	 *
@@ -557,16 +538,10 @@ Public method "Require:_accepts subscripts from_to_by_" is
 	step : integer's type
 |
 	subscripts ::=
-		if step ⊆ [0..∞) then
-		[
-			(⌊start⌋ - 1 .. ⌈end⌉ + 1)
-		]
+		if step ⊆ [0..∞) then [(⌊start⌋ - 1 .. ⌈end⌉ + 1)]
 		else
 		[
-			if step ⊆ (-∞..-1] then
-			[
-				(⌊end⌋ - 1 .. ⌈start⌉ + 1)
-			]
+			if step ⊆ (-∞..-1] then [(⌊end⌋ - 1 .. ⌈start⌉ + 1)]
 			else
 			[
 				union ::= (start ∪ end) ∩ integer;
@@ -581,7 +556,8 @@ Public method "Require:_accepts subscripts from_to_by_" is
 			++ ", but it only accepts "
 			++ “action[1]”
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * If possible, then enforce that the specified function will accept all values
@@ -604,20 +580,11 @@ Semantic restriction "From_to_by_do_" is
 	return ::= action's return type;
 	endSet ::= {⌊end⌋, ⌈end⌉};
 	definitelyRuns ::=
-		if step ⊆ [0..∞) then
-		[
-			⌈start⌉ ≤ ⌊end⌋
-		]
+		if step ⊆ [0..∞) then [⌈start⌉ ≤ ⌊end⌋]
 		else
 		[
-			if step ⊆ (-∞..-1] then
-			[
-				⌊start⌋ ≥ ⌈end⌉
-			]
-			else
-			[
-				false
-			]
+			if step ⊆ (-∞..-1] then [⌊start⌋ ≥ ⌈end⌉]
+			else [false]
 		];
 	/* These are four circumstances which lead to non-termination:
 	 *
@@ -687,24 +654,19 @@ Public macro "For each…from_to_by_§do_" is
 	action : block phrase ⇒ []→⊤
 |
 	name ::= counterPhrase's token's lexeme;
-	declaration ::= scope map[name];
+	declaration ::= scope map[name] ?→ argument phrase;
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
 	Undeclare name;
-	bootstrap restricted send $"From_to_by_do_" with
-		«<
-			start,
-			end,
-			step,
-			«[
-				<cast declaration into [d : argument phrase | d]>
-			|
-				statements
-			] : blockReturnType»
-		>» : ⊤
-] : send phrase ⇒ ⊤;
+	body ::= «[<declaration> | statements] : blockReturnType»
+		?→ block phrase ⇒ [⊥]→⊤;
+	⟦
+		From ⦊start⦉ to ⦊end⦉ by ⦊step⦉ do ⦊body⦉
+	⟧
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Counting loop with early exit support. Invoke {@param "action"} once for
@@ -735,7 +697,8 @@ Public method "From_to_do_" is
 	shouldExit ::= ¬action(start);
 	Exit loop if shouldExit;
 	Restart loop with <start + 1, end, action>
-];
+]
+styled by loop styler;
 
 /**
  * If possible, then enforce that the specified function will accept all values
@@ -847,33 +810,27 @@ Public macro "For each…from_to_§do_" is
 	action : block phrase ⇒ []→⊤
 |
 	name ::= counterPhrase's token's lexeme;
-	declaration ::= scope map[name];
+	declaration ::= scope map[name] ?→ argument phrase;
 	Undeclare name;
 	startType ::= start's semantic type;
 	endType ::= end's semantic type;
 	stepType ::= 1's type;
 	anAtom ::= $"From_to_by_do_";
 	blockType ::= [⊥]→(action's semantic type's return type);
-
 	returnType ::= strengthen ⊤ for call of anAtom
 		using <startType, endType, stepType, blockType>;
-
 	statements ::= action's statements;
 	blockReturnType ::= cast statements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
-	bootstrap restricted send anAtom with
-		«<
-			start,
-			end,
-			‘1’,
-			«[
-				<cast declaration into [d : argument phrase | d]>
-			|
-				statements
-			] : blockReturnType»
-		>» : returnType
-] : send phrase ⇒ ⊤;
+
+	body ::= «[<declaration> | statements] : blockReturnType»
+		?→ block phrase ⇒ [⊥]→⊤;
+	⟦
+		From ⦊start⦉ to ⦊end⦉ by 1 do ⦊body⦉
+	⟧
+] : send phrase ⇒ ⊤
+styled by loop styler;
 
 /**
  * Restart the continuation with the specified arguments. Execution proceeds as
@@ -981,7 +938,8 @@ Public method "Require:_'s⁇keeper is valid" is
 			++ “action[parametersSize]”
 			++ ")"
 	];
-];
+]
+styled by assertion styler;
 
 /**
  * Multiply branching conditional statement/expression. Execute the first
@@ -1133,10 +1091,7 @@ Semantic restriction "If|if_then_«else if_then_»«else_»?" is
 				exact := actionReturnType;
 			];
 			keepLooping :=
-				if exact is assigned then
-				[
-					false
-				]
+				if exact is assigned then [false]
 				else
 				[
 					If predicateReturnType ≠ false's type then
@@ -1177,20 +1132,11 @@ Semantic restriction "If|if_then_«else if_then_»«else_»?" is
 		];
 	];
 	/* Produce the final answer. */
-	if exact is assigned then
-	[
-		exact
-	]
+	if exact is assigned then [exact]
 	else
 	[
-		if ambiguous then
-		[
-			union
-		]
-		else
-		[
-			⊤
-		]
+		if ambiguous then [union]
+		else [⊤]
 	]
 ];
 
@@ -1285,11 +1231,11 @@ Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
 		?→ <list phrase⇒<boolean, []→⊤…|2>…|1..∞>;
 	anAtom ::= $"Unless|unless_then_else_";
 	finalElseBlock ::= for anAtom nest elseBlock in elseUnlessPairTuple;
-	basic send phrase anAtom
-		conditional firstPredicate
-		then firstThenBlock
-		else finalElseBlock
-]: send phrase ⇒ ⊤;
+	⟦
+		Unless ⦊firstPredicate⦉ then ⦊firstThenBlock⦉ else ⦊finalElseBlock⦉
+	⟧
+]: send phrase ⇒ ⊤
+styled by conditional styler;
 
 /**
  * Multiply branching conditional statement/expression. Execute the first
@@ -1445,10 +1391,7 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»?" is
 				exact := actionReturnType;
 			];
 			keepLooping :=
-				if exact is assigned then
-				[
-					false
-				]
+				if exact is assigned then [false]
 				else
 				[
 					If predicateReturnType ≠ true's type then
@@ -1489,20 +1432,11 @@ Semantic restriction "Unless|unless_then_«else unless_then_»«else_»?" is
 		];
 	];
 	/* Produce the final answer. */
-	if exact is assigned then
-	[
-		exact
-	]
+	if exact is assigned then [exact]
 	else
 	[
-		if ambiguous then
-		[
-			union
-		]
-		else
-		[
-			⊤
-		]
+		if ambiguous then [union]
+		else [⊤]
 	]
 ];
 
@@ -1524,7 +1458,8 @@ Public method "While_" is
 	$loop : ⊤;
 	Exit loop if action() = false;
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "action"} certainly answers {@method "true"}, then answer ⊥
@@ -1537,14 +1472,8 @@ Semantic restriction "While_" is
 [
 	action : ([]→boolean)'s type
 |
-	if action's return type = true's type then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if action's return type = true's type then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -1566,7 +1495,8 @@ Public method "Until_" is
 	shouldExit ::= action();
 	Exit loop if shouldExit;
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "action"} certainly answers {@method "false"}, then answer ⊥
@@ -1579,14 +1509,8 @@ Semantic restriction "Until_" is
 [
 	action : ([]→boolean)'s type
 |
-	if action's return type = false's type then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if action's return type = false's type then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -1611,7 +1535,8 @@ Public method "While_do_" is
 	Exit loop if predicate() = false;
 	action();
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "predicate"} certainly answers {@method "true"}, then answer ⊥
@@ -1626,14 +1551,8 @@ Semantic restriction "While_do_" is
 	predicate : ([]→boolean)'s type,
 	action : ([]→⊤)'s type
 |
-	if predicate's return type = true's type then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if predicate's return type = true's type then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -1655,11 +1574,7 @@ Macro "While_do_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	action : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"While_do_" with
-		«<
-			«[<> | <expressionPhrase>] : boolean»,
-			action
-		>» : ⊤
+	⟦While ⦊«[<expressionPhrase>] : boolean»⦉ do ⦊action⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1684,7 +1599,8 @@ Public method "Until_do_" is
 	Exit loop if predicate();
 	action();
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "predicate"} certainly answers {@method "false"}, then answer ⊥
@@ -1699,14 +1615,8 @@ Semantic restriction "Until_do_" is
 	predicate : ([]→boolean)'s type,
 	action : ([]→⊤)'s type
 |
-	if predicate's return type = false's type then
-	[
-		⊥
-	]
-	else
-	[
-		⊤
-	]
+	if predicate's return type = false's type then [⊥]
+	else [⊤]
 ];
 
 /**
@@ -1753,7 +1663,8 @@ Public method "Do_while_" is
 	action();
 	Exit loop if predicate() = false;
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -1822,7 +1733,8 @@ Public method "Do_while_alternate with_" is
 	Exit loop if predicate() = false;
 	between();
 	Restart loop
-];
+]
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -1898,7 +1810,8 @@ Public method "While_do_alternate with_" is
 		between();
 		Restart loop
 	];
-];
+]
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -1965,7 +1878,8 @@ Public method "Do_until_" is
 	action();
 	Exit loop if predicate();
 	Restart loop
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -2034,7 +1948,8 @@ Public method "Do_until_alternate with_" is
 	Exit loop if predicate();
 	between();
 	Restart loop
-];
+]
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -2110,7 +2025,8 @@ Public method "Until_do_alternate with_" is
 		between();
 		Restart loop
 	];
-];
+]
+styled by loop styler;
 
 /**
  * If {@param "action"} does not terminate or {@param "predicate"} certainly
@@ -2193,7 +2109,8 @@ Public method "Cast|cast_into«_‡,»«else_»" is
 		Restart body with <index + 1>
 	](1);
 	case(value);
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Strengthen the return type of {@method "Cast|cast_into«_‡,»«else_»"} so that
@@ -2288,18 +2205,11 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 		Restart loop with <index + 1, end, innerTuple, innerValue>
 	](1, |caseTuple|, caseTuple, value);
 	(
-		cast index into
-		[
-			i : natural number
-		|
-			caseTuple[i][2]
-		]
-		else
-		[
-			else[1] else [[]]
-		]
+		cast index into [i : natural number | caseTuple[i][2]]
+		else [else[1] else [[]]]
 	)();
-] : ⊤;
+] : ⊤
+styled by conditional styler;
 
 /**
  * Reject the current parse unless all of the following are true:

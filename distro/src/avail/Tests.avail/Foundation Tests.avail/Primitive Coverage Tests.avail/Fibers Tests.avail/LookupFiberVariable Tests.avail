@@ -39,12 +39,12 @@ Body
 
 Test "LookupFiberVariable ok" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ];
 
 Test "LookupFiberVariable fails with no-such-fiber-variable exception" in primitive fibers test suite if supported is
 [
-	Skip test
+	Skip test;
 ]
 must raise no-such-fiber-variable exception;
 

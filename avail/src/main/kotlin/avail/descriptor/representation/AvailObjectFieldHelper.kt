@@ -34,9 +34,10 @@ package avail.descriptor.representation
 import avail.descriptor.representation.AbstractDescriptor.Companion.bitFieldsFor
 import avail.descriptor.representation.AbstractDescriptor.Companion.describeIntegerSlot
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
-import avail.utility.StackPrinter
 import avail.utility.cast
+import avail.utility.stackToString
 import org.jetbrains.annotations.Debug.Renderer
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * This class assists with the presentation of [AvailObject]s in the IntelliJ
@@ -130,19 +131,24 @@ class AvailObjectFieldHelper(
 	val value: Any?,
 	val slotName: String = slot.fieldName,
 	val forcedName: String? = null,
-	val forcedChildren: Array<*>? = null
-) {
+	val forcedChildren: Array<*>? = null)
+{
 	/**
 	 * The name to present for this field.
 	 */
-	val name by lazy { privateComputeNameForDebugger() }
+	private val nameHolder = AtomicReference<String>(forcedName)
 
 	/**
-	 * Answer the string to display for this field.
+	 * Answer the string to display for this field.  Populate it lazily, and
+	 * wait-free, which may entail computing the name redundantly in multiple
+	 * threads.
 	 *
 	 * @return A [String].
 	 */
-	fun nameForDebugger() = name
+	fun nameForDebugger(): String = nameHolder.get() ?:
+		nameHolder.updateAndGet {
+			it ?: privateComputeNameForDebugger()
+		}
 
 	/**
 	 * Produce a name for this helper in the debugger.
@@ -185,7 +191,7 @@ class AvailObjectFieldHelper(
 				catch (e: Throwable)
 				{
 					append("PROBLEM DESCRIBING INTEGER FIELD:\n")
-					append(StackPrinter.trace(e))
+					append(e.stackToString)
 				}
 			}
 			is String -> append(" = Java String: $value")

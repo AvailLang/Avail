@@ -43,7 +43,6 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
@@ -56,7 +55,7 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateVariableUse : Primitive(2, CannotFail, CanFold, CanInline)
+object P_CreateVariableUse : Primitive(2, CannotFail, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

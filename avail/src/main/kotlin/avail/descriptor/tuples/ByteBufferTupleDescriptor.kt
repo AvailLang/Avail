@@ -67,7 +67,7 @@ import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeTuple
-import avail.descriptor.types.IntegerRangeTypeDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import org.availlang.json.JSONWriter
 import java.nio.ByteBuffer
@@ -148,7 +148,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 			if (intValue and 255.inv() == 0)
 			{
 				// Convert to a ByteTupleDescriptor.
-				val buffer = self.slot(BYTE_BUFFER)
+				val buffer = self[BYTE_BUFFER]
 					.javaObjectNotNull<ByteBuffer>()
 				val newSize = originalSize + 1
 				return ByteTupleDescriptor.generateByteTupleFrom(newSize) {
@@ -166,7 +166,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 	}
 
 	override fun o_ByteBuffer(self: AvailObject): ByteBuffer =
-		self.slot(BYTE_BUFFER).javaObjectNotNull()
+		self[BYTE_BUFFER].javaObjectNotNull()
 
 	override fun o_ComputeHashFromTo(
 		self: AvailObject,
@@ -174,7 +174,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		end: Int): Int
 	{
 		// See comment in superclass. This method must produce the same value.
-		val buffer = self.slot(BYTE_BUFFER)
+		val buffer = self[BYTE_BUFFER]
 			.javaObjectNotNull<ByteBuffer>()
 		var hash = 0
 		var index = end - 1
@@ -288,8 +288,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 					}
 				}
 				val defaultTypeObject = aType.defaultType
-				if (IntegerRangeTypeDescriptor.bytes
-						.isSubtypeOf(defaultTypeObject))
+				if (bytes.isSubtypeOf(defaultTypeObject))
 				{
 					return true
 				}
@@ -312,7 +311,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 	{
 		// Answer the element at the given index in the tuple object.
 		val buffer =
-			self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
+			self[BYTE_BUFFER].javaObjectNotNull<ByteBuffer>()
 		return fromUnsignedByte(buffer[index - 1].toShort() and 0xFF)
 	}
 
@@ -344,7 +343,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		}
 		// Clobber the object in place...
 		val theByte = newValueStrong.extractUnsignedByte.toByte()
-		val buffer = self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
+		val buffer = self[BYTE_BUFFER].javaObjectNotNull<ByteBuffer>()
 		buffer.put(index - 1, theByte)
 		self.setHashOrZero(0)
 		//  ...invalidate the hash value.
@@ -354,14 +353,14 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
 		assert(index >= 1 && index <= self.tupleSize)
-		val buffer = self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
+		val buffer = self[BYTE_BUFFER].javaObjectNotNull<ByteBuffer>()
 		return (buffer[index - 1].toInt() and 0xFF)
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
 		assert(index >= 1 && index <= self.tupleSize)
-		val buffer = self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
+		val buffer = self[BYTE_BUFFER].javaObjectNotNull<ByteBuffer>()
 		return (buffer[index - 1].toLong() and 0xFF)
 	}
 
@@ -389,27 +388,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 	override fun o_BitsPerEntry(self: AvailObject): Int = 8
 
 	override fun o_TupleSize(self: AvailObject): Int =
-		self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>().limit()
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(immutable)
-			self.slot(BYTE_BUFFER).makeImmutable()
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(shared)
-			self.slot(BYTE_BUFFER).makeShared()
-		}
-		return self
-	}
+		self[BYTE_BUFFER].javaObjectNotNull<ByteBuffer>().limit()
 
 	override fun o_ConcatenateWith(
 		self: AvailObject,
@@ -490,15 +469,15 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int,
-		type: A_Type): Boolean =
-			(IntegerRangeTypeDescriptor.bytes.isSubtypeOf(type)
-				|| super.o_TupleElementsInRangeAreInstancesOf(
-					self, startIndex, endIndex, type))
+		type: A_Type
+	): Boolean = (bytes.isSubtypeOf(type)
+		|| super.o_TupleElementsInRangeAreInstancesOf(
+			self, startIndex, endIndex, type))
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		val buffer =
-			self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
+			self[BYTE_BUFFER].javaObjectNotNull<ByteBuffer>()
 		writer.startArray()
 		for (i in 0 until buffer.limit())
 		{
@@ -546,7 +525,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 			self.transferIntoByteBuffer(1, size, newBuffer)
 			assert(newBuffer.limit() == size)
 			val result = tupleForByteBuffer(newBuffer)
-			result.setSlot(HASH_OR_ZERO, self.hashOrZero())
+			result[HASH_OR_ZERO] = self.hashOrZero()
 			return result
 		}
 

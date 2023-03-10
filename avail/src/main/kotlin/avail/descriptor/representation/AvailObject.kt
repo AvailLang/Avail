@@ -91,9 +91,8 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.utility.StackPrinter
 import avail.utility.Strings.traceFor
-import avail.utility.cast
+import avail.utility.stackToString
 import org.availlang.json.JSONWriter
 import org.jetbrains.annotations.Debug.Renderer
 import java.util.IdentityHashMap
@@ -207,11 +206,11 @@ class AvailObject private constructor(
 		}
 		catch (e: Exception)
 		{
-			append("EXCEPTION while printing.${StackPrinter.trace(e)}")
+			append("EXCEPTION while printing.${e.stackToString}")
 		}
 		catch (e: AssertionError)
 		{
-			append("ASSERTION ERROR while printing.${StackPrinter.trace(e)}")
+			append("ASSERTION ERROR while printing.${e.stackToString}")
 		}
 	}
 
@@ -354,37 +353,9 @@ class AvailObject private constructor(
 	override fun addDependentChunk(chunk: L2Chunk) =
 		descriptor().o_AddDependentChunk(this, chunk)
 
-	/**
-	 * Construct a Java [string][String] from the receiver, an Avail
-	 * [string][StringDescriptor].
-	 *
-	 * @return
-	 *   The corresponding Java string.
-	 */
-	override fun asNativeString() = descriptor().o_AsNativeString(this)
-
 	override fun clearValue() = descriptor().o_ClearValue(this)
 
 	override fun function() = descriptor().o_Function(this)
-
-	/**
-	 * A convenience method that exposes the fact that a subtuple of a string is
-	 * also a string.
-	 *
-	 * @param start
-	 *   The start of the range to extract.
-	 * @param end
-	 *   The end of the range to extract.
-	 * @param canDestroy
-	 *   Whether the original object may be destroyed if mutable.
-	 * @return
-	 *   The substring.
-	 */
-	override fun copyStringFromToCanDestroy(
-		start: Int, end: Int, canDestroy: Boolean
-	): A_String = descriptor()
-		.o_CopyTupleFromToCanDestroy(this, start, end, canDestroy)
-		.cast()
 
 	/**
 	 * Answer whether the receiver and the argument, both [AvailObject]s, are
@@ -790,21 +761,54 @@ class AvailObject private constructor(
 
 	override fun literal() = descriptor().o_Literal(this)
 
-	override fun makeImmutable() =
-		descriptor().let {
-			when(it.mutability) {
-				Mutability.MUTABLE -> it.o_MakeImmutable(this)
-				else -> this
-			}
+	override fun makeImmutable(): AvailObject
+	{
+		val descriptor = descriptor()
+		if (!descriptor.isMutable) return this
+		// Switch the descriptor to prevent it from being added to the queue
+		// again.
+		setDescriptor(descriptor.immutable())
+		// Create a queue of marked-immutable-but-not-yet-scanned objects,
+		// seeded with the root of the graph.
+		val queue =	mutableListOf(this)
+		val fixups = mutableListOf<()->Unit>()
+		do
+		{
+			queue.removeLast().makeImmutableInternal(queue, fixups)
 		}
+		while (queue.isNotEmpty())
+		fixups.forEach { it() }
+		return traversed()
+	}
 
-	override fun makeShared() =
-		descriptor().let {
-			when(it.mutability) {
-				Mutability.SHARED -> this
-				else -> it.o_MakeShared(this)
-			}
-		}
+	override fun makeImmutableInternal(
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>
+	) = descriptor().o_MakeImmutableInternal(this, queueToProcess, fixups)
+
+
+	override fun makeShared(): AvailObject
+	{
+		if (descriptor().isShared) return this
+		// Switch the descriptor to prevent it from being added to the queue
+		// again.
+		setDescriptor(descriptor().shared())
+		// Create a queue of marked-shared-but-not-yet-scanned objects, seeded
+		// with the root of the graph.
+		val queue =	mutableListOf(this)
+		val fixups = mutableListOf<()->Unit>()
+		do
+		{
+			queue.removeLast().makeSharedInternal(queue, fixups)
+		} while (queue.isNotEmpty())
+		fixups.forEach { it() }
+		return traversed()
+	}
+
+	override fun makeSharedInternal(
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>
+	) = descriptor().o_MakeSharedInternal(this, queueToProcess, fixups)
 
 	override fun makeSubobjectsImmutable() =
 		descriptor().o_MakeSubobjectsImmutable(this)
@@ -815,13 +819,11 @@ class AvailObject private constructor(
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
 
-	override fun scanSubobjects(visitor: (AvailObject) -> AvailObject) =
-		descriptor().o_ScanSubobjects(this, visitor)
-
 	@Throws(VariableSetException::class)
 	override fun setValue(newValue: A_BasicObject) =
 		descriptor().o_SetValue(this, newValue)
 
+	@Throws(VariableSetException::class)
 	override fun setValueNoCheck(newValue: A_BasicObject) =
 		descriptor().o_SetValueNoCheck(this, newValue)
 
@@ -832,6 +834,12 @@ class AvailObject private constructor(
 	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
 
 	override fun traversed() = descriptor().o_Traversed(this)
+
+	override fun traversedWhileMakingImmutable() =
+		descriptor().o_TraversedWhileMakingImmutable(this)
+
+	override fun traversedWhileMakingShared() =
+		descriptor().o_TraversedWhileMakingShared(this)
 
 	override fun kind() = descriptor().o_Kind(this)
 
@@ -937,9 +945,6 @@ class AvailObject private constructor(
 		descriptor().o_EqualsToken(this, aToken)
 
 	override val isInstanceMeta get() = descriptor().o_IsInstanceMeta(this)
-
-	override fun equalsPhrase(aPhrase: A_Phrase) =
-		descriptor().o_EqualsPhrase(this, aPhrase)
 
 	/**
 	 * Answer the [method][MethodDescriptor] that this
@@ -1100,6 +1105,12 @@ class AvailObject private constructor(
 	override fun synthesizeCurrentLexingState(): LexingState =
 		descriptor().o_SynthesizeCurrentLexingState(this)
 
+	override fun isInCurrentModule(currentModule: A_Module): Boolean =
+		descriptor().o_IsInCurrentModule(this, currentModule)
+
+	override fun setCurrentModule(currentModule: A_Module) =
+		descriptor().o_SetCurrentModule(this, currentModule)
+
 	companion object {
 		/**
 		 * A good multiplier for a multiplicative random generator.  This
@@ -1120,7 +1131,7 @@ class AvailObject private constructor(
 		/**
 		 * Combine two hash values into one.  If two values are truly being
 		 * combined, to avoid systematic collisions it might be best to use
-		 * combine3() instead, with a usage-specific constant,
+		 * combine3() instead, with a usage-specific constant salt.
 		 */
 		fun combine2(i1: Int, i2: Int): Int
 		{
@@ -1202,6 +1213,7 @@ class AvailObject private constructor(
 		 * Combine multiple hash values into one.  To avoid systematic
 		 * collisions, one of these should be a usage-specific constant salt.
 		 */
+		@Suppress("unused")
 		fun combine7(
 			i1: Int,
 			i2: Int,
@@ -1315,17 +1327,202 @@ class AvailObject private constructor(
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun frameAtPutStatic(
+		fun frameAtPut(
 			self: AvailObject,
 			index: Int,
 			value: AvailObject
 		): AvailObject = self.descriptor().o_FrameAtPut(self, index, value)
 
-		/** Access the [frameAtPutStatic] method. */
+		/** Access the [frameAtPut] method. */
 		val frameAtPutMethod = staticMethod(
 			AvailObject::class.java,
-			::frameAtPutStatic.name,
+			::frameAtPut.name,
 			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut2(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			return self
+		}
+
+		/** Access the [frameAtPut2] method. */
+		val frameAtPut2Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut2.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut3(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject,
+			index3: Int,
+			value3: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			desc.o_FrameAtPut(self, index3, value3)
+			return self
+		}
+
+		/** Access the [frameAtPut3] method. */
+		val frameAtPut3Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut3.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut4(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject,
+			index3: Int,
+			value3: AvailObject,
+			index4: Int,
+			value4: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			desc.o_FrameAtPut(self, index3, value3)
+			desc.o_FrameAtPut(self, index4, value4)
+			return self
+		}
+
+		/** Access the [frameAtPut4] method. */
+		val frameAtPut4Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut4.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut5(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject,
+			index3: Int,
+			value3: AvailObject,
+			index4: Int,
+			value4: AvailObject,
+			index5: Int,
+			value5: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			desc.o_FrameAtPut(self, index3, value3)
+			desc.o_FrameAtPut(self, index4, value4)
+			desc.o_FrameAtPut(self, index5, value5)
+			return self
+		}
+
+		/** Access the [frameAtPut5] method. */
+		val frameAtPut5Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut5.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPut6(
+			self: AvailObject,
+			index1: Int,
+			value1: AvailObject,
+			index2: Int,
+			value2: AvailObject,
+			index3: Int,
+			value3: AvailObject,
+			index4: Int,
+			value4: AvailObject,
+			index5: Int,
+			value5: AvailObject,
+			index6: Int,
+			value6: AvailObject
+		): AvailObject
+		{
+			val desc = self.descriptor()
+			desc.o_FrameAtPut(self, index1, value1)
+			desc.o_FrameAtPut(self, index2, value2)
+			desc.o_FrameAtPut(self, index3, value3)
+			desc.o_FrameAtPut(self, index4, value4)
+			desc.o_FrameAtPut(self, index5, value5)
+			desc.o_FrameAtPut(self, index6, value6)
+			return self
+		}
+
+		/** Access the [frameAtPut6] method. */
+		val frameAtPut6Method = staticMethod(
+			AvailObject::class.java,
+			::frameAtPut6.name,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java)

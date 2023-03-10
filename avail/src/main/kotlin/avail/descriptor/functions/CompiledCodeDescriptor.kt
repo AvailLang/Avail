@@ -85,6 +85,8 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.concatenate
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -114,7 +116,9 @@ import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelOne.L1Operation.Companion.lookup
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.CODE_COVERAGE
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody
+import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.performance.Statistic
@@ -209,11 +213,11 @@ open class CompiledCodeDescriptor protected constructor(
 	/**
 	 * The [L2Chunk] that should be invoked whenever this code is started. The
 	 * chunk may no longer be [valid][L2Chunk.isValid], in which case the
-	 * [L2Chunk.unoptimizedChunk] will be used instead until the next
+	 * [unoptimizedChunk] will be used instead until the next
 	 * reoptimization.
 	 */
 	@Volatile
-	private var startingChunk = L2Chunk.unoptimizedChunk
+	private var startingChunk: L2Chunk = unoptimizedChunk
 
 	/**
 	 * An [InvocationStatistic] for tracking invocations of this
@@ -343,7 +347,8 @@ open class CompiledCodeDescriptor protected constructor(
 		 * An [AtomicLong] that indicates how many more invocations can take
 		 * place before the corresponding [L2Chunk] should be re-optimized.
 		 */
-		val countdownToReoptimize = AtomicLong(L2Chunk.countdownForNewCode)
+		val countdownToReoptimize =
+			AtomicLong(OptimizationLevel.UNOPTIMIZED.countdown)
 
 		/** A statistic for all functions that return. */
 		@Volatile
@@ -605,7 +610,7 @@ open class CompiledCodeDescriptor protected constructor(
 				val token = try
 				{
 					P_BootstrapLexerStringBody.parseString(
-						packedDeclarationNames, position, 1)
+						packedDeclarationNames, position, 1, nil)
 				}
 				catch (e: AvailRejectedParseException)
 				{
@@ -640,7 +645,8 @@ open class CompiledCodeDescriptor protected constructor(
 
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
-		continuation: (Boolean)->Unit)
+		continuation: (Boolean)->Unit
+	): Boolean
 	{
 		val newCount =
 			invocationStatistic.countdownToReoptimize.decrementAndGet()
@@ -658,7 +664,9 @@ open class CompiledCodeDescriptor protected constructor(
 				continuation(
 					invocationStatistic.countdownToReoptimize.get() <= 0)
 			}
+			return true
 		}
+		return false
 	}
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
@@ -764,9 +772,9 @@ open class CompiledCodeDescriptor protected constructor(
 	) = self.sameAddressAs(aCompiledCode)
 
 	override fun o_FunctionType(self: AvailObject) =
-		self.slot(FUNCTION_TYPE)
+		self[FUNCTION_TYPE]
 
-	override fun o_Hash(self: AvailObject) = self.slot(HASH)
+	override fun o_Hash(self: AvailObject) = self[HASH]
 
 	override fun o_Kind(self: AvailObject): AvailObject =
 		compiledCodeTypeForFunctionType(self.functionType())
@@ -783,7 +791,7 @@ open class CompiledCodeDescriptor protected constructor(
 		lineNumberEncodedDeltas
 
 	override fun o_LiteralAt(self: AvailObject, index: Int) =
-		self.slot(LITERAL_AT_, index)
+		self[LITERAL_AT_, index]
 
 	override fun o_LocalTypeAt(self: AvailObject, index: Int): A_Type
 	{
@@ -808,14 +816,14 @@ open class CompiledCodeDescriptor protected constructor(
 	override fun o_NameForDebugger(self: AvailObject) =
 		super.o_NameForDebugger(self) + ": " + methodName
 
-	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
+	override fun o_NumArgs(self: AvailObject) = self[NUM_ARGS]
 
-	override fun o_NumConstants(self: AvailObject) = self.slot(NUM_CONSTANTS)
+	override fun o_NumConstants(self: AvailObject) = self[NUM_CONSTANTS]
 
 	override fun o_NumLiterals(self: AvailObject) =
 		self.variableObjectSlotsCount()
 
-	override fun o_NumLocals(self: AvailObject) = self.slot(NUM_LOCALS)
+	override fun o_NumLocals(self: AvailObject) = self[NUM_LOCALS]
 
 	override fun o_NumNybbles(self: AvailObject): Int
 	{
@@ -825,14 +833,14 @@ open class CompiledCodeDescriptor protected constructor(
 			// Special case: when there are no nybbles, don't reserve any longs.
 			return 0
 		}
-		val firstLong = self.slot(NYBBLECODES_, 1)
+		val firstLong = self[NYBBLECODES_, 1]
 		val unusedNybbles = firstLong.toInt() and 15
 		return (longCount shl 4) - unusedNybbles - 1
 	}
 
-	override fun o_NumOuters(self: AvailObject) = self.slot(NUM_OUTERS)
+	override fun o_NumOuters(self: AvailObject) = self[NUM_OUTERS]
 
-	override fun o_NumSlots(self: AvailObject) = self.slot(FRAME_SLOTS)
+	override fun o_NumSlots(self: AvailObject) = self[FRAME_SLOTS]
 
 	override fun o_Nybbles(self: AvailObject): A_Tuple
 	{
@@ -999,7 +1007,7 @@ open class CompiledCodeDescriptor protected constructor(
 	{
 		val chunk = startingChunk
 		assert(chunk.isValid)
-		if (chunk != L2Chunk.unoptimizedChunk)
+		if (chunk != unoptimizedChunk)
 		{
 			L2Chunk.Generation.usedChunk(chunk)
 		}
@@ -1042,13 +1050,13 @@ open class CompiledCodeDescriptor protected constructor(
 		writeFunctionType: A_Type.()->Unit
 	) = writer.writeObject {
 		at("kind") { write("function implementation") }
-		at("outers") { write(self.slot(NUM_OUTERS)) }
-		at("arguments") { write(self.slot(NUM_ARGS)) }
-		at("locals") { write(self.slot(NUM_LOCALS)) }
-		at("constants") { write(self.slot(NUM_CONSTANTS)) }
-		at("maximum stack depth") { write(self.slot(FRAME_SLOTS)) }
+		at("outers") { write(self[NUM_OUTERS]) }
+		at("arguments") { write(self[NUM_ARGS]) }
+		at("locals") { write(self[NUM_LOCALS]) }
+		at("constants") { write(self[NUM_CONSTANTS]) }
+		at("maximum stack depth") { write(self[FRAME_SLOTS]) }
 		at("nybbles") { self.nybbles.writeTo(writer) }
-		at("function type") { self.slot(FUNCTION_TYPE).writeFunctionType() }
+		at("function type") { self[FUNCTION_TYPE].writeFunctionType() }
 		at("method") { self.methodName.writeTo(writer) }
 		if (module.notNil)
 		{
@@ -1060,7 +1068,7 @@ open class CompiledCodeDescriptor protected constructor(
 				val limit = self.variableObjectSlotsCount()
 				for (i in 1 .. limit)
 				{
-					var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
+					var literal: A_BasicObject = self[LITERAL_AT_, i]
 					if (literal.isNil)
 					{
 						// Value doesn't matter, but it can't be nil.  Use zero.
@@ -1166,7 +1174,7 @@ open class CompiledCodeDescriptor protected constructor(
 						if (descriptor.module.notNil)
 						{
 							val chunk = descriptor.startingChunk
-							if (chunk != L2Chunk.unoptimizedChunk)
+							if (chunk != unoptimizedChunk)
 							{
 								chunk.invalidate(CODE_COVERAGE)
 							}
@@ -1202,7 +1210,7 @@ open class CompiledCodeDescriptor protected constructor(
 				{
 					val report = CodeCoverageReport(
 						descriptor.invocationStatistic.hasRun,
-						descriptor.startingChunk != L2Chunk.unoptimizedChunk,
+						descriptor.startingChunk != unoptimizedChunk,
 						descriptor.lineNumber,
 						module.moduleNameNative,
 						descriptor.methodName.asNativeString())
@@ -1323,12 +1331,12 @@ open class CompiledCodeDescriptor protected constructor(
 				numLiterals + numOuters + numLocals + numConstants,
 				if (nybbleCount == 0) 0 else nybbleCount + 16 shr 4,
 				initialMutableDescriptor)
-			code.setSlot(FRAME_SLOTS, numSlots)
-			code.setSlot(NUM_ARGS, numArgs)
-			code.setSlot(NUM_LOCALS, numLocals)
-			code.setSlot(NUM_CONSTANTS, numConstants)
-			code.setSlot(NUM_OUTERS, numOuters)
-			code.setSlot(FUNCTION_TYPE, functionType.makeShared())
+			code[FRAME_SLOTS] = numSlots
+			code[NUM_ARGS] = numArgs
+			code[NUM_LOCALS] = numLocals
+			code[NUM_CONSTANTS] = numConstants
+			code[NUM_OUTERS] = numOuters
+			code[FUNCTION_TYPE] = functionType.makeShared()
 
 			// Fill in the nybblecodes.
 			if (nybbleCount > 0)
@@ -1340,7 +1348,7 @@ open class CompiledCodeDescriptor protected constructor(
 					val subIndex = i and 15
 					if (subIndex == 0)
 					{
-						code.setSlot(NYBBLECODES_, longIndex++, currentLong)
+						code[NYBBLECODES_, longIndex++] = currentLong
 						currentLong = 0
 					}
 					val nybble = nybbles.tupleIntAt(i).toLong()
@@ -1348,7 +1356,7 @@ open class CompiledCodeDescriptor protected constructor(
 						currentLong or (nybble shl (subIndex shl 2))
 				}
 				// There's always a final write, either partial or full.
-				code.setSlot(NYBBLECODES_, longIndex, currentLong)
+				code[NYBBLECODES_, longIndex] = currentLong
 			}
 
 			// Fill in the literals.
@@ -1364,7 +1372,7 @@ open class CompiledCodeDescriptor protected constructor(
 					tuple.tupleSize)
 				literalIndex += tuple.tupleSize
 			}
-			code.setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
+			code[HASH] = AvailRuntimeSupport.nextNonzeroHash()
 			if (primitive != null)
 			{
 				code.setDescriptor(

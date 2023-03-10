@@ -218,7 +218,8 @@ Method "For each of⁇_do_" is
 		action(aTuple[index]);
 		Restart loop with <index + 1, end, aTuple>
 	](1, |aSet|, aSet→tuple);
-] : ⊤;
+] : ⊤
+styled by loop styler;
 
 /**
  * Helper method for semantic restrictions: If {@param "action"} does not accept
@@ -251,7 +252,8 @@ Method "Require:_accepts_" is
 			++ “action[1]”
 			++ ")"
 	];
-] : ⊤;
+] : ⊤
+styled by assertion styler;
 
 /**
  * Ensure that the function will accept all elements of the set. If the set is
@@ -327,7 +329,7 @@ Public method "set body function(_,_)" is
 			else [⊤];
 		declaration ::= scope map[name];
 		Undeclare name;
-		bootstrap restricted send anAtom with
+		restricted send anAtom with
 			«<
 				aSet,
 				«[
@@ -358,8 +360,10 @@ Public method "set body function(_,_)" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "For each…in|of_§do_" is a set iteration prefix function,
-	set body function($"For each of⁇_do_", ⊤);
+Macro "For each…in|of_§do_" is
+	a set iteration prefix function,
+	set body function($"For each of⁇_do_", ⊤)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "transformer"} to each element of {@param "aSet"},
@@ -391,7 +395,8 @@ Method "map_through_" is
 		transformed ::= transformer(aTuple[index]);
 		Restart loop with <index + 1, end, outputSet + transformed>
 	](1, |aSet|, ∅)
-] : set;
+] : set
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set. If the set is
@@ -441,8 +446,10 @@ Semantic restriction "map_through_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "map each…in|of_§through_" is a set iteration prefix function,
-	set body function($"map_through_",set);
+Macro "map each…in|of_§through_" is
+	a set iteration prefix function,
+	set body function($"map_through_", set)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "predicate"} to each element of {@param "aSet"}, in
@@ -480,7 +487,8 @@ Method "filter_by_" is
 		Restart loop
 	]();
 	result
-] : set;
+] : set
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set.
@@ -520,8 +528,10 @@ Semantic restriction "filter_by_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "select each…from_§where_" is a set iteration prefix function,
-	set body function($"filter_by_",set);
+Macro "select each…from_§where_" is
+	a set iteration prefix function,
+	set body function($"filter_by_", set)
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "predicate"} to each consecutive element of
@@ -543,17 +553,18 @@ Macro "select each…from_§where_" is a set iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Control Structures" "Loops" "Collections" "Sets"
  */
-Macro "reject each…from_§where_" is a set iteration prefix function,
+Macro "reject each…from_§where_" is
+a set iteration prefix function,
 [
 	elementPhrase : literal phrase ⇒ token,
 	aSet : expression phrase ⇒ set,
-	predicate : block phrase ⇒ []→⊤
+	predicate : block phrase ⇒ []→boolean
 |
 	anAtom ::= $"filter_by_";
 	name ::= elementPhrase's token's lexeme;
 	aSetType ::= aSet's semantic type;
 	elementType ::= aSetType's element type;
-	blockType ::= [elementType]→predicate's semantic type's return type;
+	blockType ::= [elementType] → ¬(predicate's semantic type's return type);
 
 	returnType ::= strengthen set for call of anAtom
 			using <aSetType, blockType>;
@@ -562,30 +573,28 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 	size ::= |statements|;
 	newStatements ::= if size = 0 then [<>] else
 	[
-		end : whole number := cast size-1 into [w : whole number | w];
-		i : natural number := cast size into [n : natural number | n];
-		c : expression phrase⇒any := cast statements[i] into
-			[e : expression phrase⇒any | e];
-		statements[..end] ++
-			<bootstrap restricted send $"¬_" with «<c>» : boolean>
+		i ::= size ?→ natural number;
+		c ::= statements[i] ?→ expression phrase⇒boolean;
+		statements[..i - 1] ++ <⟦¬ ⦊c⦉⟧>
 	];
 	blockReturnType ::= cast newStatements
 		into [t : phrase+ | t[|t|]'s semantic type]
 		else [⊤];
 
-	declaration ::= scope map[name];
+	declaration ::= scope map[name] ?→ argument phrase;
 	Undeclare name;
 
-	bootstrap restricted send anAtom with
-		«<
-			aSet,
-			«[
-				<cast declaration into [d : argument phrase | d]>
+	negatedBlock ::=
+		«
+			[
+				<declaration>
 			|
 				newStatements
-			] : blockReturnType»
-		>» : returnType
-] : send phrase ⇒ ⊤;
+			] : blockReturnType
+		» ?→ block phrase ⇒ [⊥]→boolean;
+	⟦filter ⦊aSet⦉ by ⦊negatedBlock⦉⟧
+] : send phrase ⇒ set
+styled by loop styler;
 
 /**
  * Iteratively apply {@param "accumulator"} to the elements of {@param "aSet"},
@@ -635,7 +644,8 @@ Method "map and filter_by_" is
 		Restart loop
 	]();
 	result
-] : set;
+] : set
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all arguments of the set and also an
@@ -692,7 +702,8 @@ Method "any of_satisfies_" is
 		Exit loop with true if test;
 		Restart loop with <index + 1, end, aTuple>
 	](1, |aSet|, aSet→tuple)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set.
@@ -739,7 +750,8 @@ Method "each of_satisfies_" is
 		Exit loop with false if test = false;
 		Restart loop with <index + 1, end>
 	](1, |aTuple|)
-] : boolean;
+] : boolean
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set.
@@ -775,8 +787,10 @@ Semantic restriction "each of_satisfies_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Sets" "Queries"
  */
-Macro "any…in|of_§satisfies_" is a set iteration prefix function,
-	set body function($"any of_satisfies_", boolean);
+Macro "any…in|of_§satisfies_" is
+	a set iteration prefix function,
+	set body function($"any of_satisfies_", boolean)
+styled by loop styler;
 
 /**
  * Compute and answer whether all of the elements of {@param "aSet"} satisfies
@@ -796,8 +810,10 @@ Macro "any…in|of_§satisfies_" is a set iteration prefix function,
  * @returns "send phrase ⇒ ⊤"
  * @category "Collections" "Sets" "Queries"
  */
-Macro "each…in|of_§satisfies_" is a set iteration prefix function,
-	set body function($"each of_satisfies_", boolean);
+Macro "each…in|of_§satisfies_" is
+	a set iteration prefix function,
+	set body function($"each of_satisfies_", boolean)
+styled by loop styler;
 
 /**
  * Compute and answer the count of elements of {@param "aSet"} that satisfy the
@@ -829,7 +845,8 @@ Method "count of_where_" is
 		newCount ::= if predicate(aTuple[index]) then [count + 1] else [count];
 		Restart loop with <index + 1, end, newCount>
 	](1, |aTuple|, 0)
-] : whole number;
+] : whole number
+styled by loop styler;
 
 /**
  * Ensure that the function will accept all elements of the set.
@@ -865,8 +882,10 @@ Semantic restriction "count of_where_" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Queries" "Collections" "Sets"
  */
-Macro "count of…from|in|of_§where_" is a set iteration prefix function,
-	set body function($"count of_where_", whole number);
+Macro "count of…from|in|of_§where_" is
+	a set iteration prefix function,
+	set body function($"count of_where_", whole number)
+styled by loop styler;
 
 /**
  * Compute and answer the symmetric difference between the two sets, being the
@@ -986,10 +1005,19 @@ Semantic restriction "_⊂_" is
 	elementB ::= typeB's element type;
 	/* The basic rule is this: If the type intersection of the element type
 	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-	 * be false. Otherwise all bets are off.
+	 * be false. Except if A is empty. Otherwise all bets are off.
 	 */
 	basicRule ::=
-		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ ⊤ ] ];
+		[
+			/* Case: A is always empty, and B is always non-empty. */
+			if elementA = ⊥ ∧ ⌊typeB⌋ > 0 then [true's type]
+			else
+			[
+				/* Case: A is never empty, and the elements are disjoint. */
+				if ⌊typeA⌋ > 0 ∧ elementA ∩ elementB = ⊥ then [false's type]
+				else [⊤]
+			]
+		];
 	sizesB ::= ||typeB||;
 	/* This is finesse. If `typeB` is definitely the set of all possible
 	 * instances of its (enumeration) element type, then `typeA`'s instances
@@ -1030,29 +1058,30 @@ Public stable method "_⊇_" is
  */
 Semantic restriction "_⊇_" is
 [
-	typeB : set's type,
-	typeA : set's type
+	typeA : set's type,
+	typeB : set's type
 |
+	$restriction : type;
 	elementA ::= typeA's element type;
 	elementB ::= typeB's element type;
-	/* The basic rule is this: If the type intersection of the element type
-	 * of `typeA` and the element type of `typeB` is ⊥, then the result must
-	 * be false. Otherwise all bets are off.
+	/* The empty set is a subset of every set. */
+	Exit restriction with true's type if elementB = ⊥;
+	/*
+	 * This is finesse. If typeA is definitely the set of all possible instances
+	 * of its (enumeration) element type, then typeB's instances must be subsets
+	 * of typeA's instance if typeB's element type is a subtype of typeA's
+	 * element type.
 	 */
-	basicRule ::=
-		[ if elementA ∩ elementB = ⊥ then [ false's type ] else [ boolean ] ];
-	sizesB ::= ||typeB||;
-	/* This is finesse. If `typeB` is definitely the set of all possible
-	 * instances of its (enumeration) element type, then `typeA`'s instances
-	 * must be subsets of `typeB`'s instance if `typeA`'s element type is a
-	 * subtype of `typeB`'s element type.
+	sizesA ::= ||typeA||;
+	Exit restriction with true's type
+		if |elementA| = ⌊sizesA⌋ = ⌈sizesA⌉ ∧ elementB ⊆ elementA;
+	/*
+	 * The basic rule is this: If the type intersection of the element type of
+	 * typeA and the element type of typeB is ⊥, then the result must be false.
+	 * But only if B can't be empty.  Otherwise all bets are off.
 	 */
-	if |elementB| ≠ ∞ ∧ ⌊sizesB⌋ = ⌈sizesB⌉ ∧ |elementB| = ⌊sizesB⌋ then
-	[
-		if elementA ⊆ elementB then [true's type]
-		else basicRule
-	]
-	else basicRule
+	Exit restriction with false's type if ⌊typeB⌋ > 0 ∧ elementA ∩ elementB = ⊥;
+	⊤
 ];
 
 /**

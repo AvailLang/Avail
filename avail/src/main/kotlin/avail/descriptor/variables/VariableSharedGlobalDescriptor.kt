@@ -42,7 +42,6 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String
@@ -53,7 +52,6 @@ import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.Companion.VALUE_IS_STABLE
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.IntegerSlots.HASH_AND_MORE
-import avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.GLOBAL_NAME
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.KIND
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.ObjectSlots.MODULE
@@ -64,9 +62,7 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.effects.LoadingEffect
-import avail.interpreter.levelTwo.L2Chunk
 import avail.serialization.SerializerOperation
-import java.util.WeakHashMap
 
 /**
  * My [object&#32;instances][AvailObject] are [shared][Mutability.SHARED] variables
@@ -161,16 +157,6 @@ class VariableSharedGlobalDescriptor private constructor(
 		WRITE_REACTORS,
 
 		/**
-		 * A [raw&#32;pojo][RawPojoDescriptor] holding a weak set (implemented
-		 * as the [key&#32;set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that
-		 * depend on the membership of this method.  A change to the membership
-		 * will invalidate all such chunks.  This field holds the
-		 * [nil][NilDescriptor.nil] object initially.
-		 */
-		@HideFieldJustForPrinting
-		DEPENDENT_CHUNKS_WEAK_SET_POJO,
-
-		/**
 		 * The [module][A_Module] in which this variable is defined.
 		 */
 		MODULE,
@@ -192,9 +178,6 @@ class VariableSharedGlobalDescriptor private constructor(
 				assert(VariableSharedDescriptor.ObjectSlots
 					.WRITE_REACTORS.ordinal
 						== WRITE_REACTORS.ordinal)
-				assert(VariableSharedDescriptor.ObjectSlots
-					.DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal
-						== DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal)
 			}
 		}
 	}
@@ -204,19 +187,18 @@ class VariableSharedGlobalDescriptor private constructor(
 	): Boolean = (super.allowsImmutableToMutableReferenceInField(e)
 		|| e === VALUE
 		|| e === WRITE_REACTORS
-		|| e === DEPENDENT_CHUNKS_WEAK_SET_POJO
 		|| e === HASH_AND_MORE) // only for flags.
 
 	override fun o_GlobalModule(self: AvailObject): A_Module =
-		self.slot(MODULE)
+		self[MODULE]
 
 	override fun o_GlobalName(self: AvailObject): A_String =
-		self.slot(GLOBAL_NAME)
+		self[GLOBAL_NAME]
 
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		val outerKind = self.slot(KIND)
+		val outerKind = self[KIND]
 		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(
@@ -326,13 +308,13 @@ class VariableSharedGlobalDescriptor private constructor(
 	{
 		// Only meaningful for write-once variables.
 		assert(writeOnce)
-		self.setSlot(VALUE_IS_STABLE, if (wasStablyComputed) 1 else 0)
+		self[VALUE_IS_STABLE] = if (wasStablyComputed) 1 else 0
 	}
 
 	override fun o_ValueWasStablyComputed(
 		self: AvailObject): Boolean =
 			// Can only be set for write-once variables.
-			self.slot(VALUE_IS_STABLE) != 0
+			self[VALUE_IS_STABLE] != 0
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.GLOBAL_VARIABLE
@@ -369,7 +351,6 @@ class VariableSharedGlobalDescriptor private constructor(
 				setSlot(HASH_ALWAYS_SET, AvailRuntimeSupport.nextNonzeroHash())
 				setSlot(VALUE, nil)
 				setSlot(WRITE_REACTORS, nil)
-				setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil)
 				setSlot(MODULE, module.makeShared())
 				setSlot(GLOBAL_NAME, name.makeShared())
 				setDescriptor(if (writeOnce) sharedWriteOnce else shared)

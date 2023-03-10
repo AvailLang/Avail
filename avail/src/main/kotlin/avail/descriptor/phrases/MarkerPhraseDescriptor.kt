@@ -41,11 +41,8 @@ import avail.descriptor.phrases.MarkerPhraseDescriptor.ObjectSlots.EXPRESSION_TY
 import avail.descriptor.phrases.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -71,9 +68,8 @@ class MarkerPhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.MARKER_PHRASE_TAG,
-	ObjectSlots::class.java,
-	null
-) {
+	ObjectSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -130,12 +126,12 @@ class MarkerPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	): Unit = Unit
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	): Unit = Unit
 
 	override fun o_EmitValueOn(
@@ -148,16 +144,15 @@ class MarkerPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
+		// We don't traverse (with equalsPhrase) inside markers that happen to
+		// contain phrases.
 		&& self.markerValue.equals(aPhrase.markerValue))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(EXPRESSION_TYPE)
-
-	override fun o_Hash(self: AvailObject): Int =
-		combine2(self.markerValue.hash(), -0x34353534)
+		self[EXPRESSION_TYPE]
 
 	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
-		self.slot(MARKER_VALUE)
+		self[MARKER_VALUE]
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.MARKER_PHRASE
@@ -174,14 +169,12 @@ class MarkerPhraseDescriptor private constructor(
 		continuation: (A_Phrase) -> Unit
 	): Unit = unsupported
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = emptyTuple
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	): Unit = unsupported
+	/** Marker phrases should have been replaced before validation. */
+	override fun o_ValidateLocally(self: AvailObject): Unit = unsupported
 
 	override fun mutable() = mutable
+
+	override fun immutable() = immutable
 
 	override fun shared() = shared
 
@@ -204,10 +197,14 @@ class MarkerPhraseDescriptor private constructor(
 		): AvailObject = mutable.createShared {
 			setSlot(MARKER_VALUE, markerValue)
 			setSlot(EXPRESSION_TYPE, expressionType)
+			initHash()
 		}
 
 		/** The mutable [MarkerPhraseDescriptor]. */
 		private val mutable = MarkerPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [MarkerPhraseDescriptor]. */
+		private val immutable = MarkerPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [MarkerPhraseDescriptor]. */
 		private val shared = MarkerPhraseDescriptor(Mutability.SHARED)

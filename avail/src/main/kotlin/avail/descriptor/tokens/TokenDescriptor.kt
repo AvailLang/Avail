@@ -34,7 +34,9 @@ import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
+import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
@@ -46,17 +48,19 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
 import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.START
 import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.TOKEN_TYPE_CODE
+import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.GENERATING_LEXER
 import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
 import avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor
@@ -77,7 +81,7 @@ import java.util.IdentityHashMap
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- * Construct a new `TokenDescriptor`.
+ * Construct a new [TokenDescriptor].
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
@@ -151,7 +155,22 @@ open class TokenDescriptor protected constructor(
 		 * A [raw&#32;pojo][RawPojoDescriptor] holding the [LexingState] after
 		 * this token.
 		 */
-		NEXT_LEXING_STATE_POJO
+		NEXT_LEXING_STATE_POJO,
+
+		/**
+		 * During compilation, tokens constructed by the compiler capture the
+		 * module that was under compilation.  This field holds the module
+		 * reliably only while the module is being compiled.  At other times, it
+		 * may be either the module that it's a part of or nil.  The serializer
+		 * makes no effort to reconstruct this field.
+		 */
+		ORIGINATING_MODULE,
+
+		/**
+		 * The [A_Lexer] responsible for creating this token, or nil if the
+		 * token was not constructed by a lexer.
+		 */
+		GENERATING_LEXER
 	}
 
 	/**
@@ -249,6 +268,7 @@ open class TokenDescriptor protected constructor(
 	public override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = e === NEXT_LEXING_STATE_POJO
+		|| e === ORIGINATING_MODULE
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -259,14 +279,14 @@ open class TokenDescriptor protected constructor(
 		builder.append(String.format(
 			"%s (%s) @ %d:%d",
 			self.tokenType().name.lowercase().replace('_', ' '),
-			self.slot(STRING),
-			self.slot(START),
-			self.slot(LINE_NUMBER)))
+			self[STRING],
+			self[START],
+			self[LINE_NUMBER]))
 	}
 
 	override fun o_ClearLexingState(self: AvailObject)
 	{
-		self.setSlot(NEXT_LEXING_STATE_POJO, nil)
+		self[NEXT_LEXING_STATE_POJO] = nil
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject)
@@ -279,6 +299,9 @@ open class TokenDescriptor protected constructor(
 			&& self.isLiteralToken() == aToken.isLiteralToken()
 			&& (!self.isLiteralToken()
 				|| self.literal().equals(aToken.literal())))
+
+	override fun o_GeneratingLexer(self: AvailObject): A_Lexer =
+		self[GENERATING_LEXER]
 
 	override fun o_Hash(self: AvailObject): Int = combine4(
 		self.string().hash(),
@@ -295,26 +318,31 @@ open class TokenDescriptor protected constructor(
 		(aType.isSupertypeOfPrimitiveTypeEnum(Types.TOKEN)
 			|| (aType.isTokenType && self.tokenType() == aType.tokenType))
 
-	override fun o_LineNumber(self: AvailObject): Int = self.slot(LINE_NUMBER)
+	override fun o_LineNumber(self: AvailObject): Int = self[LINE_NUMBER]
 
 	override fun o_LowerCaseString(self: AvailObject): A_String =
 		lowerCaseStringFrom(self)
 
+	override fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean = self[ORIGINATING_MODULE].equals(currentModule)
+
 	override fun o_NextLexingState(self: AvailObject): LexingState =
-		self.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull()
+		self[NEXT_LEXING_STATE_POJO].javaObjectNotNull()
 
 	override fun o_NextLexingStatePojo(self: AvailObject): AvailObject =
-		self.slot(NEXT_LEXING_STATE_POJO)
+		self[NEXT_LEXING_STATE_POJO]
 
 	override fun o_SetNextLexingStateFromPrior(
 		self: AvailObject,
 		priorLexingState: LexingState
 	) {
 		// First, figure out where the token ends.
-		val string: A_String = self.slot(STRING)
+		val string: A_String = self[STRING]
 		val stringSize = string.tupleSize
-		val positionAfter = self.slot(START) + stringSize
-		var line = self.slot(LINE_NUMBER)
+		val positionAfter = self[START] + stringSize
+		var line = self[LINE_NUMBER]
 		line += (1..stringSize).count {
 			string.tupleCodePointAt(it) == '\n'.code
 		}
@@ -322,32 +350,40 @@ open class TokenDescriptor protected constructor(
 		val allTokens = priorLexingState.allTokens.append(self)
 		val state = LexingState(
 			priorLexingState.compilationContext, positionAfter, line, allTokens)
-		self.setSlot(NEXT_LEXING_STATE_POJO, identityPojo(state).makeShared())
+		self[NEXT_LEXING_STATE_POJO] = identityPojo(state).makeShared()
 		self.makeShared()
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.TOKEN
 
-	override fun o_Start(self: AvailObject): Int = self.slot(START)
+	override fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module)
+	{
+		assert(self[START] > 0)
+		self[ORIGINATING_MODULE] = currentModule
+	}
 
-	override fun o_String(self: AvailObject): A_String = self.slot(STRING)
+	override fun o_Start(self: AvailObject): Int = self[START]
+
+	override fun o_String(self: AvailObject): A_String = self[STRING]
 
 	override fun o_SynthesizeCurrentLexingState(
 		self: AvailObject
 	): LexingState
 	{
 		val next: LexingState =
-			self.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull()
+			self[NEXT_LEXING_STATE_POJO].javaObjectNotNull()
 		return LexingState(
 			next.compilationContext,
-			self.slot(START),
-			self.slot(LINE_NUMBER),
+			self[START],
+			self[LINE_NUMBER],
 			emptyList())
 	}
 
 	override fun o_TokenType(self: AvailObject): TokenType =
-		lookupTokenType(self.slot(TOKEN_TYPE_CODE))
+		lookupTokenType(self[TOKEN_TYPE_CODE])
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -355,9 +391,9 @@ open class TokenDescriptor protected constructor(
 			at("token type") {
 				write(self.tokenType().name.lowercase().replace('_', ' '))
 			}
-			at("start") { write(self.slot(START)) }
-			at("line number") { write(self.slot(LINE_NUMBER)) }
-			at("lexeme") { self.slot(STRING).writeTo(writer) }
+			at("start") { write(self[START]) }
+			at("line number") { write(self[LINE_NUMBER]) }
+			at("lexeme") { self[STRING].writeTo(writer) }
 		}
 
 	override fun mutable() = mutable
@@ -381,18 +417,18 @@ open class TokenDescriptor protected constructor(
 		 */
 		private fun lowerCaseStringFrom(token: AvailObject): A_String
 		{
-			val nativeOriginal = token.slot(STRING).asNativeString()
+			val nativeOriginal = token[STRING].asNativeString()
 			val nativeLowerCase = nativeOriginal.lowercase()
 			return StringDescriptor.stringFrom(nativeLowerCase)
 		}
 
 		/**
 		 * Create and initialize a new [A_Token].  The [NEXT_LEXING_STATE_POJO]
-		 * is initially set to [NilDescriptor.nil].  For a token constructed by
-		 * a lexer body, this pojo is updated automatically by the lexical
-		 * scanning machinery to wrap a new [LexingState].  That machinery also
-		 * sets up the new scanning position, the new line number, and the list
-		 * of [LexingState.allTokens].
+		 * is initially set to [nil].  For a token constructed by a lexer body,
+		 * this pojo is updated automatically by the lexical scanning machinery
+		 * to wrap a new [LexingState].  That machinery also sets up the new
+		 * scanning position, the new line number, and the list of
+		 * [LexingState.allTokens].
 		 *
 		 * @param string
 		 *   The token text.
@@ -402,6 +438,9 @@ open class TokenDescriptor protected constructor(
 		 *   The line number on which the token occurred.
 		 * @param tokenType
 		 *   The type of token to create.
+		 * @param generatingLexer
+		 *   The [A_Lexer] responsible for creating this token, or nil if the
+		 *   token was not constructed by a lexer.
 		 * @return
 		 *   The new token.
 		 */
@@ -409,11 +448,14 @@ open class TokenDescriptor protected constructor(
 			string: A_String,
 			start: Int,
 			lineNumber: Int,
-			tokenType: TokenType): A_Token
+			tokenType: TokenType,
+			generatingLexer: A_Lexer
+		): A_Token
 		{
 			if (tokenType == TokenType.COMMENT)
 			{
-				return newCommentToken(string, start, lineNumber)
+				return newCommentToken(
+					string, start, lineNumber, generatingLexer)
 			}
 			return mutable.createShared {
 				setSlot(STRING, string)
@@ -421,6 +463,8 @@ open class TokenDescriptor protected constructor(
 				setSlot(LINE_NUMBER, lineNumber)
 				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal)
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
+				setSlot(ORIGINATING_MODULE, nil)
+				setSlot(GENERATING_LEXER, generatingLexer)
 			}
 		}
 

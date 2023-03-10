@@ -32,20 +32,18 @@
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import avail.descriptor.phrases.A_Phrase.Companion.equalsPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.expression
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.sequence
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.EXPRESSION
 import avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.TYPE_FOR_LOOKUP
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -71,9 +69,8 @@ class SuperCastPhraseDescriptor private constructor(
 ) : PhraseDescriptor(
 	mutability,
 	TypeTag.SUPER_CAST_PHRASE_TAG,
-	ObjectSlots::class.java,
-	null
-) {
+	ObjectSlots::class.java)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
@@ -105,44 +102,39 @@ class SuperCastPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
-	) = action(self.slot(EXPRESSION))
+		action: (A_Phrase)->Unit
+	) = action(self[EXPRESSION])
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(EXPRESSION, transformer(self.slot(EXPRESSION)))
+		transformer: (A_Phrase)->A_Phrase
+	) = self.updateSlot(EXPRESSION, transformer)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self.slot(EXPRESSION).emitValueOn(codeGenerator)
+	) = self[EXPRESSION].emitValueOn(codeGenerator)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.expression.equals(aPhrase.expression)
+		&& self.expression.equalsPhrase(aPhrase.expression)
 		&& self.superUnionType.equals(aPhrase.superUnionType))
 
 	/**
 	 * Answer the expression producing the actual value.
 	 */
 	override fun o_Expression(self: AvailObject): A_Phrase =
-		self.slot(EXPRESSION)
+		self[EXPRESSION]
 
 	/**
 	 * Answer the lookup type to ensure polymorphic macro substitutions happen
 	 * the right way.
 	 */
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(TYPE_FOR_LOOKUP)
-
-	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(EXPRESSION).hash(),
-		self.slot(TYPE_FOR_LOOKUP).hash(),
-		0x5035ebe5)
+		self[TYPE_FOR_LOOKUP]
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean = true
 
@@ -150,7 +142,7 @@ class SuperCastPhraseDescriptor private constructor(
 		PhraseKind.SUPER_CAST_PHRASE
 
 	override fun o_Sequence (self: AvailObject): A_Phrase =
-		self.slot(EXPRESSION).sequence
+		self[EXPRESSION].sequence
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SUPER_CAST_PHRASE
@@ -161,35 +153,27 @@ class SuperCastPhraseDescriptor private constructor(
 	): Unit = unsupported
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type =
-		self.slot(TYPE_FOR_LOOKUP)
-
-	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens
-
-	override fun o_ValidateLocally(
-		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		// Do nothing.
-	}
+		self[TYPE_FOR_LOOKUP]
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("super cast phrase") }
-			at("expression") { self.slot(EXPRESSION).writeTo(writer) }
-			at("type to lookup") { self.slot(TYPE_FOR_LOOKUP).writeTo(writer) }
+			at("expression") { self[EXPRESSION].writeTo(writer) }
+			at("type to lookup") { self[TYPE_FOR_LOOKUP].writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("list phrase") }
-			at("expression") { self.slot(EXPRESSION).writeSummaryTo(writer) }
+			at("expression") { self[EXPRESSION].writeSummaryTo(writer) }
 			at("type to lookup") {
-				self.slot(TYPE_FOR_LOOKUP).writeSummaryTo(writer)
+				self[TYPE_FOR_LOOKUP].writeSummaryTo(writer)
 			}
 		}
 
 	override fun mutable() = mutable
+
+	override fun immutable() = immutable
 
 	override fun shared() = shared
 
@@ -214,10 +198,14 @@ class SuperCastPhraseDescriptor private constructor(
 		): A_Phrase = mutable.createShared {
 			setSlot(EXPRESSION, expression)
 			setSlot(TYPE_FOR_LOOKUP, superUnionType)
+			initHash()
 		}
 
 		/** The mutable [SuperCastPhraseDescriptor]. */
 		private val mutable = SuperCastPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SuperCastPhraseDescriptor]. */
+		private val immutable = SuperCastPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SuperCastPhraseDescriptor]. */
 		private val shared = SuperCastPhraseDescriptor(Mutability.SHARED)

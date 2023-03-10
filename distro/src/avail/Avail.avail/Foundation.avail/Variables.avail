@@ -69,7 +69,10 @@ Names
 	"↓_else_",
 
 	/* Destructuring tuple assignment. */
-	"«…‡,»::=_;"
+	"«…‡,»::=_;",
+
+	/* Registration in a module variable. */
+	"Register_→_in_"
 Body
 
 Semantic restriction "_'s⁇read type" is
@@ -165,7 +168,6 @@ Semantic restriction "Swap_↑and_↑" is
 			"variable's read/write types to be cross-compatible"
 	]
 ];
-
 
 /**
  * Construct and answer a new variable with the specified containment type and
@@ -269,7 +271,8 @@ Public method "_↑++" is
 	var : read number/write ⊥
 |
 	var ?= eject var + 1;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_++" to "_↑++";
 
@@ -339,7 +342,8 @@ Public method "++_↑" is
 	var : read number/write ⊥
 |
 	var ?= eject var + 1;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "++_" to "++_↑";
 
@@ -419,7 +423,8 @@ Public method "_↑--" is
 	var : read number/write ⊥
 |
 	var ?= eject var - 1;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "_--" to "_↑--";
 
@@ -489,7 +494,8 @@ Public method "--_↑" is
 	var : read number/write ⊥
 |
 	var ?= eject var - 1;
-] : ⊤;
+] : ⊤
+styled by statement styler;
 
 Alias "--_" to "--_↑";
 
@@ -560,16 +566,14 @@ Semantic restriction "(--_↑)" is
  */
 Invoke
 [
-	parens ::= cast <"(_)">→set into [ t : {string|natural number} | t ];
+	parens ::= {"(_)"};
 	forbid ::=
-		cast
-			<
-				"_↑++", "++_↑", "(_↑++)", "(++_↑)",
-				"_↑--", "--_↑", "(_↑--)", "(--_↑)",
-				"_++", "++_", "(_++)", "(++_)",
-				"_--", "--_", "(_--)", "(--_)"
-			>→set
-		into [ t : {string|whole number} | t ];
+		{
+			"_↑++", "++_↑", "(_↑++)", "(++_↑)",
+			"_↑--", "--_↑", "(_↑--)", "(--_↑)",
+			"_++", "++_", "(_++)", "(++_)",
+			"_--", "--_", "(_--)", "(--_)"
+		};
 	Grammatical restriction parens is <forbid>;
 ]
 with <>;
@@ -594,7 +598,8 @@ Public method "↓_else_" is
 	else : function accepting <> and returning any
 |
 	if var is assigned then [↓var] else else
-] : any;
+] : any
+styled by conditional styler;
 
 /**
  * @method "↓_else_"
@@ -675,7 +680,7 @@ Public macro "«…‡,»::=_;" is
 		index : natural number
 	|
 		nameToken ::= strongNameTokens[index];
-		at ::= bootstrap restricted send $"_[_]"
+		at ::= restricted send $"_[_]"
 			with «<«↓tupleBinding», ‘index’>»
 			: tupleType[index];
 		binding ::= «nameToken ::= at»;
@@ -696,7 +701,8 @@ Public macro "«…‡,»::=_;" is
 		true
 	];
 	seq «strongBindings»
-];
+]
+styled by statement styler;
 
 /**
  * Destructure a {@type "tuple meta" tuple type} into a {@type "sequence"} of
@@ -764,7 +770,7 @@ Public macro "«…‡,»::=_;" is
 		index : natural number
 	|
 		nameToken ::= strongNameTokens[index];
-		at ::= bootstrap restricted send $"_[_]"
+		at ::= restricted send $"_[_]"
 			with «<«↓tupleTypeBinding», ‘index’>»
 			: (tupleType[index]'s type);
 		binding ::= «nameToken ::= at»;
@@ -785,6 +791,74 @@ Public macro "«…‡,»::=_;" is
 		true
 	];
 	seq «strongBindings»
+];
+
+/**
+ * Register the given {@param "key"} and {@param "value"} in the {@type "map"}
+ * held by the given variable {@param "var"}. Also record an unload action to
+ * automatically remove that key when the module that added it is unloaded.
+ *
+ * @macro "Register_→_in_"
+ * @param "key" "any"
+ *        The key under which to write to the variable's map.  The key should
+ *        be chosen so as not to interfere with keys added by other modules.
+ *        A good choice is the module itself.
+ * @param "value" "any"
+ *        The value to store under the given key in the variable's map.
+ * @param "var" "read map / write ⊥"
+ *        A variable holding a map to be updated with the key and value.
+ */
+Public method "Register_→_in_" is
+[
+	key : any,
+	value : any,
+	var : read map / write ⊥
+|
+	var[key] := value;
+	After the current module is unloaded, do
+	[
+		var -= key;
+	];
+];
+
+/**
+ * Strengthen the key and value types against the type of map in the variable.
+ *
+ * @method "Register_→_in_"
+ * @restricts "any meta"
+ * @restricts "any meta"
+ * @restricts "(read map / write ⊥)'s type"
+ */
+Semantic restriction "Register_→_in_" is
+[
+	keyType : any meta,
+	valueType : any meta,
+	varType : (read map / write ⊥)'s type
+|
+	mapType ::= varType's read type;
+	Unless keyType ⊆ mapType's key type then
+	[
+		Reject parse, expected:
+			(concatenate <
+				"key's type (",
+				“keyType”,
+				") to be compatible with the map's expected key type (",
+				“mapType's key type”,
+				")"
+			>) ?→ string
+		];
+	Unless valueType ⊆ mapType's value type then
+	[
+		Reject parse, expected:
+			(concatenate <
+				"value's type (",
+				“valueType”,
+				") to be compatible with the map's expected value type (",
+				“mapType's value type”,
+				")"
+			>) ?→ string
+	];
+	⊤
 ];
 
 /* This is always invalid, so we might as well forbid it early. */

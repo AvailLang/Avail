@@ -35,6 +35,7 @@ import avail.compiler.ParsingOperation.PARSE_PART
 import avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
@@ -55,14 +56,28 @@ import avail.descriptor.types.A_Type
  *   Construct a new `Simple` expression representing a specific token expected
  *   in the input.
  *
- * @param positionInName
+ * @param startInName
  *   The one-based index of the token within the entire name string.
+ * @param pastEndInName
+ *   The one-based position just past the end of the token in the message name.
+ * @param token
+ *   The [A_String] form of this static token.
+ * @param tokenIndex
+ *   The one-based position of this static token within the [MessageSplitter]'s
+ *   tuple of [parts][MessageSplitter.messageParts].
  */
 internal class Simple constructor(
+	startInName: Int,
+	pastEndInName: Int,
 	private val token: A_String,
-	private val tokenIndex: Int,
-	positionInName: Int) : Expression(positionInName)
+	internal val tokenIndex: Int
+) : Expression(startInName, pastEndInName)
 {
+	init
+	{
+		assert(tokenIndex > 0)
+	}
+
 	override val isLowerCase: Boolean
 		get()
 		{
@@ -72,7 +87,9 @@ internal class Simple constructor(
 		}
 
 	override fun applyCaseInsensitive(): Expression =
-		CaseInsensitive(positionInName, this)
+		CaseInsensitive(startInName, pastEndInName, this)
+
+	override fun children(): List<Expression> = emptyList()
 
 	override fun checkType(
 		argumentType: A_Type,
@@ -89,17 +106,16 @@ internal class Simple constructor(
 		wrapState: WrapState): WrapState
 	{
 		// Parse the specific keyword.
-		val op =
-			if (generator.caseInsensitive)
-				PARSE_PART_CASE_INSENSITIVELY
-			else
-				PARSE_PART
+		val op = when
+		{
+			generator.caseInsensitive -> PARSE_PART_CASE_INSENSITIVELY
+			else -> PARSE_PART
+		}
 		generator.emit(this, op, tokenIndex)
 		return wrapState
 	}
 
-	override fun toString(): String =
-		"${this@Simple.javaClass.simpleName}($token)"
+	override fun toString(): String = "${javaClass.simpleName}($token)"
 
 	override fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,

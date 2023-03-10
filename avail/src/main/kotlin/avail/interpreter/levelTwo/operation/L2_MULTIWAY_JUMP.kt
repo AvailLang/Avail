@@ -126,7 +126,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		instruction: L2Instruction)
 	{
 		throw UnsupportedOperationException(
-			"${this@L2_MULTIWAY_JUMP.javaClass.simpleName} should " +
+			"${javaClass.simpleName} should " +
 				"have been replaced during optimization")
 	}
 

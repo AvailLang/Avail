@@ -91,7 +91,7 @@ constructor(
 	argumentPositionToTest: Int,
 	private val field: A_Atom,
 	private val fieldIndex: Int,
-	val childNode: InternalLookupTree<Element, Result>
+	private val childNode: InternalLookupTree<Element, Result>
 ) : DecisionStep<Element, Result>(argumentPositionToTest)
 {
 	override fun updateExtraValuesByValues(
@@ -123,7 +123,7 @@ constructor(
 			else -> types[i - 1]
 		}
 		// baseMeta is known to be an objectMeta, but the element we're looking
-		// up might use a supervariant.
+		// up might use a variant that doesn't have that field.
 		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?: ANY.o
 		return extraValues.append(instanceMeta(baseFieldType))
 	}
@@ -141,7 +141,7 @@ constructor(
 			else -> argTypes.tupleAt(i)
 		}
 		// baseMeta is known to be an objectMeta, but the element we're looking
-		// up might use a supervariant.
+		// up might use a variant that doesn't have that field.
 		val baseFieldType = baseMeta.instance.fieldTypeAtOrNull(field) ?: ANY.o
 		return extraValues.append(instanceMeta(baseFieldType))
 	}
@@ -191,7 +191,8 @@ constructor(
 				val theObjectMeta = baseType.typeAtIndex(argumentPositionToTest)
 					.typeIntersection(mostGeneralObjectMeta)
 				// The object type that will be looked up is known to have a
-				// suitable variant, but the element might use a supervariant.
+				// suitable variant, but the element we're looking up might use
+				// a variant that doesn't have that field.
 				val fieldType =
 					theObjectMeta.instance.fieldTypeAtOrNull(field) ?: ANY.o
 				val fieldMeta = instanceMeta(fieldType)

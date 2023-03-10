@@ -33,6 +33,7 @@ package avail.descriptor.bundles
 
 import avail.compiler.ParsingOperation
 import avail.descriptor.maps.A_Map
+import avail.descriptor.methods.A_Sendable
 import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.parsing.A_DefinitionParsingPlan
@@ -41,11 +42,10 @@ import avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
+import avail.dispatch.LookupTree
 import java.util.Deque
 
 /**
@@ -101,7 +101,8 @@ interface A_BundleTree : A_BasicObject {
 		}
 
 		/**
-		 * Answer the [set][A_Set] of [bundles][A_Bundle], an invocation of
+		 * Answer the [A_Map] from [bundles][A_Bundle] to [A_Set] of
+		 * [A_Sendable] macros and method definitions, an invocation of
 		 * which has been completely parsed when this bundle tree has been
 		 * reached.
 		 *
@@ -111,14 +112,20 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   The bundles for which a send has been parsed at this point.
 		 */
-		val A_BundleTree.lazyComplete get() = dispatch { o_LazyComplete(it) }
+		val A_BundleTree.lazyComplete: A_Map
+			get() = dispatch { o_LazyComplete(it) }
 
 		/**
 		 * Answer the bundle trees that are waiting for a specific token to be
-		 * parsed.  These are organized as a map where each key is the
-		 * [A_String] form of an expected token, and the corresponding value is
-		 * the successor [A_BundleTree] representing the situation where a token
-		 * matching the key was consumed.
+		 * parsed.  These are organized as a two-layer map.  The outer map is
+		 * keyed by the [A_String] form of an expected token, and each
+		 * corresponding inner map is from the keyword index to the successor
+		 * [A_BundleTree] representing the situation where a token matching the
+		 * key was consumed, and it had the keyword index that led to this new
+		 * bundle tree.
+		 *
+		 * The two layered map allows the correct keyword index to be captured
+		 * with a consumed token during parsing.
 		 *
 		 * This is only an authoritative map if an [expand] has been invoked
 		 * since the last modification via methods like [addPlanInProgress].
@@ -131,11 +138,15 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * Answer the bundle trees that are waiting for a specific
-		 * case-insensitive token to be parsed.  These are organized as a map
-		 * where each key is the lower-case string form of an expected
-		 * case-insensitive token, and the corresponding value is the successor
-		 * bundle tree representing the situation where a token
-		 * case-insensitively matching the key was consumed.
+		 * case-insensitive token to be parsed.  These are organized as a
+		 * two-layer map.  The outer map is keyed by the lower-case [A_String]
+		 * form of an expected token, and each corresponding inner map is from
+		 * the keyword index to the successor [A_BundleTree] representing the
+		 * situation where a token matching the key was consumed, and it had the
+		 * keyword index that led to this new bundle tree.
+		 *
+		 * The two layered map allows the correct keyword index to be captured
+		 * with a consumed token during parsing.
 		 *
 		 * This is only an authoritative map if an [expand] has been invoked
 		 * since the last modification via methods like [addPlanInProgress].
@@ -197,24 +208,24 @@ interface A_BundleTree : A_BasicObject {
 			get() = dispatch { o_LazyPrefilterMap(it) }
 
 		/**
-		 * If this message bundle tree has a type filter tree, return the raw
-		 * pojo holding it, otherwise [NilDescriptor.nil].
+		 * If this message bundle tree has a type filter tree, return it,
+		 * otherwise `null`.
 		 *
 		 * The type filter tree is used to quickly eliminate potential bundle
 		 * invocations based on the type of an argument that has just been
 		 * parsed. The argument's expression type is looked up in the tree, and
-		 * the result is which bundle tree should be visited, having eliminated
-		 * all parsing possibilities where the argument was of an unacceptable
-		 * type.
+		 * the result is which bundle tree should be visited next, having
+		 * eliminated all parsing possibilities where the argument was of an
+		 * unacceptable type.
 		 *
 		 * This is only authoritative if an [expand] has been invoked since the
 		 * last modification via methods like [addPlanInProgress].
 		 *
 		 * @return
-		 *   The type filter tree pojo or [nil].
+		 *   The type filter [LookupTree] or `null`.
 		 */
-		val A_BundleTree.lazyTypeFilterTreePojo
-			get() = dispatch { o_LazyTypeFilterTreePojo(it) }
+		val A_BundleTree.lazyTypeFilterTree: LookupTree<A_Tuple, A_BundleTree>?
+			get() = dispatch { o_LazyTypeFilterTree(it) }
 
 		/**
 		 * Add a

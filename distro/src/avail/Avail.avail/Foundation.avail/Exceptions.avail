@@ -252,7 +252,8 @@ Public method "Raise_" is
 	[
 		noUnhandledExceptionHandler(anException)
 	]
-] : ⊥;
+] : ⊥
+styled by nonlocal control styler;
 
 /**
  * Mark the nearest {@method "Guard|guard_«intercept_»«ensure_»" guard frame}
@@ -397,7 +398,8 @@ Private method "Private guard_intercept_ensure_" is
 				Mark guard variable failureCode with unwind-sentinel code;
 			];
 		];
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
 
 /**
  * A cascade exception retains the exception that originally caused it.
@@ -527,7 +529,8 @@ Private method "Handle_handler_unwind_" is
 	[
 		Raise preemptiveException caused by originalException
 	];
-] : ⊤;
+] : ⊤
+styled by nonlocal control styler;
 
 Private method "Handle_handler_unwind_" is
 [
@@ -709,7 +712,8 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 		(wrappedHandlers ++ if needCatchAll then [<catchAll()>] else [<>])
 			→ list phrase ?→ list phrase ⇒ <[⊥]→⊤…|>;
 	⟦Private guard ⦊bodyPhrase⦉ intercept ⦊realHandlers⦉ ensure ⦊unwind⦉⟧
-];
+]
+styled by conditional styler;
 
 /**
  * Attempt {@param "protected"}. If it does not raise an {@type "exception"},
@@ -733,7 +737,8 @@ Public method "try_else_" is
 	else : []→any
 |
 	guard protected intercept [e : exception | else()]
-] : any;
+] : any
+styled by conditional styler;
 
 /**
  * @method "try_else_"
@@ -812,7 +817,8 @@ Private method "System exception_(_)extends_" is
 	Method "exception for code_" is
 		new [code's type]→exceptionType's type
 		applying [i : integer | exceptionType];
-];
+]
+styled by definition styler;
 
 /**
  * An arithmetic exception describes error conditions related to arithmetic and
@@ -1913,12 +1919,12 @@ After the current module is unloaded, do
 [
 	unexpected result function :=
 		[
-    		badMessage : function,
-    		expectedType : type,
-    		actualValue : ↑any
-    	|
-    		Crash: <badMessage, expectedType, actualValue>
-    	];
+			badMessage : function,
+			expectedType : type,
+			actualValue : ↑any
+		|
+			Crash: <badMessage, expectedType, actualValue>
+		];
 ];
 
 /* Raise a result-disagreed-with-expected-type whenever a method send produces
@@ -2361,25 +2367,20 @@ privateAccept ::=
 [
 	Primitive AcceptParsing (
 		failureCode : untimely-parse-acceptance code's type);
-	Crash: "Unable to accept parse here; must be running semantic restriction."
+	Crash: "Unable to accept parse here; must be running \
+			\|semantic restriction or macro."
 ] : ⊥;
 
 /**
- * Unwind the stack safely, then accept the current parse, terminating the
- * fiber.
- *
- * This is equivalent to returning a type from the outermost stack frame of the
- * fiber, but has the advantage that the body of the semantic restriction can be
- * typed as ⊥, allowing the parser to know that the potential call being parsed
- * won't have its type strengthened (by this semantic restriction).  This is
- * expected to improve performance and diagnostics related to some ⊤-valued
- * statements, as they won't be nestable except within macros.
- *
- * This function may only be invoked from the body of a semantic restriction
- * function.  It should only be invoked by the Avail compiler, never by a
- * semantically valid Avail program.
+ * Replace the acceptance function with one that unwinds the stack safely, then
+ * uses the primitive to accept the current parse, terminating the fiber.
  */
-Public method "Accept parse" is
+oldAcceptanceFunction ::= Replace parse acceptance function with
 [
 	Unwind fiber and run privateAccept
-] : ⊥;
+];
+
+After the current module is unloaded, do
+[
+	Ignore: Replace parse acceptance function with oldAcceptanceFunction;
+];

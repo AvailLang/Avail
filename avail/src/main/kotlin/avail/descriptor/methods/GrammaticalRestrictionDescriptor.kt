@@ -145,20 +145,20 @@ class GrammaticalRestrictionDescriptor private constructor(
 		DEFINITION_MODULE
 	}
 
-	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
+	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
 	override fun o_RestrictedBundle(self: AvailObject): A_Bundle =
-		self.slot(RESTRICTED_BUNDLE)
+		self[RESTRICTED_BUNDLE]
 
 	override fun o_ArgumentRestrictionSets(self: AvailObject): A_Tuple =
-		self.slot(ARGUMENT_RESTRICTION_SETS)
+		self[ARGUMENT_RESTRICTION_SETS]
 
 	// Compare by identity.
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		self.sameAddressAs(another)
 
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
-		self.slot(DEFINITION_MODULE)
+		self[DEFINITION_MODULE]
 
 	override fun mutable() = mutable
 

@@ -33,6 +33,7 @@ package avail.descriptor.numbers
 
 import avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.asBigInteger
+import avail.descriptor.numbers.A_Number.Companion.bitShift
 import avail.descriptor.numbers.A_Number.Companion.bitwiseXor
 import avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
@@ -61,6 +62,7 @@ import avail.descriptor.numbers.A_Number.Companion.rawUnsignedIntegerAt
 import avail.descriptor.numbers.A_Number.Companion.subtractFromIntegerCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.trimExcessInts
+import avail.descriptor.numbers.A_Number.Companion.whichPowerOfTwo
 import avail.descriptor.numbers.DoubleDescriptor.Companion.addDoubleAndIntegerCanDestroy
 import avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubleAndInteger
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
@@ -425,46 +427,43 @@ class IntegerDescriptor private constructor(
 		// Endian representation, I can simply be truncated with no need to
 		// shift data around.
 		assert(isMutable)
-		var size = intCount(self)
-		if (size > 1) {
-			if (self.intSlot(RAW_LONG_SLOTS_, size) >= 0) {
-				while (size > 1 && self.intSlot(RAW_LONG_SLOTS_, size) == 0
+		val originalSize = intCount(self)
+		var size = originalSize
+		if (size > 1)
+		{
+			if (self.intSlot(RAW_LONG_SLOTS_, size) >= 0)
+			{
+				while (size > 1
+					&& self.intSlot(RAW_LONG_SLOTS_, size) == 0
 					&& self.intSlot(RAW_LONG_SLOTS_, size - 1) >= 0)
 				{
 					size--
-					if (size and 1 == 0)
-					{
-						// Remove an entire long.
-						self.truncateWithFillerForNewIntegerSlotsCount(
-							size + 1 shr 1)
-					}
-					else
-					{
-						// Safety: Zero the bytes if the size is now odd.
-						self.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0)
-					}
 				}
 			}
 			else
 			{
-				while (size > 1 && self.intSlot(RAW_LONG_SLOTS_, size) == -1
+				while (size > 1
+					&& self.intSlot(RAW_LONG_SLOTS_, size) == -1
 					&& self.intSlot(RAW_LONG_SLOTS_, size - 1) < 0)
 				{
 					size--
-					if (size and 1 == 0)
-					{
-						// Remove an entire long.
-						self.truncateWithFillerForNewIntegerSlotsCount(
-							size + 1 shr 1)
-					}
-					else
-					{
-						// Safety: Zero the bytes if the size is now odd.
-						self.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0)
-					}
 				}
 			}
-			self.setDescriptor(mutableFor(size))
+			if (size < originalSize)
+			{
+				if (size + 1 shr 1 != originalSize + 1 shr 1)
+				{
+					// Remove some longs.
+					self.truncateWithFillerForNewIntegerSlotsCount(
+						size + 1 shr 1)
+				}
+				if (size and 1 == 1)
+				{
+					// Safety: Zero the bytes if the size is now odd.
+					self.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0)
+				}
+				self.setDescriptor(mutableFor(size))
+			}
 		}
 	}
 
@@ -484,26 +483,31 @@ class IntegerDescriptor private constructor(
 	 *   An Avail integer.
 	 * @param another
 	 *   The number of ints in the representation of object.
-	 * @param objectIntCount
-	 *   The size of object in ints.
+	 * @param selfIntCount
+	 *   The size of self in ints.
 	 * @param anotherIntCount
 	 *   The number of ints in the representation of another.
+	 * @param canDestroy
+	 *   A boolean indicating whether one of the arguments can actually be
+	 *   reused if it's mutable.
 	 * @return
 	 *   One of the arguments, or `null` if neither argument was suitable.
 	 */
 	private fun largerMutableOf(
 		self: AvailObject,
 		another: AvailObject,
-		objectIntCount: Int,
-		anotherIntCount: Int
+		selfIntCount: Int,
+		anotherIntCount: Int,
+		canDestroy: Boolean
 	): AvailObject? {
 		return when {
-			objectIntCount == anotherIntCount -> when {
+			!canDestroy -> null
+			selfIntCount == anotherIntCount -> when {
 				isMutable -> self
 				another.descriptor().isMutable -> another
 				else -> null
 			}
-			objectIntCount > anotherIntCount -> if (isMutable) self else null
+			selfIntCount > anotherIntCount -> if (isMutable) self else null
 			another.descriptor().isMutable -> another
 			else -> null
 		}
@@ -520,12 +524,8 @@ class IntegerDescriptor private constructor(
 		// is to use 64-bit.
 		val objectSize = intCount(self)
 		val anIntegerSize = intCount(anInteger)
-		var output = when
-		{
-			canDestroy ->
-				largerMutableOf(self, anInteger, objectSize, anIntegerSize)
-			else -> null
-		}
+		var output = largerMutableOf(
+			self, anInteger, objectSize, anIntegerSize, canDestroy)
 		if (objectSize == 1 && anIntegerSize == 1) {
 			// See if the (signed) sum will fit in 32 bits, the most common case
 			// by far.
@@ -793,8 +793,23 @@ class IntegerDescriptor private constructor(
 			// bits, even with the sign.
 			return fromLong(prod)
 		}
+		if (self.equals(zero) || anInteger.equals(zero)) return zero
+		var shift = self.whichPowerOfTwo
+		if (shift >= 0) return anInteger.bitShift(fromInt(shift), canDestroy)
+		shift = anInteger.whichPowerOfTwo
+		if (shift >= 0) return self.bitShift(fromInt(shift), canDestroy)
 		val size1 = intCount(self)
 		val size2 = intCount(anInteger)
+		//TODO Tune this threshold, which is the number of `int*int`
+		// multiplications required with the naive method, which avoids the
+		// (linear) cost of conversion to BigIntegers.  BigInteger uses
+		// essentially the same algorithm if either operand is under 80, but its
+		// use of int arrays is undoubtedly more efficient than Avail's.
+		if (size1 > 40 && size2 > 40)
+		{
+			return fromBigInteger(
+				self.asBigInteger() * anInteger.asBigInteger())
+		}
 		// The following is a safe upper bound.  See below.
 		val targetSize = size1 + size2
 		output = createUninitializedInteger(targetSize)
@@ -913,17 +928,15 @@ class IntegerDescriptor private constructor(
 		// is to use 64-bit arithmetic.
 		val objectSize = intCount(self)
 		val anIntegerSize = intCount(anInteger)
-		var output =
-			if (canDestroy)
-			{
-				largerMutableOf(self, anInteger, objectSize, anIntegerSize)
-			}
-			else null
-		if (objectSize == 1 && anIntegerSize == 1) {
+		var output = largerMutableOf(
+			self, anInteger, objectSize, anIntegerSize, canDestroy)
+		if (objectSize == 1 && anIntegerSize == 1)
+		{
 			// See if the (signed) difference will fit in 32 bits, the most
 			// common case by far.
 			val diff = anInteger.extractLong - self.extractLong
-			if (diff == diff.toInt().toLong()){
+			if (diff == diff.toInt().toLong())
+			{
 				// Yes, it fits. Clobber one of the inputs, or create a new
 				// object if they were both immutable...
 				output = output ?: createUninitializedInteger(1)
@@ -1063,10 +1076,8 @@ class IntegerDescriptor private constructor(
 		val objectSize = intCount(self)
 		val anIntegerTraversed = anInteger.traversed()
 		val anIntegerSize = intCount(anIntegerTraversed)
-		var output = if (canDestroy) {
-			largerMutableOf(self, anIntegerTraversed, objectSize, anIntegerSize)
-		}
-		else null
+		var output = largerMutableOf(
+			self, anIntegerTraversed, objectSize, anIntegerSize, canDestroy)
 		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1) {
 			val result = operation(
@@ -1538,6 +1549,29 @@ class IntegerDescriptor private constructor(
 		self.isLong -> writer.write(self.extractLong)
 		else -> writer.write(self.asBigInteger())
 	}
+
+	override fun o_WhichPowerOfTwo(self: AvailObject): Int
+	{
+		if (self.lessOrEqual(zero)) return -1
+		var nonZeroIndex = 1
+		var theInt: Int
+		while (true)
+		{
+			theInt = self.rawSignedIntegerAt(nonZeroIndex)
+			if (theInt != 0) break
+			nonZeroIndex++  // We ensured they can't all be zero.
+		}
+		if (Integer.bitCount(theInt) > 1) return -1
+		// Check that the rest of the ints are zero.
+		if ((nonZeroIndex + 1 .. intCount(self))
+				.any { self.rawSignedIntegerAt(it) != 0 })
+		{
+			return -1
+		}
+		return ((nonZeroIndex - 1) shl 5) +
+			Integer.numberOfTrailingZeros(theInt)
+	}
+
 
 	companion object {
 		/**
