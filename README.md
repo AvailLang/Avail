@@ -204,7 +204,7 @@ a Unix-based system:
 
 On vanilla Windows:
 
-	$ java.exe -jar $PROJ/anvil.jar
+	$ java.exe -jar $PROJ\anvil.jar
 
 
 EMBEDDING AVAIL
