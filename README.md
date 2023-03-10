@@ -156,8 +156,9 @@ Avail repository.
 BUILDING
 --------------------------------------------------------------------------------
 
-To compile Anvil, without automatically running it thereafter, navigate to
-`$PROJ` and use the provided Gradle wrapper. On a Unix-based system:
+To compile Anvil into an executable JAR, without automatically running it
+thereafter, navigate to `$PROJ` and use the provided Gradle wrapper. On a
+Unix-based system:
 
 ```shell
 $ ./gradlew :avail:package
@@ -188,8 +189,8 @@ indicates that your build is ready to use. You can find it here:
 
 	$PROJ/anvil.jar
 
-This JAR file contains the whole of Anvil, which bundles the Avail compiler
-toolchain and runtime within.
+This executable JAR file contains the whole of Anvil, which bundles the Avail
+compiler toolchain and runtime within.
 
 Naturally, you can move `anvil.jar` to another location if you feel so inclined.
 You will need to adjust the paths mentioned below to account for relocation if
