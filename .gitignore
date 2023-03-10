@@ -1,13 +1,14 @@
 /**/.DS_Store
 /**/*.jpage
 /**/*.ws.kts
+/*-local-state.json
+/*.backup
 /.gradle
 /.swp
+/anvil.jar
 /build
 /stacks
 /modules.dot
 /out
 /debug
-hs_err_*.log
-*-local-state.json
-*.backup
+/hs_err_*.log
