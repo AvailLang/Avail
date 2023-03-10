@@ -106,6 +106,36 @@ tasks {
 		// directory before we can build the jar.
 	}
 
+	shadowJar {
+		archiveBaseName.set("anvil")
+		archiveClassifier.set("")
+		archiveVersion.set("")
+		destinationDirectory.set(file("../"))
+	}
+
+	val `package` by creating(DefaultTask::class) {
+		description = "Create Anvil Jar"
+		group = "anvil"
+		description = "Package anvil.jar"
+		dependsOn(shadowJar)
+
+	}
+
+	@Suppress("unused")
+	val packageAndRun by creating(JavaExec::class) {
+		dependsOn(`package`)
+		group = "anvil"
+		description = "Package anvil.jar and run the Avail Project Manager"
+		classpath = files("../anvil.jar")
+	}
+
+	@Suppress("unused")
+	val run by creating(JavaExec::class) {
+		group = "anvil"
+		description = "Run the Avail Project Manager for an already built anvil.jar"
+		classpath = files("../anvil.jar")
+	}
+
 	/**
 	 * Remove released libraries.
 	 *

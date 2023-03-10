@@ -3,69 +3,133 @@ OVERVIEW
 [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha20-0f824e)](https://search.maven.org/artifact/org.availlang/avail)
 
 Avail is a multi-paradigmatic general purpose programming language whose feature
-set emphasizes support for articulate programming. Avail is an open-source 
-project that comprises a 
-[language virtual machine](https://en.wikipedia.org/wiki/Virtual_machine) and a 
-standard library. Both are released under the [3-clause BSD license](https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22Revised_BSD_License.22.2C_.22New_BSD_License.22.2C_or_.22Modified_BSD_License.22.29).
+set emphasizes support for constructing domain-specific languages (DSLs). Anvil
+is the integrated development environment (IDE) of Avail, and it is bundled
+directly with the language for convenience. Due to the advanced lexical and
+syntactical features of Avail, popular IDEs such as IntelliJ and Eclipse are
+unsuitable for use, so you should use Anvil for best ergonomics.
 
- * [Before Getting Started](#before-getting-started)
+Avail is an open-source project that comprises a 
+[language virtual machine](https://en.wikipedia.org/wiki/Virtual_machine), a 
+standard library, and an IDE. All three are released under the
+[3-clause BSD license](https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22Revised_BSD_License.22.2C_.22New_BSD_License.22.2C_or_.22Modified_BSD_License.22.29).
+
+ * [Quickstart](#quickstart)
  * [Before Obtaining Avail](#before-obtaining-avail)
  * [Obtaining Avail](#obtaining-avail)
- * [Before Installing](#before-installing)
- * [Building Avail](#building)
- * [After Building Avail](#after-building)
- * [Running Avail](#running-avail)
- * [Developing Avail](#developing-avail)
- * [Staying Current](#staying-current)
- * [Publishing Avail](#publishing-avail)
- * [Reporting Problems](#reporting-problems)
- * [Avail Gradle Plugin](avail-plugin)
- * [Avail Sample Project](samples/sample-project)
-
-BEFORE GETTING STARTED
---------------------------------------------------------------------------------
-
-If you would simply like to use Avail in a JVM project, you can import a
-prebuilt version of Avail as a dependency. See the
-[Avail Gradle Plugin](avail-plugin) for more details on how to
-accomplish this. You can also refer to our [sample project](samples/sample-project)
-to see how Avail can be incorporated into a JVM project.
+ * [Building Anvil](#building)
+ * [Running Anvil](#running)
+ * [Embedding Avail](#embedding-avail)
 
 This document describes the entire process of obtaining, installing,
-configuring, and running the Avail development workbench. Depending on how you
-obtained Avail, whether it is a first time installation, and what utilities are
-already installed on your system, you may be able to skip some of the sections
-of this document.
+configuring, and running Anvil, for the purpose of developing software in Avail.
+
+If you are an experienced software developer, already familiar with Git, Java,
+and Gradle, then you probably want to proceed directly to
+[Quickstart](#quickstart) so that you can begin using Avail as quickly as
+possible.
+
+If you prefer gentler guidance or more detailed information, then you should
+probably read the other sections below as well.
+
+In this document, `$PROJ` always refers to the directory into which you cloned
+Avail.
+
+
+QUICKSTART
+--------------------------------------------------------------------------------
+
+Herein is the fastest path to getting started, so that you can jump right into
+writing Avail. The steps below will:
+
+1. Clone Avail onto your system.
+2. Build Anvil from source code.
+3. Open Anvil on your desktop.
+
+If (1) you are using a Unix-based system, such as Linux, macOS, Minimalist GNU
+for Windows (MinGW), or Windows Subsystem for Linux (WSL), and (2) you already
+have access to Git:
+
+```shell
+ $ git clone https://github.com/AvailLang/Avail.git $PROJ
+ $ cd $PROJ
+ $ ./gradlew :avail:packageAndRun
+```
+
+If (1) you are using vanilla Windows and (2) you already have access to Git:
+
+```shell
+ $ git.exe clone https://github.com/AvailLang/Avail.git $PROJ
+ $ cd $PROJ
+ $ .\gradlew.bat :avail:packageAndRun
+```
+
+Anvil's project manager should open on your desktop. You can now:
+
+1. Explore the Avail standard library and official examples by opening
+   [examples-avail-config.json](examples-avail-config.json), or
+2. Create your own Avail project, based on the Avail standard library.
+
+(Screenshots and additional guidance will follow, when the official release of
+Avail 2.0.0 approaches.)
 
 BEFORE OBTAINING AVAIL
 --------------------------------------------------------------------------------
 
-In order to obtain Avail, you will need to make sure that you have obtained and
-installed the prerequisite software:
+In order to obtain Avail locally you will need to make sure that you have
+obtained and installed the prerequisite software:
 
-1) Git: This is the version control software used by the Avail team to develop
-and deliver Avail. The Avail team can say with certainty that version 1.7.10.2
-will work, but you will probably want to go with something later unless you
-already have Git installed.
+--------------------------------------------------------------------------------
+
+1) **Git**: This is the version control software used by the Avail team to
+develop and deliver Avail.
 
 To see if you have Git installed, try this:
 
-	$ git version
+```shell
+$ git version
+```
 
 If Git is installed and available on your path, then it will respond with a
 version string like:
 
-	git version 2.31.1
+	git version 2.39.2
 
 The latest version of Git can be obtained at:
 
-	http://git-scm.com/
+http://git-scm.com/
 
 Please follow any installation directions provided by the Git website or
 included with the Git product.
 
-The main command is called "git". Please make sure that "git" is available on
-your path.
+The main command is called `git`. Please make sure that it is available on your
+path.
+
+--------------------------------------------------------------------------------
+
+2) **Java**: You will need version 17 of the Java Development Kit (JDK) Standard
+Edition (SE), _NOT_ an earlier version. Many modern systems already have some
+version of the JDK, so you should check your JDK version before obtaining and
+installing it from OpenJDK (or some other vendor). You can do so like this:
+
+```shell
+$ javac -version
+```
+
+And hopefully you get back something like this:
+
+	javac 17.0.2
+
+Otherwise, the latest version of the JDK can be obtained at:
+
+https://jdk.java.net/
+
+Please follow any installation directions provided by the website or included
+with the JDK, especially with respect to setting up the appropriate environment
+variables for command-line use.
+
+The commands of interest are `java` and `javac`. Please make sure that these are
+on your path.
 
 
 OBTAINING AVAIL
@@ -74,358 +138,116 @@ OBTAINING AVAIL
 The preferred method of acquiring Avail is from The Avail Foundation's official
 public repository. This repository is located at:
 
-	https://github.com/AvailLang/Avail.git
+https://github.com/AvailLang/Avail.git
 
 Choose the directory where you would like the local copy of the Avail repository
-to reside (the path to which is hereafter denoted as $PROJ). Clone the official
-public repository into it like this:
+to reside (i.e., `$PROJ`). Clone the official public repository into it like
+this:
 
-	$ git clone https://github.com/AvailLang/Avail.git $PROJ
+```shell
+$ git clone https://github.com/AvailLang/Avail.git $PROJ
+```
 
 Even if you are planning to install Avail for system-wide usage, you will
 probably want to choose a non-system directory to house the local copy of the
 Avail repository.
 
 
-BEFORE INSTALLING
---------------------------------------------------------------------------------
-
-Before installing Avail, you will need to make sure that you have obtained and
-installed the prerequisite software:
-
-1) Java: You will need version 16 of the Java Development Kit (JDK) Standard
-Edition (SE), NOT an earlier version. Many modern systems already have some
-version of the JDK, so you should check your JDK version before obtaining and
-installing it from OpenJDK (or some other vendor). You can do so like this:
-
-	$ javac -version
-
-And hopefully you get back something like this:
-
-	javac 11.0.2
-
-Otherwise, the latest version of the JDK can be obtained at:
-
-	https://jdk.java.net/11/index.html
-
-Please follow any installation directions provided by the website or included
-with the JDK.
-
-The commands of interest are "java" and "javac". Please make sure that these are
-on your path.
-
-
 BUILDING
 --------------------------------------------------------------------------------
 
-You will need to compile Avail using the provided Gradle wrapper. To build Avail
-on a Unix-based system, such as Linux, Mac OS X, Minimalist GNU for Windows
-(MinGW), or Windows Subsystem for Linux (WSL):
+To compile Anvil into an executable JAR, without automatically running it
+thereafter, navigate to `$PROJ` and use the provided Gradle wrapper. On a
+Unix-based system:
 
-	$ cd $PROJ
-	$ ./gradlew build
+```shell
+$ ./gradlew :avail:package
+```
 
-To build Avail on vanilla Windows:
+On vanilla Windows:
 
-    $ cd $PROJ
-    $ .\gradlew.bat build
+```shell
+$ .\gradlew.bat :avail:package
+```
 
 You should see output similar to this:
 
-    ATTENTION ==========================================================
-    Be sure to set AVAIL_HOME to:
-    
-            $PROJ/distro
-    
-    And update your path to include:
-    
-            $PROJ/distro/bin
-    
-    For example, a user of bash might include something like the
-    following in the appropriate shell config file:
-    
-            export AVAIL_HOME=$PROJ/distro
-            export PATH=$PATH:$PROJ/distro/bin
-    
-    Once your path has been updated, from any directory you can launch
-    the Avail workbench like this:
-    
-            avail-dev
-    
-    Or the Avail server like this:
-    
-            avail-server
-    
-    (The server is currently hard-wired to run on port 40000. This will
-    change at some point.)
-    
-    To develop Avail code, you will also need to set AVAIL_ROOTS to a
-    valid module root path. If AVAIL_ROOTS is not set, then avail-dev
-    temporarily sets it to:
-    
-            avail=$PROJ/distro/src/avail;\
-            examples=$PROJ/distro/src/examples
-    
-    This is convenient for experimenting with Avail, but must be
-    extended with custom module roots as you develop your own modules.
-    ====================================================================
-
-    BUILD SUCCESSFUL in 23s
-    19 actionable tasks: 19 executed
-
-If your transcript ends with "BUILD SUCCESSFUL", then your build is ready for
-use. You may, of course, move the "distro" subdirectory to another user-specific
-or even system-wide location, and then update your AVAIL_HOME and PATH variables
-accordingly. Hereinafter we use $INSTALL to refer to the final destination of
-the "distro" directory.
-
-
-AFTER BUILDING
---------------------------------------------------------------------------------
-
-In order to develop Avail libraries and programs, you will need to configure
-your environment appropriately. On Unix systems, this is best accomplished by
-updating your shell configuration file. On Windows, you can use the Control
-Panel to adjust the environment variables.
-
-The following steps should be taken to prepare your environment for Avail
-development:
-
-1) Set the AVAIL_HOME environment variable to $INSTALL. The Avail workbench,
-"avail-dev" on Unix and "avail-dev.bat" on vanilla Windows, uses this
-information to locate Avail, and will not run correctly without AVAIL_HOME being
-set.  
-
-2) Update your path to include $INSTALL/bin. This is where "avail-dev" and
-"avail-dev.bat" are located. This enables your shell to find the command without
-the user needing to prefix its exact path or change the working directory.
-
-3) Set the AVAIL_ROOTS environment variable to a valid module roots path so
-that Avail can find its modules, or …
-
-4) … [OBSOLETE 2022-10-29] alternatively, you may start the Avail workbench without specifying
-AVAIL_HOME and use the "Preferences…" menu item to enter the module roots path,
-one module root at a time. Upon exiting the Avail workbench, this information is
-persisted for future sessions.
-
-A "module roots path" is a specification of locations that contain Avail code,
-in either binary or source form. A module roots path comprises several
-"module root specifications" separated by semicolons (";"). (On Unix systems,
-you will need to quote each semicolon, in order to hide it from the shell's
-command parser.)
-
-Each module root specification comprises a "module root name", which is just a
-unique logical identifier, and a module root path. A module root name usually
-denotes a vendor or a project, and does not need to have any relationship to the
-file system. By convention, the module root name of the Avail standard library
-is "avail", and the official collection of examples supported by The Avail
-Foundation is called "examples". The Avail Foundation advises Avail developers
-to follow a reverse DNS name convention, like "com.acme.super-neato-project", to
-prevent collision between module root names among several vendors and projects.
-
-A "module root path" can actually be represented by a URI (_Uniform_ _Resource_
-_Locator_). By default, Avail only supports local file system URIs. For
-the default case, a module root path can be represented by explicitly using
-the URI `file` scheme:
-```
-avail=file:///User/Home/Some/Directory/src/avail
-```
-For convenience the `file` scheme may be excluded from the root path when 
-linking a module root path to the local file system:
-```
-avail=/User/Home/Some/Directory/src/avail
-```
-
-Avail's module root resolution system allows for extension to support additional
-URI schemes. See _doc/extensions/Module Resolution.md_ for details.
-
-If AVAIL_ROOTS is not defined and the Avail workbench has not been used to
-define module roots, then "avail-dev" will use the following module roots path
-by default:
-
-	avail=$INSTALL/src/avail;
-	examples=$INSTALL/src/examples
-
-(There is not really a line feed after the semicolon; the line feed was inserted
-as a formatting conceit only.)
-
-This default is suitable for interacting with the Avail system as shipped by The
-Avail Foundation, but not for developing your own Avail modules. To develop your
-own Avail modules, your AVAIL_ROOTS environment variable must at least include a
-module root specification for the Avail standard library, and it must also
-include module root specifications for your own Avail projects.
-
-Avail caches compiled avail modules in the user's home directory in `.avail
-/repositories` in `.repo` files. There is a repository file for each module
-root loaded into Avail, named after the module root (e.g. `avail.repo` for 
-module root avail). If the repositories directory does not exist, it will be
-created.
-
-Note that "avail-dev.bat" makes no effort to configure the environment. You must
-preconfigure the environment yourself, customize "avail-dev.bat" to suit your
-own needs, or use the Avail workbench to establish the module roots. (A lack of
-Windows expertise on the part of The Avail Foundation is responsible for this
-minimality; hopefully "avail-dev.bat" will be richer in a future release.)
-
-For more information on this topic, please visit this webpage:
-
-	http://www.availlang.org/about-avail/documentation/modules/module-discovery.html
-
-RUNNING AVAIL
---------------------------------------------------------------------------------
-
-To run an Avail program, launch the Avail development workbench. On Unix:
-
-	$ avail-dev
-
-On Windows:
-
-    $ avail-dev.bat
-
-This will open a graphical user interface (GUI) whose window bar is titled
-"Avail Workbench". Using the workbench is beyond the scope of this document.
-For information about using the workbench to load Avail modules and issue
-Avail commands, please visit:
-
-	http://www.availlang.org/about-avail/learn/tutorials/workbench.html
-
-
-DEVELOPING AVAIL
---------------------------------------------------------------------------------
-
-At the time of writing, there is not an integrated development environment (IDE)
-that specifically targets Avail. To develop Avail, The Avail Foundation
-recommends that you obtain a full-featured programmer's text editor that has
-good support for Unicode and user templates.
-
-For those who wish to contribute source code to Avail itself, please use the
-latest version of IntelliJ IDEA. This practice assists the Avail team in
-maintaining consistency in coding, documentation, and formatting practices. You
-should also strive to imitate the existing stylistic conventions, just as you
-would for any other established code base. 
-
-AVAIL WORKBENCH
---------------------------------------------------------------------------------
-
-The Avail Workbench is an Avail development tool for developing, building, and
-running Avail applications.  It:
-
-* Compiles Avail Modules
-* Runs Avail Entry Points
-* Provides Development Utilities
-
-
-STAYING CURRENT
---------------------------------------------------------------------------------
-
-To keep up-to-date with the latest Avail development, you will want to refresh
-the Avail project directory from Git every once in a while:
-
-	$ cd $PROJ
-	$ git pull
-
-On Unix, then build:
-
-	$ ./gradlew build
-
-On vanilla Windows, then build:
-
-    $ .\gradlew.bat build
-
-For more elaborate instructions, please refer back to the BUILDING and
-INSTALLATION sections of this document.
-
-Following a rebuild, if you should encounter any problems while running
-"avail-dev", especially an unhandled java.lang.NoClassDefinitionError, then
-please try a clean rebuild before reporting the problem.
-
-On Unix:
-
-	$ ./gradlew clean
-	$ ./gradlew build
+	> Configure project :avail
+	Java version for tests: 17
+	AvailRoot(49): /Users/avail/projects/avail/distro/src/avail
+	AvailRoot(57): /Users/avail/projects/avail/distro/src/builder-tests
+	AvailRoot(52): /Users/avail/projects/avail/distro/src/examples
+	AvailRoot(51): /Users/avail/projects/avail/distro/src/website
 	
+	> Configure project :avail-stdlib
+	
+	BUILD SUCCESSFUL in 9s
+	12 actionable tasks: 5 executed, 1 from cache, 6 up-to-date
+
+Toward the end of the transcript you should find `BUILD SUCCESSFUL`, which
+indicates that your build is ready to use. You can find it here:
+
+	$PROJ/anvil.jar
+
+This executable JAR file contains the whole of Anvil, which bundles the Avail
+compiler toolchain and runtime within.
+
+Naturally, you can move `anvil.jar` to another location if you feel so inclined.
+You will need to adjust the paths mentioned below to account for relocation if
+you have done this.
+
+
+RUNNING
+--------------------------------------------------------------------------------
+
+At any time after Anvil has been built, you can navigate to `$PROJ` and launch
+Anvil using the provided Gradle wrapper. To launch Anvil on a Unix-based system:
+
+```shell
+$ ./gradlew :avail:run
+```
+
+To launch Anvil on vanilla Windows:
+
+```shell
+$ .\gradlew.bat :avail:run
+```
+
+If the default JDK on your system is version 17 or later, you may be able to
+double click this JAR file to launch Anvil.
+
+If all else fails, you can also launch Anvil by invoking `java` directly. On
+a Unix-based system:
+
+```shell
+$ java -jar $PROJ/anvil.jar
+```
+
 On vanilla Windows:
 
-    $ .\gradlew.bat clean
-    $ .\gradlew.bat build
+```shell
+$ java.exe -jar $PROJ\anvil.jar
+```
 
-Be sure to visit the official Avail website for updates and news:
 
-	http://www.availlang.org
-
-With some shame, I am forced to confess that the website does not undergo much
-maintenance. Our active team has shrunk in recent years, and the website suffers
-for it. Development of Avail itself is quite active, however, so GitHub might be
-your best source of Avail news.
-
-PUBLISHING AVAIL
---------------------------------------------------------------------------------
-At the time of writing, Avail provides two distinct publishable libraries. 
-
-The Avail Foundation is in the process of working towards making the Avail 
-Gradle plugin available in Gradle's plugin repository as well as making the 
-other four libraries available on Maven Central:
-- [X] [Avail JSON](https://github.com/AvailLang/avail-json) 
-- [X] [Avail Storage](https://github.com/AvailLang/avail-storage)
-- [ ] Avail 
-- [ ] Avail Standard Library
-
-In the meantime, all of these libraries/utilities can be published to a local 
-Maven repository using the Avail top level Gradle task, `publishToLocalMaven`.
-
-Publishing Avail to local Maven will publish five jars:
- * `avail` - *The core Avail language including the Avail Workbench*
-   (see [Avail](avail))
- * `avail-stdlib` - *The Avail standard library*
-   (see [Standard Library](avail-stdlib))
-
-REPORTING PROBLEMS
+EMBEDDING AVAIL
 --------------------------------------------------------------------------------
 
-To report a problem with the Avail virtual machine or standard library, please
-take the following steps:
-
-1) Please verify, to the best of your ability, that the problem does not result
-from a bug in your own code. We all write buggy code, including the developers
-at The Avail Foundation, so please make sure that the problem is ours and not
-yours – so that we can concentrate our efforts on fixing our own bugs!
-
-2) Once you are certain that the bug's provenance makes it our problem, please
-verify that the bug has not already been reported. You can do this by searching
-for the bug using our issue tracking system:
-
-	https://github.com/AvailLang/Avail/issues
-
-If you do locate the bug, then please feel free to add any information not
-already reported in the history of the existing issue. If this bug is
-mission-critical for you, then please let us know this so that we can assess our
-current priorities and adjust them accordingly.
-
-3) If you could not locate the bug in our database, then please create a new
-ticket in our issue system:
-
-	https://github.com/AvailLang/Avail/issues/new
-
-Please try to find the minimal test case that reproduces the problem, and attach
-any relevant source files, resources, and screenshots to the new issue.
-
-4) You are certainly welcome to stop at #3; at this point, you have definitely
-done your duty as a responsible and considerate user of open-source software. If
-you are feeling especially ambitious, however, you may wish to tackle the bug
-yourself! This may be a trivial matter or a serious ordeal, depending on the
-nature of the bug, and providing advice to the ambitious is beyond the scope of
-this humble document. If you do decide to attempt a resolution yourself, then
-please include a statement of your intentions in the issue report. Should your
-efforts prove successful, then please create a new pull request for your fix.
-If you start but give up before achieving a resolution, then simply update the
-issue to let us know that you are no longer working on the problem.
+If you wish to embed Avail into a larger JVM project, rather than use Avail as a
+standalone language, you can import a prebuilt version of Avail as a dependency.
+See the
+[Avail Gradle Plugin](https://github.com/AvailLang/gradle-plugin) for more
+details on how to accomplish this. You can also refer to our
+[sample project](https://github.com/AvailLang/samples) to see how Avail can be
+incorporated into a JVM project.
 
 
-================================================================================
+--------------------------------------------------------------------------------
 
 Thank you for using Avail!
 
-                                               Todd L Smith <todd@availlang.org>
-                                           Leslie Schultz <leslie@availlang.org>
-                                            Richard Arriaga <rich@availlang.org>
-                                               on behalf of The Avail Foundation
+                               on behalf of Avail                                                              
+                      Richard Arriaga <rich@availlang.org>
+                      Mark van Gulik <todd@availlang.org>                       
+                     Leslie Schultz <leslie@availlang.org>
+                       Todd L Smith <todd@availlang.org>
