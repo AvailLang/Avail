@@ -32,6 +32,9 @@ possible.
 If you prefer gentler guidance or more detailed information, then you should
 probably read the other sections below as well.
 
+In this document, `$PROJ` always refers to the directory into which you cloned
+Avail.
+
 
 QUICKSTART
 --------------------------------------------------------------------------------
@@ -47,19 +50,24 @@ If (1) you are using a Unix-based system, such as Linux, macOS, Minimalist GNU
 for Windows (MinGW), or Windows Subsystem for Linux (WSL), and (2) you already
 have access to Git:
 
-	$ git clone https://github.com/AvailLang/Avail.git $PROJ
-	$ cd $PROJ
-	$ ./gradlew :avail:packageAndRun
+```shell
+ $ git clone https://github.com/AvailLang/Avail.git $PROJ
+ $ cd $PROJ
+ $ ./gradlew :avail:packageAndRun
+```
 
 If (1) you are using vanilla Windows and (2) you already have access to Git:
 
-	$ git.exe clone https://github.com/AvailLang/Avail.git $PROJ
-	$ cd $PROJ
-	$ .\gradlew.bat :avail:packageAndRun
+```shell
+ $ git.exe clone https://github.com/AvailLang/Avail.git $PROJ
+ $ cd $PROJ
+ $ .\gradlew.bat :avail:packageAndRun
+```
 
 Anvil's project manager should open on your desktop. You can now:
 
-1. Explore the Avail standard library and official examples by opening [examples-avail-config.json](examples-avail-config.json), or
+1. Explore the Avail standard library and official examples by opening
+   [examples-avail-config.json](examples-avail-config.json), or
 2. Create your own Avail project, based on the Avail standard library.
 
 (Screenshots and additional guidance will follow, when the official release of
@@ -78,7 +86,9 @@ develop and deliver Avail.
 
 To see if you have Git installed, try this:
 
-	$ git version
+```shell
+$ git version
+```
 
 If Git is installed and available on your path, then it will respond with a
 version string like:
@@ -98,11 +108,13 @@ path.
 --------------------------------------------------------------------------------
 
 2) **Java**: You will need version 17 of the Java Development Kit (JDK) Standard
-   Edition (SE), _NOT_ an earlier version. Many modern systems already have some
-   version of the JDK, so you should check your JDK version before obtaining and
-   installing it from OpenJDK (or some other vendor). You can do so like this:
+Edition (SE), _NOT_ an earlier version. Many modern systems already have some
+version of the JDK, so you should check your JDK version before obtaining and
+installing it from OpenJDK (or some other vendor). You can do so like this:
 
-   $ javac -version
+```shell
+$ javac -version
+```
 
 And hopefully you get back something like this:
 
@@ -129,10 +141,12 @@ public repository. This repository is located at:
 https://github.com/AvailLang/Avail.git
 
 Choose the directory where you would like the local copy of the Avail repository
-to reside (the path to which is hereafter denoted as $PROJ). Clone the official
-public repository into it like this:
+to reside (i.e., `$PROJ`). Clone the official public repository into it like
+this:
 
-	$ git clone https://github.com/AvailLang/Avail.git $PROJ
+```shell
+$ git clone https://github.com/AvailLang/Avail.git $PROJ
+```
 
 Even if you are planning to install Avail for system-wide usage, you will
 probably want to choose a non-system directory to house the local copy of the
@@ -142,16 +156,18 @@ Avail repository.
 BUILDING
 --------------------------------------------------------------------------------
 
-To compile Anvil, without automatically running it thereafter, use the provided
-Gradle wrapper. On a Unix-based system:
+To compile Anvil, without automatically running it thereafter, navigate to
+`$PROJ` and use the provided Gradle wrapper. On a Unix-based system:
 
-	$ cd $PROJ
-	$ ./gradlew :avail:package
+```shell
+$ ./gradlew :avail:package
+```
 
 On vanilla Windows:
 
-    $ cd $PROJ
-    $ .\gradlew.bat :avail:package
+```shell
+$ .\gradlew.bat :avail:package
+```
 
 You should see output similar to this:
 
@@ -183,16 +199,18 @@ you have done this.
 RUNNING
 --------------------------------------------------------------------------------
 
-At any time after Anvil has been built, you can launch Anvil using the provided
-Gradle wrapper. To launch Anvil on a Unix-based system:
+At any time after Anvil has been built, you can navigate to `$PROJ` and launch
+Anvil using the provided Gradle wrapper. To launch Anvil on a Unix-based system:
 
-	$ cd $PROJ
-	$ ./gradlew :avail:run
+```shell
+$ ./gradlew :avail:run
+```
 
 To launch Anvil on vanilla Windows:
 
-	$ cd $PROJ
-	$ .\gradlew.bat :avail:run
+```shell
+$ .\gradlew.bat :avail:run
+```
 
 If the default JDK on your system is version 17 or later, you may be able to
 double click this JAR file to launch Anvil.
@@ -200,11 +218,15 @@ double click this JAR file to launch Anvil.
 If all else fails, you can also launch Anvil by invoking `java` directly. On
 a Unix-based system:
 
-	$ java -jar $PROJ/anvil.jar
+```shell
+$ java -jar $PROJ/anvil.jar
+```
 
 On vanilla Windows:
 
-	$ java.exe -jar $PROJ\anvil.jar
+```shell
+$ java.exe -jar $PROJ\anvil.jar
+```
 
 
 EMBEDDING AVAIL
