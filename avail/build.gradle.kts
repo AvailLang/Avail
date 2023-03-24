@@ -50,7 +50,7 @@ val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
 dependencies {
-	api("org.availlang:avail-json:2.1.1")
+//	api("org.availlang:avail-json:2.1.1")
 	api("org.availlang:avail-storage:1.1.1")
 	api("org.availlang:avail-artifact:2.0.0.alpha19")
 	AvailModule.addDependencies(this)
@@ -107,8 +107,7 @@ tasks {
 	}
 
 	shadowJar {
-		archiveBaseName.set("anvil")
-		archiveClassifier.set("")
+		archiveClassifier.set("anvil")
 		archiveVersion.set("")
 		destinationDirectory.set(file("../"))
 	}
@@ -121,7 +120,7 @@ tasks {
 
 	}
 
-	@Suppress("unused")
+	@Suppress("UNUSED_VARIABLE")
 	val packageAndRun by creating(JavaExec::class) {
 		dependsOn(`package`)
 		group = "anvil"
@@ -129,7 +128,7 @@ tasks {
 		classpath = files("../anvil.jar")
 	}
 
-	@Suppress("unused")
+	@Suppress("UNUSED_VARIABLE")
 	val run by creating(JavaExec::class) {
 		group = "anvil"
 		description = "Run the Avail Project Manager for an already built anvil.jar"
