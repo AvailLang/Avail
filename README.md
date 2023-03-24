@@ -1,6 +1,10 @@
+| **Release**                                | **Version**                                                                                                                                                |
+|--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Avail VM](avail)                          | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha21-0f824e)](https://central.sonatype.com/namespace/org.availlang)                |
+| [Avail Standard Library](distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha21--1.6.1.alpha10-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
+
 OVERVIEW
 --------------------------------------------------------------------------------
-[![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha20-0f824e)](https://search.maven.org/artifact/org.availlang/avail)
 
 Avail is a multi-paradigmatic general purpose programming language whose feature
 set emphasizes support for constructing domain-specific languages (DSLs). Anvil
@@ -187,12 +191,13 @@ You should see output similar to this:
 Toward the end of the transcript you should find `BUILD SUCCESSFUL`, which
 indicates that your build is ready to use. You can find it here:
 
-	$PROJ/anvil.jar
+	$PROJ/avail-anvil.jar
 
 This executable JAR file contains the whole of Anvil, which bundles the Avail
 compiler toolchain and runtime within.
 
-Naturally, you can move `anvil.jar` to another location if you feel so inclined.
+Naturally, you can move `avail-anvil.jar` to another location if you feel so 
+inclined.
 You will need to adjust the paths mentioned below to account for relocation if
 you have done this.
 
@@ -220,13 +225,13 @@ If all else fails, you can also launch Anvil by invoking `java` directly. On
 a Unix-based system:
 
 ```shell
-$ java -jar $PROJ/anvil.jar
+$ java -jar $PROJ/avail-anvil.jar
 ```
 
 On vanilla Windows:
 
 ```shell
-$ java.exe -jar $PROJ\anvil.jar
+$ java.exe -jar $PROJ\avail-anvil.jar
 ```
 
 
