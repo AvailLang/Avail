@@ -50,7 +50,6 @@ val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
 dependencies {
-//	api("org.availlang:avail-json:2.1.1")
 	api("org.availlang:avail-storage:1.1.1")
 	api("org.availlang:avail-artifact:2.0.0.alpha19")
 	AvailModule.addDependencies(this)
@@ -125,14 +124,14 @@ tasks {
 		dependsOn(`package`)
 		group = "anvil"
 		description = "Package anvil.jar and run the Avail Project Manager"
-		classpath = files("../anvil.jar")
+		classpath = files("../avail-anvil.jar")
 	}
 
 	@Suppress("UNUSED_VARIABLE")
 	val run by creating(JavaExec::class) {
 		group = "anvil"
 		description = "Run the Avail Project Manager for an already built anvil.jar"
-		classpath = files("../anvil.jar")
+		classpath = files("../avail-anvil.jar")
 	}
 
 	/**
