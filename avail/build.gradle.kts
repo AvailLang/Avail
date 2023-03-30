@@ -98,7 +98,7 @@ tasks {
 		manifest.attributes["Implementation-Version"] = project.version
 		manifest.attributes["Build-Time"] = project.extra.get("builtTime")
 		manifest.attributes["SplashScreen-Image"] =
-			"resources/resources/workbench/AvailWBSplash.png"
+			"workbench/AvailWBSplash.png"
 		manifest.attributes["Main-Class"] = "avail.project.AvailProjectManagerRunner"
 		manifest.attributes["Application-Name"] = "Anvil"
 		// The All_Primitives.txt file must be added to the build resources
