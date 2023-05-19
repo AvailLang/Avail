@@ -36,9 +36,6 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.Reader
 import java.nio.charset.StandardCharsets
-import java.security.AccessController
-import java.security.PrivilegedActionException
-import java.security.PrivilegedExceptionAction
 import java.util.Locale
 import java.util.PropertyResourceBundle
 import java.util.ResourceBundle
@@ -97,40 +94,27 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 		else if (format == "java.properties")
 		{
 			val stream: Reader?
-			try
+			val resourceName = toResourceName(
+				bundleName, "properties")
+			val inputStream: InputStream
+			if (reload)
 			{
-				val resourceName = toResourceName(
-					bundleName, "properties")
-				stream = AccessController.doPrivileged(
-					PrivilegedExceptionAction {
-						val inputStream: InputStream
-						if (reload)
-						{
-							val url = loader.getResource(resourceName)
-								?: throw IOException("Invalid URL for resource")
-							val connection = url.openConnection()
-								?: throw IOException("Invalid URL for resource")
-							// Disable caches to get fresh data for
-							// reloading.
-							connection.useCaches = false
-							inputStream = connection.getInputStream()
-						}
-						else
-						{
-							inputStream =
-								loader.getResourceAsStream(resourceName)!!
-						}
-						InputStreamReader(inputStream, StandardCharsets.UTF_8)
-					})
+				val url = loader.getResource(resourceName)
+					?: throw IOException("Invalid URL for resource")
+				val connection = url.openConnection()
+					?: throw IOException("Invalid URL for resource")
+				// Disable caches to get fresh data for
+				// reloading.
+				connection.useCaches = false
+				inputStream = connection.getInputStream()
 			}
-			catch (e: PrivilegedActionException)
+			else
 			{
-				throw (e.exception as IOException)
+				inputStream =
+					loader.getResourceAsStream(resourceName)!!
 			}
-			if (stream !== null)
-			{
-				bundle = stream.use(::PropertyResourceBundle)
-			}
+			stream = InputStreamReader(inputStream, StandardCharsets.UTF_8)
+			bundle = stream.use(::PropertyResourceBundle)
 		}
 		else
 		{

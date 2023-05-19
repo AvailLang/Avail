@@ -1,5 +1,5 @@
 /*
- * P_DeclareStringificationAtom.kt
+ * P_DeclareStringifierFunction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,73 +33,52 @@
 package avail.interpreter.primitive.hooks
 
 import avail.AvailRuntime.HookType.STRINGIFICATION
-import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
-import avail.descriptor.atoms.AtomDescriptor
-import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
-import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.functions.A_Function
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.exceptions.AvailRuntimeException
-import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.Primitive.Flag.Private
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelOne.L1InstructionWriter
-import avail.interpreter.levelOne.L1Operation
 
 /**
- * **Primitive:** Inform the VM of the [atom][AtomDescriptor] of the preferred
- * stringification [method][MethodDescriptor].
+ * **Primitive:** Inform the VM of the [A_Function] to use to
+ * [stringify][STRINGIFICATION] values.  Answer the [A_Function] that was
+ * previously in use.
+ *
+ * After the primitive runs, any attempt to stringify an object will launch a
+ * fiber to invoke the newly invoked function.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DeclareStringificationAtom : Primitive(
-	1, CannotFail, HasSideEffect, Private, WritesToHiddenGlobalState)
+object P_DeclareStringifierFunction : Primitive(
+	1,
+	CannotFail,
+	HasSideEffect,
+	ReadsFromHiddenGlobalState,
+	WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val atom = interpreter.argument(0)
-		// Generate a function that will invoke the stringifier method for
-		// the specified value.
-		val writer = L1InstructionWriter(nil, 0, nil)
-		writer.argumentTypes(ANY.o)
-		writer.returnType = stringType
-		writer.returnTypeIfPrimitiveFails = stringType
-		writer.write(0, L1Operation.L1_doPushLocal, 1)
-		try
-		{
-			writer.write(
-				0,
-				L1Operation.L1_doCall,
-				writer.addLiteral(atom.bundleOrCreate()),
-				writer.addLiteral(stringType))
-		}
-		catch (e: MalformedMessageException)
-		{
-			assert(false) { "This should never happen!" }
-			throw AvailRuntimeException(e.errorCode)
-		}
+		val newFunction = interpreter.argument(0)
 
-		val function = createFunction(writer.compiledCode(), emptyTuple)
-		function.makeShared()
 		// Set the stringification function.
-		interpreter.runtime[STRINGIFICATION] = function
+		val runtime = interpreter.runtime
+		val oldFunction = runtime[STRINGIFICATION]
+		runtime[STRINGIFICATION] = newFunction.makeShared()
+
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		return interpreter.primitiveSuccess(nil)
+		return interpreter.primitiveSuccess(oldFunction)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o), TOP.o)
+		functionType(
+			tuple(STRINGIFICATION.functionType),
+			STRINGIFICATION.functionType)
 }

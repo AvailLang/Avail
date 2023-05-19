@@ -38,39 +38,45 @@ package avail.compiler
  * repository files.
  */
 enum class SideEffectKind
+constructor(
+	val toolTipText: String,
+	val iconFileName: String)
 {
 	/** An atom has been defined.  The summaryText will be the atom name. */
-	ATOM_DEFINITION_KIND,
+	ATOM_DEFINITION_KIND("Atom", "Atom-Dark.png"),
 
 	/** The summaryText will be the method name. */
-	METHOD_DEFINITION_KIND,
+	METHOD_DEFINITION_KIND("Method", "Method-Dark.png"),
 
 	/** The summaryText will be the method name. */
-	ABSTRACT_METHOD_DEFINITION_KIND,
+	ABSTRACT_METHOD_DEFINITION_KIND(
+		"Abstract Method", "AbstractMethod-Dark.png"),
 
 	/** The summaryText will be the method name. */
-	FORWARD_METHOD_DEFINITION_KIND,
+	FORWARD_METHOD_DEFINITION_KIND("Forward Method", "ForwardMethod-Dark.png"),
 
 	/** The summaryText will be the macro name. */
-	MACRO_DEFINITION_KIND,
+	MACRO_DEFINITION_KIND("Macro", "Macro-Dark.png"),
 
 	/** The summaryText will be the method name being restricted. */
-	SEMANTIC_RESTRICTION_KIND,
+	SEMANTIC_RESTRICTION_KIND(
+		"Semantic Restriction", "SemanticRestriction-Dark.png"),
 
 	/** The summaryText will be the method name being restricted. */
-	GRAMMATICAL_RESTRICTION_KIND,
+	GRAMMATICAL_RESTRICTION_KIND(
+		"Grammatical Restriction", "GrammaticalRestriction-DarkLight.png"),
 
 	/** The summaryText will be the method name being sealed. */
-	SEAL_KIND,
+	SEAL_KIND("Sealed Method", "Seal-DarkLight.png"),
 
 	/** The summaryText will be the lexer's name. */
-	LEXER_KIND,
+	LEXER_KIND("Lexer", "Lexer-Dark.png"),
 
 	/** The summaryText will be the module constant's name. */
-	MODULE_CONSTANT_KIND,
+	MODULE_CONSTANT_KIND("Constant", "Constant-Dark.png"),
 
 	/** The summaryText will be the module variable's name. */
-	MODULE_VARIABLE_KIND;
+	MODULE_VARIABLE_KIND("Variable", "Variable-Dark.png");
 
 	companion object
 	{

@@ -52,9 +52,12 @@ import javax.swing.ImageIcon
  */
 data class SideEffectIconKey constructor(
 	val sideEffectKind: SideEffectKind,
-	override val resourceName: String,
 	override val scaledHeight: Int
 ): IconKey
+{
+	override val resourceName: String
+		get() = sideEffectKind.iconFileName
+}
 
 /**
  * Manages the structure view icons associated with the various
@@ -65,61 +68,6 @@ data class SideEffectIconKey constructor(
 object SideEffectIcons
 {
 	/**
-	 * The resource name for [SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND].
-	 */
-	private const val ABSTRACT_METHOD ="AbstractMethod-Dark.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.ATOM_DEFINITION_KIND].
-	 */
-	private const val ATOM = "Atom-Dark.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.MODULE_CONSTANT_KIND].
-	 */
-	private const val MODULE_CONSTANT = "Constant-Dark.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.FORWARD_METHOD_DEFINITION_KIND].
-	 */
-	private const val FORWARD_METHOD = "ForwardMethod-Dark.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.GRAMMATICAL_RESTRICTION_KIND].
-	 */
-	private const val GRAMMATICAL_RESTRICTION = "GrammaticalRestriction-DarkLight.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.LEXER_KIND].
-	 */
-	private const val LEXER = "Lexer-Dark.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.MACRO_DEFINITION_KIND].
-	 */
-	private const val MACRO = "Macro-Dark.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.METHOD_DEFINITION_KIND].
-	 */
-	private const val METHOD = "Method-Dark.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.METHOD_DEFINITION_KIND].
-	 */
-	private const val SEALED_METHOD = "Seal-DarkLight.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.SEMANTIC_RESTRICTION_KIND].
-	 */
-	private const val SEMANTIC_RESTRICTION ="SemanticRestriction-Dark.png"
-
-	/**
-	 * The resource name for  [SideEffectKind.MODULE_VARIABLE_KIND].
-	 */
-	private const val MODULE_VARIABLE = "Variable-Dark.png"
-
-	/**
 	 * Return a suitable icon to display for this instance with the given line
 	 * height.
 	 *
@@ -128,34 +76,7 @@ object SideEffectIcons
 	 * @return The icon.
 	 */
 	fun icon(lineHeight: Int, sideEffectKind: SideEffectKind): ImageIcon =
-		cachedScaledIcons[SideEffectIconKey(
-			sideEffectKind, fileName(sideEffectKind), lineHeight)]
-
-	/**
-	 * Answer the [String] file name for the icon for the associated
-	 * [SideEffectKind].
-	 *
-	 * @param sideEffectKind
-	 *   The [SideEffectKind] to retrieve the file name for.
-	 * @return
-	 *   The associated file name.
-	 */
-	private fun fileName (sideEffectKind: SideEffectKind): String =
-		when (sideEffectKind)
-		{
-			SideEffectKind.ATOM_DEFINITION_KIND -> ATOM
-			SideEffectKind.METHOD_DEFINITION_KIND -> METHOD
-			SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND -> ABSTRACT_METHOD
-			SideEffectKind.FORWARD_METHOD_DEFINITION_KIND -> FORWARD_METHOD
-			SideEffectKind.MACRO_DEFINITION_KIND -> MACRO
-			SideEffectKind.SEMANTIC_RESTRICTION_KIND -> SEMANTIC_RESTRICTION
-			SideEffectKind.GRAMMATICAL_RESTRICTION_KIND ->
-				GRAMMATICAL_RESTRICTION
-			SideEffectKind.SEAL_KIND -> SEALED_METHOD
-			SideEffectKind.LEXER_KIND -> LEXER
-			SideEffectKind.MODULE_CONSTANT_KIND -> MODULE_CONSTANT
-			SideEffectKind.MODULE_VARIABLE_KIND -> MODULE_VARIABLE
-		}
+		cachedScaledIcons[SideEffectIconKey(sideEffectKind, lineHeight)]
 
 	/**
 	 * A static cache of scaled icons, organized

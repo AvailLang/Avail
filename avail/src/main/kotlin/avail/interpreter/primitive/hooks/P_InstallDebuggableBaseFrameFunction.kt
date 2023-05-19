@@ -1,5 +1,5 @@
 /*
- * P_SetResultDisagreedWithExpectedTypeFunction.kt
+ * P_InstallDebuggableBaseFrameFunction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,53 +32,57 @@
 
 package avail.interpreter.primitive.hooks
 
-import avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
+import avail.AvailRuntime.HookType.DEBUGGABLE_BASE_FRAME
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 
 /**
- * **Primitive:** Set the [function][FunctionDescriptor] to invoke whenever the
- * result produced by a [method&#32;invocation][MethodDescriptor] disagrees with
- * the type decreed by the applicable semantic restrictions at the call site.
+ * **Primitive:** Set the [function][FunctionDescriptor] to invoke as the base
+ * frame of every fiber that would be captured by a debugger.  It takes a
+ * function and a tuple of arguments, and returns that function's result, if
+ * successful, out to the fiber result itself.  Answer the previous value of
+ * this hook function.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * After the primitive runs, new fibers that will need debugging will have this
+ * new hook function as their base frame, passing it a function to invoke and
+ * its arguments.  The initial hook function is just a [P_InvokeWithTuple].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
-	1, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
+object P_InstallDebuggableBaseFrameFunction : Primitive(
+	1,
+	CannotFail,
+	HasSideEffect,
+	ReadsFromHiddenGlobalState,
+	WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val function = interpreter.argument(0)
-		interpreter.runtime[RESULT_DISAGREED_WITH_EXPECTED_TYPE] = function
+
+		val runtime = interpreter.runtime
+		val oldHook = runtime[DEBUGGABLE_BASE_FRAME]
+		runtime[DEBUGGABLE_BASE_FRAME] = function
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
-		return interpreter.primitiveSuccess(nil)
+		return interpreter.primitiveSuccess(oldHook)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				functionType(
-					tuple(
-						mostGeneralFunctionType(),
-						topMeta(),
-						variableTypeFor(ANY.o)),
-					bottom)),
-			TOP.o)
+				// Accepts the new hook function.
+				DEBUGGABLE_BASE_FRAME.functionType),
+			// Returns the old hook function.
+			DEBUGGABLE_BASE_FRAME.functionType)
 }

@@ -216,6 +216,7 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClassWithTypeArguments
 import avail.descriptor.types.PojoTypeDescriptor.Companion.selfTypeForClass
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
@@ -246,6 +247,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Result
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugCheckAfterUnload
+import avail.interpreter.levelOne.L1InstructionWriter
+import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.general.P_EmergencyExit
@@ -642,6 +645,9 @@ class AvailRuntime constructor(
 	 *
 	 * @property functionType
 	 *   The [A_Function] [A_Type] that hooks of this type use.
+	 * @property functionSupplier
+	 *   A [supplier][OnceSupplier] of a default [A_Function] to use for this
+	 *   hook type.
 	 *
 	 * @constructor
 	 * Create a hook type.
@@ -654,11 +660,17 @@ class AvailRuntime constructor(
 	 *   The [Primitive] around which to synthesize a default [A_Function] for
 	 *   hooks of this type.  If this is `null`, a function that invokes
 	 *   [P_EmergencyExit] will be synthesized instead.
+	 * @param functionSupplier
+	 *   A [supplier][OnceSupplier] of a default [A_Function] to use for this
+	 *   hook type.
 	 */
 	enum class HookType constructor(
-		hookName: String,
+		hookNameString: String,
 		val functionType: A_Type,
-		primitive: Primitive?)
+		primitive: Primitive?,
+		val hookName: A_String = stringFrom(hookNameString).makeShared(),
+		val functionSupplier: OnceSupplier<A_Function> =
+			produceDefaultFunctionSupplier(hookName, functionType, primitive))
 	{
 		/**
 		 * The [HookType] for a hook that holds the stringification function.
@@ -725,7 +737,7 @@ class AvailRuntime constructor(
 				tuple(
 					mostGeneralFunctionType(),
 					mostGeneralTupleType),
-				Types.TOP.o),
+				TOP.o),
 			null),
 
 		/**
@@ -753,8 +765,48 @@ class AvailRuntime constructor(
 				tuple(
 					mostGeneralFunctionType(),
 					mostGeneralTupleType),
-				Types.TOP.o),
+				TOP.o),
 			P_InvokeWithTuple),
+
+		/**
+		 * The [HookType] for a hook that holds the [A_Function] to invoke at
+		 * the outermost stack frame to run a fiber, when the fiber would be
+		 * captured by a debugger.  This function is passed a function to
+		 * execute and the arguments to supply to it.  The result returned by
+		 * the passed function is returned from this frame.
+		 */
+		DEBUGGABLE_BASE_FRAME(
+			"«debuggable base frame»",
+			functionType(
+				tuple(
+					mostGeneralFunctionType(),
+					mostGeneralTupleType),
+				TOP.o),
+			null,
+			functionSupplier = OnceSupplier {
+				// Generate a non-primitive function that will *call* P_Invoke
+				// with the given function with the arguments.  This ensures the
+				// debugger will see some level one instructions at which to
+				// pause.
+				L1InstructionWriter(nil, 0, nil).run {
+					argumentTypes(
+						mostGeneralFunctionType(),
+						mostGeneralTupleType)
+					returnType = TOP.o
+					returnTypeIfPrimitiveFails = TOP.o
+					// Push the function.
+					write(0, L1Operation.L1_doPushLastLocal, 1)
+					// Push the arguments tuple.
+					write(0, L1Operation.L1_doPushLastLocal, 2)
+					// Invoke the function with the arguments.
+					write(
+						0,
+						L1Operation.L1_doCall,
+						addLiteral(SpecialMethodAtom.APPLY.bundle),
+						addLiteral(TOP.o))
+					createFunction(compiledCode(), emptyTuple)
+				}
+			}),
 
 		/**
 		 * The [HookType] for a hook that holds the [A_Function] to invoke when
@@ -768,44 +820,8 @@ class AvailRuntime constructor(
 			functionType(
 				tuple(
 					PhraseKind.PARSE_PHRASE.mostGeneralType),
-				Types.TOP.o),
-			P_DefaultStyler
-		);
-
-		/** The name to attach to functions plugged into this hook. */
-		val hookName: A_String = stringFrom(hookName).makeShared()
-
-		/**
-		 * A [supplier][OnceSupplier] of a default [A_Function] to use for this
-		 * hook type.
-		 */
-		val defaultFunctionSupplier: OnceSupplier<A_Function> =
-			produceDefaultFunctionSupplier(hookName, primitive)
-
-		private fun produceDefaultFunctionSupplier(
-			hookName: String,
-			primitive: Primitive?
-		): OnceSupplier<A_Function> = when (primitive)
-		{
-			null ->
-			{
-				// Create an invocation of P_EmergencyExit.
-				val argumentsTupleType = functionType.argsTupleType
-				val argumentTypesTuple =
-					argumentsTupleType.tupleOfTypesFromTo(
-						1,
-						argumentsTupleType.sizeRange.upperBound.extractInt)
-				OnceSupplier {
-					newCrashFunction(hookName, argumentTypesTuple).makeShared()
-				}
-			}
-			else ->
-			{
-				val code = newPrimitiveRawFunction(primitive, nil, 0)
-				code.methodName = this.hookName
-				OnceSupplier { createFunction(code, emptyTuple).makeShared() }
-			}
-		}
+				TOP.o),
+			P_DefaultStyler)
 	}
 
 	/**
@@ -836,7 +852,7 @@ class AvailRuntime constructor(
 
 	/** The collection of hooks for this runtime. */
 	val hooks = enumMap { hook: HookType ->
-		AtomicReference(hook.defaultFunctionSupplier())
+		AtomicReference(hook.functionSupplier())
 	}
 
 	/**
@@ -1093,7 +1109,7 @@ class AvailRuntime constructor(
 			put(mostGeneralTupleType)
 			put(tupleMeta)
 			put(topMeta())
-			put(Types.TOP.o)
+			put(TOP.o)
 			put(wholeNumbers)
 			put(naturalNumbers)
 			put(characterCodePoints)
@@ -1162,7 +1178,7 @@ class AvailRuntime constructor(
 			put(pojoTypeForClass(Throwable::class.java))
 
 			at(90)
-			put(functionType(emptyTuple(), Types.TOP.o))
+			put(functionType(emptyTuple(), TOP.o))
 			put(functionType(emptyTuple(), booleanType))
 			put(variableTypeFor(mostGeneralContinuationType))
 			put(
@@ -1194,7 +1210,7 @@ class AvailRuntime constructor(
 			put(zeroOrMoreOf(nybbles))
 			put(unsignedShorts)
 			put(emptyTuple)
-			put(functionType(tuple(bottom), Types.TOP.o))
+			put(functionType(tuple(bottom), TOP.o))
 			put(instanceType(zero))
 			put(functionTypeReturning(topMeta()))
 			put(
@@ -1236,7 +1252,7 @@ class AvailRuntime constructor(
 			put(zeroOrMoreOf(PhraseKind.PARSE_PHRASE.mostGeneralType))
 			put(zeroOrMoreOf(PhraseKind.ARGUMENT_PHRASE.mostGeneralType))
 			put(zeroOrMoreOf(PhraseKind.DECLARATION_PHRASE.mostGeneralType))
-			put(variableReadWriteType(Types.TOP.o, bottom))
+			put(variableReadWriteType(TOP.o, bottom))
 			put(zeroOrMoreOf(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
 			put(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o))
 			put(
@@ -1307,7 +1323,7 @@ class AvailRuntime constructor(
 			put(inclusive(0L, 31L))
 			put(
 				continuationTypeForFunctionType(
-					functionTypeReturning(Types.TOP.o)))
+					functionTypeReturning(TOP.o)))
 
 			at(170)
 			put(CharacterDescriptor.nonemptyStringOfDigitsType)
@@ -1400,7 +1416,6 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.CRASH.atom)
 			put(SpecialMethodAtom.CREATE_LITERAL_PHRASE.atom)
 			put(SpecialMethodAtom.CREATE_LITERAL_TOKEN.atom)
-			put(SpecialMethodAtom.DECLARE_STRINGIFIER.atom)
 			put(SpecialMethodAtom.FORWARD_DEFINER.atom)
 			put(SpecialMethodAtom.GET_RETHROW_JAVA_EXCEPTION.atom)
 			put(SpecialMethodAtom.GET_VARIABLE.atom)
@@ -1433,6 +1448,35 @@ class AvailRuntime constructor(
 			put(TokenType.WHITESPACE.atom)
 			put(StaticInit.tokenTypeOrdinalKey)
 		}.list().onEach { assert(it.isAtomSpecial) }
+
+		internal fun produceDefaultFunctionSupplier(
+			hookName: A_String,
+			functionType: A_Type,
+			primitive: Primitive?
+		): OnceSupplier<A_Function> = when (primitive)
+		{
+			null ->
+			{
+				// Create an invocation of P_EmergencyExit.
+				val argumentsTupleType = functionType.argsTupleType
+				val argumentTypesTuple =
+					argumentsTupleType.tupleOfTypesFromTo(
+						1,
+						argumentsTupleType.sizeRange.upperBound.extractInt)
+				OnceSupplier {
+					newCrashFunction(
+						hookName.asNativeString(),
+						argumentTypesTuple
+					).makeShared()
+				}
+			}
+			else ->
+			{
+				val code = newPrimitiveRawFunction(primitive, nil, 0)
+				code.methodName = hookName
+				OnceSupplier { createFunction(code, emptyTuple).makeShared() }
+			}
+		}
 	}
 
 	/**
@@ -1999,7 +2043,11 @@ class AvailRuntime constructor(
 			assert(aFiber.continuation.isNil)
 			// Invoke the base-frame (hook) function with the given function
 			// and its arguments collected as a tuple.
-			val baseFrameFunction = get(HookType.BASE_FRAME)
+			val baseFrameFunction = when (newFiberHandlers[aFiber.fiberKind])
+			{
+				null -> get(HookType.BASE_FRAME)
+				else -> get(HookType.DEBUGGABLE_BASE_FRAME)
+			}
 			exitNow = false
 			returnNow = false
 			setReifiedContinuation(nil)
@@ -2332,5 +2380,6 @@ class AvailRuntime constructor(
 	 * list of fibers.
 	 */
 	val newFiberHandlers = enumMap { _: FiberKind ->
-		AtomicReference<((A_Fiber)->Unit)?>(null) }
+		AtomicReference<((A_Fiber)->Unit)?>(null)
+	}
 }

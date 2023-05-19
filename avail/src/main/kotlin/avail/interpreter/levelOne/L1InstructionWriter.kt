@@ -208,8 +208,8 @@ class L1InstructionWriter constructor(
 	{
 		assert(argumentTypes.isEmpty())
 		assert(bottom !in argTypes)
-		assert(localTypes.size == 0) {
-			"Must declare argument types before allocating locals"
+		assert(localTypes.size + constantTypes.size == 0) {
+			"Must declare argument types before allocating locals or constants"
 		}
 		addAll(argumentTypes, *argTypes)
 	}
@@ -227,8 +227,8 @@ class L1InstructionWriter constructor(
 	{
 		assert(argumentTypes.isEmpty())
 		assert(bottom !in argTypes)
-		assert(localTypes.size == 0) {
-			"Must declare argument types before allocating locals"
+		assert(localTypes.size + constantTypes.size == 0) {
+			"Must declare argument types before allocating locals or constants"
 		}
 		argumentTypes.addAll(argTypes)
 	}
@@ -245,8 +245,27 @@ class L1InstructionWriter constructor(
 	fun createLocal(localType: A_Type): Int
 	{
 		assert(localType.isInstanceOf(topMeta()))
+		assert(constantTypes.size == 0) {
+			"Must declare local types before allocating constants"
+		}
 		localTypes.add(localType)
-		return localTypes.size + argumentTypes.size
+		return argumentTypes.size + localTypes.size
+	}
+
+	/**
+	 * Declare a local constant with the specified type.  Answer its index.  The
+	 * index is relative to the start of the arguments.
+	 *
+	 * @param constantType
+	 *   The [type][TypeDescriptor] of the local constant.
+	 * @return
+	 *   The index of the local constant.
+	 */
+	fun createConstant(constantType: A_Type): Int
+	{
+		assert(constantType.isInstanceOf(topMeta()))
+		constantTypes.add(constantType)
+		return argumentTypes.size + localTypes.size + constantTypes.size
 	}
 
 	/**

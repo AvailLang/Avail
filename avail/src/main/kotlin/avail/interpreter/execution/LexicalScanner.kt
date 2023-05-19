@@ -36,7 +36,9 @@ import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_LEXER
 import avail.descriptor.methods.A_Method.Companion.chooseBundle
 import avail.descriptor.methods.A_Method.Companion.lexer
 import avail.descriptor.module.A_Module
@@ -333,6 +335,8 @@ constructor(
 						.message.atomName,
 					codePoint,
 					moduleNameProducer())
+			}.apply {
+				setGeneralFlag(IS_LEXER)
 			}
 			lexingState.setFiberContinuationsTrackingWork(
 				fiber,

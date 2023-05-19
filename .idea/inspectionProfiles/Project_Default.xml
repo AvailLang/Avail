@@ -47,7 +47,6 @@
       <option name="reportWhenNoStatementFollow" value="false" />
     </inspection_tool>
     <inspection_tool class="ConfusingFloatingPointLiteral" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="ConfusingMainMethod" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ConfusingOctalEscape" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="ConstantAssertCondition" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="ConstantConditions" enabled="true" level="WARNING" enabled_by_default="true">
@@ -328,7 +327,7 @@
     <inspection_tool class="RandomDoubleForRandomInteger" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="RawTypeCanBeGeneric" enabled="true" level="ERROR" enabled_by_default="true" />
     <inspection_tool class="RawUseOfParameterizedType" enabled="true" level="ERROR" enabled_by_default="true" />
-    <inspection_tool class="RedundantMethodOverride" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="RedundantConstructorKeyword" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="RedundantSuppression" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="IGNORE_ALL" value="true" />
     </inspection_tool>
@@ -401,7 +400,6 @@
       <option name="m_onlyLookAtBlocks" value="false" />
     </inspection_tool>
     <inspection_tool class="TrailingSpacesInProperty" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="TrivialStringConcatenation" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TryStatementWithMultipleResources" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TypeParameterExtendsFinalClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UNUSED_IMPORT" enabled="true" level="ERROR" enabled_by_default="true" />
@@ -453,9 +451,6 @@
       <option name="ADD_SERVLET_TO_ENTRIES" value="true" />
       <option name="ADD_NONJAVA_TO_ENTRIES" value="false" />
       <option name="ADD_EXPORTED_PACKAGES_AND_SERVICES_TO_ENTRIES" value="false" />
-      <option name="selected" value="false" />
-      <option name="ADD_ANDROID_COMPONENTS_TO_ENTRIES" value="false" />
-      <option name="selected" value="false" />
       <option name="selected" value="false" />
       <option name="DEPRECATED_ENTRY_POINT" value="false" />
     </inspection_tool>

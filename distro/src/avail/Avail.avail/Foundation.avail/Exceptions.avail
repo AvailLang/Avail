@@ -2287,9 +2287,16 @@ Private method "install base frame hook:_" is
 	Primitive InstallBaseFrameFunction;
 ] : [[…] → ⊤, tuple] → ⊤;
 
+Private method "install debuggable base frame hook:_" is
+[
+	newHook : [[…] → ⊤, tuple] → ⊤
+|
+	Primitive InstallDebuggableBaseFrameFunction;
+] : [[…] → ⊤, tuple] → ⊤;
+
 /** Install the hook for setting up the base frame of every fiber. */
 [
-	originalBaseFrameFunction ::= install base frame hook:
+	newBaseFrameFunction ::=
 	[
 		fn : function,
 		args : tuple
@@ -2307,9 +2314,17 @@ Private method "install base frame hook:_" is
 		];
 	];
 
+	originalBaseFrameFunction ::=
+		install base frame hook: newBaseFrameFunction;
+	originalDebuggableBaseFrameFunction ::=
+		install debuggable base frame hook: newBaseFrameFunction;
 	/** Undo the effect of this hook when unloading this module. */
 	After the current module is unloaded, do
-	[Ignore: install base frame hook: originalBaseFrameFunction;];
+	[
+		Ignore: install base frame hook: originalBaseFrameFunction;
+		Ignore: install debuggable base frame hook:
+			originalDebuggableBaseFrameFunction;
+	];
 ]();
 
 

@@ -49,8 +49,6 @@ Names
 	"<«_‡,»>(tuple of string)",
 	"<«_‡,»>(tuple of set of string)",
 	"{«_‡,»}(set of string)"
-Pragma
-	"stringify=“_”"
 Body
 
 /**
@@ -79,6 +77,27 @@ Method "“_”" is
 |
 	primitive description of value
 ] : string;
+
+
+stringifierType ::= function accepting <any> and returning string;
+
+/* Private definer for the stringifier hook. */
+Method "install stringifier:_" is
+[
+	newHook : stringifierType
+|
+	Primitive DeclareStringifierFunction;
+] : stringifierType;
+
+/* Install “_” as the new stringifier, restoring the old one on unload. */
+invoke
+[
+	oldStringifier ::= install stringifier: [value : any | “value”];
+	After the current module is unloaded, do
+	[
+		ignored ::= install stringifier: oldStringifier;
+	];
+] with <>;
 
 /**
  * Construct and answer a set from the lexically specified expressions.

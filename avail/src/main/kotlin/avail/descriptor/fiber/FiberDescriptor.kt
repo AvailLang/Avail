@@ -36,6 +36,8 @@ import avail.AvailRuntime
 import avail.AvailRuntimeSupport
 import avail.AvailTask
 import avail.annotations.HideFieldJustForPrinting
+import avail.anvil.icons.structure.SideEffectIcons
+import avail.compiler.SideEffectKind
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
@@ -105,6 +107,7 @@ import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
+import javax.swing.ImageIcon
 
 /**
  * An Avail `FiberDescriptor fiber` represents an independently schedulable flow
@@ -532,16 +535,26 @@ class FiberDescriptor private constructor(
 	 * filtering which fibers are captured by a debugger.
 	 */
 	enum class FiberKind
-	constructor(private val flag: GeneralFlag? = null)
+	constructor(
+		private val flag: GeneralFlag? = null,
+		sideEffectKind: SideEffectKind? = null,
+		val icon: ImageIcon? =
+			sideEffectKind?.let { SideEffectIcons.icon(16, it) })
 	{
 		/** The fiber is evaluating a macro or macro prefix. */
-		MACRO(GeneralFlag.IS_EVALUATING_MACRO),
+		MACRO(
+			GeneralFlag.IS_EVALUATING_MACRO,
+			SideEffectKind.MACRO_DEFINITION_KIND),
 
 		/** The fiber is evaluating a semantic restriction. */
-		RESTRICTION(GeneralFlag.IS_SEMANTIC_RESTRICTION),
+		RESTRICTION(
+			GeneralFlag.IS_SEMANTIC_RESTRICTION,
+			SideEffectKind.SEMANTIC_RESTRICTION_KIND),
 
 		/** The fiber is evaluating a lexer (attempting to produce a token). */
-		LEXER(GeneralFlag.IS_LEXER),
+		LEXER(
+			GeneralFlag.IS_LEXER,
+			SideEffectKind.LEXER_KIND),
 
 		/** The fiber is evaluating a top-level statement of a module. */
 		STATEMENT(GeneralFlag.IS_RUNNING_TOP_STATEMENT),

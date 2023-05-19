@@ -62,6 +62,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.FiberKind
+import avail.descriptor.fiber.FiberDescriptor.FiberKind.Companion.fiberKind
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
@@ -114,14 +115,15 @@ import javax.swing.Action
 import javax.swing.DefaultListCellRenderer
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
+import javax.swing.Icon
 import javax.swing.JButton
-import javax.swing.JCheckBox
 import javax.swing.JFrame
 import javax.swing.JList
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JTextArea
+import javax.swing.JToggleButton
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -178,7 +180,7 @@ class AvailDebugger internal constructor (
 	 */
 	val debuggerModel = AvailDebuggerModel(workbench.runtime)
 
-	val runtime = debuggerModel.runtime
+	val runtime = workbench.runtime
 
 	/** Renders entries in the list of fibers. */
 	class FiberRenderer : DefaultListCellRenderer()
@@ -192,7 +194,8 @@ class AvailDebugger internal constructor (
 		): Component = super.getListCellRendererComponent(
 			list,
 			(fiber as A_Fiber).run {
-				"[$executionState] ${fiberName.asNativeString()}"
+				"${fiberKind.veryShortName} [$executionState] " +
+					fiberName.asNativeString()
 			},
 			index,
 			isSelected,
@@ -501,7 +504,7 @@ class AvailDebugger internal constructor (
 
 			override fun actionPerformed(e: ActionEvent)
 			{
-				val checkBox = e.source as JCheckBox
+				val checkBox = e.source as JToggleButton
 				val install = checkBox.isSelected
 				val installed =
 					debuggerModel.installFiberCapture(fiberKind, install)
@@ -517,6 +520,10 @@ class AvailDebugger internal constructor (
 				}
 				checkBox.isSelected =
 					debuggerModel.isCapturingNewFibers(fiberKind)
+			}
+		}.apply {
+			fiberKind.icon?.let { icon ->
+				putValue(Action.SMALL_ICON, icon)
 			}
 		}
 	}
@@ -567,7 +574,10 @@ class AvailDebugger internal constructor (
 	private val resumeButton = JButton(resumeAction)
 	private val restartButton = JButton(restartAction)
 	private val captureButtons = captureActions.map { (kind, action) ->
-		JCheckBox(action).apply { toolTipText = kind.name }
+		JToggleButton(action).apply {
+			toolTipText = kind.name
+			icon = action.getValue(Action.SMALL_ICON) as Icon?
+		}
 	}
 
 	/** A view of the L1 disassembly for the selected frame. */

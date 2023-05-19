@@ -33,17 +33,10 @@
 package avail.compiler
 
 import avail.compiler.scanning.LexingState
-import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
-import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
-import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
-import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 
 /**
@@ -173,60 +166,6 @@ enum class PragmaKind constructor(val lexeme: String)
 			}
 			compiler.bootstrapMacroThen(
 				state, pragmaToken, macroName, primNames, success)
-		}
-	},
-
-	/**
-	 * Module header token: Occurs in a pragma string to define the
-	 * stringification method.
-	 */
-	PRAGMA_STRINGIFY("stringify")
-	{
-		override fun applyThen(
-			compiler: AvailCompiler,
-			pragmaToken: A_Token,
-			pragmaValue: String,
-			state: LexingState,
-			success: () -> Unit)
-		{
-			val compilationContext = compiler.compilationContext
-			val availName = stringFrom(pragmaValue)
-			val atoms =
-				compilationContext.module.trueNamesForStringName(availName)
-			when (atoms.setSize)
-			{
-				0 ->
-				{
-					state.compilationContext.diagnostics.reportError(
-						pragmaToken.nextLexingState(),
-						"Malformed pragma at %s on line %d:",
-						"This module should have introduced or imported the "
-							+ "stringification atom named $availName.")
-					return
-
-				}
-				1 ->
-				{
-					val atom = atoms.single()
-					val send = newSendNode(
-						tuple(pragmaToken),
-						tuple(zero),
-						DECLARE_STRINGIFIER.bundle,
-						newListNode(tuple(syntheticLiteralNodeFor(atom))),
-						TOP.o)
-					compiler.evaluateModuleStatementThen(
-						state, state, send, mutableMapOf(), success)
-				}
-				else ->
-				{
-					state.compilationContext.diagnostics.reportError(
-						pragmaToken.nextLexingState(),
-						"Malformed pragma at %s on line %d:",
-						"The stringification name $availName should have been"
-							+ " unambiguous")
-					return
-				}
-			}
 		}
 	},
 

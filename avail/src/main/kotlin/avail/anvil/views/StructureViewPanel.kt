@@ -195,26 +195,7 @@ class StructureViewPanel constructor (
 			val iconLabel = JButton(SideEffectIcons.icon(19, it))
 			iconLabel.apply {
 				border = selectedBorder()
-				toolTipText =
-					when (it)
-					{
-						SideEffectKind.ATOM_DEFINITION_KIND -> "Atom"
-						SideEffectKind.METHOD_DEFINITION_KIND -> "Method"
-						SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND ->
-							"Abstract Method"
-						SideEffectKind.FORWARD_METHOD_DEFINITION_KIND ->
-							"Forward Method"
-						SideEffectKind.MACRO_DEFINITION_KIND -> "Macro"
-						SideEffectKind.SEMANTIC_RESTRICTION_KIND ->
-							"Semantic Restriction"
-						SideEffectKind.GRAMMATICAL_RESTRICTION_KIND ->
-							"Grammatical Restriction"
-						SideEffectKind.SEAL_KIND ->
-							"Sealed Method"
-						SideEffectKind.LEXER_KIND -> "Lexer"
-						SideEffectKind.MODULE_CONSTANT_KIND -> "Constant"
-						SideEffectKind.MODULE_VARIABLE_KIND -> "Variable"
-					}
+				toolTipText = it.toolTipText
 				addActionListener { _ ->
 					if (filterExcludeSet.contains(it))
 					{
