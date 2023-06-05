@@ -1244,7 +1244,7 @@ class Repository constructor(
 
 		/**
 		 * Information about variable uses and definitions.  The pairs go from
-		 * use to definition.
+		 * use to definition.  The [IntRange]s are all one-based.
 		 */
 		val variableUses: List<Pair<IntRange, IntRange>>
 
@@ -1295,13 +1295,7 @@ class Repository constructor(
 				binaryStream.vlq(styleNumber)
 				binaryStream.vlq(length)
 			}
-			val declarationsWithUses = variableUses
-				// Convert to map<decl, list<uses>>.
-				.groupBy({ it.second }) { it.first }
-				// Convert to list<pair<decl, sorted_list<uses>>>.
-				.map { (k, v) -> k to v.sortedBy { it.first }}
-				// Convert to sorted_list<pair<decl, sorted_list<uses>>>.
-				.sortedBy { it.first.first }
+			val declarationsWithUses = declarationsWithUses()
 			// Output declaration information.
 			binaryStream.vlq(declarationsWithUses.size)
 			var previousDeclarationEnd = 0
@@ -1342,6 +1336,23 @@ class Repository constructor(
 				previousDeclarationEnd = decl.last + 1
 			}
 		}
+
+		/**
+		 * Using the [variableUses], collate the use/definition pairs into
+		 * definition/all-uses pairs.  The result is a [List] of such entries
+		 * ordered by the definitions' positions.  Each entry is a [Pair]
+		 * consisting of an [IntRange] for the definition and an inner [List] of
+		 * [IntRange]s for each use, also ordered by position.  All ranges are
+		 * one-based.
+		 */
+		fun declarationsWithUses(): List<Pair<IntRange, List<IntRange>>> =
+			variableUses
+				// Convert to map<decl, list<uses>>.
+				.groupBy({ it.second }) { it.first }
+				// Convert to list<pair<decl, sorted_list<uses>>>.
+				.map { (k, v) -> k to v.sortedBy { it.first } }
+				// Convert to sorted_list<pair<decl, sorted_list<uses>>>.
+				.sortedBy { it.first.first }
 
 		override fun toString(): String =
 			String.format(

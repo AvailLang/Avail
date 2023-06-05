@@ -460,7 +460,8 @@ class AvailEditor constructor(
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
 		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 		codeGuide.guideColor = codeGuide.computeColor()
-		sourcePane.styledDocument.applyStylesAndPhrasePaths(
+		applyStylesAndPhrasePaths(
+			sourcePane.styledDocument,
 			stylesheet,
 			stylingRecord,
 			phrasePathRecord)

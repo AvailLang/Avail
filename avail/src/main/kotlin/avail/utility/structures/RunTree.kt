@@ -71,7 +71,7 @@ class RunTree<Value>: Iterable<Triple<Long, Long, Value>>
 	 * runs are empty, and there are no contiguous runs with equal values (they
 	 * are automatically merged).
 	 */
-	val tree = TreeMap<Long, Pair<Long, Value>>()
+	private val tree = TreeMap<Long, Pair<Long, Value>>()
 
 	/**
 	 * Run the edit action for each [Value] or `null` within the given range,
