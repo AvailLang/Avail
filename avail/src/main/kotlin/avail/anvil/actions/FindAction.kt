@@ -101,7 +101,7 @@ class FindAction constructor(
 	 * The ordered [List] of (MatchResult, highlight tag) pairs, for all places
 	 * that match the current pattern.
 	 */
-	private val allMatches = mutableListOf<Pair<MatchResult, Any>>()
+	private val allMatches = mutableListOf<Pair<MatchResult, List<Any>>>()
 
 	/**
 	 * When non-null, this is the index into [allMatches] representing the
@@ -112,16 +112,6 @@ class FindAction constructor(
 	 * selection/caret is invisible while the dialog has focus.
 	 */
 	private var currentMatchIndex: Int? = null
-
-	/**
-	 * The [HighlightPainter] for rendering all matches but the current one.
-	 */
-	private val allMatchesPainter = GlowHighlightPainter(Color.yellow)
-
-	/**
-	 * The [HighlightPainter] for rendering the current match.
-	 */
-	private val currentMatchPainter = GlowHighlightPainter(Color.red)
 
 	/**
 	 * A [DocumentListener] that detects textual changes to in the [textPane],
@@ -176,13 +166,70 @@ class FindAction constructor(
 					e.message
 				}
 		}
-		allMatches.forEach { highlighter!!.removeHighlight(it.second) }
-		currentMatchIndex = null
-		allMatches.clear()
-		matches.mapTo(allMatches) { match ->
-			match to highlighter!!.addHighlight(
-				match.range.first, match.range.last + 1, allMatchesPainter)
+		allMatches.forEach { (_, tags) ->
+			tags.forEach { tag ->
+				highlighter!!.removeHighlight(tag)
+			}
 		}
+		allMatches.clear()
+		currentMatchIndex = null
+		matches.forEach { match ->
+			val tags = addHighlight(match.range, false)
+			allMatches.add(match to tags)
+		}
+	}
+
+	/**
+	 * Given a range and an indication if this is the current find range (versus
+	 * all the other find ranges in the document), add highlights for the first
+	 * character, the middle region if any, and the last character of that
+	 * range.  A size-one range acts as both a first and last character, with no
+	 * middle part.  This simplifies rendering of a box highlight, since the
+	 * highlight mechanism is executed for each styled run separately, with no
+	 * easy way to tell if the left or right walls of the box should be drawn.
+	 *
+	 * Answer the list of objects that Swing produced to represent the highlight
+	 * areas.
+	 */
+	private fun addHighlight(
+		range: IntRange,
+		isCurrent: Boolean
+	): List<Any>
+	{
+		val tags = mutableListOf<Any>()
+		val size = range.last + 1 - range.first
+		if (size == 1)
+		{
+			// Size one region.
+			tags.add(
+				highlighter!!.addHighlight(
+					range.first,
+					range.last + 1,
+					selectPainter(isCurrent, true, true)))
+		}
+		else if (size >= 2)
+		{
+			// Left character, middle region if any, right character.
+			tags.add(
+				highlighter!!.addHighlight(
+					range.first,
+					range.first + 1,
+					selectPainter(isCurrent, true, false)))
+			if (size >= 3)
+			{
+				tags.add(
+					highlighter!!.addHighlight(
+						range.first + 1,
+						range.last,
+						selectPainter(isCurrent, false, false)))
+			}
+			tags.add(
+				highlighter!!.addHighlight(
+					range.last,
+					range.last + 1,
+					selectPainter(isCurrent, false, true)))
+		}
+		return tags
 	}
 
 	/**
@@ -233,28 +280,23 @@ class FindAction constructor(
 
 	private fun selectMatch(matchIndex: Int)
 	{
-		val (match, tag) = allMatches[matchIndex]
+		val (match, tags) = allMatches[matchIndex]
 		val pane = textPane ?: return
 		pane.select(match.range.first, match.range.last + 1)
 		currentMatchIndex?.let { j ->
-			// Remove the current match highlighting, replacing it
-			// with the highlighting for all matches.
-			val (m, t) = allMatches[j]
-			highlighter!!.removeHighlight(t)
-			val newTag = highlighter!!.addHighlight(
-				m.range.first, m.range.last + 1,
-				allMatchesPainter)
-			allMatches[j] = m to newTag
+			// Remove the current match highlighting, replacing it with the
+			// highlighting for all matches.
+			val (m, oldTags) = allMatches[j]
+			oldTags.forEach { oldTag ->
+				highlighter!!.removeHighlight(oldTag)
+			}
+			allMatches[j] = m to addHighlight(m.range, false)
 		}
 		// Remove the all-matches highlight for this match, and
 		// add a replacement current-match highlight.
 		currentMatchIndex = matchIndex
-		highlighter!!.removeHighlight(tag)
-		val newTag = highlighter!!.addHighlight(
-			match.range.first, match.range.last + 1,
-			currentMatchPainter
-		)
-		allMatches[matchIndex] = match to newTag
+		tags.forEach { newTag -> highlighter!!.removeHighlight(newTag) }
+		allMatches[matchIndex] = match to addHighlight(match.range, true)
 		pane.showTextRange(match.range.first, match.range.last + 1)
 	}
 
@@ -412,11 +454,54 @@ class FindAction constructor(
 	 */
 	private fun dialogWasClosed()
 	{
-		allMatches.forEach { (_, tag) -> highlighter?.removeHighlight(tag) }
+		allMatches.forEach { (_, tags) ->
+			tags.forEach { tag -> highlighter?.removeHighlight(tag) }
+		}
 		allMatches.clear()
 		currentMatchIndex = null
 		textPane?.document?.removeDocumentListener(documentListener)
 		textPane = null
 		highlighter = null
+	}
+
+	companion object
+	{
+		/** The highlighters used by [selectPainter]. */
+		private val allMatchesPainters =
+			(0..7).map { i ->
+				GlowHighlightPainter(
+					if (i.and(4) != 0) Color.red else Color.yellow,
+					i.and(2) != 0,
+					i.and(1) != 0)
+			}
+
+		/**
+		 * Answer the [HighlightPainter] for rendering a piece of a match.
+		 *
+		 * Use this function to get the highlighter to apply for a span that starts
+		 * or ends with the first or last character of the range.  This simplifies
+		 * the rules for drawing the box outlines.
+		 *
+		 * Note that since highlighting ranges are drawn piecemeal by Swing, based
+		 * on the current style ranges, any start or end ranges should be one
+		 * character wide, with the middle filled with the
+		 * `selectPainter(isCurrent, false, false)` highlighter. If the whole range
+		 * is size one, use the `selectPainter(isCurrent, true, true)` highlighter.
+		 *
+		 * @param isCurrent
+		 *   Whether the highlight painter should be for the current find selection.
+		 * @param isStart
+		 *   Whether this is a highlight region that's the start of a match.
+		 * @param isEnd
+		 *   Whether this is a highlight region that's the end of a match.
+		 */
+		private fun selectPainter(
+			isCurrent: Boolean,
+			isStart: Boolean,
+			isEnd: Boolean
+		) = allMatchesPainters[
+			(if (isCurrent) 4 else 0)
+				+ (if (isStart) 2 else 0)
+				+ (if (isEnd) 1 else 0)]
 	}
 }

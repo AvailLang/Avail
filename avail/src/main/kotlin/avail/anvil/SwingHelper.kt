@@ -226,7 +226,9 @@ fun JTextComponent.showTextRange(rangeStart: Int, rangeEnd: Int)
 
 class GlowHighlightPainter
 constructor (
-	color: Color
+	color: Color,
+	val isStart: Boolean,
+	val isEnd: Boolean
 ): DefaultHighlightPainter(color)
 {
 	override fun paintLayer(
@@ -251,7 +253,20 @@ constructor (
 		// If we are asked to highlight, we should draw something even
 		// if the model-to-view projection is of zero width.
 		r.width = max(r.width, 1)
-		g.drawRect(r.x, r.y, r.width, r.height - 1)
+		// Drow top of box
+		g.fillRect(r.x, r.y, r.width, 1)
+		// Draw bottom of box
+		g.fillRect(r.x, r.y + r.height - 1, r.width, 1)
+		if (isStart)
+		{
+			// Draw left side.
+			g.fillRect(r.x, r.y, 1, r.height - 1)
+		}
+		if (isEnd)
+		{
+			// Draw right side.
+			g.fillRect(r.x + r.width - 1, r.y, 1, r.height - 1)
+		}
 		return Rectangle(r.x - 1, r.y - 1, r.width + 3, r.height + 2)
 	}
 }
