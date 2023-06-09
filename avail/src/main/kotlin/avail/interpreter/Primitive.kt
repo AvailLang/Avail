@@ -631,6 +631,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The name by which a primitive function is declared in Avail code.
 	 * @property className
 	 *   The full name of the Java class implementing the primitive.
+	 * @property classLoader
+	 *   The [ClassLoader] used to load the [Primitive] [className].
 	 *
 	 * @constructor
 	 * Construct a new `PrimitiveHolder`.
@@ -639,10 +641,12 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   The primitive's textual name.
 	 * @param className
 	 *   The fully qualified name of the Primitive subclass.
+	 *
 	 */
 	class PrimitiveHolder internal constructor(
 		val name: String,
-		val className: String)
+		val className: String,
+		private val classLoader: ClassLoader)
 	{
 		/**
 		 * The sole instance of the specific subclass of [Primitive].  It is
@@ -651,10 +655,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		 * performance cost.
 		 */
 		val primitive: Primitive by lazy {
-			val loader = Primitive::class.java.classLoader
 			try
 			{
-				val primClass = loader.loadClass(className)
+				val primClass = classLoader.loadClass(className)
 				// Trigger the linker.
 				primClass.kotlin.objectInstance as Primitive
 			}
@@ -672,13 +675,15 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			}
 		}
 
+
+
 		companion object
 		{
 			/** A map of all [PrimitiveHolder]s, by name. */
-			val holdersByName: Map<String, PrimitiveHolder>
+			val holdersByName: MutableMap<String, PrimitiveHolder>
 
 			/** A map of all [PrimitiveHolder]s, by class name. */
-			val holdersByClassName: Map<String, PrimitiveHolder>
+			val holdersByClassName: MutableMap<String, PrimitiveHolder>
 
 			/**
 			 * The name of a generated file which lists all primitive classes.
@@ -692,6 +697,19 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			 * The pattern of the simple names of [Primitive] classes.
 			 */
 			private val primitiveNamePattern = Pattern.compile("P_(\\w+)")
+
+			/**
+			 * Split the fully qualified class name into its package parts with
+			 * the last element in the list being the
+			 * [simple class name][Class.getSimpleName].
+			 *
+			 * @param className
+			 *   The [binary name][ClassLoader] of the class to split.
+			 */
+			fun splitClassName (className: String): List<String> =
+				className
+					.split("\\.".toRegex())
+					.dropLastWhile { it.isEmpty() }
 
 			/*
 			 * Read from allPrimitivesFileName to get a complete manifest of
@@ -708,19 +726,19 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 					BufferedReader(
 						InputStreamReader(resource.openStream(), UTF_8)
 					).use { input ->
+						val loader = Primitive::class.java.classLoader
 						while (true)
 						{
 							val className = input.readLine() ?: break
-							val parts = className
-								.split("\\.".toRegex())
-								.dropLastWhile { it.isEmpty() }
+							val parts = splitClassName(className)
 							val lastPart = parts.last()
 							val matcher = primitiveNamePattern.matcher(lastPart)
 							if (matcher.matches())
 							{
 								val name = matcher.group(1)
 								assert(!byNames.containsKey(name))
-								val holder = PrimitiveHolder(name, className)
+								val holder = PrimitiveHolder(
+									name, className, loader)
 								byNames[name] = holder
 								byClassNames[className] = holder
 							}
