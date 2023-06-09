@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 5/18/23, 3:20 PM
+ * * Last Generated: 6/8/23, 8:26 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -211,6 +211,7 @@ Uses
 		"primitive description of_",
 		"read_/write_",
 		"sequence-as-expression`«_`»",
+		"sin_",
 		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -640,6 +641,25 @@ Primitive "_mod_" is
 	divisor : double
 |
 	Primitive DoubleModulus;
+] : double;
+
+/**
+ * Compute and answer an approximation of sin {@param "theta"}, i.e. the
+ * ratio of the altitude to the distance between the origin and a point projected at
+ * an angle given by the argument in radians.
+ *
+ * @category "Primitives"
+ * @method "sin_"
+ * @param "theta" "double"
+ *        The angle in radians.
+ * @returns "double"
+ *    The sine of the given angle.
+ */
+Primitive "sin_" is
+[
+	theta : double
+|
+	Primitive DoubleSine;
 ] : double;
 
 /**
