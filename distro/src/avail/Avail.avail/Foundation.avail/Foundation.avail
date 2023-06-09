@@ -242,6 +242,7 @@ Extends
 		"sequence phrase",
 		"seq`«_`»",
 		"set",
+		"sin_",
 		"stack dump key",
 		"statement phrase",
 		"static method_._,⁇parameterized by_",

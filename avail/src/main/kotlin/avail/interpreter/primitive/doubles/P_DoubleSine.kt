@@ -1,6 +1,6 @@
 /*
- * Bootstrap.avail
- * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * P_DoubleSine.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.interpreter.primitive.doubles
 
-/*
- * GENERATED FILE
- * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/8/23, 8:26 PM
- *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
- */
+import avail.descriptor.numbers.A_Number.Companion.extractDouble
+import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
+import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.*
+import avail.interpreter.execution.Interpreter
+import kotlin.math.sin
 
-Module "Bootstrap"
-Versions
-	"Avail-1.6.1"
-Extends
-	"Origin",
-	"Special Objects",
-	"Error Codes",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives"
-Uses
-Names
-Body
+/**
+ * **Primitive:** Compute `sin(a)`, the trigonometric sine of `a`, given in radians.
+  */
+@Suppress("unused")
+object P_DoubleSine : Primitive(1, CannotFail, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
+		interpreter.checkArgumentCount(1)
+		val a = interpreter.argument(0)
+		return interpreter.primitiveSuccess(
+			fromDoubleRecycling(sin(a.extractDouble), a, true))
+	}
 
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				DOUBLE.o),
+			DOUBLE.o)
+}

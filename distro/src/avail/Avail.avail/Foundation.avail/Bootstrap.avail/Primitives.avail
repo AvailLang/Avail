@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 5/18/23, 3:20 PM
+ * * Last Generated: 6/8/23, 8:26 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -303,6 +303,7 @@ Names
 	"send_with_:_",
 	"seq`«_`»",
 	"sequence-as-expression`«_`»",
+	"sin_",
 	"static method_._,⁇parameterized by_",
 	"termination requested",
 	"{_`|_}",
