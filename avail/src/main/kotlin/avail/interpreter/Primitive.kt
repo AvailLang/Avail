@@ -683,7 +683,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			val holdersByName: MutableMap<String, PrimitiveHolder>
 
 			/** A map of all [PrimitiveHolder]s, by class name. */
-			val holdersByClassName: MutableMap<String, PrimitiveHolder>
+			internal val holdersByClassName: MutableMap<String, PrimitiveHolder>
 
 			/**
 			 * The name of a generated file which lists all primitive classes.

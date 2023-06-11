@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 5/18/23, 3:20 PM
+ * * Last Generated: 6/11/23, 1:40 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -135,6 +135,7 @@ Names
 	/* 135 */ "nonempty set of string",
 	/* 133 */ "nonempty string",
 	/* 137 */ "nonempty tuple",
+	/* 181 */ "nonempty tuple of string",
 	/* 118 */ "nonnegative extended integer",
 	/*  31 */ "nontype",
 	/*  90 */ "nullary procedure",
@@ -2389,4 +2390,13 @@ Special object "optionalPhrase" is special object 179;
  * @alias "string literal phrase"
  */
 Special object "string literal phrase" is special object 180;
+
+/**
+ * A non-empty tuple of strings.
+ *
+ * @category "Primitives" "Types"
+ * @type "<string…|1..∞>"
+ * @alias "nonempty tuple of string"
+ */
+Special object "nonempty tuple of string" is special object 181;
 

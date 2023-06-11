@@ -34,7 +34,7 @@ package avail.interpreter
 
 import avail.builder.ModuleName
 import avail.descriptor.tuples.A_String
-import java.net.URL
+import java.io.File
 import java.net.URLClassLoader
 import javax.annotation.concurrent.GuardedBy
 
@@ -48,31 +48,32 @@ import javax.annotation.concurrent.GuardedBy
  *   The fully qualified [A_String] name of the module that is responsible for
  *   creating this [PrimitiveClassLoader] for loading [Primitive]s from the
  *   target jar file.
+ *
+ * @constructor
+ * Construct a [PrimitiveClassLoader].
+ *
+ * @param jarFile
+ *   The [File] location of the jar file to load that contains the [Primitive]s.
+ * @param moduleName
+ *   The [A_String] module name of the module that created this class loader.
+ * @param classNames
+ *   The list of fully qualified [Primitive] class names as [A_String]s that
+ *   represent [Primitive]s made available through this [PrimitiveClassLoader].
+ * @param parent
+ *   The parent [ClassLoader] of this [PrimitiveClassLoader].
  */
 class PrimitiveClassLoader constructor(
-	jarUrl: URL,
+	jarFile: File,
 	val moduleName: A_String,
+	classNames: Set<String>,
 	parent: ClassLoader = Primitive::class.java.classLoader
-): URLClassLoader(arrayOf(jarUrl), parent)
+): URLClassLoader(arrayOf(jarFile.toURI().toURL()), parent)
 {
 	/**
 	 * The set of [Primitive.PrimitiveHolder]s that were loaded by this
 	 * [PrimitiveClassLoader].
 	 */
 	private val holders = mutableSetOf<Primitive.PrimitiveHolder>()
-	override fun loadClass(name: String, resolve: Boolean): Class<*>
-	{
-		val c = super.loadClass(name, resolve)
-		synchronized(this) {
-			val primitiveName =
-				Primitive.PrimitiveHolder.splitClassName(name).last()
-			val holder = Primitive.PrimitiveHolder(primitiveName, name, this)
-			Primitive.PrimitiveHolder.holdersByClassName[name] = holder
-			Primitive.PrimitiveHolder.holdersByName[primitiveName] = holder
-			holders.add(holder)
-		}
-		return c
-	}
 
 	/**
 	 * Cleanup all of the [Primitive.PrimitiveHolder]s loaded by this
@@ -96,6 +97,15 @@ class PrimitiveClassLoader constructor(
 	init
 	{
 		moduleToLoader.computeIfAbsent(moduleName) { mutableSetOf() }.add(this)
+		classNames.forEach {
+			val primitiveName =
+				Primitive.PrimitiveHolder.splitClassName(it).last()
+			val holder =
+				Primitive.PrimitiveHolder(primitiveName, it, this)
+			Primitive.PrimitiveHolder.holdersByClassName[it] = holder
+			Primitive.PrimitiveHolder.holdersByName[primitiveName] = holder
+			holders.add(holder)
+		}
 	}
 
 	companion object
