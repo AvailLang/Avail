@@ -109,7 +109,7 @@ data class MarkPosition constructor(
 ): DocumentPosition()
 {
 	override fun toString(): String =
-		"$lineOneBased:$characterInLineOneBased ($offset)"
+		"$lineOneBased:$characterInLineOneBased (@$offset)"
 
 	companion object
 	{
@@ -230,7 +230,7 @@ data class MarkToDotRange constructor(
 		{
 			"${markPosition.lineOneBased}:${markPosition.characterInLineOneBased} — " +
 				"${dotPosition.lineOneBased}:${dotPosition.characterInLineOneBased} " +
-				"(${count.absoluteValue} chars)"
+				"(${count.absoluteValue} chars @${markPosition.offset})"
 		}
 
 	companion object

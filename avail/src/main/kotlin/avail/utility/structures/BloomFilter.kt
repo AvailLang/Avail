@@ -32,7 +32,7 @@
 
 package avail.utility.structures
 
-import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.representation.AvailObject
 
 /**
  * A `BloomFilter` is a conservative, probabilistic set.  It can report that an
@@ -67,6 +67,7 @@ class BloomFilter
 	 */
 	constructor(bitCount: Int, hashCount: Int)
 	{
+		assert(hashCount < hashSalts.size)
 		this.hashCount = hashCount
 		this.array = LongArray((bitCount + 63) shr 6)
 	}
@@ -86,6 +87,17 @@ class BloomFilter
 	/** The number of hash functions to use. */
 	private val hashCount: Int
 
+	private val hashSalts = intArrayOf(
+		0x106A0E28,
+		-0x75F627F4,
+		-0x51C4CBC8,
+		-0x34F95F19,
+		0x596F6ACD,
+		-0x6A6FB895,
+		0x3173A4D9,
+		-0x771EA1ED,
+	)
+
 	/**
 	 * The bits, guaranteed to be 1 if a hash function produced that index for
 	 * any element that has been added.
@@ -99,7 +111,9 @@ class BloomFilter
 	 *   The [Int] to add to the [BloomFilter].
 	 */
 	fun add(element: Int) =
-		(1..hashCount).forEach { setBit(computeHash(element, it)) }
+		(1..hashCount).forEach {
+			setBit(computeHash(element, it))
+		}
 
 	/**
 	 * Determine whether the given element is probably present in the filter.
@@ -124,8 +138,7 @@ class BloomFilter
 	 *   Which hash function to compute.
 	 */
 	private fun computeHash(element: Int, hashIndex: Int): Int =
-		IntegerDescriptor.computeHashOfLong(
-			(element.toLong() shl 32) + hashIndex)
+		AvailObject.combine2(element, hashSalts[hashIndex])
 
 	/**
 	 * Set one bit in the table.
