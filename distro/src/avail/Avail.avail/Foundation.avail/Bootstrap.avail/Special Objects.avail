@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/11/23, 1:40 PM
+ * * Last Generated: 6/15/23, 8:52 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -177,6 +177,7 @@ Names
 	/*  27 */ "set meta",
 	/* 114 */ "set of atom",
 	/* 134 */ "set of exception",
+	/* 182 */ "set of nonempty strings",
 	/*  75 */ "set of string",
 	/*  49 */ "stack dump key",
 	/* 148 */ "statement phrase",
@@ -2392,11 +2393,20 @@ Special object "optionalPhrase" is special object 179;
 Special object "string literal phrase" is special object 180;
 
 /**
- * A non-empty tuple of strings.
+ * A non-empty tuple of nonempty strings.
  *
  * @category "Primitives" "Types"
  * @type "<string…|1..∞>"
  * @alias "nonempty tuple of string"
  */
 Special object "nonempty tuple of string" is special object 181;
+
+/**
+ * A set of non-empty strings.
+ *
+ * @category "Primitives" "Types"
+ * @type "{nonempty string|}"
+ * @alias "set of nonempty strings"
+ */
+Special object "set of nonempty strings" is special object 182;
 

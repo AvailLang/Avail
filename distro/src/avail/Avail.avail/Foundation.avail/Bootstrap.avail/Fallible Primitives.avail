@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/11/23, 1:40 PM
+ * * Last Generated: 6/15/23, 8:52 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -65,7 +65,6 @@ Uses
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
 		"Lexer_when_is_«styled by_»?",
-		"Link_from_",
 		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
@@ -133,6 +132,7 @@ Uses
 		"first-of-seq`«_`»",
 		"function from_and_",
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
+		"internal link_from_",
 		"invoke_with_,⁇forked at priority_",
 		"lookup macro_with phrases_",
 		"message_contains groups",
@@ -1166,22 +1166,35 @@ Primitive "_<<_keeping_bits" is
  * Link the indicated native primitives from the indicated jar resource file.
  *
  * @category "Primitives"
- * @method "Link_from_"
- * @param "primitives" "<string…|1..∞>"
+ * @method "internal link_from_"
+ * @param "primitives" "<<character…|1..∞>…|1..∞>"
  *        A tuple of fully qualified class names of the primitives to link.
- * @param "source" "string"
+ * @param "source" "<character…|1..∞>"
  *        The root-relative fully qualified name of the source file to link.
  *        This is the resource jar file that contains the primitives.
- * @returns "⊤"
+ * @returns "{<character…|1..∞>|}"
+ *        The set of missing primitive classes from the jar file, if any.
+ * @raises "I/O exception"
+ * @raises "permission-denied exception"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "no-file exception"
+ * @raises "invalid-path exception"
  */
-Primitive "Link_from_" is
+Primitive "internal link_from_" is
 [
 	primitives : nonempty tuple of string,
-	source : string
+	source : nonempty string
 |
-	Primitive LinkPrimitives (failureCode : natural number);
+	Primitive LinkPrimitives (failureCode : {
+		I/O-error code,
+		permission-denied code,
+		cannot-define-during-compilation code,
+		loading-is-over code,
+		no-file code,
+		invalid-path code}ᵀ);
 	Private invoke _fail_primitive with failureCode
-] : ⊤;
+] : set of nonempty strings;
 
 /**
  * Answer the value bound to {@param "aMap"} in {@param "key"}.

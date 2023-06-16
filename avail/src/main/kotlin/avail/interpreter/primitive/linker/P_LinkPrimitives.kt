@@ -33,17 +33,26 @@
 package avail.interpreter.primitive.linker
 
 import avail.descriptor.module.A_Module.Companion.moduleName
-import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import avail.exceptions.AvailErrorCode.E_IO_ERROR
+import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
+import avail.exceptions.AvailErrorCode.E_NO_FILE
+import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.PrimitiveClassLoader
@@ -61,44 +70,49 @@ import java.util.jar.JarFile
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_LinkPrimitives : Primitive(2, CanFold, CanInline, HasSideEffect)
+object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
+		val classNamesTuple = interpreter.argument(0)
 		val jarPath = interpreter.argument(1).asNativeString()
-		val moduleName = interpreter.module().moduleName.asNativeString()
+		val loader = interpreter.availLoaderOrNull()
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		if (!loader.phase.isExecuting)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION)
+		}
+		val module = interpreter.module()
+		val moduleName = module.moduleName.asNativeString()
 		val currentRoot = interpreter.runtime.moduleRoots().firstOrNull {
 			it.resolver.getResolverReference(moduleName) != null
-		} ?: return interpreter.primitiveFailure(
-			stringFrom(
-				"Could not determine the current module root."))
+		}!!
 		val jarReference = currentRoot.resolver.getResolverReference(jarPath)
-			?: return interpreter.primitiveFailure(
-				stringFrom(
-					"While loading primitives $jarPath not found in " +
-						"root, ${currentRoot.name}."))
+			?: return interpreter.primitiveFailure(E_NO_FILE)
 		val jarFile = Paths.get(jarReference.uri).toFile()
 		if (!jarFile.exists())
 		{
-			interpreter.primitiveFailure(
-				stringFrom(
-					"While loading primitives ${jarReference.uri} " +
-						"not found."))
+			return interpreter.primitiveFailure(E_NO_FILE)
 		}
 
-		val missingClassesFromJar = mutableSetOf<String>()
+		val missingClassesFromJar = mutableSetOf<A_String>()
 		val classNames: Set<String>
 		try
 		{
 			JarFile(jarFile).use { jar ->
-				classNames = interpreter.argument(0)
+				val s = mutableSetOf<String>()
+				jar.entries().asIterator().forEach {
+					s.add(it.name)
+				}
+				classNames = classNamesTuple
 					.map {
 						val className = it.asNativeString()
-						val path = className.replace('.', '/')
+						val path = className.replace('.', '/') + ".class"
 						if (jar.getJarEntry(path) == null)
 						{
-							missingClassesFromJar.add(className)
+							missingClassesFromJar.add(it)
 						}
 						className
 					}.toSet()
@@ -106,22 +120,17 @@ object P_LinkPrimitives : Primitive(2, CanFold, CanInline, HasSideEffect)
 		}
 		catch (e: IOException)
 		{
-			return interpreter.primitiveFailure(
-				stringFrom(
-					"Failed to access $jarPath\n${e.localizedMessage}"))
+			return interpreter.primitiveFailure(E_IO_ERROR)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.primitiveFailure(
-				stringFrom(
-					"Could not access $jarPath\n${e.localizedMessage}"))
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
 		}
 
 		if (missingClassesFromJar.isNotEmpty())
 		{
-			val m = "The following primitives were not found in $jarPath:\n\t" +
-				missingClassesFromJar.joinToString("\n\t"){ it }
-			return interpreter.primitiveFailure(stringFrom(m))
+			return interpreter.primitiveSuccess(
+				setFromCollection(missingClassesFromJar))
 		}
 
 		try
@@ -131,19 +140,28 @@ object P_LinkPrimitives : Primitive(2, CanFold, CanInline, HasSideEffect)
 		}
 		catch (e: SecurityException)
 		{
-			return interpreter.primitiveFailure(
-				stringFrom(
-					"Creating Classloader on this system not " +
-						"permitted\n${e.localizedMessage}"))
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
 		}
 		catch (e: MalformedURLException)
 		{
-			return interpreter.primitiveFailure(
-				stringFrom("$jarPath is not properly formatted"))
+			return interpreter.primitiveFailure(E_INVALID_PATH)
 		}
-		return interpreter.primitiveSuccess(nil)
+		return interpreter.primitiveSuccess(emptySet)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(oneOrMoreOf(stringType), stringType), TOP.o)
+		functionType(
+			tuple(oneOrMoreOf(nonemptyStringType), nonemptyStringType),
+			setTypeForSizesContentType(wholeNumbers, nonemptyStringType))
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_PERMISSION_DENIED,
+				E_INVALID_PATH,
+				E_IO_ERROR,
+				E_NO_FILE,
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION
+			))
 }

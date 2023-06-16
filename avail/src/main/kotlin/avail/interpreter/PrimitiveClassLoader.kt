@@ -100,6 +100,7 @@ class PrimitiveClassLoader constructor(
 		classNames.forEach {
 			val primitiveName =
 				Primitive.PrimitiveHolder.splitClassName(it).last()
+					.split("P_").last()
 			val holder =
 				Primitive.PrimitiveHolder(primitiveName, it, this)
 			Primitive.PrimitiveHolder.holdersByClassName[it] = holder
