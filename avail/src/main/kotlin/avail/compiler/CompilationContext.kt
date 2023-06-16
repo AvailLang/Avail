@@ -916,7 +916,7 @@ class CompilationContext constructor(
 			position.toLong(),
 			INTERNAL,
 			"Internal error: {0}\n{1}",
-			e.message!!,
+			e.message ?: "(no error message)",
 			e.stackToString)
 		{
 			override fun abortCompilation()
@@ -969,7 +969,7 @@ class CompilationContext constructor(
 					position.toLong(),
 					EXECUTION,
 					"Execution error: {0}\n{1}",
-					e.message!!,
+					e.message ?: "(no error message)",
 					e.stackToString)
 				{
 					override fun abortCompilation()
