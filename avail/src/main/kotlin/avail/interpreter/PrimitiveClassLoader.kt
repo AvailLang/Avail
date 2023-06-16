@@ -133,12 +133,14 @@ class PrimitiveClassLoader constructor(
 		 */
 		fun unloadModuleClassLoaders (moduleName: A_String)
 		{
-			moduleToLoader[moduleName]?.toList()?.forEach {
-				it.cleanup()
-			}
-			synchronized(UnloadLock)
-			{
-				moduleToLoader.remove(moduleName)
+			moduleToLoader[moduleName]?.let {
+				it.toList().forEach { loader ->
+					loader.cleanup()
+				}
+				synchronized(UnloadLock)
+				{
+					moduleToLoader.remove(moduleName)
+				}
 			}
 		}
 

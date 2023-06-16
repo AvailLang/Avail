@@ -79,6 +79,7 @@ object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
 		val jarPath = interpreter.argument(1).asNativeString()
 		val loader = interpreter.availLoaderOrNull()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		loader.statementCanBeSummarized(false)
 		if (!loader.phase.isExecuting)
 		{
 			return interpreter.primitiveFailure(
