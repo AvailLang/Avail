@@ -216,13 +216,54 @@ fun JTextComponent.showTextRange(rangeStart: Int, rangeEnd: Int)
 }
 
 /**
+ * A mechanism for highlighting explicit spans of text.  It's composed of
+ * [GlowHighlightRangePainter]s that can paint the initial and/or final
+ * characters of the span, and the interior portions of the span.  Those
+ * subranges (at most 3) are added to a [JTextPane]'s highlighter's highlighted
+ * regions, using the specific [GlowHighlightRangePainter] for each range.
+ *
+ * At rendering time, the captured [GlowHighlightRangePainter] for a range is
+ * told to paint itself for each potentially smaller run of text that has the
+ * same styling information throughout that smaller run.
+ *
+ * @param colors
+ *   The array of [Color]s to draw in successive rings around the text.
+ */
+class Glow constructor(vararg colors: Color)
+{
+	/**
+	 * Create the array of four [GlowHighlightRangePainter]s, in an order that
+	 * [painterFor] can decode.
+	 */
+	private val painters = Array(4) {
+		GlowHighlightRangePainter(colors, (it and 2) != 0, (it and 1) != 0)
+	}
+
+	/**
+	 * Select the appropriate [GlowHighlightRangePainter] for highlighting text.
+	 *
+	 * @param isStart
+	 *   If the highlighter is for the first character of the range.
+	 * @param isEnd
+	 *   If the highlighter is for the last character of the range.
+	 */
+	fun painterFor(
+		isStart: Boolean,
+		isEnd: Boolean
+	): GlowHighlightRangePainter =
+		painters[
+			(if (isStart) 2 else 0)
+				+ (if (isEnd) 1 else 0)
+		]
+}
+
+/**
  * A [LayerPainter] that is capable of highlighting text with a glowing border.
  * The glow is accomplished through an array of colors to draw successive layers
  * around the text in a rounded rectangle.
  */
-class GlowHighlightPainter
-constructor (
-	private val colors: Array<Color>,
+class GlowHighlightRangePainter(
+	private val colors: Array<out Color>,
 	private val isStart: Boolean,
 	private val isEnd: Boolean
 ): LayerPainter()

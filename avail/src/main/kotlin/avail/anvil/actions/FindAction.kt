@@ -33,7 +33,7 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.GlowHighlightPainter
+import avail.anvil.Glow
 import avail.anvil.shortcuts.FindActionShortcut
 import avail.anvil.showTextRange
 import java.awt.BorderLayout
@@ -175,7 +175,7 @@ class FindAction constructor(
 		allMatches.clear()
 		currentMatchIndex = null
 		matches.forEach { match ->
-			val tags = addHighlight(match.range, false)
+			val tags = addHighlight(match.range, otherMatch)
 			allMatches.add(match to tags)
 		}
 	}
@@ -194,7 +194,7 @@ class FindAction constructor(
 	 */
 	private fun addHighlight(
 		range: IntRange,
-		isCurrent: Boolean
+		glow: Glow
 	): List<Any>
 	{
 		val tags = mutableListOf<Any>()
@@ -206,7 +206,7 @@ class FindAction constructor(
 				highlighter!!.addHighlight(
 					range.first,
 					range.last + 1,
-					selectPainter(isCurrent, true, true)))
+					glow.painterFor(true, true)))
 		}
 		else if (size >= 2)
 		{
@@ -215,20 +215,20 @@ class FindAction constructor(
 				highlighter!!.addHighlight(
 					range.first,
 					range.first + 1,
-					selectPainter(isCurrent, true, false)))
+					glow.painterFor(true, false)))
 			if (size >= 3)
 			{
 				tags.add(
 					highlighter!!.addHighlight(
 						range.first + 1,
 						range.last,
-						selectPainter(isCurrent, false, false)))
+						glow.painterFor(false, false)))
 			}
 			tags.add(
 				highlighter!!.addHighlight(
 					range.last,
 					range.last + 1,
-					selectPainter(isCurrent, false, true)))
+					glow.painterFor(false, true)))
 		}
 		return tags
 	}
@@ -291,13 +291,14 @@ class FindAction constructor(
 			oldTags.forEach { oldTag ->
 				highlighter!!.removeHighlight(oldTag)
 			}
-			allMatches[j] = m to addHighlight(m.range, false)
+			allMatches[j] = m to addHighlight(m.range, otherMatch)
 		}
 		// Remove the all-matches highlight for this match, and
 		// add a replacement current-match highlight.
 		currentMatchIndex = matchIndex
 		tags.forEach { newTag -> highlighter!!.removeHighlight(newTag) }
-		allMatches[matchIndex] = match to addHighlight(match.range, true)
+		allMatches[matchIndex] =
+			match to addHighlight(match.range, currentMatch)
 		pane.showTextRange(match.range.first, match.range.last + 1)
 	}
 
@@ -470,55 +471,22 @@ class FindAction constructor(
 
 	companion object
 	{
-		private val currentMatchGlows = arrayOf(
+		/** The [Glow] to use for the current find match. */
+		private val currentMatch = Glow(
 			Color(255, 255, 0, 192),
 			Color(255, 255, 0, 160),
 			Color(255, 255, 0, 100),
 			Color(255, 255, 0, 60),
 			Color(255, 255, 0, 40))
 
-		private val otherMatchGlows = arrayOf(
+		/**
+		 * The [Glow] to use for a match that isn't the current one.
+		 */
+		private val otherMatch = Glow(
 			Color(255, 255, 0, 96),
 			Color(255, 255, 0, 80),
 			Color(255, 255, 0, 64),
 			Color(255, 255, 0, 32))
-
-		/** The highlighters used by [selectPainter]. */
-		private val allMatchesPainters =
-			(0..7).map { i ->
-				GlowHighlightPainter(
-					if (i.and(4) != 0) currentMatchGlows else otherMatchGlows,
-					i.and(2) != 0,
-					i.and(1) != 0)
-			}
-
-		/**
-		 * Answer the [HighlightPainter] for rendering a piece of a match.
-		 *
-		 * Use this function to get the highlighter to apply for a span that starts
-		 * or ends with the first or last character of the range.  This simplifies
-		 * the rules for drawing the box outlines.
-		 *
-		 * Note that since highlighting ranges are drawn piecemeal by Swing, based
-		 * on the current style ranges, any start or end ranges should be one
-		 * character wide, with the middle filled with the
-		 * `selectPainter(isCurrent, false, false)` highlighter. If the whole range
-		 * is size one, use the `selectPainter(isCurrent, true, true)` highlighter.
-		 *
-		 * @param isCurrent
-		 *   Whether the highlight painter should be for the current find selection.
-		 * @param isStart
-		 *   Whether this is a highlight region that's the start of a match.
-		 * @param isEnd
-		 *   Whether this is a highlight region that's the end of a match.
-		 */
-		private fun selectPainter(
-			isCurrent: Boolean,
-			isStart: Boolean,
-			isEnd: Boolean
-		) = allMatchesPainters[
-			(if (isCurrent) 4 else 0)
-				+ (if (isStart) 2 else 0)
-				+ (if (isEnd) 1 else 0)]
 	}
 }
+
