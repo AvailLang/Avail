@@ -55,6 +55,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
+import javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE
 import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -377,9 +378,10 @@ class FindAction constructor(
 			add(replaceAllButton)
 			add(closeButton)
 			// Pressing escape in the find dialog should close it.
-			actionMap.put("Close", closeAction)
+			val closeName = "Close"
+			actionMap.put(closeName, closeAction)
 			getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).run {
-				put(KeyStroke.getKeyStroke("ESCAPE"), "Close")
+				put(KeyStroke.getKeyStroke("ESCAPE"), closeName)
 			}
 			// TODO Add "replace" functionality
 			replaceText.isEnabled = false
@@ -439,10 +441,12 @@ class FindAction constructor(
 			val topLeft = workbench.location
 			setLocation(
 				topLeft.x + workbench.width - width - 100, topLeft.y + 30)
+			defaultCloseOperation = DO_NOTHING_ON_CLOSE
 			addWindowListener(object : WindowAdapter()
 			{
-				override fun windowClosed(e: WindowEvent) {
+				override fun windowClosing(e: WindowEvent) {
 					dialogWasClosed()
+					dispose()
 				}
 			})
 		}
@@ -466,11 +470,24 @@ class FindAction constructor(
 
 	companion object
 	{
+		private val currentMatchGlows = arrayOf(
+			Color(255, 255, 0, 192),
+			Color(255, 255, 0, 160),
+			Color(255, 255, 0, 100),
+			Color(255, 255, 0, 60),
+			Color(255, 255, 0, 40))
+
+		private val otherMatchGlows = arrayOf(
+			Color(255, 255, 0, 96),
+			Color(255, 255, 0, 80),
+			Color(255, 255, 0, 64),
+			Color(255, 255, 0, 32))
+
 		/** The highlighters used by [selectPainter]. */
 		private val allMatchesPainters =
 			(0..7).map { i ->
 				GlowHighlightPainter(
-					if (i.and(4) != 0) Color.red else Color.yellow,
+					if (i.and(4) != 0) currentMatchGlows else otherMatchGlows,
 					i.and(2) != 0,
 					i.and(1) != 0)
 			}

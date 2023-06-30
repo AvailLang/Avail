@@ -197,10 +197,10 @@ abstract class FileEditor<CE> constructor(
 	internal abstract fun populateSourcePane(then: (CE) -> Unit = {})
 
 	/**
-	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 * The [code&#32;guide][CodeOverlay] for the [source&#32;pane][sourcePane].
 	 */
 	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeGuide::class.java.name) as CodeGuide
+		CodeOverlay::class.java.name) as CodeOverlay
 
 	/**
 	 * Apply style highlighting to the text in the

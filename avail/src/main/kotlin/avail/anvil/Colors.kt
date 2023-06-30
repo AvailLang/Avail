@@ -57,7 +57,7 @@ sealed class SystemColors
 	abstract val codeText: Color
 
 
-	/** The color of a [code&#32;guide][CodeGuide]. */
+	/** The color of a [code&#32;guide][CodeOverlay]. */
 	abstract val codeGuide: Color
 
 	/** The default [color][Color] for [StreamStyle.IN_ECHO]. */

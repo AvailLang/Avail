@@ -58,12 +58,11 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities
 import javax.swing.plaf.LayerUI
 import javax.swing.text.BadLocationException
-import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.JTextComponent
+import javax.swing.text.LayeredHighlighter.LayerPainter
 import javax.swing.text.Position.Bias
 import javax.swing.text.StyleConstants
 import javax.swing.text.View
-import kotlin.math.max
 
 /**
  * Either places the receiver JTextArea inside a JScrollPane with line numbers
@@ -83,11 +82,11 @@ fun JTextPane.scrollTextWithLineNumbers(
 	guideLines: List<Int> = listOf(80)
 ): JLayer<JScrollPane>
 {
-	parent?.parent?.parent?.let { return it.cast() }
+	getClientProperty(CodeOverlay::class.java.name)?.let { return it.cast() }
 	val scrollPane = JScrollPane(this)
-	val codeGuide = CodeGuide(workbench, this, guideLines)
-	val guidePane = JLayer(scrollPane, codeGuide)
-	putClientProperty(CodeGuide::class.java.name, codeGuide)
+	val overlay = CodeOverlay(workbench, this, guideLines)
+	val guidePane = JLayer(scrollPane, overlay)
+	putClientProperty(CodeOverlay::class.java.name, overlay)
 	val lines = TextLineNumber(this)
 	scrollPane.setRowHeaderView(lines)
 	// Make sure that the font is available in several places, for convenience.
@@ -110,15 +109,12 @@ fun JTextPane.scrollTextWithLineNumbers(
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga
  */
-class CodeGuide constructor(
+class CodeOverlay constructor(
 	private val workbench: AvailWorkbench,
 	private val jTextPane: JTextPane,
 	private val guideLines: List<Int> = listOf(80)
 ): LayerUI<JScrollPane>()
 {
-	/** The X-offset for the guide. */
-	var x: Int? = null
-
 	/** The color of the code guide. */
 	var guideColor = computeColor()
 
@@ -141,22 +137,17 @@ class CodeGuide constructor(
 		val view = layer.view
 		val bounds = view.viewportBorderBounds
 		guideLines.forEach {
-			if (x === null)
-			{
-				// The font is monospaced, so we can use any character we like to
-				// measure the width.
-				val fontMetrics = view.getFontMetrics(jTextPane.font)
-				// The Euro, €, is a slightly wider character which appears to
-				// place the guideline in the correct spot based on empirical
-				// evidence.
-				val stringWidth = fontMetrics.stringWidth("€".repeat(it))
-				x = bounds.x + stringWidth
-			}
-			val x = x!!
+			// The font is monospaced, so we can use any character we like
+			// to measure the width.
+			val fontMetrics = view.getFontMetrics(jTextPane.font)
+			// The Euro, €, is a slightly wider character which appears to
+			// place the guideline in the correct spot based on empirical
+			// evidence.
+			val stringWidth = fontMetrics.stringWidth("€".repeat(it))
+			val x = bounds.x + stringWidth
 			val deltaX = view.viewport.viewPosition.x
 			g.color = guideColor
 			g.drawLine(x - deltaX, bounds.y, x - deltaX, bounds.height)
-			this.x = null
 		}
 	}
 }
@@ -224,13 +215,28 @@ fun JTextComponent.showTextRange(rangeStart: Int, rangeEnd: Int)
 	}
 }
 
+/**
+ * A [LayerPainter] that is capable of highlighting text with a glowing border.
+ * The glow is accomplished through an array of colors to draw successive layers
+ * around the text in a rounded rectangle.
+ */
 class GlowHighlightPainter
 constructor (
-	color: Color,
-	val isStart: Boolean,
-	val isEnd: Boolean
-): DefaultHighlightPainter(color)
+	private val colors: Array<Color>,
+	private val isStart: Boolean,
+	private val isEnd: Boolean
+): LayerPainter()
 {
+	override fun paint(
+		g: Graphics?,
+		p0: Int,
+		p1: Int,
+		bounds: Shape?,
+		c: JTextComponent?)
+	{
+		throw UnsupportedOperationException()
+	}
+
 	override fun paintLayer(
 		g: Graphics,
 		offs0: Int,
@@ -240,7 +246,6 @@ constructor (
 		view: View
 	): Shape?
 	{
-		g.color = color ?: c.selectionColor
 		val shape = try
 		{
 			view.modelToView(offs0, Bias.Backward, offs1, Bias.Forward, bounds)
@@ -249,25 +254,88 @@ constructor (
 		{
 			return null
 		}
-		val r = shape as? Rectangle ?: shape.bounds
+		val rect = Rectangle(shape.bounds)
 		// If we are asked to highlight, we should draw something even
 		// if the model-to-view projection is of zero width.
-		r.width = max(r.width, 1)
-		// Drow top of box
-		g.fillRect(r.x, r.y, r.width, 1)
-		// Draw bottom of box
-		g.fillRect(r.x, r.y + r.height - 1, r.width, 1)
-		if (isStart)
-		{
-			// Draw left side.
-			g.fillRect(r.x, r.y, 1, r.height - 1)
+		if (rect.width == 0) rect.width = 1
+		repeat(colors.size) { zeroOut ->
+			val out = zeroOut + 1
+			val out2 = out * 2
+			val safeOut = out + 3  // Out plus a safety margin for arcs.
+			g.color = colors[zeroOut]
+
+			// This version uses rounded rectangles, but it leaves visible holes
+			// in the corners.
+			//
+			//g.create().run {
+			//	val r = rect.run {
+			//		Rectangle(x - out, y - out, width + out2, height + out2)
+			//	}
+			//	val clip = clipBounds
+			//	if (!isStart)
+			//	{
+			//		clip.width += clip.x - rect.x
+			//		clip.x = rect.x
+			//	}
+			//	if (!isEnd)
+			//	{
+			//		clip.width = rect.x + rect.width - clip.x
+			//	}
+			//	clipRect(clip.x, clip.y, clip.width, clip.height)
+			//	drawRoundRect(
+			//		rect.x - out,
+			//		rect.y - out,
+			//		rect.width + out2,
+			//		rect.height + out2,
+			//		out,  //zeroOut?
+			//		out)
+			//}
+
+			with(rect) {
+				// Draw top of box
+				g.fillRect(x, y - out, width, 1)
+				// Draw bottom of box
+				g.fillRect(x, y + height + out - 1, width, 1)
+				if (isStart)
+				{
+					// Draw left side.
+					g.fillRect(x - out, y, 1, height)
+					// Top left arc.
+					g.create().run {
+						clipRect(x - safeOut, y - safeOut, safeOut, safeOut)
+						drawOval(x - out, y - out, out2, out2)
+					}
+					// Bottom left arc.
+					g.create().run {
+						clipRect(x - safeOut, y + height, safeOut, safeOut)
+						drawOval(x - out, y + height - out - 1, out2, out2)
+					}
+
+				}
+				if (isEnd)
+				{
+					// Draw right side.
+					g.fillRect(x + width - 1 + out, y, 1, height)
+					// Top right arc.
+					g.create().run {
+						clipRect(x + width, y - out, safeOut, out)
+						drawOval(x + width - out - 1, y - out, out2, out2)
+					}
+					// Bottom right arc.
+					g.create().run {
+						clipRect(x + width, y + height, out, out)
+						drawOval(
+							x + width - out - 1, y + height - out, out2, out2)
+					}
+				}
+			}
 		}
-		if (isEnd)
-		{
-			// Draw right side.
-			g.fillRect(r.x + r.width - 1, r.y, 1, r.height - 1)
-		}
-		return Rectangle(r.x - 1, r.y - 1, r.width + 3, r.height + 2)
+		val maxOutset = colors.size
+		return Rectangle(
+			rect.x - maxOutset,
+			rect.y - maxOutset,
+			rect.width + maxOutset * 2 + 1,
+			rect.height + maxOutset * 2 + 1)
 	}
 }
 

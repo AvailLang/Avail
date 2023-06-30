@@ -3671,7 +3671,7 @@ enum class SystemStyleClassifier(val classifier: String)
 		override val colorName = systemColor.name
 	},
 
-	/** The color of a [code&#32;guide][CodeGuide]. */
+	/** The color of a [code&#32;guide][CodeOverlay]. */
 	CODE_GUIDE("#code-guide")
 	{
 		override val systemColor = SystemColors::codeGuide
