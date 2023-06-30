@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/15/23, 8:52 PM
+ * * Last Generated: 6/29/23, 10:11 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -132,7 +132,7 @@ Uses
 		"first-of-seq`«_`»",
 		"function from_and_",
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
-		"internal link_from_",
+		"internal link_",
 		"invoke_with_,⁇forked at priority_",
 		"lookup macro_with phrases_",
 		"message_contains groups",
@@ -1166,24 +1166,21 @@ Primitive "_<<_keeping_bits" is
  * Link the indicated native primitives from the indicated jar resource file.
  *
  * @category "Primitives"
- * @method "internal link_from_"
- * @param "primitives" "<<character…|1..∞>…|1..∞>"
- *        A tuple of fully qualified class names of the primitives to link.
+ * @method "internal link_"
  * @param "source" "<character…|1..∞>"
  *        The root-relative fully qualified name of the source file to link.
  *        This is the resource jar file that contains the primitives.
- * @returns "{<character…|1..∞>|}"
+ * @returns "permission-denied exception"
  *        The set of missing primitive classes from the jar file, if any.
+ * @raises "{<character…|1..∞>|}"
  * @raises "I/O exception"
  * @raises "permission-denied exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  * @raises "no-file exception"
- * @raises "invalid-path exception"
  */
-Primitive "internal link_from_" is
+Primitive "internal link_" is
 [
-	primitives : nonempty tuple of string,
 	source : nonempty string
 |
 	Primitive LinkPrimitives (failureCode : {

@@ -1372,7 +1372,7 @@ Extends
 		"Accept parse",
 		"Assert:_",
 		"Assert:_(_)",
-		"Link_from_",
+		"Link_",
 		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 		"Reject parse(confidence=_),expected:_",
 		"Shouldn't happen",

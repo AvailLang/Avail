@@ -117,6 +117,11 @@ class PrimitiveClassLoader constructor(
 		private object UnloadLock
 
 		/**
+		 * The required name prefix for all all [Primitive]s.
+		 */
+		const val PRIMITIVE_NAME_PREFIX = "P_"
+
+		/**
 		 * The map that tracks all the [PrimitiveClassLoader]s loading primitive
 		 * libraries for a given [ModuleName].
 		 */

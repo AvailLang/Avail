@@ -41,7 +41,7 @@ Names
 	"Accept parse",
 	"Assert:_",
 	"Assert:_(_)",
-	"Link_from_",
+	"Link_",
 	"Method_is_«styled by_»?",
 	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"Reject parse(confidence=_),expected:_",
@@ -978,9 +978,7 @@ Semantic restriction "Shouldn't happen(_)" is
  * Link the indicated native primitives from the indicated jar resource file.
  *
  * @category "Primitives"
- * @method "Link_from_"
- * @param "primitives" "<<character…|1..∞>…|1..∞>"
- *        A tuple of fully qualified class names of the primitives to link.
+ * @method "Link_"
  * @param "source" "<character…|1..∞>"
  *        The root-relative fully qualified name of the source file to link.
  *        This is the resource jar file that contains the primitives.
@@ -993,12 +991,11 @@ Semantic restriction "Shouldn't happen(_)" is
  * @raises "no-file exception"
  * @raises "invalid-path exception"
  */
-Method "Link_from_" is
+Method "Link_" is
 [
-	primitives : nonempty tuple of string,
 	source : nonempty string
 |
-	report ::= internal link primitives from source;
+	report ::= internal link source;
 	Cast report into [ r : ∅'s type |  ] else
 	[
 		formatted ::= concatenate <

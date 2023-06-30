@@ -35,8 +35,6 @@ package avail.interpreter.primitive.linker
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
-import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -45,7 +43,6 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -56,6 +53,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.PrimitiveClassLoader
+import avail.interpreter.PrimitiveClassLoader.Companion.PRIMITIVE_NAME_PREFIX
 import avail.interpreter.execution.Interpreter
 import java.io.IOException
 import java.net.MalformedURLException
@@ -70,13 +68,12 @@ import java.util.jar.JarFile
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
+object P_LinkPrimitives : Primitive(1, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(2)
-		val classNamesTuple = interpreter.argument(0)
-		val jarPath = interpreter.argument(1).asNativeString()
+		interpreter.checkArgumentCount(1)
+		val jarPath = interpreter.argument(0).asNativeString()
 		val loader = interpreter.availLoaderOrNull()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		loader.statementCanBeSummarized(false)
@@ -97,26 +94,20 @@ object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_NO_FILE)
 		}
-
-		val missingClassesFromJar = mutableSetOf<A_String>()
-		val classNames: Set<String>
+		val primitives = mutableSetOf<String>()
 		try
 		{
 			JarFile(jarFile).use { jar ->
-				val s = mutableSetOf<String>()
-				jar.entries().asIterator().forEach {
-					s.add(it.name)
-				}
-				classNames = classNamesTuple
-					.map {
-						val className = it.asNativeString()
-						val path = className.replace('.', '/') + ".class"
-						if (jar.getJarEntry(path) == null)
-						{
-							missingClassesFromJar.add(it)
+				jar.entries().asIterator().forEach { entry ->
+					if (!entry.name.endsWith(".class")) return@forEach
+					val last = entry.name.split("/").last()
+					if(last.startsWith(PRIMITIVE_NAME_PREFIX))
+					{
+						entry.name.replace(".class", "").let {
+							primitives.add(it.replace("/", "."))
 						}
-						className
-					}.toSet()
+					}
+				}
 			}
 		}
 		catch (e: IOException)
@@ -128,16 +119,10 @@ object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
 		}
 
-		if (missingClassesFromJar.isNotEmpty())
-		{
-			return interpreter.primitiveSuccess(
-				setFromCollection(missingClassesFromJar))
-		}
-
 		try
 		{
 			PrimitiveClassLoader(
-				jarFile, interpreter.module().moduleName, classNames)
+				jarFile, interpreter.module().moduleName, primitives)
 		}
 		catch (e: SecurityException)
 		{
@@ -152,7 +137,7 @@ object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(oneOrMoreOf(nonemptyStringType), nonemptyStringType),
+			tuple(nonemptyStringType),
 			setTypeForSizesContentType(wholeNumbers, nonemptyStringType))
 
 	override fun privateFailureVariableType(): A_Type =
