@@ -185,6 +185,7 @@ tasks {
 	}
 }
 
+// Note you must already have GraalVM installed.
 graalvmNative {
 	agent {
 		defaultMode.set("standard")
@@ -194,7 +195,7 @@ graalvmNative {
 		named("main") {
 			fallback.set(true)
 			mainClass.set("avail.project.AvailProjectManagerRunner")
-			imageName.set("avail-run")
+			imageName.set("avail-anvil")
 		}
 	}
 	toolchainDetection.set(false)
