@@ -57,6 +57,7 @@ plugins {
 	publishing
 	id("org.jetbrains.dokka") version "1.7.10" apply false
 	id("org.availlang.avail-plugin") version "2.0.0.alpha19" apply false
+	id("org.graalvm.buildtools.native") version "0.9.23"
 }
 
 java {

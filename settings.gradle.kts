@@ -42,6 +42,8 @@ include(
 	"avail",
 	"avail-bootstrap",
 	"avail-cli",
+	"avail-primitives",
 	"avail-server",
 	"avail-stdlib"
 )
+include("avail-primitives")

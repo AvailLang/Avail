@@ -34,6 +34,7 @@ import avail.build.computeAvailRootsForTest
 import avail.build.modules.AvailModule
 import avail.build.scrubReleases
 import avail.tasks.GenerateFileManifestTask
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -44,6 +45,7 @@ plugins {
 	signing
 	id("org.jetbrains.dokka")
 	id("com.github.johnrengelman.shadow")
+	id("org.graalvm.buildtools.native")
 }
 
 val isReleaseVersion =
@@ -174,6 +176,28 @@ tasks {
 		PublishingUtility.checkCredentials()
 		dependsOn(build)
 	}
+
+	// Setup GraalVM for Avail executable based on executable jar created by
+	// `package` task.
+	named<BuildNativeImageTask>("nativeCompile") {
+		classpathJar.set(file("../avail-anvil.jar"))
+		dependsOn(`package`)
+	}
+}
+
+graalvmNative {
+	agent {
+		defaultMode.set("standard")
+		enabled.set(true)
+	}
+	binaries {
+		named("main") {
+			fallback.set(true)
+			mainClass.set("avail.project.AvailProjectManagerRunner")
+			imageName.set("avail-run")
+		}
+	}
+	toolchainDetection.set(false)
 }
 
 signing {
