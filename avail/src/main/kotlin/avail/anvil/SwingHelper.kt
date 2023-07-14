@@ -58,6 +58,7 @@ import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities
 import javax.swing.plaf.LayerUI
 import javax.swing.text.BadLocationException
+import javax.swing.text.Highlighter
 import javax.swing.text.JTextComponent
 import javax.swing.text.LayeredHighlighter.LayerPainter
 import javax.swing.text.Position.Bias
@@ -379,6 +380,61 @@ class GlowHighlightRangePainter(
 			rect.height + maxOutset * 2 + 1)
 	}
 }
+
+
+/**
+ * Given a range and a [Glow], apply that glow to the characters in that range.
+ * Add a highlight for the first character, the middle region if any, and the
+ * last character of that range.  A size-one range acts as both a first and last
+ * character, with no middle part.  This simplifies rendering of a box
+ * highlight, since the highlight mechanism is executed for each styled run
+ * separately, with no easy way to tell if the left or right walls of the box
+ * should be drawn.
+ *
+ * Answer the list of objects that Swing produced to represent the highlight
+ * areas.
+ */
+fun Highlighter.addGlow(
+	range: IntRange,
+	glow: Glow
+): List<Any>
+{
+	val tags = mutableListOf<Any>()
+	val size = range.last + 1 - range.first
+	if (size == 1)
+	{
+		// Size one region.
+		tags.add(
+			addGlowHighlight(range.first, range.last + 1, glow, true, true))
+	}
+	else if (size >= 2)
+	{
+		// Left character, middle region if any, right character.
+		tags.add(
+			addGlowHighlight(range.first, range.first + 1, glow, true, false))
+		if (size >= 3)
+		{
+			tags.add(
+				addGlowHighlight(
+					range.first + 1, range.last, glow, false, false))
+		}
+		tags.add(
+			addGlowHighlight(range.last, range.last + 1, glow, false, true))
+	}
+	return tags
+}
+
+/**
+ * Add the [GlowHighlightRangePainter] to the range of text, answering the
+ * resulting highlight tag (crazily untyped by Swing).
+ */
+private fun Highlighter.addGlowHighlight(
+	start: Int,
+	end: Int,
+	glow: Glow,
+	isStart: Boolean,
+	isEnd: Boolean
+): Any = addHighlight(start, end, glow.painterFor(isStart, isEnd))
 
 /**
  * Create a Window menu that appears suitable for the platform.  Which is

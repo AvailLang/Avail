@@ -34,6 +34,7 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.Glow
+import avail.anvil.addGlow
 import avail.anvil.shortcuts.FindActionShortcut
 import avail.anvil.showTextRange
 import java.awt.BorderLayout
@@ -175,62 +176,17 @@ class FindAction constructor(
 		allMatches.clear()
 		currentMatchIndex = null
 		matches.forEach { match ->
-			val tags = addHighlight(match.range, otherMatch)
+			val tags = highlighter!!.addGlow(match.range, otherMatch)
 			allMatches.add(match to tags)
 		}
-	}
-
-	/**
-	 * Given a range and an indication if this is the current find range (versus
-	 * all the other find ranges in the document), add highlights for the first
-	 * character, the middle region if any, and the last character of that
-	 * range.  A size-one range acts as both a first and last character, with no
-	 * middle part.  This simplifies rendering of a box highlight, since the
-	 * highlight mechanism is executed for each styled run separately, with no
-	 * easy way to tell if the left or right walls of the box should be drawn.
-	 *
-	 * Answer the list of objects that Swing produced to represent the highlight
-	 * areas.
-	 */
-	private fun addHighlight(
-		range: IntRange,
-		glow: Glow
-	): List<Any>
-	{
-		val tags = mutableListOf<Any>()
-		val size = range.last + 1 - range.first
-		if (size == 1)
+		// Swing doesn't correctly redraw a new highlight region if it's
+		// outside the text box, although it does correctly delete it (if the
+		// highlighter reports the Shape that it altered on first paint).
+		// If any highlighter was added or changed, force a repaint.
+		if (allMatches.isNotEmpty())
 		{
-			// Size one region.
-			tags.add(
-				highlighter!!.addHighlight(
-					range.first,
-					range.last + 1,
-					glow.painterFor(true, true)))
+			textPane!!.repaint()
 		}
-		else if (size >= 2)
-		{
-			// Left character, middle region if any, right character.
-			tags.add(
-				highlighter!!.addHighlight(
-					range.first,
-					range.first + 1,
-					glow.painterFor(true, false)))
-			if (size >= 3)
-			{
-				tags.add(
-					highlighter!!.addHighlight(
-						range.first + 1,
-						range.last,
-						glow.painterFor(false, false)))
-			}
-			tags.add(
-				highlighter!!.addHighlight(
-					range.last,
-					range.last + 1,
-					glow.painterFor(false, true)))
-		}
-		return tags
 	}
 
 	/**
@@ -291,14 +247,14 @@ class FindAction constructor(
 			oldTags.forEach { oldTag ->
 				highlighter!!.removeHighlight(oldTag)
 			}
-			allMatches[j] = m to addHighlight(m.range, otherMatch)
+			allMatches[j] = m to highlighter!!.addGlow(m.range, otherMatch)
 		}
 		// Remove the all-matches highlight for this match, and
 		// add a replacement current-match highlight.
 		currentMatchIndex = matchIndex
 		tags.forEach { newTag -> highlighter!!.removeHighlight(newTag) }
 		allMatches[matchIndex] =
-			match to addHighlight(match.range, currentMatch)
+			match to highlighter!!.addGlow(match.range, currentMatch)
 		pane.showTextRange(match.range.first, match.range.last + 1)
 	}
 
@@ -489,4 +445,3 @@ class FindAction constructor(
 			Color(255, 255, 0, 32))
 	}
 }
-
