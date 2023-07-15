@@ -305,7 +305,6 @@ class GlowHighlightRangePainter(
 		repeat(colors.size) { zeroOut ->
 			val out = zeroOut + 1
 			val out2 = out * 2
-			val safeOut = out + 3  // Out plus a safety margin for arcs.
 			g.color = colors[zeroOut]
 
 			// This version uses rounded rectangles, but it leaves visible holes
