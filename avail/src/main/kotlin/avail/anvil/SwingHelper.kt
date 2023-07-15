@@ -39,7 +39,9 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Graphics
+import java.awt.Graphics2D
 import java.awt.Rectangle
+import java.awt.RenderingHints
 import java.awt.Shape
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
@@ -308,68 +310,28 @@ class GlowHighlightRangePainter(
 
 			// This version uses rounded rectangles, but it leaves visible holes
 			// in the corners.
-			//
-			//g.create().run {
-			//	val r = rect.run {
-			//		Rectangle(x - out, y - out, width + out2, height + out2)
-			//	}
-			//	val clip = clipBounds
-			//	if (!isStart)
-			//	{
-			//		clip.width += clip.x - rect.x
-			//		clip.x = rect.x
-			//	}
-			//	if (!isEnd)
-			//	{
-			//		clip.width = rect.x + rect.width - clip.x
-			//	}
-			//	clipRect(clip.x, clip.y, clip.width, clip.height)
-			//	drawRoundRect(
-			//		rect.x - out,
-			//		rect.y - out,
-			//		rect.width + out2,
-			//		rect.height + out2,
-			//		out,  //zeroOut?
-			//		out)
-			//}
-
-			with(rect) {
-				// Draw top of box
-				g.fillRect(x, y - out, width, 1)
-				// Draw bottom of box
-				g.fillRect(x, y + height + out - 1, width, 1)
-				if (isStart)
-				{
-					// Draw left side.
-					g.fillRect(x - out, y, 1, height)
-					// Top left arc.
-					g.create().run {
-						clipRect(x - safeOut, y - safeOut, safeOut, safeOut)
-						drawOval(x - out, y - out, out2, out2)
-					}
-					// Bottom left arc.
-					g.create().run {
-						clipRect(x - safeOut, y + height, safeOut, safeOut)
-						drawOval(x - out, y + height - out - 1, out2, out2)
-					}
-
+			g.create().antiAliased {
+				// Start by leaving room above and below.
+				val clip = rect.run {
+					Rectangle(x - out, y - out, width + out2, height + out2)
 				}
-				if (isEnd)
+				if (!isStart)
 				{
-					// Draw right side.
-					g.fillRect(x + width - 1 + out, y, 1, height)
-					// Top right arc.
-					g.create().run {
-						clipRect(x + width, y - out, safeOut, out)
-						drawOval(x + width - out - 1, y - out, out2, out2)
-					}
-					// Bottom right arc.
-					g.create().run {
-						clipRect(x + width, y + height, out, out)
-						drawOval(
-							x + width - out - 1, y + height - out, out2, out2)
-					}
+					clip.x += out
+					clip.width -= out
 				}
+				if (!isEnd)
+				{
+					clip.width -= out
+				}
+				clipRect(clip.x, clip.y, clip.width, clip.height)
+				drawRoundRect(
+					rect.x - out,
+					rect.y - out,
+					rect.width + out2 - 1,
+					rect.height + out2 - 1,
+					out2,
+					out2)
 			}
 		}
 		val maxOutset = colors.size
@@ -380,6 +342,53 @@ class GlowHighlightRangePainter(
 			rect.height + maxOutset * 2 + 1)
 	}
 }
+
+/**
+ * Perform the specified block of drawing logic using the specified
+ * [rendering&#32;hints][RenderingHints]. Restore the original
+ * [rendering&#32;hints][RenderingHints] before returning control to the caller.
+ *
+ * @receiver
+ *   A [graphics&#32;context][Graphics] that must be a subclass of [Graphics2D].
+ * @param hints
+ *   The [rendering&#32;hints][RenderingHints] to use throughout the specified
+ *   drawing logic.
+ * @param draw
+ *   The drawing logic, i.e., how to draw while the
+ *   [rendering&#32;hints][RenderingHints] are active.
+ */
+inline fun Graphics.withHints(
+	vararg hints: Pair<RenderingHints.Key, Any>,
+	draw: Graphics2D.()->Unit
+) {
+	this as Graphics2D
+	val oldHints = renderingHints
+	setRenderingHints(mapOf(*hints))
+	try
+	{
+		draw()
+	}
+	finally
+	{
+		setRenderingHints(oldHints)
+	}
+}
+
+/**
+ * Perform the specified block of drawing logic using high-quality, anti-aliased
+ * drawing and font rendering operations. Restore the original
+ * [rendering&#32;hints][RenderingHints] before returning control to the caller.
+ *
+ * @receiver
+ *   A [graphics&#32;context][Graphics] that must be a subclass of [Graphics2D].
+ * @param draw
+ *   The drawing logic.
+ */
+inline fun Graphics.antiAliased(draw: Graphics2D.()->Unit) = withHints(
+	RenderingHints.KEY_ANTIALIASING to RenderingHints.VALUE_ANTIALIAS_ON,
+	RenderingHints.KEY_RENDERING to RenderingHints.VALUE_RENDER_QUALITY,
+	draw = draw
+)
 
 
 /**
