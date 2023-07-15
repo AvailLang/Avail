@@ -235,6 +235,14 @@ class FindAction constructor(
 		}
 	}
 
+	/**
+	 * Select the Nth ([matchIndex], zero-based) match of the pattern in the
+	 * current file.  This should switch the highlight to indicate this is the
+	 * new current match, making the previous current match be an "other" match.
+	 *
+	 * @param matchIndex
+	 *   The zero-based index of the match to make current.
+	 */
 	private fun selectMatch(matchIndex: Int)
 	{
 		val (match, tags) = allMatches[matchIndex]

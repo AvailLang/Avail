@@ -87,6 +87,13 @@ class BloomFilter
 	/** The number of hash functions to use. */
 	private val hashCount: Int
 
+	/**
+	 * A collection of random, permanent salts for producing successive hash
+	 * values to index the filter's bit vector.  Don't use more than this number
+	 * of hash values in any [BloomFilter] (or extend this list).  Note that
+	 * adding entries (and using them) will break backward compatibility, where
+	 * newer hashes cannot be recognized or reproduced by older code.
+	 */
 	private val hashSalts = intArrayOf(
 		0x106A0E28,
 		-0x75F627F4,

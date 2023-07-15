@@ -221,17 +221,24 @@ data class MarkToDotRange constructor(
 		}
 	}
 
-	override fun toString(): String =
-		if (count == 0)
+	override fun toString(): String
+	{
+		val m = markPosition
+		val d = dotPosition
+		return when (count.absoluteValue)
 		{
-			markPosition.toString()
+			0 -> m.toString()
+			1 ->
+				"${m.lineOneBased}:${m.characterInLineOneBased} — " +
+					"${d.lineOneBased}:${d.characterInLineOneBased} " +
+					"(1 char @${m.offset})"
+
+			else ->
+				"${m.lineOneBased}:${m.characterInLineOneBased} — " +
+					"${d.lineOneBased}:${d.characterInLineOneBased} " +
+					"($count chars @${m.offset})"
 		}
-		else
-		{
-			"${markPosition.lineOneBased}:${markPosition.characterInLineOneBased} — " +
-				"${dotPosition.lineOneBased}:${dotPosition.characterInLineOneBased} " +
-				"(${count.absoluteValue} chars @${markPosition.offset})"
-		}
+	}
 
 	companion object
 	{
