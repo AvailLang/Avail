@@ -32,6 +32,8 @@
 
 package avail.anvil
 
+import avail.anvil.PhrasePathStyleApplicator.LocalDefinitionAttributeKey
+import avail.anvil.PhrasePathStyleApplicator.LocalUseAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.StylePatternCompiler.Companion.compile
@@ -86,6 +88,7 @@ import java.lang.ref.SoftReference
 import java.util.concurrent.ConcurrentHashMap
 import javax.swing.SwingUtilities
 import javax.swing.text.AttributeSet
+import javax.swing.text.Position
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
@@ -395,8 +398,8 @@ class Stylesheet constructor(
 	fun distillFinalSolution(
 		solutions: List<ValidatedStylePattern>
 	) = solutions
-		.map { it.renderingContext }
-		.reduce { final, next -> final.overrideWith(next) }
+		.map(ValidatedStylePattern::renderingContext)
+		.reduce(ValidatedRenderingContext::overrideWith)
 
 	companion object
 	{
@@ -3326,6 +3329,50 @@ val Palette.colors get() =
 class RenderingContextValidationException(message: String): Exception(message)
 
 /**
+ * A class that maintains the position of the declaration of a local variable
+ * and its uses within the same [StyledDocument].  Within the document, this
+ * value is stored as an invisible style under the key
+ * [LocalDefinitionAttributeKey] for the span corresponding to the definition,
+ * and the same object is stored under [LocalUseAttributeKey] for the spans that
+ * are uses of the local.
+ */
+data class DefinitionAndUsesInDocument constructor(
+	val definitionSpanInDocument: Pair<Position, Position>,
+	val useSpansInDocument: List<Pair<Position, Position>>)
+
+/**
+ * A function that applies some style to the given [IntRange] of the given
+ * [StyledDocument].
+ */
+typealias RenderingFunction = (StyledDocument, IntRange)->Unit
+
+/**
+ * Given a receiver and argument that are optional [RenderingFunction]s, but not
+ * both null, produce a corresponding [RenderingFunction] that executes the
+ * non-null values, in arbitrary order if both are present.
+ *
+ * @receiver
+ *   An optional [RenderingFunction].
+ * @param otherFunction
+ *   Another optional [RenderingFunction].
+ * @return
+ *   The resulting [RenderingFunction] that evaluates both the receiver and the
+ *   parameter, omitting nulls.
+ */
+infix fun RenderingFunction?.compose(
+	otherFunction: RenderingFunction?
+): RenderingFunction = when
+{
+	this == null -> otherFunction!!
+	otherFunction == null -> this
+	else -> { document, range ->
+		this(document, range)
+		otherFunction(document, range)
+	}
+}
+
+
+/**
  * The [RenderingEngine] renders [runs][StyleRun] of source text. To achieve
  * this for some run `R`, it queries the active [stylesheet][Stylesheet] with
  * the run's style classifiers and then
@@ -3340,13 +3387,15 @@ object RenderingEngine
 	/**
 	 * Apply all style runs from the [StylingRecord], and all [PhraseNode]
 	 * information from the [PhrasePathRecord], to the
-	 * [receiver][StyledDocument], using the supplied [stylesheet] to obtain an
+	 * given [StyledDocument], using the supplied [stylesheet] to obtain an
 	 * appropriate [rendering&#32;context][ValidatedRenderingContext] for each
 	 * style run.
 	 *
+	 * It always starts by resetting the entire document to the default style.
+	 *
 	 * **Must be invoked on the Swing UI thread.**
 	 *
-	 * @receiver
+	 * @param document
 	 *   The [StyledDocument] to update.
 	 * @param stylesheet
 	 *   The [stylesheet][Stylesheet].
@@ -3355,50 +3404,103 @@ object RenderingEngine
 	 * @param phrasePathRecord
 	 *   The [PhrasePathRecord] containing [PhraseNode] runs to apply to the
 	 *   document.
-	 * @param replace
-	 *   Indicates whether or not the previous attributes should be cleared
-	 *   before the new attributes are set. If true, the operation will replace
-	 *   the previous attributes entirely. If false, the new attributes will be
-	 *   merged with the previous attributes.
 	 */
-	fun StyledDocument.applyStylesAndPhrasePaths(
+	fun applyStylesAndPhrasePaths(
+		document: StyledDocument,
 		stylesheet: Stylesheet,
 		styleRecord: StylingRecord?,
-		phrasePathRecord: PhrasePathRecord?,
-		replace: Boolean = true)
+		phrasePathRecord: PhrasePathRecord?)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
-		val classifiersTree = RunTree<String>()
+		// First remove all existing styling information.
+		document.setCharacterAttributes(
+			0,
+			document.length,
+			document.getStyle(StyleContext.DEFAULT_STYLE),
+			true)
+		// Collect functions that apply a style to a region of the document.
+		// Use RunTree's ability to split overlapping ranges to avoid Swing's
+		// buggy implementation of overlapping style ranges.
+		val renderingFunctions = RunTree<RenderingFunction>()
+		// Start with the style classifiers.
 		styleRecord?.styleRuns?.forEach { (range, classifiers) ->
-			classifiersTree.edit(range.first, range.last + 1) { classifiers }
+			renderingFunctions.edit(range.first, range.last + 1) { _ ->
+				// Incoming value here is always null.
+				{ document, range ->
+					stylesheet[classifiers].renderTo(
+						document, classifiers, range, false)
+				}
+			}
 		}
-		val phraseTree = RunTree<TokenStyle>()
+		// Add in the invisible phrase/token structure information.
 		phrasePathRecord?.phraseNodesDo { phraseNode ->
 			phraseNode.tokenSpans.forEach { (start, pastEnd, indexInName) ->
-				phraseTree.edit(start, pastEnd) {
-					TokenStyle(phraseNode, indexInName)
+				renderingFunctions.edit(start, pastEnd) { old ->
+					old compose { document, range ->
+						document.setCharacterAttributes(
+							range.first - 1,
+							range.last - range.first + 1,
+							SimpleAttributeSet().apply {
+								addAttribute(
+									PhraseNodeAttributeKey,
+									TokenStyle(phraseNode, indexInName))
+							},
+							false)
+					}
 				}
 			}
 		}
-		(classifiersTree zipRuns phraseTree).forEach { (start, pastEnd, pair) ->
-			pair.first?.let { classifiers ->
-				val context = stylesheet[classifiers]
-				context.renderTo(
-					this,
-					classifiers,
-					start.toInt() until pastEnd.toInt(),
-					replace)
+		// Add the information about local declarations and uses.
+		styleRecord?.declarationsWithUses()?.forEach { (definition, uses) ->
+			val definitionSpan = Pair(
+				document.createPosition(definition.first - 1),
+				document.createPosition(definition.last))
+			val useSpans = uses.map {
+				Pair(
+					document.createPosition(it.first - 1),
+					document.createPosition(it.last))
 			}
-			pair.second?.let { tokenStyle ->
-				val styleForToken = SimpleAttributeSet().apply {
-					addAttribute(PhraseNodeAttributeKey, tokenStyle)
+			val entry = DefinitionAndUsesInDocument(definitionSpan, useSpans)
+			// Add the definition's style.
+			renderingFunctions.edit(definition.first, definition.last + 1)
+			{ old ->
+				old compose { document, range ->
+					document.setCharacterAttributes(
+						range.first - 1,
+						range.last - range.first + 1,
+						SimpleAttributeSet().apply {
+							addAttribute(
+								LocalDefinitionAttributeKey,
+								entry)
+						},
+						false)
 				}
-				setCharacterAttributes(
-					start.toInt() - 1,
-					(pastEnd - start).toInt(),
-					styleForToken,
-					false)
 			}
+			// Add a style for each use.
+			uses.forEach { useRange ->
+				renderingFunctions.edit(useRange.first, useRange.last + 1)
+				{ old ->
+					old compose { document, range ->
+						document.setCharacterAttributes(
+							range.first - 1,
+							range.last - range.first + 1,
+							SimpleAttributeSet().apply {
+								addAttribute(
+									LocalUseAttributeKey,
+									entry)
+							},
+							false)
+					}
+				}
+			}
+		}
+		// Now that all the ranges have been split appropriately to avoid any
+		// overlapping ranges (i.e., start A, start B, end A, end B), tell the
+		// document itself about them.
+		renderingFunctions.forEach { (start, pastEnd, renderingFunction) ->
+			renderingFunction(
+				document,
+				start.toInt() until pastEnd.toInt())
 		}
 	}
 }
@@ -3569,7 +3671,7 @@ enum class SystemStyleClassifier(val classifier: String)
 		override val colorName = systemColor.name
 	},
 
-	/** The color of a [code&#32;guide][CodeGuide]. */
+	/** The color of a [code&#32;guide][CodeOverlay]. */
 	CODE_GUIDE("#code-guide")
 	{
 		override val systemColor = SystemColors::codeGuide
@@ -3700,4 +3802,22 @@ object PhrasePathStyleApplicator
 	 * each token that is part of that [PhraseNode].
 	 */
 	object PhraseNodeAttributeKey
+
+	/**
+	 * An object to use as a key in an [AttributeSet], where the value is a
+	 * [DefinitionAndUsesInDocument].  This is applied to the [StyledDocument]
+	 * for the span of a token that is a declaration of some local.  The
+	 * [DefinitionAndUsesInDocument] contains navigation information for both
+	 * this definition and all uses.
+	 */
+	object LocalDefinitionAttributeKey
+
+	/**
+	 * An object to use as a key in an [AttributeSet], where the value is a
+	 * [DefinitionAndUsesInDocument].  This is applied to the [StyledDocument]
+	 * for the span of a token that is a use of some local.  The
+	 * [DefinitionAndUsesInDocument] contains navigation information for both
+	 * the definition and all such uses.
+	 */
+	object LocalUseAttributeKey
 }

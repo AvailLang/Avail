@@ -3882,7 +3882,7 @@ class AvailCompiler constructor(
 				catch (e: ImportValidationException)
 				{
 					importedModuleToken.nextLexingState().expected(
-						STRONG, e.message!!)
+						STRONG, e.message ?: "(no error message)")
 					compilationContext.diagnostics.reportError()
 					return false
 				}

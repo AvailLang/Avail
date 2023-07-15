@@ -35,7 +35,7 @@ package avail.anvil.debugger
 import avail.AvailDebuggerModel
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
-import avail.anvil.CodeGuide
+import avail.anvil.CodeOverlay
 import avail.anvil.MenuBarBuilder
 import avail.anvil.RenderingEngine.applyStylesAndPhrasePaths
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
@@ -829,7 +829,8 @@ class AvailDebugger internal constructor (
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
 		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 		codeGuide.guideColor = codeGuide.computeColor()
-		sourcePane.styledDocument.applyStylesAndPhrasePaths(
+		applyStylesAndPhrasePaths(
+			sourcePane.styledDocument,
 			stylesheet,
 			stylingRecord,
 			phrasePathRecord)
@@ -1009,10 +1010,10 @@ class AvailDebugger internal constructor (
 	}
 
 	/**
-	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 * The [code&#32;guide][CodeOverlay] for the [source&#32;pane][sourcePane].
 	 */
 	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeGuide::class.java.name) as CodeGuide
+		CodeOverlay::class.java.name) as CodeOverlay
 
 	/** Construct the user interface and display it. */
 	fun open()

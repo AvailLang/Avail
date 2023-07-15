@@ -95,16 +95,16 @@ class WorkbenchScreenState constructor(
 	override fun writeTo(writer: JSONWriter)
 	{
 		writer.writeObject {
-			at(WorkbenchScreenState::workbenchLayoutConfig.name) {
+			at(::workbenchLayoutConfig.name) {
 				write(workbenchLayoutConfig)
 			}
-			at(WorkbenchScreenState::structureViewLayoutConfig.name) {
+			at(::structureViewLayoutConfig.name) {
 				write(structureViewLayoutConfig)
 			}
-			at(WorkbenchScreenState::phraseViewLayoutConfig.name) {
+			at(::phraseViewLayoutConfig.name) {
 				write(phraseViewLayoutConfig)
 			}
-			at(WorkbenchScreenState::openEditors.name) {
+			at(::openEditors.name) {
 				writeArray {
 					openEditors.forEach { (_, v) ->
 						v.writeTo(this)
@@ -175,7 +175,7 @@ class WorkbenchScreenState constructor(
 			return WorkbenchScreenState(wb, sv, pv).apply {
 				if (obj.containsKey(WorkbenchScreenState::openEditors.name))
 				{
-					obj.getArray(WorkbenchScreenState::openEditors.name).forEach {
+					obj.getArray(::openEditors.name).forEach {
 						if (it.isObject)
 						{
 							val alc = AvailEditorLayoutConfiguration.from(

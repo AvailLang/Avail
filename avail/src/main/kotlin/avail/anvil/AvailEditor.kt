@@ -34,6 +34,8 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
+import avail.anvil.PhrasePathStyleApplicator.LocalDefinitionAttributeKey
+import avail.anvil.PhrasePathStyleApplicator.LocalUseAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.RenderingEngine.applyStylesAndPhrasePaths
@@ -63,6 +65,7 @@ import avail.persistence.cache.Repository.PhrasePathRecord
 import avail.persistence.cache.Repository.StylingRecord
 import avail.utility.notNullAnd
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.WindowAdapter
@@ -317,6 +320,90 @@ class AvailEditor constructor(
 	}
 
 	/**
+	 * If the cursor is on a declaration or usage, this is the list of highlight
+	 * mementos for applying glows for the declaration.  There are between zero
+	 * and three of them, depending on whether there is a declaration, and if
+	 * so, how many characters are in the token.
+ 	 */
+	private val selectedDeclaration = mutableListOf<Any>()
+
+	/**
+	 * If the cursor is on a declaration or usage, this is the list of highlight
+	 * mementos for applying glows for all the usages.  Each usage contributes
+	 * between one and three elements, depending on how many characters are in
+	 * the token.
+	 */
+	private val selectedUses = mutableListOf<Any>()
+
+	/**
+	 * Apply highlighting for a declaration or its related usages that may be
+	 * under the cursor.
+	 */
+	private fun updateDeclarationAndUses()
+	{
+		val doc = sourcePane.styledDocument
+		// First look to the right of the cursor position.
+		val dot = range.dotPosition.offset
+		var element = doc.getCharacterElement(dot)
+		var definitionAndUses =
+			element.attributes.getAttribute(LocalDefinitionAttributeKey)
+				as? DefinitionAndUsesInDocument
+		if (definitionAndUses == null)
+		{
+			definitionAndUses =
+				element.attributes.getAttribute(LocalUseAttributeKey)
+					as? DefinitionAndUsesInDocument
+		}
+		if (definitionAndUses == null)
+		{
+			// If there's no declaration/use information for the character to
+			// the right of the cursor, try looking to the left.
+			element = doc.getCharacterElement(max(dot - 1, 0))
+			definitionAndUses =
+				element.attributes.getAttribute(LocalDefinitionAttributeKey)
+					as? DefinitionAndUsesInDocument
+			if (definitionAndUses == null)
+			{
+				definitionAndUses =
+					element.attributes.getAttribute(LocalUseAttributeKey)
+						as? DefinitionAndUsesInDocument
+			}
+		}
+
+		// Clear any existing highlights for locals.
+		val highlighter = sourcePane.highlighter!!
+		selectedDeclaration.forEach { tag ->
+			highlighter.removeHighlight(tag)
+		}
+		selectedDeclaration.clear()
+		selectedUses.forEach { tag ->
+			highlighter.removeHighlight(tag)
+		}
+		selectedUses.clear()
+		// Add highlights for the declaration and uses, if the cursor is on one.
+		definitionAndUses?.run {
+			selectedDeclaration.addAll(
+				highlighter.addGlow(
+					definitionSpanInDocument.first.offset
+						until definitionSpanInDocument.second.offset,
+					declarationGlow))
+			useSpansInDocument.forEach { (startPos, endPos) ->
+				selectedUses.addAll(
+					highlighter.addGlow(
+						startPos.offset until endPos.offset,
+						usageGlow)
+				)
+			}
+			// Swing won't do initial painting of highlights outside the text
+			// span's box, so force it.  Note that it *does* correctly remove
+			// the highlight if the paint operation reports its Shape correctly,
+			// which GlowHighlightRangePainter does, so we only have to repaint
+			// explicitly if a highlight is being added.
+			sourcePane.repaint()
+		}
+	}
+
+	/**
 	 * The [JLabel] that displays the [range]
 	 */
 	private val caretRangeLabel = JLabel()
@@ -347,6 +434,7 @@ class AvailEditor constructor(
 			}
 			caretRangeLabel.text = "$styleName $range"
 			updatePhraseStructure()
+			updateDeclarationAndUses()
 		}
 
 		// To add a new shortcut, add it as a subtype of the sealed class
@@ -446,10 +534,10 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 * The [code&#32;guide][CodeOverlay] for the [source&#32;pane][sourcePane].
 	 */
 	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeGuide::class.java.name) as CodeGuide
+		CodeOverlay::class.java.name) as CodeOverlay
 
 	/**
 	 * Apply styles to the text in the [source&#32;pane][sourcePane].
@@ -460,7 +548,8 @@ class AvailEditor constructor(
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
 		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 		codeGuide.guideColor = codeGuide.computeColor()
-		sourcePane.styledDocument.applyStylesAndPhrasePaths(
+		applyStylesAndPhrasePaths(
+			sourcePane.styledDocument,
 			stylesheet,
 			stylingRecord,
 			phrasePathRecord)
@@ -626,5 +715,21 @@ class AvailEditor constructor(
 		/** The [AvailEditor] that sourced the [receiver][ActionEvent]. */
 		internal val ActionEvent.editor get() =
 			(source as JTextPane).getClientProperty(availEditor) as AvailEditor
+
+		/** The [Glow] to use for the current local's declaration. */
+		private val declarationGlow = Glow(
+			Color(0, 0, 0, 0),
+			Color(0, 0, 0, 0),
+			Color(128, 192, 255, 32),
+			Color(128, 192, 255, 96),
+			Color(128, 160, 255, 32))
+
+		/** The [Glow] to use for the current local's usages. */
+		private val usageGlow = Glow(
+			Color(0, 0, 0, 0),
+			Color(0, 0, 0, 0),
+			Color(0, 255, 255, 32),
+			Color(0, 255, 255, 96),
+			Color(0, 255, 255, 32))
 	}
 }
