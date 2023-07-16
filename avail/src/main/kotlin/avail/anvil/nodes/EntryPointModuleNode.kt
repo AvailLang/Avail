@@ -73,7 +73,7 @@ class EntryPointModuleNode constructor(
 	override fun iconResourceName(): String =
 		FileExtensionMetadata.AVAIL.fileIcon
 
-	override fun text(selected: Boolean): String =
+	override fun equalityText(): String =
 		resolvedModuleName.qualifiedName
 
 	override fun htmlStyle(selected: Boolean): String =

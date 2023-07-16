@@ -389,7 +389,6 @@ inline fun Graphics.antiAliased(draw: Graphics2D.()->Unit) = withHints(
 	draw = draw
 )
 
-
 /**
  * Given a range and a [Glow], apply that glow to the characters in that range.
  * Add a highlight for the first character, the middle region if any, and the

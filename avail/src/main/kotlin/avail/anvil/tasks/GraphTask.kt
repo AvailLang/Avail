@@ -90,5 +90,6 @@ class GraphTask constructor(
 		workbench.availBuilder.checkStableInvariants()
 		workbench.setEnablements()
 		workbench.cursor = Cursor.getDefaultCursor()
+		workbench.refresh()
 	}
 }

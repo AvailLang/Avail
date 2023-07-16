@@ -59,7 +59,7 @@ class ResourceDirNode constructor(
 
 	override fun iconResourceName(): String = "avail-icon-directory-resource"
 
-	override fun text(selected: Boolean) = reference.localName
+	override fun equalityText() = reference.localName
 
 	override fun htmlStyle(selected: Boolean): String =
 		fontStyle(bold = true) +

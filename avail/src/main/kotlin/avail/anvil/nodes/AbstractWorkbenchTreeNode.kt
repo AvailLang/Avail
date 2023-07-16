@@ -79,6 +79,13 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	abstract fun modulePathString(): String
 
 	/**
+	 * Answer a [String] that generally does not change for this node, for the
+	 * purpose of identifying if this is the same node as a previous incarnation
+	 * during a refresh of some sort.
+	 */
+	internal abstract fun equalityText(): String
+
+	/**
 	 * Extract text to display for this node.  Presentation styling will be
 	 * applied separately.
 	 *
@@ -86,7 +93,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 *   Whether the node is selected.
 	 * @return A [String].
 	 */
-	internal abstract fun text(selected: Boolean): String
+	open fun text(selected: Boolean): String = equalityText()
 
 	/**
 	 * Produce a string for use in a <span style=…> tag for this node.
@@ -140,7 +147,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 *   The string.
 	 * @return Whether this is the indicated node.
 	 */
-	fun isSpecifiedByString(string: String): Boolean = text(false) == string
+	fun isSpecifiedByString(string: String): Boolean = equalityText() == string
 
 	/**
 	 * Order this node against another.

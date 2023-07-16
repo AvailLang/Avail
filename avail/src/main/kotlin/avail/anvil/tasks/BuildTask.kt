@@ -80,6 +80,7 @@ constructor (
 				workbench.availBuilder.checkStableInvariants()
 				workbench.setEnablements()
 				workbench.cursor = Cursor.getDefaultCursor()
+				workbench.refresh()
 				workbench.openEditors.values.forEach { editor ->
 					val r = editor.range
 					editor.populateSourcePane {

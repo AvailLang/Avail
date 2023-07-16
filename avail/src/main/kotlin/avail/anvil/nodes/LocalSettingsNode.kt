@@ -54,7 +54,7 @@ class LocalSettingsNode constructor(
 
 	override fun iconResourceName(): String = "settings_cog"
 
-	override fun text(selected: Boolean) = "local settings"
+	override fun equalityText() = "local settings"
 
 	override val sortMajor: Int get() = 60
 

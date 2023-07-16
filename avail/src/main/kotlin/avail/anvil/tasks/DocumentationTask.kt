@@ -86,5 +86,6 @@ class DocumentationTask (
 		workbench.availBuilder.checkStableInvariants()
 		workbench.setEnablements()
 		workbench.cursor = Cursor.getDefaultCursor()
+		workbench.refresh()
 	}
 }

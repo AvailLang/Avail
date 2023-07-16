@@ -60,7 +60,7 @@ class RootConfigDirNode constructor(
 
 	override fun iconResourceName(): String = "root-config-color"
 
-	override fun text(selected: Boolean) = root.name
+	override fun equalityText() = root.name
 
 	override fun htmlStyle(selected: Boolean): String =
 		fontStyle(bold = true, strikethrough = !visible) +

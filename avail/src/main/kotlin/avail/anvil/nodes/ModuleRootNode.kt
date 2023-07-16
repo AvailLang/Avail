@@ -69,6 +69,8 @@ class ModuleRootNode constructor(
 			else -> "root-locked"
 		}
 
+	override fun equalityText(): String = moduleRoot.name
+
 	override fun text(selected: Boolean) = buildString {
 		append(moduleRoot.name)
 		moduleRoot.resolver.uri.fragment?.let { f -> append(" [$f]") }

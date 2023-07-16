@@ -66,7 +66,7 @@ class EntryPointNode constructor(
 
 	override fun iconResourceName(): String = "play_circle_green"
 
-	override fun text(selected: Boolean): String = entryPointString
+	override fun equalityText(): String = entryPointString
 
 	override fun htmlStyle(selected: Boolean): String =
 		synchronized(builder) {

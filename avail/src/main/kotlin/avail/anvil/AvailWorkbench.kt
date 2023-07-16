@@ -159,6 +159,7 @@ import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
 import avail.utility.isNullOr
+import avail.utility.iterableWith
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
@@ -526,7 +527,7 @@ class AvailWorkbench internal constructor(
 	private val errorStream: PrintStream?
 
 	/** The [standard output stream][PrintStream]. */
-	val outputStream: PrintStream
+	private val outputStream: PrintStream
 
 	/* UI components. */
 
@@ -617,10 +618,10 @@ class AvailWorkbench internal constructor(
 	internal val buildAction = BuildAction(this)
 
 	/** The [CopyQualifiedNameAction].  */
-	internal val copyQualifiedNameAction = CopyQualifiedNameAction(this)
+	private val copyQualifiedNameAction = CopyQualifiedNameAction(this)
 
 	/** The [LoadOnStartAction]. */
-	internal val loadOnStartAction = LoadOnStartAction(this)
+	private val loadOnStartAction = LoadOnStartAction(this)
 
 	/** The [GenerateArtifactAction] used to create an [AvailArtifact]. */
 	private val generateArtifact = GenerateArtifactAction(this)
@@ -1312,6 +1313,18 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
+	 * Refresh the tree of modules and tree of entry points.  Use the existing
+	 * tree structure, and just force it to update the presentation of each
+	 * node.
+	 */
+	fun refresh()
+	{
+		refreshFor(
+			moduleTree.model.root as DefaultMutableTreeNode,
+			entryPointsTree.model.root as DefaultMutableTreeNode)
+	}
+
+	/**
 	 * Re-populate the visible tree structures based on the provided tree of
 	 * modules and tree of entry points.  Attempt to preserve selection and
 	 * expansion information.
@@ -1324,6 +1337,7 @@ class AvailWorkbench internal constructor(
 	fun refreshFor(modules: TreeNode, entryPoints: TreeNode)
 	{
 		val selection = moduleTree.selectionPath
+		val selectionInEntryPoints = entryPointsTree.selectionPath
 		moduleTree.isVisible = false
 		entryPointsTree.isVisible = false
 		try
@@ -1337,12 +1351,15 @@ class AvailWorkbench internal constructor(
 					TreePath(arrayOf(root, it))
 				}
 			moduleTree.model = DefaultTreeModel(modules)
-			allExpanded.asSequence()
+			val pathsToExpand = allExpanded.asSequence()
 				.map(TreePath::getLastPathComponent)
 				.filterIsInstance<AbstractWorkbenchTreeNode>()
 				.map(AbstractWorkbenchTreeNode::modulePathString)
 				.mapNotNull(::modulePath)
-				.forEach(moduleTree::expandPath)
+				.toList()
+			pathsToExpand.forEach {
+				moduleTree.expandRecursively(it)
+			}
 			selection?.let { path ->
 				val node =
 					path.lastPathComponent as AbstractWorkbenchTreeNode
@@ -1350,10 +1367,57 @@ class AvailWorkbench internal constructor(
 			}
 
 			// Now process the entry points tree.
+			val oldEntryPointRoot: DefaultMutableTreeNode =
+				entryPointsTree.model.root.cast()
+			val expandedPaths = entryPointsTree.getExpandedDescendants(
+				TreePath(oldEntryPointRoot))
+			val collapsed = when (expandedPaths)
+			{
+				// First call, treat it as nothing collapsed.
+				null -> emptyList()
+				else ->
+				{
+					val expanded = expandedPaths
+						.toList()
+						.map(TreePath::getLastPathComponent)
+						.filterIsInstance<EntryPointModuleNode>()
+					oldEntryPointRoot.children()
+						.toList()
+						.filterIsInstance<EntryPointModuleNode>()
+						.toSet()
+						.minus(expanded)
+						.map { it.equalityText() }
+				}
+			}
 			entryPointsTree.model = DefaultTreeModel(entryPoints)
 			for (i in entryPointsTree.rowCount - 1 downTo 0)
 			{
-				entryPointsTree.expandRow(i)
+				val entryPointModulePath = entryPointsTree.getPathForRow(i)
+				val entryPointModule: EntryPointModuleNode =
+					entryPointModulePath.lastPathComponent.cast()
+				if (entryPointModule.equalityText() !in collapsed)
+				{
+					entryPointsTree.expandRow(i)
+				}
+			}
+			selectionInEntryPoints?.let { oldPath ->
+				val oldNodes = oldPath.path
+				var newNode = entryPoints
+				val newPathNodes = mutableListOf(newNode)
+				for (i in 1 until oldNodes.size)
+				{
+					val oldNode = oldNodes[i] as AbstractWorkbenchTreeNode
+					val equalityText = oldNode.equalityText()
+					val nextNode = newNode.children().toList().firstOrNull {
+						val node = it as AbstractWorkbenchTreeNode
+						node.equalityText() == equalityText
+					}
+					nextNode ?: return@let
+					newPathNodes.add(nextNode)
+					newNode = nextNode
+				}
+				val newPath = TreePath(newPathNodes.toTypedArray())
+				entryPointsTree.selectionPath = newPath
 			}
 		}
 		finally
@@ -1722,7 +1786,7 @@ class AvailWorkbench internal constructor(
 	/**
 	 * Update the [build&#32;progress&#32;bar][buildProgress].
 	 */
-	internal fun updateBuildProgress()
+	private fun updateBuildProgress()
 	{
 		var position = 0L
 		var max = 0L
@@ -1780,7 +1844,7 @@ class AvailWorkbench internal constructor(
 			if (!hasQueuedPerModuleBuildUpdate)
 			{
 				hasQueuedPerModuleBuildUpdate = true
-				availBuilder.runtime.timer.schedule(100) {
+				availBuilder.runtime.timer.schedule(200) {
 					invokeLater { updatePerModuleProgressInUIThread() }
 				}
 			}
@@ -1839,6 +1903,7 @@ class AvailWorkbench internal constructor(
 		perModuleProgressLock.safeWrite {
 			perModuleStatusTextSize = string.length
 		}
+		moduleTree.repaint()
 	}
 
 	/**
@@ -2993,3 +3058,10 @@ class AvailWorkbench internal constructor(
 		}
 	}
 }
+
+/**
+ * Expand nodes of a [JTree] so that everything in the [TreePath] up to
+ * but not including its last component is expanded.
+ */
+private fun JTree.expandRecursively(path: TreePath) =
+	path.iterableWith(TreePath::getParentPath).reversed().forEach(::expandPath)

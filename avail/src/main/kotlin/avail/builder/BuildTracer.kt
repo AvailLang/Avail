@@ -212,6 +212,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			return
 		}
 		val repository = resolvedName.repository
+		repository.reopenIfNecessary()
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)
 		val sourceFile = resolvedName.resolverReference
 		val archive = repository.getArchive(resolvedName.rootRelativeName)
