@@ -65,8 +65,8 @@ import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
 import avail.anvil.actions.LoadOnStartAction
 import avail.anvil.actions.NewModuleAction
-import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenFileAction
+import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenProjectAction
 import avail.anvil.actions.OpenProjectFileEditorAction
 import avail.anvil.actions.OpenSettingsViewAction
@@ -108,6 +108,7 @@ import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractWorkbenchTreeNode
 import avail.anvil.nodes.AvailProjectNode
+import avail.anvil.nodes.DummyRootModuleNode
 import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
@@ -115,9 +116,9 @@ import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.nodes.OpenableFileNode
 import avail.anvil.nodes.ResourceDirNode
 import avail.anvil.nodes.ResourceNode
-import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
+import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.streams.BuildInputStream
 import avail.anvil.streams.BuildOutputStream
 import avail.anvil.streams.BuildOutputStreamEntry
@@ -159,7 +160,6 @@ import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
 import avail.utility.cast
 import avail.utility.isNullOr
-import avail.utility.iterableWith
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
@@ -1298,7 +1298,7 @@ class AvailWorkbench internal constructor(
 	 *   Lambda that accepts the modules tree and entry points tree.
 	 */
 	fun calculateRefreshedTreesThen(
-		withTrees: (TreeNode, TreeNode) -> Unit)
+		withTrees: (DummyRootModuleNode, DummyRootModuleNode) -> Unit)
 	{
 		if (!treeCalculationInProgress.getAndSet(true))
 		{
@@ -1320,8 +1320,8 @@ class AvailWorkbench internal constructor(
 	fun refresh()
 	{
 		refreshFor(
-			moduleTree.model.root as DefaultMutableTreeNode,
-			entryPointsTree.model.root as DefaultMutableTreeNode)
+			moduleTree.model.root as AbstractWorkbenchTreeNode,
+			entryPointsTree.model.root as AbstractWorkbenchTreeNode)
 	}
 
 	/**
@@ -1334,96 +1334,35 @@ class AvailWorkbench internal constructor(
 	 * @param entryPoints
 	 *   The [TreeNode] of entry points to present.
 	 */
-	fun refreshFor(modules: TreeNode, entryPoints: TreeNode)
+	fun refreshFor(
+		modules: AbstractWorkbenchTreeNode,
+		entryPoints: AbstractWorkbenchTreeNode)
 	{
-		val selection = moduleTree.selectionPath
-		val selectionInEntryPoints = entryPointsTree.selectionPath
-		moduleTree.isVisible = false
-		entryPointsTree.isVisible = false
-		try
-		{
-			val root = moduleTree.model.root as DefaultMutableTreeNode
-			val allExpanded = moduleTree
+		// Process the expansion/
+		mapOf(
+			moduleTree to modules,
+			entryPointsTree to entryPoints
+		).forEach { (tree, newRoot) ->
+			tree.isVisible = false
+			val root = tree.model.root as AbstractWorkbenchTreeNode
+			val allExpanded = tree
 				.getExpandedDescendants(TreePath(root))
 				?.toList()?.sortedBy(TreePath::getPathCount)
-				?: modules.children().toList().map {
-					// Expand each root on the first refresh.
-					TreePath(arrayOf(root, it))
-				}
-			moduleTree.model = DefaultTreeModel(modules)
-			val pathsToExpand = allExpanded.asSequence()
-				.map(TreePath::getLastPathComponent)
-				.filterIsInstance<AbstractWorkbenchTreeNode>()
-				.map(AbstractWorkbenchTreeNode::modulePathString)
-				.mapNotNull(::modulePath)
-				.toList()
-			pathsToExpand.forEach {
-				moduleTree.expandRecursively(it)
-			}
-			selection?.let { path ->
-				val node =
-					path.lastPathComponent as AbstractWorkbenchTreeNode
-				moduleTree.selectionPath = modulePath(node.modulePathString())
-			}
-
-			// Now process the entry points tree.
-			val oldEntryPointRoot: DefaultMutableTreeNode =
-				entryPointsTree.model.root.cast()
-			val expandedPaths = entryPointsTree.getExpandedDescendants(
-				TreePath(oldEntryPointRoot))
-			val collapsed = when (expandedPaths)
-			{
-				// First call, treat it as nothing collapsed.
-				null -> emptyList()
-				else ->
-				{
-					val expanded = expandedPaths
-						.toList()
-						.map(TreePath::getLastPathComponent)
-						.filterIsInstance<EntryPointModuleNode>()
-					oldEntryPointRoot.children()
-						.toList()
-						.filterIsInstance<EntryPointModuleNode>()
-						.toSet()
-						.minus(expanded)
-						.map { it.equalityText() }
-				}
-			}
-			entryPointsTree.model = DefaultTreeModel(entryPoints)
-			for (i in entryPointsTree.rowCount - 1 downTo 0)
-			{
-				val entryPointModulePath = entryPointsTree.getPathForRow(i)
-				val entryPointModule: EntryPointModuleNode =
-					entryPointModulePath.lastPathComponent.cast()
-				if (entryPointModule.equalityText() !in collapsed)
-				{
-					entryPointsTree.expandRow(i)
-				}
-			}
-			selectionInEntryPoints?.let { oldPath ->
-				val oldNodes = oldPath.path
-				var newNode = entryPoints
-				val newPathNodes = mutableListOf(newNode)
-				for (i in 1 until oldNodes.size)
-				{
-					val oldNode = oldNodes[i] as AbstractWorkbenchTreeNode
-					val equalityText = oldNode.equalityText()
-					val nextNode = newNode.children().toList().firstOrNull {
-						val node = it as AbstractWorkbenchTreeNode
-						node.equalityText() == equalityText
+				?: newRoot.typedChildren
+					.filter(AbstractWorkbenchTreeNode::initiallyExpanded)
+					.map {
+						// Expand each root on the first refresh.
+						TreePath(arrayOf(root, it))
 					}
-					nextNode ?: return@let
-					newPathNodes.add(nextNode)
-					newNode = nextNode
-				}
-				val newPath = TreePath(newPathNodes.toTypedArray())
-				entryPointsTree.selectionPath = newPath
+			val selection = tree.selectionPath
+			tree.model = DefaultTreeModel(newRoot)
+			allExpanded.forEach { tree.expandPath(tree.equivalentPath(it)) }
+			selection?.let { old ->
+				val new = tree.equivalentPath(old)
+				tree.expandPath(new.parentPath)
+				tree.selectionPath = new
 			}
-		}
-		finally
-		{
-			moduleTree.isVisible = true
-			entryPointsTree.isVisible = true
+			tree.isVisible = true
 		}
 	}
 
@@ -1434,12 +1373,13 @@ class AvailWorkbench internal constructor(
 	 * @param withTreeNode
 	 *   The lambda that accepts the (invisible) root of the module tree.
 	 */
-	private fun newModuleTreeThen(withTreeNode: (TreeNode) -> Unit)
+	private fun newModuleTreeThen(
+		withTreeNode: (DummyRootModuleNode) -> Unit)
 	{
 		val roots = resolver.moduleRoots
 		val sortedRootNodes = Collections.synchronizedList(
 			mutableListOf<ModuleRootNode>())
-		val treeRoot = DefaultMutableTreeNode("(packages hidden root)")
+		val treeRoot = DummyRootModuleNode(this)
 
 		roots.roots.parallelDoThen(
 			action = { root, after ->
@@ -1587,7 +1527,8 @@ class AvailWorkbench internal constructor(
 	 *   Function that accepts a [TreeNode] that contains all the
 	 *   [EntryPointModuleNode]s.
 	 */
-	private fun newEntryPointsTreeThen(withTreeNode: (TreeNode) -> Unit)
+	private fun newEntryPointsTreeThen(
+		withTreeNode: (DummyRootModuleNode) -> Unit)
 	{
 		val moduleNodes = ConcurrentHashMap<String, DefaultMutableTreeNode>()
 		availBuilder.traceDirectoriesThen(
@@ -1611,8 +1552,7 @@ class AvailWorkbench internal constructor(
 				after()
 			},
 			afterAll = {
-				val entryPointsTreeRoot =
-					DefaultMutableTreeNode("(entry points hidden root)")
+				val entryPointsTreeRoot = DummyRootModuleNode(this)
 				moduleNodes.entries
 					.sortedBy(MutableEntry<String, *>::key)
 					.map(MutableEntry<*, DefaultMutableTreeNode>::value)
@@ -2183,8 +2123,7 @@ class AvailWorkbench internal constructor(
 		rootPane.inputMap.put(KeyStroke.getKeyStroke("F5"), "Refresh")
 
 		// Create the module tree.
-		moduleTree = JTree(DefaultMutableTreeNode(
-			"(packages hidden root)"))
+		moduleTree = JTree(DummyRootModuleNode(this))
 		moduleTree.run {
 			background = null
 			toolTipText = "All modules, organized by module root."
@@ -2255,8 +2194,7 @@ class AvailWorkbench internal constructor(
 		}
 
 		// Create the entry points tree.
-		entryPointsTree = JTree(
-			DefaultMutableTreeNode("(entry points hidden root)"))
+		entryPointsTree = JTree(DummyRootModuleNode(this))
 		entryPointsTree.run {
 			background = null
 			toolTipText = "All entry points, organized by defining module."
@@ -2924,6 +2862,13 @@ class AvailWorkbench internal constructor(
 					availProjectFilePath,
 					workbenchWindowTitle,
 					projectManager)
+				Desktop.getDesktop().setQuitHandler { _, response ->
+					// Abort the explicit quit request, but ask the workbench to
+					// try to close the window, which will trigger nice cleanup.
+					response.cancelQuit()
+					bench.processWindowEvent(
+						WindowEvent(bench, WindowEvent.WINDOW_CLOSING))
+				}
 				// Inject a breakpoint handler into the runtime to open a
 				// debugger.
 				runtime.breakpointHandler = { fiber ->
@@ -3060,8 +3005,25 @@ class AvailWorkbench internal constructor(
 }
 
 /**
- * Expand nodes of a [JTree] so that everything in the [TreePath] up to
- * but not including its last component is expanded.
+ * Given a [TreePath] in some previous incarnation of the tree, update the
+ * received [JTree] to expand as much of the corresponding path in the new tree
+ * as possible.  Correspondence is determined by having equal
+ * [AbstractWorkbenchTreeNode.equalityText].  Answer the path through the new
+ * nodes, although it may be truncated due to lack of matching equalityText at
+ * any point along the path.
  */
-private fun JTree.expandRecursively(path: TreePath) =
-	path.iterableWith(TreePath::getParentPath).reversed().forEach(::expandPath)
+private fun JTree.equivalentPath(oldPath: TreePath): TreePath
+{
+	var node = model.root as? AbstractWorkbenchTreeNode
+	val newNodes = mutableListOf(node!!)
+	oldPath.typedPath<AbstractWorkbenchTreeNode>().iterator()
+		.also(Iterator<*>::next)
+		.forEachRemaining { old ->
+			val key = old.equalityText()
+			node = node?.typedChildren?.firstOrNull {
+				it.equalityText() == key
+			}
+			node?.let(newNodes::add)
+		}
+	return TreePath(newNodes.toTypedArray<AbstractWorkbenchTreeNode>())
+}

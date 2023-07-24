@@ -35,8 +35,8 @@ package avail.persistence.cache
 import avail.AvailRuntime
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
-import avail.persistence.cache.Repository.ModuleCompilation
-import avail.persistence.cache.Repository.ModuleVersion
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleVersion
 import avail.serialization.DeserializerDescriber
 import avail.utility.Strings.newlineTab
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
@@ -112,7 +112,7 @@ class RepositoryDescriber constructor(
 	 */
 	fun describeCompilation(recordNumber: Long): String
 	{
-		val record = repository.repository!![recordNumber]
+		val record = repository[recordNumber]
 		return try
 		{
 			val stream = validatedBytesFrom(record)
@@ -128,7 +128,7 @@ class RepositoryDescriber constructor(
 
 	fun describeManifest(recordNumberOfManifestEntries: Long): String
 	{
-		val record = repository.repository!![recordNumberOfManifestEntries]
+		val record = repository[recordNumberOfManifestEntries]
 		return buildString {
 			val input = DataInputStream(ByteArrayInputStream(record))
 			while (input.available() > 0)
@@ -153,7 +153,7 @@ class RepositoryDescriber constructor(
 		recordNumberOfManifestEntries: Long
 	): List<ModuleManifestEntry>
 	{
-		val record = repository.repository!![recordNumberOfManifestEntries]
+		val record = repository[recordNumberOfManifestEntries]
 		val input = DataInputStream(ByteArrayInputStream(record))
 		val entries = mutableListOf<ModuleManifestEntry>()
 		while (input.available() > 0)

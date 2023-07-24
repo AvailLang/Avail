@@ -35,8 +35,8 @@ package avail.anvil.actions
 import avail.anvil.AvailWorkbench
 import avail.anvil.streams.StreamStyle
 import avail.descriptor.fiber.FiberDescriptor
-import avail.persistence.cache.Repository.ModuleCompilation
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.StylingRecord
 import avail.utility.Strings.buildUnicodeBox
 import java.awt.event.ActionEvent
 import javax.swing.Action
@@ -93,7 +93,7 @@ class ExamineStylingAction constructor (
 				{
 					is ModuleCompilation ->
 					{
-						val stylingBytes = repository.repository!![
+						val stylingBytes = repository[
 							selectedCompilation.recordNumberOfStyling]
 						val stylingRecord = StylingRecord(stylingBytes)
 						val description =

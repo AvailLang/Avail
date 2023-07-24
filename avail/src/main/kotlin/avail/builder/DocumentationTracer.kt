@@ -44,8 +44,8 @@ import avail.descriptor.tokens.CommentTokenDescriptor
 import avail.descriptor.tuples.A_Tuple
 import avail.error.ErrorCode
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
-import avail.persistence.cache.Repository.ModuleVersion
-import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.record.ModuleVersion
+import avail.persistence.cache.record.ModuleVersionKey
 import avail.serialization.Deserializer
 import org.availlang.persistence.MalformedSerialStreamException
 import avail.stacks.StacksGenerator

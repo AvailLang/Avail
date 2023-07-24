@@ -35,8 +35,8 @@ package avail.anvil.actions
 import avail.anvil.AvailWorkbench
 import avail.anvil.streams.StreamStyle
 import avail.descriptor.fiber.FiberDescriptor
-import avail.persistence.cache.Repository.ModuleCompilation
-import avail.persistence.cache.Repository.PhrasePathRecord
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.PhrasePathRecord
 import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.newlineTab
 import java.awt.event.ActionEvent
@@ -94,9 +94,8 @@ class ExaminePhrasePathsAction constructor (
 				{
 					is ModuleCompilation ->
 					{
-						val bytes =
-							repository.repository!![
-								selectedCompilation.recordNumberOfPhrasePaths]
+						val bytes = repository[
+							selectedCompilation.recordNumberOfPhrasePaths]
 						val phrasePathsRecord = PhrasePathRecord(bytes)
 						val description = buildString {
 							phrasePathsRecord.phraseNodesDo { node ->

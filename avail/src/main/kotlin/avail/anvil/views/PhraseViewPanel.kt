@@ -42,7 +42,7 @@ import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.persistence.cache.Repository.PhraseNode
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.escapedForHTML
 import avail.utility.iterableWith

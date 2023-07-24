@@ -71,10 +71,9 @@ import avail.interpreter.execution.AvailLoader
 import avail.io.NybbleArray
 import avail.io.NybbleInputStream
 import avail.io.NybbleOutputStream
-import avail.persistence.cache.Repository.PhraseNode
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
-import avail.persistence.cache.StyleRun
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.StylingRecord
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
 import avail.utility.drain
@@ -3078,8 +3077,7 @@ sealed class RenderingContext constructor(val attributes: StyleAttributes)
 		if (this === other) return true
 		if (javaClass != other?.javaClass) return false
 		other as RenderingContext
-		if (attributes != other.attributes) return false
-		return true
+		return attributes == other.attributes
 	}
 
 	override fun hashCode() = combine2(attributes.hashCode(), 0x56B40BC3)

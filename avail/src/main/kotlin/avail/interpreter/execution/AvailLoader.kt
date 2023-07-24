@@ -231,6 +231,7 @@ import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBo
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter
 import avail.interpreter.primitive.methods.P_Alias
 import avail.io.TextInterface
+import avail.persistence.cache.record.NamesIndex
 import avail.utility.evaluation.Combinator.recurse
 import avail.utility.safeWrite
 import avail.utility.structures.RunTree
@@ -351,10 +352,18 @@ constructor(
 	 * A stream on which to serialize each [ModuleManifestEntry] when the
 	 * definition actually occurs during compilation.  After compilation, the
 	 * bytes of this stream are written to a record whose index is captured in
-	 * the [A_Module]'s [manifestEntries], and fetched from the repository and
-	 * decoded into a pojo array when needed.
+	 * the [A_Module.manifestEntries], and fetched from the repository and
+	 * decoded and cached when needed.
 	 */
 	var manifestEntries: MutableList<ModuleManifestEntry>? = null
+
+	/**
+	 * The [NamesIndex] into which to record indexing information during actual
+	 * compilation.  After compilation, this is written to a record whose index
+	 * is captured in the [A_Module.namesIndex], and fetched from the
+	 * repository and decoded and cached when needed.
+	 */
+	var namesIndex: NamesIndex? = null
 
 	/**
 	 * A flag that is cleared before executing each top-level statement of a

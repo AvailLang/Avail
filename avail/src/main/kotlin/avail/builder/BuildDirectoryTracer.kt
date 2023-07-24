@@ -36,8 +36,8 @@ import avail.compiler.AvailCompiler
 import avail.compiler.problems.Problem
 import avail.descriptor.fiber.FiberDescriptor.Companion.tracerPriority
 import avail.error.ErrorCode
-import avail.persistence.cache.Repository.ModuleVersion
-import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.record.ModuleVersion
+import avail.persistence.cache.record.ModuleVersionKey
 import avail.resolver.ModuleRootResolver
 import avail.utility.parallelDoThen
 import java.net.URI
@@ -306,8 +306,8 @@ class BuildDirectoryTracer constructor(
 						val header = compiler.compilationContext.moduleHeader!!
 						val importNames = header.importedModuleNames
 						val entryPoints = header.entryPointNames
-						val newVersion = repository.ModuleVersion(
-							sourceReference.size, importNames, entryPoints)
+						val newVersion = ModuleVersion(
+							repository,sourceReference.size, importNames, entryPoints)
 
 						availBuilder.serialize(header, newVersion)
 						archive.putVersion(versionKey, newVersion)

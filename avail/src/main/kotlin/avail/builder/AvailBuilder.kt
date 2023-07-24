@@ -76,9 +76,9 @@ import avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import avail.io.SimpleCompletionHandler
 import avail.io.TextInterface
 import avail.persistence.cache.Repository
-import avail.persistence.cache.Repository.ModuleArchive
-import avail.persistence.cache.Repository.ModuleCompilation
-import avail.persistence.cache.Repository.ModuleVersion
+import avail.persistence.cache.record.ModuleArchive
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleVersion
 import avail.serialization.Serializer
 import avail.utility.Graph
 import avail.utility.parallelDoThen

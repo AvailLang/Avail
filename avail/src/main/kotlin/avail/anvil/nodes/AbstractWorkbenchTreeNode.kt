@@ -72,6 +72,9 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	/** The [AvailWorkbench.availBuilder]. */
 	internal val builder: AvailBuilder get() = workbench.availBuilder
 
+	/** Whether to expand this node when the Anvil workbench opens. */
+	open fun initiallyExpanded() = false
+
 	/**
 	 * Answer a [String] suitable for identifying this node even after
 	 * refreshing the tree.
@@ -185,6 +188,13 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 * @return An [Int].  Lower values sort before higher ones.
 	 */
 	open val sortMajor: Int get() = 0
+
+	/**
+	 * Answer an [Iterable] over the children, but type-strengthening the
+	 * elements to [AbstractWorkbenchTreeNode].
+	 */
+	val typedChildren: Iterable<AbstractWorkbenchTreeNode>
+		get() = children.cast()
 
 	companion object
 	{

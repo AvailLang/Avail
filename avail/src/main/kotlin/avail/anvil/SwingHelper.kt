@@ -66,6 +66,8 @@ import javax.swing.text.LayeredHighlighter.LayerPainter
 import javax.swing.text.Position.Bias
 import javax.swing.text.StyleConstants
 import javax.swing.text.View
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
 
 /**
  * Either places the receiver JTextArea inside a JScrollPane with line numbers
@@ -538,3 +540,10 @@ inline fun invokeAndWaitIfNecessary(
 	if (SwingUtilities.isEventDispatchThread()) action()
 	else SwingUtilities.invokeAndWait(action)
 }
+
+/**
+ * Extract the list of nodes along this [TreePath], as a typed (but runtime
+ * erased) list.
+ */
+fun <N: DefaultMutableTreeNode> TreePath.typedPath(): List<N> =
+	path.toList().cast()
