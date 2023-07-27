@@ -95,6 +95,8 @@ class RepositoryDescriber constructor(
 						append("Styling #$recordNumberOfStyling")
 						newlineTab(3)
 						append("PhrasePaths #$recordNumberOfPhrasePaths")
+						newlineTab(3)
+						append("NamesIndex #$recordNumberOfNamesIndex")
 					}
 				}
 			}

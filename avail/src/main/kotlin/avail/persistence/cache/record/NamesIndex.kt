@@ -32,8 +32,19 @@
 
 package avail.persistence.cache.record
 
+import avail.descriptor.methods.A_Definition
+import avail.descriptor.methods.A_GrammaticalRestriction
+import avail.descriptor.methods.A_Macro
+import avail.descriptor.methods.A_SemanticRestriction
+import avail.descriptor.parsing.A_Lexer
+import avail.interpreter.primitive.methods.P_Alias
 import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
+import avail.utility.decodeString
+import avail.utility.sizedString
 import avail.utility.structures.BloomFilter
+import avail.utility.unvlqInt
+import avail.utility.vlq
+import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
 
@@ -76,73 +87,240 @@ class NamesIndex
 	private var bloomFilterIfPackage: BloomFilter<NameInModule>?
 
 	/**
-	 * The occurrences of things related to a name appearing in this module.
+	 * The occurrences of things related to some name appearing in this module.
+	 *
+	 * @property declarations
+	 *   A list of the name's [Declaration]s present in this module.
+	 * @property definitions
+	 *   A list of the name's [Definition]s present in this module.
+	 * @property usages
+	 *   A list of places that the name has [Usage]s within this module.
 	 */
 	data class NameOccurrences(
-		val declaration: MutableList<Declaration>,
+		val declarations: MutableList<Declaration>,
 		val definitions: MutableList<Definition>,
 		val usages: MutableList<Usage>)
+	{
+		fun write(
+			binaryStream: DataOutputStream,
+			moduleNumbering: Map<String, Int>,
+			nameNumbering: Map<String, Int>)
+		{
+			binaryStream.vlq(declarations.size)
+			declarations.forEach { decl ->
+				decl.write(binaryStream, moduleNumbering, nameNumbering)
+			}
+			binaryStream.vlq(definitions.size)
+			definitions.forEach { def ->
+				def.write(binaryStream)
+			}
+			binaryStream.vlq(usages.size)
+			usages.forEach { usage ->
+				usage.write(binaryStream)
+			}
+		}
+
+		/**
+		 * Reconstruct a [NameOccurrences] from a stream, using the already
+		 * constructed lists of module names and atom names
+		 */
+		constructor(
+			binaryStream: DataInputStream,
+			moduleNames: List<String>,
+			atomNames: List<String>
+		): this(
+			MutableList(binaryStream.unvlqInt()) {
+				Declaration(binaryStream, moduleNames, atomNames)
+			},
+			MutableList(binaryStream.unvlqInt()) {
+				Definition(binaryStream)
+			},
+			MutableList(binaryStream.unvlqInt()) {
+				Usage(binaryStream)
+			})
+	}
 
 	/**
 	 * A declaration of a name.  Note that there may be multiple positions
 	 * involved, such as the Names section of the header, the first mention of
 	 * the name, or an Alias statement that connects it to another name.
+	 *
+	 * @property alias
+	 *   The existing name, if any, that the new name aliases.
+	 * @property phraseIndex
+	 *   An index into the canonically ordered [PhraseNode]s in the
+	 *   [PhrasePathRecord] for this module compilation.  That [PhraseNode] is
+	 *   enough information to identify a region of the module to highlight
+	 *   or select to identify the declaration of the name.
 	 */
 	data class Declaration(
 		val alias: NameInModule?,
-		val position: PositionInfo)
+		val phraseIndex: Int)
+	{
+		fun write(
+			binaryStream: DataOutputStream,
+			moduleNumbering: Map<String, Int>,
+			nameNumbering: Map<String, Int>)
+		{
+			binaryStream.writeBoolean(alias != null)
+			alias?.run { write(binaryStream, moduleNumbering, nameNumbering) }
+			binaryStream.vlq(phraseIndex)
+		}
+
+		/**
+		 * Reconstruct a [NameInModule] from a stream, using the already constructed
+		 * lists of module names and atom names
+		 */
+		constructor(
+			binaryStream: DataInputStream,
+			moduleNames: List<String>,
+			atomNames: List<String>
+		): this(
+			when (binaryStream.readBoolean())
+			{
+				true -> NameInModule(binaryStream, moduleNames, atomNames)
+				false -> null
+			},
+			binaryStream.unvlqInt())
+	}
 
 	/**
 	 * A definition of a method, macro, or restriction in this module.
+	 *
+	 * @property definitionType
+	 *   The [DefinitionType] identifying the nature of this definition.
+	 * @property manifestIndex
+	 *   An index into the [ManifestRecord] for the current module, indicating
+	 *   which manifest entry is responsible for this definition.
 	 */
 	data class Definition(
 		val definitionType: DefinitionType,
-		val position: PositionInfo)
+		val manifestIndex: Int)
+	{
+		fun write(binaryStream: DataOutputStream)
+		{
+			binaryStream.vlq(definitionType.ordinal)
+			binaryStream.vlq(manifestIndex)
+		}
+
+		constructor(
+			binaryStream: DataInputStream
+		): this(
+			DefinitionType.all[binaryStream.unvlqInt()],
+			binaryStream.unvlqInt())
+	}
 
 	/**
-	 * The kind of thing being defined with some [NameInModule].
+	 * The kind of thing being defined with some [NameInModule].  These are
+	 * serialized by their ordinal, so change the repository version number if
+	 * these must change.
 	 */
 	enum class DefinitionType
 	{
+		/**
+		 * The definition is a [method definition][A_Definition].
+		 */
 		Method,
+
+		/** The definition is a [macro definition][A_Macro]. */
 		Macro,
+
+		/**
+		 * The definition is a [semantic restriction][A_SemanticRestriction].
+		 */
 		SemanticRestriction,
+
+		/**
+		 * The definition is a
+		 * [grammatical restriction[A_GrammaticalRestriction].
+		 */
 		GrammaticalRestriction,
-		Lexer
+
+		/** The definition is of a [lexer][A_Lexer]. */
+		Lexer;
+
+		companion object
+		{
+			val all = values().toList()
+		}
 	}
 
 	/**
 	 * An indication of where a name is used in the file, suitable for
 	 * presenting in an itemized list.
+	 *
+	 * @property usageType
+	 *   The [UsageType] that indicates how the name is being used.
+	 * @property phraseIndex
+	 *   An index into the canonically ordered [PhraseNode]s in the
+	 *   [PhrasePathRecord] for this module compilation.  That [PhraseNode] is
+	 *   enough information to identify a region of the module to highlight
+	 *   or select to identify the usage of the name.
 	 */
 	data class Usage(
 		val usageType: UsageType,
-		val position: PositionInfo)
+		val phraseIndex: Int)
+	{
+		fun write(binaryStream: DataOutputStream)
+		{
+			binaryStream.vlq(usageType.ordinal)
+			binaryStream.vlq(phraseIndex)
+		}
+
+		/**
+		 * Reconstruct a [Usage] from a stream.
+		 */
+		constructor(
+			binaryStream: DataInputStream
+		): this(
+			UsageType.all[binaryStream.unvlqInt()],
+			binaryStream.unvlqInt())
+	}
 
 	/**
 	 * The way that a [NameInModule] is being used somewhere.
 	 */
 	enum class UsageType
 	{
+		/** The name is listed in the `Names` section of the module header. */
 		NameInHeader,
-		AliasInHeader,
-		AliasInBody,
-		ExplicitCreationInBody,
-		ImplicitCreationInBody,
-		MethodSend,
-		MacroSend
-	}
 
-	/**
-	 * This captures information about how to find a usage of some name.  For
-	 * now, we just capture a line number.
-	 *
-	 * TODO – It would be more accurate if we captured a way to get to the
-	 *  [PhraseNode] in the [PhrasePathRecord] associated with the module.  Even
-	 *  capturing the column number might be sufficient.
-	 */
-	data class PositionInfo(
-		val lineNumber: Int)
+		/**
+		 * The name is mentioned (not defined) in an import section of the
+		 * module header.
+		 */
+		AliasInHeader,
+
+		/**
+		 * An explicit [aliasing][P_Alias] took place within the module body.
+		 */
+		AliasInBody,
+
+		/**
+		 * The atom (name) was created explicitly within the body.
+		 */
+		ExplicitCreationInBody,
+
+		/**
+		 * The atom (name) was created implicitly within the body.
+		 */
+		ImplicitCreationInBody,
+
+		/**
+		 * This is an invocation of the name as a method to invoke at runtime.
+		 */
+		MethodSend,
+
+		/**
+		 * This is an invocation of the name as a macro at compile time.
+		 */
+		MacroSend;
+
+		companion object
+		{
+			val all = values().toList()
+		}
+	}
 
 	/**
 	 * Add all names mentioned by this module or package to the given
@@ -197,21 +375,45 @@ class NamesIndex
 	@Throws(IOException::class)
 	internal fun write(binaryStream: DataOutputStream)
 	{
-		// Avoid repeating the names of modules by collecting all references
-		// and giving them a unique numbering.
-		val allReferencedModules = mutableSetOf<String>()
-		declaredNames.values.mapNotNullTo(allReferencedModules) {
-			it?.moduleName
+		// Find all names declared or mentioned in the module.
+		val fullNames = mutableSetOf<NameInModule>()
+		fullNames.addAll(declaredNames.values.filterNotNull())
+		fullNames.addAll(occurrences.keys)
+		// Avoid repeating the names of modules by collecting all references and
+		// giving them a unique numbering.
+		val moduleNames = fullNames.map(NameInModule::moduleName).toSortedSet()
+		// Write the unique module names.
+		binaryStream.vlq(moduleNames.size)
+		moduleNames.forEach(binaryStream::sizedString)
+		val moduleNumbering = moduleNames.withIndex()
+			.associate { it.value to it.index }
+
+		// Write the unique, sorted atom names.
+		val sortedNames = fullNames.map(NameInModule::atomName).toSortedSet()
+		// Write the unique module names.
+		binaryStream.vlq(sortedNames.size)
+		sortedNames.forEach(binaryStream::sizedString)
+		val nameNumbering = sortedNames.withIndex()
+			.associate { it.value to it.index }
+
+		// Write the declaredNames.
+		binaryStream.vlq(declaredNames.size)
+		declaredNames.entries.sortedBy { it.key }.forEach { (new, old) ->
+			new.write(binaryStream, moduleNumbering, nameNumbering)
+			// Write a byte indicating whether there's an alias that follows.
+			binaryStream.writeBoolean(old != null)
+			old?.let {
+				old.write(binaryStream, moduleNumbering, nameNumbering)
+			}
 		}
-		occurrences.keys.mapTo(
-			allReferencedModules, NameInModule::moduleName)
-		val moduleNumbering = mutableMapOf<String, Int>()
-		// Sort them to reduce the entropy for record compression.
-		allReferencedModules.sorted().forEach { moduleName ->
-			moduleNumbering[moduleName] = moduleNumbering.size
+		// Write all NameOccurrences.
+		binaryStream.vlq(occurrences.size)
+		occurrences.entries.sortedBy { it.key }.forEach { (key, occurrences) ->
+			key.write(binaryStream, moduleNumbering, nameNumbering)
+			occurrences.write(binaryStream, moduleNumbering, nameNumbering)
 		}
-		// Collect
-		//TODO
+		binaryStream.writeBoolean(bloomFilterIfPackage != null)
+		bloomFilterIfPackage?.run { write(binaryStream) }
 	}
 
 	override fun toString(): String = buildString {
@@ -229,22 +431,50 @@ class NamesIndex
 	/**
 	 * Reconstruct a [NamesIndex], having previously been written via [write].
 	 *
-	 * @param bytes
-	 *   Where to read the [NamesIndex] from.
+	 * @param binaryStream
+	 *   The source of the bytes from which to read a [NamesIndex].
 	 * @throws IOException
 	 *   If I/O fails.
 	 */
 	@Throws(IOException::class)
-	internal constructor(bytes: ByteArray)
+	internal constructor(binaryStream: DataInputStream)
 	{
-		//TODO
+		// Read the module names,
+		val moduleNames = List(binaryStream.unvlqInt()) {
+			binaryStream.decodeString()
+		}
+		// Read the atom names.
+		val atomNames = List(binaryStream.unvlqInt()) {
+			binaryStream.decodeString()
+		}
 		declaredNames = mutableMapOf()
-		//TODO
-		invertedAliases = mutableMapOf()
-		//TODO
+		repeat(binaryStream.unvlqInt()) {
+			val name = NameInModule(binaryStream, moduleNames, atomNames)
+			val alias = when (binaryStream.readBoolean())
+			{
+				true -> NameInModule(binaryStream, moduleNames, atomNames)
+				false -> null
+			}
+			declaredNames[name] = alias
+		}
+
+		this.invertedAliases = declaredNames.entries
+			.filter { it.value != null }
+			.groupBy({ it.key }, { it.value!! })
+			.toMutableMap()
+
+		// Read all NameOccurrences.
 		occurrences = mutableMapOf()
-		//TODO
-		bloomFilterIfPackage = null
+		repeat(binaryStream.unvlqInt()) {
+			occurrences[NameInModule(binaryStream, moduleNames, atomNames)] =
+				NameOccurrences(binaryStream, moduleNames, atomNames)
+		}
+
+		bloomFilterIfPackage = when (binaryStream.readBoolean())
+		{
+			true -> BloomFilter(binaryStream)
+			false -> null
+		}
 	}
 
 	/**

@@ -32,10 +32,44 @@
 
 package avail.persistence.cache.record
 
+import avail.utility.ifZero
+import avail.utility.unvlqInt
+import avail.utility.vlq
+import java.io.DataInputStream
+import java.io.DataOutputStream
+
 /**
  * A structure containing both a module name and the name of an atom declared in
  * that module.
+ *
  */
-data class NameInModule(
-	val declaredName: String,
-	val moduleName: String)
+data class NameInModule constructor(
+	val moduleName: String,
+	val atomName: String
+): Comparable<NameInModule>
+{
+	override fun compareTo(other: NameInModule): Int =
+		moduleName.compareTo(other.moduleName)
+			.ifZero { atomName.compareTo(other.atomName) }
+
+	fun write(
+		binaryStream: DataOutputStream,
+		moduleNumbering: Map<String, Int>,
+		nameNumbering: Map<String, Int>)
+	{
+		binaryStream.vlq(moduleNumbering[moduleName]!!)
+		binaryStream.vlq(nameNumbering[atomName]!!)
+	}
+
+	/**
+	 * Reconstruct a [NameInModule] from a stream, using the already constructed
+	 * lists of module names and atom names
+	 */
+	constructor(
+		binaryStream: DataInputStream,
+		moduleNames: List<String>,
+		atomNames: List<String>
+	) : this(
+		moduleNames[binaryStream.unvlqInt()],
+		atomNames[binaryStream.unvlqInt()])
+}

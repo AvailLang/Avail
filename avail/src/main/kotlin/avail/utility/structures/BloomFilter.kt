@@ -33,6 +33,11 @@
 package avail.utility.structures
 
 import avail.descriptor.representation.AvailObject
+import avail.utility.unvlqInt
+import avail.utility.unvlqLong
+import avail.utility.vlq
+import java.io.DataInputStream
+import java.io.DataOutputStream
 
 /**
  * A `BloomFilter` is a conservative, probabilistic set.  It can report that an
@@ -95,24 +100,6 @@ class BloomFilter<T>
 
 	/** The number of hash functions to use. */
 	private val hashCount: Int
-
-	/**
-	 * A collection of random, permanent salts for producing successive hash
-	 * values to index the filter's bit vector.  Don't use more than this number
-	 * of hash values in any [BloomFilter] (or extend this list).  Note that
-	 * adding entries (and using them) will break backward compatibility, where
-	 * newer hashes cannot be recognized or reproduced by older code.
-	 */
-	private val hashSalts = intArrayOf(
-		0x106A0E28,
-		-0x75F627F4,
-		-0x51C4CBC8,
-		-0x34F95F19,
-		0x596F6ACD,
-		-0x6A6FB895,
-		0x3173A4D9,
-		-0x771EA1ED,
-	)
 
 	/**
 	 * The bits, guaranteed to be 1 if a hash function produced that index for
@@ -235,5 +222,50 @@ class BloomFilter<T>
 		{
 			array[i] = array[i] or filter.array[i]
 		}
+	}
+
+	/**
+	 * Write this [BloomFilter] onto the given stream.
+	 */
+	fun write(binaryStream: DataOutputStream)
+	{
+		binaryStream.vlq(bitCount)
+		binaryStream.vlq(hashCount)
+		array.forEach(binaryStream::writeLong)
+	}
+
+	constructor(
+		binaryStream: DataInputStream
+	): this(
+		binaryStream.unvlqInt(),
+		binaryStream.unvlqInt())
+	{
+		array.indices.forEach {
+			array[it] = binaryStream.unvlqLong()
+		}
+	}
+
+	companion object
+	{
+
+		/**
+		 * A collection of random, permanent salts for producing successive hash
+		 * values to index the filter's bit vector.  Don't use more than this
+		 * number of hash values in any [BloomFilter] (or extend this list).
+		 * Note that adding entries (and using them) will break backward
+		 * compatibility, where newer hashes cannot be recognized or reproduced
+		 * by older code.
+		 */
+		private val hashSalts = intArrayOf(
+			0x106A0E28,
+			-0x75F627F4,
+			-0x51C4CBC8,
+			-0x34F95F19,
+			0x596F6ACD,
+			-0x6A6FB895,
+			0x3173A4D9,
+			-0x771EA1ED,
+		)
+
 	}
 }
