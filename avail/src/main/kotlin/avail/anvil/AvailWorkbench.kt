@@ -54,6 +54,7 @@ import avail.anvil.actions.DebugAction
 import avail.anvil.actions.DeleteModuleAction
 import avail.anvil.actions.ExamineCompilationAction
 import avail.anvil.actions.ExamineModuleManifest
+import avail.anvil.actions.ExamineNamesIndex
 import avail.anvil.actions.ExaminePhrasePathsAction
 import avail.anvil.actions.ExamineRepositoryAction
 import avail.anvil.actions.ExamineSerializedPhrasesAction
@@ -748,6 +749,9 @@ class AvailWorkbench internal constructor(
 
 	/** The [ExamineModuleManifest]. */
 	private val examineModuleManifestAction = ExamineModuleManifest(this)
+
+	/** The [ExamineNamesIndex]. */
+	private val examineNamesIndexAction = ExamineNamesIndex(this)
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -2112,6 +2116,7 @@ class AvailWorkbench internal constructor(
 					item(examineStylingAction)
 					item(examinePhrasePathsAction)
 					item(examineModuleManifestAction)
+					item(examineNamesIndexAction)
 					separator()
 					item(graphAction)
 				}

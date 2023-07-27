@@ -181,7 +181,7 @@ class BloomFilter<T>
 	{
 		// Use the upper bits to avoid division.  The hash values should be of
 		// high enough quality in the upper bits to justify this.
-		val inRange = (hash.toULong() * size shr 32).toInt()
+		val inRange = (hash.toUInt().toULong() * size shr (32 - 6)).toInt()
 		val index = inRange ushr 6
 		val mask = 1L shl (inRange and 63)
 		array[index] = array[index] or mask
@@ -200,7 +200,7 @@ class BloomFilter<T>
 	{
 		// Use the upper bits to avoid division.  The hash values should be of
 		// high enough quality in the upper bits to justify this.
-		val inRange = (hash.toULong() * size shr 32).toInt()
+		val inRange = (hash.toUInt().toULong() * size shr (32 - 6)).toInt()
 		val index = inRange ushr 6
 		val mask = 1L shl (inRange and 63)
 		return (array[index] and mask) != 0L

@@ -259,7 +259,7 @@ class CompilationContext constructor(
 	 */
 	val loader = AvailLoader(runtime, module, textInterface).apply {
 		manifestEntries = mutableListOf()
-		namesIndex = NamesIndex(mutableMapOf(), mutableMapOf(), null)
+		namesIndex = NamesIndex(mutableMapOf(), null)
 	}
 
 	/** The number of work units that have been queued. */

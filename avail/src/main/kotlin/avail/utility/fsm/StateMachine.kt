@@ -32,6 +32,7 @@
 
 package avail.utility.fsm
 
+import avail.utility.cast
 import java.util.EnumMap
 
 /**
@@ -123,7 +124,7 @@ internal constructor(
 	private val transitionTable = EnumMap<
 			State,
 			StateSummary<State, Event, GuardKey, ActionKey, Memento>>(
-		initialState.declaringClass)
+		initialState::class.java.cast<Any, Class<State>>())
 
 	/**
 	 * Add the specified [state&#32;summary][StateSummary] to the transition

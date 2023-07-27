@@ -55,6 +55,7 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.UP_ARROW
 import avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR
 import avail.descriptor.atoms.A_Atom
+import avail.descriptor.atoms.A_Atom.Companion.asNameInModule
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
@@ -144,6 +145,7 @@ import avail.descriptor.module.A_Module.Companion.buildFilteredBundleTree
 import avail.descriptor.module.A_Module.Companion.createLexicalScanner
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
+import avail.descriptor.module.A_Module.Companion.manifestEntries
 import avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddMacro
@@ -234,8 +236,8 @@ import avail.io.TextInterface
 import avail.persistence.cache.record.NamesIndex
 import avail.utility.evaluation.Combinator.recurse
 import avail.utility.safeWrite
-import avail.utility.structures.RunTree
 import avail.utility.stackToString
+import avail.utility.structures.RunTree
 import java.util.ArrayDeque
 import java.util.TreeMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -1392,28 +1394,30 @@ constructor(
 				module.moduleAddDefinition(newDefinition)
 				val topStart = topLevelStatementBeingCompiled!!
 					.startingLineNumber
-				manifestEntries!!.add(
+				addManifestEntry(
 					when
 					{
 						newDefinition.isMethodDefinition() ->
-						{
-							val body = newDefinition.bodyBlock()
-							ModuleManifestEntry(
-								SideEffectKind.METHOD_DEFINITION_KIND,
-								methodName.atomName.asNativeString(),
-								topStart,
-								body.code().codeStartingLineNumber,
-								body)
-						}
+							newDefinition.bodyBlock().let { body ->
+								ModuleManifestEntry(
+									SideEffectKind.METHOD_DEFINITION_KIND,
+									methodName.asNameInModule,
+									methodName.atomName.asNativeString(),
+									topStart,
+									body.code().codeStartingLineNumber,
+									body)
+							}
 						newDefinition.isForwardDefinition() ->
 							ModuleManifestEntry(
 								SideEffectKind.FORWARD_METHOD_DEFINITION_KIND,
+								methodName.asNameInModule,
 								methodName.atomName.asNativeString(),
 								topStart,
 								topStart)
 						newDefinition.isAbstractDefinition() ->
 							ModuleManifestEntry(
 								SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND,
+								methodName.asNameInModule,
 								methodName.atomName.asNativeString(),
 								topStart,
 								topStart)
@@ -1501,9 +1505,10 @@ constructor(
 		{
 			recordEffect(LoadingEffectToAddMacro(bundle, macroDefinition))
 			module.lock {
-				manifestEntries!!.add(
+				addManifestEntry(
 					ModuleManifestEntry(
 						SideEffectKind.MACRO_DEFINITION_KIND,
+						methodName.asNameInModule,
 						methodName.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						macroCode.codeStartingLineNumber,
@@ -1547,9 +1552,10 @@ constructor(
 			theModule.moduleAddSemanticRestriction(restriction)
 			if (phase == EXECUTING_FOR_COMPILE)
 			{
-				manifestEntries!!.add(
+				addManifestEntry(
 					ModuleManifestEntry(
 						SideEffectKind.SEMANTIC_RESTRICTION_KIND,
+						atom.asNameInModule,
 						atom.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						code.codeStartingLineNumber,
@@ -1594,9 +1600,10 @@ constructor(
 				SpecialMethodAtom.SEAL.bundle, methodName, seal))
 		if (phase == EXECUTING_FOR_COMPILE)
 		{
-			manifestEntries!!.add(
+			addManifestEntry(
 				ModuleManifestEntry(
 					SideEffectKind.SEAL_KIND,
+					methodName.asNameInModule,
 					methodName.atomName.asNativeString(),
 					topLevelStatementBeingCompiled!!.startingLineNumber,
 					topLevelStatementBeingCompiled!!.startingLineNumber))
@@ -1674,9 +1681,10 @@ constructor(
 				}
 				if (phase == EXECUTING_FOR_COMPILE)
 				{
-					manifestEntries!!.add(
+					addManifestEntry(
 						ModuleManifestEntry(
 							SideEffectKind.GRAMMATICAL_RESTRICTION_KIND,
+							parentAtom.asNameInModule,
 							parentAtom.atomName.asNativeString(),
 							topLevelStatementBeingCompiled!!.startingLineNumber,
 							topLevelStatementBeingCompiled!!.startingLineNumber))
@@ -1742,6 +1750,18 @@ constructor(
 		{
 			println("Defined styler: ${code.methodName}")
 		}
+	}
+
+	/**
+	 * Record a [ModuleManifestEntry].  Also record suitable information in the
+	 * [namesIndex].
+	 */
+	fun addManifestEntry(entry: ModuleManifestEntry)
+	{
+		val manifestEntryIndex = manifestEntries!!.size
+		manifestEntries!!.add(entry)
+		entry.kind.addManifestEntryToNamesIndex(
+			entry, manifestEntryIndex, namesIndex!!)
 	}
 
 	/**
@@ -1857,6 +1877,7 @@ constructor(
 			0 ->
 			{
 				val newAtom = createAtom(stringName, module)
+				newAtom.makeShared()
 				ifNew?.invoke(newAtom)
 				// Hoist creation of the atom to a block that runs prior to any
 				// place that it might be used.
@@ -1877,14 +1898,14 @@ constructor(
 				{
 					val topStart = topLevelStatementBeingCompiled!!
 						.startingLineNumber
-					manifestEntries!!.add(
+					addManifestEntry(
 						ModuleManifestEntry(
 							SideEffectKind.ATOM_DEFINITION_KIND,
+							newAtom.asNameInModule,
 							stringName.asNativeString(),
 							topStart,
 							topStart))
 				}
-				newAtom.makeShared()
 				module.addPrivateName(newAtom)
 				newAtom
 			}

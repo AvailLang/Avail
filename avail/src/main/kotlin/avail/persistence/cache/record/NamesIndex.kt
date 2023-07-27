@@ -36,6 +36,8 @@ import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.A_SemanticRestriction
+import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.addSeal
 import avail.descriptor.parsing.A_Lexer
 import avail.interpreter.primitive.methods.P_Alias
 import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
@@ -47,7 +49,6 @@ import avail.utility.vlq
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
-
 /**
  * Information for efficiently navigating between declarations, aliases,
  * definitions, and uses of atoms.  This is information bounded by the module in
@@ -56,24 +57,10 @@ import java.io.IOException
 class NamesIndex
 {
 	/**
-	 * A [MutableMap] from names declared by this module to an optional
-	 * [NameInModule] that the name is an alias of, or `null` if the name is not
-	 * declared as an alias.
-	 */
-	private val declaredNames: MutableMap<NameInModule, NameInModule?>
-
-	/**
-	 * A [Map] from old names to a non-empty [List] of new names that appear as
-	 * values in the [declaredNames].  This is the inverse relationship of
-	 * [declaredNames].
-	 */
-	private val invertedAliases: MutableMap<NameInModule, List<NameInModule>>
-
-	/**
 	 * A [Map] from each occurring [NameInModule] to the [NameOccurrences] that
 	 * describe where and how the name is used in this module.
 	 */
-	private val occurrences: MutableMap<NameInModule, NameOccurrences>
+	val occurrences: MutableMap<NameInModule, NameOccurrences>
 
 	/**
 	 * Iff this index is for a package, this is a bloom filter that can be used
@@ -237,7 +224,10 @@ class NamesIndex
 		GrammaticalRestriction,
 
 		/** The definition is of a [lexer][A_Lexer]. */
-		Lexer;
+		Lexer,
+
+		/** The definition of a [seal][A_Module.addSeal] on some method. */
+		Seal;
 
 		companion object
 		{
@@ -323,6 +313,82 @@ class NamesIndex
 	}
 
 	/**
+	 * Look up the [NameOccurrences] for the given [NameInModule], creating an
+	 * entry for it if needed.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] to look up.
+	 * @return
+	 *   The found or added [NameOccurrences].
+	 */
+	private fun occurrences(nameInModule: NameInModule): NameOccurrences =
+		occurrences.computeIfAbsent(nameInModule) {
+			NameOccurrences(mutableListOf(), mutableListOf(), mutableListOf())
+		}
+
+	/**
+	 * Add information about a [Declaration].
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] that is being declared.
+	 * @param alias
+	 *   The optional existing [NameInModule] that is being aliased.
+	 * @param phraseIndex
+	 *   The index into this [ModuleCompilation]'s [PhrasePathRecord]'s phrases.
+	 *   Note that this uniquely determines a phrase anywhere within the module,
+	 *   not just a top level phrase.
+	 */
+	fun addDeclaration(
+		nameInModule: NameInModule,
+		alias: NameInModule?,
+		phraseIndex: Int)
+	{
+		occurrences(nameInModule).declarations
+			.add(Declaration(alias, phraseIndex))
+	}
+
+	/**
+	 * Add information about a [Definition].
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] that is having a [Definition] added.
+	 * @param definitionType
+	 *   The [DefinitionType] categorizing the definition.
+	 * @param manifestIndex
+	 *   The index into this [ModuleCompilation]'s [ManifestRecord]'s manifest
+	 *   entries, indicating which top-level statement was responsible for the
+	 *   adding this [Definition].
+	 */
+	fun addDefinition(
+		nameInModule: NameInModule,
+		definitionType: DefinitionType,
+		manifestIndex: Int)
+	{
+		occurrences(nameInModule).definitions
+			.add(Definition(definitionType, manifestIndex))
+	}
+
+	/**
+	 * Add information about a [Usage].
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] being used.
+	 * @param
+	 *   The nature of the usage of the [nameInModule].
+	 * @param
+	 * @param phraseIndex
+	 *   The index into this [ModuleCompilation]'s [PhrasePathRecord]'s phrases,
+	 *   identifying the exact [PhraseNode] that uses the [nameInModule].
+	 */
+	fun addUsage(
+		nameInModule: NameInModule,
+		usageType: UsageType,
+		phraseIndex: Int)
+	{
+		occurrences(nameInModule).usages.add(Usage(usageType, phraseIndex))
+	}
+
+	/**
 	 * Add all names mentioned by this module or package to the given
 	 * [BloomFilter].
 	 *
@@ -337,8 +403,6 @@ class NamesIndex
 			filter.addAll(thisFilter)
 			return
 		}
-		declaredNames.keys.forEach(filter::add)
-		invertedAliases.keys.forEach(filter::add)
 		occurrences.keys.forEach(filter::add)
 	}
 
@@ -351,19 +415,14 @@ class NamesIndex
 	 *
 	 * @param nameToFind
 	 *   The [NameInModule] to search for in the index.
-	 * @param withDeclaration
-	 *   What to do if the declaration is present, passing the aliased name
-	 *   ([NameInModule]) if any, otherwise `null`.
 	 * @param withOccurrences
 	 *   What to do with the [NameOccurrences] if an entry was found for the
 	 *   name.
 	 */
 	fun findMentions(
 		nameToFind: NameInModule,
-		withDeclaration: (NameInModule?) -> Unit,
 		withOccurrences: (NameOccurrences) -> Unit)
 	{
-		declaredNames[nameToFind]?.let(withDeclaration)
 		occurrences[nameToFind]?.let(withOccurrences)
 	}
 
@@ -377,8 +436,11 @@ class NamesIndex
 	{
 		// Find all names declared or mentioned in the module.
 		val fullNames = mutableSetOf<NameInModule>()
-		fullNames.addAll(declaredNames.values.filterNotNull())
 		fullNames.addAll(occurrences.keys)
+		fullNames.addAll(
+			occurrences.values
+				.flatMap(NameOccurrences::declarations)
+				.mapNotNull(Declaration::alias))
 		// Avoid repeating the names of modules by collecting all references and
 		// giving them a unique numbering.
 		val moduleNames = fullNames.map(NameInModule::moduleName).toSortedSet()
@@ -396,36 +458,27 @@ class NamesIndex
 		val nameNumbering = sortedNames.withIndex()
 			.associate { it.value to it.index }
 
-		// Write the declaredNames.
-		binaryStream.vlq(declaredNames.size)
-		declaredNames.entries.sortedBy { it.key }.forEach { (new, old) ->
-			new.write(binaryStream, moduleNumbering, nameNumbering)
-			// Write a byte indicating whether there's an alias that follows.
-			binaryStream.writeBoolean(old != null)
-			old?.let {
-				old.write(binaryStream, moduleNumbering, nameNumbering)
-			}
-		}
 		// Write all NameOccurrences.
 		binaryStream.vlq(occurrences.size)
 		occurrences.entries.sortedBy { it.key }.forEach { (key, occurrences) ->
 			key.write(binaryStream, moduleNumbering, nameNumbering)
 			occurrences.write(binaryStream, moduleNumbering, nameNumbering)
 		}
+
+		// Write Bloom filter if present.
 		binaryStream.writeBoolean(bloomFilterIfPackage != null)
 		bloomFilterIfPackage?.run { write(binaryStream) }
 	}
 
 	override fun toString(): String = buildString {
 		append("NamesIndex (")
-		append(declaredNames.size)
-		append(" decls, ")
 		append(occurrences.values.sumOf { it.definitions.size })
 		append(" defs")
 		bloomFilterIfPackage?.run {
 			append(", bloom=")
 			append(bitCount)
 		}
+		append(")")
 	}
 
 	/**
@@ -447,21 +500,6 @@ class NamesIndex
 		val atomNames = List(binaryStream.unvlqInt()) {
 			binaryStream.decodeString()
 		}
-		declaredNames = mutableMapOf()
-		repeat(binaryStream.unvlqInt()) {
-			val name = NameInModule(binaryStream, moduleNames, atomNames)
-			val alias = when (binaryStream.readBoolean())
-			{
-				true -> NameInModule(binaryStream, moduleNames, atomNames)
-				false -> null
-			}
-			declaredNames[name] = alias
-		}
-
-		this.invertedAliases = declaredNames.entries
-			.filter { it.value != null }
-			.groupBy({ it.key }, { it.value!! })
-			.toMutableMap()
 
 		// Read all NameOccurrences.
 		occurrences = mutableMapOf()
@@ -480,11 +518,7 @@ class NamesIndex
 	/**
 	 * Construct a [NamesIndex] from the provided data.
 	 *
-	 * @param declaredNames
-	 *   A [MutableMap] from names declared by this module to an optional
-	 *   [NameInModule] that the name is an alias of, or `null` if the name is
-	 *   not declared as an alias.
-	 * @param definitions
+	 * @param occurrences
 	 *   A [MutableMap] from each occurring [NameInModule] to the
 	 *   [NameOccurrences] that describe where and how the name is used in this
 	 *   module.
@@ -499,16 +533,10 @@ class NamesIndex
 	 *   name.
 	 */
 	constructor(
-		declaredNames: MutableMap<NameInModule, NameInModule?>,
-		definitions: MutableMap<NameInModule, NameOccurrences>,
+		occurrences: MutableMap<NameInModule, NameOccurrences>,
 		bloomFilterIfPackage: BloomFilter<NameInModule>?)
 	{
-		this.declaredNames = declaredNames
-		this.invertedAliases = declaredNames.entries
-			.filter { it.value != null }
-			.groupBy(keySelector = { it.key }, valueTransform = { it.value!! })
-			.toMutableMap()
-		this.occurrences = definitions
+		this.occurrences = occurrences
 		this.bloomFilterIfPackage = bloomFilterIfPackage
 	}
 }

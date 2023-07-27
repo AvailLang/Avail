@@ -128,13 +128,14 @@ class ModuleCompilation
 	override fun toString(): String =
 		String.format(
 			"Compilation(%tFT%<tTZ, rec=%d, phrases=%d, manifest=%d, " +
-				"styling=%d, phrase paths=%d)",
+				"styling=%d, phrase paths=%d, names index=%d)",
 			compilationTime,
 			recordNumber,
 			recordNumberOfBlockPhrases,
 			recordNumberOfManifest,
 			recordNumberOfStyling,
-			recordNumberOfPhrasePaths)
+			recordNumberOfPhrasePaths,
+			recordNumberOfNamesIndex)
 
 	/**
 	 * Reconstruct a `ModuleCompilation`, having previously been written via
