@@ -225,7 +225,11 @@ class BloomFilter<T>
 	}
 
 	/**
-	 * Write this [BloomFilter] onto the given stream.
+	 * Write this [BloomFilter] onto the given stream, such that the constructor
+	 * taking a [DataInputStream] can reconstruct it.
+	 *
+	 * @param binaryStream
+	 *   The [DataOutputStream] on which to serialize this [BloomFilter].
 	 */
 	fun write(binaryStream: DataOutputStream)
 	{
@@ -234,6 +238,12 @@ class BloomFilter<T>
 		array.forEach(binaryStream::writeLong)
 	}
 
+	/**
+	 * Reconstruct a [BloomFilter] previously written by [write].
+	 *
+	 * @param binaryStream
+	 *   The [DataInputStream] from which to perform the reconstruction.
+	 */
 	constructor(
 		binaryStream: DataInputStream
 	): this(
@@ -241,13 +251,12 @@ class BloomFilter<T>
 		binaryStream.unvlqInt())
 	{
 		array.indices.forEach {
-			array[it] = binaryStream.unvlqLong()
+			array[it] = binaryStream.readLong()
 		}
 	}
 
 	companion object
 	{
-
 		/**
 		 * A collection of random, permanent salts for producing successive hash
 		 * values to index the filter's bit vector.  Don't use more than this
@@ -266,6 +275,5 @@ class BloomFilter<T>
 			0x3173A4D9,
 			-0x771EA1ED,
 		)
-
 	}
 }

@@ -1402,7 +1402,9 @@ constructor(
 								ModuleManifestEntry(
 									SideEffectKind.METHOD_DEFINITION_KIND,
 									methodName.asNameInModule,
-									methodName.atomName.asNativeString(),
+									methodName.atomName.asNativeString() + "  " +
+									//TODO remove hack
+										newDefinition.bodySignature().toString(),
 									topStart,
 									body.code().codeStartingLineNumber,
 									body)

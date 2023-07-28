@@ -42,6 +42,12 @@ import java.io.DataOutputStream
  * A structure containing both a module name and the name of an atom declared in
  * that module.
  *
+ * @constructor
+ *   Construct a [NameInModule] from its parts.
+ * @property moduleName
+ *   The name of the referenced module.
+ * @property atomName
+ *   The name of the atom defined within that module.
  */
 data class NameInModule constructor(
 	val moduleName: String,
@@ -52,6 +58,20 @@ data class NameInModule constructor(
 		moduleName.compareTo(other.moduleName)
 			.ifZero { atomName.compareTo(other.atomName) }
 
+	/**
+	 * Write this [NameInModule] onto the given [DataOutputStream].  Use the
+	 * maps from module name to index and atom name to index for compression.
+	 * The same maps will be provided in inverse form (as [List]s of [String]s)
+	 * during subsequent decoding (via the [NameInModule] constructor taking a
+	 * [DataInputStream] and the two lists).
+	 *
+	 * @param binaryStream
+	 *   The stream on which to serialize this object.
+	 * @param moduleNumbering
+	 *   A mapping from module names to unique non-negative integers.
+	 * @param nameNumbering
+	 *   A mapping from atom names to unique non-negative integers.
+	 */
 	fun write(
 		binaryStream: DataOutputStream,
 		moduleNumbering: Map<String, Int>,
@@ -63,7 +83,16 @@ data class NameInModule constructor(
 
 	/**
 	 * Reconstruct a [NameInModule] from a stream, using the already constructed
-	 * lists of module names and atom names
+	 * lists of module names and atom names.
+	 *
+	 * @param binaryStream
+	 *   The source stream from which to reconstruct the [NameInModule].
+	 * @param moduleNames
+	 *   The [List] of [String]s in which to look up the new [NameInModule]'s
+	 *   module name.
+	 * @param atomNames
+	 *   The [List] of [String]s in which to look up the new [NameInModule]'s
+	 *   atom name.
 	 */
 	constructor(
 		binaryStream: DataInputStream,

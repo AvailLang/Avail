@@ -194,7 +194,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 * elements to [AbstractWorkbenchTreeNode].
 	 */
 	val typedChildren: Iterable<AbstractWorkbenchTreeNode>
-		get() = children.cast()
+		get() = children?.cast() ?: emptyList()
 
 	companion object
 	{
