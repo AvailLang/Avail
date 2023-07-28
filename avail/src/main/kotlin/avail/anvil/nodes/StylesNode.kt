@@ -53,7 +53,7 @@ class StylesNode constructor(
 
 	override fun iconResourceName(): String = "palette_full_colors"
 
-	override fun text(selected: Boolean) = "stylesheet"
+	override fun equalityText() = "stylesheet"
 
 	override fun htmlStyle(selected: Boolean): String =
 		fontStyle(bold = false, strikethrough = false) +

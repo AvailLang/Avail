@@ -36,12 +36,15 @@ import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.exceptions.MalformedMessageException
+import avail.persistence.cache.record.NameInModule
 
 /**
  * `A_Atom` is an interface that specifies the atom-specific operations that an
@@ -156,5 +159,10 @@ interface A_Atom : A_BasicObject {
 		 */
 		val A_Atom.isAtomSpecial: Boolean
 			get() = dispatch { o_IsAtomSpecial(it) }
+
+		val A_Atom.asNameInModule: NameInModule
+			get() = NameInModule(
+				issuingModule.moduleNameNative,
+				atomName.asNativeString())
 	}
 }

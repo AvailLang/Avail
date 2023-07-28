@@ -71,13 +71,13 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter
 import avail.persistence.cache.Repository
-import avail.persistence.cache.Repository.ManifestRecord
-import avail.persistence.cache.Repository.ModuleArchive
-import avail.persistence.cache.Repository.ModuleCompilation
-import avail.persistence.cache.Repository.ModuleCompilationKey
-import avail.persistence.cache.Repository.ModuleVersion
-import avail.persistence.cache.Repository.ModuleVersionKey
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.ManifestRecord
+import avail.persistence.cache.record.ModuleArchive
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleCompilationKey
+import avail.persistence.cache.record.ModuleVersion
+import avail.persistence.cache.record.ModuleVersionKey
+import avail.persistence.cache.record.StylingRecord
 import avail.serialization.Deserializer
 import avail.serialization.Serializer
 import avail.utility.evaluation.Combinator.recurse
@@ -643,6 +643,7 @@ internal class BuildLoader constructor(
 		blockPhraseSerializer.serialize(blockPhrases)
 		appendCRC(blockPhrasesOutputStream)
 		val manifestEntries = context.loader.manifestEntries!!
+		val namesIndex = context.loader.namesIndex!!
 		val repository = archive.repository
 		val compilation = repository.createModuleCompilation(
 			// Now is the moment of compilation.
@@ -651,7 +652,8 @@ internal class BuildLoader constructor(
 			blockPhrasesOutputStream.toByteArray(),
 			ManifestRecord(manifestEntries),
 			assembleStylingRecord(context),
-			module.phrasePathRecord())
+			module.phrasePathRecord(),
+			namesIndex)
 		archive.putCompilation(versionKey, compilationKey, compilation)
 
 		// Serialize the Stacks comments.

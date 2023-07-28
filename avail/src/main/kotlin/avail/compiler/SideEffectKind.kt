@@ -32,6 +32,9 @@
 
 package avail.compiler
 
+import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.NamesIndex.DefinitionType
+
 /**
  * The kinds of manifest entries that can be recorded.  If this changes in a
  * way other than adding enum values at the end, you must rebuild your
@@ -40,43 +43,61 @@ package avail.compiler
 enum class SideEffectKind
 constructor(
 	val toolTipText: String,
-	val iconFileName: String)
+	val iconFileName: String,
+	private val definitionType: DefinitionType? = null)
 {
 	/** An atom has been defined.  The summaryText will be the atom name. */
 	ATOM_DEFINITION_KIND("Atom", "Atom-Dark.png"),
 
 	/** The summaryText will be the method name. */
-	METHOD_DEFINITION_KIND("Method", "Method-Dark.png"),
+	METHOD_DEFINITION_KIND("Method", "Method-Dark.png", DefinitionType.Method),
 
 	/** The summaryText will be the method name. */
 	ABSTRACT_METHOD_DEFINITION_KIND(
-		"Abstract Method", "AbstractMethod-Dark.png"),
+		"Abstract Method", "AbstractMethod-Dark.png", DefinitionType.Method),
 
 	/** The summaryText will be the method name. */
-	FORWARD_METHOD_DEFINITION_KIND("Forward Method", "ForwardMethod-Dark.png"),
+	FORWARD_METHOD_DEFINITION_KIND(
+		"Forward Method", "ForwardMethod-Dark.png", DefinitionType.Method),
 
 	/** The summaryText will be the macro name. */
-	MACRO_DEFINITION_KIND("Macro", "Macro-Dark.png"),
+	MACRO_DEFINITION_KIND("Macro", "Macro-Dark.png", DefinitionType.Macro),
 
 	/** The summaryText will be the method name being restricted. */
 	SEMANTIC_RESTRICTION_KIND(
-		"Semantic Restriction", "SemanticRestriction-Dark.png"),
+		"Semantic Restriction",
+		"SemanticRestriction-Dark.png",
+		DefinitionType.SemanticRestriction),
 
 	/** The summaryText will be the method name being restricted. */
 	GRAMMATICAL_RESTRICTION_KIND(
-		"Grammatical Restriction", "GrammaticalRestriction-DarkLight.png"),
+		"Grammatical Restriction",
+		"GrammaticalRestriction-DarkLight.png",
+		DefinitionType.GrammaticalRestriction),
 
 	/** The summaryText will be the method name being sealed. */
-	SEAL_KIND("Sealed Method", "Seal-DarkLight.png"),
+	SEAL_KIND("Sealed Method", "Seal-DarkLight.png", DefinitionType.Seal),
 
 	/** The summaryText will be the lexer's name. */
-	LEXER_KIND("Lexer", "Lexer-Dark.png"),
+	LEXER_KIND("Lexer", "Lexer-Dark.png", DefinitionType.Lexer),
 
 	/** The summaryText will be the module constant's name. */
 	MODULE_CONSTANT_KIND("Constant", "Constant-Dark.png"),
 
 	/** The summaryText will be the module variable's name. */
 	MODULE_VARIABLE_KIND("Variable", "Variable-Dark.png");
+
+	fun addManifestEntryToNamesIndex(
+		manifestEntry: ModuleManifestEntry,
+		manifestIndex: Int,
+		namesIndex: NamesIndex)
+	{
+		manifestEntry.nameInModule?.let { nameInModule ->
+			definitionType?.let { type ->
+				namesIndex.addDefinition(nameInModule, type, manifestIndex)
+			}
+		}
+	}
 
 	companion object
 	{

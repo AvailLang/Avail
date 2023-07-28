@@ -175,9 +175,11 @@ import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.persistence.cache.Repository
-import avail.persistence.cache.Repository.ManifestRecord
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.ManifestRecord
+import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.NameInModule
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.StylingRecord
 import avail.serialization.Deserializer
 import avail.serialization.SerializerOperation
 import avail.utility.safeWrite
@@ -517,7 +519,7 @@ class ModuleDescriptor private constructor(
 	 * simply [nil].
 	 */
 	@Volatile
-	private var unionFilter: BloomFilter? = null
+	private var unionFilter: BloomFilter<NameInModule>? = null
 
 	/**
 	 * A filter to detect uses of objects defined in this module.  A miss of the
@@ -528,13 +530,13 @@ class ModuleDescriptor private constructor(
 	 * This filter is lazily constructed only when needed.
 	 */
 	@Volatile
-	private var localFilter: BloomFilter? = null
+	private var localFilter: BloomFilter<NameInModule>? = null
 
 	/**
 	 * The union of [unionFilter] and [localFilter].  This is created lazily.
 	 */
 	@Volatile
-	private var aggregateFilter: BloomFilter? = null
+	private var aggregateFilter: BloomFilter<NameInModule>? = null
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
@@ -1104,7 +1106,7 @@ class ModuleDescriptor private constructor(
 				runtime!!.moduleNameResolver.resolve(moduleName, null)
 			val record = resolved.repository.run {
 				reopenIfNecessary()
-				lock.withLock { repository!![phrasesKey] }
+				lock.withLock { this[phrasesKey] }
 			}
 			val bytes = validatedBytesFrom(record)
 			val delta = serializedObjects.tupleSize + 1
@@ -1138,7 +1140,7 @@ class ModuleDescriptor private constructor(
 				runtime!!.moduleNameResolver.resolve(moduleName, null)
 			val bytes = resolved.repository.run {
 				reopenIfNecessary()
-				lock.withLock { repository!![manifestEntriesRecordIndex] }
+				lock.withLock { this[manifestEntriesRecordIndex] }
 			}
 			val record = ManifestRecord(bytes)
 			manifestEntries = record.manifestEntries
@@ -1177,7 +1179,7 @@ class ModuleDescriptor private constructor(
 		{
 			val bytes = resolved.repository.run {
 				reopenIfNecessary()
-				lock.withLock { repository!![stylingRecordIndex] }
+				lock.withLock { this[stylingRecordIndex] }
 			}
 			StylingRecord(bytes)
 		}
@@ -1204,7 +1206,7 @@ class ModuleDescriptor private constructor(
 		{
 			val bytes = resolved.repository.run {
 				reopenIfNecessary()
-				lock.withLock { repository!![phrasePathRecordIndex] }
+				lock.withLock { this[phrasePathRecordIndex] }
 			}
 			PhrasePathRecord(bytes)
 		}
@@ -1574,33 +1576,16 @@ class ModuleDescriptor private constructor(
 			Mutability.MUTABLE, emptyTuple, null)
 
 		/**
-		 * Create an empty [BloomFilter] for use as a module serialization
-		 * filter.  When populated with the hashes of values that have been
-		 * created or deserialized for the module, it can be used to quickly
-		 * determine if an object with a particular hash value is present in the
-		 * module's objects.  At that point, the module's objects can be
-		 * inverted to form a map from object to index, cached in the module,
-		 * and a lookup can then take place.  Due to the conservative nature of
-		 * Bloom filters, sometimes the object will not be found even if the
-		 * filter indicates the value might be present.
+		 * Create an empty [BloomFilter] for use as a package's serialization
+		 * filter.  It contains the hashes of every [NameInModule] that was
+		 * declared or referenced within the package representative or any of
+		 * the modules and packages recursively inside this package.
 		 *
-		 * Since each module has a (lazily populated) Bloom filter, and since we
-		 * also keep track of the union of those filters in each non-leaf
-		 * module, we're able to first test the union filter, and only if it's a
-		 * hit do we need to examine the module's local filter (and the module's
-		 * objects themselves if indicated), or continue searching predecessor
-		 * modules.  If a union filter produces a miss, the module and its
-		 * predecessors can be ignored, as they can't contain the requested
-		 * object.
-		 *
-		 * Because we have to compute the union of modules' filters, the filter
-		 * sizes and count of hash functions must agree, so only this function
-		 * should be used to create such filters.
+		 * @see NamesIndex
 		 */
-		fun newEmptyBloomFilter(): BloomFilter
+		fun newEmptyBloomFilter(): BloomFilter<NameInModule>
 		{
 			return BloomFilter(20000, 5)
 		}
 	}
 }
-

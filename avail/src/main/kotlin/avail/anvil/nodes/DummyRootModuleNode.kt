@@ -1,5 +1,5 @@
 /*
- * EntryPointModuleNode.kt
+ * DummyRootModuleNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,52 +33,28 @@
 package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.text.FileExtensionMetadata
-import avail.builder.ResolvedModuleName
+import javax.swing.JTree
 
 /**
- * This is a tree node representing a module that has one or more entry points,
- * presented via [EntryPointNode]s.
+ * The invisible root node for [JTree]s in the [AvailWorkbench], to compensate
+ * for the design error of [JTree] holding a tree instead of a forest.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
- * @property resolvedModuleName
- *   The resolved name of the represented module.
  * @constructor
  *   Construct a new [EntryPointNode].
- *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param resolvedModuleName
- *   The name of the represented module.
  */
-class EntryPointModuleNode constructor(
-		workbench: AvailWorkbench, val resolvedModuleName: ResolvedModuleName)
+class DummyRootModuleNode constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchTreeNode(workbench)
 {
-	override fun initiallyExpanded() = true
-
 	override fun modulePathString(): String =
 		throw UnsupportedOperationException()
 
-	/**
-	 * Is the [module&#32;or&#32;package][ModuleOrPackageNode] loaded?
-	 *
-	 * @return
-	 *   `true` if the module or package is already loaded, `false` otherwise.
-	 */
-	private val isLoaded: Boolean
-		get() = synchronized(builder) {
-			return builder.getLoadedModule(resolvedModuleName) !== null
-		}
+	override fun iconResourceName() = null
 
-	override fun iconResourceName(): String =
-		FileExtensionMetadata.AVAIL.fileIcon
+	override fun equalityText(): String = ""
 
-	override fun equalityText(): String =
-		resolvedModuleName.qualifiedName
-
-	override fun htmlStyle(selected: Boolean): String =
-		fontStyle(bold = true, italic = !isLoaded) +
-			colorStyle(selected, isLoaded, resolvedModuleName.isRename)
+	override fun htmlStyle(selected: Boolean): String = ""
 }

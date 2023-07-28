@@ -55,6 +55,7 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.UP_ARROW
 import avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR
 import avail.descriptor.atoms.A_Atom
+import avail.descriptor.atoms.A_Atom.Companion.asNameInModule
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
@@ -144,6 +145,7 @@ import avail.descriptor.module.A_Module.Companion.buildFilteredBundleTree
 import avail.descriptor.module.A_Module.Companion.createLexicalScanner
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
+import avail.descriptor.module.A_Module.Companion.manifestEntries
 import avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddMacro
@@ -231,10 +233,11 @@ import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBo
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter
 import avail.interpreter.primitive.methods.P_Alias
 import avail.io.TextInterface
+import avail.persistence.cache.record.NamesIndex
 import avail.utility.evaluation.Combinator.recurse
 import avail.utility.safeWrite
-import avail.utility.structures.RunTree
 import avail.utility.stackToString
+import avail.utility.structures.RunTree
 import java.util.ArrayDeque
 import java.util.TreeMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -351,10 +354,18 @@ constructor(
 	 * A stream on which to serialize each [ModuleManifestEntry] when the
 	 * definition actually occurs during compilation.  After compilation, the
 	 * bytes of this stream are written to a record whose index is captured in
-	 * the [A_Module]'s [manifestEntries], and fetched from the repository and
-	 * decoded into a pojo array when needed.
+	 * the [A_Module.manifestEntries], and fetched from the repository and
+	 * decoded and cached when needed.
 	 */
 	var manifestEntries: MutableList<ModuleManifestEntry>? = null
+
+	/**
+	 * The [NamesIndex] into which to record indexing information during actual
+	 * compilation.  After compilation, this is written to a record whose index
+	 * is captured in the [A_Module.namesIndex], and fetched from the
+	 * repository and decoded and cached when needed.
+	 */
+	var namesIndex: NamesIndex? = null
 
 	/**
 	 * A flag that is cleared before executing each top-level statement of a
@@ -1383,28 +1394,30 @@ constructor(
 				module.moduleAddDefinition(newDefinition)
 				val topStart = topLevelStatementBeingCompiled!!
 					.startingLineNumber
-				manifestEntries!!.add(
+				addManifestEntry(
 					when
 					{
 						newDefinition.isMethodDefinition() ->
-						{
-							val body = newDefinition.bodyBlock()
-							ModuleManifestEntry(
-								SideEffectKind.METHOD_DEFINITION_KIND,
-								methodName.atomName.asNativeString(),
-								topStart,
-								body.code().codeStartingLineNumber,
-								body)
-						}
+							newDefinition.bodyBlock().let { body ->
+								ModuleManifestEntry(
+									SideEffectKind.METHOD_DEFINITION_KIND,
+									methodName.asNameInModule,
+									methodName.atomName.asNativeString(),
+									topStart,
+									body.code().codeStartingLineNumber,
+									body)
+							}
 						newDefinition.isForwardDefinition() ->
 							ModuleManifestEntry(
 								SideEffectKind.FORWARD_METHOD_DEFINITION_KIND,
+								methodName.asNameInModule,
 								methodName.atomName.asNativeString(),
 								topStart,
 								topStart)
 						newDefinition.isAbstractDefinition() ->
 							ModuleManifestEntry(
 								SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND,
+								methodName.asNameInModule,
 								methodName.atomName.asNativeString(),
 								topStart,
 								topStart)
@@ -1492,9 +1505,10 @@ constructor(
 		{
 			recordEffect(LoadingEffectToAddMacro(bundle, macroDefinition))
 			module.lock {
-				manifestEntries!!.add(
+				addManifestEntry(
 					ModuleManifestEntry(
 						SideEffectKind.MACRO_DEFINITION_KIND,
+						methodName.asNameInModule,
 						methodName.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						macroCode.codeStartingLineNumber,
@@ -1538,9 +1552,10 @@ constructor(
 			theModule.moduleAddSemanticRestriction(restriction)
 			if (phase == EXECUTING_FOR_COMPILE)
 			{
-				manifestEntries!!.add(
+				addManifestEntry(
 					ModuleManifestEntry(
 						SideEffectKind.SEMANTIC_RESTRICTION_KIND,
+						atom.asNameInModule,
 						atom.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						code.codeStartingLineNumber,
@@ -1585,9 +1600,10 @@ constructor(
 				SpecialMethodAtom.SEAL.bundle, methodName, seal))
 		if (phase == EXECUTING_FOR_COMPILE)
 		{
-			manifestEntries!!.add(
+			addManifestEntry(
 				ModuleManifestEntry(
 					SideEffectKind.SEAL_KIND,
+					methodName.asNameInModule,
 					methodName.atomName.asNativeString(),
 					topLevelStatementBeingCompiled!!.startingLineNumber,
 					topLevelStatementBeingCompiled!!.startingLineNumber))
@@ -1665,9 +1681,10 @@ constructor(
 				}
 				if (phase == EXECUTING_FOR_COMPILE)
 				{
-					manifestEntries!!.add(
+					addManifestEntry(
 						ModuleManifestEntry(
 							SideEffectKind.GRAMMATICAL_RESTRICTION_KIND,
+							parentAtom.asNameInModule,
 							parentAtom.atomName.asNativeString(),
 							topLevelStatementBeingCompiled!!.startingLineNumber,
 							topLevelStatementBeingCompiled!!.startingLineNumber))
@@ -1733,6 +1750,18 @@ constructor(
 		{
 			println("Defined styler: ${code.methodName}")
 		}
+	}
+
+	/**
+	 * Record a [ModuleManifestEntry].  Also record suitable information in the
+	 * [namesIndex].
+	 */
+	fun addManifestEntry(entry: ModuleManifestEntry)
+	{
+		val manifestEntryIndex = manifestEntries!!.size
+		manifestEntries!!.add(entry)
+		entry.kind.addManifestEntryToNamesIndex(
+			entry, manifestEntryIndex, namesIndex!!)
 	}
 
 	/**
@@ -1842,12 +1871,13 @@ constructor(
 	): A_Atom = module.lock {
 		//  Check if it's already defined somewhere...
 		val who = module.trueNamesForStringName(stringName)
-		when (who.setSize)
+		val atom = when (who.setSize)
 		{
 			1 -> who.single()
 			0 ->
 			{
 				val newAtom = createAtom(stringName, module)
+				newAtom.makeShared()
 				ifNew?.invoke(newAtom)
 				// Hoist creation of the atom to a block that runs prior to any
 				// place that it might be used.
@@ -1864,23 +1894,23 @@ constructor(
 							else -> CREATE_ATOM.bundle
 						},
 						stringName))
-				if (phase == EXECUTING_FOR_COMPILE)
-				{
-					val topStart = topLevelStatementBeingCompiled!!
-						.startingLineNumber
-					manifestEntries!!.add(
-						ModuleManifestEntry(
-							SideEffectKind.ATOM_DEFINITION_KIND,
-							stringName.asNativeString(),
-							topStart,
-							topStart))
-				}
-				newAtom.makeShared()
 				module.addPrivateName(newAtom)
 				newAtom
 			}
 			else -> throw AmbiguousNameException()
 		}
+		if (phase == EXECUTING_FOR_COMPILE)
+		{
+			val topStart = topLevelStatementBeingCompiled!!.startingLineNumber
+			addManifestEntry(
+				ModuleManifestEntry(
+					SideEffectKind.ATOM_DEFINITION_KIND,
+					atom.asNameInModule,
+					stringName.asNativeString(),
+					topStart,
+					topStart))
+		}
+		atom
 	}
 
 	/**

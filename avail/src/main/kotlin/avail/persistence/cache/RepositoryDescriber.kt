@@ -35,9 +35,11 @@ package avail.persistence.cache
 import avail.AvailRuntime
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
-import avail.persistence.cache.Repository.ModuleCompilation
-import avail.persistence.cache.Repository.ModuleVersion
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleVersion
+import avail.persistence.cache.record.NamesIndex
 import avail.serialization.DeserializerDescriber
+import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.newlineTab
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import org.availlang.persistence.MalformedSerialStreamException
@@ -95,6 +97,8 @@ class RepositoryDescriber constructor(
 						append("Styling #$recordNumberOfStyling")
 						newlineTab(3)
 						append("PhrasePaths #$recordNumberOfPhrasePaths")
+						newlineTab(3)
+						append("NamesIndex #$recordNumberOfNamesIndex")
 					}
 				}
 			}
@@ -112,7 +116,7 @@ class RepositoryDescriber constructor(
 	 */
 	fun describeCompilation(recordNumber: Long): String
 	{
-		val record = repository.repository!![recordNumber]
+		val record = repository[recordNumber]
 		return try
 		{
 			val stream = validatedBytesFrom(record)
@@ -128,7 +132,7 @@ class RepositoryDescriber constructor(
 
 	fun describeManifest(recordNumberOfManifestEntries: Long): String
 	{
-		val record = repository.repository!![recordNumberOfManifestEntries]
+		val record = repository[recordNumberOfManifestEntries]
 		return buildString {
 			val input = DataInputStream(ByteArrayInputStream(record))
 			while (input.available() > 0)
@@ -143,23 +147,53 @@ class RepositoryDescriber constructor(
 		}
 	}
 
-	/**
-	 * Answer the list of [ModuleManifestEntry]s.
-	 *
-	 * @param recordNumberOfManifestEntries
-	 *   The record number to use to look up the manifest entries.
-	 */
-	fun manifestEntries(
-		recordNumberOfManifestEntries: Long
-	): List<ModuleManifestEntry>
+	fun describeNamesIndex(recordNumberOfNamesIndex: Long): String
 	{
-		val record = repository.repository!![recordNumberOfManifestEntries]
+		val record = repository[recordNumberOfNamesIndex]
 		val input = DataInputStream(ByteArrayInputStream(record))
-		val entries = mutableListOf<ModuleManifestEntry>()
-		while (input.available() > 0)
-		{
-			entries.add(ModuleManifestEntry(input))
+		val namesIndex = NamesIndex(input)
+		return buildUnicodeBox("Names Index") {
+			namesIndex.occurrences.forEach { (namesInIndex, occurrences) ->
+				append(namesInIndex.moduleName)
+				append("  ")
+				append(namesInIndex.atomName)
+				if (occurrences.declarations.isNotEmpty())
+				{
+					append("\n\tDeclarations:")
+					occurrences.declarations.forEach { decl ->
+						append("\n\t\tphraseIndex = ")
+						append(decl.phraseIndex)
+						decl.alias?.run {
+							append("(ALIAS OF: ")
+							append(moduleName)
+							append("  ")
+							append(atomName)
+							append(")")
+						}
+					}
+				}
+				if (occurrences.definitions.isNotEmpty())
+				{
+					append("\n\tDefinitions:")
+					occurrences.definitions.forEach { def ->
+						append("\n\t\t")
+						append(def.definitionType.name)
+						append(": manifestIndex = ")
+						append(def.manifestIndex)
+					}
+				}
+				if (occurrences.usages.isNotEmpty())
+				{
+					append("\n\tUsages:")
+					occurrences.usages.forEach { usage ->
+						append("\n\t\t")
+						append(usage.usageType.name)
+						append(": phraseIndex = ")
+						append(usage.phraseIndex)
+					}
+				}
+				append("\n")
+			}
 		}
-		return entries
 	}
 }

@@ -158,8 +158,9 @@ import avail.interpreter.levelOne.L1Decompiler
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
-import avail.persistence.cache.Repository.PhraseNode
-import avail.persistence.cache.Repository.PhraseNode.PhraseNodeToken
+import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode.PhraseNodeToken
 import avail.serialization.Serializer
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
@@ -258,6 +259,7 @@ class CompilationContext constructor(
 	 */
 	val loader = AvailLoader(runtime, module, textInterface).apply {
 		manifestEntries = mutableListOf()
+		namesIndex = NamesIndex(mutableMapOf(), null)
 	}
 
 	/** The number of work units that have been queued. */
@@ -1399,7 +1401,6 @@ class CompilationContext constructor(
 				}.distinct()
 			val phraseNode =
 				PhraseNode(moduleName, atomName, tokenSpans, parent)
-			parent.children.add(phraseNode)
 			val children = mutableListOf<A_Phrase>()
 			val childrenProvider = when
 			{

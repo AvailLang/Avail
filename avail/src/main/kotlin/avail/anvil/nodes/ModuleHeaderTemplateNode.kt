@@ -57,7 +57,7 @@ class ModuleHeaderTemplateNode constructor(
 
 	override fun iconResourceName(): String = "module_header_template"
 
-	override fun text(selected: Boolean) = fileName.removeSuffix(".mhd")
+	override fun equalityText() = fileName.removeSuffix(".mhd")
 
 	override val sortMajor: Int get() = 61
 

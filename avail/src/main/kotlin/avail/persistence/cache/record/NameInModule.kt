@@ -1,6 +1,6 @@
 /*
- * TextPaneShortcuts.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * NameInModule.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,41 +30,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.shortcuts
+package avail.persistence.cache.record
 
-import avail.anvil.actions.AbstractWorkbenchAction
-import avail.anvil.actions.FindAction
-import avail.anvil.debugger.AvailDebugger
-
-/**
- * A [KeyboardShortcut] that is used to launch an
- * [AbstractWorkbenchAction] while using the [AvailDebugger].
- *
- * @constructor
- * Construct a [TextPaneShortcut].
- *
- * @param defaultKey
- *   The default [Key] when pressed triggers this shortcut.
- * @param key
- *   The [Key] used for this shortcut. Defaults to `defaultKey`.
- */
-sealed class TextPaneShortcut constructor(
-	override val defaultKey: Key,
-	override var key: Key = defaultKey
-): KeyboardShortcut()
-{
-	override val category: KeyboardShortcutCategory
-		get() = KeyboardShortcutCategory.WORKBENCH
-}
+import avail.utility.ifZero
+import avail.utility.unvlqInt
+import avail.utility.vlq
+import java.io.DataInputStream
+import java.io.DataOutputStream
 
 /**
- * [TextPaneShortcut] for the [FindAction].
+ * A structure containing both a module name and the name of an atom declared in
+ * that module.
  *
- * @author Richard Arriaga
  */
-object FindActionShortcut
-	: TextPaneShortcut(KeyCode.VK_F.with(ModifierKey.menuShortcutKeyMaskEx))
+data class NameInModule constructor(
+	val moduleName: String,
+	val atomName: String
+): Comparable<NameInModule>
 {
-	override val actionMapKey: String = "find-replace"
-	override val description: String = "Open Find/Replace Dialog"
+	override fun compareTo(other: NameInModule): Int =
+		moduleName.compareTo(other.moduleName)
+			.ifZero { atomName.compareTo(other.atomName) }
+
+	fun write(
+		binaryStream: DataOutputStream,
+		moduleNumbering: Map<String, Int>,
+		nameNumbering: Map<String, Int>)
+	{
+		binaryStream.vlq(moduleNumbering[moduleName]!!)
+		binaryStream.vlq(nameNumbering[atomName]!!)
+	}
+
+	/**
+	 * Reconstruct a [NameInModule] from a stream, using the already constructed
+	 * lists of module names and atom names
+	 */
+	constructor(
+		binaryStream: DataInputStream,
+		moduleNames: List<String>,
+		atomNames: List<String>
+	) : this(
+		moduleNames[binaryStream.unvlqInt()],
+		atomNames[binaryStream.unvlqInt()])
 }

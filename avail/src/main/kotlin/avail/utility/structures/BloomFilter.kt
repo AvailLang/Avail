@@ -33,6 +33,11 @@
 package avail.utility.structures
 
 import avail.descriptor.representation.AvailObject
+import avail.utility.unvlqInt
+import avail.utility.unvlqLong
+import avail.utility.vlq
+import java.io.DataInputStream
+import java.io.DataOutputStream
 
 /**
  * A `BloomFilter` is a conservative, probabilistic set.  It can report that an
@@ -45,10 +50,13 @@ import avail.descriptor.representation.AvailObject
  * of [Int]s, under the assumption that the actual entity being tested for
  * membership has already been hashed.
  *
+ * @param T
+ *   The type of objects hashed into the filter.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  */
-class BloomFilter
+class BloomFilter<T>
 {
 	/**
 	 * Construct a new instance that initially reports `false` for every
@@ -57,7 +65,8 @@ class BloomFilter
 	 *
 	 * @param bitCount
 	 *   The number of bits that can be set independently in the table.  This
-	 *   number may be rounded up to a convenient size.
+	 *   number may be rounded up to a convenient size (currently up to a
+	 *   multiple of 64).
 	 * @param hashCount
 	 *   The number of hash functions to apply for each element.  Each hash
 	 *   function rehashes the given value (an [Int]), and requires the
@@ -69,7 +78,8 @@ class BloomFilter
 	{
 		assert(hashCount < hashSalts.size)
 		this.hashCount = hashCount
-		this.array = LongArray((bitCount + 63) shr 6)
+		this.array = LongArray((bitCount - 1 shr 6) + 1)
+		this.size = array.size.toULong()
 	}
 
 	/**
@@ -78,32 +88,18 @@ class BloomFilter
 	 * @param existingFilter
 	 *   The [BloomFilter] to copy.
 	 */
-	constructor(existingFilter: BloomFilter)
+	constructor(existingFilter: BloomFilter<T>)
 	{
 		this.hashCount = existingFilter.hashCount
-		this.array = existingFilter.array.clone()
+		this.array = existingFilter.array.copyOf()
+		this.size = array.size.toULong()
 	}
+
+	/** The number of bit positions in the filter. */
+	val bitCount: Int get() = array.size shl 6
 
 	/** The number of hash functions to use. */
 	private val hashCount: Int
-
-	/**
-	 * A collection of random, permanent salts for producing successive hash
-	 * values to index the filter's bit vector.  Don't use more than this number
-	 * of hash values in any [BloomFilter] (or extend this list).  Note that
-	 * adding entries (and using them) will break backward compatibility, where
-	 * newer hashes cannot be recognized or reproduced by older code.
-	 */
-	private val hashSalts = intArrayOf(
-		0x106A0E28,
-		-0x75F627F4,
-		-0x51C4CBC8,
-		-0x34F95F19,
-		0x596F6ACD,
-		-0x6A6FB895,
-		0x3173A4D9,
-		-0x771EA1ED,
-	)
 
 	/**
 	 * The bits, guaranteed to be 1 if a hash function produced that index for
@@ -112,15 +108,43 @@ class BloomFilter
 	private val array: LongArray
 
 	/**
-	 * Add an [Int] element to the [BloomFilter].
+	 * The size of the [array], computed during construction.
+	 */
+	private val size: ULong
+
+	/**
+	 * Add an [Int], the [hashCode] of some element, to the [BloomFilter].
+	 *
+	 * @param elementHash
+	 *   The [hashCode] of the element to add to the [BloomFilter].
+	 */
+	fun addHash(elementHash: Int) =
+		(1..hashCount).forEach {
+			setBit(computeHash(elementHash, it))
+		}
+
+	/**
+	 * Add an element ([T]) to the filter.
 	 *
 	 * @param element
-	 *   The [Int] to add to the [BloomFilter].
+	 *   The value to [hash][hashCode] and add to the filter.
 	 */
-	fun add(element: Int) =
-		(1..hashCount).forEach {
-			setBit(computeHash(element, it))
-		}
+	fun add(element: T) = addHash(element.hashCode())
+
+	/**
+	 * Determine whether an element with the given [hashCode] is probably
+	 * present in the filter. If the element is present, this always returns
+	 * true, but it may sometimes return true even if the element is not
+	 * present.
+	 *
+	 * @param elementHash
+	 *   The [Int] to test for probable membership in the [BloomFilter].
+	 * @return
+	 *   Always `true` if the element is present in the filter, or *usually*
+	 *   `false` if it is not in the filter.
+	 */
+	fun getByHash(elementHash: Int): Boolean =
+		(1..hashCount).all { testBit(computeHash(elementHash, it)) }
 
 	/**
 	 * Determine whether the given element is probably present in the filter.
@@ -130,11 +154,10 @@ class BloomFilter
 	 * @param element
 	 *   The [Int] to test for probable membership in the [BloomFilter].
 	 * @return
-	 *   Always `true` if the element is present in the filter, or usually
+	 *   Always `true` if the element is present in the filter, or *usually*
 	 *   `false` if it is not in the filter.
 	 */
-	operator fun get(element: Int): Boolean =
-		(1..hashCount).all { testBit(computeHash(element, it)) }
+	operator fun get(element: T): Boolean = getByHash(element.hashCode())
 
 	/**
 	 * Hash the element with the Nth hash function.
@@ -156,8 +179,11 @@ class BloomFilter
 	 */
 	private fun setBit(hash: Int)
 	{
-		val index = (hash ushr 6) % array.size
-		val mask = 1L shl (hash and 63)
+		// Use the upper bits to avoid division.  The hash values should be of
+		// high enough quality in the upper bits to justify this.
+		val inRange = (hash.toUInt().toULong() * size shr (32 - 6)).toInt()
+		val index = inRange ushr 6
+		val mask = 1L shl (inRange and 63)
 		array[index] = array[index] or mask
 	}
 
@@ -172,8 +198,11 @@ class BloomFilter
 	 */
 	private fun testBit(hash: Int): Boolean
 	{
-		val index = (hash ushr 6) % array.size
-		val mask = 1L shl (hash and 63)
+		// Use the upper bits to avoid division.  The hash values should be of
+		// high enough quality in the upper bits to justify this.
+		val inRange = (hash.toUInt().toULong() * size shr (32 - 6)).toInt()
+		val index = inRange ushr 6
+		val mask = 1L shl (inRange and 63)
 		return (array[index] and mask) != 0L
 	}
 
@@ -185,13 +214,58 @@ class BloomFilter
 	 * @param filter
 	 *   The other filter whose element should be included in the receiver.
 	 */
-	fun addAll(filter: BloomFilter)
+	fun addAll(filter: BloomFilter<T>)
 	{
-		assert (array.size == filter.array.size)
+		assert (size == filter.size)
 		assert (hashCount == filter.hashCount)
 		for (i in array.indices)
 		{
 			array[i] = array[i] or filter.array[i]
 		}
+	}
+
+	/**
+	 * Write this [BloomFilter] onto the given stream.
+	 */
+	fun write(binaryStream: DataOutputStream)
+	{
+		binaryStream.vlq(bitCount)
+		binaryStream.vlq(hashCount)
+		array.forEach(binaryStream::writeLong)
+	}
+
+	constructor(
+		binaryStream: DataInputStream
+	): this(
+		binaryStream.unvlqInt(),
+		binaryStream.unvlqInt())
+	{
+		array.indices.forEach {
+			array[it] = binaryStream.unvlqLong()
+		}
+	}
+
+	companion object
+	{
+
+		/**
+		 * A collection of random, permanent salts for producing successive hash
+		 * values to index the filter's bit vector.  Don't use more than this
+		 * number of hash values in any [BloomFilter] (or extend this list).
+		 * Note that adding entries (and using them) will break backward
+		 * compatibility, where newer hashes cannot be recognized or reproduced
+		 * by older code.
+		 */
+		private val hashSalts = intArrayOf(
+			0x106A0E28,
+			-0x75F627F4,
+			-0x51C4CBC8,
+			-0x34F95F19,
+			0x596F6ACD,
+			-0x6A6FB895,
+			0x3173A4D9,
+			-0x771EA1ED,
+		)
+
 	}
 }

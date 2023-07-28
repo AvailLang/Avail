@@ -1,5 +1,5 @@
 /*
- * ExamineCompilationAction.kt
+ * ExamineNamesIndex.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,28 +33,27 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.streams.StreamStyle.REPORT
+import avail.anvil.streams.StreamStyle
 import avail.descriptor.fiber.FiberDescriptor
-import avail.persistence.cache.record.ModuleCompilation
 import avail.persistence.cache.RepositoryDescriber
-import avail.utility.Strings.buildUnicodeBox
+import avail.persistence.cache.record.ModuleCompilation
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JOptionPane
 
 /**
- * A `ExamineCompilationAction` presents information about a specific
- * compilation of the selected module.
+ * A [ExamineNamesIndex] action presents indexing information that was
+ * accumulated during a specific compilation of the selected module.
  *
  * @constructor
- * Construct a new `ExamineCompilationAction`.
+ * Construct a new [ExamineNamesIndex].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class ExamineCompilationAction constructor (
+class ExamineNamesIndex constructor (
 	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(workbench, "Examine compilation")
+) : AbstractWorkbenchAction(workbench, "Examine names index")
 {
 	override fun updateIsEnabled(busy: Boolean)
 	{
@@ -76,8 +75,8 @@ class ExamineCompilationAction constructor (
 				val compilationsArray = compilations.toTypedArray()
 				val selectedCompilation = JOptionPane.showInputDialog(
 					workbench,
-					"Select module compilation to examine",
-					"Examine compilation",
+					"Select names index to examine",
+					"Examine names index",
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					compilationsArray,
@@ -94,12 +93,9 @@ class ExamineCompilationAction constructor (
 					is ModuleCompilation ->
 					{
 						val describer = RepositoryDescriber(repository)
-						val description = describer.describeCompilation(
-							selectedCompilation.recordNumber)
-						val report = buildUnicodeBox("Compilation Report") {
-							append(description)
-						}
-						workbench.writeText(report, REPORT)
+						val report = describer.describeNamesIndex(
+							selectedCompilation.recordNumberOfNamesIndex)
+						workbench.writeText(report, StreamStyle.REPORT)
 					}
 					is Any -> assert(false) { "Unknown type selected" }
 				}
@@ -111,6 +107,6 @@ class ExamineCompilationAction constructor (
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"Disassemble an existing module compilation")
+			"Dump an existing module compilation's index of names")
 	}
 }

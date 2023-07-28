@@ -64,7 +64,7 @@ class AvailProjectNode constructor(
 
 	override fun iconResourceName(): String = "config-color"
 
-	override fun text(selected: Boolean) = "configuration"
+	override fun equalityText(): String = "configuration"
 
 	override fun htmlStyle(selected: Boolean): String
 	{

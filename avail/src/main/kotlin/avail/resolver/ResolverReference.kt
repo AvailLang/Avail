@@ -45,6 +45,7 @@ import avail.files.AvailModuleFile
 import avail.files.FileManager
 import avail.files.NullFileWrapper
 import avail.persistence.cache.Repository
+import avail.persistence.cache.record.ModuleArchive
 import org.availlang.json.JSONWriter
 import java.net.URI
 import java.nio.ByteBuffer
@@ -202,7 +203,8 @@ class ResolverReference constructor(
 	 * Answer the [Repository.ModuleArchive] for the file this
 	 * [ResolverReference] points to.
 	 */
-	private val archive: Repository.ModuleArchive get() =
+	private val archive: ModuleArchive
+		get() =
 		repository.getArchive(moduleName.rootRelativeName)
 
 	/**

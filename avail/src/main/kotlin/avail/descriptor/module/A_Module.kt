@@ -61,8 +61,8 @@ import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.primitive.modules.P_PublishName
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.StylingRecord
 
 /**
  * `A_Module` is an interface that specifies the

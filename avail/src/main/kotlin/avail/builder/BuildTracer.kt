@@ -40,7 +40,8 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.tracerPriority
 import avail.descriptor.module.ModuleDescriptor
 import avail.io.SimpleCompletionHandler
-import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.record.ModuleVersion
+import avail.persistence.cache.record.ModuleVersionKey
 import java.util.logging.Level
 
 /**
@@ -212,6 +213,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			return
 		}
 		val repository = resolvedName.repository
+		repository.reopenIfNecessary()
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)
 		val sourceFile = resolvedName.resolverReference
 		val archive = repository.getArchive(resolvedName.rootRelativeName)
@@ -255,8 +257,8 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 							val header = compiler.compilationContext.moduleHeader!!
 							val importNames = header.importedModuleNames
 							val entryPoints = header.entryPointNames
-							val newVersion = repository.ModuleVersion(
-								sourceFile.size, importNames, entryPoints)
+							val newVersion = ModuleVersion(
+								repository,sourceFile.size, importNames, entryPoints)
 							availBuilder.serialize(header, newVersion)
 							archive.putVersion(versionKey, newVersion)
 							traceModuleNames(

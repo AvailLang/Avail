@@ -54,6 +54,7 @@ import avail.anvil.actions.DebugAction
 import avail.anvil.actions.DeleteModuleAction
 import avail.anvil.actions.ExamineCompilationAction
 import avail.anvil.actions.ExamineModuleManifest
+import avail.anvil.actions.ExamineNamesIndex
 import avail.anvil.actions.ExaminePhrasePathsAction
 import avail.anvil.actions.ExamineRepositoryAction
 import avail.anvil.actions.ExamineSerializedPhrasesAction
@@ -65,8 +66,8 @@ import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
 import avail.anvil.actions.LoadOnStartAction
 import avail.anvil.actions.NewModuleAction
-import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenFileAction
+import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenProjectAction
 import avail.anvil.actions.OpenProjectFileEditorAction
 import avail.anvil.actions.OpenSettingsViewAction
@@ -108,6 +109,7 @@ import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractWorkbenchTreeNode
 import avail.anvil.nodes.AvailProjectNode
+import avail.anvil.nodes.DummyRootModuleNode
 import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
@@ -115,9 +117,9 @@ import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.nodes.OpenableFileNode
 import avail.anvil.nodes.ResourceDirNode
 import avail.anvil.nodes.ResourceNode
-import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
+import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.streams.BuildInputStream
 import avail.anvil.streams.BuildOutputStream
 import avail.anvil.streams.BuildOutputStreamEntry
@@ -526,7 +528,7 @@ class AvailWorkbench internal constructor(
 	private val errorStream: PrintStream?
 
 	/** The [standard output stream][PrintStream]. */
-	val outputStream: PrintStream
+	private val outputStream: PrintStream
 
 	/* UI components. */
 
@@ -617,10 +619,10 @@ class AvailWorkbench internal constructor(
 	internal val buildAction = BuildAction(this)
 
 	/** The [CopyQualifiedNameAction].  */
-	internal val copyQualifiedNameAction = CopyQualifiedNameAction(this)
+	private val copyQualifiedNameAction = CopyQualifiedNameAction(this)
 
 	/** The [LoadOnStartAction]. */
-	internal val loadOnStartAction = LoadOnStartAction(this)
+	private val loadOnStartAction = LoadOnStartAction(this)
 
 	/** The [GenerateArtifactAction] used to create an [AvailArtifact]. */
 	private val generateArtifact = GenerateArtifactAction(this)
@@ -747,6 +749,9 @@ class AvailWorkbench internal constructor(
 
 	/** The [ExamineModuleManifest]. */
 	private val examineModuleManifestAction = ExamineModuleManifest(this)
+
+	/** The [ExamineNamesIndex]. */
+	private val examineNamesIndexAction = ExamineNamesIndex(this)
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -1297,7 +1302,7 @@ class AvailWorkbench internal constructor(
 	 *   Lambda that accepts the modules tree and entry points tree.
 	 */
 	fun calculateRefreshedTreesThen(
-		withTrees: (TreeNode, TreeNode) -> Unit)
+		withTrees: (DummyRootModuleNode, DummyRootModuleNode) -> Unit)
 	{
 		if (!treeCalculationInProgress.getAndSet(true))
 		{
@@ -1312,6 +1317,18 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
+	 * Refresh the tree of modules and tree of entry points.  Use the existing
+	 * tree structure, and just force it to update the presentation of each
+	 * node.
+	 */
+	fun refresh()
+	{
+		refreshFor(
+			moduleTree.model.root as AbstractWorkbenchTreeNode,
+			entryPointsTree.model.root as AbstractWorkbenchTreeNode)
+	}
+
+	/**
 	 * Re-populate the visible tree structures based on the provided tree of
 	 * modules and tree of entry points.  Attempt to preserve selection and
 	 * expansion information.
@@ -1321,45 +1338,35 @@ class AvailWorkbench internal constructor(
 	 * @param entryPoints
 	 *   The [TreeNode] of entry points to present.
 	 */
-	fun refreshFor(modules: TreeNode, entryPoints: TreeNode)
+	fun refreshFor(
+		modules: AbstractWorkbenchTreeNode,
+		entryPoints: AbstractWorkbenchTreeNode)
 	{
-		val selection = moduleTree.selectionPath
-		moduleTree.isVisible = false
-		entryPointsTree.isVisible = false
-		try
-		{
-			val root = moduleTree.model.root as DefaultMutableTreeNode
-			val allExpanded = moduleTree
+		// Process the expansion/
+		mapOf(
+			moduleTree to modules,
+			entryPointsTree to entryPoints
+		).forEach { (tree, newRoot) ->
+			tree.isVisible = false
+			val root = tree.model.root as AbstractWorkbenchTreeNode
+			val allExpanded = tree
 				.getExpandedDescendants(TreePath(root))
 				?.toList()?.sortedBy(TreePath::getPathCount)
-				?: modules.children().toList().map {
-					// Expand each root on the first refresh.
-					TreePath(arrayOf(root, it))
-				}
-			moduleTree.model = DefaultTreeModel(modules)
-			allExpanded.asSequence()
-				.map(TreePath::getLastPathComponent)
-				.filterIsInstance<AbstractWorkbenchTreeNode>()
-				.map(AbstractWorkbenchTreeNode::modulePathString)
-				.mapNotNull(::modulePath)
-				.forEach(moduleTree::expandPath)
-			selection?.let { path ->
-				val node =
-					path.lastPathComponent as AbstractWorkbenchTreeNode
-				moduleTree.selectionPath = modulePath(node.modulePathString())
+				?: newRoot.typedChildren
+					.filter(AbstractWorkbenchTreeNode::initiallyExpanded)
+					.map {
+						// Expand each root on the first refresh.
+						TreePath(arrayOf(root, it))
+					}
+			val selection = tree.selectionPath
+			tree.model = DefaultTreeModel(newRoot)
+			allExpanded.forEach { tree.expandPath(tree.equivalentPath(it)) }
+			selection?.let { old ->
+				val new = tree.equivalentPath(old)
+				tree.expandPath(new.parentPath)
+				tree.selectionPath = new
 			}
-
-			// Now process the entry points tree.
-			entryPointsTree.model = DefaultTreeModel(entryPoints)
-			for (i in entryPointsTree.rowCount - 1 downTo 0)
-			{
-				entryPointsTree.expandRow(i)
-			}
-		}
-		finally
-		{
-			moduleTree.isVisible = true
-			entryPointsTree.isVisible = true
+			tree.isVisible = true
 		}
 	}
 
@@ -1370,12 +1377,13 @@ class AvailWorkbench internal constructor(
 	 * @param withTreeNode
 	 *   The lambda that accepts the (invisible) root of the module tree.
 	 */
-	private fun newModuleTreeThen(withTreeNode: (TreeNode) -> Unit)
+	private fun newModuleTreeThen(
+		withTreeNode: (DummyRootModuleNode) -> Unit)
 	{
 		val roots = resolver.moduleRoots
 		val sortedRootNodes = Collections.synchronizedList(
 			mutableListOf<ModuleRootNode>())
-		val treeRoot = DefaultMutableTreeNode("(packages hidden root)")
+		val treeRoot = DummyRootModuleNode(this)
 
 		roots.roots.parallelDoThen(
 			action = { root, after ->
@@ -1523,7 +1531,8 @@ class AvailWorkbench internal constructor(
 	 *   Function that accepts a [TreeNode] that contains all the
 	 *   [EntryPointModuleNode]s.
 	 */
-	private fun newEntryPointsTreeThen(withTreeNode: (TreeNode) -> Unit)
+	private fun newEntryPointsTreeThen(
+		withTreeNode: (DummyRootModuleNode) -> Unit)
 	{
 		val moduleNodes = ConcurrentHashMap<String, DefaultMutableTreeNode>()
 		availBuilder.traceDirectoriesThen(
@@ -1547,8 +1556,7 @@ class AvailWorkbench internal constructor(
 				after()
 			},
 			afterAll = {
-				val entryPointsTreeRoot =
-					DefaultMutableTreeNode("(entry points hidden root)")
+				val entryPointsTreeRoot = DummyRootModuleNode(this)
 				moduleNodes.entries
 					.sortedBy(MutableEntry<String, *>::key)
 					.map(MutableEntry<*, DefaultMutableTreeNode>::value)
@@ -1722,7 +1730,7 @@ class AvailWorkbench internal constructor(
 	/**
 	 * Update the [build&#32;progress&#32;bar][buildProgress].
 	 */
-	internal fun updateBuildProgress()
+	private fun updateBuildProgress()
 	{
 		var position = 0L
 		var max = 0L
@@ -1780,7 +1788,7 @@ class AvailWorkbench internal constructor(
 			if (!hasQueuedPerModuleBuildUpdate)
 			{
 				hasQueuedPerModuleBuildUpdate = true
-				availBuilder.runtime.timer.schedule(100) {
+				availBuilder.runtime.timer.schedule(200) {
 					invokeLater { updatePerModuleProgressInUIThread() }
 				}
 			}
@@ -1839,6 +1847,7 @@ class AvailWorkbench internal constructor(
 		perModuleProgressLock.safeWrite {
 			perModuleStatusTextSize = string.length
 		}
+		moduleTree.repaint()
 	}
 
 	/**
@@ -2107,6 +2116,7 @@ class AvailWorkbench internal constructor(
 					item(examineStylingAction)
 					item(examinePhrasePathsAction)
 					item(examineModuleManifestAction)
+					item(examineNamesIndexAction)
 					separator()
 					item(graphAction)
 				}
@@ -2118,8 +2128,7 @@ class AvailWorkbench internal constructor(
 		rootPane.inputMap.put(KeyStroke.getKeyStroke("F5"), "Refresh")
 
 		// Create the module tree.
-		moduleTree = JTree(DefaultMutableTreeNode(
-			"(packages hidden root)"))
+		moduleTree = JTree(DummyRootModuleNode(this))
 		moduleTree.run {
 			background = null
 			toolTipText = "All modules, organized by module root."
@@ -2190,8 +2199,7 @@ class AvailWorkbench internal constructor(
 		}
 
 		// Create the entry points tree.
-		entryPointsTree = JTree(
-			DefaultMutableTreeNode("(entry points hidden root)"))
+		entryPointsTree = JTree(DummyRootModuleNode(this))
 		entryPointsTree.run {
 			background = null
 			toolTipText = "All entry points, organized by defining module."
@@ -2859,6 +2867,13 @@ class AvailWorkbench internal constructor(
 					availProjectFilePath,
 					workbenchWindowTitle,
 					projectManager)
+				Desktop.getDesktop().setQuitHandler { _, response ->
+					// Abort the explicit quit request, but ask the workbench to
+					// try to close the window, which will trigger nice cleanup.
+					response.cancelQuit()
+					bench.processWindowEvent(
+						WindowEvent(bench, WindowEvent.WINDOW_CLOSING))
+				}
 				// Inject a breakpoint handler into the runtime to open a
 				// debugger.
 				runtime.breakpointHandler = { fiber ->
@@ -2992,4 +3007,28 @@ class AvailWorkbench internal constructor(
 				null)
 		}
 	}
+}
+
+/**
+ * Given a [TreePath] in some previous incarnation of the tree, update the
+ * received [JTree] to expand as much of the corresponding path in the new tree
+ * as possible.  Correspondence is determined by having equal
+ * [AbstractWorkbenchTreeNode.equalityText].  Answer the path through the new
+ * nodes, although it may be truncated due to lack of matching equalityText at
+ * any point along the path.
+ */
+private fun JTree.equivalentPath(oldPath: TreePath): TreePath
+{
+	var node = model.root as? AbstractWorkbenchTreeNode
+	val newNodes = mutableListOf(node!!)
+	oldPath.typedPath<AbstractWorkbenchTreeNode>().iterator()
+		.also(Iterator<*>::next)
+		.forEachRemaining { old ->
+			val key = old.equalityText()
+			node = node?.typedChildren?.firstOrNull {
+				it.equalityText() == key
+			}
+			node?.let(newNodes::add)
+		}
+	return TreePath(newNodes.toTypedArray<AbstractWorkbenchTreeNode>())
 }

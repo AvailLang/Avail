@@ -53,7 +53,7 @@ class TemplatesNode constructor(
 
 	override fun iconResourceName(): String = "magic_curlies"
 
-	override fun text(selected: Boolean) = "templates"
+	override fun equalityText() = "templates"
 
 	override val sortMajor: Int get() = 60
 

@@ -72,11 +72,21 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	/** The [AvailWorkbench.availBuilder]. */
 	internal val builder: AvailBuilder get() = workbench.availBuilder
 
+	/** Whether to expand this node when the Anvil workbench opens. */
+	open fun initiallyExpanded() = false
+
 	/**
 	 * Answer a [String] suitable for identifying this node even after
 	 * refreshing the tree.
 	 */
 	abstract fun modulePathString(): String
+
+	/**
+	 * Answer a [String] that generally does not change for this node, for the
+	 * purpose of identifying if this is the same node as a previous incarnation
+	 * during a refresh of some sort.
+	 */
+	internal abstract fun equalityText(): String
 
 	/**
 	 * Extract text to display for this node.  Presentation styling will be
@@ -86,7 +96,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 *   Whether the node is selected.
 	 * @return A [String].
 	 */
-	internal abstract fun text(selected: Boolean): String
+	open fun text(selected: Boolean): String = equalityText()
 
 	/**
 	 * Produce a string for use in a <span style=…> tag for this node.
@@ -140,7 +150,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 *   The string.
 	 * @return Whether this is the indicated node.
 	 */
-	fun isSpecifiedByString(string: String): Boolean = text(false) == string
+	fun isSpecifiedByString(string: String): Boolean = equalityText() == string
 
 	/**
 	 * Order this node against another.
@@ -178,6 +188,13 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 * @return An [Int].  Lower values sort before higher ones.
 	 */
 	open val sortMajor: Int get() = 0
+
+	/**
+	 * Answer an [Iterable] over the children, but type-strengthening the
+	 * elements to [AbstractWorkbenchTreeNode].
+	 */
+	val typedChildren: Iterable<AbstractWorkbenchTreeNode>
+		get() = children.cast()
 
 	companion object
 	{

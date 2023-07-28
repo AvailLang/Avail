@@ -55,7 +55,7 @@ class ArtifactPlansNode constructor(
 
 	override fun iconResourceName(): String = "crane"
 
-	override fun text(selected: Boolean) = "artifact plans"
+	override fun equalityText(): String = "artifact plans"
 
 	override fun htmlStyle(selected: Boolean): String =
 		fontStyle(bold = false, strikethrough = false) +

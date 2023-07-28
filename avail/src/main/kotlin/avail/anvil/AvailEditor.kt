@@ -56,13 +56,13 @@ import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
 import avail.persistence.cache.Repository
-import avail.persistence.cache.Repository.ManifestRecord
-import avail.persistence.cache.Repository.ModuleCompilation
-import avail.persistence.cache.Repository.ModuleVersion
-import avail.persistence.cache.Repository.ModuleVersionKey
-import avail.persistence.cache.Repository.PhraseNode
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.ManifestRecord
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleVersion
+import avail.persistence.cache.record.ModuleVersionKey
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.StylingRecord
 import avail.utility.notNullAnd
 import java.awt.BorderLayout
 import java.awt.Color
@@ -257,7 +257,6 @@ class AvailEditor constructor(
 	{
 		val repository = resolvedName.repository
 		repository.reopenIfNecessary()
-		val repositoryFile = repository.repository!!
 		val archive = repository.getArchive(resolvedName.rootRelativeName)
 		archive.digestForFile(
 			resolvedName,
@@ -271,11 +270,11 @@ class AvailEditor constructor(
 							?.maxByOrNull(ModuleCompilation::compilationTime) ?:
 						return@digestForFile onSuccess(null, null, null)
 					val stylingRecord = StylingRecord(
-						repositoryFile[compilation.recordNumberOfStyling])
+						repository[compilation.recordNumberOfStyling])
 					val phrasePathRecord = PhrasePathRecord(
-						repositoryFile[compilation.recordNumberOfPhrasePaths])
+						repository[compilation.recordNumberOfPhrasePaths])
 					val manifestRecord = ManifestRecord(
-						repositoryFile[compilation.recordNumberOfManifest])
+						repository[compilation.recordNumberOfManifest])
 					onSuccess(stylingRecord, phrasePathRecord, manifestRecord)
 				}
 				catch (e: Throwable)

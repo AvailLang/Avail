@@ -895,7 +895,7 @@ class AvailCompiler constructor(
 	 *   statement must be [nil], so there is no point in having the
 	 *   continuation accept this value, hence the nullary continuation.
 	 */
-	internal fun evaluateModuleStatementThen(
+	private fun evaluateModuleStatementThen(
 		startState: LexingState,
 		afterStatement: LexingState,
 		expression: A_Phrase,
@@ -1041,9 +1041,10 @@ class AvailCompiler constructor(
 						// Don't allow global constant initialization to be
 						// batched with subsequent effects.
 						compilationContext.flushDelayedSerializedEffects()
-						loader.manifestEntries!!.add(
+						loader.addManifestEntry(
 							ModuleManifestEntry(
 								SideEffectKind.MODULE_CONSTANT_KIND,
+								null,
 								name.asNativeString(),
 								startState.lineNumber,
 								replacement.token.lineNumber(),
@@ -1118,9 +1119,10 @@ class AvailCompiler constructor(
 							// batched with subsequent effects.
 							compilationContext.flushDelayedSerializedEffects()
 							module.lock {
-								loader.manifestEntries!!.add(
+								loader.addManifestEntry(
 									ModuleManifestEntry(
 										SideEffectKind.MODULE_VARIABLE_KIND,
+										null,
 										name.asNativeString(),
 										startState.lineNumber,
 										replacement.token.lineNumber(),

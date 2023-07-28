@@ -36,6 +36,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
+import avail.persistence.cache.record.NameInModule
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -50,6 +51,8 @@ import java.io.IOException
  *
  * @property kind
  *   The [kind][SideEffectKind] of manifest entry that this is.
+ * @property nameInModule
+ *   The [NameInModule] being declared, defined, or restricted, if any.
  * @property summaryText
  *   A short textual description of the item being defined, without mentioning
  *   the [kind].
@@ -75,6 +78,7 @@ import java.io.IOException
  */
 class ModuleManifestEntry constructor(
 	val kind: SideEffectKind,
+	val nameInModule: NameInModule?,
 	val summaryText: String,
 	val topLevelStartingLine: Int,
 	val definitionStartingLine: Int,
@@ -103,6 +107,11 @@ class ModuleManifestEntry constructor(
 			bodyFunction = null
 		}
 		binaryStream.write(kind.ordinal)
+		binaryStream.writeBoolean(nameInModule != null)
+		nameInModule?.run {
+			binaryStream.writeUTF(moduleName)
+			binaryStream.writeUTF(atomName)
+		}
 		binaryStream.writeUTF(summaryText)
 		binaryStream.writeInt(topLevelStartingLine)
 		binaryStream.writeInt(definitionStartingLine)
@@ -120,6 +129,11 @@ class ModuleManifestEntry constructor(
 	@Throws(IOException::class)
 	internal constructor(binaryStream: DataInputStream) : this(
 		SideEffectKind.all[binaryStream.read()],
+		when (binaryStream.readBoolean())
+		{
+			true -> NameInModule(binaryStream.readUTF(), binaryStream.readUTF())
+			false -> null
+		},
 		binaryStream.readUTF(),
 		binaryStream.readInt(),
 		binaryStream.readInt(),
