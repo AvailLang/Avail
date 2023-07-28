@@ -49,6 +49,7 @@ import avail.utility.vlq
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
+
 /**
  * Information for efficiently navigating between declarations, aliases,
  * definitions, and uses of atoms.  This is information bounded by the module in
@@ -63,7 +64,7 @@ class NamesIndex
 	val occurrences: MutableMap<NameInModule, NameOccurrences>
 
 	/**
-	 * Iff this index is for a package, this is a bloom filter that can be used
+	 * Iff this index is for a package, this is a Bloom filter that can be used
 	 * to quickly eliminate sections of the module tree from a more expensive
 	 * search within each module.  If the filter appears to contain the name in
 	 * question, the other fields of this object should be examined, to
@@ -88,6 +89,21 @@ class NamesIndex
 		val definitions: MutableList<Definition>,
 		val usages: MutableList<Usage>)
 	{
+		/**
+		 * Write this [NameOccurrences] onto the given [DataOutputStream].  Use
+		 * the maps from module name to index and atom name to index for
+		 * compression. The same maps will be provided in inverse form (as
+		 * [List]s of [String]s) during subsequent decoding (via the
+		 * [NameOccurrences] constructor taking a [DataInputStream] and the two
+		 * lists).
+		 *
+		 * @param binaryStream
+		 *   The stream on which to serialize this object.
+		 * @param moduleNumbering
+		 *   A mapping from module names to unique non-negative integers.
+		 * @param nameNumbering
+		 *   A mapping from atom names to unique non-negative integers.
+		 */
 		fun write(
 			binaryStream: DataOutputStream,
 			moduleNumbering: Map<String, Int>,
@@ -109,7 +125,14 @@ class NamesIndex
 
 		/**
 		 * Reconstruct a [NameOccurrences] from a stream, using the already
-		 * constructed lists of module names and atom names
+		 * constructed lists of module names and atom names.
+		 *
+		 * @param binaryStream
+		 *   The source of data from which to reconstruct a [NameOccurrences].
+		 * @param moduleNames
+		 *   The [List] of module names used in the reconstruction.
+		 * @param atomNames
+		 *   The [List] of atom names used in the reconstruction.
 		 */
 		constructor(
 			binaryStream: DataInputStream,
@@ -144,6 +167,21 @@ class NamesIndex
 		val alias: NameInModule?,
 		val phraseIndex: Int)
 	{
+		/**
+		 * Write this [Declaration] onto the given [DataOutputStream].  Use the
+		 * maps from module name to index and atom name to index for
+		 * compression. The same maps will be provided in inverse form (as
+		 * [List]s of [String]s) during subsequent decoding (via the
+		 * [Declaration] constructor taking a [DataInputStream] and the two
+		 * lists).
+		 *
+		 * @param binaryStream
+		 *   The stream on which to serialize this object.
+		 * @param moduleNumbering
+		 *   A mapping from module names to unique non-negative integers.
+		 * @param nameNumbering
+		 *   A mapping from atom names to unique non-negative integers.
+		 */
 		fun write(
 			binaryStream: DataOutputStream,
 			moduleNumbering: Map<String, Int>,
@@ -155,8 +193,15 @@ class NamesIndex
 		}
 
 		/**
-		 * Reconstruct a [NameInModule] from a stream, using the already constructed
-		 * lists of module names and atom names
+		 * Reconstruct a [Declaration] from a stream, using the already
+		 * constructed lists of module names and atom names.
+		 *
+		 * @param binaryStream
+		 *   The source of the data for reconstructing the [Declaration].
+		 * @param moduleNames
+		 *   The [List] of module names used in the reconstruction.
+		 * @param atomNames
+		 *   The [List] of atom names used in the reconstruction.
 		 */
 		constructor(
 			binaryStream: DataInputStream,
@@ -184,12 +229,27 @@ class NamesIndex
 		val definitionType: DefinitionType,
 		val manifestIndex: Int)
 	{
+		/**
+		 * Serialize the receiver onto the given [DataOutputStream], in a form
+		 * suitable for reconstruction via the [Definition] constructor taking
+		 * a [DataInputStream].
+		 *
+		 * @param binaryStream
+		 *   The [DataOutputStream] on which to serialize this [Definition].
+		 */
 		fun write(binaryStream: DataOutputStream)
 		{
 			binaryStream.vlq(definitionType.ordinal)
 			binaryStream.vlq(manifestIndex)
 		}
 
+		/**
+		 * Reconstruct a [DefinitionType] whose data was previously serialized
+		 * onto a stream of bytes that can be read from the [DataInputStream].
+		 *
+		 * @param binaryStream
+		 *   The source of data for deserialization.
+		 */
 		constructor(
 			binaryStream: DataInputStream
 		): this(
@@ -251,6 +311,14 @@ class NamesIndex
 		val usageType: UsageType,
 		val phraseIndex: Int)
 	{
+		/**
+		 * Serialize the receiver onto the given [DataOutputStream], in a form
+		 * suitable for reconstruction via the [Usage] constructor taking
+		 * a [DataInputStream].
+		 *
+		 * @param binaryStream
+		 *   The [DataOutputStream] on which to serialize this [Usage].
+		 */
 		fun write(binaryStream: DataOutputStream)
 		{
 			binaryStream.vlq(usageType.ordinal)
@@ -258,7 +326,11 @@ class NamesIndex
 		}
 
 		/**
-		 * Reconstruct a [Usage] from a stream.
+		 * Reconstruct a [Usage] from a stream.  The data was put there by the
+		 * [write] method.
+		 *
+		 * @param binaryStream
+		 *   The source of data for deserialization.
 		 */
 		constructor(
 			binaryStream: DataInputStream
@@ -373,9 +445,8 @@ class NamesIndex
 	 *
 	 * @param nameInModule
 	 *   The [NameInModule] being used.
-	 * @param
+	 * @param usageType
 	 *   The nature of the usage of the [nameInModule].
-	 * @param
 	 * @param phraseIndex
 	 *   The index into this [ModuleCompilation]'s [PhrasePathRecord]'s phrases,
 	 *   identifying the exact [PhraseNode] that uses the [nameInModule].
@@ -430,6 +501,12 @@ class NamesIndex
 	 * Output this [NamesIndex] onto a [DataOutputStream], so that Anvil can
 	 * later access it to determine what names are used, and in what ways,
 	 * inside this module.
+	 *
+	 * @param binaryStream
+	 *   The [DataOutputStream] on which to serialize this [NamesIndex].
+	 * @throws IOException
+	 *   If the stream cannot be written to, which is impossible for an
+	 *   in-memory stream.
 	 */
 	@Throws(IOException::class)
 	internal fun write(binaryStream: DataOutputStream)
@@ -475,7 +552,7 @@ class NamesIndex
 		append(occurrences.values.sumOf { it.definitions.size })
 		append(" defs")
 		bloomFilterIfPackage?.run {
-			append(", bloom=")
+			append(", Bloom=")
 			append(bitCount)
 		}
 		append(")")
@@ -523,7 +600,7 @@ class NamesIndex
 	 *   [NameOccurrences] that describe where and how the name is used in this
 	 *   module.
 	 * @param bloomFilterIfPackage
-	 *   Iff this index is for a package, this is a bloom filter that can be
+	 *   Iff this index is for a package, this is a Bloom filter that can be
 	 *   used to quickly eliminate sections of the module tree from a more
 	 *   expensive search within each module.  If the filter appears to contain
 	 *   the name in question, the other fields of this object should be
