@@ -1871,7 +1871,7 @@ constructor(
 	): A_Atom = module.lock {
 		//  Check if it's already defined somewhere...
 		val who = module.trueNamesForStringName(stringName)
-		when (who.setSize)
+		val atom = when (who.setSize)
 		{
 			1 -> who.single()
 			0 ->
@@ -1894,23 +1894,23 @@ constructor(
 							else -> CREATE_ATOM.bundle
 						},
 						stringName))
-				if (phase == EXECUTING_FOR_COMPILE)
-				{
-					val topStart = topLevelStatementBeingCompiled!!
-						.startingLineNumber
-					addManifestEntry(
-						ModuleManifestEntry(
-							SideEffectKind.ATOM_DEFINITION_KIND,
-							newAtom.asNameInModule,
-							stringName.asNativeString(),
-							topStart,
-							topStart))
-				}
 				module.addPrivateName(newAtom)
 				newAtom
 			}
 			else -> throw AmbiguousNameException()
 		}
+		if (phase == EXECUTING_FOR_COMPILE)
+		{
+			val topStart = topLevelStatementBeingCompiled!!.startingLineNumber
+			addManifestEntry(
+				ModuleManifestEntry(
+					SideEffectKind.ATOM_DEFINITION_KIND,
+					atom.asNameInModule,
+					stringName.asNativeString(),
+					topStart,
+					topStart))
+		}
+		atom
 	}
 
 	/**
