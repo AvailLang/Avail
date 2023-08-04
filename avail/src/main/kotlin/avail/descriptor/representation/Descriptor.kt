@@ -105,6 +105,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
 import avail.serialization.SerializerOperation
@@ -2796,4 +2797,13 @@ protected constructor (
 		startIndex: Int,
 		endIndex: Int
 	): Int = unsupported
+
+	override fun o_SetNamesIndexRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	): Unit  = unsupported
+
+	override fun o_NamesIndexRecord(
+		self: AvailObject
+	): NamesIndex = unsupported
 }

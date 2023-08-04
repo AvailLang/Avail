@@ -274,6 +274,7 @@ import avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.moduleState
+import avail.descriptor.module.A_Module.Companion.namesIndexRecord
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
 import avail.descriptor.module.A_Module.Companion.phrasePathRecord
@@ -283,6 +284,7 @@ import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.serializedObjects
 import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setNamesIndexRecordIndex
 import avail.descriptor.module.A_Module.Companion.setPhrasePathRecordIndex
 import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
@@ -625,6 +627,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
 import avail.serialization.SerializerOperation
@@ -4021,4 +4024,12 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_PermutedPhrases(self: AvailObject): List<A_Phrase> =
 		self .. { permutedPhrases }
+
+	override fun o_SetNamesIndexRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	) = self .. { setNamesIndexRecordIndex(recordNumber) }
+
+	override fun o_NamesIndexRecord(self: AvailObject): NamesIndex =
+		self .. { namesIndexRecord() }
 }

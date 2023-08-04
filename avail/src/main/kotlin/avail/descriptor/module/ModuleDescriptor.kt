@@ -186,6 +186,8 @@ import avail.utility.safeWrite
 import avail.utility.structures.BloomFilter
 import org.availlang.json.JSONWriter
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -433,6 +435,22 @@ class ModuleDescriptor private constructor(
 	 */
 	@Volatile
 	var phrasePathRecord: PhrasePathRecord? = null
+
+	/**
+	 * The record number in the repository that stores an encoding of a
+	 * [NamesIndex] that captures all declarations, definitions, and usages of
+	 * names within this module.
+	 */
+	@Volatile
+	private var namesIndexRecordIndex: Long = -1
+
+	/**
+	 * The [NamesIndex] capturing all declarations, definitions, and usages of
+	 * names within this module.  If this is null, it should be fetched from the
+	 * repository by the client and cached here.
+	 */
+	@Volatile
+	private var namesIndex: NamesIndex? = null
 
 	/**
 	 * The lock used to control access to this module's modifiable parts.
@@ -1516,6 +1534,34 @@ class ModuleDescriptor private constructor(
 			allAncestors.get().hasElement(potentialAncestor) -> true
 			else -> false
 		}
+
+	override fun o_SetNamesIndexRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	): Unit
+	{
+		namesIndexRecordIndex = recordNumber
+	}
+
+	override fun o_NamesIndexRecord(self: AvailObject): NamesIndex
+	{
+		namesIndex?.let { return it }
+		val moduleName = ModuleName(moduleNameNative)
+		val resolved = runtime!!.moduleNameResolver.resolve(moduleName, null)
+		namesIndex = if (namesIndexRecordIndex == -1L)
+		{
+			NamesIndex(mutableMapOf(), null)
+		}
+		else
+		{
+			val bytes = resolved.repository.run {
+				reopenIfNecessary()
+				lock.withLock { this[namesIndexRecordIndex] }
+			}
+			NamesIndex(DataInputStream(ByteArrayInputStream(bytes)))
+		}
+		return namesIndex!!
+	}
 
 	@Deprecated("Not supported", ReplaceWith("newModule()"))
 	override fun mutable() = unsupported

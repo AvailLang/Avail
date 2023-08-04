@@ -55,6 +55,7 @@ import avail.descriptor.module.A_Module.Companion.phrasePathRecord
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.serializedObjects
 import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setNamesIndexRecordIndex
 import avail.descriptor.module.A_Module.Companion.setPhrasePathRecordIndex
 import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
@@ -333,6 +334,7 @@ internal class BuildLoader constructor(
 		module.setPhrasePathRecordIndex(compilation.recordNumberOfPhrasePaths)
 		module.setManifestEntriesIndex(
 			compilation.recordNumberOfManifest)
+		module.setNamesIndexRecordIndex(compilation.recordNumberOfNamesIndex)
 		val availLoader = AvailLoader(
 			availBuilder.runtime, module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()

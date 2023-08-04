@@ -41,6 +41,7 @@ import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import avail.persistence.cache.record.NamesIndex.UsageType
 import avail.utility.Mutable
 import avail.utility.decodeString
 import avail.utility.iterableWith
@@ -102,7 +103,10 @@ constructor (
 	 *   If I/O fails.
 	 */
 	@Throws(IOException::class)
-	internal fun write(binaryStream: DataOutputStream)
+	internal fun write(
+		binaryStream: DataOutputStream,
+		namesIndex: NamesIndex
+	)
 	{
 		val moduleNameMap = mutableMapOf<A_String, Int>()
 		val atomNameMap = mutableMapOf<A_String, Int>()
@@ -135,9 +139,16 @@ constructor (
 		binaryStream.vlq(rootTrees.size)
 		workStack.addAll(rootTrees.reversed())
 		val tokenCursor = Mutable(0)
+		var phraseNumber = 0
 		while (workStack.isNotEmpty())
 		{
 			val node = workStack.removeLast()
+			node.nameInModule?.let { nodeNameInModule ->
+				namesIndex.addUsage(
+					nodeNameInModule,
+					node.usageType,
+					phraseNumber++)
+			}
 			node.write(
 				binaryStream, moduleNameMap, atomNameMap, tokenCursor)
 			binaryStream.vlq(node.children.size)
@@ -167,7 +178,8 @@ constructor (
 		val atomNames = List(binaryStream.unvlqInt()) {
 			StringDescriptor.stringFrom(binaryStream.decodeString())
 		}
-		val fakeRoot = PhraseNode(null, null, emptyList(), null)
+		val fakeRoot =
+			PhraseNode(null, null, UsageType.MethodSend, emptyList(), null)
 		// Two parallel stacks of phrases and countdowns, indicating how many
 		// more subphrases to add to the corresponding phrase before considering
 		// that phrase complete.  This allows reconstruction of the forest of
@@ -216,6 +228,9 @@ constructor (
 	 * @property atomName
 	 *   If this node is a [SEND_PHRASE] or [MACRO_SUBSTITUTION_PHRASE], this is
 	 *   the name of the sent bundle's atom.  Otherwise `null`.
+	 * @property usageType
+	 *   The [UsageType] that indicates the nature of the phrase that this node
+	 *   summarizes.
 	 * @property tokenSpans
 	 *   The regions of the file that tokens of this phrase occupy.  Each region
 	 *   is a [PhraseNodeToken] representing the one-based start and pastEnd
@@ -238,6 +253,7 @@ constructor (
 	constructor(
 		val atomModuleName: A_String?,
 		val atomName: A_String?,
+		val usageType: UsageType,
 		val tokenSpans: List<PhraseNodeToken>,
 		var parent: PhraseNode?,
 		val children: MutableList<PhraseNode> = mutableListOf())
@@ -337,6 +353,7 @@ constructor (
 		{
 			binaryStream.vlq(atomModuleName?.let(moduleNameMap::get) ?: 0)
 			binaryStream.vlq(atomName?.let(atomNameMap::get) ?: 0)
+			binaryStream.vlq(usageType.ordinal)
 			binaryStream.vlq(tokenSpans.size)
 			tokenSpans.forEach { (start, pastEnd, tokenIndexInName) ->
 				binaryStream.zigzag(start - tokenCursor.value)
@@ -391,6 +408,7 @@ constructor (
 					0 -> null
 					else -> atomNameList[index - 1]
 				}
+				val usageType = UsageType.all[binaryStream.unvlqInt()]
 				val tokenSpans = (1..binaryStream.unvlqInt()).map {
 					val start = tokenCursor.value + binaryStream.unzigzagInt()
 					tokenCursor.value = start
@@ -399,7 +417,8 @@ constructor (
 					val tokenIndexInName = binaryStream.unvlqInt()
 					PhraseNodeToken(start, pastEnd, tokenIndexInName)
 				}
-				return PhraseNode(atomModuleName, atomName, tokenSpans, parent)
+				return PhraseNode(
+					atomModuleName, atomName, usageType, tokenSpans, parent)
 			}
 		}
 	}
