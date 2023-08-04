@@ -159,6 +159,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
 import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.NamesIndex.UsageType
 import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.persistence.cache.record.PhrasePathRecord.PhraseNode.PhraseNodeToken
 import avail.serialization.Serializer
@@ -1335,7 +1336,6 @@ class CompilationContext constructor(
 		while (!stylingState.compareAndSet(oldState, newState))
 	}
 
-
 	/**
 	 * Capture the tree of [PhraseNode]s that describe this top-level phrase.
 	 *
@@ -1344,7 +1344,8 @@ class CompilationContext constructor(
 	 */
 	fun recordPathForTopLevelPhrase(rootPhrase: A_Phrase)
 	{
-		val fakeRoot = PhraseNode(null, null, emptyList(), null)
+		val fakeRoot =
+			PhraseNode(null, null, UsageType.MethodSend, emptyList(), null)
 		// Each pair holds the PhraseNode having its children converted, and an
 		// iterator that produces subphrases of the phrase that the PhraseNode
 		// was built from.
@@ -1360,6 +1361,7 @@ class CompilationContext constructor(
 			var phrase = iterator.next()
 			var moduleName: A_String? = null
 			var atomName: A_String? = null
+			var usageType: UsageType = UsageType.MethodSend
 			phrase.apparentSendName.ifNotNil { atom: A_Atom ->
 				atom.issuingModule.ifNotNil { module: A_Module ->
 					moduleName = module.moduleName
@@ -1369,21 +1371,28 @@ class CompilationContext constructor(
 			phrase = when
 			{
 				phrase.isMacroSubstitutionNode ->
+				{
+					usageType = UsageType.MacroSend
 					phrase.macroOriginalSendNode
+				}
 				!phrase.phraseKindIsUnder(LITERAL_PHRASE) -> phrase
 				// Prefer the generatingPhrase, if present.
 				phrase.token.generatingPhrase.notNil ->
 					phrase.token.generatingPhrase
 				// Otherwise use the literal value, if it's a phrase.
 				phrase.token.literal()
-						.isInstanceOfKind(PARSE_PHRASE.mostGeneralType) ->
+					.isInstanceOfKind(PARSE_PHRASE.mostGeneralType) ->
+				{
+					usageType = UsageType.MacroSend
 					phrase.token.literal()
+				}
 				else -> phrase
 			}
 			if (atomName === null)
 			{
 				phrase.apparentSendName.ifNotNil { atom: A_Atom ->
 					atom.issuingModule.ifNotNil { module: A_Module ->
+						usageType = UsageType.MacroSend
 						moduleName = module.moduleName
 					}
 					atomName = atom.atomName
@@ -1400,7 +1409,7 @@ class CompilationContext constructor(
 					PhraseNodeToken(start, pastEnd, indexInName.extractInt)
 				}.distinct()
 			val phraseNode =
-				PhraseNode(moduleName, atomName, tokenSpans, parent)
+				PhraseNode(moduleName, atomName, usageType, tokenSpans, parent)
 			val children = mutableListOf<A_Phrase>()
 			val childrenProvider = when
 			{

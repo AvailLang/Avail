@@ -344,7 +344,19 @@ class NamesIndex
 	 */
 	enum class UsageType
 	{
-		/** The name is listed in the `Names` section of the module header. */
+		/**
+		 * This is an invocation of the name as a method to invoke at runtime.
+		 */
+		MethodSend,
+
+		/**
+		 * This is an invocation of the name as a macro at compile time.
+		 */
+		MacroSend,
+
+		/**
+		 * The name is listed in the `Names` section of the module header.
+		 */
 		NameInHeader,
 
 		/**
@@ -366,17 +378,7 @@ class NamesIndex
 		/**
 		 * The atom (name) was created implicitly within the body.
 		 */
-		ImplicitCreationInBody,
-
-		/**
-		 * This is an invocation of the name as a method to invoke at runtime.
-		 */
-		MethodSend,
-
-		/**
-		 * This is an invocation of the name as a macro at compile time.
-		 */
-		MacroSend;
+		ImplicitCreationInBody;
 
 		companion object
 		{

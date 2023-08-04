@@ -168,6 +168,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
+import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
 import avail.serialization.SerializerOperation
@@ -4102,6 +4103,14 @@ abstract class AbstractDescriptor protected constructor (
 		hashedBin: AvailObject,
 		level: Int
 	): A_SetBin
+
+	abstract fun o_SetNamesIndexRecordIndex(
+		self: AvailObject,
+		recordNumber: Long)
+
+	abstract fun o_NamesIndexRecord(
+		self: AvailObject
+	): NamesIndex
 
 	companion object
 	{

@@ -154,7 +154,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V14")
+		"Avail compiled module repository V15")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
@@ -269,7 +269,9 @@ class Repository constructor(
 		val innerStylingRecordBytes = ByteArrayOutputStream(4096)
 		stylingRecord.write(DataOutputStream(innerStylingRecordBytes))
 		val innerPhrasePathsBytes = ByteArrayOutputStream(4096)
-		phrasePaths.write(DataOutputStream(innerPhrasePathsBytes))
+		phrasePaths.write(
+			DataOutputStream(innerPhrasePathsBytes),
+			namesIndex)
 		val namesIndexBytes = ByteArrayOutputStream(4096)
 		namesIndex.write(DataOutputStream(namesIndexBytes))
 		return lock.withLock {
