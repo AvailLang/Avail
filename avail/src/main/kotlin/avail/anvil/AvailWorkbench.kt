@@ -153,6 +153,7 @@ import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import avail.persistence.cache.Repositories
+import avail.persistence.cache.record.NameInModule
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
 import avail.stacks.StacksGenerator
@@ -2595,6 +2596,17 @@ class AvailWorkbench internal constructor(
 		availProject.availProjectRoots.firstOrNull {
 			it.name == targetRootName
 		}
+
+	/**
+	 * The user has clicked on a token in the source in such a way that they are
+	 * requesting navigation related to the method name containing that token.
+	 */
+	fun navigateForName(nameInModule: NameInModule)
+	{
+		//TODO present a list of definitions and usages to navigate to.
+		println(
+			"Clicked on ${nameInModule.atomName} in ${nameInModule.moduleName}")
+	}
 
 	companion object
 	{

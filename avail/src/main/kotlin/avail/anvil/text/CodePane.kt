@@ -45,6 +45,8 @@ import java.awt.Dimension
 import java.awt.Font
 import java.awt.Toolkit.getDefaultToolkit
 import java.awt.event.ActionEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.InputMap
 import javax.swing.JTextPane
@@ -104,6 +106,8 @@ class CodePane constructor(
 	internal val undoManager = UndoManager().apply {
 		limit = if (isEditable) 1000 else 1
 	}
+
+	internal var clickHandler: (e: MouseEvent) -> Unit = {}
 
 	/**
 	 * The state of an ongoing template selection.
@@ -180,6 +184,11 @@ class CodePane constructor(
 			putClientProperty(CodePane::undoManager.name, undoManager)
 			putClientProperty(CodePane::currentEdit.name, currentEdit)
 		}
+		addMouseListener(
+			object : MouseAdapter()
+			{
+				override fun mouseClicked(e: MouseEvent) = clickHandler(e)
+			})
 	}
 
 	/**

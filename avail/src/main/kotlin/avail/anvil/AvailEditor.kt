@@ -60,14 +60,15 @@ import avail.persistence.cache.record.ManifestRecord
 import avail.persistence.cache.record.ModuleCompilation
 import avail.persistence.cache.record.ModuleVersion
 import avail.persistence.cache.record.ModuleVersionKey
-import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.persistence.cache.record.StylingRecord
 import avail.utility.notNullAnd
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.ActionEvent
+import java.awt.event.MouseEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
@@ -323,7 +324,7 @@ class AvailEditor constructor(
 	 * mementos for applying glows for the declaration.  There are between zero
 	 * and three of them, depending on whether there is a declaration, and if
 	 * so, how many characters are in the token.
- 	 */
+	 */
 	private val selectedDeclaration = mutableListOf<Any>()
 
 	/**
@@ -403,7 +404,7 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * The [JLabel] that displays the [range]
+	 * The [JLabel] that displays the [range] information for the selection.
 	 */
 	private val caretRangeLabel = JLabel()
 
@@ -435,6 +436,7 @@ class AvailEditor constructor(
 			updatePhraseStructure()
 			updateDeclarationAndUses()
 		}
+		clickHandler = { e -> handleClick(e) }
 
 		// To add a new shortcut, add it as a subtype of the sealed class
 		// AvailEditorShortcut.
@@ -568,6 +570,36 @@ class AvailEditor constructor(
 			// This is the first change since the latest save.
 			firstUnsavedEditTime = lastEditTime
 			eventuallySave()
+		}
+	}
+
+	/** A pluggable handler for click events in the editor. */
+	fun handleClick(e: MouseEvent)
+	{
+		if (e.isMetaDown)
+		{
+			// This is a navigation click.  Figure out what method the indicated
+			// token belongs to, and navigate based on that method.
+			e.consume()
+			val doc = sourcePane.styledDocument
+			val pos = sourcePane.viewToModel2D(e.point)
+			// First look to the right of the cursor position.
+			var element = doc.getCharacterElement(pos)
+			var tokenStyle =
+				element.attributes.getAttribute(PhraseNodeAttributeKey)
+					as? TokenStyle
+			if (tokenStyle == null)
+			{
+				// If there's no applicable token for the character to the right
+				// of the cursor, try looking to the left.
+				element = doc.getCharacterElement(max(pos - 1, 0))
+				tokenStyle =
+					element.attributes.getAttribute(PhraseNodeAttributeKey)
+						as? TokenStyle
+			}
+			tokenStyle?.phraseNode?.nameInModule?.let { nameInModule ->
+				workbench.navigateForName(nameInModule)
+			}
 		}
 	}
 
