@@ -49,6 +49,7 @@ import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Taskbar
+import java.awt.Window
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
@@ -198,6 +199,7 @@ class AvailProjectManager constructor(
 
 	init
 	{
+		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 		setKnownProjectsSize()
 		addWindowListener(object: WindowAdapter()
 		{
@@ -207,6 +209,19 @@ class AvailProjectManager constructor(
 				globalSettings.saveToDisk()
 			}
 		})
+		Desktop.getDesktop().setQuitHandler { _, response ->
+			// Abort the explicit quit request, but ask the workbench to
+			// try to close the window, which will trigger nice cleanup.
+			response.cancelQuit()
+			openWorkbenches.filter(Window::isFocused).forEach {
+				it.dispatchEvent(WindowEvent(it, WindowEvent.WINDOW_CLOSING))
+			}
+			if (openWorkbenches.isEmpty())
+			{
+				processWindowEvent(
+					WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+			}
+		}
 		layoutConfiguration.placement?.let {
 			this.bounds = it
 		}
@@ -250,8 +265,6 @@ class AvailProjectManager constructor(
 	 */
 	private fun draw ()
 	{
-		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
-
 		var newHeight = height
 		displayedComponent =
 			when (displayed)
@@ -383,6 +396,7 @@ class AvailProjectManager constructor(
 	 *   `true` if the project is being opened or already opened; `false`
 	 *   otherwise.
 	 */
+	@Suppress("SameReturnValue")
 	private fun openProject (
 		project: AvailProject,
 		configPath: String,
