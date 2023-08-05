@@ -291,7 +291,7 @@ class NamesIndex
 
 		companion object
 		{
-			val all = values().toList()
+			val all = entries.toTypedArray()
 		}
 	}
 
@@ -382,7 +382,7 @@ class NamesIndex
 
 		companion object
 		{
-			val all = values().toList()
+			val all = entries.toTypedArray()
 		}
 	}
 

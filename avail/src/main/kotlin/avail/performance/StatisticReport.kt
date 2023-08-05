@@ -201,10 +201,7 @@ enum class StatisticReport constructor(
 		 * @return
 		 *   The corresponding StatisticReport.
 		 */
-		fun reportFor(str: String): StatisticReport?
-		{
-			return values().firstOrNull { it.title == str }
-		}
+		fun reportFor(str: String) = entries.firstOrNull { it.title == str }
 
 		/**
 		 * Output the appropriate `StatisticReport reports`.
@@ -214,7 +211,7 @@ enum class StatisticReport constructor(
 		 * @return
 		 *   The specified reports as a single [String].
 		 */
-		fun produceReports(reports: EnumSet<StatisticReport>): String =
+		fun produceReports(reports: EnumSet<StatisticReport>) =
 			buildString {
 				reports.forEachIndexed { index, report ->
 					val reportText = buildUnicodeBox(report.title) {

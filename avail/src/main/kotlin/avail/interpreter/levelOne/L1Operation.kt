@@ -410,7 +410,7 @@ enum class L1Operation constructor(
 	companion object
 	{
 		/** An array of all [L1Operation] enumeration values. */
-		private val all = values()
+		private val all = entries.toTypedArray()
 
 		/**
 		 * Answer the `L1Operation` enumeration value having the given ordinal.

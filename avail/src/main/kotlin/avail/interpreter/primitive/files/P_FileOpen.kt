@@ -189,7 +189,8 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	/**
 	 * Stash the enum values for StandardOpenOption to avoid array copying.
 	 */
-	private val allStandardOpenOptions = StandardOpenOption.values()
+	private val allStandardOpenOptions =
+		StandardOpenOption.entries.toTypedArray()
 
 	/**
 	 * Construct the [set][EnumSet] of [open][OpenOption] that correspond to the

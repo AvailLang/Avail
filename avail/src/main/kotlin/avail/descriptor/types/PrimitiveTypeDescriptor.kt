@@ -324,7 +324,7 @@ private constructor(
 
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		for (type in all())
+		for (type in all)
 		{
 			if (self.equals(type.o))
 			{
@@ -694,19 +694,11 @@ private constructor(
 			/**
 			 * Stash a [List] of all `Types` enum values.
 			 */
-			private val all = values().toList()
-
-			/**
-			 * Answer the previously stashed [List] of all `Types`.
-			 *
-			 * @return
-			 *   The immutable [List] of all `Types`.
-			 */
-			fun all(): List<Types> = all
+			val all = entries.toTypedArray()
 
 			init
 			{
-				assert(values().size == typesEnumCount)
+				assert(all.size == typesEnumCount)
 				// Build all the objects with null fields.
 				assert(all.size == typesEnumCount)
 				// Connect the objects.

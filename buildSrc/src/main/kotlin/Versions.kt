@@ -39,7 +39,7 @@
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.7.21"
+	const val kotlin = "1.9.0"
 
 	/** The Avail version. */
 	const val avail = "1.6.0"

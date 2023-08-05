@@ -102,6 +102,6 @@ constructor(
 	companion object
 	{
 		/** All of the [SideEffectKind]s. */
-		val all = values().toList()
+		val all = entries.toTypedArray()
 	}
 }

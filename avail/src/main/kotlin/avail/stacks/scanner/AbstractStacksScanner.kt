@@ -858,6 +858,9 @@ abstract class AbstractStacksScanner internal constructor(
 
 		companion object
 		{
+			/** All variants. */
+			private val all = entries.toTypedArray()
+
 			/**
 			 * Figure out the `ScannerAction` to invoke for the specified code
 			 * point. The argument may be any Unicode code point, including
@@ -873,7 +876,7 @@ abstract class AbstractStacksScanner internal constructor(
 				val c = cp.code
 				return if (c < 65536)
 				{
-					values()[dispatchTable[c].toInt()]
+					all[dispatchTable[c].toInt()]
 				}
 				else if (Character.isSpaceChar(c) || Character.isWhitespace(c))
 				{

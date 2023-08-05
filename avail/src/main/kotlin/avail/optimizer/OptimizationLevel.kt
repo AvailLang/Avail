@@ -157,7 +157,7 @@ constructor(val countdown: Long)
 	companion object
 	{
 		/** An array of all [OptimizationLevel] enumeration values. */
-		private val all = values()
+		private val all = entries.toTypedArray()
 
 		/**
 		 * Answer the `OptimizationLevel` for the given ordinal value.

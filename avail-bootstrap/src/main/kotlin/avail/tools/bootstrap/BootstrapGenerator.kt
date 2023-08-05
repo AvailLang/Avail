@@ -272,7 +272,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		 *   The relevant primitive error codes.
 		 */
 		private fun errorCodes(): List<AvailErrorCode> =
-			AvailErrorCode.values().filter { it.nativeCode() > 0 }
+			AvailErrorCode.entries.filter { it.nativeCode() > 0 }
 
 		/**
 		 * Generate all bootstrap [modules][ModuleDescriptor].

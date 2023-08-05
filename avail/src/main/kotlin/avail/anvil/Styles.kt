@@ -71,8 +71,9 @@ import avail.interpreter.execution.AvailLoader
 import avail.io.NybbleArray
 import avail.io.NybbleInputStream
 import avail.io.NybbleOutputStream
-import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
+import avail.persistence.cache.record.StyleRun
 import avail.persistence.cache.record.StylingRecord
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
@@ -213,7 +214,7 @@ class Stylesheet constructor(
 		// classifiers, so insert them here if necessary. None of the
 		// compilations here should ever fail, and it should nuke the system if
 		// they do.
-		SystemStyleClassifier.values().forEach { systemStyleClassifier ->
+		SystemStyleClassifier.entries.forEach { systemStyleClassifier ->
 			val source = systemStyleClassifier.exactMatchSource
 			val rule = rules.firstOrNull { it.source == source }
 			if (rule === null)
@@ -2454,6 +2455,12 @@ sealed interface StyleRuleInstruction
 			reader: NybbleInputStream,
 			injector: (StyleRuleContext)->Unit
 		): StyleRuleContext
+
+		companion object
+		{
+			/** The entries. */
+			val all = entries.toTypedArray()
+		}
 	}
 }
 
@@ -2825,7 +2832,7 @@ data class StyleRuleContext constructor(
 		{
 			val ordinal = reader.read()
 			if (ordinal == -1) return null
-			StyleRuleInstructionOpcode.values()[ordinal].let { opcode ->
+			StyleRuleInstructionOpcode.all[ordinal].let { opcode ->
 				opcode.literal(rule, reader).let { literal ->
 					return literal
 				}
@@ -2930,7 +2937,7 @@ object StyleRuleExecutor
 		{
 			reader.goTo(context.programCounter)
 			val ordinal = reader.opcode()
-			val opcode = StyleRuleInstructionOpcode.values().getOrElse(
+			val opcode = StyleRuleInstructionOpcode.all.getOrElse(
 				ordinal
 			) {
 				throw IllegalStateException("invalid opcode: $ordinal")

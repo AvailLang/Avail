@@ -32,6 +32,7 @@
 import avail.build.cleanupAllJars
 import avail.build.cleanupJars
 import avail.build.modules.AvailServerModule
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	java
@@ -89,4 +90,9 @@ tasks {
 
 	// Update the dependencies of "assemble".
 	assemble { dependsOn(releaseAvailServer) }
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+	languageVersion = "1.9"
+	apiVersion = "1.9"
 }

@@ -599,7 +599,7 @@ constructor(
 	companion object
 	{
 		/** Capture the enumeration values in a private array. */
-		private val all = values()
+		private val all = entries.toTypedArray()
 
 		/** The number of [TypeTag]s. */
 		val count = all.size

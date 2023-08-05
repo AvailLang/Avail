@@ -2757,7 +2757,7 @@ class L1Translator private constructor(
 
 		/** Statistics for timing the translation per L1Operation. */
 		private val levelOneGenerationStats: Array<Statistic> =
-			L1Operation.values().map {
+			L1Operation.entries.map {
 				Statistic(L1_NAIVE_TRANSLATION_TIME, it.name)
 			}.toTypedArray()
 

@@ -2679,7 +2679,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return Types.all()[subobjects[0].extractInt].o
+			return Types.all[subobjects[0].extractInt].o
 		}
 	},
 
@@ -3571,7 +3571,7 @@ enum class SerializerOperation constructor(
 	companion object
 	{
 		/** The array of enumeration values.  Don't change it. */
-		private val all = values()
+		private val all = entries.toTypedArray()
 
 		/**
 		 * Answer the enum value having the given ordinal.

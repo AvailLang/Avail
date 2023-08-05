@@ -219,7 +219,7 @@ class CompilerDiagnostics constructor(
 		companion object
 		{
 			/** Capture the values once in an array. */
-			private val all = values()
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Convert the zero-based int to a `ParseNotificationLevel`.

@@ -95,7 +95,7 @@ object L2_REIFY : L2ControlFlowOperation(
 		companion object
 		{
 			/** All the enumeration values. */
-			private val all = values()
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Look up the category with the given ordinal.

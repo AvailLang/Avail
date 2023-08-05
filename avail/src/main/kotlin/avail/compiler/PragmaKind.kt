@@ -267,7 +267,7 @@ enum class PragmaKind constructor(val lexeme: String)
 	companion object
 	{
 		/** Key the instances by lexeme. */
-		private val kindsByLexeme = values().associateBy { it.lexeme }
+		private val kindsByLexeme = entries.associateBy { it.lexeme }
 
 		/**
 		 * Answer the PragmaKind having the given lexeme, or `null` if it's not

@@ -32,6 +32,7 @@
 import avail.build.AvailSetupContext
 import avail.build.generateBootStrap
 import avail.build.modules.AvailBootstrapModule
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	java
@@ -141,4 +142,9 @@ tasks {
 		group = "bootstrap"
 		AvailBootstrapModule.generateBootStrap(project, this)
 	}
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+	languageVersion = "1.9"
+	apiVersion = "1.9"
 }

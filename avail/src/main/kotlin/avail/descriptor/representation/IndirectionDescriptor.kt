@@ -796,19 +796,20 @@ class IndirectionDescriptor private constructor(
 		return finalObject
 	}
 
-	companion object {
+	companion object
+	{
 		/** The mutable [IndirectionDescriptor]. */
-		val mutables = TypeTag.values().map { typeTag ->
+		val mutables = TypeTag.entries.map { typeTag ->
 			IndirectionDescriptor(Mutability.MUTABLE, typeTag)
 		}.toTypedArray()
 
 		/** The immutable [IndirectionDescriptor]. */
-		val immutables = TypeTag.values().map { typeTag ->
+		val immutables = TypeTag.entries.map { typeTag ->
 			IndirectionDescriptor(Mutability.IMMUTABLE, typeTag)
 		}.toTypedArray()
 
 		/** The shared [IndirectionDescriptor]. */
-		val shareds = TypeTag.values().map { typeTag ->
+		val shareds = TypeTag.entries.map { typeTag ->
 			IndirectionDescriptor(Mutability.SHARED, typeTag)
 		}.toTypedArray()
 

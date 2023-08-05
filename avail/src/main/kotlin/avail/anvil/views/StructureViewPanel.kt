@@ -191,7 +191,7 @@ class StructureViewPanel constructor (
 		add(JSeparator())
 		add(JSeparator())
 
-		SideEffectKind.values().forEach {
+		SideEffectKind.entries.forEach {
 			val iconLabel = JButton(SideEffectIcons.icon(19, it))
 			iconLabel.apply {
 				border = selectedBorder()

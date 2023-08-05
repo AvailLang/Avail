@@ -55,7 +55,7 @@ class ShortcutsSelection constructor(
 	{
 		val tabs = JTabbedPane(JTabbedPane.TOP, JTabbedPane.WRAP_TAB_LAYOUT)
 
-		KeyboardShortcutCategory.values().forEach {
+		KeyboardShortcutCategory.entries.forEach {
 			tabs.addTab(
 				it.display,
 				ShortcutsPanel(it, settingsView)
