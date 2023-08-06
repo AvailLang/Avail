@@ -247,6 +247,7 @@ import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.system.exitProcess
 
 /**
  * `AvailWorkbench` is a simple user interface for the
@@ -1971,23 +1972,27 @@ class AvailWorkbench internal constructor(
 		fileManager.associateRuntime(runtime)
 		availBuilder = AvailBuilder(runtime)
 
-		defaultCloseOperation =
-			if (projectManager != null)
-			{
-				projectManager.onWorkbenchOpen(this)
-				addWindowListener(object : WindowAdapter()
-				{
-					override fun windowClosed(e: WindowEvent)
-					{
-						projectManager.onWorkbenchClose(this@AvailWorkbench)
-					}
-				})
-				WindowConstants.DISPOSE_ON_CLOSE
+		defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
+
+		projectManager?.onWorkbenchOpen(this)
+			// We need to be careful to only set the close handler once. If a
+			// project manager exists, then it owns the responsibility for
+			// setting this handler up.
+			?: Desktop.getDesktop().setQuitHandler { _, response ->
+				// Abort the explicit quit request, but ask the workbench to
+				// try to close the window, which will trigger nice cleanup.
+				response.cancelQuit()
+				processWindowEvent(
+					WindowEvent(this, WindowEvent.WINDOW_CLOSING))
 			}
-			else
+		addWindowListener(object : WindowAdapter()
+		{
+			override fun windowClosed(e: WindowEvent)
 			{
-				WindowConstants.EXIT_ON_CLOSE
+				projectManager?.onWorkbenchClose(this@AvailWorkbench)
+					?: exitProcess(0)
 			}
+		})
 
 		// Set *just* the window title...
 		title = windowTitle
@@ -2879,13 +2884,6 @@ class AvailWorkbench internal constructor(
 					availProjectFilePath,
 					workbenchWindowTitle,
 					projectManager)
-				Desktop.getDesktop().setQuitHandler { _, response ->
-					// Abort the explicit quit request, but ask the workbench to
-					// try to close the window, which will trigger nice cleanup.
-					response.cancelQuit()
-					bench.processWindowEvent(
-						WindowEvent(bench, WindowEvent.WINDOW_CLOSING))
-				}
 				// Inject a breakpoint handler into the runtime to open a
 				// debugger.
 				runtime.breakpointHandler = { fiber ->
