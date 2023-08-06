@@ -3320,7 +3320,7 @@ class AvailCompiler constructor(
 					pragmaToken.nextLexingState(),
 					"Unsupported pragma kind at %s on line %d:",
 					"Pragma kind should be one of: "
-						+ PragmaKind.values().map { it.lexeme }.toList())
+						+ PragmaKind.entries.map { it.lexeme }.toList())
 				return@recurse
 			}
 			pragmaKind.applyThen(

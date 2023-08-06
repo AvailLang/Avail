@@ -238,7 +238,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		companion object
 		{
 			/** Don't modify this array. */
-			val all = values()
+			val all = entries.toTypedArray()
 		}
 	}
 

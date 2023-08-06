@@ -846,6 +846,8 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 
 		companion object
 		{
+			/** All variants. */
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Figure out the [ScannerAction] to invoke for the specified code
@@ -862,7 +864,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 				val cp = c.code
 				return if (cp < 65536)
 				{
-					values()[dispatchTable[cp].toInt()]
+					all[dispatchTable[cp].toInt()]
 				}
 				else if (Character.isSpaceChar(c) || Character.isWhitespace(c))
 				{

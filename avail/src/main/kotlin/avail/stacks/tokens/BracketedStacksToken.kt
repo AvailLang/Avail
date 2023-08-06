@@ -919,7 +919,7 @@ class BracketedStacksToken @Throws(StacksScannerException::class) constructor(
 		companion object
 		{
 			/** An array of all [StacksKeyword] enumeration values. */
-			private val all = values()
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Answer an array of all [StacksKeyword] enumeration values.

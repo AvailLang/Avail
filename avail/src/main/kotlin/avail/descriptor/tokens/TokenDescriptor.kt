@@ -237,7 +237,7 @@ open class TokenDescriptor protected constructor(
 		companion object
 		{
 			/** An array of all [TokenType] enumeration values. */
-			private val all = values()
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Answer the `TokenType` enumeration value having the given

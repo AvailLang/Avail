@@ -35,6 +35,7 @@ import avail.build.modules.AvailModule
 import avail.build.scrubReleases
 import avail.tasks.GenerateFileManifestTask
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	java
@@ -249,4 +250,9 @@ publishing {
 			artifact(javadocJar)
 		}
 	}
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+	languageVersion = "1.9"
+	apiVersion = "1.9"
 }

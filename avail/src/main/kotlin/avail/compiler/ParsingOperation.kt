@@ -1285,7 +1285,7 @@ enum class ParsingOperation constructor(
 		 * My array of values, since [ParsingOperation.values] makes a copy
 		 * every time.
 		 */
-		internal val all = values()
+		internal val all = entries.toTypedArray()
 
 		/**
 		 * The binary logarithm of the number of distinct instructions supported

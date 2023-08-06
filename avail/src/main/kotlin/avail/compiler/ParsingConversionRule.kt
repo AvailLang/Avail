@@ -172,7 +172,7 @@ enum class ParsingConversionRule constructor(val number: Int)
 	companion object
 	{
 		/** An array of all [ParsingConversionRule]s. */
-		private val all = values()
+		private val all = entries.toTypedArray()
 
 		/**
 		 * Lookup the specified `ParsingConversionRule conversion rule` by

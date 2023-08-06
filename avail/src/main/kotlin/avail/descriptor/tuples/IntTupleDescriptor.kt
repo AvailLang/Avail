@@ -766,7 +766,7 @@ class IntTupleDescriptor private constructor(
 			var i = 0
 			for (excess in intArrayOf(0, 1))
 			{
-				for (mut in Mutability.values())
+				for (mut in Mutability.entries)
 				{
 					descriptors[i++] =
 						IntTupleDescriptor(mut, excess)

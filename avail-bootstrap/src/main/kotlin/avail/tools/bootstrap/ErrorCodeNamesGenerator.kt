@@ -90,7 +90,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 		writer: PrintWriter
 	) = with(writer) {
 		val keys = mutableSetOf<String>()
-		AvailErrorCode.values().forEach { code ->
+		AvailErrorCode.entries.forEach { code ->
 			if (code.nativeCode() > 0)
 			{
 				print("# ")
@@ -167,7 +167,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 			// This forces initialization of Avail.
 			AvailRuntime
 			var allErrorCodes = emptySet
-			AvailErrorCode.values().forEach { code ->
+			AvailErrorCode.entries.forEach { code ->
 				if (!code.isCausedByInstructionFailure)
 				{
 					allErrorCodes = allErrorCodes.setWithElementCanDestroy(

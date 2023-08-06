@@ -581,7 +581,7 @@ class FiberDescriptor private constructor(
 		companion object
 		{
 			/** A pre-extracted [Array] of each [FiberKind]. */
-			val all = FiberKind.values()
+			val all = entries.toTypedArray()
 
 			/** Extract an [A_Fiber]'s [FiberKind]. */
 			val A_Fiber.fiberKind: FiberKind

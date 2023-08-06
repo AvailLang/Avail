@@ -515,7 +515,7 @@ private constructor(messageName: A_String)
 			init
 			{
 				backquotableCodepoints.addAll(circledNumbersMap.keys)
-				values().forEach {
+				entries.forEach {
 					backquotableCodepoints.add(it.codepoint)
 				}
 			}

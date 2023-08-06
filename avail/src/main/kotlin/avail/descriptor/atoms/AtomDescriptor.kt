@@ -513,7 +513,7 @@ open class AtomDescriptor protected constructor (
 		{
 			init
 			{
-				SpecialAtom.values().forEach { specialAtom ->
+				entries.forEach { specialAtom ->
 					if (specialAtom.heritable)
 					{
 						specialAtom.atom.setAtomProperty(

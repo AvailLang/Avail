@@ -836,7 +836,7 @@ enum class AvailErrorCode constructor(val code: Int)
 		// The enumeration values have been initialized, so build the map.
 		init
 		{
-			for (errorCode in values())
+			for (errorCode in entries)
 			{
 				assert(!byNumericCode.containsKey(errorCode.nativeCode()))
 				byNumericCode[errorCode.nativeCode()] = errorCode
@@ -860,6 +860,6 @@ enum class AvailErrorCode constructor(val code: Int)
 		 *   A [list][List] of all valid numeric error codes.
 		 */
 		fun allNumericCodes() =
-			values().filter { it.code > 0 }.map { it.code }
+			entries.filter { it.code > 0 }.map { it.code }
 	}
 }
