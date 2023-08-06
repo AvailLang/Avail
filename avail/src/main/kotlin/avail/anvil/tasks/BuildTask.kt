@@ -86,7 +86,7 @@ constructor (
 					editor.populateSourcePane {
 						it.sourcePane.setCaretFrom(r)
 						it.sourcePane.centerCurrentLine()
-						if (workbench.structureViewPanel.editor == editor)
+						if (workbench.structureView.editor == editor)
 						{
 							editor.openStructureView(false)
 						}

@@ -42,7 +42,7 @@ import avail.anvil.shortcuts.ModifierKey.SHIFT
 import avail.anvil.text.BlockComment
 import avail.anvil.text.LineComment
 import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.StructureView
 
 /**
  * A [KeyboardShortcut] that is used in the [AvailEditor].
@@ -79,7 +79,7 @@ object GoToDialogShortcut
 }
 
 /**
- * The [AvailEditorShortcut] to open the [StructureViewPanel].
+ * The [AvailEditorShortcut] to open the [StructureView].
  *
  * @author Richard Arriaga
  */

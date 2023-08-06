@@ -132,7 +132,7 @@ import avail.anvil.streams.StreamStyle.OUT
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
 import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.StructureView
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
 import avail.anvil.window.WorkbenchScreenState
 import avail.builder.AvailBuilder
@@ -143,6 +143,7 @@ import avail.builder.ModuleRoots
 import avail.builder.RenamesFileParser
 import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
+import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
@@ -153,7 +154,11 @@ import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import avail.persistence.cache.Repositories
+import avail.persistence.cache.record.ManifestRecord
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleVersionKey
 import avail.persistence.cache.record.NameInModule
+import avail.persistence.cache.record.NamesIndex
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
 import avail.stacks.StacksGenerator
@@ -164,6 +169,7 @@ import avail.utility.cast
 import avail.utility.isNullOr
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
+import avail.utility.parallelMapThen
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
@@ -183,6 +189,7 @@ import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Taskbar
 import java.awt.Toolkit
+import java.awt.Window
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -192,6 +199,8 @@ import java.awt.event.MouseEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.BufferedReader
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -1578,7 +1587,7 @@ class AvailWorkbench internal constructor(
 	 * The node selected in the [moduleTree] or `null` if no selection is made.
 	 */
 	// This can be called during the constructor, so it can be null.
-	@Suppress("SAFE_CALL_WILL_CHANGE_NULLABILITY", "UNNECESSARY_SAFE_CALL")
+	@Suppress("UNNECESSARY_SAFE_CALL")
 	internal val selectedModuleTreeNode: Any? get() =
 		moduleTree?.selectionPath?.lastPathComponent
 
@@ -1897,22 +1906,22 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * The singular [StructureViewPanel] or `null` if none available.
+	 * The singular [StructureView].
 	 */
-	internal val structureViewPanel: StructureViewPanel =
-		StructureViewPanel(this) {
+	internal val structureView: StructureView =
+		StructureView(this) {
 			//TODO Do nothing for now, but we could record the fact that the
 			// window has been minimized, for restoring the session state.
 		}
 
 	/**
-	 * `true` indicates a [structureViewPanel] is open; `false` indicates the
+	 * `true` indicates a [structureView] is open; `false` indicates the
 	 * window is not open.
 	 */
-	internal val structureViewIsOpen get() = structureViewPanel.isVisible
+	internal val structureViewIsOpen get() = structureView.isVisible
 
 	/**
-	 * The singular [PhraseViewPanel] or `null` if none available.
+	 * The singular [PhraseViewPanel].
 	 */
 	internal val phraseViewPanel = PhraseViewPanel(this) {
 		//TODO Do nothing for now, but we could record the fact that the window
@@ -1934,7 +1943,7 @@ class AvailWorkbench internal constructor(
 	fun closeEditor(editor: AvailEditor)
 	{
 		openEditors.remove(editor.resolverReference.moduleName)
-		structureViewPanel.closingEditor(editor)
+		structureView.closingEditor(editor)
 		phraseViewPanel.closingEditor(editor)
 	}
 
@@ -2415,7 +2424,7 @@ class AvailWorkbench internal constructor(
 			override fun windowClosing(e: WindowEvent)
 			{
 				saveWindowPosition()
-				val sv = structureViewPanel.run {
+				val sv = structureView.run {
 					if (isVisible)
 					{
 						saveWindowPosition()
@@ -2564,7 +2573,7 @@ class AvailWorkbench internal constructor(
 				if (screenState.structureViewLayoutConfig.isNotEmpty())
 				{
 					val editor = openEditors.values.firstOrNull()
-					structureViewPanel.apply {
+					structureView.apply {
 						layoutConfiguration.parseInput(
 							screenState.structureViewLayoutConfig)
 						layoutConfiguration.placement?.let(::setBounds)
@@ -2605,13 +2614,92 @@ class AvailWorkbench internal constructor(
 	/**
 	 * The user has clicked on a token in the source in such a way that they are
 	 * requesting navigation related to the method name containing that token.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] to find.
 	 */
 	fun navigateForName(nameInModule: NameInModule)
 	{
-		//TODO present a list of definitions and usages to navigate to.
-		println(
-			"Clicked on ${nameInModule.atomName} in ${nameInModule.moduleName}")
+		val allModules =
+			runtime.moduleRoots().flatMap { it.resolver.allModules }
+		allModules.parallelMapThen<String, List<ModuleManifestEntry>>(
+			action = { moduleName, withEntries ->
+				val resolvedName = resolver.resolve(ModuleName(moduleName))
+				resolvedName.repository.let { repository ->
+					repository.reopenIfNecessary()
+					val archive =
+						repository.getArchive(resolvedName.rootRelativeName)
+					archive.digestForFile(
+						resolvedName,
+						false,
+						withDigest = { digest ->
+							try
+							{
+								val versionKey =
+									ModuleVersionKey(resolvedName, digest)
+								val compilation = archive.getVersion(versionKey)
+										?.allCompilations
+										?.maxByOrNull(
+											ModuleCompilation::compilationTime)
+									?: return@digestForFile withEntries(
+										emptyList())
+								val namesIndexRecordIndex = repository[
+									compilation.recordNumberOfNamesIndex]
+								val input = DataInputStream(
+									ByteArrayInputStream(namesIndexRecordIndex)
+								)
+								val namesIndex = NamesIndex(input)
+								val occurrences =
+									namesIndex.findMentions(nameInModule)
+								if (occurrences?.definitions?.isNotEmpty()
+									== true)
+								{
+									val manifestRecordIndex = repository[
+										compilation.recordNumberOfManifest]
+									val manifestRecord = ManifestRecord(
+										manifestRecordIndex)
+									val definitions =
+										occurrences.definitions.map {
+											manifestRecord.manifestEntries[
+												it.manifestIndex]
+										}
+									withEntries(definitions)
+								}
+								else
+								{
+									withEntries(emptyList())
+								}
+							}
+							catch (e: Throwable)
+							{
+								withEntries(emptyList())
+							}
+						},
+						failureHandler = { _, e ->
+							e?.printStackTrace()
+							withEntries(emptyList())
+						}
+					)
+				}
+			},
+			then = { entries ->
+				val allEntries = entries.flatten()
+				println(allEntries)
+			}
+		)
 	}
+
+	/**
+	 * Determine whether the [AvailWorkbench] or any of its satellite windows
+	 * are currently focused.
+	 */
+	val workbenchWindowIsFocused get () =
+		isFocused
+			|| openEditors.values.any(Window::isFocused)
+			|| openDebuggers.any(Window::isFocused)
+			|| openFileEditors.values.any(Window::isFocused)
+			|| structureView.isFocused
+			|| phraseViewPanel.isFocused
 
 	companion object
 	{

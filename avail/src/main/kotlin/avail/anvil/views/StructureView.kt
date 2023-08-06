@@ -1,5 +1,5 @@
 /*
- * StructureViewPanel.kt
+ * StructureView.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -81,7 +81,7 @@ import javax.swing.tree.TreeSelectionModel
  * @author Richard Arriaga
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class StructureViewPanel constructor (
+class StructureView constructor (
 	override val workbench: AvailWorkbench,
 	private val onClose: () -> Unit
 ): WorkbenchFrame("Structure")
@@ -327,7 +327,7 @@ class StructureViewPanel constructor (
 	 * Update the [structureViewTree].
 	 *
 	 * @param targetEditor
-	 *   The associated [AvailEditor] that this [StructureViewPanel] shows
+	 *   The associated [AvailEditor] that this [StructureView] shows
 	 *   [ModuleManifestEntry]s for.
 	 * @param entries
 	 *   The list of [ModuleManifestEntry]s to display.
@@ -405,9 +405,9 @@ class StructureViewPanel constructor (
 	}
 
 	/**
-	 * Notify this [StructureViewPanel] the provided [AvailEditor] is closing.
+	 * Notify this [StructureView] the provided [AvailEditor] is closing.
 	 * If the provided [AvailEditor] matches the [editor], clear this
-	 * [StructureViewPanel].
+	 * [StructureView].
 	 *
 	 * @param targetEditor
 	 *   The [AvailEditor] that is closing.

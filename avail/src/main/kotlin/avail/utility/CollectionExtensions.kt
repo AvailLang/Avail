@@ -36,6 +36,7 @@ package avail.utility
 
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.structures.EnumMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -195,6 +196,7 @@ inline fun<S, reified T> Collection<S>.parallelMapThen(
 	val resultsArray = arrayOfNulls<T>(size)
 	val countdown = AtomicInteger(size)
 	val decrement = { i: Int, target: T ->
+		assert(resultsArray[i] == null)
 		resultsArray[i] = target
 		if (countdown.decrementAndGet() == 0)
 		{
@@ -202,7 +204,11 @@ inline fun<S, reified T> Collection<S>.parallelMapThen(
 		}
 	}
 	forEachIndexed { i, source ->
-		action(source) { target -> decrement(i, target) }
+		val alreadyRan = AtomicBoolean(false)
+		action(source) { target ->
+			assert(!alreadyRan.getAndSet(true))
+			decrement(i, target)
+		}
 	}
 }
 

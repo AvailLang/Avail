@@ -48,7 +48,7 @@ import avail.anvil.text.MarkToDotRange
 import avail.anvil.text.goTo
 import avail.anvil.text.markToDotRange
 import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.StructureView
 import avail.anvil.window.AvailEditorLayoutConfiguration
 import avail.anvil.window.LayoutConfiguration
 import avail.builder.ModuleName
@@ -99,7 +99,7 @@ import kotlin.math.min
  *   positioning.
  * * Syntax highlighting.
  * * Go to line/column.
- * * Open [structure&#32;view][StructureViewPanel].
+ * * Open [structure&#32;view][StructureView].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -188,18 +188,18 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * Open the [StructureViewPanel] associated with this [AvailEditor].
+	 * Open the [StructureView] associated with this [AvailEditor].
 	 *
 	 * Must execute in the event dispatch thread.
 	 *
 	 * @param giveEditorFocus
 	 *   `true` gives focus to this [AvailEditor]; `false` give focus to
-	 *   [AvailWorkbench.structureViewPanel].
+	 *   [AvailWorkbench.structureView].
 	 */
 	fun openStructureView (giveEditorFocus: Boolean = true)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
-		val structView = workbench.structureViewPanel
+		val structView = workbench.structureView
 		structView.updateView(this@AvailEditor, manifestEntriesInDocument)
 		{
 			if (giveEditorFocus)
@@ -268,8 +268,8 @@ class AvailEditor constructor(
 					val versionKey = ModuleVersionKey(resolvedName, digest)
 					val compilation = archive.getVersion(versionKey)
 							?.allCompilations
-							?.maxByOrNull(ModuleCompilation::compilationTime) ?:
-						return@digestForFile onSuccess(null, null, null)
+							?.maxByOrNull(ModuleCompilation::compilationTime)
+						?: return@digestForFile onSuccess(null, null, null)
 					val stylingRecord = StylingRecord(
 						repository[compilation.recordNumberOfStyling])
 					val phrasePathRecord = PhrasePathRecord(
@@ -574,7 +574,7 @@ class AvailEditor constructor(
 	}
 
 	/** A pluggable handler for click events in the editor. */
-	fun handleClick(e: MouseEvent)
+	private fun handleClick(e: MouseEvent)
 	{
 		if (e.isMetaDown)
 		{
@@ -689,7 +689,7 @@ class AvailEditor constructor(
 			{
 				if (workbench.structureViewIsOpen)
 				{
-					if (workbench.structureViewPanel.editor != this@AvailEditor)
+					if (workbench.structureView.editor != this@AvailEditor)
 					{
 						openStructureView(true)
 					}

@@ -73,7 +73,7 @@ import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
 import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.StructureView
 import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.tabs
 import org.availlang.artifact.environment.project.AvailProject
@@ -433,7 +433,7 @@ private object CancelTemplateSelection
 }
 
 /**
- * Open the [StructureViewPanel].
+ * Open the [StructureView].
  */
 private object OpenStructureView
 	: TextAction(OpenStructureViewShortcut.actionMapKey)

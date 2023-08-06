@@ -488,16 +488,10 @@ class NamesIndex
 	 *
 	 * @param nameToFind
 	 *   The [NameInModule] to search for in the index.
-	 * @param withOccurrences
-	 *   What to do with the [NameOccurrences] if an entry was found for the
-	 *   name.
+	 * @return
+	 *   The [NameOccurrences] or `null` if not found.
 	 */
-	fun findMentions(
-		nameToFind: NameInModule,
-		withOccurrences: (NameOccurrences) -> Unit)
-	{
-		occurrences[nameToFind]?.let(withOccurrences)
-	}
+	fun findMentions(nameToFind: NameInModule) = occurrences[nameToFind]
 
 	/**
 	 * Output this [NamesIndex] onto a [DataOutputStream], so that Anvil can

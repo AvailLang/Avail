@@ -119,6 +119,13 @@ constructor(
 	protected val referenceMap = mutableMapOf<String, ResolverReference>()
 
 	/**
+	 * The qualified names of all the modules known by this resolver.
+	 */
+	val allModules get() = referenceMap.values
+		.filter(ResolverReference::isModule)
+		.map(ResolverReference::qualifiedName)
+
+	/**
 	 * The [Map] from a UUID that represents an interested party to a lambda
 	 * that accepts a [WatchEventType] that describes the event that occurred
 	 * at the source location and a [ResolverReference] that identifies to what
