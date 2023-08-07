@@ -35,14 +35,15 @@ package avail.anvil.tasks
 import avail.builder.ResolvedModuleName
 import avail.descriptor.module.ModuleDescriptor
 import avail.anvil.AvailWorkbench
-import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
+import avail.anvil.AvailWorkbench.AbstractWorkbenchModuleTask
 import avail.anvil.streams.StreamStyle.INFO
 import java.awt.Cursor
 import java.io.File
 
 /**
- * A `GraphTask` generates a .dot file describing a visual graph of
- * module dependencies for the target [module][ModuleDescriptor].
+ * An [AbstractWorkbenchModuleTask] that generates a .dot file describing a
+ * visual graph of module dependencies for the target
+ * [module][ModuleDescriptor].
  *
  * @constructor
  * Construct a new `GraphTask`.
@@ -53,8 +54,9 @@ import java.io.File
  *   The resolved name of the target [module][ModuleDescriptor].
  */
 class GraphTask constructor(
-		workbench: AvailWorkbench, targetModuleName: ResolvedModuleName?)
-	: AbstractWorkbenchTask(workbench, targetModuleName)
+	workbench: AvailWorkbench,
+	targetModuleName: ResolvedModuleName
+): AbstractWorkbenchModuleTask(workbench, targetModuleName)
 {
 	@Throws(Exception::class)
 	override fun executeTaskThen(afterExecute: ()->Unit)
@@ -63,7 +65,7 @@ class GraphTask constructor(
 		{
 			val file = File("modules.dot")
 			workbench.availBuilder.generateGraph(
-				targetModuleName(),
+				targetModuleName,
 				file,
 				workbench.availBuilder.buildProblemHandler)
 			workbench.writeText(

@@ -1,5 +1,5 @@
 /*
- * DocumentationTask.kt
+ * AddLoadOnStartAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,63 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.tasks
+package avail.anvil.actions
 
-import avail.builder.ResolvedModuleName
-import avail.descriptor.module.ModuleDescriptor
 import avail.anvil.AvailWorkbench
-import avail.anvil.AvailWorkbench.AbstractWorkbenchModuleTask
-import java.awt.Cursor
-
+import avail.builder.ResolvedModuleName
+import org.availlang.artifact.environment.project.LocalSettings
+import java.awt.event.ActionEvent
+import javax.swing.Action
 
 /**
- * An [AbstractWorkbenchModuleTask] that initiates and manages documentation
- * generation for the target [module][ModuleDescriptor].
+ * An [AbstractWorkbenchAction] that removes the [ResolvedModuleName] from the
+ * [LocalSettings.loadModulesOnStartup].
  *
  * @constructor
- * Construct a new `DocumentationTask`.
+ * Construct a new [RemoveLoadOnStartAction].
  *
  * @param workbench
- *  The owning [AvailWorkbench].
- * @param targetModuleName
- * The resolved name of the target [module][ModuleDescriptor] to unload.
+ *   The owning [AvailWorkbench].
  */
-class DocumentationTask constructor(
-	workbench: AvailWorkbench,
-	targetModuleName: ResolvedModuleName
-): AbstractWorkbenchModuleTask(workbench, targetModuleName)
+class RemoveLoadOnStartAction constructor (
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Remove Load on Anvil Start")
 {
-	override fun executeTaskThen(afterExecute: ()->Unit)
+	/**
+	 * @return `true` if this [AddLoadOnStartAction] meets all the internal
+	 *   requirements to be enabled; `false` otherwise.
+	 */
+	private fun mayEnable (): Boolean {
+		val qualifiedName =
+			workbench.selectedModuleQualifiedName() ?: return false
+		val settings =
+			workbench.selectedModuleLocalSettings() ?: return false
+
+		return settings.loadModulesOnStartup.contains(qualifiedName)
+	}
+	override fun updateIsEnabled (busy: Boolean)
 	{
-		try
-		{
-			workbench.resolver.moduleRoots.roots.forEach { root ->
-				root.repository.reopenIfNecessary()
-			}
-			workbench.availBuilder.generateDocumentation(
-				targetModuleName,
-				workbench.documentationPath,
-				workbench.availBuilder.buildProblemHandler)
-		}
-		catch (e: Exception)
-		{
-			// Put a breakpoint here to debug documentation generation
-			// exceptions.
-			throw e
-		}
-		finally
-		{
-			afterExecute()
-		}
+		isEnabled = !busy && mayEnable()
 	}
 
-	override fun done()
+	override fun actionPerformed(event: ActionEvent)
 	{
-		workbench.backgroundTask = null
-		reportDone()
-		workbench.availBuilder.checkStableInvariants()
-		workbench.setEnablements()
-		workbench.cursor = Cursor.getDefaultCursor()
-		workbench.refresh()
+		val selected = workbench.selectedModule() ?: return
+		val qualifiedName = selected.qualifiedName
+		val projRoot = workbench.availProject.roots[selected.rootName] ?: return
+		projRoot.localSettings.loadModulesOnStartup.remove(qualifiedName)
+		projRoot.saveLocalSettingsToDisk()
+	}
+
+	init
+	{
+		putValue(
+			Action.SHORT_DESCRIPTION,
+			"Remove this module from local settings load on startup.")
 	}
 }

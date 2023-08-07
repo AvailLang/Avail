@@ -36,8 +36,6 @@ import avail.anvil.AvailWorkbench
 import avail.anvil.shortcuts.KeyboardShortcut
 import avail.anvil.tasks.BuildTask
 import avail.builder.ResolvedModuleName
-import java.awt.Cursor.WAIT_CURSOR
-import java.awt.Cursor.getPredefinedCursor
 import java.awt.event.ActionEvent
 
 /**
@@ -77,20 +75,6 @@ abstract class AbstractBuildAction constructor (
 		assert(workbench.backgroundTask === null)
 		val selectedModule = targetModule ?: return
 
-		// Update the UI.
-		workbench.cursor = getPredefinedCursor(WAIT_CURSOR)
-		workbench.buildProgress.value = 0
-		workbench.inputField.requestFocusInWindow()
-		workbench.clearTranscript()
-
-		// Clear the build input stream.
-		workbench.inputStream().clear()
-
-		// Build the target module in a Swing worker thread.
-		val task = BuildTask(workbench, selectedModule)
-		workbench.backgroundTask = task
-		workbench.availBuilder.checkStableInvariants()
-		workbench.setEnablements()
-		task.execute()
+		workbench.build(BuildTask(workbench, selectedModule))
 	}
 }

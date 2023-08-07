@@ -55,12 +55,12 @@ class CopyQualifiedNameAction constructor (
 {
 	override fun updateIsEnabled (busy: Boolean)
 	{
-		isEnabled = !busy && workbench.selectedModule() != null
+		isEnabled = !busy && workbench.selectedModuleQualifiedName() != null
 	}
 
 	override fun actionPerformed(event: ActionEvent)
 	{
-		val qualifiedName = workbench.selectedModule()?.qualifiedName ?: return
+		val qualifiedName = workbench.selectedModuleQualifiedName() ?: return
 		Toolkit.getDefaultToolkit().systemClipboard
 			.setContents(StringSelection(qualifiedName), null)
 	}

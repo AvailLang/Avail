@@ -33,42 +33,76 @@
 package avail.anvil.tasks
 
 import avail.anvil.AvailWorkbench
-import avail.builder.ResolvedModuleName
+import avail.anvil.AvailWorkbench.AbstractWorkbenchModuleTask
+import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
+import avail.anvil.text.centerCurrentLine
+import avail.anvil.text.setCaretFrom
+import avail.builder.ModuleRoot
+import avail.builder.ModuleRoots
 import avail.descriptor.module.ModuleDescriptor
+import avail.persistence.cache.Repository
+import java.awt.Cursor
+import javax.swing.SwingUtilities
 
 /**
- * An [AbstractBuildTask] that launches the actual build of the target
- * [module][ModuleDescriptor].
+ * An [AbstractWorkbenchModuleTask] that launches the actual build of
+ * [module(s)][ModuleDescriptor].
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Richard Arriaga
  *
- * @property targetModuleName
- *   The resolved name of the target [module][ModuleDescriptor].
- *
  * @constructor
- * Construct a new `BuildTask`.
+ * Construct a new [AbstractWorkbenchModuleTask].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
- * @param targetModuleName
- *   The resolved name of the target [module][ModuleDescriptor].
  */
-class BuildTask constructor (
-	workbench: AvailWorkbench,
-	private val targetModuleName: ResolvedModuleName
-) : AbstractBuildTask(workbench)
+abstract class AbstractBuildTask constructor (
+	workbench: AvailWorkbench
+) : AbstractWorkbenchTask(workbench)
 {
-	override fun executeTaskThen(afterExecute: ()->Unit)
+	/**
+	 * [Reopen][Repository.reopenIfNecessary] the [ModuleRoot.repository] for
+	 * each [ModuleRoot] in the [ModuleRoots].
+	 */
+	protected fun reopenRootsRepositories ()
 	{
-		reopenRootsRepositories()
-		workbench.availBuilder.buildTargetThen(
-			targetModuleName,
-			workbench::eventuallyUpdatePerModuleProgress,
-			workbench::eventuallyUpdateBuildProgress,
-			workbench.availBuilder.buildProblemHandler
-		) {
-			swingAction(afterExecute)
+		workbench.resolver.moduleRoots.roots.forEach { root ->
+			root.repository.reopenIfNecessary()
+		}
+	}
+
+	/**
+	 * The [SwingUtilities.invokeLater] action to perform after this
+	 * [AbstractBuildTask] is complete.
+	 *
+	 * @param afterExecute
+	 *   The lambda to run after the [task][executeTaskThen] completes.
+	 */
+	protected fun swingAction(afterExecute: ()->Unit)
+	{
+		SwingUtilities.invokeLater {
+			workbench.backgroundTask = null
+			reportDone()
+			workbench.availBuilder.checkStableInvariants()
+			workbench.setEnablements()
+			workbench.cursor = Cursor.getDefaultCursor()
+			workbench.refresh()
+			workbench.openEditors.values.forEach { editor ->
+				val r = editor.range
+				editor.populateSourcePane {
+					it.sourcePane.setCaretFrom(r)
+					it.sourcePane.centerCurrentLine()
+					if (workbench.structureViewPanel.editor == editor)
+					{
+						editor.openStructureView(false)
+					}
+					if (workbench.phraseViewPanel.editor == editor)
+					{
+						editor.updatePhraseStructure()
+					}
+				}
+			}
+			afterExecute()
 		}
 	}
 }
