@@ -64,7 +64,6 @@ import avail.anvil.actions.GenerateArtifactAction
 import avail.anvil.actions.GenerateDocumentationAction
 import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
-import avail.anvil.actions.AddLoadOnStartAction
 import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenFileAction
 import avail.anvil.actions.OpenKnownProjectAction
@@ -75,7 +74,6 @@ import avail.anvil.actions.OpenTemplateExpansionsManagerAction
 import avail.anvil.actions.ParserIntegrityCheckAction
 import avail.anvil.actions.RefreshAction
 import avail.anvil.actions.RefreshStylesheetAction
-import avail.anvil.actions.RemoveLoadOnStartAction
 import avail.anvil.actions.RemoveRootAction
 import avail.anvil.actions.ResetCCReportDataAction
 import avail.anvil.actions.ResetVMReportDataAction
@@ -83,6 +81,7 @@ import avail.anvil.actions.RetrieveNextCommand
 import avail.anvil.actions.RetrievePreviousCommand
 import avail.anvil.actions.SearchOpenModuleDialogAction
 import avail.anvil.actions.SetDocumentationPathAction
+import avail.anvil.actions.SetLoadOnStartAction
 import avail.anvil.actions.ShowCCReportAction
 import avail.anvil.actions.ShowVMReportAction
 import avail.anvil.actions.SubmitInputAction
@@ -625,11 +624,8 @@ class AvailWorkbench internal constructor(
 	/** The [CopyQualifiedNameAction].  */
 	private val copyQualifiedNameAction = CopyQualifiedNameAction(this)
 
-	/** The [AddLoadOnStartAction]. */
-	private val addLoadOnStartAction = AddLoadOnStartAction(this)
-
-	/** The [RemoveLoadOnStartAction]. */
-	private val removeLoadOnStartAction = RemoveLoadOnStartAction(this)
+	/** The [SetLoadOnStartAction]. */
+	private val setLoadOnStartAction = SetLoadOnStartAction(this)
 
 	/** The [GenerateArtifactAction] used to create an [AvailArtifact]. */
 	private val generateArtifact = GenerateArtifactAction(this)
@@ -2062,8 +2058,7 @@ class AvailWorkbench internal constructor(
 			separator()
 			item(copyQualifiedNameAction)
 			separator()
-			item(addLoadOnStartAction)
-			item(removeLoadOnStartAction)
+			item(setLoadOnStartAction)
 			separator()
 			item(createRootAction)
 			item(removeRootAction)
