@@ -76,6 +76,7 @@ class RemoveLoadOnStartAction constructor (
 		val projRoot = workbench.availProject.roots[selected.rootName] ?: return
 		projRoot.localSettings.loadModulesOnStartup.remove(qualifiedName)
 		projRoot.saveLocalSettingsToDisk()
+		workbench.setEnablements()
 	}
 
 	init
