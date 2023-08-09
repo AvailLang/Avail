@@ -33,8 +33,6 @@
 package avail.anvil.tasks
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.AvailWorkbench.AbstractWorkbenchModuleTask
-import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
 import avail.anvil.text.centerCurrentLine
 import avail.anvil.text.setCaretFrom
 import avail.builder.ModuleRoot

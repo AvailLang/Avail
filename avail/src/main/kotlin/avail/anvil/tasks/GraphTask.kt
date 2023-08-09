@@ -35,7 +35,6 @@ package avail.anvil.tasks
 import avail.builder.ResolvedModuleName
 import avail.descriptor.module.ModuleDescriptor
 import avail.anvil.AvailWorkbench
-import avail.anvil.AvailWorkbench.AbstractWorkbenchModuleTask
 import avail.anvil.streams.StreamStyle.INFO
 import java.awt.Cursor
 import java.io.File

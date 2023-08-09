@@ -130,6 +130,8 @@ import avail.anvil.streams.StreamStyle.ERR
 import avail.anvil.streams.StreamStyle.INFO
 import avail.anvil.streams.StreamStyle.OUT
 import avail.anvil.tasks.AbstractBuildTask
+import avail.anvil.tasks.AbstractWorkbenchModuleTask
+import avail.anvil.tasks.AbstractWorkbenchTask
 import avail.anvil.tasks.BuildManyTask
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
@@ -232,7 +234,6 @@ import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
-import javax.swing.SwingWorker
 import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
@@ -923,7 +924,7 @@ class AvailWorkbench internal constructor(
 	 * from starting; `false` indicates the workbench is available to run a
 	 * task.
 	 */
-	private var taskGate = AtomicBoolean(false)
+	internal var taskGate = AtomicBoolean(false)
 
 	/**
 	 * When false, roots marked as invisible are not shown.  When true, they are
@@ -957,111 +958,6 @@ class AvailWorkbench internal constructor(
 		}
 		return stylesheet
 	}
-
-	/**
-	 * A [SwingWorker] foundation for long-running [AvailBuilder] operations.
-	 *
-	 * @property workbench
-	 *   The owning [AvailWorkbench].
-	 *
-	 * @constructor
-	 * Construct a new `AbstractWorkbenchModuleTask`.
-	 *
-	 * @param workbench
-	 *   The owning [AvailWorkbench].
-	 */
-	abstract class AbstractWorkbenchTask constructor(
-		val workbench: AvailWorkbench
-	) : SwingWorker<Void, Void>()
-	{
-		/** The start time. */
-		private var startTimeMillis: Long = 0
-
-		/** The [exception][Throwable] that terminated the build. */
-		private var terminator: Throwable? = null
-
-		/** Cancel the current task. */
-		fun cancel() = workbench.availBuilder.cancel()
-
-		/**
-		 * Report completion (and timing) to the [transcript][transcript].
-		 */
-		protected fun reportDone()
-		{
-			val durationMillis = currentTimeMillis() - startTimeMillis
-			val status: String?
-			val t = terminator
-			status = when
-			{
-				t !== null -> "Aborted (${t.javaClass.simpleName})"
-				workbench.availBuilder.shouldStopBuild ->
-					workbench.availBuilder.stopBuildReason
-				else -> "Done"
-			}
-			workbench.writeText(
-				format(
-					"%s (%d.%03ds).%n",
-					status,
-					durationMillis / 1000,
-					durationMillis % 1000),
-				INFO)
-		}
-
-		@Throws(Exception::class)
-		override fun doInBackground(): Void?
-		{
-			if (workbench.taskGate.getAndSet(true))
-			{
-				// task is running
-				return null
-			}
-			startTimeMillis = currentTimeMillis()
-			executeTaskThen {
-				try
-				{
-					Repositories.closeAllRepositories()
-				}
-				finally
-				{
-					workbench.taskGate.set(false)
-				}
-
-			}
-			return null
-		}
-
-		/**
-		 * Execute this `AbstractWorkbenchModuleTask`.
-		 *
-		 * @param afterExecute
-		 *   The lambda to run after the task completes.
-		 * @throws Exception If anything goes wrong.
-		 */
-		@Throws(Exception::class)
-		protected abstract fun executeTaskThen(afterExecute: ()->Unit)
-	}
-
-	/**
-	 * An abstract [AbstractWorkbenchTask] involving a target
-	 * [ResolvedModuleName].
-	 *
-	 * @property workbench
-	 *   The owning [AvailWorkbench].
-	 * @property targetModuleName
-	 *   The resolved name of the target [module][ModuleDescriptor].
-	 *
-	 * @constructor
-	 * Construct a new `AbstractWorkbenchModuleTask`.
-	 *
-	 * @param workbench
-	 *   The owning [AvailWorkbench].
-	 * @param targetModuleName
-	 *   The resolved name of the target [module][ModuleDescriptor].
-	 */
-	abstract class AbstractWorkbenchModuleTask constructor(
-		workbench: AvailWorkbench,
-		protected val targetModuleName: ResolvedModuleName
-	) : AbstractWorkbenchTask(workbench)
 
 	/**
 	 * [Execute][AbstractWorkbenchModuleTask.execute] the provided

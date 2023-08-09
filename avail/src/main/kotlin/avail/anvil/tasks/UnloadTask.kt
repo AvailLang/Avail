@@ -33,7 +33,6 @@
 package avail.anvil.tasks
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
 import avail.builder.ResolvedModuleName
 import avail.descriptor.module.ModuleDescriptor
 import java.awt.Cursor
