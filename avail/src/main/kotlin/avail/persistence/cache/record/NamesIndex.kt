@@ -46,6 +46,7 @@ import avail.utility.sizedString
 import avail.utility.structures.BloomFilter
 import avail.utility.unvlqInt
 import avail.utility.vlq
+import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -557,14 +558,15 @@ class NamesIndex
 	/**
 	 * Reconstruct a [NamesIndex], having previously been written via [write].
 	 *
-	 * @param binaryStream
-	 *   The source of the bytes from which to read a [NamesIndex].
+	 * @param bytes
+	 *   The bytes from which to read a [NamesIndex].
 	 * @throws IOException
 	 *   If I/O fails.
 	 */
 	@Throws(IOException::class)
-	internal constructor(binaryStream: DataInputStream)
+	internal constructor(bytes: ByteArray)
 	{
+		val binaryStream = DataInputStream(ByteArrayInputStream(bytes))
 		// Read the module names,
 		val moduleNames = List(binaryStream.unvlqInt()) {
 			binaryStream.decodeString()

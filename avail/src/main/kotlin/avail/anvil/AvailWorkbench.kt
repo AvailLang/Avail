@@ -35,6 +35,7 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.activeVersionSummary
+import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.SystemStyleClassifier.INPUT_BACKGROUND
 import avail.anvil.SystemStyleClassifier.INPUT_TEXT
@@ -144,6 +145,7 @@ import avail.builder.RenamesFileParser
 import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.compiler.ModuleManifestEntry
+import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
@@ -159,6 +161,7 @@ import avail.persistence.cache.record.ModuleCompilation
 import avail.persistence.cache.record.ModuleVersionKey
 import avail.persistence.cache.record.NameInModule
 import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.NamesIndex.Definition
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
 import avail.stacks.StacksGenerator
@@ -199,8 +202,6 @@ import java.awt.event.MouseEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.BufferedReader
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -1659,11 +1660,7 @@ class AvailWorkbench internal constructor(
 	 * @return A module node, or `null` if no module is selected.
 	 */
 	private fun selectedModuleNode(): ModuleOrPackageNode? =
-		when (val selection = selectedModuleTreeNode)
-		{
-			is ModuleOrPackageNode -> selection
-			else -> null
-		}
+		selectedModuleTreeNode as? ModuleOrPackageNode
 
 	/**
 	 * Is the selected [module][ModuleDescriptor] loaded?
@@ -1671,11 +1668,8 @@ class AvailWorkbench internal constructor(
 	 * @return `true` if the selected module is loaded, `false` if no module is
 	 *   selected or the selected module is not loaded.
 	 */
-	internal fun selectedModuleIsLoaded(): Boolean
-	{
-		val node = selectedModuleNode()
-		return node !== null && node.isLoaded
-	}
+	internal fun selectedModuleIsLoaded(): Boolean =
+		selectedModuleNode().notNullAnd(ModuleOrPackageNode::isLoaded)
 
 	/**
 	 * Answer the [name][ResolvedModuleName] of the currently selected
@@ -2612,81 +2606,168 @@ class AvailWorkbench internal constructor(
 		}
 
 	/**
+	 * Scan all roots for modules that might declare, define, or use the given
+	 * [NameInModule].  After accumulating this, launch an AvailTask to invoke
+	 * the [after] function with the [List] of [Pair]s of [ResolvedModuleName]
+	 * and [ModuleCompilation].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for occurrences.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, launch an
+	 *   [AvailTask] with all the &lt;[ResolvedModuleName], [ModuleCompilation]>
+	 *   [Pair]s.
+	 */
+	private fun allRelevantCompilationsDoThen(
+		@Suppress("UNUSED_PARAMETER") // Eventually use in Bloom filter search.
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, ModuleCompilation>>)->Unit)
+	{
+		val allModules =
+			runtime.moduleRoots().flatMap { it.resolver.allModules }
+		allModules.parallelMapThen<
+				String,
+				Pair<ResolvedModuleName, ModuleCompilation?>>(
+			action = { moduleName, withPair ->
+				val resolvedName = resolver.resolve(ModuleName(moduleName))
+				val repository = resolvedName.repository
+				repository.reopenIfNecessary()
+				val archive =
+					repository.getArchive(resolvedName.rootRelativeName)
+				archive.digestForFile(
+					resolvedName,
+					false,
+					withDigest = { digest ->
+						val compilation = try
+						{
+							val versionKey =
+								ModuleVersionKey(resolvedName, digest)
+							archive.getVersion(versionKey)
+								?.allCompilations
+								?.maxByOrNull { it.compilationTime }
+						}
+						catch (e: Throwable)
+						{
+							null
+						}
+						withPair(resolvedName to compilation)
+					},
+					failureHandler = { _, e ->
+						e?.printStackTrace()
+						withPair(resolvedName to null)
+					}
+				)
+			},
+			then = { entries ->
+				runtime.execute(FiberDescriptor.commandPriority) {
+					after(entries.filter { it.second != null }.cast())
+				}
+			}
+		)
+	}
+
+	/**
+	 * Scan all roots for modules that define the given [NameInModule].  After
+	 * accumulating this list, launch an AvailTask to invoke the [after]
+	 * function with the flat [List] of [Pair]s of [ResolvedModuleName] and
+	 * [ModuleManifestEntry].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for definitions.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, and their
+	 *   relevant [ManifestRecord]s fetched and [entries][ModuleManifestEntry]
+	 *   extracted, launch an [AvailTask] with all the &lt;[ResolvedModuleName],
+	 *   [ModuleManifestEntry]> [Pair]s.
+	 */
+	private fun allDefinitionsThen(
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, ModuleManifestEntry>>)->Unit)
+	{
+		allRelevantCompilationsDoThen(nameInModule) { compilationPairs ->
+			compilationPairs.parallelMapThen<
+					Pair<ResolvedModuleName, ModuleCompilation>,
+					Pair<ResolvedModuleName, List<ModuleManifestEntry>>>(
+				action = { (moduleName, compilation), withLocalManifestList ->
+					val repository = moduleName.repository
+					repository.reopenIfNecessary()
+					val namesIndexRecordIndex =
+						repository[compilation.recordNumberOfNamesIndex]
+					val occurrences = NamesIndex(namesIndexRecordIndex)
+						.findMentions(nameInModule)
+					if (occurrences != null
+						&& occurrences.definitions.isNotEmpty())
+					{
+						val manifestRecordIndex = repository[
+							compilation.recordNumberOfManifest]
+						val manifestRecord = ManifestRecord(manifestRecordIndex)
+						val allManifestEntries = manifestRecord.manifestEntries
+						val definitions = occurrences.definitions
+							.map(Definition::manifestIndex)
+							.map(allManifestEntries::get)
+						withLocalManifestList(moduleName to definitions)
+					}
+					else
+					{
+						withLocalManifestList(moduleName to emptyList())
+					}
+				},
+				then = { pairs ->
+					val entryPairs = pairs.flatMap { (module, entries) ->
+						entries.map { entry -> module to entry }
+					}
+					runtime.execute(FiberDescriptor.commandPriority) {
+						after(entryPairs)
+					}
+				}
+			)
+		}
+	}
+
+	/**
 	 * The user has clicked on a token in the source in such a way that they are
 	 * requesting navigation related to the method name containing that token.
+	 * Begin an asynchronous action to locate all definitions of the name in all
+	 * visible modules that have been compiled since their last change.
+	 *
+	 * TODO For now, created and print a report to the transcript when complete.
+	 *  Note that this method may return before the report has been produced and
+	 *  output (by an AvailTask).
 	 *
 	 * @param nameInModule
 	 *   The [NameInModule] to find.
 	 */
 	fun navigateForName(nameInModule: NameInModule)
 	{
-		val allModules =
-			runtime.moduleRoots().flatMap { it.resolver.allModules }
-		allModules.parallelMapThen<String, List<ModuleManifestEntry>>(
-			action = { moduleName, withEntries ->
-				val resolvedName = resolver.resolve(ModuleName(moduleName))
-				resolvedName.repository.let { repository ->
-					repository.reopenIfNecessary()
-					val archive =
-						repository.getArchive(resolvedName.rootRelativeName)
-					archive.digestForFile(
-						resolvedName,
-						false,
-						withDigest = { digest ->
-							try
-							{
-								val versionKey =
-									ModuleVersionKey(resolvedName, digest)
-								val compilation = archive.getVersion(versionKey)
-										?.allCompilations
-										?.maxByOrNull(
-											ModuleCompilation::compilationTime)
-									?: return@digestForFile withEntries(
-										emptyList())
-								val namesIndexRecordIndex = repository[
-									compilation.recordNumberOfNamesIndex]
-								val input = DataInputStream(
-									ByteArrayInputStream(namesIndexRecordIndex)
-								)
-								val namesIndex = NamesIndex(input)
-								val occurrences =
-									namesIndex.findMentions(nameInModule)
-								if (occurrences?.definitions?.isNotEmpty()
-									== true)
-								{
-									val manifestRecordIndex = repository[
-										compilation.recordNumberOfManifest]
-									val manifestRecord = ManifestRecord(
-										manifestRecordIndex)
-									val definitions =
-										occurrences.definitions.map {
-											manifestRecord.manifestEntries[
-												it.manifestIndex]
-										}
-									withEntries(definitions)
-								}
-								else
-								{
-									withEntries(emptyList())
-								}
-							}
-							catch (e: Throwable)
-							{
-								withEntries(emptyList())
-							}
-						},
-						failureHandler = { _, e ->
-							e?.printStackTrace()
-							withEntries(emptyList())
-						}
-					)
+		val start = System.currentTimeMillis()
+		allDefinitionsThen(nameInModule) { allEntries ->
+			if (allEntries.isNotEmpty())
+			{
+				val string = buildString {
+					append("All definitions of ")
+					append(nameInModule.atomName)
+					append(" (from ")
+					append(nameInModule.moduleName)
+					append("):")
+					allEntries.forEach { (module, entry) ->
+						append("\n\t")
+						append(entry.kind.name)
+						append(" ")
+						// Increase indent of multi-line summaries.
+						append(entry.summaryText.replace("\n", "\n\t\t\t"))
+						append("\n\t\t")
+						append(entry.definitionStartingLine)
+						append(": ")
+						append(module.qualifiedName)
+					}
+					val delta = System.currentTimeMillis() - start
+					append("\n(${delta}ms)\n")
 				}
-			},
-			then = { entries ->
-				val allEntries = entries.flatten()
-				println(allEntries)
+				println(string)
 			}
-		)
+		}
 	}
 
 	/**

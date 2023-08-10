@@ -1558,7 +1558,7 @@ class ModuleDescriptor private constructor(
 				reopenIfNecessary()
 				lock.withLock { this[namesIndexRecordIndex] }
 			}
-			NamesIndex(DataInputStream(ByteArrayInputStream(bytes)))
+			NamesIndex(bytes)
 		}
 		return namesIndex!!
 	}
