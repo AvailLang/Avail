@@ -2606,6 +2606,69 @@ class AvailWorkbench internal constructor(
 		}
 
 	/**
+	 * Launch an [AvailTask] for each module root to run the [action] against
+	 * that root. The action should eventually execute its second argument with
+	 * whatever value is produced.  When the last one completes, collect all the
+	 * results that were reported into a [List] and invoke the [after] function
+	 * with that list.
+	 *
+	 * @param action
+	 *   A function taking a [ModuleRoot] to operate on, and a function that
+	 *   accepts the result of processing that root in some way.
+	 * @param after
+	 *   What to run with the [List] of values reported by the actions when the
+	 *   last one completes.
+	 */
+	private inline fun <reified T> allModuleRootsThen(
+		crossinline action: (ModuleRoot, (T)->Unit)->Unit,
+		crossinline after: (List<T>)->Unit)
+	{
+		runtime.moduleRoots().toList().parallelMapThen<ModuleRoot, T>(
+			action = { root, afterEachRoot ->
+				runtime.execute(FiberDescriptor.commandPriority) {
+					action(root, afterEachRoot)
+				}
+			},
+			then = after
+		)
+	}
+
+	/**
+	 * Launch an [AvailTask] for each module in each root to run the [action]
+	 * against that module.  The action should eventually execute its second
+	 * argument with whatever value is produced for that module.  When the last
+	 * one completes, collect all the results that were reported into a [List]
+	 * and invoke the [after] function with that list.
+	 *
+	 * @param action
+	 *   A function taking a [ResolvedModuleName] to operate on, and a function
+	 *   that accepts the result of processing that module in some way.
+	 * @param after
+	 *   What to run with the [List] of values reported by the actions when the
+	 *   last one completes.
+	 */
+	private inline fun <reified T> allModulesThen(
+		crossinline action: (ResolvedModuleName, (T)->Unit)->Unit,
+		crossinline after: (List<T>)->Unit)
+	{
+		allModuleRootsThen<List<T>>(
+			action = { root, afterRoot ->
+				root.resolver.allModules.parallelMapThen(
+					action = { string, afterModule ->
+						runtime.execute(FiberDescriptor.commandPriority) {
+							action(
+								resolver.resolve(ModuleName(string)),
+								afterModule)
+						}
+					},
+					then = { all: List<T> -> afterRoot(all) }
+				)
+			},
+			after = { after(it.flatten()) }
+		)
+	}
+
+	/**
 	 * Scan all roots for modules that might declare, define, or use the given
 	 * [NameInModule].  After accumulating this, launch an AvailTask to invoke
 	 * the [after] function with the [List] of [Pair]s of [ResolvedModuleName]
@@ -2624,13 +2687,8 @@ class AvailWorkbench internal constructor(
 		nameInModule: NameInModule,
 		after: (List<Pair<ResolvedModuleName, ModuleCompilation>>)->Unit)
 	{
-		val allModules =
-			runtime.moduleRoots().flatMap { it.resolver.allModules }
-		allModules.parallelMapThen<
-				String,
-				Pair<ResolvedModuleName, ModuleCompilation?>>(
-			action = { moduleName, withPair ->
-				val resolvedName = resolver.resolve(ModuleName(moduleName))
+		allModulesThen<Pair<ResolvedModuleName, ModuleCompilation?>>(
+			action = { resolvedName, withPair ->
 				val repository = resolvedName.repository
 				repository.reopenIfNecessary()
 				val archive =
@@ -2659,7 +2717,7 @@ class AvailWorkbench internal constructor(
 					}
 				)
 			},
-			then = { entries ->
+			after = { entries ->
 				runtime.execute(FiberDescriptor.commandPriority) {
 					after(entries.filter { it.second != null }.cast())
 				}
@@ -2741,7 +2799,7 @@ class AvailWorkbench internal constructor(
 	 */
 	fun navigateForName(nameInModule: NameInModule)
 	{
-		val start = System.currentTimeMillis()
+		val start = currentTimeMillis()
 		allDefinitionsThen(nameInModule) { allEntries ->
 			if (allEntries.isNotEmpty())
 			{
@@ -2762,7 +2820,7 @@ class AvailWorkbench internal constructor(
 						append(": ")
 						append(module.qualifiedName)
 					}
-					val delta = System.currentTimeMillis() - start
+					val delta = currentTimeMillis() - start
 					append("\n(${delta}ms)\n")
 				}
 				println(string)
