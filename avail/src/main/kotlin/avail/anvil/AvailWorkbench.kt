@@ -64,7 +64,6 @@ import avail.anvil.actions.GenerateArtifactAction
 import avail.anvil.actions.GenerateDocumentationAction
 import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
-import avail.anvil.actions.LoadOnStartAction
 import avail.anvil.actions.NewModuleAction
 import avail.anvil.actions.OpenFileAction
 import avail.anvil.actions.OpenKnownProjectAction
@@ -82,6 +81,7 @@ import avail.anvil.actions.RetrieveNextCommand
 import avail.anvil.actions.RetrievePreviousCommand
 import avail.anvil.actions.SearchOpenModuleDialogAction
 import avail.anvil.actions.SetDocumentationPathAction
+import avail.anvil.actions.SetLoadOnStartAction
 import avail.anvil.actions.ShowCCReportAction
 import avail.anvil.actions.ShowVMReportAction
 import avail.anvil.actions.SubmitInputAction
@@ -129,6 +129,10 @@ import avail.anvil.streams.StreamStyle.BUILD_PROGRESS
 import avail.anvil.streams.StreamStyle.ERR
 import avail.anvil.streams.StreamStyle.INFO
 import avail.anvil.streams.StreamStyle.OUT
+import avail.anvil.tasks.AbstractBuildTask
+import avail.anvil.tasks.AbstractWorkbenchModuleTask
+import avail.anvil.tasks.AbstractWorkbenchTask
+import avail.anvil.tasks.BuildManyTask
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
 import avail.anvil.views.PhraseViewPanel
@@ -178,6 +182,7 @@ import org.availlang.artifact.environment.project.LocalSettings
 import org.availlang.json.JSONWriter
 import java.awt.Color
 import java.awt.Component
+import java.awt.Cursor
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.EventQueue
@@ -230,7 +235,6 @@ import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
-import javax.swing.SwingWorker
 import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
@@ -623,8 +627,8 @@ class AvailWorkbench internal constructor(
 	/** The [CopyQualifiedNameAction].  */
 	private val copyQualifiedNameAction = CopyQualifiedNameAction(this)
 
-	/** The [LoadOnStartAction]. */
-	private val loadOnStartAction = LoadOnStartAction(this)
+	/** The [SetLoadOnStartAction]. */
+	private val setLoadOnStartAction = SetLoadOnStartAction(this)
 
 	/** The [GenerateArtifactAction] used to create an [AvailArtifact]. */
 	private val generateArtifact = GenerateArtifactAction(this)
@@ -917,12 +921,12 @@ class AvailWorkbench internal constructor(
 	private var perModuleStatusTextSize = 0
 
 	/**
-	 * A gate that prevents multiple [AbstractWorkbenchTask]s from running at
+	 * A gate that prevents multiple [AbstractWorkbenchModuleTask]s from running at
 	 * once. `true` indicates a task is running and will prevent a second task
 	 * from starting; `false` indicates the workbench is available to run a
 	 * task.
 	 */
-	private var taskGate = AtomicBoolean(false)
+	internal var taskGate = AtomicBoolean(false)
 
 	/**
 	 * When false, roots marked as invisible are not shown.  When true, they are
@@ -958,100 +962,29 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * `AbstractWorkbenchTask` is a foundation for long-running [AvailBuilder]
-	 * operations.
+	 * [Execute][AbstractWorkbenchModuleTask.execute] the provided
+	 * [AbstractBuildTask].
 	 *
-	 * @property workbench
-	 *   The owning [AvailWorkbench].
-	 * @property targetModuleName
-	 *   The resolved name of the target [module][ModuleDescriptor].
-	 *
-	 * @constructor
-	 * Construct a new `AbstractWorkbenchTask`.
-	 *
-	 * @param workbench
-	 *   The owning [AvailWorkbench].
-	 * @param targetModuleName
-	 *   The resolved name of the target [module][ModuleDescriptor].
+	 * @param task
+	 *   The [AbstractBuildTask] that indicates what
+	 *   [module(s)][ModuleDescriptor] should be built.
 	 */
-	abstract class AbstractWorkbenchTask constructor(
-		val workbench: AvailWorkbench,
-		protected val targetModuleName: ResolvedModuleName?
-	) : SwingWorker<Void, Void>()
+	fun build(task: AbstractBuildTask)
 	{
-		/** The start time. */
-		private var startTimeMillis: Long = 0
+		// Update the UI.
+		cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+		buildProgress.value = 0
+		inputField.requestFocusInWindow()
+		clearTranscript()
 
-		/** The [exception][Throwable] that terminated the build. */
-		private var terminator: Throwable? = null
+		// Clear the build input stream.
+		inputStream().clear()
 
-		/** Cancel the current task. */
-		fun cancel() = workbench.availBuilder.cancel()
-
-		/**
-		 * Ensure the target module name is not null, then answer it.
-		 *
-		 * @return The non-null target module name.
-		 */
-		protected fun targetModuleName(): ResolvedModuleName =
-			targetModuleName!!
-
-		/**
-		 * Report completion (and timing) to the [transcript][transcript].
-		 */
-		protected fun reportDone()
-		{
-			val durationMillis = currentTimeMillis() - startTimeMillis
-			val status: String?
-			val t = terminator
-			status = when
-			{
-				t !== null -> "Aborted (${t.javaClass.simpleName})"
-				workbench.availBuilder.shouldStopBuild ->
-					workbench.availBuilder.stopBuildReason
-				else -> "Done"
-			}
-			workbench.writeText(
-				format(
-					"%s (%d.%03ds).%n",
-					status,
-					durationMillis / 1000,
-					durationMillis % 1000),
-				INFO)
-		}
-
-		@Throws(Exception::class)
-		override fun doInBackground(): Void?
-		{
-			if (workbench.taskGate.getAndSet(true))
-			{
-				// task is running
-				return null
-			}
-			startTimeMillis = currentTimeMillis()
-			executeTaskThen {
-				try
-				{
-					Repositories.closeAllRepositories()
-				}
-				finally
-				{
-					workbench.taskGate.set(false)
-				}
-
-			}
-			return null
-		}
-
-		/**
-		 * Execute this `AbstractWorkbenchTask`.
-		 *
-		 * @param afterExecute
-		 *   The lambda to run after the task completes.
-		 * @throws Exception If anything goes wrong.
-		 */
-		@Throws(Exception::class)
-		protected abstract fun executeTaskThen(afterExecute: ()->Unit)
+		// Build the target module in a Swing worker thread.
+		backgroundTask = task
+		availBuilder.checkStableInvariants()
+		setEnablements()
+		task.execute()
 	}
 
 	/**
@@ -1679,6 +1612,28 @@ class AvailWorkbench internal constructor(
 		selectedModuleNode()?.resolvedModuleName
 
 	/**
+	 * Answer the [qualified name][ResolvedModuleName.qualifiedName] of the
+	 * currently selected [module][ModuleDescriptor].
+	 *
+	 * @return A fully-qualified module name, or `null` if no module is
+	 *   selected.
+	 */
+	fun selectedModuleQualifiedName(): String? =
+		selectedModuleNode()?.resolvedModuleName?.qualifiedName
+
+	/**
+	 * Answer the [LocalSettings] for the [ModuleRoot] of the currently selected
+	 * [module][ModuleDescriptor].
+	 *
+	 * @return A [LocalSettings] or `null` if no module is selected.
+	 */
+	fun selectedModuleLocalSettings(): LocalSettings?
+	{
+		val selected = selectedModule() ?: return null
+		return workbench.availProject.roots[selected.rootName]?.localSettings
+	}
+
+	/**
 	 * Answer the currently selected entry point, or `null` if none.
 	 *
 	 * @return An entry point name, or `null` if no entry point is selected.
@@ -2004,7 +1959,8 @@ class AvailWorkbench internal constructor(
 			item(openFileAction)
 			separator()
 			item(copyQualifiedNameAction)
-			item(loadOnStartAction)
+			separator()
+			item(setLoadOnStartAction)
 			separator()
 			item(createRootAction)
 			item(removeRootAction)
@@ -2586,6 +2542,21 @@ class AvailWorkbench internal constructor(
 					}
 				}
 			}
+			val preLoadModules = availProject.availProjectRoots.flatMap {
+				it.localSettings.loadModulesOnStartup.map { qualified ->
+					val split = qualified.split("/")
+					if (split.size < 2) return@map null
+					val rootName = split[1]
+					val root = workbench.resolver.moduleRoots
+						.moduleRootFor(rootName)
+						?: return@map null
+					val moduleName = root.resolver
+						.getResolverReference(qualified)?.moduleName
+						?: return@map null
+					workbench.resolver.resolve(moduleName)
+				}.filterNotNull()
+			}
+			build(BuildManyTask(this, preLoadModules.toSet()))
 		}
 	}
 
@@ -2896,7 +2867,7 @@ class AvailWorkbench internal constructor(
 				bench.createBufferStrategy(2)
 				bench.ignoreRepaint = true
 				val initialRefreshTask =
-					object : AbstractWorkbenchTask(bench, null)
+					object : AbstractWorkbenchTask(bench)
 					{
 						override fun executeTaskThen(afterExecute: ()->Unit) =
 							bench.initialRefresh(

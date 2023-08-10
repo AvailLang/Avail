@@ -575,6 +575,75 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
+	 * Build the [target][ModuleDescriptor] and its dependencies.
+	 *
+	 * @param targets
+	 *   The [canonical&#32;names][ModuleName] of the modules that the builder
+	 *   must (recursively) load into the [AvailRuntime].
+	 * @param localTracker
+	 *   A [CompilerProgressReporter].
+	 * @param globalTracker
+	 *   A [GlobalProgressReporter].
+	 * @param problemHandler
+	 *   How to handle or report [Problem]s that arise during the build.
+	 * @param originalAfterAll
+	 *   What to do after building everything.  This may run in another
+	 *   [Thread], possibly long after this method returns.
+	 */
+	fun buildTargetThen(
+		targets: Set<ModuleName>,
+		localTracker: CompilerProgressReporter,
+		globalTracker: GlobalProgressReporter,
+		problemHandler: ProblemHandler,
+		originalAfterAll: ()->Unit)
+	{
+		val ran = AtomicBoolean(false)
+		val safeAfterAll = {
+			val old = ran.getAndSet(true)
+			assert(!old)
+			trimGraphToLoadedModules()
+			originalAfterAll()
+		}
+		clearShouldStopBuild()
+		BuildUnloader(this).unloadModified()
+		if (shouldStopBuild)
+		{
+			safeAfterAll()
+			return
+		}
+		BuildTracer(this).traceThen(targets, problemHandler) {
+			if (moduleGraph.isCyclic)
+			{
+				problemHandler.handle(
+					object : Problem(
+						null,
+						1,
+						0,
+						TRACE,
+						"Cycle detected in ancestor modules: {0}",
+						moduleGraph.firstCycle.stream()
+							.map { it.qualifiedName }
+							.collect(joining("\n\t", "\n\t", "")))
+					{
+						override fun abortCompilation()
+						{
+							stopBuildReason =
+								"Module graph has cyclic dependency"
+						}
+					})
+			}
+			if (shouldStopBuild)
+			{
+				safeAfterAll()
+				return@traceThen
+			}
+			val buildLoader = BuildLoader(
+				this, localTracker, globalTracker, problemHandler)
+			buildLoader.loadThen(safeAfterAll)
+		}
+	}
+
+	/**
 	 * Build the [target][ModuleDescriptor] and its dependencies. Block the
 	 * current [Thread] until it's done.
 	 *
