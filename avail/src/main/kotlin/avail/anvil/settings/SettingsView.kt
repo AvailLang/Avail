@@ -147,6 +147,7 @@ class SettingsView constructor (
 		if (parent is AvailWorkbench)
 		{
 			add(GlobalSettingsSelection(this@SettingsView, parent))
+			add(LoadOnStartSelection(this@SettingsView, parent))
 		}
 		add(ShortcutsSelection(this@SettingsView))
 		add(StandardLibrariesSelection(this@SettingsView))
