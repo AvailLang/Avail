@@ -32,6 +32,7 @@
 
 package avail.anvil
 
+import avail.anvil.AdaptiveColor.Companion.hex
 import avail.anvil.PhrasePathStyleApplicator.LocalDefinitionAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.LocalUseAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
@@ -78,6 +79,7 @@ import avail.persistence.cache.record.StylingRecord
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
 import avail.utility.drain
+import avail.utility.mapToSet
 import avail.utility.structures.RunTree
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.Palette
@@ -268,7 +270,7 @@ class Stylesheet constructor(
 	 * The root [tree][StyleRuleTree] for rendering queries.
 	 */
 	private val rootTree by lazy(LazyThreadSafetyMode.PUBLICATION) {
-		StyleRuleTree(rules.map { it.initialContext }.toSet())
+		StyleRuleTree(rules.mapToSet(transform = StyleRule::initialContext))
 	}
 
 	/**
@@ -3230,6 +3232,59 @@ class ValidatedRenderingContext constructor(
 	}
 
 	/**
+	 * A lazily computed [Pair] of HTML3.2 tag strings that can be written,
+	 * before and after html text to make it look as close to the document style
+	 * as possible. The close tags
+	 */
+	private val tagPairsForHtml: Pair<String, String> by lazy(
+		LazyThreadSafetyMode.SYNCHRONIZED)
+	{
+		val tags = attributes.run {
+			listOfNotNull(
+				fontFamily?.let { "span style='font-family: $it'" },
+				foreground?.let { fg ->
+					palette.colors[fg]?.run { "font color=$hex'" }
+				},
+				background?.let { bg ->
+					palette.colors[bg]?.run {
+						"span style='background-color: #$hex'"
+					}
+				},
+				bold?.let { "b" },
+				italic?.let { "i" },
+				underline?.let { "u" },
+				superscript?.let { "sup" },
+				subscript?.let { "sub" },
+				strikethrough?.let { "strike" }
+			)
+		}
+		Pair(
+			tags.joinToString("") { "<$it>" },
+			tags.reversed().joinToString("") {
+				"</${it.substringBefore(' ')}>"
+			})
+	}
+
+	/**
+	 * Write the open tags, run the action on the builder, then write the close
+	 * tags.  Do not write the outer "html" open/close tags.  The resulting HTML
+	 * should present a reasonable facsimile of the corresponding document
+	 * styling.
+	 *
+	 * @param builder
+	 *   Where to write the HTML.
+	 * @param action
+	 *   The function that produces the text inside the HTML tags.
+	 */
+	fun encloseHtml(builder: StringBuilder, action: StringBuilder.()->Unit)
+	{
+		val (before, after) = tagPairsForHtml
+		builder.append(before)
+		builder.action()
+		builder.append(after)
+	}
+
+	/**
 	 * Combine the [receiver][ValidatedRenderingContext] with the argument to
 	 * produce a new [context][ValidatedRenderingContext] in which
 	 * [attributes][StyleAttributes] of the receiver are overridden by
@@ -3310,8 +3365,9 @@ class ValidatedRenderingContext constructor(
 		 * The default [document&#32;style][Style], to serve as the parent for
 		 * new document styles. **Must only be called on the Swing UI thread.**
 		 */
-		val defaultDocumentStyle: Style
-		by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+		val defaultDocumentStyle: Style by lazy(
+			LazyThreadSafetyMode.SYNCHRONIZED)
+		{
 			assert(SwingUtilities.isEventDispatchThread())
 			getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE)
 		}

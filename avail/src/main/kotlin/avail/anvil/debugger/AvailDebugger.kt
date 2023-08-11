@@ -41,6 +41,7 @@ import avail.anvil.RenderingEngine.applyStylesAndPhrasePaths
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
 import avail.anvil.actions.FindAction
 import avail.anvil.addWindowMenu
+import avail.anvil.codeOverlay
 import avail.anvil.scroll
 import avail.anvil.scrollTextWithLineNumbers
 import avail.anvil.shortcuts.ResumeActionShortcut
@@ -1012,8 +1013,7 @@ class AvailDebugger internal constructor (
 	/**
 	 * The [code&#32;guide][CodeOverlay] for the [source&#32;pane][sourcePane].
 	 */
-	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeOverlay::class.java.name) as CodeOverlay
+	private val codeGuide: CodeOverlay get() = sourcePane.codeOverlay
 
 	/** Construct the user interface and display it. */
 	fun open()

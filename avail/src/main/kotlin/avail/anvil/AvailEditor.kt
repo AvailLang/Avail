@@ -77,7 +77,9 @@ import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JLayer
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
@@ -470,9 +472,10 @@ class AvailEditor constructor(
 		}
 	}
 
-	/** The scroll wrapper around the [sourcePane]. */
-	private val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-		workbench, workbench.globalSettings.editorGuideLines)
+	/** The [JLayer] around the [JScrollPane] scrolling the [sourcePane]. */
+	private val sourcePaneScroll: JLayer<JScrollPane> =
+		sourcePane.scrollTextWithLineNumbers(
+			workbench, workbench.globalSettings.editorGuideLines)
 
 	/** The [styling&#32;record][StylingRecord] for the module. */
 	private var stylingRecord: StylingRecord? = null
@@ -537,8 +540,7 @@ class AvailEditor constructor(
 	/**
 	 * The [code&#32;guide][CodeOverlay] for the [source&#32;pane][sourcePane].
 	 */
-	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeOverlay::class.java.name) as CodeOverlay
+	private val codeGuide: CodeOverlay get() = sourcePane.codeOverlay
 
 	/**
 	 * Apply styles to the text in the [source&#32;pane][sourcePane].
@@ -598,7 +600,7 @@ class AvailEditor constructor(
 						as? TokenStyle
 			}
 			tokenStyle?.phraseNode?.nameInModule?.let { nameInModule ->
-				workbench.navigateForName(nameInModule)
+				workbench.navigateForName(nameInModule, e)
 			}
 		}
 	}

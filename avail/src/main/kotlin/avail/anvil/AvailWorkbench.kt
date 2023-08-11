@@ -106,6 +106,7 @@ import avail.anvil.actions.UnloadAllAction
 import avail.anvil.debugger.AvailDebugger
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.GlobalEnvironmentSettings.Companion.globalTemplates
+import avail.anvil.icons.structure.SideEffectIcons
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractWorkbenchTreeNode
@@ -153,7 +154,9 @@ import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.files.FileManager
+import avail.interpreter.execution.AvailLoader.Companion.htmlStyledMethodName
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
 import avail.io.TextInterface
@@ -235,7 +238,9 @@ import javax.swing.GroupLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JMenuItem
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.JProgressBar
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
@@ -244,6 +249,7 @@ import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
+import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.UIManager
 import javax.swing.WindowConstants
@@ -2550,16 +2556,16 @@ class AvailWorkbench internal constructor(
 					val split = qualified.split("/")
 					if (split.size < 2) return@map null
 					val rootName = split[1]
-					val root = workbench.resolver.moduleRoots
+					workbench.resolver.moduleRoots
 						.moduleRootFor(rootName)
-						?: return@map null
-					val moduleName = root.resolver
-						.getResolverReference(qualified)?.moduleName
-						?: return@map null
-					workbench.resolver.resolve(moduleName)
+						?.resolver
+						?.getResolverReference(qualified)
+						?.moduleName
+						?.let { name -> workbench.resolver.resolve(name) }
 				}.filterNotNull()
 			}
-			build(BuildManyTask(this, preLoadModules.toSet()))
+//TODO Fix autoload and re-enable this.
+//			build(BuildManyTask(this, preLoadModules.toSet()))
 		}
 	}
 
@@ -2767,34 +2773,64 @@ class AvailWorkbench internal constructor(
 	 *
 	 * @param nameInModule
 	 *   The [NameInModule] to find.
+	 * @param mouseEvent
+	 *   The [MouseEvent] which was the request for navigation.
 	 */
-	fun navigateForName(nameInModule: NameInModule)
+	fun navigateForName(nameInModule: NameInModule, mouseEvent: MouseEvent)
 	{
-		val start = currentTimeMillis()
 		allDefinitionsThen(nameInModule) { allEntries ->
 			if (allEntries.isNotEmpty())
 			{
-				val string = buildString {
-					append("All definitions of ")
-					append(nameInModule.atomName)
-					append(" (from ")
-					append(nameInModule.moduleName)
-					append("):")
-					allEntries.forEach { (module, entry) ->
-						append("\n\t")
-						append(entry.kind.name)
-						append(" ")
-						// Increase indent of multi-line summaries.
-						append(entry.summaryText.replace("\n", "\n\t\t\t"))
-						append("\n\t\t")
-						append(entry.definitionStartingLine)
-						append(": ")
-						append(module.qualifiedName)
-					}
-					val delta = currentTimeMillis() - start
-					append("\n(${delta}ms)\n")
+				val shortModuleNames = allEntries.associate { (module, _) ->
+					//TODO Eventually check for ambiguous local module names in
+					// the set of applicable modules, and include more context.
+					module to module.localName
 				}
-				println(string)
+				val menu = JPopupMenu()
+				val quoted = stringFrom(nameInModule.atomName).toString()
+				val styledName = htmlStyledMethodName(
+					stringFrom(quoted), true, stylesheet)
+				val title = buildString {
+					append("<html><tt><font size='+1'>")
+					append(styledName)
+					append("</font></tt></html>")
+				}
+				val titleLabel = JLabel(title)
+				val titlePanel = JPanel()
+				titlePanel.add(titleLabel)
+				menu.add(titlePanel)
+				menu.addSeparator()
+				allEntries.forEach { (module, entry) ->
+					val label = buildString {
+						// Increase indent of multi-line summaries.
+						append("<html><div style='white-space: pre'>")
+						append(shortModuleNames[module])
+						append(":")
+						append(entry.definitionStartingLine)
+						append("&nbsp;&nbsp;<font color='#8090FF'>")
+						append(entry.summaryText.replace("\n", "\n\t\t"))
+						append("</font></div></html>")
+					}
+					val icon = SideEffectIcons.icon(16, entry.kind)
+					val action = object : AbstractWorkbenchAction(
+						this,
+						label)
+					{
+						override fun actionPerformed(e: ActionEvent?)
+						{
+							println("Selected: " + entry.summaryText) //TODO
+						}
+
+						override fun updateIsEnabled(busy: Boolean) = Unit
+					}
+					action.putValue(Action.SMALL_ICON, icon)
+					val item = JMenuItem(action)
+					item.horizontalAlignment = SwingConstants.LEFT
+					menu.add(item)
+				}
+				menu.invoker = mouseEvent.component
+				menu.location = mouseEvent.locationOnScreen
+				menu.isVisible = true
 			}
 		}
 	}
