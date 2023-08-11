@@ -1,5 +1,5 @@
 /*
- * LoadOnStartAction.kt
+ * BuildTask.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,46 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.actions
+package avail.anvil.tasks
 
 import avail.anvil.AvailWorkbench
 import avail.builder.ResolvedModuleName
-import org.availlang.artifact.environment.project.LocalSettings
-import java.awt.event.ActionEvent
-import javax.swing.Action
 
 /**
- * An [AbstractWorkbenchAction] that adds the [ResolvedModuleName] to the
- * [LocalSettings.loadModulesOnStartup].
+ * An [AbstractBuildTask] that launches the actual build of multiple
+ * [ResolvedModuleName]s.
+ *
+ * @author Richard Arriaga
  *
  * @constructor
- * Construct a new [LoadOnStartAction].
+ * Construct a new `BuildTask`.
  *
  * @param workbench
  *   The owning [AvailWorkbench].
+ * @param targetModuleNames
+ *   The [Set] of [ResolvedModuleName]s to build.
  */
-class LoadOnStartAction constructor (
-	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(workbench, "Load on Anvil Start")
+class BuildManyTask constructor (
+	workbench: AvailWorkbench,
+	private val targetModuleNames: Set<ResolvedModuleName>
+) : AbstractBuildTask(workbench)
 {
-	override fun updateIsEnabled (busy: Boolean)
+	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
-		isEnabled = !busy && workbench.selectedModule() != null
-	}
-
-	override fun actionPerformed(event: ActionEvent)
-	{
-		val selected = workbench.selectedModule() ?: return
-		val qualifiedName = selected.qualifiedName
-		val projRoot = workbench.availProject.roots[selected.rootName] ?: return
-		projRoot.localSettings.loadModulesOnStartup.add(qualifiedName)
-		projRoot.saveLocalSettingsToDisk()
-	}
-
-	init
-	{
-		putValue(
-			Action.SHORT_DESCRIPTION,
-			"Adds this module to local settings to be loaded at startup.")
+		if(targetModuleNames.isEmpty())
+		{
+			afterExecute()
+			return
+		}
+		reopenRootsRepositories()
+		workbench.availBuilder.buildTargetThen(
+			targetModuleNames,
+			workbench::eventuallyUpdatePerModuleProgress,
+			workbench::eventuallyUpdateBuildProgress,
+			workbench.availBuilder.buildProblemHandler
+		) {
+			swingAction(afterExecute)
+		}
 	}
 }

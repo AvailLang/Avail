@@ -35,12 +35,11 @@ package avail.anvil.tasks
 import avail.builder.ResolvedModuleName
 import avail.descriptor.module.ModuleDescriptor
 import avail.anvil.AvailWorkbench
-import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
 import java.awt.Cursor
 
 
 /**
- * A `DocumentationTask` initiates and manages documentation
+ * An [AbstractWorkbenchModuleTask] that initiates and manages documentation
  * generation for the target [module][ModuleDescriptor].
  *
  * @constructor
@@ -51,9 +50,10 @@ import java.awt.Cursor
  * @param targetModuleName
  * The resolved name of the target [module][ModuleDescriptor] to unload.
  */
-class DocumentationTask (
-		workbench: AvailWorkbench, targetModuleName: ResolvedModuleName?)
-	: AbstractWorkbenchTask(workbench, targetModuleName)
+class DocumentationTask constructor(
+	workbench: AvailWorkbench,
+	targetModuleName: ResolvedModuleName
+): AbstractWorkbenchModuleTask(workbench, targetModuleName)
 {
 	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
@@ -63,7 +63,7 @@ class DocumentationTask (
 				root.repository.reopenIfNecessary()
 			}
 			workbench.availBuilder.generateDocumentation(
-				targetModuleName(),
+				targetModuleName,
 				workbench.documentationPath,
 				workbench.availBuilder.buildProblemHandler)
 		}

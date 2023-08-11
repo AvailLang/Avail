@@ -349,7 +349,6 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	 * @param afterAll
 	 *   What to do after the entire trace completes.
 	 */
-	@Suppress("RedundantLambdaArrow")
 	fun traceThen(
 		target: ModuleName,
 		problemHandler: ProblemHandler,
@@ -403,5 +402,56 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 				completions)
 		}
 		afterAll()
+	}
+
+	/**
+	 * Determine the ancestry graph of the indicated modules, recording it in
+	 * the [AvailBuilder.moduleGraph].
+	 *
+	 * @param targets
+	 *   The set of modules to load.
+	 * @param problemHandler
+	 *   How to handle or report [Problem]s that arise during the build.
+	 * @param afterAll
+	 *   What to do after the entire trace completes.
+	 */
+	fun traceThen(
+		targets: Set<ModuleName>,
+		problemHandler: ProblemHandler,
+		afterAll: ()->Unit)
+	{
+		when (targets.size)
+		{
+			0 -> afterAll()
+			1 -> traceThen(targets.first(), problemHandler, afterAll)
+			else -> traceThen(targets.iterator(), problemHandler, afterAll)
+		}
+	}
+
+	/**
+	 * Determine the ancestry graph of the indicated modules, recording it in
+	 * the [AvailBuilder.moduleGraph].
+	 *
+	 * @param targets
+	 *   The iterator of modules to load.
+	 * @param problemHandler
+	 *   How to handle or report [Problem]s that arise during the build.
+	 * @param afterAll
+	 *   What to do after the entire trace completes.
+	 */
+	private fun traceThen(
+		targets: Iterator<ModuleName>,
+		problemHandler: ProblemHandler,
+		afterAll: ()->Unit)
+	{
+		if (!targets.hasNext())
+		{
+			afterAll()
+			return
+		}
+
+		traceThen(targets.next(), problemHandler) {
+			traceThen(targets, problemHandler, afterAll)
+		}
 	}
 }
