@@ -36,6 +36,7 @@ import avail.anvil.AvailWorkbench
 import avail.builder.ResolvedModuleName
 import org.availlang.artifact.environment.project.LocalSettings
 import java.awt.event.ActionEvent
+import java.io.File
 import javax.swing.Action
 
 /**
@@ -130,6 +131,10 @@ class SetLoadOnStartAction constructor (
 		val qualifiedName = selected.qualifiedName
 		nextChangeAction.performAction(projRoot.localSettings, qualifiedName)
 		projRoot.saveLocalSettingsToDisk()
+		val path = File(
+			File(projRoot.localSettings.configDir),
+			LocalSettings.LOCAL_SETTINGS_FILE).absolutePath
+		workbench.openFileEditors[path]?.reloadFileFromDisk()
 		workbench.setEnablements()
 	}
 
@@ -150,7 +155,6 @@ class SetLoadOnStartAction constructor (
 			{
 				ChangeAction.ADD
 			}.apply { updateName(this@SetLoadOnStartAction) }
-
 	}
 
 	init
