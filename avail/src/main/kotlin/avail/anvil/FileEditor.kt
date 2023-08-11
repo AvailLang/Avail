@@ -168,6 +168,14 @@ abstract class FileEditor<CE> constructor(
 	}
 
 	/**
+	 * Reload the file into this [FileEditor] from disk.
+	 */
+	fun reloadFileFromDisk()
+	{
+		sourcePane.text = File(fileLocation).readText()
+	}
+
+	/**
 	 * Refresh the [KeyboardShortcut]s for this [FileEditor].
 	 */
 	fun refreshShortcuts ()

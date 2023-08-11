@@ -57,7 +57,7 @@ import javax.swing.JPanel
  * @param settingsView
  *   The parent [SettingsView].
  * @param workbench
- *   The active
+ *   The active [AvailWorkbench].
  */
 class GlobalSettingsSelection constructor(
 	settingsView: SettingsView,
