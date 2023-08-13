@@ -106,6 +106,7 @@ import avail.anvil.actions.UnloadAllAction
 import avail.anvil.debugger.AvailDebugger
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.GlobalEnvironmentSettings.Companion.globalTemplates
+import avail.anvil.icons.CompoundIcon
 import avail.anvil.icons.structure.SideEffectIcons
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
@@ -137,6 +138,7 @@ import avail.anvil.tasks.AbstractWorkbenchTask
 import avail.anvil.tasks.BuildManyTask
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
+import avail.anvil.text.goTo
 import avail.anvil.views.PhraseViewPanel
 import avail.anvil.views.StructureView
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
@@ -175,8 +177,11 @@ import avail.stacks.StacksGenerator
 import avail.utility.IO
 import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
+import avail.utility.Strings.escapedForHTML
 import avail.utility.cast
+import avail.utility.ifZero
 import avail.utility.isNullOr
+import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
 import avail.utility.parallelMapThen
@@ -1497,8 +1502,14 @@ class AvailWorkbench internal constructor(
 						val moduleNode =
 							EntryPointModuleNode(this, resolvedName)
 						entryPoints.forEach { entryPoint ->
+							val quoted = stringFrom(entryPoint).toString()
+							val styledName = htmlStyledMethodName(
+								stringFrom(quoted), true, stylesheet)
+							val innerHtml = buildString {
+								append(styledName)
+							}
 							val entryPointNode = EntryPointNode(
-								this, resolvedName, entryPoint)
+								this, resolvedName, innerHtml, entryPoint)
 							moduleNode.add(entryPointNode)
 						}
 						moduleNodes[resolvedName.qualifiedName] = moduleNode
@@ -2802,25 +2813,100 @@ class AvailWorkbench internal constructor(
 				titlePanel.add(titleLabel)
 				menu.add(titlePanel)
 				menu.addSeparator()
-				allEntries.forEach { (module, entry) ->
+				val groupedEntries = allEntries.groupBy(
+					keySelector = { (moduleName, manifestEntry) ->
+						Triple(
+							moduleName,
+							manifestEntry.nameInModule,
+							manifestEntry.definitionStartingLine.ifZero {
+								manifestEntry.topLevelStartingLine })
+					},
+					valueTransform = { (_, manifestEntry) -> manifestEntry })
+				groupedEntries.forEach { (key, entries) ->
+					val (moduleName, _, line) = key
+					val entriesWithTypeSize = entries.map { entry ->
+						entry to entry.argumentTypes.sumOf { it.length } +
+							(entry.returnType?.length ?: 0)
+					}
+					val (bestEntry, typeSize) =
+						entriesWithTypeSize.maxBy(Pair<*, Int>::second)
+					// We now have an estimate of how many characters are in the
+					// print representation of the type.  It omits brackets and
+					// commas and such.
+					val typeString = buildString {
+						val (arguments, returnType) =
+							bestEntry.run { argumentTypes to returnType }
+						when
+						{
+							returnType == null ->
+							{
+								// Output nothing.
+							}
+							typeSize < 60
+								&& '\n' !in returnType
+								&& arguments.none { '\n' in it } ->
+							{
+								// The arguments are all short and have no
+								// embedded line breaks.
+								arguments.joinTo(
+									buffer = this,
+									prefix = "[",
+									separator = ", ",
+									postfix = "]→",
+									transform = { it.escapedForHTML() })
+								append(returnType)
+							}
+							else ->
+							{
+								// Print on multiple lines.
+								arguments.joinTo(
+									buffer = this,
+									prefix = "\n[",
+									separator = ",",
+									postfix =
+										if (arguments.isEmpty()) "]→"
+										else "\n]→",
+									transform = {
+										"\n\t" +
+											it.escapedForHTML()
+												.replace("\n", "\n\t") })
+								append(returnType)
+							}
+						}
+					}
 					val label = buildString {
 						// Increase indent of multi-line summaries.
 						append("<html><div style='white-space: pre'>")
-						append(shortModuleNames[module])
+						append(shortModuleNames[moduleName])
 						append(":")
-						append(entry.definitionStartingLine)
+						append(line)
 						append("&nbsp;&nbsp;<font color='#8090FF'>")
-						append(entry.summaryText.replace("\n", "\n\t\t"))
+						append(typeString
+							.replace("\n", "<br>")
+							.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))
 						append("</font></div></html>")
 					}
-					val icon = SideEffectIcons.icon(16, entry.kind)
-					val action = object : AbstractWorkbenchAction(
-						this,
-						label)
+					val icon = CompoundIcon(
+						entries
+							.mapToSet(transform = ModuleManifestEntry::kind)
+							.map { kind -> SideEffectIcons.icon(16, kind) },
+						xGap = 3)
+					val action = object : AbstractWorkbenchAction(this, label)
 					{
 						override fun actionPerformed(e: ActionEvent?)
 						{
-							println("Selected: " + entry.summaryText) //TODO
+							// Locate or open an editor for the target.
+							var opened = false
+							val editor = workbench.openEditors.computeIfAbsent(
+								moduleName
+							) {
+								opened = true
+								AvailEditor(workbench, moduleName)
+							}
+							if (!opened) editor.toFront()
+							invokeLater {
+								editor.sourcePane.goTo(max(line - 1, 0))
+							}
 						}
 
 						override fun updateIsEnabled(busy: Boolean) = Unit

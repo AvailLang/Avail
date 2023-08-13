@@ -36,9 +36,8 @@ import avail.AvailRuntimeConfiguration.debugStyling
 import avail.AvailThread
 import avail.annotations.ThreadSafe
 import avail.anvil.Stylesheet
-import avail.anvil.ValidatedRenderingContext
 import avail.compiler.ModuleManifestEntry
-import avail.compiler.SideEffectKind
+import avail.compiler.SideEffectKind.*
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
@@ -183,7 +182,6 @@ import avail.descriptor.tokens.A_Token.Companion.end
 import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -202,6 +200,7 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AmbiguousNameException
@@ -367,7 +366,7 @@ constructor(
 	/**
 	 * The [NamesIndex] into which to record indexing information during actual
 	 * compilation.  After compilation, this is written to a record whose index
-	 * is captured in the [A_Module.namesIndex], and fetched from the
+	 * is captured in the [A_Module.namesIndexRecord], and fetched from the
 	 * repository and decoded and cached when needed.
 	 */
 	var namesIndex: NamesIndex? = null
@@ -1208,35 +1207,41 @@ constructor(
 					}
 				}
 				module.moduleAddDefinition(newDefinition)
-				val topStart = topLevelStatementBeingCompiled!!
-					.startingLineNumber
+				val topStart =
+					topLevelStatementBeingCompiled!!.startingLineNumber
+				val signature = newDefinition.bodySignature()
 				addManifestEntry(
 					when
 					{
 						newDefinition.isMethodDefinition() ->
 							newDefinition.bodyBlock().let { body ->
 								ModuleManifestEntry(
-									SideEffectKind.METHOD_DEFINITION_KIND,
+									METHOD_DEFINITION_KIND,
 									methodName.asNameInModule,
-									methodName.atomName.asNativeString() + "  " +
-									//TODO remove hack
-										newDefinition.bodySignature().toString(),
+									methodName.atomName.asNativeString() +
+										"  " + signature,
+									signature,
 									topStart,
 									body.code().codeStartingLineNumber,
-									body)
+									body
+								)
 							}
 						newDefinition.isForwardDefinition() ->
 							ModuleManifestEntry(
-								SideEffectKind.FORWARD_METHOD_DEFINITION_KIND,
+								FORWARD_METHOD_DEFINITION_KIND,
 								methodName.asNameInModule,
-								methodName.atomName.asNativeString(),
+								methodName.atomName.asNativeString() +
+									"  " + signature,
+								signature,
 								topStart,
 								topStart)
 						newDefinition.isAbstractDefinition() ->
 							ModuleManifestEntry(
-								SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND,
+								ABSTRACT_METHOD_DEFINITION_KIND,
 								methodName.asNameInModule,
-								methodName.atomName.asNativeString(),
+								methodName.atomName.asNativeString() +
+									"  " + signature,
+								signature,
 								topStart,
 								topStart)
 						else -> throw UnsupportedOperationException(
@@ -1325,9 +1330,11 @@ constructor(
 			module.lock {
 				addManifestEntry(
 					ModuleManifestEntry(
-						SideEffectKind.MACRO_DEFINITION_KIND,
+						MACRO_DEFINITION_KIND,
 						methodName.asNameInModule,
-						methodName.atomName.asNativeString(),
+						methodName.atomName.asNativeString() +
+							"  " + macroBodyType,
+						macroBodyType,
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						macroCode.codeStartingLineNumber,
 						macroBody))
@@ -1372,9 +1379,10 @@ constructor(
 			{
 				addManifestEntry(
 					ModuleManifestEntry(
-						SideEffectKind.SEMANTIC_RESTRICTION_KIND,
+						SEMANTIC_RESTRICTION_KIND,
 						atom.asNameInModule,
 						atom.atomName.asNativeString(),
+						code.functionType(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						code.codeStartingLineNumber,
 						function))
@@ -1420,9 +1428,10 @@ constructor(
 		{
 			addManifestEntry(
 				ModuleManifestEntry(
-					SideEffectKind.SEAL_KIND,
+					SEAL_KIND,
 					methodName.asNameInModule,
 					methodName.atomName.asNativeString(),
+					functionType(seal, TOP.o),
 					topLevelStatementBeingCompiled!!.startingLineNumber,
 					topLevelStatementBeingCompiled!!.startingLineNumber))
 		}
@@ -1501,9 +1510,10 @@ constructor(
 				{
 					addManifestEntry(
 						ModuleManifestEntry(
-							SideEffectKind.GRAMMATICAL_RESTRICTION_KIND,
+							GRAMMATICAL_RESTRICTION_KIND,
 							parentAtom.asNameInModule,
 							parentAtom.atomName.asNativeString(),
+							null,
 							topLevelStatementBeingCompiled!!.startingLineNumber,
 							topLevelStatementBeingCompiled!!.startingLineNumber))
 				}
@@ -1722,9 +1732,10 @@ constructor(
 			val topStart = topLevelStatementBeingCompiled!!.startingLineNumber
 			addManifestEntry(
 				ModuleManifestEntry(
-					SideEffectKind.ATOM_DEFINITION_KIND,
+					ATOM_DEFINITION_KIND,
 					atom.asNameInModule,
 					stringName.asNativeString(),
+					null,
 					topStart,
 					topStart))
 		}
@@ -2229,8 +2240,8 @@ constructor(
 		 * @param quotedName
 		 *   The name of the method, including outer quotes and backslashes for
 		 *   escaped characters.
-		 * @param keepQuotes
-		 *   Whether to keep the outer quotes and backslash escapes in the
+		 * @param stripQuotes
+		 *   Whether to strip the outer quotes and backslash escapes in the
 		 *   output HTML [String].
 		 * @param stylesheet
 		 *   The [Stylesheet] that determines how the abstract styling leads to

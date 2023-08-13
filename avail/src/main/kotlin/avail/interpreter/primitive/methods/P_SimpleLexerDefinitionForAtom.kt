@@ -58,6 +58,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
@@ -136,6 +137,9 @@ object P_SimpleLexerDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 						SideEffectKind.LEXER_KIND,
 						atom.asNameInModule,
 						atom.atomName.asNativeString(),
+						functionType(
+							emptyTuple,
+							bodyFunction.code().functionType().returnType),
 						loader.topLevelStatementBeingCompiled!!
 							.startingLineNumber,
 						bodyFunction.code().codeStartingLineNumber,

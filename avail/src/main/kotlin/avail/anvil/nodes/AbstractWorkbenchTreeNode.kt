@@ -138,7 +138,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 * Whether the node is selected.
 	 * @return The HTML text as a [String].
 	 */
-	fun htmlText(selected: Boolean): String =
+	open fun htmlText(selected: Boolean): String =
 		"<div style=\"${htmlStyle(selected)}\">${text(selected)}</div>"
 
 	override fun toString(): String = "${javaClass.simpleName}: ${text(false)}"

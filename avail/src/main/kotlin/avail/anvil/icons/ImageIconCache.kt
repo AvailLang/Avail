@@ -33,10 +33,14 @@
 package avail.anvil.icons
 
 import org.availlang.cache.LRUCache
+import java.awt.Component
+import java.awt.Graphics
 import java.awt.Image
+import javax.swing.Icon
 import javax.swing.ImageIcon
+import kotlin.math.max
 
-/**
+ /**
  * The interface for the minimum required state for an [ImageIconCache] key.
  *
  * @author Richard Arriaga
@@ -121,3 +125,28 @@ class ImageIconCache<Key: IconKey> constructor(
 			throw RuntimeException("Could not locate ${k.resourceName}", e)
 		}
 }
+
+class CompoundIcon constructor(
+	private val icons: List<Icon>,
+	private val xGap: Int
+): Icon
+{
+	val height: Int = icons.maxOfOrNull { it.iconHeight } ?: 0
+
+	val width: Int = max(0, icons.sumOf { it.iconWidth + xGap } - xGap)
+
+	override fun getIconWidth(): Int = width
+
+	override fun getIconHeight(): Int = height
+
+	override fun paintIcon(c: Component, g: Graphics, x: Int, y: Int)
+	{
+		var dx = 0
+		icons.forEach { icon ->
+			// Center the icons vertically.
+			val dy = (height - icon.iconHeight) shr 1
+			icon.paintIcon(c, g, x + dx, y + dy)
+			dx += icon.iconWidth + xGap
+		}
+	 }
+ }

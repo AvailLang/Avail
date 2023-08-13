@@ -42,6 +42,8 @@ import avail.compiler.ParsingOperation.Companion.distinctInstructions
 import avail.compiler.ParsingOperation.Companion.operand
 import avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import avail.compiler.PragmaKind.Companion.pragmaKindByLexeme
+import avail.compiler.SideEffectKind.MODULE_CONSTANT_KIND
+import avail.compiler.SideEffectKind.MODULE_VARIABLE_KIND
 import avail.compiler.problems.CompilerDiagnostics
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.MEDIUM
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
@@ -262,11 +264,13 @@ import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
@@ -1043,12 +1047,13 @@ class AvailCompiler constructor(
 						compilationContext.flushDelayedSerializedEffects()
 						loader.addManifestEntry(
 							ModuleManifestEntry(
-								SideEffectKind.MODULE_CONSTANT_KIND,
-								null,
-								name.asNativeString(),
-								startState.lineNumber,
-								replacement.token.lineNumber(),
-								assignFunction))
+								kind = MODULE_CONSTANT_KIND,
+								nameInModule = null,
+								summaryText = name.asNativeString(),
+								signature = null,
+								topLevelStartingLine = startState.lineNumber,
+								definitionStartingLine = replacement.token.lineNumber(),
+								bodyFunction = assignFunction))
 						variable.setValue(value)
 						onSuccess()
 					},
@@ -1121,12 +1126,18 @@ class AvailCompiler constructor(
 							module.lock {
 								loader.addManifestEntry(
 									ModuleManifestEntry(
-										SideEffectKind.MODULE_VARIABLE_KIND,
-										null,
-										name.asNativeString(),
-										startState.lineNumber,
-										replacement.token.lineNumber(),
-										assignFunction))
+										kind = MODULE_VARIABLE_KIND,
+										nameInModule = null,
+										summaryText = name.asNativeString(),
+										// A minor kludge, but this entry won't
+										// show up in definition lists anyhow.
+										signature = functionTypeReturning(
+											variable.kind().readType),
+										topLevelStartingLine =
+											startState.lineNumber,
+										definitionStartingLine =
+											replacement.token.lineNumber(),
+										bodyFunction = assignFunction))
 							}
 							onSuccess()
 						},
