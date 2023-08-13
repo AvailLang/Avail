@@ -174,7 +174,9 @@ abstract class FileEditor<CE> constructor(
 	 */
 	fun reloadFileFromDisk()
 	{
-		sourcePane.text = File(fileLocation).readText()
+		SwingUtilities.invokeLater {
+			sourcePane.text = File(fileLocation).readText()
+		}
 	}
 
 	/**

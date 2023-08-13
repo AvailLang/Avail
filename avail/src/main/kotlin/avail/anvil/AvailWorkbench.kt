@@ -2564,8 +2564,10 @@ class AvailWorkbench internal constructor(
 						?.let { name -> workbench.resolver.resolve(name) }
 				}.filterNotNull()
 			}
-//TODO Fix autoload and re-enable this.
-//			build(BuildManyTask(this, preLoadModules.toSet()))
+			if (preLoadModules.isNotEmpty())
+			{
+				build(BuildManyTask(this, preLoadModules.toSet()))
+			}
 		}
 	}
 
