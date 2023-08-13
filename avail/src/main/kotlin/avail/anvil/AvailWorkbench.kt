@@ -2556,7 +2556,10 @@ class AvailWorkbench internal constructor(
 					workbench.resolver.resolve(moduleName)
 				}.filterNotNull()
 			}
-			build(BuildManyTask(this, preLoadModules.toSet()))
+			if (preLoadModules.isNotEmpty())
+			{
+				build(BuildManyTask(this, preLoadModules.toSet()))
+			}
 		}
 	}
 

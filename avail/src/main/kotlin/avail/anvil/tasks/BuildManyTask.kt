@@ -58,7 +58,7 @@ class BuildManyTask constructor (
 	{
 		if(targetModuleNames.isEmpty())
 		{
-			afterExecute()
+			swingAction(afterExecute)
 			return
 		}
 		reopenRootsRepositories()
