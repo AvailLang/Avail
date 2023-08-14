@@ -599,8 +599,11 @@ class AvailEditor constructor(
 					element.attributes.getAttribute(PhraseNodeAttributeKey)
 						as? TokenStyle
 			}
-			tokenStyle?.phraseNode?.nameInModule?.let { nameInModule ->
-				workbench.navigateForName(nameInModule, e)
+			tokenStyle?.phraseNode?.let { phraseNode ->
+				phraseNode.nameInModule?.let { nameInModule ->
+					workbench.navigateForName(
+						nameInModule, tokenStyle.tokenIndexInName, e)
+				}
 			}
 		}
 	}

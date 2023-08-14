@@ -3247,7 +3247,7 @@ class ValidatedRenderingContext constructor(
 				},
 				background?.let { bg ->
 					palette.colors[bg]?.run {
-						"span style='background-color: #$hex'"
+						"span style='background-color:$hex'"
 					}
 				},
 				bold?.let { "b" },
@@ -3794,6 +3794,23 @@ enum class SystemStyleClassifier(val classifier: String)
 	{
 		override val systemColor = SystemColors::streamReport
 		override val colorName = systemColor.name
+	},
+
+	/**
+	 * The style used to emphasize a particular token that has been selected or
+	 * used in a navigation.  Styler functions for actual code should not
+	 * generally use this style, as it's intended for transiently emphasizing a
+	 * particular token that the user is working with dynamically.
+	 */
+	TOKEN_HIGHLIGHT("#token-highlight")
+	{
+		override val systemColor = SystemColors::tokenHighlightBackground
+		override val colorName = systemColor.name
+
+		override val defaultRenderingContext get() =
+			UnvalidatedRenderingContext(
+				StyleAttributes(background = colorName)
+			)
 	};
 
 	/**

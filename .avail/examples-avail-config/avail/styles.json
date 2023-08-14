@@ -32,7 +32,8 @@
 			"transparentGreen": "#4C853E88/78B66988",
 			"blue": "#2294C6FF/38B1E5FF",
 			"faintTransparentIndigo": "#4B35A920/3B279530",
-			"deemphasize": "#80808080/60606080"
+			"deemphasize": "#80808080/60606080",
+			"tokenHighlightBackground": "#E6B6B6FF/653646FF"
 		}
 	},
 	"stylesheet": {
@@ -308,6 +309,9 @@
 		},
 		"#excluded": {
 			"strikethrough": true
+		},
+		"#token-highlight": {
+			"background": "tokenHighlightBackground"
 		}
 	}
 }

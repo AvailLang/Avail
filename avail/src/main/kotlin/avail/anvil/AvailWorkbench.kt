@@ -152,11 +152,13 @@ import avail.builder.RenamesFileParser
 import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.compiler.ModuleManifestEntry
+import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.tuples.TupleDescriptor.Companion.quoteStringOn
 import avail.files.FileManager
 import avail.interpreter.execution.AvailLoader.Companion.htmlStyledMethodName
 import avail.io.ConsoleInputChannel
@@ -1450,7 +1452,6 @@ class AvailWorkbench internal constructor(
 							// representative, so simply skip the whole directory.
 							return@walkChildrenThen
 						}
-
 						val node = ModuleOrPackageNode(
 							this, moduleName, resolved, true)
 						parentNode.add(node)
@@ -2780,16 +2781,18 @@ class AvailWorkbench internal constructor(
 	 * Begin an asynchronous action to locate all definitions of the name in all
 	 * visible modules that have been compiled since their last change.
 	 *
-	 * TODO For now, created and print a report to the transcript when complete.
-	 *  Note that this method may return before the report has been produced and
-	 *  output (by an AvailTask).
-	 *
 	 * @param nameInModule
 	 *   The [NameInModule] to find.
+	 * @param tokenIndexInName
+	 *   The index of the token that the user has selected within the list of a
+	 *   message's tokens produced by a [MessageSplitter].
 	 * @param mouseEvent
 	 *   The [MouseEvent] which was the request for navigation.
 	 */
-	fun navigateForName(nameInModule: NameInModule, mouseEvent: MouseEvent)
+	fun navigateForName(
+		nameInModule: NameInModule,
+		tokenIndexInName: Int,
+		mouseEvent: MouseEvent)
 	{
 		allDefinitionsThen(nameInModule) { allEntries ->
 			if (allEntries.isNotEmpty())
@@ -2800,9 +2803,22 @@ class AvailWorkbench internal constructor(
 					module to module.localName
 				}
 				val menu = JPopupMenu()
-				val quoted = stringFrom(nameInModule.atomName).toString()
+				val availName = stringFrom(nameInModule.atomName)
+				val indexMap = mutableMapOf<Int, Int>()
+				val quoteBuilder = StringBuilder()
+				quoteStringOn(quoteBuilder, availName, indexMap)
+				val originalRange =
+					MessageSplitter.split(availName)
+						.rangeToHighlightForPartIndex(tokenIndexInName)
+				val startOfRange = indexMap[originalRange.first]!! + 1
+				val pastEndOfRange = indexMap[originalRange.last + 1]!! + 1
+				val quoted = quoteBuilder.toString()
 				val styledName = htmlStyledMethodName(
-					stringFrom(quoted), true, stylesheet)
+					stringFrom(quoted),
+					true,
+					stylesheet,
+					startOfRange,
+					pastEndOfRange)
 				val title = buildString {
 					append("<html><tt><font size='+1'>")
 					append(styledName)
@@ -2819,7 +2835,8 @@ class AvailWorkbench internal constructor(
 							moduleName,
 							manifestEntry.nameInModule,
 							manifestEntry.definitionStartingLine.ifZero {
-								manifestEntry.topLevelStartingLine })
+								manifestEntry.topLevelStartingLine
+							})
 					},
 					valueTransform = { (_, manifestEntry) -> manifestEntry })
 				groupedEntries.forEach { (key, entries) ->
@@ -2864,12 +2881,13 @@ class AvailWorkbench internal constructor(
 									prefix = "\n[",
 									separator = ",",
 									postfix =
-										if (arguments.isEmpty()) "]→"
-										else "\n]→",
+									if (arguments.isEmpty()) "]→"
+									else "\n]→",
 									transform = {
 										"\n\t" +
 											it.escapedForHTML()
-												.replace("\n", "\n\t") })
+												.replace("\n", "\n\t")
+									})
 								append(returnType)
 							}
 						}
@@ -2881,9 +2899,10 @@ class AvailWorkbench internal constructor(
 						append(":")
 						append(line)
 						append("&nbsp;&nbsp;<font color='#8090FF'>")
-						append(typeString
-							.replace("\n", "<br>")
-							.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))
+						append(
+							typeString
+								.replace("\n", "<br>")
+								.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))
 						append("</font></div></html>")
 					}
 					val icon = CompoundIcon(

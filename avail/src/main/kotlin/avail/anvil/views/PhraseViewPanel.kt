@@ -162,8 +162,8 @@ class PhraseViewPanel constructor (
 		tokenStyle: TokenStyle?)
 	{
 		editor = targetEditor
-		val mn = targetEditor?.resolverReference?.moduleName
-		this.title = mn?.let {
+		val moduleName = targetEditor?.resolverReference?.moduleName
+		this.title = moduleName?.let {
 			"Phrase Structure: ${it.localName}"
 		} ?: "Phrase Structure"
 		when (targetEditor)

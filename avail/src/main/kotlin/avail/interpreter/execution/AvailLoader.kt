@@ -36,6 +36,7 @@ import avail.AvailRuntimeConfiguration.debugStyling
 import avail.AvailThread
 import avail.annotations.ThreadSafe
 import avail.anvil.Stylesheet
+import avail.anvil.SystemStyleClassifier.TOKEN_HIGHLIGHT
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind.*
 import avail.compiler.splitter.MessageSplitter
@@ -152,6 +153,7 @@ import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestrictio
 import avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddStyler
+import avail.descriptor.module.A_Module.Companion.namesIndexRecord
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.resolveForward
@@ -2246,6 +2248,12 @@ constructor(
 		 * @param stylesheet
 		 *   The [Stylesheet] that determines how the abstract styling leads to
 		 *   concrete presentation changes (e.g., font color).
+		 * @param startOfToken
+		 *   The one-based start of the token to highlight in the name.  If this
+		 *   is -1, ignore [pastEndOfToken] and don't highlight anything.
+		 * @param pastEndOfToken
+		 *   The one-based end, inclusive, of the token to highlight in the
+		 *   name.
 		 * @return
 		 *   An HTML3.2 [String] that can be substituted inside a top-level html
 		 *   tag (or any place a span could go), which presents the method name
@@ -2254,7 +2262,9 @@ constructor(
 		fun htmlStyledMethodName(
 			quotedName: A_String,
 			stripQuotes: Boolean,
-			stylesheet: Stylesheet
+			stylesheet: Stylesheet,
+			startOfToken: Int = -1,
+			pastEndOfToken: Int = -1
 		): String
 		{
 			val size = quotedName.tupleSize
@@ -2264,6 +2274,9 @@ constructor(
 			// Start by styling the entire range with the empty string.
 			styles.edit(1, size + 1) { "" }
 			styles.styleMethodNameHelper(quotedName, 1)
+			if (startOfToken != -1) styles.edit(startOfToken, pastEndOfToken) {
+				old -> old + "," + TOKEN_HIGHLIGHT.classifier
+			}
 			if (stripQuotes)
 			{
 				// Remove the runs containing the outer quotes or a backslash
@@ -2273,6 +2286,7 @@ constructor(
 				var wasEscape = false
 				for (i in 2 ..< size)
 				{
+					@Suppress("LiftReturnOrAssignment")
 					if (!wasEscape
 						&& quotedName.tupleCodePointAt(i) == '\\'.code)
 					{
