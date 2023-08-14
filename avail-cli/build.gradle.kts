@@ -34,7 +34,7 @@ import avail.build.cleanupJars
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	java
+	id("java")
 	kotlin("jvm")
 	id("com.github.johnrengelman.shadow")
 }

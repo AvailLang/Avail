@@ -49,7 +49,7 @@ object AvailModule: ModuleDependencies(
 		Libraries.flatlaf,
 		Libraries.flatlafTheme),
 	apis = listOf(Libraries.kotlinReflection),
-	testImplementations = listOf(
-		Libraries.junitJupiterParams, Libraries.junitJupiterEngine),
-	compileOnlys = listOf(Libraries.kotlinAnnotations))
+	testImplementations = listOf(Libraries.junitJupiter),
+	compileOnlys = listOf(Libraries.kotlinAnnotations),
+	testRuntimeOnly = listOf(Libraries.junitJupiterPlatformLauncher))
 

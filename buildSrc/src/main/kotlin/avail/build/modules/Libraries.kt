@@ -96,6 +96,19 @@ fun DependencyHandlerScope.addTestImplementation(dependency: String)
 }
 
 /**
+ * Adds a dependency to the 'testRuntimeOnly' configuration.
+ *
+ * @param dependency
+ *   The [Dependency] string to add.
+ *
+ * @see [DependencyHandler.add]
+ */
+fun DependencyHandlerScope.addTestRuntimeOnly(dependency: String)
+{
+	add("testRuntimeOnly", dependency)
+}
+
+/**
  * Adds a dependency to the 'testApi' configuration.
  *
  * @param dependency
@@ -163,17 +176,12 @@ internal object Libraries
 			"org.junit.jupiter:junit-jupiter")
 		{ Versions.junitVersion }
 
+	// testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	/** The JUnit 5 Jupiter engine. */
-	internal val junitJupiterEngine =
+	internal val junitJupiterPlatformLauncher =
 		Dependency(
-			"org.junit.jupiter:junit-jupiter-engine")
-			{ Versions.junitVersion }
-
-	/** The JUnit 5 Jupiter params. */
-	internal val junitJupiterParams =
-		Dependency(
-			"org.junit.jupiter:junit-jupiter-params")
-			{ Versions.junitVersion }
+			"org.junit.platform:junit-platform-launcher")
+		{ Versions.junitVersion }
 
 	/** The Kotlin reflection support. */
 	internal val kotlinReflection =
@@ -236,6 +244,12 @@ sealed class Dependencies
 	protected abstract val compileOnlys: List<Dependency>
 
 	/**
+	 * The list of [Dependency]s that should be included using
+	 * `DependencyHandler.testRuntimeOnly`.
+	 */
+	protected abstract val testRuntimeOnly: List<Dependency>
+
+	/**
 	 * Add the [Dependency]s to the provided [DependencyHandlerScope].
 	 *
 	 * @param scope
@@ -249,6 +263,9 @@ sealed class Dependencies
 		testApis.forEach { scope.addTestApi(it.versioned) }
 		testImplementations.forEach {
 			scope.addTestImplementation(it.versioned)
+		}
+		testRuntimeOnly.forEach {
+			scope.addTestRuntimeOnly(it.base)
 		}
 	}
 }
@@ -264,5 +281,6 @@ open class ModuleDependencies constructor(
 	override val implementations: List<Dependency> = listOf(),
 	override val testApis: List<Dependency> = listOf(),
 	override val testImplementations: List<Dependency> = listOf(),
-	override val compileOnlys: List<Dependency> = listOf()
+	override val compileOnlys: List<Dependency> = listOf(),
+	override val testRuntimeOnly: List<Dependency> = listOf()
 ) : Dependencies()
