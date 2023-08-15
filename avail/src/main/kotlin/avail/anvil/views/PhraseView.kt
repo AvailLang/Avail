@@ -1,5 +1,5 @@
 /*
- * PhraseViewPanel.kt
+ * PhraseView.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -67,7 +67,7 @@ import javax.swing.border.EmptyBorder
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class PhraseViewPanel constructor (
+class PhraseView constructor (
 	override val workbench: AvailWorkbench,
 	private val onClose: () -> Unit
 ): WorkbenchFrame("Phrase Structure")
@@ -151,7 +151,7 @@ class PhraseViewPanel constructor (
 	 * Update the [phraseStructureList].
 	 *
 	 * @param targetEditor
-	 *   The associated [AvailEditor] for which this [PhraseViewPanel] shows
+	 *   The associated [AvailEditor] for which this [PhraseView] shows
 	 *   phrase structure at the selection.
 	 * @param tokenStyle
 	 *   The [TokenStyle] at the current cursor position, or `null` if there is
@@ -368,9 +368,9 @@ class PhraseViewPanel constructor (
 	}
 
 	/**
-	 * Notify this [PhraseViewPanel] the provided [AvailEditor] is closing.
+	 * Notify this [PhraseView] the provided [AvailEditor] is closing.
 	 * If the provided [AvailEditor] matches the [editor], clear this
-	 * [PhraseViewPanel].
+	 * [PhraseView].
 	 *
 	 * @param targetEditor
 	 *   The [AvailEditor] that is closing.

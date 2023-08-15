@@ -188,19 +188,19 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCodePoints
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
@@ -1206,9 +1206,9 @@ class AvailRuntime constructor(
 			put(
 				tupleTypeForSizesTypesDefaultType(
 					wholeNumbers, emptyTuple, mostGeneralTupleType))
-			put(nybbles)
-			put(zeroOrMoreOf(nybbles))
-			put(unsignedShorts)
+			put(u4)
+			put(zeroOrMoreOf(u4))
+			put(u16)
 			put(emptyTuple)
 			put(functionType(tuple(bottom), TOP.o))
 			put(instanceType(zero))
@@ -1261,7 +1261,7 @@ class AvailRuntime constructor(
 			put(
 				zeroOrMoreOf(
 					setTypeForSizesContentType(wholeNumbers, Types.ATOM.o)))
-			put(bytes)
+			put(u8)
 
 			at(130)
 			put(zeroOrMoreOf(zeroOrMoreOf(anyMeta())))
@@ -1292,8 +1292,8 @@ class AvailRuntime constructor(
 			put(SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom)
 			put(SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom)
 			put(SpecialAtom.ALL_TOKENS_KEY.atom)
-			put(int32)
-			put(int64)
+			put(i32)
+			put(i64)
 			put(PhraseKind.STATEMENT_PHRASE.mostGeneralType)
 			put(SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom)
 

@@ -94,7 +94,7 @@ abstract class AbstractBuildTask constructor (
 					{
 						editor.openStructureView(false)
 					}
-					if (workbench.phraseViewPanel.editor == editor)
+					if (workbench.phraseView.editor == editor)
 					{
 						editor.updatePhraseStructure()
 					}

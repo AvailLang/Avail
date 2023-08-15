@@ -162,18 +162,18 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
-	{
+		indent: Int
+	) = builder.brief {
 		self[START].printOnAvoidingIndent(
-			builder, recursionMap, indent)
-		builder.append(" to ")
+			this, recursionMap, indent)
+		append(" to ")
 		self[END].printOnAvoidingIndent(
-			builder, recursionMap, indent)
+			this, recursionMap, indent)
 		val delta: A_Number = self[DELTA]
 		if (!delta.equalsInt(1))
 		{
-			builder.append(" by ")
-			delta.printOnAvoidingIndent(builder, recursionMap, indent)
+			append(" by ")
+			delta.printOnAvoidingIndent(this, recursionMap, indent)
 		}
 	}
 

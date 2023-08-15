@@ -50,7 +50,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_FILE_EXISTS
@@ -175,7 +175,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 							E_NO_FILE,
 							E_IO_ERROR))),
 					TOP.o),
-				bytes),
+				u8),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

@@ -36,7 +36,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CannotFail
@@ -65,5 +65,5 @@ object P_AdjustDebugSetting : Primitive(1, Unknown, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(bytes), TOP.o)
+		functionType(tuple(u8), TOP.o)
 }

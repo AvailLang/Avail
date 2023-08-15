@@ -41,7 +41,7 @@ import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 import avail.anvil.shortcuts.ModifierKey.SHIFT
 import avail.anvil.text.BlockComment
 import avail.anvil.text.LineComment
-import avail.anvil.views.PhraseViewPanel
+import avail.anvil.views.PhraseView
 import avail.anvil.views.StructureView
 
 /**
@@ -91,7 +91,7 @@ object OpenStructureViewShortcut
 }
 
 /**
- * The [AvailEditorShortcut] to open the [PhraseViewPanel].
+ * The [AvailEditorShortcut] to open the [PhraseView].
  *
  * @author Mark van Gulik
  */

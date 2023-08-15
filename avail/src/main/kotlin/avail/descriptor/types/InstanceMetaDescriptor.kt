@@ -121,12 +121,12 @@ private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append("(")
+		builder.append("{")
 		getInstance(self).printOnAvoidingIndent(
 			builder,
 			recursionMap,
 			indent)
-		builder.append(")'s type")
+		builder.append("}ᵀ")
 	}
 
 	/**

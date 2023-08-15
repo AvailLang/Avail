@@ -148,7 +148,7 @@ class MapDescriptor private constructor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) : Unit = with(builder) {
+	) = builder.brief {
 		append('{')
 		val startPosition = length
 		var first = true
@@ -158,9 +158,9 @@ class MapDescriptor private constructor(
 				append(", ")
 			}
 			val entryStart = length
-			key.printOnAvoidingIndent(builder, recursionMap, indent + 2)
+			key.printOnAvoidingIndent(this, recursionMap, indent + 2)
 			append('→')
-			value.printOnAvoidingIndent(builder, recursionMap, indent + 1)
+			value.printOnAvoidingIndent(this, recursionMap, indent + 1)
 			if (length - startPosition > 100
 				|| indexOf("\n", entryStart) != -1
 			) {
@@ -179,12 +179,12 @@ class MapDescriptor private constructor(
 				}
 				newlineTab(indent + 1)
 				val entryStart = length
-				key.printOnAvoidingIndent(builder, recursionMap, indent + 2)
+				key.printOnAvoidingIndent(this, recursionMap, indent + 2)
 				if (indexOf("\n", entryStart) != -1) {
 					newlineTab(indent + 1)
 				}
 				append('→')
-				value.printOnAvoidingIndent(builder, recursionMap, indent + 1)
+				value.printOnAvoidingIndent(this, recursionMap, indent + 1)
 				first = false
 			}
 			newlineTab(indent)

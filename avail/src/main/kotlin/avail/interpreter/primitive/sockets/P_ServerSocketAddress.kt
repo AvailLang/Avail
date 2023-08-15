@@ -44,9 +44,9 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
@@ -109,8 +109,8 @@ object P_ServerSocketAddress : Primitive(1, CanInline)
 				tupleTypeForSizesTypesDefaultType(
 					inclusive(4, 16),
 					emptyTuple,
-					bytes),
-				unsignedShorts))
+					u8),
+				u16))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

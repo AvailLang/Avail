@@ -491,35 +491,41 @@ class ObjectDescriptor internal constructor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) = with(builder) {
+	) = builder.brief {
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self.kind())
-		append("a/an ")
+		append("{| ")
 		when (names.setSize)
 		{
 			0 -> append("object")
 			else -> append(
-				names.map { it.asNativeString() }.sorted().joinToString(" ∩ "))
+				names.map { it.asNativeString() }.sorted()
+					.joinToString(" ∩ ")
+			)
 		}
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
 			baseType.fieldTypeMap.forEach { k, _ ->
-				if (k.getAtomProperty(explicitSubclassingKey).notNil) {
-					ignoreKeys = ignoreKeys.setWithElementCanDestroy(k, true)
+				if (k.getAtomProperty(explicitSubclassingKey).notNil)
+				{
+					ignoreKeys =
+						ignoreKeys.setWithElementCanDestroy(k, true)
 				}
 			}
 		}
 		var first = true
 		self.fieldMap().forEach { key, value ->
-			if (!ignoreKeys.hasElement(key)) {
-				append(if (first) " with:" else ",")
+			if (!ignoreKeys.hasElement(key))
+			{
+				append(if (first) " |\n" else ",")
 				first = false
 				newlineTab(indent)
 				append(key.atomName.asNativeString())
 				append(" = ")
-				value.printOnAvoidingIndent(builder, recursionMap, indent + 1)
+				value.printOnAvoidingIndent(this, recursionMap, indent + 1)
 			}
 		}
+		append("\n|}")
 	}
 
 	override fun mutable() = variant.mutableObjectDescriptor
@@ -528,7 +534,8 @@ class ObjectDescriptor internal constructor(
 
 	override fun shared() = variant.sharedObjectDescriptor
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Extract the field value at the specified slot index.
 		 *

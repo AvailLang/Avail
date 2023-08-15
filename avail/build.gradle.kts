@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	java
+	id("java")
 	kotlin("jvm")
 	`maven-publish`
 	publishing
@@ -120,7 +120,6 @@ tasks {
 
 	}
 
-	@Suppress("UNUSED_VARIABLE")
 	val packageAndRun by creating(JavaExec::class) {
 		dependsOn(`package`)
 		group = "anvil"
@@ -128,7 +127,6 @@ tasks {
 		classpath = files("../avail-anvil.jar")
 	}
 
-	@Suppress("UNUSED_VARIABLE")
 	val run by creating(JavaExec::class) {
 		group = "anvil"
 		description = "Run the Avail Project Manager for an already built anvil.jar"

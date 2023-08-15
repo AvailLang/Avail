@@ -42,7 +42,7 @@ import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.Primitive
@@ -79,7 +79,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].sizeRange.typeIntersection(nonnegativeInt32)
+	): A_Type = argumentTypes[0].sizeRange.typeIntersection(i31)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

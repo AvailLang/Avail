@@ -136,11 +136,11 @@ class AssignmentPhraseDescriptor private constructor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) {
-		builder.append(self[VARIABLE].token.string().asNativeString())
-		builder.append(" := ")
+	) = builder.brief {
+		append(self[VARIABLE].token.string().asNativeString())
+		append(" := ")
 		self[EXPRESSION].printOnAvoidingIndent(
-			builder, recursionMap, indent + 1)
+			this, recursionMap, indent + 1)
 	}
 
 	override fun o_Variable(self: AvailObject): A_Phrase = self[VARIABLE]

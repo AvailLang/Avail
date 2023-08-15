@@ -72,7 +72,7 @@ import avail.anvil.streams.StreamStyle
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
-import avail.anvil.views.PhraseViewPanel
+import avail.anvil.views.PhraseView
 import avail.anvil.views.StructureView
 import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.tabs
@@ -445,7 +445,7 @@ private object OpenStructureView
 }
 
 /**
- * Open the [PhraseViewPanel].
+ * Open the [PhraseView].
  */
 private object OpenPhraseView
 	: TextAction(OpenPhraseViewShortcut.actionMapKey)

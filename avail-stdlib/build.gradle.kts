@@ -38,7 +38,7 @@ import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
-	java
+	id("java")
 	`maven-publish`
 	publishing
 	signing
@@ -114,7 +114,6 @@ tasks {
 	// Copy the library into the distribution directory. This is used by the
 	// workbench configuration that uses the standard library jar to start the
 	// workbench with the Avail Standard Library.
-	@Suppress("UNUSED_VARIABLE")
 	val copyToDistroLib by creating(DefaultTask::class) {
 		dependsOn(availArtifactJar)
 		doLast { copyArtifactToDistroLib() }

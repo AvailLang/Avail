@@ -139,7 +139,7 @@ import avail.anvil.tasks.BuildManyTask
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
 import avail.anvil.text.goTo
-import avail.anvil.views.PhraseViewPanel
+import avail.anvil.views.PhraseView
 import avail.anvil.views.StructureView
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
 import avail.anvil.window.WorkbenchScreenState
@@ -1888,18 +1888,18 @@ class AvailWorkbench internal constructor(
 	internal val structureViewIsOpen get() = structureView.isVisible
 
 	/**
-	 * The singular [PhraseViewPanel].
+	 * The singular [PhraseView].
 	 */
-	internal val phraseViewPanel = PhraseViewPanel(this) {
+	internal val phraseView = PhraseView(this) {
 		//TODO Do nothing for now, but we could record the fact that the window
 		// has been minimized, for restoring the session state.
 	}
 
 	/**
-	 * `true` indicates a [PhraseViewPanel] is open; `false` indicates the
+	 * `true` indicates a [PhraseView] is open; `false` indicates the
 	 * window is not open.
 	 */
-	internal val phraseViewIsOpen get() = phraseViewPanel.isVisible
+	internal val phraseViewIsOpen get() = phraseView.isVisible
 
 	/**
 	 * Close the provided [editor][AvailEditor].
@@ -1911,7 +1911,7 @@ class AvailWorkbench internal constructor(
 	{
 		openEditors.remove(editor.resolverReference.moduleName)
 		structureView.closingEditor(editor)
-		phraseViewPanel.closingEditor(editor)
+		phraseView.closingEditor(editor)
 	}
 
 	/**
@@ -2400,7 +2400,7 @@ class AvailWorkbench internal constructor(
 					}
 					else ""
 				}
-				val pv = phraseViewPanel.run {
+				val pv = phraseView.run {
 					if (isVisible)
 					{
 						saveWindowPosition()
@@ -2553,7 +2553,7 @@ class AvailWorkbench internal constructor(
 				}
 				if (screenState.phraseViewLayoutConfig.isNotEmpty())
 				{
-					phraseViewPanel.apply {
+					phraseView.apply {
 						layoutConfiguration.parseInput(
 							screenState.phraseViewLayoutConfig)
 						layoutConfiguration.placement?.let(::setBounds)
@@ -2952,7 +2952,7 @@ class AvailWorkbench internal constructor(
 			|| openDebuggers.any(Window::isFocused)
 			|| openFileEditors.values.any(Window::isFocused)
 			|| structureView.isFocused
-			|| phraseViewPanel.isFocused
+			|| phraseView.isFocused
 
 	companion object
 	{

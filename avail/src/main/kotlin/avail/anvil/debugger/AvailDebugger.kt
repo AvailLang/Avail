@@ -279,7 +279,7 @@ class AvailDebugger internal constructor (
 			value.traversed().descriptor() is PrimitiveTypeDescriptor ->
 				value.toString()
 			value.instanceCount.equalsInt(1) ->
-				"${stringIfSimple(value.instance, depth + 1)}'s type"
+				"{${stringIfSimple(value.instance, depth + 1)}}ᵀ"
 			else -> "(${value.typeTag})"
 		}
 	}

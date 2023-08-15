@@ -47,7 +47,7 @@ import avail.anvil.text.CodePane
 import avail.anvil.text.MarkToDotRange
 import avail.anvil.text.goTo
 import avail.anvil.text.markToDotRange
-import avail.anvil.views.PhraseViewPanel
+import avail.anvil.views.PhraseView
 import avail.anvil.views.StructureView
 import avail.anvil.window.AvailEditorLayoutConfiguration
 import avail.anvil.window.LayoutConfiguration
@@ -215,7 +215,7 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * Open the [PhraseViewPanel] associated with this [AvailEditor], if it's
+	 * Open the [PhraseView] associated with this [AvailEditor], if it's
 	 * not already visible.
 	 */
 	fun openPhraseView ()
@@ -224,8 +224,8 @@ class AvailEditor constructor(
 		if (!workbench.phraseViewIsOpen)
 		{
 			// Open the phrase view.
-			workbench.phraseViewPanel.isVisible = true
-			workbench.phraseViewPanel.requestFocus()
+			workbench.phraseView.isVisible = true
+			workbench.phraseView.requestFocus()
 		}
 	}
 
@@ -298,7 +298,7 @@ class AvailEditor constructor(
 	/**
 	 * Compute the sequence of nested send phrases that describe how the
 	 * selected token ended up being embedded in the final parse structure.
-	 * Update the [AvailWorkbench.phraseViewPanel] to show this information.
+	 * Update the [AvailWorkbench.phraseView] to show this information.
 	 */
 	fun updatePhraseStructure()
 	{
@@ -318,7 +318,7 @@ class AvailEditor constructor(
 			tokenStyle = element.attributes.getAttribute(PhraseNodeAttributeKey)
 				as? TokenStyle
 		}
-		workbench.phraseViewPanel.updateView(this, tokenStyle)
+		workbench.phraseView.updateView(this, tokenStyle)
 	}
 
 	/**
@@ -701,7 +701,7 @@ class AvailEditor constructor(
 				}
 				if (workbench.phraseViewIsOpen)
 				{
-					if (workbench.phraseViewPanel.editor != this@AvailEditor)
+					if (workbench.phraseView.editor != this@AvailEditor)
 					{
 						updatePhraseStructure()
 					}

@@ -63,7 +63,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -872,7 +872,7 @@ class TypeRestriction private constructor(
 	{
 		hasFlag(UNBOXED_INT_FLAG) -> this
 		else -> restriction(
-			type.typeIntersection(int32),
+			type.typeIntersection(i32),
 			constantOrNull,
 			excludedTypes,
 			excludedValues,

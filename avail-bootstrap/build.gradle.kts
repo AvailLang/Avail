@@ -35,7 +35,7 @@ import avail.build.modules.AvailBootstrapModule
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	java
+	id("java")
 	kotlin("jvm")
 	id("com.github.johnrengelman.shadow")
 }
@@ -102,7 +102,6 @@ tasks {
 	 * Gradle task to generate all bootstrap `.properties` files for the current
 	 * locale.
 	 */
-	@Suppress("UNUSED_VARIABLE")
 	val generateAllNames by creating {
 		description =
 			"Gradle task to generate all bootstrap `.properties` files for " +
@@ -118,7 +117,6 @@ tasks {
 	 *
 	 * This is used in [AvailSetupContext]'s [Project.generateBootStrap].
 	 */
-	@Suppress("UNUSED_VARIABLE")
 	val internalGenerateBootstrap by creating(JavaExec::class) {
 		description =
 			"Generate the new bootstrap Avail modules for the current locale." +
@@ -133,7 +131,6 @@ tasks {
 	 * Gradle task to generate the new bootstrap Avail modules for the current
 	 * locale and copy them to the appropriate location for distribution.
 	 */
-	@Suppress("UNUSED_VARIABLE")
 	val generateBootstrap by creating(Copy::class) {
 		description =
 			"Gradle task to generate the new bootstrap Avail modules for the " +

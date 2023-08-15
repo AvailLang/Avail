@@ -42,7 +42,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.Primitive
@@ -98,6 +98,6 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 			tuple(
 				enumerationWith(
 					tupleFromIntegerList(listOf(1, 256, 384, 512)).asSet),
-				zeroOrMoreOf(bytes)),
-			oneOrMoreOf(bytes))
+				zeroOrMoreOf(u8)),
+			oneOrMoreOf(u8))
 }

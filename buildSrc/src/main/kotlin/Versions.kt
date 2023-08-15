@@ -45,7 +45,7 @@ object Versions
 	const val avail = "1.6.0"
 
 	/** The `com.github.johnrengelman.shadow` version. */
-	const val shadow = "7.1.2"
+	const val shadow = "8.1.1"
 
 	/** The `org.jetbrains:annotations` version. */
 	const val kotlinAnnotations = "23.0.0"
@@ -63,7 +63,7 @@ object Versions
 	const val jsrVersion = "3.0.2"
 
 	/** The `org.junit.jupiter:junit-jupiter` version. */
-	const val junitVersion = "5.8.2"
+	const val junitVersion = "5.9.2"
 
 	/** The language level version of Kotlin. */
 	const val kotlinLanguage = "1.6"

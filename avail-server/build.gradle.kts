@@ -35,7 +35,7 @@ import avail.build.modules.AvailServerModule
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	java
+	id("java")
 	kotlin("jvm")
 	id("com.github.johnrengelman.shadow")
 }

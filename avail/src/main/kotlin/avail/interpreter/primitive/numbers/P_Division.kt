@@ -60,7 +60,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
@@ -247,8 +247,8 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		val generator = translator.generator
 		// If either of the argument types does not intersect with int32, then
 		// fall back to boxed division.
-		if (aType.typeIntersection(int32).isBottom
-			|| bType.typeIntersection(int32).isBottom)
+		if (aType.typeIntersection(i32).isBottom
+			|| bType.typeIntersection(i32).isBottom)
 		{
 			translator.generateGeneralFunctionInvocation(
 				functionToCallReg, arguments, false, callSiteHelper)
@@ -266,7 +266,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		assert(generator.currentlyReachable())
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction,
-			argumentTypes.map { it.typeIntersection(int32) })
+			argumentTypes.map { it.typeIntersection(i32) })
 		val semanticQuotient = L2SemanticValue.primitiveInvocation(
 			this, listOf(a.semanticValue(), b.semanticValue()))
 		val quotientWriter = generator.intWrite(

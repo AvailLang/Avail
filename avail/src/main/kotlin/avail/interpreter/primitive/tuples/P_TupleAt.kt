@@ -53,7 +53,7 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
@@ -158,7 +158,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				primitiveInvocation(
 					P_TupleSize, listOf(tupleReg.semanticValue())))
 			val intSizeRestriction = restrictionForType(
-				tupleReg.type().sizeRange.typeIntersection(nonnegativeInt32),
+				tupleReg.type().sizeRange.typeIntersection(i31),
 				UNBOXED_INT_FLAG)
 			val intSizeType = intSizeRestriction.type
 			if (intSizeType.lowerBound.equals(intSizeType.upperBound))

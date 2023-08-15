@@ -120,7 +120,7 @@ class ListPhraseDescriptor private constructor(
 			tempBuilder.toString()
 		}
 		if (strings.any { it.contains('\n') }
-			|| strings.sumOf { it.length } > 60)
+			|| strings.sumOf { it.length } > maxBrief)
 		{
 			// Print on multiple lines.
 			val indenter = buildString { newlineTab(indent) }
