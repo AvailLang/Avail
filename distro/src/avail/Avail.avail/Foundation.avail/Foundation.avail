@@ -426,6 +426,12 @@ Extends
 		"_≤_",
 		"_⊆_",
 		"_⨉_^_",
+		
+		/* Convenient renames. */
+		"extended integer" → "ℤ∞",
+		"integer" → "ℤ",
+		"natural number" → "ℕ",
+		"whole number" → "𝕎",
 
 		/* And now the error codes. */
 		"I/O-error code",
@@ -1103,7 +1109,9 @@ Extends
 	"Objects" =
 	(
 		"a|an_«with«_«:»?:=_‡,»»",
+		"a|an_«with«_«:»?:=_‡,»»" → "{=_`|⁇«_«:»?:=_‡»=}",
 		"extend_with«_:_‡,»",
+		"{`#_`|⁇«_:_‡,»`#}",
 		"«Public»?«Explicit|explicit»?\
 			\|Class|class_extends_\
 			\|«with immutable⁇field|fields««public»?«reconstructible»?_:_«(accessor⁇_)»‡,»»\
