@@ -377,7 +377,7 @@ compileKotlin.kotlinOptions {
 
 /**
  * Remove released libraries; both the contents of
- * [AvailSetupContext.distroLib] and the publication staging directory,
+ * [distroLib] and the publication staging directory,
  * build/libs.
  *
  * @param task
@@ -480,7 +480,6 @@ fun Project.computeAvailRootsForTest (): String =
 	listOf("avail", "builder-tests", "examples", "website")
 		.joinToString(";") { availRoot(it).rootString }
 
-
 /**
  * Construct a operating system-specific file path using [File.separator].
  *
@@ -495,9 +494,7 @@ fun systemPath(vararg path: String): String =
 /** The relative path to the Avail distribution lib directory. */
 val distroLib = systemPath(distroDir, "lib")
 
-/**
- *
- */
+/** The path to the bootstrap package. */
 val bootstrapPackagePath =
 	systemPath("avail", "tools", "bootstrap")
 
@@ -563,7 +560,7 @@ object PublishingUtility
 	 * The warning that indicates the system does not have environment variables
 	 * for publishing credentials.
 	 */
-	private val credentialsWarning =
+	private const val CREDENTIALS_WARNING =
 		"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
 			"JIRA account. Then ensure the user name, and password are available " +
 			"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
@@ -575,7 +572,7 @@ object PublishingUtility
 	{
 		if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
 		{
-			System.err.println(credentialsWarning)
+			System.err.println(CREDENTIALS_WARNING)
 		}
 	}
 }
