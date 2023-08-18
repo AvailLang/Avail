@@ -3045,8 +3045,9 @@ class AvailWorkbench internal constructor(
 						{
 							1 -> label
 							else -> buildString {
-								val line = phrase.tokenSpans.firstOrNull()
-								line?.let { append("${it.line}: ") }
+								phrase.tokenSpans.firstOrNull()?.let {
+									append("${it.line}: ")
+								}
 								phrase.describeOn(this, 80)
 							}
 						}

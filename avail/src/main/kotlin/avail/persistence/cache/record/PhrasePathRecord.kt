@@ -34,6 +34,7 @@ package avail.persistence.cache.record
 
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.module.A_Module
+import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.tuples.A_String
@@ -289,12 +290,19 @@ constructor (
 		 *   Either zero to indicate this was not a token that occurred in the
 		 *   actual method name, or the one-based index into the [PhraseNode]'s
 		 *   [MessageSplitter]'s tuple of tokenized parts.
+		 * @property tokenContent
+		 *   If the [tokenIndexInName] is zero, this is the text of a token that
+		 *   occurred.  This is generally not a token of any method, and is
+		 *   useful for capturing tokens produced by a [lexer][A_Lexer] and
+		 *   consumed as a literal token by an ellipsis ("…") within a method
+		 *   name.
 		 */
 		data class PhraseNodeToken(
 			val start: Int,
 			val pastEnd: Int,
 			val line: Int,
-			val tokenIndexInName: Int)
+			val tokenIndexInName: Int,
+			val tokenContent: String?)
 
 		/**
 		 * Add the given [PhraseNode] as the last child of the receiver.
@@ -365,13 +373,18 @@ constructor (
 			binaryStream.vlq(atomName?.let(atomNameMap::get) ?: 0)
 			binaryStream.vlq(usageType.ordinal)
 			binaryStream.vlq(tokenSpans.size)
-			tokenSpans.forEach { (start, pastEnd, line, tokenIndexInName) ->
+			tokenSpans.forEach {
+					(start, pastEnd, line, tokenIndexInName, tokenContent) ->
 				binaryStream.zigzag(start - tokenCursor.value)
 				tokenCursor.value = start
 				binaryStream.zigzag(pastEnd - tokenCursor.value)
 				tokenCursor.value = pastEnd
 				binaryStream.vlq(line)
 				binaryStream.vlq(tokenIndexInName)
+				if (tokenIndexInName == 0)
+				{
+					binaryStream.writeUTF(tokenContent!!)
+				}
 			}
 		}
 
@@ -386,43 +399,117 @@ constructor (
 		{
 			//TODO – Properly style, honor budget, etc.
 			val splitter = splitter ?: return  // Malformed name, ignore
-			var tokens = tokenSpans.mapTo(mutableListOf()) { span ->
+			var triples = tokenSpans.mapTo(mutableListOf()) { span ->
 				val lexeme = splitter.messageParts[span.tokenIndexInName - 1]
-				span to lexeme.asNativeString()
+				Triple(1, span, lexeme.asNativeString())
 			}
 			// Add a second layer of tokens.
-			recurse(this) { node, again ->
-				node.splitter?.let { nodeSplitter ->
-					node.tokenSpans.mapTo(tokens) { span ->
-						val lexeme = nodeSplitter
-							.messageParts[span.tokenIndexInName - 1]
-						span to lexeme.asNativeString()
+			recurse(1 to this) { (depth, node), again ->
+				val nodeSplitter = node.splitter
+				node.tokenSpans.mapTo(triples) { span ->
+					val lexeme = when (val inName = span.tokenIndexInName)
+					{
+						0 -> span.tokenContent!!
+						else -> nodeSplitter!!
+							.messageParts[inName - 1].asNativeString()
+					}
+					Triple(depth, span, lexeme)
+				}
+				node.children.forEach { child -> again(depth + 1 to child) }
+			}
+			triples = triples.distinctBy { (_, span, _) -> span.start }
+				.toMutableList()
+			triples.sortBy { (_, span, _) -> span.start }
+			// TODO - We can do a better job than this, but for now demonstrate
+			//  that we can get rid of tokens below level 8.
+			var previousPastEnd = 0
+			var wasTooDeep = false
+			var startOfTooDeep = -1
+			var pastEndOfTooDeep = -1
+			val oldTriples = triples
+			triples = mutableListOf()
+			oldTriples.forEach { triple ->
+				val (depth, span, _) = triple
+				val tooDeep = depth > 8
+				when
+				{
+					!wasTooDeep && !tooDeep ->
+					{
+						// Emit the token normally.
+						triples.add(triple)
+					}
+					!wasTooDeep && tooDeep ->
+					{
+						// Start an elision range.
+						startOfTooDeep = span.start
+						pastEndOfTooDeep = span.pastEnd
+					}
+					wasTooDeep && tooDeep ->
+					{
+						// Continue an elision range.
+						pastEndOfTooDeep = span.pastEnd
+					}
+					else ->
+					{
+						// End an elision range.
+						triples.add(
+							Triple(
+								-999,
+								PhraseNodeToken(
+									startOfTooDeep,
+									pastEndOfTooDeep,
+									-999,
+									0,
+									"..."),
+								"..."))
+						// And write out the regular token.
+						triples.add(triple)
 					}
 				}
-				node.children.forEach(again)
+				wasTooDeep = tooDeep
 			}
-			tokens = tokens.distinctBy { (span, _) -> span.start }.toMutableList()
-			tokens.sortBy { (span, _) -> span.start }
-			var previousPastEnd = 0
-			tokens.forEach { (span, lexeme) ->
+			if (wasTooDeep)
+			{
+				triples.add(
+					Triple(
+						-999,
+						PhraseNodeToken(
+							startOfTooDeep,
+							pastEndOfTooDeep,
+							-999,
+							0,
+							"..."),
+						"..."))
+			}
+			triples.forEach { (_, span, lexeme) ->
 				if (span.start != previousPastEnd) builder.append(" ")
 				builder.append(lexeme)
 				previousPastEnd = span.pastEnd
 			}
 		}
 
-		override fun toString(): String
-		{
-			val indexInfo = when (val p = parent)
-			{
-				null -> ""
-				else -> "($indexInParent/${p.children.size}) "
+		override fun toString() = buildString {
+			append("PhraseNode ")
+
+			parent?.let { p ->
+				append("(")
+				append(indexInParent)
+				append("/")
+				append(p.children.size)
+				append(") ")
 			}
-			return tokenSpans.joinToString(
-				", ",
-				"PhraseNode $indexInfo$atomName: "
-			) { (start, pastEnd, tokenIndex) ->
-				"[$start..$pastEnd #$tokenIndex)"
+			append(atomName)
+			append(": ")
+			tokenSpans.joinTo(
+				buffer = this,
+				separator = ", "
+			) { (start, pastEnd, _, tokenIndex, tokenContent) ->
+				val content = when (tokenIndex)
+				{
+					0 -> " = $tokenContent"
+					else -> ""
+				}
+				"[$start..$pastEnd #$tokenIndex$content)"
 			}
 		}
 
@@ -461,7 +548,13 @@ constructor (
 					tokenCursor.value = pastEnd
 					val line = binaryStream.unvlqInt()
 					val tokenIndexInName = binaryStream.unvlqInt()
-					PhraseNodeToken(start, pastEnd, line, tokenIndexInName)
+					val tokenContent = when (tokenIndexInName)
+					{
+						0 -> binaryStream.readUTF()
+						else -> null
+					}
+					PhraseNodeToken(
+						start, pastEnd, line, tokenIndexInName, tokenContent)
 				}
 				return PhraseNode(
 					atomModuleName, atomName, usageType, tokenSpans, parent)
