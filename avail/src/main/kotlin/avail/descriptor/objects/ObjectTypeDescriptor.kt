@@ -185,16 +185,13 @@ class ObjectTypeDescriptor internal constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) = builder.brief {
-		append("{| ")
 		val myFieldTypeMap = self.fieldTypeMap
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self)
-		when (names.setSize)
+		val printedName = when (names.setSize)
 		{
-			0 -> append("object")
-			else -> append(
-				names.map { it.asNativeString() }.sorted()
-					.joinToString(" ∩ ")
-			)
+			0 -> "object"
+			else -> names.map { it.asNativeString() }.sorted()
+				.joinToString(" ∩ ")
 		}
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
@@ -209,11 +206,25 @@ class ObjectTypeDescriptor internal constructor(
 				}
 			}
 		}
-		var first = true
+		var importantKeys = emptyMap
 		myFieldTypeMap.forEach { key, type ->
 			if (!ignoreKeys.hasElement(key))
 			{
-				append(if (first) " |\n" else ",")
+				importantKeys =
+					importantKeys.mapAtPuttingCanDestroy(key, type, true)
+			}
+		}
+		if (importantKeys.mapSize == 0)
+		{
+			append(printedName)
+		}
+		else
+		{
+			append("{# ")
+			append(printedName)
+			var first = true
+			importantKeys.forEach { key, type ->
+				append(if (first) " |" else ",")
 				first = false
 				newlineTab(indent)
 				append(key.atomName.asNativeString())
@@ -224,8 +235,8 @@ class ObjectTypeDescriptor internal constructor(
 					indent + 1
 				)
 			}
+			append("\n#}")
 		}
-		append("\n|}")
 	}
 
 	/**

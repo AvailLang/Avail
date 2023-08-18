@@ -1117,38 +1117,6 @@ Public method "(The)“_”«else_»" is
 ] : string;
 
 /**
- * Print object types more neatly.
- *
- * @method "“_”"
- * @param "anObjectType" "object's type"
- * @returns "string"
- * @category "Objects" "Types" "Stringification"
- */
-Method "“_”" is
-[
-	anObjectType : object's type
-|
-	“anObjectType's names” else [primitive description of anObjectType]
-		(as list partitioned by " ∩ ")
-] : string;
-
-/**
- * Print object types more neatly.
- *
- * @method "“_”"
- * @param "anObject" "object"
- * @returns "string"
- * @category "Objects" "Stringification"
- */
-Method "“_”" is
-[
-	anObject : object
-|
-	(a|an) ““anObject's type's names” else [primitive description of anObject]
-		(as list partitioned by " ∩ ")”
-] : string;
-
-/**
  * Answer a variant of {@param "s"} such that all leading and trailing {@method
  * "_is whitespace" whitespace} has been removed.
  *

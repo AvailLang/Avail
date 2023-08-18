@@ -772,18 +772,6 @@ Public class "system exception" extends exception
 		error name : string;
 
 /**
- * @method "“_”"
- * @param "anException" "system exception"
- * @returns "string"
- */
-Stable method "“_”" is
-[
-	anException : system exception
-|
-	(a|an) “anException's error name”
-] : string;
-
-/**
  * Define a new system exception class. Publish the name of the class.
  *
  * @method "System exception_(_)extends_"
@@ -1610,27 +1598,6 @@ Semantic restriction "descriptive_" is
 	exceptionMeta : exception's type's type
 |
 	((descriptive exception) ∩ (exceptionMeta's instance))'s type
-];
-
-/**
- * @method "“_”"
- * @param "e" "descriptive exception"
- * @returns "string"
- * 		The stringified {@type "descriptive exception"}
- * @category "Stringification"
- */
-Stable method "“_”" is
-[
-	e : descriptive exception
-|
-	format
-		"‘①’
-		\|(
-		\|\t‘②’
-		\|)"
-	with
-		(a|an) “e's type”,
-		e's error message
 ];
 
 /**

@@ -54,6 +54,7 @@ Uses
 Names
 	"a|an_«with«_«:»?:=_‡,»»",
 	"extend_with«_:_‡,»",
+	"{`#_`|⁇«_:_‡,»`#}",
 	"«Public»?«Explicit|explicit»?\
 		\|Class|class_extends_\
 		\|«with immutable⁇field|fields««public»?«reconstructible»?\
@@ -334,6 +335,53 @@ Semantic restriction "_→tuple" is
  * Construct and answer an object type which is a subtype of {@param
  * "supertype"} augmented by the specified tuple of field definitions.
  *
+ * @method "{`#_`|⁇«_:_‡,»`#}"
+ * @param "supertype" "object's type"
+ *        An object type that must be a supertype of the answer.
+ * @param "newDefinitions" "<<atom, any meta…|2>…|1..>"
+ *        A tuple of 2-tuples. Each 2-tuple consists of 1) an atom that uniquely
+ *        identifies the field and 2) the field type, i.e., the type of value
+ *        that instances of the answer may store in the field. If the field atom
+ *        is defined by {@param "supertype"}, then the new field type must be a
+ *        subtype of the field type as defined in {@param "supertype"}, i.e., it
+ *        must be covariantly specialized.
+ * @returns "object's type"
+ *          The requested object type.
+ * @category "Objects" "Types" "Constructors"
+ */
+Public stable method "{`#_`|⁇«_:_‡,»`#}" is
+[
+	supertype : object meta,
+	newDefinitions : <atom, any meta…|2>*
+|
+	if ¬newDefinitions is empty then
+	[
+		fieldAtoms ::= stripe newDefinitions at 1;
+		If |fieldAtoms→set| ≠ |fieldAtoms| then
+		[
+			early failure function(
+				object-type-extension-contains-duplicates code)
+		];
+		subtype ::= (supertype→tuple ++ newDefinitions)→object type;
+		If ¬subtype ⊆ supertype then
+		[
+			early failure function(
+				object-type-extension-did-not-produce-subtype code)
+		];
+		subtype
+	]
+	else
+	[
+		supertype
+	]
+] : object meta;
+
+Style $"{`#_`|⁇«_:_‡,»`#}" with object type styler;
+
+/**
+ * Construct and answer an object type which is a subtype of {@param
+ * "supertype"} augmented by the specified tuple of field definitions.
+ *
  * @method "extend_with«_:_‡,»"
  * @param "supertype" "object's type"
  *        An object type that must be a supertype of the answer.
@@ -351,7 +399,7 @@ Semantic restriction "_→tuple" is
 Public stable method "extend_with«_:_‡,»" is
 [
 	supertype : object meta,
-	newDefinitions : <<atom, any meta…|2>…|1..>
+	newDefinitions : <atom, any meta…|2>+
 |
 	fieldAtoms ::= stripe newDefinitions at 1;
 	If |fieldAtoms→set| ≠ |fieldAtoms| then
