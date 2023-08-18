@@ -29,33 +29,86 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import avail.build.cleanupAllJars
-import avail.build.cleanupJars
-import avail.build.modules.AvailServerModule
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 plugins {
 	id("java")
-	kotlin("jvm")
-	id("com.github.johnrengelman.shadow")
+	kotlin("jvm") version "1.9.0"
+	id("com.github.johnrengelman.shadow") version "8.1.1"
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+/** The language level version of Kotlin. */
+val kotlinLanguage = "1.9"
+
+/** The JVM target version for Kotlin. */
+val jvmTarget = 17
+
+/** The JVM target version for Kotlin. */
+val jvmTargetString = jvmTarget.toString()
+
+/** The `com.google.code.findbugs:jsr305` version. */
+val jsrVersion = "3.0.2"
+
+/**
+ * Remove all the jars, excluding "*-all.jar" from the
+ * [build directory][Project.getBuildDir].
+ */
+fun Project.cleanupJars ()
+{
+	delete(fileTree("$buildDir/libs").matching {
+		include("**/*.jar")
+		exclude("**/*-all.jar")
+	})
+}
+
+/**
+ * Remove all the "*-all.jar" jars from the
+ * [build directory][Project.getBuildDir].
+ */
+fun Project.cleanupAllJars ()
+{
+	delete(fileTree("$buildDir/libs").matching {
+		include("**/*-all.jar")
+	})
+}
+
+/**
+ * The current time as a String in the format `yyyy-MM-ddTHH:mm:ss.SSSZ`.
+ */
+val formattedNow: String get()
+{
+	val formatter = DateTimeFormatter
+		.ofPattern("yyyy-MM-dd HH:mm:ss.SSSZ")
+		.withLocale(Locale.getDefault())
+		.withZone(ZoneId.of("UTC"))
+	return formatter.format(Instant.now())
 }
 
 dependencies {
 	// Avail.
-	implementation(project(":avail"))
-	AvailServerModule.addDependencies(this)
+	implementation("org.availlang:avail:2.0.0.alpha21")
+	implementation("com.google.code.findbugs:jsr305:$jsrVersion")
 }
 
 java {
 	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+		languageVersion.set(JavaLanguageVersion.of(jvmTarget))
 	}
 }
 
 kotlin {
 	jvmToolchain {
 		(this as JavaToolchainSpec).languageVersion.set(
-			JavaLanguageVersion.of(Versions.jvmTargetString))
+			JavaLanguageVersion.of(jvmTargetString))
 	}
 }
 
@@ -68,7 +121,7 @@ tasks {
 	jar {
 		doFirst { cleanupJars() }
 		manifest.attributes["Main-Class"] = "avail.server.AvailServer"
-		manifest.attributes["Build-Time"] = project.extra.get("builtTime")
+		manifest.attributes["Build-Time"] = formattedNow
 		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	}
 
@@ -93,6 +146,6 @@ tasks {
 }
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
-	languageVersion = "1.9"
-	apiVersion = "1.9"
+	languageVersion = kotlinLanguage
+	apiVersion = kotlinLanguage
 }
