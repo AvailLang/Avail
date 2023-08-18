@@ -1406,7 +1406,9 @@ class CompilationContext constructor(
 						token.start())
 					val pastEnd = surrogateIndexConverter.availIndexToJavaIndex(
 						token.pastEnd())
-					PhraseNodeToken(start, pastEnd, indexInName.extractInt)
+					val line = token.lineNumber()
+					PhraseNodeToken(
+						start, pastEnd, line, indexInName.extractInt)
 				}.distinct()
 			val phraseNode =
 				PhraseNode(moduleName, atomName, usageType, tokenSpans, parent)

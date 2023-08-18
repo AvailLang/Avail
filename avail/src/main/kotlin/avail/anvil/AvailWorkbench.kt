@@ -173,6 +173,9 @@ import avail.persistence.cache.record.ModuleVersionKey
 import avail.persistence.cache.record.NameInModule
 import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.NamesIndex.Definition
+import avail.persistence.cache.record.NamesIndex.Usage
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
 import avail.stacks.StacksGenerator
@@ -245,6 +248,7 @@ import javax.swing.GroupLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JMenu
 import javax.swing.JMenuItem
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
@@ -2776,6 +2780,65 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
+	 * Scan all roots for modules that define the given [NameInModule].  After
+	 * accumulating this list, launch an AvailTask to invoke the [after]
+	 * function with the flat [List] of [Pair]s of [ResolvedModuleName] and
+	 * [ModuleManifestEntry].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for definitions.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, and their
+	 *   relevant [PhrasePathRecord]s fetched and decoded, launch an [AvailTask]
+	 *   with all the &lt;[ResolvedModuleName], [PhraseNode]> [Pair]s.
+	 */
+	private fun allUsagesThen(
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, PhraseNode>>)->Unit)
+	{
+		allRelevantCompilationsDoThen(nameInModule) { compilationPairs ->
+			compilationPairs.parallelMapThen<
+					Pair<ResolvedModuleName, ModuleCompilation>,
+					Pair<ResolvedModuleName, List<PhraseNode>>>(
+				action = { (moduleName, compilation), withPhraseList ->
+					val repository = moduleName.repository
+					repository.reopenIfNecessary()
+					val namesIndexRecordIndex =
+						repository[compilation.recordNumberOfNamesIndex]
+					val occurrences = NamesIndex(namesIndexRecordIndex)
+						.findMentions(nameInModule)
+					if (occurrences != null
+						&& occurrences.usages.isNotEmpty())
+					{
+						val phrasePathBytes = repository[
+							compilation.recordNumberOfPhrasePaths]
+						val phrasePathRecord = PhrasePathRecord(phrasePathBytes)
+						val phrases = mutableListOf<PhraseNode>()
+						phrasePathRecord.phraseNodesDo(phrases::add)
+						val usagePhrases = occurrences.usages
+							.map(Usage::phraseIndex)
+							.map(phrases::get)
+						withPhraseList(moduleName to usagePhrases)
+					}
+					else
+					{
+						withPhraseList(moduleName to emptyList())
+					}
+				},
+				then = { pairs ->
+					val allPairs = pairs.flatMap { (module, phrases) ->
+						phrases.map { phrase -> module to phrase }
+					}
+					runtime.execute(FiberDescriptor.commandPriority) {
+						after(allPairs)
+					}
+				}
+			)
+		}
+	}
+
+	/**
 	 * The user has clicked on a token in the source in such a way that they are
 	 * requesting navigation related to the method name containing that token.
 	 * Begin an asynchronous action to locate all definitions of the name in all
@@ -2789,7 +2852,7 @@ class AvailWorkbench internal constructor(
 	 * @param mouseEvent
 	 *   The [MouseEvent] which was the request for navigation.
 	 */
-	fun navigateForName(
+	fun navigateToDefinitionsOfName(
 		nameInModule: NameInModule,
 		tokenIndexInName: Int,
 		mouseEvent: MouseEvent)
@@ -2802,31 +2865,11 @@ class AvailWorkbench internal constructor(
 					// the set of applicable modules, and include more context.
 					module to module.localName
 				}
-				val menu = JPopupMenu()
-				val availName = stringFrom(nameInModule.atomName)
-				val indexMap = mutableMapOf<Int, Int>()
-				val quoteBuilder = StringBuilder()
-				quoteStringOn(quoteBuilder, availName, indexMap)
-				val originalRange =
-					MessageSplitter.split(availName)
-						.rangeToHighlightForPartIndex(tokenIndexInName)
-				val startOfRange = indexMap[originalRange.first]!! + 1
-				val pastEndOfRange = indexMap[originalRange.last + 1]!! + 1
-				val quoted = quoteBuilder.toString()
-				val styledName = htmlStyledMethodName(
-					stringFrom(quoted),
-					true,
-					stylesheet,
-					startOfRange,
-					pastEndOfRange)
-				val title = buildString {
-					append("<html><tt><font size='+1'>")
-					append(styledName)
-					append("</font></tt></html>")
-				}
-				val titleLabel = JLabel(title)
+				val title = htmlTitleString(
+					nameInModule.atomName, tokenIndexInName)
 				val titlePanel = JPanel()
-				titlePanel.add(titleLabel)
+				titlePanel.add(JLabel(title))
+				val menu = JPopupMenu()
 				menu.add(titlePanel)
 				menu.addSeparator()
 				val groupedEntries = allEntries.groupBy(
@@ -2895,7 +2938,7 @@ class AvailWorkbench internal constructor(
 					val label = buildString {
 						// Increase indent of multi-line summaries.
 						append("<html><div style='white-space: pre'>")
-						append(shortModuleNames[moduleName])
+						append(shortModuleNames[moduleName]!!.escapedForHTML())
 						append(":")
 						append(line)
 						append("&nbsp;&nbsp;<font color='#8090FF'>")
@@ -2940,6 +2983,183 @@ class AvailWorkbench internal constructor(
 				menu.isVisible = true
 			}
 		}
+	}
+
+	/**
+	 * The user has clicked on a token in the source in such a way that they are
+	 * requesting navigation to places that send that method. Begin an
+	 * asynchronous action to locate all usages of the name in all visible
+	 * modules that have been compiled since their last change.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] to find.
+	 * @param tokenIndexInName
+	 *   The index of the token that the user has selected within the list of a
+	 *   message's tokens produced by a [MessageSplitter].
+	 * @param mouseEvent
+	 *   The [MouseEvent] which was the request for navigation.
+	 */
+	fun navigateToSendersOfName(
+		nameInModule: NameInModule,
+		tokenIndexInName: Int,
+		mouseEvent: MouseEvent)
+	{
+		allUsagesThen(nameInModule) { allEntries ->
+			if (allEntries.isNotEmpty())
+			{
+				val shortModuleNames = allEntries.associate { (module, _) ->
+					//TODO Eventually check for ambiguous local module names in
+					// the set of applicable modules, and include more context.
+					module to module.localName
+				}
+				val title = htmlTitleString(
+					nameInModule.atomName, tokenIndexInName)
+				val titlePanel = JPanel()
+				titlePanel.add(JLabel(title))
+				val menu = JPopupMenu()
+				menu.add(titlePanel)
+				menu.addSeparator()
+				val groupedEntries = allEntries.groupBy(
+					keySelector = Pair<ResolvedModuleName,*>::first,
+					valueTransform = Pair<*,PhraseNode>::second
+				)
+				val sortedEntries =
+					groupedEntries.entries.sortedBy { (moduleName, _) ->
+						shortModuleNames[moduleName]
+					}
+				sortedEntries.forEach { (moduleName, phrases) ->
+					val label = buildString {
+						append("<html>")
+						append(shortModuleNames[moduleName]!!.escapedForHTML())
+						if (phrases.size > 1) append(" (${phrases.size} uses)")
+						append("</html>")
+					}
+					//TODO – Figure out icons for UsageType
+					//val icon = CompoundIcon(
+					//	phrases
+					//		.mapToSet(transform = PhraseNode::usageType)
+					//		.map { kind -> SideEffectIcons.icon(16, kind) },
+					//	xGap = 3)
+					val items = phrases.map { phrase ->
+						val itemLabel = when (phrases.size)
+						{
+							1 -> label
+							else -> buildString {
+								val line = phrase.tokenSpans.firstOrNull()
+								line?.let { append("${it.line}: ") }
+								phrase.describeOn(this, 80)
+							}
+						}
+						val action = object :
+							AbstractWorkbenchAction(this, itemLabel)
+						{
+							override fun actionPerformed(e: ActionEvent?)
+							{
+								// Locate or open an editor for the target.
+								var opened = false
+								val editor =
+									workbench.openEditors.computeIfAbsent(
+										moduleName
+									) {
+										opened = true
+										AvailEditor(workbench, moduleName)
+									}
+								if (!opened) editor.toFront()
+								invokeLater {
+									var spans = phrase.tokenSpans
+									// Select from the start of the first token
+									// of the usage to the end of the last token
+									// of that usage.
+									if (spans.isEmpty())
+									{
+										// There are no tokens, so check the
+										// immediate children to see if they
+										// have any.
+										spans = phrase.children
+											.flatMap { it.tokenSpans }
+									}
+									if (spans.isEmpty())
+									{
+										// The children didn't have any tokens
+										// either.  Try the ancestors.
+										var ancestor = phrase.parent
+										while (ancestor != null
+											&& spans.isEmpty())
+										{
+											spans = ancestor.tokenSpans
+											ancestor = ancestor.parent
+										}
+									}
+									val spansStart =
+										spans.minOfOrNull { it.start } ?: 1
+									val spansPastEnd =
+										spans.maxOfOrNull { it.pastEnd } ?: 1
+									editor.sourcePane
+										.select(spansStart - 1, spansPastEnd - 1)
+									editor.sourcePane
+										.showTextRange(spansStart, spansPastEnd)
+								}
+							}
+
+							override fun updateIsEnabled(busy: Boolean) = Unit
+						}
+						//TODO After icon is working.
+						//action.putValue(Action.SMALL_ICON, icon)
+						JMenuItem(action).apply {
+							horizontalAlignment = SwingConstants.LEFT
+						}
+					}
+					when (items.size)
+					{
+						// One match in file, add it directly as an item.
+						1 -> menu.add(items[0])
+
+						// More than one, create a submenu.
+						else ->
+						{
+							val submenu = JMenu(label)
+							items.forEach(submenu::add)
+							submenu.horizontalAlignment = SwingConstants.LEFT
+							menu.add(submenu)
+						}
+					}
+				}
+				menu.invoker = mouseEvent.component
+				menu.location = mouseEvent.locationOnScreen
+				menu.isVisible = true
+			}
+		}
+	}
+
+	/**
+	 * Given a method name and
+	 */
+	private fun htmlTitleString(
+		atomName: String,
+		tokenIndexInName: Int): String
+	{
+		val availName = stringFrom(atomName)
+		val indexMap = mutableMapOf<Int, Int>()
+		val quoteBuilder = StringBuilder()
+		quoteBuilder.quoteStringOn(availName, indexMap)
+		val originalRange =
+			MessageSplitter.split(availName)
+				.rangeToHighlightForPartIndex(tokenIndexInName)
+		val startOfRange = indexMap[originalRange.first]!! + 1
+		val pastEndOfRange = indexMap[originalRange.last + 1]!! + 1
+		val quoted = quoteBuilder.toString()
+		val styledName = htmlStyledMethodName(
+			stringFrom(quoted),
+			true,
+			stylesheet,
+			startOfRange,
+			pastEndOfRange)
+		val title = buildString {
+			append("<html><tt><font size='+1'>")
+			append(styledName)
+			append("</font></tt></html>")
+		}
+		return title
 	}
 
 	/**

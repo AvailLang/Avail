@@ -580,31 +580,36 @@ class AvailEditor constructor(
 	{
 		if (e.isMetaDown)
 		{
-			// This is a navigation click.  Figure out what method the indicated
-			// token belongs to, and navigate based on that method.
-			e.consume()
+			// First figure out what method is being sent by the token under the
+			// cursor.
 			val doc = sourcePane.styledDocument
 			val pos = sourcePane.viewToModel2D(e.point)
 			// First look to the right of the cursor position.
-			var element = doc.getCharacterElement(pos)
-			var tokenStyle =
-				element.attributes.getAttribute(PhraseNodeAttributeKey)
-					as? TokenStyle
-			if (tokenStyle == null)
-			{
-				// If there's no applicable token for the character to the right
-				// of the cursor, try looking to the left.
-				element = doc.getCharacterElement(max(pos - 1, 0))
-				tokenStyle =
-					element.attributes.getAttribute(PhraseNodeAttributeKey)
+			val tokenStyleRight =
+				doc.getCharacterElement(pos).attributes
+					.getAttribute(PhraseNodeAttributeKey)
+						as? TokenStyle
+			val tokenStyle = tokenStyleRight ?: run {
+				// There's no applicable token for the character to the right of
+				// the cursor, so try looking to the left.
+				doc.getCharacterElement(max(pos - 1, 0))
+					.attributes.getAttribute(PhraseNodeAttributeKey)
 						as? TokenStyle
 			}
-			tokenStyle?.phraseNode?.let { phraseNode ->
-				phraseNode.nameInModule?.let { nameInModule ->
-					workbench.navigateForName(
-						nameInModule, tokenStyle.tokenIndexInName, e)
-				}
+			val nameInModule = tokenStyle?.phraseNode?.nameInModule
+			// Exit if there is no recognizable name's token at the cursor.
+			nameInModule ?: return
+			when
+			{
+				// Navigate to sends of the method.
+				e.isAltDown -> workbench.navigateToSendersOfName(
+					nameInModule, tokenStyle.tokenIndexInName, e)
+
+				// Navigate to the definitions of the method.
+				else -> workbench.navigateToDefinitionsOfName(
+					nameInModule, tokenStyle.tokenIndexInName, e)
 			}
+			e.consume()
 		}
 	}
 

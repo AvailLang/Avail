@@ -42,8 +42,11 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.persistence.cache.record.NamesIndex.UsageType
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode.PhraseNodeToken
 import avail.utility.Mutable
 import avail.utility.decodeString
+import avail.utility.evaluation.Combinator.recurse
 import avail.utility.iterableWith
 import avail.utility.removeLast
 import avail.utility.sizedString
@@ -99,6 +102,8 @@ constructor (
 	 *
 	 * @param binaryStream
 	 *   A DataOutputStream on which to write this phrase path record.
+	 * @param namesIndex
+	 *   The [NamesIndex] to update while writing this [PhrasePathRecord].
 	 * @throws IOException
 	 *   If I/O fails.
 	 */
@@ -147,10 +152,10 @@ constructor (
 				namesIndex.addUsage(
 					nodeNameInModule,
 					node.usageType,
-					phraseNumber++)
+					phraseNumber)
 			}
-			node.write(
-				binaryStream, moduleNameMap, atomNameMap, tokenCursor)
+			phraseNumber++
+			node.write(binaryStream, moduleNameMap, atomNameMap, tokenCursor)
 			binaryStream.vlq(node.children.size)
 			workStack.addAll(node.children.reversed())
 		}
@@ -276,6 +281,10 @@ constructor (
 		 *   begins.
 		 * @property pastEnd
 		 *   The one-based index into the UCS-2 [String] just past the token.
+		 * @property line
+		 *   The one-based line number containing the token.  If the token spans
+		 *   multiple lines (say a string literal), this is the line number of
+		 *   the start of the token.
 		 * @property tokenIndexInName
 		 *   Either zero to indicate this was not a token that occurred in the
 		 *   actual method name, or the one-based index into the [PhraseNode]'s
@@ -284,6 +293,7 @@ constructor (
 		data class PhraseNodeToken(
 			val start: Int,
 			val pastEnd: Int,
+			val line: Int,
 			val tokenIndexInName: Int)
 
 		/**
@@ -355,16 +365,51 @@ constructor (
 			binaryStream.vlq(atomName?.let(atomNameMap::get) ?: 0)
 			binaryStream.vlq(usageType.ordinal)
 			binaryStream.vlq(tokenSpans.size)
-			tokenSpans.forEach { (start, pastEnd, tokenIndexInName) ->
+			tokenSpans.forEach { (start, pastEnd, line, tokenIndexInName) ->
 				binaryStream.zigzag(start - tokenCursor.value)
 				tokenCursor.value = start
 				binaryStream.zigzag(pastEnd - tokenCursor.value)
 				tokenCursor.value = pastEnd
+				binaryStream.vlq(line)
 				binaryStream.vlq(tokenIndexInName)
 			}
 		}
 
 		fun depth() = iterableWith(PhraseNode::parent).count()
+
+		/**
+		 * Output this phrase on the [builder], while trying to avoid exceeding
+		 * the [characterBudget].  The builder expects html text, but without
+		 * the outer `html` tag.
+		 */
+		fun describeOn(builder: StringBuilder, characterBudget: Int)
+		{
+			//TODO – Properly style, honor budget, etc.
+			val splitter = splitter ?: return  // Malformed name, ignore
+			var tokens = tokenSpans.mapTo(mutableListOf()) { span ->
+				val lexeme = splitter.messageParts[span.tokenIndexInName - 1]
+				span to lexeme.asNativeString()
+			}
+			// Add a second layer of tokens.
+			recurse(this) { node, again ->
+				node.splitter?.let { nodeSplitter ->
+					node.tokenSpans.mapTo(tokens) { span ->
+						val lexeme = nodeSplitter
+							.messageParts[span.tokenIndexInName - 1]
+						span to lexeme.asNativeString()
+					}
+				}
+				node.children.forEach(again)
+			}
+			tokens = tokens.distinctBy { (span, _) -> span.start }.toMutableList()
+			tokens.sortBy { (span, _) -> span.start }
+			var previousPastEnd = 0
+			tokens.forEach { (span, lexeme) ->
+				if (span.start != previousPastEnd) builder.append(" ")
+				builder.append(lexeme)
+				previousPastEnd = span.pastEnd
+			}
+		}
 
 		override fun toString(): String
 		{
@@ -414,8 +459,9 @@ constructor (
 					tokenCursor.value = start
 					val pastEnd = tokenCursor.value + binaryStream.unzigzagInt()
 					tokenCursor.value = pastEnd
+					val line = binaryStream.unvlqInt()
 					val tokenIndexInName = binaryStream.unvlqInt()
-					PhraseNodeToken(start, pastEnd, tokenIndexInName)
+					PhraseNodeToken(start, pastEnd, line, tokenIndexInName)
 				}
 				return PhraseNode(
 					atomModuleName, atomName, usageType, tokenSpans, parent)
