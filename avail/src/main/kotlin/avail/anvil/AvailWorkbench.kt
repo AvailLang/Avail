@@ -3007,10 +3007,18 @@ class AvailWorkbench internal constructor(
 		allUsagesThen(nameInModule) { allEntries ->
 			if (allEntries.isNotEmpty())
 			{
+				// Disambiguate local names only when necessary.
+				val localNames = allEntries.groupBy { (module, _) ->
+					module.localName
+				}
 				val shortModuleNames = allEntries.associate { (module, _) ->
-					//TODO Eventually check for ambiguous local module names in
-					// the set of applicable modules, and include more context.
-					module to module.localName
+					val localName = module.localName
+					val distinct = localNames[localName]!!
+						.map(Pair<ResolvedModuleName, *>::first)
+						.distinct()
+					module to
+						if (distinct.size == 1) localName
+						else module.qualifiedName
 				}
 				val title = htmlTitleString(
 					nameInModule.atomName, tokenIndexInName)
@@ -3041,15 +3049,11 @@ class AvailWorkbench internal constructor(
 					//		.map { kind -> SideEffectIcons.icon(16, kind) },
 					//	xGap = 3)
 					val items = phrases.map { phrase ->
-						val itemLabel = when (phrases.size)
-						{
-							1 -> label
-							else -> buildString {
-								phrase.tokenSpans.firstOrNull()?.let {
-									append("${it.line}: ")
-								}
-								phrase.describeOn(this, 80)
+						val itemLabel = buildString {
+							phrase.tokenSpans.firstOrNull()?.let {
+								append("${it.line}: ")
 							}
+							phrase.describeOn(this, 80)
 						}
 						val action = object :
 							AbstractWorkbenchAction(this, itemLabel)
@@ -3110,20 +3114,10 @@ class AvailWorkbench internal constructor(
 							horizontalAlignment = SwingConstants.LEFT
 						}
 					}
-					when (items.size)
-					{
-						// One match in file, add it directly as an item.
-						1 -> menu.add(items[0])
-
-						// More than one, create a submenu.
-						else ->
-						{
-							val submenu = JMenu(label)
-							items.forEach(submenu::add)
-							submenu.horizontalAlignment = SwingConstants.LEFT
-							menu.add(submenu)
-						}
-					}
+					val submenu = JMenu(label)
+					items.forEach(submenu::add)
+					submenu.horizontalAlignment = SwingConstants.LEFT
+					menu.add(submenu)
 				}
 				menu.invoker = mouseEvent.component
 				menu.location = mouseEvent.locationOnScreen
