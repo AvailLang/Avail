@@ -107,6 +107,7 @@ import avail.anvil.debugger.AvailDebugger
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.GlobalEnvironmentSettings.Companion.globalTemplates
 import avail.anvil.icons.CompoundIcon
+import avail.anvil.icons.UsageTypeIcons
 import avail.anvil.icons.structure.SideEffectIcons
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
@@ -2860,10 +2861,18 @@ class AvailWorkbench internal constructor(
 		allDefinitionsThen(nameInModule) { allEntries ->
 			if (allEntries.isNotEmpty())
 			{
+				// Disambiguate local names only when necessary.
+				val localNames = allEntries.groupBy { (module, _) ->
+					module.localName
+				}
 				val shortModuleNames = allEntries.associate { (module, _) ->
-					//TODO Eventually check for ambiguous local module names in
-					// the set of applicable modules, and include more context.
-					module to module.localName
+					val localName = module.localName
+					val distinct = localNames[localName]!!
+						.map(Pair<ResolvedModuleName, *>::first)
+						.distinct()
+					module to
+						if (distinct.size == 1) localName
+						else module.qualifiedName
 				}
 				val title = htmlTitleString(
 					nameInModule.atomName, tokenIndexInName)
@@ -3042,12 +3051,11 @@ class AvailWorkbench internal constructor(
 						if (phrases.size > 1) append(" (${phrases.size} uses)")
 						append("</html>")
 					}
-					//TODO – Figure out icons for UsageType
-					//val icon = CompoundIcon(
-					//	phrases
-					//		.mapToSet(transform = PhraseNode::usageType)
-					//		.map { kind -> SideEffectIcons.icon(16, kind) },
-					//	xGap = 3)
+					val icon = CompoundIcon(
+						phrases
+							.mapToSet(transform = PhraseNode::usageType)
+							.map { kind -> UsageTypeIcons.icon(16, kind) },
+						xGap = 3)
 					val items = phrases.map { phrase ->
 						val itemLabel = buildString {
 							phrase.tokenSpans.firstOrNull()?.let {
@@ -3108,8 +3116,7 @@ class AvailWorkbench internal constructor(
 
 							override fun updateIsEnabled(busy: Boolean) = Unit
 						}
-						//TODO After icon is working.
-						//action.putValue(Action.SMALL_ICON, icon)
+						action.putValue(Action.SMALL_ICON, icon)
 						JMenuItem(action).apply {
 							horizontalAlignment = SwingConstants.LEFT
 						}
