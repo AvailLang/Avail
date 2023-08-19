@@ -350,12 +350,12 @@ class NamesIndex
 		/**
 		 * This is a use of the name as a method to invoke at runtime.
 		 */
-		MethodSend("Method Send", "Method-Send.png"),
+		MethodSend("Method Send", "Name-Send-Method-Dark.png"),
 
 		/**
 		 * This is a use of the name as a macro to invoke at compile time.
 		 */
-		MacroSend("Macro Send", "Macro-Send.png"),
+		MacroSend("Macro Send", "Name-Send-Macro-Dark.png"),
 
 		/**
 		 * The name appears in a module header in either (1) the `Names`
@@ -363,7 +363,7 @@ class NamesIndex
 		 * section, or (3) as the right-hand side of a rename in the `Extends`
 		 * section.
 		 */
-		DefinedInHeader("Defined in Header", "Defined-In-Header.png"),
+		DefinedInHeader("Defined in Header", "Name-Creation-Header-Both.png"),
 
 		/**
 		 * The name appears in a module header in either (1) the `Uses` section,
@@ -371,7 +371,7 @@ class NamesIndex
 		 * `Extends` section, or (4) the left-hand side of a rename in the
 		 * `Extends` section.
 		 */
-		ImportedInHeader("Imported in Header", "Imported-In-Header.png"),
+		ImportedInHeader("Imported in Header", "Name-Mention-Header-Both.png"),
 
 		/**
 		 * The name was created within the body, either as (1) a consequence of
@@ -379,7 +379,7 @@ class NamesIndex
 		 */
 		CreationInBody(
 			"Creation in Body",
-			"Creation-In-Body.png"),
+			"Name-Creation-Body-Dark.png"),
 
 		/**
 		 * The name was referenced in the body as a consequence of a non-initial
@@ -387,7 +387,7 @@ class NamesIndex
 		 */
 		ReferenceInBody(
 			"Reference in Body",
-			"Reference-In-Body.png");
+			"Name-Mention-Body-Dark.png");
 
 		companion object
 		{
