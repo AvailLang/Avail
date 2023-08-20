@@ -581,24 +581,10 @@ class AvailEditor constructor(
 		if (e.isMetaDown)
 		{
 			// First figure out what method is being sent by the token under the
+			// cursor.Exit if there is no recognizable name's token at the
 			// cursor.
-			val doc = sourcePane.styledDocument
-			val pos = sourcePane.viewToModel2D(e.point)
-			// First look to the right of the cursor position.
-			val tokenStyleRight =
-				doc.getCharacterElement(pos).attributes
-					.getAttribute(PhraseNodeAttributeKey)
-						as? TokenStyle
-			val tokenStyle = tokenStyleRight ?: run {
-				// There's no applicable token for the character to the right of
-				// the cursor, so try looking to the left.
-				doc.getCharacterElement(max(pos - 1, 0))
-					.attributes.getAttribute(PhraseNodeAttributeKey)
-						as? TokenStyle
-			}
-			val nameInModule = tokenStyle?.phraseNode?.nameInModule
-			// Exit if there is no recognizable name's token at the cursor.
-			nameInModule ?: return
+			val tokenStyle = e.tokenStyleAtPointer ?: return
+			val nameInModule = tokenStyle.phraseNode.nameInModule ?: return
 			when
 			{
 				// Navigate to sends of the method.
@@ -610,6 +596,28 @@ class AvailEditor constructor(
 					nameInModule, tokenStyle.tokenIndexInName, e)
 			}
 			e.consume()
+		}
+	}
+
+	/**
+	 * The [TokenStyle] of the token under the pointer, or `null` if there is no
+	 * applicable token.
+	 */
+	private val MouseEvent.tokenStyleAtPointer: TokenStyle? get()
+	{
+		val doc = sourcePane.styledDocument
+		val pos = sourcePane.viewToModel2D(point)
+		// First look to the right of the cursor position.
+		val tokenStyleRight =
+			doc.getCharacterElement(pos).attributes
+				.getAttribute(PhraseNodeAttributeKey)
+				as? TokenStyle
+		return tokenStyleRight ?: run {
+			// There's no applicable token for the character to the right of
+			// the cursor, so try looking to the left.
+			doc.getCharacterElement(max(pos - 1, 0))
+				.attributes.getAttribute(PhraseNodeAttributeKey)
+				as? TokenStyle
 		}
 	}
 
