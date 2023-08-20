@@ -99,7 +99,7 @@ kotlin {
 
 dependencies {
 	// Avail.
-	implementation("org.availlang:avail:2.0.0.alpha21")
+	implementation(project(":avail"))
 }
 tasks {
 	// Produce a fat JAR for the Avail CLI.

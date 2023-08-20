@@ -258,7 +258,7 @@ object PublishingUtility
 	 * The warning that indicates the system does not have environment variables
 	 * for publishing credentials.
 	 */
-	private val credentialsWarning =
+	private const val credentialsWarning =
 		"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
 			"JIRA account. Then ensure the user name, and password are available " +
 			"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"

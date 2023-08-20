@@ -95,7 +95,7 @@ val formattedNow: String get()
 
 dependencies {
 	// Avail.
-	implementation("org.availlang:avail:2.0.0.alpha21")
+	implementation(project("avail"))
 	implementation("com.google.code.findbugs:jsr305:$jsrVersion")
 }
 

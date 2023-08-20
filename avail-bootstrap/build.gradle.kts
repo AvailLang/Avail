@@ -50,7 +50,7 @@ val kotlinLanguage = "1.9"
 val jsrVersion = "3.0.2"
 
 dependencies {
-	implementation("org.availlang:avail:2.0.0.alpha21")
+	implementation(project(":avail"))
 	implementation("com.google.code.findbugs:jsr305:$jsrVersion")
 }
 
@@ -158,7 +158,7 @@ tasks {
 	 * Copy the generated bootstrap property files into the build directory, so
 	 * that the executable tools can find them as resources.
 	 *
-	 * See [AvailBootstrapModule.relocateGeneratedPropertyFiles].
+	 * See [relocateGeneratedPropertyFiles].
 	 */
 	val relocateGeneratedPropertyFiles by creating(Copy::class) {
 		description =

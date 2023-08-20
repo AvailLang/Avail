@@ -8,6 +8,7 @@
         <option name="gradleJvm" value="#GRADLE_JAVA_HOME" />
         <option name="modules">
           <set>
+            <option value="$PROJECT_DIR$/../avail" />
             <option value="$PROJECT_DIR$" />
           </set>
         </option>
