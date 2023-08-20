@@ -241,9 +241,9 @@ EMBEDDING AVAIL
 If you wish to embed Avail into a larger JVM project, rather than use Avail as a
 standalone language, you can import a prebuilt version of Avail as a dependency.
 See the
-[Avail Gradle Plugin](https://github.com/AvailLang/gradle-plugin) for more
+[Avail Gradle Plugin](gradle-plugin) for more
 details on how to accomplish this. You can also refer to our
-[sample project](https://github.com/AvailLang/samples) to see how Avail can be
+[example projects](examples) to see how Avail can be
 incorporated into a JVM project.
 
 

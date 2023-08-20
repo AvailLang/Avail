@@ -132,7 +132,7 @@ kotlin {
 
 dependencies {
 	api("org.availlang:avail-storage:1.1.1")
-	api("org.availlang:avail-artifact:2.0.0.alpha19")
+	api(project(":avail-artifact"))
 	api("org.jetbrains.kotlin:kotlin-reflect:$kotlin")
 	implementation("com.google.code.findbugs:jsr305:$jsrVersion")
 	implementation("org.ow2.asm:asm:$asmVersion")
@@ -284,9 +284,6 @@ tasks {
 		from(dokkaHtml.outputDirectory)
 	}
 
-	artifacts {
-		add("archives", sourceJar)
-	}
 	publish {
 		PublishingUtility.checkCredentials()
 		dependsOn(build)
