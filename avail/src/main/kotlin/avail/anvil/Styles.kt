@@ -3495,7 +3495,7 @@ object RenderingEngine
 		}
 		// Add in the invisible phrase/token structure information.
 		phrasePathRecord?.phraseNodesDo { phraseNode ->
-			phraseNode.tokenSpans.forEach { (start, pastEnd, indexInName) ->
+			phraseNode.tokenSpans.forEach { (start, pastEnd, _, indexInName) ->
 				renderingFunctions.edit(start, pastEnd) { old ->
 					old compose { document, range ->
 						document.setCharacterAttributes(

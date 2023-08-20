@@ -87,6 +87,7 @@ import avail.descriptor.types.A_Type.Companion.hasObjectInstance
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
+import avail.descriptor.types.VariableTypeDescriptor
 import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2Optimizer
@@ -493,7 +494,7 @@ class ObjectDescriptor internal constructor(
 		indent: Int
 	) = builder.brief {
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self.kind())
-		append("{| ")
+		append("{= ")
 		when (names.setSize)
 		{
 			0 -> append("object")
@@ -517,15 +518,26 @@ class ObjectDescriptor internal constructor(
 		self.fieldMap().forEach { key, value ->
 			if (!ignoreKeys.hasElement(key))
 			{
-				append(if (first) " |\n" else ",")
+				append(if (first) " |" else ",")
 				first = false
 				newlineTab(indent)
 				append(key.atomName.asNativeString())
-				append(" = ")
-				value.printOnAvoidingIndent(this, recursionMap, indent + 1)
+				append(" :")
+				if (value.isInstanceOfKind(
+					VariableTypeDescriptor.mostGeneralVariableType))
+				{
+					append("= ")
+					value.value().printOnAvoidingIndent(
+						this, recursionMap, indent + 1)
+				}
+				else
+				{
+					append(":= ")
+					value.printOnAvoidingIndent(this, recursionMap, indent + 1)
+				}
 			}
 		}
-		append("\n|}")
+		append("\n=}")
 	}
 
 	override fun mutable() = variant.mutableObjectDescriptor

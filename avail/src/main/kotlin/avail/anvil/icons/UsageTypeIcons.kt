@@ -1,6 +1,6 @@
 /*
- * SideEffectIcons.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * UsageTypeIcons.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,42 +30,39 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.icons.structure
+package avail.anvil.icons
 
-import avail.anvil.icons.IconKey
-import avail.anvil.icons.ImageIconCache
-import avail.compiler.SideEffectKind
+import avail.persistence.cache.record.NamesIndex.UsageType
 import javax.swing.ImageIcon
 
 /**
- * The [Pair] of [String] [Int] used to retrieve a side effect icon in the
- * structure view.
+ * The [Pair] of [String] [Int] used to retrieve a usage type icon in the
+ * senders view.
  *
- * @author Richard Arriaga
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
- * @property sideEffectKind
- *   The associated [SideEffectKind].
+ * @property usageType
+ *   The associated [UsageType].
  * @property resourceName
  *   The associated file name of the resource.
  * @property scaledHeight
  *   The height to which to scale the image.
  */
-data class SideEffectIconKey constructor(
-	val sideEffectKind: SideEffectKind,
+data class UsageTypeIconKey constructor(
+	val usageType: UsageType,
 	override val scaledHeight: Int
 ): IconKey
 {
 	override val resourceName: String
-		get() = sideEffectKind.iconFileName
+		get() = usageType.iconFileName
 }
 
 /**
- * Manages the structure view icons associated with the various
- * [SideEffectKind]s.
+ * Manages the senders view icons associated with the various [UsageType]s.
  *
- * @author Richard Arriaga
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object SideEffectIcons
+object UsageTypeIcons
 {
 	/**
 	 * Return a suitable icon to display for this instance with the given line
@@ -73,20 +70,19 @@ object SideEffectIcons
 	 *
 	 * @param lineHeight
 	 *   The desired icon height in pixels.
-	 * @param sideEffectKind
-	 *   The [side&#32;effect&#32;kind][SideEffectKind].
+	 * @param usageType
+	 *   The [usage&#32;type][UsageType].
 	 * @return
 	 *   The icon.
 	 */
-	fun icon(lineHeight: Int, sideEffectKind: SideEffectKind): ImageIcon =
-		cachedScaledIcons[SideEffectIconKey(sideEffectKind, lineHeight)]
+	fun icon(lineHeight: Int, usageType: UsageType): ImageIcon =
+		cachedScaledIcons[UsageTypeIconKey(usageType, lineHeight)]
 
 	/**
-	 * A static cache of scaled icons, organized
-	 * [SideEffectKind] and line height.
+	 * A static cache of scaled icons, organized [UsageType] and line height.
 	 */
 	private val cachedScaledIcons =
-		ImageIconCache<SideEffectIconKey>(
-			"/workbench/structure-icons/",
-			SideEffectIcons::class.java)
+		ImageIconCache<UsageTypeIconKey>(
+			"/workbench/usage-icons/",
+			UsageTypeIcons::class.java)
 }

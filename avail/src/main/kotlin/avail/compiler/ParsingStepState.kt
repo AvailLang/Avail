@@ -80,7 +80,7 @@ import avail.utility.PrefixSharingList.Companion.withoutLast
  * @property superexpressions
  *   The [PartialSubexpressionList] (or null) which forms a chain of partially
  *   constructed outer phrases, used for describing the circumstance of a syntax
- *   errer.
+ *   error.
  * @property continuation
  *   What to do with a complete [message&#32;send][SendPhraseDescriptor].
  *
