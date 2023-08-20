@@ -1370,7 +1370,9 @@ class AvailRuntime constructor(
 				PhraseKind.LITERAL_PHRASE.create(
 					LiteralTokenTypeDescriptor.literalTokenType(
 						stringType)))
-			at(181)
+			put(oneOrMoreOf(nonemptyStringType))
+			put(setTypeForSizesContentType(wholeNumbers, nonemptyStringType))
+			at(183)
 
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
