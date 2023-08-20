@@ -9,3 +9,6 @@
 /out
 /debug
 hs_err_*.log
+=======
+/build
+/out

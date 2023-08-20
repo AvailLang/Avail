@@ -3134,7 +3134,21 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * Given a method name and
+	 * Convert the given method name into a top-level HTML3.2 string containing
+	 * the same text.  The HTML text is suitable for use as a Swing label, and
+	 * includes the outermost `<html>` tag.  The HTML text has styling
+	 * information applied to it, based on the current [stylesheet].
+	 *
+	 * In addition, the message part with the specified [tokenIndexInName] (from
+	 * the decomposition of the method name by a [MessageSplitter]) is
+	 * highlighted with the [SystemStyleClassifier.TOKEN_HIGHLIGHT] style.
+	 *
+	 * @param atomName
+	 *   The [String] containing the unquoted method name to convert to HTML.
+	 * @param tokenIndexInName
+	 *   Which one-based token number within the message name to highlight.
+	 * @return
+	 *   A suitable HTML3.2 string to use as Swing label text.
 	 */
 	private fun htmlTitleString(
 		atomName: String,
@@ -3144,9 +3158,8 @@ class AvailWorkbench internal constructor(
 		val indexMap = mutableMapOf<Int, Int>()
 		val quoteBuilder = StringBuilder()
 		quoteBuilder.quoteStringOn(availName, indexMap)
-		val originalRange =
-			MessageSplitter.split(availName)
-				.rangeToHighlightForPartIndex(tokenIndexInName)
+		val originalRange = MessageSplitter.split(availName)
+			.rangeToHighlightForPartIndex(tokenIndexInName)
 		val startOfRange = indexMap[originalRange.first]!! + 1
 		val pastEndOfRange = indexMap[originalRange.last + 1]!! + 1
 		val quoted = quoteBuilder.toString()
