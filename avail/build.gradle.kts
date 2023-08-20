@@ -286,7 +286,6 @@ tasks {
 
 	artifacts {
 		add("archives", sourceJar)
-//		add("archives", javadocJar)
 	}
 	publish {
 		PublishingUtility.checkCredentials()
