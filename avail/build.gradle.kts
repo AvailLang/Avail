@@ -237,7 +237,6 @@ tasks {
 		group = "anvil"
 		description = "Package anvil.jar"
 		dependsOn(shadowJar)
-
 	}
 
 	val packageAndRun by creating(JavaExec::class) {
@@ -287,11 +286,12 @@ tasks {
 
 	artifacts {
 		add("archives", sourceJar)
-		add("archives", javadocJar)
+//		add("archives", javadocJar)
 	}
 	publish {
 		PublishingUtility.checkCredentials()
 		dependsOn(build)
+		dependsOn(javadocJar)
 	}
 }
 
