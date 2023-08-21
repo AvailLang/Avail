@@ -35,6 +35,7 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.activeVersionSummary
+import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.SystemStyleClassifier.INPUT_BACKGROUND
 import avail.anvil.SystemStyleClassifier.INPUT_TEXT
@@ -105,6 +106,9 @@ import avail.anvil.actions.UnloadAllAction
 import avail.anvil.debugger.AvailDebugger
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.GlobalEnvironmentSettings.Companion.globalTemplates
+import avail.anvil.icons.CompoundIcon
+import avail.anvil.icons.UsageTypeIcons
+import avail.anvil.icons.structure.SideEffectIcons
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractWorkbenchTreeNode
@@ -135,8 +139,9 @@ import avail.anvil.tasks.AbstractWorkbenchTask
 import avail.anvil.tasks.BuildManyTask
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
-import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.text.goTo
+import avail.anvil.views.PhraseView
+import avail.anvil.views.StructureView
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
 import avail.anvil.window.WorkbenchScreenState
 import avail.builder.AvailBuilder
@@ -147,27 +152,45 @@ import avail.builder.ModuleRoots
 import avail.builder.RenamesFileParser
 import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
+import avail.compiler.ModuleManifestEntry
+import avail.compiler.splitter.MessageSplitter
+import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.tuples.TupleDescriptor.Companion.quoteStringOn
 import avail.files.FileManager
+import avail.interpreter.execution.AvailLoader.Companion.htmlStyledMethodName
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import avail.persistence.cache.Repositories
+import avail.persistence.cache.record.ManifestRecord
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleVersionKey
 import avail.persistence.cache.record.NameInModule
+import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.NamesIndex.Definition
+import avail.persistence.cache.record.NamesIndex.Usage
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
 import avail.stacks.StacksGenerator
 import avail.utility.IO
 import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
+import avail.utility.Strings.escapedForHTML
 import avail.utility.cast
+import avail.utility.ifZero
 import avail.utility.isNullOr
+import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
+import avail.utility.parallelMapThen
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
@@ -188,6 +211,7 @@ import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Taskbar
 import java.awt.Toolkit
+import java.awt.Window
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -225,7 +249,10 @@ import javax.swing.GroupLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JMenu
+import javax.swing.JMenuItem
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.JProgressBar
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
@@ -234,6 +261,7 @@ import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
+import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.UIManager
 import javax.swing.WindowConstants
@@ -1429,7 +1457,6 @@ class AvailWorkbench internal constructor(
 							// representative, so simply skip the whole directory.
 							return@walkChildrenThen
 						}
-
 						val node = ModuleOrPackageNode(
 							this, moduleName, resolved, true)
 						parentNode.add(node)
@@ -1481,8 +1508,14 @@ class AvailWorkbench internal constructor(
 						val moduleNode =
 							EntryPointModuleNode(this, resolvedName)
 						entryPoints.forEach { entryPoint ->
+							val quoted = stringFrom(entryPoint).toString()
+							val styledName = htmlStyledMethodName(
+								stringFrom(quoted), true, stylesheet)
+							val innerHtml = buildString {
+								append(styledName)
+							}
 							val entryPointNode = EntryPointNode(
-								this, resolvedName, entryPoint)
+								this, resolvedName, innerHtml, entryPoint)
 							moduleNode.add(entryPointNode)
 						}
 						moduleNodes[resolvedName.qualifiedName] = moduleNode
@@ -1511,7 +1544,7 @@ class AvailWorkbench internal constructor(
 	 * The node selected in the [moduleTree] or `null` if no selection is made.
 	 */
 	// This can be called during the constructor, so it can be null.
-	@Suppress("SAFE_CALL_WILL_CHANGE_NULLABILITY", "UNNECESSARY_SAFE_CALL")
+	@Suppress("UNNECESSARY_SAFE_CALL")
 	internal val selectedModuleTreeNode: Any? get() =
 		moduleTree?.selectionPath?.lastPathComponent
 
@@ -1583,11 +1616,7 @@ class AvailWorkbench internal constructor(
 	 * @return A module node, or `null` if no module is selected.
 	 */
 	private fun selectedModuleNode(): ModuleOrPackageNode? =
-		when (val selection = selectedModuleTreeNode)
-		{
-			is ModuleOrPackageNode -> selection
-			else -> null
-		}
+		selectedModuleTreeNode as? ModuleOrPackageNode
 
 	/**
 	 * Is the selected [module][ModuleDescriptor] loaded?
@@ -1595,11 +1624,8 @@ class AvailWorkbench internal constructor(
 	 * @return `true` if the selected module is loaded, `false` if no module is
 	 *   selected or the selected module is not loaded.
 	 */
-	internal fun selectedModuleIsLoaded(): Boolean
-	{
-		val node = selectedModuleNode()
-		return node !== null && node.isLoaded
-	}
+	internal fun selectedModuleIsLoaded(): Boolean =
+		selectedModuleNode().notNullAnd(ModuleOrPackageNode::isLoaded)
 
 	/**
 	 * Answer the [name][ResolvedModuleName] of the currently selected
@@ -1852,33 +1878,33 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * The singular [StructureViewPanel] or `null` if none available.
+	 * The singular [StructureView].
 	 */
-	internal val structureViewPanel: StructureViewPanel =
-		StructureViewPanel(this) {
+	internal val structureView: StructureView =
+		StructureView(this) {
 			//TODO Do nothing for now, but we could record the fact that the
 			// window has been minimized, for restoring the session state.
 		}
 
 	/**
-	 * `true` indicates a [structureViewPanel] is open; `false` indicates the
+	 * `true` indicates a [structureView] is open; `false` indicates the
 	 * window is not open.
 	 */
-	internal val structureViewIsOpen get() = structureViewPanel.isVisible
+	internal val structureViewIsOpen get() = structureView.isVisible
 
 	/**
-	 * The singular [PhraseViewPanel] or `null` if none available.
+	 * The singular [PhraseView].
 	 */
-	internal val phraseViewPanel = PhraseViewPanel(this) {
+	internal val phraseView = PhraseView(this) {
 		//TODO Do nothing for now, but we could record the fact that the window
 		// has been minimized, for restoring the session state.
 	}
 
 	/**
-	 * `true` indicates a [PhraseViewPanel] is open; `false` indicates the
+	 * `true` indicates a [PhraseView] is open; `false` indicates the
 	 * window is not open.
 	 */
-	internal val phraseViewIsOpen get() = phraseViewPanel.isVisible
+	internal val phraseViewIsOpen get() = phraseView.isVisible
 
 	/**
 	 * Close the provided [editor][AvailEditor].
@@ -1889,8 +1915,8 @@ class AvailWorkbench internal constructor(
 	fun closeEditor(editor: AvailEditor)
 	{
 		openEditors.remove(editor.resolverReference.moduleName)
-		structureViewPanel.closingEditor(editor)
-		phraseViewPanel.closingEditor(editor)
+		structureView.closingEditor(editor)
+		phraseView.closingEditor(editor)
 	}
 
 	/**
@@ -2371,7 +2397,7 @@ class AvailWorkbench internal constructor(
 			override fun windowClosing(e: WindowEvent)
 			{
 				saveWindowPosition()
-				val sv = structureViewPanel.run {
+				val sv = structureView.run {
 					if (isVisible)
 					{
 						saveWindowPosition()
@@ -2379,7 +2405,7 @@ class AvailWorkbench internal constructor(
 					}
 					else ""
 				}
-				val pv = phraseViewPanel.run {
+				val pv = phraseView.run {
 					if (isVisible)
 					{
 						saveWindowPosition()
@@ -2520,7 +2546,7 @@ class AvailWorkbench internal constructor(
 				if (screenState.structureViewLayoutConfig.isNotEmpty())
 				{
 					val editor = openEditors.values.firstOrNull()
-					structureViewPanel.apply {
+					structureView.apply {
 						layoutConfiguration.parseInput(
 							screenState.structureViewLayoutConfig)
 						layoutConfiguration.placement?.let(::setBounds)
@@ -2532,7 +2558,7 @@ class AvailWorkbench internal constructor(
 				}
 				if (screenState.phraseViewLayoutConfig.isNotEmpty())
 				{
-					phraseViewPanel.apply {
+					phraseView.apply {
 						layoutConfiguration.parseInput(
 							screenState.phraseViewLayoutConfig)
 						layoutConfiguration.placement?.let(::setBounds)
@@ -2547,13 +2573,12 @@ class AvailWorkbench internal constructor(
 					val split = qualified.split("/")
 					if (split.size < 2) return@map null
 					val rootName = split[1]
-					val root = workbench.resolver.moduleRoots
+					workbench.resolver.moduleRoots
 						.moduleRootFor(rootName)
-						?: return@map null
-					val moduleName = root.resolver
-						.getResolverReference(qualified)?.moduleName
-						?: return@map null
-					workbench.resolver.resolve(moduleName)
+						?.resolver
+						?.getResolverReference(qualified)
+						?.moduleName
+						?.let { name -> workbench.resolver.resolve(name) }
 				}.filterNotNull()
 			}
 			if (preLoadModules.isNotEmpty())
@@ -2577,15 +2602,592 @@ class AvailWorkbench internal constructor(
 		}
 
 	/**
+	 * Launch an [AvailTask] for each module root to run the [action] against
+	 * that root. The action should eventually execute its second argument with
+	 * whatever value is produced.  When the last one completes, collect all the
+	 * results that were reported into a [List] and invoke the [after] function
+	 * with that list.
+	 *
+	 * @param action
+	 *   A function taking a [ModuleRoot] to operate on, and a function that
+	 *   accepts the result of processing that root in some way.
+	 * @param after
+	 *   What to run with the [List] of values reported by the actions when the
+	 *   last one completes.
+	 */
+	private inline fun <reified T> allModuleRootsThen(
+		crossinline action: (ModuleRoot, (T)->Unit)->Unit,
+		crossinline after: (List<T>)->Unit)
+	{
+		runtime.moduleRoots().toList().parallelMapThen<ModuleRoot, T>(
+			action = { root, afterEachRoot ->
+				runtime.execute(FiberDescriptor.commandPriority) {
+					action(root, afterEachRoot)
+				}
+			},
+			then = after
+		)
+	}
+
+	/**
+	 * Launch an [AvailTask] for each module in each root to run the [action]
+	 * against that module.  The action should eventually execute its second
+	 * argument with whatever value is produced for that module.  When the last
+	 * one completes, collect all the results that were reported into a [List]
+	 * and invoke the [after] function with that list.
+	 *
+	 * @param action
+	 *   A function taking a [ResolvedModuleName] to operate on, and a function
+	 *   that accepts the result of processing that module in some way.
+	 * @param after
+	 *   What to run with the [List] of values reported by the actions when the
+	 *   last one completes.
+	 */
+	private inline fun <reified T> allModulesThen(
+		crossinline action: (ResolvedModuleName, (T)->Unit)->Unit,
+		crossinline after: (List<T>)->Unit)
+	{
+		allModuleRootsThen<List<T>>(
+			action = { root, afterRoot ->
+				root.resolver.allModules.parallelMapThen(
+					action = { string, afterModule ->
+						runtime.execute(FiberDescriptor.commandPriority) {
+							action(
+								resolver.resolve(ModuleName(string)),
+								afterModule)
+						}
+					},
+					then = { all: List<T> -> afterRoot(all) }
+				)
+			},
+			after = { after(it.flatten()) }
+		)
+	}
+
+	/**
+	 * Scan all roots for modules that might declare, define, or use the given
+	 * [NameInModule].  After accumulating this, launch an AvailTask to invoke
+	 * the [after] function with the [List] of [Pair]s of [ResolvedModuleName]
+	 * and [ModuleCompilation].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for occurrences.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, launch an
+	 *   [AvailTask] with all the &lt;[ResolvedModuleName], [ModuleCompilation]>
+	 *   [Pair]s.
+	 */
+	private fun allRelevantCompilationsDoThen(
+		@Suppress("UNUSED_PARAMETER") // Eventually use in Bloom filter search.
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, ModuleCompilation>>)->Unit)
+	{
+		allModulesThen<Pair<ResolvedModuleName, ModuleCompilation?>>(
+			action = { resolvedName, withPair ->
+				val repository = resolvedName.repository
+				repository.reopenIfNecessary()
+				val archive =
+					repository.getArchive(resolvedName.rootRelativeName)
+				archive.digestForFile(
+					resolvedName,
+					false,
+					withDigest = { digest ->
+						val compilation = try
+						{
+							val versionKey =
+								ModuleVersionKey(resolvedName, digest)
+							archive.getVersion(versionKey)
+								?.allCompilations
+								?.maxByOrNull { it.compilationTime }
+						}
+						catch (e: Throwable)
+						{
+							null
+						}
+						withPair(resolvedName to compilation)
+					},
+					failureHandler = { _, e ->
+						e?.printStackTrace()
+						withPair(resolvedName to null)
+					}
+				)
+			},
+			after = { entries ->
+				runtime.execute(FiberDescriptor.commandPriority) {
+					after(entries.filter { it.second != null }.cast())
+				}
+			}
+		)
+	}
+
+	/**
+	 * Scan all roots for modules that define the given [NameInModule].  After
+	 * accumulating this list, launch an AvailTask to invoke the [after]
+	 * function with the flat [List] of [Pair]s of [ResolvedModuleName] and
+	 * [ModuleManifestEntry].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for definitions.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, and their
+	 *   relevant [ManifestRecord]s fetched and [entries][ModuleManifestEntry]
+	 *   extracted, launch an [AvailTask] with all the &lt;[ResolvedModuleName],
+	 *   [ModuleManifestEntry]> [Pair]s.
+	 */
+	private fun allDefinitionsThen(
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, ModuleManifestEntry>>)->Unit)
+	{
+		allRelevantCompilationsDoThen(nameInModule) { compilationPairs ->
+			compilationPairs.parallelMapThen<
+					Pair<ResolvedModuleName, ModuleCompilation>,
+					Pair<ResolvedModuleName, List<ModuleManifestEntry>>>(
+				action = { (moduleName, compilation), withLocalManifestList ->
+					val repository = moduleName.repository
+					repository.reopenIfNecessary()
+					val namesIndexRecordIndex =
+						repository[compilation.recordNumberOfNamesIndex]
+					val occurrences = NamesIndex(namesIndexRecordIndex)
+						.findMentions(nameInModule)
+					if (occurrences != null
+						&& occurrences.definitions.isNotEmpty())
+					{
+						val manifestRecordIndex = repository[
+							compilation.recordNumberOfManifest]
+						val manifestRecord = ManifestRecord(manifestRecordIndex)
+						val allManifestEntries = manifestRecord.manifestEntries
+						val definitions = occurrences.definitions
+							.map(Definition::manifestIndex)
+							.map(allManifestEntries::get)
+						withLocalManifestList(moduleName to definitions)
+					}
+					else
+					{
+						withLocalManifestList(moduleName to emptyList())
+					}
+				},
+				then = { pairs ->
+					val entryPairs = pairs.flatMap { (module, entries) ->
+						entries.map { entry -> module to entry }
+					}
+					runtime.execute(FiberDescriptor.commandPriority) {
+						after(entryPairs)
+					}
+				}
+			)
+		}
+	}
+
+	/**
+	 * Scan all roots for modules that define the given [NameInModule].  After
+	 * accumulating this list, launch an AvailTask to invoke the [after]
+	 * function with the flat [List] of [Pair]s of [ResolvedModuleName] and
+	 * [ModuleManifestEntry].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for definitions.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, and their
+	 *   relevant [PhrasePathRecord]s fetched and decoded, launch an [AvailTask]
+	 *   with all the &lt;[ResolvedModuleName], [PhraseNode]> [Pair]s.
+	 */
+	private fun allUsagesThen(
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, PhraseNode>>)->Unit)
+	{
+		allRelevantCompilationsDoThen(nameInModule) { compilationPairs ->
+			compilationPairs.parallelMapThen<
+					Pair<ResolvedModuleName, ModuleCompilation>,
+					Pair<ResolvedModuleName, List<PhraseNode>>>(
+				action = { (moduleName, compilation), withPhraseList ->
+					val repository = moduleName.repository
+					repository.reopenIfNecessary()
+					val namesIndexRecordIndex =
+						repository[compilation.recordNumberOfNamesIndex]
+					val occurrences = NamesIndex(namesIndexRecordIndex)
+						.findMentions(nameInModule)
+					if (occurrences != null
+						&& occurrences.usages.isNotEmpty())
+					{
+						val phrasePathBytes = repository[
+							compilation.recordNumberOfPhrasePaths]
+						val phrasePathRecord = PhrasePathRecord(phrasePathBytes)
+						val phrases = mutableListOf<PhraseNode>()
+						phrasePathRecord.phraseNodesDo(phrases::add)
+						val usagePhrases = occurrences.usages
+							.map(Usage::phraseIndex)
+							.map(phrases::get)
+						withPhraseList(moduleName to usagePhrases)
+					}
+					else
+					{
+						withPhraseList(moduleName to emptyList())
+					}
+				},
+				then = { pairs ->
+					val allPairs = pairs.flatMap { (module, phrases) ->
+						phrases.map { phrase -> module to phrase }
+					}
+					runtime.execute(FiberDescriptor.commandPriority) {
+						after(allPairs)
+					}
+				}
+			)
+		}
+	}
+
+	/**
 	 * The user has clicked on a token in the source in such a way that they are
 	 * requesting navigation related to the method name containing that token.
+	 * Begin an asynchronous action to locate all definitions of the name in all
+	 * visible modules that have been compiled since their last change.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] to find.
+	 * @param tokenIndexInName
+	 *   The index of the token that the user has selected within the list of a
+	 *   message's tokens produced by a [MessageSplitter].
+	 * @param mouseEvent
+	 *   The [MouseEvent] which was the request for navigation.
 	 */
-	fun navigateForName(nameInModule: NameInModule)
+	fun navigateToDefinitionsOfName(
+		nameInModule: NameInModule,
+		tokenIndexInName: Int,
+		mouseEvent: MouseEvent)
 	{
-		//TODO present a list of definitions and usages to navigate to.
-		println(
-			"Clicked on ${nameInModule.atomName} in ${nameInModule.moduleName}")
+		allDefinitionsThen(nameInModule) { allEntries ->
+			if (allEntries.isNotEmpty())
+			{
+				// Disambiguate local names only when necessary.
+				val localNames = allEntries.groupBy { (module, _) ->
+					module.localName
+				}
+				val shortModuleNames = allEntries.associate { (module, _) ->
+					val localName = module.localName
+					val distinct = localNames[localName]!!
+						.map(Pair<ResolvedModuleName, *>::first)
+						.distinct()
+					module to
+						if (distinct.size == 1) localName
+						else module.qualifiedName
+				}
+				val title = htmlTitleString(
+					nameInModule.atomName, tokenIndexInName)
+				val titlePanel = JPanel()
+				titlePanel.add(JLabel(title))
+				val menu = JPopupMenu()
+				menu.add(titlePanel)
+				menu.addSeparator()
+				val groupedEntries = allEntries.groupBy(
+					keySelector = { (moduleName, manifestEntry) ->
+						Triple(
+							moduleName,
+							manifestEntry.nameInModule,
+							manifestEntry.definitionStartingLine.ifZero {
+								manifestEntry.topLevelStartingLine
+							})
+					},
+					valueTransform = { (_, manifestEntry) -> manifestEntry })
+				groupedEntries.forEach { (key, entries) ->
+					val (moduleName, _, line) = key
+					val entriesWithTypeSize = entries.map { entry ->
+						entry to entry.argumentTypes.sumOf { it.length } +
+							(entry.returnType?.length ?: 0)
+					}
+					val (bestEntry, typeSize) =
+						entriesWithTypeSize.maxBy(Pair<*, Int>::second)
+					// We now have an estimate of how many characters are in the
+					// print representation of the type.  It omits brackets and
+					// commas and such.
+					val typeString = buildString {
+						val (arguments, returnType) =
+							bestEntry.run { argumentTypes to returnType }
+						when
+						{
+							returnType == null ->
+							{
+								// Output nothing.
+							}
+							typeSize < 60
+								&& '\n' !in returnType
+								&& arguments.none { '\n' in it } ->
+							{
+								// The arguments are all short and have no
+								// embedded line breaks.
+								arguments.joinTo(
+									buffer = this,
+									prefix = "[",
+									separator = ", ",
+									postfix = "]→",
+									transform = { it.escapedForHTML() })
+								append(returnType)
+							}
+							else ->
+							{
+								// Print on multiple lines.
+								arguments.joinTo(
+									buffer = this,
+									prefix = "\n[",
+									separator = ",",
+									postfix =
+									if (arguments.isEmpty()) "]→"
+									else "\n]→",
+									transform = {
+										"\n\t" +
+											it.escapedForHTML()
+												.replace("\n", "\n\t")
+									})
+								append(returnType)
+							}
+						}
+					}
+					val label = buildString {
+						// Increase indent of multi-line summaries.
+						append("<html><div style='white-space: pre'>")
+						append(shortModuleNames[moduleName]!!.escapedForHTML())
+						append(":")
+						append(line)
+						append("&nbsp;&nbsp;<font color='#8090FF'>")
+						append(
+							typeString
+								.replace("\n", "<br>")
+								.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))
+						append("</font></div></html>")
+					}
+					val icon = CompoundIcon(
+						entries
+							.mapToSet(transform = ModuleManifestEntry::kind)
+							.map { kind -> SideEffectIcons.icon(16, kind) },
+						xGap = 3)
+					val action = object : AbstractWorkbenchAction(this, label)
+					{
+						override fun actionPerformed(e: ActionEvent?)
+						{
+							// Locate or open an editor for the target.
+							var opened = false
+							val editor = workbench.openEditors.computeIfAbsent(
+								moduleName
+							) {
+								opened = true
+								AvailEditor(workbench, moduleName)
+							}
+							if (!opened) editor.toFront()
+							invokeLater {
+								editor.sourcePane.goTo(max(line - 1, 0))
+							}
+						}
+
+						override fun updateIsEnabled(busy: Boolean) = Unit
+					}
+					action.putValue(Action.SMALL_ICON, icon)
+					val item = JMenuItem(action)
+					item.horizontalAlignment = SwingConstants.LEFT
+					menu.add(item)
+				}
+				menu.invoker = mouseEvent.component
+				menu.location = mouseEvent.locationOnScreen
+				menu.isVisible = true
+			}
+		}
 	}
+
+	/**
+	 * The user has clicked on a token in the source in such a way that they are
+	 * requesting navigation to places that send that method. Begin an
+	 * asynchronous action to locate all usages of the name in all visible
+	 * modules that have been compiled since their last change.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] to find.
+	 * @param tokenIndexInName
+	 *   The index of the token that the user has selected within the list of a
+	 *   message's tokens produced by a [MessageSplitter].
+	 * @param mouseEvent
+	 *   The [MouseEvent] which was the request for navigation.
+	 */
+	fun navigateToSendersOfName(
+		nameInModule: NameInModule,
+		tokenIndexInName: Int,
+		mouseEvent: MouseEvent)
+	{
+		allUsagesThen(nameInModule) { allEntries ->
+			if (allEntries.isNotEmpty())
+			{
+				// Disambiguate local names only when necessary.
+				val localNames = allEntries.groupBy { (module, _) ->
+					module.localName
+				}
+				val shortModuleNames = allEntries.associate { (module, _) ->
+					val localName = module.localName
+					val distinct = localNames[localName]!!
+						.map(Pair<ResolvedModuleName, *>::first)
+						.distinct()
+					module to
+						if (distinct.size == 1) localName
+						else module.qualifiedName
+				}
+				val title = htmlTitleString(
+					nameInModule.atomName, tokenIndexInName)
+				val titlePanel = JPanel()
+				titlePanel.add(JLabel(title))
+				val menu = JPopupMenu()
+				menu.add(titlePanel)
+				menu.addSeparator()
+				val groupedEntries = allEntries.groupBy(
+					keySelector = Pair<ResolvedModuleName,*>::first,
+					valueTransform = Pair<*,PhraseNode>::second
+				)
+				val sortedEntries =
+					groupedEntries.entries.sortedBy { (moduleName, _) ->
+						shortModuleNames[moduleName]
+					}
+				sortedEntries.forEach { (moduleName, phrases) ->
+					val label = buildString {
+						append("<html>")
+						append(shortModuleNames[moduleName]!!.escapedForHTML())
+						if (phrases.size > 1) append(" (${phrases.size} uses)")
+						append("</html>")
+					}
+					val icon = CompoundIcon(
+						phrases
+							.mapToSet(transform = PhraseNode::usageType)
+							.map { kind -> UsageTypeIcons.icon(16, kind) },
+						xGap = 3)
+					val items = phrases.map { phrase ->
+						val itemLabel = buildString {
+							phrase.tokenSpans.firstOrNull()?.let {
+								append("${it.line}: ")
+							}
+							phrase.describeOn(this, 80)
+						}
+						val action = object :
+							AbstractWorkbenchAction(this, itemLabel)
+						{
+							override fun actionPerformed(e: ActionEvent?)
+							{
+								// Locate or open an editor for the target.
+								var opened = false
+								val editor =
+									workbench.openEditors.computeIfAbsent(
+										moduleName
+									) {
+										opened = true
+										AvailEditor(workbench, moduleName)
+									}
+								if (!opened) editor.toFront()
+								invokeLater {
+									var spans = phrase.tokenSpans
+									// Select from the start of the first token
+									// of the usage to the end of the last token
+									// of that usage.
+									if (spans.isEmpty())
+									{
+										// There are no tokens, so check the
+										// immediate children to see if they
+										// have any.
+										spans = phrase.children
+											.flatMap { it.tokenSpans }
+									}
+									if (spans.isEmpty())
+									{
+										// The children didn't have any tokens
+										// either.  Try the ancestors.
+										var ancestor = phrase.parent
+										while (ancestor != null
+											&& spans.isEmpty())
+										{
+											spans = ancestor.tokenSpans
+											ancestor = ancestor.parent
+										}
+									}
+									val spansStart =
+										spans.minOfOrNull { it.start } ?: 1
+									val spansPastEnd =
+										spans.maxOfOrNull { it.pastEnd } ?: 1
+									editor.sourcePane
+										.select(spansStart - 1, spansPastEnd - 1)
+									editor.sourcePane
+										.showTextRange(spansStart, spansPastEnd)
+								}
+							}
+
+							override fun updateIsEnabled(busy: Boolean) = Unit
+						}
+						action.putValue(Action.SMALL_ICON, icon)
+						JMenuItem(action).apply {
+							horizontalAlignment = SwingConstants.LEFT
+						}
+					}
+					val submenu = JMenu(label)
+					items.forEach(submenu::add)
+					submenu.horizontalAlignment = SwingConstants.LEFT
+					menu.add(submenu)
+				}
+				menu.invoker = mouseEvent.component
+				menu.location = mouseEvent.locationOnScreen
+				menu.isVisible = true
+			}
+		}
+	}
+
+	/**
+	 * Convert the given method name into a top-level HTML3.2 string containing
+	 * the same text.  The HTML text is suitable for use as a Swing label, and
+	 * includes the outermost `<html>` tag.  The HTML text has styling
+	 * information applied to it, based on the current [stylesheet].
+	 *
+	 * In addition, the message part with the specified [tokenIndexInName] (from
+	 * the decomposition of the method name by a [MessageSplitter]) is
+	 * highlighted with the [SystemStyleClassifier.TOKEN_HIGHLIGHT] style.
+	 *
+	 * @param atomName
+	 *   The [String] containing the unquoted method name to convert to HTML.
+	 * @param tokenIndexInName
+	 *   Which one-based token number within the message name to highlight.
+	 * @return
+	 *   A suitable HTML3.2 string to use as Swing label text.
+	 */
+	private fun htmlTitleString(
+		atomName: String,
+		tokenIndexInName: Int): String
+	{
+		val availName = stringFrom(atomName)
+		val indexMap = mutableMapOf<Int, Int>()
+		val quoteBuilder = StringBuilder()
+		quoteBuilder.quoteStringOn(availName, indexMap)
+		val originalRange = MessageSplitter.split(availName)
+			.rangeToHighlightForPartIndex(tokenIndexInName)
+		val startOfRange = indexMap[originalRange.first]!! + 1
+		val pastEndOfRange = indexMap[originalRange.last + 1]!! + 1
+		val quoted = quoteBuilder.toString()
+		val styledName = htmlStyledMethodName(
+			stringFrom(quoted),
+			true,
+			stylesheet,
+			startOfRange,
+			pastEndOfRange)
+		val title = buildString {
+			append("<html><tt><font size='+1'>")
+			append(styledName)
+			append("</font></tt></html>")
+		}
+		return title
+	}
+
+	/**
+	 * Determine whether the [AvailWorkbench] or any of its satellite windows
+	 * are currently focused.
+	 */
+	val workbenchWindowIsFocused get () =
+		isFocused
+			|| openEditors.values.any(Window::isFocused)
+			|| openDebuggers.any(Window::isFocused)
+			|| openFileEditors.values.any(Window::isFocused)
+			|| structureView.isFocused
+			|| phraseView.isFocused
 
 	companion object
 	{

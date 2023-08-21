@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -92,13 +92,13 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		source.instructionWasAdded(manifest)
 		ifNotUnboxed.instructionWasAdded(
 			L2ValueManifest(manifest).apply {
-				subtractType(source.semanticValue(), int32)
+				subtractType(source.semanticValue(), i32)
 			})
 		// Ensure the value is available along the success edge.
 		destination.instructionWasAdded(manifest)
 		ifUnboxed.instructionWasAdded(
 			L2ValueManifest(manifest).apply {
-				intersectType(destination.pickSemanticValue(), int32)
+				intersectType(destination.pickSemanticValue(), i32)
 			})
 	}
 

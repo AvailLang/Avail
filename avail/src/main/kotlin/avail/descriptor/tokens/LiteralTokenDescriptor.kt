@@ -194,17 +194,17 @@ class LiteralTokenDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
-	{
-		builder.append(
+		indent: Int
+	) = builder.brief {
+		append(
 			String.format(
 				"%s ",
 				self.tokenType().name.lowercase().replace('_', ' ')))
 		self[LITERAL].printOnAvoidingIndent(
-			builder,
+			this,
 			recursionMap,
 			indent + 1)
-		builder.append(
+		append(
 			String.format(
 				" (%s) @ %d:%d",
 				self[STRING],

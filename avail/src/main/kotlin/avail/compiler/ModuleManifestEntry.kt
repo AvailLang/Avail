@@ -36,7 +36,17 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.argsTupleType
+import avail.descriptor.types.A_Type.Companion.returnType
+import avail.descriptor.types.A_Type.Companion.sizeRange
+import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.persistence.cache.record.NameInModule
+import avail.utility.unvlqInt
+import avail.utility.vlq
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -46,45 +56,122 @@ import java.io.IOException
  * created by some module.  This includes atoms, method definitions, semantic
  * restrictions, lexers, module variables/constants, etc.
  *
- * @constructor
- * Create a [ModuleManifestEntry].
- *
- * @property kind
- *   The [kind][SideEffectKind] of manifest entry that this is.
- * @property nameInModule
- *   The [NameInModule] being declared, defined, or restricted, if any.
- * @property summaryText
- *   A short textual description of the item being defined, without mentioning
- *   the [kind].
- * @property topLevelStartingLine
- *   The first line of the top level statement responsible for adding the
- *   definition described by this manifest entry.
- * @property definitionStartingLine
- *   The location within this module of the start of the body function for this
- *   definition, or 0 if inapplicable.
- * @property bodyFunction
- *   The [A_Function] that best acts as the body of this entry, such as a method
- *   definition's body function, or a lexer definition's body function. This is
- *   `null` if a body is inapplicable or unavailable.  It is *always* null after
- *   reading a [ModuleManifestEntry] from the repository.
- * @property bodyPhraseIndexNumber
- *   The index into the current module's tuple of phrases, accessible via
- *   [A_Module.originatingPhraseAtIndex].  If this has not yet been computed, it
- *   will be `-1`, and the [bodyFunction] will be some [A_Function].  If there
- *   is no suitable body, or if it's not something that was serialized with the
- *   module, it will also be `-1`, but the [bodyFunction] will be `null`.
- *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class ModuleManifestEntry constructor(
-	val kind: SideEffectKind,
-	val nameInModule: NameInModule?,
-	val summaryText: String,
-	val topLevelStartingLine: Int,
-	val definitionStartingLine: Int,
-	private var bodyFunction: A_Function? = null,
-	var bodyPhraseIndexNumber: Int = -1)
+class ModuleManifestEntry
 {
+	/** The [kind][SideEffectKind] of manifest entry that this is. */
+	val kind: SideEffectKind
+
+	/** The [NameInModule] being declared, defined, or restricted, if any. */
+	val nameInModule: NameInModule?
+
+	/**
+	 * A short textual description of this entry, to present in a list of
+	 * manifest entries.
+	 */
+	val summaryText: String
+
+	/**
+	 * A short textual description of each argument type.  Only valid if the
+	 * [returnType] is not `null`.
+	*/
+	val argumentTypes: Array<String>
+
+	/**
+	 * A short textual description of the return type.  If this is `null`, the
+	 * [argumentTypes] should be ignored.
+	 */
+	val returnType: String?
+
+	/**
+	 * The first line of the top level statement responsible for adding the
+	 * definition described by this manifest entry.
+	 */
+	val topLevelStartingLine: Int
+
+	/**
+	 * The location within this module of the start of the body function for
+	 * this definition, or 0 if inapplicable.
+	 */
+	val definitionStartingLine: Int
+
+	/**
+	 * The [A_Function] that best acts as the body of this entry, such as a
+	 * method definition's body function, or a lexer definition's body function.
+	 * This is `null` if a body is inapplicable or unavailable.  It is *always*
+	 * null after reading a [ModuleManifestEntry] from the repository.
+	 */
+	private var bodyFunction: A_Function?
+
+	/**
+	 * The index into the current module's tuple of phrases, accessible via
+	 * [A_Module.originatingPhraseAtIndex].  If this has not yet been computed,
+	 * it will be `-1`, and the [bodyFunction] will be some [A_Function].  If
+	 * there is no suitable body, or if it's not something that was serialized
+	 * with the module, it will also be `-1`, but the [bodyFunction] will be
+	 * `null`.
+	 */
+	var bodyPhraseIndexNumber: Int
+
+	/**
+	 * Create a [ModuleManifestEntry] from its parts.
+	 *
+	 * @param kind
+	 *   The [kind][SideEffectKind] of manifest entry that this is.
+	 * @param nameInModule
+	 *   The [NameInModule] being declared, defined, or restricted, if any.
+	 * @param summaryText
+	 *   A short textual description of this entry, to present in a list of
+	 *   manifest entries.
+	 * @param signature
+	 *   The optional function [A_Type] for this definition.
+	 * @param topLevelStartingLine
+	 *   The first line of the top level statement responsible for adding the
+	 *   definition described by this manifest entry.
+	 * @param definitionStartingLine
+	 *   The location within this module of the start of the body function for
+	 *   this definition, or 0 if inapplicable.
+	 * @param bodyFunction
+	 *   The [A_Function] that best acts as the body of this entry, such as a
+	 *   method definition's body function, or a lexer definition's body
+	 *   function. This is `null` if a body is inapplicable or unavailable.  It
+	 *   is *always* null after reading a [ModuleManifestEntry] from the
+	 *   repository.
+	 * @param bodyPhraseIndexNumber
+	 *   The index into the current module's tuple of phrases, accessible via
+	 *   [A_Module.originatingPhraseAtIndex].  If this has not yet been
+	 *   computed, it will be `-1`, and the [bodyFunction] will be some
+	 *   [A_Function].  If there is no suitable body, or if it's not something
+	 *   that was serialized with the module, it will also be `-1`, but the
+	 *   [bodyFunction] will be `null`.
+	 */
+	constructor(
+		kind: SideEffectKind,
+		nameInModule: NameInModule?,
+		summaryText: String,
+		signature: A_Type?,
+		topLevelStartingLine: Int,
+		definitionStartingLine: Int,
+		bodyFunction: A_Function? = null,
+		bodyPhraseIndexNumber: Int = -1)
+	{
+		this.kind = kind
+		this.nameInModule = nameInModule
+		this.summaryText = summaryText
+		this.argumentTypes = signature?.argsTupleType?.run {
+			val count = sizeRange.upperBound.run {
+				if (isInt) extractInt else 0
+			}
+			Array(count) { typeAtIndex(it + 1).toString() }
+		} ?: emptyArray()
+		this.returnType = signature?.returnType?.toString()
+		this.topLevelStartingLine = topLevelStartingLine
+		this.definitionStartingLine = definitionStartingLine
+		this.bodyFunction = bodyFunction
+		this.bodyPhraseIndexNumber = bodyPhraseIndexNumber
+	}
+
 	/**
 	 * Write this entry to the provided [DataOutputStream], in a way that is
 	 * naturally delimited for subsequent reading via the secondary constructor
@@ -113,6 +200,18 @@ class ModuleManifestEntry constructor(
 			binaryStream.writeUTF(atomName)
 		}
 		binaryStream.writeUTF(summaryText)
+		// If the returnType is null, write a VLQ-encoded zero.  Otherwise write
+		// the argument count + 1, the arguments, and the return type.
+		when (returnType)
+		{
+			null -> binaryStream.vlq(0)
+			else ->
+			{
+				binaryStream.vlq(argumentTypes.size + 1)
+				argumentTypes.forEach(binaryStream::writeUTF)
+				binaryStream.writeUTF(returnType)
+			}
+		}
 		binaryStream.writeInt(topLevelStartingLine)
 		binaryStream.writeInt(definitionStartingLine)
 		binaryStream.writeInt(bodyPhraseIndexNumber)
@@ -127,16 +226,32 @@ class ModuleManifestEntry constructor(
 	 *   If I/O fails.
 	 */
 	@Throws(IOException::class)
-	internal constructor(binaryStream: DataInputStream) : this(
-		SideEffectKind.all[binaryStream.read()],
-		when (binaryStream.readBoolean())
+	internal constructor(binaryStream: DataInputStream)
+	{
+		kind = SideEffectKind.all[binaryStream.read()]
+		nameInModule = when (binaryStream.readBoolean())
 		{
 			true -> NameInModule(binaryStream.readUTF(), binaryStream.readUTF())
 			false -> null
-		},
-		binaryStream.readUTF(),
-		binaryStream.readInt(),
-		binaryStream.readInt(),
-		null,
-		binaryStream.readInt())
+		}
+		summaryText = binaryStream.readUTF()
+		when (val count = binaryStream.unvlqInt() - 1)
+		{
+			// Sentinel value indicates no signature was written by `write`.
+			-1 ->
+			{
+				argumentTypes = emptyArray()
+				returnType = null
+			}
+			else ->
+			{
+				argumentTypes = Array(count) { binaryStream.readUTF() }
+				returnType = binaryStream.readUTF()
+			}
+		}
+		topLevelStartingLine = binaryStream.readInt()
+		definitionStartingLine = binaryStream.readInt()
+		bodyFunction = null
+		bodyPhraseIndexNumber = binaryStream.readInt()
+	}
 }

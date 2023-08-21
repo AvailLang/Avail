@@ -45,7 +45,7 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -331,7 +331,7 @@ constructor(
 				generator.readBoxed(semanticSource),
 				generator.intWrite(
 					setOf(semanticVariantId),
-					restrictionForType(nonnegativeInt32, UNBOXED_INT_FLAG)))
+					restrictionForType(i31, UNBOXED_INT_FLAG)))
 			// The exact variant is known, which can make dispatching
 			// particularly fast.
 			else -> generator.addInstruction(

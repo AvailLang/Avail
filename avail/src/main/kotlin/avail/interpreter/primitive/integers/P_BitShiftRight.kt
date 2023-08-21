@@ -48,7 +48,7 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -161,8 +161,8 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(int32).isBottom
-			|| bType.typeIntersection(int32).isBottom)
+		if (aType.typeIntersection(i32).isBottom
+			|| bType.typeIntersection(i32).isBottom)
 		{
 			return false
 		}
@@ -189,7 +189,7 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 			this, listOf(a.semanticValue(), b.semanticValue()))
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction,
-			argumentTypes.map { it.typeIntersection(int32) })
+			argumentTypes.map { it.typeIntersection(i32) })
 		val tempIntWriter = generator.intWrite(
 			setOf(L2SemanticUnboxedInt(semanticTemp)),
 			restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))

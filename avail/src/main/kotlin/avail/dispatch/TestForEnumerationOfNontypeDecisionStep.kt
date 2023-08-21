@@ -40,7 +40,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -274,7 +274,7 @@ constructor(
 		val fallThroughBlock = L2BasicBlock(
 			"No instanceType matched by equality")
 		// First, extract the hash value.
-		val int32Restriction = restrictionForType(int32, UNBOXED_INT_FLAG)
+		val int32Restriction = restrictionForType(i32, UNBOXED_INT_FLAG)
 		val semanticHash = primitiveInvocation(P_Hash, listOf(semanticSource))
 		val semanticHashInt = L2SemanticUnboxedInt(semanticHash)
 		if (!generator.currentManifest.hasSemanticValue(semanticHashInt))

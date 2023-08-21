@@ -50,10 +50,7 @@ data class AdaptiveColor constructor(
 {
 	val color: Color get() = if (AvailWorkbench.darkMode) dark else light
 
-	val hex: String
-		get() = with(color) {
-			java.lang.String.format("#%02x%02x%02x", red, green, blue)
-		}
+	val hex: String get() = color.hex
 
 	fun blend(
 		otherColor: Color,
@@ -74,6 +71,9 @@ data class AdaptiveColor constructor(
 
 	companion object
 	{
+		val Color.hex: String
+			get() = String.format("#%02x%02x%02x%02x", red, green, blue, alpha)
+
 		fun blend(
 			selfColor: Color,
 			otherColor: Color,

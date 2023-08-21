@@ -75,12 +75,12 @@ import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.zeroOrOne
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TupleTypeDescriptor.ObjectSlots
@@ -162,57 +162,113 @@ private constructor(
 	{
 		if (self[TYPE_TUPLE].tupleSize == 0)
 		{
-			if (self[SIZE_RANGE].equals(wholeNumbers))
+			// There are no leading types.
+			when (self[SIZE_RANGE])
 			{
-				if (self[DEFAULT_TYPE].equals(ANY.o))
+				wholeNumbers ->
 				{
-					builder.append("tuple")
+					if (self[DEFAULT_TYPE].equals(ANY.o))
+					{
+						builder.append("tuple")
+						return
+					}
+					if (self[DEFAULT_TYPE].equals(CHARACTER.o))
+					{
+						builder.append("string")
+						return
+					}
+					// Okay, it's homogeneous and of arbitrary size…
+					builder.brief {
+						self.defaultType.printOnAvoidingIndent(
+							this,
+							recursionMap,
+							indent + 1
+						)
+						append("*")
+					}
 					return
 				}
-				if (self[DEFAULT_TYPE].equals(CHARACTER.o))
+				naturalNumbers ->
 				{
-					builder.append("string")
+					// Okay, it's homogeneous and nonempty…
+					builder.brief {
+						self.defaultType.printOnAvoidingIndent(
+							this,
+							recursionMap,
+							indent + 1
+						)
+						append("+")
+					}
 					return
 				}
-				//  Okay, it's homogeneous and of arbitrary size...
-				builder.append('<')
-				self.defaultType.printOnAvoidingIndent(
-					builder,
-					recursionMap,
-					indent + 1)
-				builder.append("…|>")
-				return
+				u1 ->
+				{
+					// It's an optional.
+					builder.brief {
+						self.defaultType.printOnAvoidingIndent(
+							this,
+							recursionMap,
+							indent + 1
+						)
+						append("?")
+					}
+					return
+				}
+				else ->
+				{
+					builder.brief {
+						self.defaultType.printOnAvoidingIndent(
+							this,
+							recursionMap,
+							indent + 1
+						)
+						append("^")
+						self.sizeRange.printOnAvoidingIndent(
+							this,
+							recursionMap,
+							indent + 1
+						)
+					}
+					return
+				}
 			}
 		}
-		builder.append('<')
-		val end = self[TYPE_TUPLE].tupleSize
-		for (i in 1 .. end)
-		{
-			self.typeAtIndex(i).printOnAvoidingIndent(
-				builder,
+		// Handle the complex case.
+		builder.brief {
+			append('<')
+			val end = self[TYPE_TUPLE].tupleSize
+			for (i in 1 .. end)
+			{
+				self.typeAtIndex(i).printOnAvoidingIndent(
+					this,
+					recursionMap,
+					indent + 1
+				)
+				append(", ")
+			}
+			self[DEFAULT_TYPE].printOnAvoidingIndent(
+				this,
 				recursionMap,
-				indent + 1)
-			builder.append(", ")
-		}
-		self[DEFAULT_TYPE].printOnAvoidingIndent(
-			builder,
-			recursionMap,
-			indent + 1)
-		builder.append("…|")
-		val sizeRange: A_Type = self[SIZE_RANGE]
-		sizeRange.lowerBound.printOnAvoidingIndent(
-			builder,
-			recursionMap,
-			indent + 1)
-		if (!sizeRange.lowerBound.equals(sizeRange.upperBound))
-		{
-			builder.append("..")
-			sizeRange.upperBound.printOnAvoidingIndent(
-				builder,
+				indent + 1
+			)
+			append("…|")
+			val sizeRange: A_Type = self[SIZE_RANGE]
+			sizeRange.lowerBound.printOnAvoidingIndent(
+				this,
 				recursionMap,
-				indent + 1)
+				indent + 1
+			)
+			if (!sizeRange.lowerBound.equals(sizeRange.upperBound))
+			{
+				append("..")
+				sizeRange.upperBound.printOnAvoidingIndent(
+					this,
+					recursionMap,
+					indent + 1
+				)
+			}
+			append('>')
 		}
-		builder.append('>')
 	}
 
 	override fun o_DefaultType(self: AvailObject): A_Type =
@@ -388,12 +444,12 @@ private constructor(
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
-		if (!self.sizeRange.isSubtypeOf(int32))
+		if (!self.sizeRange.isSubtypeOf(i32))
 		{
 			// Trim the type to only those that are physically possible.
 			self.makeImmutable()
 			return tupleTypeForSizesTypesDefaultType(
-					self.sizeRange.typeIntersection(int32),
+					self.sizeRange.typeIntersection(i32),
 					self.typeTuple,
 					self.defaultType
 				).trimType(typeToRemove)
@@ -403,12 +459,12 @@ private constructor(
 		if (typeToRemove.isEnumeration) return self
 		self.makeImmutable()
 		typeToRemove.makeImmutable()
-		if (!typeToRemove.sizeRange.isSubtypeOf(int32))
+		if (!typeToRemove.sizeRange.isSubtypeOf(i32))
 		{
 			// Trim the type to only those that are physically possible.
 			return self.trimType(
 				tupleTypeForSizesTypesDefaultType(
-					typeToRemove.sizeRange.typeIntersection(int32),
+					typeToRemove.sizeRange.typeIntersection(i32),
 					typeToRemove.typeTuple,
 					typeToRemove.defaultType))
 		}
@@ -737,7 +793,7 @@ private constructor(
 		 *   A size [0..1] tuple type whose element has the given type.
 		 */
 		fun zeroOrOneOf(aType: A_Type): A_Type =
-			tupleTypeForSizesTypesDefaultType(zeroOrOne, emptyTuple, aType)
+			tupleTypeForSizesTypesDefaultType(u1, emptyTuple, aType)
 
 		/**
 		 * Answer a tuple type consisting of zero or more of the given element

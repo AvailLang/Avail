@@ -160,8 +160,9 @@ class CodePane constructor(
 		isEnabled = true
 		isFocusable = true
 		preferredSize = Dimension(0, 500)
-		font = Font.decode("${workbench.globalSettings.font} 13")
-		font = font.deriveFont(workbench.globalSettings.codePaneFontSize)
+		font = Font
+			.decode("${workbench.globalSettings.font} 13")
+			.deriveFont(workbench.globalSettings.codePaneFontSize)
 		background = computeBackground(workbench.stylesheet)
 		foreground = computeForeground(workbench.stylesheet)
 		initializeStyles()

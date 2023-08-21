@@ -35,8 +35,10 @@ import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.debugStyling
 import avail.AvailThread
 import avail.annotations.ThreadSafe
+import avail.anvil.Stylesheet
+import avail.anvil.SystemStyleClassifier.TOKEN_HIGHLIGHT
 import avail.compiler.ModuleManifestEntry
-import avail.compiler.SideEffectKind
+import avail.compiler.SideEffectKind.*
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
@@ -151,6 +153,7 @@ import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestrictio
 import avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddStyler
+import avail.descriptor.module.A_Module.Companion.namesIndexRecord
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.resolveForward
@@ -183,6 +186,7 @@ import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor
@@ -198,6 +202,7 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AmbiguousNameException
@@ -234,6 +239,7 @@ import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFi
 import avail.interpreter.primitive.methods.P_Alias
 import avail.io.TextInterface
 import avail.persistence.cache.record.NamesIndex
+import avail.utility.Strings.escapedForHTML
 import avail.utility.evaluation.Combinator.recurse
 import avail.utility.safeWrite
 import avail.utility.stackToString
@@ -362,7 +368,7 @@ constructor(
 	/**
 	 * The [NamesIndex] into which to record indexing information during actual
 	 * compilation.  After compilation, this is written to a record whose index
-	 * is captured in the [A_Module.namesIndex], and fetched from the
+	 * is captured in the [A_Module.namesIndexRecord], and fetched from the
 	 * repository and decoded and cached when needed.
 	 */
 	var namesIndex: NamesIndex? = null
@@ -862,199 +868,10 @@ constructor(
 			// don't attempt to style it as such.
 			return
 		}
-		var start = stringLiteralToken.start()
 		lockStyles {
-			val characters =
-				stringLiteralToken.string().iterator() as
-					ListIterator<A_Character>
-			while (characters.hasNext())
-			{
-				var count = 0
-				when (characters.next().codePoint)
-				{
-					'"'.code ->
-					{
-						edit(start, start + 1) {
-							SystemStyle.METHOD_NAME.kotlinString
-						}
-						start++
-					}
-					'\\'.code ->
-					{
-						count++
-						// We know that the string lexed correctly, so there
-						// can't be a dangling escape.
-						when (characters.next().codePoint)
-						{
-							'('.code ->
-							{
-								count++
-								edit(start, start + count) {
-									SystemStyle
-										.STRING_ESCAPE_SEQUENCE
-										.kotlinString
-								}
-								start += count
-								count = 0
-								var value = 0
-								// Process the Unicode escape sequences, looking
-								// for hidden metacharacters.
-								while (characters.hasNext())
-								{
-									when (val c = characters.next().codePoint)
-									{
-										','.code, ')'.code ->
-										{
-											edit(start, start + count) {
-												if (canBeBackQuoted(value))
-												{
-													SystemStyle
-														.METHOD_NAME
-														.kotlinString
-												}
-												else
-												{
-													SystemStyle
-														.STRING_ESCAPE_SEQUENCE
-														.kotlinString
-												}
-											}
-											start += count
-											count = 0
-											value = 0
-											edit(start, start + 1) {
-												SystemStyle
-													.STRING_ESCAPE_SEQUENCE
-													.kotlinString
-											}
-											start++
-											if (c == ')'.code) break
-										}
-										in '0'.code .. '9'.code ->
-										{
-											count++
-											value = (value shl 4) + c - '0'.code
-										}
-										in 'A'.code .. 'F'.code ->
-										{
-											count++
-											value = (value shl 4) +
-												c - 'A'.code + 10
-										}
-										in 'a'.code .. 'f'.code ->
-										{
-											count++
-											value = (value shl 4) +
-												c - 'a'.code + 10
-										}
-										else ->
-										{
-											assert(false) { "Unreachable" }
-										}
-									}
-								}
-							}
-							'n'.code, 'r'.code, 't'.code,
-							'\\'.code, '\"'.code, '|'.code ->
-							{
-								count++
-								edit(start, start + count) {
-									SystemStyle
-										.STRING_ESCAPE_SEQUENCE
-										.kotlinString
-								}
-								start += count
-							}
-							'\r'.code, '\n'.code ->
-							{
-								// Explicitly don't style the escaped carriage
-								// return or line feed, but do style the
-								// backslash.
-								edit(start, start + count) {
-									SystemStyle
-										.STRING_ESCAPE_SEQUENCE
-										.kotlinString
-								}
-								start += count + 1
-							}
-							// We know that the string lexed correctly, so there
-							// can't be a malformed escape.
-							else ->
-							{
-								assert(false) { "Unreachable" }
-							}
-						}
-					}
-					BACK_QUOTE.codepoint ->
-					{
-						// We know that the message split correctly, so there
-						// can't be a dangling escape.
-						val c = characters.next().codePoint
-						assert(canBeBackQuoted(c))
-						edit(start, start + 1) {
-							SystemStyle.METHOD_NAME.kotlinString
-						}
-						edit(start + 1, start + 2) {
-							SystemStyle.STRING_LITERAL.kotlinString
-						}
-						start += 2
-					}
-					CLOSE_GUILLEMET.codepoint,
-					DOUBLE_DAGGER.codepoint,
-					DOUBLE_QUESTION_MARK.codepoint,
-					ELLIPSIS.codepoint,
-					EXCLAMATION_MARK.codepoint,
-					OCTOTHORP.codepoint,
-					OPEN_GUILLEMET.codepoint,
-					QUESTION_MARK.codepoint,
-					SECTION_SIGN.codepoint,
-					SINGLE_DAGGER.codepoint,
-					TILDE.codepoint,
-					UNDERSCORE.codepoint,
-					UP_ARROW.codepoint,
-					VERTICAL_BAR.codepoint ->
-					{
-						edit(start, start + 1) {
-							SystemStyle.METHOD_NAME.kotlinString
-						}
-						start++
-					}
-					in MessageSplitter.circledNumbersMap ->
-					{
-						edit(start, start + 1) {
-							SystemStyle.METHOD_NAME.kotlinString
-						}
-						start++
-					}
-					else ->
-					{
-						count++
-						while (characters.hasNext())
-						{
-							val c = characters.next().codePoint
-							if (c == '"'.code
-								|| c == '\\'.code
-								|| canBeBackQuoted(c))
-							{
-								edit(start, start + count) {
-									SystemStyle.STRING_LITERAL.kotlinString
-								}
-								start += count
-								characters.previous()
-								break
-							}
-							else
-							{
-								count++
-							}
-						}
-						// We know that the string lexed correctly, so there
-						// have to be more characters (because we haven't seen
-						// the closing double quote yet).
-						assert(characters.hasNext())
-					}
-				}
-			}
+			styleMethodNameHelper(
+				stringLiteralToken.string(),
+				stringLiteralToken.start())
 		}
 	}
 
@@ -1392,35 +1209,41 @@ constructor(
 					}
 				}
 				module.moduleAddDefinition(newDefinition)
-				val topStart = topLevelStatementBeingCompiled!!
-					.startingLineNumber
+				val topStart =
+					topLevelStatementBeingCompiled!!.startingLineNumber
+				val signature = newDefinition.bodySignature()
 				addManifestEntry(
 					when
 					{
 						newDefinition.isMethodDefinition() ->
 							newDefinition.bodyBlock().let { body ->
 								ModuleManifestEntry(
-									SideEffectKind.METHOD_DEFINITION_KIND,
+									METHOD_DEFINITION_KIND,
 									methodName.asNameInModule,
-									methodName.atomName.asNativeString() + "  " +
-									//TODO remove hack
-										newDefinition.bodySignature().toString(),
+									methodName.atomName.asNativeString() +
+										"  " + signature,
+									signature,
 									topStart,
 									body.code().codeStartingLineNumber,
-									body)
+									body
+								)
 							}
 						newDefinition.isForwardDefinition() ->
 							ModuleManifestEntry(
-								SideEffectKind.FORWARD_METHOD_DEFINITION_KIND,
+								FORWARD_METHOD_DEFINITION_KIND,
 								methodName.asNameInModule,
-								methodName.atomName.asNativeString(),
+								methodName.atomName.asNativeString() +
+									"  " + signature,
+								signature,
 								topStart,
 								topStart)
 						newDefinition.isAbstractDefinition() ->
 							ModuleManifestEntry(
-								SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND,
+								ABSTRACT_METHOD_DEFINITION_KIND,
 								methodName.asNameInModule,
-								methodName.atomName.asNativeString(),
+								methodName.atomName.asNativeString() +
+									"  " + signature,
+								signature,
 								topStart,
 								topStart)
 						else -> throw UnsupportedOperationException(
@@ -1509,9 +1332,11 @@ constructor(
 			module.lock {
 				addManifestEntry(
 					ModuleManifestEntry(
-						SideEffectKind.MACRO_DEFINITION_KIND,
+						MACRO_DEFINITION_KIND,
 						methodName.asNameInModule,
-						methodName.atomName.asNativeString(),
+						methodName.atomName.asNativeString() +
+							"  " + macroBodyType,
+						macroBodyType,
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						macroCode.codeStartingLineNumber,
 						macroBody))
@@ -1556,9 +1381,10 @@ constructor(
 			{
 				addManifestEntry(
 					ModuleManifestEntry(
-						SideEffectKind.SEMANTIC_RESTRICTION_KIND,
+						SEMANTIC_RESTRICTION_KIND,
 						atom.asNameInModule,
 						atom.atomName.asNativeString(),
+						code.functionType(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						code.codeStartingLineNumber,
 						function))
@@ -1604,9 +1430,10 @@ constructor(
 		{
 			addManifestEntry(
 				ModuleManifestEntry(
-					SideEffectKind.SEAL_KIND,
+					SEAL_KIND,
 					methodName.asNameInModule,
 					methodName.atomName.asNativeString(),
+					functionType(seal, TOP.o),
 					topLevelStatementBeingCompiled!!.startingLineNumber,
 					topLevelStatementBeingCompiled!!.startingLineNumber))
 		}
@@ -1685,9 +1512,10 @@ constructor(
 				{
 					addManifestEntry(
 						ModuleManifestEntry(
-							SideEffectKind.GRAMMATICAL_RESTRICTION_KIND,
+							GRAMMATICAL_RESTRICTION_KIND,
 							parentAtom.asNameInModule,
 							parentAtom.atomName.asNativeString(),
+							null,
 							topLevelStatementBeingCompiled!!.startingLineNumber,
 							topLevelStatementBeingCompiled!!.startingLineNumber))
 				}
@@ -1906,9 +1734,10 @@ constructor(
 			val topStart = topLevelStatementBeingCompiled!!.startingLineNumber
 			addManifestEntry(
 				ModuleManifestEntry(
-					SideEffectKind.ATOM_DEFINITION_KIND,
+					ATOM_DEFINITION_KIND,
 					atom.asNameInModule,
 					stringName.asNativeString(),
+					null,
 					topStart,
 					topStart))
 		}
@@ -2173,6 +2002,315 @@ constructor(
 			if (debugStyling)
 			{
 				println("Defined bootstrap styler: $atom")
+			}
+		}
+
+		/**
+		 * Given text of a *quoted* method name and the starting offset that the
+		 * text occurs at, update the receiver, a [RunTree], to contain the
+		 * symbolic style names that should color the text.
+		 *
+		 * @receiver
+		 *   The [RunTree] that will contain the style names in the interval
+		 *   starting at [tokenStart].
+		 * @param text
+		 *   The [A_String] to be styled, including the enclosing quotes.
+		 * @param tokenStart
+		 *   The initial position of the token in the text, as the [RunTree]
+		 *   will see it.
+		 */
+		fun RunTree<String>.styleMethodNameHelper(
+			text: A_String,
+			tokenStart: Int)
+		{
+			val characters = text.iterator() as ListIterator<A_Character>
+			var start = tokenStart
+			while (characters.hasNext())
+			{
+				var count = 0
+				when (characters.next().codePoint)
+				{
+					'"'.code ->
+					{
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						start++
+					}
+
+					'\\'.code ->
+					{
+						count++
+						// We know that the string lexed correctly, so there
+						// can't be a dangling escape.
+						when (characters.next().codePoint)
+						{
+							'('.code ->
+							{
+								count++
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count
+								count = 0
+								var value = 0
+								// Process the Unicode escape sequences, looking
+								// for hidden metacharacters.
+								while (characters.hasNext())
+								{
+									when (val c = characters.next().codePoint)
+									{
+										','.code, ')'.code ->
+										{
+											edit(start, start + count) {
+												if (canBeBackQuoted(value))
+												{
+													SystemStyle
+														.METHOD_NAME
+														.kotlinString
+												}
+												else
+												{
+													SystemStyle
+														.STRING_ESCAPE_SEQUENCE
+														.kotlinString
+												}
+											}
+											start += count
+											count = 0
+											value = 0
+											edit(start, start + 1) {
+												SystemStyle
+													.STRING_ESCAPE_SEQUENCE
+													.kotlinString
+											}
+											start++
+											if (c == ')'.code) break
+										}
+
+										in '0'.code .. '9'.code ->
+										{
+											count++
+											value = (value shl 4) + c - '0'.code
+										}
+
+										in 'A'.code .. 'F'.code ->
+										{
+											count++
+											value = (value shl 4) +
+												c - 'A'.code + 10
+										}
+
+										in 'a'.code .. 'f'.code ->
+										{
+											count++
+											value = (value shl 4) +
+												c - 'a'.code + 10
+										}
+
+										else ->
+										{
+											assert(false) { "Unreachable" }
+										}
+									}
+								}
+							}
+
+							'n'.code, 'r'.code, 't'.code,
+							'\\'.code, '\"'.code, '|'.code ->
+							{
+								count++
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count
+							}
+
+							'\r'.code, '\n'.code ->
+							{
+								// Explicitly don't style the escaped carriage
+								// return or line feed, but do style the
+								// backslash.
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count + 1
+							}
+							// We know that the string lexed correctly, so there
+							// can't be a malformed escape.
+							else ->
+							{
+								assert(false) { "Unreachable" }
+							}
+						}
+					}
+
+					BACK_QUOTE.codepoint ->
+					{
+						// We know that the message split correctly, so there
+						// can't be a dangling escape.
+						val c = characters.next().codePoint
+						assert(canBeBackQuoted(c))
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						edit(start + 1, start + 2) {
+							SystemStyle.STRING_LITERAL.kotlinString
+						}
+						start += 2
+					}
+
+					CLOSE_GUILLEMET.codepoint,
+					DOUBLE_DAGGER.codepoint,
+					DOUBLE_QUESTION_MARK.codepoint,
+					ELLIPSIS.codepoint,
+					EXCLAMATION_MARK.codepoint,
+					OCTOTHORP.codepoint,
+					OPEN_GUILLEMET.codepoint,
+					QUESTION_MARK.codepoint,
+					SECTION_SIGN.codepoint,
+					SINGLE_DAGGER.codepoint,
+					TILDE.codepoint,
+					UNDERSCORE.codepoint,
+					UP_ARROW.codepoint,
+					VERTICAL_BAR.codepoint ->
+					{
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						start++
+					}
+
+					in MessageSplitter.circledNumbersMap ->
+					{
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						start++
+					}
+
+					else ->
+					{
+						count++
+						while (characters.hasNext())
+						{
+							val c = characters.next().codePoint
+							if (c == '"'.code
+								|| c == '\\'.code
+								|| canBeBackQuoted(c))
+							{
+								edit(start, start + count) {
+									SystemStyle.STRING_LITERAL.kotlinString
+								}
+								start += count
+								characters.previous()
+								break
+							}
+							else
+							{
+								count++
+							}
+						}
+						// We know that the string lexed correctly, so there
+						// have to be more characters (because we haven't seen
+						// the closing double quote yet).
+						assert(characters.hasNext())
+					}
+				}
+			}
+		}
+
+		/**
+		 * Create an HTML3.2 span (*without* a top-level html tag) containing a
+		 * styled presentation of the given method name.  The method name *must*
+		 * have quotes around it, and have backslash escapes for embedded
+		 * backslashes and quotes.  If [stripQuotes] is true, remove the outer
+		 * quotes and backslashes used as escapes.
+		 *
+		 * Note that there are other kinds of escape sequences, such as "\(20)",
+		 * but those won't occur in a name that was created by producing the
+		 * [toString] of an [A_String] representing a method name.  The only
+		 * backslashes in such a name always precede a quote or another
+		 * backslash.
+		 *
+		 * @param quotedName
+		 *   The name of the method, including outer quotes and backslashes for
+		 *   escaped characters.
+		 * @param stripQuotes
+		 *   Whether to strip the outer quotes and backslash escapes in the
+		 *   output HTML [String].
+		 * @param stylesheet
+		 *   The [Stylesheet] that determines how the abstract styling leads to
+		 *   concrete presentation changes (e.g., font color).
+		 * @param startOfToken
+		 *   The one-based start of the token to highlight in the name.  If this
+		 *   is -1, ignore [pastEndOfToken] and don't highlight anything.
+		 * @param pastEndOfToken
+		 *   The one-based end, inclusive, of the token to highlight in the
+		 *   name.
+		 * @return
+		 *   An HTML3.2 [String] that can be substituted inside a top-level html
+		 *   tag (or any place a span could go), which presents the method name
+		 *   with the best approximation of what the styling can produce.
+		 */
+		fun htmlStyledMethodName(
+			quotedName: A_String,
+			stripQuotes: Boolean,
+			stylesheet: Stylesheet,
+			startOfToken: Int = -1,
+			pastEndOfToken: Int = -1
+		): String
+		{
+			val size = quotedName.tupleSize
+			assert(quotedName.tupleCodePointAt(1) == '"'.code)
+			assert(quotedName.tupleCodePointAt(size) == '"'.code)
+			val styles = RunTree<String>()
+			// Start by styling the entire range with the empty string.
+			styles.edit(1, size + 1) { "" }
+			styles.styleMethodNameHelper(quotedName, 1)
+			if (startOfToken != -1) styles.edit(startOfToken, pastEndOfToken) {
+				old -> old + "," + TOKEN_HIGHLIGHT.classifier
+			}
+			if (stripQuotes)
+			{
+				// Remove the runs containing the outer quotes or a backslash
+				// used as an escape.
+				styles.edit(1, 2) { null }
+				styles.edit(size, size + 1) { null }
+				var wasEscape = false
+				for (i in 2 ..< size)
+				{
+					@Suppress("LiftReturnOrAssignment")
+					if (!wasEscape
+						&& quotedName.tupleCodePointAt(i) == '\\'.code)
+					{
+						// Exclude the backslash.
+						styles.edit(i, i + 1) { null }
+						wasEscape = true
+					}
+					else
+					{
+						wasEscape = false
+					}
+				}
+			}
+			return buildString {
+				val native = quotedName.asNativeString()
+				for ((start, pastEnd, styleString) in styles)
+				{
+					stylesheet[styleString].encloseHtml(this) {
+						// Be sure to escape any special characters like '<'.
+						val substring = native.substring(
+							start.toInt() - 1, pastEnd.toInt() - 1)
+						append(substring.escapedForHTML())
+					}
+				}
 			}
 		}
 	}

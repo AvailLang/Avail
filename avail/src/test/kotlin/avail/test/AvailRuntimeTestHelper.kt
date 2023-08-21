@@ -442,16 +442,11 @@ class AvailRuntimeTestHelper constructor (
 		 * enforcing a specific subset of locations from which the test harness
 		 * may run.
 		 */
-		val rootDirectory = run {
+		val rootDirectory: String = run {
 			// The submodules are nested one level deep inside the root project,
 			// so just toss the final path component in order to resolve the
 			// root project.
-			val currentWorkingDirectory = System.getProperty("user.dir")
-			val rootDirectory = currentWorkingDirectory
-				.split(File.separator)
-				.dropLast(1)
-				.joinToString(File.separator)
-			rootDirectory
+			System.getProperty("user.dir")
 		}
 
 		/** Lazily create a test directory in which to perform the tests. */

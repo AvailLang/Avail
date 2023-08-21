@@ -150,8 +150,7 @@ class RepositoryDescriber constructor(
 	fun describeNamesIndex(recordNumberOfNamesIndex: Long): String
 	{
 		val record = repository[recordNumberOfNamesIndex]
-		val input = DataInputStream(ByteArrayInputStream(record))
-		val namesIndex = NamesIndex(input)
+		val namesIndex = NamesIndex(record)
 		return buildUnicodeBox("Names Index") {
 			namesIndex.occurrences.forEach { (namesInIndex, occurrences) ->
 				append(namesInIndex.moduleName)

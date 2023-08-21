@@ -307,7 +307,9 @@ class BuildDirectoryTracer constructor(
 						val importNames = header.importedModuleNames
 						val entryPoints = header.entryPointNames
 						val newVersion = ModuleVersion(
-							repository,sourceReference.size, importNames, entryPoints)
+							repository,sourceReference.size,
+							importNames,
+							entryPoints)
 
 						availBuilder.serialize(header, newVersion)
 						archive.putVersion(versionKey, newVersion)

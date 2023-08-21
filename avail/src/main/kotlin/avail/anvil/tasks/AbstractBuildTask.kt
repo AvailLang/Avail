@@ -90,11 +90,11 @@ abstract class AbstractBuildTask constructor (
 				editor.populateSourcePane {
 					it.sourcePane.setCaretFrom(r)
 					it.sourcePane.centerCurrentLine()
-					if (workbench.structureViewPanel.editor == editor)
+					if (workbench.structureView.editor == editor)
 					{
 						editor.openStructureView(false)
 					}
-					if (workbench.phraseViewPanel.editor == editor)
+					if (workbench.phraseView.editor == editor)
 					{
 						editor.updatePhraseStructure()
 					}

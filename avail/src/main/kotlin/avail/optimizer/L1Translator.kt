@@ -105,7 +105,7 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationT
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
@@ -652,7 +652,7 @@ class L1Translator private constructor(
 		// returning into the resulting continuation it will enter a block where
 		// the slot registers are the new ones we just created.
 		val writeOffset = generator.intWriteTemp(
-			restrictionForType(int32, UNBOXED_INT_FLAG))
+			restrictionForType(i32, UNBOXED_INT_FLAG))
 		val writeRegisterDump = generator.boxedWriteTemp(
 			restrictionForType(Types.ANY.o, BOXED_FLAG))
 		val fallThrough = generator.createBasicBlock("Off-ramp", zone)

@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Avail CLI" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="avail.tools.compiler.Compiler" />
+    <module name="avail-cli.main" />
+    <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/../distro/src/avail;builder-tests=$PROJECT_DIR$/../distro/src/builder-tests;examples=$PROJECT_DIR$/../distro/src/examples;website=$PROJECT_DIR$/../distro/src/website --verboseMode=2 --compile /avail/Avail" />
+    <shortenClasspath name="NONE" />
+    <option name="VM_PARAMETERS" value="-ea -Xmx10g -Djava.util.logging.config.file=$PROJECT_DIR$/../distro/etc/logging.properties -DavailDeveloper=true" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

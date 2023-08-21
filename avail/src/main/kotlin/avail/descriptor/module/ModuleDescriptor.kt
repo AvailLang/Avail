@@ -172,6 +172,7 @@ import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
+import avail.interpreter.PrimitiveClassLoader
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.persistence.cache.Repository
@@ -1315,6 +1316,9 @@ class ModuleDescriptor private constructor(
 			// Remove the bundle from the method.
 			bundle.bundleMethod.methodRemoveBundle(bundle)
 		}
+		// Unload any Primitives loaded by this module
+		PrimitiveClassLoader.unloadModuleClassLoaders(moduleName)
+
 		// Tidy up the module to make it easier for the garbage collector to
 		// clean things up piecemeal.
 		allAncestors.set(nil)
@@ -1558,7 +1562,7 @@ class ModuleDescriptor private constructor(
 				reopenIfNecessary()
 				lock.withLock { this[namesIndexRecordIndex] }
 			}
-			NamesIndex(DataInputStream(ByteArrayInputStream(bytes)))
+			NamesIndex(bytes)
 		}
 		return namesIndex!!
 	}

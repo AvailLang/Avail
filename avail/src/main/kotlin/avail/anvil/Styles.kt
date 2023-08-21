@@ -32,6 +32,7 @@
 
 package avail.anvil
 
+import avail.anvil.AdaptiveColor.Companion.hex
 import avail.anvil.PhrasePathStyleApplicator.LocalDefinitionAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.LocalUseAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
@@ -78,6 +79,7 @@ import avail.persistence.cache.record.StylingRecord
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
 import avail.utility.drain
+import avail.utility.mapToSet
 import avail.utility.structures.RunTree
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.Palette
@@ -268,7 +270,7 @@ class Stylesheet constructor(
 	 * The root [tree][StyleRuleTree] for rendering queries.
 	 */
 	private val rootTree by lazy(LazyThreadSafetyMode.PUBLICATION) {
-		StyleRuleTree(rules.map { it.initialContext }.toSet())
+		StyleRuleTree(rules.mapToSet(transform = StyleRule::initialContext))
 	}
 
 	/**
@@ -3230,6 +3232,59 @@ class ValidatedRenderingContext constructor(
 	}
 
 	/**
+	 * A lazily computed [Pair] of HTML3.2 tag strings that can be written,
+	 * before and after html text to make it look as close to the document style
+	 * as possible.
+	 */
+	private val tagPairsForHtml: Pair<String, String> by lazy(
+		LazyThreadSafetyMode.SYNCHRONIZED)
+	{
+		val tags = attributes.run {
+			listOfNotNull(
+				fontFamily?.let { "span style='font-family: $it'" },
+				foreground?.let { fg ->
+					palette.colors[fg]?.run { "font color=$hex'" }
+				},
+				background?.let { bg ->
+					palette.colors[bg]?.run {
+						"span style='background-color:$hex'"
+					}
+				},
+				bold?.let { "b" },
+				italic?.let { "i" },
+				underline?.let { "u" },
+				superscript?.let { "sup" },
+				subscript?.let { "sub" },
+				strikethrough?.let { "strike" }
+			)
+		}
+		Pair(
+			tags.joinToString("") { "<$it>" },
+			tags.reversed().joinToString("") {
+				"</${it.substringBefore(' ')}>"
+			})
+	}
+
+	/**
+	 * Write the open tags, run the action on the builder, then write the close
+	 * tags.  Do not write the outer "html" open/close tags.  The resulting HTML
+	 * should present a reasonable facsimile of the corresponding document
+	 * styling.
+	 *
+	 * @param builder
+	 *   Where to write the HTML.
+	 * @param action
+	 *   The function that produces the text inside the HTML tags.
+	 */
+	fun encloseHtml(builder: StringBuilder, action: StringBuilder.()->Unit)
+	{
+		val (before, after) = tagPairsForHtml
+		builder.append(before)
+		builder.action()
+		builder.append(after)
+	}
+
+	/**
 	 * Combine the [receiver][ValidatedRenderingContext] with the argument to
 	 * produce a new [context][ValidatedRenderingContext] in which
 	 * [attributes][StyleAttributes] of the receiver are overridden by
@@ -3310,8 +3365,9 @@ class ValidatedRenderingContext constructor(
 		 * The default [document&#32;style][Style], to serve as the parent for
 		 * new document styles. **Must only be called on the Swing UI thread.**
 		 */
-		val defaultDocumentStyle: Style
-		by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+		val defaultDocumentStyle: Style by lazy(
+			LazyThreadSafetyMode.SYNCHRONIZED)
+		{
 			assert(SwingUtilities.isEventDispatchThread())
 			getDefaultStyleContext().getStyle(StyleContext.DEFAULT_STYLE)
 		}
@@ -3439,7 +3495,7 @@ object RenderingEngine
 		}
 		// Add in the invisible phrase/token structure information.
 		phrasePathRecord?.phraseNodesDo { phraseNode ->
-			phraseNode.tokenSpans.forEach { (start, pastEnd, indexInName) ->
+			phraseNode.tokenSpans.forEach { (start, pastEnd, _, indexInName) ->
 				renderingFunctions.edit(start, pastEnd) { old ->
 					old compose { document, range ->
 						document.setCharacterAttributes(
@@ -3508,6 +3564,190 @@ object RenderingEngine
 				start.toInt() until pastEnd.toInt())
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//                             HTML abstraction.                              //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Copy the specified range from the [receiver][StyledDocument] as a fragment of
+ * HTML5 text. Embed the style attributes directly into the HTML, using `style`
+ * rather than `class` attributes to keep the fragment portable and
+ * document-independent.
+ *
+ * The primary use case for this method is embedding authentic styled Avail code
+ * into larger HTML5 documents, e.g., the official Avail documentation,
+ * promotional material for Avail, blog posts, etc.
+ *
+ * @receiver
+ *   The [StyledDocument] from which the desired HTML5 should be abstracted.
+ * @param start
+ *   The start of the range to abstract.
+ * @param pastEnd
+ *   The position just past the end of the range to abstract.
+ * @param codeBackground
+ *   The background color to use for the whole fragment.
+ * @return
+ *   The requested HTML5 fragment.
+ */
+fun StyledDocument.copyAsHtml5(
+	start: Int,
+	pastEnd: Int,
+	codeBackground: Color = SystemColors.active.codeBackground
+) = buildString {
+	appendLine("<html>")
+	appendLine("""<body style="background-color: ${codeBackground.hex}">""")
+	appendLine("""<div style="white-space: pre;">""")
+	var previous = styleAttributesAt(start)
+	var current = previous
+	append(previous.startSpanHtml5())
+	append(getText(start, 1))
+	for (position in start + 1 until pastEnd)
+	{
+		current = styleAttributesAt(position)
+		if (current.appendSpanTransitionIfChangedFrom(previous, this))
+		{
+			previous = current
+		}
+		append(getText(position, 1))
+	}
+	//
+	if (current.flags != 0) appendLine("</span>")
+	appendLine("</div>\n</body>\n</html>")
+}
+
+/**
+ * Extract the [StyleAttributes] at the specified position in the
+ * [receiver][StyledDocument].
+ *
+ * @receiver
+ *   The [StyledDocument] to interrogate.
+ * @param position
+ *   The position at which to extract the [StyleAttributes].
+ * @return
+ *   The extracted [StyleAttributes].
+ */
+private fun StyledDocument.styleAttributesAt(position: Int) =
+	getCharacterElement(position).attributes.run {
+		StyleAttributes(
+			foreground = (getAttribute(Foreground) as? Color)?.hex,
+			background = (getAttribute(Background) as? Color)?.hex,
+			fontFamily = getAttribute(FontFamily) as? String,
+			bold = getAttribute(Bold) as? Boolean,
+			italic = getAttribute(Italic) as? Boolean,
+			underline = getAttribute(Underline) as? Boolean,
+			superscript = getAttribute(Superscript) as? Boolean,
+			subscript = getAttribute(Subscript) as? Boolean,
+			strikethrough = getAttribute(StrikeThrough) as? Boolean
+		)
+	}
+
+/**
+ * Answer the start of an HTML5 span with the specified [StyleAttributes]. The
+ * span will be completed self-contained, using `style` rather than `class`
+ * attributes to keep the fragment portable and document-independent.
+ */
+private fun StyleAttributes.startSpanHtml5() = buildString {
+	val style = buildString {
+		foreground?.let { append("color: $it; ") }
+		background?.let { append("background-color: $it; ") }
+		fontFamily?.let {
+			// Translate Java's special monospaced font constant for CSS.
+			val font = if (it == "Monospaced") "monospace" else it
+			append("font-family: $font; ")
+		}
+		if (bold == true) append("font-weight: bold; ")
+		if (italic == true) append("font-style: italic; ")
+		if (underline == true) append("text-decoration: underline; ")
+		if (superscript == true) append("vertical-align: super; ")
+		if (subscript == true) append("vertical-align: sub; ")
+		if (strikethrough == true) append("text-decoration: line-through;")
+	}.trim()
+	if (style.isNotEmpty())
+	{
+		append("""<span style="""")
+		append(style)
+		append("""">""")
+	}
+}
+
+/**
+ * The flags that indicate which [StyleAttributes] are present.
+ */
+private val StyleAttributes.flags get() = run {
+	var flags = 0
+	foreground?.let { flags = flags or StyleAttributeFlags.foreground }
+	background?.let { flags = flags or StyleAttributeFlags.background }
+	fontFamily?.let { flags = flags or StyleAttributeFlags.fontFamily }
+	if (bold == true) flags = flags or StyleAttributeFlags.bold
+	if (italic == true) flags = flags or StyleAttributeFlags.italic
+	if (underline == true) flags = flags or StyleAttributeFlags.underline
+	if (superscript == true) flags = flags or StyleAttributeFlags.superscript
+	if (subscript == true) flags = flags or StyleAttributeFlags.subscript
+	if (strikethrough == true) flags = flags or StyleAttributeFlags.strikethrough
+	flags
+}
+
+/**
+ * Append the appropriate HTML5 close tag to the [receiver][StringBuilder] if
+ * the [StyleAttributes] differ from the specified [startAttribute].
+ *
+ * @param startAttribute
+ *   The [StyleAttributes] at the start of the span.
+ * @param builder
+ *   The target [StringBuilder] to which to append the close tag.
+ * @return
+ *   Whether the close tag was appended.
+ */
+private fun StyleAttributes.appendSpanTransitionIfChangedFrom(
+	startAttribute: StyleAttributes,
+	builder: StringBuilder
+): Boolean
+{
+	if (this != startAttribute)
+	{
+		// Be careful not to close the span if we're not actually inside a span.
+		if (flags != 0) builder.append("</span>")
+		startSpanHtml5().let { if (it.isNotEmpty()) builder.append(it) }
+		return true
+	}
+	return false
+}
+
+/**
+ * Flags that indicate whether a [StyleAttributes] possesses particular aspects.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+private object StyleAttributeFlags
+{
+	/** Has [foreground][StyleAttributes.foreground] color. */
+	val foreground = 0x00000001
+
+	/** Has [background][StyleAttributes.background] color. */
+	val background = 0x00000002
+
+	/** Has [font&#32;family][StyleAttributes.fontFamily]. */
+	val fontFamily = 0x00000004
+
+	/** Has [bold][StyleAttributes.bold] font weight. */
+	val bold = 0x00000008
+
+	/** Has [italic][StyleAttributes.italic] font style. */
+	val italic = 0x00000010
+
+	/** Has [underline][StyleAttributes.underline] text decoration. */
+	val underline = 0x00000020
+
+	/** Has [superscript][StyleAttributes.superscript] vertical alignment. */
+	val superscript = 0x00000040
+
+	/** Has [subscript][StyleAttributes.subscript] vertical alignment. */
+	val subscript = 0x00000080
+
+	/** Has [strikethrough][StyleAttributes.strikethrough] text decoration. */
+	val strikethrough = 0x00000100
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -3738,6 +3978,23 @@ enum class SystemStyleClassifier(val classifier: String)
 	{
 		override val systemColor = SystemColors::streamReport
 		override val colorName = systemColor.name
+	},
+
+	/**
+	 * The style used to emphasize a particular token that has been selected or
+	 * used in a navigation.  Styler functions for actual code should not
+	 * generally use this style, as it's intended for transiently emphasizing a
+	 * particular token that the user is working with dynamically.
+	 */
+	TOKEN_HIGHLIGHT("#token-highlight")
+	{
+		override val systemColor = SystemColors::tokenHighlightBackground
+		override val colorName = systemColor.name
+
+		override val defaultRenderingContext get() =
+			UnvalidatedRenderingContext(
+				StyleAttributes(background = colorName)
+			)
 	};
 
 	/**

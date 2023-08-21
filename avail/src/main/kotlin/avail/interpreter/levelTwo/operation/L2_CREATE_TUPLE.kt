@@ -53,10 +53,10 @@ import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
@@ -158,7 +158,7 @@ object L2_CREATE_TUPLE : L2Operation(
 					// :: uninitialized-byte-string
 				}
 			}
-			unionType.isSubtypeOf(int64) ->
+			unionType.isSubtypeOf(i64) ->
 			{
 				// It'll be a numeric tuple that we're able to optimize. Call
 				// the appropriate operation to create an uninitialized tuple
@@ -167,12 +167,12 @@ object L2_CREATE_TUPLE : L2Operation(
 				// :: size
 				when
 				{
-					unionType.isSubtypeOf(nybbles) ->
+					unionType.isSubtypeOf(u4) ->
 						createUninitializedNybbleTupleMethod.generateCall(
 							method)
-					unionType.isSubtypeOf(bytes) ->
+					unionType.isSubtypeOf(u8) ->
 						createUninitializedByteTupleMethod.generateCall(method)
-					unionType.isSubtypeOf(int32) ->
+					unionType.isSubtypeOf(i32) ->
 						createUninitializedIntTupleMethod.generateCall(method)
 					else ->
 						createUninitializedLongTupleMethod.generateCall(method)

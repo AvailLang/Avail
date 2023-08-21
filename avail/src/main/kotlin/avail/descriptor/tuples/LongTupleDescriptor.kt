@@ -70,7 +70,7 @@ import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeTuple
 import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -468,7 +468,7 @@ private constructor(
 			return false
 		}
 		val defaultTypeObject = aType.defaultType
-		if (int64.isSubtypeOf(defaultTypeObject))
+		if (i64.isSubtypeOf(defaultTypeObject))
 		{
 			return true
 		}
@@ -533,7 +533,7 @@ private constructor(
 	{
 		return when
 		{
-			int64.isSubtypeOf(type) -> true
+			i64.isSubtypeOf(type) -> true
 			startIndex > endIndex -> true
 			type.isEnumeration -> super.o_TupleElementsInRangeAreInstancesOf(
 				self, startIndex, endIndex, type)

@@ -70,10 +70,10 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instan
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.levelTwo.L2Chunk
@@ -642,7 +642,7 @@ class L2Generator internal constructor(
 
 		// It's not available as an unboxed int, so generate code to unbox it.
 		val restriction = currentManifest.restrictionFor(semanticBoxed)
-		if (!restriction.intersectsType(int32))
+		if (!restriction.intersectsType(i32))
 		{
 			// It's not an unboxed int, and the boxed form can never be an
 			// int32, so it must always fail.
@@ -661,7 +661,7 @@ class L2Generator internal constructor(
 			restriction.forUnboxedInt(),
 			L2IntRegister(nextUnique()))
 		val boxedRead = currentManifest.readBoxed(semanticBoxed)
-		if (restriction.containedByType(int32))
+		if (restriction.containedByType(i32))
 		{
 			addInstruction(L2_UNBOX_INT, boxedRead, intWrite)
 		}
@@ -925,7 +925,7 @@ class L2Generator internal constructor(
 					}
 				}
 			}
-			unionType.isSubtypeOf(int64) ->
+			unionType.isSubtypeOf(i64) ->
 			{
 				// It'll be a numeric tuple that we're able to optimize. Build a
 				// template of suitable representation to copy, with constants
@@ -935,15 +935,15 @@ class L2Generator internal constructor(
 				}
 				when
 				{
-					unionType.isSubtypeOf(nybbles) ->
+					unionType.isSubtypeOf(u4) ->
 						generateNybbleTupleFrom(size) { oneIndex ->
 							constantsWithZeros[oneIndex - 1].extractInt
 						}
-					unionType.isSubtypeOf(bytes) ->
+					unionType.isSubtypeOf(u8) ->
 						generateByteTupleFrom(size) { oneIndex ->
 							constantsWithZeros[oneIndex - 1].extractInt
 						}
-					unionType.isSubtypeOf(int32) ->
+					unionType.isSubtypeOf(i32) ->
 						generateIntTupleFrom(size) { oneIndex ->
 							constantsWithZeros[oneIndex - 1].extractInt
 						}
@@ -1458,7 +1458,7 @@ class L2Generator internal constructor(
 		val innerPass = L2BasicBlock("strengthen to constant")
 		val constantValueStrong = constantValue as AvailObject
 		if (constantValueStrong.isInt
-			&& registerToTest.restriction().containedByType(int32))
+			&& registerToTest.restriction().containedByType(i32))
 		{
 			// The constant and the value are both int32s.  Use the quicker int
 			// test, unboxing the int register if needed.

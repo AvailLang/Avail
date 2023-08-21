@@ -39,11 +39,13 @@ import avail.anvil.FileEditor
 import avail.anvil.FileEditor.Companion.fileEditor
 import avail.anvil.RenderingContext
 import avail.anvil.Stylesheet
+import avail.anvil.copyAsHtml5
 import avail.anvil.editor.GoToDialog
 import avail.anvil.shortcuts.BreakLineShortcut
 import avail.anvil.shortcuts.CamelCaseShortcut
 import avail.anvil.shortcuts.CancelTemplateSelectionShortcut
 import avail.anvil.shortcuts.CenterCurrentLineShortcut
+import avail.anvil.shortcuts.CopyAsHtml5ToClipboardShortcut
 import avail.anvil.shortcuts.DecreaseFontSizeShortcut
 import avail.anvil.shortcuts.ExpandTemplateShortcut
 import avail.anvil.shortcuts.GoToDialogShortcut
@@ -72,13 +74,15 @@ import avail.anvil.streams.StreamStyle
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodeKit.Companion.indent
 import avail.anvil.text.CodePane.Companion.codePane
-import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.PhraseView
+import avail.anvil.views.StructureView
 import avail.utility.Strings.buildUnicodeBox
 import avail.utility.Strings.tabs
 import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Point
 import java.awt.Rectangle
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JTextPane
@@ -131,7 +135,8 @@ open class CodeKit constructor(
 		ToCamelCase,
 		ToPascalCase,
 		ToSnakeCase,
-		ToKebabCase
+		ToKebabCase,
+		CopyAsHtml5ToClipboard
 	)
 
 	final override fun getActions(): Array<Action> =
@@ -433,7 +438,7 @@ private object CancelTemplateSelection
 }
 
 /**
- * Open the [StructureViewPanel].
+ * Open the [StructureView].
  */
 private object OpenStructureView
 	: TextAction(OpenStructureViewShortcut.actionMapKey)
@@ -445,7 +450,7 @@ private object OpenStructureView
 }
 
 /**
- * Open the [PhraseViewPanel].
+ * Open the [PhraseView].
  */
 private object OpenPhraseView
 	: TextAction(OpenPhraseViewShortcut.actionMapKey)
@@ -988,6 +993,29 @@ private object ToKebabCase
 	override fun executeEditAction (e: ActionEvent, sourcePane: JTextPane)
 	{
 		(e.source as JTextPane).transform { toKebabCase(this) }
+	}
+}
+
+/**
+ * Copy the selected text to the clipboard as HTML5.
+ */
+private object CopyAsHtml5ToClipboard
+	: TextAction(CopyAsHtml5ToClipboardShortcut.actionMapKey)
+{
+	override fun actionPerformed(e: ActionEvent)
+	{
+		(e.source as JTextPane).let { textPane ->
+			Toolkit.getDefaultToolkit().systemClipboard.setContents(
+				StringSelection(
+					textPane.styledDocument.copyAsHtml5(
+						textPane.selectionStart,
+						textPane.selectionEnd,
+						textPane.background
+					)
+				),
+				null
+			)
+		}
 	}
 }
 

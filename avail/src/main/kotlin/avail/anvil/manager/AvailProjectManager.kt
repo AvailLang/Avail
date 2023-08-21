@@ -49,7 +49,6 @@ import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Taskbar
-import java.awt.Window
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.io.File
@@ -210,14 +209,21 @@ class AvailProjectManager constructor(
 			}
 		})
 		Desktop.getDesktop().setQuitHandler { _, response ->
-			// Abort the explicit quit request, but ask the workbench to
-			// try to close the window, which will trigger nice cleanup.
+			// Abort the explicit quit request.
 			response.cancelQuit()
-			openWorkbenches.filter(Window::isFocused).forEach {
-				it.dispatchEvent(WindowEvent(it, WindowEvent.WINDOW_CLOSING))
+			// Now find the workbench that is currently in focus, if any are.
+			openWorkbenches.firstOrNull(
+				AvailWorkbench::workbenchWindowIsFocused
+			)?.let {
+				// Send the WINDOW_CLOSING event to the workbench, to trigger
+				// nice cleanup.
+				it.dispatchEvent(
+					WindowEvent(it, WindowEvent.WINDOW_CLOSING))
 			}
 			if (openWorkbenches.isEmpty())
 			{
+				// No workbenches are open, so send the project manager a
+				// WINDOW_CLOSING event to trigger nice cleanup.
 				processWindowEvent(
 					WindowEvent(this, WindowEvent.WINDOW_CLOSING))
 			}

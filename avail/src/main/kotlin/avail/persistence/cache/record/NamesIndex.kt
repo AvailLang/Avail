@@ -39,13 +39,14 @@ import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addSeal
 import avail.descriptor.parsing.A_Lexer
-import avail.interpreter.primitive.methods.P_Alias
+import avail.interpreter.primitive.atoms.P_CreateAtom
 import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.utility.decodeString
 import avail.utility.sizedString
 import avail.utility.structures.BloomFilter
 import avail.utility.unvlqInt
 import avail.utility.vlq
+import java.io.ByteArrayInputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -342,43 +343,51 @@ class NamesIndex
 	/**
 	 * The way that a [NameInModule] is being used somewhere.
 	 */
-	enum class UsageType
-	{
+	enum class UsageType constructor(
+		val toolTipText: String,
+		val iconFileName: String
+	) {
 		/**
-		 * This is an invocation of the name as a method to invoke at runtime.
+		 * This is a use of the name as a method to invoke at runtime.
 		 */
-		MethodSend,
+		MethodSend("Method Send", "Name-Send-Method-Dark.png"),
 
 		/**
-		 * This is an invocation of the name as a macro at compile time.
+		 * This is a use of the name as a macro to invoke at compile time.
 		 */
-		MacroSend,
+		MacroSend("Macro Send", "Name-Send-Macro-Dark.png"),
 
 		/**
-		 * The name is listed in the `Names` section of the module header.
+		 * The name appears in a module header in either (1) the `Names`
+		 * section, (2) as the right-hand side of a rename in the `Uses`
+		 * section, or (3) as the right-hand side of a rename in the `Extends`
+		 * section.
 		 */
-		NameInHeader,
+		DefinedInHeader("Defined in Header", "Name-Creation-Header-Both.png"),
 
 		/**
-		 * The name is mentioned (not defined) in an import section of the
-		 * module header.
+		 * The name appears in a module header in either (1) the `Uses` section,
+		 * (2) the left-hand side of a rename in the `Uses` section, (3) the
+		 * `Extends` section, or (4) the left-hand side of a rename in the
+		 * `Extends` section.
 		 */
-		AliasInHeader,
+		ImportedInHeader("Imported in Header", "Name-Mention-Header-Both.png"),
 
 		/**
-		 * An explicit [aliasing][P_Alias] took place within the module body.
+		 * The name was created within the body, either as (1) a consequence of
+		 * an initial atom lookup or (2) an invocation of [P_CreateAtom].
 		 */
-		AliasInBody,
+		CreationInBody(
+			"Creation in Body",
+			"Name-Creation-Body-Dark.png"),
 
 		/**
-		 * The atom (name) was created explicitly within the body.
+		 * The name was referenced in the body as a consequence of a non-initial
+		 * atom lookup.
 		 */
-		ExplicitCreationInBody,
-
-		/**
-		 * The atom (name) was created implicitly within the body.
-		 */
-		ImplicitCreationInBody;
+		ReferenceInBody(
+			"Reference in Body",
+			"Name-Mention-Body-Dark.png");
 
 		companion object
 		{
@@ -488,16 +497,10 @@ class NamesIndex
 	 *
 	 * @param nameToFind
 	 *   The [NameInModule] to search for in the index.
-	 * @param withOccurrences
-	 *   What to do with the [NameOccurrences] if an entry was found for the
-	 *   name.
+	 * @return
+	 *   The [NameOccurrences] or `null` if not found.
 	 */
-	fun findMentions(
-		nameToFind: NameInModule,
-		withOccurrences: (NameOccurrences) -> Unit)
-	{
-		occurrences[nameToFind]?.let(withOccurrences)
-	}
+	fun findMentions(nameToFind: NameInModule) = occurrences[nameToFind]
 
 	/**
 	 * Output this [NamesIndex] onto a [DataOutputStream], so that Anvil can
@@ -563,14 +566,15 @@ class NamesIndex
 	/**
 	 * Reconstruct a [NamesIndex], having previously been written via [write].
 	 *
-	 * @param binaryStream
-	 *   The source of the bytes from which to read a [NamesIndex].
+	 * @param bytes
+	 *   The bytes from which to read a [NamesIndex].
 	 * @throws IOException
 	 *   If I/O fails.
 	 */
 	@Throws(IOException::class)
-	internal constructor(binaryStream: DataInputStream)
+	internal constructor(bytes: ByteArray)
 	{
+		val binaryStream = DataInputStream(ByteArrayInputStream(bytes))
 		// Read the module names,
 		val moduleNames = List(binaryStream.unvlqInt()) {
 			binaryStream.decodeString()

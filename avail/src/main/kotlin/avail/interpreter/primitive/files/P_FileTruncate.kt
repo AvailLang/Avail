@@ -55,7 +55,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
@@ -165,7 +165,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o),
-				bytes),
+				u8),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

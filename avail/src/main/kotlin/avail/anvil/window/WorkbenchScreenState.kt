@@ -35,8 +35,8 @@ package avail.anvil.window
 import avail.builder.ModuleName
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
-import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.PhraseView
+import avail.anvil.views.StructureView
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
@@ -56,10 +56,10 @@ import java.util.concurrent.ConcurrentHashMap
  * @property workbenchLayoutConfig
  *   The [AvailWorkbenchLayoutConfiguration.stringToStore]
  * @property structureViewLayoutConfig
- *   The [LayoutConfiguration.stringToStore] for the [StructureViewPanel] or
+ *   The [LayoutConfiguration.stringToStore] for the [StructureView] or
  *   an empty string if not open.
  * @property phraseViewLayoutConfig
- *   The [LayoutConfiguration.stringToStore] for the [PhraseViewPanel] or
+ *   The [LayoutConfiguration.stringToStore] for the [PhraseView] or
  *   an empty string if not open.
  */
 class WorkbenchScreenState constructor(

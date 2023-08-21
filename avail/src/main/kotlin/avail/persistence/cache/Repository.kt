@@ -154,7 +154,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V15")
+		"Avail compiled module repository V16")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
@@ -322,8 +322,10 @@ class Repository constructor(
 			try
 			{
 				fileName.delete()
-				repository =
-					IndexedRepositoryBuilder.openOrCreate(fileName, true)
+				repository = IndexedRepositoryBuilder.openOrCreate(
+					fileName,
+					true,
+					softCacheSize = DEFAULT_SOFT_SIZE)
 				isOpen = true
 			}
 			catch (e: Exception)
@@ -452,6 +454,7 @@ class Repository constructor(
 				IndexedRepositoryBuilder.openOrCreate(
 					fileReference = fileName,
 					forWriting = true,
+					softCacheSize = DEFAULT_SOFT_SIZE,
 					versionCheck = versionCheck)
 			}
 			catch (e: IndexedFileException)
@@ -465,6 +468,7 @@ class Repository constructor(
 				IndexedRepositoryBuilder.openOrCreate(
 					fileReference = fileName,
 					forWriting = true,
+					softCacheSize = DEFAULT_SOFT_SIZE,
 					versionCheck = versionCheck)
 			}
 			val metadata = repo.metadata
@@ -586,6 +590,14 @@ class Repository constructor(
 			}
 		}
 
+		/** The default number of entries to cache softly in an open
+		 * [Repository].  The garbage collector is free to release these entries
+		 * at any time, preferably in the reverse order of creation or access.
+		 * Using too large a value here may still cause additional memory stress
+		 * by triggering more frequent global garbage collections.
+		 */
+		const val DEFAULT_SOFT_SIZE = 1000
+
 		/** The size in bytes of the digest of a source file. */
 		const val DIGEST_SIZE = 256 shr 3
 
@@ -646,7 +658,9 @@ class Repository constructor(
 				try
 				{
 					indexedFile = IndexedRepositoryBuilder.openOrCreate(
-						file, true)
+						file,
+						true,
+						softCacheSize = DEFAULT_SOFT_SIZE)
 				}
 				finally
 				{

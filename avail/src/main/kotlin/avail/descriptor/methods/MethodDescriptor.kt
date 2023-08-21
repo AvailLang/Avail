@@ -438,19 +438,17 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
-	{
-		builder.run {
-			when (val size = self.definitionsTuple.tupleSize)
-			{
-				1 -> append("1 definition")
-				else -> append("$size definitions")
-			}
-			append(" of ")
-			self.bundles
-				.sortedBy { it.message.issuingModule.allAncestors.setSize }
-				.joinTo(this, " a.k.a. ") { it.message.toString() }
+		indent: Int
+	) = builder.brief {
+		when (val size = self.definitionsTuple.tupleSize)
+		{
+			1 -> append("1 definition")
+			else -> append("$size definitions")
 		}
+		append(" of ")
+		self.bundles
+			.sortedBy { it.message.issuingModule.allAncestors.setSize }
+			.joinTo(this, " a.k.a. ") { it.message.toString() }
 	}
 
 	override fun o_AddDependentChunk(

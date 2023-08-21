@@ -1,0 +1,96 @@
+{
+	"id": "5060d6d0-cd5a-4d92-b3b4-3f7611b0ab39",
+	"darkMode": true,
+	"serializationVersion": 1,
+	"name": "avail-examples",
+	"repositoryLocation":
+	{
+		"locationType": "availRepositories",
+		"scheme": "FILE",
+		"path": ""
+	},
+	"disallow":
+	[
+	],
+	"roots":
+	[
+		{
+			"id": "16bb6b34-3596-463f-a8ec-10e4c89edf54",
+			"name": "avail",
+			"editable": true,
+			"visible": true,
+			"description": "",
+			"location":
+			{
+				"locationType": "project",
+				"scheme": "FILE",
+				"path": "distro/src/avail"
+			},
+			"moduleHeaders":
+			[
+				{
+					"name": "Module Header w/ Copyright",
+					"fileName": "module-header.mhd",
+					"description": "Contains a copyright and the Avail module header."
+				}
+			]
+		},
+		{
+			"id": "0fd943b6-ad37-449c-a277-1c939104f0a7",
+			"name": "builder-tests",
+			"editable": true,
+			"visible": true,
+			"description": "",
+			"location":
+			{
+				"locationType": "project",
+				"scheme": "FILE",
+				"path": "distro/src/builder-tests"
+			},
+			"moduleHeaders":
+			[
+			]
+		},
+		{
+			"id": "566d8cd7-07e7-4cf3-8c9e-b28bbf244a98",
+			"name": "examples",
+			"editable": true,
+			"visible": true,
+			"description": "",
+			"location":
+			{
+				"locationType": "project",
+				"scheme": "FILE",
+				"path": "distro/src/examples"
+			},
+			"availModuleExtensions": ["avail"],
+			"moduleHeaders":
+			[
+			]
+		},
+		{
+			"id": "6d046c0c-448d-4a19-8c2d-ec4fb001d1bf",
+			"name": "website",
+			"editable": false,
+			"visible": true,
+			"description": "",
+			"location":
+			{
+				"locationType": "project",
+				"scheme": "FILE",
+				"path": "distro/src/website"
+			},
+			"moduleHeaders":
+			[
+			]
+		}
+	],
+	"moduleHeaders":
+	[
+		{
+			"name": "Copyright",
+			"fileName": "copyright.mhd",
+			"description": "Contains an Avail-specific copyright."
+		}
+	]
+}

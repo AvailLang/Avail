@@ -51,6 +51,7 @@ import avail.descriptor.numbers.InfinityDescriptor
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromBigInteger
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
@@ -151,19 +152,38 @@ private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
-	{
-		builder.append(if (lowerInclusive) '[' else '(')
-		self[LOWER_BOUND].printOnAvoidingIndent(
-			builder,
-			recursionMap,
-			indent + 1)
-		builder.append("..")
-		self[UPPER_BOUND].printOnAvoidingIndent(
-			builder,
-			recursionMap,
-			indent + 1)
-		builder.append(if (upperInclusive) ']' else ')')
+		indent: Int
+	) = with(builder) {
+		when (self)
+		{
+			extendedIntegers -> append("ℤ∞")
+			integers -> append("ℤ")
+			naturalNumbers -> append("ℕ")
+			wholeNumbers -> append("\uD835\uDD4E") // 𝕎
+			u8 -> append("u8")
+			u16 -> append("u16")
+			u32 -> append("u32")
+			u64 -> append("u64")
+			i8 -> append("i8")
+			i16 -> append("i16")
+			i32 -> append("i32")
+			i64 -> append("i64")
+			else ->
+			{
+				append(if (lowerInclusive) '[' else '(')
+				self[LOWER_BOUND].printOnAvoidingIndent(
+					builder,
+					recursionMap,
+					indent + 1)
+				append("..")
+				self[UPPER_BOUND].printOnAvoidingIndent(
+					builder,
+					recursionMap,
+					indent + 1)
+				append(if (upperInclusive) ']' else ')')
+			}
+		}
+		Unit
 	}
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag
@@ -694,9 +714,6 @@ private constructor(
 			}
 		}
 
-		/** The range [0..255]. */
-		val bytes: A_Type = inclusive(0, 255).makeShared()
-
 		/** The range of Unicode code points, [0..1114111]. */
 		val characterCodePoints: A_Type =
 			inclusive(0, maxCodePointInt.toLong()).makeShared()
@@ -713,29 +730,50 @@ private constructor(
 		val naturalNumbers: A_Type =
 			integerRangeType(one, true, positiveInfinity, false).makeShared()
 
-		/** The range [0..15]. */
-		val nybbles: A_Type = inclusive(0, 15).makeShared()
-
-		/** The range [0..65535]. */
-		val unsignedShorts: A_Type =
-			inclusive(0, 65535).makeShared()
-
 		/** The range of whole numbers, [0..∞). */
 		val wholeNumbers: A_Type =
 			integerRangeType(zero, true, positiveInfinity, false)
 				.makeShared()
 
-		/** The range of a signed 32-bit `int`, `[-2^31..2^31)`. */
-		val int32: A_Type =
-			inclusive(Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong())
-				.makeShared()
+		/** The range [0..1]. */
+		val u1 = smallRanges[1][0]
+
+		/** The range [0..15]. */
+		val u4: A_Type = inclusive(0, 15).makeShared()
+
+		/** The range [0..255]. */
+		val u8: A_Type = inclusive(0, 255).makeShared()
+
+		/** The range [-128..127]. */
+		val i8: A_Type = inclusive(
+			Byte.MIN_VALUE.toLong(), Byte.MAX_VALUE.toLong()).makeShared()
+
+		/** The range [0..65535]. */
+		val u16: A_Type = inclusive(0, 65535L).makeShared()
+
+		/** The range [-32768..32767]. */
+		val i16: A_Type = inclusive(
+			Short.MIN_VALUE.toLong(), Short.MAX_VALUE.toLong()).makeShared()
 
 		/** The non-negative part of the range of int32s, `[0..2^31)`. */
-		val nonnegativeInt32: A_Type =
+		val i31: A_Type =
 			inclusive(0, Int.MAX_VALUE.toLong()).makeShared()
 
+		/** The range of an unsigned 32-bit `int`, `[0..2^32)`. */
+		val u32: A_Type = inclusive(0, 4294967295L).makeShared()
+
+		/** The range of a signed 32-bit `int`, `[-2^31..2^31)`. */
+		val i32: A_Type = inclusive(
+			Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).makeShared()
+
+		/** The range of an unsigned 64-bit `long`, `[0..2^64)`. */
+		val u64: A_Type = inclusive(
+			zero,
+			fromBigInteger(BigInteger("18446744073709551615"))
+		).makeShared()
+
 		/** The range of a signed 64-bit `long`, [-2^63..2^63). */
-		val int64: A_Type =
+		val i64: A_Type =
 			inclusive(Long.MIN_VALUE, Long.MAX_VALUE).makeShared()
 
 		/**
@@ -746,9 +784,6 @@ private constructor(
 		 */
 		val extendedIntegersMeta: A_Type =
 			instanceMeta(extendedIntegers).makeShared()
-
-		/** The range [0..1]. */
-		val zeroOrOne = smallRanges[1][0]
 	}
 
 	override fun mutable(): AbstractDescriptor =

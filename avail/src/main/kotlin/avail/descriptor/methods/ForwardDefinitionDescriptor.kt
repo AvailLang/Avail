@@ -116,15 +116,15 @@ class ForwardDefinitionDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
-	{
+		indent: Int
+	) = builder.brief {
 		self[DEFINITION_METHOD]
 			.chooseBundle(self[MODULE])
 			.message
-			.printOnAvoidingIndent(builder, recursionMap, indent)
-		builder.append(' ')
+			.printOnAvoidingIndent(this, recursionMap, indent)
+		append(' ')
 		self[BODY_SIGNATURE].printOnAvoidingIndent(
-			builder, recursionMap, indent + 1)
+			this, recursionMap, indent + 1)
 	}
 
 	override fun o_BodySignature(self: AvailObject): A_Type =

@@ -56,7 +56,6 @@ sealed class SystemColors
 	/** The foreground color for source text. */
 	abstract val codeText: Color
 
-
 	/** The color of a [code&#32;guide][CodeOverlay]. */
 	abstract val codeGuide: Color
 
@@ -81,6 +80,12 @@ sealed class SystemColors
 	/** The default [color][Color] of [StreamStyle.REPORT]. */
 	abstract val streamReport: Color
 
+	/**
+	 * The default [color][Color] for indicating emphasis on a particular token
+	 * that the user is working with, say for navigation.
+	 */
+	abstract val tokenHighlightBackground: Color
+
 	companion object
 	{
 		/** The active palette. */
@@ -95,7 +100,7 @@ sealed class SystemColors
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object LightColors: SystemColors()
+data object LightColors: SystemColors()
 {
 	override val inputBackground = Color(0xE6, 0xE6, 0xE6, 0xFF)
 	override val inputText = Color(0x00, 0x00, 0x00, 0xFF)
@@ -109,6 +114,7 @@ object LightColors: SystemColors()
 	override val streamCommand = Color(0xFF, 0x00, 0xFF, 0xFF)
 	override val streamBuildProgress = Color(0x80, 0x60, 0x00, 0xFF)
 	override val streamReport = Color(0xAA, 0x00, 0x70, 0xFF)
+	override val tokenHighlightBackground = Color(0xE6, 0xB6, 0xB6, 0xFF)
 }
 
 /**
@@ -117,7 +123,7 @@ object LightColors: SystemColors()
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object DarkColors: SystemColors()
+data object DarkColors: SystemColors()
 {
 	override val inputBackground = Color(0x05, 0x36, 0x46, 0xFF)
 	override val inputText = Color(0xFF, 0xFF, 0xFF, 0xFF)
@@ -131,4 +137,5 @@ object DarkColors: SystemColors()
 	override val streamCommand = Color(0xAE, 0x8A, 0xBE, 0xFF)
 	override val streamBuildProgress = Color(0xDC, 0xC4, 0x57, 0xFF)
 	override val streamReport = Color(0xFB, 0x53, 0xAC, 0xFF)
+	override val tokenHighlightBackground: Color = Color(0x65, 0x36, 0x46, 0xFF)
 }

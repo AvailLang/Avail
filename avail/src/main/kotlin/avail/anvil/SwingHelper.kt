@@ -70,15 +70,16 @@ import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 
 /**
- * Either places the receiver JTextArea inside a JScrollPane with line numbers
- * presented as row headers, or answers the JScrollPane that it's already
- * inside.
+ * Create or look up the [JLayer] that contains a [JScrollPane] holding the
+ * receiver [JTextPane] plus a [CodeOverlay] that manages line numbers as row
+ * headers, line guides, and whatever else a [CodeOverlay] presents.
  *
  * @param workbench
  *   The owning [workbench][AvailWorkbench].
  * @param guideLines
  *   The list of after how many (character) columns to display a guide line.
- *   Defaults to a single guideline at `80`.
+ *   Defaults to a single guideline at `80`.  Ignored if the receiver has
+ *   already had this superstructure built for it by a previous call.
  * @return
  *   The requested [JLayer].
  */
@@ -87,16 +88,16 @@ fun JTextPane.scrollTextWithLineNumbers(
 	guideLines: List<Int> = listOf(80)
 ): JLayer<JScrollPane>
 {
+	// Store the guidePane (JLayer) under the CodeOverlay class name.
 	getClientProperty(CodeOverlay::class.java.name)?.let { return it.cast() }
 	val scrollPane = JScrollPane(this)
+	scrollPane.setRowHeaderView(TextLineNumber(this))
 	val overlay = CodeOverlay(workbench, this, guideLines)
 	val guidePane = JLayer(scrollPane, overlay)
-	putClientProperty(CodeOverlay::class.java.name, overlay)
-	val lines = TextLineNumber(this)
-	scrollPane.setRowHeaderView(lines)
 	// Make sure that the font is available in several places, for convenience.
 	scrollPane.font = font
 	guidePane.font = font
+	putClientProperty(CodeOverlay::class.java.name, guidePane)
 	return guidePane
 }
 
@@ -547,3 +548,13 @@ inline fun invokeAndWaitIfNecessary(
  */
 fun <N: DefaultMutableTreeNode> TreePath.typedPath(): List<N> =
 	path.toList().cast()
+
+/**
+ * Given a [JTextPane] that has previously had [scrollTextWithLineNumbers] run
+ * against it to wrap it appropriately before adding to the component hierarchy,
+ * extract the [CodeOverlay] associated with it.  If it doesn't have one, fail.
+ */
+val JTextPane.codeOverlay get() =
+	(getClientProperty(CodeOverlay::class.java.name)
+		as JLayer<*>)
+		.ui as CodeOverlay

@@ -298,7 +298,7 @@ class ExampleUsage
 		val write = generator.intWrite(
 			setOf(L2SemanticUnboxedInt(semanticTemp)),
 			TypeRestriction.restrictionForType(
-				IntegerRangeTypeDescriptor.int32,
+				IntegerRangeTypeDescriptor.i32,
 				TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG))
 		val add = L2_ADD_INTS(
 			augend = generator.unboxedIntConstant(10),

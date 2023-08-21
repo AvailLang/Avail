@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AvailServer" type="JetRunConfigurationType" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="avail.server.AvailServer" />
+    <module name="avail-server.main" />
+    <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/../distro/src/avail;examples=$PROJECT_DIR$/../distro/src/examples --webSocketAdapter" />
+    <shortenClasspath name="NONE" />
+    <option name="VM_PARAMETERS" value="-ea -Xmx4g -Djava.util.logging.config.file=$PROJECT_DIR$/../distro/etc/debug-logging.properties" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

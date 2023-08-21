@@ -136,7 +136,7 @@ private constructor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	): Unit = with(builder) {
+	): Unit = builder.brief {
 		when
 		{
 			self.setSize == 0 -> append('∅')
@@ -160,7 +160,7 @@ private constructor(
 						runEnd++
 						next = -1
 					}
-					writeRangeElement(builder, runStart)
+					writeRangeElement(this, runStart)
 					if (runEnd != runStart)
 					{
 						// Skip the dash if the start and end are consecutive.
@@ -168,7 +168,7 @@ private constructor(
 						{
 							appendCodePoint('-'.code)
 						}
-						writeRangeElement(builder, runEnd)
+						writeRangeElement(this, runEnd)
 					}
 					runStart = next
 				}
@@ -184,7 +184,7 @@ private constructor(
 				{
 					if (!first) append(", ")
 					element.printOnAvoidingIndent(
-						builder, recursionMap, indent + 1)
+						this, recursionMap, indent + 1)
 					first = false
 				}
 				append('}')

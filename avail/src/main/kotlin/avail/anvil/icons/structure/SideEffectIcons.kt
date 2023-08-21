@@ -73,7 +73,10 @@ object SideEffectIcons
 	 *
 	 * @param lineHeight
 	 *   The desired icon height in pixels.
-	 * @return The icon.
+	 * @param sideEffectKind
+	 *   The [side&#32;effect&#32;kind][SideEffectKind].
+	 * @return
+	 *   The icon.
 	 */
 	fun icon(lineHeight: Int, sideEffectKind: SideEffectKind): ImageIcon =
 		cachedScaledIcons[SideEffectIconKey(sideEffectKind, lineHeight)]

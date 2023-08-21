@@ -1,7 +1,7 @@
 | **Release**                                | **Version**                                                                                                                                                |
 |--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Avail VM](avail)                          | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha21-0f824e)](https://central.sonatype.com/namespace/org.availlang)                |
-| [Avail Standard Library](distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha21--1.6.1.alpha10-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
+| [Avail VM](avail)                          | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22-0f824e)](https://central.sonatype.com/namespace/org.availlang)                |
+| [Avail Standard Library](distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22--1.6.1.alpha11-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
 
 OVERVIEW
 --------------------------------------------------------------------------------
@@ -241,9 +241,9 @@ EMBEDDING AVAIL
 If you wish to embed Avail into a larger JVM project, rather than use Avail as a
 standalone language, you can import a prebuilt version of Avail as a dependency.
 See the
-[Avail Gradle Plugin](https://github.com/AvailLang/gradle-plugin) for more
+[Avail Gradle Plugin](gradle-plugin) for more
 details on how to accomplish this. You can also refer to our
-[sample project](https://github.com/AvailLang/samples) to see how Avail can be
+[example projects](examples) to see how Avail can be
 incorporated into a JVM project.
 
 
