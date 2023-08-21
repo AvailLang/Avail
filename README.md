@@ -1,7 +1,9 @@
 | **Release**                                | **Version**                                                                                                                                                |
 |--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [Avail VM](avail)                          | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22-0f824e)](https://central.sonatype.com/namespace/org.availlang)                |
-| [Avail Standard Library](distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22--1.6.1.alpha11-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
+| [Avail Standard Library](avail/distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22--1.6.1.alpha11-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
+| [Avail Artifact](../avail-artifact)        | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha21-0f824e)](https://search.maven.org/artifact/org.availlang/avail-artifact)      |
+| [Avail Gradle Plugin](../gradle-plugin)    | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha19-0f824e)](https://plugins.gradle.org/plugin/org.availlang.avail-plugin)        |
 
 OVERVIEW
 --------------------------------------------------------------------------------
@@ -71,7 +73,7 @@ If (1) you are using vanilla Windows and (2) you already have access to Git:
 Anvil's project manager should open on your desktop. You can now:
 
 1. Explore the Avail standard library and official examples by opening
-   [examples-avail-config.json](examples-avail-config.json), or
+   [examples-avail-config.json](avail/examples-avail-config.json), or
 2. Create your own Avail project, based on the Avail standard library.
 
 (Screenshots and additional guidance will follow, when the official release of

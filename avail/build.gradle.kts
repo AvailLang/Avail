@@ -687,7 +687,7 @@ fun Project.projectGenerateBootStrap(task: Copy)
 			"Bootstrap.avail"))
 	task.outputs.dir(distroBootstrap)
 
-	group = "bootstrap"
+	task.group = "bootstrap"
 	task.dependsOn(tasks.getByName("internalGenerateBootstrap"))
 
 	task.from(pathBootstrap)
