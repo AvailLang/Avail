@@ -3567,6 +3567,190 @@ object RenderingEngine
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//                             HTML abstraction.                              //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Copy the specified range from the [receiver][StyledDocument] as a fragment of
+ * HTML5 text. Embed the style attributes directly into the HTML, using `style`
+ * rather than `class` attributes to keep the fragment portable and
+ * document-independent.
+ *
+ * The primary use case for this method is embedding authentic styled Avail code
+ * into larger HTML5 documents, e.g., the official Avail documentation,
+ * promotional material for Avail, blog posts, etc.
+ *
+ * @receiver
+ *   The [StyledDocument] from which the desired HTML5 should be abstracted.
+ * @param start
+ *   The start of the range to abstract.
+ * @param pastEnd
+ *   The position just past the end of the range to abstract.
+ * @param codeBackground
+ *   The background color to use for the whole fragment.
+ * @return
+ *   The requested HTML5 fragment.
+ */
+fun StyledDocument.copyAsHtml5(
+	start: Int,
+	pastEnd: Int,
+	codeBackground: Color = SystemColors.active.codeBackground
+) = buildString {
+	appendLine("<html>")
+	appendLine("""<body style="background-color: ${codeBackground.hex}">""")
+	appendLine("""<div style="white-space: pre;">""")
+	var previous = styleAttributesAt(start)
+	var current = previous
+	append(previous.startSpanHtml5())
+	append(getText(start, 1))
+	for (position in start + 1 until pastEnd)
+	{
+		current = styleAttributesAt(position)
+		if (current.appendSpanTransitionIfChangedFrom(previous, this))
+		{
+			previous = current
+		}
+		append(getText(position, 1))
+	}
+	//
+	if (current.flags != 0) appendLine("</span>")
+	appendLine("</div>\n</body>\n</html>")
+}
+
+/**
+ * Extract the [StyleAttributes] at the specified position in the
+ * [receiver][StyledDocument].
+ *
+ * @receiver
+ *   The [StyledDocument] to interrogate.
+ * @param position
+ *   The position at which to extract the [StyleAttributes].
+ * @return
+ *   The extracted [StyleAttributes].
+ */
+private fun StyledDocument.styleAttributesAt(position: Int) =
+	getCharacterElement(position).attributes.run {
+		StyleAttributes(
+			foreground = (getAttribute(Foreground) as? Color)?.hex,
+			background = (getAttribute(Background) as? Color)?.hex,
+			fontFamily = getAttribute(FontFamily) as? String,
+			bold = getAttribute(Bold) as? Boolean,
+			italic = getAttribute(Italic) as? Boolean,
+			underline = getAttribute(Underline) as? Boolean,
+			superscript = getAttribute(Superscript) as? Boolean,
+			subscript = getAttribute(Subscript) as? Boolean,
+			strikethrough = getAttribute(StrikeThrough) as? Boolean
+		)
+	}
+
+/**
+ * Answer the start of an HTML5 span with the specified [StyleAttributes]. The
+ * span will be completed self-contained, using `style` rather than `class`
+ * attributes to keep the fragment portable and document-independent.
+ */
+private fun StyleAttributes.startSpanHtml5() = buildString {
+	val style = buildString {
+		foreground?.let { append("color: $it; ") }
+		background?.let { append("background-color: $it; ") }
+		fontFamily?.let {
+			// Translate Java's special monospaced font constant for CSS.
+			val font = if (it == "Monospaced") "monospace" else it
+			append("font-family: $font; ")
+		}
+		if (bold == true) append("font-weight: bold; ")
+		if (italic == true) append("font-style: italic; ")
+		if (underline == true) append("text-decoration: underline; ")
+		if (superscript == true) append("vertical-align: super; ")
+		if (subscript == true) append("vertical-align: sub; ")
+		if (strikethrough == true) append("text-decoration: line-through;")
+	}.trim()
+	if (style.isNotEmpty())
+	{
+		append("""<span style="""")
+		append(style)
+		append("""">""")
+	}
+}
+
+/**
+ * The flags that indicate which [StyleAttributes] are present.
+ */
+private val StyleAttributes.flags get() = run {
+	var flags = 0
+	foreground?.let { flags = flags or StyleAttributeFlags.foreground }
+	background?.let { flags = flags or StyleAttributeFlags.background }
+	fontFamily?.let { flags = flags or StyleAttributeFlags.fontFamily }
+	if (bold == true) flags = flags or StyleAttributeFlags.bold
+	if (italic == true) flags = flags or StyleAttributeFlags.italic
+	if (underline == true) flags = flags or StyleAttributeFlags.underline
+	if (superscript == true) flags = flags or StyleAttributeFlags.superscript
+	if (subscript == true) flags = flags or StyleAttributeFlags.subscript
+	if (strikethrough == true) flags = flags or StyleAttributeFlags.strikethrough
+	flags
+}
+
+/**
+ * Append the appropriate HTML5 close tag to the [receiver][StringBuilder] if
+ * the [StyleAttributes] differ from the specified [startAttribute].
+ *
+ * @param startAttribute
+ *   The [StyleAttributes] at the start of the span.
+ * @param builder
+ *   The target [StringBuilder] to which to append the close tag.
+ * @return
+ *   Whether the close tag was appended.
+ */
+private fun StyleAttributes.appendSpanTransitionIfChangedFrom(
+	startAttribute: StyleAttributes,
+	builder: StringBuilder
+): Boolean
+{
+	if (this != startAttribute)
+	{
+		// Be careful not to close the span if we're not actually inside a span.
+		if (flags != 0) builder.append("</span>")
+		startSpanHtml5().let { if (it.isNotEmpty()) builder.append(it) }
+		return true
+	}
+	return false
+}
+
+/**
+ * Flags that indicate whether a [StyleAttributes] possesses particular aspects.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+private object StyleAttributeFlags
+{
+	/** Has [foreground][StyleAttributes.foreground] color. */
+	val foreground = 0x00000001
+
+	/** Has [background][StyleAttributes.background] color. */
+	val background = 0x00000002
+
+	/** Has [font&#32;family][StyleAttributes.fontFamily]. */
+	val fontFamily = 0x00000004
+
+	/** Has [bold][StyleAttributes.bold] font weight. */
+	val bold = 0x00000008
+
+	/** Has [italic][StyleAttributes.italic] font style. */
+	val italic = 0x00000010
+
+	/** Has [underline][StyleAttributes.underline] text decoration. */
+	val underline = 0x00000020
+
+	/** Has [superscript][StyleAttributes.superscript] vertical alignment. */
+	val superscript = 0x00000040
+
+	/** Has [subscript][StyleAttributes.subscript] vertical alignment. */
+	val subscript = 0x00000080
+
+	/** Has [strikethrough][StyleAttributes.strikethrough] text decoration. */
+	val strikethrough = 0x00000100
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //                                  Coding.                                   //
 ////////////////////////////////////////////////////////////////////////////////
 

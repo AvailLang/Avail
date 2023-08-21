@@ -72,7 +72,7 @@ data class AdaptiveColor constructor(
 	companion object
 	{
 		val Color.hex: String
-			get() = String.format("#%02x%02x%02x", red, green, blue)
+			get() = String.format("#%02x%02x%02x%02x", red, green, blue, alpha)
 
 		fun blend(
 			selfColor: Color,
