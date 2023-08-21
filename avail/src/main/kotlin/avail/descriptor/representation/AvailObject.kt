@@ -1138,7 +1138,7 @@ class AvailObject private constructor(
 			var h = stir13(i1 xor -0x36436f02)
 			h *= multiplier
 			h += stir7(i2 xor 0x5f610978)
-			return stir21(h)
+			return stir21(h * multiplier)
 		}
 
 		/**
@@ -1152,7 +1152,7 @@ class AvailObject private constructor(
 			h += stir7(i2 xor 0x717B4F2A)
 			h *= multiplier
 			h -= stir21(i3 xor -0x7086C805)
-			return h
+			return stir13(h * multiplier)
 		}
 
 		/**
@@ -1168,7 +1168,7 @@ class AvailObject private constructor(
 			h -= stir21(i3 xor 0x45f73694)
 			h *= multiplier
 			h -= stir13(i4 xor -0x7ce5d9e4)
-			return h
+			return stir7(h * multiplier)
 		}
 
 		/**
@@ -1186,7 +1186,7 @@ class AvailObject private constructor(
 			h += stir13(i4 xor 0x13f07f25)
 			h *= multiplier
 			h -= stir7(i5 xor 0x45c8582b)
-			return h
+			return stir21(h * multiplier)
 		}
 
 		/**
@@ -1206,7 +1206,7 @@ class AvailObject private constructor(
 			h -= stir7(i5 xor -0x24bc2bbe)
 			h *= multiplier
 			h += stir21(i6 xor -0x35385f57)
-			return h
+			return stir13(h * multiplier)
 		}
 
 		/**
@@ -1237,7 +1237,7 @@ class AvailObject private constructor(
 			h += stir13(i6 xor 0x5cbd6b80)
 			h *= multiplier
 			h += stir21(i7 xor -0x09dd1b59)
-			return h
+			return stir7(h * multiplier)
 		}
 
 		/**

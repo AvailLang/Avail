@@ -1,5 +1,5 @@
 /*
- * ModuleRootNode.kt
+ * LocalSettingsNode.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -34,11 +34,12 @@ package avail.anvil.nodes
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.settings.editor.LocalSettingsFileEditor
-import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.environment.project.LocalSettings
 
 /**
- * This is a tree node representing the [AvailProject] running in the
- * [AvailWorkbench].
+ * This is a tree node representing the [LocalSettings] for an
+ * [AvailProjectRoot] running in the [AvailWorkbench].
  *
  * @author Richard Arriaga
  *
@@ -54,7 +55,7 @@ class LocalSettingsNode constructor(
 
 	override fun iconResourceName(): String = "settings_cog"
 
-	override fun text(selected: Boolean) = "local settings"
+	override fun equalityText() = "local settings"
 
 	override val sortMajor: Int get() = 60
 

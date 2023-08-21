@@ -52,7 +52,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
@@ -190,7 +190,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 								E_PERMISSION_DENIED,
 								E_IO_ERROR))),
 						TOP.o),
-					bytes),
+					u8),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

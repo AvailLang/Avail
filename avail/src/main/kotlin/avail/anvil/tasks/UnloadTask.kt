@@ -33,14 +33,17 @@
 package avail.anvil.tasks
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
 import avail.builder.ResolvedModuleName
 import avail.descriptor.module.ModuleDescriptor
 import java.awt.Cursor
 
 /**
- * An `UnloadTask` initiates and manages unloading the target
+ * An [AbstractWorkbenchTask] that initiates and manages unloading the target
  * [module][ModuleDescriptor].
+ *
+ * @property targetModuleName
+ *  The resolved name of the target [module][ModuleDescriptor] to unload, or
+ *  null to unload all modules.
  *
  * @constructor
  * Construct a new `UnloadTask`.
@@ -54,8 +57,8 @@ import java.awt.Cursor
 class UnloadTask
 constructor(
 	workbench: AvailWorkbench,
-	targetModuleName: ResolvedModuleName?
-) : AbstractWorkbenchTask(workbench, targetModuleName)
+	private val targetModuleName: ResolvedModuleName?
+) : AbstractWorkbenchTask(workbench)
 {
 	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
@@ -70,5 +73,6 @@ constructor(
 		workbench.availBuilder.checkStableInvariants()
 		workbench.setEnablements()
 		workbench.cursor = Cursor.getDefaultCursor()
+		workbench.refresh()
 	}
 }

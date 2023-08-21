@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.READ_INT
@@ -96,8 +96,8 @@ class L2_BIT_LOGIC_OP(
 		val (aType, bType) = argumentTypes
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(int32).isBottom
-			|| bType.typeIntersection(int32).isBottom)
+		if (aType.typeIntersection(i32).isBottom
+			|| bType.typeIntersection(i32).isBottom)
 		{
 			return false
 		}
@@ -116,8 +116,8 @@ class L2_BIT_LOGIC_OP(
 			val semanticTemp = generator.newTemp()
 			val typeGuarantee = typeGuaranteeFunction(
 				listOf(
-					aType.typeIntersection(int32),
-					bType.typeIntersection(int32)))
+					aType.typeIntersection(i32),
+					bType.typeIntersection(i32)))
 			val tempWriter =
 				generator.intWrite(
 					setOf(L2SemanticUnboxedInt(semanticTemp)),

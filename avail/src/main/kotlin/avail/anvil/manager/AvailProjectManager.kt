@@ -198,6 +198,7 @@ class AvailProjectManager constructor(
 
 	init
 	{
+		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 		setKnownProjectsSize()
 		addWindowListener(object: WindowAdapter()
 		{
@@ -207,6 +208,26 @@ class AvailProjectManager constructor(
 				globalSettings.saveToDisk()
 			}
 		})
+		Desktop.getDesktop().setQuitHandler { _, response ->
+			// Abort the explicit quit request.
+			response.cancelQuit()
+			// Now find the workbench that is currently in focus, if any are.
+			openWorkbenches.firstOrNull(
+				AvailWorkbench::workbenchWindowIsFocused
+			)?.let {
+				// Send the WINDOW_CLOSING event to the workbench, to trigger
+				// nice cleanup.
+				it.dispatchEvent(
+					WindowEvent(it, WindowEvent.WINDOW_CLOSING))
+			}
+			if (openWorkbenches.isEmpty())
+			{
+				// No workbenches are open, so send the project manager a
+				// WINDOW_CLOSING event to trigger nice cleanup.
+				processWindowEvent(
+					WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+			}
+		}
 		layoutConfiguration.placement?.let {
 			this.bounds = it
 		}
@@ -250,8 +271,6 @@ class AvailProjectManager constructor(
 	 */
 	private fun draw ()
 	{
-		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
-
 		var newHeight = height
 		displayedComponent =
 			when (displayed)
@@ -383,6 +402,7 @@ class AvailProjectManager constructor(
 	 *   `true` if the project is being opened or already opened; `false`
 	 *   otherwise.
 	 */
+	@Suppress("SameReturnValue")
 	private fun openProject (
 		project: AvailProject,
 		configPath: String,

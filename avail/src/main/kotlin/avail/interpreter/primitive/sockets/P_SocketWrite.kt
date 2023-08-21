@@ -62,7 +62,7 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
@@ -83,7 +83,7 @@ import java.nio.channels.AsynchronousSocketChannel
  * [socket][AsynchronousSocketChannel] referenced by the specified
  * [handle][A_Atom]. Create a new [fiber][FiberDescriptor] to respond to the
  * asynchronous completion of the operation; the fiber will run at the specified
- * [priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then
+ * [priority][IntegerRangeTypeDescriptor.u8]. If the operation succeeds, then
  * eventually start the new fiber to apply the
  * [success&#32;function][FunctionDescriptor]. If the operation fails, then
  * eventually start the new fiber to apply the
@@ -175,7 +175,7 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				zeroOrMoreOf(bytes),
+				zeroOrMoreOf(u8),
 				ATOM.o,
 				functionType(
 					emptyTuple,
@@ -183,7 +183,7 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o),
-				bytes),
+				u8),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

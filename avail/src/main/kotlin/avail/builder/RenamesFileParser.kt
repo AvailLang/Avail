@@ -369,7 +369,7 @@ class RenamesFileParser @ThreadSafe constructor(
 		companion object
 		{
 			/** An array of all [ScannerAction] enumeration values. */
-			internal val all = values()
+			internal val all = entries.toTypedArray()
 		}
 	}
 

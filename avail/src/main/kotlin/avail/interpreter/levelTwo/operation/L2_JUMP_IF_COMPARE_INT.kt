@@ -38,7 +38,7 @@ import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -81,7 +81,7 @@ import kotlin.math.min
  * @param computeRestrictions
  *   A function for computing output ranges along the ifTrue and ifFalse edges.
  *   It takes the first operand's lower and upper bounds, and the second
- *   operand's lower and upper bound.  These are in the [int32] range, but are
+ *   operand's lower and upper bound.  These are in the [i32] range, but are
  *   passed as a Long to simplify calculation.  It then produces four integer
  *   range [types][A_Type]s, restricting:
  *   1. the first operand if the condition holds,
@@ -241,7 +241,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		}
 
 		/**
-		 * Given two [int32] subranges, answer the range that a value from the
+		 * Given two [i32] subranges, answer the range that a value from the
 		 * first range can have if it's known to be less than a value from the
 		 * second range.
 		 */
@@ -252,7 +252,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 			inclusive(low1, min(high1, high2 - 1)).narrow(), UNBOXED_INT_FLAG)
 
 		/**
-		 * Given two [int32] subranges, answer the range that a value from the
+		 * Given two [i32] subranges, answer the range that a value from the
 		 * first range can have if it's known to be less than or equal to a
 		 * value from the second range.
 		 */
@@ -263,7 +263,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 			inclusive(low1, min(high1, high2)).narrow(), UNBOXED_INT_FLAG)
 
 		/**
-		 * Given two [int32] subranges, answer the range that a value from the
+		 * Given two [i32] subranges, answer the range that a value from the
 		 * first range can have if it's known to be greater than a value from
 		 * the second range.
 		 */
@@ -274,7 +274,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 			inclusive(max(low1, low2 + 1), high1).narrow(), UNBOXED_INT_FLAG)
 
 		/**
-		 * Given two [int32] subranges, answer the range that a value from the
+		 * Given two [i32] subranges, answer the range that a value from the
 		 * first range can have if it's known to be greater than or equal to a
 		 * value from the second range.
 		 */
@@ -285,7 +285,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 			inclusive(max(low1, low2), high1).narrow(), UNBOXED_INT_FLAG)
 
 		/**
-		 * Given two [int32] subranges, answer the range that a value from the
+		 * Given two [i32] subranges, answer the range that a value from the
 		 * first range can have if it's known to be equal to a value from the
 		 * second range.
 		 */
@@ -296,7 +296,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 			UNBOXED_INT_FLAG)
 
 		/**
-		 * Given two [int32] subranges, answer the range that a value from the
+		 * Given two [i32] subranges, answer the range that a value from the
 		 * first range can have if it's known to be unequal to some value from
 		 * the second range.
 		 */

@@ -1,0 +1,263 @@
+/*
+ * Early Literals.avail
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Early Literals"
+Versions
+	"Avail-1.6.1"
+Extends
+	"Very Early Definers" =
+	(
+		"<«_‡,»>"
+	)
+Uses
+	"Bootstrap",
+	"Very Early Definers"
+Names
+	"{«_‡,»}",
+	"“_”",
+
+	/* These are provided for bootstrapping grammatical restrictions only. */
+	"<«_‡,»>(tuple of string)",
+	"<«_‡,»>(tuple of set of string)",
+	"{«_‡,»}(set of string)"
+Body
+
+/**
+ * Produce a description of the argument. The default implementation uses
+ * {@method "primitive description of_"} to obtain a mechanically constructed
+ * description from the Avail virtual machine. Overrides should provide semantic
+ * information that is appropriately localized for the default locale.
+ *
+ * @method "“_”"
+ * @param "value" "any"
+ *        A value.
+ * @returns "string"
+ *          A description of the argument.
+ * @category "Stringification"
+ */
+Method "“_”" is
+[
+	value : any
+|
+	primitive description of value
+] : string;
+
+Method "“_”" is
+[
+	value : ⊥'s type
+|
+	primitive description of value
+] : string;
+
+
+stringifierType ::= function accepting <any> and returning string;
+
+/* Private definer for the stringifier hook. */
+Method "install stringifier:_" is
+[
+	newHook : stringifierType
+|
+	Primitive DeclareStringifierFunction;
+] : stringifierType;
+
+/* Install “_” as the new stringifier, restoring the old one on unload. */
+invoke
+[
+	oldStringifier ::= install stringifier: [value : any | “value”];
+	After the current module is unloaded, do
+	[
+		ignored ::= install stringifier: oldStringifier;
+	];
+] with <>;
+
+/**
+ * Construct and answer a set from the lexically specified expressions.
+ *
+ * @method "{«_‡,»}"
+ * @param "elements" "<<>, any…|natural number>"
+ *        A tuple, lexically constructed by the compiler, whose elements
+ *        should be unique members of the answer.
+ * @returns "set"
+ *          The requested set.
+ * @category "Constructors" "Sets"
+ */
+Method "{«_‡,»}" is
+[
+	elements : <<>, any…|natural number>
+|
+	Primitive TupleToSet;
+] : set
+styled by set styler;
+
+/*
+ * Here are some early grammatical restrictions to improve the performance of
+ * parsing the bootstrap macros. We lead with a few private method
+ * definitions and restrictions needed to enable sends of
+ * "Grammatical restriction_is_".
+ */
+
+Method "<«_‡,»>(tuple of string)" is
+[
+	elements : tuple
+|
+	elements
+] : tuple
+styled by tuple styler;
+
+Semantic restriction "<«_‡,»>(tuple of string)" is
+[
+	elements : tuple meta
+|
+	<<>, string… | natural number>
+];
+
+Method "<«_‡,»>(tuple of set of string)" is
+[
+	elements : tuple
+|
+	elements
+] : tuple
+styled by tuple styler;
+
+Semantic restriction "<«_‡,»>(tuple of set of string)" is
+[
+	elements : tuple meta
+|
+	<<>, set of string… | natural number>
+];
+
+Method "{«_‡,»}(set of string)" is
+[
+	elements : tuple
+|
+	Primitive TupleToSet;
+] : set
+styled by set styler;
+
+Semantic restriction "{«_‡,»}(set of string)" is
+[
+	elements : tuple meta
+|
+	{string | natural number}
+];
+
+blockMacro ::= "\
+	\|[§\
+		\|««…:_†§‡,»`|»?\
+		\|«Primitive…«(…:_†)»?;§»?\
+		\|«$…«:_†»?;§»?\
+		\|«_!§»\
+		\|«_!»?\
+	\|]§\
+	\|«:_†»?\
+	\|«^«_†‡,»»?";
+
+bootstrapMacroExpression ::=
+	{
+		blockMacro,
+		"…:_†;",
+		"…::=_;",
+		"…:_†:=_;",
+		"…:=§_;",
+		"…",
+		"_!;",
+		"(_::_†)"
+	} (set of string);
+
+badStatementExpression ::=
+	{
+		blockMacro,
+		"…",
+		"(_::_†)"
+	} (set of string);
+
+badTypeExpression ::=
+	{
+		blockMacro,
+		"…:_†;",
+		"…::=_;",
+		"…:_†:=_;",
+		"…:=§_;",
+		"_!;",
+		"(_::_†)"
+	} (set of string);
+
+badSourceExpression ::=
+	{
+		"…:_†;",
+		"…::=_;",
+		"…:_†:=_;",
+		"…:=§_;",
+		"_!;",
+		"(_::_†)"
+	} (set of string);
+
+/* Restrict block construction. */
+Grammatical restriction {blockMacro} (set of string)
+is
+	<
+		∅,
+		badTypeExpression,
+		∅,
+		∅,
+		badTypeExpression,
+		∅,
+		badTypeExpression,
+		badStatementExpression,
+		{"(_::_†)"} (set of string),
+		badTypeExpression,
+		badTypeExpression
+	> (tuple of set of string);
+
+/* Restrict variable declaration. */
+Grammatical restriction {"…:_†;"} (set of string)
+	is <∅, badTypeExpression> (tuple of set of string);
+
+/* Restrict constant definition. */
+Grammatical restriction {"…::=_;"} (set of string)
+	is <∅, badSourceExpression> (tuple of set of string);
+
+/* Restrict initializing variable definition. */
+Grammatical restriction {"…:_†:=_;"} (set of string)
+	is <∅, badTypeExpression, badSourceExpression> (tuple of set of string);
+
+/* Restrict assignment. */
+Grammatical restriction {"…:=§_;"} (set of string)
+	is <∅, badSourceExpression> (tuple of set of string);
+
+/* Restrict send as statement. */
+Grammatical restriction {"_!;"} (set of string)
+	is <bootstrapMacroExpression> (tuple of set of string);
+
+/* Restrict supercast. */
+Grammatical restriction {"(_::_†)"} (set of string)
+	is <badSourceExpression, badTypeExpression> (tuple of set of string);

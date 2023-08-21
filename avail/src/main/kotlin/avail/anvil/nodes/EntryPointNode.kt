@@ -53,12 +53,16 @@ import avail.builder.ResolvedModuleName
  *   The owning [AvailWorkbench].
  * @param resolvedModuleName
  *   The name of the module defining the entry point.
+ * @param entryPointInnerHtml
+ *   The html string describing the entry point.  It does not include the outer
+ *   "html" tag.
  * @param entryPointString
  *   The name of the entry point.
  */
 class EntryPointNode constructor(
 	workbench: AvailWorkbench,
 	val resolvedModuleName: ResolvedModuleName,
+	private val entryPointInnerHtml: String,
 	val entryPointString: String
 ) : AbstractWorkbenchTreeNode(workbench) {
 	override fun modulePathString(): String =
@@ -66,12 +70,21 @@ class EntryPointNode constructor(
 
 	override fun iconResourceName(): String = "play_circle_green"
 
-	override fun text(selected: Boolean): String = entryPointString
+	override fun equalityText(): String = entryPointString
 
-	override fun htmlStyle(selected: Boolean): String =
+	override fun htmlText(selected: Boolean): String = buildString {
 		synchronized(builder) {
-			val loaded = builder.getLoadedModule(resolvedModuleName) !== null
-			fontStyle(italic = !loaded) +
-				colorStyle(selected, loaded, resolvedModuleName.isRename)
+			val fontStyle = htmlStyle(selected)
+			append("<html><tt><div style=\"$fontStyle\">")
+			append(entryPointInnerHtml)
+			append("</div></tt></html>")
 		}
+	}
+
+	override fun htmlStyle(selected: Boolean): String
+	{
+		val loaded = builder.getLoadedModule(resolvedModuleName) !== null
+		return fontStyle(italic = !loaded) +
+			colorStyle(selected, loaded, resolvedModuleName.isRename)
+	}
 }

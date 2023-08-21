@@ -432,7 +432,7 @@ enum class KeyCode constructor(
 		 * as every time [values] is called it creates a copy of the backing
 		 * array of [KeyCode]s; this is done so that copy is only made once.
 		 */
-		private val keyCodes = values().toList()
+		private val keyCodes = entries
 
 		/**
 		 * Answer the [KeyCode] that matches the provided

@@ -236,7 +236,7 @@ abstract class KeywordStacksToken constructor(
 		{
 
 			/** An array of all [StacksKeyword] enumeration values. */
-			private val all = values()
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Answer an array of all [StacksKeyword] enumeration values.

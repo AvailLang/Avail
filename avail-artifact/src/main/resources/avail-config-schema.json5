@@ -1,0 +1,490 @@
+{
+	$id: "https://raw.githubusercontent.com/AvailLang/avail-artifact/main/src/main/resources/avail-config-schema.json5",
+	$schema: "http://json-schema.org/draft-07/schema#",
+	title: "avail-config",
+	description: "The schema for Avail configuration files, normatively but \
+		not prescriptively called `avail-config.json`.",
+
+////////////////////////////////////////////////////////////////////////////////
+//                          Reusable subcomponents.                           //
+////////////////////////////////////////////////////////////////////////////////
+
+	definitions: {
+		id: {
+			$id: "#id",
+			type: "string",
+			pattern: "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$",
+			description: "The UUID that uniquely identifies the enclosing \
+				element, either a root or the whole project."
+		},
+		name: {
+			$id: "#name",
+			type: "string",
+			description: "The name that identifies the enclosing element, \
+				either a root or the whole project."
+		},
+		location: {
+			$id: "#location",
+			type: "object",
+			description: "Locational information for some resource.",
+			properties: {
+				locationType: {
+					type: "string",
+					enum: [
+						"home",
+						"availHome",
+						"availLibraries",
+						"availRepositories",
+						"project",
+						"absolute"
+					],
+					description: "The location classifier, which describes \
+						what rules to follow when resolving a path to its \
+						target resource. \
+						\
+						home means that the path will be resolved against \
+						$HOME, the base of the user's home directory. \
+						\
+						availHome means that the path will be resolved against \
+						$AVAIL_HOME, the base of the user-specific Avail \
+						configuration directory. If unspecified, $AVAIL_HOME \
+						defaults to $HOME/.avail. \
+						\
+						availLibraries means that the path will be resolved \
+						against $AVAIL_HOME/libraries, the base of the \
+						user-specific Avail library directory. \
+						\
+						availRepositories means that the path will be resolved \
+						against $AVAIL_HOME/repositories, the base of the \
+						user-specific Avail repositories directory. \
+						\
+						project means that the path will be resolved against \
+						the base of the enclosing project directory. \
+						\
+						absolute means that the path will be resolved against \
+						the base of the global filesystem."
+				},
+				scheme: {
+					type: "string",
+					enum: ["FILE", "JAR"],
+					description: "The URI scheme of the path."
+				},
+				path: {
+					type: "string",
+					description: "The path to the resource, unqualified by a \
+						URI scheme. The rules for resolving the path to a \
+						resource are established by the locationType and \
+						scheme."
+				}
+			},
+			oneOf: [
+				{
+					properties: {
+						scheme: {const:  "FILE"}
+					},
+					required: ["locationType", "scheme", "path"]
+				},
+				{
+					properties: {
+						scheme: {const:  "JAR"},
+						rootNameInJar: {
+							type: "string",
+							description: "If scheme is JAR, then path locates \
+								the .jar file itself and this establishes the \
+								internal path to the  enclosing root within \
+								that .jar file."
+						}
+					},
+					required: [
+						"locationType",
+						"scheme",
+						"path"
+					]
+				}
+			]
+		},
+		copyright: {
+			$id: "#copyright",
+			type: "string",
+			description: "The copyright notice that pertains to the files \
+				governed by the enclosing scope, either a root or the whole \
+				project.",
+			default: ""
+		},
+		template: {
+			$id: "#template",
+			type: "object",
+			description: "The content of a template.",
+			properties: {
+				expansion: {
+					type: "string",
+					description: "The expanded template."
+				},
+				markedForArtifactInclusion: {
+					type: "boolean",
+					description: "Whether to include the template in an Avail \
+					artifact with its associated root"
+				},
+				description: {
+					type: "string",
+					description: "An optional description of the template."
+				}
+			},
+			required: [
+				"expansion",
+				"markedForArtifactInclusion",
+			]
+		},
+		templates: {
+			$id: "#templates",
+			type: "object",
+			description: "The live templates available for substitution in an \
+			Anvil editor. Avail uses many untypable Unicode characters, so \
+			live templates provides essential ergonomic support for \
+			reaching essential characters conveniently. Every root is \
+			encouraged to provide live templates to support any \
+			tricky-to-type patterns that it introduces.",
+			minProperties: 1,
+			additionalProperties: {
+				$ref: "#template",
+				description: "Each live template binds an symbolic name to a \
+				substitution. The user must enter a prefix of the symbolic \
+				name and then use an appropriate keyboard accelerator to \
+				activate the substitution. Repeatedly using the \
+				accelerator cycles through all live templates that share \
+				the same longest prefix up to the caret. If a substitution \
+				contains a caret insertion point (⁁) [U+2041], then the \
+				substitution will move the caret forward to the position \
+				of this character (and erase or highlight the character)."
+			}
+		},
+		palette: {
+			$id: "#palette",
+			type: "object",
+			description: "The palette for rendering styles in an Avail reader \
+				or editor. The palette provides symbolic names for usage \
+				within a stylesheet, and supports both light and dark mode for \
+				each symbolic name.",
+			minProperties: 1,
+			additionalProperties: {
+				type: "string",
+				pattern: "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})(/[0-9A-Fa-f]{6}([0-9A-Fa-f]{2}))?$",
+				description: "Each symbolic name is bound to a light/dark \
+					color pair of the form #rrggbbaa/#rrggbbaa, where the \
+					first group (between the octothorp and the solidus) is the \
+					color to use in Anvil's light mode, the second group \
+					(after the solidus) is the color to use for Anvil's dark \
+					mode, rr is the hexadecimal encoding of red, gg is the \
+					hexadecimal encoding of green, bb is the hexadecimal \
+					encoding of blue, and aa is the hexadecimal encoding of \
+					the alpha channel."
+			}
+		},
+		stylesheet: {
+			$id: "#stylesheet",
+			type: "object",
+			description: "The stylesheet maps a collection of rules onto the \
+				concrete style attributes that should be applied whenever the \
+				rule matches (and is not overridden).",
+			additionalProperties: false,
+			minProperties: 1,
+			patternProperties: {
+				"^((!)|=(#[A-Za-z0-9-]+(,#[A-Za-z0-9-]+)*)?)|(#[A-Za-z0-9-]+([<,]#[A-Za-z0-9-]+)*)$": {
+					$ref: "#styleAttributes",
+					description: "Each rule is bound to the style attributes \
+						that should be applied whenever the rule matches and \
+						is not overridden. Rules are expressed in terms of a \
+						simple rule language. In Avail, a styled region is \
+						expressed as a sequence of style classifiers, \
+						separated by commas (,) [U+002C]. Conceptually, each \
+						styled region is fed through each rule to determine \
+						how the styled region should be  rendered in an Anvil \
+						reader or editor. \
+						A term satisfies the lexical rules rules for an Avail \
+						style classifier, i.e., a number sign (#) [U+0023] \
+						followed by Latin alphanumerics or hyphen-minuses (-) \
+						[U+002D]. A term matches its lexically identical \
+						style classifier exactly. \
+						\
+						The succession operator is comma (,) [U+002C]. The \
+						succession operator matches if the right term follows \
+						the left term without any interleaving terms. \
+						\
+						The eventual subsequence operator is less-than sign (<) \
+						[U+003C]. The eventual subsequence operator matches if \
+						the right term occurs anywhere after the left term, \
+						irrespective of the absence or presence of \
+						interleaving terms. \
+						\
+						An exact match rule begins with equals \
+						sign (=) [U+003D]. It must match exactly, and must not \
+						contain any operators other than the succession \
+						operator. All other rules are fuzzy match rules. \
+						\
+						A more specific rule always overrides a more general \
+						rule, so, e.g., a rule #foo<#bar overrides either/both \
+						of rules #foo and #bar.\
+						\
+						The special rule comprising only equals (=) [U+003D] \
+						declares how to render unclassified regions of text, \
+						i.e., regions to which no style classifiers have been \
+						attached.\
+						\
+						The special rule comprising only exclamation mark (!) \
+						[U+0021] declares how to render regions of text that \
+						do not conform to any rule."
+				}
+			}
+		},
+		styleAttributes: {
+			$id: "#styleAttributes",
+			type: "object",
+			description: "The concrete style attributes for rendition of the \
+				style pattern.",
+			minProperties: 1,
+			properties: {
+				fontFamily: {
+					type: "string",
+					description: "The font family for rendering any text in \
+						the styled region."
+				},
+				foreground: {
+					$ref: "#symbolicColor",
+					description: "The symbolic name of the light/dark color \
+						for rendering the foreground of any text in the styled \
+						region."
+				},
+				background: {
+					$ref: "#symbolicColor",
+					description: "The symbolic name of the light/dark color \
+						for rendering the background of any text in the styled \
+						region."
+				},
+				bold: {
+					type: "boolean",
+					description: "Whether to give bold weight to the text in \
+						the styled region."
+				},
+				italic: {
+					type: "boolean",
+					description: "Whether to give italic style to the text in \
+						the styled region."
+				},
+				underline: {
+					type: "boolean",
+					description: "Whether to give underline decoration to the \
+						text in the styled region."
+				},
+				superscript: {
+					type: "boolean",
+					description: "Whether to give superscript position to the \
+						text in the styled region."
+				},
+				subscript: {
+					type: "boolean",
+					description: "Whether to give subscript position to the \
+						text in the styled region."
+				},
+				strikethrough: {
+					type: "boolean",
+					description: "Whether to give strikethrough decoration to \
+						the text in the styled region."
+				}
+			}
+		},
+		symbolicColor: {
+			$id: "#symbolicColor",
+			type: "string",
+			description: "A symbolic name of a light/dark color from the \
+				unified palette, i.e., the palette aggregated from all \
+				defined palettes."
+		}
+	},
+
+////////////////////////////////////////////////////////////////////////////////
+//                Avail project configuration file structure.                 //
+////////////////////////////////////////////////////////////////////////////////
+
+	type: "object",
+	additionalProperties: false,
+	properties: {
+		serializationVersion: {
+			type: "number",
+			enum: [1],
+			description: "The format version for the Avail project \
+				configuration file, corresponding to some version of this \
+				schema."
+		},
+		id: {
+			$ref: "#id",
+			description: "The UUID that uniquely identifies the project."
+		},
+		name: {
+			$ref: "#name",
+			description: "The name that identifies the project."
+		},
+		darkMode: {
+			type: "boolean",
+			description: "Whether Anvil should open in dark mode. If true, \
+				then all UI elements and style renditions will use dark-mode \
+				colors from the unified palette; if false, then light-mode \
+				colors will be used instead",
+			default: true
+		},
+		repositoryLocation: {
+			$ref: "#location",
+			description: "The location of the development-supporting binaries \
+				associated with this project. These binaries include the \
+				compiled forms of modules and indices of program elements."
+		},
+		roots: {
+			type: "array",
+			description: "The complete collection of Avail roots that support \
+				the enclosing project.",
+			minItems: 1,
+			items: [
+				{
+					type: "object",
+					description: "An Avail root encapsulates a deliverable \
+						unit of functionality; to wit, an Avail library or \
+						executable.",
+					properties: {
+						id: {
+							$ref: "#id",
+							description: "The UUID that uniquely identifies \
+								the root."
+						},
+						name: {
+							$ref: "#name",
+							description: "The name that identifies the root."
+						},
+						editable: {
+							type: "boolean",
+							description: "Whether the contents of this root \
+								may be edited from an Anvil editor governed by \
+								this project.",
+							default: false
+						},
+						visible: {
+							type: "boolean",
+							description: "Whether Anvil should show this root \
+								in the project workbench. The main reason to \
+								hide a root is information hiding when \
+								packaging an integrated development \
+								environment (IDE) for an Avail-based \
+								domain-specific  language (DSL).",
+							default: true
+						},
+						location: {
+							$ref: "#location",
+							description: "The location of the enclosing root."
+						},
+						availModuleExtensions: {
+							type: "array",
+							description: "The file extensions that should be \
+								treated as Avail source modules within this \
+								root.",
+							minItems: 1,
+							items: [
+								{
+									type: "string",
+									description: "A file extension that \
+										denotes a file that should be \
+										recognized as an Avail source modules."
+								}
+							],
+							default: [
+								["avail"]
+							]
+						},
+						rootCopyright: {
+							$ref: "#copyright",
+							description: "The copyright notice that pertains \
+								to all files defined in the enclosing root.",
+						},
+						templates: {
+							$ref: "#templates",
+							description: "The live templates available for \
+								substitution in an Anvil editor. Avail uses \
+								many untypable Unicode characters, so live \
+								templates provides essential ergonomic support \
+								for reaching essential characters \
+								conveniently. This template bank holds \
+								templates considered generally useful for the \
+								private or exported features of the enclosing \
+								root."
+						},
+						palette: {
+							$ref: "#palette",
+							description: "The palette for rendering styles in \
+								an Avail reader or editor. The palette \
+								provides symbolic names for usage within a \
+								stylesheet, and supports both light \
+								and dark mode for each symbolic name. This \
+								palette supports rendition of rules defined by \
+								the enclosing root."
+						},
+						stylesheet: {
+							$ref: "#stylesheet",
+							description: "The stylesheet maps a collection of \
+								rules onto the concrete style attributes that \
+								should be applied whenever the rule matches \
+								(and is not overridden). This stylesheet \
+								provides support for style classifiers \
+								introduced by the enclosing root."
+						}
+					},
+					required: [
+						"id",
+						"name",
+						"location"
+					]
+				}
+			]
+		},
+		projectCopyright: {
+			$ref: "#copyright",
+			description: "The copyright notice that pertains to all files \
+				defined in the enclosing project."
+		},
+		templates: {
+			$ref: "#templates",
+			description: "The live templates available for substitution in an \
+				Anvil editor. Avail uses many untypable Unicode characters, so \
+				live templates provides essential ergonomic support for \
+				reaching essential characters conveniently. This is the \
+				project template bank, which extends and overrides any \
+				root-specific template banks."
+		},
+		palette: {
+			$ref: "#palette",
+			description: "The palette for rendering styles in an Avail reader \
+				or editor. The palette provides symbolic names for usage \
+				within a stylesheet, and supports both light and dark mode for \
+				each symbolic name. This is the project palette, which \
+				extends and overrides any root-specific palettes."
+		},
+		stylesheet: {
+			$ref: "#stylesheet",
+			description: "The stylesheet maps a collection of rules onto the \
+				concrete style attributes that should be applied whenever the \
+				rule matches (and is not overridden). This is the project \
+				stylesheet, which extends and overrides any root-specific \
+				stylesheets."
+		}
+	},
+	oneOf: [
+		{
+			properties: {
+				serializationVersion: {const: 1}
+			},
+			required: [
+				"serializationVersion",
+				"id",
+				"name",
+				"repositoryLocation",
+				"roots"
+			]
+		}
+	]
+}

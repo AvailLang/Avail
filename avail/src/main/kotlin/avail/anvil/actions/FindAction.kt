@@ -33,7 +33,8 @@
 package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.GlowHighlightPainter
+import avail.anvil.Glow
+import avail.anvil.addGlow
 import avail.anvil.shortcuts.FindActionShortcut
 import avail.anvil.showTextRange
 import java.awt.BorderLayout
@@ -55,6 +56,7 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
+import javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE
 import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -101,7 +103,7 @@ class FindAction constructor(
 	 * The ordered [List] of (MatchResult, highlight tag) pairs, for all places
 	 * that match the current pattern.
 	 */
-	private val allMatches = mutableListOf<Pair<MatchResult, Any>>()
+	private val allMatches = mutableListOf<Pair<MatchResult, List<Any>>>()
 
 	/**
 	 * When non-null, this is the index into [allMatches] representing the
@@ -112,16 +114,6 @@ class FindAction constructor(
 	 * selection/caret is invisible while the dialog has focus.
 	 */
 	private var currentMatchIndex: Int? = null
-
-	/**
-	 * The [HighlightPainter] for rendering all matches but the current one.
-	 */
-	private val allMatchesPainter = GlowHighlightPainter(Color.yellow)
-
-	/**
-	 * The [HighlightPainter] for rendering the current match.
-	 */
-	private val currentMatchPainter = GlowHighlightPainter(Color.red)
 
 	/**
 	 * A [DocumentListener] that detects textual changes to in the [textPane],
@@ -176,12 +168,24 @@ class FindAction constructor(
 					e.message
 				}
 		}
-		allMatches.forEach { highlighter!!.removeHighlight(it.second) }
-		currentMatchIndex = null
+		allMatches.forEach { (_, tags) ->
+			tags.forEach { tag ->
+				highlighter!!.removeHighlight(tag)
+			}
+		}
 		allMatches.clear()
-		matches.mapTo(allMatches) { match ->
-			match to highlighter!!.addHighlight(
-				match.range.first, match.range.last + 1, allMatchesPainter)
+		currentMatchIndex = null
+		matches.forEach { match ->
+			val tags = highlighter!!.addGlow(match.range, otherMatch)
+			allMatches.add(match to tags)
+		}
+		// Swing doesn't correctly redraw a new highlight region if it's
+		// outside the text box, although it does correctly delete it (if the
+		// highlighter reports the Shape that it altered on first paint).
+		// If any highlighter was added or changed, force a repaint.
+		if (allMatches.isNotEmpty())
+		{
+			textPane!!.repaint()
 		}
 	}
 
@@ -231,30 +235,34 @@ class FindAction constructor(
 		}
 	}
 
+	/**
+	 * Select the Nth ([matchIndex], zero-based) match of the pattern in the
+	 * current file.  This should switch the highlight to indicate this is the
+	 * new current match, making the previous current match be an "other" match.
+	 *
+	 * @param matchIndex
+	 *   The zero-based index of the match to make current.
+	 */
 	private fun selectMatch(matchIndex: Int)
 	{
-		val (match, tag) = allMatches[matchIndex]
+		val (match, tags) = allMatches[matchIndex]
 		val pane = textPane ?: return
 		pane.select(match.range.first, match.range.last + 1)
 		currentMatchIndex?.let { j ->
-			// Remove the current match highlighting, replacing it
-			// with the highlighting for all matches.
-			val (m, t) = allMatches[j]
-			highlighter!!.removeHighlight(t)
-			val newTag = highlighter!!.addHighlight(
-				m.range.first, m.range.last + 1,
-				allMatchesPainter)
-			allMatches[j] = m to newTag
+			// Remove the current match highlighting, replacing it with the
+			// highlighting for all matches.
+			val (m, oldTags) = allMatches[j]
+			oldTags.forEach { oldTag ->
+				highlighter!!.removeHighlight(oldTag)
+			}
+			allMatches[j] = m to highlighter!!.addGlow(m.range, otherMatch)
 		}
 		// Remove the all-matches highlight for this match, and
 		// add a replacement current-match highlight.
 		currentMatchIndex = matchIndex
-		highlighter!!.removeHighlight(tag)
-		val newTag = highlighter!!.addHighlight(
-			match.range.first, match.range.last + 1,
-			currentMatchPainter
-		)
-		allMatches[matchIndex] = match to newTag
+		tags.forEach { newTag -> highlighter!!.removeHighlight(newTag) }
+		allMatches[matchIndex] =
+			match to highlighter!!.addGlow(match.range, currentMatch)
 		pane.showTextRange(match.range.first, match.range.last + 1)
 	}
 
@@ -335,9 +343,10 @@ class FindAction constructor(
 			add(replaceAllButton)
 			add(closeButton)
 			// Pressing escape in the find dialog should close it.
-			actionMap.put("Close", closeAction)
+			val closeName = "Close"
+			actionMap.put(closeName, closeAction)
 			getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).run {
-				put(KeyStroke.getKeyStroke("ESCAPE"), "Close")
+				put(KeyStroke.getKeyStroke("ESCAPE"), closeName)
 			}
 			// TODO Add "replace" functionality
 			replaceText.isEnabled = false
@@ -397,10 +406,12 @@ class FindAction constructor(
 			val topLeft = workbench.location
 			setLocation(
 				topLeft.x + workbench.width - width - 100, topLeft.y + 30)
+			defaultCloseOperation = DO_NOTHING_ON_CLOSE
 			addWindowListener(object : WindowAdapter()
 			{
-				override fun windowClosed(e: WindowEvent) {
+				override fun windowClosing(e: WindowEvent) {
 					dialogWasClosed()
+					dispose()
 				}
 			})
 		}
@@ -412,11 +423,33 @@ class FindAction constructor(
 	 */
 	private fun dialogWasClosed()
 	{
-		allMatches.forEach { (_, tag) -> highlighter?.removeHighlight(tag) }
+		allMatches.forEach { (_, tags) ->
+			tags.forEach { tag -> highlighter?.removeHighlight(tag) }
+		}
 		allMatches.clear()
 		currentMatchIndex = null
 		textPane?.document?.removeDocumentListener(documentListener)
 		textPane = null
 		highlighter = null
+	}
+
+	companion object
+	{
+		/** The [Glow] to use for the current find match. */
+		private val currentMatch = Glow(
+			Color(255, 255, 0, 192),
+			Color(255, 255, 0, 160),
+			Color(255, 255, 0, 100),
+			Color(255, 255, 0, 60),
+			Color(255, 255, 0, 40))
+
+		/**
+		 * The [Glow] to use for a match that isn't the current one.
+		 */
+		private val otherMatch = Glow(
+			Color(255, 255, 0, 96),
+			Color(255, 255, 0, 80),
+			Color(255, 255, 0, 64),
+			Color(255, 255, 0, 32))
 	}
 }

@@ -1854,8 +1854,8 @@ class JVMTranslator constructor(
 
 		companion object
 		{
-			/** A private array of phases, since Enum.values() makes a copy. */
-			private val all = values()
+			/** A private array of phases. */
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Execute all JVM generation phases.
@@ -1944,7 +1944,6 @@ class JVMTranslator constructor(
 		 * A regex [Pattern] to find runs of characters that are forbidden in a
 		 * class name, and will be replaced with a single `'%'`.
 		 */
-		@Suppress("SpellCheckingInspection")
 		private val classNameForbiddenCharacters =
 			Pattern.compile("[\\[\\]\\\\/.:;\"'\\p{Cntrl}]+")
 

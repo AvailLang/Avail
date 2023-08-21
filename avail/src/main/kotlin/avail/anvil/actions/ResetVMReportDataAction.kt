@@ -57,7 +57,7 @@ class ResetVMReportDataAction constructor(
 
 	override fun actionPerformed(event: ActionEvent)
 	{
-		for (report in StatisticReport.values())
+		for (report in StatisticReport.entries)
 		{
 			report.clear()
 		}

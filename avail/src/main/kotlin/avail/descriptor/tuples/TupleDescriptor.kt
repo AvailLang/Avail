@@ -190,27 +190,7 @@ protected constructor(
 		}
 		if (self.isString)
 		{
-			builder.append('"')
-			for (i in 1 .. size)
-			{
-				when (val c = self.tupleCodePointAt(i))
-				{
-					'\"'.code, '\\'.code ->
-					{
-						builder.appendCodePoint('\\'.code)
-						builder.appendCodePoint(c)
-					}
-					'\n'.code -> builder.append("\\n")
-					'\r'.code -> builder.append("\\r")
-					'\t'.code -> builder.append("\\t")
-					in 0 .. 31, 127 -> builder.append(
-						String.format(
-							"\\(%x)",
-							c))
-					else -> builder.appendCodePoint(c)
-				}
-			}
-			builder.appendCodePoint('"'.code)
+			builder.quoteStringOn(self)
 			return
 		}
 		val strings = mutableListOf<String>()
@@ -1405,6 +1385,51 @@ protected constructor(
 				}
 				scaledMultiplier = power
 			}
+		}
+
+		/**
+		 * Quote the given string, making it presentable as an Avail string
+		 * literal.  If a mutable [map] is provided, populate it with the
+		 * correspondence between each one-based position in the input [string]
+		 * and its zero-based position in the receiver, a [StringBuilder].
+		 * Include a final entry for just past the end of the string to the
+		 * close quote of the builder.
+		 *
+		 * @receiver
+		 *   The [StringBuilder] on which to write the quoted string.
+		 * @param string
+		 *   The [A_String] to quote.
+		 * @param
+		 *   The optional [MutableMap] to populate from one-based positions in
+		 *   the given [string] to corresponding zero-based positions in the
+		 *   builder.
+		 */
+		fun StringBuilder.quoteStringOn(
+			string: A_String,
+			map: MutableMap<Int, Int>? = null)
+		{
+			append('"')
+			for (i in 1 .. string.tupleSize)
+			{
+				map?.set(i, length)
+				when (val c = string.tupleCodePointAt(i))
+				{
+					'\"'.code, '\\'.code ->
+					{
+						appendCodePoint('\\'.code)
+						appendCodePoint(c)
+					}
+					'\n'.code -> append("\\n")
+					'\r'.code -> append("\\r")
+					'\t'.code -> append("\\t")
+					in 0 .. 31, 127 -> append(
+						String.format("\\(%x)", c))
+
+					else -> appendCodePoint(c)
+				}
+			}
+			map?.set(string.tupleSize + 1, length)
+			appendCodePoint('"'.code)
 		}
 
 		/**

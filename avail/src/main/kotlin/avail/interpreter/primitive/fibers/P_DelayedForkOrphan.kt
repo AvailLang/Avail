@@ -64,7 +64,7 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
@@ -170,7 +170,7 @@ object P_DelayedForkOrphan : Primitive(
 				inclusive(zero, positiveInfinity),
 				functionTypeReturning(TOP.o),
 				mostGeneralTupleType,
-				bytes),
+				u8),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =

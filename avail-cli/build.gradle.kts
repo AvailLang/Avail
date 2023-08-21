@@ -29,25 +29,71 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import avail.build.AvailSetupContext.distroLib
-import avail.build.cleanupJars
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.File
 
 plugins {
-	java
-	kotlin("jvm")
-	id("com.github.johnrengelman.shadow")
+	id("java")
+	kotlin("jvm") version "1.9.0"
+	id("com.github.johnrengelman.shadow") version "8.1.1"
+}
+
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+/** The language level version of Kotlin. */
+val kotlinLanguage = "1.9"
+
+/** The JVM target version for Kotlin. */
+val jvmTarget = 17
+
+/** The JVM target version for Kotlin. */
+val jvmTargetString = jvmTarget.toString()
+
+/** The root Avail distribution directory name. */
+val distroDir = "distro"
+
+/** The relative path to the Avail distribution source directory. */
+val distroSrc = systemPath(distroDir, "src")
+
+/** The relative path to the Avail distribution lib directory. */
+val distroLib = systemPath(distroDir, "lib")
+
+/**
+ * Construct a operating system-specific file path using [File.separator].
+ *
+ * @param path
+ *   The locations to join using the system separator.
+ * @return
+ *   The constructed String path.
+ */
+fun systemPath(vararg path: String): String =
+	path.toList().joinToString(File.separator)
+
+/**
+ * Remove all the jars, excluding "*-all.jar" from the
+ * [build directory][Project.getBuildDir].
+ */
+fun Project.cleanupJars ()
+{
+	delete(fileTree("$buildDir/libs").matching {
+		include("**/*.jar")
+		exclude("**/*-all.jar")
+	})
 }
 
 java {
 	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+		languageVersion.set(JavaLanguageVersion.of(jvmTarget))
 	}
 }
 
 kotlin {
 	jvmToolchain {
 		(this as JavaToolchainSpec).languageVersion.set(
-			JavaLanguageVersion.of(Versions.jvmTargetString))
+			JavaLanguageVersion.of(jvmTargetString))
 	}
 }
 
@@ -75,4 +121,9 @@ tasks {
 
 	// Update the dependencies of "assemble".
 	assemble { dependsOn(releaseAvailCLI) }
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+	languageVersion = kotlinLanguage
+	apiVersion = kotlinLanguage
 }

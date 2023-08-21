@@ -71,7 +71,7 @@ import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeTuple
 import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -514,7 +514,7 @@ class IntTupleDescriptor private constructor(
 			}
 		}
 		val defaultTypeObject = aType.defaultType
-		if (int32.isSubtypeOf(defaultTypeObject))
+		if (i32.isSubtypeOf(defaultTypeObject))
 		{
 			return true
 		}
@@ -586,7 +586,7 @@ class IntTupleDescriptor private constructor(
 	{
 		return when
 		{
-			int32.isSubtypeOf(type) -> true
+			i32.isSubtypeOf(type) -> true
 			startIndex > endIndex -> true
 			type.isEnumeration -> super.o_TupleElementsInRangeAreInstancesOf(
 				self, startIndex, endIndex, type)
@@ -766,7 +766,7 @@ class IntTupleDescriptor private constructor(
 			var i = 0
 			for (excess in intArrayOf(0, 1))
 			{
-				for (mut in Mutability.values())
+				for (mut in Mutability.entries)
 				{
 					descriptors[i++] =
 						IntTupleDescriptor(mut, excess)

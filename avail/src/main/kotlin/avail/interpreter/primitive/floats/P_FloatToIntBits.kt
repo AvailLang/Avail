@@ -38,7 +38,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
@@ -66,5 +66,5 @@ object P_FloatToIntBits : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(FLOAT.o), int32)
+		functionType(tuple(FLOAT.o), i32)
 }

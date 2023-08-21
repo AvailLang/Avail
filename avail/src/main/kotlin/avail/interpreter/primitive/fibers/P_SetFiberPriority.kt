@@ -38,7 +38,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CannotFail
@@ -63,5 +63,5 @@ object P_SetFiberPriority : Primitive(2, CannotFail, WritesToHiddenGlobalState)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType(), bytes), TOP.o)
+		functionType(tuple(mostGeneralFiberType(), u8), TOP.o)
 }

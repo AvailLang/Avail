@@ -157,7 +157,7 @@ data class AvailVersion constructor (
 			 *   The associated [Suffix] or `null` if invalid.
 			 */
 			operator fun get (suffix: String): Pair<Suffix, Int>? =
-				values().firstOrNull { suffix.lowercase().startsWith(it.suffix) }
+				entries.firstOrNull { suffix.lowercase().startsWith(it.suffix) }
 					?.let {
 						val v = suffix.lowercase().split(it.suffix).last()
 						Pair(it, v.toInt())

@@ -45,6 +45,8 @@ import java.awt.Dimension
 import java.awt.Font
 import java.awt.Toolkit.getDefaultToolkit
 import java.awt.event.ActionEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
 import javax.swing.InputMap
 import javax.swing.JTextPane
@@ -105,6 +107,8 @@ class CodePane constructor(
 		limit = if (isEditable) 1000 else 1
 	}
 
+	internal var clickHandler: (e: MouseEvent) -> Unit = {}
+
 	/**
 	 * The state of an ongoing template selection.
 	 *
@@ -156,8 +160,9 @@ class CodePane constructor(
 		isEnabled = true
 		isFocusable = true
 		preferredSize = Dimension(0, 500)
-		font = Font.decode("${workbench.globalSettings.font} 13")
-		font = font.deriveFont(workbench.globalSettings.codePaneFontSize)
+		font = Font
+			.decode("${workbench.globalSettings.font} 13")
+			.deriveFont(workbench.globalSettings.codePaneFontSize)
 		background = computeBackground(workbench.stylesheet)
 		foreground = computeForeground(workbench.stylesheet)
 		initializeStyles()
@@ -180,6 +185,11 @@ class CodePane constructor(
 			putClientProperty(CodePane::undoManager.name, undoManager)
 			putClientProperty(CodePane::currentEdit.name, currentEdit)
 		}
+		addMouseListener(
+			object : MouseAdapter()
+			{
+				override fun mouseClicked(e: MouseEvent) = clickHandler(e)
+			})
 	}
 
 	/**

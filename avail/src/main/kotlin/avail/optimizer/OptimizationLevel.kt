@@ -119,8 +119,8 @@ constructor(val countdown: Long)
 	 * calling continuation in the case that they're successful, but have to
 	 * reify if the primitive fails.
 	 *
-	 * Note that the [countdown] of [Long.MAX_VALUE] indicates not to create a
-	 * decrement instruction that lead to another reoptimization.
+	 * Note that the sentinel [countdown] of [Long.MAX_VALUE] indicates not to
+	 * create a decrement instruction that leads to another reoptimization.
 	 */
 	SECOND_JVM_TRANSLATION(Long.MAX_VALUE)
 	{
@@ -157,7 +157,7 @@ constructor(val countdown: Long)
 	companion object
 	{
 		/** An array of all [OptimizationLevel] enumeration values. */
-		private val all = values()
+		private val all = entries.toTypedArray()
 
 		/**
 		 * Answer the `OptimizationLevel` for the given ordinal value.

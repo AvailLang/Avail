@@ -324,7 +324,7 @@ private constructor(
 
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
-		for (type in all())
+		for (type in all)
 		{
 			if (self.equals(type.o))
 			{
@@ -500,7 +500,8 @@ private constructor(
 	constructor(
 		val parent: Types?,
 		val typeTag: TypeTag,
-		val instanceTag: TypeTag)
+		val instanceTag: TypeTag,
+		private val typeName: String? = null)
 	{
 		/**
 		 * The most general type of the type lattice, also written ⊤ and
@@ -514,7 +515,7 @@ private constructor(
 		 * type ⊤, to ensure that functions are not accidentally used as
 		 * procedures – and to ensure that the reader of the code knows it.
 		 */
-		TOP(null, TypeTag.TOP_TYPE_TAG, TypeTag.TOP_TAG),
+		TOP(null, TypeTag.TOP_TYPE_TAG, TypeTag.TOP_TAG, "⊤"),
 
 		/**
 		 * This is the second-most general type in Avail's type lattice.  It is
@@ -694,29 +695,21 @@ private constructor(
 			/**
 			 * Stash a [List] of all `Types` enum values.
 			 */
-			private val all = values().toList()
-
-			/**
-			 * Answer the previously stashed [List] of all `Types`.
-			 *
-			 * @return
-			 *   The immutable [List] of all `Types`.
-			 */
-			fun all(): List<Types> = all
+			val all = entries.toTypedArray()
 
 			init
 			{
-				assert(values().size == typesEnumCount)
+				assert(all.size == typesEnumCount)
 				// Build all the objects with null fields.
 				assert(all.size == typesEnumCount)
 				// Connect the objects.
 				for (spec in all)
 				{
 					val o = createMutablePrimitiveObjectNamed(
-						when (spec.parent)
+						when (val typeName = spec.typeName)
 						{
-							null -> "⊤"
-							else -> spec.name.lowercase().replace('_', ' ')
+							null -> spec.name.lowercase().replace('_', ' ')
+							else -> typeName
 						})
 					spec.o = o
 

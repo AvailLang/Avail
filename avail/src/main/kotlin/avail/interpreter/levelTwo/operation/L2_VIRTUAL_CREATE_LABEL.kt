@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
@@ -196,7 +196,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 				L2CommentOperand("Transient, cannot be invalid."))
 			val tempOffset = generator.intWriteTemp(
-				restrictionForType(int32, UNBOXED_INT_FLAG))
+				restrictionForType(i32, UNBOXED_INT_FLAG))
 			val tempRegisterDump = generator.boxedWriteTemp(
 				restrictionForType(Types.ANY.o, BOXED_FLAG))
 			generator.addInstruction(
@@ -260,7 +260,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 			"Fall-through for label creation",
 			generator.currentBlock().zone)
 		val writeOffset = generator.intWriteTemp(
-			restrictionForType(int32, UNBOXED_INT_FLAG))
+			restrictionForType(i32, UNBOXED_INT_FLAG))
 		val writeRegisterDump =
 			generator.boxedWriteTemp(
 				restrictionForType(Types.ANY.o, BOXED_FLAG))

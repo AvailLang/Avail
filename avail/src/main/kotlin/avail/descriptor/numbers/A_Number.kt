@@ -36,8 +36,8 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.exceptions.ArithmeticException
 import avail.interpreter.primitive.numbers.P_LessOrEqual
 import avail.optimizer.jvm.CheckedMethod
@@ -602,13 +602,13 @@ interface A_Number : A_BasicObject
 		val A_Number.isPositive: Boolean get() = dispatch { o_IsPositive(it) }
 
 		/**
-		 * Answer whether this value is an integer in the [int32] range.
+		 * Answer whether this value is an integer in the [i32] range.
 		 */
 		@get:ReferencedInGeneratedCode
 		val A_Number.isInt: Boolean get() = dispatch { o_IsInt(it) }
 
 		/**
-		 * Answer whether this value is an integer in the [int64] range.
+		 * Answer whether this value is an integer in the [i64] range.
 		 */
 		val A_Number.isLong get() = dispatch { o_IsLong(it) }
 

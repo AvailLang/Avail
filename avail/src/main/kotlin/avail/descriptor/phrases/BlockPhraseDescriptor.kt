@@ -191,8 +191,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) : Unit = with(builder)
-	{
+	) : Unit = builder.brief {
 		// Optimize for one-liners...
 		val argumentsTuple = self.argumentsTuple
 		val argCount = argumentsTuple.tupleSize
@@ -251,7 +250,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 				}
 				newlineTab(indent)
 				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
-					builder, recursionMap, indent)
+					this, recursionMap, indent)
 			}
 			newlineTab(indent - 1)
 			append('|')
@@ -267,7 +266,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			{
 				append(" (")
 				statementsTuple.tupleAt(1).printOnAvoidingIndent(
-					builder, recursionMap, indent)
+					this, recursionMap, indent)
 				append(')')
 				skipFailureDeclaration = true
 			}
@@ -287,8 +286,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			{
 				wroteAnything = true
 				newlineTab(indent)
-				statement.printOnAvoidingIndent(
-					builder, recursionMap, indent)
+				statement.printOnAvoidingIndent(this, recursionMap, indent)
 				if (index < statementsSize || endsWithStatement)
 				{
 					append(';')

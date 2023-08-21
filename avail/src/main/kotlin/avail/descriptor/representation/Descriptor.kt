@@ -105,8 +105,9 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
@@ -2796,4 +2797,59 @@ protected constructor (
 		startIndex: Int,
 		endIndex: Int
 	): Int = unsupported
+
+	override fun o_SetNamesIndexRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	): Unit  = unsupported
+
+	override fun o_NamesIndexRecord(
+		self: AvailObject
+	): NamesIndex = unsupported
+
+	companion object
+	{
+		/**
+		 * The regular expression for printing more concise values when the
+		 * [limit][maxBrief] is respected by a primitive string representation.
+		 *
+		 * @see printObjectOnAvoidingIndent
+		 */
+		val compressionRegex = """\n\t*""".toRegex()
+
+		/**
+		 * The maximum length of the concise primitive description. Values whose
+		 * text renditions are under this character count will have internal
+		 * newlines and tab clusters replaced with an individual space.
+		 *
+		 * @see printObjectOnAvoidingIndent
+		 */
+		const val maxBrief = 60
+
+		/**
+		 * Execute the supplied function in the context of a new
+		 * [StringBuilder]. If the result is shorter than [maxBrief], then
+		 * replace each internal cluster of newline and tabs with an individual
+		 * space. Finally, write the complete result to the receiver.
+		 *
+		 * @receiver
+		 *   The final target for string rendition.
+		 * @param printer
+		 *   How to produce the string.
+		 */
+		inline fun StringBuilder.brief(
+			printer: StringBuilder.() -> Unit
+		) = StringBuilder().let { builder ->
+			builder.printer()
+			if (builder.length <= maxBrief)
+			{
+				append(builder.replace(compressionRegex, " "))
+			}
+			else
+			{
+				append(builder)
+			}
+			Unit
+		}
+	}
 }

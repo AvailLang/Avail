@@ -38,7 +38,7 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
@@ -64,5 +64,5 @@ object P_CompiledCodeNybbles : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralCompiledCodeType()),
-			zeroOrMoreOf(nybbles))
+			zeroOrMoreOf(u4))
 }

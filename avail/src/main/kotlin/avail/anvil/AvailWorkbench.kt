@@ -35,6 +35,7 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.AvailRuntimeConfiguration.activeVersionSummary
+import avail.AvailTask
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
 import avail.anvil.SystemStyleClassifier.INPUT_BACKGROUND
 import avail.anvil.SystemStyleClassifier.INPUT_TEXT
@@ -54,6 +55,7 @@ import avail.anvil.actions.DebugAction
 import avail.anvil.actions.DeleteModuleAction
 import avail.anvil.actions.ExamineCompilationAction
 import avail.anvil.actions.ExamineModuleManifest
+import avail.anvil.actions.ExamineNamesIndex
 import avail.anvil.actions.ExaminePhrasePathsAction
 import avail.anvil.actions.ExamineRepositoryAction
 import avail.anvil.actions.ExamineSerializedPhrasesAction
@@ -63,10 +65,9 @@ import avail.anvil.actions.GenerateArtifactAction
 import avail.anvil.actions.GenerateDocumentationAction
 import avail.anvil.actions.GenerateGraphAction
 import avail.anvil.actions.InsertEntryPointAction
-import avail.anvil.actions.LoadOnStartAction
 import avail.anvil.actions.NewModuleAction
-import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenFileAction
+import avail.anvil.actions.OpenKnownProjectAction
 import avail.anvil.actions.OpenProjectAction
 import avail.anvil.actions.OpenProjectFileEditorAction
 import avail.anvil.actions.OpenSettingsViewAction
@@ -81,6 +82,7 @@ import avail.anvil.actions.RetrieveNextCommand
 import avail.anvil.actions.RetrievePreviousCommand
 import avail.anvil.actions.SearchOpenModuleDialogAction
 import avail.anvil.actions.SetDocumentationPathAction
+import avail.anvil.actions.SetLoadOnStartAction
 import avail.anvil.actions.ShowCCReportAction
 import avail.anvil.actions.ShowVMReportAction
 import avail.anvil.actions.SubmitInputAction
@@ -104,10 +106,14 @@ import avail.anvil.actions.UnloadAllAction
 import avail.anvil.debugger.AvailDebugger
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.GlobalEnvironmentSettings.Companion.globalTemplates
+import avail.anvil.icons.CompoundIcon
+import avail.anvil.icons.UsageTypeIcons
+import avail.anvil.icons.structure.SideEffectIcons
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.manager.OpenKnownProjectDialog
 import avail.anvil.nodes.AbstractWorkbenchTreeNode
 import avail.anvil.nodes.AvailProjectNode
+import avail.anvil.nodes.DummyRootModuleNode
 import avail.anvil.nodes.EntryPointModuleNode
 import avail.anvil.nodes.EntryPointNode
 import avail.anvil.nodes.ModuleOrPackageNode
@@ -115,9 +121,9 @@ import avail.anvil.nodes.ModuleRootNode
 import avail.anvil.nodes.OpenableFileNode
 import avail.anvil.nodes.ResourceDirNode
 import avail.anvil.nodes.ResourceNode
-import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.settings.SettingsView
 import avail.anvil.settings.TemplateExpansionsManager
+import avail.anvil.settings.editor.ProjectFileEditor
 import avail.anvil.streams.BuildInputStream
 import avail.anvil.streams.BuildOutputStream
 import avail.anvil.streams.BuildOutputStreamEntry
@@ -127,10 +133,15 @@ import avail.anvil.streams.StreamStyle.BUILD_PROGRESS
 import avail.anvil.streams.StreamStyle.ERR
 import avail.anvil.streams.StreamStyle.INFO
 import avail.anvil.streams.StreamStyle.OUT
+import avail.anvil.tasks.AbstractBuildTask
+import avail.anvil.tasks.AbstractWorkbenchModuleTask
+import avail.anvil.tasks.AbstractWorkbenchTask
+import avail.anvil.tasks.BuildManyTask
 import avail.anvil.tasks.BuildTask
 import avail.anvil.text.CodePane
-import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.text.goTo
+import avail.anvil.views.PhraseView
+import avail.anvil.views.StructureView
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration
 import avail.anvil.window.WorkbenchScreenState
 import avail.builder.AvailBuilder
@@ -141,26 +152,45 @@ import avail.builder.ModuleRoots
 import avail.builder.RenamesFileParser
 import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
+import avail.compiler.ModuleManifestEntry
+import avail.compiler.splitter.MessageSplitter
+import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.tuples.TupleDescriptor.Companion.quoteStringOn
 import avail.files.FileManager
+import avail.interpreter.execution.AvailLoader.Companion.htmlStyledMethodName
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import avail.persistence.cache.Repositories
+import avail.persistence.cache.record.ManifestRecord
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleVersionKey
+import avail.persistence.cache.record.NameInModule
+import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.NamesIndex.Definition
+import avail.persistence.cache.record.NamesIndex.Usage
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
 import avail.stacks.StacksGenerator
 import avail.utility.IO
 import avail.utility.PrefixTree
 import avail.utility.PrefixTree.Companion.getOrPut
+import avail.utility.Strings.escapedForHTML
 import avail.utility.cast
+import avail.utility.ifZero
 import avail.utility.isNullOr
+import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
+import avail.utility.parallelMapThen
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
@@ -175,11 +205,13 @@ import org.availlang.artifact.environment.project.LocalSettings
 import org.availlang.json.JSONWriter
 import java.awt.Color
 import java.awt.Component
+import java.awt.Cursor
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.EventQueue
 import java.awt.Taskbar
 import java.awt.Toolkit
+import java.awt.Window
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -217,7 +249,10 @@ import javax.swing.GroupLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JLabel
+import javax.swing.JMenu
+import javax.swing.JMenuItem
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.JProgressBar
 import javax.swing.JScrollPane
 import javax.swing.JSplitPane
@@ -226,8 +261,8 @@ import javax.swing.JTextField
 import javax.swing.JTextPane
 import javax.swing.JTree
 import javax.swing.KeyStroke
+import javax.swing.SwingConstants
 import javax.swing.SwingUtilities.invokeLater
-import javax.swing.SwingWorker
 import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
@@ -244,6 +279,7 @@ import kotlin.concurrent.schedule
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.system.exitProcess
 
 /**
  * `AvailWorkbench` is a simple user interface for the
@@ -526,7 +562,7 @@ class AvailWorkbench internal constructor(
 	private val errorStream: PrintStream?
 
 	/** The [standard output stream][PrintStream]. */
-	val outputStream: PrintStream
+	private val outputStream: PrintStream
 
 	/* UI components. */
 
@@ -617,10 +653,10 @@ class AvailWorkbench internal constructor(
 	internal val buildAction = BuildAction(this)
 
 	/** The [CopyQualifiedNameAction].  */
-	internal val copyQualifiedNameAction = CopyQualifiedNameAction(this)
+	private val copyQualifiedNameAction = CopyQualifiedNameAction(this)
 
-	/** The [LoadOnStartAction]. */
-	internal val loadOnStartAction = LoadOnStartAction(this)
+	/** The [SetLoadOnStartAction]. */
+	private val setLoadOnStartAction = SetLoadOnStartAction(this)
 
 	/** The [GenerateArtifactAction] used to create an [AvailArtifact]. */
 	private val generateArtifact = GenerateArtifactAction(this)
@@ -747,6 +783,9 @@ class AvailWorkbench internal constructor(
 
 	/** The [ExamineModuleManifest]. */
 	private val examineModuleManifestAction = ExamineModuleManifest(this)
+
+	/** The [ExamineNamesIndex]. */
+	private val examineNamesIndexAction = ExamineNamesIndex(this)
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -910,12 +949,12 @@ class AvailWorkbench internal constructor(
 	private var perModuleStatusTextSize = 0
 
 	/**
-	 * A gate that prevents multiple [AbstractWorkbenchTask]s from running at
+	 * A gate that prevents multiple [AbstractWorkbenchModuleTask]s from running at
 	 * once. `true` indicates a task is running and will prevent a second task
 	 * from starting; `false` indicates the workbench is available to run a
 	 * task.
 	 */
-	private var taskGate = AtomicBoolean(false)
+	internal var taskGate = AtomicBoolean(false)
 
 	/**
 	 * When false, roots marked as invisible are not shown.  When true, they are
@@ -951,100 +990,29 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * `AbstractWorkbenchTask` is a foundation for long-running [AvailBuilder]
-	 * operations.
+	 * [Execute][AbstractWorkbenchModuleTask.execute] the provided
+	 * [AbstractBuildTask].
 	 *
-	 * @property workbench
-	 *   The owning [AvailWorkbench].
-	 * @property targetModuleName
-	 *   The resolved name of the target [module][ModuleDescriptor].
-	 *
-	 * @constructor
-	 * Construct a new `AbstractWorkbenchTask`.
-	 *
-	 * @param workbench
-	 *   The owning [AvailWorkbench].
-	 * @param targetModuleName
-	 *   The resolved name of the target [module][ModuleDescriptor].
+	 * @param task
+	 *   The [AbstractBuildTask] that indicates what
+	 *   [module(s)][ModuleDescriptor] should be built.
 	 */
-	abstract class AbstractWorkbenchTask constructor(
-		val workbench: AvailWorkbench,
-		protected val targetModuleName: ResolvedModuleName?
-	) : SwingWorker<Void, Void>()
+	fun build(task: AbstractBuildTask)
 	{
-		/** The start time. */
-		private var startTimeMillis: Long = 0
+		// Update the UI.
+		cursor = Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)
+		buildProgress.value = 0
+		inputField.requestFocusInWindow()
+		clearTranscript()
 
-		/** The [exception][Throwable] that terminated the build. */
-		private var terminator: Throwable? = null
+		// Clear the build input stream.
+		inputStream().clear()
 
-		/** Cancel the current task. */
-		fun cancel() = workbench.availBuilder.cancel()
-
-		/**
-		 * Ensure the target module name is not null, then answer it.
-		 *
-		 * @return The non-null target module name.
-		 */
-		protected fun targetModuleName(): ResolvedModuleName =
-			targetModuleName!!
-
-		/**
-		 * Report completion (and timing) to the [transcript][transcript].
-		 */
-		protected fun reportDone()
-		{
-			val durationMillis = currentTimeMillis() - startTimeMillis
-			val status: String?
-			val t = terminator
-			status = when
-			{
-				t !== null -> "Aborted (${t.javaClass.simpleName})"
-				workbench.availBuilder.shouldStopBuild ->
-					workbench.availBuilder.stopBuildReason
-				else -> "Done"
-			}
-			workbench.writeText(
-				format(
-					"%s (%d.%03ds).%n",
-					status,
-					durationMillis / 1000,
-					durationMillis % 1000),
-				INFO)
-		}
-
-		@Throws(Exception::class)
-		override fun doInBackground(): Void?
-		{
-			if (workbench.taskGate.getAndSet(true))
-			{
-				// task is running
-				return null
-			}
-			startTimeMillis = currentTimeMillis()
-			executeTaskThen {
-				try
-				{
-					Repositories.closeAllRepositories()
-				}
-				finally
-				{
-					workbench.taskGate.set(false)
-				}
-
-			}
-			return null
-		}
-
-		/**
-		 * Execute this `AbstractWorkbenchTask`.
-		 *
-		 * @param afterExecute
-		 *   The lambda to run after the task completes.
-		 * @throws Exception If anything goes wrong.
-		 */
-		@Throws(Exception::class)
-		protected abstract fun executeTaskThen(afterExecute: ()->Unit)
+		// Build the target module in a Swing worker thread.
+		backgroundTask = task
+		availBuilder.checkStableInvariants()
+		setEnablements()
+		task.execute()
 	}
 
 	/**
@@ -1297,7 +1265,7 @@ class AvailWorkbench internal constructor(
 	 *   Lambda that accepts the modules tree and entry points tree.
 	 */
 	fun calculateRefreshedTreesThen(
-		withTrees: (TreeNode, TreeNode) -> Unit)
+		withTrees: (DummyRootModuleNode, DummyRootModuleNode) -> Unit)
 	{
 		if (!treeCalculationInProgress.getAndSet(true))
 		{
@@ -1312,6 +1280,18 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
+	 * Refresh the tree of modules and tree of entry points.  Use the existing
+	 * tree structure, and just force it to update the presentation of each
+	 * node.
+	 */
+	fun refresh()
+	{
+		refreshFor(
+			moduleTree.model.root as AbstractWorkbenchTreeNode,
+			entryPointsTree.model.root as AbstractWorkbenchTreeNode)
+	}
+
+	/**
 	 * Re-populate the visible tree structures based on the provided tree of
 	 * modules and tree of entry points.  Attempt to preserve selection and
 	 * expansion information.
@@ -1321,45 +1301,35 @@ class AvailWorkbench internal constructor(
 	 * @param entryPoints
 	 *   The [TreeNode] of entry points to present.
 	 */
-	fun refreshFor(modules: TreeNode, entryPoints: TreeNode)
+	fun refreshFor(
+		modules: AbstractWorkbenchTreeNode,
+		entryPoints: AbstractWorkbenchTreeNode)
 	{
-		val selection = moduleTree.selectionPath
-		moduleTree.isVisible = false
-		entryPointsTree.isVisible = false
-		try
-		{
-			val root = moduleTree.model.root as DefaultMutableTreeNode
-			val allExpanded = moduleTree
+		// Process the expansion/
+		mapOf(
+			moduleTree to modules,
+			entryPointsTree to entryPoints
+		).forEach { (tree, newRoot) ->
+			tree.isVisible = false
+			val root = tree.model.root as AbstractWorkbenchTreeNode
+			val allExpanded = tree
 				.getExpandedDescendants(TreePath(root))
 				?.toList()?.sortedBy(TreePath::getPathCount)
-				?: modules.children().toList().map {
-					// Expand each root on the first refresh.
-					TreePath(arrayOf(root, it))
-				}
-			moduleTree.model = DefaultTreeModel(modules)
-			allExpanded.asSequence()
-				.map(TreePath::getLastPathComponent)
-				.filterIsInstance<AbstractWorkbenchTreeNode>()
-				.map(AbstractWorkbenchTreeNode::modulePathString)
-				.mapNotNull(::modulePath)
-				.forEach(moduleTree::expandPath)
-			selection?.let { path ->
-				val node =
-					path.lastPathComponent as AbstractWorkbenchTreeNode
-				moduleTree.selectionPath = modulePath(node.modulePathString())
+				?: newRoot.typedChildren
+					.filter(AbstractWorkbenchTreeNode::initiallyExpanded)
+					.map {
+						// Expand each root on the first refresh.
+						TreePath(arrayOf(root, it))
+					}
+			val selection = tree.selectionPath
+			tree.model = DefaultTreeModel(newRoot)
+			allExpanded.forEach { tree.expandPath(tree.equivalentPath(it)) }
+			selection?.let { old ->
+				val new = tree.equivalentPath(old)
+				tree.expandPath(new.parentPath)
+				tree.selectionPath = new
 			}
-
-			// Now process the entry points tree.
-			entryPointsTree.model = DefaultTreeModel(entryPoints)
-			for (i in entryPointsTree.rowCount - 1 downTo 0)
-			{
-				entryPointsTree.expandRow(i)
-			}
-		}
-		finally
-		{
-			moduleTree.isVisible = true
-			entryPointsTree.isVisible = true
+			tree.isVisible = true
 		}
 	}
 
@@ -1370,12 +1340,13 @@ class AvailWorkbench internal constructor(
 	 * @param withTreeNode
 	 *   The lambda that accepts the (invisible) root of the module tree.
 	 */
-	private fun newModuleTreeThen(withTreeNode: (TreeNode) -> Unit)
+	private fun newModuleTreeThen(
+		withTreeNode: (DummyRootModuleNode) -> Unit)
 	{
 		val roots = resolver.moduleRoots
 		val sortedRootNodes = Collections.synchronizedList(
 			mutableListOf<ModuleRootNode>())
-		val treeRoot = DefaultMutableTreeNode("(packages hidden root)")
+		val treeRoot = DummyRootModuleNode(this)
 
 		roots.roots.parallelDoThen(
 			action = { root, after ->
@@ -1486,7 +1457,6 @@ class AvailWorkbench internal constructor(
 							// representative, so simply skip the whole directory.
 							return@walkChildrenThen
 						}
-
 						val node = ModuleOrPackageNode(
 							this, moduleName, resolved, true)
 						parentNode.add(node)
@@ -1523,7 +1493,8 @@ class AvailWorkbench internal constructor(
 	 *   Function that accepts a [TreeNode] that contains all the
 	 *   [EntryPointModuleNode]s.
 	 */
-	private fun newEntryPointsTreeThen(withTreeNode: (TreeNode) -> Unit)
+	private fun newEntryPointsTreeThen(
+		withTreeNode: (DummyRootModuleNode) -> Unit)
 	{
 		val moduleNodes = ConcurrentHashMap<String, DefaultMutableTreeNode>()
 		availBuilder.traceDirectoriesThen(
@@ -1537,8 +1508,14 @@ class AvailWorkbench internal constructor(
 						val moduleNode =
 							EntryPointModuleNode(this, resolvedName)
 						entryPoints.forEach { entryPoint ->
+							val quoted = stringFrom(entryPoint).toString()
+							val styledName = htmlStyledMethodName(
+								stringFrom(quoted), true, stylesheet)
+							val innerHtml = buildString {
+								append(styledName)
+							}
 							val entryPointNode = EntryPointNode(
-								this, resolvedName, entryPoint)
+								this, resolvedName, innerHtml, entryPoint)
 							moduleNode.add(entryPointNode)
 						}
 						moduleNodes[resolvedName.qualifiedName] = moduleNode
@@ -1547,8 +1524,7 @@ class AvailWorkbench internal constructor(
 				after()
 			},
 			afterAll = {
-				val entryPointsTreeRoot =
-					DefaultMutableTreeNode("(entry points hidden root)")
+				val entryPointsTreeRoot = DummyRootModuleNode(this)
 				moduleNodes.entries
 					.sortedBy(MutableEntry<String, *>::key)
 					.map(MutableEntry<*, DefaultMutableTreeNode>::value)
@@ -1568,7 +1544,7 @@ class AvailWorkbench internal constructor(
 	 * The node selected in the [moduleTree] or `null` if no selection is made.
 	 */
 	// This can be called during the constructor, so it can be null.
-	@Suppress("SAFE_CALL_WILL_CHANGE_NULLABILITY", "UNNECESSARY_SAFE_CALL")
+	@Suppress("UNNECESSARY_SAFE_CALL")
 	internal val selectedModuleTreeNode: Any? get() =
 		moduleTree?.selectionPath?.lastPathComponent
 
@@ -1640,11 +1616,7 @@ class AvailWorkbench internal constructor(
 	 * @return A module node, or `null` if no module is selected.
 	 */
 	private fun selectedModuleNode(): ModuleOrPackageNode? =
-		when (val selection = selectedModuleTreeNode)
-		{
-			is ModuleOrPackageNode -> selection
-			else -> null
-		}
+		selectedModuleTreeNode as? ModuleOrPackageNode
 
 	/**
 	 * Is the selected [module][ModuleDescriptor] loaded?
@@ -1652,11 +1624,8 @@ class AvailWorkbench internal constructor(
 	 * @return `true` if the selected module is loaded, `false` if no module is
 	 *   selected or the selected module is not loaded.
 	 */
-	internal fun selectedModuleIsLoaded(): Boolean
-	{
-		val node = selectedModuleNode()
-		return node !== null && node.isLoaded
-	}
+	internal fun selectedModuleIsLoaded(): Boolean =
+		selectedModuleNode().notNullAnd(ModuleOrPackageNode::isLoaded)
 
 	/**
 	 * Answer the [name][ResolvedModuleName] of the currently selected
@@ -1667,6 +1636,28 @@ class AvailWorkbench internal constructor(
 	 */
 	fun selectedModule(): ResolvedModuleName? =
 		selectedModuleNode()?.resolvedModuleName
+
+	/**
+	 * Answer the [qualified name][ResolvedModuleName.qualifiedName] of the
+	 * currently selected [module][ModuleDescriptor].
+	 *
+	 * @return A fully-qualified module name, or `null` if no module is
+	 *   selected.
+	 */
+	fun selectedModuleQualifiedName(): String? =
+		selectedModuleNode()?.resolvedModuleName?.qualifiedName
+
+	/**
+	 * Answer the [LocalSettings] for the [ModuleRoot] of the currently selected
+	 * [module][ModuleDescriptor].
+	 *
+	 * @return A [LocalSettings] or `null` if no module is selected.
+	 */
+	fun selectedModuleLocalSettings(): LocalSettings?
+	{
+		val selected = selectedModule() ?: return null
+		return workbench.availProject.roots[selected.rootName]?.localSettings
+	}
 
 	/**
 	 * Answer the currently selected entry point, or `null` if none.
@@ -1722,7 +1713,7 @@ class AvailWorkbench internal constructor(
 	/**
 	 * Update the [build&#32;progress&#32;bar][buildProgress].
 	 */
-	internal fun updateBuildProgress()
+	private fun updateBuildProgress()
 	{
 		var position = 0L
 		var max = 0L
@@ -1780,7 +1771,7 @@ class AvailWorkbench internal constructor(
 			if (!hasQueuedPerModuleBuildUpdate)
 			{
 				hasQueuedPerModuleBuildUpdate = true
-				availBuilder.runtime.timer.schedule(100) {
+				availBuilder.runtime.timer.schedule(200) {
 					invokeLater { updatePerModuleProgressInUIThread() }
 				}
 			}
@@ -1839,6 +1830,7 @@ class AvailWorkbench internal constructor(
 		perModuleProgressLock.safeWrite {
 			perModuleStatusTextSize = string.length
 		}
+		moduleTree.repaint()
 	}
 
 	/**
@@ -1886,33 +1878,33 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * The singular [StructureViewPanel] or `null` if none available.
+	 * The singular [StructureView].
 	 */
-	internal val structureViewPanel: StructureViewPanel =
-		StructureViewPanel(this) {
+	internal val structureView: StructureView =
+		StructureView(this) {
 			//TODO Do nothing for now, but we could record the fact that the
 			// window has been minimized, for restoring the session state.
 		}
 
 	/**
-	 * `true` indicates a [structureViewPanel] is open; `false` indicates the
+	 * `true` indicates a [structureView] is open; `false` indicates the
 	 * window is not open.
 	 */
-	internal val structureViewIsOpen get() = structureViewPanel.isVisible
+	internal val structureViewIsOpen get() = structureView.isVisible
 
 	/**
-	 * The singular [PhraseViewPanel] or `null` if none available.
+	 * The singular [PhraseView].
 	 */
-	internal val phraseViewPanel = PhraseViewPanel(this) {
+	internal val phraseView = PhraseView(this) {
 		//TODO Do nothing for now, but we could record the fact that the window
 		// has been minimized, for restoring the session state.
 	}
 
 	/**
-	 * `true` indicates a [PhraseViewPanel] is open; `false` indicates the
+	 * `true` indicates a [PhraseView] is open; `false` indicates the
 	 * window is not open.
 	 */
-	internal val phraseViewIsOpen get() = phraseViewPanel.isVisible
+	internal val phraseViewIsOpen get() = phraseView.isVisible
 
 	/**
 	 * Close the provided [editor][AvailEditor].
@@ -1923,8 +1915,8 @@ class AvailWorkbench internal constructor(
 	fun closeEditor(editor: AvailEditor)
 	{
 		openEditors.remove(editor.resolverReference.moduleName)
-		structureViewPanel.closingEditor(editor)
-		phraseViewPanel.closingEditor(editor)
+		structureView.closingEditor(editor)
+		phraseView.closingEditor(editor)
 	}
 
 	/**
@@ -1961,23 +1953,27 @@ class AvailWorkbench internal constructor(
 		fileManager.associateRuntime(runtime)
 		availBuilder = AvailBuilder(runtime)
 
-		defaultCloseOperation =
-			if (projectManager != null)
-			{
-				projectManager.onWorkbenchOpen(this)
-				addWindowListener(object : WindowAdapter()
-				{
-					override fun windowClosed(e: WindowEvent)
-					{
-						projectManager.onWorkbenchClose(this@AvailWorkbench)
-					}
-				})
-				WindowConstants.DISPOSE_ON_CLOSE
+		defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
+
+		projectManager?.onWorkbenchOpen(this)
+			// We need to be careful to only set the close handler once. If a
+			// project manager exists, then it owns the responsibility for
+			// setting this handler up.
+			?: Desktop.getDesktop().setQuitHandler { _, response ->
+				// Abort the explicit quit request, but ask the workbench to
+				// try to close the window, which will trigger nice cleanup.
+				response.cancelQuit()
+				processWindowEvent(
+					WindowEvent(this, WindowEvent.WINDOW_CLOSING))
 			}
-			else
+		addWindowListener(object : WindowAdapter()
+		{
+			override fun windowClosed(e: WindowEvent)
 			{
-				WindowConstants.EXIT_ON_CLOSE
+				projectManager?.onWorkbenchClose(this@AvailWorkbench)
+					?: exitProcess(0)
 			}
+		})
 
 		// Set *just* the window title...
 		title = windowTitle
@@ -1989,7 +1985,8 @@ class AvailWorkbench internal constructor(
 			item(openFileAction)
 			separator()
 			item(copyQualifiedNameAction)
-			item(loadOnStartAction)
+			separator()
+			item(setLoadOnStartAction)
 			separator()
 			item(createRootAction)
 			item(removeRootAction)
@@ -2107,6 +2104,7 @@ class AvailWorkbench internal constructor(
 					item(examineStylingAction)
 					item(examinePhrasePathsAction)
 					item(examineModuleManifestAction)
+					item(examineNamesIndexAction)
 					separator()
 					item(graphAction)
 				}
@@ -2118,8 +2116,7 @@ class AvailWorkbench internal constructor(
 		rootPane.inputMap.put(KeyStroke.getKeyStroke("F5"), "Refresh")
 
 		// Create the module tree.
-		moduleTree = JTree(DefaultMutableTreeNode(
-			"(packages hidden root)"))
+		moduleTree = JTree(DummyRootModuleNode(this))
 		moduleTree.run {
 			background = null
 			toolTipText = "All modules, organized by module root."
@@ -2190,8 +2187,7 @@ class AvailWorkbench internal constructor(
 		}
 
 		// Create the entry points tree.
-		entryPointsTree = JTree(
-			DefaultMutableTreeNode("(entry points hidden root)"))
+		entryPointsTree = JTree(DummyRootModuleNode(this))
 		entryPointsTree.run {
 			background = null
 			toolTipText = "All entry points, organized by defining module."
@@ -2401,7 +2397,7 @@ class AvailWorkbench internal constructor(
 			override fun windowClosing(e: WindowEvent)
 			{
 				saveWindowPosition()
-				val sv = structureViewPanel.run {
+				val sv = structureView.run {
 					if (isVisible)
 					{
 						saveWindowPosition()
@@ -2409,7 +2405,7 @@ class AvailWorkbench internal constructor(
 					}
 					else ""
 				}
-				val pv = phraseViewPanel.run {
+				val pv = phraseView.run {
 					if (isVisible)
 					{
 						saveWindowPosition()
@@ -2550,7 +2546,7 @@ class AvailWorkbench internal constructor(
 				if (screenState.structureViewLayoutConfig.isNotEmpty())
 				{
 					val editor = openEditors.values.firstOrNull()
-					structureViewPanel.apply {
+					structureView.apply {
 						layoutConfiguration.parseInput(
 							screenState.structureViewLayoutConfig)
 						layoutConfiguration.placement?.let(::setBounds)
@@ -2562,7 +2558,7 @@ class AvailWorkbench internal constructor(
 				}
 				if (screenState.phraseViewLayoutConfig.isNotEmpty())
 				{
-					phraseViewPanel.apply {
+					phraseView.apply {
 						layoutConfiguration.parseInput(
 							screenState.phraseViewLayoutConfig)
 						layoutConfiguration.placement?.let(::setBounds)
@@ -2571,6 +2567,23 @@ class AvailWorkbench internal constructor(
 							.isNotEmpty()
 					}
 				}
+			}
+			val preLoadModules = availProject.availProjectRoots.flatMap {
+				it.localSettings.loadModulesOnStartup.map { qualified ->
+					val split = qualified.split("/")
+					if (split.size < 2) return@map null
+					val rootName = split[1]
+					workbench.resolver.moduleRoots
+						.moduleRootFor(rootName)
+						?.resolver
+						?.getResolverReference(qualified)
+						?.moduleName
+						?.let { name -> workbench.resolver.resolve(name) }
+				}.filterNotNull()
+			}
+			if (preLoadModules.isNotEmpty())
+			{
+				build(BuildManyTask(this, preLoadModules.toSet()))
 			}
 		}
 	}
@@ -2587,6 +2600,594 @@ class AvailWorkbench internal constructor(
 		availProject.availProjectRoots.firstOrNull {
 			it.name == targetRootName
 		}
+
+	/**
+	 * Launch an [AvailTask] for each module root to run the [action] against
+	 * that root. The action should eventually execute its second argument with
+	 * whatever value is produced.  When the last one completes, collect all the
+	 * results that were reported into a [List] and invoke the [after] function
+	 * with that list.
+	 *
+	 * @param action
+	 *   A function taking a [ModuleRoot] to operate on, and a function that
+	 *   accepts the result of processing that root in some way.
+	 * @param after
+	 *   What to run with the [List] of values reported by the actions when the
+	 *   last one completes.
+	 */
+	private inline fun <reified T> allModuleRootsThen(
+		crossinline action: (ModuleRoot, (T)->Unit)->Unit,
+		crossinline after: (List<T>)->Unit)
+	{
+		runtime.moduleRoots().toList().parallelMapThen<ModuleRoot, T>(
+			action = { root, afterEachRoot ->
+				runtime.execute(FiberDescriptor.commandPriority) {
+					action(root, afterEachRoot)
+				}
+			},
+			then = after
+		)
+	}
+
+	/**
+	 * Launch an [AvailTask] for each module in each root to run the [action]
+	 * against that module.  The action should eventually execute its second
+	 * argument with whatever value is produced for that module.  When the last
+	 * one completes, collect all the results that were reported into a [List]
+	 * and invoke the [after] function with that list.
+	 *
+	 * @param action
+	 *   A function taking a [ResolvedModuleName] to operate on, and a function
+	 *   that accepts the result of processing that module in some way.
+	 * @param after
+	 *   What to run with the [List] of values reported by the actions when the
+	 *   last one completes.
+	 */
+	private inline fun <reified T> allModulesThen(
+		crossinline action: (ResolvedModuleName, (T)->Unit)->Unit,
+		crossinline after: (List<T>)->Unit)
+	{
+		allModuleRootsThen<List<T>>(
+			action = { root, afterRoot ->
+				root.resolver.allModules.parallelMapThen(
+					action = { string, afterModule ->
+						runtime.execute(FiberDescriptor.commandPriority) {
+							action(
+								resolver.resolve(ModuleName(string)),
+								afterModule)
+						}
+					},
+					then = { all: List<T> -> afterRoot(all) }
+				)
+			},
+			after = { after(it.flatten()) }
+		)
+	}
+
+	/**
+	 * Scan all roots for modules that might declare, define, or use the given
+	 * [NameInModule].  After accumulating this, launch an AvailTask to invoke
+	 * the [after] function with the [List] of [Pair]s of [ResolvedModuleName]
+	 * and [ModuleCompilation].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for occurrences.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, launch an
+	 *   [AvailTask] with all the &lt;[ResolvedModuleName], [ModuleCompilation]>
+	 *   [Pair]s.
+	 */
+	private fun allRelevantCompilationsDoThen(
+		@Suppress("UNUSED_PARAMETER") // Eventually use in Bloom filter search.
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, ModuleCompilation>>)->Unit)
+	{
+		allModulesThen<Pair<ResolvedModuleName, ModuleCompilation?>>(
+			action = { resolvedName, withPair ->
+				val repository = resolvedName.repository
+				repository.reopenIfNecessary()
+				val archive =
+					repository.getArchive(resolvedName.rootRelativeName)
+				archive.digestForFile(
+					resolvedName,
+					false,
+					withDigest = { digest ->
+						val compilation = try
+						{
+							val versionKey =
+								ModuleVersionKey(resolvedName, digest)
+							archive.getVersion(versionKey)
+								?.allCompilations
+								?.maxByOrNull { it.compilationTime }
+						}
+						catch (e: Throwable)
+						{
+							null
+						}
+						withPair(resolvedName to compilation)
+					},
+					failureHandler = { _, e ->
+						e?.printStackTrace()
+						withPair(resolvedName to null)
+					}
+				)
+			},
+			after = { entries ->
+				runtime.execute(FiberDescriptor.commandPriority) {
+					after(entries.filter { it.second != null }.cast())
+				}
+			}
+		)
+	}
+
+	/**
+	 * Scan all roots for modules that define the given [NameInModule].  After
+	 * accumulating this list, launch an AvailTask to invoke the [after]
+	 * function with the flat [List] of [Pair]s of [ResolvedModuleName] and
+	 * [ModuleManifestEntry].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for definitions.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, and their
+	 *   relevant [ManifestRecord]s fetched and [entries][ModuleManifestEntry]
+	 *   extracted, launch an [AvailTask] with all the &lt;[ResolvedModuleName],
+	 *   [ModuleManifestEntry]> [Pair]s.
+	 */
+	private fun allDefinitionsThen(
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, ModuleManifestEntry>>)->Unit)
+	{
+		allRelevantCompilationsDoThen(nameInModule) { compilationPairs ->
+			compilationPairs.parallelMapThen<
+					Pair<ResolvedModuleName, ModuleCompilation>,
+					Pair<ResolvedModuleName, List<ModuleManifestEntry>>>(
+				action = { (moduleName, compilation), withLocalManifestList ->
+					val repository = moduleName.repository
+					repository.reopenIfNecessary()
+					val namesIndexRecordIndex =
+						repository[compilation.recordNumberOfNamesIndex]
+					val occurrences = NamesIndex(namesIndexRecordIndex)
+						.findMentions(nameInModule)
+					if (occurrences != null
+						&& occurrences.definitions.isNotEmpty())
+					{
+						val manifestRecordIndex = repository[
+							compilation.recordNumberOfManifest]
+						val manifestRecord = ManifestRecord(manifestRecordIndex)
+						val allManifestEntries = manifestRecord.manifestEntries
+						val definitions = occurrences.definitions
+							.map(Definition::manifestIndex)
+							.map(allManifestEntries::get)
+						withLocalManifestList(moduleName to definitions)
+					}
+					else
+					{
+						withLocalManifestList(moduleName to emptyList())
+					}
+				},
+				then = { pairs ->
+					val entryPairs = pairs.flatMap { (module, entries) ->
+						entries.map { entry -> module to entry }
+					}
+					runtime.execute(FiberDescriptor.commandPriority) {
+						after(entryPairs)
+					}
+				}
+			)
+		}
+	}
+
+	/**
+	 * Scan all roots for modules that define the given [NameInModule].  After
+	 * accumulating this list, launch an AvailTask to invoke the [after]
+	 * function with the flat [List] of [Pair]s of [ResolvedModuleName] and
+	 * [ModuleManifestEntry].  File I/O errors of any nature are suppressed.
+	 * This method may return before (or while) the [after] function is invoked.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] for which to look for definitions.
+	 * @param after
+	 *   After all relevant [ModuleCompilation]s have been found, and their
+	 *   relevant [PhrasePathRecord]s fetched and decoded, launch an [AvailTask]
+	 *   with all the &lt;[ResolvedModuleName], [PhraseNode]> [Pair]s.
+	 */
+	private fun allUsagesThen(
+		nameInModule: NameInModule,
+		after: (List<Pair<ResolvedModuleName, PhraseNode>>)->Unit)
+	{
+		allRelevantCompilationsDoThen(nameInModule) { compilationPairs ->
+			compilationPairs.parallelMapThen<
+					Pair<ResolvedModuleName, ModuleCompilation>,
+					Pair<ResolvedModuleName, List<PhraseNode>>>(
+				action = { (moduleName, compilation), withPhraseList ->
+					val repository = moduleName.repository
+					repository.reopenIfNecessary()
+					val namesIndexRecordIndex =
+						repository[compilation.recordNumberOfNamesIndex]
+					val occurrences = NamesIndex(namesIndexRecordIndex)
+						.findMentions(nameInModule)
+					if (occurrences != null
+						&& occurrences.usages.isNotEmpty())
+					{
+						val phrasePathBytes = repository[
+							compilation.recordNumberOfPhrasePaths]
+						val phrasePathRecord = PhrasePathRecord(phrasePathBytes)
+						val phrases = mutableListOf<PhraseNode>()
+						phrasePathRecord.phraseNodesDo(phrases::add)
+						val usagePhrases = occurrences.usages
+							.map(Usage::phraseIndex)
+							.map(phrases::get)
+						withPhraseList(moduleName to usagePhrases)
+					}
+					else
+					{
+						withPhraseList(moduleName to emptyList())
+					}
+				},
+				then = { pairs ->
+					val allPairs = pairs.flatMap { (module, phrases) ->
+						phrases.map { phrase -> module to phrase }
+					}
+					runtime.execute(FiberDescriptor.commandPriority) {
+						after(allPairs)
+					}
+				}
+			)
+		}
+	}
+
+	/**
+	 * The user has clicked on a token in the source in such a way that they are
+	 * requesting navigation related to the method name containing that token.
+	 * Begin an asynchronous action to locate all definitions of the name in all
+	 * visible modules that have been compiled since their last change.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] to find.
+	 * @param tokenIndexInName
+	 *   The index of the token that the user has selected within the list of a
+	 *   message's tokens produced by a [MessageSplitter].
+	 * @param mouseEvent
+	 *   The [MouseEvent] which was the request for navigation.
+	 */
+	fun navigateToDefinitionsOfName(
+		nameInModule: NameInModule,
+		tokenIndexInName: Int,
+		mouseEvent: MouseEvent)
+	{
+		allDefinitionsThen(nameInModule) { allEntries ->
+			if (allEntries.isNotEmpty())
+			{
+				// Disambiguate local names only when necessary.
+				val localNames = allEntries.groupBy { (module, _) ->
+					module.localName
+				}
+				val shortModuleNames = allEntries.associate { (module, _) ->
+					val localName = module.localName
+					val distinct = localNames[localName]!!
+						.map(Pair<ResolvedModuleName, *>::first)
+						.distinct()
+					module to
+						if (distinct.size == 1) localName
+						else module.qualifiedName
+				}
+				val title = htmlTitleString(
+					nameInModule.atomName, tokenIndexInName)
+				val titlePanel = JPanel()
+				titlePanel.add(JLabel(title))
+				val menu = JPopupMenu()
+				menu.add(titlePanel)
+				menu.addSeparator()
+				val groupedEntries = allEntries.groupBy(
+					keySelector = { (moduleName, manifestEntry) ->
+						Triple(
+							moduleName,
+							manifestEntry.nameInModule,
+							manifestEntry.definitionStartingLine.ifZero {
+								manifestEntry.topLevelStartingLine
+							})
+					},
+					valueTransform = { (_, manifestEntry) -> manifestEntry })
+				groupedEntries.forEach { (key, entries) ->
+					val (moduleName, _, line) = key
+					val entriesWithTypeSize = entries.map { entry ->
+						entry to entry.argumentTypes.sumOf { it.length } +
+							(entry.returnType?.length ?: 0)
+					}
+					val (bestEntry, typeSize) =
+						entriesWithTypeSize.maxBy(Pair<*, Int>::second)
+					// We now have an estimate of how many characters are in the
+					// print representation of the type.  It omits brackets and
+					// commas and such.
+					val typeString = buildString {
+						val (arguments, returnType) =
+							bestEntry.run { argumentTypes to returnType }
+						when
+						{
+							returnType == null ->
+							{
+								// Output nothing.
+							}
+							typeSize < 60
+								&& '\n' !in returnType
+								&& arguments.none { '\n' in it } ->
+							{
+								// The arguments are all short and have no
+								// embedded line breaks.
+								arguments.joinTo(
+									buffer = this,
+									prefix = "[",
+									separator = ", ",
+									postfix = "]→",
+									transform = { it.escapedForHTML() })
+								append(returnType)
+							}
+							else ->
+							{
+								// Print on multiple lines.
+								arguments.joinTo(
+									buffer = this,
+									prefix = "\n[",
+									separator = ",",
+									postfix =
+									if (arguments.isEmpty()) "]→"
+									else "\n]→",
+									transform = {
+										"\n\t" +
+											it.escapedForHTML()
+												.replace("\n", "\n\t")
+									})
+								append(returnType)
+							}
+						}
+					}
+					val label = buildString {
+						// Increase indent of multi-line summaries.
+						append("<html><div style='white-space: pre'>")
+						append(shortModuleNames[moduleName]!!.escapedForHTML())
+						append(":")
+						append(line)
+						append("&nbsp;&nbsp;<font color='#8090FF'>")
+						append(
+							typeString
+								.replace("\n", "<br>")
+								.replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;"))
+						append("</font></div></html>")
+					}
+					val icon = CompoundIcon(
+						entries
+							.mapToSet(transform = ModuleManifestEntry::kind)
+							.map { kind -> SideEffectIcons.icon(16, kind) },
+						xGap = 3)
+					val action = object : AbstractWorkbenchAction(this, label)
+					{
+						override fun actionPerformed(e: ActionEvent?)
+						{
+							// Locate or open an editor for the target.
+							var opened = false
+							val editor = workbench.openEditors.computeIfAbsent(
+								moduleName
+							) {
+								opened = true
+								AvailEditor(workbench, moduleName)
+							}
+							if (!opened) editor.toFront()
+							invokeLater {
+								editor.sourcePane.goTo(max(line - 1, 0))
+							}
+						}
+
+						override fun updateIsEnabled(busy: Boolean) = Unit
+					}
+					action.putValue(Action.SMALL_ICON, icon)
+					val item = JMenuItem(action)
+					item.horizontalAlignment = SwingConstants.LEFT
+					menu.add(item)
+				}
+				menu.invoker = mouseEvent.component
+				menu.location = mouseEvent.locationOnScreen
+				menu.isVisible = true
+			}
+		}
+	}
+
+	/**
+	 * The user has clicked on a token in the source in such a way that they are
+	 * requesting navigation to places that send that method. Begin an
+	 * asynchronous action to locate all usages of the name in all visible
+	 * modules that have been compiled since their last change.
+	 *
+	 * @param nameInModule
+	 *   The [NameInModule] to find.
+	 * @param tokenIndexInName
+	 *   The index of the token that the user has selected within the list of a
+	 *   message's tokens produced by a [MessageSplitter].
+	 * @param mouseEvent
+	 *   The [MouseEvent] which was the request for navigation.
+	 */
+	fun navigateToSendersOfName(
+		nameInModule: NameInModule,
+		tokenIndexInName: Int,
+		mouseEvent: MouseEvent)
+	{
+		allUsagesThen(nameInModule) { allEntries ->
+			if (allEntries.isNotEmpty())
+			{
+				// Disambiguate local names only when necessary.
+				val localNames = allEntries.groupBy { (module, _) ->
+					module.localName
+				}
+				val shortModuleNames = allEntries.associate { (module, _) ->
+					val localName = module.localName
+					val distinct = localNames[localName]!!
+						.map(Pair<ResolvedModuleName, *>::first)
+						.distinct()
+					module to
+						if (distinct.size == 1) localName
+						else module.qualifiedName
+				}
+				val title = htmlTitleString(
+					nameInModule.atomName, tokenIndexInName)
+				val titlePanel = JPanel()
+				titlePanel.add(JLabel(title))
+				val menu = JPopupMenu()
+				menu.add(titlePanel)
+				menu.addSeparator()
+				val groupedEntries = allEntries.groupBy(
+					keySelector = Pair<ResolvedModuleName,*>::first,
+					valueTransform = Pair<*,PhraseNode>::second
+				)
+				val sortedEntries =
+					groupedEntries.entries.sortedBy { (moduleName, _) ->
+						shortModuleNames[moduleName]
+					}
+				sortedEntries.forEach { (moduleName, phrases) ->
+					val label = buildString {
+						append("<html>")
+						append(shortModuleNames[moduleName]!!.escapedForHTML())
+						if (phrases.size > 1) append(" (${phrases.size} uses)")
+						append("</html>")
+					}
+					val icon = CompoundIcon(
+						phrases
+							.mapToSet(transform = PhraseNode::usageType)
+							.map { kind -> UsageTypeIcons.icon(16, kind) },
+						xGap = 3)
+					val items = phrases.map { phrase ->
+						val itemLabel = buildString {
+							phrase.tokenSpans.firstOrNull()?.let {
+								append("${it.line}: ")
+							}
+							phrase.describeOn(this, 80)
+						}
+						val action = object :
+							AbstractWorkbenchAction(this, itemLabel)
+						{
+							override fun actionPerformed(e: ActionEvent?)
+							{
+								// Locate or open an editor for the target.
+								var opened = false
+								val editor =
+									workbench.openEditors.computeIfAbsent(
+										moduleName
+									) {
+										opened = true
+										AvailEditor(workbench, moduleName)
+									}
+								if (!opened) editor.toFront()
+								invokeLater {
+									var spans = phrase.tokenSpans
+									// Select from the start of the first token
+									// of the usage to the end of the last token
+									// of that usage.
+									if (spans.isEmpty())
+									{
+										// There are no tokens, so check the
+										// immediate children to see if they
+										// have any.
+										spans = phrase.children
+											.flatMap { it.tokenSpans }
+									}
+									if (spans.isEmpty())
+									{
+										// The children didn't have any tokens
+										// either.  Try the ancestors.
+										var ancestor = phrase.parent
+										while (ancestor != null
+											&& spans.isEmpty())
+										{
+											spans = ancestor.tokenSpans
+											ancestor = ancestor.parent
+										}
+									}
+									val spansStart =
+										spans.minOfOrNull { it.start } ?: 1
+									val spansPastEnd =
+										spans.maxOfOrNull { it.pastEnd } ?: 1
+									editor.sourcePane
+										.select(spansStart - 1, spansPastEnd - 1)
+									editor.sourcePane
+										.showTextRange(spansStart, spansPastEnd)
+								}
+							}
+
+							override fun updateIsEnabled(busy: Boolean) = Unit
+						}
+						action.putValue(Action.SMALL_ICON, icon)
+						JMenuItem(action).apply {
+							horizontalAlignment = SwingConstants.LEFT
+						}
+					}
+					val submenu = JMenu(label)
+					items.forEach(submenu::add)
+					submenu.horizontalAlignment = SwingConstants.LEFT
+					menu.add(submenu)
+				}
+				menu.invoker = mouseEvent.component
+				menu.location = mouseEvent.locationOnScreen
+				menu.isVisible = true
+			}
+		}
+	}
+
+	/**
+	 * Convert the given method name into a top-level HTML3.2 string containing
+	 * the same text.  The HTML text is suitable for use as a Swing label, and
+	 * includes the outermost `<html>` tag.  The HTML text has styling
+	 * information applied to it, based on the current [stylesheet].
+	 *
+	 * In addition, the message part with the specified [tokenIndexInName] (from
+	 * the decomposition of the method name by a [MessageSplitter]) is
+	 * highlighted with the [SystemStyleClassifier.TOKEN_HIGHLIGHT] style.
+	 *
+	 * @param atomName
+	 *   The [String] containing the unquoted method name to convert to HTML.
+	 * @param tokenIndexInName
+	 *   Which one-based token number within the message name to highlight.
+	 * @return
+	 *   A suitable HTML3.2 string to use as Swing label text.
+	 */
+	private fun htmlTitleString(
+		atomName: String,
+		tokenIndexInName: Int): String
+	{
+		val availName = stringFrom(atomName)
+		val indexMap = mutableMapOf<Int, Int>()
+		val quoteBuilder = StringBuilder()
+		quoteBuilder.quoteStringOn(availName, indexMap)
+		val originalRange = MessageSplitter.split(availName)
+			.rangeToHighlightForPartIndex(tokenIndexInName)
+		val startOfRange = indexMap[originalRange.first]!! + 1
+		val pastEndOfRange = indexMap[originalRange.last + 1]!! + 1
+		val quoted = quoteBuilder.toString()
+		val styledName = htmlStyledMethodName(
+			stringFrom(quoted),
+			true,
+			stylesheet,
+			startOfRange,
+			pastEndOfRange)
+		val title = buildString {
+			append("<html><tt><font size='+1'>")
+			append(styledName)
+			append("</font></tt></html>")
+		}
+		return title
+	}
+
+	/**
+	 * Determine whether the [AvailWorkbench] or any of its satellite windows
+	 * are currently focused.
+	 */
+	val workbenchWindowIsFocused get () =
+		isFocused
+			|| openEditors.values.any(Window::isFocused)
+			|| openDebuggers.any(Window::isFocused)
+			|| openFileEditors.values.any(Window::isFocused)
+			|| structureView.isFocused
+			|| phraseView.isFocused
 
 	companion object
 	{
@@ -2871,7 +3472,7 @@ class AvailWorkbench internal constructor(
 				bench.createBufferStrategy(2)
 				bench.ignoreRepaint = true
 				val initialRefreshTask =
-					object : AbstractWorkbenchTask(bench, null)
+					object : AbstractWorkbenchTask(bench)
 					{
 						override fun executeTaskThen(afterExecute: ()->Unit) =
 							bench.initialRefresh(
@@ -2992,4 +3593,28 @@ class AvailWorkbench internal constructor(
 				null)
 		}
 	}
+}
+
+/**
+ * Given a [TreePath] in some previous incarnation of the tree, update the
+ * received [JTree] to expand as much of the corresponding path in the new tree
+ * as possible.  Correspondence is determined by having equal
+ * [AbstractWorkbenchTreeNode.equalityText].  Answer the path through the new
+ * nodes, although it may be truncated due to lack of matching equalityText at
+ * any point along the path.
+ */
+private fun JTree.equivalentPath(oldPath: TreePath): TreePath
+{
+	var node = model.root as? AbstractWorkbenchTreeNode
+	val newNodes = mutableListOf(node!!)
+	oldPath.typedPath<AbstractWorkbenchTreeNode>().iterator()
+		.also(Iterator<*>::next)
+		.forEachRemaining { old ->
+			val key = old.equalityText()
+			node = node?.typedChildren?.firstOrNull {
+				it.equalityText() == key
+			}
+			node?.let(newNodes::add)
+		}
+	return TreePath(newNodes.toTypedArray<AbstractWorkbenchTreeNode>())
 }

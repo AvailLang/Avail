@@ -53,7 +53,6 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.representation.A_BasicObject
@@ -191,21 +190,12 @@ open class AtomDescriptor protected constructor (
 		val nativeName = self.atomName.asNativeString()
 		// Some atoms print nicer than others.
 		when {
-			self.isAtomSpecial -> {
-				append(nativeName)
-				return
-			}
+			self.isAtomSpecial -> append(nativeName)
 			wordPattern.matcher(nativeName).matches() ->
 				append("\$$nativeName")
 			else -> append("\$\"$nativeName\"")
 		}
-		val issuer: A_Module = self[ISSUING_MODULE]
-		if (issuer.notNil) {
-			val issuerName = issuer.moduleNameNative
-			val localIssuer =
-				issuerName.substring(issuerName.lastIndexOf('/') + 1)
-			append(" (from $localIssuer)")
-		}
+		Unit
 	}
 
 	override fun o_AtomName(self: AvailObject): A_String = self[NAME]
@@ -513,7 +503,7 @@ open class AtomDescriptor protected constructor (
 		{
 			init
 			{
-				SpecialAtom.values().forEach { specialAtom ->
+				entries.forEach { specialAtom ->
 					if (specialAtom.heritable)
 					{
 						specialAtom.atom.setAtomProperty(

@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Avail Project Manager" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="avail.project.AvailProjectManagerRunner" />
+    <module name="avail.main" />
+    <shortenClasspath name="NONE" />
+    <option name="VM_PARAMETERS" value="-ea -splash:$PROJECT_DIR$/src/main/resources/workbench/AvailWBSplash.png -DavailDeveloper=true" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

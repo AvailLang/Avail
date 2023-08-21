@@ -322,7 +322,7 @@ enum class FileExtensionMetadata constructor(
 		 *   located.
 		 */
 		operator fun get (filename: String): FileExtensionMetadata =
-			values().firstOrNull {
+			entries.firstOrNull {
 				filename.lowercase().endsWith(it.extension)
 			} ?: DEFAULT
 	}

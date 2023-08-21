@@ -84,7 +84,7 @@ import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.exceptions.MarshalingException
@@ -498,7 +498,7 @@ protected constructor(
 		 * The [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
 		 * corresponds to Java `int`.
 		 */
-		private val intRange = IntegerRangeTypeDescriptor.int32
+		private val intRange = IntegerRangeTypeDescriptor.i32
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -513,7 +513,7 @@ protected constructor(
 		 * The [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
 		 * corresponds to Java `long`.
 		 */
-		private val longRange = IntegerRangeTypeDescriptor.int64
+		private val longRange = IntegerRangeTypeDescriptor.i64
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -1241,7 +1241,7 @@ protected constructor(
 			{
 				return arrayPojoType(
 					resolvePojoType(target.componentType!!, emptyMap),
-					nonnegativeInt32)
+					i31)
 			}
 			return pojoTypeForClassWithTypeArguments(
 				target,

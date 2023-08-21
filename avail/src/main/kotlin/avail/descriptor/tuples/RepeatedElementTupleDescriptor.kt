@@ -140,23 +140,23 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
-	{
+		indent: Int
+	) = builder.brief {
 		val size = self[SIZE]
 		if (size < minimumRepeatSize)
 		{
 			super.printObjectOnAvoidingIndent(
 				self,
-				builder,
+				this,
 				recursionMap,
 				indent)
 		}
 		else
 		{
-			builder.append(size)
-			builder.append(" of ")
+			append(size)
+			append(" of ")
 			self[ELEMENT].printOnAvoidingIndent(
-				builder,
+				this,
 				recursionMap,
 				indent + 1)
 		}

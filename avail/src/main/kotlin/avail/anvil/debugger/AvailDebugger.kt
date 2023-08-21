@@ -35,12 +35,13 @@ package avail.anvil.debugger
 import avail.AvailDebuggerModel
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
-import avail.anvil.CodeGuide
+import avail.anvil.CodeOverlay
 import avail.anvil.MenuBarBuilder
 import avail.anvil.RenderingEngine.applyStylesAndPhrasePaths
 import avail.anvil.SourceCodeInfo.Companion.sourceWithInfoThen
 import avail.anvil.actions.FindAction
 import avail.anvil.addWindowMenu
+import avail.anvil.codeOverlay
 import avail.anvil.scroll
 import avail.anvil.scrollTextWithLineNumbers
 import avail.anvil.shortcuts.ResumeActionShortcut
@@ -62,6 +63,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.FiberKind
+import avail.descriptor.fiber.FiberDescriptor.FiberKind.Companion.fiberKind
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
@@ -94,8 +96,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.interpreter.levelOne.L1Disassembler
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.StylingRecord
 import avail.utility.safeWrite
 import avail.utility.structures.EnumMap.Companion.enumMap
 import java.awt.BorderLayout
@@ -114,14 +116,15 @@ import javax.swing.Action
 import javax.swing.DefaultListCellRenderer
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
+import javax.swing.Icon
 import javax.swing.JButton
-import javax.swing.JCheckBox
 import javax.swing.JFrame
 import javax.swing.JList
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JTextArea
+import javax.swing.JToggleButton
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -178,7 +181,7 @@ class AvailDebugger internal constructor (
 	 */
 	val debuggerModel = AvailDebuggerModel(workbench.runtime)
 
-	val runtime = debuggerModel.runtime
+	val runtime = workbench.runtime
 
 	/** Renders entries in the list of fibers. */
 	class FiberRenderer : DefaultListCellRenderer()
@@ -192,7 +195,8 @@ class AvailDebugger internal constructor (
 		): Component = super.getListCellRendererComponent(
 			list,
 			(fiber as A_Fiber).run {
-				"[$executionState] ${fiberName.asNativeString()}"
+				"${fiberKind.veryShortName} [$executionState] " +
+					fiberName.asNativeString()
 			},
 			index,
 			isSelected,
@@ -275,7 +279,7 @@ class AvailDebugger internal constructor (
 			value.traversed().descriptor() is PrimitiveTypeDescriptor ->
 				value.toString()
 			value.instanceCount.equalsInt(1) ->
-				"${stringIfSimple(value.instance, depth + 1)}'s type"
+				"{${stringIfSimple(value.instance, depth + 1)}}ᵀ"
 			else -> "(${value.typeTag})"
 		}
 	}
@@ -501,7 +505,7 @@ class AvailDebugger internal constructor (
 
 			override fun actionPerformed(e: ActionEvent)
 			{
-				val checkBox = e.source as JCheckBox
+				val checkBox = e.source as JToggleButton
 				val install = checkBox.isSelected
 				val installed =
 					debuggerModel.installFiberCapture(fiberKind, install)
@@ -517,6 +521,10 @@ class AvailDebugger internal constructor (
 				}
 				checkBox.isSelected =
 					debuggerModel.isCapturingNewFibers(fiberKind)
+			}
+		}.apply {
+			fiberKind.icon?.let { icon ->
+				putValue(Action.SMALL_ICON, icon)
 			}
 		}
 	}
@@ -567,7 +575,10 @@ class AvailDebugger internal constructor (
 	private val resumeButton = JButton(resumeAction)
 	private val restartButton = JButton(restartAction)
 	private val captureButtons = captureActions.map { (kind, action) ->
-		JCheckBox(action).apply { toolTipText = kind.name }
+		JToggleButton(action).apply {
+			toolTipText = kind.name
+			icon = action.getValue(Action.SMALL_ICON) as Icon?
+		}
 	}
 
 	/** A view of the L1 disassembly for the selected frame. */
@@ -819,7 +830,8 @@ class AvailDebugger internal constructor (
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
 		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 		codeGuide.guideColor = codeGuide.computeColor()
-		sourcePane.styledDocument.applyStylesAndPhrasePaths(
+		applyStylesAndPhrasePaths(
+			sourcePane.styledDocument,
 			stylesheet,
 			stylingRecord,
 			phrasePathRecord)
@@ -999,10 +1011,9 @@ class AvailDebugger internal constructor (
 	}
 
 	/**
-	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 * The [code&#32;guide][CodeOverlay] for the [source&#32;pane][sourcePane].
 	 */
-	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeGuide::class.java.name) as CodeGuide
+	private val codeGuide: CodeOverlay get() = sourcePane.codeOverlay
 
 	/** Construct the user interface and display it. */
 	fun open()

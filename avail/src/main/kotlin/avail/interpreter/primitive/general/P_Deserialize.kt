@@ -45,7 +45,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
@@ -60,7 +60,7 @@ import java.nio.ByteBuffer
 
 /**
  * **Primitive:** Answer a [tuple][A_Tuple] comprising the objects encoded in
- * the specified [byte][IntegerRangeTypeDescriptor.bytes] tuple, preserving
+ * the specified [byte][IntegerRangeTypeDescriptor.u8] tuple, preserving
  * their order.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -121,7 +121,7 @@ object P_Deserialize : Primitive(2, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(zeroOrMoreOf(bytes), MODULE.o), zeroOrMoreOf(ANY.o))
+			tuple(zeroOrMoreOf(u8), MODULE.o), zeroOrMoreOf(ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_DESERIALIZATION_FAILED))

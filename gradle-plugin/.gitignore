@@ -1,0 +1,11 @@
+/**/.DS_Store
+/**/*.jpage
+/**/*.ws.kts
+/.gradle
+/.swp
+/build
+/stacks
+/modules.dot
+/out
+/debug
+hs_err_*.log

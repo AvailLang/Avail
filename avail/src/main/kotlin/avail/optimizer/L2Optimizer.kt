@@ -892,7 +892,7 @@ class L2Optimizer internal constructor(
 		/** Create an instance with no tracking information. */
 		constructor()
 		{
-			val kinds = RegisterKind.values()
+			val kinds = RegisterKind.entries.toTypedArray()
 			liveRegistersByKind = Array(kinds.size) { BitSet() }
 		}
 
@@ -904,9 +904,7 @@ class L2Optimizer internal constructor(
 		 */
 		constructor(original: UsedRegisters)
 		{
-			val kinds = RegisterKind.values()
-			liveRegistersByKind = Array(kinds.size)
-			{
+			liveRegistersByKind = Array(RegisterKind.entries.size) {
 				original.liveRegistersByKind[it].clone() as BitSet
 			}
 		}
@@ -1150,7 +1148,7 @@ class L2Optimizer internal constructor(
 		{
 			sanityCheck(interpreter)
 
-			for (phase in OptimizationPhase.values())
+			for (phase in OptimizationPhase.entries)
 			{
 				val before = AvailRuntimeSupport.captureNanos()
 				phase.run(this)

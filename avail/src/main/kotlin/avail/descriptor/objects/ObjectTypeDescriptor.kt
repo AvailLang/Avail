@@ -184,36 +184,58 @@ class ObjectTypeDescriptor internal constructor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) = with(builder) {
+	) = builder.brief {
 		val myFieldTypeMap = self.fieldTypeMap
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self)
-		when (names.setSize)
+		val printedName = when (names.setSize)
 		{
-			0 -> append("object")
-			else -> append(
-				names.map { it.asNativeString() }.sorted().joinToString(" ∩ "))
+			0 -> "object"
+			else -> names.map { it.asNativeString() }.sorted()
+				.joinToString(" ∩ ")
 		}
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
 			baseType.fieldTypeMap.forEach { atom, type ->
 				if (atom.getAtomProperty(explicitSubclassingKey).notNil
-					|| myFieldTypeMap.mapAt(atom).equals(type))
+					|| myFieldTypeMap.mapAt(atom).equals(type)
+				)
 				{
-					ignoreKeys = ignoreKeys.setWithElementCanDestroy(atom, true)
+					ignoreKeys =
+						ignoreKeys.setWithElementCanDestroy(atom, true)
 				}
 			}
 		}
-		var first = true
+		var importantKeys = emptyMap
 		myFieldTypeMap.forEach { key, type ->
-			if (!ignoreKeys.hasElement(key)) {
-				append(if (first) " with:" else ",")
+			if (!ignoreKeys.hasElement(key))
+			{
+				importantKeys =
+					importantKeys.mapAtPuttingCanDestroy(key, type, true)
+			}
+		}
+		if (importantKeys.mapSize == 0)
+		{
+			append(printedName)
+		}
+		else
+		{
+			append("{# ")
+			append(printedName)
+			var first = true
+			importantKeys.forEach { key, type ->
+				append(if (first) " |" else ",")
 				first = false
 				newlineTab(indent)
 				append(key.atomName.asNativeString())
 				append(" : ")
-				type.printOnAvoidingIndent(builder, recursionMap, indent + 1)
+				type.printOnAvoidingIndent(
+					this,
+					recursionMap,
+					indent + 1
+				)
 			}
+			append("\n#}")
 		}
 	}
 

@@ -152,7 +152,6 @@ import avail.interpreter.primitive.controlflow.P_ResumeContinuation
 import avail.interpreter.primitive.fibers.P_CreateFiberHeritableAtom
 import avail.interpreter.primitive.fibers.P_TerminateCurrentFiber
 import avail.interpreter.primitive.general.P_EmergencyExit
-import avail.interpreter.primitive.hooks.P_DeclareStringificationAtom
 import avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction
 import avail.interpreter.primitive.methods.P_AbstractMethodDeclarationForAtom
 import avail.interpreter.primitive.methods.P_AddSemanticRestrictionForAtom
@@ -439,19 +438,17 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
-	{
-		builder.run {
-			when (val size = self.definitionsTuple.tupleSize)
-			{
-				1 -> append("1 definition")
-				else -> append("$size definitions")
-			}
-			append(" of ")
-			self.bundles
-				.sortedBy { it.message.issuingModule.allAncestors.setSize }
-				.joinTo(this, " a.k.a. ") { it.message.toString() }
+		indent: Int
+	) = builder.brief {
+		when (val size = self.definitionsTuple.tupleSize)
+		{
+			1 -> append("1 definition")
+			else -> append("$size definitions")
 		}
+		append(" of ")
+		self.bundles
+			.sortedBy { it.message.issuingModule.allAncestors.setSize }
+			.joinTo(this, " a.k.a. ") { it.message.toString() }
 	}
 
 	override fun o_AddDependentChunk(
@@ -916,11 +913,6 @@ class MethodDescriptor private constructor(
 		CREATE_LITERAL_TOKEN(
 			"vm create literal token_,_,_,_«from phrase_»?",
 			P_CreateLiteralToken),
-
-		/** The special atom for declaring the stringifier atom. */
-		DECLARE_STRINGIFIER(
-			"vm stringifier:=_",
-			P_DeclareStringificationAtom),
 
 		/** The special atom for forward-defining methods. */
 		FORWARD_DEFINER(

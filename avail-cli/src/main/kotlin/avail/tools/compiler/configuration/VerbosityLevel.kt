@@ -86,6 +86,6 @@ enum class VerbosityLevel
 		 * @return
 		 *   The [VerbosityLevel].
 		 */
-		internal fun atLevel(i: Int): VerbosityLevel = values()[i]
+		internal fun atLevel(i: Int): VerbosityLevel = entries[i]
 	}
 }

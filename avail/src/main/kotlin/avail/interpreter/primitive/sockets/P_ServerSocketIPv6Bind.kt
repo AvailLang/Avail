@@ -46,9 +46,9 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
 import avail.descriptor.types.PojoTypeDescriptor.Companion.intRange
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
@@ -137,8 +137,8 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(16),
 					emptyTuple,
-					bytes),
-				unsignedShorts,
+					u8),
+				u16,
 				intRange()),
 			TOP.o)
 

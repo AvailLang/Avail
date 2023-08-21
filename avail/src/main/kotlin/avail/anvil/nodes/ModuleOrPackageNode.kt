@@ -98,6 +98,8 @@ class ModuleOrPackageNode constructor(
 	override fun iconResourceName(): String =
 		if (isPackage) "anvilicon-dir-module-outline" else AVAIL.fileIcon
 
+	override fun equalityText(): String = resolvedModuleName.localName
+
 	override fun text(selected: Boolean): String =
 		if (isRenamedSource)
 		{

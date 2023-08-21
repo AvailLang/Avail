@@ -81,7 +81,7 @@ import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeTuple
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -502,7 +502,7 @@ class NybbleTupleDescriptor private constructor(
 					}
 				}
 				val defaultTypeObject = aType.defaultType
-				if (nybbles.isSubtypeOf(defaultTypeObject))
+				if (u4.isSubtypeOf(defaultTypeObject))
 					return true
 				return (breakIndex + 1 .. self.tupleSize).all {
 					self.tupleAt(it).isInstanceOf(defaultTypeObject)
@@ -577,7 +577,7 @@ class NybbleTupleDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type
-	): Boolean = (nybbles.isSubtypeOf(type)
+	): Boolean = (u4.isSubtypeOf(type)
 		|| super.o_TupleElementsInRangeAreInstancesOf(
 			self, startIndex, endIndex, type))
 

@@ -63,7 +63,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
@@ -166,7 +166,7 @@ object P_DelayedFork : Primitive(
 				inclusive(zero, positiveInfinity),
 				functionTypeReturning(TOP.o),
 				mostGeneralTupleType,
-				bytes),
+				u8),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

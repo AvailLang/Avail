@@ -59,7 +59,7 @@ class ResourceNode constructor(
 	override fun iconResourceName(): String =
 		FileExtensionMetadata[reference.localName].fileIcon
 
-	override fun text(selected: Boolean) = reference.localName
+	override fun equalityText() = reference.localName
 
 	override fun htmlStyle(selected: Boolean): String =
 		fontStyle(bold = false) +

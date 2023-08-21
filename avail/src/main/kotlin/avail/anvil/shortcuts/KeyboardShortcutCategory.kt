@@ -196,20 +196,20 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 		 * All the [KeyboardShortcut]s currently available.
 		 */
 		val allShortcuts: List<KeyboardShortcut> get() =
-			values().flatMap { it.shortcuts }
+			entries.flatMap { it.shortcuts }
 
 		/**
 		 * The names of all the valid [KeyboardShortcutCategory]s.
 		 */
 		val validNames: String get() =
-			values().joinToString(", ") { it.name }
+			entries.joinToString(", ") { it.name }
 
 		/**
 		 * The comma separated String list of valid
 		 * [KeyboardShortcut.actionMapKey]s.
 		 */
 		val validActionMapKeys: String get() =
-			values().joinToString(", ") {
+			entries.joinToString(", ") {
 				it.shortcuts
 					.filter {sc -> sc.customizable }
 					.joinToString(", ") { sc ->
@@ -224,7 +224,7 @@ enum class KeyboardShortcutCategory constructor(val display: String)
 		 * 	be empty.
 		 */
 		fun getNonUniqueShortcuts (): List<Set<KeyboardShortcut>> =
-			values().map { it.checkShortcutsUnique() }.flatten()
+			entries.map { it.checkShortcutsUnique() }.flatten()
 
 		/**
 		 * Reset all of the [KeyboardShortcut]s to their default key mappings.

@@ -240,7 +240,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 
 			init
 			{
-				for (method in values())
+				for (method in entries)
 				{
 					methodsByName[method.name.lowercase()] = method
 				}
@@ -1074,7 +1074,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		companion object
 		{
 			/** An array of all [Opcode] enumeration values. */
-			val all = values()
+			val all = entries.toTypedArray()
 		}
 	}
 

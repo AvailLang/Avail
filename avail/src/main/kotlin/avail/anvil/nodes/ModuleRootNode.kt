@@ -60,6 +60,8 @@ class ModuleRootNode constructor(
 	val visible: Boolean
 ) : AbstractWorkbenchTreeNode(workbench)
 {
+	override fun initiallyExpanded() = true
+
 	override fun modulePathString(): String = "/" + moduleRoot.name
 
 	override fun iconResourceName(): String =
@@ -68,6 +70,8 @@ class ModuleRootNode constructor(
 			true -> "root"
 			else -> "root-locked"
 		}
+
+	override fun equalityText(): String = moduleRoot.name
 
 	override fun text(selected: Boolean) = buildString {
 		append(moduleRoot.name)

@@ -40,7 +40,8 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.tracerPriority
 import avail.descriptor.module.ModuleDescriptor
 import avail.io.SimpleCompletionHandler
-import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.record.ModuleVersion
+import avail.persistence.cache.record.ModuleVersionKey
 import java.util.logging.Level
 
 /**
@@ -212,6 +213,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 			return
 		}
 		val repository = resolvedName.repository
+		repository.reopenIfNecessary()
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)
 		val sourceFile = resolvedName.resolverReference
 		val archive = repository.getArchive(resolvedName.rootRelativeName)
@@ -255,8 +257,8 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 							val header = compiler.compilationContext.moduleHeader!!
 							val importNames = header.importedModuleNames
 							val entryPoints = header.entryPointNames
-							val newVersion = repository.ModuleVersion(
-								sourceFile.size, importNames, entryPoints)
+							val newVersion = ModuleVersion(
+								repository,sourceFile.size, importNames, entryPoints)
 							availBuilder.serialize(header, newVersion)
 							archive.putVersion(versionKey, newVersion)
 							traceModuleNames(
@@ -347,7 +349,6 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 	 * @param afterAll
 	 *   What to do after the entire trace completes.
 	 */
-	@Suppress("RedundantLambdaArrow")
 	fun traceThen(
 		target: ModuleName,
 		problemHandler: ProblemHandler,
@@ -401,5 +402,56 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 				completions)
 		}
 		afterAll()
+	}
+
+	/**
+	 * Determine the ancestry graph of the indicated modules, recording it in
+	 * the [AvailBuilder.moduleGraph].
+	 *
+	 * @param targets
+	 *   The set of modules to load.
+	 * @param problemHandler
+	 *   How to handle or report [Problem]s that arise during the build.
+	 * @param afterAll
+	 *   What to do after the entire trace completes.
+	 */
+	fun traceThen(
+		targets: Set<ModuleName>,
+		problemHandler: ProblemHandler,
+		afterAll: ()->Unit)
+	{
+		when (targets.size)
+		{
+			0 -> afterAll()
+			1 -> traceThen(targets.first(), problemHandler, afterAll)
+			else -> traceThen(targets.iterator(), problemHandler, afterAll)
+		}
+	}
+
+	/**
+	 * Determine the ancestry graph of the indicated modules, recording it in
+	 * the [AvailBuilder.moduleGraph].
+	 *
+	 * @param targets
+	 *   The iterator of modules to load.
+	 * @param problemHandler
+	 *   How to handle or report [Problem]s that arise during the build.
+	 * @param afterAll
+	 *   What to do after the entire trace completes.
+	 */
+	private fun traceThen(
+		targets: Iterator<ModuleName>,
+		problemHandler: ProblemHandler,
+		afterAll: ()->Unit)
+	{
+		if (!targets.hasNext())
+		{
+			afterAll()
+			return
+		}
+
+		traceThen(targets.next(), problemHandler) {
+			traceThen(targets, problemHandler, afterAll)
+		}
 	}
 }

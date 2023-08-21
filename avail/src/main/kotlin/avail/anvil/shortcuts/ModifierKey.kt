@@ -93,7 +93,7 @@ enum class ModifierKey constructor(
 		 *   The matching [ModifierKey] of `null` if not found.
 		 */
 		fun lookup (lookupKey: String): ModifierKey? =
-			values().firstOrNull { lookupKey == it.lookupKey }
+			entries.firstOrNull { lookupKey == it.lookupKey }
 
 		/**
 		 * Answer the [ModifierKey] that matches the provided [modifier].
@@ -104,7 +104,7 @@ enum class ModifierKey constructor(
 		 *   The matching [ModifierKey] of `null` if not found.
 		 */
 		fun lookupByCode (code: Int): ModifierKey? =
-			values().firstOrNull { code == it.modifier }
+			entries.firstOrNull { code == it.modifier }
 
 		/**
 		 * Answer all the [ModifierKey]s used in the provided [KeyStroke].
@@ -117,7 +117,7 @@ enum class ModifierKey constructor(
 		fun getModifiersFrom (keyStroke: KeyStroke): Set<ModifierKey>
 		{
 			val modifiers = mutableSetOf<ModifierKey>()
-			values().forEach {
+			entries.forEach {
 				if (it.modifier.and(keyStroke.modifiers) == it.modifier)
 				{
 					modifiers.add(it)
@@ -137,7 +137,7 @@ enum class ModifierKey constructor(
 		fun getModifiersFrom (modifier: Int): Set<ModifierKey>
 		{
 			val modifiers = mutableSetOf<ModifierKey>()
-			values().forEach {
+			entries.forEach {
 				if (it.modifier.and(modifier) == it.modifier)
 				{
 					modifiers.add(it)
@@ -160,6 +160,6 @@ enum class ModifierKey constructor(
 		 * The [ModifierKey.lookupKey]s of all the valid [ModifierKey]s.
 		 */
 		val validLookups: String get() =
-			values().joinToString(", ") { it.lookupKey }
+			entries.joinToString(", ") { it.lookupKey }
 	}
 }

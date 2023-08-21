@@ -581,7 +581,7 @@ open class PhraseTypeDescriptor protected constructor(
 		companion object
 		{
 			/** An array of all `PhraseKind` enumeration values. */
-			private val all = values()
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Answer an array of all `PhraseKind` enumeration values.

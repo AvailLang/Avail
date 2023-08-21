@@ -60,9 +60,9 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
@@ -88,7 +88,7 @@ import java.nio.channels.AsynchronousSocketChannel
  * specified [handle][A_Atom] to an [IPv6&#32;address][Inet6Address] and
  * port. Create a new [fiber][FiberDescriptor] to respond to the asynchronous
  * completion of the operation; the fiber will run at the specified
- * [priority][IntegerRangeTypeDescriptor.bytes]. If the operation succeeds, then
+ * [priority][IntegerRangeTypeDescriptor.u8]. If the operation succeeds, then
  * eventually start the new fiber to apply the
  * [success&#32;function][FunctionDescriptor]. If the operation fails, then
  * eventually start the new fiber to apply the
@@ -186,15 +186,15 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 			tupleFromArray(
 				ATOM.o,
 				tupleTypeForSizesTypesDefaultType(
-					singleInt(16), emptyTuple, bytes),
-				unsignedShorts,
+					singleInt(16), emptyTuple, u8),
+				u16,
 				functionType(
 					emptyTuple,
 					TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o),
-				bytes),
+				u8),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

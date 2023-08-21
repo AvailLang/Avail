@@ -60,7 +60,7 @@ import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.ObjectSlots
@@ -213,12 +213,12 @@ private constructor(
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
-		if (!self.sizeRange.isSubtypeOf(int32))
+		if (!self.sizeRange.isSubtypeOf(i32))
 		{
 			// Trim the type to only those that are physically possible.
 			self.makeImmutable()
 			return mapTypeForSizesKeyTypeValueType(
-				self.sizeRange.typeIntersection(int32),
+				self.sizeRange.typeIntersection(i32),
 				self.keyType,
 				self.valueType
 			).trimType(typeToRemove)
@@ -228,12 +228,12 @@ private constructor(
 		if (typeToRemove.isEnumeration) return self
 		self.makeImmutable()
 		typeToRemove.makeImmutable()
-		if (!typeToRemove.sizeRange.isSubtypeOf(int32))
+		if (!typeToRemove.sizeRange.isSubtypeOf(i32))
 		{
 			// Trim the type to only those that are physically possible.
 			return self.trimType(
 				mapTypeForSizesKeyTypeValueType(
-					typeToRemove.sizeRange.typeIntersection(int32),
+					typeToRemove.sizeRange.typeIntersection(i32),
 					typeToRemove.keyType,
 					typeToRemove.valueType))
 		}

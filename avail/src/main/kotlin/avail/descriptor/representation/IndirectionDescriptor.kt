@@ -274,6 +274,7 @@ import avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.moduleState
+import avail.descriptor.module.A_Module.Companion.namesIndexRecord
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
 import avail.descriptor.module.A_Module.Companion.phrasePathRecord
@@ -283,6 +284,7 @@ import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.serializedObjects
 import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setNamesIndexRecordIndex
 import avail.descriptor.module.A_Module.Companion.setPhrasePathRecordIndex
 import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
@@ -625,8 +627,9 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
@@ -793,19 +796,20 @@ class IndirectionDescriptor private constructor(
 		return finalObject
 	}
 
-	companion object {
+	companion object
+	{
 		/** The mutable [IndirectionDescriptor]. */
-		val mutables = TypeTag.values().map { typeTag ->
+		val mutables = TypeTag.entries.map { typeTag ->
 			IndirectionDescriptor(Mutability.MUTABLE, typeTag)
 		}.toTypedArray()
 
 		/** The immutable [IndirectionDescriptor]. */
-		val immutables = TypeTag.values().map { typeTag ->
+		val immutables = TypeTag.entries.map { typeTag ->
 			IndirectionDescriptor(Mutability.IMMUTABLE, typeTag)
 		}.toTypedArray()
 
 		/** The shared [IndirectionDescriptor]. */
-		val shareds = TypeTag.values().map { typeTag ->
+		val shareds = TypeTag.entries.map { typeTag ->
 			IndirectionDescriptor(Mutability.SHARED, typeTag)
 		}.toTypedArray()
 
@@ -875,7 +879,7 @@ class IndirectionDescriptor private constructor(
 	}
 
 	/**
-	 * Define the infix ".." operator  to reducing redundancy in the many reflex
+	 * Define the infix ".." operator to reduce redundancy in the many reflex
 	 * methods below.
 	 *
 	 * @param body
@@ -4021,4 +4025,12 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_PermutedPhrases(self: AvailObject): List<A_Phrase> =
 		self .. { permutedPhrases }
+
+	override fun o_SetNamesIndexRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	) = self .. { setNamesIndexRecordIndex(recordNumber) }
+
+	override fun o_NamesIndexRecord(self: AvailObject): NamesIndex =
+		self .. { namesIndexRecord() }
 }

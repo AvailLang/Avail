@@ -165,7 +165,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 			val range = generator.currentManifest
 				.restrictionFor(value.semanticValue())
 				.type
-				.typeIntersection(inclusive(0L, TypeTag.values().size - 1L))
+				.typeIntersection(inclusive(0L, TypeTag.entries.size - 1L))
 			val low = range.lowerBound.extractInt
 			val high = range.upperBound.extractInt
 			leftName += " ${TypeTag.tagFromOrdinal(low)}"

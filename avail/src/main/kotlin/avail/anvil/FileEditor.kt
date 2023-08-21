@@ -51,7 +51,9 @@ import java.util.TimerTask
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JLayer
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
@@ -168,6 +170,16 @@ abstract class FileEditor<CE> constructor(
 	}
 
 	/**
+	 * Reload the file into this [FileEditor] from disk.
+	 */
+	fun reloadFileFromDisk()
+	{
+		SwingUtilities.invokeLater {
+			sourcePane.text = File(fileLocation).readText()
+		}
+	}
+
+	/**
 	 * Refresh the [KeyboardShortcut]s for this [FileEditor].
 	 */
 	fun refreshShortcuts ()
@@ -185,8 +197,9 @@ abstract class FileEditor<CE> constructor(
 	}
 
 	/** The scroll wrapper around the [sourcePane]. */
-	private val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-		workbench, workbench.globalSettings.editorGuideLines)
+	private val sourcePaneScroll: JLayer<JScrollPane> =
+		sourcePane.scrollTextWithLineNumbers(
+			workbench, workbench.globalSettings.editorGuideLines)
 
 	/**
 	 * Populate the [source&#32;pane][sourcePane].
@@ -197,10 +210,9 @@ abstract class FileEditor<CE> constructor(
 	internal abstract fun populateSourcePane(then: (CE) -> Unit = {})
 
 	/**
-	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 * The [code&#32;guide][CodeOverlay] for the [source&#32;pane][sourcePane].
 	 */
-	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeGuide::class.java.name) as CodeGuide
+	private val codeGuide: CodeOverlay get() = sourcePane.codeOverlay
 
 	/**
 	 * Apply style highlighting to the text in the

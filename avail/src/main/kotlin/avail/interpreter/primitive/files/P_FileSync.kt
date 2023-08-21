@@ -52,7 +52,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
@@ -154,7 +154,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
 					TOP.o),
-				bytes),
+				u8),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

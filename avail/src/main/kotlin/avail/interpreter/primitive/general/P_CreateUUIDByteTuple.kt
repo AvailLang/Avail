@@ -37,7 +37,7 @@ import avail.descriptor.tuples.ByteBufferTupleDescriptor.Companion.tupleForByteB
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.interpreter.Primitive
@@ -71,5 +71,5 @@ object P_CreateUUIDByteTuple : Primitive(0, CannotFail, CanInline, HasSideEffect
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			emptyTuple,
-			tupleTypeForSizesTypesDefaultType(singleInt(16), emptyTuple, bytes))
+			tupleTypeForSizesTypesDefaultType(singleInt(16), emptyTuple, u8))
 }

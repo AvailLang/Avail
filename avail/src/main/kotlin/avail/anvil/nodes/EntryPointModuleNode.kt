@@ -56,6 +56,8 @@ class EntryPointModuleNode constructor(
 		workbench: AvailWorkbench, val resolvedModuleName: ResolvedModuleName)
 	: AbstractWorkbenchTreeNode(workbench)
 {
+	override fun initiallyExpanded() = true
+
 	override fun modulePathString(): String =
 		throw UnsupportedOperationException()
 
@@ -73,7 +75,7 @@ class EntryPointModuleNode constructor(
 	override fun iconResourceName(): String =
 		FileExtensionMetadata.AVAIL.fileIcon
 
-	override fun text(selected: Boolean): String =
+	override fun equalityText(): String =
 		resolvedModuleName.qualifiedName
 
 	override fun htmlStyle(selected: Boolean): String =

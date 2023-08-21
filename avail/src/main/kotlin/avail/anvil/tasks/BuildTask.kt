@@ -33,20 +33,18 @@
 package avail.anvil.tasks
 
 import avail.anvil.AvailWorkbench
-import avail.anvil.AvailWorkbench.AbstractWorkbenchTask
-import avail.anvil.text.centerCurrentLine
-import avail.anvil.text.setCaretFrom
 import avail.builder.ResolvedModuleName
 import avail.descriptor.module.ModuleDescriptor
-import java.awt.Cursor
-import javax.swing.SwingUtilities
 
 /**
- * A `BuildTask` launches the actual build of the target
+ * An [AbstractBuildTask] that launches the actual build of the target
  * [module][ModuleDescriptor].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Richard Arriaga
+ *
+ * @property targetModuleName
+ *   The resolved name of the target [module][ModuleDescriptor].
  *
  * @constructor
  * Construct a new `BuildTask`.
@@ -56,47 +54,21 @@ import javax.swing.SwingUtilities
  * @param targetModuleName
  *   The resolved name of the target [module][ModuleDescriptor].
  */
-class BuildTask
-constructor (
+class BuildTask constructor (
 	workbench: AvailWorkbench,
-	targetModuleName: ResolvedModuleName
-) : AbstractWorkbenchTask(workbench, targetModuleName)
+	private val targetModuleName: ResolvedModuleName
+) : AbstractBuildTask(workbench)
 {
 	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
-		assert(targetModuleName !== null)
-		workbench.resolver.moduleRoots.roots.forEach { root ->
-			root.repository.reopenIfNecessary()
-		}
+		reopenRootsRepositories()
 		workbench.availBuilder.buildTargetThen(
-			targetModuleName(),
+			targetModuleName,
 			workbench::eventuallyUpdatePerModuleProgress,
 			workbench::eventuallyUpdateBuildProgress,
 			workbench.availBuilder.buildProblemHandler
 		) {
-			SwingUtilities.invokeLater {
-				workbench.backgroundTask = null
-				reportDone()
-				workbench.availBuilder.checkStableInvariants()
-				workbench.setEnablements()
-				workbench.cursor = Cursor.getDefaultCursor()
-				workbench.openEditors.values.forEach { editor ->
-					val r = editor.range
-					editor.populateSourcePane {
-						it.sourcePane.setCaretFrom(r)
-						it.sourcePane.centerCurrentLine()
-						if (workbench.structureViewPanel.editor == editor)
-						{
-							editor.openStructureView(false)
-						}
-						if (workbench.phraseViewPanel.editor == editor)
-						{
-							editor.updatePhraseStructure()
-						}
-					}
-				}
-				afterExecute()
-			}
+			swingAction(afterExecute)
 		}
 	}
 }

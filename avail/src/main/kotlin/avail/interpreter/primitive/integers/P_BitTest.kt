@@ -56,10 +56,10 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.zeroOrOne
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -166,7 +166,7 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 		val (aType, bType) = argumentTypes
 
 		// Only bother with specialized code if we know the values are int32's.
-		if (aType.typeIntersection(int32).isBottom
+		if (aType.typeIntersection(i32).isBottom
 			|| bType.typeIntersection(inclusive(zero, fromInt(31))).isBottom)
 		{
 			// One of the arguments is never within range, so fall back.
@@ -195,7 +195,7 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 		else
 		{
 			val shiftedWrite = generator.intWriteTemp(
-				restrictionForType(int32, UNBOXED_INT_FLAG))
+				restrictionForType(i32, UNBOXED_INT_FLAG))
 			generator.addInstruction(
 				L2_BIT_LOGIC_OP.bitwiseSignedShiftRight,
 				aInt,
@@ -207,7 +207,7 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 				generator.currentManifest)
 		}
 		val maskedWrite = generator.intWriteTemp(
-			restrictionForType(zeroOrOne, UNBOXED_INT_FLAG))
+			restrictionForType(u1, UNBOXED_INT_FLAG))
 		generator.addInstruction(
 			L2_BIT_LOGIC_OP.bitwiseAnd,
 			shifted,

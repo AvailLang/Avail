@@ -53,7 +53,7 @@ import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.exceptions.ArithmeticException
@@ -190,10 +190,10 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		val aIntersectInt32 = aType.typeIntersection(int32)
-		val bIntersectInt32 = bType.typeIntersection(int32)
-		if (aType.typeIntersection(int32).isBottom
-			|| bType.typeIntersection(int32).isBottom)
+		val aIntersectInt32 = aType.typeIntersection(i32)
+		val bIntersectInt32 = bType.typeIntersection(i32)
+		if (aType.typeIntersection(i32).isBottom
+			|| bType.typeIntersection(i32).isBottom)
 		{
 			return false
 		}
@@ -229,7 +229,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			val tempWriter = generator.intWrite(
 				setOf(L2SemanticUnboxedInt(semanticTemp)),
 				restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
-			if (returnTypeIfInts.isSubtypeOf(int32))
+			if (returnTypeIfInts.isSubtypeOf(i32))
 			{
 				// The result is guaranteed not to overflow, so emit an
 				// instruction that won't bother with an overflow check.  Note

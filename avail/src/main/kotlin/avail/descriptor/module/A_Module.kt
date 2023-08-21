@@ -61,8 +61,9 @@ import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.interpreter.primitive.modules.P_PublishName
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.NamesIndex
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.StylingRecord
 
 /**
  * `A_Module` is an interface that specifies the
@@ -521,5 +522,20 @@ interface A_Module : A_BasicObject
 		 */
 		fun A_Module.phrasePathRecord(): PhrasePathRecord =
 			dispatch { o_PhrasePathRecord(it) }
+
+		/**
+		 * Set the index of the [NamesIndex] record.  That record is the way
+		 * that declarations, definitions, and usages of names are tracked for
+		 * this module.
+		 */
+		fun A_Module.setNamesIndexRecordIndex(recordNumber: Long) =
+			dispatch { o_SetNamesIndexRecordIndex(it, recordNumber) }
+
+		/**
+		 * Get this loaded module's [NamesIndex] record, reading it from the
+		 * repository file if necessary.
+		 */
+		fun A_Module.namesIndexRecord(): NamesIndex =
+			dispatch { o_NamesIndexRecord(it) }
 	}
 }

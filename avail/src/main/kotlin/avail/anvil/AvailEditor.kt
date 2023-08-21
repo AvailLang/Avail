@@ -34,6 +34,8 @@ package avail.anvil
 
 import avail.AvailRuntime
 import avail.anvil.MenuBarBuilder.Companion.createMenuBar
+import avail.anvil.PhrasePathStyleApplicator.LocalDefinitionAttributeKey
+import avail.anvil.PhrasePathStyleApplicator.LocalUseAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.PhraseNodeAttributeKey
 import avail.anvil.PhrasePathStyleApplicator.TokenStyle
 import avail.anvil.RenderingEngine.applyStylesAndPhrasePaths
@@ -45,8 +47,8 @@ import avail.anvil.text.CodePane
 import avail.anvil.text.MarkToDotRange
 import avail.anvil.text.goTo
 import avail.anvil.text.markToDotRange
-import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.PhraseView
+import avail.anvil.views.StructureView
 import avail.anvil.window.AvailEditorLayoutConfiguration
 import avail.anvil.window.LayoutConfiguration
 import avail.builder.ModuleName
@@ -54,17 +56,19 @@ import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
 import avail.persistence.cache.Repository
-import avail.persistence.cache.Repository.ManifestRecord
-import avail.persistence.cache.Repository.ModuleCompilation
-import avail.persistence.cache.Repository.ModuleVersion
-import avail.persistence.cache.Repository.ModuleVersionKey
-import avail.persistence.cache.Repository.PhraseNode
-import avail.persistence.cache.Repository.PhrasePathRecord
-import avail.persistence.cache.Repository.StylingRecord
+import avail.persistence.cache.record.ManifestRecord
+import avail.persistence.cache.record.ModuleCompilation
+import avail.persistence.cache.record.ModuleVersion
+import avail.persistence.cache.record.ModuleVersionKey
+import avail.persistence.cache.record.PhrasePathRecord
+import avail.persistence.cache.record.PhrasePathRecord.PhraseNode
+import avail.persistence.cache.record.StylingRecord
 import avail.utility.notNullAnd
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.event.ActionEvent
+import java.awt.event.MouseEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
@@ -73,7 +77,9 @@ import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JLayer
 import javax.swing.JPanel
+import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
@@ -95,7 +101,7 @@ import kotlin.math.min
  *   positioning.
  * * Syntax highlighting.
  * * Go to line/column.
- * * Open [structure&#32;view][StructureViewPanel].
+ * * Open [structure&#32;view][StructureView].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -184,18 +190,18 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * Open the [StructureViewPanel] associated with this [AvailEditor].
+	 * Open the [StructureView] associated with this [AvailEditor].
 	 *
 	 * Must execute in the event dispatch thread.
 	 *
 	 * @param giveEditorFocus
 	 *   `true` gives focus to this [AvailEditor]; `false` give focus to
-	 *   [AvailWorkbench.structureViewPanel].
+	 *   [AvailWorkbench.structureView].
 	 */
 	fun openStructureView (giveEditorFocus: Boolean = true)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
-		val structView = workbench.structureViewPanel
+		val structView = workbench.structureView
 		structView.updateView(this@AvailEditor, manifestEntriesInDocument)
 		{
 			if (giveEditorFocus)
@@ -209,7 +215,7 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * Open the [PhraseViewPanel] associated with this [AvailEditor], if it's
+	 * Open the [PhraseView] associated with this [AvailEditor], if it's
 	 * not already visible.
 	 */
 	fun openPhraseView ()
@@ -218,8 +224,8 @@ class AvailEditor constructor(
 		if (!workbench.phraseViewIsOpen)
 		{
 			// Open the phrase view.
-			workbench.phraseViewPanel.isVisible = true
-			workbench.phraseViewPanel.requestFocus()
+			workbench.phraseView.isVisible = true
+			workbench.phraseView.requestFocus()
 		}
 	}
 
@@ -254,7 +260,6 @@ class AvailEditor constructor(
 	{
 		val repository = resolvedName.repository
 		repository.reopenIfNecessary()
-		val repositoryFile = repository.repository!!
 		val archive = repository.getArchive(resolvedName.rootRelativeName)
 		archive.digestForFile(
 			resolvedName,
@@ -265,14 +270,14 @@ class AvailEditor constructor(
 					val versionKey = ModuleVersionKey(resolvedName, digest)
 					val compilation = archive.getVersion(versionKey)
 							?.allCompilations
-							?.maxByOrNull(ModuleCompilation::compilationTime) ?:
-						return@digestForFile onSuccess(null, null, null)
+							?.maxByOrNull(ModuleCompilation::compilationTime)
+						?: return@digestForFile onSuccess(null, null, null)
 					val stylingRecord = StylingRecord(
-						repositoryFile[compilation.recordNumberOfStyling])
+						repository[compilation.recordNumberOfStyling])
 					val phrasePathRecord = PhrasePathRecord(
-						repositoryFile[compilation.recordNumberOfPhrasePaths])
+						repository[compilation.recordNumberOfPhrasePaths])
 					val manifestRecord = ManifestRecord(
-						repositoryFile[compilation.recordNumberOfManifest])
+						repository[compilation.recordNumberOfManifest])
 					onSuccess(stylingRecord, phrasePathRecord, manifestRecord)
 				}
 				catch (e: Throwable)
@@ -293,7 +298,7 @@ class AvailEditor constructor(
 	/**
 	 * Compute the sequence of nested send phrases that describe how the
 	 * selected token ended up being embedded in the final parse structure.
-	 * Update the [AvailWorkbench.phraseViewPanel] to show this information.
+	 * Update the [AvailWorkbench.phraseView] to show this information.
 	 */
 	fun updatePhraseStructure()
 	{
@@ -313,11 +318,95 @@ class AvailEditor constructor(
 			tokenStyle = element.attributes.getAttribute(PhraseNodeAttributeKey)
 				as? TokenStyle
 		}
-		workbench.phraseViewPanel.updateView(this, tokenStyle)
+		workbench.phraseView.updateView(this, tokenStyle)
 	}
 
 	/**
-	 * The [JLabel] that displays the [range]
+	 * If the cursor is on a declaration or usage, this is the list of highlight
+	 * mementos for applying glows for the declaration.  There are between zero
+	 * and three of them, depending on whether there is a declaration, and if
+	 * so, how many characters are in the token.
+	 */
+	private val selectedDeclaration = mutableListOf<Any>()
+
+	/**
+	 * If the cursor is on a declaration or usage, this is the list of highlight
+	 * mementos for applying glows for all the usages.  Each usage contributes
+	 * between one and three elements, depending on how many characters are in
+	 * the token.
+	 */
+	private val selectedUses = mutableListOf<Any>()
+
+	/**
+	 * Apply highlighting for a declaration or its related usages that may be
+	 * under the cursor.
+	 */
+	private fun updateDeclarationAndUses()
+	{
+		val doc = sourcePane.styledDocument
+		// First look to the right of the cursor position.
+		val dot = range.dotPosition.offset
+		var element = doc.getCharacterElement(dot)
+		var definitionAndUses =
+			element.attributes.getAttribute(LocalDefinitionAttributeKey)
+				as? DefinitionAndUsesInDocument
+		if (definitionAndUses == null)
+		{
+			definitionAndUses =
+				element.attributes.getAttribute(LocalUseAttributeKey)
+					as? DefinitionAndUsesInDocument
+		}
+		if (definitionAndUses == null)
+		{
+			// If there's no declaration/use information for the character to
+			// the right of the cursor, try looking to the left.
+			element = doc.getCharacterElement(max(dot - 1, 0))
+			definitionAndUses =
+				element.attributes.getAttribute(LocalDefinitionAttributeKey)
+					as? DefinitionAndUsesInDocument
+			if (definitionAndUses == null)
+			{
+				definitionAndUses =
+					element.attributes.getAttribute(LocalUseAttributeKey)
+						as? DefinitionAndUsesInDocument
+			}
+		}
+
+		// Clear any existing highlights for locals.
+		val highlighter = sourcePane.highlighter!!
+		selectedDeclaration.forEach { tag ->
+			highlighter.removeHighlight(tag)
+		}
+		selectedDeclaration.clear()
+		selectedUses.forEach { tag ->
+			highlighter.removeHighlight(tag)
+		}
+		selectedUses.clear()
+		// Add highlights for the declaration and uses, if the cursor is on one.
+		definitionAndUses?.run {
+			selectedDeclaration.addAll(
+				highlighter.addGlow(
+					definitionSpanInDocument.first.offset
+						until definitionSpanInDocument.second.offset,
+					declarationGlow))
+			useSpansInDocument.forEach { (startPos, endPos) ->
+				selectedUses.addAll(
+					highlighter.addGlow(
+						startPos.offset until endPos.offset,
+						usageGlow)
+				)
+			}
+			// Swing won't do initial painting of highlights outside the text
+			// span's box, so force it.  Note that it *does* correctly remove
+			// the highlight if the paint operation reports its Shape correctly,
+			// which GlowHighlightRangePainter does, so we only have to repaint
+			// explicitly if a highlight is being added.
+			sourcePane.repaint()
+		}
+	}
+
+	/**
+	 * The [JLabel] that displays the [range] information for the selection.
 	 */
 	private val caretRangeLabel = JLabel()
 
@@ -347,7 +436,9 @@ class AvailEditor constructor(
 			}
 			caretRangeLabel.text = "$styleName $range"
 			updatePhraseStructure()
+			updateDeclarationAndUses()
 		}
+		clickHandler = { e -> handleClick(e) }
 
 		// To add a new shortcut, add it as a subtype of the sealed class
 		// AvailEditorShortcut.
@@ -381,9 +472,10 @@ class AvailEditor constructor(
 		}
 	}
 
-	/** The scroll wrapper around the [sourcePane]. */
-	private val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers(
-		workbench, workbench.globalSettings.editorGuideLines)
+	/** The [JLayer] around the [JScrollPane] scrolling the [sourcePane]. */
+	private val sourcePaneScroll: JLayer<JScrollPane> =
+		sourcePane.scrollTextWithLineNumbers(
+			workbench, workbench.globalSettings.editorGuideLines)
 
 	/** The [styling&#32;record][StylingRecord] for the module. */
 	private var stylingRecord: StylingRecord? = null
@@ -446,10 +538,9 @@ class AvailEditor constructor(
 	}
 
 	/**
-	 * The [code&#32;guide][CodeGuide] for the [source&#32;pane][sourcePane].
+	 * The [code&#32;guide][CodeOverlay] for the [source&#32;pane][sourcePane].
 	 */
-	private val codeGuide get() = sourcePane.getClientProperty(
-		CodeGuide::class.java.name) as CodeGuide
+	private val codeGuide: CodeOverlay get() = sourcePane.codeOverlay
 
 	/**
 	 * Apply styles to the text in the [source&#32;pane][sourcePane].
@@ -460,7 +551,8 @@ class AvailEditor constructor(
 		sourcePane.background = sourcePane.computeBackground(stylesheet)
 		sourcePane.foreground = sourcePane.computeForeground(stylesheet)
 		codeGuide.guideColor = codeGuide.computeColor()
-		sourcePane.styledDocument.applyStylesAndPhrasePaths(
+		applyStylesAndPhrasePaths(
+			sourcePane.styledDocument,
 			stylesheet,
 			stylingRecord,
 			phrasePathRecord)
@@ -480,6 +572,52 @@ class AvailEditor constructor(
 			// This is the first change since the latest save.
 			firstUnsavedEditTime = lastEditTime
 			eventuallySave()
+		}
+	}
+
+	/** A pluggable handler for click events in the editor. */
+	private fun handleClick(e: MouseEvent)
+	{
+		if (e.isMetaDown)
+		{
+			// First figure out what method is being sent by the token under the
+			// cursor.Exit if there is no recognizable name's token at the
+			// cursor.
+			val tokenStyle = e.tokenStyleAtPointer ?: return
+			val nameInModule = tokenStyle.phraseNode.nameInModule ?: return
+			when
+			{
+				// Navigate to sends of the method.
+				e.isAltDown -> workbench.navigateToSendersOfName(
+					nameInModule, tokenStyle.tokenIndexInName, e)
+
+				// Navigate to the definitions of the method.
+				else -> workbench.navigateToDefinitionsOfName(
+					nameInModule, tokenStyle.tokenIndexInName, e)
+			}
+			e.consume()
+		}
+	}
+
+	/**
+	 * The [TokenStyle] of the token under the pointer, or `null` if there is no
+	 * applicable token.
+	 */
+	private val MouseEvent.tokenStyleAtPointer: TokenStyle? get()
+	{
+		val doc = sourcePane.styledDocument
+		val pos = sourcePane.viewToModel2D(point)
+		// First look to the right of the cursor position.
+		val tokenStyleRight =
+			doc.getCharacterElement(pos).attributes
+				.getAttribute(PhraseNodeAttributeKey)
+				as? TokenStyle
+		return tokenStyleRight ?: run {
+			// There's no applicable token for the character to the right of
+			// the cursor, so try looking to the left.
+			doc.getCharacterElement(max(pos - 1, 0))
+				.attributes.getAttribute(PhraseNodeAttributeKey)
+				as? TokenStyle
 		}
 	}
 
@@ -569,14 +707,14 @@ class AvailEditor constructor(
 			{
 				if (workbench.structureViewIsOpen)
 				{
-					if (workbench.structureViewPanel.editor != this@AvailEditor)
+					if (workbench.structureView.editor != this@AvailEditor)
 					{
 						openStructureView(true)
 					}
 				}
 				if (workbench.phraseViewIsOpen)
 				{
-					if (workbench.phraseViewPanel.editor != this@AvailEditor)
+					if (workbench.phraseView.editor != this@AvailEditor)
 					{
 						updatePhraseStructure()
 					}
@@ -626,5 +764,21 @@ class AvailEditor constructor(
 		/** The [AvailEditor] that sourced the [receiver][ActionEvent]. */
 		internal val ActionEvent.editor get() =
 			(source as JTextPane).getClientProperty(availEditor) as AvailEditor
+
+		/** The [Glow] to use for the current local's declaration. */
+		private val declarationGlow = Glow(
+			Color(0, 0, 0, 0),
+			Color(0, 0, 0, 0),
+			Color(128, 192, 255, 32),
+			Color(128, 192, 255, 96),
+			Color(128, 160, 255, 32))
+
+		/** The [Glow] to use for the current local's usages. */
+		private val usageGlow = Glow(
+			Color(0, 0, 0, 0),
+			Color(0, 0, 0, 0),
+			Color(0, 255, 255, 32),
+			Color(0, 255, 255, 96),
+			Color(0, 255, 255, 32))
 	}
 }

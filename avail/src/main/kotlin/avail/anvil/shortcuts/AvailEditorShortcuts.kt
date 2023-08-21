@@ -36,13 +36,14 @@ import avail.anvil.AvailEditor
 import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.editor.GoToDialog
 import avail.anvil.shortcuts.ModifierKey.ALT
+import avail.anvil.shortcuts.ModifierKey.BUTTON1
 import avail.anvil.shortcuts.ModifierKey.CTRL
 import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 import avail.anvil.shortcuts.ModifierKey.SHIFT
 import avail.anvil.text.BlockComment
 import avail.anvil.text.LineComment
-import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.PhraseView
+import avail.anvil.views.StructureView
 
 /**
  * A [KeyboardShortcut] that is used in the [AvailEditor].
@@ -79,7 +80,7 @@ object GoToDialogShortcut
 }
 
 /**
- * The [AvailEditorShortcut] to open the [StructureViewPanel].
+ * The [AvailEditorShortcut] to open the [StructureView].
  *
  * @author Richard Arriaga
  */
@@ -91,7 +92,7 @@ object OpenStructureViewShortcut
 }
 
 /**
- * The [AvailEditorShortcut] to open the [PhraseViewPanel].
+ * The [AvailEditorShortcut] to open the [PhraseView].
  *
  * @author Mark van Gulik
  */

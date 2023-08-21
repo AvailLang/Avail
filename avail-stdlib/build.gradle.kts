@@ -38,20 +38,26 @@ import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
-	java
+	id("java")
 	`maven-publish`
 	publishing
 	signing
-	id("org.jetbrains.dokka")
-	id("org.availlang.avail-plugin")
+	id("org.jetbrains.dokka") version "1.8.20"
+	id("org.availlang.avail-plugin") version "2.0.0.alpha19"
 }
 
-version = "2.0.0.alpha21-1.6.1.alpha10"
+repositories {
+	mavenLocal()
+	mavenCentral()
+}
+
+group = "org.availlang"
+version = "2.0.0.alpha22-1.6.1.alpha11"
 
 avail {
 	projectDescription = "The Avail Standard Library"
 	rootsDirectory = ProjectHome(
-		"distro/src",
+		"../avail/distro/src",
 		FILE,
 		project.rootDir.absolutePath,
 		rootNameInJar = "avail")
@@ -83,7 +89,7 @@ fun copyArtifactToDistroLib ()
 	val availExtension = project.extensions
 		.findByType(AvailExtension::class.java)!!
 	File(availExtension.targetOutputJar).apply {
-		copyTo(File("$rootDir/distro/lib/${name}"), true)
+		copyTo(File("../avail/distro/lib/${name}"), true)
 	}
 }
 
@@ -114,7 +120,6 @@ tasks {
 	// Copy the library into the distribution directory. This is used by the
 	// workbench configuration that uses the standard library jar to start the
 	// workbench with the Avail Standard Library.
-	@Suppress("UNUSED_VARIABLE")
 	val copyToDistroLib by creating(DefaultTask::class) {
 		dependsOn(availArtifactJar)
 		doLast { copyArtifactToDistroLib() }
@@ -226,6 +231,46 @@ publishing {
 			from(components["java"])
 			artifact(sourceJar)
 			artifact(javadocJar)
+		}
+	}
+}
+
+/**
+ * A utility object for publishing.
+ *
+ * @author Richard Arriaga
+ */
+object PublishingUtility
+{
+	/**
+	 * The Sonatype username used for publishing.
+	 */
+	val ossrhUsername: String get() =
+		System.getenv("OSSRH_USER") ?: ""
+
+	/**
+	 * The Sonatype password used for publishing.
+	 */
+	val ossrhPassword: String get() =
+		System.getenv("OSSRH_PASSWORD") ?: ""
+
+	/**
+	 * The warning that indicates the system does not have environment variables
+	 * for publishing credentials.
+	 */
+	private const val credentialsWarning =
+		"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
+			"JIRA account. Then ensure the user name, and password are available " +
+			"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
+
+	/**
+	 * Check that the publisher has access to the necessary credentials.
+	 */
+	fun checkCredentials ()
+	{
+		if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
+		{
+			System.err.println(credentialsWarning)
 		}
 	}
 }

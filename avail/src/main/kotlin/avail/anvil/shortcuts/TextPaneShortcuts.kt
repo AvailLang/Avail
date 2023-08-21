@@ -1,5 +1,5 @@
 /*
- * WorkbenchShortcuts.kt
+ * TextPaneShortcuts.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -68,4 +68,3 @@ object FindActionShortcut
 	override val actionMapKey: String = "find-replace"
 	override val description: String = "Open Find/Replace Dialog"
 }
-

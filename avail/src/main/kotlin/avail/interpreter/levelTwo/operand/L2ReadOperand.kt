@@ -170,7 +170,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		var intersection = restriction.intersection(manifestRestriction)
 		if (intersection.flags != manifestRestriction.flags)
 		{
-			TypeRestriction.RestrictionFlagEncoding.values().forEach {
+			TypeRestriction.RestrictionFlagEncoding.entries.forEach {
 				intersection = when
 				{
 					manifestRestriction.hasFlag(it) -> intersection.withFlag(it)

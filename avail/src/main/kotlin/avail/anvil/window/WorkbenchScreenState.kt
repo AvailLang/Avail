@@ -35,8 +35,8 @@ package avail.anvil.window
 import avail.builder.ModuleName
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
-import avail.anvil.views.PhraseViewPanel
-import avail.anvil.views.StructureViewPanel
+import avail.anvil.views.PhraseView
+import avail.anvil.views.StructureView
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
@@ -56,10 +56,10 @@ import java.util.concurrent.ConcurrentHashMap
  * @property workbenchLayoutConfig
  *   The [AvailWorkbenchLayoutConfiguration.stringToStore]
  * @property structureViewLayoutConfig
- *   The [LayoutConfiguration.stringToStore] for the [StructureViewPanel] or
+ *   The [LayoutConfiguration.stringToStore] for the [StructureView] or
  *   an empty string if not open.
  * @property phraseViewLayoutConfig
- *   The [LayoutConfiguration.stringToStore] for the [PhraseViewPanel] or
+ *   The [LayoutConfiguration.stringToStore] for the [PhraseView] or
  *   an empty string if not open.
  */
 class WorkbenchScreenState constructor(
@@ -95,16 +95,16 @@ class WorkbenchScreenState constructor(
 	override fun writeTo(writer: JSONWriter)
 	{
 		writer.writeObject {
-			at(WorkbenchScreenState::workbenchLayoutConfig.name) {
+			at(::workbenchLayoutConfig.name) {
 				write(workbenchLayoutConfig)
 			}
-			at(WorkbenchScreenState::structureViewLayoutConfig.name) {
+			at(::structureViewLayoutConfig.name) {
 				write(structureViewLayoutConfig)
 			}
-			at(WorkbenchScreenState::phraseViewLayoutConfig.name) {
+			at(::phraseViewLayoutConfig.name) {
 				write(phraseViewLayoutConfig)
 			}
-			at(WorkbenchScreenState::openEditors.name) {
+			at(::openEditors.name) {
 				writeArray {
 					openEditors.forEach { (_, v) ->
 						v.writeTo(this)
@@ -175,7 +175,7 @@ class WorkbenchScreenState constructor(
 			return WorkbenchScreenState(wb, sv, pv).apply {
 				if (obj.containsKey(WorkbenchScreenState::openEditors.name))
 				{
-					obj.getArray(WorkbenchScreenState::openEditors.name).forEach {
+					obj.getArray(::openEditors.name).forEach {
 						if (it.isObject)
 						{
 							val alc = AvailEditorLayoutConfiguration.from(

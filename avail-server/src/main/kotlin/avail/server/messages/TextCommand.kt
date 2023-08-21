@@ -470,7 +470,7 @@ enum class TextCommand
 	companion object
 	{
 		/** An array of all [TextCommand] enumeration values. */
-		val all = values()
+		val all = entries.toTypedArray()
 
 		/**
 		 * Parse an unambiguous [command&#32;message][CommandMessage] from the

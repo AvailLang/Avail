@@ -530,11 +530,12 @@ class DeclarationPhraseDescriptor(
 			recursionMap: IdentityHashMap<A_BasicObject, Void>,
 			indent: Int)
 
-		companion object {
+		companion object
+		{
 			/**
 			 * Stash a copy of the array of all [DeclarationKind] enum values.
 			 */
-			private val all = values()
+			private val all = entries.toTypedArray()
 
 			/**
 			 * Answer the previously stashed copy of the array of all
@@ -958,17 +959,17 @@ class DeclarationPhraseDescriptor(
 			literalVariable)
 
 		/** The mutable [DeclarationPhraseDescriptor]s. */
-		private val mutables = DeclarationKind.values().map {
+		private val mutables = DeclarationKind.entries.map {
 			DeclarationPhraseDescriptor(Mutability.MUTABLE, it)
 		}.toTypedArray()
 
 		/** The immutable [DeclarationPhraseDescriptor]s. */
-		private val immutables = DeclarationKind.values().map {
+		private val immutables = DeclarationKind.entries.map {
 			DeclarationPhraseDescriptor(Mutability.IMMUTABLE, it)
 		}.toTypedArray()
 
 		/** The shared [DeclarationPhraseDescriptor]s. */
-		private val shareds = DeclarationKind.values().map {
+		private val shareds = DeclarationKind.entries.map {
 			DeclarationPhraseDescriptor(Mutability.SHARED, it)
 		}.toTypedArray()
 	}

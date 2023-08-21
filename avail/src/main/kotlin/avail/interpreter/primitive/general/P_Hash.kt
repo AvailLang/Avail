@@ -42,7 +42,7 @@ import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
@@ -82,7 +82,7 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 			isEnumeration && (!isInstanceMeta || equals(bottomMeta)) ->
 				enumerationWith(
 					setFromCollection(instances.map { fromInt(it.hash()) }))
-			else -> int32
+			else -> i32
 		}
 	}
 
@@ -106,5 +106,5 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ANY.o), int32)
+		functionType(tuple(ANY.o), i32)
 }

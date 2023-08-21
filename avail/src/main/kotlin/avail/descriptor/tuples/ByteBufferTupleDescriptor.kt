@@ -67,7 +67,7 @@ import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeTuple
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import org.availlang.json.JSONWriter
 import java.nio.ByteBuffer
@@ -288,7 +288,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 					}
 				}
 				val defaultTypeObject = aType.defaultType
-				if (bytes.isSubtypeOf(defaultTypeObject))
+				if (u8.isSubtypeOf(defaultTypeObject))
 				{
 					return true
 				}
@@ -470,7 +470,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type
-	): Boolean = (bytes.isSubtypeOf(type)
+	): Boolean = (u8.isSubtypeOf(type)
 		|| super.o_TupleElementsInRangeAreInstancesOf(
 			self, startIndex, endIndex, type))
 

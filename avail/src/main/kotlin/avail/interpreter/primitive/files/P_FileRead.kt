@@ -66,7 +66,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
@@ -343,10 +343,10 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 				naturalNumbers,
 				inclusive(one, positiveInfinity),
 				ATOM.o,
-				functionType(tuple(zeroOrMoreOf(bytes)), TOP.o),
+				functionType(tuple(zeroOrMoreOf(u8)), TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o),
-				bytes),
+				u8),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =
