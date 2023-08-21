@@ -1,7 +1,7 @@
 | **Release**                                | **Version**                                                                                                                                                |
 |--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| [Avail VM](avail)                          | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha21-0f824e)](https://central.sonatype.com/namespace/org.availlang)                |
-| [Avail Standard Library](distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha21--1.6.1.alpha10-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
+| [Avail VM](avail)                          | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22-0f824e)](https://central.sonatype.com/namespace/org.availlang)                |
+| [Avail Standard Library](distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22--1.6.1.alpha11-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
 
 OVERVIEW
 --------------------------------------------------------------------------------

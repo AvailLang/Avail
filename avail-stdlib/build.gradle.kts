@@ -52,7 +52,7 @@ repositories {
 }
 
 group = "org.availlang"
-version = "2.0.0.alpha21-1.6.1.alpha10"
+version = "2.0.0.alpha22-1.6.1.alpha11"
 
 avail {
 	projectDescription = "The Avail Standard Library"
