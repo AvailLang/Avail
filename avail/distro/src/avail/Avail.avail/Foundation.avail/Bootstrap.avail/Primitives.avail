@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/29/23, 10:11 PM
+ * * Last Generated: 8/21/23, 6:40 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -68,6 +68,7 @@ Names
 	"Invoke_with_,⁇forked at priority_",
 	"Invoke|invoke_with_",
 	"Lexer_when_is_«styled by_»?",
+	"Load_",
 	"Macro_is«_,»_«styled by_»?",
 	"Mark for_character|characters of read ahead",
 	"Park current fiber",

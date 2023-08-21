@@ -100,6 +100,7 @@ Extends
 		"Invoke|invoke_with_",
 		"Invoke_with_,⁇forked at priority_",
 		"Lexer_when_is_«styled by_»?",
+		"Load_",
 		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Park current fiber",

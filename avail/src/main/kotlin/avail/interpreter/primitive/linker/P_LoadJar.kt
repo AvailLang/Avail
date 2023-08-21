@@ -33,42 +33,37 @@
 package avail.interpreter.primitive.linker
 
 import avail.descriptor.module.A_Module.Companion.moduleName
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
-import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import avail.interpreter.JarClassLoader
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.PrimitiveClassLoader
-import avail.interpreter.PrimitiveClassLoader.Companion.PRIMITIVE_NAME_PREFIX
 import avail.interpreter.execution.Interpreter
-import java.io.IOException
 import java.net.MalformedURLException
 import java.nio.file.Paths
-import java.util.jar.JarFile
 
 /**
- * **Primitive:** Link the [Primitive]s from the indicated jar file, in the same
- * module root as the loading module, using a [PrimitiveClassLoader]. The jar
- * must be specified using an Avail root-relative qualified path.
+ * **Primitive:** Load the indicated jar file, in the same module root as the
+ * loading module, using a [JarClassLoader]. The jar must be specified using an
+ * Avail root-relative qualified path.
  *
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_LinkPrimitives : Primitive(1, CanInline, HasSideEffect)
+object P_LoadJar : Primitive(1, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -94,35 +89,10 @@ object P_LinkPrimitives : Primitive(1, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_NO_FILE)
 		}
-		val primitives = mutableSetOf<String>()
-		try
-		{
-			JarFile(jarFile).use { jar ->
-				jar.entries().asIterator().forEach { entry ->
-					if (!entry.name.endsWith(".class")) return@forEach
-					val last = entry.name.split("/").last()
-					if(last.startsWith(PRIMITIVE_NAME_PREFIX))
-					{
-						entry.name.replace(".class", "").let {
-							primitives.add(it.replace("/", "."))
-						}
-					}
-				}
-			}
-		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(E_IO_ERROR)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
 
 		try
 		{
-			PrimitiveClassLoader(
-				jarFile, interpreter.module().moduleName, primitives)
+			JarClassLoader(jarFile, interpreter.module().moduleName)
 		}
 		catch (e: SecurityException)
 		{
@@ -132,20 +102,17 @@ object P_LinkPrimitives : Primitive(1, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_INVALID_PATH)
 		}
-		return interpreter.primitiveSuccess(emptySet)
+		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(
-			tuple(nonemptyStringType),
-			setTypeForSizesContentType(wholeNumbers, nonemptyStringType))
+		functionType(tuple(nonemptyStringType), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
 				E_PERMISSION_DENIED,
 				E_INVALID_PATH,
-				E_IO_ERROR,
 				E_NO_FILE,
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION

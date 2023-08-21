@@ -172,6 +172,7 @@ import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
+import avail.interpreter.JarClassLoader
 import avail.interpreter.PrimitiveClassLoader
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
@@ -187,8 +188,6 @@ import avail.utility.safeWrite
 import avail.utility.structures.BloomFilter
 import org.availlang.json.JSONWriter
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -1318,6 +1317,9 @@ class ModuleDescriptor private constructor(
 		}
 		// Unload any Primitives loaded by this module
 		PrimitiveClassLoader.unloadModuleClassLoaders(moduleName)
+
+		// Unload any Jars loaded by this module
+		JarClassLoader.unloadModuleClassLoaders(moduleName)
 
 		// Tidy up the module to make it easier for the garbage collector to
 		// clean things up piecemeal.
