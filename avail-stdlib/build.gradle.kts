@@ -57,7 +57,7 @@ version = "2.0.0.alpha22-1.6.1.alpha11"
 avail {
 	projectDescription = "The Avail Standard Library"
 	rootsDirectory = ProjectHome(
-		"../distro/src",
+		"../avail/distro/src",
 		FILE,
 		project.rootDir.absolutePath,
 		rootNameInJar = "avail")
@@ -89,7 +89,7 @@ fun copyArtifactToDistroLib ()
 	val availExtension = project.extensions
 		.findByType(AvailExtension::class.java)!!
 	File(availExtension.targetOutputJar).apply {
-		copyTo(File("../distro/lib/${name}"), true)
+		copyTo(File("../avail/distro/lib/${name}"), true)
 	}
 }
 
