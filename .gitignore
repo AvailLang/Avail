@@ -3,7 +3,7 @@
 /**/*.ws.kts
 /*-local-state.json
 /*.backup
-/.gradle
+/**/.gradle
 /.swp
 /avail-anvil.jar
 /build

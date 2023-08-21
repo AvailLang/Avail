@@ -3234,7 +3234,7 @@ class ValidatedRenderingContext constructor(
 	/**
 	 * A lazily computed [Pair] of HTML3.2 tag strings that can be written,
 	 * before and after html text to make it look as close to the document style
-	 * as possible. The close tags
+	 * as possible.
 	 */
 	private val tagPairsForHtml: Pair<String, String> by lazy(
 		LazyThreadSafetyMode.SYNCHRONIZED)
