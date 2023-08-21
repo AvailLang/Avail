@@ -289,6 +289,97 @@ tasks {
 		dependsOn(build)
 		dependsOn(javadocJar)
 	}
+
+	/**
+	 * Copy the generated bootstrap property files into the build directory, so
+	 * that the executable tools can find them as resources.
+	 *
+	 * See [relocateGeneratedPropertyFiles].
+	 */
+	val relocateGeneratedPropertyFiles by creating(Copy::class) {
+		description =
+			"Copy the generated bootstrap property files into the build " +
+				"directory, that the executable tools can find them as " +
+				"resources. See " +
+				"`AvailBootstrapModule.relocateGeneratedPropertyFiles`."
+		group = "bootstrap"
+		relocateGeneratedPropertyFiles(this)
+	}
+
+	// Update the dependencies of "classes".
+	classes { dependsOn(relocateGeneratedPropertyFiles) }
+
+	/** Bootstrap Primitive_<lang>.properties for the current locale. */
+	val generatePrimitiveNames by creating(JavaExec::class) {
+		description =
+			"Bootstrap Primitive_<lang>.properties for the current locale."
+		group = "bootstrap"
+		mainClass.set("avail.tools.bootstrap.PrimitiveNamesGenerator")
+		classpath = sourceSets.main.get().runtimeClasspath
+		dependsOn(classes)
+	}
+
+	/** Bootstrap ErrorCodeNames_<lang>.properties for the current locale. */
+	val generateErrorCodeNames by creating(JavaExec::class) {
+		description =
+			"Bootstrap ErrorCodeNames_<lang>.properties for the current locale."
+		group = "bootstrap"
+		mainClass.set("avail.tools.bootstrap.ErrorCodeNamesGenerator")
+		classpath = sourceSets.main.get().runtimeClasspath
+		dependsOn(classes)
+	}
+
+	/** Bootstrap ErrorCodeNames_<lang>.properties for the current locale. */
+	val generateSpecialObjectNames by creating(JavaExec::class) {
+		description =
+			"Bootstrap ErrorCodeNames_<lang>.properties for the current locale."
+		group = "bootstrap"
+		mainClass.set("avail.tools.bootstrap.SpecialObjectNamesGenerator")
+		classpath = sourceSets.main.get().runtimeClasspath
+		dependsOn(classes)
+	}
+
+	/**
+	 * Gradle task to generate all bootstrap `.properties` files for the current
+	 * locale.
+	 */
+	val generateAllNames by creating {
+		description =
+			"Gradle task to generate all bootstrap `.properties` files for " +
+				"the current locale."
+		group = "bootstrap"
+		dependsOn(generatePrimitiveNames)
+		dependsOn(generateErrorCodeNames)
+		dependsOn(generateSpecialObjectNames)
+	}
+
+	/**
+	 * Generate the new bootstrap Avail modules for the current locale.
+	 *
+	 * This is used in [Project.projectGenerateBootStrap].
+	 */
+	val internalGenerateBootstrap by creating(JavaExec::class) {
+		description =
+			"Generate the new bootstrap Avail modules for the current locale." +
+				"\n\tThis is used in Project.generateBootStrap."
+		group = "internal"
+		mainClass.set("avail.tools.bootstrap.BootstrapGenerator")
+		classpath = sourceSets.main.get().runtimeClasspath
+		dependsOn(classes)
+	}
+
+	/**
+	 * Gradle task to generate the new bootstrap Avail modules for the current
+	 * locale and copy them to the appropriate location for distribution.
+	 */
+	val generateBootstrap by creating(Copy::class) {
+		description =
+			"Gradle task to generate the new bootstrap Avail modules for the " +
+				"current locale and copy them to the appropriate location " +
+				"for distribution."
+		group = "bootstrap"
+		projectGenerateBootStrap(this)
+	}
 }
 
 signing {
@@ -531,6 +622,78 @@ data class AvailRoot constructor(val name: String, val uri: URI)
 {
 	/** The VM Options, `-DavailRoot`, root string. */
 	val rootString: String by lazy { "$name=$uri" }
+}
+
+/**
+ * Copy the generated bootstrap property files into the build directory, so that
+ * the executable tools can find them as resources..
+ *
+ * @param task
+ *   The [Copy] task in which this code is executed.
+ */
+fun Project.relocateGeneratedPropertyFiles (task: Copy)
+{
+	val pathBootstrap =
+		fileTree(systemPath(
+			"${rootProject.projectDir}",
+			relativePathBootstrap))
+	val movedPropertyFiles = file(systemPath(
+		"$buildDir",
+		"classes",
+		"kotlin",
+		"main",
+		"avail",
+		"tools",
+		"bootstrap"))
+	val lang = System.getProperty("user.language")
+	pathBootstrap.include(systemPath("**", "*_${lang}.properties"))
+	// This is a lie, but it ensures that this rule will not run until after the
+	// Kotlin source is compiled.
+	pathBootstrap.builtBy("compileKotlin")
+	task.inputs.files + pathBootstrap
+	task.outputs.dir(movedPropertyFiles)
+	task.from(pathBootstrap)
+	task.into(movedPropertyFiles)
+	task.duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+/**
+ * Generate the new bootstrap Avail modules for the current locale and copy them
+ * to the appropriate location for distribution.
+ *
+ * @param task
+ *   The [Copy] task in which this code is executed.
+ */
+fun Project.projectGenerateBootStrap(task: Copy)
+{
+	val source = systemPath("$projectDir", "src", "main", "resources")
+	val lang = System.getProperty("user.language")
+	val pathBootstrap = fileTree(systemPath(
+		source,
+		"avail",
+		"tools",
+		"bootstrap",
+		"generated",
+		lang,
+		"Bootstrap.avail"))
+	task.inputs.files + pathBootstrap
+	val distroBootstrap =
+		file(systemPath(
+			"${rootProject.projectDir}",
+			distroSrc,
+			"avail",
+			"Avail.avail",
+			"Foundation.avail",
+			"Bootstrap.avail"))
+	task.outputs.dir(distroBootstrap)
+
+	group = "bootstrap"
+	task.dependsOn(tasks.getByName("internalGenerateBootstrap"))
+
+	task.from(pathBootstrap)
+	task.into(distroBootstrap)
+
+	task.duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 /**

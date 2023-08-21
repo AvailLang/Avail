@@ -7,4 +7,5 @@ pluginManagement {
 
 rootProject.name = "avail"
 include("avail-artifact")
-project(":avail-artifact").projectDir = File(settingsDir, "../avail-artifact")
+project(":avail-artifact").projectDir =
+    File(settingsDir, "../avail-artifact")
