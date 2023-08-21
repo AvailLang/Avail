@@ -67,7 +67,7 @@ sealed class CodePaneShortcut constructor(
  *
  * @author Richard Arriaga
  */
-object InsertSpaceShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with())
+data object InsertSpaceShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with())
 {
 	override val actionMapKey: String = "insert-space"
 	override val description: String = "Insert Space"
@@ -80,7 +80,7 @@ object InsertSpaceShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with())
  *
  * @author Richard Arriaga
  */
-object BreakLineShortcut: CodePaneShortcut(KeyCode.VK_ENTER.with())
+data object BreakLineShortcut: CodePaneShortcut(KeyCode.VK_ENTER.with())
 {
 	override val actionMapKey: String = DefaultEditorKit.insertBreakAction
 	override val description: String = "Insert Line Break with Indentation"
@@ -93,7 +93,7 @@ object BreakLineShortcut: CodePaneShortcut(KeyCode.VK_ENTER.with())
  *
  * @author Richard Arriaga
  */
-object OutdentShortcut: CodePaneShortcut(KeyCode.VK_TAB.with(SHIFT))
+data object OutdentShortcut: CodePaneShortcut(KeyCode.VK_TAB.with(SHIFT))
 {
 	override val actionMapKey: String = "outdent"
 	override val description: String = "Outdent Text"
@@ -107,7 +107,7 @@ object OutdentShortcut: CodePaneShortcut(KeyCode.VK_TAB.with(SHIFT))
  *
  * @author Richard Arriaga
  */
-object CenterCurrentLineShortcut
+data object CenterCurrentLineShortcut
 	: CodePaneShortcut(KeyCode.VK_M.with(menuShortcutKeyMaskEx))
 {
 	override val actionMapKey: String = "center-line"
@@ -119,7 +119,8 @@ object CenterCurrentLineShortcut
  *
  * @author Richard Arriaga
  */
-object UndoShortcut: CodePaneShortcut(KeyCode.VK_Z.with(menuShortcutKeyMaskEx))
+data object UndoShortcut
+	: CodePaneShortcut(KeyCode.VK_Z.with(menuShortcutKeyMaskEx))
 {
 	override val actionMapKey: String = "undo"
 	override val description: String = "Undo Last Action"
@@ -130,7 +131,7 @@ object UndoShortcut: CodePaneShortcut(KeyCode.VK_Z.with(menuShortcutKeyMaskEx))
  *
  * @author Richard Arriaga
  */
-object RedoShortcut
+data object RedoShortcut
 	: CodePaneShortcut(KeyCode.VK_Z.with(menuShortcutKeyMaskEx, SHIFT))
 {
 	override val actionMapKey: String = "redo"
@@ -142,7 +143,8 @@ object RedoShortcut
  *
  * @author Richard Arriaga
  */
-object ExpandTemplateShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with(CTRL))
+data object ExpandTemplateShortcut
+	: CodePaneShortcut(KeyCode.VK_SPACE.with(CTRL))
 {
 	override val actionMapKey: String = "expand-template"
 	override val description: String = "Expand the Selected Template"
@@ -153,7 +155,7 @@ object ExpandTemplateShortcut: CodePaneShortcut(KeyCode.VK_SPACE.with(CTRL))
  *
  * @author Richard Arriaga
  */
-object CancelTemplateSelectionShortcut
+data object CancelTemplateSelectionShortcut
 	: CodePaneShortcut(KeyCode.VK_ESCAPE.with(CTRL))
 {
 	override val actionMapKey: String = "cancel-template-selection"
@@ -165,7 +167,7 @@ object CancelTemplateSelectionShortcut
  *
  * @author Richard Arriaga
  */
-object MoveLineUpShortcut: CodePaneShortcut(KeyCode.VK_UP.with(ALT, SHIFT))
+data object MoveLineUpShortcut: CodePaneShortcut(KeyCode.VK_UP.with(ALT, SHIFT))
 {
 	override val actionMapKey: String = "move-line-up"
 	override val description: String = "Move the Selected Text Up One Line"
@@ -176,7 +178,8 @@ object MoveLineUpShortcut: CodePaneShortcut(KeyCode.VK_UP.with(ALT, SHIFT))
  *
  * @author Richard Arriaga
  */
-object MoveLineDownShortcut: CodePaneShortcut(KeyCode.VK_DOWN.with(ALT, SHIFT))
+data object MoveLineDownShortcut
+	: CodePaneShortcut(KeyCode.VK_DOWN.with(ALT, SHIFT))
 {
 	override val actionMapKey: String = "move-line-down"
 	override val description: String = "Move the Selected Text Down One Line"
@@ -187,7 +190,7 @@ object MoveLineDownShortcut: CodePaneShortcut(KeyCode.VK_DOWN.with(ALT, SHIFT))
  *
  * @author Richard Arriaga
  */
-object UppercaseShortcut: CodePaneShortcut(KeyCode.VK_U.with(META, SHIFT))
+data object UppercaseShortcut: CodePaneShortcut(KeyCode.VK_U.with(META, SHIFT))
 {
 	override val actionMapKey: String = "uppercase"
 	override val description: String = "Uppercase Selected Text"
@@ -198,7 +201,7 @@ object UppercaseShortcut: CodePaneShortcut(KeyCode.VK_U.with(META, SHIFT))
  *
  * @author Richard Arriaga
  */
-object LowercaseShortcut: CodePaneShortcut(KeyCode.VK_L.with(META, SHIFT))
+data object LowercaseShortcut: CodePaneShortcut(KeyCode.VK_L.with(META, SHIFT))
 {
 	override val actionMapKey: String = "lowercase"
 	override val description: String = "Lowercase Selected Text"
@@ -209,7 +212,7 @@ object LowercaseShortcut: CodePaneShortcut(KeyCode.VK_L.with(META, SHIFT))
  *
  * @author Richard Arriaga
  */
-object CamelCaseShortcut: CodePaneShortcut(KeyCode.VK_C.with(META, CTRL))
+data object CamelCaseShortcut: CodePaneShortcut(KeyCode.VK_C.with(META, CTRL))
 {
 	override val actionMapKey: String = "camel-case"
 	override val description: String = "Transform Selected Text to camelCase"
@@ -220,7 +223,7 @@ object CamelCaseShortcut: CodePaneShortcut(KeyCode.VK_C.with(META, CTRL))
  *
  * @author Richard Arriaga
  */
-object PascalCaseShortcut: CodePaneShortcut(KeyCode.VK_P.with(META, CTRL))
+data object PascalCaseShortcut: CodePaneShortcut(KeyCode.VK_P.with(META, CTRL))
 {
 	override val actionMapKey: String = "pascal-case"
 	override val description: String = "Transform Selected Text to PascalCase"
@@ -231,7 +234,7 @@ object PascalCaseShortcut: CodePaneShortcut(KeyCode.VK_P.with(META, CTRL))
  *
  * @author Richard Arriaga
  */
-object SnakeCaseShortcut: CodePaneShortcut(KeyCode.VK_S.with(META, CTRL))
+data object SnakeCaseShortcut: CodePaneShortcut(KeyCode.VK_S.with(META, CTRL))
 {
 	override val actionMapKey: String = "snake-case"
 	override val description: String = "Transform Selected Text to snake_case"
@@ -242,10 +245,24 @@ object SnakeCaseShortcut: CodePaneShortcut(KeyCode.VK_S.with(META, CTRL))
  *
  * @author Richard Arriaga
  */
-object KebabCaseShortcut: CodePaneShortcut(KeyCode.VK_K.with(META, CTRL))
+data object KebabCaseShortcut: CodePaneShortcut(KeyCode.VK_K.with(META, CTRL))
 {
 	override val actionMapKey: String = "kebab-case"
 	override val description: String = "Transform Selected Text to kebab-case"
+}
+
+/**
+ * The [CodePaneShortcut] that copies the selected text as HTML5 to the system
+ * clipboard.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+data object CopyAsHtml5ToClipboardShortcut
+	: CodePaneShortcut(KeyCode.VK_C.with(menuShortcutKeyMaskEx, ALT))
+{
+	override val actionMapKey: String = "copy-as-html5"
+	override val description: String =
+		"Copy Selected Text as HTML5 to Clipboard"
 }
 
 /**
@@ -253,7 +270,8 @@ object KebabCaseShortcut: CodePaneShortcut(KeyCode.VK_K.with(META, CTRL))
  *
  * @author Richard Arriaga
  */
-object IncreaseFontSizeShortcut: CodePaneShortcut(KeyCode.VK_EQUALS.with(META))
+data object IncreaseFontSizeShortcut
+	: CodePaneShortcut(KeyCode.VK_EQUALS.with(META))
 {
 	override val actionMapKey: String = "increase-font-size"
 	override val description: String =
@@ -265,7 +283,8 @@ object IncreaseFontSizeShortcut: CodePaneShortcut(KeyCode.VK_EQUALS.with(META))
  *
  * @author Richard Arriaga
  */
-object DecreaseFontSizeShortcut: CodePaneShortcut(KeyCode.VK_MINUS.with(META))
+data object DecreaseFontSizeShortcut
+	: CodePaneShortcut(KeyCode.VK_MINUS.with(META))
 {
 	override val actionMapKey: String = "decrease-font-size"
 	override val description: String =
