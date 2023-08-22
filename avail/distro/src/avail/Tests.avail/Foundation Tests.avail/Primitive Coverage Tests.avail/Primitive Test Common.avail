@@ -57,6 +57,7 @@ Names
 	"primitive general test suite",
 	"primitive hooks test suite",
 	"primitive integers test suite",
+	"primitive linker test suite",
 	"primitive maps test suite",
 	"primitive methods test suite",
 	"primitive modules test suite",
@@ -124,6 +125,10 @@ New test suite primitive hooks test suite extends primitives test suite;
 /* The primitive integers package test suite identifier. */
 "primitive integers test suite" is a new atom;
 New test suite primitive integers test suite extends primitives test suite;
+
+/* The primitive linker package test suite identifier. */
+"primitive linker test suite" is a new atom;
+New test suite primitive linker test suite extends primitives test suite;
 
 /* The primitive maps package test suite identifier. */
 "primitive maps test suite" is a new atom;

@@ -1,12 +1,12 @@
 [
 	{
-		"version": "2.0.0.alpha19-1.6.1.alpha08",
+		"version": "2.0.0.alpha22-1.6.1.alpha11",
 		"artifactType": "LIBRARY",
 		"outputLocation":
 		{
 			"locationType": "project",
 			"scheme": "JAR",
-			"path": "avail-stdlib/build/libs/z/avail-stdlib-2.0.0.alpha20-1.6.1.alpha09.jar"
+			"path": "avail-stdlib/build/libs/z/avail-stdlib-2.0.0.alpha22-1.6.1.alpha11.jar"
 		},
 		"implementationTitle" : "Avail Standard Library",
 		"jvmComponent": {

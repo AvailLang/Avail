@@ -96,6 +96,7 @@ Extends
 		"primitive general test suite",
 		"primitive hooks test suite",
 		"primitive integers test suite",
+		"primitive linker test suite",
 		"primitive maps test suite",
 		"primitive methods test suite",
 		"primitive modules test suite",
