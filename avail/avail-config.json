@@ -3,28 +3,35 @@
 	"darkMode": true,
 	"serializationVersion": 1,
 	"name": "avail-stdlib",
-	"repositoryLocation": {
+	"repositoryLocation": 
+	{
 		"locationType": "availRepositories",
 		"scheme": "FILE",
 		"path": ""
 	},
-	"roots": [
+	"disallow": 
+	[
+	],
+	"roots": 
+	[
 		{
 			"id": "4087a9f5-4d53-4a2d-8b59-b7d5bd7a1505",
 			"name": "avail",
 			"editable": true,
 			"visible": true,
-			"location": {
+			"description": "",
+			"location": 
+			{
 				"locationType": "project",
 				"scheme": "FILE",
 				"path": "distro/src/avail"
 			},
-			"availModuleExtensions": [
-				"avail"
+			"moduleHeaders": 
+			[
 			]
 		}
 	],
-	"moduleHeaders":
+	"moduleHeaders": 
 	[
 		{
 			"name": "Module Header w/ Copyright",
