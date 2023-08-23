@@ -44,5 +44,5 @@ Versions
 Uses
 	"Avail",
 	"LinkPrimitives Tests",
-	"LoadJar Tests"
+	"LinkPojos Tests"
 Body

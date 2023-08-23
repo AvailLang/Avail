@@ -1,5 +1,5 @@
 /*
- * LoadJar Tests.avail
+ * LinkPojos Tests.avail
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "LoadJar Tests"
+Module "LinkPojos Tests"
 Versions
 	"Avail-1.6.1"
 Uses
@@ -38,31 +38,31 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "LoadJar fails with permission-denied exception" in primitive linker test suite if supported is
+Test "LinkPojos fails with permission-denied exception" in primitive linker test suite if supported is
 [
 	Skip test;
 ]
 must raise permission-denied exception;
 
-Test "LoadJar fails with cannot-define-during-compilation exception" in primitive linker test suite if supported is
+Test "LinkPojos fails with cannot-define-during-compilation exception" in primitive linker test suite if supported is
 [
 	Skip test;
 ]
 must raise cannot-define-during-compilation exception;
 
-Test "LoadJar fails with loading-is-over exception" in primitive linker test suite if supported is
+Test "LinkPojos fails with loading-is-over exception" in primitive linker test suite if supported is
 [
 	Load "/avail/Avail/avail-primitives-2.0.0.alpha21-1.6.1.alpha10.jar";
 ]
 must raise loading-is-over exception;
 
-Test "LoadJar fails with no-file exception" in primitive linker test suite if supported is
+Test "LinkPojos fails with no-file exception" in primitive linker test suite if supported is
 [
 	Skip test;
 ]
 must raise no-file exception;
 
-Test "LoadJar fails with invalid-path exception" in primitive linker test suite if supported is
+Test "LinkPojos fails with invalid-path exception" in primitive linker test suite if supported is
 [
 	Skip test;
 ]
@@ -81,7 +81,7 @@ sampleValueWrapperConstructor ::=
     constructor sample value wrapper (Java int);
 getValue ::= method sample value wrapper.getValue ();
 
-Test "LoadJar ok" in primitive linker test suite if supported is
+Test "LinkPojos ok" in primitive linker test suite if supported is
 [
 	Skip test;
 ];

@@ -1213,7 +1213,7 @@ Primitive "Load_" is
 [
 	source : nonempty string
 |
-	Primitive LoadJar (failureCode : {
+	Primitive LinkPojos (failureCode : {
 		permission-denied code,
 		cannot-define-during-compilation code,
 		loading-is-over code,

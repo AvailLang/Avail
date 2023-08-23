@@ -57,7 +57,7 @@ import javax.annotation.concurrent.GuardedBy
  * @param moduleName
  *   The [A_String] module name of the module that created this class loader.
  * @param classNames
- *   The list of fully qualified [Primitive] class names as [A_String]s that
+ *   The list of fully qualified [Primitive] class names as Strings that
  *   represent [Primitive]s made available through this [PrimitiveClassLoader].
  * @param parent
  *   The parent [ClassLoader] of this [PrimitiveClassLoader].

@@ -39,34 +39,76 @@ import java.net.URLClassLoader
 import javax.annotation.concurrent.GuardedBy
 
 /**
- * The [URLClassLoader] for loading external Jars through the
- * [Primitive] linking system.
+ * The [URLClassLoader] for loading external Jars through the Pojo linking
+ * system.
  *
  * @author Richard Arriaga
  *
  * @property moduleName
  *   The fully qualified [A_String] name of the module that is responsible for
- *   creating this [JarClassLoader] for loading the target jar file.
+ *   creating this [PojoClassLoader] for loading the target jar file.
  *
  * @constructor
- * Construct a [JarClassLoader].
+ * Construct a [PojoClassLoader].
  *
  * @param jarFile
  *   The [File] location of the jar file to load.
  * @param moduleName
  *   The [A_String] module name of the module that created this class loader.
+ * @param classNames
+ *   The list of fully qualified Pojo class names as Strings that represent
+ *   Pojoss made available through this [PojoClassLoader].
  * @param parent
- *   The parent [ClassLoader] of this [JarClassLoader].
+ *   The parent [ClassLoader] of this [PojoClassLoader].
  */
-class JarClassLoader constructor(
+class PojoClassLoader constructor(
 	jarFile: File,
 	val moduleName: A_String,
+	classNames: Set<String>,
 	parent: ClassLoader = Primitive::class.java.classLoader
 ): URLClassLoader(arrayOf(jarFile.toURI().toURL()), parent)
 {
 	init
 	{
 		moduleToLoader.computeIfAbsent(moduleName) { mutableSetOf() }.add(this)
+		classNames.forEach {
+			PojoHolder.holdersByClassName[it] = PojoHolder(it, this)
+		}
+	}
+
+	/**
+	 * A helper class to assist with lazy loading of Pojos.
+	 *
+	 * @property className
+	 *   The full name of the Java class implementing the primitive.
+	 * @property classLoader
+	 *   The [ClassLoader] used to load the [Primitive] [className].
+	 */
+	class PojoHolder internal constructor(
+		val className: String,
+		private val classLoader: ClassLoader)
+	{
+		/**
+		 * The sole instance of the specific Pojo. It is initialized only when
+		 * needed for the first time, since that causes Java class loading to
+		 * happen, and we'd rather smear out that startup performance cost.
+		 *
+		 * @throws ClassNotFoundException
+		 * @throws NoSuchFieldException
+		 * @throws IllegalAccessException
+		 */
+		val pojo: Class<*> by lazy {
+			classLoader.loadClass(className)
+		}
+
+		companion object
+		{
+			/** A map of all [PojoHolder]s, by class name. */
+			internal val holdersByClassName =
+				mutableMapOf<String, PojoHolder>()
+
+
+		}
 	}
 
 	companion object
@@ -77,15 +119,15 @@ class JarClassLoader constructor(
 		private object UnloadLock
 
 		/**
-		 * The map that tracks all the [JarClassLoader]s loading primitive
+		 * The map that tracks all the [PojoClassLoader]s loading primitive
 		 * libraries for a given [ModuleName].
 		 */
 		@GuardedBy("UnloadLock")
 		private val moduleToLoader =
-			mutableMapOf<A_String, MutableSet<JarClassLoader>>()
+			mutableMapOf<A_String, MutableSet<PojoClassLoader>>()
 
 		/**
-		 * Unload all the [JarClassLoader]s loaded by the provided [ModuleName].
+		 * Unload all the [PojoClassLoader]s loaded by the provided [ModuleName].
 		 *
 		 * @param moduleName
 		 *   The [ModuleName] for the module to unload.

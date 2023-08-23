@@ -42,28 +42,31 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
+import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.JarClassLoader
+import avail.interpreter.PojoClassLoader
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
+import java.io.IOException
 import java.net.MalformedURLException
 import java.nio.file.Paths
+import java.util.jar.JarFile
 
 /**
  * **Primitive:** Load the indicated jar file, in the same module root as the
- * loading module, using a [JarClassLoader]. The jar must be specified using an
+ * loading module, using a [PojoClassLoader]. The jar must be specified using an
  * Avail root-relative qualified path.
  *
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_LoadJar : Primitive(1, CanInline, HasSideEffect)
+object P_LinkPojos : Primitive(1, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -89,10 +92,30 @@ object P_LoadJar : Primitive(1, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_NO_FILE)
 		}
+		val pojos = mutableSetOf<String>()
+		try
+		{
+			JarFile(jarFile).use { jar ->
+				jar.entries().asIterator().forEach { entry ->
+					if (!entry.name.endsWith(".class")) return@forEach
+					entry.name.replace(".class", "").let {
+						pojos.add(it.replace("/", "."))
+					}
+				}
+			}
+		}
+		catch (e: IOException)
+		{
+			return interpreter.primitiveFailure(AvailErrorCode.E_IO_ERROR)
+		}
+		catch (e: SecurityException)
+		{
+			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+		}
 
 		try
 		{
-			JarClassLoader(jarFile, interpreter.module().moduleName)
+			PojoClassLoader(jarFile, interpreter.module().moduleName, pojos)
 		}
 		catch (e: SecurityException)
 		{
