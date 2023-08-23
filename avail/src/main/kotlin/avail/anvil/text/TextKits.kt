@@ -755,7 +755,7 @@ private object MoveLineDown:
 				lineStarts.last() == lineEnds.last() ->
 					txt.document.getText(startNextLine, nextLineLength + 1)
 				// No edge case; shift is fully internal to the document.
-				else -> txt.document.getText(startNextLine - 1, nextLineLength)
+				else -> txt.document.getText(startNextLine - 1, nextLineLength + 1)
 			}
 
 		// Calculate the adjustment to the selection for the new start and end
