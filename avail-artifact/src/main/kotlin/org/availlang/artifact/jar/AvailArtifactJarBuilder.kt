@@ -62,15 +62,19 @@ class AvailArtifactJarBuilder constructor(
 	{
 		val manifest = Manifest()
 		manifest.mainAttributes[Attributes.Name.MANIFEST_VERSION] = "1.0"
-		manifest.mainAttributes[Attributes.Name("Build-Time")] = formattedNow
-		manifest.mainAttributes[Attributes.Name.IMPLEMENTATION_VERSION] = implementationVersion
-		manifest.mainAttributes[Attributes.Name.IMPLEMENTATION_TITLE] = implementationTitle
+		manifest.mainAttributes[Attributes.Name("Build-Time")] =
+			formattedNow
+		manifest.mainAttributes[Attributes.Name.IMPLEMENTATION_VERSION] =
+			implementationVersion
+		manifest.mainAttributes[Attributes.Name.IMPLEMENTATION_TITLE] =
+			implementationTitle
 		customManifestItems.forEach { (k, v) ->
 			manifest.mainAttributes[Attributes.Name(k)] = v
 		}
 		if (jarManifestMainClass.isNotEmpty())
 		{
-			manifest.mainAttributes[Attributes.Name.MAIN_CLASS] = jarManifestMainClass
+			manifest.mainAttributes[Attributes.Name.MAIN_CLASS] =
+				jarManifestMainClass
 		}
 
 		jarOutputStream =
