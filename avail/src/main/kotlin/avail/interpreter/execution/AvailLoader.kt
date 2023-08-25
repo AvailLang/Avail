@@ -184,6 +184,7 @@ import avail.descriptor.tokens.A_Token.Companion.end
 import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -2306,9 +2307,10 @@ constructor(
 				{
 					stylesheet[styleString].encloseHtml(this) {
 						// Be sure to escape any special characters like '<'.
-						val substring = native.substring(
-							start.toInt() - 1, pastEnd.toInt() - 1)
-						append(substring.escapedForHTML())
+						val substring: A_String =
+							quotedName.copyStringFromToCanDestroy(
+								start.toInt(), pastEnd.toInt() - 1, false)
+						append(substring.asNativeString().escapedForHTML())
 					}
 				}
 			}

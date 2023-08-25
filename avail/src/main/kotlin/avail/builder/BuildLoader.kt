@@ -696,27 +696,29 @@ internal class BuildLoader constructor(
 	{
 		val loader = context.loader
 		val converter = context.surrogateIndexConverter
+		// Map from 1-based Avail indices to 0-based UTF-16 indices.
 		val styleRanges = loader.lockStyles {
 			map { (start, pastEnd, style) ->
 				val utf16Start =
-					converter.availIndexToJavaIndex(start.toInt())
+					converter.availIndexToJavaIndex(start.toInt() - 1)
 				val utf16PastEnd =
-					converter.availIndexToJavaIndex(pastEnd.toInt())
-				(utf16Start until utf16PastEnd) to style
+					converter.availIndexToJavaIndex(pastEnd.toInt() - 1)
+				(utf16Start .. utf16PastEnd) to style
 			}
 		}
+		assert(styleRanges.all { (range, _) -> range.first < range.last })
 		val uses = loader.lockUsesToDefinitions {
 			map { (useStart, usePastEnd, defRange) ->
 				val utf16UseStart =
-					converter.availIndexToJavaIndex(useStart.toInt())
+					converter.availIndexToJavaIndex(useStart.toInt() - 1)
 				val utf16UsePastEnd =
-					converter.availIndexToJavaIndex(usePastEnd.toInt())
+					converter.availIndexToJavaIndex(usePastEnd.toInt() - 1)
 				val utf16DefStart =
-					converter.availIndexToJavaIndex(defRange.first.toInt())
+					converter.availIndexToJavaIndex(defRange.first.toInt() - 1)
 				val utf16DefEnd =
 					converter.availIndexToJavaIndex(defRange.last.toInt())
 				Pair(
-					(utf16UseStart until utf16UsePastEnd),
+					(utf16UseStart .. utf16UsePastEnd),
 					(utf16DefStart .. utf16DefEnd))
 			}
 		}

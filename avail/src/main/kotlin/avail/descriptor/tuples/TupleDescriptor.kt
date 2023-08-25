@@ -1399,7 +1399,7 @@ protected constructor(
 		 *   The [StringBuilder] on which to write the quoted string.
 		 * @param string
 		 *   The [A_String] to quote.
-		 * @param
+		 * @param map
 		 *   The optional [MutableMap] to populate from one-based positions in
 		 *   the given [string] to corresponding zero-based positions in the
 		 *   builder.

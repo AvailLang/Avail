@@ -393,9 +393,10 @@ inline fun Graphics.antiAliased(draw: Graphics2D.()->Unit) = withHints(
 )
 
 /**
- * Given a range and a [Glow], apply that glow to the characters in that range.
- * Add a highlight for the first character, the middle region if any, and the
- * last character of that range.  A size-one range acts as both a first and last
+ * Given a range and a [Glow], apply that glow to the characters in that range,
+ * which consists of zero-based indices of the start and end inclusive.  Add a
+ * highlight for the first character, the middle region if any, and the last
+ * character of that range.  A size-one range acts as both a first and last
  * character, with no middle part.  This simplifies rendering of a box
  * highlight, since the highlight mechanism is executed for each styled run
  * separately, with no easy way to tell if the left or right walls of the box

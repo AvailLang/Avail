@@ -1,11 +1,16 @@
 package org.availlang.artifact.jar
 
-import org.availlang.artifact.*
 import org.availlang.artifact.ArtifactDescriptor.Companion.artifactDescriptorFileName
 import org.availlang.artifact.ArtifactDescriptor.Companion.artifactDescriptorFilePath
+import org.availlang.artifact.AvailArtifact
 import org.availlang.artifact.AvailArtifact.Companion.artifactRootDirectory
 import org.availlang.artifact.AvailArtifact.Companion.availDigestsPathInArtifact
+import org.availlang.artifact.AvailArtifactException
+import org.availlang.artifact.AvailArtifactType
+import org.availlang.artifact.DigestUtility
+import org.availlang.artifact.PackageType
 import org.availlang.artifact.environment.location.Scheme
+import org.availlang.artifact.formattedNow
 import org.availlang.artifact.manifest.AvailArtifactManifest
 import org.availlang.artifact.manifest.AvailArtifactManifest.Companion.availArtifactManifestFile
 import org.availlang.artifact.manifest.AvailArtifactManifest.Companion.manifestFileName
@@ -15,7 +20,12 @@ import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.util.jar.*
+import java.util.jar.Attributes
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
+import java.util.jar.Manifest
+import java.util.regex.Pattern
 import java.util.zip.ZipFile
 
 /**
@@ -134,21 +144,21 @@ class AvailArtifactJarBuilder constructor(
 
 		val sourceDirPrefix =
 			AvailArtifact.rootArtifactSourcesDir(targetRoot.name)
-		root.walk()
-			.forEach { file ->
-				val pathRelativeName =
-					canonicalizePath(
-						"$sourceDirPrefix${file.absolutePath.removePrefix(rootPath)}" +
-						if (file.isDirectory) "/" else "")
-				jarOutputStream.putNextEntry(JarEntry(pathRelativeName))
-				added.add(pathRelativeName)
-				if (file.isFile)
-				{
-					val fileBytes = file.readBytes()
-					jarOutputStream.write(fileBytes)
-				}
-				jarOutputStream.closeEntry()
+		root.walk().forEach { file ->
+			if (shouldExclude(file)) return@forEach
+			val withoutPrefix = file.absolutePath.removePrefix(rootPath)
+			val suffix = if (file.isDirectory) "/" else ""
+			val pathRelativeName =
+				canonicalizePath("$sourceDirPrefix$withoutPrefix$suffix")
+			jarOutputStream.putNextEntry(JarEntry(pathRelativeName))
+			added.add(pathRelativeName)
+			if (file.isFile)
+			{
+				val fileBytes = file.readBytes()
+				jarOutputStream.write(fileBytes)
 			}
+			jarOutputStream.closeEntry()
+		}
 		val entryName = canonicalizePath(
 			"${AvailArtifact.rootArtifactDigestDirPath(targetRoot.name)}/$availDigestsPathInArtifact/")
 		jarOutputStream.putNextEntry(JarEntry(entryName))
@@ -416,5 +426,31 @@ class AvailArtifactJarBuilder constructor(
 		zipFiles.forEach { jarBuilder.addZip(it) }
 		directories.forEach { jarBuilder.addDir(it) }
 		return jarBuilder
+	}
+
+	companion object
+	{
+		/**
+		 * A collection of regex predicates, which, if they match a file's name,
+		 * causes that file to be excluded from the jar.
+		 */
+		private val patternsToReject = listOf(
+			"""\.DS_Store""",
+			//"""\.gitignore"""
+		).map { Pattern.compile(it).asMatchPredicate() }
+
+		/**
+		 * Answer whether the given file should be excluded from the jar, based
+		 * on its name.
+		 *
+		 * @param file
+		 *   The [File] to test for automatic exclusion.
+		 * @return
+		 *   `true` if the file should be excluded, `false` for inclusion.
+		 */
+		fun shouldExclude(file: File): Boolean
+		{
+			return patternsToReject.any { it.test(file.name) }
+		}
 	}
 }
