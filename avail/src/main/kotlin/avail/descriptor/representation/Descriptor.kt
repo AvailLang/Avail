@@ -183,6 +183,10 @@ protected constructor (
 		self: AvailObject,
 		chunk: L2Chunk): Unit = unsupported
 
+	override fun o_AddPostLoadFunction (
+		self: AvailObject,
+		postLoadFunction: A_Function): Unit = unsupported
+
 	override fun o_AddUnloadFunction (
 		self: AvailObject,
 		unloadFunction: A_Function): Unit = unsupported

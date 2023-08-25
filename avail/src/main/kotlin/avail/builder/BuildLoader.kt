@@ -760,8 +760,8 @@ internal class BuildLoader constructor(
 		bytesCompiled.set(0L)
 		val vertexCountBefore = availBuilder.moduleGraph.vertexCount
 		availBuilder.moduleGraph.parallelVisitThen(
-			{ vertex, done -> scheduleLoadModule(vertex, done) },
-			{
+			visitAction = { vertex, done -> scheduleLoadModule(vertex, done) },
+			afterTraversal = {
 				try
 				{
 					assert(

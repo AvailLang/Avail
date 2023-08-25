@@ -3451,7 +3451,9 @@ class AvailCompiler constructor(
 					// ...but ensure the final statement styling has completed
 					// before writing to the repository or indicating success.
 					compilationContext.whenNotStyling {
-						reachedEndOfModule(withoutEndToken)
+						runAllPostCompileActionsThen {
+							reachedEndOfModule(withoutEndToken)
+						}
 					}
 				}
 				return@parseOutermostStatement
@@ -3543,6 +3545,23 @@ class AvailCompiler constructor(
 			// executing the top-level statement (i.e., each simple statement).
 			compilationContext.whenNotStyling(recurse)
 		}
+	}
+
+	/**
+	 * The module has been fully parsed, and each statement has been executed.
+	 * Now run any Avail functions that were specifically postponed until after
+	 * parsing.  They must run sequentially, in the order they were recorded.
+	 *
+	 * After the statements have run, execute [afterActions].
+	 *
+	 * @param afterActions
+	 *   What to execute after successfully running all the post-compile
+	 *   functions.
+	 */
+	private fun runAllPostCompileActionsThen(afterActions: ()->Unit)
+	{
+		//TODO
+		afterActions()
 	}
 
 	/**

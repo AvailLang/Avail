@@ -173,6 +173,20 @@ interface A_Module : A_BasicObject
 
 		/**
 		 * Add the specified [function][A_Function] to the [tuple][A_Tuple] of
+		 * functions that should be applied when the [module][A_Module] has been
+		 * fully compiled.
+		 *
+		 * @param postLoadFunction
+		 *   An Avail [A_Function] of zero arguments.
+		 * @throws AvailRuntimeException
+		 *   If the [module][A_Module] is nat currently loading.
+		 */
+		@Throws(AvailRuntimeException::class)
+		fun A_Module.addPostLoadFunction(postLoadFunction: A_Function) =
+			dispatch { o_AddPostLoadFunction(it, postLoadFunction) }
+
+		/**
+		 * Add the specified [function][A_Function] to the [tuple][A_Tuple] of
 		 * functions that should be applied when the [module][A_Module] is unloaded.
 		 *
 		 * @param unloadFunction

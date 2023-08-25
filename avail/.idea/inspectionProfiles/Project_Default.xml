@@ -399,7 +399,7 @@
       <option name="m_allowConstructorAsInitializer" value="true" />
       <option name="m_onlyLookAtBlocks" value="false" />
     </inspection_tool>
-    <inspection_tool class="TrailingSpacesInProperty" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="TrailingSpacesInProperty" enabled="true" level="WARNING" enabled_by_default="true" ignoreVisibleSpaces="true" />
     <inspection_tool class="TryStatementWithMultipleResources" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="TypeParameterExtendsFinalClass" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="UNUSED_IMPORT" enabled="true" level="ERROR" enabled_by_default="true" />

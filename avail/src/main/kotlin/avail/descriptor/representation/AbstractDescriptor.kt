@@ -3682,6 +3682,10 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_HasValue (self: AvailObject): Boolean
 
+	abstract fun o_AddPostLoadFunction (
+		self: AvailObject,
+		postLoadFunction: A_Function)
+
 	abstract fun o_AddUnloadFunction (
 		self: AvailObject,
 		unloadFunction: A_Function)

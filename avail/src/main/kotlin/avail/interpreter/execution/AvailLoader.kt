@@ -185,7 +185,6 @@ import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -1625,53 +1624,51 @@ constructor(
 	 * Run the specified [tuple][A_Tuple] of [functions][A_Function]
 	 * sequentially.
 	 *
-	 * @param unloadFunctions
-	 *   A tuple of unload functions.
-	 * @param afterRunning
-	 *   What to do after every unload function has completed.
+	 * @param functions
+	 *   An [Iterator] providing the [A_Function]s to run, sequentially, in
+	 *   separate fibers.
+	 * @param purpose
+	 *   A very short string identifying the purpose of running these functions.
+	 *   It will appear in the name of the launched fibers.
+	 * @param afterFailingOne
+	 *   What to do if a fiber launched to run one of the functions reports a
+	 *   failure.  A "proceed" function is supplied, so the client can continue
+	 *   with the remaining functions, if that's appropriate, or report an error
+	 *   and simply not invoke that function.
+	 * @param afterRunningAll
+	 *   What to do after every provided function has completed.
 	 */
-	fun runUnloadFunctions(
-		unloadFunctions: A_Tuple,
-		afterRunning: () -> Unit)
+	fun runFunctions(
+		functions: Iterator<A_Function>,
+		purpose: String,
+		afterFailingOne: (proceed: ()->Unit) -> Unit,
+		afterRunningAll: () -> Unit)
 	{
-		val size = unloadFunctions.tupleSize
-		// The index into the tuple of unload functions.
-		if (size == 0)
-		{
-			// When there's at least one unload function, the fact that it forks
-			// a fiber ensures the stack doesn't grow arbitrarily deep from
-			// running afterRunning functions with ever deeper recursion, due to
-			// the Thread agnosticism of Graph.ParallelVisitor.  Here we have
-			// no unload functions, so break the direct cyclic call explicitly
-			// by queueing an action.
-			runtime.execute(loaderPriority, afterRunning)
-		}
-		else
-		{
-			var index = 1
-			recurse { again ->
-				if (index <= size)
-				{
-					val currentIndex = index++
-					val unloadFunction: A_Function =
-						unloadFunctions.tupleAt(currentIndex)
-					val fiber = newFiber(
-						TOP.o, runtime, textInterface, loaderPriority)
-					{
+		recurse { again ->
+			if (functions.hasNext())
+			{
+				val function = functions.next()
+				val fiber = newFiber(
+					resultType = TOP.o,
+					runtime = runtime,
+					textInterface = textInterface,
+					priority = loaderPriority,
+					nameSupplier = {
 						formatString(
-							"Unload function #%d/%d for module %s",
-							currentIndex,
-							size,
+							"$purpose function for module %s",
 							module.shortModuleNameNative)
-					}
-					fiber.setSuccessAndFailure({ again() }, { again() })
-					runtime.runOutermostFunction(
-						fiber, unloadFunction, emptyList())
-				}
-				else
-				{
-					runtime.execute(loaderPriority, afterRunning)
-				}
+					})
+				fiber.setSuccessAndFailure(
+					onSuccess = { again() },
+					onFailure = { afterFailingOne(again) })
+				runtime.runOutermostFunction(fiber, function, emptyList())
+			}
+			else
+			{
+				// Always queue this as a task, in case the client is agnostic
+				// about threads, like Graph's parallelVisit(), which could
+				// otherwise lead to a stack overflow.
+				runtime.execute(loaderPriority, afterRunningAll)
 			}
 		}
 	}

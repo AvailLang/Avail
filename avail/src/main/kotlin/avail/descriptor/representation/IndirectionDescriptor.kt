@@ -248,6 +248,7 @@ import avail.descriptor.module.A_Module.Companion.addConstantBinding
 import avail.descriptor.module.A_Module.Companion.addImportedName
 import avail.descriptor.module.A_Module.Companion.addImportedNames
 import avail.descriptor.module.A_Module.Companion.addLexer
+import avail.descriptor.module.A_Module.Companion.addPostLoadFunction
 import avail.descriptor.module.A_Module.Companion.addPrivateName
 import avail.descriptor.module.A_Module.Companion.addPrivateNames
 import avail.descriptor.module.A_Module.Companion.addSeal
@@ -3372,6 +3373,11 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_HasValue(self: AvailObject): Boolean =
 		self .. { hasValue() }
+
+	override fun o_AddPostLoadFunction(
+		self: AvailObject,
+		postLoadFunction: A_Function
+	) = self .. { addPostLoadFunction(postLoadFunction) }
 
 	override fun o_AddUnloadFunction(
 		self: AvailObject,
