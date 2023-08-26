@@ -428,7 +428,18 @@ class FileSystemModuleRootResolver constructor(
 						reference.refresh(
 							System.currentTimeMillis(),
 							fileContents.size.toLong())
-						successHandler()
+						try
+						{
+							tempFile.close()
+						}
+						catch (e: IOException)
+						{
+							// Nothing to be done
+						}
+						finally
+						{
+							successHandler()
+						}
 					}
 				}
 
@@ -436,9 +447,20 @@ class FileSystemModuleRootResolver constructor(
 					exc: Throwable?,
 					attachment: ErrorCode?)
 				{
-					failureHandler(
-						attachment ?: FileErrorCode.UNSPECIFIED,
-						exc)
+					try
+					{
+						tempFile.close()
+					}
+					catch (e: IOException)
+					{
+						// Nothing to be done
+					}
+					finally
+					{
+						failureHandler(
+							attachment ?: FileErrorCode.UNSPECIFIED,
+							exc)
+					}
 				}
 			})
 	}
