@@ -65,7 +65,7 @@ Uses
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
 		"Lexer_when_is_«styled by_»?",
-		"Load_",
+		"Link pojos_",
 		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
@@ -1198,9 +1198,9 @@ Primitive "internal link_" is
  * Load the indicated jar resource file.
  *
  * @category "Primitives"
- * @method "Load_"
+ * @method "Link pojos_"
  * @param "source" "character+"
- *        The root-relative fully qualified name of the source file to link.
+ *        The root-relative fully qualified name of the jar file to link.
  *        This is the resource jar file to be loaded.
  * @returns "⊤"
  * @raises "permission-denied exception"
@@ -1209,7 +1209,7 @@ Primitive "internal link_" is
  * @raises "no-file exception"
  * @raises "invalid-path exception"
  */
-Primitive "Load_" is
+Primitive "Link pojos_" is
 [
 	source : nonempty string
 |

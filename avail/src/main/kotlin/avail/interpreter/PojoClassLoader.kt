@@ -68,11 +68,42 @@ class PojoClassLoader constructor(
 	parent: ClassLoader = Primitive::class.java.classLoader
 ): URLClassLoader(arrayOf(jarFile.toURI().toURL()), parent)
 {
+	/**
+	 * The set of [Primitive.PrimitiveHolder]s that were loaded by this
+	 * [PrimitiveClassLoader].
+	 */
+	private val holders = mutableSetOf<PojoHolder>()
+
+	/**
+	 * The path to the loaded Jar file.
+	 */
+	private val jarPath = jarFile.path
+
 	init
 	{
 		moduleToLoader.computeIfAbsent(moduleName) { mutableSetOf() }.add(this)
+		jarToLoader[jarPath] = this
 		classNames.forEach {
-			PojoHolder.holdersByClassName[it] = PojoHolder(it, this)
+			val holder = PojoHolder(it, this)
+			PojoHolder.holdersByClassName[it] = holder
+			holders.add(holder)
+		}
+	}
+
+	/**
+	 * Cleanup all of the [PojoHolder(it, this)]s loaded by this
+	 * [PojoClassLoader] then [close] this [PojoClassLoader].
+	 */
+	fun cleanup ()
+	{
+		synchronized(this)
+		{
+			holders.toList().forEach { holder ->
+				PojoHolder.holdersByClassName.remove(holder.className)
+			}
+			jarToLoader.remove(jarPath)
+			close()
+			holders.clear()
 		}
 	}
 
@@ -106,8 +137,6 @@ class PojoClassLoader constructor(
 			/** A map of all [PojoHolder]s, by class name. */
 			internal val holdersByClassName =
 				mutableMapOf<String, PojoHolder>()
-
-
 		}
 	}
 
@@ -119,28 +148,35 @@ class PojoClassLoader constructor(
 		private object UnloadLock
 
 		/**
-		 * The map that tracks all the [PojoClassLoader]s loading primitive
-		 * libraries for a given [ModuleName].
+		 * The map that tracks all the [PojoClassLoader]s loading libraries for
+		 * a given [ModuleName].
 		 */
 		@GuardedBy("UnloadLock")
 		private val moduleToLoader =
 			mutableMapOf<A_String, MutableSet<PojoClassLoader>>()
 
 		/**
-		 * Unload all the [PojoClassLoader]s loaded by the provided [ModuleName].
+		 * The map that tracks all the jar file paths to the associated
+		 * [PojoClassLoader].
+		 */
+		@GuardedBy("UnloadLock")
+		private val jarToLoader = mutableMapOf<String, PojoClassLoader>()
+
+		fun jarLinked (path: String): Boolean = jarToLoader[path] != null
+
+		/**
+		 * Unload all the [PojoClassLoader]s loaded by the provided
+		 * [ModuleName].
 		 *
 		 * @param moduleName
 		 *   The [ModuleName] for the module to unload.
 		 */
 		fun unloadModuleClassLoaders (moduleName: A_String)
 		{
-			moduleToLoader[moduleName]?.let {
-				synchronized(UnloadLock)
-				{
-					moduleToLoader.remove(moduleName)
-				}
+			synchronized(UnloadLock)
+			{
+				moduleToLoader.remove(moduleName)?.forEach { it.cleanup() }
 			}
 		}
-
 	}
 }

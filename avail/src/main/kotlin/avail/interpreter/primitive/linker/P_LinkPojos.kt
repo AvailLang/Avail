@@ -59,7 +59,7 @@ import java.nio.file.Paths
 import java.util.jar.JarFile
 
 /**
- * **Primitive:** Load the indicated jar file, in the same module root as the
+ * **Primitive:** Link the indicated jar file, in the same module root as the
  * loading module, using a [PojoClassLoader]. The jar must be specified using an
  * Avail root-relative qualified path.
  *
@@ -91,6 +91,10 @@ object P_LinkPojos : Primitive(1, CanInline, HasSideEffect)
 		if (!jarFile.exists())
 		{
 			return interpreter.primitiveFailure(E_NO_FILE)
+		}
+		if (PojoClassLoader.jarLinked(jarFile.path))
+		{
+
 		}
 		val pojos = mutableSetOf<String>()
 		try
