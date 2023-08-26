@@ -44,7 +44,6 @@ import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.StylingGroup
 import org.availlang.artifact.jar.AvailArtifactJar
 import org.availlang.artifact.jar.AvailArtifactJarBuilder
-import org.availlang.artifact.jar.JvmComponent
 import org.availlang.artifact.roots.AvailRoot
 import org.gradle.api.DefaultTask
 import java.io.File
@@ -120,13 +119,6 @@ abstract class CreateAvailArtifactJar : DefaultTask()
 			Scheme.FILE,
 			project.projectDir.absolutePath,
 			null)
-
-	/**
-	 * The [JvmComponent] that describes any JVM components being packaged in
-	 * the artifact or [JvmComponent.NONE] if none.
-	 */
-	@Input
-	var jvmComponent: JvmComponent = JvmComponent.NONE
 
 	/**
 	 * The description of the [AvailArtifact] used in the
@@ -391,7 +383,6 @@ abstract class CreateAvailArtifactJar : DefaultTask()
 			version.get(),
 			targetOutputJar,
 			artifactType,
-			jvmComponent,
 			implementationTitle,
 			jarManifestMainClass,
 			artifactDescription,
@@ -416,8 +407,6 @@ abstract class CreateAvailArtifactJar : DefaultTask()
 		 *   The Jar file location where the jar file will be written.
 		 * @param artifactType
 		 *   The [AvailArtifactType] of the [AvailArtifact] to create.
-		 * @param jvmComponent
-		 *   The [JvmComponent] if any to be used.
 		 * @param implementationTitle
 		 *   The title of the artifact being created that will be added to the
 		 *   jar manifest ([Attributes.Name.IMPLEMENTATION_TITLE]).
@@ -446,7 +435,6 @@ abstract class CreateAvailArtifactJar : DefaultTask()
 			version: String,
 			outputLocation: String,
 			artifactType: AvailArtifactType,
-			jvmComponent: JvmComponent,
 			implementationTitle: String,
 			jarMainClass: String,
 			artifactDescription: String,
@@ -475,8 +463,7 @@ abstract class CreateAvailArtifactJar : DefaultTask()
 				AvailArtifactManifest.manifestFile(
 					artifactType,
 					manifestMap,
-					artifactDescription,
-					jvmComponent),
+					artifactDescription),
 				jarMainClass,
 				customManifestItems)
 			roots.forEach {

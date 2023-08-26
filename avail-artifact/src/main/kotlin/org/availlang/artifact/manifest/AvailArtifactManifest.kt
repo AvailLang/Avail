@@ -3,7 +3,6 @@ package org.availlang.artifact.manifest
 import org.availlang.artifact.*
 import org.availlang.artifact.AvailArtifact.Companion.artifactRootDirectory
 import org.availlang.artifact.environment.project.AvailProjectRoot
-import org.availlang.artifact.jar.JvmComponent
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.jsonPrettyPrintWriter
@@ -53,11 +52,6 @@ sealed interface AvailArtifactManifest: JSONFriendly
 	 * that are present in the artifact.
 	 */
 	val roots: Map<String, AvailRootManifest>
-
-	/**
-	 * The [JvmComponent] that describes JVM components if they exist.
-	 */
-	val jvmComponent: JvmComponent
 
 	/**
 	 * The String file contents of this [AvailArtifactManifest].
@@ -178,8 +172,6 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		 *   [AvailRootManifest.name] that are present in the artifact.
 		 * @param description
 		 *   The artifact's description.
-		 * @param jvmComponent
-		 *   The [JvmComponent].
 		 * @return
 		 *   The file byte contents.
 		 */
@@ -188,15 +180,13 @@ sealed interface AvailArtifactManifest: JSONFriendly
 			artifactType: AvailArtifactType,
 			targetFile: File,
 			roots: Map<String, AvailRootManifest>,
-			description: String,
-			jvmComponent: JvmComponent = JvmComponent.NONE)
+			description: String)
 		{
 			AvailArtifactManifestV1(
 				artifactType,
 				formattedNow,
 				roots,
-				description,
-				jvmComponent
+				description
 			).writeFile(targetFile)
 		}
 
@@ -211,8 +201,6 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		 *   [AvailRootManifest.name] that are present in the artifact.
 		 * @param description
 		 *   The artifact's description.
-		 * @param jvmComponent
-		 *   The [JvmComponent].
 		 * @return
 		 *   The constructed [AvailArtifactManifest].
 		 */
@@ -220,15 +208,13 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		fun manifestFile (
 			artifactType: AvailArtifactType,
 			roots: Map<String, AvailRootManifest>,
-			description: String,
-			jvmComponent: JvmComponent = JvmComponent.NONE
+			description: String
 		): AvailArtifactManifest =
 				AvailArtifactManifestV1(
 					artifactType,
 					formattedNow,
 					roots,
-					description,
-					jvmComponent)
+					description)
 
 		/**
 		 * Answer the [availArtifactManifestFile] contents.
@@ -241,8 +227,6 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		 *   [AvailRootManifest.name] that are present in the artifact.
 		 * @param description
 		 *   The artifact's description.
-		 * @param jvmComponent
-		 *   The [JvmComponent].
 		 * @return
 		 *   The file byte contents.
 		 */
@@ -250,16 +234,14 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		fun createManifestFileContents (
 			artifactType: AvailArtifactType,
 			roots: Map<String, AvailRootManifest>,
-			description: String,
-			jvmComponent: JvmComponent = JvmComponent.NONE
+			description: String
 
 		): ByteArray =
 			AvailArtifactManifestV1(
 				artifactType,
 				formattedNow,
 				roots,
-				description,
-				jvmComponent
+				description
 			).fileContent.toByteArray(StandardCharsets.UTF_8)
 	}
 }

@@ -346,8 +346,6 @@ class AvailArtifactJarBuilder constructor(
 	 *   The Jar file location where the jar file will be written.
 	 * @param artifactType
 	 *   The [AvailArtifactType] of the [AvailArtifact] to create.
-	 * @param jvmComponent
-	 *   The [JvmComponent] if any to be used.
 	 * @param implementationTitle
 	 *   The title of the artifact being created that will be added to the
 	 *   jar manifest ([Attributes.Name.IMPLEMENTATION_TITLE]).
@@ -374,7 +372,6 @@ class AvailArtifactJarBuilder constructor(
 		version: String,
 		outputLocation: String,
 		artifactType: AvailArtifactType,
-		jvmComponent: JvmComponent,
 		implementationTitle: String,
 		jarMainClass: String,
 		artifactDescription: String,
@@ -403,8 +400,7 @@ class AvailArtifactJarBuilder constructor(
 			AvailArtifactManifest.manifestFile(
 				artifactType,
 				manifestMap,
-				artifactDescription,
-				jvmComponent),
+				artifactDescription),
 			jarMainClass,
 			customManifestItems)
 		roots.forEach {

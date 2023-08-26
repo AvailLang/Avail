@@ -39,7 +39,6 @@ import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.StylingGroup
-import org.availlang.artifact.jar.JvmComponent
 import org.availlang.artifact.roots.AvailRoot
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -146,12 +145,6 @@ class PackageAvailArtifact internal constructor(
 	 * manifest ([Attributes.Name.IMPLEMENTATION_TITLE]).
 	 */
 	var implementationTitle: String = ""
-
-	/**
-	 * The [JvmComponent] that describes the JVM contents of the artifact of
-	 * [JvmComponent.NONE] if no JVM components.
-	 */
-	var jvmComponent: JvmComponent = JvmComponent.NONE
 
 	/**
 	 * The absolute path to the directory location where the jar file is to be
@@ -392,7 +385,6 @@ class PackageAvailArtifact internal constructor(
 			version,
 			targetOutputJar,
 			artifactType,
-			jvmComponent,
 			implementationTitle,
 			jarManifestMainClass,
 			artifactDescription,
