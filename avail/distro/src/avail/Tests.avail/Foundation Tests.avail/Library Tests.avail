@@ -1,5 +1,5 @@
 /*
- * LinkPrimitives Tests.avail
+ * Library Tests.avail
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,51 +30,35 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "LinkPrimitives Tests"
+/*
+ * GENERATED FILE
+ * * Generator: avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated: 8/21/23, 6:40 AM
+ *
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ */
+
+Module "Library Tests"
 Versions
 	"Avail-1.6.1"
 Uses
-	"Primitive Test Common"
+	"Common"
+Names
+	"libraries test suite"
 Body
 
-Test "LinkPrimitives ok" in primitive linker test suite if supported is
-[
-	Skip test;
-];
+/* The primitive linker package test suite identifier. */
+"libraries test suite" is a new atom;
+New test suite libraries test suite extends foundation test suite;
 
-Test "LinkPrimitives fails with I/O exception" in primitive linker test suite if supported is
+Test "Link fails with loading-is-over exception" in libraries test suite is
 [
-	Skip test;
-]
-must raise I/O exception;
-
-Test "LinkPrimitives fails with permission-denied exception" in primitive linker test suite if supported is
-[
-	Skip test;
-]
-must raise permission-denied exception;
-
-Test "LinkPrimitives fails with cannot-define-during-compilation exception" in primitive linker test suite if supported is
-[
-	Skip test;
-]
-must raise cannot-define-during-compilation exception;
-
-Test "LinkPrimitives fails with loading-is-over exception" in primitive linker test suite if supported is
-[
-	Skip test;
+	Link "/avail/Avail/avail-primitives-2.0.0.alpha21-1.6.1.alpha10.jar";
 ]
 must raise loading-is-over exception;
 
-Test "LinkPrimitives fails with no-file exception" in primitive linker test suite if supported is
+Test "Link pojos fails with loading-is-over exception" in libraries test suite is
 [
-	Skip test;
+	Link pojos "/avail/Avail/my-pojos.jar";
 ]
-must raise no-file exception;
-
-Test "LinkPrimitives fails with invalid-path exception" in primitive linker test suite if supported is
-[
-	Skip test;
-]
-must raise invalid-path exception;
-
+must raise loading-is-over exception;

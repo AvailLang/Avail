@@ -42,9 +42,13 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
+import avail.exceptions.AvailErrorCode.E_LIBRARY_ALREADY_LINKED
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
@@ -56,7 +60,8 @@ import avail.interpreter.execution.Interpreter
 import java.io.IOException
 import java.net.MalformedURLException
 import java.nio.file.Paths
-import java.util.jar.JarFile
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * **Primitive:** Link the indicated jar file, in the same module root as the
@@ -66,12 +71,20 @@ import java.util.jar.JarFile
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_LinkPojos : Primitive(1, CanInline, HasSideEffect)
+object P_LinkPojos : Primitive(2, CanInline, HasSideEffect)
 {
+	/**
+	 * The lock that must be held when examining linking the JAR to guard
+	 * against link race conditions.
+	 */
+	private val mutex = ReentrantLock()
+
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
+		interpreter.checkArgumentCount(2)
 		val jarPath = interpreter.argument(0).asNativeString()
+		val oldModuleOut: A_Variable =
+			interpreter.argument(1)
 		val loader = interpreter.availLoaderOrNull()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		loader.statementCanBeSummarized(false)
@@ -92,48 +105,35 @@ object P_LinkPojos : Primitive(1, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_NO_FILE)
 		}
-		if (PojoClassLoader.jarLinked(jarFile.path))
-		{
-
-		}
-		val pojos = mutableSetOf<String>()
-		try
-		{
-			JarFile(jarFile).use { jar ->
-				jar.entries().asIterator().forEach { entry ->
-					if (!entry.name.endsWith(".class")) return@forEach
-					entry.name.replace(".class", "").let {
-						pojos.add(it.replace("/", "."))
-					}
-				}
+		mutex.withLock {
+			PojoClassLoader.jarLinked(jarFile.path)?.let { origLinker ->
+				oldModuleOut.setValue(origLinker)
+				return interpreter.primitiveFailure(E_LIBRARY_ALREADY_LINKED)
 			}
+			try
+			{
+				PojoClassLoader(jarFile, interpreter.module().moduleName)
+			}
+			catch (e: IOException)
+			{
+				return interpreter.primitiveFailure(AvailErrorCode.E_IO_ERROR)
+			}
+			catch (e: SecurityException)
+			{
+				return interpreter.primitiveFailure(E_PERMISSION_DENIED)
+			}
+			catch (e: MalformedURLException)
+			{
+				return interpreter.primitiveFailure(E_INVALID_PATH)
+			}
+			return interpreter.primitiveSuccess(nil)
 		}
-		catch (e: IOException)
-		{
-			return interpreter.primitiveFailure(AvailErrorCode.E_IO_ERROR)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-
-		try
-		{
-			PojoClassLoader(jarFile, interpreter.module().moduleName, pojos)
-		}
-		catch (e: SecurityException)
-		{
-			return interpreter.primitiveFailure(E_PERMISSION_DENIED)
-		}
-		catch (e: MalformedURLException)
-		{
-			return interpreter.primitiveFailure(E_INVALID_PATH)
-		}
-		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(nonemptyStringType), TOP.o)
+		functionType(
+			tuple(nonemptyStringType, variableTypeFor(stringType)),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -142,6 +142,7 @@ object P_LinkPojos : Primitive(1, CanInline, HasSideEffect)
 				E_INVALID_PATH,
 				E_NO_FILE,
 				E_LOADING_IS_OVER,
-				E_CANNOT_DEFINE_DURING_COMPILATION
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_LIBRARY_ALREADY_LINKED
 			))
 }

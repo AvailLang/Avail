@@ -84,6 +84,7 @@ import avail.interpreter.primitive.compiler.P_RejectParsing
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.Deserializer
 import avail.serialization.Serializer
+import org.availlang.artifact.ResourceType
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -796,7 +797,12 @@ enum class AvailErrorCode constructor(val code: Int)
 	 * the given [pojo&#32;type][PojoTypeDescriptor] and parameter
 	 * [types][TypeDescriptor].
 	 */
-	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS(508);
+	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS(508),
+
+	/**
+	 * The indicated [ResourceType.RESOURCE] has already been linked.
+	 */
+	E_LIBRARY_ALREADY_LINKED(600);
 
 	/**
 	 * Can the `AvailErrorCode` result from failure of an [L1Operation]?

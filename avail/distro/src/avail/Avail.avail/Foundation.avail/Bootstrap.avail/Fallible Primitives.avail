@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/21/23, 6:40 AM
+ * * Last Generated: 8/26/23, 1:29 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -65,7 +65,6 @@ Uses
 		"Invoke_with_,⁇forked at priority_",
 		"Invoke|invoke_with_",
 		"Lexer_when_is_«styled by_»?",
-		"Link pojos_",
 		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Print:_",
@@ -133,7 +132,6 @@ Uses
 		"first-of-seq`«_`»",
 		"function from_and_",
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
-		"internal link_",
 		"invoke_with_,⁇forked at priority_",
 		"lookup macro_with phrases_",
 		"message_contains groups",
@@ -1162,65 +1160,6 @@ Primitive "_<<_keeping_bits" is
 		too-large-to-represent code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : whole number;
-
-/**
- * Link the indicated native primitives from the indicated jar resource file.
- *
- * @category "Primitives"
- * @method "internal link_"
- * @param "source" "character+"
- *        The root-relative fully qualified name of the source file to link.
- *        This is the resource jar file that contains the primitives.
- * @returns "{character+|}"
- *        The set of missing primitive classes from the jar file, if any.
- * @raises "I/O exception"
- * @raises "permission-denied exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "no-file exception"
- * @raises "invalid-path exception"
- */
-Primitive "internal link_" is
-[
-	source : nonempty string
-|
-	Primitive LinkPrimitives (failureCode : {
-		I/O-error code,
-		permission-denied code,
-		cannot-define-during-compilation code,
-		loading-is-over code,
-		no-file code,
-		invalid-path code}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : set of nonempty strings;
-
-/**
- * Load the indicated jar resource file.
- *
- * @category "Primitives"
- * @method "Link pojos_"
- * @param "source" "character+"
- *        The root-relative fully qualified name of the jar file to link.
- *        This is the resource jar file to be loaded.
- * @returns "⊤"
- * @raises "permission-denied exception"
- * @raises "cannot-define-during-compilation exception"
- * @raises "loading-is-over exception"
- * @raises "no-file exception"
- * @raises "invalid-path exception"
- */
-Primitive "Link pojos_" is
-[
-	source : nonempty string
-|
-	Primitive LinkPojos (failureCode : {
-		permission-denied code,
-		cannot-define-during-compilation code,
-		loading-is-over code,
-		no-file code,
-		invalid-path code}ᵀ);
-	Private invoke _fail_primitive with failureCode
-] : ⊤;
 
 /**
  * Answer the value bound to {@param "aMap"} in {@param "key"}.

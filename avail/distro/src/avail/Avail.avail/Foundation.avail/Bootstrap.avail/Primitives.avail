@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/21/23, 6:40 AM
+ * * Last Generated: 8/26/23, 1:29 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -68,7 +68,6 @@ Names
 	"Invoke_with_,⁇forked at priority_",
 	"Invoke|invoke_with_",
 	"Lexer_when_is_«styled by_»?",
-	"Link pojos_",
 	"Macro_is«_,»_«styled by_»?",
 	"Mark for_character|characters of read ahead",
 	"Park current fiber",
@@ -276,7 +275,6 @@ Names
 	"high-precision timer value",
 	"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
-	"internal link_",
 	"invoke_with_,⁇forked at priority_",
 	"literal token⇒_",
 	"ln_",

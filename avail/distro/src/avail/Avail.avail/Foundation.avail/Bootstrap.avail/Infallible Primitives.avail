@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/29/23, 10:11 PM
+ * * Last Generated: 8/26/23, 1:29 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -379,7 +379,7 @@ Primitive "_'s⁇function" is
  * @method "_'s⁇program counter"
  * @param "aContinuation" "$[…]→⊥"
  *        A continuation.
- * @returns "[1..∞)"
+ * @returns "ℕ"
  *    The argument's Level One program counter.
  */
 Primitive "_'s⁇program counter" is
@@ -420,7 +420,7 @@ Primitive "_'s⁇stack" is
  * @method "_'s⁇stack pointer"
  * @param "aContinuation" "$[…]→⊥"
  *        A continuation.
- * @returns "[1..∞)"
+ * @returns "ℕ"
  *    The argument's stack pointer.
  */
 Primitive "_'s⁇stack pointer" is
@@ -435,9 +435,9 @@ Primitive "_'s⁇stack pointer" is
  *
  * @category "Primitives" "Types" "Continuations" "Queries"
  * @method "_'s⁇function type"
- * @param "continuationType" "($[…]→⊥)'s type"
+ * @param "continuationType" "{$[…]→⊥}ᵀ"
  *        A continuation type.
- * @returns "([…]→⊤)'s type"
+ * @returns "{[…]→⊤}ᵀ"
  *    The argument's current function's type.
  */
 Primitive "_'s⁇function type" is
@@ -453,9 +453,9 @@ Primitive "_'s⁇function type" is
  *
  * @category "Primitives" "Types" "Continuations" "Constructors"
  * @method "$_"
- * @param "functionType" "([…]→⊤)'s type"
+ * @param "functionType" "{[…]→⊤}ᵀ"
  *        A function type.
- * @returns "($[…]→⊥)'s type"
+ * @returns "{$[…]→⊥}ᵀ"
  *    The requested continuation type.
  */
 Primitive "$_" is
@@ -551,7 +551,7 @@ Primitive "⌈_⌉" is
  *
  * @category "Primitives" "Numbers" "Mathematics"
  * @method "_^_"
- * @param "eulerNumber" "(2.718281828459045)'s type"
+ * @param "eulerNumber" "{2.718281828459045}ᵀ"
  *        Euler's number.
  * @param "x" "double"
  *        The exponent.
@@ -592,7 +592,7 @@ Primitive "⌊_⌋" is
  *
  * @category "Primitives" "Numbers" "Mathematics"
  * @method "_reinterpreted as double"
- * @param "anInt64" "[-9223372036854775808..9223372036854775807]"
+ * @param "anInt64" "i64"
  *        A 64-bit signed integer.
  * @returns "double"
  *    The double having the specified bit representation.
@@ -645,8 +645,8 @@ Primitive "_mod_" is
 
 /**
  * Compute and answer an approximation of sin {@param "theta"}, i.e. the
- * ratio of the altitude to the distance between the origin and a point projected at
- * an angle given by the argument in radians.
+ * ratio of the altitude to the distance between the origin and a point projected
+ * at an angle given by the argument in radians.
  *
  * @category "Primitives"
  * @method "sin_"
@@ -671,9 +671,9 @@ Primitive "sin_" is
  * @method "_⨉_^_"
  * @param "a" "double"
  *        A single-precision floating point number.
- * @param "two" "(2)'s type"
+ * @param "two" "{2}ᵀ"
  *        The number two (`2`).
- * @param "b" "(-∞..∞)"
+ * @param "b" "ℤ"
  *        The scaling factor.
  * @returns "double"
  *    The requested value.
@@ -695,7 +695,7 @@ Primitive "_⨉_^_" is
  * @method "_reinterpreted as bits"
  * @param "aDouble" "double"
  *        The double to reinterpret.
- * @returns "[-9223372036854775808..9223372036854775807]"
+ * @returns "i64"
  *    The double's bit representation as a signed 64-bit integer.
  */
 Primitive "_reinterpreted as bits" is
@@ -724,9 +724,9 @@ Primitive "current fiber can reject a parse" is
  *
  * @category "Primitives" "Types" "Concurrency"
  * @method "fiber→_"
- * @param "resultType" "(⊤)'s type"
+ * @param "resultType" "{⊤}ᵀ"
  *        A type.
- * @returns "(fiber→⊤)'s type"
+ * @returns "{fiber→⊤}ᵀ"
  *    The requested fiber type.
  */
 Primitive "fiber→_" is
@@ -771,9 +771,9 @@ Primitive "_'s⁇name" is
  *
  * @category "Primitives" "Types" "Concurrency" "Queries"
  * @method "_'s⁇result type"
- * @param "fiberType" "(fiber→⊤)'s type"
+ * @param "fiberType" "{fiber→⊤}ᵀ"
  *        A fiber type.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The argument's result type.
  */
 Primitive "_'s⁇result type" is
@@ -791,7 +791,7 @@ Primitive "_'s⁇result type" is
  * @method "_'s⁇priority"
  * @param "aFiber" "fiber→⊤"
  *        The fiber from which to extract the priority.
- * @returns "[0..255]"
+ * @returns "u8"
  *    A whole number representing the priority of the fiber.
  */
 Primitive "_'s⁇priority" is
@@ -914,7 +914,7 @@ Primitive "_'s⁇name:=_" is
  * @method "_'s⁇priority:=_"
  * @param "aFiber" "fiber→⊤"
  *        The fiber to prioritize.
- * @param "priority" "[0..255]"
+ * @param "priority" "u8"
  *        The new priority.
  * @returns "⊤"
  */
@@ -1056,7 +1056,7 @@ Primitive "⌈_⌉" is
  *
  * @category "Primitives" "Numbers" "Mathematics"
  * @method "_^_"
- * @param "eulerNumber" "(2.718281828459045)'s type"
+ * @param "eulerNumber" "{2.718281828459045}ᵀ"
  *        Euler's number.
  * @param "x" "float"
  *        The exponent.
@@ -1096,7 +1096,7 @@ Primitive "⌊_⌋" is
  *
  * @category "Primitives" "Numbers" "Mathematics"
  * @method "_reinterpreted as float"
- * @param "anInt32" "[-2147483648..2147483647]"
+ * @param "anInt32" "i32"
  *        A 32-bit signed integer.
  * @returns "float"
  *    The single-precision float having the specified bit representation.
@@ -1155,9 +1155,9 @@ Primitive "_mod_" is
  * @method "_⨉_^_"
  * @param "a" "float"
  *        A single-precision floating point number.
- * @param "two" "(2)'s type"
+ * @param "two" "{2}ᵀ"
  *        The number two (`2`).
- * @param "b" "(-∞..∞)"
+ * @param "b" "ℤ"
  *        The scaling factor.
  * @returns "float"
  *    The requested value.
@@ -1179,7 +1179,7 @@ Primitive "_⨉_^_" is
  * @method "_reinterpreted as bits"
  * @param "aFloat" "float"
  *        The float to reinterpret.
- * @returns "[-2147483648..2147483647]"
+ * @returns "i32"
  *    The float's bit representation as a signed 32-bit integer.
  */
 Primitive "_reinterpreted as bits" is
@@ -1195,11 +1195,11 @@ Primitive "_reinterpreted as bits" is
  *
  * @category "Primitives" "Types" "Functions" "Constructors"
  * @method "function accepting_and returning_"
- * @param "parameterTypes" "<(any)'s type…|>"
+ * @param "parameterTypes" "{any}ᵀ*"
  *        The parameter types.
- * @param "returnType" "(⊤)'s type"
+ * @param "returnType" "{⊤}ᵀ"
  *        The return type.
- * @returns "([…]→⊤)'s type"
+ * @returns "{[…]→⊤}ᵀ"
  *    The requested function type. Instances of this type accept arguments
  *    whose types conform to the parameter types and whose return value
  *    conforms to the return type.
@@ -1219,9 +1219,9 @@ Primitive "function accepting_and returning_" is
  *
  * @category "Primitives" "Types" "Functions" "Constructors"
  * @method "[`…]→_"
- * @param "returnType" "(⊤)'s type"
+ * @param "returnType" "{⊤}ᵀ"
  *        A type.
- * @returns "([…]→⊤)'s type"
+ * @returns "{[…]→⊤}ᵀ"
  *    The requested function type. Instances of this type answer values of the
  *    specified return type.
  */
@@ -1240,7 +1240,7 @@ Primitive "[`…]→_" is
  *
  * @category "Primitives" "Functions" "Constructors"
  * @method "new_applying_"
- * @param "aFunctionType" "([…]→⊤)'s type"
+ * @param "aFunctionType" "{[…]→⊤}ᵀ"
  *        The desired function type.
  * @param "functionToApply" "[…]→⊤"
  *        The function that the new function will apply when itself applied with
@@ -1316,9 +1316,9 @@ Primitive "_'s⁇outer variables" is
  *
  * @category "Primitives" "Types" "Functions" "Queries"
  * @method "_'s⁇parameters'type"
- * @param "functionType" "([…]→⊤)'s type"
+ * @param "functionType" "{[…]→⊤}ᵀ"
  *        A function type.
- * @returns "(tuple)'s type"
+ * @returns "{tuple}ᵀ"
  *    A fixed-size tuple type whose element types correspond to the parameter
  *    types of the argument.
  */
@@ -1334,9 +1334,9 @@ Primitive "_'s⁇parameters'type" is
  *
  * @category "Primitives" "Types" "Functions" "Queries"
  * @method "_'s⁇return type"
- * @param "functionType" "([…]→⊤)'s type"
+ * @param "functionType" "{[…]→⊤}ᵀ"
  *        A function type.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The return type of the argument.
  */
 Primitive "_'s⁇return type" is
@@ -1370,7 +1370,7 @@ Primitive "Breakpoint" is
  *
  * @category "Primitives" "Time" "Queries"
  * @method "milliseconds since the Epoch"
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The current time as the number of milliseconds which have elapsed since
  *    the Unix Epoch.
  */
@@ -1388,7 +1388,7 @@ Primitive "milliseconds since the Epoch" is
  *
  * @category "Primitives" "Time" "Queries"
  * @method "high-precision timer value"
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The current value of the high-precision timer, in nanoseconds.
  */
 Primitive "high-precision timer value" is
@@ -1455,7 +1455,7 @@ Primitive "_=_" is
  * @method "_'s⁇hash"
  * @param "value" "any"
  *        An arbitrary value.
- * @returns "[-2147483648..2147483647]"
+ * @returns "i32"
  *    The hash value of the argument.
  */
 Primitive "_'s⁇hash" is
@@ -1528,9 +1528,9 @@ Primitive "primitive description of_" is
  *
  * @category "Primitives"
  * @method "_bit test_"
- * @param "value" "(-∞..∞)"
+ * @param "value" "ℤ"
  *        The integer to examine.
- * @param "bitIndex" "[0..∞)"
+ * @param "bitIndex" "𝕎"
  *        The zero-based index of the bit to examine.
  * @returns "boolean"
  *    Whether that bit was 1.
@@ -1548,11 +1548,11 @@ Primitive "_bit test_" is
  *
  * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_bit∧_"
- * @param "arg1" "(-∞..∞)"
+ * @param "arg1" "ℤ"
  *        An integer.
- * @param "arg2" "(-∞..∞)"
+ * @param "arg2" "ℤ"
  *        An integer.
- * @returns "(-∞..∞)"
+ * @returns "ℤ"
  *    The bitwise AND of {@param "arg1"} and {@param "arg2"}.
  */
 Primitive "_bit∧_" is
@@ -1568,11 +1568,11 @@ Primitive "_bit∧_" is
  *
  * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_bit∨_"
- * @param "arg1" "(-∞..∞)"
+ * @param "arg1" "ℤ"
  *        An integer.
- * @param "arg2" "(-∞..∞)"
+ * @param "arg2" "ℤ"
  *        An integer.
- * @returns "(-∞..∞)"
+ * @returns "ℤ"
  *    The bitwise OR of {@param "arg1"} and {@param "arg2"}.
  */
 Primitive "_bit∨_" is
@@ -1588,11 +1588,11 @@ Primitive "_bit∨_" is
  *
  * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_bit⊕_"
- * @param "arg1" "(-∞..∞)"
+ * @param "arg1" "ℤ"
  *        An integer.
- * @param "arg2" "(-∞..∞)"
+ * @param "arg2" "ℤ"
  *        An integer.
- * @returns "(-∞..∞)"
+ * @returns "ℤ"
  *    The bitwise XOR of {@param "arg1"} and {@param "arg2"}.
  */
 Primitive "_bit⊕_" is
@@ -1609,17 +1609,17 @@ Primitive "_bit⊕_" is
  *
  * @category "Primitives" "Numbers" "Types" "Constructors"
  * @method "integer range from_(inclusive=_)to_(inclusive=_)"
- * @param "lowerBound" "[-∞..∞]"
+ * @param "lowerBound" "ℤ∞"
  *        The lower bound.
  * @param "lowerBoundInclusive" "boolean"
  *        `true` if the lower bound should be adjudged inclusive, `false`
  *        otherwise.
- * @param "upperBound" "[-∞..∞]"
+ * @param "upperBound" "ℤ∞"
  *        The upper bound.
  * @param "upperBoundInclusive" "boolean"
  *        `true` if the upper bound should be adjudged inclusive, `false`
  *        otherwise.
- * @returns "([-∞..∞])'s type"
+ * @returns "{ℤ∞}ᵀ"
  *    The requested integral range type.
  */
 Primitive "integer range from_(inclusive=_)to_(inclusive=_)" is
@@ -1637,9 +1637,9 @@ Primitive "integer range from_(inclusive=_)to_(inclusive=_)" is
  *
  * @category "Primitives" "Numbers" "Types" "Queries"
  * @method "_'s⁇genuine lower bound"
- * @param "range" "([-∞..∞])'s type"
+ * @param "range" "{ℤ∞}ᵀ"
  *        An integral range type.
- * @returns "[-∞..∞]"
+ * @returns "ℤ∞"
  *    The lower bound of the argument.
  */
 Primitive "_'s⁇genuine lower bound" is
@@ -1654,9 +1654,9 @@ Primitive "_'s⁇genuine lower bound" is
  *
  * @category "Primitives" "Numbers" "Types" "Queries"
  * @method "_'s⁇genuine upper bound"
- * @param "range" "([-∞..∞])'s type"
+ * @param "range" "{ℤ∞}ᵀ"
  *        An integral range type.
- * @returns "[-∞..∞]"
+ * @returns "ℤ∞"
  *    The upper bound of the argument.
  */
 Primitive "_'s⁇genuine upper bound" is
@@ -1671,7 +1671,7 @@ Primitive "_'s⁇genuine upper bound" is
  *
  * @category "Primitives" "Maps" "Constructors"
  * @method "_→map"
- * @param "bindings" "<<any…|2>…|>"
+ * @param "bindings" "any^[2..2]*"
  *        A tuple of bindings. Each element of the argument is a
  *       2-tuple that represents a binding. The first element of each 2-tuple is
  *       a key, the second element is the value that should be bound to that key
@@ -1692,14 +1692,14 @@ Primitive "_→map" is
  *
  * @category "Primitives" "Types" "Maps" "Constructors"
  * @method "{_→_`|_}"
- * @param "keyType" "(any)'s type"
+ * @param "keyType" "{any}ᵀ"
  *        A type to which all keys of instances must conform.
- * @param "valueType" "(any)'s type"
+ * @param "valueType" "{any}ᵀ"
  *        A type to which all values of instances must conform.
- * @param "cardinalityType" "([0..∞))'s type"
+ * @param "cardinalityType" "{𝕎}ᵀ"
  *        The range of cardinalities to which all instances must
  *       conform.
- * @returns "(map)'s type"
+ * @returns "{map}ᵀ"
  *    The requested map type.
  */
 Primitive "{_→_`|_}" is
@@ -1740,7 +1740,7 @@ Primitive "_∈_" is
  * @method "_'s⁇bindings"
  * @param "aMapType" "map"
  *        A map.
- * @returns "<<any…|2>…|>"
+ * @returns "any^[2..2]*"
  *    The argument's bindings.
  */
 Primitive "_'s⁇bindings" is
@@ -1800,7 +1800,7 @@ Primitive "_+_→_" is
  * @method "`|_`|"
  * @param "aMap" "map"
  *        A map.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The argument's cardinality.
  */
 Primitive "`|_`|" is
@@ -1816,9 +1816,9 @@ Primitive "`|_`|" is
  *
  * @category "Primitives" "Types" "Maps" "Queries"
  * @method "_'s⁇key type"
- * @param "aMapType" "(map)'s type"
+ * @param "aMapType" "{map}ᵀ"
  *        A map type.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The argument's key type.
  */
 Primitive "_'s⁇key type" is
@@ -1834,9 +1834,9 @@ Primitive "_'s⁇key type" is
  *
  * @category "Primitives" "Types" "Maps" "Queries"
  * @method "`|`|_`|`|"
- * @param "aMapType" "(map)'s type"
+ * @param "aMapType" "{map}ᵀ"
  *        A map type.
- * @returns "([0..∞))'s type"
+ * @returns "{𝕎}ᵀ"
  *    The argument's cardinality requirement.
  */
 Primitive "`|`|_`|`|" is
@@ -1852,9 +1852,9 @@ Primitive "`|`|_`|`|" is
  *
  * @category "Primitives" "Types" "Maps" "Queries"
  * @method "_'s⁇value type"
- * @param "aMapType" "(map)'s type"
+ * @param "aMapType" "{map}ᵀ"
  *        A map type.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The argument's value type.
  */
 Primitive "_'s⁇value type" is
@@ -1911,7 +1911,7 @@ Primitive "_-_" is
  * @method "`|_'s⁇parameters`|"
  * @param "aMessageBundle" "message bundle"
  *        A method.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The number of parameters required by the specified method.
  */
 Primitive "`|_'s⁇parameters`|" is
@@ -1928,7 +1928,7 @@ Primitive "`|_'s⁇parameters`|" is
  * @method "_'s⁇function type"
  * @param "aDefinition" "definition"
  *        Any definition (method, macro, abstract, forward).
- * @returns "([…]→⊤)'s type"
+ * @returns "{[…]→⊤}ᵀ"
  *    The requested function type.
  */
 Primitive "_'s⁇function type" is
@@ -2014,7 +2014,7 @@ Primitive "_'s⁇function" is
  * @method "_'s⁇definitions"
  * @param "aMethod" "method"
  *        An arbitrary {@type "method"}.
- * @returns "<definition…|>"
+ * @returns "definition*"
  *    A {@type "tuple"} of {@type "definition"}s.
  */
 Primitive "_'s⁇definitions" is
@@ -2031,7 +2031,7 @@ Primitive "_'s⁇definitions" is
  * @method "_'s⁇seals"
  * @param "aMethod" "method"
  *        A method.
- * @returns "<<(any)'s type…|>…|>"
+ * @returns "{any}ᵀ**"
  *    A tuple comprising the seals applied to {@param "aMethod"}.
  */
 Primitive "_'s⁇seals" is
@@ -2196,10 +2196,10 @@ Primitive "_→object" is
  *
  * @category "Primitives" "Types" "Objects" "Maps" "Conversions"
  * @method "_→object type"
- * @param "fieldsToTypes" "{atom→(any)'s type|}"
+ * @param "fieldsToTypes" "{atom→{any}ᵀ|}"
  *        A map whose keys are the fields of the new object and whose values are
  *        the corresponding field types.
- * @returns "(object)'s type"
+ * @returns "{object}ᵀ"
  *    The requested object type.
  */
 Primitive "_→object type" is
@@ -2234,7 +2234,7 @@ Primitive "_→map" is
  * @method "_→tuple"
  * @param "anObject" "object"
  *        An object.
- * @returns "<<atom, any…|2>…|>"
+ * @returns "<atom, any…|2>*"
  *    A tuple that represents the composition of the object. Its elements are
  *    2-tuples. Each 2-tuple's first element is an atom (i.e., the field
  *    identifier) and its second element is associated value.
@@ -2253,7 +2253,7 @@ Primitive "_→tuple" is
  *
  * @category "Primitives" "Types" "Objects" "Mutators"
  * @method "_'s⁇name:=_"
- * @param "anObjectType" "(object)'s type"
+ * @param "anObjectType" "{object}ᵀ"
  *        An object type.
  * @param "name" "string"
  *        The name that should be bound to the object type. This will replace
@@ -2277,7 +2277,7 @@ Primitive "_'s⁇name:=_" is
  * @method "Unname_from_"
  * @param "name" "string"
  *        The name that should no longer be bound to the object type.
- * @param "anObjectType" "(object)'s type"
+ * @param "anObjectType" "{object}ᵀ"
  *        An object type.
  * @returns "⊤"
  */
@@ -2294,7 +2294,7 @@ Primitive "Unname_from_" is
  *
  * @category "Primitives" "Tuples" "Objects" "Conversions"
  * @method "_→object"
- * @param "fieldAssignments" "<<atom, any…|2>…|>"
+ * @param "fieldAssignments" "<atom, any…|2>*"
  *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
  *        an atom (i.e., the field identifier) and its second element is
  *        associated value.
@@ -2313,11 +2313,11 @@ Primitive "_→object" is
  *
  * @category "Primitives" "Types" "Tuples" "Objects" "Conversions"
  * @method "_→object type"
- * @param "fieldDefinitions" "<<atom, (any)'s type…|2>…|>"
+ * @param "fieldDefinitions" "<atom, {any}ᵀ…|2>*"
  *        A tuple whose elements are 2-tuples. Each 2-tuple's first element is
  *        an atom (i.e., the field identifier) and its second element is the
  *        value type permitted by the field.
- * @returns "(object)'s type"
+ * @returns "{object}ᵀ"
  *    The requested object type.
  */
 Primitive "_→object type" is
@@ -2333,7 +2333,7 @@ Primitive "_→object type" is
  *
  * @category "Primitives" "Types" "Objects" "Queries"
  * @method "_'s⁇names"
- * @param "anObjectType" "(object)'s type"
+ * @param "anObjectType" "{object}ᵀ"
  *        An object type.
  * @returns "{string|}"
  *    The set of locally most-specific names bound to the specified object
@@ -2387,7 +2387,7 @@ Primitive "_'s⁇value" is
  * @method "_'s⁇arguments"
  * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block.
- * @returns "<argument phrase⇒⊤…|>"
+ * @returns "argument phrase⇒⊤*"
  *    A tuple of argument declarations.
  */
 Primitive "_'s⁇arguments" is
@@ -2421,7 +2421,7 @@ Primitive "_'s⁇declared exceptions" is
  * @method "_'s⁇outer variables"
  * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block.
- * @returns "<declaration phrase⇒⊤…|>"
+ * @returns "declaration phrase⇒⊤*"
  *    A tuple of declarations of outer variables required to complete the
  *    meaning of the block.
  */
@@ -2457,7 +2457,7 @@ Primitive "_'s⁇primitive name" is
  * @method "_'s⁇return type"
  * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The block's return type.
  */
 Primitive "_'s⁇return type" is
@@ -2474,7 +2474,7 @@ Primitive "_'s⁇return type" is
  * @method "_'s⁇statements"
  * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block.
- * @returns "<phrase⇒⊤…|>"
+ * @returns "phrase⇒⊤*"
  *    A tuple of statements. These are either assignments, declarations, labels,
  *    sequences, or ⊤-valued sends.
  */
@@ -2492,7 +2492,7 @@ Primitive "_'s⁇statements" is
  * @method "arg`«_:_`»"
  * @param "name" "token"
  *        The name of the new constant.
- * @param "declaredType" "(any)'s type"
+ * @param "declaredType" "{any}ᵀ"
  *        The declared type of the named constant.
  * @returns "argument phrase⇒⊤"
  *    The requested argument declaration.
@@ -2530,7 +2530,7 @@ Primitive "_→statement phrase" is
  * @method "`«_:_:=_`»"
  * @param "name" "token"
  *        The name of the new variable.
- * @param "declaredType" "(any)'s type"
+ * @param "declaredType" "{any}ᵀ"
  *        The declared type of the named variable.
  * @param "initializer" "expression phrase⇒any"
  *        The initialization expression.
@@ -2553,7 +2553,7 @@ Primitive "`«_:_:=_`»" is
  * @method "`«$_:_`»"
  * @param "name" "token"
  *        The name of the label being declared.
- * @param "declaredType" "($[…]→⊥)'s type"
+ * @param "declaredType" "{$[…]→⊥}ᵀ"
  *        The result type of the block containing the label declaration.
  * @returns "label phrase⇒⊤"
  *    The requested label declaration.
@@ -2571,9 +2571,9 @@ Primitive "`«$_:_`»" is
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "_→list phrase"
- * @param "aTuple" "<expression phrase⇒any…|>"
+ * @param "aTuple" "expression phrase⇒any*"
  *        A tuple of expressions.
- * @returns "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
  *    The requested list.
  */
 Primitive "_→list phrase" is
@@ -2605,9 +2605,9 @@ Primitive "_→literal phrase" is
  *
  * @category "Primitives" "Types" "Phrases" "Constructors"
  * @method "literal token⇒_"
- * @param "literalValue" "(any)'s type"
+ * @param "literalValue" "{any}ᵀ"
  *        The literal value's type
- * @returns "(literal token⇒any)'s type"
+ * @returns "{literal token⇒any}ᵀ"
  *    A literal token type.
  */
 Primitive "literal token⇒_" is
@@ -2644,7 +2644,7 @@ Primitive "`«_::=_`»" is
  * @method "`«marker phrase_⇒_`»"
  * @param "value" "any"
  *        The marker phrase's value.
- * @param "expressionType" "(⊤)'s type"
+ * @param "expressionType" "{⊤}ᵀ"
  *        The marker phrase's yield type.
  * @returns "marker phrase⇒⊤"
  *    A marker phrase.
@@ -2682,12 +2682,12 @@ Primitive "`«module variable_(_)`»" is
  *
  * @category "Primitives" "Types" "Phrases" "Constructors"
  * @method "_⇒_"
- * @param "aPhrase" "(phrase⇒⊤)'s type"
+ * @param "aPhrase" "{phrase⇒⊤}ᵀ"
  *        A phrase type.
- * @param "semanticType" "(⊤)'s type"
+ * @param "semanticType" "{⊤}ᵀ"
  *        The semantic type of values producible by phrases that are instances
  *        of the answer.
- * @returns "(phrase⇒⊤)'s type"
+ * @returns "{phrase⇒⊤}ᵀ"
  *    The requested phrase type.
  * @raises "{6}"
  */
@@ -2706,7 +2706,7 @@ Primitive "_⇒_" is
  * @method "primfail`«_:_`»"
  * @param "name" "token"
  *        The name of the new constant.
- * @param "declaredType" "(any)'s type"
+ * @param "declaredType" "{any}ᵀ"
  *        The declared type of the named constant.
  * @returns "primitive failure reason phrase⇒⊤"
  *    The requested primitive failure local constant declaration.
@@ -2743,7 +2743,7 @@ Primitive "sequence-as-expression`«_`»" is
  * @method "`«_:_`»"
  * @param "name" "token"
  *        The name of the new variable.
- * @param "declaredType" "(any)'s type"
+ * @param "declaredType" "{any}ᵀ"
  *        The declared type of the named variable.
  * @returns "local variable phrase⇒⊤"
  *    The requested local variable declaration.
@@ -2819,7 +2819,7 @@ Primitive "_'s⁇token" is
  * @method "_'s⁇declared type"
  * @param "aDeclaration" "declaration phrase⇒⊤"
  *        A declaration.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The requested type.
  */
 Primitive "_'s⁇declared type" is
@@ -2855,7 +2855,7 @@ Primitive "_'s⁇expression" is
  * @method "_'s⁇statements"
  * @param "aFirstOfSequence" "first of sequence phrase⇒⊤"
  *        A first-of-sequence.
- * @returns "<phrase⇒⊤…|>"
+ * @returns "phrase⇒⊤*"
  *    The requested tuple of statements.
  */
 Primitive "_'s⁇statements" is
@@ -2870,9 +2870,9 @@ Primitive "_'s⁇statements" is
  *
  * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇expressions"
- * @param "aList" "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
+ * @param "aList" "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
  *        A list.
- * @returns "<expression phrase⇒any…|>"
+ * @returns "expression phrase⇒any*"
  *    The requested tuple of expressions.
  */
 Primitive "_'s⁇expressions" is
@@ -2905,9 +2905,9 @@ Primitive "_'s⁇token" is
  *
  * @category "Primitives" "Types" "Phrases" "Queries"
  * @method "_'s⁇value type"
- * @param "literalTokenType" "(literal token⇒any)'s type"
+ * @param "literalTokenType" "{literal token⇒any}ᵀ"
  *        The literal token type.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The type of value that such a literal token can produce.
  */
 Primitive "_'s⁇value type" is
@@ -2957,9 +2957,9 @@ Primitive "_'s⁇value" is
  *
  * @category "Primitives"
  * @method "_'s⁇list"
- * @param "permuted" "permuted list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
+ * @param "permuted" "permuted list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
  *        A {@type "permuted list phrase"}.
- * @returns "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
  *    The {@type "list phrase"} permuted by {@param "permuted"}.
  */
 Primitive "_'s⁇list" is
@@ -2975,9 +2975,9 @@ Primitive "_'s⁇list" is
  *
  * @category "Primitives"
  * @method "_'s⁇permutation"
- * @param "permuted" "permuted list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
+ * @param "permuted" "permuted list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
  *        A {@type "permuted list phrase"}.
- * @returns "<[1..∞)…|1..∞>"
+ * @returns "ℕ+"
  *    The permutation {@type "tuple"}. This comprises the target indices,
  *    indexed by source index.
  */
@@ -2997,7 +2997,7 @@ Primitive "_'s⁇permutation" is
  * @method "_'s⁇semantic type"
  * @param "phrase" "phrase⇒⊤"
  *        A phrase.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    A type that describes all values producible by evaluations of the
  *    argument.
  */
@@ -3016,7 +3016,7 @@ Primitive "_'s⁇semantic type" is
  * @method "_'s⁇tokens"
  * @param "phrase" "phrase⇒⊤"
  *        The phrase to examine.
- * @returns "<token…|>"
+ * @returns "token*"
  *          The supplied phrase's tuple of tokens.
  */
 Primitive "_'s⁇tokens" is
@@ -3031,9 +3031,9 @@ Primitive "_'s⁇tokens" is
  *
  * @category "Primitives" "Phrases" "Queries"
  * @method "_'s⁇semantic type"
- * @param "phraseType" "(phrase⇒⊤)'s type"
+ * @param "phraseType" "{phrase⇒⊤}ᵀ"
  *        A phrase type.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The requested semantic type.
  */
 Primitive "_'s⁇semantic type" is
@@ -3067,7 +3067,7 @@ Primitive "`«↓_`»" is
  * @method "_'s⁇arguments"
  * @param "aSend" "send phrase⇒⊤"
  *        A message send.
- * @returns "list phrase⇒tuple (subexpressions tuple type=<phrase⇒any…|>)"
+ * @returns "list phrase⇒tuple (subexpressions tuple type=phrase⇒any*)"
  *    The requested list of argument expressions.
  */
 Primitive "_'s⁇arguments" is
@@ -3118,7 +3118,7 @@ Primitive "_'s⁇method" is
  * @method "_'s⁇return type"
  * @param "aSend" "send phrase⇒⊤"
  *        A message send.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The requested type.
  */
 Primitive "_'s⁇return type" is
@@ -3152,7 +3152,7 @@ Primitive "_'s⁇sequence" is
  * @method "_'s⁇statements"
  * @param "aSequence" "sequence phrase⇒⊤"
  *        A sequence.
- * @returns "<phrase⇒⊤…|>"
+ * @returns "phrase⇒⊤*"
  *    The requested tuple of statements.
  */
 Primitive "_'s⁇statements" is
@@ -3187,7 +3187,7 @@ Primitive "_'s⁇expression" is
  * @method "_'s⁇lookup type"
  * @param "aSupercast" "super cast phrase⇒any"
  *        The supercast from which to extract the lookup type.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The type that the supercast uses during method lookup.
  */
 Primitive "_'s⁇lookup type" is
@@ -3205,7 +3205,7 @@ Primitive "_'s⁇lookup type" is
  * @method "_'s⁇lexeme"
  * @param "aToken" "token"
  *        A token.
- * @returns "<character…|1..∞>"
+ * @returns "character+"
  *    The source text of {@param "aToken"}.
  */
 Primitive "_'s⁇lexeme" is
@@ -3223,7 +3223,7 @@ Primitive "_'s⁇lexeme" is
  * @method "_'s⁇line number"
  * @param "aToken" "token"
  *        A token.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The one-based line number of {@param "aToken"}.
  */
 Primitive "_'s⁇line number" is
@@ -3241,7 +3241,7 @@ Primitive "_'s⁇line number" is
  * @method "_'s⁇starting position"
  * @param "aToken" "token"
  *        A token.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The zero-based starting position of {@param "aToken"}.
  */
 Primitive "_'s⁇starting position" is
@@ -3291,9 +3291,9 @@ Primitive "_'s⁇token" is
  *
  * @category "Primitives" "POJO" "Constructors"
  * @method "new_[_]"
- * @param "elementType" "(any)'s type"
+ * @param "elementType" "{any}ᵀ"
  *        The element type.
- * @param "length" "[0..∞)"
+ * @param "length" "𝕎"
  *        The number of elements.
  * @returns "any[]"
  *    A new pojo array that can store and answer {@param "length"} elements conforming
@@ -3313,11 +3313,11 @@ Primitive "new_[_]" is
  *
  * @category "Primitives" "Types" "POJO" "Constructors"
  * @method "_[_]"
- * @param "elementType" "(any)'s type"
+ * @param "elementType" "{any}ᵀ"
  *        The type of the elements of instances.
- * @param "cardinalityRequirement" "([0..∞))'s type"
+ * @param "cardinalityRequirement" "{𝕎}ᵀ"
  *        The range of sizes of instances.
- * @returns "(any[])'s type"
+ * @returns "{any[]}ᵀ"
  *    The requested pojo array type.
  */
 Primitive "_[_]" is
@@ -3353,7 +3353,7 @@ Primitive "_→tuple" is
  * @method "`|_`|"
  * @param "anArray" "any[]"
  *        A pojo array.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The size of the argument.
  */
 Primitive "`|_`|" is
@@ -3368,9 +3368,9 @@ Primitive "`|_`|" is
  *
  * @category "Primitives" "Types" "POJO" "Queries"
  * @method "_'s⁇element type"
- * @param "pojoArrayType" "(any[])'s type"
+ * @param "pojoArrayType" "{any[]}ᵀ"
  *        A pojo array type.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The element type of {@param "pojoArrayType"}.
  */
 Primitive "_'s⁇element type" is
@@ -3385,9 +3385,9 @@ Primitive "_'s⁇element type" is
  *
  * @category "Primitives" "Types" "POJO" "Queries"
  * @method "`|`|_`|`|"
- * @param "pojoArrayType" "(any[])'s type"
+ * @param "pojoArrayType" "{any[]}ᵀ"
  *        A pojo array type.
- * @returns "([0..∞))'s type"
+ * @returns "{𝕎}ᵀ"
  *    The cardinality restriction of {@param "pojoArrayType"}.
  */
 Primitive "`|`|_`|`|" is
@@ -3405,7 +3405,7 @@ Primitive "`|`|_`|`|" is
  * @method "_'s⁇function type"
  * @param "aFunctionImplementation" "¢[…]→⊤"
  *        A function implementation.
- * @returns "([…]→⊤)'s type"
+ * @returns "{[…]→⊤}ᵀ"
  *    The argument's function type.
  */
 Primitive "_'s⁇function type" is
@@ -3440,7 +3440,7 @@ Primitive "_'s⁇literals" is
  * @method "_'s⁇arity"
  * @param "aFunctionImplementation" "¢[…]→⊤"
  *        A function implementation.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The argument's arity.
  */
 Primitive "_'s⁇arity" is
@@ -3457,7 +3457,7 @@ Primitive "_'s⁇arity" is
  * @method "`|_'s⁇local variables`|"
  * @param "aFunctionImplementation" "¢[…]→⊤"
  *        A function implementation.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The number of locals used by the argument.
  */
 Primitive "`|_'s⁇local variables`|" is
@@ -3474,7 +3474,7 @@ Primitive "`|_'s⁇local variables`|" is
  * @method "`|_'s⁇outer variables`|"
  * @param "aFunctionImplementation" "¢[…]→⊤"
  *        A function implementation.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The number of outers used by the argument.
  */
 Primitive "`|_'s⁇outer variables`|" is
@@ -3493,7 +3493,7 @@ Primitive "`|_'s⁇outer variables`|" is
  * @method "_'s⁇maximum stack depth"
  * @param "aFunctionImplementation" "¢[…]→⊤"
  *        A function implementation.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The argument's maximum stack depth.
  */
 Primitive "_'s⁇maximum stack depth" is
@@ -3511,7 +3511,7 @@ Primitive "_'s⁇maximum stack depth" is
  * @method "_'s⁇nybblecodes"
  * @param "aFunctionImplementation" "¢[…]→⊤"
  *        A function implementation.
- * @returns "<[0..15]…|>"
+ * @returns "[0..15]*"
  *    The argument's nybblecodes.
  */
 Primitive "_'s⁇nybblecodes" is
@@ -3569,7 +3569,7 @@ Primitive "_'s⁇primitive name" is
  * @method "Set name of function implementation_to_"
  * @param "rawFunction" "¢[…]→⊤"
  *        The function implementation to name.
- * @param "name" "<character…|1..∞>"
+ * @param "name" "character+"
  *        A string used to name the function implementation.
  * @returns "⊤"
  */
@@ -3587,11 +3587,11 @@ Primitive "Set name of function implementation_to_" is
  *
  * @category "Primitives" "Types" "Sets" "Constructors"
  * @method "{_`|_}"
- * @param "elementType" "(any)'s type"
+ * @param "elementType" "{any}ᵀ"
  *        The element type.
- * @param "cardinalityType" "([0..∞))'s type"
+ * @param "cardinalityType" "{𝕎}ᵀ"
  *        The range of allowed cardinalities.
- * @returns "(set)'s type"
+ * @returns "{set}ᵀ"
  *    The requested set type. Instances have elements that conform to
  *    {@param "elementType"} and cardinalities that conform to {@param
  *    "cardinalityType"}.
@@ -3697,7 +3697,7 @@ Primitive "_⊆_" is
  * @method "`|_`|"
  * @param "aSet" "set"
  *        A set.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The argument's cardinality.
  */
 Primitive "`|_`|" is
@@ -3732,9 +3732,9 @@ Primitive "_→tuple" is
  *
  * @category "Primitives" "Types" "Sets" "Queries"
  * @method "_'s⁇element|member type"
- * @param "aSetType" "(set)'s type"
+ * @param "aSetType" "{set}ᵀ"
  *        A set type.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The argument's element type.
  */
 Primitive "_'s⁇element|member type" is
@@ -3750,9 +3750,9 @@ Primitive "_'s⁇element|member type" is
  *
  * @category "Primitives" "Types" "Sets" "Queries"
  * @method "`|`|_`|`|"
- * @param "aSetType" "(set)'s type"
+ * @param "aSetType" "{set}ᵀ"
  *        A set type.
- * @returns "([0..∞))'s type"
+ * @returns "{𝕎}ᵀ"
  *    The argument's cardinality requirement.
  */
 Primitive "`|`|_`|`|" is
@@ -3851,7 +3851,7 @@ Primitive "_→set" is
  *
  * @category "Primitives" "Tuples" "Transformers"
  * @method "concatenate_"
- * @param "tupleOfTuples" "<tuple…|>"
+ * @param "tupleOfTuples" "tuple*"
  *        A tuple of tuples.
  * @returns "tuple"
  *    The requested tuple.
@@ -3869,13 +3869,13 @@ Primitive "concatenate_" is
  *
  * @category "Primitives" "Types" "Tuples" "Constructors"
  * @method "<_,_`…`|_>"
- * @param "leadingTypes" "<(any)'s type…|>"
+ * @param "leadingTypes" "{any}ᵀ*"
  *        The leading types.
- * @param "defaultType" "(any)'s type"
+ * @param "defaultType" "{any}ᵀ"
  *        The default type.
- * @param "cardinalityType" "([0..∞))'s type"
+ * @param "cardinalityType" "{𝕎}ᵀ"
  *        The range of allowed cardinalities.
- * @returns "(tuple)'s type"
+ * @returns "{tuple}ᵀ"
  *    The requested tuple type.
  */
 Primitive "<_,_`…`|_>" is
@@ -3911,7 +3911,7 @@ Primitive "_reversed" is
  * @method "`|_`|"
  * @param "aTuple" "tuple"
  *        A tuple.
- * @returns "[0..∞)"
+ * @returns "𝕎"
  *    The argument's cardinality.
  */
 Primitive "`|_`|" is
@@ -3928,11 +3928,11 @@ Primitive "`|_`|" is
  *
  * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "_[_]"
- * @param "aTupleType" "(tuple)'s type"
+ * @param "aTupleType" "{tuple}ᵀ"
  *        A tuple type.
- * @param "index" "[1..∞)"
+ * @param "index" "ℕ"
  *        The index of the desired element type.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The requested element type, or ⊥ if {@param "index"} is out of bounds.
  */
 Primitive "_[_]" is
@@ -3948,13 +3948,13 @@ Primitive "_[_]" is
  *
  * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "∪_[_.._]"
- * @param "aTupleType" "(tuple)'s type"
+ * @param "aTupleType" "{tuple}ᵀ"
  *        A tuple type.
- * @param "startIndex" "[1..∞)"
+ * @param "startIndex" "ℕ"
  *        The one-based index (inclusive) of the start of the range.
  * @param "endIndex" "[0..∞]"
  *        The one-based index (inclusive) of the end of the range.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The type union of all element types in the specified range.
  */
 Primitive "∪_[_.._]" is
@@ -3973,11 +3973,11 @@ Primitive "∪_[_.._]" is
  *
  * @category "Primitives" "Types" "Tuples" "Transformers"
  * @method "_++_"
- * @param "arg1" "(tuple)'s type"
+ * @param "arg1" "{tuple}ᵀ"
  *        A tuple type.
- * @param "arg2" "(tuple)'s type"
+ * @param "arg2" "{tuple}ᵀ"
  *        A tuple type.
- * @returns "(tuple)'s type"
+ * @returns "{tuple}ᵀ"
  *    The requested tuple type.
  */
 Primitive "_++_" is
@@ -3993,9 +3993,9 @@ Primitive "_++_" is
  *
  * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "_'s⁇default type"
- * @param "aTupleType" "(tuple)'s type"
+ * @param "aTupleType" "{tuple}ᵀ"
  *        A tuple type.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The argument's default element type.
  */
 Primitive "_'s⁇default type" is
@@ -4011,9 +4011,9 @@ Primitive "_'s⁇default type" is
  *
  * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "_'s⁇leading types"
- * @param "aTupleType" "(tuple)'s type"
+ * @param "aTupleType" "{tuple}ᵀ"
  *        A tuple type.
- * @returns "<(any)'s type…|>"
+ * @returns "{any}ᵀ*"
  *    The argument's leading element types.
  */
 Primitive "_'s⁇leading types" is
@@ -4028,9 +4028,9 @@ Primitive "_'s⁇leading types" is
  *
  * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "`|`|_`|`|"
- * @param "aTupleType" "(tuple)'s type"
+ * @param "aTupleType" "{tuple}ᵀ"
  *        A tuple type.
- * @returns "([0..∞))'s type"
+ * @returns "{𝕎}ᵀ"
  *    The argument's cardinality requirement.
  */
 Primitive "`|`|_`|`|" is
@@ -4046,9 +4046,9 @@ Primitive "`|`|_`|`|" is
  *
  * @category "Primitives" "Types" "Tuples" "Queries"
  * @method "∪_"
- * @param "tupleOfTypes" "<(⊤)'s type…|>"
+ * @param "tupleOfTypes" "{⊤}ᵀ*"
  *        A tuple of types.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The type union of the elements of the argument.
  */
 Primitive "∪_" is
@@ -4094,7 +4094,7 @@ Primitive "Cast|cast_into_else_" is
  * @method "enumeration of_"
  * @param "instances" "set"
  *        The complete set of instances of the enumeration.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The requested enumeration.
  */
 Primitive "enumeration of_" is
@@ -4110,7 +4110,7 @@ Primitive "enumeration of_" is
  *
  * @category "Primitives" "Types" "Queries"
  * @method "`|_`|"
- * @param "aType" "(⊤)'s type"
+ * @param "aType" "{⊤}ᵀ"
  *        A type.
  * @returns "[0..∞]"
  *    The cardinality of the membership of the type.
@@ -4129,7 +4129,7 @@ Primitive "`|_`|" is
  * @method "_∈_"
  * @param "value" "any"
  *        The value to test for membership in {@param "aType"}.
- * @param "aType" "(⊤)'s type"
+ * @param "aType" "{⊤}ᵀ"
  *        The target type for the membership check.
  * @returns "boolean"
  *    {@method "true"} if {@param "value"} is an instance of {@param
@@ -4150,9 +4150,9 @@ Primitive "_∈_" is
  *
  * @category "Primitives" "Types" "Mathematics" "Relations"
  * @method "_⊆_"
- * @param "arg1" "(⊤)'s type"
+ * @param "arg1" "{⊤}ᵀ"
  *        A type.
- * @param "arg2" "(⊤)'s type"
+ * @param "arg2" "{⊤}ᵀ"
  *        A type.
  * @returns "boolean"
  *    `true` if the first argument is a subtype of, or the same type as, the
@@ -4174,7 +4174,7 @@ Primitive "_⊆_" is
  * @method "_'s⁇type"
  * @param "value" "any"
  *        An arbitrary value.
- * @returns "(any)'s type"
+ * @returns "{any}ᵀ"
  *    The precise instance type of the supplied value.
  */
 Primitive "_'s⁇type" is
@@ -4190,11 +4190,11 @@ Primitive "_'s⁇type" is
  *
  * @category "Primitives" "Types" "Mathematics"
  * @method "_∩_"
- * @param "arg1" "(⊤)'s type"
+ * @param "arg1" "{⊤}ᵀ"
  *        A type.
- * @param "arg2" "(⊤)'s type"
+ * @param "arg2" "{⊤}ᵀ"
  *        A type.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The type intersection of the arguments.
  */
 Primitive "_∩_" is
@@ -4211,11 +4211,11 @@ Primitive "_∩_" is
  *
  * @category "Primitives" "Types" "Mathematics"
  * @method "_∪_"
- * @param "arg1" "(⊤)'s type"
+ * @param "arg1" "{⊤}ᵀ"
  *        A type.
- * @param "arg2" "(⊤)'s type"
+ * @param "arg2" "{⊤}ᵀ"
  *        A type.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The type union of the arguments.
  */
 Primitive "_∪_" is
@@ -4231,11 +4231,11 @@ Primitive "_∪_" is
  *
  * @category "Primitives" "Variables" "Types" "Constructors"
  * @method "read_/write_"
- * @param "readType" "(⊤)'s type"
+ * @param "readType" "{⊤}ᵀ"
  *        The read type of the variable type.
- * @param "writeType" "(⊤)'s type"
+ * @param "writeType" "{⊤}ᵀ"
  *        The write type of the variable type.
- * @returns "(read ⊤/write ⊥)'s type"
+ * @returns "{read ⊤/write ⊥}ᵀ"
  *    The requested variable type.
  */
 Primitive "read_/write_" is
@@ -4251,7 +4251,7 @@ Primitive "read_/write_" is
  *
  * @category "Primitives" "Variables" "Constructors"
  * @method "new`↑_"
- * @param "containmentType" "(any)'s type"
+ * @param "containmentType" "{any}ᵀ"
  *        The containment type.
  * @returns "read ⊤/write ⊥"
  *    A new variable capable of retrieving and storing values of the specified
@@ -4269,9 +4269,9 @@ Primitive "new`↑_" is
  *
  * @category "Primitives" "Variables" "Types" "Constructors"
  * @method "`↑_"
- * @param "containmentType" "(any)'s type"
+ * @param "containmentType" "{any}ᵀ"
  *        The containment type.
- * @returns "(read ⊤/write ⊥)'s type"
+ * @returns "{read ⊤/write ⊥}ᵀ"
  *    The requested variable type.
  */
 Primitive "`↑_" is
@@ -4305,9 +4305,9 @@ Primitive "_↑is unassigned" is
  *
  * @category "Primitives" "Variables" "Types" "Queries"
  * @method "_'s⁇read type"
- * @param "varType" "(read ⊤/write ⊥)'s type"
+ * @param "varType" "{read ⊤/write ⊥}ᵀ"
  *        A variable type.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The most general type that describes values that can be read from
  *    instances of {@param "varType"}.
  */
@@ -4324,9 +4324,9 @@ Primitive "_'s⁇read type" is
  *
  * @category "Primitives" "Variables" "Types" "Queries"
  * @method "_'s⁇write type"
- * @param "varType" "(read ⊤/write ⊥)'s type"
+ * @param "varType" "{read ⊤/write ⊥}ᵀ"
  *        A variable type.
- * @returns "(⊤)'s type"
+ * @returns "{⊤}ᵀ"
  *    The most general type that describes values that can be written to
  *    instances of {@param "varType"}.
  */

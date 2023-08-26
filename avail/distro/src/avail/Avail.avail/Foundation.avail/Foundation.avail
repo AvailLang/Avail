@@ -100,7 +100,6 @@ Extends
 		"Invoke|invoke_with_",
 		"Invoke_with_,⁇forked at priority_",
 		"Lexer_when_is_«styled by_»?",
-		"Link pojos_",
 		"Macro_is«_,»_«styled by_»?",
 		"Mark for_character|characters of read ahead",
 		"Park current fiber",
@@ -1043,6 +1042,11 @@ Extends
 		"character set lexer",
 		"style lexer"
 	),
+	"Libraries" =
+	(
+		"Link_",
+		"Link pojos_"
+	),
 	"Literals" =
 	(
 		"enclosing module",
@@ -1382,7 +1386,6 @@ Extends
 		"Accept parse",
 		"Assert:_",
 		"Assert:_(_)",
-		"Link_",
 		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 		"Reject parse(confidence=_),expected:_",
 		"Shouldn't happen",
