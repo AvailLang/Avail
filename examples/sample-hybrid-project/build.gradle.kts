@@ -87,7 +87,7 @@ dependencies {
     implementation("org.availlang:avail:2.0.0.alpha23")
 
     // Downloads avail library to ~/.avail/libraries
-    avail("org.availlang:avail-stdlib:2.0.0.alpha20-1.6.1.alpha09")
+    avail("org.availlang:avail-stdlib:2.0.0.alpha22-1.6.1.alpha13")
 
     testImplementation(kotlin("test"))
 }
@@ -99,30 +99,19 @@ avail {
     projectDescription =
         "This description goes into the Avail manifest in the jar!"
 
+    // The version of the Avail VM to target. This is used to specify the
+    // version of the Avail VM when launching Anvil
     availVersion = "2.0.0.alpha23"
 
-    // This imports the Avail Standard Library from a Maven repository,
-    // presumably Maven Central where the library is officially published.
-    includeStdAvailLibDependency {
-        // The name of the root for the standard library actually defaults to
-        // "avail", so it is not necessary to include this line.
-        name = "avail"
+    // The name of the Avail project. This will be the name of the Avail project
+    // config file. It defaults to the Gradle project name.
+    name = "sample-hybrid"
 
-        // The dependency artifact group. This defaults to "org.availlang", so
-        // it is not necessary to include this line.
-        group = "org.availlang"
-
-        // The dependency artifact name. This defaults to "avail-stdlib", so it
-        // is not necessary to include this line.
-        artifactName = "avail-stdlib"
-
-        // The specific dependency version of the published Avail Standard
-        // Library.
-        version = "2.0.0.alpha23-1.6.1.alpha14"
-    }
-
-    // Adds an Avail library from a dependency from
-//     includeAvailLibDependency("sample", "org.mystuff:alib:1.0.0")
+    // Adds an Avail library from a dependency from one of the Gradle
+    // repositories.
+    includeAvailLibDependency(
+        "avail",
+        "org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha14")
 
 
     // Specify the AvailLocation where to write the .repo files to. This
@@ -269,26 +258,6 @@ tasks {
             // far that overcame the issue.
             availExtension.createArtifact()
         }
-    }
-
-    // This task creates the Avail Project file, `avail-config.json` as
-    // configured in the AvailExtension block, `avail {}`.
-    createProjectFile {
-        // Set name of the file. This defaults to AvailProject.CONFIG_FILE_NAME
-        // which is `avail-config.json`.
-        fileName = AvailProject.CONFIG_FILE_NAME
-
-        // Set the directory where the Avail project file will be written to.
-        // This location is the Avail Project Home directory for the Avail
-        // project. The project roots directory is expected to be relative to
-        // this directory.
-        // The default location is at the top level of the project as shown
-        // here.
-        outputLocation = ProjectHome(
-            "",
-            FILE,
-            project.projectDir.absolutePath,
-            null)
     }
 
 //     This is the task that uses the configuration done in the AvailExtension

@@ -14,7 +14,7 @@ import java.io.File
  * Construct an [AvailLibraries].
  *
  * @param path
- *   The path relative to the [AvailEnvironment.availHomeRepos] directory.
+ *   The path relative to the [AvailEnvironment.availHomeLibs] directory.
  * @param scheme
  *   The [Scheme] of the location.
  * @param rootNameInJar
@@ -36,16 +36,27 @@ open class AvailLibraries constructor (
 		locationType: LocationType
 	): AvailLocation = AvailLibraries(
 		"$path${File.separator}$relativePath", scheme, rootNameInJar)
+
+	/**
+	 * Answer an [AvailJarRoot]
+	 *
+	 * @param rootNameInJar
+	 *   The name of the root to use within the JAR file.
+	 *
+	 */
+	fun asRootLocation (rootNameInJar: String): AvailJarRoot =
+		AvailJarRoot(path, rootNameInJar)
 }
 
 /**
- * An [AvailLibraries] location of an Avail library JAR file.
+ * An [AvailLibraries] location of an Avail library JAR file with the name of
+ * the packaged root inside the JAR.
  *
  * **NOTE** As this is not a directory, but a file [relativeLocation] returns
  * a location that is in the same directory as this represented file.
  *
  * @constructor
- * Construct an [AvailLibraryJar].
+ * Construct an [AvailJarRoot].
  *
  * @param fileName
  *   The JAR file name.
@@ -53,7 +64,7 @@ open class AvailLibraries constructor (
  *   The name of the root to use within the JAR file.
  */
 @Suppress("unused")
-class AvailLibraryJar constructor(
+class AvailJarRoot constructor(
 	fileName: String,
 	rootNameInJar: String
 ): AvailLibraries(fileName, Scheme.JAR, rootNameInJar)

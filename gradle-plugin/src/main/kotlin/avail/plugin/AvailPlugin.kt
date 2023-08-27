@@ -31,13 +31,18 @@
  */
 package avail.plugin
 
+import org.availlang.artifact.AvailArtifactBuildPlan
 import org.availlang.artifact.environment.AvailEnvironment
+import org.availlang.artifact.environment.location.AvailLibraries
+import org.availlang.artifact.environment.location.AvailLocation
+import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProject
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.UnknownConfigurationException
+import org.gradle.api.artifacts.ResolvedArtifact
 import java.io.File
 
 /**
@@ -47,10 +52,6 @@ import java.io.File
  */
 class AvailPlugin : Plugin<Project>
 {
-	internal var latestAvailStdLib = ""
-	internal var latestAvail = ""
-	internal var hasAvailImport = false
-
 	init
 	{
 		// Make sure .avail is set up in the user's home directory.
@@ -76,19 +77,6 @@ class AvailPlugin : Plugin<Project>
 					"Config for acquiring Avail libraries from maven"
 			}
 			create(AvailAnvilTask.ANVIL_INTERNAL_CONFIG)
-
-			// Config for checking latest versions of Avail published libraries.
-			create(CHECK_CONFIG).apply {
-				isTransitive = false
-				isVisible = false
-				description =
-					"Config for checking latest versions of Avail published " +
-						"org.availlang libraries."
-				dependencies.add(
-					target.dependencies.create("$AVAIL_STDLIB_DEP:+"))
-				dependencies.add(
-					target.dependencies.create("$AVAIL_DEP_GRP:$AVAIL:+"))
-			}
 		}
 
 		// Create AvailExtension and attach it to the target host Project
@@ -99,53 +87,70 @@ class AvailPlugin : Plugin<Project>
 				target,
 				this)
 
-		target.tasks.register("initializeAvail", DefaultTask::class.java)
+		target.tasks.register("downloadAvailLibraries", DefaultTask::class.java)
+		{
+			description = "Downloads all `avail` libraries in the " +
+				"`dependencies` block to `~/.avail/libraries` making them " +
+				"available for Avail project use. This is automatically run " +
+				"on Gradle refresh. Libraries are re-downloaded and " +
+				"overwritten with each run."
+
+			target.configurations.getByName(AVAIL)
+				.resolvedConfiguration.resolvedArtifacts.forEach {
+					downloadLib(it)
+				}
+		}
+
+		target.tasks.register("setupProject", DefaultTask::class.java)
 		{
 			group = AVAIL
 			description = "Initialize the Avail Project. This sets up the " +
 				"project according to the configuration in the `avail` " +
 				"extension block. At the end of this task, all root " +
 				"initializers (lambdas) that were added will be run."
-
+			dependsOn("downloadAvailLibraries")
 			val availLibConfig =
 				target.configurations.getByName(AVAIL_LIBRARY)
 			extension.rootDependencies.forEach {
 				val dependency = it.dependency(target)
 				availLibConfig.dependencies.add(dependency)
 			}
-			val availVmConfig =
-				target.configurations.getByName(AVAIL)
 
 			// Putting the call into a `doLast` block forces this to only be
 			// executed when explicitly run.
 			doLast {
 				project.mkdir(extension.rootsDirectory.fullPath)
 				project.mkdir(extension.repositoryDirectory.fullPath)
-				(availLibConfig.resolvedConfiguration.resolvedArtifacts
-					+ availVmConfig.resolvedConfiguration.resolvedArtifacts
-					).forEach {
-						val grpPath = it.moduleVersion.id.group
-							.replace(".", File.separator)
-						val targetDir = AvailEnvironment.availHomeLibs +
-							"${File.separator}$grpPath${File.separator}"
-						File(targetDir).mkdirs()
-						it.file.apply {
-							copyTo(File("$targetDir$name"), true)
-						}
-					}
+				availLibConfig.resolvedConfiguration.resolvedArtifacts.forEach {
+					downloadLib(it)
+				}
 				extension.createRoots.values.forEach {
 					it.create(extension.moduleHeaderCommentBody)
 				}
 				extension.roots.values.forEach { it.action(it) }
+				val availProject = extension.createProject()
+				project.rootDir.resolve("${extension.name}.json")
+					.writeText(availProject.fileContent)
+				val configDir = project.rootDir.resolve(
+					AvailEnvironment.projectConfigDirectory)
+				val projectConfigDir = configDir.resolve(availProject.name)
+				projectConfigDir.mkdirs()
+				val buildPlan = extension.buildPlan
+				projectConfigDir
+					.resolve(AvailArtifactBuildPlan.ARTIFACT_PLANS_FILE)
+					.writeText(AvailArtifactBuildPlan
+						.fileContent(listOf(buildPlan)))
 			}
 		}
 
 		target.tasks.register(
-			"assembleAndRunAnvil", AvailAnvilTask::class.java)
+			"anvil", AvailAnvilTask::class.java)
 		{
 			// Create Dependencies
 			group = AVAIL
-			description = "Assembles"
+			description =
+				"Assembles an Avail VM fat jar in `build/anvil/anvil.jar` and " +
+					"uses it to run Anvil."
 			maximumJavaHeap = "6g"
 			vmOption("-ea")
 			vmOption("-XX:+UseCompressedOops")
@@ -158,7 +163,6 @@ class AvailPlugin : Plugin<Project>
 			description =
 				"Print the Avail configuration collected from the `avail` " +
 					"extension."
-			dependsOn("initializeAvail")
 			println(extension.printableConfig)
 		}
 
@@ -168,21 +172,27 @@ class AvailPlugin : Plugin<Project>
 			dependsOn("checkProject")
 			dependsOn("build")
 		}
+	}
 
-		target.tasks.register(
-			"createProjectFile", CreateAvailProjectFileTask::class.java)
-		{
-			group = AVAIL
-			description = "Creates a new AvailProject file based on the " +
-				"configuration of the AvailExtension."
-			dependsOn("initializeAvail")
-
-			doLast {
-				val availProject = extension.createProject()
-				project.rootDir.resolve(AvailProject.CONFIG_FILE_NAME)
-					.writeText(availProject.fileContent)
-			}
+	/**
+	 * Download the provided [ResolvedArtifact] to the
+	 * [AvailEnvironment.availHomeLibs] directory and answer the [AvailLocation]
+	 * for the downloaded artifact.
+	 */
+	private fun Task.downloadLib(artifact: ResolvedArtifact): AvailLocation
+	{
+		val grpPath = artifact.moduleVersion.id.group
+			.replace(".", File.separator)
+		val targetDir = AvailEnvironment.availHomeLibs +
+			"${File.separator}$grpPath${File.separator}"
+		File(targetDir).mkdirs()
+		artifact.file.apply {
+			copyTo(File("$targetDir$name"), true)
 		}
+		return AvailLibraries(
+			"$grpPath${File.separator}$name",
+			Scheme.JAR,
+			null)
 	}
 
 	companion object
@@ -201,15 +211,8 @@ class AvailPlugin : Plugin<Project>
 			"avail-stdlib"
 
 		/**
-		 * The dependency group-artifact String dependency that points to the
-		 * published Avail Standard Library Jar. This is absent the version.
-		 */
-		internal const val AVAIL_STDLIB_DEP: String =
-			"$AVAIL_DEP_GRP:$AVAIL_STDLIB_DEP_ARTIFACT_NAME"
-
-		/**
 		 * The name of the custom [Project] [Configuration], `availLibrary`,
-		 * where only the [AVAIL_STDLIB_DEP] is added.
+		 * where avail libraries are added.
 		 */
 		internal const val AVAIL_LIBRARY: String = "availLibrary"
 
@@ -218,11 +221,5 @@ class AvailPlugin : Plugin<Project>
 		 * hosting [Project].
 		 */
 		internal const val AVAIL = "avail"
-
-		/**
-		 * The name of the configuration used to check the latest published
-		 * Avail libraries.
-		 */
-		internal const val CHECK_CONFIG = "z017f99c2454b49bcbaedc98aa5cbb39b"
 	}
 }

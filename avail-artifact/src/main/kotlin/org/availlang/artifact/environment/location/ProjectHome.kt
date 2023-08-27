@@ -18,7 +18,8 @@ import java.io.File
  * Construct an [ProjectHome].
  *
  * @param path
- *   The absolute path to the [AvailProject] directory.
+ *   The relative path inside the [AvailProject] directory to where this
+ *   [ProjectHome] is pointing.
  * @param scheme
  *   The [Scheme] of the location.
  * @param projectHome

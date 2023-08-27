@@ -177,7 +177,7 @@ open class AvailAnvilTask: DefaultTask()
 	 */
 	private fun launch (fullPathToFile: String)
 	{
-		project.tasks.create("anvil", JavaExec::class.java)
+		project.tasks.create("_345jsjlfa_anvil", JavaExec::class.java)
 		{
 			group = AvailPlugin.AVAIL
 			description =

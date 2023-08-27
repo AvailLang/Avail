@@ -70,7 +70,7 @@ avail {
 		implementationTitle = "Avail Standard Library"
 		projectFileLocation =
 			ProjectHome(
-				"./../$CONFIG_FILE_NAME",
+				"../avail/$CONFIG_FILE_NAME",
 				FILE,
 				project.projectDir.absolutePath,
 				null)

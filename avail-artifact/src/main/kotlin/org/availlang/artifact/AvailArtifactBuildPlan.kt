@@ -14,6 +14,7 @@ import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
 import org.availlang.json.json
 import org.availlang.json.jsonArray
+import org.availlang.json.jsonPrettyPrintWriter
 import java.io.File
 import java.security.MessageDigest
 import java.util.jar.JarFile
@@ -58,7 +59,7 @@ import java.util.zip.ZipFile
  *   A map of manifest attribute string name to the string value to add as
  *   additional fields to the manifest file of an Avail artifact.
  */
-class AvailArtifactBuildPlan private constructor(
+class AvailArtifactBuildPlan constructor(
 	var version: String = "",
 	var outputLocation: AvailLocation? = null,
 	var artifactType: AvailArtifactType = AvailArtifactType.LIBRARY,
@@ -266,6 +267,16 @@ class AvailArtifactBuildPlan private constructor(
 		 */
 		@Suppress("MemberVisibilityCanBePrivate")
 		const val ARTIFACT_PLANS_FILE = "artifact-plans.json"
+
+		/**
+		 * Answer the String file contents of the provided list of
+		 * [AvailArtifactBuildPlan]s.
+		 */
+		@Suppress("unused")
+		fun fileContent(plans: List<AvailArtifactBuildPlan>): String =
+			jsonPrettyPrintWriter {
+				writeArray(plans)
+			}.toString()
 
 		/**
 		 * Read the [AvailArtifactBuildPlan]s from disk.

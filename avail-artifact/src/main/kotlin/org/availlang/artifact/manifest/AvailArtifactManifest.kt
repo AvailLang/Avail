@@ -3,6 +3,8 @@ package org.availlang.artifact.manifest
 import org.availlang.artifact.*
 import org.availlang.artifact.AvailArtifact.Companion.artifactRootDirectory
 import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.TemplateGroup
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.jsonPrettyPrintWriter
@@ -52,6 +54,20 @@ sealed interface AvailArtifactManifest: JSONFriendly
 	 * that are present in the artifact.
 	 */
 	val roots: Map<String, AvailRootManifest>
+
+	/**
+	 * Answer tje [StylingGroup] for the given [AvailRootManifest.name] or
+	 * `null` if root not found in this [AvailRootManifest].
+	 */
+	fun stylesFor(root: String): StylingGroup? =
+		roots[root]?.styles
+
+	/**
+	 * Answer tje [TemplateGroup] for the given [AvailRootManifest.name] or
+	 * `null` if root not found in this [AvailRootManifest].
+	 */
+	fun templatesFor(root: String): TemplateGroup? =
+		roots[root]?.templates
 
 	/**
 	 * The String file contents of this [AvailArtifactManifest].

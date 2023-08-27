@@ -31,6 +31,7 @@
  */
 package avail.plugin
 
+import org.availlang.artifact.AvailArtifactBuildPlan
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.*
 import org.availlang.artifact.environment.project.AvailProject
@@ -66,25 +67,16 @@ open class AvailExtension constructor(
 		PackageAvailArtifact(project, this)
 	}
 
-	init
-	{
-		val imp = project.configurations.getByName("implementation")
-		imp.dependencies.forEach {
-			if (it.group == AvailPlugin.AVAIL_DEP_GRP
-				&& it.name == AvailPlugin.AVAIL)
-			{
-				plugin.hasAvailImport = true
-			}
-		}
-	}
-
-
-
 	/**
 	 * `true` indicates the standard library is imported from Maven and used as
 	 * an Avail module root in the project; `false` otherwise.
 	 */
 	internal var usesStdLib = false
+
+	/**
+	 * The name of the Avail project. Defaults to [Project.getName].
+	 */
+	var name: String = project.name
 
 	/**
 	 * The absolute path to the jar file that will be created.
@@ -194,6 +186,12 @@ open class AvailExtension constructor(
 	{
 		configure(packageAvailArtifact)
 	}
+
+	/**
+	 * Create an [AvailArtifactBuildPlan] from the [packageAvailArtifact].
+	 */
+	val buildPlan: AvailArtifactBuildPlan get() =
+		packageAvailArtifact.buildPlan
 
 	/**
 	 * Create the Avail Artifact configured by [artifact].
@@ -373,7 +371,7 @@ open class AvailExtension constructor(
 	 */
 	fun createProject (): AvailProject =
 		AvailProjectV1(
-			project.name,
+			name,
 			true,
 			repositoryDirectory,
 			LocalSettings(project.rootDir.absolutePath),
@@ -391,7 +389,6 @@ open class AvailExtension constructor(
 		buildString {
 			append("\n========================= Avail Configuration")
 			append(" =========================")
-			append("\n\tAvail Import located: ${plugin.hasAvailImport}")
 			rootDependencies.forEach {
 				append("\n\tIncluded Library Dependency: \"")
 				append(it.name)
@@ -400,11 +397,6 @@ open class AvailExtension constructor(
 				append('"')
 			}
 			append("\n\tRepository Location: ${repositoryDirectory.fullPathNoPrefix}")
-			append("\n\tVM Arguments to include for Avail Runtime:")
-			append(roots.values
-				.sorted()
-				.joinToString(";", "\n\t\t• -DavailRoots=") { it.rootString })
-			append("\n\t\t• -Davail.repositories=${repositoryDirectory.fullPathNoPrefix}")
 			append("\n\tRoots Location: $rootsDirectory")
 			append("\n\tIncluded Roots:")
 			roots.values.sorted().forEach {
