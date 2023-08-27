@@ -28,6 +28,8 @@ Entries
     "wrap_and print"
 Body
 
+Link pojos "/my-avail-root/App/avail-java-ffi-1.0.jar";
+
 /**
  * A SampleValueWrapper from avail-java-ffi.
  *
@@ -80,5 +82,7 @@ Method "wrap_and print" is
 	value : Java int
 |
 	wrapped ::= wrap value;
-	Print: format "The wrapped value: “①”" with wrapped's value;
+	Print: format "The wrapped value: “①”\n" with wrapped's value;
 ];
+
+wrap 10 and print;

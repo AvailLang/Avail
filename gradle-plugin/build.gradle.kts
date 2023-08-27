@@ -77,16 +77,6 @@ val kotlinLanguage = "1.8"
 val releaseVersionFile =
 	"src/main/resources/releaseVersion.properties"
 
-/**
- * The version for `org.availlang:avail`.
- */
-val availVersion = "1.6.1"
-
-/**
- * The version for `org.availlang:avail-stdlib`.
- */
-val availStdlib = "1.6.1"
-
 repositories {
 	mavenLocal()
 	mavenCentral()

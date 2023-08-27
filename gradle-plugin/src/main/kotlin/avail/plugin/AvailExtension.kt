@@ -141,6 +141,9 @@ open class AvailExtension constructor(
 	 */
 	internal val rootDependencies = mutableListOf<AvailLibraryDependency>()
 
+	@Suppress("MemberVisibilityCanBePrivate")
+	var availVersion: String = ""
+
 	/**
 	 * This function informs the plugin to include the Avail Standard Library
 	 * as a root from a Maven repository.

@@ -69,6 +69,14 @@ class AvailPlugin : Plugin<Project>
 					"Config for acquiring published Avail library dependencies"
 			}
 
+			create(AVAIL).apply {
+				isTransitive = false
+				isVisible = false
+				description =
+					"Config for acquiring Avail libraries from maven"
+			}
+			create(AvailAnvilTask.ANVIL_INTERNAL_CONFIG)
+
 			// Config for checking latest versions of Avail published libraries.
 			create(CHECK_CONFIG).apply {
 				isTransitive = false
@@ -76,7 +84,8 @@ class AvailPlugin : Plugin<Project>
 				description =
 					"Config for checking latest versions of Avail published " +
 						"org.availlang libraries."
-				dependencies.add(AvailStandardLibrary().dependency(target))
+				dependencies.add(
+					target.dependencies.create("$AVAIL_STDLIB_DEP:+"))
 				dependencies.add(
 					target.dependencies.create("$AVAIL_DEP_GRP:$AVAIL:+"))
 			}
@@ -89,17 +98,6 @@ class AvailPlugin : Plugin<Project>
 				AvailExtension::class.java,
 				target,
 				this)
-
-		target.tasks.register("checkProject", DefaultTask::class.java)
-		{
-			group = AVAIL
-			description = "This checks the configured Avail project and " +
-				"displays warnings, errors, or recomendations"
-
-			doLast {
-				checkProject(target, extension)
-			}
-		}
 
 		target.tasks.register("initializeAvail", DefaultTask::class.java)
 		{
@@ -115,28 +113,43 @@ class AvailPlugin : Plugin<Project>
 				val dependency = it.dependency(target)
 				availLibConfig.dependencies.add(dependency)
 			}
+			val availVmConfig =
+				target.configurations.getByName(AVAIL)
 
 			// Putting the call into a `doLast` block forces this to only be
 			// executed when explicitly run.
 			doLast {
 				project.mkdir(extension.rootsDirectory.fullPath)
 				project.mkdir(extension.repositoryDirectory.fullPath)
-				availLibConfig.resolvedConfiguration.resolvedArtifacts.forEach {
-					val grpPath =
-						it.moduleVersion.id.group.replace(".", File.separator)
-					val targetDir =
-						"${AvailEnvironment.availHomeLibs}${File.separator}$grpPath${File.separator}"
-					File(targetDir).mkdirs()
-					it.file.apply {
-						copyTo(File("$targetDir$name"), true)
+				(availLibConfig.resolvedConfiguration.resolvedArtifacts
+					+ availVmConfig.resolvedConfiguration.resolvedArtifacts
+					).forEach {
+						val grpPath = it.moduleVersion.id.group
+							.replace(".", File.separator)
+						val targetDir = AvailEnvironment.availHomeLibs +
+							"${File.separator}$grpPath${File.separator}"
+						File(targetDir).mkdirs()
+						it.file.apply {
+							copyTo(File("$targetDir$name"), true)
+						}
 					}
-				}
 				extension.createRoots.values.forEach {
 					it.create(extension.moduleHeaderCommentBody)
 				}
 				extension.roots.values.forEach { it.action(it) }
-				checkProject(target, extension)
 			}
+		}
+
+		target.tasks.register(
+			"assembleAndRunAnvil", AvailAnvilTask::class.java)
+		{
+			// Create Dependencies
+			group = AVAIL
+			description = "Assembles"
+			maximumJavaHeap = "6g"
+			vmOption("-ea")
+			vmOption("-XX:+UseCompressedOops")
+			vmOption("-DavailDeveloper=true")
 		}
 
 		target.tasks.register("printAvailConfig")
@@ -168,114 +181,6 @@ class AvailPlugin : Plugin<Project>
 				val availProject = extension.createProject()
 				project.rootDir.resolve(AvailProject.CONFIG_FILE_NAME)
 					.writeText(availProject.fileContent)
-			}
-		}
-	}
-
-	/**
-	 * Check the Avail Project Configuration for any problems or
-	 * recommendations.
-	 *
-	 * @param project
-	 *   The [Project] to use.
-	 */
-	private fun checkProject(project: Project, extension: AvailExtension)
-	{
-		val checkConfig =
-			project.configurations.getByName(CHECK_CONFIG)
-		val resolvedConfig = checkConfig.resolvedConfiguration
-		val resolvedDependencies =
-			resolvedConfig.firstLevelModuleDependencies
-		resolvedDependencies.forEach {
-			if (it.moduleName == AVAIL)
-			{
-				latestAvail = it.moduleVersion
-			}
-			if (it.moduleName == AVAIL_STDLIB_DEP_ARTIFACT_NAME)
-			{
-				latestAvailStdLib = it.moduleVersion
-			}
-		}
-
-		try
-		{
-			project.configurations.getByName("implementation")
-				.dependencies.forEach { d ->
-					if (d.group == AVAIL_DEP_GRP && d.name == AVAIL)
-					{
-						hasAvailImport = true
-						d.version?.let {
-							if (latestAvail.isNotEmpty())
-							{
-								val setV = AvailVersion(it)
-								val latestV = AvailVersion(latestAvail)
-								if (latestV > setV)
-								{
-									println(
-										"A newer version of Avail is " +
-											"available: " +
-											"$AVAIL_DEP_GRP:$AVAIL:$latestAvail")
-								}
-							}
-						}
-					}
-				}
-		}
-		catch (e: UnknownConfigurationException)
-		{
-			// Do nothing
-		}
-		try
-		{
-			project.configurations.getByName("api")
-				.dependencies.forEach { d ->
-					if (d.group == AVAIL_DEP_GRP && d.name == AVAIL)
-					{
-						hasAvailImport = true
-						d.version?.let {
-							if (latestAvail.isNotEmpty())
-							{
-								val setV = AvailVersion(it)
-								val latestV = AvailVersion(latestAvail)
-								if (latestV > setV)
-								{
-									println(
-										"A newer version of Avail is " +
-											"available: " +
-											"$AVAIL_DEP_GRP:$AVAIL:$latestAvail")
-								}
-							}
-						}
-					}
-				}
-		}
-		catch (e: UnknownConfigurationException)
-		{
-			// Do nothing
-		}
-		if (!hasAvailImport)
-		{
-			System.err.println()
-			println(
-				"WARNING: No Avail dependency. Consider adding " +
-					"`implementation(" +
-					"\"$AVAIL_DEP_GRP:$AVAIL:$latestAvail\")` to the " +
-					"`dependencies` section of the build script.")
-		}
-		if (extension.usesStdLib)
-		{
-			val currentV = extension.availStandardLibrary.version
-			if (latestAvailStdLib.isNotEmpty())
-			{
-				val setV = AvailStdLibVersion(currentV)
-				val latestV = AvailStdLibVersion(latestAvailStdLib)
-				if (latestV > setV)
-				{
-					println(
-						"RECOMMENDATION: A newer version of the Avail Standard " +
-							"Library is available: " +
-							"$AVAIL_STDLIB_DEP:$latestAvailStdLib")
-				}
 			}
 		}
 	}

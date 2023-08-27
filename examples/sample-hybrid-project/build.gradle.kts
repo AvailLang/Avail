@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
- //The Avail Gradle Plugin heavily leverages "org.availlang:artifact"
 import avail.plugin.CreateAvailArtifactJar
 import org.availlang.artifact.AvailArtifactType.APPLICATION
 import org.availlang.artifact.AvailArtifactType.LIBRARY
@@ -40,7 +39,6 @@ import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme.FILE
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProject.Companion.ROOTS_DIR
-import org.availlang.artifact.jar.JvmComponent
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -81,16 +79,15 @@ kotlin {
 }
 
 dependencies {
-    // The module that is the foreign function interface that provides Pojos
-    // written in Java that is usable by Avail.
-    implementation(project(":avail-java-ffi"))
-
     // Dependency prevents SLF4J warning from being printed
     // see: http://www.slf4j.org/codes.html#noProviders
 
     // Can add an Avail library dependency as a jar available in one of the
     // repositories listed in the repository section
     implementation("org.availlang:avail:2.0.0.alpha23")
+
+    // Downloads avail library to ~/.avail/libraries
+    avail("org.availlang:avail-stdlib:2.0.0.alpha20-1.6.1.alpha09")
 
     testImplementation(kotlin("test"))
 }
@@ -99,7 +96,10 @@ dependencies {
 // Gradle plugin for configuring the Avail application.
 avail {
     // A description for this Avail project.
-    projectDescription = "This description goes into the Avail manifest in the jar!"
+    projectDescription =
+        "This description goes into the Avail manifest in the jar!"
+
+    availVersion = "2.0.0.alpha23"
 
     // This imports the Avail Standard Library from a Maven repository,
     // presumably Maven Central where the library is officially published.
@@ -116,10 +116,8 @@ avail {
         // is not necessary to include this line.
         artifactName = "avail-stdlib"
 
-        // OPTIONAL: The specific dependency version of the published  Avail
-        // Standard Library. If not explicitly set, the most recently released
-        // version of the standard library will be used. The most recent version
-        // being used is indicated by a version set to `+`.
+        // The specific dependency version of the published Avail Standard
+        // Library.
         version = "2.0.0.alpha23-1.6.1.alpha14"
     }
 
@@ -355,50 +353,17 @@ tasks {
         dependency(project.dependencies.create(project(":avail-java-ffi")))
     }
 
-    // This demonstrates the use of CreateAvailArtifactJar task to create a task
-    // that constructs a custom Avail artifact.
-    val anvilJar by creating(CreateAvailArtifactJar::class.java)
-    {
-        // The version to give to the created artifact
-        // ([Attributes.Name.IMPLEMENTATION_VERSION]). This is a required field.
-        version.set("1.2.3")
-
-        // The base name of the artifact. This is a required field.
-        artifactName.set("anvil")
-
-        // The AvailArtifactType; either LIBRARY or APPLICATION. The default
-        // is APPLICATION.
-        artifactType = APPLICATION
-
-        // The description of the Avail artifact added to the artifacts
-        // AvailArtifactManifest.
-        artifactDescription = "Avail's Anvil"
-
-        // The [Attributes.Name.IMPLEMENTATION_TITLE inside the JAR file
-        // MANIFEST.MF. This defaults to Project.name
-        implementationTitle = "Avail Sample Hybrid Application"
-
-        jarManifestMainClass = "avail.project.AvailProjectManagerRunner"
-        dependency("org.availlang:avail:2.0.0.alpha23")
-    }
-
-    val launchAnvil by creating(JavaExec::class) {
-        dependsOn(anvilJar)
-        group = "avail"
-        description = "Launch Anvil"
-        classpath = files("$buildDir/libs/")
-    }
-
-    withType<KotlinCompile>() {
+    withType<KotlinCompile> {
         kotlinOptions.jvmTarget = jvmTargetString
     }
 
-    withType<JavaCompile>() {
+    withType<JavaCompile> {
         sourceCompatibility = jvmTargetString
         targetCompatibility = jvmTargetString
     }
     jar {
-        manifest.attributes["Main-Class"] = "avail.project.AvailProjectWorkbenchRunner"
+        manifest.attributes["Main-Class"] =
+            "avail.project.AvailProjectWorkbenchRunner"
         archiveVersion.set("")
     }
 

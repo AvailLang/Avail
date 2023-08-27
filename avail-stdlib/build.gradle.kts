@@ -43,7 +43,7 @@ plugins {
 	publishing
 	signing
 	id("org.jetbrains.dokka") version "1.8.20"
-	id("org.availlang.avail-plugin") version "2.0.0.alpha19"
+	id("org.availlang.avail-plugin") version "2.0.0.alpha20"
 }
 
 repositories {
