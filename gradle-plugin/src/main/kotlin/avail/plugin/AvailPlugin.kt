@@ -32,11 +32,12 @@
 package avail.plugin
 
 import org.availlang.artifact.AvailArtifactBuildPlan
+import org.availlang.artifact.AvailArtifactMetadata
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLibraries
 import org.availlang.artifact.environment.location.AvailLocation
 import org.availlang.artifact.environment.location.Scheme
-import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.jar.AvailArtifactJar
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -95,10 +96,21 @@ class AvailPlugin : Plugin<Project>
 				"on Gradle refresh. Libraries are re-downloaded and " +
 				"overwritten with each run."
 
-			target.configurations.getByName(AVAIL)
-				.resolvedConfiguration.resolvedArtifacts.forEach {
-					downloadLib(it)
-				}
+			println(buildString {
+				target.configurations.getByName(AVAIL)
+					.resolvedConfiguration.resolvedArtifacts.forEach {
+						downloadLib(it).let { metadata ->
+							append("Downloaded: ")
+							append(metadata.location.path)
+							metadata.manifest.roots.values.forEach { m ->
+								append("\n\tRoot name in jar: '")
+								append(m.name)
+								append("'\n\t\t")
+								append(m.description)
+							}
+						}
+					}
+			})
 		}
 
 		target.tasks.register("setupProject", DefaultTask::class.java)
@@ -135,6 +147,9 @@ class AvailPlugin : Plugin<Project>
 					AvailEnvironment.projectConfigDirectory)
 				val projectConfigDir = configDir.resolve(availProject.name)
 				projectConfigDir.mkdirs()
+				projectConfigDir
+					.resolve(".gitignore")
+					.writeText("/**/settings-local.json")
 				val buildPlan = extension.buildPlan
 				projectConfigDir
 					.resolve(AvailArtifactBuildPlan.ARTIFACT_PLANS_FILE)
@@ -163,7 +178,12 @@ class AvailPlugin : Plugin<Project>
 			description =
 				"Print the Avail configuration collected from the `avail` " +
 					"extension."
-			println(extension.printableConfig)
+
+			println(extension.printableConfig(
+				target.configurations.getByName(AVAIL_LIBRARY)
+					.resolvedConfiguration.resolvedArtifacts.map {
+						downloadLib(it)
+					}.toList()))
 		}
 
 		target.tasks.register(
@@ -176,23 +196,28 @@ class AvailPlugin : Plugin<Project>
 
 	/**
 	 * Download the provided [ResolvedArtifact] to the
-	 * [AvailEnvironment.availHomeLibs] directory and answer the [AvailLocation]
-	 * for the downloaded artifact.
+	 * [AvailEnvironment.availHomeLibs] directory and answer the
+	 * [AvailArtifactMetadata] for the downloaded artifact.
 	 */
-	private fun Task.downloadLib(artifact: ResolvedArtifact): AvailLocation
+	private fun downloadLib(
+		artifact: ResolvedArtifact
+	): AvailArtifactMetadata
 	{
 		val grpPath = artifact.moduleVersion.id.group
 			.replace(".", File.separator)
 		val targetDir = AvailEnvironment.availHomeLibs +
 			"${File.separator}$grpPath${File.separator}"
 		File(targetDir).mkdirs()
+		val jarFile = File("$targetDir${artifact.file.name}")
 		artifact.file.apply {
-			copyTo(File("$targetDir$name"), true)
+			copyTo(jarFile, true)
 		}
-		return AvailLibraries(
-			"$grpPath${File.separator}$name",
-			Scheme.JAR,
-			null)
+		return AvailArtifactMetadata.fromJar(
+			jarFile.toURI(),
+			AvailLibraries(
+				"$grpPath${File.separator}${artifact.file.name}",
+				Scheme.JAR,
+				null))
 	}
 
 	companion object

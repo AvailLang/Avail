@@ -84,5 +84,3 @@ Method "wrap_and print" is
 	wrapped ::= wrap value;
 	Print: format "The wrapped value: “①”\n" with wrapped's value;
 ];
-
-wrap 10 and print;

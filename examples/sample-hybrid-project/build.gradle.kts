@@ -37,7 +37,6 @@ import org.availlang.artifact.PackageType.JAR
 import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme.FILE
-import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProject.Companion.ROOTS_DIR
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.withType
@@ -110,8 +109,9 @@ avail {
     // Adds an Avail library from a dependency from one of the Gradle
     // repositories.
     includeAvailLibDependency(
-        "avail",
-        "org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha14")
+        rootName = "avail-stdlib",
+        rootNameInJar = "avail",
+        dependency = "org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha14")
 
 
     // Specify the AvailLocation where to write the .repo files to. This
