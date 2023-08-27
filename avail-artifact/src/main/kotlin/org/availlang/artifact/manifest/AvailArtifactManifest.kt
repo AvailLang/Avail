@@ -95,14 +95,22 @@ sealed interface AvailArtifactManifest: JSONFriendly
 	 *
 	 * @param root
 	 *   The [AvailProjectRoot] to update.
+	 * @param rootNameInJar
+	 *   The name of the root inside the [AvailArtifactManifest].
 	 */
-	fun updateRoot (root: AvailProjectRoot)
+	fun updateRoot (
+		root: AvailProjectRoot,
+		rootNameInJar: String)
 	{
-		val u = roots[root.name] ?: return
+		val u = roots[rootNameInJar] ?: return
 		root.styles.updateFrom(u.styles)
 		val merged = root.templateGroup.mergeOnto(u.templates)
 		root.templateGroup.templates.clear()
 		root.templateGroup.templates.putAll(merged.templates)
+		// TODO this probably always overrides the set styles and templates for
+		//  the jar-based root for this project, which is probably ok...
+		root.saveStylesToDisk()
+		root.saveTemplatesToDisk()
 	}
 
 	companion object

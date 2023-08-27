@@ -185,9 +185,12 @@ class AvailProjectV1 constructor(
 						root.location.let { loc ->
 							val l = loc.scheme.optionalPrefix +
 								loc.fullPathNoPrefix
-							project.manifestMap.computeIfAbsent(root.name) { _ ->
-								AvailArtifactJar(URI(l)).manifest
-							}.updateRoot(root)
+							loc.rootNameInJar?.let {
+								project.manifestMap
+									.computeIfAbsent(root.name) { _ ->
+										AvailArtifactJar(URI(l)).manifest
+									}.updateRoot(root, it)
+							}
 						}
 					}
 					root.name to root
