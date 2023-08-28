@@ -1973,6 +1973,16 @@ class AvailWorkbench internal constructor(
 				projectManager?.onWorkbenchClose(this@AvailWorkbench)
 					?: exitProcess(0)
 			}
+
+			override fun windowClosing(e: WindowEvent?)
+			{
+				unloadAllAction.actionPerformed(
+					ActionEvent(
+						this@AvailWorkbench,
+						ActionEvent.ACTION_FIRST,
+						"close"))
+				println("Unloaded")
+			}
 		})
 
 		// Set *just* the window title...

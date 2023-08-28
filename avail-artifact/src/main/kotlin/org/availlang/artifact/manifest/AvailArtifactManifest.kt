@@ -2,6 +2,8 @@ package org.availlang.artifact.manifest
 
 import org.availlang.artifact.*
 import org.availlang.artifact.AvailArtifact.Companion.artifactRootDirectory
+import org.availlang.artifact.environment.project.AvailProject.Companion.STYLE_FILE_NAME
+import org.availlang.artifact.environment.project.AvailProject.Companion.TEMPLATE_FILE_NAME
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.StylingGroup
 import org.availlang.artifact.environment.project.TemplateGroup
@@ -97,20 +99,35 @@ sealed interface AvailArtifactManifest: JSONFriendly
 	 *   The [AvailProjectRoot] to update.
 	 * @param rootNameInJar
 	 *   The name of the root inside the [AvailArtifactManifest].
+	 * @param createdList
+	 *   List of strings that may contain [TEMPLATE_FILE_NAME] and
+	 *   [STYLE_FILE_NAME] indicating those config files were newly created and
+	 *   should be populated with the corresponding settings from the root's
+	 *   jar.
 	 */
 	fun updateRoot (
 		root: AvailProjectRoot,
-		rootNameInJar: String)
+		rootNameInJar: String,
+		createdList: List<String>)
 	{
+		if (createdList.isEmpty()) return
 		val u = roots[rootNameInJar] ?: return
-		root.styles.updateFrom(u.styles)
-		val merged = root.templateGroup.mergeOnto(u.templates)
-		root.templateGroup.templates.clear()
-		root.templateGroup.templates.putAll(merged.templates)
-		// TODO this probably always overrides the set styles and templates for
-		//  the jar-based root for this project, which is probably ok...
-		root.saveStylesToDisk()
-		root.saveTemplatesToDisk()
+		if (createdList.contains(STYLE_FILE_NAME))
+		{
+			// The styles file was newly created so import the styles from the
+			// jar
+			root.styles.updateFrom(u.styles)
+			root.saveStylesToDisk()
+		}
+		if (createdList.contains(TEMPLATE_FILE_NAME))
+		{
+			// The templates file was newly created so import the styles from
+			// the jar
+			val merged = root.templateGroup.mergeOnto(u.templates)
+			root.templateGroup.templates.clear()
+			root.templateGroup.templates.putAll(merged.templates)
+			root.saveTemplatesToDisk()
+		}
 	}
 
 	companion object
