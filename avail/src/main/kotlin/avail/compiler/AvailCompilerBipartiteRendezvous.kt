@@ -59,10 +59,20 @@ import java.util.concurrent.atomic.AtomicBoolean
 class AvailCompilerBipartiteRendezvous
 {
 	/**
-	 * The solutions that have been encountered so far, and will be passed to
-	 * new actions when they arrive.
+	 * The first solution, if any.  This is an optimization to avoid having
+	 * to hash the solution
 	 */
-	private val solutions = mutableListOf<CompilerSolution>()
+	private var solution1: CompilerSolution? = null
+
+	/** The second solution, if any. */
+	private var solution2: CompilerSolution? = null
+
+	/**
+	 * The third and subsequent solutions that have been encountered so far,
+	 * which, like the first two, will be passed to new actions when they
+	 * arrive.
+	 */
+	private var otherSolutions: MutableList<CompilerSolution>? = null
 
 	/**
 	 * The actions that are waiting to run when new solutions arrive.
@@ -85,6 +95,17 @@ class AvailCompilerBipartiteRendezvous
 	/**
 	 * Record a new solution, and also run any waiting actions with it.
 	 *
+	 * TODO(MvG) - Should throw DuplicateSolutionException.
+	 *   For the moment, suppress duplicates if they're send phrases. We
+	 *   temporarily (9/29/2016) allow these duplicates because of the way
+	 *   definition parsing plans work.  The parsing instructions for
+	 *   repeated arguments can be unrolled, which causes the plans for
+	 *   different definitions of the same method to have diverging
+	 *   instructions.  More than one of these paths might complete
+	 *   successfully.  The resulting send phrases don't indicate which
+	 *   plan completed, just the bundle and argument phrases, hence the
+	 *   duplicate solutions.
+	 *
 	 * @param endState
 	 *   The [ParserState] after the specified phrase's tokens.
 	 * @param phrase
@@ -96,25 +117,23 @@ class AvailCompilerBipartiteRendezvous
 		phrase: A_Phrase)
 	{
 		val solution = CompilerSolution(endState, phrase)
-		if (solutions.contains(solution))
+		when
 		{
-			// TODO(MvG) - Should throw DuplicateSolutionException.
-			// For the moment, suppress duplicates if they're send phrases. We
-			// temporarily (9/29/2016) allow these duplicates because of the way
-			// definition parsing plans work.  The parsing instructions for
-			// repeated arguments can be unrolled, which causes the plans for
-			// different definitions of the same method to have diverging
-			// instructions.  More than one of these paths might complete
-			// successfully.  The resulting send phrases don't indicate which
-			// plan completed, just the bundle and argument phrases, hence the
-			// duplicate solutions.
-			return
-			// throw new DuplicateSolutionException()
+			solution1 == null -> solution1 = solution
+			solution1 == solution -> return //TODO DuplicateSolutionException
+			solution2 == null -> solution2 = solution
+			solution2 == solution -> return //TODO DuplicateSolutionException
+			otherSolutions == null -> otherSolutions = mutableListOf(solution)
+			solution in otherSolutions!! ->
+				return //TODO DuplicateSolutionException
+			else -> otherSolutions!!.add(solution)
 		}
-		solutions.add(solution)
+		// If it reaches here, the solution was added.
 		for (action in actions)
 		{
-			action(endState, phrase)
+			endState.workUnitDo {
+				action(endState, phrase)
+			}
 		}
 	}
 
@@ -128,9 +147,8 @@ class AvailCompilerBipartiteRendezvous
 	internal fun addAction(action: (ParserState, A_Phrase)->Unit)
 	{
 		actions.add(action)
-		for ((after, phrase) in solutions)
-		{
-			action(after, phrase)
-		}
+		solution1?.let { (after, phrase) -> action(after, phrase) }
+		solution2?.let { (after, phrase) -> action(after, phrase) }
+		otherSolutions?.forEach { (after, phrase) -> action(after, phrase) }
 	}
 }

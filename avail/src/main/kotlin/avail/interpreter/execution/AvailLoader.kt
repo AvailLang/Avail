@@ -86,7 +86,7 @@ import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
-import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
@@ -1369,9 +1369,7 @@ constructor(
 		val atom = method.chooseBundle(module).message
 		recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.SEMANTIC_RESTRICTION.bundle,
-				atom,
-				function))
+				SpecialMethodAtom.SEMANTIC_RESTRICTION, atom, function))
 		val theModule = module
 		val code = function.code()
 		theModule.lock {
@@ -1424,7 +1422,7 @@ constructor(
 		module.addSeal(methodName, seal)
 		recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.SEAL.bundle, methodName, seal))
+				SpecialMethodAtom.SEAL, methodName, seal))
 		if (phase == EXECUTING_FOR_COMPILE)
 		{
 			addManifestEntry(
@@ -1522,7 +1520,7 @@ constructor(
 		}
 		recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.GRAMMATICAL_RESTRICTION.bundle,
+				SpecialMethodAtom.GRAMMATICAL_RESTRICTION,
 				parentAtoms,
 				illegalArgumentMessages))
 	}
@@ -1561,7 +1559,7 @@ constructor(
 		{
 			recordEffect(
 				LoadingEffectToRunPrimitive(
-					SpecialMethodAtom.SET_STYLER.bundle,
+					SpecialMethodAtom.SET_STYLER,
 					bundle.message,
 					stylerFunction))
 		}
@@ -1641,27 +1639,28 @@ constructor(
 	fun runFunctions(
 		functions: Iterator<A_Function>,
 		purpose: String,
-		afterFailingOne: (proceed: ()->Unit) -> Unit,
+		afterFailingOne: (A_Function, Throwable, proceed: ()->Unit) -> Unit,
 		afterRunningAll: () -> Unit)
 	{
+		var counter = 1
 		recurse { again ->
 			if (functions.hasNext())
 			{
 				val function = functions.next()
-				val fiber = newFiber(
-					resultType = TOP.o,
-					runtime = runtime,
-					textInterface = textInterface,
-					priority = loaderPriority,
+				val fiber = newLoaderFiber(
+					TOP.o,
+					this,
 					nameSupplier = {
+						val n = counter++
 						formatString(
-							"$purpose function for module %s",
+							"$purpose function #${n} for module %s",
 							module.shortModuleNameNative)
 					})
 				fiber.setSuccessAndFailure(
 					onSuccess = { again() },
-					onFailure = { afterFailingOne(again) })
-				runtime.runOutermostFunction(fiber, function, emptyList())
+					onFailure = { e -> afterFailingOne(function, e, again) })
+				runtime.runOutermostFunction(
+					fiber, function, emptyList(), false)
 			}
 			else
 			{
@@ -1714,11 +1713,11 @@ constructor(
 						{
 							newAtom.getAtomProperty(
 								HERITABLE_KEY.atom
-							).notNil -> CREATE_HERITABLE_ATOM.bundle
+							).notNil -> CREATE_HERITABLE_ATOM
 							newAtom.getAtomProperty(
 								EXPLICIT_SUBCLASSING_KEY.atom
-							).notNil -> CREATE_EXPLICIT_SUBCLASS_ATOM.bundle
-							else -> CREATE_ATOM.bundle
+							).notNil -> CREATE_EXPLICIT_SUBCLASS_ATOM
+							else -> CREATE_ATOM
 						},
 						stringName))
 				module.addPrivateName(newAtom)

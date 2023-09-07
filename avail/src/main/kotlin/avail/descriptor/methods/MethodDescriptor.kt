@@ -164,6 +164,7 @@ import avail.interpreter.primitive.methods.P_SimpleLexerDefinitionForAtom
 import avail.interpreter.primitive.methods.P_SimpleMacroDeclaration
 import avail.interpreter.primitive.methods.P_SimpleMacroDefinitionForAtom
 import avail.interpreter.primitive.methods.P_SimpleMethodDeclaration
+import avail.interpreter.primitive.modules.P_AddPostLoadFunction
 import avail.interpreter.primitive.modules.P_AddUnloadFunction
 import avail.interpreter.primitive.modules.P_DeclareAllAtomsExportedFromAnotherModule
 import avail.interpreter.primitive.modules.P_DeclareAllExportedAtoms
@@ -874,8 +875,13 @@ class MethodDescriptor private constructor(
 			"vm_↑-=_",
 			P_AtomicRemoveFromMap),
 
+		/** The special atom for adding a module post-load function. */
+		ADD_POSTLOAD_FUNCTION(
+			"vm on postload_",
+			P_AddPostLoadFunction),
+
 		/** The special atom for adding a module unload function. */
-		ADD_UNLOADER(
+		ADD_UNLOAD_FUNCTION(
 			"vm on unload_",
 			P_AddUnloadFunction),
 

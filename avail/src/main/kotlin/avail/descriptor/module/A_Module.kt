@@ -416,6 +416,13 @@ interface A_Module : A_BasicObject
 			dispatch { o_ResolveForward(it, forwardDefinition) }
 
 		/**
+		 * Remove the [A_Tuple] of post-load [A_Function] from this module,
+		 * returning them.  Replace the tuple with [nil].
+		 */
+		fun A_Module.takePostLoadFunctions(): A_Tuple =
+			dispatch { o_TakePostLoadFunctions(it) }
+
+		/**
 		 * Dispatch to the descriptor.
 		 */
 		fun A_Module.trueNamesForStringName(stringName: A_String): A_Set =

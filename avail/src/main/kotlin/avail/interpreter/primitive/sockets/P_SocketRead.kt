@@ -149,13 +149,15 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 							succeed,
 							listOf(
 								tupleForByteBuffer(buffer),
-								objectFromBoolean(value == -1)))
+								objectFromBoolean(value == -1)),
+							false)
 					},
 					{
 						runtime.runOutermostFunction(
 							newFiber,
 							fail,
-							listOf(E_IO_ERROR.numericCode()))
+							listOf(E_IO_ERROR.numericCode()),
+							false)
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}

@@ -102,6 +102,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
@@ -155,6 +156,7 @@ import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.module.A_Module.Companion.takePostLoadFunctions
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
@@ -247,6 +249,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.component4
 import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
@@ -542,6 +545,7 @@ class AvailCompiler constructor(
 		// solutions were actually found.
 		assert(compilationContext.noMoreWorkUnits === null)
 		compilationContext.noMoreWorkUnits = {
+			val solutionsSize = solutions.size
 			when
 			{
 				compilationContext.diagnostics.pollForAbort() ->
@@ -550,12 +554,12 @@ class AvailCompiler constructor(
 					// another module, so we can't trust the count of solutions.
 					compilationContext.diagnostics.reportError()
 				}
-				solutions.size == 0 ->
+				solutionsSize == 0 ->
 				{
 					// No solutions were found.  Report the problems.
 					compilationContext.diagnostics.reportError()
 				}
-				solutions.size == 1 ->
+				solutionsSize == 1 ->
 				{
 					// A unique solution was found.
 					acceptAnswer(
@@ -778,6 +782,9 @@ class AvailCompiler constructor(
 	 * module's context; lexically enclosing variables are not considered in
 	 * scope, but module variables and constants are in scope.
 	 *
+	 * Note that the argument types have already been vetted against the
+	 * restriction's signature.
+	 *
 	 * @param restriction
 	 *   A [semantic&#32;restriction][SemanticRestrictionDescriptor].
 	 * @param args
@@ -813,7 +820,8 @@ class AvailCompiler constructor(
 		fiber.setGeneralFlag(IS_SEMANTIC_RESTRICTION)
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber, onSuccess, onFailure)
-		compilationContext.runtime.runOutermostFunction(fiber, function, args)
+		compilationContext.runtime.runOutermostFunction(
+			fiber, function, args, true)
 	}
 
 	/**
@@ -874,7 +882,35 @@ class AvailCompiler constructor(
 				onSuccess(outputPhrase)
 			},
 			onFailure)
-		compilationContext.runtime.runOutermostFunction(fiber, function, args)
+		compilationContext.runtime.runOutermostFunction(
+			fiber, function, args, false)
+	}
+
+	/**
+	 * A top-level phrase, or something of that nature, has raised, or just
+	 * produced, a Throwable. Alert the user via the [compilationContext].
+	 *
+	 * @param lineNumber
+	 *   The one-based line number of this position in the source.
+	 * @param position
+	 *   The one-based position in the source.
+	 * @param e
+	 *   The [Throwable] that was raised, indicating the problem.
+	 */
+	private fun reportPhraseExecutionFailure(
+		lineNumber: Int,
+		position: Int,
+		e: Throwable)
+	{
+		when (e)
+		{
+			is AvailEmergencyExitException ->
+				compilationContext.reportEmergencyExitProblem(
+					lineNumber, position, e)
+			else -> compilationContext.reportExecutionProblem(
+				lineNumber, position, e)
+		}
+		compilationContext.diagnostics.reportError()
 	}
 
 	/**
@@ -914,21 +950,6 @@ class AvailCompiler constructor(
 			nil,
 			emptyList(),
 			declarationRemap)
-		val phraseFailure = { e: Throwable ->
-			when (e)
-			{
-				is AvailEmergencyExitException ->
-					compilationContext.reportEmergencyExitProblem(
-						startState.lineNumber,
-						startState.position,
-						e)
-				else -> compilationContext.reportExecutionProblem(
-					startState.lineNumber,
-					startState.position,
-					e)
-			}
-			compilationContext.diagnostics.reportError()
-		}
 
 		if (!replacement.phraseKindIsUnder(DECLARATION_PHRASE))
 		{
@@ -941,7 +962,10 @@ class AvailCompiler constructor(
 				true,
 				false,
 				{ onSuccess() },
-				phraseFailure)
+				{ e: Throwable ->
+					reportPhraseExecutionFailure(
+						startState.lineNumber, startState.position, e)
+				})
 			return
 		}
 		// It's a declaration, but the parser couldn't previously tell that it
@@ -1052,12 +1076,16 @@ class AvailCompiler constructor(
 								summaryText = name.asNativeString(),
 								signature = null,
 								topLevelStartingLine = startState.lineNumber,
-								definitionStartingLine = replacement.token.lineNumber(),
+								definitionStartingLine =
+									replacement.token.lineNumber(),
 								bodyFunction = assignFunction))
 						variable.setValue(value)
 						onSuccess()
 					},
-					phraseFailure)
+					{ e: Throwable ->
+						reportPhraseExecutionFailure(
+							startState.lineNumber, startState.position, e)
+					})
 			}
 			LOCAL_VARIABLE ->
 			{
@@ -1141,7 +1169,10 @@ class AvailCompiler constructor(
 							}
 							onSuccess()
 						},
-						phraseFailure)
+						{ e: Throwable ->
+							reportPhraseExecutionFailure(
+								startState.lineNumber, startState.position, e)
+						})
 				}
 				else
 				{
@@ -1956,7 +1987,7 @@ class AvailCompiler constructor(
 				}
 			})
 		compilationContext.runtime.runOutermostFunction(
-			fiber, prefixFunction, listOfArgs)
+			fiber, prefixFunction, listOfArgs, false)
 	}
 
 	/**
@@ -3451,7 +3482,7 @@ class AvailCompiler constructor(
 					// ...but ensure the final statement styling has completed
 					// before writing to the repository or indicating success.
 					compilationContext.whenNotStyling {
-						runAllPostCompileActionsThen {
+						runAllPostLoadActionsThen {
 							reachedEndOfModule(withoutEndToken)
 						}
 					}
@@ -3548,20 +3579,52 @@ class AvailCompiler constructor(
 	}
 
 	/**
-	 * The module has been fully parsed, and each statement has been executed.
-	 * Now run any Avail functions that were specifically postponed until after
-	 * parsing.  They must run sequentially, in the order they were recorded.
+	 * The module has been fully parsed or fast-loaded, and each statement of
+	 * the body has been executed. Now run any Avail functions that were
+	 * specifically postponed until after parsing or fast-loading.  They must
+	 * run sequentially, in the order they were recorded.
 	 *
 	 * After the statements have run, execute [afterActions].
 	 *
 	 * @param afterActions
-	 *   What to execute after successfully running all the post-compile
-	 *   functions.
+	 *   What to execute after successfully running all the post-load functions.
 	 */
-	private fun runAllPostCompileActionsThen(afterActions: ()->Unit)
+	private fun runAllPostLoadActionsThen(
+		afterActions: ()->Unit)
 	{
-		//TODO
-		afterActions()
+		val functions = compilationContext.module.takePostLoadFunctions()
+		compilationContext.loader.runFunctions(
+			functions = functions.iterator(),
+			purpose = "Post-load function (for compilation)",
+			afterFailingOne = { failedFunction, e, _ ->
+				// An error has happened in the fiber running a post-load
+				// function.  Report the problem and abort the activity.
+				val code = failedFunction.code()
+				val line = code.codeStartingLineNumber
+				val phrase = code.originatingPhrase
+				val (lineNumber, position) = when (phrase.isNil)
+				{
+					true ->
+					{
+						// The phrase doesn't know the source position.
+						val size = source.tupleSize
+						var pos = 1
+						repeat(line - 1) {
+							@Suppress("ControlFlowWithEmptyBody")
+							while (pos <= size &&
+								source.tupleCodePointAt(pos++) != '\n'.code)
+							{ }
+						}
+						line to pos
+					}
+					else -> phrase.allTokens.firstOrNull()?.run {
+						lineNumber() to start()
+					} ?: (1 to 1)
+				}
+				reportPhraseExecutionFailure(lineNumber, position, e)
+				// Specifically DO NOT execute the passed proceed lambda.
+			},
+			afterRunningAll = afterActions)
 	}
 
 	/**

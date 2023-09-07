@@ -123,6 +123,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStart
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithNybbleTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithObjectTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
+import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwentyOneBitStringStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwoByteStringStartingAt
 import avail.descriptor.tuples.ByteStringDescriptor
 import avail.descriptor.tuples.ByteTupleDescriptor
@@ -134,6 +135,7 @@ import avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.TreeTupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor
 import avail.descriptor.tuples.TwoByteStringDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
@@ -1380,6 +1382,34 @@ abstract class AbstractDescriptor protected constructor (
 		aTwoByteString: A_String,
 		startIndex2: Int): Boolean
 
+	/**
+	 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
+	 * given [twenty-one-bit&#32;string][TwentyOneBitStringDescriptor]. The size
+	 * of the subrange of both objects is determined by the index range supplied
+	 * for the receiver.
+	 *
+	 * @param self
+	 *   The receiver.
+	 * @param startIndex1
+	 *   The inclusive lower bound of the receiver's subrange.
+	 * @param endIndex1
+	 *   The inclusive upper bound of the receiver's subrange.
+	 * @param aTwentyOneBitString
+	 *   The two-byte string used in the comparison.
+	 * @param startIndex2
+	 *   The inclusive lower bound of the two-byte string's subrange.
+	 * @return
+	 *   `true` if the contents of the subranges match exactly, `false`
+	 *   otherwise.
+	 * @see A_Tuple.compareFromToWithTwentyOneBitStringStartingAt
+	 */
+	abstract fun o_CompareFromToWithTwentyOneBitStringStartingAt (
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aTwentyOneBitString: A_String,
+		startIndex2: Int): Boolean
+
 	abstract fun o_ComputeHashFromTo (
 		self: AvailObject,
 		start: Int,
@@ -1786,6 +1816,10 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_ReleaseFromDebugger(self: AvailObject)
 
 	abstract fun o_RemoveDependentChunk (self: AvailObject, chunk: L2Chunk)
+
+	abstract fun o_TakePostLoadFunctions (
+		self: AvailObject
+	): A_Tuple
 
 	abstract fun o_RemoveFrom (
 		self: AvailObject,
@@ -2580,6 +2614,10 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_EqualsTwoByteString (
 		self: AvailObject,
 		aString: A_String): Boolean
+
+	abstract fun o_EqualsTwentyOneBitString (
+		self: AvailObject,
+		aTwentyOneBitString: A_String): Boolean
 
 	abstract fun o_HasObjectInstance (
 		self: AvailObject,

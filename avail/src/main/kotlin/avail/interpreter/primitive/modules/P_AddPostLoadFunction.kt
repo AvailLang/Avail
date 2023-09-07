@@ -34,6 +34,7 @@ package avail.interpreter.primitive.modules
 
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
+import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.module.A_Module.Companion.addPostLoadFunction
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -48,6 +49,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -68,6 +70,10 @@ object P_AddPostLoadFunction : Primitive(
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val module = loader.module
 		module.addPostLoadFunction(postLoadFunction)
+		loader.recordEffect(
+			LoadingEffectToRunPrimitive(
+				SpecialMethodAtom.ADD_POSTLOAD_FUNCTION, postLoadFunction)
+		)
 		// No need to record a loader effect here.  The eventual execution of
 		// the function will be sufficient to capture side effects for the fast
 		// loader to replay.

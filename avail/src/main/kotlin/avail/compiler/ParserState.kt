@@ -40,6 +40,7 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -78,8 +79,10 @@ class ParserState internal constructor(
 	 */
 	val clientDataMap: A_Map = clientDataMap.makeShared()
 
-	override fun hashCode() =
-		lexingState.hashCode() * AvailObject.multiplier xor clientDataMap.hash()
+	override fun hashCode() = combine3(
+		lexingState.hashCode(),
+		clientDataMap.hash(),
+		0x7DC12422)
 
 	override fun equals(other: Any?): Boolean
 	{
@@ -94,9 +97,8 @@ class ParserState internal constructor(
 		// Don't bother comparing allTokens, since there should never be a case
 		// where the lexingState and clientDataMap agree, but different lists of
 		// tokens were accumulated to get there.
-		val anotherState = other as ParserState?
-		return lexingState == anotherState!!.lexingState
-			&& clientDataMap.equals(anotherState.clientDataMap)
+		return lexingState == other.lexingState
+			&& clientDataMap.equals(other.clientDataMap)
 	}
 
 	override fun toString(): String

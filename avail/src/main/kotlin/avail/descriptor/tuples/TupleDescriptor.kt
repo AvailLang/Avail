@@ -349,6 +349,12 @@ protected constructor(
 		self: AvailObject,
 		aString: A_String): Boolean = o_EqualsAnyTuple(self, aString)
 
+	// Default to generic tuple comparison.
+	override fun o_EqualsTwentyOneBitString(
+		self: AvailObject,
+		aTwentyOneBitString: A_String
+	): Boolean = o_EqualsAnyTuple(self, aTwentyOneBitString)
+
 	// Given two objects that are known to be equal, is the first one in a
 	// better form (more compact, more efficient, older generation) than
 	// the second one?
@@ -559,26 +565,42 @@ protected constructor(
 		startIndex1: Int,
 		endIndex1: Int,
 		anObjectTuple: A_Tuple,
-		startIndex2: Int): Boolean =
-			o_CompareFromToWithAnyTupleStartingAt(
-				self,
-				startIndex1,
-				endIndex1,
-				anObjectTuple,
-				startIndex2)
+		startIndex2: Int
+	): Boolean =
+		o_CompareFromToWithAnyTupleStartingAt(
+			self,
+			startIndex1,
+			endIndex1,
+			anObjectTuple,
+			startIndex2)
 
 	override fun o_CompareFromToWithTwoByteStringStartingAt(
 		self: AvailObject,
 		startIndex1: Int,
 		endIndex1: Int,
 		aTwoByteString: A_String,
-		startIndex2: Int): Boolean =
-			o_CompareFromToWithAnyTupleStartingAt(
-				self,
-				startIndex1,
-				endIndex1,
-				aTwoByteString,
-				startIndex2)
+		startIndex2: Int
+	): Boolean =
+		o_CompareFromToWithAnyTupleStartingAt(
+			self,
+			startIndex1,
+			endIndex1,
+			aTwoByteString,
+			startIndex2)
+
+	override fun o_CompareFromToWithTwentyOneBitStringStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aTwentyOneBitString: A_String,
+		startIndex2: Int
+	): Boolean =
+		o_CompareFromToWithAnyTupleStartingAt(
+			self,
+			startIndex1,
+			endIndex1,
+			aTwentyOneBitString,
+			startIndex2)
 
 	override fun o_ConcatenateTuplesCanDestroy(
 		self: AvailObject,
@@ -642,6 +664,7 @@ protected constructor(
 			}
 			return self
 		}
+		if (!canDestroy && isMutable) self.makeImmutable()
 		return SubrangeTupleDescriptor.createSubrange(self, start, size)
 	}
 
@@ -759,8 +782,8 @@ protected constructor(
 			}
 			return when
 			{
-				maxCodePoint <= 255 -> SerializerOperation.BYTE_STRING
-				maxCodePoint <= 65535 -> SerializerOperation.SHORT_STRING
+				maxCodePoint <= 0xFF -> SerializerOperation.BYTE_STRING
+				maxCodePoint <= 0xFFFF -> SerializerOperation.SHORT_STRING
 				else -> SerializerOperation.ARBITRARY_STRING
 			}
 		}
@@ -788,8 +811,8 @@ protected constructor(
 			}
 			return when
 			{
-				maxInteger <= 15 -> SerializerOperation.NYBBLE_TUPLE
-				maxInteger <= 255 -> SerializerOperation.BYTE_TUPLE
+				maxInteger <= 0xF -> SerializerOperation.NYBBLE_TUPLE
+				maxInteger <= 0xFF -> SerializerOperation.BYTE_TUPLE
 				else -> SerializerOperation.INT_TUPLE
 			}
 		}

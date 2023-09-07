@@ -1158,7 +1158,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						commandProblemHandler.handle(problem)
 					}
 				})
-			runtime.runOutermostFunction(fiber, function, emptyList())
+			runtime.runOutermostFunction(fiber, function, emptyList(), false)
 		}
 
 		// If the command was unambiguous, then go ahead and run it.

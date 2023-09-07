@@ -1248,6 +1248,12 @@ class ModuleDescriptor private constructor(
 		return phrasePathRecord!!
 	}
 
+	override fun o_TakePostLoadFunctions(
+		self: AvailObject
+	): A_Tuple = lock.safeWrite {
+		self.getAndSetVolatileSlot(POST_LOAD_FUNCTIONS, nil)
+	}
+
 	override fun o_RemoveFrom(
 		self: AvailObject,
 		loader: AvailLoader,
@@ -1262,7 +1268,7 @@ class ModuleDescriptor private constructor(
 			functions = unloadFunctions.iterator(),
 			purpose = "Unload",
 			afterFailingOne =
-			{ toProceed ->
+			{ _, _, toProceed ->
 				// Log but ignore failures during unload.
 				println(
 					"Failure running unload function for $moduleName. " +

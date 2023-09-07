@@ -176,7 +176,7 @@ constructor(
 				{
 					self[END] = newElementValue
 					self[SIZE] = originalSize + 1
-					self[HASH_OR_ZERO] = 0 
+					self[HASH_OR_ZERO] = 0
 					return self
 				}
 				// Create another small integer interval.
@@ -537,8 +537,7 @@ constructor(
 		// If tuple is small enough or is immutable, create a new interval.
 		if (!isMutable)
 		{
-			return createSmallInterval(
-				self[END], self[START], newDelta)
+			return createSmallInterval(self[END], self[START], newDelta)
 		}
 
 		//The interval is mutable and large enough to warrant changing in place.

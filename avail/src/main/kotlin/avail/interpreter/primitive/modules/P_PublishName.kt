@@ -96,9 +96,7 @@ object P_PublishName : Primitive(
 			{
 				// Record the publication.
 				loader.recordEffect(
-					LoadingEffectToRunPrimitive(
-						PUBLISH_NEW_NAME.bundle,
-						name))
+					LoadingEffectToRunPrimitive(PUBLISH_NEW_NAME, name))
 			}
 			interpreter.primitiveSuccess(nil)
 		}

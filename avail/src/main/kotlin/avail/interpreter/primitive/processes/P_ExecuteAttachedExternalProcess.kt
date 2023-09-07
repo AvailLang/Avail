@@ -162,7 +162,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 			current.heritableFiberGlobals.makeShared()
 		newFiber.makeShared()
 		toRun.makeShared()
-		runtime.runOutermostFunction(newFiber, toRun, args)
+		runtime.runOutermostFunction(newFiber, toRun, args, false)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

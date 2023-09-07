@@ -72,7 +72,7 @@ object P_AddUnloadFunction : Primitive(
 		module.addUnloadFunction(unloadFunction)
 		loader.recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.ADD_UNLOADER.bundle, unloadFunction))
+				SpecialMethodAtom.ADD_UNLOAD_FUNCTION, unloadFunction))
 		return interpreter.primitiveSuccess(nil)
 	}
 

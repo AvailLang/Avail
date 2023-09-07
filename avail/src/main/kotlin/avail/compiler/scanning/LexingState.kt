@@ -344,7 +344,7 @@ class LexingState constructor(
 				decrementAndRunActionsWhenZero(countdown)
 			})
 		loader.runtime.runOutermostFunction(
-			fiber, lexer.lexerBodyFunction, arguments)
+			fiber, lexer.lexerBodyFunction, arguments, true)
 	}
 
 	/**
@@ -663,7 +663,8 @@ class LexingState constructor(
 								token.start(),
 								token.lineNumber(),
 								token,
-								token.generatingLexer))))
+								token.generatingLexer))),
+					true)
 			},
 			then = then)
 	}

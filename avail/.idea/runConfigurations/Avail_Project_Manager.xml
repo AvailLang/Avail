@@ -1,5 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Avail Project Manager" type="JetRunConfigurationType">
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="MAIN_CLASS_NAME" value="avail.project.AvailProjectManagerRunner" />
     <module name="avail.main" />
     <shortenClasspath name="NONE" />

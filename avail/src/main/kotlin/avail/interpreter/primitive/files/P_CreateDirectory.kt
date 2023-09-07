@@ -146,7 +146,10 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 				catch (e: FileAlreadyExistsException)
 				{
 					runtime.runOutermostFunction(
-						newFiber, fail, listOf(E_FILE_EXISTS.numericCode()))
+						newFiber,
+						fail,
+						listOf(E_FILE_EXISTS.numericCode()),
+						false)
 					return@Runnable
 				}
 				catch (e: SecurityException)
@@ -154,7 +157,8 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 					runtime.runOutermostFunction(
 						newFiber,
 						fail,
-						listOf(E_PERMISSION_DENIED.numericCode()))
+						listOf(E_PERMISSION_DENIED.numericCode()),
+						false)
 					return@Runnable
 				}
 				catch (e: AccessDeniedException)
@@ -162,16 +166,18 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 					runtime.runOutermostFunction(
 						newFiber,
 						fail,
-						listOf(E_PERMISSION_DENIED.numericCode()))
+						listOf(E_PERMISSION_DENIED.numericCode()),
+						false)
 					return@Runnable
 				}
 				catch (e: IOException)
 				{
 					runtime.runOutermostFunction(
-						newFiber, fail, listOf(E_IO_ERROR.numericCode()))
+						newFiber, fail, listOf(E_IO_ERROR.numericCode()), false)
 					return@Runnable
 				}
-				runtime.runOutermostFunction(newFiber, succeed, emptyList())
+				runtime.runOutermostFunction(
+					newFiber, succeed, emptyList(), false)
 			})
 		return interpreter.primitiveSuccess(newFiber)
 	}
