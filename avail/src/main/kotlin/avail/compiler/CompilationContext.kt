@@ -1403,9 +1403,9 @@ class CompilationContext constructor(
 						(token: A_Token, indexInName: A_Number) ->
 					if (!token.isInCurrentModule(module)) return@mapNotNull null
 					val start = surrogateIndexConverter.availIndexToJavaIndex(
-						token.start())
+						token.start() - 1)
 					val pastEnd = surrogateIndexConverter.availIndexToJavaIndex(
-						token.pastEnd())
+						token.pastEnd() - 1)
 					val line = token.lineNumber()
 					val inName = indexInName.extractInt
 					val string = when (inName)

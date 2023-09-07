@@ -54,11 +54,11 @@ interface A_String : A_Tuple
 	 */
 	class SurrogateIndexConverter(string: String)
 	{
-		val highSurrogatesInJavaString = string.indices.filter {
+		private val highSurrogatesInJavaString = string.indices.filter {
 			string[it].isHighSurrogate()
 		}.toTypedArray()
 
-		val highCodePointsInAvailString = highSurrogatesInJavaString
+		private val highCodePointsInAvailString = highSurrogatesInJavaString
 			.mapIndexed { arrayPos, javaIndex ->
 				javaIndex - arrayPos
 			}.toTypedArray()

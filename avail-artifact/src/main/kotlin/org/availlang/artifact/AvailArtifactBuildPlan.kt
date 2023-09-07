@@ -27,7 +27,7 @@ import java.util.zip.ZipFile
  * otherwise.
  *
  * @author Richard Arriaga
- * 
+ *
  * @property version
  *   The version to give to the created artifact. **REQUIRED**
  * @property outputLocation
@@ -305,7 +305,8 @@ class AvailArtifactBuildPlan private constructor(
 					projectFileName, projectPath)}/$ARTIFACT_PLANS_FILE"
 			).readText()) {}.map {
 				AvailArtifactBuildPlan(
-					projectPath, it as JSONObject)
+					projectDirectory = projectPath,
+					obj = it as JSONObject)
 			}.toMutableList()
 	}
 }

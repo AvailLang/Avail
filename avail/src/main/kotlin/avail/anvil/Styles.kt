@@ -3328,9 +3328,11 @@ class ValidatedRenderingContext constructor(
 	 *   The classifier sequence associated with the [range]. A
 	 *   [NameAttribute][StyleConstants.NameAttribute] will be attached to the
 	 *   [range], to support the style classifier introspection feature.
-	 * @param range
-	 *   The target one-based [range][IntRange] of characters within the
-	 *   [document].
+	 * @param start
+	 *   The zero-based start of the characters to style in the UTF-16 [String].
+	 * @param pastEnd
+	 *   The zero-based pastEnd of the characters to style in the UTF-16
+	 *   [String].
 	 * @param replace
 	 *   Indicates whether or not the previous attributes should be cleared
 	 *   before the new attributes are set. If `true`, the operation will
@@ -3340,7 +3342,8 @@ class ValidatedRenderingContext constructor(
 	fun renderTo(
 		document: StyledDocument,
 		classifiers: String,
-		range: IntRange,
+		start: Int,
+		pastEnd: Int,
 		replace: Boolean = true
 	)
 	{
@@ -3351,8 +3354,8 @@ class ValidatedRenderingContext constructor(
 		val style = document.addStyle(classifiers, defaultDocumentStyle)
 		style.addAttributes(documentAttributes)
 		document.setCharacterAttributes(
-			range.first - 1,
-			range.last - range.first + 1,
+			start,
+			pastEnd - start,
 			style,
 			replace)
 	}
@@ -3402,10 +3405,11 @@ data class DefinitionAndUsesInDocument constructor(
 	val useSpansInDocument: List<Pair<Position, Position>>)
 
 /**
- * A function that applies some style to the given [IntRange] of the given
- * [StyledDocument].
+ * A function that applies some style to the given range of the given
+ * [StyledDocument].  The range is expressed as the zero-based start in the
+ * UTF-16 [String], and the zero-based just-past-end in the same string.
  */
-typealias RenderingFunction = (StyledDocument, IntRange)->Unit
+typealias RenderingFunction = (StyledDocument, Int, Int)->Unit
 
 /**
  * Given a receiver and argument that are optional [RenderingFunction]s, but not
@@ -3426,9 +3430,9 @@ infix fun RenderingFunction?.compose(
 {
 	this == null -> otherFunction!!
 	otherFunction == null -> this
-	else -> { document, range ->
-		this(document, range)
-		otherFunction(document, range)
+	else -> { document, start, pastEnd ->
+		this(document, start, pastEnd)
+		otherFunction(document, start, pastEnd)
 	}
 }
 
@@ -3485,11 +3489,11 @@ object RenderingEngine
 		val renderingFunctions = RunTree<RenderingFunction>()
 		// Start with the style classifiers.
 		styleRecord?.styleRuns?.forEach { (range, classifiers) ->
-			renderingFunctions.edit(range.first, range.last + 1) { _ ->
+			renderingFunctions.edit(range.first, range.last) { _ ->
 				// Incoming value here is always null.
-				{ document, range ->
+				{ document, start, pastEnd ->
 					stylesheet[classifiers].renderTo(
-						document, classifiers, range, false)
+						document, classifiers, start, pastEnd, false)
 				}
 			}
 		}
@@ -3497,10 +3501,10 @@ object RenderingEngine
 		phrasePathRecord?.phraseNodesDo { phraseNode ->
 			phraseNode.tokenSpans.forEach { (start, pastEnd, _, indexInName) ->
 				renderingFunctions.edit(start, pastEnd) { old ->
-					old compose { document, range ->
+					old compose { document, start, pastEnd ->
 						document.setCharacterAttributes(
-							range.first - 1,
-							range.last - range.first + 1,
+							start,
+							pastEnd - start,
 							SimpleAttributeSet().apply {
 								addAttribute(
 									PhraseNodeAttributeKey,
@@ -3514,21 +3518,21 @@ object RenderingEngine
 		// Add the information about local declarations and uses.
 		styleRecord?.declarationsWithUses()?.forEach { (definition, uses) ->
 			val definitionSpan = Pair(
-				document.createPosition(definition.first - 1),
+				document.createPosition(definition.first),
 				document.createPosition(definition.last))
 			val useSpans = uses.map {
 				Pair(
-					document.createPosition(it.first - 1),
+					document.createPosition(it.first),
 					document.createPosition(it.last))
 			}
 			val entry = DefinitionAndUsesInDocument(definitionSpan, useSpans)
 			// Add the definition's style.
-			renderingFunctions.edit(definition.first, definition.last + 1)
+			renderingFunctions.edit(definition.first, definition.last)
 			{ old ->
-				old compose { document, range ->
+				old compose { document, start, pastEnd ->
 					document.setCharacterAttributes(
-						range.first - 1,
-						range.last - range.first + 1,
+						start,
+						pastEnd - start,
 						SimpleAttributeSet().apply {
 							addAttribute(
 								LocalDefinitionAttributeKey,
@@ -3539,12 +3543,12 @@ object RenderingEngine
 			}
 			// Add a style for each use.
 			uses.forEach { useRange ->
-				renderingFunctions.edit(useRange.first, useRange.last + 1)
+				renderingFunctions.edit(useRange.first, useRange.last)
 				{ old ->
-					old compose { document, range ->
+					old compose { document, start, pastEnd ->
 						document.setCharacterAttributes(
-							range.first - 1,
-							range.last - range.first + 1,
+							start,
+							pastEnd - start,
 							SimpleAttributeSet().apply {
 								addAttribute(
 									LocalUseAttributeKey,
@@ -3561,7 +3565,8 @@ object RenderingEngine
 		renderingFunctions.forEach { (start, pastEnd, renderingFunction) ->
 			renderingFunction(
 				document,
-				start.toInt() until pastEnd.toInt())
+				start.toInt(),
+				pastEnd.toInt())
 		}
 	}
 }

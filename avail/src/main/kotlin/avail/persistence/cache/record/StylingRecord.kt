@@ -84,8 +84,7 @@ class StylingRecord
 		binaryStream.vlq(styleToIndex.size)
 		stylesList.forEach(binaryStream::sizedString)
 		var pos = 0
-		// Collect the <style#, length> pairs, dropping any zero-length
-		// spans.
+		// Collect the <style#, length> pairs, dropping any zero-length spans.
 		val nonemptyRuns = mutableListOf<Pair<Int, Int>>()
 		styleRuns.forEach { (run, styleName) ->
 			val delta = run.first - pos
@@ -95,10 +94,10 @@ class StylingRecord
 				// Output an unstyled span.
 				nonemptyRuns.add(0 to delta)
 			}
-			assert (run.last >= run.first)
+			assert (run.last > run.first)
 			nonemptyRuns.add(
-				styleToIndex[styleName]!! to run.last - run.first + 1)
-			pos = run.last + 1
+				styleToIndex[styleName]!! to run.last - run.first)
+			pos = run.last
 		}
 		// Output contiguous styled (and unstyled) spans.
 		binaryStream.vlq(nonemptyRuns.size)
@@ -196,8 +195,7 @@ class StylingRecord
 			if (styleNumber > 0)
 			{
 				allRuns.add(
-					(pos - length until pos)
-						to styles[styleNumber - 1])
+					(pos - length .. pos) to styles[styleNumber - 1])
 			}
 		}
 		styleRuns = allRuns
@@ -244,10 +242,12 @@ class StylingRecord
 	 *
 	 * @param styleRuns
 	 *   An ascending sequence of non-overlapping, non-empty [IntRange]s, with
-	 *   the style name to apply to that range.
+	 *   the style name to apply to that range.  The ranges are
+	 *   `start .. pastEnd` in zero-based numbering within the UTF-16 Java
+	 *   string.
 	 * @param variableUses
 	 *   Information about variable uses and definitions.  The pairs go from use
-	 *   to definition.
+	 *   to definition.  The [IntRange]s are as for [styleRuns].
 	*/
 	constructor(
 		styleRuns: List<StyleRun>,
