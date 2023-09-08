@@ -188,19 +188,19 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.characterCodePoints
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
@@ -1424,7 +1424,8 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.GRAMMATICAL_RESTRICTION.atom)
 			put(SpecialMethodAtom.MACRO_DEFINER.atom)
 			put(SpecialMethodAtom.METHOD_DEFINER.atom)
-			put(SpecialMethodAtom.ADD_UNLOADER.atom)
+			put(SpecialMethodAtom.ADD_POSTLOAD_FUNCTION.atom)
+			put(SpecialMethodAtom.ADD_UNLOAD_FUNCTION.atom)
 			put(SpecialMethodAtom.PUBLISH_ATOMS.atom)
 			put(SpecialMethodAtom.PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE.atom)
 			put(SpecialMethodAtom.RESUME_CONTINUATION.atom)
@@ -2015,7 +2016,8 @@ class AvailRuntime constructor(
 	/**
 	 * Schedule the specified [fiber][FiberDescriptor] to run the given
 	 * [function][FunctionDescriptor]. This function is invoked via the
-	 * [HookType.BASE_FRAME] hook. The fiber must be in the
+	 * [HookType.BASE_FRAME] hook, or if the fiber might be debugged, via the
+	 * [HookType.DEBUGGABLE_BASE_FRAME] hook. The fiber must be in the
 	 * [unstarted][ExecutionState.UNSTARTED] state. This Kotlin method is an
 	 * entry point for driving Avail externally.
 	 *
@@ -2031,11 +2033,15 @@ class AvailRuntime constructor(
 	 *   A [function][FunctionDescriptor] to run.
 	 * @param arguments
 	 *   The arguments for the function.
+	 * @param canSkipTypeCheck
+	 *   Whether the VM guarantees that the argument types agree with the
+	 *   function's signature.  Ignored if the fiber needs to be debuggable.
 	 */
 	fun runOutermostFunction(
 		aFiber: A_Fiber,
 		functionToRun: A_Function,
-		arguments: List<A_BasicObject>)
+		arguments: List<A_BasicObject>,
+		canSkipTypeCheck: Boolean)
 	{
 		assert(aFiber.executionState === ExecutionState.UNSTARTED)
 		executeFiber(aFiber)
@@ -2045,20 +2051,44 @@ class AvailRuntime constructor(
 			assert(aFiber.continuation.isNil)
 			// Invoke the base-frame (hook) function with the given function
 			// and its arguments collected as a tuple.
-			val baseFrameFunction = when (newFiberHandlers[aFiber.fiberKind])
-			{
-				null -> get(HookType.BASE_FRAME)
-				else -> get(HookType.DEBUGGABLE_BASE_FRAME)
-			}
 			exitNow = false
 			returnNow = false
 			setReifiedContinuation(nil)
-			function = baseFrameFunction
-			chunk = baseFrameFunction.code().startingChunk
 			offset = 0
 			argsBuffer.clear()
-			argsBuffer.add(functionToRun as AvailObject)
-			argsBuffer.add(tupleFromList(arguments) as AvailObject)
+			when
+			{
+				newFiberHandlers[aFiber.fiberKind]!!.get() != null ->
+				{
+					// Launch the fiber with the DEBUGGABLE_BASE_FRAME so that
+					// it can be paused in debuggers, even if function is a
+					// primitive that will succeed.
+					val baseFrameFunction = get(HookType.DEBUGGABLE_BASE_FRAME)
+					function = baseFrameFunction
+					chunk = baseFrameFunction.code().startingChunk
+					argsBuffer.add(functionToRun as AvailObject)
+					argsBuffer.add(tupleFromList(arguments) as AvailObject)
+				}
+				canSkipTypeCheck || functionToRun.code().numArgs() == 0 ->
+				{
+					// There's no debugger that will catch this fiber, and the
+					// VM has already vetted the types.  Have the fiber invoke
+					// the function directly with the arguments.
+					function = functionToRun
+					chunk = functionToRun.code().startingChunk
+					argsBuffer.addAll(arguments.cast())
+				}
+				else ->
+				{
+					// Launch the fiber with the BASE_FRAME, which forces the
+					// arguments to be checked against the function signature.
+					val baseFrameFunction = get(HookType.BASE_FRAME)
+					function = baseFrameFunction
+					chunk = baseFrameFunction.code().startingChunk
+					argsBuffer.add(functionToRun as AvailObject)
+					argsBuffer.add(tupleFromList(arguments) as AvailObject)
+				}
+			}
 		}
 	}
 
@@ -2281,7 +2311,7 @@ class AvailRuntime constructor(
 		}
 		fiber.setup()
 		fiber.setSuccessAndFailure(
-			{ string: AvailObject ->
+			{ string: A_String ->
 				continuation(string.asNativeString())
 			},
 			{ e: Throwable ->
@@ -2291,7 +2321,7 @@ class AvailRuntime constructor(
 						e.javaClass.simpleName,
 						value))
 			})
-		runOutermostFunction(fiber, stringifierFunction, listOf(value))
+		runOutermostFunction(fiber, stringifierFunction, listOf(value), true)
 	}
 
 	/**

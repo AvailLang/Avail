@@ -594,8 +594,9 @@ class NybbleTupleDescriptor private constructor(
 		{
 			super.o_TupleReverse(self)
 		}
-		else generateNybbleTupleFrom(size)
-			{ getNybble(self, size + 1 - it).toInt() }
+		else generateNybbleTupleFrom(size) {
+			getNybble(self, size + 1 - it).toInt()
+		}
 	}
 
 	override fun o_TupleSize(self: AvailObject): Int =

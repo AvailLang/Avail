@@ -86,7 +86,7 @@ import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
-import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
@@ -186,7 +186,6 @@ import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -1371,9 +1370,7 @@ constructor(
 		val atom = method.chooseBundle(module).message
 		recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.SEMANTIC_RESTRICTION.bundle,
-				atom,
-				function))
+				SpecialMethodAtom.SEMANTIC_RESTRICTION, atom, function))
 		val theModule = module
 		val code = function.code()
 		theModule.lock {
@@ -1426,7 +1423,7 @@ constructor(
 		module.addSeal(methodName, seal)
 		recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.SEAL.bundle, methodName, seal))
+				SpecialMethodAtom.SEAL, methodName, seal))
 		if (phase == EXECUTING_FOR_COMPILE)
 		{
 			addManifestEntry(
@@ -1524,7 +1521,7 @@ constructor(
 		}
 		recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.GRAMMATICAL_RESTRICTION.bundle,
+				SpecialMethodAtom.GRAMMATICAL_RESTRICTION,
 				parentAtoms,
 				illegalArgumentMessages))
 	}
@@ -1563,7 +1560,7 @@ constructor(
 		{
 			recordEffect(
 				LoadingEffectToRunPrimitive(
-					SpecialMethodAtom.SET_STYLER.bundle,
+					SpecialMethodAtom.SET_STYLER,
 					bundle.message,
 					stylerFunction))
 		}
@@ -1626,53 +1623,52 @@ constructor(
 	 * Run the specified [tuple][A_Tuple] of [functions][A_Function]
 	 * sequentially.
 	 *
-	 * @param unloadFunctions
-	 *   A tuple of unload functions.
-	 * @param afterRunning
-	 *   What to do after every unload function has completed.
+	 * @param functions
+	 *   An [Iterator] providing the [A_Function]s to run, sequentially, in
+	 *   separate fibers.
+	 * @param purpose
+	 *   A very short string identifying the purpose of running these functions.
+	 *   It will appear in the name of the launched fibers.
+	 * @param afterFailingOne
+	 *   What to do if a fiber launched to run one of the functions reports a
+	 *   failure.  A "proceed" function is supplied, so the client can continue
+	 *   with the remaining functions, if that's appropriate, or report an error
+	 *   and simply not invoke that function.
+	 * @param afterRunningAll
+	 *   What to do after every provided function has completed.
 	 */
-	fun runUnloadFunctions(
-		unloadFunctions: A_Tuple,
-		afterRunning: () -> Unit)
+	fun runFunctions(
+		functions: Iterator<A_Function>,
+		purpose: String,
+		afterFailingOne: (A_Function, Throwable, proceed: ()->Unit) -> Unit,
+		afterRunningAll: () -> Unit)
 	{
-		val size = unloadFunctions.tupleSize
-		// The index into the tuple of unload functions.
-		if (size == 0)
-		{
-			// When there's at least one unload function, the fact that it forks
-			// a fiber ensures the stack doesn't grow arbitrarily deep from
-			// running afterRunning functions with ever deeper recursion, due to
-			// the Thread agnosticism of Graph.ParallelVisitor.  Here we have
-			// no unload functions, so break the direct cyclic call explicitly
-			// by queueing an action.
-			runtime.execute(loaderPriority, afterRunning)
-		}
-		else
-		{
-			var index = 1
-			recurse { again ->
-				if (index <= size)
-				{
-					val currentIndex = index++
-					val unloadFunction: A_Function =
-						unloadFunctions.tupleAt(currentIndex)
-					val fiber = newFiber(
-						TOP.o, runtime, textInterface, loaderPriority)
-					{
+		var counter = 1
+		recurse { again ->
+			if (functions.hasNext())
+			{
+				val function = functions.next()
+				val fiber = newLoaderFiber(
+					TOP.o,
+					this,
+					nameSupplier = {
+						val n = counter++
 						formatString(
-							"Unload function #%d/%d for module %s",
-							currentIndex,
-							size,
+							"$purpose function #${n} for module %s",
 							module.shortModuleNameNative)
-					}
-					fiber.setSuccessAndFailure({ again() }, { again() })
-					runtime.runOutermostFunction(
-						fiber, unloadFunction, emptyList())
-				}
-				else
-				{
-					runtime.execute(loaderPriority, afterRunning)
-				}
+					})
+				fiber.setSuccessAndFailure(
+					onSuccess = { again() },
+					onFailure = { e -> afterFailingOne(function, e, again) })
+				runtime.runOutermostFunction(
+					fiber, function, emptyList(), false)
+			}
+			else
+			{
+				// Always queue this as a task, in case the client is agnostic
+				// about threads, like Graph's parallelVisit(), which could
+				// otherwise lead to a stack overflow.
+				runtime.execute(loaderPriority, afterRunningAll)
 			}
 		}
 	}
@@ -1718,11 +1714,11 @@ constructor(
 						{
 							newAtom.getAtomProperty(
 								HERITABLE_KEY.atom
-							).notNil -> CREATE_HERITABLE_ATOM.bundle
+							).notNil -> CREATE_HERITABLE_ATOM
 							newAtom.getAtomProperty(
 								EXPLICIT_SUBCLASSING_KEY.atom
-							).notNil -> CREATE_EXPLICIT_SUBCLASS_ATOM.bundle
-							else -> CREATE_ATOM.bundle
+							).notNil -> CREATE_EXPLICIT_SUBCLASS_ATOM
+							else -> CREATE_ATOM
 						},
 						stringName))
 				module.addPrivateName(newAtom)

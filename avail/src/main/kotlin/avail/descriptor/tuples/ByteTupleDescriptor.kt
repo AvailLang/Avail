@@ -490,16 +490,15 @@ class ByteTupleDescriptor private constructor(
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		if (tupleSize in 1 until maximumCopySize)
+		if (tupleSize >= maximumCopySize)
 		{
-			// It's not empty and it's reasonably small.
-			var sourceIndex = tupleSize
-			return generateByteTupleFrom(tupleSize) {
-				self.byteSlot(
-					RAW_LONG_AT_, sourceIndex--).toInt()
-			}
+			return super.o_TupleReverse(self)
 		}
-		return super.o_TupleReverse(self)
+		// It's not empty and it's reasonably small.
+		var sourceIndex = tupleSize
+		return generateByteTupleFrom(tupleSize) {
+			self.byteSlot(RAW_LONG_AT_, sourceIndex--).toInt()
+		}
 	}
 
 	override fun o_TupleSize(self: AvailObject): Int =

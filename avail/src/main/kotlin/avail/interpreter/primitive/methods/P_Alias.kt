@@ -117,7 +117,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 			val method = oldBundle.bundleMethod
 			loader.recordEarlyEffect(
 				LoadingEffectToRunPrimitive(
-					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))
+					SpecialMethodAtom.ALIAS, newString, oldAtom))
 			newBundle(newAtom, method, MessageSplitter.split(newString))
 		}
 		catch (e: MalformedMessageException)

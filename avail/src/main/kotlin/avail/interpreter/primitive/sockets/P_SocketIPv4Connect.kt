@@ -167,11 +167,14 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 				SimpleCompletionHandler(
 					{
 						runtime.runOutermostFunction(
-							newFiber, succeed, emptyList())
+							newFiber, succeed, emptyList(), false)
 					},
 					{
 						runtime.runOutermostFunction(
-							newFiber, fail, listOf(E_IO_ERROR.numericCode()))
+							newFiber,
+							fail,
+							listOf(E_IO_ERROR.numericCode()),
+							false)
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}

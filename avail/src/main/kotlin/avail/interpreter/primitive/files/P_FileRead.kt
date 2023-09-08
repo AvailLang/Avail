@@ -269,7 +269,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 			val buffersTuple = tupleFromList(buffers as List<A_BasicObject>)
 			val concatenated = buffersTuple.concatenateTuplesCanDestroy(false)
 			runtime.runOutermostFunction(
-				newFiber, succeed, listOf(concatenated))
+				newFiber, succeed, listOf(concatenated), false)
 			return interpreter.primitiveSuccess(newFiber)
 		}
 		// We began with buffer misses, and we can figure out how many...
@@ -324,12 +324,12 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 					}
 				}
 				runtime.runOutermostFunction(
-					newFiber, succeed, listOf(bytesTuple))
+					newFiber, succeed, listOf(bytesTuple), false)
 			},
 			// failed
 			{
 				runtime.runOutermostFunction(
-					newFiber, fail, listOf(E_IO_ERROR.numericCode()))
+					newFiber, fail, listOf(E_IO_ERROR.numericCode()), false)
 			}
 		).guardedDo {
 			fileChannel.read(buffer, oneBasedPositionLong - 1, Unit, handler)

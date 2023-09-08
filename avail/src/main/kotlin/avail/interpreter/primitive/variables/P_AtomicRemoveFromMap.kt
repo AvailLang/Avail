@@ -83,9 +83,7 @@ object P_AtomicRemoveFromMap : Primitive(2, CanInline, HasSideEffect) {
 
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.REMOVE_FROM_MAP_VARIABLE.bundle,
-				variable,
-				key))
+				SpecialMethodAtom.REMOVE_FROM_MAP_VARIABLE, variable, key))
 		return interpreter.primitiveSuccess(nil)
 	}
 

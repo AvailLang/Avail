@@ -145,11 +145,13 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 						val newPojo = identityPojo(value)
 						newHandle.setAtomProperty(SOCKET_KEY.atom, newPojo)
 						runtime.runOutermostFunction(
-							newFiber, succeed, listOf<A_Atom>(newHandle))
+							newFiber, succeed, listOf<A_Atom>(newHandle), false)
 					},
 					{
 						runtime.runOutermostFunction(
-							newFiber,fail, listOf(E_IO_ERROR.numericCode()))
+							newFiber,fail,
+							listOf(E_IO_ERROR.numericCode()),
+							false)
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}

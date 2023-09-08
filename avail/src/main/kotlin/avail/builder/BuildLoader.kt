@@ -50,6 +50,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.phrasePathRecord
 import avail.descriptor.module.A_Module.Companion.removeFrom
@@ -59,6 +60,7 @@ import avail.descriptor.module.A_Module.Companion.setNamesIndexRecordIndex
 import avail.descriptor.module.A_Module.Companion.setPhrasePathRecordIndex
 import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
+import avail.descriptor.module.A_Module.Companion.takePostLoadFunctions
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
@@ -408,28 +410,26 @@ internal class BuildLoader constructor(
 		// Run each zero-argument block, one after another.
 		recurse { runNext ->
 			availLoader.phase = Phase.LOADING
-			val function: A_Function?
-			try
-			{
-				function =
+			val function: A_Function? = try
+				{
 					if (availBuilder.shouldStopBuild) null
 					else deserializer.deserialize()
-			}
-			catch (e: MalformedSerialStreamException)
-			{
-				fail(e)
-				return@recurse
-			}
-			catch (e: RuntimeException)
-			{
-				fail(e)
-				return@recurse
-			}
-
+				}
+				catch (e: MalformedSerialStreamException)
+				{
+					fail(e)
+					return@recurse
+				}
+				catch (e: RuntimeException)
+				{
+					fail(e)
+					return@recurse
+				}
 			when
 			{
 				function !== null ->
 				{
+					assert(function.code().numArgs() == 0)
 					val fiber = newLoaderFiber(
 						function.kind().returnType,
 						availLoader)
@@ -443,13 +443,13 @@ internal class BuildLoader constructor(
 					}
 					val before = fiber.fiberHelper.fiberTime()
 					fiber.setSuccessAndFailure(
-						{
+						onSuccess = {
 							val after = fiber.fiberHelper.fiberTime()
 							Interpreter.current().recordTopStatementEvaluation(
 								(after - before).toDouble(), module)
 							runNext()
 						},
-						fail)
+						onFailure = fail)
 					availLoader.phase = Phase.EXECUTING_FOR_LOAD
 					if (AvailLoader.debugLoadedStatements)
 					{
@@ -460,7 +460,7 @@ internal class BuildLoader constructor(
 								+ " Running precompiled -- " + function)
 					}
 					availBuilder.runtime.runOutermostFunction(
-						fiber, function, emptyList())
+						fiber, function, emptyList(), true)
 				}
 				availBuilder.shouldStopBuild ->
 					module.removeFrom(availLoader) {
@@ -469,17 +469,39 @@ internal class BuildLoader constructor(
 					}
 				else ->
 				{
-					module.serializedObjects(deserializer.serializedObjects())
-					availBuilder.runtime.addModule(module)
-					val loadedModule = LoadedModule(
-						moduleName,
-						sourceDigest,
-						module,
-						version,
-						compilation)
-					availBuilder.putLoadedModule(moduleName, loadedModule)
-					postLoad(moduleName, 0L)
-					completionAction()
+					// All the functions in the body have run.  Now run any
+					// post-load functions that were accumulated.
+					availLoader.phase = Phase.EXECUTING_FOR_LOAD
+					val functions = module.takePostLoadFunctions()
+					availLoader.runFunctions(
+						functions = functions.iterator(),
+						purpose = "Post-load function (for fast-loader)",
+						afterFailingOne = { failedFunction, e, _ ->
+							// An error has happened in the fiber running a
+							// post-load function.  Report the problem and abort
+							// the load.
+							val line =
+								failedFunction.code().codeStartingLineNumber
+							fail(RuntimeException(
+								"Post-load function at $module:$line failed.",
+								e))
+							// Specifically DO NOT run more functions.
+						},
+						afterRunningAll = {
+							module.serializedObjects(
+								deserializer.serializedObjects())
+							availBuilder.runtime.addModule(module)
+							val loadedModule = LoadedModule(
+								moduleName,
+								sourceDigest,
+								module,
+								version,
+								compilation)
+							availBuilder.putLoadedModule(
+								moduleName, loadedModule)
+							postLoad(moduleName, 0L)
+							completionAction()
+						})
 				}
 			}
 		}
@@ -762,8 +784,8 @@ internal class BuildLoader constructor(
 		bytesCompiled.set(0L)
 		val vertexCountBefore = availBuilder.moduleGraph.vertexCount
 		availBuilder.moduleGraph.parallelVisitThen(
-			{ vertex, done -> scheduleLoadModule(vertex, done) },
-			{
+			visitAction = { vertex, done -> scheduleLoadModule(vertex, done) },
+			afterTraversal = {
 				try
 				{
 					assert(

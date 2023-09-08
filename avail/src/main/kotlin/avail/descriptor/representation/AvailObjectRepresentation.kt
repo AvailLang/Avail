@@ -841,12 +841,9 @@ sealed class AvailObjectRepresentation constructor(
 				while (true)
 				{
 					val oldValue = objectSlots[arrayIndex]!!
-					val newValue = updater(oldValue) as AvailObject
+					val newValue = updater(oldValue).makeShared()
 					if (VolatileSlotHelper.compareAndSet(
-							objectSlots,
-							arrayIndex,
-							oldValue,
-							newValue.makeShared()))
+							objectSlots, arrayIndex, oldValue, newValue))
 					{
 						return newValue
 					}
@@ -854,6 +851,7 @@ sealed class AvailObjectRepresentation constructor(
 			}
 			else ->
 			{
+				// If the receiver isn't shared, there's no contention.
 				val newValue = updater(objectSlots[arrayIndex]!!) as AvailObject
 				objectSlots[arrayIndex] = newValue
 				return newValue
@@ -894,9 +892,8 @@ sealed class AvailObjectRepresentation constructor(
 				{
 					val oldValue = longSlots[arrayIndex]
 					newValue = updater(oldValue)
-				}
-				while (!VolatileSlotHelper.compareAndSet(
-						longSlots, arrayIndex, oldValue, newValue))
+				} while (!VolatileSlotHelper.compareAndSet(
+					longSlots, arrayIndex, oldValue, newValue))
 				return newValue
 			}
 			else ->

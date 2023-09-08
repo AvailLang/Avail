@@ -193,7 +193,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 				else newLike(mutable, self, 0, 0)
 			result[END] = newElement
 			result[SIZE] = originalSize + 1
-			result[HASH_OR_ZERO] = 0 
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		// Transition to a tree tuple.
@@ -497,8 +497,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		//If tuple is small enough or is immutable, create a new Interval
 		if (self.tupleSize < maximumCopySize || !isMutable)
 		{
-			val newDelta =
-				self[DELTA].timesCanDestroy(fromInt(-1), true)
+			val newDelta = self[DELTA].timesCanDestroy(fromInt(-1), true)
 			return forceCreate(
 				self[END],
 				self[START],
@@ -509,8 +508,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		//The interval is mutable and large enough to warrant changing in place.
 		val newStart: A_Number = self[END]
 		val newEnd: A_Number = self[START]
-		val newDelta =
-			self[DELTA].timesCanDestroy(fromInt(-1), true)
+		val newDelta = self[DELTA].timesCanDestroy(fromInt(-1), true)
 		self[START] = newStart
 		self[END] = newEnd
 		self[DELTA] = newDelta

@@ -670,7 +670,7 @@ class CompilationContext constructor(
 		{
 			fiber.setSuccessAndFailure(adjustedSuccess, onFailure)
 		}
-		runtime.runOutermostFunction(fiber, function, args)
+		runtime.runOutermostFunction(fiber, function, args, false)
 	}
 
 	/**
@@ -1185,7 +1185,8 @@ class CompilationContext constructor(
 			stylerFn.ifNil { runtime[DEFAULT_STYLER] },
 			listOf(
 				tupleFromList(listOfNotNull(originalSendPhrase)),
-				transformedPhrase))
+				transformedPhrase),
+			true)
 	}
 
 	/**

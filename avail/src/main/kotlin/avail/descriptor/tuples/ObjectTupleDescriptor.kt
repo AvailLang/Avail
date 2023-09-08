@@ -489,8 +489,9 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		}
 		else
 		{
-			generateReversedFrom(size)
-				{ self[TUPLE_AT_, size + 1 - it] }
+			generateReversedFrom(size) {
+				self[TUPLE_AT_, size + 1 - it]
+			}
 		}
 	}
 

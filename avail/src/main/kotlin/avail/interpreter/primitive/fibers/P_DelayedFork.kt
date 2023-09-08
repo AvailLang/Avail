@@ -139,8 +139,8 @@ object P_DelayedFork : Primitive(
 		val runtime = interpreter.runtime
 		when
 		{
-			sleepMillis.equalsInt(0) ->
-				runtime.runOutermostFunction(newFiber, function, callArgs)
+			sleepMillis.equalsInt(0) -> runtime.runOutermostFunction(
+				newFiber, function, callArgs, false)
 			sleepMillis.isLong ->
 			{
 				runtime.timer.schedule(
@@ -149,7 +149,7 @@ object P_DelayedFork : Primitive(
 						override fun run()
 						{
 							runtime.runOutermostFunction(
-								newFiber, function, callArgs)
+								newFiber, function, callArgs, false)
 						}
 					},
 					sleepMillis.extractLong)
