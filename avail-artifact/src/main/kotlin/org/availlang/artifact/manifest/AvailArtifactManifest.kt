@@ -65,7 +65,7 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		roots[root]?.styles
 
 	/**
-	 * Answer tje [TemplateGroup] for the given [AvailRootManifest.name] or
+	 * Answer the [TemplateGroup] for the given [AvailRootManifest.name] or
 	 * `null` if root not found in this [AvailRootManifest].
 	 */
 	fun templatesFor(root: String): TemplateGroup? =

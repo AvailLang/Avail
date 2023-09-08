@@ -1,6 +1,6 @@
 /*
- * P_Hash.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * P_LinkPrimitives.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

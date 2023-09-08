@@ -1974,7 +1974,7 @@ class AvailWorkbench internal constructor(
 					?: exitProcess(0)
 			}
 
-			override fun windowClosing(e: WindowEvent?)
+			override fun windowClosing(e: WindowEvent)
 			{
 				unloadAllAction.actionPerformed(
 					ActionEvent(

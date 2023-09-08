@@ -1,6 +1,6 @@
 /*
- * P_Hash.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * P_LinkLibrary.kt
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ import avail.exceptions.AvailErrorCode.E_LIBRARY_ALREADY_LINKED
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
-import avail.interpreter.PojoClassLoader
+import avail.interpreter.LibraryClassLoader
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
@@ -65,13 +65,13 @@ import kotlin.concurrent.withLock
 
 /**
  * **Primitive:** Link the indicated jar file, in the same module root as the
- * loading module, using a [PojoClassLoader]. The jar must be specified using an
+ * loading module, using a [LibraryClassLoader]. The jar must be specified using an
  * Avail root-relative qualified path.
  *
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_LinkPojos : Primitive(2, CanInline, HasSideEffect)
+object P_LinkLibrary : Primitive(2, CanInline, HasSideEffect)
 {
 	/**
 	 * The lock that must be held when examining linking the JAR to guard
@@ -106,13 +106,13 @@ object P_LinkPojos : Primitive(2, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(E_NO_FILE)
 		}
 		mutex.withLock {
-			PojoClassLoader.jarLinked(jarFile.path)?.let { origLinker ->
+			LibraryClassLoader.jarLinked(jarFile.path)?.let { origLinker ->
 				oldModuleOut.setValue(origLinker)
 				return interpreter.primitiveFailure(E_LIBRARY_ALREADY_LINKED)
 			}
 			try
 			{
-				PojoClassLoader(jarFile, interpreter.module().moduleName)
+				LibraryClassLoader(jarFile, interpreter.module().moduleName)
 			}
 			catch (e: IOException)
 			{

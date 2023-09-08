@@ -1044,8 +1044,8 @@ Extends
 	),
 	"Libraries" =
 	(
-		"Link_",
-		"Link pojos_"
+		"Link primitives:_",
+		"Link library:_"
 	),
 	"Literals" =
 	(

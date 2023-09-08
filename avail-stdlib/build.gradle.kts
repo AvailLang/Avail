@@ -109,14 +109,6 @@ tasks {
 		}
 	}
 
-	createProjectFile {
-		outputLocation = ProjectHome(
-			"",
-			FILE,
-			rootDir.absolutePath,
-			rootNameInJar = null)
-	}
-
 	// Copy the library into the distribution directory. This is used by the
 	// workbench configuration that uses the standard library jar to start the
 	// workbench with the Avail Standard Library.

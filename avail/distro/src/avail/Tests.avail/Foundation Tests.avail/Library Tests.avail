@@ -53,12 +53,13 @@ New test suite libraries test suite extends foundation test suite;
 
 Test "Link fails with loading-is-over exception" in libraries test suite is
 [
-	Link "/avail/Avail/avail-primitives-2.0.0.alpha21-1.6.1.alpha10.jar";
+	Link primitives:
+		"/avail/Avail/avail-primitives-2.0.0.alpha21-1.6.1.alpha10.jar";
 ]
 must raise loading-is-over exception;
 
-Test "Link pojos fails with loading-is-over exception" in libraries test suite is
+Test "Link library: fails with loading-is-over exception" in libraries test suite is
 [
-	Link pojos "/avail/Avail/my-pojos.jar";
+	Link library: "/avail/Avail/my-pojos.jar";
 ]
 must raise loading-is-over exception;

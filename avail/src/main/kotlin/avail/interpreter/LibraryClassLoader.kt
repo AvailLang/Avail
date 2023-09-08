@@ -47,19 +47,19 @@ import javax.annotation.concurrent.GuardedBy
  *
  * @property moduleName
  *   The fully qualified [A_String] name of the module that is responsible for
- *   creating this [PojoClassLoader] for loading the target jar file.
+ *   creating this [LibraryClassLoader] for loading the target jar file.
  *
  * @constructor
- * Construct a [PojoClassLoader].
+ * Construct a [LibraryClassLoader].
  *
  * @param jarFile
  *   The [File] location of the jar file to load.
  * @param moduleName
  *   The [A_String] module name of the module that created this class loader.
  * @param parent
- *   The parent [ClassLoader] of this [PojoClassLoader].
+ *   The parent [ClassLoader] of this [LibraryClassLoader].
  */
-class PojoClassLoader constructor(
+class LibraryClassLoader constructor(
 	jarFile: File,
 	val moduleName: A_String,
 	parent: ClassLoader = Primitive::class.java.classLoader
@@ -69,7 +69,7 @@ class PojoClassLoader constructor(
 	 * The set of [Primitive.PrimitiveHolder]s that were loaded by this
 	 * [PrimitiveClassLoader].
 	 */
-	private val holders = mutableSetOf<PojoHolder>()
+	private val holders = mutableSetOf<ClassHolder>()
 
 	/**
 	 * The path to the linked Jar file.
@@ -85,8 +85,8 @@ class PojoClassLoader constructor(
 					if (!entry.name.endsWith(".class")) return@forEach
 					entry.name.replace(".class", "").let {
 						val c = it.replace("/", ".")
-						val holder = PojoHolder(c, this)
-						PojoHolder.holdersByClassName[c] = holder
+						val holder = ClassHolder(c, this)
+						ClassHolder.holdersByClassName[c] = holder
 						holders.add(holder)
 					}
 				}
@@ -95,10 +95,10 @@ class PojoClassLoader constructor(
 		catch (e: Throwable)
 		{
 			// We don't care what the exception is here, we just need to
-			// rollback the classes added to PojoHolder.holdersByClassName. The
+			// rollback the classes added to ClassHolder.holdersByClassName. The
 			// caller is responsible for handling said exceptions.
 			holders.forEach {
-				PojoHolder.holdersByClassName.remove(it.className)
+				ClassHolder.holdersByClassName.remove(it.className)
 				throw e
 			}
 		}
@@ -107,15 +107,15 @@ class PojoClassLoader constructor(
 	}
 
 	/**
-	 * Cleanup all of the [PojoHolder(it, this)]s loaded by this
-	 * [PojoClassLoader] then [close] this [PojoClassLoader].
+	 * Cleanup all of the [ClassHolder]s loaded by this
+	 * [LibraryClassLoader] then [close] this [LibraryClassLoader].
 	 */
 	fun cleanup ()
 	{
 		synchronized(this)
 		{
 			holders.toList().forEach { holder ->
-				PojoHolder.holdersByClassName.remove(holder.className)
+				ClassHolder.holdersByClassName.remove(holder.className)
 			}
 			close()
 			jarToModule.remove(jarPath)
@@ -124,19 +124,19 @@ class PojoClassLoader constructor(
 	}
 
 	/**
-	 * A helper class to assist with lazy loading of Pojos.
+	 * A helper class to assist with lazy loading of classes from a library.
 	 *
 	 * @property className
 	 *   The full name of the Java class implementing the primitive.
 	 * @property classLoader
 	 *   The [ClassLoader] used to load the [Primitive] [className].
 	 */
-	class PojoHolder internal constructor(
+	class ClassHolder internal constructor(
 		val className: String,
 		private val classLoader: ClassLoader)
 	{
 		/**
-		 * The sole instance of the specific Pojo. It is initialized only when
+		 * The sole instance of the specific class. It is initialized only when
 		 * needed for the first time, since that causes Java class loading to
 		 * happen, and we'd rather smear out that startup performance cost.
 		 *
@@ -150,9 +150,9 @@ class PojoClassLoader constructor(
 
 		companion object
 		{
-			/** A map of all [PojoHolder]s, by class name. */
+			/** A map of all [ClassHolder]s, by class name. */
 			internal val holdersByClassName =
-				mutableMapOf<String, PojoHolder>()
+				mutableMapOf<String, ClassHolder>()
 		}
 	}
 
@@ -164,12 +164,12 @@ class PojoClassLoader constructor(
 		private object UnloadLock
 
 		/**
-		 * The map that tracks all the [PojoClassLoader]s loading libraries for
-		 * a given [ModuleName].
+		 * The map that tracks all the [LibraryClassLoader]s loading libraries
+		 * for a given [ModuleName].
 		 */
 		@GuardedBy("UnloadLock")
 		private val moduleToLoader =
-			mutableMapOf<A_String, MutableSet<PojoClassLoader>>()
+			mutableMapOf<A_String, MutableSet<LibraryClassLoader>>()
 
 		/**
 		 * The map that tracks all the linked Pojo jar file paths to the
@@ -190,7 +190,7 @@ class PojoClassLoader constructor(
 		fun jarLinked (path: String): A_String? = jarToModule[path]
 
 		/**
-		 * Unload all the [PojoClassLoader]s loaded by the provided
+		 * Unload all the [LibraryClassLoader]s loaded by the provided
 		 * [ModuleName].
 		 *
 		 * @param moduleName

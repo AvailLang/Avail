@@ -241,7 +241,7 @@ import avail.exceptions.AvailErrorCode.Companion.allNumericCodes
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.files.FileManager
-import avail.interpreter.PojoClassLoader
+import avail.interpreter.LibraryClassLoader
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.CannotFail
@@ -602,10 +602,9 @@ class AvailRuntime constructor(
 		}
 		catch (ex: ClassNotFoundException)
 		{
-			// TODO RAA look up through pojos for loading
 			return try
 			{
-				PojoClassLoader.PojoHolder
+				LibraryClassLoader.ClassHolder
 					.holdersByClassName[classNameString]?.pojo
 						?: throw ex
 			}

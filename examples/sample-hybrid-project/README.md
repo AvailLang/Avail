@@ -6,7 +6,7 @@ SAMPLE PROJECT OVERVIEW
 ***NOTE: 8/27/2023 The current state of this example is: Expected to Work***
 
 *This uses alpha version tools that are in flux. This README will be updated* 
-*to reflect accurate usage for the2. 0.0 production release of the Avail* 
+*to reflect accurate usage for the 2.0.0 production release of the Avail* 
 *toolchain. Once the tools are finalized, this sample will be updated to a* 
 *working state relative to the lastest production release.*
 
@@ -51,7 +51,7 @@ The foreign function interface is defined in:
 
 This is where the bindings are created to the native JVM functionality. To
 dynamically link a JAR, use Avail's `"Link pojos_"`. This is done inside
-Foreign Interface.avail with the statement:
+`Foreign Interface.avail` with the statement:
 
 ```
 Link pojos "/my-avail-root/App/avail-java-ffi-1.0.jar";

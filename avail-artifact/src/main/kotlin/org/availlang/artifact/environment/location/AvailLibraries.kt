@@ -38,11 +38,10 @@ open class AvailLibraries constructor (
 		"$path${File.separator}$relativePath", scheme, rootNameInJar)
 
 	/**
-	 * Answer an [AvailJarRoot]
+	 * Answer an [AvailJarRoot].
 	 *
 	 * @param rootNameInJar
 	 *   The name of the root to use within the JAR file.
-	 *
 	 */
 	fun asRootLocation (rootNameInJar: String): AvailJarRoot =
 		AvailJarRoot(path, rootNameInJar)

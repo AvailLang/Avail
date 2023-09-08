@@ -44,8 +44,8 @@ Uses
 	"Strings",
 	"Variables"
 Names
-	"Link_",
-	"Link pojos_"
+	"Link primitives:_",
+	"Link library:_"
 Body
 
 /**
@@ -93,7 +93,7 @@ Method "Primitive link_in_" is
  * Link the native primitives from the indicated jar resource file.
  *
  * @category "Primitives"
- * @method "Link_"
+ * @method "Link primitives:_"
  * @param "source" "<character…|1..∞>"
  *        The root-relative fully qualified name of the source file to link.
  *        This is the resource jar file that contains the primitives.
@@ -107,7 +107,7 @@ Method "Primitive link_in_" is
  * @raises "invalid-path exception"
  * @raises "library-already-linked exception"
  */
-Public method "Link_" is
+Public method "Link primitives:_" is
 [
 	source : nonempty string
 |
@@ -119,7 +119,7 @@ Public method "Link_" is
  * Load the indicated jar resource file.
  *
  * @category "Primitives"
- * @method "Primitive link pojos_in_"
+ * @method "Primitive Link library_in_"
  * @param "source" "character+"
  *        The root-relative fully qualified name of the source file to link.
  *        This is the resource jar file to be loaded.
@@ -131,12 +131,12 @@ Public method "Link_" is
  * @raises "invalid-path exception"
  * @raises "library-already-linked exception"
  */
-Method "Primitive link pojos_in_" is
+Method "Primitive Link library_in_" is
 [
 	source : nonempty string,
 	existingModuleHolder: ↑string
 |
-	Primitive LinkPojos (failureCode : {
+	Primitive LinkLibrary (failureCode : {
 		permission-denied code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
@@ -159,7 +159,7 @@ Method "Primitive link pojos_in_" is
  * Link the indicated jar resource file.
  *
  * @category "Primitives"
- * @method "Link pojos_"
+ * @method "Link library:_"
  * @param "source" "<character…|1..∞>"
  *        The root-relative fully qualified name of the source file to link.
  *        This is the resource jar file that contains the primitives.
@@ -173,10 +173,10 @@ Method "Primitive link pojos_in_" is
  * @raises "invalid-path exception"
  * @raises "library-already-linked exception"
  */
-Public method "Link pojos_" is
+Public method "Link library:_" is
 [
 	source : nonempty string
 |
 	old : string;
-	Primitive link pojos source in ↑old;
+	Primitive Link library source in ↑old;
 ] : ⊤;

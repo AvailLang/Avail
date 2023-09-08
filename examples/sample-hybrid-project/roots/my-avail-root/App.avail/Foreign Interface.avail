@@ -28,7 +28,7 @@ Entries
     "wrap_and print"
 Body
 
-Link pojos "/my-avail-root/App/avail-java-ffi-1.0.jar";
+Link library: "/my-avail-root/App/avail-java-ffi-1.0.jar";
 
 /**
  * A SampleValueWrapper from avail-java-ffi.
