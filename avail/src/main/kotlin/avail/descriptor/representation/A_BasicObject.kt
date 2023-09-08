@@ -469,6 +469,11 @@ interface A_BasicObject : JSONFriendly
 	 */
 	fun equalsTwoByteString(aTwoByteString: A_String): Boolean
 
+	/**
+	 * Dispatch to the descriptor.
+	 */
+	fun equalsTwentyOneBitString(aTwentyOneBitString: A_String): Boolean
+
 
 	/**
 	 * Test if the receiver is the [nil][NilDescriptor] value.

@@ -110,6 +110,7 @@ import avail.descriptor.module.ModuleDescriptor.ObjectSlots.IMPORTED_NAMES
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.LEXERS
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.METHOD_DEFINITIONS_SET
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.NEW_NAMES
+import avail.descriptor.module.ModuleDescriptor.ObjectSlots.POST_LOAD_FUNCTIONS
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.PRIVATE_NAMES
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEALS
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.STYLERS
@@ -172,13 +173,14 @@ import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
+import avail.interpreter.LibraryClassLoader
 import avail.interpreter.PrimitiveClassLoader
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ManifestRecord
-import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.NameInModule
+import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
 import avail.serialization.Deserializer
@@ -187,8 +189,6 @@ import avail.utility.safeWrite
 import avail.utility.structures.BloomFilter
 import org.availlang.json.JSONWriter
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
-import java.io.ByteArrayInputStream
-import java.io.DataInputStream
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -307,6 +307,13 @@ class ModuleDescriptor private constructor(
 
 		/** The [set][A_Set] of [stylers][A_Styler] installed by this module. */
 		STYLERS,
+
+		/**
+		 * A [tuple][TupleDescriptor] of [functions][FunctionDescriptor] that
+		 * should be applied when this [module][ModuleDescriptor] has been
+		 * fully parsed, and all top-level expressions have executed.
+		 */
+		POST_LOAD_FUNCTIONS,
 
 		/**
 		 * A [tuple][TupleDescriptor] of [functions][FunctionDescriptor] that
@@ -1071,6 +1078,16 @@ class ModuleDescriptor private constructor(
 		}
 	}
 
+	override fun o_AddPostLoadFunction(
+		self: AvailObject,
+		postLoadFunction: A_Function
+	) = lock.safeWrite {
+		assertState(Loading)
+		self.updateSlotShared(POST_LOAD_FUNCTIONS) {
+			appendCanDestroy(postLoadFunction, true)
+		}
+	}
+
 	override fun o_AddUnloadFunction(
 		self: AvailObject,
 		unloadFunction: A_Function
@@ -1232,6 +1249,12 @@ class ModuleDescriptor private constructor(
 		return phrasePathRecord!!
 	}
 
+	override fun o_TakePostLoadFunctions(
+		self: AvailObject
+	): A_Tuple = lock.safeWrite {
+		self.getAndSetVolatileSlot(POST_LOAD_FUNCTIONS, nil)
+	}
+
 	override fun o_RemoveFrom(
 		self: AvailObject,
 		loader: AvailLoader,
@@ -1242,19 +1265,32 @@ class ModuleDescriptor private constructor(
 			self.getAndSetVolatileSlot(UNLOAD_FUNCTIONS, nil).tupleReverse()
 		// Run unload functions, asynchronously but serially, in reverse
 		// order.
-		loader.runUnloadFunctions(unloadFunctions) {
-			// The final cleanup for the module has to happen in a safe point,
-			// because it causes chunk invalidations.
-			loader.runtime.whenSafePointDo(FiberDescriptor.loaderPriority) {
-				finishUnloading(self, loader)
-				// The module may already be closed, but ensure that it is
-				// closed following removal.
-				self.moduleState = Unloaded
-				// Run the post-action outside of the safe point.
-				loader.runtime.execute(
-					FiberDescriptor.loaderPriority, afterRemoval)
+		loader.runFunctions(
+			functions = unloadFunctions.iterator(),
+			purpose = "Unload",
+			afterFailingOne =
+			{ _, _, toProceed ->
+				// Log but ignore failures during unload.
+				println(
+					"Failure running unload function for $moduleName. " +
+						"Skipping.")
+				toProceed()
+			},
+			afterRunningAll =
+			{
+				// The final cleanup for the module has to happen in a safe
+				// point, because it causes chunk invalidations.
+				loader.runtime.whenSafePointDo(FiberDescriptor.loaderPriority) {
+					finishUnloading(self, loader)
+					// The module may already be closed, but ensure that it is
+					// closed following removal.
+					self.moduleState = Unloaded
+					// Run the post-action outside the safe point.
+					loader.runtime.execute(
+						FiberDescriptor.loaderPriority, afterRemoval)
+				}
 			}
-		}
+		)
 	}
 
 	override fun o_SerializedObjects(
@@ -1319,6 +1355,9 @@ class ModuleDescriptor private constructor(
 		// Unload any Primitives loaded by this module
 		PrimitiveClassLoader.unloadModuleClassLoaders(moduleName)
 
+		// Unload any Jars loaded by this module
+		LibraryClassLoader.unloadModuleClassLoaders(moduleName)
+
 		// Tidy up the module to make it easier for the garbage collector to
 		// clean things up piecemeal.
 		allAncestors.set(nil)
@@ -1341,6 +1380,7 @@ class ModuleDescriptor private constructor(
 			setSlot(VARIABLE_BINDINGS, nil)
 			setSlot(CONSTANT_BINDINGS, nil)
 			setSlot(SEALS, nil)
+			setSlot(POST_LOAD_FUNCTIONS, nil)
 			setSlot(UNLOAD_FUNCTIONS, nil)
 			setSlot(LEXERS, nil)
 			setSlot(STYLERS, nil)
@@ -1541,8 +1581,7 @@ class ModuleDescriptor private constructor(
 
 	override fun o_SetNamesIndexRecordIndex(
 		self: AvailObject,
-		recordNumber: Long
-	): Unit
+		recordNumber: Long)
 	{
 		namesIndexRecordIndex = recordNumber
 	}
@@ -1608,6 +1647,7 @@ class ModuleDescriptor private constructor(
 				setSlot(SEALS, emptyMap)
 				setSlot(LEXERS, emptySet)
 				setSlot(STYLERS, emptySet)
+				setSlot(POST_LOAD_FUNCTIONS, emptyTuple)
 				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
 				// Create a new shared descriptor.

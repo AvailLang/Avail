@@ -3,7 +3,6 @@ package org.availlang.artifact.manifest
 import org.availlang.artifact.AvailArtifactException
 import org.availlang.artifact.AvailArtifactType
 import org.availlang.artifact.formattedNow
-import org.availlang.artifact.jar.JvmComponent
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
 
@@ -25,15 +24,12 @@ import org.availlang.json.JSONWriter
  *   that are present in the artifact.
  * @param description
  *   A description of the artifact.
- * @param jvmComponent
- *   The [JvmComponent] that describes JVM components if they exist.
  */
 class AvailArtifactManifestV1 constructor (
 	override val artifactType: AvailArtifactType,
 	override val constructed: String,
 	override val roots: Map<String, AvailRootManifest>,
-	override val description: String = "",
-	override val jvmComponent: JvmComponent = JvmComponent.NONE
+	override val description: String = ""
 ): AvailArtifactManifest
 {
 	override val artifactVersion: Int = 1
@@ -48,7 +44,6 @@ class AvailArtifactManifestV1 constructor (
 			at(::constructed.name) { write(constructed) }
 			at(::description.name) { write(description) }
 			at(::roots.name) { writeArray(roots.values) }
-			at(::jvmComponent.name) { write(jvmComponent) }
 		}
 	}
 
@@ -122,22 +117,8 @@ class AvailArtifactManifestV1 constructor (
 					throw AvailArtifactException(
 						"Problem accessing Avail Artifact Manifest Roots.", e)
 				}
-			val jvmComponent =
-				try
-				{
-					val jvmComponentObj = obj.getObject(
-						AvailArtifactManifest::jvmComponent.name)
-					JvmComponent.from(jvmComponentObj)
-				}
-				catch (e: Throwable)
-				{
-					throw AvailArtifactException(
-						"Problem accessing Avail Artifact Manifest " +
-							"jvmComponent.",
-						e)
-				}
 			return AvailArtifactManifestV1(
-				type, constructed, roots, description, jvmComponent)
+				type, constructed, roots, description)
 		}
 	}
 }

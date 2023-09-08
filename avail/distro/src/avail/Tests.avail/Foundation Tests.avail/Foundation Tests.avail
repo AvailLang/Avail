@@ -50,6 +50,7 @@ Extends
 	"Decompiler Tests" = ("decompiler test suite"),
 	"Exception Tests" = ("exception test suite"),
 	"Function Tests" = ("function test suite"),
+	"Library Tests" = ("libraries test suite"),
 	"Logic Tests" = ("logic test suite"),
 	"Map Tests" = ("map test suite"),
 	"Math Tests" = ("math test suite"),

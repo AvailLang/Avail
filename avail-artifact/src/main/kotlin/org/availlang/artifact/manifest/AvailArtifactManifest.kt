@@ -2,8 +2,11 @@ package org.availlang.artifact.manifest
 
 import org.availlang.artifact.*
 import org.availlang.artifact.AvailArtifact.Companion.artifactRootDirectory
+import org.availlang.artifact.environment.project.AvailProject.Companion.STYLE_FILE_NAME
+import org.availlang.artifact.environment.project.AvailProject.Companion.TEMPLATE_FILE_NAME
 import org.availlang.artifact.environment.project.AvailProjectRoot
-import org.availlang.artifact.jar.JvmComponent
+import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.TemplateGroup
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.jsonPrettyPrintWriter
@@ -55,9 +58,18 @@ sealed interface AvailArtifactManifest: JSONFriendly
 	val roots: Map<String, AvailRootManifest>
 
 	/**
-	 * The [JvmComponent] that describes JVM components if they exist.
+	 * Answer tje [StylingGroup] for the given [AvailRootManifest.name] or
+	 * `null` if root not found in this [AvailRootManifest].
 	 */
-	val jvmComponent: JvmComponent
+	fun stylesFor(root: String): StylingGroup? =
+		roots[root]?.styles
+
+	/**
+	 * Answer the [TemplateGroup] for the given [AvailRootManifest.name] or
+	 * `null` if root not found in this [AvailRootManifest].
+	 */
+	fun templatesFor(root: String): TemplateGroup? =
+		roots[root]?.templates
 
 	/**
 	 * The String file contents of this [AvailArtifactManifest].
@@ -85,14 +97,37 @@ sealed interface AvailArtifactManifest: JSONFriendly
 	 *
 	 * @param root
 	 *   The [AvailProjectRoot] to update.
+	 * @param rootNameInJar
+	 *   The name of the root inside the [AvailArtifactManifest].
+	 * @param createdList
+	 *   List of strings that may contain [TEMPLATE_FILE_NAME] and
+	 *   [STYLE_FILE_NAME] indicating those config files were newly created and
+	 *   should be populated with the corresponding settings from the root's
+	 *   jar.
 	 */
-	fun updateRoot (root: AvailProjectRoot)
+	fun updateRoot (
+		root: AvailProjectRoot,
+		rootNameInJar: String,
+		createdList: List<String>)
 	{
-		val u = roots[root.name] ?: return
-		root.styles.updateFrom(u.styles)
-		val merged = root.templateGroup.mergeOnto(u.templates)
-		root.templateGroup.templates.clear()
-		root.templateGroup.templates.putAll(merged.templates)
+		if (createdList.isEmpty()) return
+		val u = roots[rootNameInJar] ?: return
+		if (createdList.contains(STYLE_FILE_NAME))
+		{
+			// The styles file was newly created so import the styles from the
+			// jar
+			root.styles.updateFrom(u.styles)
+			root.saveStylesToDisk()
+		}
+		if (createdList.contains(TEMPLATE_FILE_NAME))
+		{
+			// The templates file was newly created so import the styles from
+			// the jar
+			val merged = root.templateGroup.mergeOnto(u.templates)
+			root.templateGroup.templates.clear()
+			root.templateGroup.templates.putAll(merged.templates)
+			root.saveTemplatesToDisk()
+		}
 	}
 
 	companion object
@@ -178,8 +213,6 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		 *   [AvailRootManifest.name] that are present in the artifact.
 		 * @param description
 		 *   The artifact's description.
-		 * @param jvmComponent
-		 *   The [JvmComponent].
 		 * @return
 		 *   The file byte contents.
 		 */
@@ -188,15 +221,13 @@ sealed interface AvailArtifactManifest: JSONFriendly
 			artifactType: AvailArtifactType,
 			targetFile: File,
 			roots: Map<String, AvailRootManifest>,
-			description: String,
-			jvmComponent: JvmComponent = JvmComponent.NONE)
+			description: String)
 		{
 			AvailArtifactManifestV1(
 				artifactType,
 				formattedNow,
 				roots,
-				description,
-				jvmComponent
+				description
 			).writeFile(targetFile)
 		}
 
@@ -211,8 +242,6 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		 *   [AvailRootManifest.name] that are present in the artifact.
 		 * @param description
 		 *   The artifact's description.
-		 * @param jvmComponent
-		 *   The [JvmComponent].
 		 * @return
 		 *   The constructed [AvailArtifactManifest].
 		 */
@@ -220,15 +249,13 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		fun manifestFile (
 			artifactType: AvailArtifactType,
 			roots: Map<String, AvailRootManifest>,
-			description: String,
-			jvmComponent: JvmComponent = JvmComponent.NONE
+			description: String
 		): AvailArtifactManifest =
 				AvailArtifactManifestV1(
 					artifactType,
 					formattedNow,
 					roots,
-					description,
-					jvmComponent)
+					description)
 
 		/**
 		 * Answer the [availArtifactManifestFile] contents.
@@ -241,8 +268,6 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		 *   [AvailRootManifest.name] that are present in the artifact.
 		 * @param description
 		 *   The artifact's description.
-		 * @param jvmComponent
-		 *   The [JvmComponent].
 		 * @return
 		 *   The file byte contents.
 		 */
@@ -250,16 +275,14 @@ sealed interface AvailArtifactManifest: JSONFriendly
 		fun createManifestFileContents (
 			artifactType: AvailArtifactType,
 			roots: Map<String, AvailRootManifest>,
-			description: String,
-			jvmComponent: JvmComponent = JvmComponent.NONE
+			description: String
 
 		): ByteArray =
 			AvailArtifactManifestV1(
 				artifactType,
 				formattedNow,
 				roots,
-				description,
-				jvmComponent
+				description
 			).fileContent.toByteArray(StandardCharsets.UTF_8)
 	}
 }

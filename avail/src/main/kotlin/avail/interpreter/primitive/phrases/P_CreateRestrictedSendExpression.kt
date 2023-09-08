@@ -270,7 +270,11 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 							after()
 						})
 					runtime.runOutermostFunction(
-						forkedFiber, restriction.function(), argTypesList)				},
+						forkedFiber,
+						restriction.function(),
+						argTypesList,
+						false)
+				},
 				then = {
 					when
 					{

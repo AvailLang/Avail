@@ -75,7 +75,7 @@ object P_AtomSetProperty : Primitive(
 		atom.setAtomProperty(propertyKey, propertyValue)
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.ATOM_PROPERTY.bundle,
+				SpecialMethodAtom.ATOM_PROPERTY,
 				atom,
 				propertyKey,
 				propertyValue))

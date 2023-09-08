@@ -1,0 +1,70 @@
+{
+	"id": "af9fe8a2-d3ad-49d0-82ba-db8c039c94ae",
+	"darkMode": true,
+	"serializationVersion": 1,
+	"name": "sample-hybrid",
+	"repositoryLocation": 
+	{
+		"locationType": "availRepositories",
+		"scheme": "FILE",
+		"path": ""
+	},
+	"disallow": 
+	[
+	],
+	"roots": 
+	[
+		{
+			"id": "7d2cbd58-fc20-4e0e-aaf4-ac5a7c155747",
+			"name": "avail-stdlib",
+			"editable": false,
+			"visible": true,
+			"description": "",
+			"location": 
+			{
+				"locationType": "availLibraries",
+				"scheme": "JAR",
+				"path": "org/availlang/avail-stdlib-2.0.0.alpha23-1.6.1.alpha14.jar",
+				"rootNameInJar": "avail"
+			},
+			"moduleHeaders": 
+			[
+			]
+		},
+		{
+			"id": "6cfba6b9-6316-4222-8b43-7f495013ff88",
+			"name": "my-avail-root",
+			"editable": true,
+			"visible": true,
+			"description": "",
+			"location": 
+			{
+				"locationType": "project",
+				"scheme": "FILE",
+				"path": "roots/my-avail-root"
+			},
+			"moduleHeaders": 
+			[
+			]
+		},
+		{
+			"id": "a9a80576-2b50-46e4-8758-2aeb20a8cfcc",
+			"name": "other-root",
+			"editable": true,
+			"visible": true,
+			"description": "",
+			"location": 
+			{
+				"locationType": "project",
+				"scheme": "FILE",
+				"path": "roots/other-root"
+			},
+			"moduleHeaders": 
+			[
+			]
+		}
+	],
+	"moduleHeaders": 
+	[
+	]
+}

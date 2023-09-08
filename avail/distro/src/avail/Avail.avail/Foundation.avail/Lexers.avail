@@ -624,6 +624,7 @@ Private method "read range element from_at_" is
 	};
 	If c2 ∈ escapes then
 	[
+		i++;
 		Exit body with escapes[c2]
 	];
 	If c2 ≠ ¢"(" then

@@ -79,9 +79,7 @@ object P_AtomRemoveProperty : Primitive(
 		atom.setAtomProperty(propertyKey, nil)
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.ATOM_REMOVE_PROPERTY.bundle,
-				atom,
-				propertyKey))
+				SpecialMethodAtom.ATOM_REMOVE_PROPERTY, atom, propertyKey))
 		return interpreter.primitiveSuccess(nil)
 	}
 

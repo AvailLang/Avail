@@ -272,16 +272,16 @@ constructor (
 		/**
 		 * An entry in the [tokenSpans] of a PhraseNode.  The [start] and
 		 * [pastEnd] identify where the token occurs in the UCS-2 source
-		 * [String], but using one-based indices.  The [tokenIndexInName] is
+		 * [String], using zero-based indices.  The [tokenIndexInName] is
 		 * either zero or a one-based index into the atom's [MessageSplitter]'s
 		 * [MessageSplitter.messageParts], indicating the part of the message
 		 * that this token matched during parsing.
 		 *
 		 * @property start
-		 *   The one-based index into the UCS-2 [String] at which the token
+		 *   The zero-based index into the UCS-2 [String] at which the token
 		 *   begins.
 		 * @property pastEnd
-		 *   The one-based index into the UCS-2 [String] just past the token.
+		 *   The zero-based index into the UCS-2 [String] just past the token.
 		 * @property line
 		 *   The one-based line number containing the token.  If the token spans
 		 *   multiple lines (say a string literal), this is the line number of

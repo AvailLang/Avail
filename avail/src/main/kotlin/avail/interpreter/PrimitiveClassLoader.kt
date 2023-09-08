@@ -34,8 +34,10 @@ package avail.interpreter
 
 import avail.builder.ModuleName
 import avail.descriptor.tuples.A_String
+import avail.interpreter.Primitive.PrimitiveHolder
 import java.io.File
 import java.net.URLClassLoader
+import java.util.jar.JarFile
 import javax.annotation.concurrent.GuardedBy
 
 /**
@@ -56,16 +58,12 @@ import javax.annotation.concurrent.GuardedBy
  *   The [File] location of the jar file to load that contains the [Primitive]s.
  * @param moduleName
  *   The [A_String] module name of the module that created this class loader.
- * @param classNames
- *   The list of fully qualified [Primitive] class names as [A_String]s that
- *   represent [Primitive]s made available through this [PrimitiveClassLoader].
  * @param parent
  *   The parent [ClassLoader] of this [PrimitiveClassLoader].
  */
 class PrimitiveClassLoader constructor(
 	jarFile: File,
 	val moduleName: A_String,
-	classNames: Set<String>,
 	parent: ClassLoader = Primitive::class.java.classLoader
 ): URLClassLoader(arrayOf(jarFile.toURI().toURL()), parent)
 {
@@ -73,7 +71,12 @@ class PrimitiveClassLoader constructor(
 	 * The set of [Primitive.PrimitiveHolder]s that were loaded by this
 	 * [PrimitiveClassLoader].
 	 */
-	private val holders = mutableSetOf<Primitive.PrimitiveHolder>()
+	private val holders = mutableSetOf<PrimitiveHolder>()
+
+	/**
+	 * The path to the linked Jar file.
+	 */
+	private val jarPath = jarFile.path
 
 	/**
 	 * Cleanup all of the [Primitive.PrimitiveHolder]s loaded by this
@@ -84,29 +87,53 @@ class PrimitiveClassLoader constructor(
 		synchronized(this)
 		{
 			holders.toList().forEach { holder ->
-				Primitive.PrimitiveHolder.holdersByName
-					.remove(holder.name)
-				Primitive.PrimitiveHolder.holdersByClassName
-					.remove(holder.className)
+				PrimitiveHolder.holdersByName.remove(holder.name)
+				PrimitiveHolder.holdersByClassName.remove(holder.className)
 			}
 			close()
+			jarToModule.remove(jarPath)
 			holders.clear()
 		}
 	}
 
 	init
 	{
-		moduleToLoader.computeIfAbsent(moduleName) { mutableSetOf() }.add(this)
-		classNames.forEach {
-			val primitiveName =
-				Primitive.PrimitiveHolder.splitClassName(it).last()
-					.split("P_").last()
-			val holder =
-				Primitive.PrimitiveHolder(primitiveName, it, this)
-			Primitive.PrimitiveHolder.holdersByClassName[it] = holder
-			Primitive.PrimitiveHolder.holdersByName[primitiveName] = holder
-			holders.add(holder)
+		try
+		{
+			JarFile(jarFile).use { jar ->
+				jar.entries().asIterator().forEach { entry ->
+					if (!entry.name.endsWith(".class")) return@forEach
+					val last = entry.name.split("/").last()
+					if(last.startsWith(PRIMITIVE_NAME_PREFIX))
+					{
+						val c = entry.name
+							.replace(".class", "")
+							.replace("/", ".")
+						val primitiveName =
+							PrimitiveHolder.splitClassName(c).last()
+								.split("P_").last()
+						val holder =
+							PrimitiveHolder(primitiveName, c, this)
+						PrimitiveHolder.holdersByClassName[c] = holder
+						PrimitiveHolder.holdersByName[primitiveName] = holder
+						holders.add(holder)
+					}
+				}
+			}
 		}
+		catch (e: Throwable)
+		{
+			// We don't care what the exception is here, we just need to
+			// rollback the classes added to PrimitiveHolder.holdersByName and
+			// PrimitiveHolder.holdersByClassName. The caller is responsible for
+			// handling said exceptions.
+			holders.forEach {
+				PrimitiveHolder.holdersByClassName.remove(it.className)
+				PrimitiveHolder.holdersByName.remove(it.name)
+				throw e
+			}
+		}
+		moduleToLoader.computeIfAbsent(moduleName) { mutableSetOf() }.add(this)
 	}
 
 	companion object
@@ -128,6 +155,24 @@ class PrimitiveClassLoader constructor(
 		@GuardedBy("UnloadLock")
 		private val moduleToLoader =
 			mutableMapOf<A_String, MutableSet<PrimitiveClassLoader>>()
+
+		/**
+		 * The map that tracks all the linked Pojo jar file paths to the
+		 * associated [A_String] module name that loaded them.
+		 */
+		@GuardedBy("UnloadLock")
+		private val jarToModule = mutableMapOf<String, A_String>()
+
+		/**
+		 * Answer the [module name][A_String] of the module that has already
+		 * linked the Jar file associated with the provided path.
+		 *
+		 * @param path
+		 *   The path to the Jar file to check linkage for.
+		 * @return
+		 *   The [A_String] name of the linking module or `null` if not linked.
+		 */
+		fun jarLinked (path: String): A_String? = jarToModule[path]
 
 		/**
 		 * Unload all the [PrimitiveClassLoader]s loaded by the provided

@@ -151,11 +151,11 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 					else -> throw e
 				}
 				runtime.runOutermostFunction(
-					newFiber, fail, listOf(errorCode.numericCode()))
+					newFiber, fail, listOf(errorCode.numericCode()), false)
 				return@executeFileTask
 			}
 
-			runtime.runOutermostFunction(newFiber, succeed, emptyList())
+			runtime.runOutermostFunction(newFiber, succeed, emptyList(), false)
 		}
 		return interpreter.primitiveSuccess(newFiber)
 	}

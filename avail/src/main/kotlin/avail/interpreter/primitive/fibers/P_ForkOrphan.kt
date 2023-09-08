@@ -122,7 +122,8 @@ object P_ForkOrphan : Primitive(
 		orphan.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
 		// Schedule the fiber to run the specified function.
-		interpreter.runtime.runOutermostFunction(orphan, function, callArgs)
+		interpreter.runtime.runOutermostFunction(
+			orphan, function, callArgs, false)
 		return interpreter.primitiveSuccess(nil)
 	}
 

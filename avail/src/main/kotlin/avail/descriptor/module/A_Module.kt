@@ -173,6 +173,20 @@ interface A_Module : A_BasicObject
 
 		/**
 		 * Add the specified [function][A_Function] to the [tuple][A_Tuple] of
+		 * functions that should be applied when the [module][A_Module] has been
+		 * fully compiled.
+		 *
+		 * @param postLoadFunction
+		 *   An Avail [A_Function] of zero arguments.
+		 * @throws AvailRuntimeException
+		 *   If the [module][A_Module] is nat currently loading.
+		 */
+		@Throws(AvailRuntimeException::class)
+		fun A_Module.addPostLoadFunction(postLoadFunction: A_Function) =
+			dispatch { o_AddPostLoadFunction(it, postLoadFunction) }
+
+		/**
+		 * Add the specified [function][A_Function] to the [tuple][A_Tuple] of
 		 * functions that should be applied when the [module][A_Module] is unloaded.
 		 *
 		 * @param unloadFunction
@@ -400,6 +414,13 @@ interface A_Module : A_BasicObject
 		 */
 		fun A_Module.resolveForward(forwardDefinition: A_BasicObject) =
 			dispatch { o_ResolveForward(it, forwardDefinition) }
+
+		/**
+		 * Remove the [A_Tuple] of post-load [A_Function] from this module,
+		 * returning them.  Replace the tuple with [nil].
+		 */
+		fun A_Module.takePostLoadFunctions(): A_Tuple =
+			dispatch { o_TakePostLoadFunctions(it) }
 
 		/**
 		 * Dispatch to the descriptor.

@@ -274,7 +274,10 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 							}
 						}
 						runtime.runOutermostFunction(
-							newFiber, fail, listOf(E_IO_ERROR.numericCode()))
+							newFiber,
+							fail,
+							listOf(E_IO_ERROR.numericCode()),
+							false)
 					}
 				).guardedDo {
 					fileChannel.write(
@@ -360,7 +363,8 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					offsetInBuffer = 1
 				}
 				assert(subscriptInTuple == totalBytes + 1)
-				runtime.runOutermostFunction(newFiber, succeed, emptyList())
+				runtime.runOutermostFunction(
+					newFiber, succeed, emptyList(), false)
 			}
 		}
 		return interpreter.primitiveSuccess(newFiber)

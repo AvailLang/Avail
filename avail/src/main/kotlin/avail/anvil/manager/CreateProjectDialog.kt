@@ -74,9 +74,9 @@ internal class CreateProjectDialog constructor(
 	init
 	{
 		manager.createProjectDialog = this
-		minimumSize = Dimension(750, 350)
-		preferredSize = Dimension(750, 350)
-		maximumSize = Dimension(750, 350)
+		minimumSize = Dimension(750, 525)
+		preferredSize = Dimension(750, 525)
+		maximumSize = Dimension(750, 525)
 		defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
 		addWindowListener(object: WindowAdapter()
 		{

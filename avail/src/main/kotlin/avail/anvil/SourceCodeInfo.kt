@@ -40,6 +40,9 @@ import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.resolver.ResolverReference
 import java.util.Collections.synchronizedMap
+import javax.swing.JOptionPane
+import javax.swing.SwingUtilities
+import kotlin.system.exitProcess
 
 /**
  * Information about the source code for some module.
@@ -59,8 +62,16 @@ constructor (
 			false,
 			{ string, _ -> withExactSource(string) },
 			{ errorCode, _ ->
-				// Cheesy, but good enough.
-				withExactSource("Cannot retrieve source: $errorCode")
+				SwingUtilities.invokeLater {
+					JOptionPane.showConfirmDialog(
+						null,
+						"Cannot retrieve source: $errorCode.\n" +
+							"Press Ok to exit.",
+						"Fatal error reading file",
+						JOptionPane.DEFAULT_OPTION,
+						JOptionPane.ERROR_MESSAGE)
+					exitProcess(-1)
+				}
 			})
 	}
 

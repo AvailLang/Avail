@@ -501,18 +501,15 @@ class ByteStringDescriptor private constructor(
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
 		val size = self.tupleSize
-		return if (size > maximumCopySize)
-		{
-			super.o_TupleReverse(self)
-		}
-		else generateByteString(size) {
-			self.byteSlot(RAW_LONGS_, size + 1 - it).toInt()
-		}
+		if (size > maximumCopySize) return super.o_TupleReverse(self)
 
 		// It's not empty, it's not a total copy, and it's reasonably small.
 		// Just copy the applicable bytes out.  In theory we could use
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
+		return generateByteString(size) {
+			self.byteSlot(RAW_LONGS_, size + 1 - it).toInt()
+		}
 	}
 
 	// Answer the number of elements in the object.

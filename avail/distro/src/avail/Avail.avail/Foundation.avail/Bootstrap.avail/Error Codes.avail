@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/29/23, 10:11 PM
+ * * Last Generated: 8/26/23, 1:29 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -112,6 +112,7 @@ Names
 	/*  26 */ "invalid-primitive-name code",
 	/*  33 */ "invalid-special-object-number code",
 	/*  21 */ "key-not-found code",
+	/* 600 */ "library-already-linked code",
 	/*  70 */ "loading-is-over code",
 	/*  34 */ "macro-argument-must-be-a-phrase code",
 	/*  68 */ "macro-must-return-a-phrase code",
@@ -741,5 +742,13 @@ Primitive "cannot-modify-final-Java-field code" is
 Primitive "Java-method-reference-is-ambiguous code" is
 [
 	508
+];
+
+/**
+ * Subsequent attempt made to link a library that has already been linked.
+ */
+Primitive "library-already-linked code" is
+[
+	600
 ];
 

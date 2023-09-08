@@ -47,6 +47,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteString
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.mutableObjectFromNativeByteString
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.generateTwentyOneBitString
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableObjectFromNativeTwoByteString
 import avail.descriptor.types.A_Type
@@ -89,14 +90,17 @@ abstract class StringDescriptor protected constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
 	{
 		val size = self.tupleSize
+		var anyShort = false
 		for (i in 1 .. size)
 		{
 			val codePoint = self.tupleCodePointAt(i)
-			if (codePoint >= 256)
+			if (codePoint > 0xFFFF)
 			{
-				return SerializerOperation.SHORT_STRING
+				return SerializerOperation.ARBITRARY_STRING
 			}
+			anyShort = anyShort or (codePoint > 0xFF)
 		}
+		if (anyShort) return SerializerOperation.SHORT_STRING
 		return SerializerOperation.BYTE_STRING
 	}
 
@@ -211,29 +215,28 @@ abstract class StringDescriptor protected constructor(
 				count++
 				index += Character.charCount(codePoint)
 			}
-			if (maxCodePoint <= 255)
+			if (maxCodePoint <= 0xFF)
 			{
 				return mutableObjectFromNativeByteString(aNativeString)
 			}
-			if (maxCodePoint <= 65535)
+			if (maxCodePoint <= 0xFFFF)
 			{
 				return mutableObjectFromNativeTwoByteString(aNativeString)
 			}
-			// Fall back to building a general object tuple containing Avail
-			// character objects.
+			// Fall back to the twenty-one-bit string.
 			var charIndex = 0
-			return generateObjectTupleFrom(count) {
+			return generateTwentyOneBitString(count) {
 				val codePoint = aNativeString.codePointAt(charIndex)
 				charIndex += Character.charCount(codePoint)
-				fromCodePoint(codePoint)
+				codePoint
 			}
 		}
 
 		/**
 		 * Produce an Avail string from the given generator of Unicode code
 		 * points.  Attempt to use a [ByteStringDescriptor] representation
-		 * first, but generalize it to a [TwoByteStringDescriptor] or even an
-		 * [ObjectTupleDescriptor] as needed.
+		 * first, but generalize it to a [TwoByteStringDescriptor] or even a
+		 * [TwentyOneBitStringDescriptor] as needed.
 		 *
 		 * @param size
 		 *   The number of code points that will be in the resulting string,

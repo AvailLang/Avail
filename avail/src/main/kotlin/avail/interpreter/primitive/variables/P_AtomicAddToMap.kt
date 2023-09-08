@@ -83,10 +83,7 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.ADD_TO_MAP_VARIABLE.bundle,
-				variable,
-				key,
-				value))
+				SpecialMethodAtom.ADD_TO_MAP_VARIABLE, variable, key, value))
 		return interpreter.primitiveSuccess(nil)
 	}
 

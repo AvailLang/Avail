@@ -181,7 +181,7 @@ object P_SimpleMethodStabilityHelper : Primitive(
 							afterEach(null)
 						})
 					runtime.runOutermostFunction(
-						fiber, functionToInvoke, combination)
+						fiber, functionToInvoke, combination, false)
 				},
 				then = { list ->
 					if (list.any { it === null })

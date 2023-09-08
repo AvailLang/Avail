@@ -122,10 +122,10 @@ object P_BootstrapLexerStringBody
 		var erasurePosition = 0
 		while (scanner.hasNext())
 		{
-			var c = scanner.next().toChar()
+			var c = scanner.next()
 			when (c)
 			{
-				'\"' ->
+				'\"'.code ->
 				{
 					return literalToken(
 						source.copyStringFromToCanDestroy(
@@ -135,7 +135,7 @@ object P_BootstrapLexerStringBody
 						stringFrom(builder.toString()),
 						lexer)
 				}
-				'\\' ->
+				'\\'.code ->
 				{
 					if (!scanner.hasNext())
 					{
@@ -144,15 +144,15 @@ object P_BootstrapLexerStringBody
 							"more characters after backslash in string " +
 								"literal")
 					}
-					c = scanner.next().toChar()
+					c = scanner.next()
 					when (c)
 					{
-						'n' -> builder.append('\n')
-						'r' -> builder.append('\r')
-						't' -> builder.append('\t')
-						'\\' -> builder.append('\\')
-						'\"' -> builder.append('\"')
-						'\r' ->
+						'n'.code -> builder.append('\n')
+						'r'.code -> builder.append('\r')
+						't'.code -> builder.append('\t')
+						'\\'.code -> builder.append('\\')
+						'\"'.code -> builder.append('\"')
+						'\r'.code ->
 						{
 							// Treat \r or \r\n in the source just like \n.
 							if (scanner.hasNext()
@@ -162,18 +162,18 @@ object P_BootstrapLexerStringBody
 							}
 							canErase = true
 						}
-						'\u000C', '\n', // '\u000C' == '\f'
+						'\u000C'.code, '\n'.code, // '\u000C' == '\f'
 							// NEL (Next Line)
-						'\u0085',
+						'\u0085'.code,
 							// LS (Line Separator)
-						'\u2028',
+						'\u2028'.code,
 							// PS (Paragraph Separator)
-						'\u2029' ->
+						'\u2029'.code ->
 							// A backslash ending a line.  Emit nothing.
 							// Allow '\|' to back up to here as long as only
 							// whitespace follows.
 							canErase = true
-						'|' ->
+						'|'.code ->
 							// Remove all immediately preceding white space
 							// from this line.
 							if (canErase)
@@ -188,8 +188,8 @@ object P_BootstrapLexerStringBody
 									"only whitespace characters on line "
 										+ "before \"\\|\" ")
 							}
-						'(' -> parseUnicodeEscapes(scanner, builder)
-						'[' -> throw AvailRejectedParseException(
+						'('.code -> parseUnicodeEscapes(scanner, builder)
+						'['.code -> throw AvailRejectedParseException(
 							WEAK,
 							"something other than \"\\[\", because power "
 								+ "strings are not yet supported")
@@ -202,7 +202,7 @@ object P_BootstrapLexerStringBody
 					}
 					erasurePosition = builder.length
 				}
-				'\r' ->
+				'\r'.code ->
 				{
 					// *Transform* \r or \r\n in the source into \n.
 					if (scanner.hasNext() && scanner.peek() == '\n'.code)
@@ -213,17 +213,17 @@ object P_BootstrapLexerStringBody
 					canErase = true
 					erasurePosition = builder.length
 				}
-				'\n' ->
+				'\n'.code ->
 				{
 					// Just like a regular character, but limit how much
 					// can be removed by a subsequent '\|'.
-					builder.appendCodePoint(c.code)
+					builder.appendCodePoint(c)
 					canErase = true
 					erasurePosition = builder.length
 				}
 				else ->
 				{
-					builder.appendCodePoint(c.code)
+					builder.appendCodePoint(c)
 					if (canErase && !Character.isWhitespace(c))
 					{
 						canErase = false

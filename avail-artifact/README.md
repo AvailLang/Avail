@@ -1,6 +1,6 @@
 Avail Artifact
 --------------------------------------------------------------------------------
-[![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha21-0f824e)](https://search.maven.org/artifact/org.availlang/avail-artifact)
+[![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22-0f824e)](https://search.maven.org/artifact/org.availlang/avail-artifact)
 
 This is a standalone upstream library that supports Avail project definition and
 Avail artifact creation for the Avail [Programming Language](https://github.com/AvailLang/Avail).

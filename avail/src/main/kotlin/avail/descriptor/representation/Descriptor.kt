@@ -183,6 +183,10 @@ protected constructor (
 		self: AvailObject,
 		chunk: L2Chunk): Unit = unsupported
 
+	override fun o_AddPostLoadFunction (
+		self: AvailObject,
+		postLoadFunction: A_Function): Unit = unsupported
+
 	override fun o_AddUnloadFunction (
 		self: AvailObject,
 		unloadFunction: A_Function): Unit = unsupported
@@ -407,6 +411,14 @@ protected constructor (
 		endIndex1: Int,
 		aTwoByteString: A_String,
 		startIndex2: Int): Boolean = unsupported
+
+	override fun o_CompareFromToWithTwentyOneBitStringStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aTwentyOneBitString: A_String,
+		startIndex2: Int
+	): Boolean = unsupported
 
 	override fun o_ComputeHashFromTo (
 		self: AvailObject,
@@ -665,6 +677,10 @@ protected constructor (
 	override fun o_RemoveDependentChunk (
 		self: AvailObject,
 		chunk: L2Chunk): Unit = unsupported
+
+	override fun o_TakePostLoadFunctions (
+		self: AvailObject
+	): A_Tuple = unsupported
 
 	override fun o_RemoveFrom (
 		self: AvailObject,
@@ -1253,6 +1269,10 @@ protected constructor (
 	override fun o_EqualsTwoByteString (
 		self: AvailObject,
 		aString: A_String) = false
+
+	override fun o_EqualsTwentyOneBitString (
+		self: AvailObject,
+		aTwentyOneBitString: A_String) = false
 
 	override fun o_HasObjectInstance (
 		self: AvailObject,

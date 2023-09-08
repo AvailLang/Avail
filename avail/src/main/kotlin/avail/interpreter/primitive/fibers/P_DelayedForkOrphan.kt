@@ -145,7 +145,7 @@ object P_DelayedForkOrphan : Primitive(
 		val runtime = interpreter.runtime
 		if (sleepMillis.equalsInt(0))
 		{
-			runtime.runOutermostFunction(orphan, function, callArgs)
+			runtime.runOutermostFunction(orphan, function, callArgs, false)
 		}
 		else
 		{
@@ -156,7 +156,8 @@ object P_DelayedForkOrphan : Primitive(
 					{
 						// Don't check for the termination requested interrupt
 						// here, since no fiber could have signaled it.
-						runtime.runOutermostFunction(orphan, function, callArgs)
+						runtime.runOutermostFunction(
+							orphan, function, callArgs, false)
 					}
 				},
 				sleepMillis.extractLong)

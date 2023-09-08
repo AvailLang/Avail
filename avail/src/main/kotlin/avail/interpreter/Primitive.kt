@@ -646,7 +646,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	class PrimitiveHolder internal constructor(
 		val name: String,
 		val className: String,
-		private val classLoader: ClassLoader)
+		internal val classLoader: ClassLoader)
 	{
 		/**
 		 * The sole instance of the specific subclass of [Primitive].  It is

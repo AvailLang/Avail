@@ -56,12 +56,14 @@ import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSi
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.copyAsMutableTwentyOneBitString
 import avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots
 import avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TwoByteStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
+import avail.serialization.SerializerOperation
 
 /**
  * A [tuple][TupleDescriptor] implementation that consists entirely of two-byte characters.
@@ -149,7 +151,7 @@ class TwoByteStringDescriptor private constructor(
 		val newSize = originalSize + 1
 		if (isMutable && canDestroy && originalSize and 3 != 0)
 		{
-			// Enlarge it in place, using more of the final partial int field.
+			// Enlarge it in place, using more of the final partial long field.
 			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
 			self.setShortSlot(RAW_LONGS_, newSize, intValue)
 			self[HASH_OR_ZERO] = 0
@@ -171,12 +173,13 @@ class TwoByteStringDescriptor private constructor(
 		startIndex1: Int,
 		endIndex1: Int,
 		anotherObject: A_Tuple,
-		startIndex2: Int): Boolean =
-			anotherObject.compareFromToWithTwoByteStringStartingAt(
-				startIndex2,
-				startIndex2 + endIndex1 - startIndex1,
-				self,
-				startIndex1)
+		startIndex2: Int
+	): Boolean =
+		anotherObject.compareFromToWithTwoByteStringStartingAt(
+			startIndex2,
+			startIndex2 + endIndex1 - startIndex1,
+			self,
+			startIndex1)
 
 	override fun o_CompareFromToWithTwoByteStringStartingAt(
 		self: AvailObject,
@@ -290,7 +293,7 @@ class TwoByteStringDescriptor private constructor(
 		if ((newValueObject as A_Character).isCharacter)
 		{
 			val codePoint: Int = newValueObject.codePoint
-			if (codePoint and 0xFFFF == codePoint)
+			if (codePoint <= 0xFFFF)
 			{
 				if (canDestroy && isMutable)
 				{
@@ -299,10 +302,15 @@ class TwoByteStringDescriptor private constructor(
 					return self
 				}
 				// Clone it then modify the copy in place.
-				return copyAsMutableTwoByteString(self).tupleAtPuttingCanDestroy(
-					index,
-					newValueObject,
-					true)
+				return newLike(mutable(), self, 0, 0)
+					.tupleAtPuttingCanDestroy(index, newValueObject, true)
+			}
+			else
+			{
+				// Clone it as a twenty-one-bit string, then modify it.
+				val copy = copyAsMutableTwentyOneBitString(self)
+				copy.tupleAtPuttingCanDestroy(index, newValueObject, true)
+				return copy
 			}
 		}
 		// Convert to a general object tuple instead.
@@ -325,13 +333,12 @@ class TwoByteStringDescriptor private constructor(
 		}
 		else
 		{
+			// It's reasonably small, so just copy the characters.
+			// Just copy the applicable two-byte characters in reverse.
 			generateTwoByteString(size) {
 				self.shortSlot(RAW_LONGS_, size + 1 - it).toUShort()
 			}
 		}
-
-		// It's reasonably small, so just copy the characters.
-		// Just copy the applicable two-byte characters in reverse.
 	}
 
 	override fun o_TupleSize(self: AvailObject): Int =
@@ -464,6 +471,18 @@ class TwoByteStringDescriptor private constructor(
 		}
 	}
 
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
+	{
+		// We don't have to consider the 21-bit characters, so the check for
+		// byte or not is all we need in this specialization.
+		for (i in 1..self.tupleSize)
+		{
+			if (self.shortSlot(RAW_LONGS_, i) > 0xFF)
+				return SerializerOperation.SHORT_STRING
+		}
+		return SerializerOperation.BYTE_STRING
+	}
+
 	companion object
 	{
 		/**
@@ -494,7 +513,6 @@ class TwoByteStringDescriptor private constructor(
 		fun mutableTwoByteStringOfSize(size: Int): AvailObject =
 			descriptorFor(Mutability.MUTABLE, size).create(size + 3 shr 2)
 
-
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
 		val createUninitializedTwoByteStringMethod =
 			staticMethod(
@@ -502,7 +520,6 @@ class TwoByteStringDescriptor private constructor(
 				::mutableTwoByteStringOfSize.name,
 				AvailObject::class.java,
 				Int::class.javaPrimitiveType!!)
-
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is

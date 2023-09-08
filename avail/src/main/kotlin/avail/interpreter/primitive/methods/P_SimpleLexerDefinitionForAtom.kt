@@ -124,11 +124,9 @@ object P_SimpleLexerDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 				stringFrom("Filter for lexer ${atom.atomName}")
 			bodyFunction.code().methodName =
 				stringFrom("Body for lexer ${atom.atomName}")
-			// Updating the lexical scanner is cheap enough that we do it even
-			// when we're loading, not just compiling.  This allows us to parse
-			// and run entry points in the scope of the module, without having
-			// to generate the lexicalScanner for a module that has already been
-			// closed (ModuleDescriptor.State.Loaded).
+			// Only bother to update the lexical scanner during compilation, not
+			// during loading.  The parseCommand() operation used by Anvil can
+			// rebuild any necessary LexicalScanners in a split-second.
 			if (loader.phase == EXECUTING_FOR_COMPILE)
 			{
 				loader.lexicalScanner!!.addLexer(lexer)
@@ -147,7 +145,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(4, CanSuspend, Unknown)
 			}
 			loader.recordEffect(
 				LoadingEffectToRunPrimitive(
-					SpecialMethodAtom.LEXER_DEFINER.bundle,
+					SpecialMethodAtom.LEXER_DEFINER,
 					atom,
 					filterFunction,
 					bodyFunction,

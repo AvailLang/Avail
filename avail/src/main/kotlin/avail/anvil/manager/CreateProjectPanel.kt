@@ -60,6 +60,7 @@ import java.awt.GridBagLayout
 import java.io.File
 import javax.swing.BorderFactory
 import javax.swing.JButton
+import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JPanel
 
@@ -117,9 +118,19 @@ class CreateProjectPanel constructor(
 			localSettings
 		).apply {
 			File(projLocation).mkdirs()
-			val rootsLocation = "${projLocation}/roots"
-			File(rootsLocation).mkdirs()
+			val rootsDir = rootsDirField.textField.text
 			val rootName = rootNameField.textField.text
+			val rootLocationDir =
+				if (rootsDir.isNotEmpty())
+				{
+					"$rootsDir/$rootName"
+				}
+				else
+				{
+					rootName
+				}
+			File("$projLocation/$rootLocationDir").mkdirs()
+
 			val rootConfigDir = AvailEnvironment.projectRootConfigPath(
 				fileName,
 				rootName,
@@ -129,7 +140,7 @@ class CreateProjectPanel constructor(
 				projLocation,
 				rootName,
 				ProjectHome(
-					"roots",
+					rootLocationDir,
 					Scheme.FILE,
 					projLocation,
 					null),
@@ -145,9 +156,28 @@ class CreateProjectPanel constructor(
 					fileName, libName, projLocation)
 				optionallyInitializeConfigDirectory(libConfigDir)
 				val jar = AvailArtifactJar(lib.toURI())
+
 				val rootManifest = jar.manifest.roots[AVAIL_STDLIB_ROOT_NAME]
-				var sg = StylingGroup()
-				var tg = TemplateGroup()
+				var sg =
+					if(importStyles.isSelected)
+					{
+						jar.manifest.stylesFor(AVAIL_STDLIB_ROOT_NAME)
+							?: StylingGroup()
+					}
+					else
+					{
+						StylingGroup()
+					}
+				var tg =
+					if(importTemplates.isSelected)
+					{
+						jar.manifest.templatesFor(AVAIL_STDLIB_ROOT_NAME)
+							?: TemplateGroup()
+					}
+					else
+					{
+						TemplateGroup()
+					}
 				val extensions = mutableListOf<String>()
 				var description = ""
 				rootManifest?.let {
@@ -229,6 +259,33 @@ class CreateProjectPanel constructor(
 	private val rootNameField = TextFieldWithLabel("Create Root Name: ")
 
 	/**
+	 * The [TextFieldWithLabel] used to set the project name.
+	 */
+	private val rootsDirField =
+		TextFieldWithLabel("Roots Directory Name (optional): ").apply {
+			toolTipText =
+				"Leaving blank will create roots at top level of project"
+		}
+
+	/**
+	 * A checkbox to whether or not [StylingGroup] should be imported from the
+	 * Avail Standard library.
+	 */
+	val importStyles = JCheckBox("Import Styles", false).apply {
+		isEnabled = false
+		toolTipText = "Imports styles packaged with standard library"
+	}
+
+	/**
+	 * A checkbox to whether or not [TemplateGroup] should be imported from the
+	 * Avail Standard library.
+	 */
+	val importTemplates = JCheckBox("Import Templates", false).apply {
+		isEnabled = false
+		toolTipText = "Imports templates packaged with standard library"
+	}
+
+	/**
 	 * The [TextFieldWithLabel] used to set the standard library root name.
 	 */
 	private val libraryNameField =
@@ -242,7 +299,17 @@ class CreateProjectPanel constructor(
 	private val libraryPicker = JComboBox(standardLibraryNames).apply {
 		addActionListener {
 			selectedItem?.toString()?.let { key ->
-				standardLibraries[key]?.let { lib -> selectedLibrary = lib }
+				standardLibraries[key]?.let { lib ->
+					selectedLibrary = lib
+					importTemplates.isEnabled = true
+					importStyles.isEnabled = true
+				} ?: run {
+					selectedLibrary = null
+					importTemplates.isEnabled = false
+					importTemplates.isSelected = false
+					importStyles.isEnabled = false
+					importStyles.isSelected = false
+				}
 			}
 		}
 	}
@@ -329,12 +396,20 @@ class CreateProjectPanel constructor(
 				gridy = 3
 				gridwidth = 2
 			})
-		add(libraryNameField,
+		add(rootsDirField,
 			GridBagConstraints().apply {
 				weightx = 1.0
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 0
 				gridy = 4
+				gridwidth = 2
+			})
+		add(libraryNameField,
+			GridBagConstraints().apply {
+				weightx = 1.0
+				fill = GridBagConstraints.HORIZONTAL
+				gridx = 0
+				gridy = 5
 				gridwidth = 1
 			})
 		add(libraryPicker,
@@ -342,7 +417,23 @@ class CreateProjectPanel constructor(
 				weightx = 1.0
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 1
-				gridy = 4
+				gridy = 5
+				gridwidth = 1
+			})
+		add(importStyles,
+			GridBagConstraints().apply {
+				weightx = 1.0
+				fill = GridBagConstraints.HORIZONTAL
+				gridx = 1
+				gridy = 6
+				gridwidth = 1
+			})
+		add(importTemplates,
+			GridBagConstraints().apply {
+				weightx = 1.0
+				fill = GridBagConstraints.HORIZONTAL
+				gridx = 1
+				gridy = 7
 				gridwidth = 1
 			})
 		add(
@@ -351,7 +442,7 @@ class CreateProjectPanel constructor(
 				weightx = 1.0
 				fill = GridBagConstraints.HORIZONTAL
 				gridx = 0
-				gridy = 5
+				gridy = 8
 				gridwidth = 2
 			})
 	}

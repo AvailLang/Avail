@@ -390,7 +390,7 @@ constructor(
 		// got a chance to run.
 		fibers.forEachIndexed { i, fiber ->
 			loader.runtime.runOutermostFunction(
-				fiber, undecidedLexers[i].lexerFilterFunction, argsList)
+				fiber, undecidedLexers[i].lexerFilterFunction, argsList, true)
 		}
 	}
 }

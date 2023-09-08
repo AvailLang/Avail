@@ -145,7 +145,8 @@ import kotlin.concurrent.read
  *
  * Construct a new `MessageSplitter`, parsing the provided message into token
  * strings and generating [parsing][ParsingOperation] for parsing occurrences of
- * this message.
+ * this message.  This constructor is private – use [split] instead, since it
+ * makes use of a [cache] for performance.
  *
  * @param messageName
  *   An Avail [string][StringDescriptor] specifying the keywords and arguments
@@ -1523,7 +1524,7 @@ private constructor(messageName: A_String)
 		 * The cache of recently split message names.  The keys are [A_String]s
 		 * which have been [SHARED].
 		 */
-		private val cache = LRUCache(10000, 100, ::MessageSplitter)
+		private val cache = LRUCache(20000, 500, ::MessageSplitter)
 
 		/**
 		 * The [set][A_Set] of all [errors][AvailErrorCode] that can happen

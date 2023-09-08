@@ -307,8 +307,7 @@ Public method "Display CSV(as a table«with headers»?)" is
 	Print: text;
 ];
 
-// Define the lexers together, to keep their lexing effects transactional.
-[
+After the current module is loaded, do [
 	/**
 	 * Redefine whitespace to ignore line feeds.
 	 *
@@ -376,4 +375,4 @@ Public method "Display CSV(as a table«with headers»?)" is
 		];
 		{<`end-of-line marker` (chars) @ position:line>}
 	];
-]();
+];

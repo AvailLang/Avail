@@ -393,7 +393,6 @@ open class FileManager
 				val saveTime = System.currentTimeMillis()
 				availFile.conditionallyClearDirty(saveTime)
 				availFile.lastModified = saveTime
-
 			},
 			failureHandler)
 	}

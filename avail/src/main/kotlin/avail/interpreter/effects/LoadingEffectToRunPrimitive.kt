@@ -35,6 +35,7 @@ package avail.interpreter.effects
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.methods.A_Method.Companion.numArgs
+import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.levelOne.L1InstructionWriter
@@ -44,21 +45,21 @@ import avail.interpreter.levelOne.L1Operation
  * A `LoadingEffectToRunPrimitive` summarizes the execution of some
  * primitive, with literal arguments.
  *
- * @property primitiveBundle
- *   The primitive to run.
+ * @property specialMethodAtom
+ *   The [SpecialMethodAtom] for the primitive to run.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
  *
  * Construct a new `LoadingEffectToRunPrimitive`.
  *
- * @param primitiveBundle
- *   The primitive [A_Bundle] to invoke.
+ * @param specialMethodAtom
+ *   The [SpecialMethodAtom] enum value whose [A_Bundle] to invoke.
  * @param arguments
  *   The argument values for the primitive.
  */
 internal class LoadingEffectToRunPrimitive constructor(
-	private val primitiveBundle: A_Bundle,
+	private val specialMethodAtom: SpecialMethodAtom,
 	vararg arguments: A_BasicObject) : LoadingEffect()
 {
 	/** The array of arguments to pass to the primitive. */
@@ -66,7 +67,7 @@ internal class LoadingEffectToRunPrimitive constructor(
 
 	init
 	{
-		assert(primitiveBundle.bundleMethod.numArgs == arguments.size)
+		assert(specialMethodAtom.bundle.bundleMethod.numArgs == arguments.size)
 	}
 
 	override fun writeEffectTo(writer: L1InstructionWriter, startLine: Int)
@@ -82,7 +83,7 @@ internal class LoadingEffectToRunPrimitive constructor(
 		writer.write(
 			if (arguments.isEmpty()) startLine else 0,
 			L1Operation.L1_doCall,
-			writer.addLiteral(primitiveBundle),
+			writer.addLiteral(specialMethodAtom.bundle),
 			writer.addLiteral(TOP.o))
 	}
 }

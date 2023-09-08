@@ -68,7 +68,7 @@ object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 		setNameForType(userType, name, false)
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.RECORD_TYPE_NAME.bundle, userType, name))
+				SpecialMethodAtom.RECORD_TYPE_NAME, userType, name))
 		return interpreter.primitiveSuccess(nil)
 	}
 

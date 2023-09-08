@@ -5,7 +5,6 @@ import org.availlang.artifact.environment.location.AvailLocation
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.jar.AvailArtifactJar
 import org.availlang.artifact.jar.AvailArtifactJarBuilder
-import org.availlang.artifact.jar.JvmComponent
 import org.availlang.artifact.manifest.AvailArtifactManifest
 import org.availlang.artifact.manifest.AvailRootManifest
 import org.availlang.artifact.roots.AvailRoot
@@ -15,6 +14,7 @@ import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
 import org.availlang.json.json
 import org.availlang.json.jsonArray
+import org.availlang.json.jsonPrettyPrintWriter
 import java.io.File
 import java.security.MessageDigest
 import java.util.jar.JarFile
@@ -27,7 +27,7 @@ import java.util.zip.ZipFile
  * otherwise.
  *
  * @author Richard Arriaga
- * 
+ *
  * @property version
  *   The version to give to the created artifact. **REQUIRED**
  * @property outputLocation
@@ -35,8 +35,6 @@ import java.util.zip.ZipFile
  *   **REQUIRED**
  * @property artifactType
  *   The [AvailArtifactType] of the [AvailArtifact] to create. **REQUIRED**
- * @property jvmComponent
- *   The [JvmComponent] if any to be used. **REQUIRED**
  * @property implementationTitle
  *   The title of the artifact being created. **REQUIRED**
  * @property artifactDescription
@@ -61,11 +59,10 @@ import java.util.zip.ZipFile
  *   A map of manifest attribute string name to the string value to add as
  *   additional fields to the manifest file of an Avail artifact.
  */
-class AvailArtifactBuildPlan private constructor(
+class AvailArtifactBuildPlan constructor(
 	var version: String = "",
 	var outputLocation: AvailLocation? = null,
 	var artifactType: AvailArtifactType = AvailArtifactType.LIBRARY,
-	var jvmComponent: JvmComponent = JvmComponent.NONE,
 	var implementationTitle: String = "",
 	var jarMainClass: String = "",
 	var artifactDescription: String = "",
@@ -86,7 +83,6 @@ class AvailArtifactBuildPlan private constructor(
 				outputLocation?.writeTo(this) ?: writeNull()
 			}
 			at(::artifactType.name) { write(artifactType.name) }
-			at(::jvmComponent.name) { write(jvmComponent) }
 			at(::implementationTitle.name) { write(implementationTitle) }
 			at(::jarMainClass.name) { write(jarMainClass) }
 			at(::artifactDescription.name) { write(artifactDescription) }
@@ -169,8 +165,7 @@ class AvailArtifactBuildPlan private constructor(
 				AvailArtifactManifest.manifestFile(
 					artifactType,
 					manifestMap,
-					artifactDescription,
-					jvmComponent),
+					artifactDescription),
 				jarMainClass,
 				customManifestItems)
 			roots.forEach { jarBuilder.addRoot(it) }
@@ -221,19 +216,6 @@ class AvailArtifactBuildPlan private constructor(
 			{
 				AvailArtifactException("Invalid Avail Artifact Type: $it")
 					.printStackTrace()
-			}
-		}
-		obj.getObjectOrNull(::jvmComponent.name)?.let {
-			try
-			{
-				jvmComponent = JvmComponent.from(it)
-			}
-			catch (e: Throwable)
-			{
-				AvailArtifactException(
-					"Problem accessing Avail Artifact Manifest " +
-						"jvmComponent.",
-					e).printStackTrace()
 			}
 		}
 		implementationTitle =
@@ -287,6 +269,16 @@ class AvailArtifactBuildPlan private constructor(
 		const val ARTIFACT_PLANS_FILE = "artifact-plans.json"
 
 		/**
+		 * Answer the String file contents of the provided list of
+		 * [AvailArtifactBuildPlan]s.
+		 */
+		@Suppress("unused")
+		fun fileContent(plans: List<AvailArtifactBuildPlan>): String =
+			jsonPrettyPrintWriter {
+				writeArray(plans)
+			}.toString()
+
+		/**
 		 * Read the [AvailArtifactBuildPlan]s from disk.
 		 *
 		 * @param projectFileName
@@ -305,7 +297,8 @@ class AvailArtifactBuildPlan private constructor(
 					projectFileName, projectPath)}/$ARTIFACT_PLANS_FILE"
 			).readText()) {}.map {
 				AvailArtifactBuildPlan(
-					projectPath, it as JSONObject)
+					projectDirectory = projectPath,
+					obj = it as JSONObject)
 			}.toMutableList()
 	}
 }

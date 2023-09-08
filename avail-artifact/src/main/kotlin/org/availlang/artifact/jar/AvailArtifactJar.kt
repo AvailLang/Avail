@@ -217,6 +217,7 @@ class AvailArtifactJar constructor(
 			var entryName = entry.name.replace("\\", "/")
 			if (!entryName.startsWith(prefix)) continue
 			entryName = entryName.removePrefix(prefix)
+			if (entryName.isEmpty()) continue
 			val type = when
 			{
 				extensions.any { entryName.endsWith("$it/") } -> PACKAGE

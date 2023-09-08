@@ -68,9 +68,7 @@ object P_SetCompiledCodeName : Primitive(
 		code.methodName = name
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.SET_COMPILED_CODE_NAME.bundle,
-				code,
-				name))
+				SpecialMethodAtom.SET_COMPILED_CODE_NAME, code, name))
 		return interpreter.primitiveSuccess(nil)
 	}
 
