@@ -286,7 +286,7 @@ class AvailProjectManager constructor(
 				{
 					title = "Create Project"
 					setCreateProjectsSize()
-					newHeight = 300
+					newHeight = 450
 					CreateProjectPanel(
 						globalSettings,
 						{ project, path ->

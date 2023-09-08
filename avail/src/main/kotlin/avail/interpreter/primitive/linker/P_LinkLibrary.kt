@@ -1,5 +1,5 @@
 /*
- * P_LinkPrimitives.kt
+ * P_LinkLibrary.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -45,17 +45,17 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.A_Variable
+import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
-import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.exceptions.AvailErrorCode.E_LIBRARY_ALREADY_LINKED
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.exceptions.AvailErrorCode.E_NO_FILE
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
+import avail.interpreter.LibraryClassLoader
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
-import avail.interpreter.PrimitiveClassLoader
 import avail.interpreter.execution.Interpreter
 import java.io.IOException
 import java.net.MalformedURLException
@@ -64,14 +64,14 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
- * **Primitive:** Link the [Primitive]s from the indicated jar file, in the same
- * module root as the loading module, using a [PrimitiveClassLoader]. The jar
- * must be specified using an Avail root-relative qualified path.
+ * **Primitive:** Link the indicated jar file, in the same module root as the
+ * loading module, using a [LibraryClassLoader]. The jar must be specified using an
+ * Avail root-relative qualified path.
  *
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
+object P_LinkLibrary : Primitive(2, CanInline, HasSideEffect)
 {
 	/**
 	 * The lock that must be held when examining linking the JAR to guard
@@ -106,17 +106,17 @@ object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(E_NO_FILE)
 		}
 		mutex.withLock {
-			PrimitiveClassLoader.jarLinked(jarFile.path)?.let { origLinker ->
+			LibraryClassLoader.jarLinked(jarFile.path)?.let { origLinker ->
 				oldModuleOut.setValue(origLinker)
 				return interpreter.primitiveFailure(E_LIBRARY_ALREADY_LINKED)
 			}
 			try
 			{
-				PrimitiveClassLoader(jarFile, interpreter.module().moduleName)
+				LibraryClassLoader(jarFile, interpreter.module().moduleName)
 			}
 			catch (e: IOException)
 			{
-				return interpreter.primitiveFailure(E_IO_ERROR)
+				return interpreter.primitiveFailure(AvailErrorCode.E_IO_ERROR)
 			}
 			catch (e: SecurityException)
 			{
@@ -140,7 +140,6 @@ object P_LinkPrimitives : Primitive(2, CanInline, HasSideEffect)
 			set(
 				E_PERMISSION_DENIED,
 				E_INVALID_PATH,
-				E_IO_ERROR,
 				E_NO_FILE,
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION,

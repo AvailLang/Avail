@@ -1,6 +1,6 @@
 /*
- * Versions.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * Library Tests.avail
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,44 +30,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * The central source of all versions. This ranges from dependency versions
- * to language level versions.
+/*
+ * GENERATED FILE
+ * * Generator: avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated: 8/21/23, 6:40 AM
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
-object Versions
-{
-	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.8.20"
 
-	/** The JVM target version for Kotlin. */
-	const val jvmTarget = 17
+Module "Library Tests"
+Versions
+	"Avail-1.6.1"
+Uses
+	"Common"
+Names
+	"libraries test suite"
+Body
 
-	/** The JVM target version for Kotlin. */
-	const val jvmTargetString = jvmTarget.toString()
+/* The primitive linker package test suite identifier. */
+"libraries test suite" is a new atom;
+New test suite libraries test suite extends foundation test suite;
 
-	/**
-	 * The stripe release version of avail jars:
-	 *  * `avail`
-	 *  * `avail-workbench`
-	 *  * `avail-stdlib`
-	 *  * `avail-storage`
-	 *  * `avail-json`
-	 *
-	 *  This represents the version of the `avail-plugin`.
-	 */
-	const val avail = "2.0.0.alpha23"
+Test "Link fails with loading-is-over exception" in libraries test suite is
+[
+	Link primitives:
+		"/avail/Avail/avail-primitives-2.0.0.alpha21-1.6.1.alpha10.jar";
+]
+must raise loading-is-over exception;
 
-	/**
-	 * The avail-gradle plugin version.
-	 */
-	const val availGradle = "2.0.0.alpha20"
-
-	/**
-	 * The SLF4J No-Op package used to prevent SLF4J warning from being printed.
-	 *
-	 * See: [http://www.slf4j.org/codes.html#noProviders]
-	 */
-	const val slf4jnop = "1.7.33"
-}
+Test "Link library: fails with loading-is-over exception" in libraries test suite is
+[
+	Link library: "/avail/Avail/my-pojos.jar";
+]
+must raise loading-is-over exception;

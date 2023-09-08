@@ -268,7 +268,7 @@ class AvailProjectRoot constructor(
 				projectFileName.removeSuffix(".json"),
 				rootName,
 				projectDirectory)
-			val configDir =
+			val (configDir, _) =
 				project.optionallyInitializeConfigDirectory(rootConfigPath)
 
 			val localSettings = LocalSettings.from(configDir)

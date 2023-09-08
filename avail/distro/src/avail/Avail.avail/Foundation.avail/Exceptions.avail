@@ -90,6 +90,7 @@ Names
 	"general-I/O exception",
 	"instantiation exception",
 	"invocation exception",
+	"library exception",
 	"recursive exception",
 	"security exception",
 	"system exception",
@@ -932,6 +933,29 @@ Public explicit class "invocation exception" extends exception;
 Public explicit class "instantiation exception" extends exception;
 
 /**
+ * A descriptive exception holds an error message.
+ *
+ * @type "descriptive exception"
+ * @supertype "exception"
+ * @field "error message" "string"
+ * 		A descriptive message associated with the exception.
+ * @category "Exceptions"
+ */
+Public class "descriptive exception" extends exception
+	with fields
+		public error message : string;
+
+/**
+ * An exception that describes error conditions related to dynamic loading of
+ * jar libraries.
+ *
+ * @type "library exception"
+ * @supertype "exception"
+ * @category "Exceptions"
+ */
+Public explicit class "library exception" extends descriptive exception;
+
+/**
  * A security exception describes error conditions related to program
  * permissions.
  *
@@ -1473,6 +1497,8 @@ System exception "cannot-modify-final-Java-field" (507)
 	extends variable-use exception;
 System exception "Java-method-reference-is-ambiguous" (508)
 	extends bad-message exception;
+System exception "library-already-linked" (600)
+	extends library exception;
 System exception "object-type-extension-contains-duplicates" (1000)
 	extends definition exception;
 System exception "object-type-extension-did-not-produce-subtype" (1001)
@@ -1550,19 +1576,6 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 ];
 
 Ensure: all error codes have corresponding exceptions;
-
-/**
- * A descriptive exception holds an error message.
- *
- * @type "descriptive exception"
- * @supertype "exception"
- * @field "error message" "string"
- * 		A descriptive message associated with the exception.
- * @category "Exceptions"
- */
-Public class "descriptive exception" extends exception
-	with fields
-		public error message : string;
 
 /**
  * Construct and answer the type intersection of the argument and {@type

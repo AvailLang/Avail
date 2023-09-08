@@ -79,7 +79,8 @@ class AvailProjectV1 constructor(
 
 	override fun optionallyInitializeConfigDirectory(
 		configPath: String
-	): File = AvailProject.optionallyInitializeConfigDirectory(configPath)
+	): Pair<File, List<String>> =
+		AvailProject.optionallyInitializeConfigDirectory(configPath)
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -129,8 +130,9 @@ class AvailProjectV1 constructor(
 			val dirName = projectFileName.removeSuffix(".json")
 			val projectConfigDir = AvailEnvironment.projectConfigPath(
 				dirName, projectDirectory)
-			AvailProject.optionallyInitializeConfigDirectory(
-				projectConfigDir, false)
+			val (_, createdList) =
+				AvailProject.optionallyInitializeConfigDirectory(
+					projectConfigDir, false)
 			val id = obj.getString(AvailProjectV1::id.name)
 			val name = obj.getString(AvailProjectV1::name.name)
 			val darkMode = obj.getBooleanOrNull(AvailProjectV1::darkMode.name)
@@ -185,9 +187,12 @@ class AvailProjectV1 constructor(
 						root.location.let { loc ->
 							val l = loc.scheme.optionalPrefix +
 								loc.fullPathNoPrefix
-							project.manifestMap.computeIfAbsent(root.name) { _ ->
-								AvailArtifactJar(URI(l)).manifest
-							}.updateRoot(root)
+							loc.rootNameInJar?.let {
+								project.manifestMap
+									.computeIfAbsent(root.name) { _ ->
+										AvailArtifactJar(URI(l)).manifest
+									}.updateRoot(root, it, createdList)
+							}
 						}
 					}
 					root.name to root

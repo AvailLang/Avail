@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "org.availlang"
-version = "2.0.0.alpha21"  // For next publish.
+version = "2.0.0.alpha22"  // For next publish.
 
 repositories {
     mavenLocal()

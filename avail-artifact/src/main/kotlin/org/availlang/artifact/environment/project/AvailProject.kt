@@ -34,6 +34,7 @@ package org.availlang.artifact.environment.project
 
 import org.availlang.artifact.AvailArtifact
 import org.availlang.artifact.AvailArtifactBuildPlan
+import org.availlang.artifact.AvailArtifactBuildPlan.Companion.ARTIFACT_PLANS_FILE
 import org.availlang.artifact.AvailArtifactException
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.projectConfigDirectory
@@ -182,11 +183,13 @@ interface AvailProject: JSONFriendly
 	 *   The [configuration directory][AvailEnvironment.projectRootConfigPath]
 	 *   for the target [AvailProjectRoot].
 	 * @return
-	 *   The root configuration directory [File].
+	 *   The [Pair] of configuration directory [File] and list of strings
+	 *   that may contain [TEMPLATE_FILE_NAME] and [STYLE_FILE_NAME]
+	 *   indicating those files had to be created.
 	 */
 	fun optionallyInitializeConfigDirectory (
 		configPath: String
-	): File
+	): Pair<File, List<String>>
 
 	/**
 	 * Add the [AvailProjectRoot] to this [AvailProject].
@@ -453,43 +456,54 @@ interface AvailProject: JSONFriendly
 		 * @param configPath
 		 *   The path to the configuration directory.
 		 * @return
-		 *   The configuration directory [File].
+		 *   The [Pair] of configuration directory [File] and list of strings
+		 *   that may contain [TEMPLATE_FILE_NAME] and [STYLE_FILE_NAME]
+		 *   indicating those files had to be created.
 		 */
 		fun optionallyInitializeConfigDirectory(
 			configPath: String,
 			forRoot: Boolean = true
-		): File =
-			File(configPath).apply {
-				if (!exists()) mkdirs()
-				File(this, TEMPLATE_FILE_NAME).let {
-					if (!it.exists())
-					{
-						it.writeText(TemplateGroup().jsonFormattedString)
-					}
-				}
-				File(this, STYLE_FILE_NAME).let {
-					if (!it.exists())
-					{
-						it.writeText(StylingGroup().jsonPrettyPrintedFormattedString)
-					}
-				}
-				File(this, LocalSettings.LOCAL_SETTINGS_FILE).let {
-					if (!it.exists())
-					{
-						it.writeText(LocalSettings(it.absolutePath)
-							.jsonPrettyPrintedFormattedString)
-					}
-				}
-
-				if (!forRoot)
-				{
-					File(this, AvailArtifactBuildPlan.ARTIFACT_PLANS_FILE).let {
+		): Pair<File, List<String>>
+		{
+			val list = mutableListOf<String>()
+			return Pair(
+				File(configPath).apply {
+					if (!exists()) mkdirs()
+					File(this, TEMPLATE_FILE_NAME).let {
 						if (!it.exists())
 						{
-							it.writeText("[]")
+							it.writeText(TemplateGroup().jsonFormattedString)
+							list.add(TEMPLATE_FILE_NAME)
 						}
 					}
-				}
-			}
+					File(this, STYLE_FILE_NAME).let {
+						if (!it.exists())
+						{
+							it.writeText(StylingGroup()
+								.jsonPrettyPrintedFormattedString)
+							list.add(STYLE_FILE_NAME)
+						}
+					}
+					File(this, LocalSettings.LOCAL_SETTINGS_FILE).let {
+						if (!it.exists())
+						{
+							it.writeText(
+								LocalSettings(it.absolutePath)
+									.jsonPrettyPrintedFormattedString)
+						}
+					}
+
+					if (!forRoot)
+					{
+						File(this, ARTIFACT_PLANS_FILE).let {
+							if (!it.exists())
+							{
+								it.writeText("[]")
+							}
+						}
+					}
+				},
+				list)
+		}
 	}
 }

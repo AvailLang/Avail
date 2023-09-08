@@ -1,0 +1,182 @@
+/*
+ * Libraries.avail
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+Module "Libraries"
+Versions
+	"Avail-1.6.1"
+Uses
+	"Bootstrap",
+	"Definers",
+	"Early Conditionals",
+	"Enumeration Support",
+	"Exceptions",
+	"Literals",
+	"Objects",
+	"Strings",
+	"Variables"
+Names
+	"Link primitives:_",
+	"Link library:_"
+Body
+
+/**
+ * Load the indicated jar resource file.
+ *
+ * @category "Primitives"
+ * @method "primitive link_in_"
+ * @param "source" "character+"
+ *        The root-relative fully qualified name of the source file to link.
+ *        This is the resource jar file to be loaded.
+ * @returns "⊤"
+ * @raises "permission-denied exception"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "no-file exception"
+ * @raises "invalid-path exception"
+ * @raises "library-already-linked exception"
+ */
+Method "Primitive link_in_" is
+[
+	name: nonempty string,
+	existingModuleHolder: ↑string
+|
+	Primitive LinkPrimitives (failureCode : {
+		I/O-error code,
+		permission-denied code,
+		cannot-define-during-compilation code,
+		loading-is-over code,
+		no-file code,
+		invalid-path code,
+		library-already-linked code}ᵀ);
+	If failureCode = library-already-linked code then
+	[
+		Raise a library-already-linked exception with 
+			error message ::= "Library already loaded in module " 
+				++ ↓existingModuleHolder
+	]
+	else
+	[
+		Raise an exception for failureCode
+	]
+] : ⊤;
+
+/**
+ * Link the native primitives from the indicated jar resource file.
+ *
+ * @category "Primitives"
+ * @method "Link primitives:_"
+ * @param "source" "<character…|1..∞>"
+ *        The root-relative fully qualified name of the source file to link.
+ *        This is the resource jar file that contains the primitives.
+ * @returns "{<character…|1..∞>|}"
+ *        The set of missing primitive classes from the jar file, if any.
+ * @raises "I/O exception"
+ * @raises "permission-denied exception"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "no-file exception"
+ * @raises "invalid-path exception"
+ * @raises "library-already-linked exception"
+ */
+Public method "Link primitives:_" is
+[
+	source : nonempty string
+|
+	old : string;
+	Primitive link source in ↑old;
+] : ⊤;
+
+/**
+ * Load the indicated jar resource file.
+ *
+ * @category "Primitives"
+ * @method "Primitive Link library_in_"
+ * @param "source" "character+"
+ *        The root-relative fully qualified name of the source file to link.
+ *        This is the resource jar file to be loaded.
+ * @returns "⊤"
+ * @raises "permission-denied exception"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "no-file exception"
+ * @raises "invalid-path exception"
+ * @raises "library-already-linked exception"
+ */
+Method "Primitive Link library_in_" is
+[
+	source : nonempty string,
+	existingModuleHolder: ↑string
+|
+	Primitive LinkLibrary (failureCode : {
+		permission-denied code,
+		cannot-define-during-compilation code,
+		loading-is-over code,
+		no-file code,
+		invalid-path code,
+		library-already-linked code}ᵀ);
+	If failureCode = library-already-linked code then
+	[
+		Raise a library-already-linked exception with 
+			error message ::= "Library already loaded in module " 
+				++ ↓existingModuleHolder
+	]
+	else
+	[
+		Raise an exception for failureCode
+	]
+] : ⊤;
+
+/**
+ * Link the indicated jar resource file.
+ *
+ * @category "Primitives"
+ * @method "Link library:_"
+ * @param "source" "<character…|1..∞>"
+ *        The root-relative fully qualified name of the source file to link.
+ *        This is the resource jar file that contains the primitives.
+ * @returns "{<character…|1..∞>|}"
+ *        The set of missing primitive classes from the jar file, if any.
+ * @raises "I/O exception"
+ * @raises "permission-denied exception"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "no-file exception"
+ * @raises "invalid-path exception"
+ * @raises "library-already-linked exception"
+ */
+Public method "Link library:_" is
+[
+	source : nonempty string
+|
+	old : string;
+	Primitive Link library source in ↑old;
+] : ⊤;

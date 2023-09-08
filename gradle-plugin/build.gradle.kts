@@ -52,7 +52,7 @@ plugins {
 }
 
 group = "org.availlang"
-version = "2.0.0.alpha19"
+version = "2.0.0.alpha20"
 
 
 /**
@@ -77,16 +77,6 @@ val kotlinLanguage = "1.8"
 val releaseVersionFile =
 	"src/main/resources/releaseVersion.properties"
 
-/**
- * The version for `org.availlang:avail`.
- */
-val availVersion = "1.6.1"
-
-/**
- * The version for `org.availlang:avail-stdlib`.
- */
-val availStdlib = "1.6.1"
-
 repositories {
 	mavenLocal()
 	mavenCentral()
@@ -106,7 +96,7 @@ kotlin {
 
 dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-	api("org.availlang:avail-artifact:2.0.0.alpha19")
+	api("org.availlang:avail-artifact:2.0.0.alpha22")
 }
 
 tasks {

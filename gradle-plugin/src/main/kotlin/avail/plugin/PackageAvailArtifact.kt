@@ -1,5 +1,5 @@
 /*
- * AvailWorkbenchTask.kt
+ * AvailAnvilTask.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,13 +33,13 @@
 package avail.plugin
 
 import org.availlang.artifact.AvailArtifact
+import org.availlang.artifact.AvailArtifactBuildPlan
 import org.availlang.artifact.AvailArtifactType
 import org.availlang.artifact.PackageType
 import org.availlang.artifact.environment.location.ProjectHome
 import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.StylingGroup
-import org.availlang.artifact.jar.JvmComponent
 import org.availlang.artifact.roots.AvailRoot
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -148,21 +148,41 @@ class PackageAvailArtifact internal constructor(
 	var implementationTitle: String = ""
 
 	/**
-	 * The [JvmComponent] that describes the JVM contents of the artifact of
-	 * [JvmComponent.NONE] if no JVM components.
-	 */
-	var jvmComponent: JvmComponent = JvmComponent.NONE
-
-	/**
-	 * The absolute path to the directory location where the jar file is to be
-	 * written.
+	 * The project-relative path to the directory location where the jar file is
+	 * to be written.
 	 *
 	 * It is set to the following by default:
 	 * ```
-	 * "${project.buildDir}/libs/"
+	 * "build/libs/"
 	 * ```
 	 */
-	var outputDirectory = "${project.buildDir}/libs/"
+	var outputDirectory = "build/libs/"
+
+	/**
+	 * The [ProjectHome]-relative location the jar is written to.
+	 *
+	 * It is set to the following by default:
+	 * ```
+	 * "$outputDirectory$artifactName-$version.jar"
+	 * ```
+	 */
+	private val targetOutputJarLocation: ProjectHome get()
+	{
+		val suffix =
+			if(includeVersionInArtifactName && version.isNotBlank())
+			{
+				"-$version.jar"
+			}
+			else
+			{
+				".jar"
+			}
+		return ProjectHome(
+			"$outputDirectory$artifactName$suffix",
+			Scheme.JAR,
+			project.projectDir.absolutePath,
+			null)
+	}
 
 	/**
 	 * The absolute path to the jar file that will be created.
@@ -184,7 +204,7 @@ class PackageAvailArtifact internal constructor(
 			{
 				".jar"
 			}
-		return "$outputDirectory$artifactName$suffix"
+		return "${project.projectDir}${File.separator}$outputDirectory$artifactName$suffix"
 	}
 
 	/**
@@ -350,6 +370,20 @@ class PackageAvailArtifact internal constructor(
 			.toList()
 
 	/**
+	 * Create an [AvailArtifactBuildPlan] from the [PackageAvailArtifact].
+	 */
+	val buildPlan: AvailArtifactBuildPlan get() =
+		AvailArtifactBuildPlan(
+			version,
+			targetOutputJarLocation,
+			artifactType,
+			implementationTitle,
+			jarManifestMainClass,
+			artifactDescription,
+			"SHA=256",
+			roots.map { it.name }.toMutableList())
+
+	/**
 	 * This is the core action that is performed.
 	 */
 	fun create ()
@@ -392,7 +426,6 @@ class PackageAvailArtifact internal constructor(
 			version,
 			targetOutputJar,
 			artifactType,
-			jvmComponent,
 			implementationTitle,
 			jarManifestMainClass,
 			artifactDescription,

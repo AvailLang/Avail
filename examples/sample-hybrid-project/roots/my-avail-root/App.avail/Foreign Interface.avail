@@ -6,7 +6,7 @@
 
 Module "Foreign Interface"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
     "Avail"
 Extends
@@ -28,6 +28,8 @@ Entries
     "wrap_and print"
 Body
 
+Link library: "/my-avail-root/App/avail-java-ffi-1.0.jar";
+
 /**
  * A SampleValueWrapper from avail-java-ffi.
  *
@@ -36,9 +38,16 @@ Body
 Public stable method "sample value wrapper" is
 	[org.availlang.ffi.SampleValueWrapper];
 
-sampleValueWrapperConstructor ::=
-    constructor sample value wrapper (Java int);
-getValue ::= method sample value wrapper.getValue ();
+
+// Because POJOs can't be serialized for fast loading the following code sets
+// the POJOs to a variable to be run once when the module is loaded. Attempting
+// to set these values as constants causes the compiler will attempt to 
+// serialize the state for fast loading, which creates an error. The error that
+// is displayed claims the class cannot be found.
+sampleValueWrapperConstructor : [Java int] → sample value wrapper :=
+  constructor sample value wrapper (Java int);
+getValue : [sample value wrapper] → Java int := 
+	method sample value wrapper.getValue ();
 
 /**
  * Construct a {@type "sample value wrapper"}.
@@ -67,7 +76,7 @@ Public stable method "_'s⁇value" is
 	wrapper : sample value wrapper
 |
 	getValue(wrapper)
-];
+]: integer;
 
 /**
  * Answer the value wrapped by the given {@type "sample value wrapper"}.
@@ -80,5 +89,5 @@ Method "wrap_and print" is
 	value : Java int
 |
 	wrapped ::= wrap value;
-	Print: format "The wrapped value: “①”" with wrapped's value;
+	Print: format "The wrapped value: “①”\n" with wrapped's value;
 ];

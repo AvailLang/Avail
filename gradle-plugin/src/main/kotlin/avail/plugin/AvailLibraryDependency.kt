@@ -1,8 +1,10 @@
 package avail.plugin
 
 import org.availlang.artifact.environment.location.AvailLibraries
-import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.location.Scheme
+import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.manifest.AvailArtifactManifest
+import org.availlang.artifact.manifest.AvailRootManifest
 import org.availlang.artifact.roots.AvailRoot
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
@@ -12,14 +14,32 @@ import org.gradle.api.artifacts.Dependency
  * available from a Maven repository.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * 
+ * @property rootName
+ *   The name of the root as it will be used by Avail.
+ * @property rootNameInJar
+ *   The name of the target root to use inside the Jar. This is the
+ *   [AvailRootManifest.name] in the [AvailArtifactManifest].
+ * 
+ * @constructor
+ * Construct an [AvailLibraryDependency].
+ *
+ * @param rootName
+ *   The name of the root as it will be used by Avail.
+ * @param rootNameInJar
+ *   The name of the target root to use inside the Jar. This is the
+ *   [AvailRootManifest.name] in the [AvailArtifactManifest].
+ * @param dependency
+ *   The target library's dependency string of the form
+ *   ```
+ *   "group:artifactName:version"
+ *   ```
  */
-open class AvailLibraryDependency
+class AvailLibraryDependency constructor(
+	var rootName: String,
+	var rootNameInJar: String,
+	dependency: String)
 {
-	/**
-	 * The name of the root as it will be used by Avail.
-	 */
-	var name: String
-
 	/**
 	 * The dependency's group name.
 	 */
@@ -39,60 +59,6 @@ open class AvailLibraryDependency
 	 */
 	@Suppress("MemberVisibilityCanBePrivate")
 	var version: String
-
-	/**
-	 * @constructor
-	 * Construct an [AvailLibraryDependency].
-	 *
-	 * @param name
-	 *   The name of the root as it will be used by Avail.
-	 * @param dependency
-	 *   The target library's dependency string of the form
-	 *   ```
-	 *   "group:artifactName:version"
-	 *   ```
-	 */
-	constructor(name: String, dependency: String)
-	{
-		val split = dependency.split(":")
-		if (split.size != 3)
-		{
-			throw AvailPluginException(
-				"Received a malformed AvailLibraryDependency: $dependency. " +
-					"It must follow the format: \"group:artifactName:version\"")
-		}
-		this.name = name
-		this.group = split[0]
-		this.artifactName = split[1]
-		this.version = split[2]
-	}
-
-	/**
-	 * @constructor
-	 * Construct an [AvailLibraryDependency].
-	 *
-	 * @param name
-	 *   The name of the root as it will be used by Avail.
-	 * @param group
-	 *   The dependency's group name.
-	 * @param artifactName
-	 *   The name of the artifact. This corresponds to the base name the library
-	 *   jar file that should be named without the version or `.jar` extension.
-	 *   This will be used to construct the [AvailRoot.uri].
-	 * @param version
-	 *   The version of the Avail library to use.
-	 */
-	constructor(
-		name: String,
-		group: String,
-		artifactName: String,
-		version: String)
-	{
-		this.name = name
-		this.group = group
-		this.artifactName = artifactName
-		this.version = version
-	}
 
 	/**
 	 * The target library's dependency string of the form:
@@ -122,12 +88,23 @@ open class AvailLibraryDependency
 	 */
 	internal fun root(libRelativeDir: String): AvailRoot =
 		AvailRoot(
-			name,
+			rootName,
 			AvailLibraries(
 				"$libRelativeDir/$artifactName-$version.jar",
 				Scheme.JAR,
-				// These libraries have a single rootNameInJar equal to the
-				// name of the directory, and presumably the name of the module
-				// root used by the project.
-				name))
+				rootNameInJar))
+
+	init
+	{
+		val split = dependency.split(":")
+		if (split.size != 3)
+		{
+			throw AvailPluginException(
+				"Received a malformed AvailLibraryDependency: $dependency. " +
+					"It must follow the format: \"group:artifactName:version\"")
+		}
+		this.group = split[0]
+		this.artifactName = split[1]
+		this.version = split[2]
+	}
 }

@@ -173,6 +173,7 @@ import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
+import avail.interpreter.LibraryClassLoader
 import avail.interpreter.PrimitiveClassLoader
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
@@ -1353,6 +1354,9 @@ class ModuleDescriptor private constructor(
 		}
 		// Unload any Primitives loaded by this module
 		PrimitiveClassLoader.unloadModuleClassLoaders(moduleName)
+
+		// Unload any Jars loaded by this module
+		LibraryClassLoader.unloadModuleClassLoaders(moduleName)
 
 		// Tidy up the module to make it easier for the garbage collector to
 		// clean things up piecemeal.

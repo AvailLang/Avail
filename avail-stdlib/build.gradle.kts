@@ -43,7 +43,7 @@ plugins {
 	publishing
 	signing
 	id("org.jetbrains.dokka") version "1.8.20"
-	id("org.availlang.avail-plugin") version "2.0.0.alpha19"
+	id("org.availlang.avail-plugin") version "2.0.0.alpha20"
 }
 
 repositories {
@@ -52,7 +52,7 @@ repositories {
 }
 
 group = "org.availlang"
-version = "2.0.0.alpha22-1.6.1.alpha13"
+version = "2.0.0.alpha23-1.6.1.alpha14"
 
 avail {
 	projectDescription = "The Avail Standard Library"
@@ -70,7 +70,7 @@ avail {
 		implementationTitle = "Avail Standard Library"
 		projectFileLocation =
 			ProjectHome(
-				"./../$CONFIG_FILE_NAME",
+				"../avail/$CONFIG_FILE_NAME",
 				FILE,
 				project.projectDir.absolutePath,
 				null)
@@ -107,14 +107,6 @@ tasks {
 			// far that overcame the issue.
 			availExtension.createArtifact()
 		}
-	}
-
-	createProjectFile {
-		outputLocation = ProjectHome(
-			"",
-			FILE,
-			rootDir.absolutePath,
-			rootNameInJar = null)
 	}
 
 	// Copy the library into the distribution directory. This is used by the

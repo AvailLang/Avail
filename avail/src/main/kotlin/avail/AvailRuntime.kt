@@ -241,6 +241,7 @@ import avail.exceptions.AvailErrorCode.Companion.allNumericCodes
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.files.FileManager
+import avail.interpreter.LibraryClassLoader
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.CannotFail
@@ -593,15 +594,40 @@ class AvailRuntime constructor(
 			throw AvailRuntimeException(
 				AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE)
 		}
+		val classNameString = className.asNativeString()
 		// Look up the raw Java class using the runtime's class loader.
 		return try
 		{
-			Class.forName(className.asNativeString(), true, classLoader)
+			Class.forName(classNameString, true, classLoader)
 		}
-		catch (e: ClassNotFoundException)
+		catch (ex: ClassNotFoundException)
 		{
-			throw AvailRuntimeException(
-				AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE)
+			return try
+			{
+				LibraryClassLoader.ClassHolder
+					.holdersByClassName[classNameString]?.pojo
+						?: throw ex
+			}
+			catch (e: ClassNotFoundException)
+			{
+				throw AvailRuntimeException(
+					AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE, e)
+			}
+			catch (e: NoSuchFieldException)
+			{
+				throw AvailRuntimeException(
+					AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE, e)
+			}
+			catch (e: IllegalAccessException)
+			{
+				throw AvailRuntimeException(
+					AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE, e)
+			}
+			catch (e: ClassNotFoundException)
+			{
+				throw AvailRuntimeException(
+					AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE, e)
+			}
 		}
 	}
 

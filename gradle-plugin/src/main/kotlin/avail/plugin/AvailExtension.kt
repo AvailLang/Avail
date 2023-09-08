@@ -31,13 +31,20 @@
  */
 package avail.plugin
 
+import org.availlang.artifact.AvailArtifactBuildPlan
+import org.availlang.artifact.AvailArtifactMetadata
 import org.availlang.artifact.environment.AvailEnvironment
-import org.availlang.artifact.environment.location.*
+import org.availlang.artifact.environment.location.AvailLocation
+import org.availlang.artifact.environment.location.AvailRepositories
+import org.availlang.artifact.environment.location.ProjectHome
+import org.availlang.artifact.environment.location.Scheme
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectV1
 import org.availlang.artifact.environment.project.LocalSettings
 import org.availlang.artifact.environment.project.StylingGroup
 import org.availlang.artifact.environment.project.TemplateGroup
+import org.availlang.artifact.manifest.AvailArtifactManifest
+import org.availlang.artifact.manifest.AvailRootManifest
 import org.availlang.artifact.roots.AvailRoot
 import org.availlang.artifact.roots.CreateAvailRoot
 import org.gradle.api.Project
@@ -66,25 +73,10 @@ open class AvailExtension constructor(
 		PackageAvailArtifact(project, this)
 	}
 
-	init
-	{
-		val imp = project.configurations.getByName("implementation")
-		imp.dependencies.forEach {
-			if (it.group == AvailPlugin.AVAIL_DEP_GRP
-				&& it.name == AvailPlugin.AVAIL)
-			{
-				plugin.hasAvailImport = true
-			}
-		}
-	}
-
-
-
 	/**
-	 * `true` indicates the standard library is imported from Maven and used as
-	 * an Avail module root in the project; `false` otherwise.
+	 * The name of the Avail project. Defaults to [Project.getName].
 	 */
-	internal var usesStdLib = false
+	var name: String = project.name
 
 	/**
 	 * The absolute path to the jar file that will be created.
@@ -124,12 +116,6 @@ open class AvailExtension constructor(
 		rootNameInJar = null)
 
 	/**
-	 * The [AvailStandardLibrary] if it is being used by this project.
-	 */
-	internal var availStandardLibrary: AvailStandardLibrary =
-		AvailStandardLibrary()
-
-	/**
 	 * The map of [AvailRoot.name]s to be [AvailRoot]s be included in the Avail
 	 * project.
 	 */
@@ -142,29 +128,20 @@ open class AvailExtension constructor(
 	internal val rootDependencies = mutableListOf<AvailLibraryDependency>()
 
 	/**
-	 * This function informs the plugin to include the Avail Standard Library
-	 * as a root from a Maven repository.
-	 *
-	 * @param configure
-	 *   The lambda that allows for configuring the [AvailStandardLibrary].
+	 * The version of the Avail VM used when launching Anvil.
 	 */
-	@Suppress("Unused")
-	fun includeStdAvailLibDependency (configure: AvailStandardLibrary.() -> Unit)
-	{
-		usesStdLib = true
-		configure(availStandardLibrary)
-		rootDependencies.add(availStandardLibrary)
-
-		projectRoot(availStandardLibrary.root(
-			availStandardLibrary.group.replace(".", "/")))
-	}
+	@Suppress("MemberVisibilityCanBePrivate")
+	var availVersion: String = ""
 
 	/**
 	 * Add an Avail library as a root from a Maven repository for the provided
 	 * dependency string.
 	 *
-	 * @param name
+	 * @param rootName
 	 *   The name of the root as it will be used by Avail.
+	 * @param rootNameInJar
+	 *   The name of the target root to use inside the Jar. This is the
+	 *   [AvailRootManifest.name] in the [AvailArtifactManifest].
 	 * @param dependency
 	 *   The target library's dependency string of the form
 	 *   ```
@@ -172,11 +149,16 @@ open class AvailExtension constructor(
 	 *   ```
 	 */
 	@Suppress("Unused")
-	fun includeAvailLibDependency (name: String, dependency: String)
+	fun includeAvailLibDependency (
+		rootName: String,
+		rootNameInJar: String,
+		dependency: String)
 	{
-		AvailLibraryDependency(name, dependency).apply {
+		AvailLibraryDependency(rootName, rootNameInJar, dependency).apply {
 			this@AvailExtension.rootDependencies.add(this)
 			this@AvailExtension.projectRoot(this.root(group.replace(".", "/")))
+			project.configurations.getByName(AvailPlugin.AVAIL_LIBRARY)
+				.dependencies.add(dependency(project))
 		}
 	}
 
@@ -191,6 +173,12 @@ open class AvailExtension constructor(
 	{
 		configure(packageAvailArtifact)
 	}
+
+	/**
+	 * Create an [AvailArtifactBuildPlan] from the [packageAvailArtifact].
+	 */
+	val buildPlan: AvailArtifactBuildPlan get() =
+		packageAvailArtifact.buildPlan
 
 	/**
 	 * Create the Avail Artifact configured by [artifact].
@@ -370,7 +358,7 @@ open class AvailExtension constructor(
 	 */
 	fun createProject (): AvailProject =
 		AvailProjectV1(
-			project.name,
+			name,
 			true,
 			repositoryDirectory,
 			LocalSettings(project.rootDir.absolutePath),
@@ -384,24 +372,20 @@ open class AvailExtension constructor(
 	 * Create a printable view of this entire [AvailExtension]'s current
 	 * configuration state.
 	 */
-	val printableConfig: String get() =
+	fun printableConfig(libMetadata: List<AvailArtifactMetadata>): String =
 		buildString {
 			append("\n========================= Avail Configuration")
 			append(" =========================")
-			append("\n\tAvail Import located: ${plugin.hasAvailImport}")
 			rootDependencies.forEach {
 				append("\n\tIncluded Library Dependency: \"")
-				append(it.name)
-				append("\", \"")
+				append(it.rootName)
+				append("\" (rootNameInJar: '")
+				append(it.rootNameInJar)
+				append("'), \"")
 				append(it.dependencyString)
 				append('"')
 			}
 			append("\n\tRepository Location: ${repositoryDirectory.fullPathNoPrefix}")
-			append("\n\tVM Arguments to include for Avail Runtime:")
-			append(roots.values
-				.sorted()
-				.joinToString(";", "\n\t\t• -DavailRoots=") { it.rootString })
-			append("\n\t\t• -Davail.repositories=${repositoryDirectory.fullPathNoPrefix}")
 			append("\n\tRoots Location: $rootsDirectory")
 			append("\n\tIncluded Roots:")
 			roots.values.sorted().forEach {
@@ -410,6 +394,18 @@ open class AvailExtension constructor(
 			append("\n\tCreated Roots:")
 			createRoots.values.sorted().forEach {
 				append(it.configString)
+			}
+			append("\n\tLibrary Artifacts Roots In Jars:")
+
+			libMetadata.forEach { metadata ->
+				append("\n\t\t")
+				append(metadata.location.path)
+				metadata.manifest.roots.values.forEach {
+					append("\n\t\t\tRoot name in jar: '")
+					append(it.name)
+					append("'\n\t\t\t\t")
+					append(it.description)
+				}
 			}
 			append("\n====================================")
 			append("====================================\n")

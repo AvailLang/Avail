@@ -59,13 +59,10 @@ repositories {
 }
 
 group = "org.availlang"
-version = "2.0.0.alpha22"
+version = "2.0.0.alpha23"
 
 /** The version of Kotlin to be used by Avail. */
 val kotlin = "1.9.0"
-
-/** The Avail version. */
-val avail = "1.6.0"
 
 /** The `com.github.johnrengelman.shadow` version. */
 val shadow = "8.1.1"

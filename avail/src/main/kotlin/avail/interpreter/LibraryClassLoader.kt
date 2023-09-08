@@ -34,34 +34,32 @@ package avail.interpreter
 
 import avail.builder.ModuleName
 import avail.descriptor.tuples.A_String
-import avail.interpreter.Primitive.PrimitiveHolder
 import java.io.File
 import java.net.URLClassLoader
 import java.util.jar.JarFile
 import javax.annotation.concurrent.GuardedBy
 
 /**
- * The [URLClassLoader] for loading external [Primitive]s through the
- * [Primitive] linking system.
+ * The [URLClassLoader] for loading external Jars through the Pojo linking
+ * system.
  *
  * @author Richard Arriaga
  *
  * @property moduleName
  *   The fully qualified [A_String] name of the module that is responsible for
- *   creating this [PrimitiveClassLoader] for loading [Primitive]s from the
- *   target jar file.
+ *   creating this [LibraryClassLoader] for loading the target jar file.
  *
  * @constructor
- * Construct a [PrimitiveClassLoader].
+ * Construct a [LibraryClassLoader].
  *
  * @param jarFile
- *   The [File] location of the jar file to load that contains the [Primitive]s.
+ *   The [File] location of the jar file to load.
  * @param moduleName
  *   The [A_String] module name of the module that created this class loader.
  * @param parent
- *   The parent [ClassLoader] of this [PrimitiveClassLoader].
+ *   The parent [ClassLoader] of this [LibraryClassLoader].
  */
-class PrimitiveClassLoader constructor(
+class LibraryClassLoader constructor(
 	jarFile: File,
 	val moduleName: A_String,
 	parent: ClassLoader = Primitive::class.java.classLoader
@@ -71,30 +69,12 @@ class PrimitiveClassLoader constructor(
 	 * The set of [Primitive.PrimitiveHolder]s that were loaded by this
 	 * [PrimitiveClassLoader].
 	 */
-	private val holders = mutableSetOf<PrimitiveHolder>()
+	private val holders = mutableSetOf<ClassHolder>()
 
 	/**
 	 * The path to the linked Jar file.
 	 */
 	private val jarPath = jarFile.path
-
-	/**
-	 * Cleanup all of the [Primitive.PrimitiveHolder]s loaded by this
-	 * [PrimitiveClassLoader] then [close] this [PrimitiveClassLoader].
-	 */
-	fun cleanup ()
-	{
-		synchronized(this)
-		{
-			holders.toList().forEach { holder ->
-				PrimitiveHolder.holdersByName.remove(holder.name)
-				PrimitiveHolder.holdersByClassName.remove(holder.className)
-			}
-			close()
-			jarToModule.remove(jarPath)
-			holders.clear()
-		}
-	}
 
 	init
 	{
@@ -103,19 +83,10 @@ class PrimitiveClassLoader constructor(
 			JarFile(jarFile).use { jar ->
 				jar.entries().asIterator().forEach { entry ->
 					if (!entry.name.endsWith(".class")) return@forEach
-					val last = entry.name.split("/").last()
-					if(last.startsWith(PRIMITIVE_NAME_PREFIX))
-					{
-						val c = entry.name
-							.replace(".class", "")
-							.replace("/", ".")
-						val primitiveName =
-							PrimitiveHolder.splitClassName(c).last()
-								.split("P_").last()
-						val holder =
-							PrimitiveHolder(primitiveName, c, this)
-						PrimitiveHolder.holdersByClassName[c] = holder
-						PrimitiveHolder.holdersByName[primitiveName] = holder
+					entry.name.replace(".class", "").let {
+						val c = it.replace("/", ".")
+						val holder = ClassHolder(c, this)
+						ClassHolder.holdersByClassName[c] = holder
 						holders.add(holder)
 					}
 				}
@@ -124,16 +95,65 @@ class PrimitiveClassLoader constructor(
 		catch (e: Throwable)
 		{
 			// We don't care what the exception is here, we just need to
-			// rollback the classes added to PrimitiveHolder.holdersByName and
-			// PrimitiveHolder.holdersByClassName. The caller is responsible for
-			// handling said exceptions.
+			// rollback the classes added to ClassHolder.holdersByClassName. The
+			// caller is responsible for handling said exceptions.
 			holders.forEach {
-				PrimitiveHolder.holdersByClassName.remove(it.className)
-				PrimitiveHolder.holdersByName.remove(it.name)
+				ClassHolder.holdersByClassName.remove(it.className)
 				throw e
 			}
 		}
 		moduleToLoader.computeIfAbsent(moduleName) { mutableSetOf() }.add(this)
+		jarToModule[jarPath] = moduleName
+	}
+
+	/**
+	 * Cleanup all of the [ClassHolder]s loaded by this
+	 * [LibraryClassLoader] then [close] this [LibraryClassLoader].
+	 */
+	fun cleanup ()
+	{
+		synchronized(this)
+		{
+			holders.toList().forEach { holder ->
+				ClassHolder.holdersByClassName.remove(holder.className)
+			}
+			close()
+			jarToModule.remove(jarPath)
+			holders.clear()
+		}
+	}
+
+	/**
+	 * A helper class to assist with lazy loading of classes from a library.
+	 *
+	 * @property className
+	 *   The full name of the Java class implementing the primitive.
+	 * @property classLoader
+	 *   The [ClassLoader] used to load the [Primitive] [className].
+	 */
+	class ClassHolder internal constructor(
+		val className: String,
+		private val classLoader: ClassLoader)
+	{
+		/**
+		 * The sole instance of the specific class. It is initialized only when
+		 * needed for the first time, since that causes Java class loading to
+		 * happen, and we'd rather smear out that startup performance cost.
+		 *
+		 * @throws ClassNotFoundException
+		 * @throws NoSuchFieldException
+		 * @throws IllegalAccessException
+		 */
+		val pojo: Class<*> by lazy {
+			classLoader.loadClass(className)
+		}
+
+		companion object
+		{
+			/** A map of all [ClassHolder]s, by class name. */
+			internal val holdersByClassName =
+				mutableMapOf<String, ClassHolder>()
+		}
 	}
 
 	companion object
@@ -144,17 +164,12 @@ class PrimitiveClassLoader constructor(
 		private object UnloadLock
 
 		/**
-		 * The required name prefix for all all [Primitive]s.
-		 */
-		const val PRIMITIVE_NAME_PREFIX = "P_"
-
-		/**
-		 * The map that tracks all the [PrimitiveClassLoader]s loading primitive
-		 * libraries for a given [ModuleName].
+		 * The map that tracks all the [LibraryClassLoader]s loading libraries
+		 * for a given [ModuleName].
 		 */
 		@GuardedBy("UnloadLock")
 		private val moduleToLoader =
-			mutableMapOf<A_String, MutableSet<PrimitiveClassLoader>>()
+			mutableMapOf<A_String, MutableSet<LibraryClassLoader>>()
 
 		/**
 		 * The map that tracks all the linked Pojo jar file paths to the
@@ -175,7 +190,7 @@ class PrimitiveClassLoader constructor(
 		fun jarLinked (path: String): A_String? = jarToModule[path]
 
 		/**
-		 * Unload all the [PrimitiveClassLoader]s loaded by the provided
+		 * Unload all the [LibraryClassLoader]s loaded by the provided
 		 * [ModuleName].
 		 *
 		 * @param moduleName
@@ -183,16 +198,10 @@ class PrimitiveClassLoader constructor(
 		 */
 		fun unloadModuleClassLoaders (moduleName: A_String)
 		{
-			moduleToLoader[moduleName]?.let {
-				it.toList().forEach { loader ->
-					loader.cleanup()
-				}
-				synchronized(UnloadLock)
-				{
-					moduleToLoader.remove(moduleName)
-				}
+			synchronized(UnloadLock)
+			{
+				moduleToLoader.remove(moduleName)?.forEach { it.cleanup() }
 			}
 		}
-
 	}
 }

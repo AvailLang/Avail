@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/25/23, 10:57 AM
+ * * Last Generated: 8/26/23, 1:29 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -276,7 +276,6 @@ Names
 	"high-precision timer value",
 	"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 	"integer range from_(inclusive=_)to_(inclusive=_)",
-	"internal link_",
 	"invoke_with_,⁇forked at priority_",
 	"literal token⇒_",
 	"ln_",
