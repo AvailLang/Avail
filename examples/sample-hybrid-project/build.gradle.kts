@@ -55,7 +55,7 @@ plugins {
 }
 
 group = "org.availlang.sample"
-version = "2.0.0.alpha01"
+version = "2.0.0.alpha02"
 
 repositories {
     mavenLocal()
@@ -86,7 +86,7 @@ dependencies {
     implementation("org.availlang:avail:2.0.0.alpha23")
 
     // Downloads avail library to ~/.avail/libraries
-    avail("org.availlang:avail-stdlib:2.0.0.alpha22-1.6.1.alpha13")
+    avail("org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha14")
 
     testImplementation(kotlin("test"))
 }

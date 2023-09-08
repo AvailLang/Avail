@@ -1,11 +1,11 @@
 [
 	{
-		"version": "2.0.0.alpha01",
+		"version": "2.0.0.alpha02",
 		"outputLocation": 
 		{
 			"locationType": "project",
 			"scheme": "JAR",
-			"path": "/Users/Rich/Development/avail-repos/avail/examples/sample-hybrid-project/build/libs/sample-hybrid-project-2.0.0.alpha01.jar"
+			"path": "/Users/Rich/Development/avail-repos/avail/examples/sample-hybrid-project/build/libs/sample-hybrid-project-2.0.0.alpha02.jar"
 		},
 		"artifactType": "APPLICATION",
 		"implementationTitle": "Avail Sample Hybrid Application",

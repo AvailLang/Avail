@@ -149,7 +149,6 @@ tasks {
 		archiveClassifier.set("javadoc")
 		from(dokkaHtml.outputDirectory)
 	}
-
 	jar {
 		doFirst {
 			delete(fileTree("$buildDir/libs").matching {
@@ -163,7 +162,9 @@ tasks {
 			include("src/main/resources/*.*")
 		}
 	}
-
+	withType<GenerateModuleMetadata> {
+		dependsOn(sourceJar)
+	}
 	artifacts {
 		add("archives", sourceJar)
 		add("archives", javadocJar)
