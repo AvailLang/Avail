@@ -33,7 +33,6 @@
 package avail.serialization
 
 import avail.descriptor.character.A_Character.Companion.codePoint
-import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -61,6 +60,7 @@ import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTup
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.generateTwentyOneBitString
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import avail.utility.Strings.increaseIndentation
 import java.io.OutputStream
@@ -375,8 +375,8 @@ internal enum class SerializerOperandEncoding
 	 * later.  The constant is:
 	 *  * 0 - use ByteString.  Code points are bytes, uncompressed.
 	 *  * 1 - use TwoByteString.  Code points are in SMP, write them compressed.
-	 *  * 2 - use a 21-bit string representation (not yet implemented)
-	 *  * 3 - use ObjectTuple.  Code points are written compressed.
+	 *  * 2 - use TwentyOneBitString.
+	 *  * 3 - Not used, invalid if it occurs.
 	 * Then write the sequence of code points, either compressed or uncompressed
 	 * as indicated.
 	 */
@@ -400,7 +400,7 @@ internal enum class SerializerOperandEncoding
 				obj.isTwoByteString ->
 					writeCompressedULong(shiftedTupleSize + 1_UL, serializer)
 				else ->
-					writeCompressedULong(shiftedTupleSize + 3_UL, serializer)
+					writeCompressedULong(shiftedTupleSize + 2_UL, serializer)
 			}
 			(1..tupleSize).forEach { i ->
 				writeCompressedPositiveInt(obj.tupleCodePointAt(i), serializer)
@@ -420,11 +420,10 @@ internal enum class SerializerOperandEncoding
 				1 -> generateTwoByteString(tupleSize) {
 					readCompressedPositiveInt(deserializer).toUShort()
 				}
-				// Update this when we have efficient 21-bit strings, three
-				// characters per 64-bit long.
-				else -> generateObjectTupleFrom(tupleSize) {
-					fromCodePoint(readCompressedPositiveInt(deserializer))
+				2 -> generateTwentyOneBitString(tupleSize) {
+					readCompressedPositiveInt(deserializer)
 				}
+				else -> throw RuntimeException("Invalid serialized string tag")
 			}
 		}
 	},

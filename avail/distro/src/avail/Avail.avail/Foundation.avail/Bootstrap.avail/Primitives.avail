@@ -49,6 +49,7 @@ Names
 	"$_@pc=_stack=_[_]caller=_",
 	"<_,_`…`|_>",
 	"Abstract method_is_",
+	"After the current module is loaded,⁇do_",
 	"After the current module is unloaded,⁇do_",
 	"Alias_to_",
 	"Attempt to join_",

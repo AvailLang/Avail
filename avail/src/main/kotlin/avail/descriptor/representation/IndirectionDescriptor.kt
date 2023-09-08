@@ -248,6 +248,7 @@ import avail.descriptor.module.A_Module.Companion.addConstantBinding
 import avail.descriptor.module.A_Module.Companion.addImportedName
 import avail.descriptor.module.A_Module.Companion.addImportedNames
 import avail.descriptor.module.A_Module.Companion.addLexer
+import avail.descriptor.module.A_Module.Companion.addPostLoadFunction
 import avail.descriptor.module.A_Module.Companion.addPrivateName
 import avail.descriptor.module.A_Module.Companion.addPrivateNames
 import avail.descriptor.module.A_Module.Companion.addSeal
@@ -290,6 +291,7 @@ import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.A_Module.Companion.stylers
 import avail.descriptor.module.A_Module.Companion.stylingRecord
+import avail.descriptor.module.A_Module.Companion.takePostLoadFunctions
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.A_Module.Companion.versions
@@ -482,6 +484,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithObjectTupleSta
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithRepeatedElementTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithSmallIntegerIntervalTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
+import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwentyOneBitStringStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithTwoByteStringStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
@@ -1140,6 +1143,17 @@ class IndirectionDescriptor private constructor(
 			startIndex1, endIndex1, aTwoByteString, startIndex2)
 	}
 
+	override fun o_CompareFromToWithTwentyOneBitStringStartingAt(
+		self: AvailObject,
+		startIndex1: Int,
+		endIndex1: Int,
+		aTwentyOneBitString: A_String,
+		startIndex2: Int
+	): Boolean = self .. {
+		compareFromToWithTwentyOneBitStringStartingAt(
+			startIndex1, endIndex1, aTwentyOneBitString, startIndex2)
+	}
+
 	override fun o_ComputeHashFromTo(
 		self: AvailObject,
 		start: Int,
@@ -1370,6 +1384,11 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		aString: A_String
 	): Boolean = self .. { equalsTwoByteString(aString) }
+
+	override fun o_EqualsTwentyOneBitString(
+		self: AvailObject,
+		aTwentyOneBitString: A_String
+	): Boolean = self .. { equalsTwentyOneBitString(aTwentyOneBitString) }
 
 	override fun o_SetExecutionState(
 		self: AvailObject,
@@ -1795,6 +1814,10 @@ class IndirectionDescriptor private constructor(
 	): A_Number = self .. {
 		subtractFromIntegerCanDestroy(anInteger, canDestroy)
 	}
+
+	override fun o_TakePostLoadFunctions (
+		self: AvailObject
+	): A_Tuple = self .. { takePostLoadFunctions() }
 
 	override fun o_TimesCanDestroy(
 		self: AvailObject,
@@ -3372,6 +3395,11 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_HasValue(self: AvailObject): Boolean =
 		self .. { hasValue() }
+
+	override fun o_AddPostLoadFunction(
+		self: AvailObject,
+		postLoadFunction: A_Function
+	) = self .. { addPostLoadFunction(postLoadFunction) }
 
 	override fun o_AddUnloadFunction(
 		self: AvailObject,

@@ -214,7 +214,8 @@ class CallbackTest
 				divisionCallback(),
 				tuple(
 					fromInt(42),
-					fromInt(3))))
+					fromInt(3))),
+			false)
 		try
 		{
 			mailbox.take().run()

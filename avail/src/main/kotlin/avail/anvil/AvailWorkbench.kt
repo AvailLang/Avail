@@ -158,6 +158,7 @@ import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.quoteStringOn
 import avail.files.FileManager
@@ -3114,11 +3115,11 @@ class AvailWorkbench internal constructor(
 										}
 									}
 									val spansStart =
-										spans.minOfOrNull { it.start } ?: 1
+										spans.minOfOrNull { it.start } ?: 0
 									val spansPastEnd =
-										spans.maxOfOrNull { it.pastEnd } ?: 1
+										spans.maxOfOrNull { it.pastEnd } ?: 0
 									editor.sourcePane
-										.select(spansStart - 1, spansPastEnd - 1)
+										.select(spansStart, spansPastEnd)
 									editor.sourcePane
 										.showTextRange(spansStart, spansPastEnd)
 								}
@@ -3168,17 +3169,24 @@ class AvailWorkbench internal constructor(
 		val indexMap = mutableMapOf<Int, Int>()
 		val quoteBuilder = StringBuilder()
 		quoteBuilder.quoteStringOn(availName, indexMap)
+		val quoted = quoteBuilder.toString()
+		// We have the mapping from the availName into the quoted String, so
+		// now get a second mapping back into the quoted Avail string.
+		val converter = SurrogateIndexConverter(quoted)
 		val originalRange = MessageSplitter.split(availName)
 			.rangeToHighlightForPartIndex(tokenIndexInName)
-		val startOfRange = indexMap[originalRange.first]!! + 1
-		val pastEndOfRange = indexMap[originalRange.last + 1]!! + 1
-		val quoted = quoteBuilder.toString()
+		val startOfRangeInString = indexMap[originalRange.first]!!
+		val startOfRangeInAvail =
+			converter.javaIndexToAvailIndex(startOfRangeInString) + 1
+		val pastEndOfRangeInString = indexMap[originalRange.last + 1]!!
+		val pastEndOfRangeInAvail =
+			converter.javaIndexToAvailIndex(pastEndOfRangeInString) + 1
 		val styledName = htmlStyledMethodName(
 			stringFrom(quoted),
 			true,
 			stylesheet,
-			startOfRange,
-			pastEndOfRange)
+			startOfRangeInAvail,
+			pastEndOfRangeInAvail)
 		val title = buildString {
 			append("<html><tt><font size='+1'>")
 			append(styledName)

@@ -117,6 +117,43 @@ val formattedNow: String get()
 val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
+/** The root Avail distribution directory name. */
+val distroDir = "distro"
+
+/** The relative path to the Avail distribution source directory. */
+val distroSrc = systemPath(distroDir, "src")
+
+/** The relative path to the Avail distribution lib directory. */
+val distroLib = systemPath(distroDir, "lib")
+
+/** The path to the bootstrap package. */
+val bootstrapPackagePath =
+	systemPath("avail", "tools", "bootstrap")
+
+/**
+ * The [Project.getProjectDir] relative path of the bootstrap package.
+ */
+val relativePathBootstrap =
+	systemPath("src", "main", "kotlin", bootstrapPackagePath)
+
+/**
+ * [Project.getProjectDir]-relative path to the generated JVM classes.
+ */
+val buildClassesPath = "classes/kotlin/main"
+
+/**
+ * The build time string of the form: "yyyy-MM-ddTHH:mm:ss.SSSZ",
+ * representing the time of the build.
+ */
+val built: String get() = formattedNow
+
+/**
+ * The [Project.getProjectDir] relative path of the built bootstrap package.
+ */
+val relativePathBootstrapClasses =
+	systemPath(buildClassesPath, bootstrapPackagePath)
+
+
 java {
 	toolchain {
 		languageVersion.set(JavaLanguageVersion.of(jvmTarget))
@@ -530,12 +567,6 @@ abstract class GenerateFileManifestTask: DefaultTask()
 	}
 }
 
-/** The root Avail distribution directory name. */
-val distroDir = "distro"
-
-/** The relative path to the Avail distribution source directory. */
-val distroSrc = systemPath(distroDir, "src")
-
 /**
  * Answer an [AvailRoot] relative to this [Project.getProjectDir].
  *
@@ -573,37 +604,11 @@ fun Project.computeAvailRootsForTest (): String =
  *   The constructed String path.
  */
 fun systemPath(vararg path: String): String =
-	path.toList().joinToString(File.separator)
-
-/** The relative path to the Avail distribution lib directory. */
-val distroLib = systemPath(distroDir, "lib")
-
-/** The path to the bootstrap package. */
-val bootstrapPackagePath =
-	systemPath("avail", "tools", "bootstrap")
-
-/**
- * The [Project.getProjectDir] relative path of the bootstrap package.
- */
-val relativePathBootstrap =
-	systemPath("src", "main", "kotlin", bootstrapPackagePath)
-
-/**
- * [Project.getProjectDir]-relative path to the generated JVM classes.
- */
-val buildClassesPath = "classes/kotlin/main"
-
-/**
- * The build time string of the form: "yyyy-MM-ddTHH:mm:ss.SSSZ",
- * representing the time of the build.
- */
-val built: String get() = formattedNow
-
-/**
- * The [Project.getProjectDir] relative path of the built bootstrap package.
- */
-val relativePathBootstrapClasses =
-	systemPath(buildClassesPath, bootstrapPackagePath)
+	path.toList().joinToString(File.separator) { s ->
+		@Suppress("RedundantRequireNotNullCall")
+		checkNotNull(s)
+		s
+	}
 
 /**
  * `Avail` Root represents an Avail source root.
@@ -676,7 +681,7 @@ fun Project.projectGenerateBootStrap(task: Copy)
 	task.inputs.files + pathBootstrap
 	val distroBootstrap =
 		file(systemPath(
-			"${rootProject.projectDir}",
+			"$projectDir",
 			distroSrc,
 			"avail",
 			"Avail.avail",

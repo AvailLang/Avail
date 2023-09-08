@@ -83,6 +83,7 @@ Extends
 
 		/* Methods */
 		"Abstract method_is_",
+		"After the current module is loaded,⁇do_",
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
 		"Attempt to join_",
@@ -426,7 +427,7 @@ Extends
 		"_≤_",
 		"_⊆_",
 		"_⨉_^_",
-		
+
 		/* Convenient renames. */
 		"extended integer" → "ℤ∞",
 		"integer" → "ℤ",

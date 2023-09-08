@@ -50,6 +50,7 @@ Uses
 	(
 		"$_@pc=_stack=_[_]caller=_",
 		"Abstract method_is_",
+		"After the current module is loaded,⁇do_",
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
 		"Attempt to join_",
@@ -2627,6 +2628,26 @@ Primitive "Macro_is«_,»_«styled by_»?" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Register the given function for callback after the module undergoing
+ * compilation has been otherwise fully parsed and compiled.
+ *
+ * @category "Primitives"
+ * @method "After the current module is loaded,⁇do_"
+ * @param "aFunction" "[…]→⊤"
+ *        The post-load function.
+ * @returns "⊤"
+ * @raises "loading-is-over exception"
+ */
+Primitive "After the current module is loaded,⁇do_" is
+[
+	aFunction : function
+|
+	Primitive AddPostLoadFunction (failureCode : {
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

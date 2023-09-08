@@ -503,6 +503,34 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [twenty-one-bit string][TwentyOneBitStringDescriptor]. The
+		 * size of the subrange of both objects is determined by the index range
+		 * supplied for the receiver.
+		 *
+		 * @param startIndex1
+		 *   The inclusive lower bound of the receiver's subrange.
+		 * @param endIndex1
+		 *   The inclusive upper bound of the receiver's subrange.
+		 * @param aTwentyOneBitString
+		 *   The twenty-one-bit string used in the comparison.
+		 * @param startIndex2
+		 *   The inclusive lower bound of the twenty-one-bit string's subrange.
+		 * @return
+		 *   `true` if the contents of the subranges match exactly, `false`
+		 *   otherwise.
+		 */
+		fun A_Tuple.compareFromToWithTwentyOneBitStringStartingAt(
+			startIndex1: Int,
+			endIndex1: Int,
+			aTwentyOneBitString: A_String,
+			startIndex2: Int
+		): Boolean = dispatch {
+			o_CompareFromToWithTwentyOneBitStringStartingAt(
+				it, startIndex1, endIndex1, aTwentyOneBitString, startIndex2)
+		}
+
+		/**
 		 * Compute the hash of the specified subrange of this tuple.
 		 *
 		 * @param start

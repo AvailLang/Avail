@@ -670,7 +670,7 @@ class CompilationContext constructor(
 		{
 			fiber.setSuccessAndFailure(adjustedSuccess, onFailure)
 		}
-		runtime.runOutermostFunction(fiber, function, args)
+		runtime.runOutermostFunction(fiber, function, args, false)
 	}
 
 	/**
@@ -1185,7 +1185,8 @@ class CompilationContext constructor(
 			stylerFn.ifNil { runtime[DEFAULT_STYLER] },
 			listOf(
 				tupleFromList(listOfNotNull(originalSendPhrase)),
-				transformedPhrase))
+				transformedPhrase),
+			true)
 	}
 
 	/**
@@ -1403,9 +1404,9 @@ class CompilationContext constructor(
 						(token: A_Token, indexInName: A_Number) ->
 					if (!token.isInCurrentModule(module)) return@mapNotNull null
 					val start = surrogateIndexConverter.availIndexToJavaIndex(
-						token.start())
+						token.start() - 1)
 					val pastEnd = surrogateIndexConverter.availIndexToJavaIndex(
-						token.pastEnd())
+						token.pastEnd() - 1)
 					val line = token.lineNumber()
 					val inName = indexInName.extractInt
 					val string = when (inName)

@@ -611,6 +611,9 @@ class AvailObject private constructor(
 	override fun equalsTwoByteString(aTwoByteString: A_String) =
 		descriptor().o_EqualsTwoByteString(this, aTwoByteString)
 
+	override fun equalsTwentyOneBitString(aTwentyOneBitString: A_String) =
+		descriptor().o_EqualsTwentyOneBitString(this, aTwentyOneBitString)
+
 	override fun fieldMap() = descriptor().o_FieldMap(this)
 
 	@Throws(VariableGetException::class)

@@ -124,7 +124,8 @@ object P_Fork : Primitive(
 		// Schedule the fiber to run the specified function. Share the fiber,
 		// since it will be visible to the caller.
 		newFiber.makeShared()
-		interpreter.runtime.runOutermostFunction(newFiber, function, callArgs)
+		interpreter.runtime.runOutermostFunction(
+			newFiber, function, callArgs, false)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

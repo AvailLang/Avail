@@ -292,7 +292,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 			{
 				result.makeSubobjectsImmutable()
 			}
-			result[HASH_OR_ZERO] = 0 
+			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		val subrangeOnOrigin =
@@ -402,11 +402,9 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		return self[ORIGIN_TUPLE].tupleLongAt(reverseIndex)
 	}
 
-	override fun o_TupleReverse(self: AvailObject): A_Tuple =
-		self[ORIGIN_TUPLE]
+	override fun o_TupleReverse(self: AvailObject): A_Tuple = self[ORIGIN_TUPLE]
 
-	override fun o_TupleSize(self: AvailObject): Int =
-		self[SIZE]
+	override fun o_TupleSize(self: AvailObject): Int = self[SIZE]
 
 	override fun mutable(): ReverseTupleDescriptor = mutable
 
