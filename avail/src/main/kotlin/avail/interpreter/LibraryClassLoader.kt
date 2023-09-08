@@ -34,10 +34,13 @@ package avail.interpreter
 
 import avail.builder.ModuleName
 import avail.descriptor.tuples.A_String
+import avail.utility.safeWrite
 import java.io.File
 import java.net.URLClassLoader
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.jar.JarFile
 import javax.annotation.concurrent.GuardedBy
+import kotlin.concurrent.read
 
 /**
  * The [URLClassLoader] for loading external Jars through the Pojo linking
@@ -86,7 +89,7 @@ class LibraryClassLoader constructor(
 					entry.name.replace(".class", "").let {
 						val c = it.replace("/", ".")
 						val holder = ClassHolder(c, this)
-						ClassHolder.holdersByClassName[c] = holder
+						ClassHolder.updateHoldersByClassName(c, holder)
 						holders.add(holder)
 					}
 				}
@@ -98,7 +101,7 @@ class LibraryClassLoader constructor(
 			// rollback the classes added to ClassHolder.holdersByClassName. The
 			// caller is responsible for handling said exceptions.
 			holders.forEach {
-				ClassHolder.holdersByClassName.remove(it.className)
+				ClassHolder.updateHoldersByClassName(it.className, null)
 				throw e
 			}
 		}
@@ -115,7 +118,7 @@ class LibraryClassLoader constructor(
 		synchronized(this)
 		{
 			holders.toList().forEach { holder ->
-				ClassHolder.holdersByClassName.remove(holder.className)
+				ClassHolder.updateHoldersByClassName(holder.className, null)
 			}
 			close()
 			jarToModule.remove(jarPath)
@@ -133,7 +136,7 @@ class LibraryClassLoader constructor(
 	 */
 	class ClassHolder internal constructor(
 		val className: String,
-		private val classLoader: ClassLoader)
+		internal val classLoader: ClassLoader)
 	{
 		/**
 		 * The sole instance of the specific class. It is initialized only when
@@ -150,9 +153,36 @@ class LibraryClassLoader constructor(
 
 		companion object
 		{
+			private val holdersByClassNameLock = ReentrantReadWriteLock()
+
 			/** A map of all [ClassHolder]s, by class name. */
-			internal val holdersByClassName =
-				mutableMapOf<String, ClassHolder>()
+			@GuardedBy("holdersByClassNameLock")
+			private val holdersByClassName =
+				HashMap<String, ClassHolder>()
+
+			/**
+			 * Look up the class name to find the corresponding [ClassHolder],
+			 * or `null` if it's absent.
+			 */
+			fun holderByClassName(className: String): ClassHolder? =
+				holdersByClassNameLock.read {
+					holdersByClassName[className]
+				}
+
+			/**
+			 * Update the association between class name and optional
+			 * [ClassHolder], removing it if `null` is provided.
+			 */
+			fun updateHoldersByClassName(
+				className: String,
+				holder: ClassHolder?
+			): Unit = holdersByClassNameLock.safeWrite {
+				when (holder)
+				{
+					null -> holdersByClassName.remove(className)
+					else -> holdersByClassName[className] = holder
+				}
+			}
 		}
 	}
 

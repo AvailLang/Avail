@@ -291,7 +291,10 @@ import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOu
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
+import avail.interpreter.LibraryClassLoader
+import avail.interpreter.Primitive
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
+import avail.interpreter.PrimitiveClassLoader
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RESTART
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RETURN_INTO
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
@@ -2926,7 +2929,8 @@ enum class SerializerOperation constructor(
 	UNFUSED_POJO_TYPE(
 		84,
 		OBJECT_REFERENCE.named("class name"),
-		TUPLE_OF_OBJECTS.named("class parameterization"))
+		TUPLE_OF_OBJECTS.named("class parameterization"),
+		BYTE.named("class loader (0=runtime, 1=primitives, 2=library)"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2952,17 +2956,37 @@ enum class SerializerOperation constructor(
 					processedParameters.add(parameter)
 				}
 			}
+			val loaderTypeByte = when (baseClass.classLoader)
+			{
+				is PrimitiveClassLoader -> 1
+				is LibraryClassLoader -> 2
+				else -> 0
+			}
 			return array(
 				className,
-				tupleFromList(processedParameters))
+				tupleFromList(processedParameters),
+				fromInt(loaderTypeByte))
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val (className, parameters) = subobjects
-			val classLoader = deserializer.runtime.classLoader
+			val (className, parameters, loaderTypeByte) = subobjects
+			val classNameNative = className.asNativeString()
+			val classLoader = when (loaderTypeByte.extractInt)
+			{
+				0 -> deserializer.runtime.classLoader
+				1 -> Primitive.PrimitiveHolder
+					.holdersByClassName[classNameNative]?.classLoader
+				2 -> LibraryClassLoader.ClassHolder
+					.holderByClassName(classNameNative)?.classLoader
+				else -> throw RuntimeException(
+					"Invalid classloader kind while decoding unfused pojo:" +
+						"$loaderTypeByte")
+			}
+			classLoader ?: throw RuntimeException(
+				"Classloader not found for class named $classNameNative.")
 			try
 			{
 				val processedParameters = parameters.map {
@@ -2970,7 +2994,7 @@ enum class SerializerOperation constructor(
 					else it
 				}
 				val baseClass = Class.forName(
-					className.asNativeString(), true, classLoader)
+					classNameNative, true, classLoader)
 				return pojoTypeForClassWithTypeArguments(
 					baseClass, tupleFromList(processedParameters))
 			}

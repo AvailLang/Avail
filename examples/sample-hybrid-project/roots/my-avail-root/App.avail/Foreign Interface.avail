@@ -38,16 +38,11 @@ Link library: "/my-avail-root/App/avail-java-ffi-1.0.jar";
 Public stable method "sample value wrapper" is
 	[org.availlang.ffi.SampleValueWrapper];
 
+// Bind the constructor to an Avail function.
+sampleValueWrapperConstructor ::= constructor sample value wrapper (Java int);
 
-// Because POJOs can't be serialized for fast loading the following code sets
-// the POJOs to a variable to be run once when the module is loaded. Attempting
-// to set these values as constants causes the compiler will attempt to 
-// serialize the state for fast loading, which creates an error. The error that
-// is displayed claims the class cannot be found.
-sampleValueWrapperConstructor : [Java int] → sample value wrapper :=
-  constructor sample value wrapper (Java int);
-getValue : [sample value wrapper] → Java int := 
-	method sample value wrapper.getValue ();
+// Bind the `getValue` method to an Avail function.
+getValue ::= method sample value wrapper.getValue ();
 
 /**
  * Construct a {@type "sample value wrapper"}.

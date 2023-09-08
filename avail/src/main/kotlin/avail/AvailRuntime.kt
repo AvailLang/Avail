@@ -605,7 +605,7 @@ class AvailRuntime constructor(
 			return try
 			{
 				LibraryClassLoader.ClassHolder
-					.holdersByClassName[classNameString]?.pojo
+					.holderByClassName(classNameString)?.pojo
 						?: throw ex
 			}
 			catch (e: ClassNotFoundException)

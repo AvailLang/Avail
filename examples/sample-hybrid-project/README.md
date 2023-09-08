@@ -3,12 +3,12 @@ SAMPLE PROJECT OVERVIEW
 
 ![Version](https://img.shields.io/badge/v2.0.0.alpha01-0f824e)
 
-***NOTE: 8/27/2023 The current state of this example is: Expected to Work***
+***NOTE: 2023.09.07 The current state of this example is: Expected to Work***
 
 *This uses alpha version tools that are in flux. This README will be updated* 
 *to reflect accurate usage for the 2.0.0 production release of the Avail* 
 *toolchain. Once the tools are finalized, this sample will be updated to a* 
-*working state relative to the lastest production release.*
+*working state relative to the latest production release.*
 
 This represents a project that uses Avail in a JVM project with Avail dynamic
 pojo linking to functions written in Kotlin. This project will be updated over 
@@ -50,11 +50,11 @@ The foreign function interface is defined in:
 [Foreign Interface.avail](roots/my-avail-root/App.avail/Foreign%20Interface.avail)
 
 This is where the bindings are created to the native JVM functionality. To
-dynamically link a JAR, use Avail's `"Link pojos_"`. This is done inside
+dynamically link a JAR, use Avail's `"Link library:_"`. This is done inside
 `Foreign Interface.avail` with the statement:
 
 ```
-Link pojos "/my-avail-root/App/avail-java-ffi-1.0.jar";
+Link library: "/my-avail-root/App/avail-java-ffi-1.0.jar";
 ```
 This is linking the JAR file at the specified location directly inside the
 `my-avail-root` module root. In order for a Jar file to be linked by Avail, it
