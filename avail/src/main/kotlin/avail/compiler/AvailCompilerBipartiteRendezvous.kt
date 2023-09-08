@@ -60,7 +60,7 @@ class AvailCompilerBipartiteRendezvous
 {
 	/**
 	 * The first solution, if any.  This is an optimization to avoid having
-	 * to hash the solution
+	 * to hash the solution.
 	 */
 	private var solution1: CompilerSolution? = null
 
