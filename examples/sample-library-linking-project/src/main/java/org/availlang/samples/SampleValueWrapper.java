@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.samples.ffi;
+package org.availlang.samples;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -110,7 +110,7 @@ public class SampleValueWrapper
 		{
 			return false;
 		}
-		final SampleValueWrapper that = (SampleValueWrapper) o;
+		final var that = (SampleValueWrapper) o;
 		return value == that.value;
 	}
 

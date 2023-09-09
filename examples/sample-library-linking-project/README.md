@@ -11,9 +11,9 @@ SAMPLE HYBRID PROJECT OVERVIEW
 *working state relative to the latest production release.*
 
 This represents a project that creates a library written in Java that is linked 
-in Avail with Avail's dynamic library linking to code written in a JVM language,
-in this case Java. This project will be updated over time to reflect changes to
-Avail as well as to further demonstrate how Avail can be used in a JVM project.
+in Avail with Avail's dynamic library linking. Any JVM language that compiles 
+to Java bytecode packaged in a JAR can be linked. This project will be updated 
+over time to reflect changes to Avail.
 
 SETUP
 --------------------------------------------------------------------------------
@@ -33,12 +33,17 @@ usage.
 As of now, the project is checked into Github already setup. To reset up the
 project "from scratch" do the following:
 
-1. delete directory `.avail`
-2. delete file `sample-library-linking.json`
+1. Delete directory `.avail`
+2. Delete file `sample-library-linking.json`
 3. Run Gradle task `avail:setupProject`
-```bash
-./gradlew setupProject
-```
+    ```bash
+    ./gradlew setupProject
+    ```
+4. Delete `roots/my-avail-root/App.avail/sample-library.jar`
+5. Run Gradle task `build:copyJarToAvailRoot`
+    ```bash
+    ./gradlew copyJarToAvailRoot
+    ```
 
 FOREIGN FUNCTION INTERFACE
 --------------------------------------------------------------------------------

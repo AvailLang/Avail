@@ -195,9 +195,18 @@ tasks {
         sourceCompatibility = jvmTargetString
         targetCompatibility = jvmTargetString
     }
-    jar {
-        manifest.attributes["Main-Class"] =
-            "avail.project.AvailProjectWorkbenchRunner"
-        archiveVersion.set("")
+
+    // Builds the jar and copies it into the Avail root, `my-avail-root`.
+    register<Copy>("copyJarToAvailRoot") {
+        group = "build"
+        dependsOn(build)
+        from(layout.buildDirectory.file(
+            "libs/${project.name}-${project.version}.jar"))
+        into(file("$projectDir${File.separator}roots${File.separator}" +
+            "my-avail-root${File.separator}App.avail"
+           ))
+        rename(
+            "(.+)-linking-project-${project.version}(.+)",
+            "$1$2")
     }
 }

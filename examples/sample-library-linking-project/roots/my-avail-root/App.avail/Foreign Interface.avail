@@ -28,7 +28,8 @@ Entries
     "wrap_and print"
 Body
 
-Link library: "/my-avail-root/App/avail-java-ffi-1.0.jar";
+// Dynamically link the library.
+Link library: "/my-avail-root/App/sample-library.jar";
 
 /**
  * A SampleValueWrapper from avail-java-ffi.
@@ -36,7 +37,7 @@ Link library: "/my-avail-root/App/avail-java-ffi-1.0.jar";
  * @type "sample value wrapper"
  */
 Public stable method "sample value wrapper" is
-	[org.availlang.ffi.SampleValueWrapper];
+	[org.availlang.samples.SampleValueWrapper];
 
 // Bind the constructor to an Avail function.
 sampleValueWrapperConstructor ::= constructor sample value wrapper (Java int);
