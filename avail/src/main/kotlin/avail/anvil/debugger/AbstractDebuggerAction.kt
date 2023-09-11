@@ -34,6 +34,7 @@ package avail.anvil.debugger
 
 import avail.anvil.actions.AbstractWorkbenchAction
 import avail.anvil.shortcuts.AvailDebuggerShortcut
+import javax.swing.Action
 
 /**
  * An [AbstractDebuggerAction] is attached to an [AvailDebugger], and
@@ -55,9 +56,18 @@ abstract class AbstractDebuggerAction(
 	@Suppress("MemberVisibilityCanBePrivate")
 	val debugger: AvailDebugger,
 	name: String,
+	shortDescription: String? = null,
 	shortcut: AvailDebuggerShortcut? = null)
 : AbstractWorkbenchAction(
 	debugger.workbench,
 	name,
 	shortcut,
 	debugger.rootPane)
+{
+	init
+	{
+		shortDescription?.let {
+			putValue(Action.SHORT_DESCRIPTION, it)
+		}
+	}
+}

@@ -35,17 +35,24 @@ package avail
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.captureInDebugger
+import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.releaseFromDebugger
-import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.FiberKind
+import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_Function
 import avail.descriptor.maps.A_Map.Companion.hasKey
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.performance.Statistic
 import avail.performance.StatisticReport
 import avail.utility.safeWrite
+import javax.swing.SwingUtilities
 
 /**
  * [AvailDebuggerModel] controls the execution of a set of fibers, allowing
@@ -82,32 +89,105 @@ class AvailDebuggerModel constructor (
 		runtime.newFiberHandlers[fiberKind]!!.get() === fiberCaptureFunction
 
 	/**
-	 * Allow the specified fiber to execute exactly one nybblecode.  Supersede
-	 * any existing run/step mode for this fiber.  We must be in a safe point to
-	 * change this mode.
+	 * Allow the specified fiber to run in some way until some condition is met.
+	 * Supersede any existing run/step mode for this fiber.  We must be in a
+	 * safe point to change this mode.
 	 */
-	fun singleStep(fiber: A_Fiber)
+	fun runFiberAction(
+		fiber: A_Fiber,
+		doAction: AvailDebuggerModel.(A_Fiber)->Unit)
 	{
-		runtime.assertInSafePoint()
-		runtime.runtimeLock.safeWrite {
-			fiber.lock {
-				fiber.fiberHelper.let { helper ->
+		runtime.whenSafePointDo(debuggerPriority) {
+			runtime.assertInSafePoint()
+			runtime.runtimeLock.safeWrite {
+				fiber.lock {
 					assert(fiber.fiberHelper.debugger.get() == this)
-					var allow = true
-					helper.debuggerRunCondition = {
-						allow.also { allow = false }
-					}
+					this.doAction(fiber)
+					runtime.resumeIfPausedByDebugger(fiber)
 				}
-				runtime.resumeIfPausedByDebugger(fiber)
 			}
 		}
 	}
 
-	//TODO Rework and wire in these actions.
-
-	fun stepOverThen()
+	/**
+	 * An action to execute exactly one L1 instruction, the smallest unit of
+	 * execution.
+	 */
+	fun doSingleStep(fiber: A_Fiber)
 	{
-		TODO("Not yet implemented")
+		var allow = true
+		fiber.fiberHelper.debuggerRunCondition = {
+			allow.also { allow = false }
+		}
+		fiber.fiberHelper.debuggerCanInvoke = false
+	}
+
+	/**
+	 * An action to execute at least one L1 instruction, stopping only when the
+	 * current frame is at the top of the stack again, or has been removed from
+	 * the stack through a return or other means.
+	 *
+	 * TODO - Intercept non-local control flow just *prior* to jumping past the
+	 *  frame.
+	 */
+	fun doStepOver(fiber: A_Fiber)
+	{
+		val initialContinuation: A_Continuation =
+			fiber.continuation.traversed().makeShared()
+		if (initialContinuation.isNil)
+		{
+			// This probably can't happen, but assume the fiber has ended.
+			return
+		}
+		val initialFunction: A_Function = initialContinuation.function()
+		// Note: initialCaller might be nil.
+		val initialCaller: A_Continuation =
+			initialContinuation.caller().traversed()
+
+		var firstPoll = true
+		fiber.fiberHelper.debuggerRunCondition = condition@ { interpreter ->
+			if (firstPoll)
+			{
+				firstPoll = false
+				return@condition true
+			}
+			if (!interpreter.callerIsReified())
+			{
+				// There are JVM frames, so we're still in the middle of some
+				// call and are simply running unrelated L1 code.
+				return@condition true
+			}
+			assert(interpreter.fiber().equals(fiber))
+			val initialCallerTraversed = initialCaller.traversed()
+			val currentCallerTraversed = interpreter.getReifiedContinuation()
+				?.traversed()?.makeShared() ?: nil
+			if (currentCallerTraversed.sameAddressAs(initialCallerTraversed)
+				&& interpreter.function!!.equals(initialFunction))
+			{
+				// If we're in "the same" function invocation as we started, the
+				// firstPoll logic above should have tripped on the first step,
+				// so assume we've made some progress, regardless of whether the
+				// pc is the same, has advanced, or has even retreated.
+				return@condition false
+			}
+			var c = currentCallerTraversed
+			while (c.notNil)
+			{
+				if (c.sameAddressAs(initialCallerTraversed))
+				{
+					// We're still within the scope of the original caller.
+					return@condition true
+				}
+				c = c.caller().traversed()
+			}
+			// The original continuation's caller wasn't found, or is actually
+			// nil.  Either way, treat it as a stop condition.
+			return@condition false
+		}
+		// Allow functions to be started or run to completion, as long as they
+		// don't escape the current function.  This keeps the stepping speed
+		// close to 100% within the debugger, while preserving verisimilitude.
+		fiber.fiberHelper.debuggerCanInvoke = true
 	}
 
 	fun stepOutThen()
@@ -145,7 +225,7 @@ class AvailDebuggerModel constructor (
 		// ancestor) indicated that this fiber should not itself be debugged.
 		if (!fiber.heritableFiberGlobals.hasKey(DONT_DEBUG_KEY.atom))
 		{
-			runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
+			runtime.whenSafePointDo(debuggerPriority) {
 				runtime.runtimeLock.safeWrite {
 					debuggedFibers.removeIf {
 						it.executionState.indicatesTermination
@@ -154,7 +234,9 @@ class AvailDebuggerModel constructor (
 					{
 						fiber.captureInDebugger(this)
 						debuggedFibers.add(fiber)
-						whenAddedFiberActions.forEach { it(fiber) }
+						SwingUtilities.invokeLater {
+							whenAddedFiberActions.forEach { it(fiber) }
+						}
 					}
 				}
 			}
@@ -188,9 +270,11 @@ class AvailDebuggerModel constructor (
 	 */
 	fun justPaused(fiber: A_Fiber)
 	{
-		runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
+		runtime.whenSafePointDo(debuggerPriority) {
 			runtime.runtimeLock.safeWrite {
-				whenPausedActions.forEach { it(fiber) }
+				SwingUtilities.invokeLater {
+					whenPausedActions.forEach { it(fiber) }
+				}
 			}
 		}
 	}
@@ -215,7 +299,7 @@ class AvailDebuggerModel constructor (
 		fibersProvider: () -> Collection<A_Fiber>,
 		then: () -> Unit)
 	{
-		runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
+		runtime.whenSafePointDo(debuggerPriority) {
 			// Prevent other debuggers from accessing the set of fibers.
 			runtime.runtimeLock.safeWrite {
 				val newFibers = fibersProvider()
@@ -246,7 +330,7 @@ class AvailDebuggerModel constructor (
 	 */
 	fun releaseFibersThen(then: () -> Unit)
 	{
-		runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
+		runtime.whenSafePointDo(debuggerPriority) {
 			runtime.runtimeLock.safeWrite {
 				// Release each fiber from this debugger, allowing it to run if
 				// it was runnable.
