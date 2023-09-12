@@ -504,7 +504,7 @@ open class CompiledCodeDescriptor protected constructor(
 		companion object
 		{
 			/** The offset into the array of the first nybblecode. */
-			const val baseIndexInArray = 2  // NYBBLECODE_.ordinal
+			val baseIndexInArray = NYBBLECODES_.ordinal
 
 			init
 			{

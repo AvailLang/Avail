@@ -107,7 +107,6 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
-import avail.utility.cast
 import avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Deque
@@ -416,7 +415,7 @@ class ContinuationDescriptor private constructor(
 	// rare case that we do need it.
 	override fun o_Hash(self: AvailObject): Int =
 		self[HASH_OR_ZERO].ifZero {
-			val caller = self.caller().traversed().cast()!!
+			val caller = self.caller().traversed()
 			var callerHash = 0
 			if (caller.notNil && caller[HASH_OR_ZERO] == 0)
 			{
@@ -432,6 +431,8 @@ class ContinuationDescriptor private constructor(
 				while (ancestor.notNil && ancestor[HASH_OR_ZERO] == 0)
 				// Force the hashes to be computed, starting with the deepest.
 				chain.forEach { c ->
+					// Since these calls happen bottom-up, they won't have to
+					// recurse into their callers.
 					callerHash = c.hashCode()
 				}
 			}

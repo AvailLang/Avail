@@ -97,6 +97,7 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_RUNNING_TOP_STATEMENT
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_SEMANTIC_RESTRICTION
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
@@ -957,12 +958,15 @@ class AvailCompiler constructor(
 			// the module don't care if a module variable or constant is only
 			// reachable from the module's methods.
 			compilationContext.evaluatePhraseThen(
-				replacement,
-				startState,
-				true,
-				false,
-				{ onSuccess() },
-				{ e: Throwable ->
+				expressionNode = replacement,
+				lexingState = startState,
+				fiberSetup = {
+					setGeneralFlag(IS_RUNNING_TOP_STATEMENT)
+				},
+				shouldSerialize = true,
+				trackTasks = false,
+				onSuccess = { onSuccess() },
+				onFailure = { e: Throwable ->
 					reportPhraseExecutionFailure(
 						startState.lineNumber, startState.position, e)
 				})
@@ -1000,11 +1004,14 @@ class AvailCompiler constructor(
 				}
 				loader.startRecordingEffects()
 				compilationContext.evaluatePhraseThen(
-					replacement.initializationExpression,
-					afterStatement,
-					false,
-					false,
-					{ value ->
+					expressionNode = replacement.initializationExpression,
+					lexingState = afterStatement,
+					fiberSetup = {
+						setGeneralFlag(IS_RUNNING_TOP_STATEMENT)
+					},
+					shouldSerialize = false,
+					trackTasks = false,
+					onSuccess = { value ->
 						loader.stopRecordingEffects()
 						val canSummarize = loader.statementCanBeSummarized()
 						val innerType = instanceTypeOrMetaOn(value)
@@ -1077,12 +1084,12 @@ class AvailCompiler constructor(
 								signature = null,
 								topLevelStartingLine = startState.lineNumber,
 								definitionStartingLine =
-									replacement.token.lineNumber(),
+								replacement.token.lineNumber(),
 								bodyFunction = assignFunction))
 						variable.setValue(value)
 						onSuccess()
 					},
-					{ e: Throwable ->
+					onFailure = { e: Throwable ->
 						reportPhraseExecutionFailure(
 							startState.lineNumber, startState.position, e)
 					})
@@ -1140,11 +1147,14 @@ class AvailCompiler constructor(
 					val assignFunction = createFunctionForPhrase(
 						assign, module, replacement.token.lineNumber())
 					compilationContext.evaluatePhraseThen(
-						replacement.initializationExpression,
-						afterStatement,
-						false,
-						false,
-						{ value ->
+						expressionNode = replacement.initializationExpression,
+						lexingState = afterStatement,
+						fiberSetup = {
+							setGeneralFlag(IS_RUNNING_TOP_STATEMENT)
+						},
+						shouldSerialize = false,
+						trackTasks = false,
+						onSuccess = { value ->
 							variable.setValue(value)
 							compilationContext.serializeWithoutSummary(
 								assignFunction)
@@ -1162,14 +1172,14 @@ class AvailCompiler constructor(
 										signature = functionTypeReturning(
 											variable.kind().readType),
 										topLevelStartingLine =
-											startState.lineNumber,
+										startState.lineNumber,
 										definitionStartingLine =
-											replacement.token.lineNumber(),
+										replacement.token.lineNumber(),
 										bodyFunction = assignFunction))
 							}
 							onSuccess()
 						},
-						{ e: Throwable ->
+						onFailure = { e: Throwable ->
 							reportPhraseExecutionFailure(
 								startState.lineNumber, startState.position, e)
 						})

@@ -371,12 +371,28 @@ class FiberDescriptor private constructor(
 		val debugger = AtomicReference<AvailDebuggerModel?>(null)
 
 		/**
-		 * A function which checks whether the given fiber should run, based on
-		 * what has been set up by the debugger.  This *must* be non-null
-		 * whenever the fiber is captured by a debugger.
+		 * A function which checks whether the fiber in the given interpreter
+		 * should run, based on what has been set up by the debugger.  This
+		 * *must* be non-null whenever the fiber is captured by a debugger.
 		 */
 		@Volatile
-		var debuggerRunCondition: ((A_Fiber)->Boolean)? = null
+		var debuggerRunCondition: ((Interpreter)->Boolean)? = null
+
+		/**
+		 * A function which checks whether the given fiber is allowed to perform
+		 * a function invocation without checking with the
+		 * [debuggerRunCondition].  Note that (1) both regular and non-local
+		 * control flow (e.g., exceptions, time slicing, backtracking) will exit
+		 * from the JVM stack frame that observed this to be true and invoked a
+		 * function, and (2) user-interface debugger control only happens during
+		 * safe points, so it's safe to temporarily replace the
+		 * [debuggerRunCondition] before the invocation and restore it after the
+		 * JVM-level call returns.
+		 *
+		 * This flag is only tested if the fiber is bound to a debugger.
+		 */
+		@Volatile
+		var debuggerCanInvoke: Boolean = true
 	}
 
 	/** The interpretation of the [FiberHelper]'s [flags][FiberHelper.flags]. */
