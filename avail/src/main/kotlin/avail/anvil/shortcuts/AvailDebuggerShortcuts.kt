@@ -64,7 +64,7 @@ sealed class AvailDebuggerShortcut constructor(
  *
  * @author Richard Arriaga
  */
-object StepIntoShortcut: AvailDebuggerShortcut(KeyCode.VK_F7.with())
+data object StepIntoShortcut: AvailDebuggerShortcut(KeyCode.VK_F7.with())
 {
 	override val actionMapKey: String = "step-into"
 	override val description: String =
@@ -76,7 +76,7 @@ object StepIntoShortcut: AvailDebuggerShortcut(KeyCode.VK_F7.with())
  *
  * @author Richard Arriaga
  */
-object StepOverShortcut: AvailDebuggerShortcut(KeyCode.VK_F8.with())
+data object StepOverShortcut: AvailDebuggerShortcut(KeyCode.VK_F8.with())
 {
 	override val actionMapKey: String = "step-over"
 	override val description: String = "Step Over Operation"
@@ -87,7 +87,7 @@ object StepOverShortcut: AvailDebuggerShortcut(KeyCode.VK_F8.with())
  *
  * @author Richard Arriaga
  */
-object StepOutShortcut: AvailDebuggerShortcut(KeyCode.VK_F8.with(SHIFT))
+data object StepOutShortcut: AvailDebuggerShortcut(KeyCode.VK_F8.with(SHIFT))
 {
 	override val actionMapKey: String = "step-out"
 	override val description: String = "Step Out of Current Operation"
@@ -98,7 +98,7 @@ object StepOutShortcut: AvailDebuggerShortcut(KeyCode.VK_F8.with(SHIFT))
  *
  * @author Richard Arriaga
  */
-object ResumeActionShortcut
+data object ResumeActionShortcut
 	: AvailDebuggerShortcut(KeyCode.VK_R.with(menuShortcutKeyMaskEx))
 {
 	override val actionMapKey: String = "resume"

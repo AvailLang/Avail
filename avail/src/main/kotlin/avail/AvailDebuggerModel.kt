@@ -35,7 +35,6 @@ package avail
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.captureInDebugger
-import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
@@ -95,14 +94,15 @@ class AvailDebuggerModel constructor (
 	 */
 	fun runFiberAction(
 		fiber: A_Fiber,
-		doAction: AvailDebuggerModel.(A_Fiber)->Unit)
+		selectedContinuation: A_Continuation,
+		doAction: AvailDebuggerModel.(A_Fiber, A_Continuation)->Unit)
 	{
 		runtime.whenSafePointDo(debuggerPriority) {
 			runtime.assertInSafePoint()
 			runtime.runtimeLock.safeWrite {
 				fiber.lock {
 					assert(fiber.fiberHelper.debugger.get() == this)
-					this.doAction(fiber)
+					this.doAction(fiber, selectedContinuation)
 					runtime.resumeIfPausedByDebugger(fiber)
 				}
 			}
@@ -111,9 +111,11 @@ class AvailDebuggerModel constructor (
 
 	/**
 	 * An action to execute exactly one L1 instruction, the smallest unit of
-	 * execution.
+	 * execution.  Ignore the selected continuation.
 	 */
-	fun doSingleStep(fiber: A_Fiber)
+	fun doSingleStep(
+		fiber: A_Fiber,
+		@Suppress("UNUSED_PARAMETER") selectedContinuation: A_Continuation)
 	{
 		var allow = true
 		fiber.fiberHelper.debuggerRunCondition = {
@@ -124,16 +126,16 @@ class AvailDebuggerModel constructor (
 
 	/**
 	 * An action to execute at least one L1 instruction, stopping only when the
-	 * current frame is at the top of the stack again, or has been removed from
-	 * the stack through a return or other means.
+	 * *selected* frame is at the top of the stack again, or has been removed
+	 * from the stack through a return or other means.
 	 *
 	 * TODO - Intercept non-local control flow just *prior* to jumping past the
 	 *  frame.
 	 */
-	fun doStepOver(fiber: A_Fiber)
+	fun doStepOver(fiber: A_Fiber, selectedContinuation: A_Continuation)
 	{
 		val initialContinuation: A_Continuation =
-			fiber.continuation.traversed().makeShared()
+			selectedContinuation.traversed().makeShared()
 		if (initialContinuation.isNil)
 		{
 			// This probably can't happen, but assume the fiber has ended.

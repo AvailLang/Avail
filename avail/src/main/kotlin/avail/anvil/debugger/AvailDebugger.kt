@@ -385,7 +385,7 @@ class AvailDebugger internal constructor (
 	private val stepOverAction = object : AbstractDebuggerAction(
 		this,
 		"Over (F8)",
-		null,
+		"Step over one instruction or call in the selected frame.",
 		StepOverShortcut)
 	{
 		override fun updateIsEnabled(busy: Boolean)
@@ -478,10 +478,13 @@ class AvailDebugger internal constructor (
 		}
 	}
 
-	fun runFiberAction(doAction: AvailDebuggerModel.(A_Fiber)->Unit)
+	fun runFiberAction(
+		doAction: AvailDebuggerModel.(A_Fiber, A_Continuation)->Unit)
 	{
 		fiberListPane.selectedValue?.let { fiber ->
-			debuggerModel.runFiberAction(fiber, doAction)
+			stackListPane.selectedValue?.let { continuation ->
+				debuggerModel.runFiberAction(fiber, continuation, doAction)
+			}
 		}
 	}
 
@@ -731,7 +734,6 @@ class AvailDebugger internal constructor (
 				val code = frame.function().code()
 				disassembledWithMapThen(code) { text, map ->
 					SwingUtilities.invokeLater {
-						disassemblyPane.highlighter.removeAllHighlights()
 						if (!code.equals(currentCode))
 						{
 							currentCode = code
@@ -747,6 +749,7 @@ class AvailDebugger internal constructor (
 								if (it < pc) it else Int.MIN_VALUE
 							}
 						}
+						disassemblyPane.highlighter.removeAllHighlights()
 						map[highlightPc]?.let { range ->
 							disassemblyPane.highlighter.addHighlight(
 								range.first,
@@ -774,19 +777,17 @@ class AvailDebugger internal constructor (
 				val module = code.module
 				if (!module.equals(currentModule))
 				{
-					SwingUtilities.invokeLater {
-						sourcePane.text = "Fetching source..."
-					}
 					currentModule = module
 					if (module.notNil)
 					{
+						sourcePane.text = "Fetching source..."
 						sourceWithInfoThen(runtime, module) {
 								src, delimiter, ends ->
-							currentSource = src
-							lineDelimiter = delimiter
-							lineEnds = ends
-							stylingRecord = module.stylingRecord()
 							SwingUtilities.invokeLater {
+								currentSource = src
+								lineDelimiter = delimiter
+								lineEnds = ends
+								stylingRecord = module.stylingRecord()
 								val doc = sourcePane.styledDocument
 								doc.remove(0, doc.length)
 								doc.insertString(0, src, null)
@@ -803,13 +804,20 @@ class AvailDebugger internal constructor (
 							}
 						}
 					}
+					else
+					{
+						currentSource = ""
+						sourcePane.text = "(no module)"
+					}
 				}
 				else
 				{
 					// We still have to update the highlight.
-					highlightSourceLine(
-						frame.currentLineNumber(isTopFrame),
-						isTopFrame)
+					SwingUtilities.invokeLater {
+						highlightSourceLine(
+							frame.currentLineNumber(isTopFrame),
+							isTopFrame)
+					}
 				}
 			}
 		}
@@ -859,6 +867,7 @@ class AvailDebugger internal constructor (
 			lineNumber <= lineEnds.size -> lineEnds[lineNumber - 1]
 			else -> currentSource.length
 		}
+		sourcePane.highlighter.removeAllHighlights()
 		sourcePane.highlighter.addHighlight(
 			rangeStart,
 			rangeEnd + 1,
