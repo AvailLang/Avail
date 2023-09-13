@@ -1,7 +1,7 @@
 | **Release**                                | **Version**                                                                                                                                                |
 |--------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Avail VM                                   | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha23-0f824e)](https://central.sonatype.com/namespace/org.availlang)                |
-| [Avail Standard Library](distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha23--1.6.1.alpha14-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
+| [Avail Standard Library](distro/src/avail) | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha23--1.6.1.alpha15-0f824e)](https://central.sonatype.com/namespace/org.availlang) |
 | [Avail Artifact](../avail-artifact)        | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22-0f824e)](https://search.maven.org/artifact/org.availlang/avail-artifact)      |
 | [Avail Gradle Plugin](../gradle-plugin)    | [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha20-0f824e)](https://plugins.gradle.org/plugin/org.availlang.avail-plugin)        |
 
