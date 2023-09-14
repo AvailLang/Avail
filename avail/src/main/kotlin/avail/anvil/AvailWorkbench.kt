@@ -154,6 +154,7 @@ import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.splitter.MessageSplitter
+import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
@@ -1793,7 +1794,7 @@ class AvailWorkbench internal constructor(
 		}
 		progress.sortBy { it.key.qualifiedName }
 		val count = progress.size
-		val truncatedCount = max(0, count - maximumModulesInProgressReport)
+		val truncatedCount = max(0, count - MAXIMUM_MODULES_IN_REPORT)
 		val truncatedProgress = progress.subList(0, count - truncatedCount)
 		var string = truncatedProgress.joinToString("") { (key, triple) ->
 			val (position, size, line) = triple
@@ -3213,7 +3214,7 @@ class AvailWorkbench internal constructor(
 		 * Truncate progress reports containing more than this number of
 		 * individual modules in progress.
 		 */
-		private const val maximumModulesInProgressReport = 20
+		private const val MAXIMUM_MODULES_IN_REPORT = 20
 
 		/** Determine at startup whether we should show developer commands. */
 		val showDeveloperTools =
@@ -3481,11 +3482,28 @@ class AvailWorkbench internal constructor(
 				// Inject a breakpoint handler into the runtime to open a
 				// debugger.
 				runtime.breakpointHandler = { fiber ->
-					val debugger = AvailDebugger(bench)
-					bench.openDebuggers.add(debugger)
-					// Debug just the fiber that hit the breakpoint.
-					debugger.gatherFibers { listOf(fiber) }
-					debugger.open()
+					// The fiber is suspended here, but not yet paused (for
+					// debug). We're also in a safe point.  Upon return from
+					// this block, the primitive will return, so make sure the
+					// fiber is attached to the new debugger first, even if the
+					// debugger view is not yet visible.
+					runtime.assertInSafePoint()
+					runtime.runtimeLock.safeWrite {
+						if (fiber.fiberHelper.debugger.get() == null)
+						{
+							// Open a new debugger window for just this fiber.
+							val debugger = AvailDebugger(bench)
+							bench.openDebuggers.add(debugger)
+							// Debug just the fiber that hit the breakpoint.
+							debugger.debuggerModel.gatherFibers {
+								listOf(fiber)
+							}
+							invokeLater(debugger::open)
+						}
+						// The fiber was either captured by the new debugger or
+						// already captured by an existing one.  Make it pause.
+						fiber.fiberHelper.debuggerRunCondition = { false }
+					}
 				}
 				bench.createBufferStrategy(2)
 				bench.ignoreRepaint = true
