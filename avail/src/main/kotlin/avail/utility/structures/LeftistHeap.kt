@@ -82,7 +82,7 @@ sealed class LeftistHeap<Value : Comparable<Value>>(
 	 */
 	abstract fun without(value: Value): LeftistHeap<Value>
 
-	/** Collect the heap's elements in a [List] in arbitrary order. */
+	/** Collect the heap's elements in a [List] in sorted order. */
 	fun toList(): List<Value>
 	{
 		val list = mutableListOf<Value>()
