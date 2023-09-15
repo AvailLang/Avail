@@ -322,10 +322,10 @@ class VariableSharedGlobalDescriptor private constructor(
 	companion object
 	{
 		/**
-		 * Create a write-once, shared variable. This method should only be used
-		 * to create module constants, and *maybe* eventually local constants.
-		 * It should *not* be used for converting existing variables to be
-		 * shared.
+		 * Create a shared variable, which may be write-once if so indicated.
+		 * This method should only be used to create module constants, and
+		 * *maybe* eventually local constants. It should *not* be used for
+		 * converting existing variables to be shared.
 		 *
 		 * @param variableType
 		 *   The [variable&#32;type][VariableTypeDescriptor].

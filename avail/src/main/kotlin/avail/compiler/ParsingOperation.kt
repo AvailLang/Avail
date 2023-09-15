@@ -32,6 +32,7 @@
 
 package avail.compiler
 
+import avail.compiler.AvailCompiler.Companion.skipWhitespaceAndComments
 import avail.compiler.ParsingConversionRule.Companion.ruleNumber
 import avail.compiler.ParsingOperation.PARSE_PART
 import avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
@@ -80,7 +81,10 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
+import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
@@ -659,10 +663,13 @@ enum class ParsingOperation constructor(
 	},
 
 	/**
-	 * `13` - Reserved for future use.
+	 * `13` - Check whether we are positioned immediately after a newline and
+	 * whitespace that matches the line on which the first token of this phrase
+	 * or its leading argument occurred.  If the indentation string (i.e.,
+	 * spaces and tabs) agrees, continue parsing, otherwise report a weak error
+	 * and abandon this parse theory.
 	 */
-	@Suppress("unused")
-	RESERVED_13(13, false, true)
+	MATCH_INDENT(13, false, true)
 	{
 		override fun execute(
 			compiler: AvailCompiler,
@@ -670,16 +677,52 @@ enum class ParsingOperation constructor(
 			instruction: Int,
 			successorTree: A_BundleTree)
 		{
-			throw UnsupportedOperationException(
-				"Illegal reserved parsing operation")
+			skipWhitespaceAndComments(stepState.start) { successorStates ->
+				successorStates.forEach { parsingState ->
+					val state = stepState.copy { start = parsingState }
+					val initialIndent = state.initialIndentationString()
+					val currentIndent = state.currentIndentationString()
+					when
+					{
+						currentIndent === null ->
+						{
+							state.start.expected(STRONG) { accept ->
+								accept(
+									"an indentation to match that at the " +
+										"beginning of the phrase " +
+										"(${initialIndent.q}), but this " +
+										"position is not after leading " +
+										"whitespace on the line")
+							}
+						}
+						!currentIndent.equals(initialIndent) ->
+						{
+							state.start.expected(STRONG) { accept ->
+								accept(
+									"the indentation to exactly match that " +
+										"at the beginning of the phrase. The " +
+										"indentation at the beginning was " +
+										"${initialIndent.q}, but the current" +
+										"line begins with ${currentIndent.q}.")
+							}
+						}
+						else -> compiler.eventuallyParseRestOfSendNode(
+							successorTree, state)
+					}
+				}
+			}
 		}
 	},
 
 	/**
-	 * `14` - Reserved for future use.
+	 * `14` - Check whether we are positioned immediately after a newline and
+	 * whitespace that contains as a prefix the whitespace on which the first
+	 * token of this phrase or its leading argument occurred.  If the current
+	 * indentation string is a proper extension of the initial whitespace,
+	 * continue parsing, otherwise report a weak error and abandon this parse
+	 * theory.
 	 */
-	@Suppress("unused")
-	RESERVED_14(14, false, true)
+	INCREASE_INDENT(14, false, true)
 	{
 		override fun execute(
 			compiler: AvailCompiler,
@@ -687,16 +730,69 @@ enum class ParsingOperation constructor(
 			instruction: Int,
 			successorTree: A_BundleTree)
 		{
-			throw UnsupportedOperationException(
-				"Illegal reserved parsing operation")
+			skipWhitespaceAndComments(stepState.start) { successorStates ->
+				successorStates.forEach { parsingState ->
+					val state = stepState.copy { start = parsingState }
+					val initialIndent = state.initialIndentationString()
+					val currentIndent = state.currentIndentationString()
+					when
+					{
+						currentIndent === null ->
+							state.start.expected(STRONG) { accept ->
+								accept(
+									"an indentation to exceed that at the " +
+										"beginning of the phrase " +
+										"(${initialIndent.q}), but this " +
+										"position is not after leading " +
+										"whitespace on the line")
+							}
+						currentIndent.tupleSize > initialIndent.tupleSize
+							&& currentIndent.compareFromToWithStartingAt(
+							1, initialIndent.tupleSize, initialIndent, 1)
+						-> compiler.eventuallyParseRestOfSendNode(
+							successorTree, state)
+						initialIndent.equals(currentIndent) ->
+							state.start.expected(STRONG) { accept ->
+								accept(
+									"the indentation at this position to be " +
+										"strictly deeper than at the " +
+										"beginning of the phrase, but " +
+										"they're equal (${currentIndent.q}).")
+							}
+						currentIndent.equals(initialIndent) ->
+							state.start.expected(STRONG) { accept ->
+								accept(
+									"the indentation at this position to be " +
+										"strictly deeper than at the " +
+										"beginning of the phrase. The " +
+										"initial indentation is " +
+										"${initialIndent.q}, but the current " +
+										"indentation is ${currentIndent.q}.")
+							}
+						else -> state.start.expected(STRONG) { accept ->
+							accept(
+								"the indentation to exceed that at the " +
+									"beginning of the phrase. The " +
+									"indentation at the beginning was " +
+									"${initialIndent.q}, but the current line " +
+									"begins with ${currentIndent.q}."
+							)
+						}
+					}
+				}
+			}
 		}
 	},
 
 	/**
-	 * `15` - Reserved for future use.
+	 * `15` - Ensure we are *not* positioned at a series of whitespace and
+	 * comments that include a line break.  This test is specifically to support
+	 * "⇥⁇" and "↹⁇".  Without this filter instruction, the normal token
+	 * processing would allow the "didn't look for indent" path to consume any
+	 * whitespace at all, including a wrong indents, making the construct
+	 * pointless.
 	 */
-	@Suppress("unused")
-	RESERVED_15(15, false, true)
+	NO_LINE_BREAK(15, false, true)
 	{
 		override fun execute(
 			compiler: AvailCompiler,
@@ -704,8 +800,46 @@ enum class ParsingOperation constructor(
 			instruction: Int,
 			successorTree: A_BundleTree)
 		{
-			throw UnsupportedOperationException(
-				"Illegal reserved parsing operation")
+			val line = stepState.start.lineNumber
+			skipWhitespaceAndComments(stepState.start) { successorStates ->
+				val (sameLine, otherLine) =
+					successorStates.partition { it.lineNumber == line }
+				when
+				{
+					sameLine.isNotEmpty() ->
+					{
+						// Continue parsing after the whitespace, since it's
+						// still on the same line.  Silently ignore any other
+						// interpretations that contained line breaks, since we
+						// found at least one without.
+						sameLine.forEach { s ->
+							compiler.eventuallyParseRestOfSendNode(
+								successorTree, stepState.copy { start = s })
+						}
+					}
+					otherLine.isNotEmpty() ->
+					{
+						// There were only interpretations that had whitespace
+						// that contained a line break, which are forbidden by
+						// this parsing instruction
+						val furthest = otherLine.maxBy(ParserState::position)
+						furthest.expected(WEAK) { accept ->
+							accept(
+								"no line break in this interpretation, " +
+									"although an alternative form with a " +
+									"specific indentation scheme has also " +
+									"been attempted.")
+						}
+					}
+					else ->
+					{
+						// No way was found to parse (optional) whitespace
+						// successfully at this position.  Assume that failure
+						// already produced a better diagnostic than we can do
+						// here.  Neither warn nor proceed.
+					}
+				}
+			}
 		}
 	},
 
@@ -1368,5 +1502,15 @@ enum class ParsingOperation constructor(
 				}
 				continuation(builder.toString())
 			}
+
+		/**
+		 * Given a [A_String] used for indentation, describe it for use in a
+		 * diagnostic message to the user.
+		 */
+		private val A_String.q: String get() = when
+		{
+			this.tupleSize == 0 -> "\"\""
+			else -> this.toString()
+		}
 	}
 }

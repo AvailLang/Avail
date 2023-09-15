@@ -685,7 +685,7 @@ interface A_Phrase : A_BasicObject {
 			dispatch { o_TokenIndicesInName(it) }
 
 		/**
-		 * Answer all [tokens][A_Token] belong to the receiver or its
+		 * Answer all [tokens][A_Token] belonging to the receiver or its
 		 * subexpressions, lexically ordered, without positionless synthetic
 		 * tokens.
 		 *
