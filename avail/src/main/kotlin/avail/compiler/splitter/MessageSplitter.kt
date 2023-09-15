@@ -393,6 +393,34 @@ private constructor(messageName: A_String)
 		EXCLAMATION_MARK("!"),
 
 		/**
+		 * When compiling indentation-sensitive languages, this message part
+		 * matches whitespace that strictly increases the indentation beyond the
+		 * indentation that was active when starting to parse the message.  Note
+		 * that the start position is not necessarily where the first token of
+		 * the message occurred, since methods may start with leading arguments.
+		 * In that case, the indentation refers to the whitespace at the start
+		 * of the line where that leading argument begins.
+		 *
+		 * The indentation is treated merely as a filter, and no call argument
+		 * is introduced by the notation.
+		 */
+		INCREASE_INDENT("⇥"),
+
+		/**
+		 * When compiling indentation-sensitive languages, this message part
+		 * matches whitespace that exactly matches the indentation that was
+		 * active when starting to parse the message.  Note that the start
+		 * position is not necessarily where the first token of the message
+		 * occurred, since methods may start with leading arguments.  In that
+		 * case, the indentation refers to the whitespace at the start of the
+		 * line where that leading argument begins.
+		 *
+		 * The indentation is treated merely as a filter, and no call argument
+		 * is introduced by the notation.
+		 */
+		MATCH_INDENT("↹"),
+
+		/**
 		 * An octothorp (#) after an [ELLIPSIS] (…) indicates that a
 		 * whole-number-valued literal token should be consumed from the Avail
 		 * source code at this position.  This is accomplished through the use

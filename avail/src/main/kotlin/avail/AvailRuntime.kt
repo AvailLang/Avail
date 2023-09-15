@@ -268,6 +268,7 @@ import avail.utility.evaluation.OnceSupplier
 import avail.utility.iterableWith
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
+import avail.utility.notNullAnd
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.stackToString
@@ -2095,11 +2096,15 @@ class AvailRuntime constructor(
 					argsBuffer.add(functionToRun as AvailObject)
 					argsBuffer.add(tupleFromList(arguments) as AvailObject)
 				}
-				canSkipTypeCheck || functionToRun.code().numArgs() == 0 ->
+				(canSkipTypeCheck || functionToRun.code().numArgs() == 0)
+					&& functionToRun.code().codePrimitive().notNullAnd {
+						hasFlag(CannotFail)
+					} ->
 				{
-					// There's no debugger that will catch this fiber, and the
-					// VM has already vetted the types.  Have the fiber invoke
-					// the function directly with the arguments.
+					// There's no debugger that will catch this fiber, the
+					// VM has already vetted the types, *AND* the function is an
+					// infallible primitive.  Have the fiber invoke the function
+					// directly with the arguments.
 					function = functionToRun
 					chunk = functionToRun.code().startingChunk
 					argsBuffer.addAll(arguments.cast())

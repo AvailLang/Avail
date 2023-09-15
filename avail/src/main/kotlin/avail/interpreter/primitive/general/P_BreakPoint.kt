@@ -53,7 +53,10 @@ object P_BreakPoint : Primitive(0, CanSuspend, CannotFail)
 		val fiber = interpreter.fiber()
 		val runtime = interpreter.runtime
 		// Enter a safe point, invoke the runtime's injected breakpoint handler,
-		// then succeed from the primitive with nil.
+		// then succeed from the primitive with nil.  The debugger, if it is
+		// installed, is expected to put the fiber into a paused state, and the
+		// succeed(nil) advances the fiber to just after the call to this
+		// primitive (and then really pauses).
 		return interpreter.suspendInSafePointThen {
 			runtime.breakpointHandler(fiber)
 			succeed(nil)
