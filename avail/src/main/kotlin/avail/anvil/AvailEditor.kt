@@ -55,6 +55,7 @@ import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
+import avail.error.ErrorCode
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ManifestRecord
 import avail.persistence.cache.record.ModuleCompilation
@@ -74,6 +75,7 @@ import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.util.TimerTask
 import java.util.concurrent.Semaphore
+import java.util.concurrent.locks.ReentrantLock
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
@@ -89,6 +91,7 @@ import javax.swing.text.Caret
 import javax.swing.text.Position
 import javax.swing.text.StyleConstants
 import javax.swing.text.StyledDocument
+import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 
@@ -655,30 +658,41 @@ class AvailEditor constructor(
 	}
 
 	/**
+	 * The [lock][ReentrantLock] responsible for guarding against unsafe
+	 * concurrent attempts to call [forceWrite].
+	 */
+	private val writeLock = ReentrantLock()
+
+	/**
 	 * Write the modified module to disk immediately.
 	 * Only call within the Swing UI thread.
 	 */
-	private fun forceWrite()
+	internal fun forceWrite()
 	{
-		val string = sourcePane.text
-		val semaphore = Semaphore(0)
-		var throwable: Throwable? = null
-		val adjustedString = when (lineEndDelimiter)
-		{
-			"\n" -> string
-			else -> string.replace("\n", lineEndDelimiter)
+		writeLock.withLock {
+			val string = sourcePane.text
+			val semaphore = Semaphore(0)
+			var throwable: Throwable? = null
+			val adjustedString = when (lineEndDelimiter)
+			{
+				"\n" -> string
+				else -> string.replace("\n", lineEndDelimiter)
+			}
+			resolverReference.resolver.saveFile(
+				resolverReference,
+				adjustedString.toByteArray(),
+				{ semaphore.release() },
+				{ c, t ->
+					throwable = AvailEditorException(
+						"Avail Editor force write to disk failure",
+						c,
+						t)
+					semaphore.release()
+				})
+			semaphore.acquire()
+			throwable?.let { throw it }
+			lastSaveTime = System.currentTimeMillis()
 		}
-		resolverReference.resolver.saveFile(
-			resolverReference,
-			adjustedString.toByteArray(),
-			{ semaphore.release() },
-			{ _, t ->
-				throwable = t
-				semaphore.release()
-			})
-		semaphore.acquire()
-		lastSaveTime = System.currentTimeMillis()
-		throwable?.let { throw it }
 	}
 
 	/** Open the editor window. */
@@ -781,4 +795,25 @@ class AvailEditor constructor(
 			Color(0, 255, 255, 96),
 			Color(0, 255, 255, 32))
 	}
+
+	/**
+	 * A [RuntimeException] encountered during an [AvailEditor] operation.
+	 *
+	 * @constructor
+	 * Construct an [AvailEditorException].
+	 *
+	 * @param msg
+	 *   A custom error message.
+	 * @param e
+	 *   The accompanying [ErrorCode] that describes the error.
+	 * @param cause
+	 *   The proximal [Throwable] cause of this exception or `null` if none
+	 *   provided.
+	 */
+	class AvailEditorException (
+		msg: String,
+		e: ErrorCode,
+		cause: Throwable?
+	): RuntimeException(
+		"Avail editor failure: $msg [$e]", cause)
 }
