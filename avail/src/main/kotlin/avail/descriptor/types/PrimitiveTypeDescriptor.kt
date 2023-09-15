@@ -33,6 +33,7 @@ package avail.descriptor.types
 
 import avail.AvailRuntimeSupport
 import avail.annotations.ThreadSafe
+import avail.builder.ModuleRoot
 import avail.compiler.AvailCompiler
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.MessageBundleDescriptor
@@ -59,6 +60,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.resource.ResourceDescriptor
 import avail.descriptor.tokens.LiteralTokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -95,6 +97,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RESOURCE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.VariableDescriptor
@@ -340,7 +343,7 @@ private constructor(
 					MESSAGE_BUNDLE_TREE, METHOD,
 					METHOD_DEFINITION, MODULE, NONTYPE,
 					NUMBER, PARSING_PLAN_IN_PROGRESS,
-					RAW_POJO, DEFINITION, TOKEN ->
+					RAW_POJO, DEFINITION, TOKEN, RESOURCE ->
 						super.o_MarshalToJava(self, classHint)
 				}
 			}
@@ -483,9 +486,8 @@ private constructor(
 	 * specifically all [primitive&#32;types][PrimitiveTypeDescriptor].
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-
-	/**
+	 *
+	 * @constructor
 	 * Construct a new `Types` instance with the specified parent.  Use
 	 * [PrimitiveTypeDescriptor] for the new type's descriptor.
 	 *
@@ -682,7 +684,15 @@ private constructor(
 		 * the raw POJOs, placing them in sets and doing other things that
 		 * occasionally require their kind to be extracted.
 		 */
-		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.POJO_TAG);
+		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.POJO_TAG),
+
+		/**
+		 * [Resources][ResourceDescriptor] are maintained mostly automatically
+		 * by Avail's runtime environment. Resources are non-avail modules that
+		 * are also present in [ModuleRoot]s and can be accessed in Avail code
+		 * by Avail programmers.
+		 */
+		RESOURCE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.RESOURCE_TAG);
 
 		/**
 		 * Create the [A_Type] associated with this [Types] entry.

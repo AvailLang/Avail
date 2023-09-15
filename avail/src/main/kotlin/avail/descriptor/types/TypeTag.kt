@@ -141,6 +141,7 @@ constructor(
 	MAP_TAG(NONTYPE_TAG, null, Sup { mostGeneralMapType() }),
 	METHOD_TAG(NONTYPE_TAG, null, Sup { Types.METHOD.o }),
 	MODULE_TAG(NONTYPE_TAG, null, Sup { Types.MODULE.o }),
+	RESOURCE_TAG(NONTYPE_TAG, null, Sup { Types.RESOURCE.o }),
 	NUMBER_TAG(NONTYPE_TAG, null, Abstract, Sup { Types.NUMBER.o }),
 	EXTENDED_INTEGER_TAG(NUMBER_TAG, null, Abstract, Sup { extendedIntegers }),
 	INTEGER_TAG(EXTENDED_INTEGER_TAG, null, Sup { integers }),

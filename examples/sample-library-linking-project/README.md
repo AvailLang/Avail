@@ -13,7 +13,7 @@ SAMPLE HYBRID PROJECT OVERVIEW
 This represents a project that creates a library written in Java that is linked 
 in Avail with Avail's dynamic library linking. Any JVM language that compiles 
 to Java bytecode packaged in a JAR can be linked. This project will be updated 
-over time to reflect changes to Avail.
+over time to reflect changes to Avail. 
 
 SETUP
 --------------------------------------------------------------------------------
@@ -62,6 +62,10 @@ Link library: "/my-avail-root/App/avail-java-ffi-1.0.jar";
 This is linking the JAR file at the specified location directly inside the
 `my-avail-root` module root. In order for a Jar file to be linked by Avail, it
 ***must*** be inside the module root that is linking it. 
+
+***NOTE***: The linked JAR must be an uber-JAR, containing all dependencies, as 
+Avail does not resolve and link any library dependencies not packaged in the 
+JAR.
 
 RUNNING
 --------------------------------------------------------------------------------
