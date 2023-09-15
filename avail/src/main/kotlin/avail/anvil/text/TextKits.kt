@@ -63,7 +63,7 @@ import avail.anvil.shortcuts.OutdentShortcut
 import avail.anvil.shortcuts.PascalCaseShortcut
 import avail.anvil.shortcuts.PrintAllRenderingSolutionsShortcut
 import avail.anvil.shortcuts.RedoShortcut
-import avail.anvil.shortcuts.RefreshShortcut
+import avail.anvil.shortcuts.RebuildShortcut
 import avail.anvil.shortcuts.RefreshStylesheetShortcut
 import avail.anvil.shortcuts.SaveShortcut
 import avail.anvil.shortcuts.SnakeCaseShortcut
@@ -188,7 +188,7 @@ class AvailEditorKit constructor(workbench: AvailWorkbench) : CodeKit(workbench)
 		InsertLineCommentAtStart,
 		OpenStructureView,
 		OpenPhraseView,
-		Refresh,
+		Rebuild,
 		WrapInBlockComment,
 		RefreshStylesheet,
 		PrintAllRenderingSolutions
@@ -475,11 +475,12 @@ private object GoToDialogAction: TextAction(GoToDialogShortcut.actionMapKey)
 /**
  * Rebuild the open editor's module and refresh the screen style.
  */
-private object Refresh: TextAction(RefreshShortcut.actionMapKey)
+private object Rebuild: TextAction(RebuildShortcut.actionMapKey)
 {
 	override fun actionPerformed(e: ActionEvent)
 	{
 		val editor = e.editor
+		editor.forceWrite()
 		val workbench = editor.workbench
 		workbench.clearTranscript()
 		val buildTask = BuildTask(workbench, editor.resolvedName)

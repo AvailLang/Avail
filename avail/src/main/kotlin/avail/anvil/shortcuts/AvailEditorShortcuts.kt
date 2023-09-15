@@ -36,7 +36,6 @@ import avail.anvil.AvailEditor
 import avail.anvil.actions.RefreshStylesheetAction
 import avail.anvil.editor.GoToDialog
 import avail.anvil.shortcuts.ModifierKey.ALT
-import avail.anvil.shortcuts.ModifierKey.BUTTON1
 import avail.anvil.shortcuts.ModifierKey.CTRL
 import avail.anvil.shortcuts.ModifierKey.Companion.menuShortcutKeyMaskEx
 import avail.anvil.shortcuts.ModifierKey.SHIFT
@@ -109,9 +108,9 @@ object OpenPhraseViewShortcut
  *
  * @author Richard Arriaga
  */
-object RefreshShortcut: AvailEditorShortcut(KeyCode.VK_F5.with())
+object RebuildShortcut: AvailEditorShortcut(KeyCode.VK_F5.with())
 {
-	override val actionMapKey: String = "refresh"
+	override val actionMapKey: String = "rebuild"
 	override val description: String = "Rebuild and Refresh Module"
 }
 
