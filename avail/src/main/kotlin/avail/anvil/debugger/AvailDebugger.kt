@@ -1194,7 +1194,8 @@ class AvailDebugger internal constructor (
 		fibersProvider: () -> Collection<A_Fiber>)
 	{
 		val semaphore = Semaphore(0)
-		debuggerModel.gatherFibersThen(fibersProvider) {
+		runtime.whenSafePointDo(debuggerPriority) {
+			debuggerModel.gatherFibers(fibersProvider)
 			(FiberKind.all zip captureButtons).forEach { (kind, button) ->
 				button.isSelected = debuggerModel.isCapturingNewFibers(kind)
 			}
@@ -1221,8 +1222,8 @@ class AvailDebugger internal constructor (
 }
 
 /**
- * Helper function to minimize which variables will presented in scope
- * when using the "inspect" action.
+ * Helper function to minimize which variables will be presented in scope when
+ * using the "inspect" action.
  */
 @Suppress("UNUSED_PARAMETER")
 fun inspect(name: String, value: AvailObject)

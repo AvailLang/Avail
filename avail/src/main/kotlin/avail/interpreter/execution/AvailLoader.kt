@@ -47,6 +47,8 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
 import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
 import avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
 import avail.compiler.splitter.MessageSplitter.Metacharacter.EXCLAMATION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.INCREASE_INDENT
+import avail.compiler.splitter.MessageSplitter.Metacharacter.MATCH_INDENT
 import avail.compiler.splitter.MessageSplitter.Metacharacter.OCTOTHORP
 import avail.compiler.splitter.MessageSplitter.Metacharacter.OPEN_GUILLEMET
 import avail.compiler.splitter.MessageSplitter.Metacharacter.QUESTION_MARK
@@ -2168,6 +2170,8 @@ constructor(
 					DOUBLE_QUESTION_MARK.codepoint,
 					ELLIPSIS.codepoint,
 					EXCLAMATION_MARK.codepoint,
+					INCREASE_INDENT.codepoint,
+					MATCH_INDENT.codepoint,
 					OCTOTHORP.codepoint,
 					OPEN_GUILLEMET.codepoint,
 					QUESTION_MARK.codepoint,
@@ -2298,7 +2302,6 @@ constructor(
 				}
 			}
 			return buildString {
-				val native = quotedName.asNativeString()
 				for ((start, pastEnd, styleString) in styles)
 				{
 					stylesheet[styleString].encloseHtml(this) {
