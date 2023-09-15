@@ -1165,12 +1165,12 @@ class StylePatternCompiler private constructor(
 								start + 1, source.substring(start, i)))
 					}
 				}
-				c.toChar().isWhitespace() ->
+				Character.isWhitespace(c) ->
 				{
 					// No action required.
 				}
 				else -> tokens.add(InvalidToken(
-					start + 1, c.toChar().toString()))
+					start + 1, buildString { appendCodePoint(c) }))
 			}
 		}
 		tokens.add(EndOfPatternToken(i + 1))

@@ -34,6 +34,9 @@ package avail.compiler.splitter
 
 import avail.compiler.ParsingOperation
 import avail.compiler.problems.CompilerDiagnostics
+import avail.compiler.splitter.CheckIndent.IndentationMatchType
+import avail.compiler.splitter.CheckIndent.IndentationMatchType.IncreaseIndent
+import avail.compiler.splitter.CheckIndent.IndentationMatchType.MatchIndent
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
@@ -41,6 +44,8 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
 import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
 import avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
 import avail.compiler.splitter.MessageSplitter.Metacharacter.EXCLAMATION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.INCREASE_INDENT
+import avail.compiler.splitter.MessageSplitter.Metacharacter.MATCH_INDENT
 import avail.compiler.splitter.MessageSplitter.Metacharacter.OCTOTHORP
 import avail.compiler.splitter.MessageSplitter.Metacharacter.OPEN_GUILLEMET
 import avail.compiler.splitter.MessageSplitter.Metacharacter.QUESTION_MARK
@@ -1057,12 +1062,39 @@ private constructor(messageName: A_String)
 			currentPositionForStart - 1,  // Include the §.
 			currentPositionForEnd,   // Can't have adjacent spaces.
 			++numberOfSectionCheckpoints)
+		peekFor(MATCH_INDENT) -> parseIndent(MatchIndent)
+		peekFor(INCREASE_INDENT) -> parseIndent(IncreaseIndent)
 		else -> parseSimple()
 	}
 
 	/**
+	 * A [MATCH_INDENT] or [INCREASE_INDENT] part was just matched.  Create the
+	 * [CheckIndent] for it, and wrap it in a [CompletelyOptional] if a
+	 * [DOUBLE_QUESTION_MARK] follows.
+	 */
+	private fun parseIndent (
+		indentationMatchType: IndentationMatchType
+	): Expression
+	{
+		var expression: Expression = CheckIndent(
+			currentPositionForStart - 1,
+			currentPositionForEnd,
+			indentationMatchType)
+		if (peekFor(DOUBLE_QUESTION_MARK))
+		{
+			val sequence = Sequence(
+				expression.startInName,
+				expression.pastEndInName,
+				listOf(expression))
+			expression = CompletelyOptional(
+				expression.startInName, expression.pastEndInName, sequence)
+		}
+		return expression
+	}
+
+	/**
 	 * Parse a [Simple] at the current position.  Also look for suffixes
-	 * indicating
+	 * that wrap or modify the expression.
 	 *
 	 * @return
 	 *   The [Simple].
@@ -1338,9 +1370,9 @@ private constructor(messageName: A_String)
 				DOUBLE_QUESTION_MARK,
 				group.underscoreCount > 0 || group.hasDagger,
 				E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
-				"A double question mark (⁇) may only follow "
-					+ "a token or simple group, not one with a "
-					+ "double-dagger (‡) or arguments"
+				"A double question mark (⁇) may only follow " +
+					"a token, an indentation indicator, or a simple group, " +
+					"not one with a double-dagger (‡) or arguments"
 			) -> CompletelyOptional(
 				startOfGroup, currentPositionForEnd, group.beforeDagger)
 			peekFor(
