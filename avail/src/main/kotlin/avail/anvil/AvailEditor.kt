@@ -55,6 +55,7 @@ import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
+import avail.error.ErrorCode
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ManifestRecord
 import avail.persistence.cache.record.ModuleCompilation
@@ -658,7 +659,7 @@ class AvailEditor constructor(
 	 * Write the modified module to disk immediately.
 	 * Only call within the Swing UI thread.
 	 */
-	private fun forceWrite()
+	internal fun forceWrite()
 	{
 		val string = sourcePane.text
 		val semaphore = Semaphore(0)
@@ -672,13 +673,16 @@ class AvailEditor constructor(
 			resolverReference,
 			adjustedString.toByteArray(),
 			{ semaphore.release() },
-			{ _, t ->
-				throwable = t
+			{ c, t ->
+				throwable = AvailEditorException(
+					"Avail Editor force write to disk failure",
+					c,
+					t)
 				semaphore.release()
 			})
 		semaphore.acquire()
-		lastSaveTime = System.currentTimeMillis()
 		throwable?.let { throw it }
+		lastSaveTime = System.currentTimeMillis()
 	}
 
 	/** Open the editor window. */
@@ -781,4 +785,25 @@ class AvailEditor constructor(
 			Color(0, 255, 255, 96),
 			Color(0, 255, 255, 32))
 	}
+
+	/**
+	 * A [RuntimeException] encountered during an [AvailEditor] operation.
+	 *
+	 * @constructor
+	 * Construct an [AvailEditorException].
+	 *
+	 * @param msg
+	 *   A custom error message.
+	 * @param e
+	 *   The accompanying [ErrorCode] that describes the error.
+	 * @param cause
+	 *   The proximal [Throwable] cause of this exception or `null` if none
+	 *   provided.
+	 */
+	class AvailEditorException (
+		msg: String,
+		e: ErrorCode,
+		cause: Throwable?
+	): RuntimeException(
+		"Avail editor failure: $msg [$e]", cause)
 }

@@ -397,12 +397,35 @@ class FileSystemModuleRootResolver constructor(
 		val data = ByteBuffer.wrap(fileContents)
 		val path = Path.of(reference.uri)
 		val tempPath = path.parent.resolve(tempFilePrefix() + path.fileName)
-		val tempFile = fileManager.ioSystem.openFile(
-			tempPath,
-			EnumSet.of(
-				StandardOpenOption.CREATE,
-				StandardOpenOption.TRUNCATE_EXISTING,
-				StandardOpenOption.WRITE))
+		val tempFile = try
+		{
+			fileManager.ioSystem.openFile(
+				tempPath,
+				EnumSet.of(
+					StandardOpenOption.CREATE,
+					StandardOpenOption.TRUNCATE_EXISTING,
+					StandardOpenOption.WRITE))
+		}
+		catch (e: IOException)
+		{
+			failureHandler(StandardErrorCode.IO_EXCEPTION, e)
+			return
+		}
+		catch (e: IllegalArgumentException)
+		{
+			failureHandler(StandardErrorCode.IO_EXCEPTION, e)
+			return
+		}
+		catch (e: UnsupportedOperationException)
+		{
+			failureHandler(StandardErrorCode.IO_EXCEPTION, e)
+			return
+		}
+		catch (e: SecurityException)
+		{
+			failureHandler(FileErrorCode.PERMISSIONS, e)
+			return
+		}
 		tempFile.write(
 			data,
 			0,
