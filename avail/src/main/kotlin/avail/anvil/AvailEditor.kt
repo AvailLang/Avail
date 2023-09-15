@@ -75,6 +75,7 @@ import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.util.TimerTask
 import java.util.concurrent.Semaphore
+import java.util.concurrent.locks.ReentrantLock
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JLabel
@@ -90,6 +91,7 @@ import javax.swing.text.Caret
 import javax.swing.text.Position
 import javax.swing.text.StyleConstants
 import javax.swing.text.StyledDocument
+import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 
@@ -656,33 +658,41 @@ class AvailEditor constructor(
 	}
 
 	/**
+	 * The [lock][ReentrantLock] responsible for guarding against unsafe
+	 * concurrent attempts to call [forceWrite].
+	 */
+	private val writeLock = ReentrantLock()
+
+	/**
 	 * Write the modified module to disk immediately.
 	 * Only call within the Swing UI thread.
 	 */
 	internal fun forceWrite()
 	{
-		val string = sourcePane.text
-		val semaphore = Semaphore(0)
-		var throwable: Throwable? = null
-		val adjustedString = when (lineEndDelimiter)
-		{
-			"\n" -> string
-			else -> string.replace("\n", lineEndDelimiter)
+		writeLock.withLock {
+			val string = sourcePane.text
+			val semaphore = Semaphore(0)
+			var throwable: Throwable? = null
+			val adjustedString = when (lineEndDelimiter)
+			{
+				"\n" -> string
+				else -> string.replace("\n", lineEndDelimiter)
+			}
+			resolverReference.resolver.saveFile(
+				resolverReference,
+				adjustedString.toByteArray(),
+				{ semaphore.release() },
+				{ c, t ->
+					throwable = AvailEditorException(
+						"Avail Editor force write to disk failure",
+						c,
+						t)
+					semaphore.release()
+				})
+			semaphore.acquire()
+			throwable?.let { throw it }
+			lastSaveTime = System.currentTimeMillis()
 		}
-		resolverReference.resolver.saveFile(
-			resolverReference,
-			adjustedString.toByteArray(),
-			{ semaphore.release() },
-			{ c, t ->
-				throwable = AvailEditorException(
-					"Avail Editor force write to disk failure",
-					c,
-					t)
-				semaphore.release()
-			})
-		semaphore.acquire()
-		throwable?.let { throw it }
-		lastSaveTime = System.currentTimeMillis()
 	}
 
 	/** Open the editor window. */
