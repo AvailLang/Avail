@@ -702,7 +702,7 @@ enum class ParsingOperation constructor(
 									"the indentation to exactly match that " +
 										"at the beginning of the phrase. The " +
 										"indentation at the beginning was " +
-										"${initialIndent.q}, but the current" +
+										"${initialIndent.q}, but the current " +
 										"line begins with ${currentIndent.q}.")
 							}
 						}
