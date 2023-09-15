@@ -1350,6 +1350,7 @@ class AvailCompiler constructor(
 				false,
 				false,
 				emptyList(),
+				null,
 				PartialSubexpressionList(
 					loader.rootBundleTree, superexpressions),
 				continuation))
@@ -1389,6 +1390,7 @@ class AvailCompiler constructor(
 				false,
 				false,
 				emptyList(),
+				null,
 				PartialSubexpressionList(
 					loader.rootBundleTree, superexpressions),
 				continuation))
@@ -4687,7 +4689,7 @@ class AvailCompiler constructor(
 		 * @param continuation
 		 *   What to invoke with the collection of successor [ParserState]s.
 		 */
-		private fun skipWhitespaceAndComments(
+		fun skipWhitespaceAndComments(
 			start: ParserState,
 			continuation: (List<ParserState>)->Unit)
 		{
