@@ -61,7 +61,6 @@ import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberName
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
-import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.FiberKind
 import avail.descriptor.fiber.FiberDescriptor.FiberKind.Companion.fiberKind
 import avail.descriptor.functions.A_Continuation
@@ -371,6 +370,7 @@ class AvailDebugger internal constructor (
 	private val stepIntoAction = object : AbstractDebuggerAction(
 		this,
 		"Into (F7)",
+		"Step one instruction, or into a call.",
 		StepIntoShortcut)
 	{
 		override fun updateIsEnabled(busy: Boolean)
@@ -379,28 +379,13 @@ class AvailDebugger internal constructor (
 		}
 
 		override fun actionPerformed(e: ActionEvent) =
-			runtime.whenSafePointDo(debuggerPriority) {
-				runtime.runtimeLock.safeWrite {
-					fiberListPane.selectedValue?.let { fiber ->
-						if (fiber.executionState == PAUSED)
-						{
-							debuggerModel.singleStep(fiber)
-						}
-					}
-				}
-			}
-
-		init
-		{
-			putValue(
-				Action.SHORT_DESCRIPTION,
-				"Step one instruction, or into a call.")
-		}
+			debugger.runFiberAction(AvailDebuggerModel::doSingleStep)
 	}
 
 	private val stepOverAction = object : AbstractDebuggerAction(
 		this,
 		"Over (F8)",
+		"Step over one instruction or call in the selected frame.",
 		StepOverShortcut)
 	{
 		override fun updateIsEnabled(busy: Boolean)
@@ -408,18 +393,14 @@ class AvailDebugger internal constructor (
 			// Do nothing
 		}
 
-		init { isEnabled = false }
-
-		override fun actionPerformed(e: ActionEvent)
-		{
-			JOptionPane.showMessageDialog(
-				this@AvailDebugger, "\"Over\" is not implemented")
-		}
+		override fun actionPerformed(e: ActionEvent) =
+			debugger.runFiberAction(AvailDebuggerModel::doStepOver)
 	}
 
 	private val stepOutAction = object : AbstractDebuggerAction(
 		this,
 		"Out (⇧F8)",
+		null,
 		StepOutShortcut)
 	{
 		override fun updateIsEnabled(busy: Boolean)
@@ -457,6 +438,7 @@ class AvailDebugger internal constructor (
 	private val resumeAction = object : AbstractDebuggerAction(
 		this,
 		"Resume (⌘R)",
+		null,
 		ResumeActionShortcut)
 	{
 		override fun updateIsEnabled(busy: Boolean)
@@ -468,8 +450,10 @@ class AvailDebugger internal constructor (
 		{
 			runtime.whenSafePointDo(debuggerPriority) {
 				runtime.runtimeLock.safeWrite {
-					fiberListPane.selectedValue?.let { fiber ->
-						debuggerModel.resume(fiber)
+					SwingUtilities.invokeLater {
+						fiberListPane.selectedValue?.let { fiber ->
+							debuggerModel.resume(fiber)
+						}
 					}
 				}
 			}
@@ -491,6 +475,16 @@ class AvailDebugger internal constructor (
 		{
 			JOptionPane.showMessageDialog(
 				this@AvailDebugger, "\"Restart\" is not implemented")
+		}
+	}
+
+	fun runFiberAction(
+		doAction: AvailDebuggerModel.(A_Fiber, A_Continuation)->Unit)
+	{
+		fiberListPane.selectedValue?.let { fiber ->
+			stackListPane.selectedValue?.let { continuation ->
+				debuggerModel.runFiberAction(fiber, continuation, doAction)
+			}
 		}
 	}
 
@@ -653,6 +647,7 @@ class AvailDebugger internal constructor (
 	 * maintaining the selected fiber if possible.
 	 */
 	private fun updateFiberList() = fiberListPane.run {
+		assert(SwingUtilities.isEventDispatchThread())
 		val oldFiber = selectedValue
 		var changedFiber = false
 		val wasAdjusting = valueIsAdjusting
@@ -686,6 +681,7 @@ class AvailDebugger internal constructor (
 	 */
 	private fun updateStackList()
 	{
+		assert(SwingUtilities.isEventDispatchThread())
 		when (val fiber = fiberListPane.selectedValue)
 		{
 			null ->
@@ -721,6 +717,7 @@ class AvailDebugger internal constructor (
 	 */
 	private fun updateDisassemblyAndSourcePanes()
 	{
+		assert(SwingUtilities.isEventDispatchThread())
 		val isTopFrame = stackListPane.selectedIndex == 0
 		when (val frame = stackListPane.selectedValue)
 		{
@@ -737,7 +734,6 @@ class AvailDebugger internal constructor (
 				val code = frame.function().code()
 				disassembledWithMapThen(code) { text, map ->
 					SwingUtilities.invokeLater {
-						disassemblyPane.highlighter.removeAllHighlights()
 						if (!code.equals(currentCode))
 						{
 							currentCode = code
@@ -753,6 +749,7 @@ class AvailDebugger internal constructor (
 								if (it < pc) it else Int.MIN_VALUE
 							}
 						}
+						disassemblyPane.highlighter.removeAllHighlights()
 						map[highlightPc]?.let { range ->
 							disassemblyPane.highlighter.addHighlight(
 								range.first,
@@ -780,18 +777,17 @@ class AvailDebugger internal constructor (
 				val module = code.module
 				if (!module.equals(currentModule))
 				{
-					SwingUtilities.invokeLater {
-						sourcePane.text = "Fetching source..."
-					}
+					currentModule = module
 					if (module.notNil)
 					{
+						sourcePane.text = "Fetching source..."
 						sourceWithInfoThen(runtime, module) {
-								src, delim, ends ->
-							currentSource = src
-							lineDelimiter = delim
-							lineEnds = ends
-							stylingRecord = module.stylingRecord()
+								src, delimiter, ends ->
 							SwingUtilities.invokeLater {
+								currentSource = src
+								lineDelimiter = delimiter
+								lineEnds = ends
+								stylingRecord = module.stylingRecord()
 								val doc = sourcePane.styledDocument
 								doc.remove(0, doc.length)
 								doc.insertString(0, src, null)
@@ -808,13 +804,20 @@ class AvailDebugger internal constructor (
 							}
 						}
 					}
+					else
+					{
+						currentSource = ""
+						sourcePane.text = "(no module)"
+					}
 				}
 				else
 				{
 					// We still have to update the highlight.
-					highlightSourceLine(
-						frame.currentLineNumber(isTopFrame),
-						isTopFrame)
+					SwingUtilities.invokeLater {
+						highlightSourceLine(
+							frame.currentLineNumber(isTopFrame),
+							isTopFrame)
+					}
 				}
 			}
 		}
@@ -855,7 +858,7 @@ class AvailDebugger internal constructor (
 		{
 			lineNumber <= 1 -> 0
 			lineNumber <= lineEnds.size + 1 -> lineEnds[lineNumber - 2] + 1
-			else -> currentSource.length - 1
+			else -> currentSource.length
 		}
 		val rangeEnd = when
 		{
@@ -864,6 +867,7 @@ class AvailDebugger internal constructor (
 			lineNumber <= lineEnds.size -> lineEnds[lineNumber - 1]
 			else -> currentSource.length
 		}
+		sourcePane.highlighter.removeAllHighlights()
 		sourcePane.highlighter.addHighlight(
 			rangeStart,
 			rangeEnd + 1,
@@ -1190,7 +1194,8 @@ class AvailDebugger internal constructor (
 		fibersProvider: () -> Collection<A_Fiber>)
 	{
 		val semaphore = Semaphore(0)
-		debuggerModel.gatherFibersThen(fibersProvider) {
+		runtime.whenSafePointDo(debuggerPriority) {
+			debuggerModel.gatherFibers(fibersProvider)
 			(FiberKind.all zip captureButtons).forEach { (kind, button) ->
 				button.isSelected = debuggerModel.isCapturingNewFibers(kind)
 			}
@@ -1206,15 +1211,19 @@ class AvailDebugger internal constructor (
 	private fun releaseAllFibers()
 	{
 		val semaphore = Semaphore(0)
-		debuggerModel.whenPausedActions.clear()
-		debuggerModel.releaseFibersThen { semaphore.release() }
+		runtime.whenSafePointDo(debuggerPriority) {
+			runtime.runtimeLock.safeWrite {
+				debuggerModel.whenPausedActions.clear()
+				debuggerModel.releaseFibersThen { semaphore.release() }
+			}
+		}
 		semaphore.acquire()
 	}
 }
 
 /**
- * Helper function to minimize which variables will presented in scope
- * when using the "inspect" action.
+ * Helper function to minimize which variables will be presented in scope when
+ * using the "inspect" action.
  */
 @Suppress("UNUSED_PARAMETER")
 fun inspect(name: String, value: AvailObject)

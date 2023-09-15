@@ -531,7 +531,7 @@ class Interpreter(
 	 * at that time no interpreters are bound to fibers, so this can be cached
 	 * when binding the fiber to the interpreter, and cleared when unbinding.
 	 */
-	var debuggerRunCondition: ((A_Fiber)->Boolean)? = null
+	var debuggerRunCondition: ((Interpreter)->Boolean)? = null
 		private set
 
 	/**
@@ -2356,9 +2356,38 @@ class Interpreter(
 		offset = 0
 		returnNow = false
 		adjustUnreifiedCallDepthBy(1)
-		return try
+
+		try
 		{
-			runChunk()
+			if (debugger != null)
+			{
+				// Do the call in a debugger-aware way.
+				val fiberHelper = fiber!!.fiberHelper
+				if (fiberHelper.debuggerCanInvoke)
+				{
+					// Effectively shut off the debugger until we've
+					// returned back to this point in the JVM call
+					// stack.
+					val savedDebugger = debugger
+					val savedRunCondition = debuggerRunCondition
+					debugger = null
+					debuggerRunCondition = { true }
+					try
+					{
+						// Do the call without the debugger present.
+						return runChunk()
+					}
+					finally
+					{
+						// Put the debugger back into the picture,
+						// whether the invoked function completed or
+						// reified.
+						debugger = savedDebugger
+						debuggerRunCondition = savedRunCondition
+					}
+				}
+			}
+			return runChunk()
 		}
 		finally
 		{

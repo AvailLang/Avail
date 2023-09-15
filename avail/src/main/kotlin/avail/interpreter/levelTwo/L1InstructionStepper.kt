@@ -266,8 +266,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			// prior to installing the base frame hook.
 			if (debugger !== null)
 			{
-				val f = interpreter.fiber()
-				if (!interpreter.debuggerRunCondition!!(f))
+				if (!interpreter.debuggerRunCondition!!(interpreter))
 				{
 					// The debuggerRunCondition said we should pause now.
 					val mutableContinuation = createContinuationWithFrame(
@@ -288,6 +287,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					{
 						// Push the new continuation onto the reified stack.
 						interpreter.apply {
+							val f = fiber()
 							returnNow = false
 							f.continuation =
 								mutableContinuation.replacingCaller(

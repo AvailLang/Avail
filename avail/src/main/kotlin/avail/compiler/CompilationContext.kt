@@ -104,7 +104,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokenIndicesInName
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.PhraseDescriptor
-import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.A_Token
@@ -605,8 +604,8 @@ class CompilationContext constructor(
 	 *   A function.
 	 * @param lexingState
 	 *   The position at which this function occurs in the module.
-	 * @param args
-	 *   The arguments to the function.
+	 * @param fiberSetup
+	 *   A function to update the fiber prior to launching it.
 	 * @param clientParseData
 	 *   The map to associate with the [SpecialAtom.CLIENT_DATA_GLOBAL_KEY] atom
 	 *   in the fiber.
@@ -624,7 +623,7 @@ class CompilationContext constructor(
 	private fun evaluateFunctionThen(
 		function: A_Function,
 		lexingState: LexingState,
-		args: List<A_BasicObject>,
+		fiberSetup: A_Fiber.()->Unit,
 		clientParseData: A_Map,
 		shouldSerialize: Boolean,
 		trackTasks: Boolean,
@@ -632,7 +631,7 @@ class CompilationContext constructor(
 		onFailure: (Throwable)->Unit)
 	{
 		val code = function.code()
-		assert(code.numArgs() == args.size)
+		assert(code.numArgs() == 0)
 		val fiber = newLoaderFiber(function.kind().returnType, loader)
 		{
 			formatString(
@@ -643,6 +642,7 @@ class CompilationContext constructor(
 		}
 		fiber.fiberGlobals = fiber.fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
+		fiber.fiberSetup()
 		if (shouldSerialize)
 		{
 			loader.startRecordingEffects()
@@ -670,7 +670,7 @@ class CompilationContext constructor(
 		{
 			fiber.setSuccessAndFailure(adjustedSuccess, onFailure)
 		}
-		runtime.runOutermostFunction(fiber, function, args, false)
+		runtime.runOutermostFunction(fiber, function, emptyList(), false)
 	}
 
 	/**
@@ -683,6 +683,8 @@ class CompilationContext constructor(
 	 *   A [phrase][PhraseDescriptor].
 	 * @param lexingState
 	 *   The position at which the expression starts.
+	 * @param fiberSetup
+	 *   A function to update the fiber prior to launching it.
 	 * @param shouldSerialize
 	 *   `true` if the generated function should be serialized, `false`
 	 *   otherwise.
@@ -697,6 +699,7 @@ class CompilationContext constructor(
 	fun evaluatePhraseThen(
 		expressionNode: A_Phrase,
 		lexingState: LexingState,
+		fiberSetup: A_Fiber.()->Unit,
 		shouldSerialize: Boolean,
 		trackTasks: Boolean,
 		onSuccess: (AvailObject)->Unit,
@@ -720,7 +723,7 @@ class CompilationContext constructor(
 		evaluateFunctionThen(
 			function,
 			lexingState,
-			emptyList(),
+			fiberSetup,
 			emptyMap,
 			shouldSerialize,
 			trackTasks,
@@ -750,6 +753,10 @@ class CompilationContext constructor(
 		evaluatePhraseThen(
 			expressionNode = expression,
 			lexingState = lexingState,
+			fiberSetup = {
+				// If we introduce a GeneralFlag for evaluating _† arguments, we
+				// would set it here in the fiber.
+			},
 			shouldSerialize = false,
 			trackTasks = true,
 			onSuccess = continuation,
@@ -1262,12 +1269,12 @@ class CompilationContext constructor(
 		 * Styling is not currently happening.  Also, nobody is waiting for
 		 * styling to complete.
 		 */
-		object NotStyling : StylingCompletionState()
+		data object NotStyling : StylingCompletionState()
 
 		/**
 		 * Styling is happening, but nobody is waiting for it to complete yet.
 		 */
-		object StylingNotWaiting : StylingCompletionState()
+		data object StylingNotWaiting : StylingCompletionState()
 
 		/**
 		 * Styling is happening, and the other party is waiting for it to
