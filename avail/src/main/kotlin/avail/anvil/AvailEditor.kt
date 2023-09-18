@@ -416,9 +416,7 @@ class AvailEditor constructor(
 	/** The editor pane. */
 	internal val sourcePane = CodePane(
 		workbench,
-		isEditable = resolverReference.resolver.canSave &&
-			workbench.getProjectRoot(resolverReference.moduleName.rootName)
-				.notNullAnd { editable },
+		isEditable = isEditable,
 		AvailEditorKit(workbench)
 	).apply {
 		initializeStyles()
@@ -457,6 +455,10 @@ class AvailEditor constructor(
 		})
 		putClientProperty(availEditor, this@AvailEditor)
 	}
+
+	private val isEditable get() = resolverReference.resolver.canSave &&
+		workbench.getProjectRoot(resolverReference.moduleName.rootName)
+			.notNullAnd { editable }
 
 	/**
 	 * Refresh the [KeyboardShortcut]s for this [AvailEditor].
@@ -637,6 +639,7 @@ class AvailEditor constructor(
 				override fun run()
 				{
 					SwingUtilities.invokeLater {
+						if (!isEditable) return@invokeLater
 						// Allow forced saves to interoperate with timed saves.
 						if (lastEditTime < lastSaveTime) return@invokeLater
 						val now = System.currentTimeMillis()
@@ -669,6 +672,7 @@ class AvailEditor constructor(
 	 */
 	internal fun forceWrite()
 	{
+		if (!isEditable) return
 		writeLock.withLock {
 			val string = sourcePane.text
 			val semaphore = Semaphore(0)
