@@ -32,15 +32,15 @@
 
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.APPEND_ARGUMENT
-import avail.compiler.ParsingOperation.CHECK_AT_LEAST
-import avail.compiler.ParsingOperation.CHECK_AT_MOST
-import avail.compiler.ParsingOperation.CONCATENATE
-import avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
-import avail.compiler.ParsingOperation.EMPTY_LIST
-import avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
-import avail.compiler.ParsingOperation.PERMUTE_LIST
-import avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
+import avail.compiler.APPEND_ARGUMENT
+import avail.compiler.CHECK_AT_LEAST
+import avail.compiler.CHECK_AT_MOST
+import avail.compiler.CONCATENATE
+import avail.compiler.DISCARD_SAVED_PARSE_POSITION
+import avail.compiler.EMPTY_LIST
+import avail.compiler.ENSURE_PARSE_PROGRESS
+import avail.compiler.PERMUTE_LIST
+import avail.compiler.SAVE_PARSE_POSITION
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
 import avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
@@ -440,7 +440,8 @@ constructor(
 				afterDagger.emitOn(
 					emptyListPhraseType(), generator, PUSHED_LIST)
 				generator.emitIf(
-					needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+					needsProgressCheck, this, ENSURE_PARSE_PROGRESS
+				)
 			}
 			// The homogenous part of the tuple, one or more iterations.
 			generator.flushDelayed()
@@ -465,7 +466,7 @@ constructor(
 					if (endOfVariation >= minSize) `$exit` else `$exitCheckMin`)
 				if (maxInteger.isFinite)
 				{
-					generator.emit(this, CHECK_AT_MOST, maxSize - 1)
+					generator.emit(this, CHECK_AT_MOST(maxSize - 1))
 				}
 				afterDagger.emitOn(
 					emptyListPhraseType(), generator, PUSHED_LIST)
@@ -476,14 +477,15 @@ constructor(
 				if (`$exitCheckMin`.isUsed)
 				{
 					generator.emit(`$exitCheckMin`)
-					generator.emit(this, CHECK_AT_LEAST, minSize)
+					generator.emit(this, CHECK_AT_LEAST(minSize))
 				}
 			}
 			generator.flushDelayed()
 			generator.emit(`$exit`)
 			generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
 			generator.emitIf(
-				needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
+				needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION
+			)
 			generator.emit(`$skip`)
 			generator.partialListsCount--
 		}
@@ -612,7 +614,7 @@ constructor(
 					if (endOfVariation >= minSize) `$exit` else `$exitCheckMin`)
 				if (maxInteger.isFinite)
 				{
-					generator.emit(this, CHECK_AT_MOST, maxSize - 1)
+					generator.emit(this, CHECK_AT_MOST(maxSize - 1))
 				}
 				emitDoubleWrappedAfterDaggerOn(generator, sublistPhraseType)
 				generator.flushDelayed()
@@ -624,7 +626,7 @@ constructor(
 				{
 					generator.emit(`$exitCheckMin`)
 					generator.emit(this, APPEND_ARGUMENT)
-					generator.emit(this, CHECK_AT_LEAST, minSize)
+					generator.emit(this, CHECK_AT_LEAST(minSize))
 					generator.emitJumpForward(this, `$mergedExit`)
 				}
 			}
@@ -722,7 +724,7 @@ constructor(
 				tupleFromIntegerList(beforeDagger.permutation)
 			val permutationIndex = indexForPermutation(permutationTuple)
 			generator.flushDelayed()
-			generator.emit(this, PERMUTE_LIST, permutationIndex)
+			generator.emit(this, PERMUTE_LIST(permutationIndex))
 		}
 	}
 
@@ -816,7 +818,7 @@ constructor(
 			val permutationTuple = tupleFromIntegerList(adjustedPermutationList)
 			val permutationIndex = indexForPermutation(permutationTuple)
 			generator.flushDelayed()
-			generator.emit(this, PERMUTE_LIST, permutationIndex)
+			generator.emit(this, PERMUTE_LIST(permutationIndex))
 		}
 		// Ensure the tuple type was consumed up to its upperBound.
 		assert(

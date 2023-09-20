@@ -31,8 +31,8 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.PUSH_LITERAL
-import avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
+import avail.compiler.PUSH_LITERAL
+import avail.compiler.TYPE_CHECK_ARGUMENT
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
@@ -179,8 +179,9 @@ internal class NumberedChoice constructor(
 				generator,
 				SHOULD_NOT_HAVE_ARGUMENTS)
 			generator.emit(
-				this, PUSH_LITERAL, indexForConstant(
-					fromInt(index + 1)))
+				this,
+				PUSH_LITERAL(indexForConstant(fromInt(index + 1)))
+			)
 			if (!last)
 			{
 				generator.emitJumpForward(this, `$exit`)
@@ -190,8 +191,8 @@ internal class NumberedChoice constructor(
 		generator.emit(`$exit`)
 		generator.emitDelayed(
 			this,
-			TYPE_CHECK_ARGUMENT,
-			indexForConstant(phraseType))
+			TYPE_CHECK_ARGUMENT(indexForConstant(phraseType))
+		)
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
 

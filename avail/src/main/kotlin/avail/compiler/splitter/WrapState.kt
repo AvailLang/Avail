@@ -32,7 +32,7 @@
 
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.APPEND_ARGUMENT
+import avail.compiler.APPEND_ARGUMENT
 
 /**
  * An indication of the desired and actual stack state.

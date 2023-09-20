@@ -31,8 +31,8 @@
  */
 package avail.compiler.splitter
 
+import avail.compiler.CONVERT
 import avail.compiler.ParsingConversionRule.LIST_TO_SIZE
-import avail.compiler.ParsingOperation.CONVERT
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
@@ -168,7 +168,7 @@ internal class Counter(
 			LIST_PHRASE, tupleOfEmptyTuplesType, tupleOfEmptyTuplePhrasesType)
 		val newWrapState = group.emitOn(listPhraseType, generator, wrapState)
 		assert(newWrapState == SHOULD_NOT_PUSH_LIST)
-		generator.emit(this, CONVERT, LIST_TO_SIZE.number)
+		generator.emit(this, CONVERT(LIST_TO_SIZE.number))
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
 

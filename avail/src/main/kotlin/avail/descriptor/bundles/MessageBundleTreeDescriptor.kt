@@ -33,17 +33,15 @@ package avail.descriptor.bundles
 
 import avail.AvailRuntimeSupport
 import avail.AvailRuntimeSupport.nextNonzeroHash
+import avail.compiler.BRANCH_FORWARD
+import avail.compiler.CHECK_ARGUMENT
+import avail.compiler.JUMP_BACKWARD
+import avail.compiler.JUMP_FORWARD
+import avail.compiler.PARSE_PART
+import avail.compiler.PARSE_PART_CASE_INSENSITIVELY
+import avail.compiler.PREPARE_TO_RUN_PREFIX_FUNCTION
 import avail.compiler.ParsingOperation
-import avail.compiler.ParsingOperation.BRANCH_FORWARD
-import avail.compiler.ParsingOperation.CHECK_ARGUMENT
-import avail.compiler.ParsingOperation.Companion.decode
-import avail.compiler.ParsingOperation.Companion.operand
-import avail.compiler.ParsingOperation.JUMP_BACKWARD
-import avail.compiler.ParsingOperation.JUMP_FORWARD
-import avail.compiler.ParsingOperation.PARSE_PART
-import avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
-import avail.compiler.ParsingOperation.PREPARE_TO_RUN_PREFIX_FUNCTION
-import avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
+import avail.compiler.TYPE_CHECK_ARGUMENT
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
@@ -61,7 +59,6 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Compani
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
@@ -76,8 +73,6 @@ import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.A_Sendable
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.hasAncestor
-import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
@@ -112,7 +107,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -135,10 +129,8 @@ import avail.performance.Statistic
 import avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import avail.utility.Strings.newlineTab
 import avail.utility.safeWrite
-import java.util.ArrayDeque
+import java.util.*
 import java.util.Collections.sort
-import java.util.Deque
-import java.util.IdentityHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -257,10 +249,10 @@ class MessageBundleTreeDescriptor private constructor(
 	 * position to be reached.
 	 *
 	 * [A_Bundle]s only get added to this map if their current instruction is
-	 * the [ParsingOperation.PARSE_PART] instruction. There may be other
-	 * instructions current for other message bundles, but they will be
-	 * represented in the [lazyActions] map, or the [lazyPrefilterMap] if their
-	 * instruction is a [ParsingOperation.CHECK_ARGUMENT].
+	 * the [PARSE_PART] instruction. There may be other instructions current for
+	 * other message bundles, but they will be represented in the [lazyActions]
+	 * map, or the [lazyPrefilterMap] if their instruction is a
+	 * [CHECK_ARGUMENT].
 	 */
 	private var lazyIncomplete = emptyMap
 
@@ -279,33 +271,32 @@ class MessageBundleTreeDescriptor private constructor(
 	 * up being the rightmost parse position to be reached.
 	 *
 	 * [A_Bundle]s only get added to this map if their current instruction is
-	 * the [ParsingOperation.PARSE_PART_CASE_INSENSITIVELY] instruction. There
-	 * may be other instructions current for other message bundles, but they
-	 * will be represented in the [lazyActions] map, or the [lazyPrefilterMap]
-	 * if their instruction is a [ParsingOperation.CHECK_ARGUMENT].
+	 * the [PARSE_PART_CASE_INSENSITIVELY] instruction. There may be other
+	 * instructions current for other message bundles, but they will be
+	 * represented in the [lazyActions] map, or the [lazyPrefilterMap] if their
+	 * instruction is a [CHECK_ARGUMENT].
 	 */
 	private var lazyIncompleteCaseInsensitive = emptyMap
 
 	/**
-	 * This is a map from an encoded [ParsingOperation] (an [Integer]) to an
-	 * [A_Tuple] of [A_BundleTree]s to attempt if the instruction succeeds.
+	 * This is a map from a [ParsingOperation] to an [A_Tuple] of
+	 * [A_BundleTree]s to attempt if the instruction succeeds.
 	 *
-	 * Note that the [ParsingOperation.PARSE_PART] and
-	 * [ParsingOperation.PARSE_PART_CASE_INSENSITIVELY] instructions are treated
-	 * specially, as only one keyword can be next in the source stream (so
-	 * there's no value in checking whether it's an X, whether it's a Y, whether
-	 * it's a Z, etc. Instead, the [lazyIncomplete] and
-	 * [lazyIncompleteCaseInsensitive] maps take care of dealing with this
+	 * Note that the [PARSE_PART] and [PARSE_PART_CASE_INSENSITIVELY]
+	 * instructions are treated specially, as only one keyword can be next in
+	 * the source stream (so there's no value in checking whether it's an X,
+	 * whether it's a Y, whether it's a Z, etc. Instead, the [lazyIncomplete]
+	 * and [lazyIncompleteCaseInsensitive] maps take care of dealing with this
 	 * efficiently with a single lookup.
 	 *
-	 * Similarly, the [ParsingOperation.CHECK_ARGUMENT] instruction is treated
-	 * specially. When it is encountered and the argument that was just parsed
-	 * is a send phrase, that send phrase is looked up in the
-	 * [lazyPrefilterMap], yielding the next message bundle tree. If it's not
-	 * present as a key (or the argument isn't a send), then the instruction is
-	 * looked up normally in the lazy actions map.
+	 * Similarly, the [CHECK_ARGUMENT] instruction is treated specially. When it
+	 * is encountered and the argument that was just parsed is a send phrase,
+	 * that send phrase is looked up in the [lazyPrefilterMap], yielding the
+	 * next message bundle tree. If it's not present as a key (or the argument
+	 * isn't a send), then the instruction is looked up normally in the lazy
+	 * actions map.
 	 */
-	private var lazyActions = emptyMap
+	private var lazyActions = mutableMapOf<ParsingOperation, A_Tuple>()
 
 	/**
 	 * If we wait until all tokens and arguments of a potential method send have
@@ -333,25 +324,24 @@ class MessageBundleTreeDescriptor private constructor(
 	 * [ParsingOperation] sequence until after any easy tests have passed, like
 	 * consuming additional fixed tokens.
 	 *
-	 * When a message bundle's next instruction is
-	 * [ParsingOperation.CHECK_ARGUMENT] (which must be all or nothing within an
-	 * [A_BundleTree], this lazy prefilter map is populated. It maps from
-	 * interesting [A_Bundle]s that might occur as an argument to an
-	 * appropriately reduced message bundle tree (i.e., a message bundle tree
-	 * containing precisely those method bundles that allow that argument. The
-	 * only keys that occur are ones for which at least one restriction exists
-	 * in at least one of the still possible [A_Bundle]s. When [unclassified] is
-	 * empty, *all* such restricted argument message bundles occur in this map.
-	 * Note that some of the resulting message bundle trees may be completely
-	 * empty. Also note that some of the trees may be shared, so be careful to
-	 * discard them rather than maintaining them when new method bundles or
-	 * grammatical restrictions are added.
+	 * When a message bundle's next instruction is [CHECK_ARGUMENT] (which must
+	 * be all or nothing within an [A_BundleTree], this lazy prefilter map is
+	 * populated. It maps from interesting [A_Bundle]s that might occur as an
+	 * argument to an appropriately reduced message bundle tree (i.e., a message
+	 * bundle tree containing precisely those method bundles that allow that
+	 * argument. The only keys that occur are ones for which at least one
+	 * restriction exists in at least one of the still possible [A_Bundle]s.
+	 * When [unclassified] is empty, *all* such restricted argument message
+	 * bundles occur in this map. Note that some of the resulting message bundle
+	 * trees may be completely empty. Also note that some of the trees may be
+	 * shared, so be careful to discard them rather than maintaining them when
+	 * new method bundles or grammatical restrictions are added.
 	 *
 	 * When an argument is a message that is not restricted for any of the
 	 * message bundles in this message bundle tree (i.e., it does not occur as a
 	 * key in this map), then the sole entry in [lazyIncomplete] is used. The
-	 * key is always the [ParsingOperation.CHECK_ARGUMENT], which all message
-	 * bundles in this message bundle tree must have.
+	 * key is always the [CHECK_ARGUMENT], which all message bundles in this
+	 * message bundle tree must have.
 	 */
 	private var lazyPrefilterMap = emptyMap
 
@@ -365,10 +355,10 @@ class MessageBundleTreeDescriptor private constructor(
 
 	/**
 	 * The [type-testing&#32;tree][LookupTree] for handling the case that at
-	 * least one [A_ParsingPlanInProgress] in this message bundle tree is at
-	 * a [parsingPc][A_ParsingPlanInProgress.parsingPc] pointing to a
-	 * [ParsingOperation.TYPE_CHECK_ARGUMENT] operation. This allows
-	 * relatively efficient elimination of inappropriately typed arguments.
+	 * least one [A_ParsingPlanInProgress] in this message bundle tree is at a
+	 * [parsingPc][A_ParsingPlanInProgress.parsingPc] pointing to a
+	 * [TYPE_CHECK_ARGUMENT] operation. This allows relatively efficient
+	 * elimination of inappropriately typed arguments.
 	 *
 	 * Since navigating this tree while performing the indicated type tests
 	 * is slower than other parsing operations, the [MessageSplitter]
@@ -395,8 +385,7 @@ class MessageBundleTreeDescriptor private constructor(
 
 			/**
 			 * This flag is set when this bundle tree contains at least one
-			 * parsing-plan-in-progress at a [ParsingOperation.JUMP_BACKWARD]
-			 * instruction.
+			 * parsing-plan-in-progress at a [JUMP_BACKWARD] instruction.
 			 */
 			val HAS_BACKWARD_JUMP_INSTRUCTION = BitField(HASH_AND_MORE, 32, 1) {
 				(it != 0).toString()
@@ -525,20 +514,17 @@ class MessageBundleTreeDescriptor private constructor(
 					forcedName = "lazyIncompleteCaseInsensitive"))
 		}
 		val actions = self.lazyActions
-		if (actions.mapSize > 0)
+		if (actions.isNotEmpty())
 		{
-			val actionEntries = actions.keysAsSet
-				.sortedBy { it.extractInt }
-				.map { key ->
-					val keyInt = key.extractInt
-					val operation = decode(keyInt)
-					val operand = operand(keyInt)
-					val description = operation.describe(operand)
+			val actionEntries = actions.entries
+				.sortedBy { it.key.name }
+				.map { (operation, trees) ->
+					val description = operation.debuggerDescription
 					AvailObjectFieldHelper(
 						self,
 						DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
 						-1,
-						actions.mapAt(key).toList().toTypedArray(),
+						trees.toList().toTypedArray(),
 						slotName = description,
 						forcedName = description)
 				}
@@ -665,7 +651,7 @@ class MessageBundleTreeDescriptor private constructor(
 						val pc = planInProgress.parsingPc
 						val plan = planInProgress.parsingPlan
 						val instructions = plan.parsingInstructions
-						if (pc == instructions.tupleSize + 1) {
+						if (pc == instructions.size) {
 							// Just reached the end of these instructions.
 							// It's past the end of the parsing instructions.
 							lazyComplete =
@@ -678,11 +664,10 @@ class MessageBundleTreeDescriptor private constructor(
 						else
 						{
 							val timeBefore = AvailRuntimeSupport.captureNanos()
-							val instruction = instructions.tupleIntAt(pc)
-							val op = decode(instruction)
+							val instruction = instructions[pc - 1]
 							updateForPlan(self, plan, pc, module)
 							val timeAfter = AvailRuntimeSupport.captureNanos()
-							op.expandingStatisticInNanoseconds.record(
+							instruction.expandingStatisticInNanoseconds.record(
 								timeAfter - timeBefore,
 								Interpreter.currentIndexOrZero())
 						}
@@ -694,7 +679,7 @@ class MessageBundleTreeDescriptor private constructor(
 			lazyIncomplete = lazyIncomplete.makeShared()
 			lazyIncompleteCaseInsensitive =
 				lazyIncompleteCaseInsensitive.makeShared()
-			lazyActions = lazyActions.makeShared()
+			lazyActions = lazyActions.toMutableMap()
 			lazyPrefilterMap = lazyPrefilterMap.makeShared()
 			lazyTypeFilterPairsTuple = lazyTypeFilterPairsTuple.makeShared()
 
@@ -736,31 +721,30 @@ class MessageBundleTreeDescriptor private constructor(
 		while (!pcsToVisit.isEmpty())
 		{
 			val pc = pcsToVisit.removeLast()
-			if (pc == instructions.tupleSize + 1)
+			if (pc == instructions.size)
 			{
 				// We've reached an end-point for parsing this plan.  The
 				// grammatical restriction has no remaining effect.
 				return
 			}
-			val instruction = instructions.tupleIntAt(pc)
-			when (val op = decode(instruction))
+			when (val op = instructions[pc - 1])
 			{
-				JUMP_BACKWARD, JUMP_FORWARD, BRANCH_FORWARD ->
+				is JUMP_BACKWARD, is JUMP_FORWARD, is BRANCH_FORWARD ->
 				{
 					// These should have bubbled out of the bundle tree.
 					// Loop to get to the affected successor trees.
-					pcsToVisit.addAll(op.successorPcs(instruction, pc))
+					pcsToVisit.addAll(op.successorPcs(pc))
 				}
-				CHECK_ARGUMENT, TYPE_CHECK_ARGUMENT ->
+				is CHECK_ARGUMENT, is TYPE_CHECK_ARGUMENT ->
 				{
 					// Keep it simple and invalidate this entire bundle
 					// tree.
 					invalidate(self)
 				}
-				PARSE_PART ->
+				is PARSE_PART ->
 				{
 					// Look it up in LAZY_INCOMPLETE.
-					val keywordIndex = op.keywordIndex(instruction)
+					val keywordIndex = op.keywordIndex
 					val keyword: A_String =
 						plan.bundle.messagePart(keywordIndex)
 					val submap: A_Map = lazyIncomplete.mapAt(keyword)
@@ -769,10 +753,10 @@ class MessageBundleTreeDescriptor private constructor(
 					treesToVisit.add(
 						successor to newPlanInProgress(plan, pc + 1))
 				}
-				PARSE_PART_CASE_INSENSITIVELY ->
+				is PARSE_PART_CASE_INSENSITIVELY ->
 				{
 					// Look it up in LAZY_INCOMPLETE_CASE_INSENSITIVE.
-					val keywordIndex = op.keywordIndex(instruction)
+					val keywordIndex = op.keywordIndex
 					val keyword: A_String =
 						plan.bundle.messagePart(keywordIndex)
 					val submap: A_Map =
@@ -786,8 +770,7 @@ class MessageBundleTreeDescriptor private constructor(
 				{
 					// It's an ordinary action.  Each JUMP and BRANCH was
 					// already dealt with in a previous case.
-					val successors: A_Tuple =
-						lazyActions.mapAt(instructions.tupleAt(pc))
+					val successors = lazyActions[instructions[pc - 1]]!!
 					for (successor in successors) {
 						treesToVisit.add(
 							successor to newPlanInProgress(plan, pc + 1))
@@ -886,7 +869,7 @@ class MessageBundleTreeDescriptor private constructor(
 			lazyComplete = emptyMap
 			lazyIncomplete = emptyMap
 			lazyIncompleteCaseInsensitive = emptyMap
-			lazyActions = emptyMap
+			lazyActions = mutableMapOf()
 			lazyPrefilterMap = emptyMap
 			lazyTypeFilterPairsTuple = emptyTuple
 			lazyTypeFilterTree = null
@@ -927,7 +910,7 @@ class MessageBundleTreeDescriptor private constructor(
 			if (hasBackwardJump) bundleTree
 			else bundleTree.latestBackwardJump
 		val instructions = plan.parsingInstructions
-		if (pc == instructions.tupleSize + 1)
+		if (pc == instructions.size)
 		{
 			lazyComplete = lazyComplete.mapAtReplacingCanDestroy(
 				plan.bundle, emptySet, true
@@ -936,12 +919,12 @@ class MessageBundleTreeDescriptor private constructor(
 			}
 			return
 		}
-		val instruction = plan.parsingInstructions.tupleIntAt(pc)
-		val op = decode(instruction)
-		when (op) {
-			JUMP_FORWARD, BRANCH_FORWARD, JUMP_BACKWARD ->
+		val op = plan.parsingInstructions[pc - 1]
+		when (op)
+		{
+			is JUMP_FORWARD, is BRANCH_FORWARD, is JUMP_BACKWARD ->
 			{
-				if (op == JUMP_BACKWARD && !hasBackwardJump)
+				if (op is JUMP_BACKWARD && !hasBackwardJump)
 				{
 					// We just discovered the first backward jump in any
 					// parsing-plan-in-progress at this node.
@@ -956,16 +939,16 @@ class MessageBundleTreeDescriptor private constructor(
 				// matches for the next token to be undertaken in a single
 				// lookup. We can safely recurse here, because plans cannot have
 				// any empty loops due to progress check instructions.
-				for (nextPc in op.successorPcs(instruction, pc))
+				for (nextPc in op.successorPcs(pc))
 				{
 					updateForPlan(bundleTree, plan, nextPc, module)
 				}
 				return
 			}
-			PARSE_PART ->
+			is PARSE_PART ->
 			{
 				// Parse a specific keyword.
-				val keywordIndex = op.keywordIndex(instruction)
+				val keywordIndex = op.keywordIndex
 				val keyword = plan.bundle.messagePart(keywordIndex)
 				lazyIncomplete = lazyIncomplete.mapAtReplacingCanDestroy(
 					keyword, emptyMap, true
@@ -983,10 +966,10 @@ class MessageBundleTreeDescriptor private constructor(
 				}
 				return
 			}
-			PARSE_PART_CASE_INSENSITIVELY ->
+			is PARSE_PART_CASE_INSENSITIVELY ->
 			{
 				// Parse a specific case-insensitive keyword.
-				val keywordIndex = op.keywordIndex(instruction)
+				val keywordIndex = op.keywordIndex
 				val keyword = plan.bundle.messagePart(keywordIndex)
 				lazyIncompleteCaseInsensitive =
 					lazyIncompleteCaseInsensitive.mapAtReplacingCanDestroy(
@@ -1005,29 +988,30 @@ class MessageBundleTreeDescriptor private constructor(
 					}
 				return
 			}
-			PREPARE_TO_RUN_PREFIX_FUNCTION ->
+			is PREPARE_TO_RUN_PREFIX_FUNCTION ->
 			{
 				// Each macro definition has its own prefix functions, so for
 				// each plan create a separate successor message bundle tree.
 				// After a complete macro has been parsed, we will eliminate
 				// paths that used a macro definition that wasn't the most
 				// specific for the actual arguments that were parsed.
-				lazyActions = lazyActions.mapAtReplacingCanDestroy(
-					fromInt(instruction), emptyTuple, true
-				) { _, successors ->
-					val newTarget: A_BundleTree = newBundleTree(latestBackward)
-					newTarget.addPlanInProgress(newPlanInProgress(plan, pc + 1))
-					successors.appendCanDestroy(newTarget, true)
-				}
+				lazyActions[op] =
+					(lazyActions[op] ?: emptyTuple).let { successors ->
+						val newTarget = newBundleTree(latestBackward)
+						newTarget.addPlanInProgress(
+							newPlanInProgress(plan, pc + 1)
+						)
+						successors.appendCanDestroy(newTarget, true)
+					}
 				// We added it to the actions, so don't fall through.
 				return
 			}
-			TYPE_CHECK_ARGUMENT ->
+			is TYPE_CHECK_ARGUMENT ->
 			{
 				// An argument was just parsed and passed its grammatical
 				// restriction check.  Now it needs to do a type check with a
 				// type-dispatch tree.
-				val typeIndex = op.typeCheckArgumentIndex(instruction)
+				val typeIndex = op.typeCheckArgumentIndex
 				val phraseType: A_Type = constantForIndex(typeIndex)
 				val planInProgress = newPlanInProgress(plan, pc + 1)
 				val pair = tuple(phraseType, planInProgress)
@@ -1036,25 +1020,22 @@ class MessageBundleTreeDescriptor private constructor(
 				// The new tuple size will be detected after all the updates.
 				return
 			}
-			CHECK_ARGUMENT ->
+			is CHECK_ARGUMENT ->
 			{
 				// It's a checkArgument instruction.
-				val checkArgumentIndex = op.checkArgumentIndex(instruction)
+				val checkArgumentIndex = op.checkArgumentIndex
 				// Add it to the action map.
-				val instructionObject: A_Number = fromInt(instruction)
-				val successors: A_Tuple? =
-					lazyActions.mapAtOrNull(instructionObject)
-				val successor: A_BundleTree = when (successors)
-				{
-					null -> newBundleTree(latestBackward).also { tree ->
-						lazyActions = lazyActions.mapAtPuttingCanDestroy(
-							instructionObject, tuple(tree), true)
+				val successor: A_BundleTree =
+					when (val successors = lazyActions[op])
+					{
+						null -> newBundleTree(latestBackward).also { tree ->
+							lazyActions[op] = tuple(tree)
+						}
+						else -> {
+							assert(successors.tupleSize == 1)
+							successors.tupleAt(1)
+						}
 					}
-					else -> {
-						assert(successors.tupleSize == 1)
-						successors.tupleAt(1)
-					}
-				}
 				var forbiddenBundles = emptySet
 				plan.bundle.grammaticalRestrictions.forEach { restriction ->
 					// Exclude grammatical restrictions that aren't defined in
@@ -1122,26 +1103,26 @@ class MessageBundleTreeDescriptor private constructor(
 		// instruction.  It might be a CHECK_ARGUMENT that has already
 		// updated the prefilterMap and fallen out. Control flow
 		// instructions should have been dealt with in a prior case.
-		val nextPcs = op.successorPcs(instruction, pc)
+		val nextPcs = op.successorPcs(pc)
 		assert(nextPcs.size == 1 && nextPcs[0] == pc + 1)
-		val instructionObject: A_Number = fromInt(instruction)
-		val successors: A_Tuple? = lazyActions.mapAtOrNull(instructionObject)
-		val successor: A_BundleTree = if (successors !== null)
-		{
-			assert(successors.tupleSize == 1)
-			successors.tupleAt(1)
-		}
-		else
-		{
-			newBundleTree(latestBackward).also { tree ->
-				lazyActions = lazyActions.mapAtPuttingCanDestroy(
-					instructionObject, tuple(tree), true)
+		val successors: A_Tuple? = lazyActions[op]
+		val successor: A_BundleTree =
+			if (successors !== null)
+			{
+				assert(successors.tupleSize == 1)
+				successors.tupleAt(1)
 			}
-		}
+			else
+			{
+				newBundleTree(latestBackward).also { tree ->
+					lazyActions[op] = tuple(tree)
+				}
+			}
 		successor.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 	}
 
-	companion object {
+	companion object
+	{
 		/**
 		 * This is the [LookupTreeAdaptor] for building and navigating the
 		 * [lazyTypeFilterTree]s.  It gets built from 2-tuples containing a

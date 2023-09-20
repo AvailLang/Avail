@@ -31,8 +31,8 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.INCREASE_INDENT
-import avail.compiler.ParsingOperation.MATCH_INDENT
+import avail.compiler.INCREASE_INDENT
+import avail.compiler.MATCH_INDENT
 import avail.compiler.splitter.CheckIndent.IndentationMatchType
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.IncreaseIndent
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.MatchIndent

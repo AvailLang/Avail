@@ -31,11 +31,11 @@
  */
 package avail.compiler.splitter
 
+import avail.compiler.CHECK_ARGUMENT
+import avail.compiler.CONVERT
+import avail.compiler.PARSE_ARGUMENT_IN_MODULE_SCOPE
 import avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION
-import avail.compiler.ParsingOperation.CHECK_ARGUMENT
-import avail.compiler.ParsingOperation.CONVERT
-import avail.compiler.ParsingOperation.PARSE_ARGUMENT_IN_MODULE_SCOPE
-import avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
+import avail.compiler.TYPE_CHECK_ARGUMENT
 import avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
@@ -104,16 +104,16 @@ internal class ArgumentInModuleScope constructor(
 		generator.flushDelayed()
 		generator.emit(this, PARSE_ARGUMENT_IN_MODULE_SCOPE)
 		// Check that the expression is syntactically allowed.
-		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex)
+		generator.emitDelayed(this, CHECK_ARGUMENT(absoluteUnderscoreIndex))
 		// Check that it's any kind of expression with the right yield type,
 		// since it's going to be evaluated and wrapped in a literal phrase.
 		val expressionType = EXPRESSION_PHRASE.create(
 			phraseType.phraseTypeExpressionType)
 		generator.emitDelayed(
 			this,
-			TYPE_CHECK_ARGUMENT,
-			indexForConstant(expressionType))
-		generator.emitDelayed(this, CONVERT, EVALUATE_EXPRESSION.number)
+			TYPE_CHECK_ARGUMENT(indexForConstant(expressionType))
+		)
+		generator.emitDelayed(this, CONVERT(EVALUATE_EXPRESSION.number))
 		return wrapState
 	}
 

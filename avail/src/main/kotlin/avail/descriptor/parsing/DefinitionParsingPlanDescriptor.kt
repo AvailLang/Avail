@@ -31,17 +31,16 @@
  */
 package avail.descriptor.parsing
 
-import avail.annotations.HideFieldInDebugger
+import avail.compiler.ArityOneParsingOperation
 import avail.compiler.AvailCompilerFragmentCache
-import avail.compiler.ParsingConversionRule.Companion.ruleNumber
-import avail.compiler.ParsingOperation.CONVERT
-import avail.compiler.ParsingOperation.Companion.decode
-import avail.compiler.ParsingOperation.Companion.operand
-import avail.compiler.ParsingOperation.PARSE_PART
-import avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
-import avail.compiler.ParsingOperation.PERMUTE_LIST
-import avail.compiler.ParsingOperation.PUSH_LITERAL
-import avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
+import avail.compiler.CONVERT
+import avail.compiler.PARSE_PART
+import avail.compiler.PARSE_PART_CASE_INSENSITIVELY
+import avail.compiler.PERMUTE_LIST
+import avail.compiler.PUSH_LITERAL
+import avail.compiler.ParsingConversionRule.Companion.rule
+import avail.compiler.ParsingOperation
+import avail.compiler.TYPE_CHECK_ARGUMENT
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
@@ -57,10 +56,8 @@ import avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
-import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.BUNDLE
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION
-import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
@@ -68,17 +65,16 @@ import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.Mutability.MUTABLE
+import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
 import avail.descriptor.types.TypeTag
 import avail.exceptions.SignatureException
 import avail.utility.stackToString
-import java.util.IdentityHashMap
+import java.util.*
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -93,15 +89,35 @@ import java.util.IdentityHashMap
  * This is taken even further by a cache of subexpressions found at each
  * parse point.  See [AvailCompilerFragmentCache] for more details.
  *
+ * @property parsingInstructions
+ *   An [List] of [ParsingOperation]s that describes how to parse an invocation
+ *   of this method. The integers encode parsing instructions, many of which can
+ *   be executed *en masse* against a piece of Avail source code for multiple
+ *   potential methods. This is facilitated by the incremental construction of a
+ *   message bundle [tree][MessageBundleTreeDescriptor]. The instructions are
+ *   produced during analysis of the method name by the [MessageSplitter], which
+ *   has a description of the complete instruction set.
+ *
  * @constructor
+ *
+ * Construct a new [DefinitionParsingPlanDescriptor].
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
+ * @param parsingInstructions
+ *   A [List] of [ParsingOperation]s that describes how to parse an invocation
+ *   of this method. The integers encode parsing instructions, many of which can
+ *   be executed *en masse* against a piece of Avail source code for multiple
+ *   potential methods. This is facilitated by the incremental construction of a
+ *   message bundle [tree][MessageBundleTreeDescriptor]. The instructions are
+ *   produced during analysis of the method name by the [MessageSplitter], which
+ *   has a description of the complete instruction set.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class DefinitionParsingPlanDescriptor private constructor(
-	mutability: Mutability
+	mutability: Mutability,
+	private var parsingInstructions: List<ParsingOperation>
 ) : Descriptor(
 	mutability, TypeTag.PARSING_PLAN_TAG, ObjectSlots::class.java, null
 ) {
@@ -121,20 +137,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 		 * parsing operations, but this doesn't statically determine which
 		 * actual definition will be invoked.
 		 */
-		DEFINITION,
-
-		/**
-		 * A tuple of integers that describe how to parse an invocation of this
-		 * method. The integers encode parsing instructions, many of which can
-		 * be executed *en masse* against a piece of Avail source code for
-		 * multiple potential methods. This is facilitated by the incremental
-		 * construction of a message bundle [tree][MessageBundleTreeDescriptor].
-		 * The instructions are produced during analysis of the method name by
-		 * the [MessageSplitter], which has a description of the complete
-		 * instruction set.
-		 */
-		@HideFieldInDebugger
-		PARSING_INSTRUCTIONS
+		DEFINITION
 	}
 
 	/**
@@ -148,29 +151,31 @@ class DefinitionParsingPlanDescriptor private constructor(
 		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
 		try
 		{
-			val instructionsTuple = self.parsingInstructions
-			val descriptionsList = (1..instructionsTuple.tupleSize).map { i ->
-				val encodedInstruction = instructionsTuple.tupleIntAt(i)
-				val operation = decode(encodedInstruction)
-				val operand = operand(encodedInstruction)
+			val descriptionsList = (1..parsingInstructions.size).map { i ->
+				val operation = parsingInstructions[i - 1]
+				val operand = when (operation)
+				{
+					is ArityOneParsingOperation -> operation.operand
+					else -> 0
+				}
 				buildString {
 					append("$i. ${operation.name}")
 					if (operand > 0) {
 						append(" ($operand)")
 						append(when (operation) {
-							PARSE_PART,
-							PARSE_PART_CASE_INSENSITIVELY -> {
+							is PARSE_PART,
+							is PARSE_PART_CASE_INSENSITIVELY -> {
 								val part = self.bundle.messagePart(operand)
 									.asNativeString()
 								" Part = '$part'"
 							}
-							PUSH_LITERAL ->
+							is PUSH_LITERAL ->
 								" Constant = ${constantForIndex(operand)}"
-							PERMUTE_LIST ->
+							is PERMUTE_LIST ->
 								" Permutation = ${permutationAtIndex(operand)}"
-							TYPE_CHECK_ARGUMENT ->
+							is TYPE_CHECK_ARGUMENT ->
 								" Type = ${constantForIndex(operand)}"
-							CONVERT -> " Conversion = ${ruleNumber(operand)}"
+							is CONVERT -> " Conversion = ${rule(operand)}"
 							else -> ""
 						})
 					}
@@ -221,8 +226,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 	override fun o_Kind(self: AvailObject): A_Type =
 		DEFINITION_PARSING_PLAN.o
 
-	override fun o_ParsingInstructions(self: AvailObject): A_Tuple =
-		self[PARSING_INSTRUCTIONS]
+	override fun o_ParsingInstructions(self: AvailObject) = parsingInstructions
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -242,9 +246,9 @@ class DefinitionParsingPlanDescriptor private constructor(
 	override fun mutable() = mutable
 
 	// There is no immutable variant.
-	override fun immutable() = shared
+	override fun immutable() = unsupported
 
-	override fun shared() = shared
+	override fun shared() = unsupported
 
 	companion object {
 		/**
@@ -264,20 +268,22 @@ class DefinitionParsingPlanDescriptor private constructor(
 		fun newParsingPlan(
 			bundle: A_Bundle,
 			definition: A_Sendable
-		): A_DefinitionParsingPlan = mutable.create {
-			setSlot(BUNDLE, bundle)
-			setSlot(DEFINITION, definition)
-			setSlot(
-				PARSING_INSTRUCTIONS,
-				bundle.messageSplitter.instructionsTupleFor(
-					definition.parsingSignature()))
-		}
+		): A_DefinitionParsingPlan =
+			AvailObject.newIndexedDescriptor(0, mutable).apply {
+				setSlot(BUNDLE, bundle.makeShared())
+				setSlot(DEFINITION, definition.makeShared())
+				setDescriptor(
+					DefinitionParsingPlanDescriptor(
+						SHARED,
+						bundle.messageSplitter.instructionsFor(
+							definition.parsingSignature()
+						)
+					)
+				)
+			}
 
-		/** The mutable [DefinitionParsingPlanDescriptor]. */
+		/** The sole mutable descriptor. */
 		private val mutable =
-			DefinitionParsingPlanDescriptor(Mutability.MUTABLE)
-
-		/** The shared [DefinitionParsingPlanDescriptor]. */
-		private val shared = DefinitionParsingPlanDescriptor(Mutability.SHARED)
+			DefinitionParsingPlanDescriptor(MUTABLE, emptyList())
 	}
 }

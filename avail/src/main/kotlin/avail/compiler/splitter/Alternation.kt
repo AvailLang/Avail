@@ -31,9 +31,9 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
-import avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
-import avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
+import avail.compiler.DISCARD_SAVED_PARSE_POSITION
+import avail.compiler.ENSURE_PARSE_PROGRESS
+import avail.compiler.SAVE_PARSE_POSITION
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase

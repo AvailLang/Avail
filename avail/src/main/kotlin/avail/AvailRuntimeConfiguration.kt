@@ -44,8 +44,18 @@ import java.util.Date
 object AvailRuntimeConfiguration
 {
 	/** The build version, set by the build process. */
-	@Suppress("MemberVisibilityCanBePrivate")
-	val buildVersion: String
+	private val buildVersion: String = try
+	{
+		// Look up this very class as a resource.
+		val url = javaClass.getResource(javaClass.simpleName + ".class")
+		// Extract its last modification date from the jar or .class file.
+		val lastModified = Date(url!!.openConnection().lastModified)
+		lastModified.toString()
+	}
+	catch (e: IOException)
+	{
+		"UNKNOWN"
+	}
 
 	/**
 	 * The active versions of the Avail virtual machine. These are the versions
@@ -88,24 +98,4 @@ object AvailRuntimeConfiguration
 	 * Whether to show detailed styling trace information.
 	 */
 	var debugStyling = false
-
-	/*
-	 * Initialize the build version from a resource bundled with the
-	 * distribution JAR.
-	 */
-	init
-	{
-		buildVersion = try
-		{
-			// Look up this very class as a resource.
-			val url = javaClass.getResource(javaClass.simpleName + ".class")
-			// Extract its last modification date from the jar or .class file.
-			val lastModified = Date(url.openConnection().lastModified)
-			lastModified.toString()
-		}
-		catch (e: IOException)
-		{
-			"UNKNOWN"
-		}
-	}
 }

@@ -36,11 +36,6 @@ import avail.AvailRuntimeConfiguration
 import avail.AvailRuntimeSupport.captureNanos
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
-import avail.compiler.ParsingOperation.CHECK_ARGUMENT
-import avail.compiler.ParsingOperation.Companion.decode
-import avail.compiler.ParsingOperation.Companion.distinctInstructions
-import avail.compiler.ParsingOperation.Companion.operand
-import avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import avail.compiler.PragmaKind.Companion.pragmaKindByLexeme
 import avail.compiler.SideEffectKind.MODULE_CONSTANT_KIND
 import avail.compiler.SideEffectKind.MODULE_VARIABLE_KIND
@@ -161,7 +156,6 @@ import avail.descriptor.module.A_Module.Companion.takePostLoadFunctions
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
@@ -251,7 +245,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -321,8 +314,8 @@ import avail.utility.evaluation.FormattingDescriber
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.stackToString
+import java.util.*
 import java.util.Collections.emptyList
-import java.util.Formatter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -1605,14 +1598,12 @@ class AvailCompiler constructor(
 			}
 		}
 		val actions = bundleTree.lazyActions
-		if (actions.mapSize > 0)
+		if (actions.isNotEmpty())
 		{
-			actions.forEach { operation: A_Number, successors: A_Tuple ->
-				val operationInt = operation.extractInt
-				val op = decode(operationInt)
+			actions.forEach { (op: ParsingOperation, successors: A_Tuple) ->
 				when
 				{
-					skipCheckArgumentAction && op === CHECK_ARGUMENT ->
+					skipCheckArgumentAction && op is CHECK_ARGUMENT ->
 					{
 						// Skip this action, because the latest argument was a
 						// send that had an entry in the prefilter map, so it
@@ -1627,7 +1618,7 @@ class AvailCompiler constructor(
 						successors.forEach { successor ->
 							stepState.start.workUnitDo {
 								runParsingInstructionThen(
-									operationInt, stepState.copy(), successor)
+									op, stepState.copy(), successor)
 							}
 						}
 					}
@@ -1794,10 +1785,8 @@ class AvailCompiler constructor(
 				plans.forEach { planInProgress ->
 					val plan = planInProgress.parsingPlan
 					val instructions = plan.parsingInstructions
-					val instruction =
-						instructions.tupleIntAt(planInProgress.parsingPc)
-					val typeIndex =
-						TYPE_CHECK_ARGUMENT.typeCheckArgumentIndex(instruction)
+					val instruction = instructions[planInProgress.parsingPc - 1]
+					val typeIndex = instruction.typeCheckArgumentIndex
 					// TODO(MvG) Present the full phrase type if it can be a
 					// macro argument.
 					val argType =
@@ -1854,8 +1843,8 @@ class AvailCompiler constructor(
 	/**
 	 * Execute one non-keyword-parsing instruction, then run the continuation.
 	 *
-	 * @param instruction
-	 *   An [Int] encoding the [ParsingOperation] to execute.
+	 * @param op
+	 *   The [ParsingOperation] to execute.
 	 * @param stepState
 	 *   The [ParsingStepState] that represents the current state of parsing of
 	 *   some partial method or macro invocation.
@@ -1863,38 +1852,36 @@ class AvailCompiler constructor(
 	 *   The [A_BundleTree]s at which to continue parsing.
 	 */
 	private fun runParsingInstructionThen(
-		instruction: Int,
+		op: ParsingOperation,
 		stepState: ParsingStepState,
 		successorTree: A_BundleTree)
 	{
-		val op = decode(instruction)
 		if (AvailRuntimeConfiguration.debugCompilerSteps)
 		{
-			if (op.ordinal >= distinctInstructions)
+			when (op)
 			{
-				println(
+				is ArityOneParsingOperation -> println(
 					"Instr @"
 						+ stepState.start.shortString()
 						+ ": "
 						+ op.name
 						+ " ("
-						+ operand(instruction)
+						+ op.operand
 						+ ") -> "
-						+ successorTree)
-			}
-			else
-			{
-				println(
+						+ successorTree
+				)
+				else -> println(
 					"Instr @"
 						+ stepState.start.shortString()
 						+ ": "
 						+ op.name
 						+ " -> "
-						+ successorTree)
+						+ successorTree
+				)
 			}
 		}
 		val timeBefore = captureNanos()
-		op.execute(this, stepState, instruction, successorTree)
+		op.execute(this, stepState, successorTree)
 		val timeAfter = captureNanos()
 		op.parsingStatisticInNanoseconds.record(timeAfter - timeBefore)
 	}

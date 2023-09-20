@@ -37,6 +37,8 @@ import avail.compiler.problems.CompilerDiagnostics
 import avail.compiler.splitter.CheckIndent.IndentationMatchType
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.IncreaseIndent
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.MatchIndent
+import avail.compiler.splitter.MessageSplitter.Companion.cache
+import avail.compiler.splitter.MessageSplitter.Companion.split
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
@@ -66,7 +68,6 @@ import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
@@ -92,7 +93,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
@@ -128,7 +128,7 @@ import avail.exceptions.SignatureException
 import avail.utility.iterableWith
 import avail.utility.safeWrite
 import org.availlang.cache.LRUCache
-import java.util.ArrayDeque
+import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
@@ -698,30 +698,29 @@ private constructor(messageName: A_String)
 	}
 
 	/**
-	 * Answer a [tuple][TupleDescriptor] of Avail [integers][IntegerDescriptor]
-	 * describing how to parse this message. See `MessageSplitter` and
-	 * [ParsingOperation] for an understanding of the parse instructions.
+	 * Answer the [instructions][ParsingOperation] for parsing this message. See
+	 * [MessageSplitter] and [ParsingOperation] for an understanding of the
+	 * parse instructions.
 	 *
 	 * @param phraseType
 	 *   The phrase type (yielding a tuple type) for this signature.
 	 * @return
-	 *   The tuple of integers encoding parse instructions for this message and
-	 *   argument types.
+	 *   The [instructions][ParsingOperation] for this message.
 	 * @throws SignatureException
 	 *   If a plan cannot be constructed for this name and phrase type.
 	 */
 	@Throws(SignatureException::class)
-	fun instructionsTupleFor(phraseType: A_Type): A_Tuple
+	fun instructionsFor(phraseType: A_Type): List<ParsingOperation>
 	{
 		val generator = InstructionGenerator()
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
 		generator.optimizeInstructions()
-		return generator.instructionsTuple()
+		return generator.instructionList()
 	}
 
 	/**
 	 * Answer a [List] of [Expression] objects that correlates with the
-	 * [parsing&#32;instructions][instructionsTupleFor] generated for the
+	 * [parsing&#32;instructions][instructionsFor] generated for the
 	 * message name and the provided signature tuple type. Note that the list is
 	 * 0-based and the tuple is 1-based.
 	 *
@@ -737,7 +736,7 @@ private constructor(messageName: A_String)
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
 		generator.optimizeInstructions()
 		val expressions = generator.expressionList()
-		assert(expressions.size == generator.instructionsTuple().tupleSize)
+		assert(expressions.size == generator.instructionList().size)
 		return expressions
 	}
 

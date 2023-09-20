@@ -32,46 +32,44 @@
 
 package avail.compiler.splitter
 
+import avail.AvailRuntimeConfiguration
+import avail.compiler.APPEND_ARGUMENT
+import avail.compiler.ArityOneParsingOperation
+import avail.compiler.BRANCH_FORWARD
+import avail.compiler.EMPTY_LIST
+import avail.compiler.JUMP_BACKWARD
+import avail.compiler.JUMP_FORWARD
+import avail.compiler.PARSE_PART
+import avail.compiler.PARSE_PART_CASE_INSENSITIVELY
 import avail.compiler.ParsingOperation
-import avail.compiler.ParsingOperation.APPEND_ARGUMENT
-import avail.compiler.ParsingOperation.BRANCH_FORWARD
-import avail.compiler.ParsingOperation.Companion.decode
-import avail.compiler.ParsingOperation.Companion.operand
-import avail.compiler.ParsingOperation.EMPTY_LIST
-import avail.compiler.ParsingOperation.JUMP_BACKWARD
-import avail.compiler.ParsingOperation.JUMP_FORWARD
-import avail.compiler.ParsingOperation.PARSE_PART
-import avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
-import avail.compiler.ParsingOperation.PERMUTE_LIST
-import avail.compiler.ParsingOperation.WRAP_IN_LIST
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
+import avail.compiler.Placeholder
+import avail.compiler.WRAP_IN_LIST
 import java.util.BitSet
 import java.util.Collections
 
 /**
- * `InstructionGenerator` is used by `MessageSplitter` to accumulate the
+ * [InstructionGenerator] is used by [MessageSplitter] to accumulate the
  * sequence of [instructions][ParsingOperation] that can be used directly for
  * parsing.  The instructions are encoded as a tuple of non-negative integers.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-internal class InstructionGenerator
+internal class InstructionGenerator constructor()
 {
 	/** The instructions generated so far. */
-	private val instructions = mutableListOf<Int>()
+	private val instructions = mutableListOf<ParsingOperation>()
 
 	/** The [Expression] that produced the corresponding [instructions]. */
 	private val expressionList = mutableListOf<Expression>()
 
 	/**
 	 * Holds a sequence of (relocatable) instructions that will perform grammar
-	 * and type checks, and sometimes a [ParsingOperation.APPEND_ARGUMENT] on an
-	 * argument that has been parsed but not yet processed.  This allows faster
-	 * checks (like token matching) to filter out incorrect matches, avoiding
-	 * expensive type tests.
+	 * and type checks, and sometimes a [APPEND_ARGUMENT] on an argument that
+	 * has been parsed but not yet processed.  This allows faster checks (like
+	 * token matching) to filter out incorrect matches, avoiding expensive type
+	 * tests.
 	 */
-	private val delayedArgumentInstructions = mutableListOf<Int>()
+	private val delayedArgumentInstructions = mutableListOf<ParsingOperation>()
 
 	/**
 	 * A [List] parallel to [delayedArgumentInstructions], which indicates the
@@ -141,6 +139,8 @@ internal class InstructionGenerator
 	/**
 	 * Emit a [ParsingOperation] that takes no operand.
 	 *
+	 * @param expression
+	 *   The [expression][Expression] that is emitting the instruction.
 	 * @param operation
 	 *   The operandless [ParsingOperation] to emit.
 	 */
@@ -148,27 +148,8 @@ internal class InstructionGenerator
 		expression: Expression,
 		operation: ParsingOperation)
 	{
-		assert(
-			!(operation === APPEND_ARGUMENT
-				|| operation === PERMUTE_LIST)
-				|| delayedArgumentInstructions.isEmpty())
 		expressionList.add(expression)
-		instructions.add(operation.encoding)
-	}
-
-	/**
-	 * Emit a [ParsingOperation] that takes an integer operand.
-	 *
-	 * @param operation
-	 *   The [ParsingOperation] to emit with its operand.
-	 */
-	fun emit(
-		expression: Expression,
-		operation: ParsingOperation,
-		operand: Int)
-	{
-		expressionList.add(expression)
-		instructions.add(operation.encoding(operand))
+		instructions.add(operation)
 	}
 
 	/**
@@ -190,38 +171,6 @@ internal class InstructionGenerator
 	}
 
 	/**
-	 * Emit a [ParsingOperation] that takes a [Label] operand.
-	 *
-	 * @param operation
-	 *   The [ParsingOperation] to emit with its operand.
-	 */
-	fun emit(
-		expression: Expression,
-		operation: ParsingOperation,
-		label: Label)
-	{
-		assert(
-			operation !== BRANCH_FORWARD
-				&& operation !== JUMP_FORWARD
-				&& operation !== JUMP_BACKWARD) {
-			"Use emitJumpForward() etc. to emit jumps and branches"
-		}
-		expressionList.add(expression)
-		if (label.position == -1)
-		{
-			// Label is still unresolved.  Promise to resolve this when the
-			// label is emitted.
-			label.operationsToFix.add(instructions.size + 1 to operation)
-			instructions.add(placeholderInstruction)
-		}
-		else
-		{
-			// Label is already resolved.
-			instructions.add(operation.encoding(label.position))
-		}
-	}
-
-	/**
 	 * Emit a label, pinning it to the current location in the instruction list.
 	 *
 	 * @param label
@@ -233,20 +182,27 @@ internal class InstructionGenerator
 		label.position = instructions.size + 1
 		for (pair in label.operationsToFix)
 		{
-			assert(instructions[pair.first - 1] == placeholderInstruction)
-			if (pair.first + 1 == label.position)
+			assert(instructions[pair.first - 1] === Placeholder)
+			if (AvailRuntimeConfiguration.debugCompilerSteps)
 			{
-				println("DEBUG: Operation target falls through.")
+				if (pair.first + 1 == label.position)
+				{
+					println("DEBUG: Operation target falls through.")
+				}
 			}
-			instructions[pair.first - 1] =
-				pair.second.encoding(label.position)
+			instructions[pair.first - 1] = when (val operation = pair.second)
+			{
+				is ArityOneParsingOperation ->
+					operation.newOperand(label.position)
+				else -> operation
+			}
 		}
 		label.operationsToFix.clear()
 	}
 
 	/**
-	 * Emit a [jump-forward&#32;instruction][ParsingOperation.JUMP_FORWARD]. The
-	 * target label must not have been emitted yet.
+	 * Emit a [jump-forward&#32;instruction][JUMP_FORWARD]. The target label
+	 * must not have been emitted yet.
 	 *
 	 * @param label
 	 *   The label to jump forward to.
@@ -258,13 +214,15 @@ internal class InstructionGenerator
 		}
 		expressionList.add(expression)
 		// Promise to resolve this when the label is emitted.
-		label.operationsToFix.add(instructions.size + 1 to JUMP_FORWARD)
-		instructions.add(placeholderInstruction)
+		label.operationsToFix.add(
+			instructions.size + 1 to JUMP_FORWARD(Placeholder.index)
+		)
+		instructions.add(Placeholder)
 	}
 
 	/**
-	 * Emit a [jump-backward&#32;instruction][ParsingOperation.JUMP_BACKWARD].
-	 * The target label must have been emitted already.
+	 * Emit a [jump-backward&#32;instruction][JUMP_BACKWARD]. The target label
+	 * must have been emitted already.
 	 *
 	 * @param label
 	 *   The label to jump backward to.
@@ -277,12 +235,12 @@ internal class InstructionGenerator
 			"Backward jumps must actually be backward"
 		}
 		expressionList.add(expression)
-		instructions.add(JUMP_BACKWARD.encoding(label.position))
+		instructions.add(JUMP_BACKWARD(label.position))
 	}
 
 	/**
-	 * Emit a [branch-forward][ParsingOperation.BRANCH_FORWARD].  The target
-	 * label must not have been emitted yet.
+	 * Emit a [branch-forward][BRANCH_FORWARD].  The target label must not have
+	 * been emitted yet.
 	 *
 	 * @param label
 	 *   The label to branch forward to.
@@ -292,8 +250,10 @@ internal class InstructionGenerator
 		assert(label.position == -1) { "Branches must be forward" }
 		expressionList.add(expression)
 		// Promise to resolve this when the label is emitted.
-		label.operationsToFix.add(instructions.size + 1 to BRANCH_FORWARD)
-		instructions.add(placeholderInstruction)
+		label.operationsToFix.add(
+			instructions.size + 1 to BRANCH_FORWARD(Placeholder.index)
+		)
+		instructions.add(Placeholder)
 	}
 
 	/**
@@ -310,29 +270,7 @@ internal class InstructionGenerator
 	fun emitDelayed(expression: Expression, operation: ParsingOperation)
 	{
 		delayedExpressionList.add(expression)
-		delayedArgumentInstructions.add(operation.encoding)
-	}
-
-	/**
-	 * Record an argument post-processing instruction.  It won't actually be
-	 * emitted into the instruction stream until as late as possible.
-	 *
-	 * The instruction must be relocatable.
-	 *
-	 * @param expression
-	 *   The expression that is emitting the instruction.
-	 * @param operation
-	 *   The operation of the instruction to delay.
-	 * @param operand
-	 *   The operand of the instruction to delay.
-	 */
-	fun emitDelayed(
-		expression: Expression,
-		operation: ParsingOperation,
-		operand: Int)
-	{
-		delayedExpressionList.add(expression)
-		delayedArgumentInstructions.add(operation.encoding(operand))
+		delayedArgumentInstructions.add(operation)
 	}
 
 	/**
@@ -369,7 +307,7 @@ internal class InstructionGenerator
 		}
 		else
 		{
-			emit(expression, WRAP_IN_LIST, listSize)
+			emit(expression, WRAP_IN_LIST(listSize))
 		}
 	}
 
@@ -379,9 +317,8 @@ internal class InstructionGenerator
 	fun optimizeInstructions() = hoistTokenParsing()
 
 	/**
-	 * Re-order the instructions so that [ParsingOperation.PARSE_PART] and
-	 * [ParsingOperation.PARSE_PART_CASE_INSENSITIVELY] occur as early as
-	 * possible.
+	 * Re-order the instructions so that [PARSE_PART] and
+	 * [PARSE_PART_CASE_INSENSITIVELY] occur as early as possible.
 	 */
 	private fun hoistTokenParsing()
 	{
@@ -390,15 +327,16 @@ internal class InstructionGenerator
 		// Add branch/jump targets, assuming a null entry means it's just a
 		// fall-through from the previous instruction.  As a simplification,
 		// assume jumps fall through, even though they don't.
-		for (instruction in instructions)
+		for (pc in instructions.indices)
 		{
-			val operation = decode(instruction)
-			if (operation === JUMP_FORWARD
-				|| operation === JUMP_BACKWARD
-				|| operation === BRANCH_FORWARD)
+			val instruction =
+				instructions[pc] as? ArityOneParsingOperation ?: continue
+			if (instruction is JUMP_FORWARD
+				|| instruction is JUMP_BACKWARD
+				|| instruction is BRANCH_FORWARD)
 			{
 				// Adjust to zero-based.
-				val target = operand(instruction) - 1
+				val target = instruction.operand - 1
 				branchTargets.set(target)
 			}
 		}
@@ -416,14 +354,12 @@ internal class InstructionGenerator
 				{
 					// It's not a branch target.
 					val instruction = instructions[i]
-					val operation = decode(instruction)
-					if (operation === PARSE_PART
-						|| operation === PARSE_PART_CASE_INSENSITIVELY)
+					if (instruction is PARSE_PART
+						|| instruction is PARSE_PART_CASE_INSENSITIVELY)
 					{
 						// Swap it leftward if it commutes.
 						val priorInstruction = instructions[i - 1]
-						val priorOperation = decode(priorInstruction)
-						if (priorOperation.commutesWithParsePart)
+						if (priorInstruction.commutesWithParsePart)
 						{
 							instructions[i] = priorInstruction
 							instructions[i - 1] = instruction
@@ -439,19 +375,19 @@ internal class InstructionGenerator
 	}
 
 	/**
-	 * Answer the [tuple][A_Tuple] of generated instructions.
+	 * Answer the generated [instructions][ParsingOperation].
 	 *
 	 * @return
-	 *   An avail tuple of integers.
+	 *   An immutable list of instructions.
 	 */
-	fun instructionsTuple(): A_Tuple
+	fun instructionList(): List<ParsingOperation>
 	{
-		assert(!instructions.contains(placeholderInstruction)) {
+		assert(!instructions.contains(Placeholder)) {
 			"A placeholder instruction using a label was not resolved"
 		}
 		assert(instructions.size == expressionList.size)
 		assert(delayedExpressionList.isEmpty())
-		return tupleFromIntegerList(instructions).makeShared()
+		return Collections.unmodifiableList(instructions)
 	}
 
 	/**
@@ -465,10 +401,5 @@ internal class InstructionGenerator
 	{
 		assert(instructions.size == expressionList.size)
 		return Collections.unmodifiableList(expressionList)
-	}
-
-	companion object
-	{
-		private const val placeholderInstruction = Integer.MIN_VALUE
 	}
 }

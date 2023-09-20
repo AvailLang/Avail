@@ -36,6 +36,7 @@ import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
+import avail.compiler.ParsingOperation
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -2307,8 +2308,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_SizeRange(self: AvailObject): A_Type =
 		self .. { sizeRange }
 
-	override fun o_LazyActions(self: AvailObject): A_Map =
-		self .. { lazyActions }
+	override fun o_LazyActions(
+		self: AvailObject
+	): MutableMap<ParsingOperation, A_Tuple> = self .. { lazyActions }
 
 	override fun o_Stackp(self: AvailObject): Int =
 		self .. { stackp() }
@@ -2361,8 +2363,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_VisibleNames(self: AvailObject): A_Set =
 		self .. { visibleNames }
 
-	override fun o_ParsingInstructions(self: AvailObject): A_Tuple =
-		self .. { parsingInstructions }
+	override fun o_ParsingInstructions(
+		self: AvailObject
+	): List<ParsingOperation> = self .. { parsingInstructions }
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self .. { expression }

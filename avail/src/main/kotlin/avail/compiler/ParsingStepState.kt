@@ -33,7 +33,6 @@
 package avail.compiler
 
 import avail.compiler.AvailCompiler.PartialSubexpressionList
-import avail.compiler.ParsingOperation.BRANCH_FORWARD
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.module.A_Module
 import avail.descriptor.phrases.A_Phrase
