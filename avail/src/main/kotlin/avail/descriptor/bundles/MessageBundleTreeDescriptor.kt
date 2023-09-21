@@ -651,7 +651,7 @@ class MessageBundleTreeDescriptor private constructor(
 						val pc = planInProgress.parsingPc
 						val plan = planInProgress.parsingPlan
 						val instructions = plan.parsingInstructions
-						if (pc == instructions.size) {
+						if (pc == instructions.size + 1) {
 							// Just reached the end of these instructions.
 							// It's past the end of the parsing instructions.
 							lazyComplete =
@@ -721,7 +721,7 @@ class MessageBundleTreeDescriptor private constructor(
 		while (!pcsToVisit.isEmpty())
 		{
 			val pc = pcsToVisit.removeLast()
-			if (pc == instructions.size)
+			if (pc == instructions.size + 1)
 			{
 				// We've reached an end-point for parsing this plan.  The
 				// grammatical restriction has no remaining effect.
@@ -910,7 +910,7 @@ class MessageBundleTreeDescriptor private constructor(
 			if (hasBackwardJump) bundleTree
 			else bundleTree.latestBackwardJump
 		val instructions = plan.parsingInstructions
-		if (pc == instructions.size)
+		if (pc == instructions.size + 1)
 		{
 			lazyComplete = lazyComplete.mapAtReplacingCanDestroy(
 				plan.bundle, emptySet, true

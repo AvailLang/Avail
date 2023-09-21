@@ -128,7 +128,7 @@ sealed class ParsingOperation constructor(
 	val canRunIfHasFirstArgument: Boolean)
 {
 	/** The name of the instruction. */
-	val name = this::class.java.name
+	val name = this::class.java.simpleName
 
 	/**
 	 * A [Statistic] that records the number of nanoseconds spent while
