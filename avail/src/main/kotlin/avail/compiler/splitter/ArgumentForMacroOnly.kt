@@ -31,9 +31,9 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.CHECK_ARGUMENT
-import avail.compiler.PARSE_TOP_VALUED_ARGUMENT
-import avail.compiler.TYPE_CHECK_ARGUMENT
+import avail.compiler.CheckArgument
+import avail.compiler.ParseTopValuedArgument
+import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
@@ -100,10 +100,10 @@ internal class ArgumentForMacroOnly constructor(
 		wrapState: WrapState): WrapState
 	{
 		generator.flushDelayed()
-		generator.emit(this, PARSE_TOP_VALUED_ARGUMENT)
-		generator.emitDelayed(this, CHECK_ARGUMENT(absoluteUnderscoreIndex))
+		generator.emit(this, ParseTopValuedArgument)
+		generator.emitDelayed(this, CheckArgument(absoluteUnderscoreIndex))
 		generator.emitDelayed(
-			this, TYPE_CHECK_ARGUMENT(indexForConstant(phraseType))
+			this, TypeCheckArgument(indexForConstant(phraseType))
 		)
 		return wrapState
 	}

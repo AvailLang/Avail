@@ -31,9 +31,9 @@
  */
 package avail.descriptor.bundles
 
-import avail.compiler.CHECK_ARGUMENT
-import avail.compiler.JUMP_BACKWARD
-import avail.compiler.PARSE_PART
+import avail.compiler.CheckArgument
+import avail.compiler.JumpBackward
+import avail.compiler.ParsePart
 import avail.descriptor.maps.A_Map
 import avail.descriptor.methods.A_Sendable
 import avail.descriptor.module.A_Module
@@ -161,7 +161,7 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * Answer the bundle trees that will be reached when specific parse instructions run.  During normal processing,
-		 * all such instructions are attempted in parallel.  Certain instructions like [PARSE_PART] do not get added to
+		 * all such instructions are attempted in parallel.  Certain instructions like [ParsePart] do not get added to
 		 * this map, and are instead added to other structures such as [lazyIncomplete].
 		 *
 		 * Each key is an [integer][IntegerDescriptor] that encodes a parsing
@@ -181,7 +181,7 @@ interface A_BundleTree : A_BasicObject {
 		val A_BundleTree.lazyActions get() = dispatch { o_LazyActions(it) }
 
 		/**
-		 * Answer a map used by the [CHECK_ARGUMENT] instruction to quickly
+		 * Answer a map used by the [CheckArgument] instruction to quickly
 		 * eliminate arguments that are forbidden by grammatical restrictions.
 		 * The map is from each restricted argument [bundle][A_Bundle] to the
 		 * successor bundle tree that includes every bundle that *is* allowed
@@ -252,7 +252,7 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * Answer the nearest ancestor bundle tree that contained a
-		 * [JUMP_BACKWARD].  There may be closer ancestor [A_BundleTree]s with a
+		 * [JumpBackward].  There may be closer ancestor [A_BundleTree]s with a
 		 * backward jump, but that jump wasn't present in the bundle tree yet.
 		 *
 		 * @return
@@ -263,7 +263,7 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * Answer whether there are any parsing-plans-in-progress which are at a
-		 * [backward&#32;jump][JUMP_BACKWARD]].
+		 * [backward&#32;jump][JumpBackward]].
 		 *
 		 * @return
 		 *   Whether there are any backward jumps.

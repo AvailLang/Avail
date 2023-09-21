@@ -33,14 +33,14 @@ package avail.descriptor.parsing
 
 import avail.compiler.ArityOneParsingOperation
 import avail.compiler.AvailCompilerFragmentCache
-import avail.compiler.CONVERT
-import avail.compiler.PARSE_PART
-import avail.compiler.PARSE_PART_CASE_INSENSITIVELY
-import avail.compiler.PERMUTE_LIST
-import avail.compiler.PUSH_LITERAL
+import avail.compiler.Convert
+import avail.compiler.ParsePart
+import avail.compiler.ParsePartCaseInsensitively
+import avail.compiler.PermuteList
+import avail.compiler.PushLiteral
 import avail.compiler.ParsingConversionRule.Companion.rule
 import avail.compiler.ParsingOperation
-import avail.compiler.TYPE_CHECK_ARGUMENT
+import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
@@ -163,19 +163,19 @@ class DefinitionParsingPlanDescriptor private constructor(
 					if (operand > 0) {
 						append(" ($operand)")
 						append(when (operation) {
-							is PARSE_PART,
-							is PARSE_PART_CASE_INSENSITIVELY -> {
+							is ParsePart,
+							is ParsePartCaseInsensitively -> {
 								val part = self.bundle.messagePart(operand)
 									.asNativeString()
 								" Part = '$part'"
 							}
-							is PUSH_LITERAL ->
+							is PushLiteral ->
 								" Constant = ${constantForIndex(operand)}"
-							is PERMUTE_LIST ->
+							is PermuteList ->
 								" Permutation = ${permutationAtIndex(operand)}"
-							is TYPE_CHECK_ARGUMENT ->
+							is TypeCheckArgument ->
 								" Type = ${constantForIndex(operand)}"
-							is CONVERT -> " Conversion = ${rule(operand)}"
+							is Convert -> " Conversion = ${rule(operand)}"
 							else -> ""
 						})
 					}

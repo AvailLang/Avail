@@ -50,7 +50,7 @@ import kotlin.math.min
 
 /**
  * [ParsingStepState] captures the current state while parsing an expression.
- * It's mutable, but in the event of a fork (say, due to a [BRANCH_FORWARD]), a
+ * It's mutable, but in the event of a fork (say, due to a [BranchForward]), a
  * copy must be created before the original is mutated again.
  *
  * @constructor

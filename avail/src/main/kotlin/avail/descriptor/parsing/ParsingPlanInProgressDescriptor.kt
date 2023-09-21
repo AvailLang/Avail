@@ -32,7 +32,7 @@
 package avail.descriptor.parsing
 
 import avail.compiler.AvailCompilerFragmentCache
-import avail.compiler.JUMP_BACKWARD
+import avail.compiler.JumpBackward
 import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.methods.A_Definition
@@ -146,7 +146,7 @@ class ParsingPlanInProgressDescriptor private constructor(
 			return false
 		}
 		val instruction = instructions[pc - 1]
-		return instruction is JUMP_BACKWARD
+		return instruction is JumpBackward
 	}
 
 	/**

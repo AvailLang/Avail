@@ -31,11 +31,11 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.DISCARD_SAVED_PARSE_POSITION
-import avail.compiler.ENSURE_PARSE_PROGRESS
-import avail.compiler.PUSH_LITERAL
+import avail.compiler.DiscardSavedParsePosition
+import avail.compiler.EnsureParseProgress
+import avail.compiler.PushLiteral
 import avail.compiler.ParsingOperation
-import avail.compiler.SAVE_PARSE_POSITION
+import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
 import avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
@@ -144,20 +144,20 @@ internal class Optional constructor(
 		val needsProgressCheck = sequence.mightBeEmpty(emptyListPhraseType())
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
-		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
+		generator.emitIf(needsProgressCheck, this, SaveParsePosition)
 		assert(!sequence.isReordered)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
-		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+		generator.emitIf(needsProgressCheck, this, EnsureParseProgress)
 		generator.emitIf(
-			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION
+			needsProgressCheck, this, DiscardSavedParsePosition
 		)
-		generator.emit(this, PUSH_LITERAL(indexForTrue))
+		generator.emit(this, PushLiteral(indexForTrue))
 		val `$after` = Label()
 		generator.emitJumpForward(this, `$after`)
 		generator.emit(`$absent`)
-		generator.emit(this, PUSH_LITERAL(indexForFalse))
+		generator.emit(this, PushLiteral(indexForFalse))
 		generator.emit(`$after`)
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
@@ -192,23 +192,23 @@ internal class Optional constructor(
 		generator.flushDelayed()
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
-		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
+		generator.emitIf(needsProgressCheck, this, SaveParsePosition)
 		assert(!sequence.isReordered)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
-		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+		generator.emitIf(needsProgressCheck, this, EnsureParseProgress)
 		generator.emitIf(
-			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
+			needsProgressCheck, this, DiscardSavedParsePosition)
 		function()
 		generator.flushDelayed()
-		generator.emit(this, PUSH_LITERAL(indexForTrue))
+		generator.emit(this, PushLiteral(indexForTrue))
 		val `$merge` = Label()
 		generator.emitJumpForward(this, `$merge`)
 		generator.emit(`$absent`)
 		function()
 		generator.flushDelayed()
-		generator.emit(this, PUSH_LITERAL(indexForFalse))
+		generator.emit(this, PushLiteral(indexForFalse))
 		generator.emit(`$merge`)
 	}
 

@@ -31,8 +31,8 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.PARSE_RAW_KEYWORD_TOKEN
-import avail.compiler.TYPE_CHECK_ARGUMENT
+import avail.compiler.ParseRawKeywordToken
+import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.tokens.TokenDescriptor.TokenType
@@ -72,10 +72,10 @@ internal class RawKeywordTokenArgument constructor(
 		wrapState: WrapState): WrapState
 	{
 		generator.flushDelayed()
-		generator.emit(this, PARSE_RAW_KEYWORD_TOKEN)
+		generator.emit(this, ParseRawKeywordToken)
 		generator.emitDelayed(
 			this,
-			TYPE_CHECK_ARGUMENT(indexForConstant(phraseType))
+			TypeCheckArgument(indexForConstant(phraseType))
 		)
 		return wrapState
 	}

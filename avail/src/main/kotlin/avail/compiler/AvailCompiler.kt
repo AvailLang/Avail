@@ -1603,7 +1603,7 @@ class AvailCompiler constructor(
 			actions.forEach { (op: ParsingOperation, successors: A_Tuple) ->
 				when
 				{
-					skipCheckArgumentAction && op is CHECK_ARGUMENT ->
+					skipCheckArgumentAction && op is CheckArgument ->
 					{
 						// Skip this action, because the latest argument was a
 						// send that had an entry in the prefilter map, so it

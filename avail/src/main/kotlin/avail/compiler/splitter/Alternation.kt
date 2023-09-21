@@ -31,9 +31,9 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.DISCARD_SAVED_PARSE_POSITION
-import avail.compiler.ENSURE_PARSE_PROGRESS
-import avail.compiler.SAVE_PARSE_POSITION
+import avail.compiler.DiscardSavedParsePosition
+import avail.compiler.EnsureParseProgress
+import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
@@ -120,7 +120,7 @@ internal class Alternation constructor(
 		val needsProgressCheck =
 			alternatives.stream().anyMatch { it.mightBeEmpty(bottom) }
 		generator.flushDelayed()
-		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
+		generator.emitIf(needsProgressCheck, this, SaveParsePosition)
 		val `$after` = Label()
 		for (i in alternatives.indices)
 		{
@@ -148,9 +148,9 @@ internal class Alternation constructor(
 			generator.emit(`$nextAlternative`)
 		}
 		generator.emit(`$after`)
-		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+		generator.emitIf(needsProgressCheck, this, EnsureParseProgress)
 		generator.emitIf(
-			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
+			needsProgressCheck, this, DiscardSavedParsePosition)
 		return wrapState
 	}
 

@@ -31,8 +31,8 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.PARSE_PART
-import avail.compiler.PARSE_PART_CASE_INSENSITIVELY
+import avail.compiler.ParsePart
+import avail.compiler.ParsePartCaseInsensitively
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -109,8 +109,8 @@ internal class Simple constructor(
 		generator.emit(this, when
 		{
 			generator.caseInsensitive ->
-				PARSE_PART_CASE_INSENSITIVELY(tokenIndex)
-			else -> PARSE_PART(tokenIndex)
+				ParsePartCaseInsensitively(tokenIndex)
+			else -> ParsePart(tokenIndex)
 		})
 		return wrapState
 	}

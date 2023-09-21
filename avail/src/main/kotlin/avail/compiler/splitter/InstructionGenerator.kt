@@ -33,17 +33,17 @@
 package avail.compiler.splitter
 
 import avail.AvailRuntimeConfiguration
-import avail.compiler.APPEND_ARGUMENT
+import avail.compiler.AppendArgument
 import avail.compiler.ArityOneParsingOperation
-import avail.compiler.BRANCH_FORWARD
-import avail.compiler.EMPTY_LIST
-import avail.compiler.JUMP_BACKWARD
-import avail.compiler.JUMP_FORWARD
-import avail.compiler.PARSE_PART
-import avail.compiler.PARSE_PART_CASE_INSENSITIVELY
+import avail.compiler.BranchForward
+import avail.compiler.EmptyList
+import avail.compiler.JumpBackward
+import avail.compiler.JumpForward
+import avail.compiler.ParsePart
+import avail.compiler.ParsePartCaseInsensitively
 import avail.compiler.ParsingOperation
 import avail.compiler.Placeholder
-import avail.compiler.WRAP_IN_LIST
+import avail.compiler.WrapInList
 import java.util.BitSet
 import java.util.Collections
 
@@ -64,7 +64,7 @@ internal class InstructionGenerator constructor()
 
 	/**
 	 * Holds a sequence of (relocatable) instructions that will perform grammar
-	 * and type checks, and sometimes a [APPEND_ARGUMENT] on an argument that
+	 * and type checks, and sometimes a [AppendArgument] on an argument that
 	 * has been parsed but not yet processed.  This allows faster checks (like
 	 * token matching) to filter out incorrect matches, avoiding expensive type
 	 * tests.
@@ -201,7 +201,7 @@ internal class InstructionGenerator constructor()
 	}
 
 	/**
-	 * Emit a [jump-forward&#32;instruction][JUMP_FORWARD]. The target label
+	 * Emit a [jump-forward&#32;instruction][JumpForward]. The target label
 	 * must not have been emitted yet.
 	 *
 	 * @param label
@@ -215,13 +215,13 @@ internal class InstructionGenerator constructor()
 		expressionList.add(expression)
 		// Promise to resolve this when the label is emitted.
 		label.operationsToFix.add(
-			instructions.size + 1 to JUMP_FORWARD(Placeholder.index)
+			instructions.size + 1 to JumpForward(Placeholder.index)
 		)
 		instructions.add(Placeholder)
 	}
 
 	/**
-	 * Emit a [jump-backward&#32;instruction][JUMP_BACKWARD]. The target label
+	 * Emit a [jump-backward&#32;instruction][JumpBackward]. The target label
 	 * must have been emitted already.
 	 *
 	 * @param label
@@ -235,11 +235,11 @@ internal class InstructionGenerator constructor()
 			"Backward jumps must actually be backward"
 		}
 		expressionList.add(expression)
-		instructions.add(JUMP_BACKWARD(label.position))
+		instructions.add(JumpBackward(label.position))
 	}
 
 	/**
-	 * Emit a [branch-forward][BRANCH_FORWARD].  The target label must not have
+	 * Emit a [branch-forward][BranchForward].  The target label must not have
 	 * been emitted yet.
 	 *
 	 * @param label
@@ -251,7 +251,7 @@ internal class InstructionGenerator constructor()
 		expressionList.add(expression)
 		// Promise to resolve this when the label is emitted.
 		label.operationsToFix.add(
-			instructions.size + 1 to BRANCH_FORWARD(Placeholder.index)
+			instructions.size + 1 to BranchForward(Placeholder.index)
 		)
 		instructions.add(Placeholder)
 	}
@@ -303,11 +303,11 @@ internal class InstructionGenerator constructor()
 		assert(listSize >= 0)
 		if (listSize == 0)
 		{
-			emit(expression, EMPTY_LIST)
+			emit(expression, EmptyList)
 		}
 		else
 		{
-			emit(expression, WRAP_IN_LIST(listSize))
+			emit(expression, WrapInList(listSize))
 		}
 	}
 
@@ -317,8 +317,8 @@ internal class InstructionGenerator constructor()
 	fun optimizeInstructions() = hoistTokenParsing()
 
 	/**
-	 * Re-order the instructions so that [PARSE_PART] and
-	 * [PARSE_PART_CASE_INSENSITIVELY] occur as early as possible.
+	 * Re-order the instructions so that [ParsePart] and
+	 * [ParsePartCaseInsensitively] occur as early as possible.
 	 */
 	private fun hoistTokenParsing()
 	{
@@ -331,9 +331,9 @@ internal class InstructionGenerator constructor()
 		{
 			val instruction =
 				instructions[pc] as? ArityOneParsingOperation ?: continue
-			if (instruction is JUMP_FORWARD
-				|| instruction is JUMP_BACKWARD
-				|| instruction is BRANCH_FORWARD)
+			if (instruction is JumpForward
+				|| instruction is JumpBackward
+				|| instruction is BranchForward)
 			{
 				// Adjust to zero-based.
 				val target = instruction.operand - 1
@@ -354,8 +354,8 @@ internal class InstructionGenerator constructor()
 				{
 					// It's not a branch target.
 					val instruction = instructions[i]
-					if (instruction is PARSE_PART
-						|| instruction is PARSE_PART_CASE_INSENSITIVELY)
+					if (instruction is ParsePart
+						|| instruction is ParsePartCaseInsensitively)
 					{
 						// Swap it leftward if it commutes.
 						val priorInstruction = instructions[i - 1]

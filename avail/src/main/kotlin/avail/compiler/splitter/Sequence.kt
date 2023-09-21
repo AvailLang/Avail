@@ -31,10 +31,10 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.APPEND_ARGUMENT
-import avail.compiler.CONCATENATE
-import avail.compiler.PERMUTE_LIST
-import avail.compiler.REVERSE_STACK
+import avail.compiler.AppendArgument
+import avail.compiler.Concatenate
+import avail.compiler.PermuteList
+import avail.compiler.ReverseStack
 import avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
 import avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
 import avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
@@ -370,7 +370,7 @@ internal class Sequence constructor(
 				val permutationSize = runSize + if (lastElementPushed) 0 else -1
 				if (permutationSize > 1)
 				{
-					generator.emit(this, REVERSE_STACK(permutationSize))
+					generator.emit(this, ReverseStack(permutationSize))
 				}
 			}
 		}
@@ -419,12 +419,12 @@ internal class Sequence constructor(
 				{
 					if (ungroupedArguments == 1)
 					{
-						generator.emit(this, APPEND_ARGUMENT)
+						generator.emit(this, AppendArgument)
 					}
 					else if (ungroupedArguments > 1)
 					{
 						generator.emitWrapped(this, ungroupedArguments)
-						generator.emit(this, CONCATENATE)
+						generator.emit(this, Concatenate)
 					}
 					ungroupedArguments = 0
 				}
@@ -447,12 +447,12 @@ internal class Sequence constructor(
 		{
 			if (ungroupedArguments == 1)
 			{
-				generator.emit(this, APPEND_ARGUMENT)
+				generator.emit(this, AppendArgument)
 			}
 			else if (ungroupedArguments > 1)
 			{
 				generator.emitWrapped(this, ungroupedArguments)
-				generator.emit(this, CONCATENATE)
+				generator.emit(this, Concatenate)
 			}
 		}
 		else if (wrapState === NEEDS_TO_PUSH_LIST)
@@ -475,7 +475,7 @@ internal class Sequence constructor(
 			// This sequence was already collected into a list phrase as the
 			// arguments/groups were parsed.  Permute the list.
 			generator.flushDelayed()
-			generator.emit(this, PERMUTE_LIST(permutationIndex))
+			generator.emit(this, PermuteList(permutationIndex))
 		}
 		return if (wrapState === NEEDS_TO_PUSH_LIST) PUSHED_LIST else wrapState
 	}
