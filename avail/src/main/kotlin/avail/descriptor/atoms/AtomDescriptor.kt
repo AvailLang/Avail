@@ -486,7 +486,12 @@ open class AtomDescriptor protected constructor (
 		 * they were, we still wouldn't want to serialize one launched from a
 		 * debugger, so this atom itself doesn't need to be serializable.
 		 */
-		DONT_DEBUG_KEY("don't debug", heritable = true);
+		DONT_DEBUG_KEY("don't debug", heritable = true),
+
+		/**
+		 * The atom used as a property key under which to store a [FileHandle].
+		 */
+		RESOURCE_KEY("resource key"),;
 
 		/**
 		 * Create a `SpecialAtom` to hold a new atom constructed with the given
