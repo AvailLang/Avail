@@ -191,6 +191,14 @@ class DefinitionParsingPlanDescriptor private constructor(
 					-1,
 					descriptionsList.toTypedArray(),
 					slotName = "Symbolic instructions"))
+			fields.add(
+				0,
+				AvailObjectFieldHelper(
+					self,
+					DUMMY_DEBUGGER_SLOT,
+					-1,
+					this.parsingInstructions,
+					slotName = "(actual parsing instructions)"))
 		}
 		catch (e: Exception)
 		{

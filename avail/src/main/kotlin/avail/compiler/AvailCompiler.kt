@@ -561,7 +561,9 @@ class AvailCompiler constructor(
 				}
 				else ->
 				{
-					// Multiple solutions were found.  Report the ambiguity.
+					// Multiple solutions were found.  Clear all other
+					// expectations and report *just* the ambiguity.
+					compilationContext.diagnostics.clearAllExpectations()
 					reportAmbiguousInterpretations(
 						solutions[0].endState,
 						solutions[0].phrase,
@@ -656,9 +658,12 @@ class AvailCompiler constructor(
 		{
 			findParseTreeDiscriminants(phrase1, phrase2)
 			val tokens = phrase1.value.allTokens
-			val line =
-				if (tokens.tupleSize > 0) tokens.tupleAt(1).lineNumber()
-				else 0
+			val lines = tokens.run {
+				if (tupleSize > 0)
+					tupleAt(1).lineNumber() .. tupleAt(tupleSize).lineNumber()
+				else 0..0
+
+			}
 			if (phrase1.value.isMacroSubstitutionNode
 				&& phrase2.value.isMacroSubstitutionNode)
 			{
@@ -676,7 +681,7 @@ class AvailCompiler constructor(
 							phrase1.value.macroOriginalSendNode.bundle.message
 						val atom2 =
 							phrase2.value.macroOriginalSendNode.bundle.message
-						("unambiguous interpretation near line $line. At " +
+						("unambiguous interpretation near lines $lines. At " +
 							"least two parses produced same-looking phrases " +
 							"after macro substitution. The post-macro " +
 							"phrase is:\n"
@@ -686,8 +691,8 @@ class AvailCompiler constructor(
 					}
 					else
 					{
-						("unambiguous interpretation near line $line. Here " +
-							"are two possible parsings..." +
+						("unambiguous interpretation near lines $lines. " +
+							"Here are two possible parsings..." +
 							"\n\t$print1\n\t$print2")
 					}
 				}
@@ -700,7 +705,7 @@ class AvailCompiler constructor(
 				) { (print1, print2) ->
 					if (print1 != print2)
 					{
-						("unambiguous interpretation near line $line. "
+						("unambiguous interpretation near lines $lines. "
 							+ "Here are two possible parsings...\n\t"
 							+ print1
 							+ "\n\t"
@@ -719,14 +724,14 @@ class AvailCompiler constructor(
 							else -> ("\n...and the bundle atoms are:\n" +
 								"\t$atom1 and\n\t$atom2")
 						}
-						("unambiguous interpretation near line $line. "
+						("unambiguous interpretation near lines $lines. "
 							+ "At least two parses produced unequal but "
 							+ "same-looking phrases:\n\t"
 							+ "\t$print1$addendum")
 					}
 					else
 					{
-						("unambiguous interpretation near line $line. "
+						("unambiguous interpretation near lines $lines. "
 							+ "At least two parses produced unequal but "
 							+ "same-looking phrases:\n\t"
 							+ "\t$print1")

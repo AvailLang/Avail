@@ -70,6 +70,8 @@ import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject.Companion.combine2
+import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
@@ -97,8 +99,12 @@ import avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
+import avail.utility.cast
 import avail.utility.evaluation.Describer
 import avail.utility.stackToString
+import java.lang.ref.WeakReference
+import java.util.Collections
+import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -232,6 +238,18 @@ sealed class ParsingOperation constructor(
 				else -> this.toString()
 			}
 	}
+
+	/**
+	 * Given a [ParsingOperation], answer an equal operation object that is
+	 * equal to it, possibly itself, such that all invocations of [intern] with
+	 * equal operations will produce the same object.  It uses the weak
+	 * [internedInstructions] map(s).
+	 *
+	 * @return
+	 *   An equivalent [ArityOneParsingOperation], perhaps the same one, that
+	 *   has been interned.
+	 */
+	open fun interned(): ParsingOperation = this
 }
 
 /**
@@ -1188,6 +1206,16 @@ abstract class ArityOneParsingOperation<T> constructor(
 
 	override val debuggerDescription get() = "$name (#$operand)"
 
+	override fun equals(other: Any?): Boolean = when
+	{
+		other == null -> false
+		other.javaClass != javaClass -> false
+		else -> operand!! == (other as ArityOneParsingOperation<*>).operand
+	}
+
+	override fun hashCode(): Int =
+		combine3(javaClass.hashCode(), operand.hashCode(), -0x7E465239)
+
 	override fun compilerStepsDebuggerDescription(
 		stepState: ParsingStepState,
 		successorTree: A_BundleTree
@@ -1201,6 +1229,25 @@ abstract class ArityOneParsingOperation<T> constructor(
 			+ ") -> "
 			+ successorTree
 	)
+
+	override fun interned(): ParsingOperation
+	{
+		val hash = hashCode()
+		val map = internedInstructions[combine2(hash, 0x248D5E00) and 255]
+		var lookup: ArityOneParsingOperation<*>?
+		do
+		{
+			// Note that the lookup might produce the WeakReference value, but
+			// have its value decay to null before we can extract it, so loop
+			// until it works, which guarantees progress by at least one of the
+			// threads attempting to register an equal type – or this thread on
+			// at worst the second try, if there are no equal types being added.
+			lookup = map.computeIfAbsent(this, ::WeakReference).get().cast()
+		}
+		while (lookup === null)
+		return lookup
+	}
+
 }
 
 /**
@@ -1224,7 +1271,8 @@ abstract class ArityOneParsingOperation<T> constructor(
  *   Whether this instruction can be run if the first argument has been parsed
  *   but not yet consumed by a PARSE_ARGUMENT instruction.
  */
-abstract class JumpParsingOperation constructor(
+abstract class JumpParsingOperation<Self : JumpParsingOperation<Self>>
+constructor(
 	commutesWithParsePart: Boolean,
 	canRunIfHasFirstArgument: Boolean
 ):
@@ -1241,7 +1289,7 @@ abstract class JumpParsingOperation constructor(
 	 * @return
 	 *   A suitably adjusted copy of the receiver.
 	 */
-	abstract fun newOperand(operand: Int): JumpParsingOperation
+	abstract fun newOperand(operand: Int): Self
 }
 
 /**
@@ -1249,9 +1297,10 @@ abstract class JumpParsingOperation constructor(
  * instruction. Attempt to continue parsing at both the next instruction and the
  * specified instruction.
  */
-class BranchForward constructor(override val operand: Int):
-	JumpParsingOperation(false, true),
-	ParsingOperationStatistics by Companion
+class BranchForward constructor(
+	override val operand: Int
+): JumpParsingOperation<BranchForward>(false, true),
+	ParsingOperationStatistics by JumpForward
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand, currentPc + 1)
 	override fun newOperand(operand: Int) = BranchForward(operand)
@@ -1284,9 +1333,11 @@ class BranchForward constructor(override val operand: Int):
  * Jump to the specified instruction, which must be after the current
  * instruction. Attempt to continue parsing only at the specified instruction.
  */
-class JumpForward constructor(override val operand: Int):
-	JumpParsingOperation(false, true),
+class JumpForward constructor(
+	override val operand: Int
+): JumpParsingOperation<JumpForward>(false, true),
 	ParsingOperationStatistics by Companion
+
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand)
 	override fun newOperand(operand: Int) = JumpForward(operand)
@@ -1319,8 +1370,9 @@ class JumpForward constructor(override val operand: Int):
  * Jump to instruction specified instruction, which must be before the current
  * instruction. Attempt to continue parsing only at the specified instruction.
  */
-class JumpBackward constructor(override val operand: Int):
-	JumpParsingOperation(false, true),
+class JumpBackward constructor(
+	override val operand: Int
+): JumpParsingOperation<JumpBackward>(false, true),
 	ParsingOperationStatistics by Companion
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand)
@@ -1622,10 +1674,13 @@ class RunPrefixFunction constructor(override val operand: Int):
  * specified permutation. The list phrase must be the same size as the
  * permutation.
  */
-class PermuteList constructor(override val operand: A_Tuple):
-	ArityOneParsingOperation<A_Tuple>(true, true),
+class PermuteList constructor(
+	operand: A_Tuple
+): ArityOneParsingOperation<A_Tuple>(true, true),
 	ParsingOperationStatistics by Companion
 {
+	override val operand = operand.makeShared()
+
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,
@@ -1820,7 +1875,7 @@ class PushLiteral constructor(operand: A_BasicObject):
 	ArityOneParsingOperation<A_BasicObject>(true, true),
 	ParsingOperationStatistics by Companion
 {
-	override val operand: A_BasicObject = operand.makeShared()
+	override val operand = operand.makeShared()
 
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1896,4 +1951,22 @@ class ReverseStack constructor(override val operand: Int):
 			this::class.java.enclosingClass.simpleName
 		)
 	}
+}
+
+/**
+ * A registry of all [ArityOneParsingOperation]s.  It's also weak.  And it's
+ * broken down into 256 separate maps with their own locks to reduce contention.
+ *
+ * The same instruction occurs in the [WeakReference] that [WeakHashMap]
+ * automatically creates for its keys, and the explicit [WeakReference] that
+ * *we* create on the value side, thus allowing the operation to be collected
+ * only when there are no more strong references in the system.  While it
+ * exists, instructions that are equal to the existing one will still find
+ * it by hash/equals.
+ */
+private val internedInstructions = Array(256) {
+	Collections.synchronizedMap(
+		WeakHashMap<
+			ArityOneParsingOperation<*>,
+			WeakReference<ArityOneParsingOperation<*>>>())
 }

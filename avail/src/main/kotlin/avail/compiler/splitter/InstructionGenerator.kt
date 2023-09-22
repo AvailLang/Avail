@@ -44,7 +44,8 @@ import avail.compiler.ParsePartCaseInsensitively
 import avail.compiler.ParsingOperation
 import avail.compiler.Placeholder
 import avail.compiler.WrapInList
-import java.util.*
+import java.util.BitSet
+import java.util.Collections
 
 /**
  * [InstructionGenerator] is used by [MessageSplitter] to accumulate the
@@ -128,7 +129,8 @@ internal class InstructionGenerator constructor()
 		 * location after combining with this label's position to form a parsing
 		 * instruction.
 		 */
-		val operationsToFix = mutableListOf<Pair<Int, ParsingOperation>>()
+		val operationsToFix =
+			mutableListOf<Pair<Int, JumpParsingOperation<*>>>()
 
 		/**  Has an instruction using this label as an operand been emitted? */
 		val isUsed: Boolean
@@ -179,22 +181,17 @@ internal class InstructionGenerator constructor()
 	{
 		assert(label.position == -1) { "Label was already emitted" }
 		label.position = instructions.size + 1
-		for (pair in label.operationsToFix)
+		for ((index, jump) in label.operationsToFix)
 		{
-			assert(instructions[pair.first - 1] === Placeholder)
+			assert(instructions[index - 1] === Placeholder)
 			if (AvailRuntimeConfiguration.debugCompilerSteps)
 			{
-				if (pair.first + 1 == label.position)
+				if (index + 1 == label.position)
 				{
 					println("DEBUG: Operation target falls through.")
 				}
 			}
-			instructions[pair.first - 1] = when (val operation = pair.second)
-			{
-				is JumpParsingOperation ->
-					operation.newOperand(label.position)
-				else -> operation
-			}
+			instructions[index - 1] = jump.newOperand(label.position)
 		}
 		label.operationsToFix.clear()
 	}
@@ -329,7 +326,7 @@ internal class InstructionGenerator constructor()
 		for (pc in instructions.indices)
 		{
 			val instruction =
-				instructions[pc] as? JumpParsingOperation ?: continue
+				instructions[pc] as? JumpParsingOperation<*> ?: continue
 			// Adjust to zero-based.
 			val target = instruction.operand - 1
 			branchTargets.set(target)
@@ -381,7 +378,8 @@ internal class InstructionGenerator constructor()
 		}
 		assert(instructions.size == expressionList.size)
 		assert(delayedExpressionList.isEmpty())
-		return Collections.unmodifiableList(instructions)
+		// Use the interned version of each instruction.
+		return instructions.map(ParsingOperation::interned)
 	}
 
 	/**

@@ -39,8 +39,8 @@ import avail.compiler.JumpBackward
 import avail.compiler.JumpForward
 import avail.compiler.ParsePart
 import avail.compiler.ParsePartCaseInsensitively
-import avail.compiler.PrepareToRunPrefixFunction
 import avail.compiler.ParsingOperation
+import avail.compiler.PrepareToRunPrefixFunction
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
@@ -128,8 +128,10 @@ import avail.performance.Statistic
 import avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import avail.utility.Strings.newlineTab
 import avail.utility.safeWrite
-import java.util.*
+import java.util.ArrayDeque
 import java.util.Collections.sort
+import java.util.Deque
+import java.util.IdentityHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.collections.component1
 import kotlin.collections.component2
