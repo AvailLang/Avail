@@ -126,26 +126,11 @@ import java.util.concurrent.atomic.AtomicBoolean
  */
 sealed class ParsingOperation constructor(
 	val commutesWithParsePart: Boolean,
-	val canRunIfHasFirstArgument: Boolean)
+	val canRunIfHasFirstArgument: Boolean
+): ParsingOperationStatistics
 {
 	/** The name of the instruction. */
 	val name: String = this::class.java.simpleName
-
-	/**
-	 * A [Statistic] that records the number of nanoseconds spent while
-	 * executing occurrences of this [ParsingOperation].
-	 */
-	val parsingStatisticInNanoseconds: Statistic = Statistic(
-		RUNNING_PARSING_INSTRUCTIONS, name
-	)
-
-	/**
-	 * A [Statistic] that records the number of nanoseconds spent while
-	 * expanding occurrences of this [ParsingOperation].
-	 */
-	val expandingStatisticInNanoseconds: Statistic = Statistic(
-		EXPANDING_PARSING_INSTRUCTIONS, name
-	)
 
 	/**
 	 * A description of the operation for the debugger.
@@ -249,6 +234,24 @@ sealed class ParsingOperation constructor(
 	}
 }
 
+/**
+ * The statistics for [ParsingOperation].
+ */
+interface ParsingOperationStatistics
+{
+	/**
+	 * A [Statistic] that records the number of nanoseconds spent while
+	 * executing occurrences of this [ParsingOperation].
+	 */
+	val parsingStatisticInNanoseconds: Statistic
+
+	/**
+	 * A [Statistic] that records the number of nanoseconds spent while
+	 * expanding occurrences of this [ParsingOperation].
+	 */
+	val expandingStatisticInNanoseconds: Statistic
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                           Arity zero operations.                           //
 ////////////////////////////////////////////////////////////////////////////////
@@ -257,7 +260,7 @@ sealed class ParsingOperation constructor(
  * Placeholder for use by an [InstructionGenerator]. Must not survive beyond
  * code generation.
  */
-object Placeholder: ParsingOperation(false, false)
+object Placeholder: ParsingOperation(false, false), ParsingOperationStatistics
 {
 	/** The sentinel for the placeholder. */
 	const val index = Int.MIN_VALUE
@@ -267,6 +270,14 @@ object Placeholder: ParsingOperation(false, false)
 		stepState: ParsingStepState,
 		successorTree: A_BundleTree
 	) = throw RuntimeException("Placeholder should never be executed")
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -274,7 +285,7 @@ object Placeholder: ParsingOperation(false, false)
  * [empty&#32;tuple][TupleDescriptor.emptyTuple] of [phrases][PhraseDescriptor]
  * onto the parse stack.
  */
-object EmptyList: ParsingOperation(true, true)
+object EmptyList: ParsingOperation(true, true), ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -285,6 +296,14 @@ object EmptyList: ParsingOperation(true, true)
 		stepState.push(emptyListNode())
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -292,7 +311,7 @@ object EmptyList: ParsingOperation(true, true)
  * Pop a [list][ListPhraseDescriptor] from the parse stack. Append the argument
  * to the list. Push the resultant list onto the parse stack.
  */
-object AppendArgument: ParsingOperation(true, true)
+object AppendArgument: ParsingOperation(true, true), ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -305,12 +324,22 @@ object AppendArgument: ParsingOperation(true, true)
 		stepState.push(list.copyWith(value))
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
  * Push the current parse position onto the mark stack.
  */
-object SaveParsePosition: ParsingOperation(false, true)
+object SaveParsePosition:
+	ParsingOperation(false, true),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -326,12 +355,22 @@ object SaveParsePosition: ParsingOperation(false, true)
 		stepState.pushMarker(marker)
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
  * Pop the top marker off the mark stack.
  */
-object DiscardSavedParsePosition: ParsingOperation(true, true)
+object DiscardSavedParsePosition:
+	ParsingOperation(true, true),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -342,6 +381,14 @@ object DiscardSavedParsePosition: ParsingOperation(true, true)
 		stepState.popMarker()
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -350,7 +397,9 @@ object DiscardSavedParsePosition: ParsingOperation(true, true)
  * current parse position onto the mark stack in place of the old marker and
  * continue parsing.
  */
-object EnsureParseProgress: ParsingOperation(false, true)
+object EnsureParseProgress:
+	ParsingOperation(false, true),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -367,13 +416,21 @@ object EnsureParseProgress: ParsingOperation(false, true)
 			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
  * Parse an ordinary argument of a message send, pushing the expression onto the
  * parse stack.
  */
-object ParseArgument: ParsingOperation(false, true)
+object ParseArgument: ParsingOperation(false, true), ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -412,6 +469,14 @@ object ParseArgument: ParsingOperation(false, true)
 				successorTree, stepStateCopy)
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -424,7 +489,9 @@ object ParseArgument: ParsingOperation(false, true)
  * ⊥).  Instead, they will have the expressionType phrase⇒⊤ (or phrase⇒⊥), which
  * is perfectly fine to put inside a list phrase during parsing.
  */
-object ParseTopValuedArgument: ParsingOperation(false, true)
+object ParseTopValuedArgument:
+	ParsingOperation(false, true),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -463,6 +530,14 @@ object ParseTopValuedArgument: ParsingOperation(false, true)
 				successorTree, stepStateCopy)
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -470,7 +545,9 @@ object ParseTopValuedArgument: ParsingOperation(false, true)
  * [variable][VariableDescriptor] that is in scope. Push a
  * [variable&#32;reference][ReferencePhraseDescriptor] onto the parse stack.
  */
-object ParseVariableReference: ParsingOperation(false, true)
+object ParseVariableReference:
+	ParsingOperation(false, true),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -583,13 +660,23 @@ object ParseVariableReference: ParsingOperation(false, true)
 			}
 			continuation(builder.toString())
 		}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
  * Parse an argument of a message send, using the *outermost (module) scope*.
  * Leave it on the parse stack.
  */
-object ParseArgumentInModuleScope: ParsingOperation(false, true)
+object ParseArgumentInModuleScope:
+	ParsingOperation(false, true),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -599,6 +686,14 @@ object ParseArgumentInModuleScope: ParsingOperation(false, true)
 	{
 		compiler.parseArgumentInModuleScopeThen(stepState, successorTree)
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -606,7 +701,9 @@ object ParseArgumentInModuleScope: ParsingOperation(false, true)
  * In particular, push a literal phrase whose token is a synthetic literal token
  * whose value is the actual token that was parsed.
  */
-object ParseAnyRawToken: ParsingOperation(false, false)
+object ParseAnyRawToken:
+	ParsingOperation(false, false),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -657,13 +754,23 @@ object ParseAnyRawToken: ParsingOperation(false, false)
 				successorTree, stepStateCopy)
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
  * Parse a raw *[keyword][TokenType.KEYWORD]* [token][TokenDescriptor], leaving
  * it on the parse stack.
  */
-object ParseRawKeywordToken: ParsingOperation(false, false)
+object ParseRawKeywordToken:
+	ParsingOperation(false, false),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -725,13 +832,23 @@ object ParseRawKeywordToken: ParsingOperation(false, false)
 				successorTree, stepStateCopy)
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
  * Parse a raw *[literal][TokenType.LITERAL]* [token][TokenDescriptor], leaving
  * it on the parse stack.
  */
-object ParseRawLiteralToken: ParsingOperation(false, false)
+object ParseRawLiteralToken:
+	ParsingOperation(false, false),
+	ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -792,12 +909,20 @@ object ParseRawLiteralToken: ParsingOperation(false, false)
 				successorTree, stepStateCopy)
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
  * Concatenate the two lists that have been pushed previously.
  */
-object Concatenate: ParsingOperation(false, true)
+object Concatenate: ParsingOperation(false, true), ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -815,6 +940,14 @@ object Concatenate: ParsingOperation(false, true)
 		compiler.eventuallyParseRestOfSendNode(
 			successorTree, stepState)
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -824,7 +957,7 @@ object Concatenate: ParsingOperation(false, true)
  * continue parsing, otherwise report a weak error and abandon this parse
  * theory.
  */
-object MatchIndent: ParsingOperation(false, true)
+object MatchIndent: ParsingOperation(false, true), ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -867,6 +1000,14 @@ object MatchIndent: ParsingOperation(false, true)
 			}
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -876,7 +1017,7 @@ object MatchIndent: ParsingOperation(false, true)
  * is a proper extension of the initial whitespace, continue parsing, otherwise
  * report a weak error and abandon this parse theory.
  */
-object IncreaseIndent: ParsingOperation(false, true)
+object IncreaseIndent: ParsingOperation(false, true), ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -936,6 +1077,14 @@ object IncreaseIndent: ParsingOperation(false, true)
 			}
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 /**
@@ -943,9 +1092,9 @@ object IncreaseIndent: ParsingOperation(false, true)
  * include a line break.  This test is specifically to support "⇥⁇" and "↹⁇".
  * Without this filter instruction, the normal token processing would allow the
  * "didn't look for indent" path to consume any whitespace at all, including a
- * wrong indents, making the construct pointless.
+ * wrong indent, making the construct pointless.
  */
-object NoLineBreak: ParsingOperation(false, true)
+object NoLineBreak: ParsingOperation(false, true), ParsingOperationStatistics
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -994,6 +1143,14 @@ object NoLineBreak: ParsingOperation(false, true)
 			}
 		}
 	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1070,10 +1227,12 @@ abstract class ArityOneParsingOperation<T> constructor(
 abstract class JumpParsingOperation constructor(
 	commutesWithParsePart: Boolean,
 	canRunIfHasFirstArgument: Boolean
-): ArityOneParsingOperation<Int>(
-	commutesWithParsePart,
-	canRunIfHasFirstArgument
-) {
+):
+	ArityOneParsingOperation<Int>(
+		commutesWithParsePart,
+		canRunIfHasFirstArgument
+	)
+{
 	/**
 	 * Copy the receiver, replacing its operand with the given value.
 	 *
@@ -1090,9 +1249,9 @@ abstract class JumpParsingOperation constructor(
  * instruction. Attempt to continue parsing at both the next instruction and the
  * specified instruction.
  */
-class BranchForward constructor(
-	override val operand: Int
-): JumpParsingOperation(false, true)
+class BranchForward constructor(override val operand: Int):
+	JumpParsingOperation(false, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand, currentPc + 1)
 	override fun newOperand(operand: Int) = BranchForward(operand)
@@ -1106,15 +1265,28 @@ class BranchForward constructor(
 		throw UnsupportedOperationException(
 			"$name instruction should not be dispatched")
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
  * Jump to the specified instruction, which must be after the current
  * instruction. Attempt to continue parsing only at the specified instruction.
  */
-class JumpForward constructor(
-	override val operand: Int
-): JumpParsingOperation(false, true)
+class JumpForward constructor(override val operand: Int):
+	JumpParsingOperation(false, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand)
 	override fun newOperand(operand: Int) = JumpForward(operand)
@@ -1128,15 +1300,28 @@ class JumpForward constructor(
 		throw UnsupportedOperationException(
 			"$name instruction should not be dispatched")
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
  * Jump to instruction specified instruction, which must be before the current
  * instruction. Attempt to continue parsing only at the specified instruction.
  */
-class JumpBackward constructor(
-	override val operand: Int
-): JumpParsingOperation(false, true)
+class JumpBackward constructor(override val operand: Int):
+	JumpParsingOperation(false, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand)
 	override fun newOperand(operand: Int) = JumpBackward(operand)
@@ -1150,6 +1335,19 @@ class JumpBackward constructor(
 		throw UnsupportedOperationException(
 			"$name instruction should not be dispatched")
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
@@ -1158,9 +1356,9 @@ class JumpBackward constructor(
  * will be a specific [token][TokenDescriptor]. It should be matched case
  * sensitively against the source token.
  */
-class ParsePart constructor(
-	override val operand: Int
-): ArityOneParsingOperation<Int>(false, false)
+class ParsePart constructor(override val operand: Int):
+	ArityOneParsingOperation<Int>(false, false),
+	ParsingOperationStatistics by Companion
 {
 	override val keywordIndex = operand
 
@@ -1172,6 +1370,19 @@ class ParsePart constructor(
 	{
 		throw UnsupportedOperationException(
 			"$name instruction should not be dispatched")
+	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
 	}
 }
 
@@ -1181,9 +1392,9 @@ class ParsePart constructor(
  * will be a specific [token][TokenDescriptor]. It should be matched case
  * insensitively against the source token.
  */
-class ParsePartCaseInsensitively constructor(
-	override val operand: Int
-): ArityOneParsingOperation<Int>(false, false)
+class ParsePartCaseInsensitively constructor(override val operand: Int):
+	ArityOneParsingOperation<Int>(false, false),
+	ParsingOperationStatistics by Companion
 {
 	override val keywordIndex = operand
 
@@ -1196,15 +1407,28 @@ class ParsePartCaseInsensitively constructor(
 		throw UnsupportedOperationException(
 			"$name instruction should not be dispatched")
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
  * Apply grammatical restrictions to the [operand]<sup>th</sup> leaf argument
  * (underscore/ellipsis) of the current message, which is on the stack.
  */
-class CheckArgument constructor(
-	override val operand: Int
-): ArityOneParsingOperation<Int>(true, true)
+class CheckArgument constructor(override val operand: Int):
+	ArityOneParsingOperation<Int>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override val checkArgumentIndex = operand
 
@@ -1217,15 +1441,28 @@ class CheckArgument constructor(
 		assert(stepState.firstArgOrNull === null)
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
  * Pop an argument from the parse stack and apply the
  * [conversion&#32;rule][ParsingConversionRule] specified by [operand].
  */
-class Convert constructor(
-	override val operand: ParsingConversionRule
-): ArityOneParsingOperation<ParsingConversionRule>(true, true)
+class Convert constructor(override val operand: ParsingConversionRule):
+	ArityOneParsingOperation<ParsingConversionRule>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1259,6 +1496,19 @@ class Convert constructor(
 
 	override val debuggerDescription get() =
 		super.debuggerDescription + " = " + operand
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
@@ -1274,9 +1524,9 @@ class Convert constructor(
  * operation.  Its successors are separated into distinct message bundle trees,
  * one per message bundle.
  */
-class PrepareToRunPrefixFunction constructor(
-	override val operand: Int
-): ArityOneParsingOperation<Int>(false, true)
+class PrepareToRunPrefixFunction constructor(override val operand: Int):
+	ArityOneParsingOperation<Int>(false, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1299,6 +1549,19 @@ class PrepareToRunPrefixFunction constructor(
 		stepState.push(stackCopy.single())
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
@@ -1314,9 +1577,9 @@ class PrepareToRunPrefixFunction constructor(
  * be done in parallel) and between separate linguistic abstractions (the keys
  * are atoms and are therefore modular).
  */
-class RunPrefixFunction constructor(
-	override val operand: Int
-): ArityOneParsingOperation<Int>(false, true)
+class RunPrefixFunction constructor(override val operand: Int):
+	ArityOneParsingOperation<Int>(false, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1339,6 +1602,19 @@ class RunPrefixFunction constructor(
 			prefixFunction,
 			toList(arguments))
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
@@ -1346,9 +1622,9 @@ class RunPrefixFunction constructor(
  * specified permutation. The list phrase must be the same size as the
  * permutation.
  */
-class PermuteList constructor(
-	override val operand: A_Tuple
-): ArityOneParsingOperation<A_Tuple>(true, true)
+class PermuteList constructor(override val operand: A_Tuple):
+	ArityOneParsingOperation<A_Tuple>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1362,15 +1638,28 @@ class PermuteList constructor(
 
 	override val debuggerDescription get() =
 		super.debuggerDescription + " = " + operand
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
  * Check that the list phrase on the top of the stack has at least the specified
  * size.  Proceed to the next instruction only if this is the case.
  */
-class CheckAtLeast constructor(
-	override val operand: Int
-): ArityOneParsingOperation<Int>(true, true)
+class CheckAtLeast constructor(override val operand: Int):
+	ArityOneParsingOperation<Int>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1384,6 +1673,19 @@ class CheckAtLeast constructor(
 			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
@@ -1392,7 +1694,9 @@ class CheckAtLeast constructor(
  */
 class CheckAtMost constructor(
 	override val operand: Int
-): ArityOneParsingOperation<Int>(true, true)
+):
+	ArityOneParsingOperation<Int>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1406,6 +1710,19 @@ class CheckAtMost constructor(
 			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
@@ -1416,9 +1733,9 @@ class CheckAtMost constructor(
  * definition, or at least until the [A_Type.defaultType] of the tuple type has
  * been reached.
  */
-class TypeCheckArgument constructor(
-	operand: A_BasicObject
-): ArityOneParsingOperation<A_BasicObject>(true, true)
+class TypeCheckArgument constructor(operand: A_BasicObject):
+	ArityOneParsingOperation<A_BasicObject>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override val operand = operand.makeShared()
 
@@ -1430,6 +1747,19 @@ class TypeCheckArgument constructor(
 	{
 		throw UnsupportedOperationException(
 			"$name instruction should not be dispatched")
+	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
 	}
 }
 
@@ -1447,9 +1777,9 @@ class TypeCheckArgument constructor(
  * executed each time the root bundle tree is used to start parsing a
  * subexpression.
  */
-class WrapInList constructor(
-	override val operand: Int
-): ArityOneParsingOperation<Int>(true, true)
+class WrapInList constructor(override val operand: Int):
+	ArityOneParsingOperation<Int>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1466,6 +1796,19 @@ class WrapInList constructor(
 		}
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+	}
 }
 
 /**
@@ -1473,9 +1816,9 @@ class WrapInList constructor(
  * [constant][operand]. The [operand] is automatically
  * [made&#32;shared][A_BasicObject.makeShared].
  */
-class PushLiteral constructor(
-	operand: A_BasicObject
-): ArityOneParsingOperation<A_BasicObject>(true, true)
+class PushLiteral constructor(operand: A_BasicObject):
+	ArityOneParsingOperation<A_BasicObject>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override val operand: A_BasicObject = operand.makeShared()
 
@@ -1498,8 +1841,18 @@ class PushLiteral constructor(
 	override val debuggerDescription get() =
 		super.debuggerDescription + " = " + operand
 
-	companion object
+	companion object: ParsingOperationStatistics
 	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
 		/** The flyweight for pushing the [true][trueObject] literal. */
 		val pushTrue = PushLiteral(trueObject)
 
@@ -1512,9 +1865,9 @@ class PushLiteral constructor(
  * Reverse the [operand] top elements of the stack.  The new stack has the same
  * depth as the old stack.
  */
-class ReverseStack constructor(
-	override val operand: Int
-): ArityOneParsingOperation<Int>(true, true)
+class ReverseStack constructor(override val operand: Int):
+	ArityOneParsingOperation<Int>(true, true),
+	ParsingOperationStatistics by Companion
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1529,5 +1882,18 @@ class ReverseStack constructor(
 			argsSoFar = unpopped + popped.reversed()
 		}
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
+	}
+
+	companion object: ParsingOperationStatistics
+	{
+		override val parsingStatisticInNanoseconds = Statistic(
+			RUNNING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
+
+		override val expandingStatisticInNanoseconds = Statistic(
+			EXPANDING_PARSING_INSTRUCTIONS,
+			this::class.java.enclosingClass.simpleName
+		)
 	}
 }
