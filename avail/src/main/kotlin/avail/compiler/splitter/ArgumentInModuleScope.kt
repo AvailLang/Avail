@@ -36,7 +36,6 @@ import avail.compiler.Convert
 import avail.compiler.ParseArgumentInModuleScope
 import avail.compiler.ParsingConversionRule.EVALUATE_EXPRESSION
 import avail.compiler.TypeCheckArgument
-import avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.LiteralPhraseDescriptor
@@ -109,11 +108,8 @@ internal class ArgumentInModuleScope constructor(
 		// since it's going to be evaluated and wrapped in a literal phrase.
 		val expressionType = EXPRESSION_PHRASE.create(
 			phraseType.phraseTypeExpressionType)
-		generator.emitDelayed(
-			this,
-			TypeCheckArgument(indexForConstant(expressionType))
-		)
-		generator.emitDelayed(this, Convert(EVALUATE_EXPRESSION.number))
+		generator.emitDelayed(this, TypeCheckArgument(expressionType))
+		generator.emitDelayed(this, Convert(EVALUATE_EXPRESSION))
 		return wrapState
 	}
 

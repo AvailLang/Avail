@@ -34,18 +34,17 @@ package avail.compiler.splitter
 
 import avail.AvailRuntimeConfiguration
 import avail.compiler.AppendArgument
-import avail.compiler.ArityOneParsingOperation
 import avail.compiler.BranchForward
 import avail.compiler.EmptyList
 import avail.compiler.JumpBackward
 import avail.compiler.JumpForward
+import avail.compiler.JumpParsingOperation
 import avail.compiler.ParsePart
 import avail.compiler.ParsePartCaseInsensitively
 import avail.compiler.ParsingOperation
 import avail.compiler.Placeholder
 import avail.compiler.WrapInList
-import java.util.BitSet
-import java.util.Collections
+import java.util.*
 
 /**
  * [InstructionGenerator] is used by [MessageSplitter] to accumulate the
@@ -192,7 +191,7 @@ internal class InstructionGenerator constructor()
 			}
 			instructions[pair.first - 1] = when (val operation = pair.second)
 			{
-				is ArityOneParsingOperation ->
+				is JumpParsingOperation ->
 					operation.newOperand(label.position)
 				else -> operation
 			}
@@ -330,15 +329,10 @@ internal class InstructionGenerator constructor()
 		for (pc in instructions.indices)
 		{
 			val instruction =
-				instructions[pc] as? ArityOneParsingOperation ?: continue
-			if (instruction is JumpForward
-				|| instruction is JumpBackward
-				|| instruction is BranchForward)
-			{
-				// Adjust to zero-based.
-				val target = instruction.operand - 1
-				branchTargets.set(target)
-			}
+				instructions[pc] as? JumpParsingOperation ?: continue
+			// Adjust to zero-based.
+			val target = instruction.operand - 1
+			branchTargets.set(target)
 		}
 		// Scan backward to allow backward bubbling PARSE_PARTs to travel as far
 		// as possible without any looping.  We repeat the loop to allow

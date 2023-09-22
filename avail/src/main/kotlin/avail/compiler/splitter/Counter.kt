@@ -168,7 +168,7 @@ internal class Counter(
 			LIST_PHRASE, tupleOfEmptyTuplesType, tupleOfEmptyTuplePhrasesType)
 		val newWrapState = group.emitOn(listPhraseType, generator, wrapState)
 		assert(newWrapState == SHOULD_NOT_PUSH_LIST)
-		generator.emit(this, Convert(LIST_TO_SIZE.number))
+		generator.emit(this, Convert(LIST_TO_SIZE))
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
 

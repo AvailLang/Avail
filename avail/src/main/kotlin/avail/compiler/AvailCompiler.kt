@@ -49,7 +49,6 @@ import avail.compiler.problems.ProblemHandler
 import avail.compiler.problems.ProblemType.EXTERNAL
 import avail.compiler.problems.ProblemType.PARSE
 import avail.compiler.scanning.LexingState
-import avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -1786,11 +1785,10 @@ class AvailCompiler constructor(
 					val plan = planInProgress.parsingPlan
 					val instructions = plan.parsingInstructions
 					val instruction = instructions[planInProgress.parsingPc - 1]
-					val typeIndex = instruction.typeCheckArgumentIndex
+					instruction as TypeCheckArgument
 					// TODO(MvG) Present the full phrase type if it can be a
 					// macro argument.
-					val argType =
-						constantForIndex(typeIndex).phraseTypeExpressionType
+					val argType = instruction.operand.phraseTypeExpressionType
 					typeSet.add(argType)
 					// Add the type under the given plan *string*, even if it's
 					// a different underlying message bundle.
@@ -1858,27 +1856,7 @@ class AvailCompiler constructor(
 	{
 		if (AvailRuntimeConfiguration.debugCompilerSteps)
 		{
-			when (op)
-			{
-				is ArityOneParsingOperation -> println(
-					"Instr @"
-						+ stepState.start.shortString()
-						+ ": "
-						+ op.name
-						+ " ("
-						+ op.operand
-						+ ") -> "
-						+ successorTree
-				)
-				else -> println(
-					"Instr @"
-						+ stepState.start.shortString()
-						+ ": "
-						+ op.name
-						+ " -> "
-						+ successorTree
-				)
-			}
+			op.compilerStepsDebuggerDescription(stepState, successorTree)
 		}
 		val timeBefore = captureNanos()
 		op.execute(this, stepState, successorTree)

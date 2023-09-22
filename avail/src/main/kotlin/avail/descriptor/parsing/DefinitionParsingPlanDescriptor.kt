@@ -31,19 +31,15 @@
  */
 package avail.descriptor.parsing
 
-import avail.compiler.ArityOneParsingOperation
 import avail.compiler.AvailCompilerFragmentCache
 import avail.compiler.Convert
 import avail.compiler.ParsePart
 import avail.compiler.ParsePartCaseInsensitively
+import avail.compiler.ParsingOperation
 import avail.compiler.PermuteList
 import avail.compiler.PushLiteral
-import avail.compiler.ParsingConversionRule.Companion.rule
-import avail.compiler.ParsingOperation
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter
-import avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
-import avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.bundles.A_Bundle.Companion.messagePart
@@ -153,32 +149,39 @@ class DefinitionParsingPlanDescriptor private constructor(
 		{
 			val descriptionsList = (1..parsingInstructions.size).map { i ->
 				val operation = parsingInstructions[i - 1]
-				val operand = when (operation)
-				{
-					is ArityOneParsingOperation -> operation.operand
-					else -> 0
-				}
 				buildString {
 					append("$i. ${operation.name}")
-					if (operand > 0) {
-						append(" ($operand)")
-						append(when (operation) {
-							is ParsePart,
-							is ParsePartCaseInsensitively -> {
-								val part = self.bundle.messagePart(operand)
+					append(when (operation) {
+						is ParsePart ->
+						{
+							val part =
+								self.bundle.messagePart(operation.operand)
 									.asNativeString()
-								" Part = '$part'"
-							}
-							is PushLiteral ->
-								" Constant = ${constantForIndex(operand)}"
-							is PermuteList ->
-								" Permutation = ${permutationAtIndex(operand)}"
-							is TypeCheckArgument ->
-								" Type = ${constantForIndex(operand)}"
-							is Convert -> " Conversion = ${rule(operand)}"
-							else -> ""
-						})
-					}
+							" (${operation.operand}) Part = '$part'"
+						}
+						is ParsePartCaseInsensitively ->
+						{
+							val part =
+								self.bundle.messagePart(operation.operand)
+									.asNativeString()
+							" (${operation.operand}) Part = '$part'"
+						}
+						is PushLiteral ->
+						{
+							" (${operation.operand}) Constant = " +
+								operation.operand
+						}
+						is PermuteList ->
+							" (${operation.operand}) Permutation = " +
+								operation.operand
+						is TypeCheckArgument ->
+							" (${operation.operand}) Type = " +
+								operation.operand
+						is Convert ->
+							" (${operation.operand}) Conversion = " +
+								operation.operand
+						else -> ""
+					})
 				}
 			}
 			fields.add(

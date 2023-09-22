@@ -43,7 +43,7 @@ import avail.compiler.PermuteList
 import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
-import avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
+import avail.compiler.splitter.MessageSplitter.Companion.normalizedPermutation
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
@@ -722,9 +722,9 @@ constructor(
 			// Permute the list on top of stack.
 			val permutationTuple =
 				tupleFromIntegerList(beforeDagger.permutation)
-			val permutationIndex = indexForPermutation(permutationTuple)
+			val normalizedPermutation = normalizedPermutation(permutationTuple)
 			generator.flushDelayed()
-			generator.emit(this, PermuteList(permutationIndex))
+			generator.emit(this, PermuteList(normalizedPermutation))
 		}
 	}
 
@@ -816,9 +816,9 @@ constructor(
 					afterDagger.yielders[i].explicitOrdinal + leftArgCount)
 			}
 			val permutationTuple = tupleFromIntegerList(adjustedPermutationList)
-			val permutationIndex = indexForPermutation(permutationTuple)
+			val normalizedPermutation = normalizedPermutation(permutationTuple)
 			generator.flushDelayed()
-			generator.emit(this, PermuteList(permutationIndex))
+			generator.emit(this, PermuteList(normalizedPermutation))
 		}
 		// Ensure the tuple type was consumed up to its upperBound.
 		assert(

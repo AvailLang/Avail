@@ -33,12 +33,11 @@ package avail.compiler.splitter
 
 import avail.compiler.DiscardSavedParsePosition
 import avail.compiler.EnsureParseProgress
-import avail.compiler.PushLiteral
 import avail.compiler.ParsingOperation
+import avail.compiler.PushLiteral.Companion.pushFalse
+import avail.compiler.PushLiteral.Companion.pushTrue
 import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
-import avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
-import avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
@@ -153,11 +152,11 @@ internal class Optional constructor(
 		generator.emitIf(
 			needsProgressCheck, this, DiscardSavedParsePosition
 		)
-		generator.emit(this, PushLiteral(indexForTrue))
+		generator.emit(this, pushTrue)
 		val `$after` = Label()
 		generator.emitJumpForward(this, `$after`)
 		generator.emit(`$absent`)
-		generator.emit(this, PushLiteral(indexForFalse))
+		generator.emit(this, pushFalse)
 		generator.emit(`$after`)
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
@@ -202,13 +201,13 @@ internal class Optional constructor(
 			needsProgressCheck, this, DiscardSavedParsePosition)
 		function()
 		generator.flushDelayed()
-		generator.emit(this, PushLiteral(indexForTrue))
+		generator.emit(this, pushTrue)
 		val `$merge` = Label()
 		generator.emitJumpForward(this, `$merge`)
 		generator.emit(`$absent`)
 		function()
 		generator.flushDelayed()
-		generator.emit(this, PushLiteral(indexForFalse))
+		generator.emit(this, pushFalse)
 		generator.emit(`$merge`)
 	}
 

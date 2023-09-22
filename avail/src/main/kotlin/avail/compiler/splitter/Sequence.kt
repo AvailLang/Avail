@@ -36,7 +36,7 @@ import avail.compiler.Concatenate
 import avail.compiler.PermuteList
 import avail.compiler.ReverseStack
 import avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
-import avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
+import avail.compiler.splitter.MessageSplitter.Companion.normalizedPermutation
 import avail.compiler.splitter.MessageSplitter.Companion.throwMalformedMessageException
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.WrapState.NEEDS_TO_PUSH_LIST
@@ -471,11 +471,11 @@ internal class Sequence constructor(
 		{
 			assert(listIsPushed)
 			val permutationTuple = tupleFromIntegerList(permutation)
-			val permutationIndex = indexForPermutation(permutationTuple)
+			val normalizedPermutation = normalizedPermutation(permutationTuple)
 			// This sequence was already collected into a list phrase as the
 			// arguments/groups were parsed.  Permute the list.
 			generator.flushDelayed()
-			generator.emit(this, PermuteList(permutationIndex))
+			generator.emit(this, PermuteList(normalizedPermutation))
 		}
 		return if (wrapState === NEEDS_TO_PUSH_LIST) PUSHED_LIST else wrapState
 	}

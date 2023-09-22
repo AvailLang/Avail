@@ -34,7 +34,6 @@ package avail.compiler.splitter
 import avail.compiler.CheckArgument
 import avail.compiler.ParseArgument
 import avail.compiler.TypeCheckArgument
-import avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
@@ -110,10 +109,7 @@ internal open class Argument constructor(
 		generator.flushDelayed()
 		generator.emit(this, ParseArgument)
 		generator.emitDelayed(this, CheckArgument(absoluteUnderscoreIndex))
-		generator.emitDelayed(
-			this,
-			TypeCheckArgument(indexForConstant(phraseType))
-		)
+		generator.emitDelayed(this, TypeCheckArgument(phraseType))
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
 

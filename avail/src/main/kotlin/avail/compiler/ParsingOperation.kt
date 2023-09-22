@@ -33,14 +33,13 @@
 package avail.compiler
 
 import avail.compiler.AvailCompiler.Companion.skipWhitespaceAndComments
-import avail.compiler.ParsingConversionRule.Companion.rule
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import avail.compiler.splitter.InstructionGenerator
 import avail.compiler.splitter.MessageSplitter
-import avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
-import avail.compiler.splitter.MessageSplitter.Companion.permutationAtIndex
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
@@ -70,6 +69,7 @@ import avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermut
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
@@ -81,6 +81,7 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -149,7 +150,33 @@ sealed class ParsingOperation constructor(
 	/**
 	 * A description of the operation for the debugger.
 	 */
-	open val debuggerDescription: String = name
+	internal open val debuggerDescription: String get() = name
+
+	override fun toString(): String = debuggerDescription
+
+	/**
+	 * Produce a description of the operation suitable to display in a
+	 * detailed trace of the compiler's progress.
+	 *
+	 * @param stepState
+	 *   The [ParsingStepState] that represents the current state of parsing of
+	 *   some partial method or macro invocation.
+	 * @param successorTree
+	 *   The [A_BundleTree]s at which to continue parsing.
+	 * @return
+	 *   The requested description.
+ 	 */
+	internal open fun compilerStepsDebuggerDescription(
+		stepState: ParsingStepState,
+		successorTree: A_BundleTree
+	): String = (
+		"Instr @"
+			+ stepState.start.shortString()
+			+ ": "
+			+ name
+			+ " -> "
+			+ successorTree
+	)
 
 	/**
 	 * Assume that the instruction encodes an operand that represents a
@@ -182,19 +209,6 @@ sealed class ParsingOperation constructor(
 	 *   The argument index, or `0` if the assumption was false.
 	 */
 	open val checkArgumentIndex get(): Int = 0
-
-	/**
-	 * Extract the index of the type check argument for a [TypeCheckArgument]
-	 * parsing instruction.  This indexes the static
-	 * [MessageSplitter.constantForIndex].
-	 *
-	 * @return
-	 *   The index of the type to be checked against.
-	 */
-	open val typeCheckArgumentIndex get(): Int
-	{
-		throw RuntimeException("Parsing instruction is inappropriate")
-	}
 
 	/**
 	 * Perform one parsing instruction.
@@ -243,7 +257,7 @@ sealed class ParsingOperation constructor(
  * Placeholder for use by an [InstructionGenerator]. Must not survive beyond
  * code generation.
  */
-data object Placeholder: ParsingOperation(false, false)
+object Placeholder: ParsingOperation(false, false)
 {
 	/** The sentinel for the placeholder. */
 	const val index = Int.MIN_VALUE
@@ -260,7 +274,7 @@ data object Placeholder: ParsingOperation(false, false)
  * [empty&#32;tuple][TupleDescriptor.emptyTuple] of [phrases][PhraseDescriptor]
  * onto the parse stack.
  */
-data object EmptyList: ParsingOperation(true, true)
+object EmptyList: ParsingOperation(true, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -278,7 +292,7 @@ data object EmptyList: ParsingOperation(true, true)
  * Pop a [list][ListPhraseDescriptor] from the parse stack. Append the argument
  * to the list. Push the resultant list onto the parse stack.
  */
-data object AppendArgument: ParsingOperation(true, true)
+object AppendArgument: ParsingOperation(true, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -296,7 +310,7 @@ data object AppendArgument: ParsingOperation(true, true)
 /**
  * Push the current parse position onto the mark stack.
  */
-data object SaveParsePosition: ParsingOperation(false, true)
+object SaveParsePosition: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -317,7 +331,7 @@ data object SaveParsePosition: ParsingOperation(false, true)
 /**
  * Pop the top marker off the mark stack.
  */
-data object DiscardSavedParsePosition: ParsingOperation(true, true)
+object DiscardSavedParsePosition: ParsingOperation(true, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -336,7 +350,7 @@ data object DiscardSavedParsePosition: ParsingOperation(true, true)
  * current parse position onto the mark stack in place of the old marker and
  * continue parsing.
  */
-data object EnsureParseProgress: ParsingOperation(false, true)
+object EnsureParseProgress: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -359,7 +373,7 @@ data object EnsureParseProgress: ParsingOperation(false, true)
  * Parse an ordinary argument of a message send, pushing the expression onto the
  * parse stack.
  */
-data object ParseArgument: ParsingOperation(false, true)
+object ParseArgument: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -410,7 +424,7 @@ data object ParseArgument: ParsingOperation(false, true)
  * ⊥).  Instead, they will have the expressionType phrase⇒⊤ (or phrase⇒⊥), which
  * is perfectly fine to put inside a list phrase during parsing.
  */
-data object ParseTopValuedArgument: ParsingOperation(false, true)
+object ParseTopValuedArgument: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -456,7 +470,7 @@ data object ParseTopValuedArgument: ParsingOperation(false, true)
  * [variable][VariableDescriptor] that is in scope. Push a
  * [variable&#32;reference][ReferencePhraseDescriptor] onto the parse stack.
  */
-data object ParseVariableReference: ParsingOperation(false, true)
+object ParseVariableReference: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -575,7 +589,7 @@ data object ParseVariableReference: ParsingOperation(false, true)
  * Parse an argument of a message send, using the *outermost (module) scope*.
  * Leave it on the parse stack.
  */
-data object ParseArgumentInModuleScope: ParsingOperation(false, true)
+object ParseArgumentInModuleScope: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -592,7 +606,7 @@ data object ParseArgumentInModuleScope: ParsingOperation(false, true)
  * In particular, push a literal phrase whose token is a synthetic literal token
  * whose value is the actual token that was parsed.
  */
-data object ParseAnyRawToken: ParsingOperation(false, false)
+object ParseAnyRawToken: ParsingOperation(false, false)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -649,7 +663,7 @@ data object ParseAnyRawToken: ParsingOperation(false, false)
  * Parse a raw *[keyword][TokenType.KEYWORD]* [token][TokenDescriptor], leaving
  * it on the parse stack.
  */
-data object ParseRawKeywordToken: ParsingOperation(false, false)
+object ParseRawKeywordToken: ParsingOperation(false, false)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -717,7 +731,7 @@ data object ParseRawKeywordToken: ParsingOperation(false, false)
  * Parse a raw *[literal][TokenType.LITERAL]* [token][TokenDescriptor], leaving
  * it on the parse stack.
  */
-data object ParseRawLiteralToken: ParsingOperation(false, false)
+object ParseRawLiteralToken: ParsingOperation(false, false)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -783,7 +797,7 @@ data object ParseRawLiteralToken: ParsingOperation(false, false)
 /**
  * Concatenate the two lists that have been pushed previously.
  */
-data object Concatenate: ParsingOperation(false, true)
+object Concatenate: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -810,7 +824,7 @@ data object Concatenate: ParsingOperation(false, true)
  * continue parsing, otherwise report a weak error and abandon this parse
  * theory.
  */
-data object MatchIndent: ParsingOperation(false, true)
+object MatchIndent: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -862,7 +876,7 @@ data object MatchIndent: ParsingOperation(false, true)
  * is a proper extension of the initial whitespace, continue parsing, otherwise
  * report a weak error and abandon this parse theory.
  */
-data object IncreaseIndent: ParsingOperation(false, true)
+object IncreaseIndent: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -931,7 +945,7 @@ data object IncreaseIndent: ParsingOperation(false, true)
  * "didn't look for indent" path to consume any whitespace at all, including a
  * wrong indents, making the construct pointless.
  */
-data object NoLineBreak: ParsingOperation(false, true)
+object NoLineBreak: ParsingOperation(false, true)
 {
 	override fun execute(
 		compiler: AvailCompiler,
@@ -990,6 +1004,8 @@ data object NoLineBreak: ParsingOperation(false, true)
  * [ArityOneParsingOperation] is a [ParsingOperation] that takes a single
  * operand.
  *
+ * @param T
+ *   The type of the operand.
  * @property operand
  *   The operand.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -1006,26 +1022,67 @@ data object NoLineBreak: ParsingOperation(false, true)
  *   Whether this instruction can be run if the first argument has been parsed
  *   but not yet consumed by a PARSE_ARGUMENT instruction.
  */
-abstract class ArityOneParsingOperation constructor(
+abstract class ArityOneParsingOperation<T> constructor(
 	commutesWithParsePart: Boolean,
 	canRunIfHasFirstArgument: Boolean
 ): ParsingOperation(commutesWithParsePart, canRunIfHasFirstArgument)
 {
-	abstract val operand: Int
+	abstract val operand: T
 
-	override val debuggerDescription by lazy {
-		"$name (#$operand)"
-	}
+	override val debuggerDescription get() = "$name (#$operand)"
 
+	override fun compilerStepsDebuggerDescription(
+		stepState: ParsingStepState,
+		successorTree: A_BundleTree
+	): String = (
+		"Instr @"
+			+ stepState.start.shortString()
+			+ ": "
+			+ name
+			+ " ("
+			+ operand
+			+ ") -> "
+			+ successorTree
+	)
+}
+
+/**
+ * [JumpParsingOperation] is a [ParsingOperation] that performs a branch or
+ * jump.
+ *
+ * @property operand
+ *   A target of the branch or jump, which is possibly a
+ *   [placeholder][Placeholder].
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new [ArityOneParsingOperation] for this enum.
+ *
+ * @param commutesWithParsePart
+ *   Whether a [ParsePart] or [ParsePartCaseInsensitively] instructions can
+ *   be moved safely leftward over this instruction.
+ * @param canRunIfHasFirstArgument
+ *   Whether this instruction can be run if the first argument has been parsed
+ *   but not yet consumed by a PARSE_ARGUMENT instruction.
+ */
+abstract class JumpParsingOperation constructor(
+	commutesWithParsePart: Boolean,
+	canRunIfHasFirstArgument: Boolean
+): ArityOneParsingOperation<Int>(
+	commutesWithParsePart,
+	canRunIfHasFirstArgument
+) {
 	/**
 	 * Copy the receiver, replacing its operand with the given value.
 	 *
 	 * @param operand
-	 *   The operand.
+	 *   A target of the branch of jump.
 	 * @return
 	 *   A suitably adjusted copy of the receiver.
 	 */
-	abstract fun newOperand(operand: Int): ArityOneParsingOperation
+	abstract fun newOperand(operand: Int): JumpParsingOperation
 }
 
 /**
@@ -1033,9 +1090,9 @@ abstract class ArityOneParsingOperation constructor(
  * instruction. Attempt to continue parsing at both the next instruction and the
  * specified instruction.
  */
-data class BranchForward constructor(
+class BranchForward constructor(
 	override val operand: Int
-): ArityOneParsingOperation(false, true)
+): JumpParsingOperation(false, true)
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand, currentPc + 1)
 	override fun newOperand(operand: Int) = BranchForward(operand)
@@ -1055,9 +1112,9 @@ data class BranchForward constructor(
  * Jump to the specified instruction, which must be after the current
  * instruction. Attempt to continue parsing only at the specified instruction.
  */
-data class JumpForward constructor(
+class JumpForward constructor(
 	override val operand: Int
-): ArityOneParsingOperation(false, true)
+): JumpParsingOperation(false, true)
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand)
 	override fun newOperand(operand: Int) = JumpForward(operand)
@@ -1077,9 +1134,9 @@ data class JumpForward constructor(
  * Jump to instruction specified instruction, which must be before the current
  * instruction. Attempt to continue parsing only at the specified instruction.
  */
-data class JumpBackward constructor(
+class JumpBackward constructor(
 	override val operand: Int
-): ArityOneParsingOperation(false, true)
+): JumpParsingOperation(false, true)
 {
 	override fun successorPcs(currentPc: Int) = listOf(operand)
 	override fun newOperand(operand: Int) = JumpBackward(operand)
@@ -1101,12 +1158,11 @@ data class JumpBackward constructor(
  * will be a specific [token][TokenDescriptor]. It should be matched case
  * sensitively against the source token.
  */
-data class ParsePart constructor(
+class ParsePart constructor(
 	override val operand: Int
-): ArityOneParsingOperation(false, false)
+): ArityOneParsingOperation<Int>(false, false)
 {
 	override val keywordIndex = operand
-	override fun newOperand(operand: Int) = ParsePart(operand)
 
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1125,13 +1181,11 @@ data class ParsePart constructor(
  * will be a specific [token][TokenDescriptor]. It should be matched case
  * insensitively against the source token.
  */
-data class ParsePartCaseInsensitively constructor(
+class ParsePartCaseInsensitively constructor(
 	override val operand: Int
-): ArityOneParsingOperation(false, false)
+): ArityOneParsingOperation<Int>(false, false)
 {
 	override val keywordIndex = operand
-	override fun newOperand(operand: Int) =
-		ParsePartCaseInsensitively(operand)
 
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1148,12 +1202,11 @@ data class ParsePartCaseInsensitively constructor(
  * Apply grammatical restrictions to the [operand]<sup>th</sup> leaf argument
  * (underscore/ellipsis) of the current message, which is on the stack.
  */
-data class CheckArgument constructor(
+class CheckArgument constructor(
 	override val operand: Int
-): ArityOneParsingOperation(true, true)
+): ArityOneParsingOperation<Int>(true, true)
 {
 	override val checkArgumentIndex = operand
-	override fun newOperand(operand: Int) = CheckArgument(operand)
 
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1170,12 +1223,10 @@ data class CheckArgument constructor(
  * Pop an argument from the parse stack and apply the
  * [conversion&#32;rule][ParsingConversionRule] specified by [operand].
  */
-data class Convert constructor(
-	override val operand: Int
-): ArityOneParsingOperation(true, true)
+class Convert constructor(
+	override val operand: ParsingConversionRule
+): ArityOneParsingOperation<ParsingConversionRule>(true, true)
 {
-	override fun newOperand(operand: Int) = Convert(operand)
-
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,
@@ -1184,8 +1235,7 @@ data class Convert constructor(
 	{
 		val input = stepState.pop()
 		val sanityFlag = AtomicBoolean()
-		val conversionRule = rule(operand)
-		conversionRule.convert(
+		operand.convert(
 			compiler.compilationContext,
 			stepState.start.lexingState,
 			input,
@@ -1208,7 +1258,7 @@ data class Convert constructor(
 	}
 
 	override val debuggerDescription get() =
-		super.debuggerDescription + " = " + rule(operand)
+		super.debuggerDescription + " = " + operand
 }
 
 /**
@@ -1224,13 +1274,10 @@ data class Convert constructor(
  * operation.  Its successors are separated into distinct message bundle trees,
  * one per message bundle.
  */
-data class PrepareToRunPrefixFunction constructor(
+class PrepareToRunPrefixFunction constructor(
 	override val operand: Int
-): ArityOneParsingOperation(false, true)
+): ArityOneParsingOperation<Int>(false, true)
 {
-	override fun newOperand(operand: Int) =
-		PrepareToRunPrefixFunction(operand)
-
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,
@@ -1267,12 +1314,10 @@ data class PrepareToRunPrefixFunction constructor(
  * be done in parallel) and between separate linguistic abstractions (the keys
  * are atoms and are therefore modular).
  */
-data class RunPrefixFunction constructor(
+class RunPrefixFunction constructor(
 	override val operand: Int
-): ArityOneParsingOperation(false, true)
+): ArityOneParsingOperation<Int>(false, true)
 {
-	override fun newOperand(operand: Int) = RunPrefixFunction(operand)
-
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,
@@ -1298,40 +1343,35 @@ data class RunPrefixFunction constructor(
 
 /**
  * Permute the elements of the list phrase on the top of the stack via the
- * permutation found via [MessageSplitter.permutationAtIndex]. The list phrase
- * must be the same size as the permutation.
+ * specified permutation. The list phrase must be the same size as the
+ * permutation.
  */
-data class PermuteList constructor(
-	override val operand: Int
-): ArityOneParsingOperation(true, true)
+class PermuteList constructor(
+	override val operand: A_Tuple
+): ArityOneParsingOperation<A_Tuple>(true, true)
 {
-	override fun newOperand(operand: Int) = PermuteList(operand)
-
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,
 		successorTree: A_BundleTree
 	)
 	{
-		val permutation = permutationAtIndex(operand)
-		stepState.push(newPermutedListNode(stepState.pop(), permutation))
+		stepState.push(newPermutedListNode(stepState.pop(), operand))
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
 
 	override val debuggerDescription get() =
-		super.debuggerDescription + " = " + permutationAtIndex(operand)
+		super.debuggerDescription + " = " + operand
 }
 
 /**
  * Check that the list phrase on the top of the stack has at least the specified
  * size.  Proceed to the next instruction only if this is the case.
  */
-data class CheckAtLeast constructor(
+class CheckAtLeast constructor(
 	override val operand: Int
-): ArityOneParsingOperation(true, true)
+): ArityOneParsingOperation<Int>(true, true)
 {
-	override fun newOperand(operand: Int) = CheckAtLeast(operand)
-
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,
@@ -1350,12 +1390,10 @@ data class CheckAtLeast constructor(
  * Check that the list phrase on the top of the stack has at most the specified
  * size.  Proceed to the next instruction only if this is the case.
  */
-data class CheckAtMost constructor(
+class CheckAtMost constructor(
 	override val operand: Int
-): ArityOneParsingOperation(true, true)
+): ArityOneParsingOperation<Int>(true, true)
 {
-	override fun newOperand(operand: Int) = CheckAtMost(operand)
-
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,
@@ -1378,12 +1416,11 @@ data class CheckAtMost constructor(
  * definition, or at least until the [A_Type.defaultType] of the tuple type has
  * been reached.
  */
-data class TypeCheckArgument constructor(
-	override val operand: Int
-): ArityOneParsingOperation(true, true)
+class TypeCheckArgument constructor(
+	operand: A_BasicObject
+): ArityOneParsingOperation<A_BasicObject>(true, true)
 {
-	override val typeCheckArgumentIndex = operand
-	override fun newOperand(operand: Int) = TypeCheckArgument(operand)
+	override val operand = operand.makeShared()
 
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1410,12 +1447,10 @@ data class TypeCheckArgument constructor(
  * executed each time the root bundle tree is used to start parsing a
  * subexpression.
  */
-data class WrapInList constructor(
+class WrapInList constructor(
 	override val operand: Int
-): ArityOneParsingOperation(true, true)
+): ArityOneParsingOperation<Int>(true, true)
 {
-	override fun newOperand(operand: Int) = WrapInList(operand)
-
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,
@@ -1434,15 +1469,15 @@ data class WrapInList constructor(
 }
 
 /**
- * Push a [literal&#32;phrase][LiteralPhraseDescriptor] containing the constant
- * found at the [position][operand] in the type list indicated by the
- * operand.
+ * Push a [literal&#32;phrase][LiteralPhraseDescriptor] containing the specified
+ * [constant][operand]. The [operand] is automatically
+ * [made&#32;shared][A_BasicObject.makeShared].
  */
-data class PushLiteral constructor(
-	override val operand: Int
-): ArityOneParsingOperation(true, true)
+class PushLiteral constructor(
+	operand: A_BasicObject
+): ArityOneParsingOperation<A_BasicObject>(true, true)
 {
-	override fun newOperand(operand: Int) = PushLiteral(operand)
+	override val operand: A_BasicObject = operand.makeShared()
 
 	override fun execute(
 		compiler: AvailCompiler,
@@ -1450,31 +1485,37 @@ data class PushLiteral constructor(
 		successorTree: A_BundleTree
 	)
 	{
-		val constant = constantForIndex(operand)
 		val token = literalToken(
-			stringFrom(constant.toString()),
+			stringFrom(operand.toString()),
 			stepState.initialTokenPosition.position,
 			stepState.initialTokenPosition.lineNumber,
-			constant,
+			operand,
 			nil)
 		stepState.push(literalNodeFromToken(token))
 		compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 	}
 
 	override val debuggerDescription get() =
-		super.debuggerDescription + " = " + constantForIndex(operand)
+		super.debuggerDescription + " = " + operand
+
+	companion object
+	{
+		/** The flyweight for pushing the [true][trueObject] literal. */
+		val pushTrue = PushLiteral(trueObject)
+
+		/** The flyweight for pushing the [false][falseObject] literal. */
+		val pushFalse = PushLiteral(falseObject)
+	}
 }
 
 /**
  * Reverse the [operand] top elements of the stack.  The new stack has the same
  * depth as the old stack.
  */
-data class ReverseStack constructor(
+class ReverseStack constructor(
 	override val operand: Int
-): ArityOneParsingOperation(true, true)
+): ArityOneParsingOperation<Int>(true, true)
 {
-	override fun newOperand(operand: Int) = ReverseStack(operand)
-
 	override fun execute(
 		compiler: AvailCompiler,
 		stepState: ParsingStepState,

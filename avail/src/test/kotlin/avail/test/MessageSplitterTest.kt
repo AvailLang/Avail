@@ -48,16 +48,15 @@ import avail.compiler.ParseArgument
 import avail.compiler.ParsePart
 import avail.compiler.ParsePartCaseInsensitively
 import avail.compiler.ParseRawLiteralToken
-import avail.compiler.PushLiteral
 import avail.compiler.ParsingConversionRule.LIST_TO_SIZE
 import avail.compiler.ParsingOperation
+import avail.compiler.PushLiteral
+import avail.compiler.PushLiteral.Companion.pushFalse
+import avail.compiler.PushLiteral.Companion.pushTrue
 import avail.compiler.SaveParsePosition
 import avail.compiler.TypeCheckArgument
 import avail.compiler.WrapInList
 import avail.compiler.splitter.MessageSplitter
-import avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
-import avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
-import avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
@@ -87,13 +86,13 @@ import avail.descriptor.types.LiteralTokenTypeDescriptor
 import avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 import avail.utility.cast
@@ -102,7 +101,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import java.util.Arrays
+import java.util.*
 import java.util.stream.Stream
 
 /**
@@ -286,9 +285,7 @@ class MessageSplitterTest private constructor ()
 		 *   An `int` encoding a type check parsing operation.
 		 */
 		private fun typeCheckEncodingForPhrase (type: A_Type) =
-			TypeCheckArgument(
-				indexForConstant(PhraseKind.PARSE_PHRASE.create(type))
-			)
+			TypeCheckArgument(PhraseKind.PARSE_PHRASE.create(type))
 
 		/**
 		 * Describe a sequence of instructions, one per line, and answer the
@@ -313,7 +310,7 @@ class MessageSplitterTest private constructor ()
 				}
 				builder.append('\t')
 				builder.append(instruction.name)
-				if (instruction is ArityOneParsingOperation)
+				if (instruction is ArityOneParsingOperation<*>)
 				{
 					builder.append('(')
 					builder.append(instruction.operand)
@@ -950,7 +947,7 @@ class MessageSplitterTest private constructor ()
 						AppendArgument,  // [], [...[]]
 						JumpBackward(6),  //11: Try solution.  [], [...], []
 						AppendArgument,  // [], [...[]]
-						Convert(LIST_TO_SIZE.number),  // [], N
+						Convert(LIST_TO_SIZE),  // [], N
 						AppendArgument)),  // [N]
 				C(
 					"«x y»#",
@@ -980,7 +977,7 @@ class MessageSplitterTest private constructor ()
 						AppendArgument,  // [], [...[]]
 						JumpBackward(7),  //13: Try solution.  [], [...], []
 						AppendArgument,  // [], [...[]]
-						Convert(LIST_TO_SIZE.number),  // [], N
+						Convert(LIST_TO_SIZE),  // [], N
 						AppendArgument)),  // [N]
 				C(
 					"«fish‡face»#",
@@ -1016,7 +1013,7 @@ class MessageSplitterTest private constructor ()
 						AppendArgument,  // [], [...[]]
 						JumpBackward(8),  //14: Try solution.  [], [...], []
 						AppendArgument,  // [], [...[]]
-						Convert(LIST_TO_SIZE.number),  // [], N
+						Convert(LIST_TO_SIZE),  // [], N
 						AppendArgument)),  // [N]
 				/* Optional groups. */
 				C(
@@ -1034,10 +1031,10 @@ class MessageSplitterTest private constructor ()
 					A(
 						BranchForward(5),
 						ParsePart(2),
-						PushLiteral(indexForTrue),  // [], T
+						pushTrue,  // [], T
 						JumpForward(6),
 						//5:
-						PushLiteral(indexForFalse),  // [], F
+						pushFalse,  // [], F
 						//6:
 						AppendArgument)),  // [T/F]
 				C(
@@ -1057,10 +1054,10 @@ class MessageSplitterTest private constructor ()
 						BranchForward(6),
 						ParsePart(2),
 						ParsePart(3),
-						PushLiteral(indexForTrue),  // [], T
+						pushTrue,  // [], T
 						JumpForward(7),
 						//6:
-						PushLiteral(indexForFalse),  // [], F
+						pushFalse,  // [], F
 						//7:
 						AppendArgument)),  // [T/F]
 				/* Completely optional groups. */
@@ -1205,7 +1202,7 @@ class MessageSplitterTest private constructor ()
 						JumpBackward(8),  //14: Latest occurrence. [], [...], []
 						AppendArgument,  // [], [...[]]
 						//15: Answer
-						Convert(LIST_TO_SIZE.number),
+						Convert(LIST_TO_SIZE),
 						AppendArgument)),  // [[...]]
 				C(
 					"«x y»~?",
@@ -1225,9 +1222,9 @@ class MessageSplitterTest private constructor ()
 						BranchForward(6),
 						ParsePartCaseInsensitively(2),
 						ParsePartCaseInsensitively(3),
-						PushLiteral(indexForTrue),
+						pushTrue,
 						JumpForward(7),  //6:
-						PushLiteral(indexForFalse),  //7:
+						pushFalse,  //7:
 						AppendArgument)),
 				/* Alternation. */
 				C(
@@ -1321,11 +1318,11 @@ class MessageSplitterTest private constructor ()
 					A(
 						BranchForward(5),
 						ParsePart(2),
-						PushLiteral(indexForConstant(fromInt(1))),
+						PushLiteral(fromInt(1)),
 						JumpForward(7),
 						//5:
 						ParsePart(4),
-						PushLiteral(indexForConstant(fromInt(2))),
+						PushLiteral(fromInt(2)),
 						//7:
 						typeCheckEncodingForPhrase(inclusive(1, 2)),
 						AppendArgument))) // [N]

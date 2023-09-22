@@ -43,7 +43,6 @@ import avail.compiler.PrepareToRunPrefixFunction
 import avail.compiler.ParsingOperation
 import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter
-import avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
 import avail.descriptor.bundles.A_Bundle.Companion.messagePart
 import avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
@@ -1011,8 +1010,7 @@ class MessageBundleTreeDescriptor private constructor(
 				// An argument was just parsed and passed its grammatical
 				// restriction check.  Now it needs to do a type check with a
 				// type-dispatch tree.
-				val typeIndex = op.typeCheckArgumentIndex
-				val phraseType: A_Type = constantForIndex(typeIndex)
+				val phraseType: A_Type = op.operand
 				val planInProgress = newPlanInProgress(plan, pc + 1)
 				val pair = tuple(phraseType, planInProgress)
 				lazyTypeFilterPairsTuple = lazyTypeFilterPairsTuple
