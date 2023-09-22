@@ -33,6 +33,7 @@ package avail.compiler.splitter
 
 import avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
 import avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
+import avail.compiler.ParsingOperation.NO_LINE_BREAK
 import avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Metacharacter
@@ -112,6 +113,24 @@ internal class CompletelyOptional constructor(
 		generator: InstructionGenerator,
 		wrapState: WrapState): WrapState
 	{
+		if (sequence.expressions.size == 1
+			&& sequence.expressions[0] is CheckIndent)
+		{
+			// This is the special case of a CompletelyOptional wrapping a
+			// CheckIndent.  Rather than emit a branch with the CheckIndent and
+			// another that does nothing, make the nothing one refuse to allow
+			// any line breaks (since that would make this entire scheme
+			// pointless.
+			val `$noBreak` = Label()
+			val `$merge` = Label()
+			generator.emitBranchForward(this, `$noBreak`)
+			sequence.emitOn(phraseType, generator, wrapState)
+			generator.emitJumpForward(this, `$merge`)
+			generator.emit(`$noBreak`)
+			generator.emit(this, NO_LINE_BREAK)
+			generator.emit(`$merge`)
+			return wrapState
+		}
 		/* branch to @expressionSkip.
 		 * push current parse position on the mark stack.
 		 * ...Simple or stuff before dagger (i.e., all expressions).
