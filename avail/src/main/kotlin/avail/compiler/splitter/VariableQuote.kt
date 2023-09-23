@@ -31,10 +31,9 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.CHECK_ARGUMENT
-import avail.compiler.ParsingOperation.PARSE_VARIABLE_REFERENCE
-import avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
-import avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
+import avail.compiler.CheckArgument
+import avail.compiler.ParseVariableReference
+import avail.compiler.TypeCheckArgument
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.ReferencePhraseDescriptor
@@ -77,12 +76,9 @@ internal class VariableQuote constructor(
 		wrapState: WrapState): WrapState
 	{
 		generator.flushDelayed()
-		generator.emit(this, PARSE_VARIABLE_REFERENCE)
-		generator.emitDelayed(this, CHECK_ARGUMENT, absoluteUnderscoreIndex)
-		generator.emitDelayed(
-			this,
-			TYPE_CHECK_ARGUMENT,
-			indexForConstant(phraseType))
+		generator.emit(this, ParseVariableReference)
+		generator.emitDelayed(this, CheckArgument(absoluteUnderscoreIndex))
+		generator.emitDelayed(this, TypeCheckArgument(phraseType))
 		return wrapState
 	}
 

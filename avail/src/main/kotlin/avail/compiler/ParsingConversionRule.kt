@@ -183,7 +183,7 @@ enum class ParsingConversionRule constructor(val number: Int)
 		 * @return
 		 *   The appropriate parsing conversion rule.
 		 */
-		fun ruleNumber(number: Int): ParsingConversionRule
+		fun rule(number: Int): ParsingConversionRule
 		{
 			if (number < all.size)
 			{

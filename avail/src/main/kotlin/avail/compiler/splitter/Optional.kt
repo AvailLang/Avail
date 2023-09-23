@@ -31,14 +31,13 @@
  */
 package avail.compiler.splitter
 
+import avail.compiler.DiscardSavedParsePosition
+import avail.compiler.EnsureParseProgress
 import avail.compiler.ParsingOperation
-import avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
-import avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
-import avail.compiler.ParsingOperation.PUSH_LITERAL
-import avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
+import avail.compiler.PushLiteral.Companion.pushFalse
+import avail.compiler.PushLiteral.Companion.pushTrue
+import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
-import avail.compiler.splitter.MessageSplitter.Companion.indexForFalse
-import avail.compiler.splitter.MessageSplitter.Companion.indexForTrue
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
@@ -144,19 +143,20 @@ internal class Optional constructor(
 		val needsProgressCheck = sequence.mightBeEmpty(emptyListPhraseType())
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
-		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
+		generator.emitIf(needsProgressCheck, this, SaveParsePosition)
 		assert(!sequence.isReordered)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
-		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+		generator.emitIf(needsProgressCheck, this, EnsureParseProgress)
 		generator.emitIf(
-			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
-		generator.emit(this, PUSH_LITERAL, indexForTrue)
+			needsProgressCheck, this, DiscardSavedParsePosition
+		)
+		generator.emit(this, pushTrue)
 		val `$after` = Label()
 		generator.emitJumpForward(this, `$after`)
 		generator.emit(`$absent`)
-		generator.emit(this, PUSH_LITERAL, indexForFalse)
+		generator.emit(this, pushFalse)
 		generator.emit(`$after`)
 		return wrapState.processAfterPushedArgument(this, generator)
 	}
@@ -191,23 +191,23 @@ internal class Optional constructor(
 		generator.flushDelayed()
 		val `$absent` = Label()
 		generator.emitBranchForward(this, `$absent`)
-		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
+		generator.emitIf(needsProgressCheck, this, SaveParsePosition)
 		assert(!sequence.isReordered)
 		sequence.emitOn(
 			emptyListPhraseType(), generator, SHOULD_NOT_HAVE_ARGUMENTS)
 		generator.flushDelayed()
-		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+		generator.emitIf(needsProgressCheck, this, EnsureParseProgress)
 		generator.emitIf(
-			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
+			needsProgressCheck, this, DiscardSavedParsePosition)
 		function()
 		generator.flushDelayed()
-		generator.emit(this, PUSH_LITERAL, indexForTrue)
+		generator.emit(this, pushTrue)
 		val `$merge` = Label()
 		generator.emitJumpForward(this, `$merge`)
 		generator.emit(`$absent`)
 		function()
 		generator.flushDelayed()
-		generator.emit(this, PUSH_LITERAL, indexForFalse)
+		generator.emit(this, pushFalse)
 		generator.emit(`$merge`)
 	}
 

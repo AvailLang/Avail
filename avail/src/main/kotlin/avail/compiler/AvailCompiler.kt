@@ -36,11 +36,6 @@ import avail.AvailRuntimeConfiguration
 import avail.AvailRuntimeSupport.captureNanos
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
-import avail.compiler.ParsingOperation.CHECK_ARGUMENT
-import avail.compiler.ParsingOperation.Companion.decode
-import avail.compiler.ParsingOperation.Companion.distinctInstructions
-import avail.compiler.ParsingOperation.Companion.operand
-import avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import avail.compiler.PragmaKind.Companion.pragmaKindByLexeme
 import avail.compiler.SideEffectKind.MODULE_CONSTANT_KIND
 import avail.compiler.SideEffectKind.MODULE_VARIABLE_KIND
@@ -54,7 +49,6 @@ import avail.compiler.problems.ProblemHandler
 import avail.compiler.problems.ProblemType.EXTERNAL
 import avail.compiler.problems.ProblemType.PARSE
 import avail.compiler.scanning.LexingState
-import avail.compiler.splitter.MessageSplitter.Companion.constantForIndex
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -161,7 +155,6 @@ import avail.descriptor.module.A_Module.Companion.takePostLoadFunctions
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
@@ -251,7 +244,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -321,8 +313,8 @@ import avail.utility.evaluation.FormattingDescriber
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.stackToString
+import java.util.*
 import java.util.Collections.emptyList
-import java.util.Formatter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -569,7 +561,9 @@ class AvailCompiler constructor(
 				}
 				else ->
 				{
-					// Multiple solutions were found.  Report the ambiguity.
+					// Multiple solutions were found.  Clear all other
+					// expectations and report *just* the ambiguity.
+					compilationContext.diagnostics.clearAllExpectations()
 					reportAmbiguousInterpretations(
 						solutions[0].endState,
 						solutions[0].phrase,
@@ -664,9 +658,12 @@ class AvailCompiler constructor(
 		{
 			findParseTreeDiscriminants(phrase1, phrase2)
 			val tokens = phrase1.value.allTokens
-			val line =
-				if (tokens.tupleSize > 0) tokens.tupleAt(1).lineNumber()
-				else 0
+			val lines = tokens.run {
+				if (tupleSize > 0)
+					tupleAt(1).lineNumber() .. tupleAt(tupleSize).lineNumber()
+				else 0..0
+
+			}
 			if (phrase1.value.isMacroSubstitutionNode
 				&& phrase2.value.isMacroSubstitutionNode)
 			{
@@ -684,7 +681,7 @@ class AvailCompiler constructor(
 							phrase1.value.macroOriginalSendNode.bundle.message
 						val atom2 =
 							phrase2.value.macroOriginalSendNode.bundle.message
-						("unambiguous interpretation near line $line. At " +
+						("unambiguous interpretation near lines $lines. At " +
 							"least two parses produced same-looking phrases " +
 							"after macro substitution. The post-macro " +
 							"phrase is:\n"
@@ -694,8 +691,8 @@ class AvailCompiler constructor(
 					}
 					else
 					{
-						("unambiguous interpretation near line $line. Here " +
-							"are two possible parsings..." +
+						("unambiguous interpretation near lines $lines. " +
+							"Here are two possible parsings..." +
 							"\n\t$print1\n\t$print2")
 					}
 				}
@@ -708,7 +705,7 @@ class AvailCompiler constructor(
 				) { (print1, print2) ->
 					if (print1 != print2)
 					{
-						("unambiguous interpretation near line $line. "
+						("unambiguous interpretation near lines $lines. "
 							+ "Here are two possible parsings...\n\t"
 							+ print1
 							+ "\n\t"
@@ -727,14 +724,14 @@ class AvailCompiler constructor(
 							else -> ("\n...and the bundle atoms are:\n" +
 								"\t$atom1 and\n\t$atom2")
 						}
-						("unambiguous interpretation near line $line. "
+						("unambiguous interpretation near lines $lines. "
 							+ "At least two parses produced unequal but "
 							+ "same-looking phrases:\n\t"
 							+ "\t$print1$addendum")
 					}
 					else
 					{
-						("unambiguous interpretation near line $line. "
+						("unambiguous interpretation near lines $lines. "
 							+ "At least two parses produced unequal but "
 							+ "same-looking phrases:\n\t"
 							+ "\t$print1")
@@ -1605,14 +1602,12 @@ class AvailCompiler constructor(
 			}
 		}
 		val actions = bundleTree.lazyActions
-		if (actions.mapSize > 0)
+		if (actions.isNotEmpty())
 		{
-			actions.forEach { operation: A_Number, successors: A_Tuple ->
-				val operationInt = operation.extractInt
-				val op = decode(operationInt)
+			actions.forEach { (op: ParsingOperation, successors: A_Tuple) ->
 				when
 				{
-					skipCheckArgumentAction && op === CHECK_ARGUMENT ->
+					skipCheckArgumentAction && op is CheckArgument ->
 					{
 						// Skip this action, because the latest argument was a
 						// send that had an entry in the prefilter map, so it
@@ -1627,7 +1622,7 @@ class AvailCompiler constructor(
 						successors.forEach { successor ->
 							stepState.start.workUnitDo {
 								runParsingInstructionThen(
-									operationInt, stepState.copy(), successor)
+									op, stepState.copy(), successor)
 							}
 						}
 					}
@@ -1794,14 +1789,11 @@ class AvailCompiler constructor(
 				plans.forEach { planInProgress ->
 					val plan = planInProgress.parsingPlan
 					val instructions = plan.parsingInstructions
-					val instruction =
-						instructions.tupleIntAt(planInProgress.parsingPc)
-					val typeIndex =
-						TYPE_CHECK_ARGUMENT.typeCheckArgumentIndex(instruction)
+					val instruction = instructions[planInProgress.parsingPc - 1]
+					instruction as TypeCheckArgument
 					// TODO(MvG) Present the full phrase type if it can be a
 					// macro argument.
-					val argType =
-						constantForIndex(typeIndex).phraseTypeExpressionType
+					val argType = instruction.operand.phraseTypeExpressionType
 					typeSet.add(argType)
 					// Add the type under the given plan *string*, even if it's
 					// a different underlying message bundle.
@@ -1854,8 +1846,8 @@ class AvailCompiler constructor(
 	/**
 	 * Execute one non-keyword-parsing instruction, then run the continuation.
 	 *
-	 * @param instruction
-	 *   An [Int] encoding the [ParsingOperation] to execute.
+	 * @param op
+	 *   The [ParsingOperation] to execute.
 	 * @param stepState
 	 *   The [ParsingStepState] that represents the current state of parsing of
 	 *   some partial method or macro invocation.
@@ -1863,38 +1855,16 @@ class AvailCompiler constructor(
 	 *   The [A_BundleTree]s at which to continue parsing.
 	 */
 	private fun runParsingInstructionThen(
-		instruction: Int,
+		op: ParsingOperation,
 		stepState: ParsingStepState,
 		successorTree: A_BundleTree)
 	{
-		val op = decode(instruction)
 		if (AvailRuntimeConfiguration.debugCompilerSteps)
 		{
-			if (op.ordinal >= distinctInstructions)
-			{
-				println(
-					"Instr @"
-						+ stepState.start.shortString()
-						+ ": "
-						+ op.name
-						+ " ("
-						+ operand(instruction)
-						+ ") -> "
-						+ successorTree)
-			}
-			else
-			{
-				println(
-					"Instr @"
-						+ stepState.start.shortString()
-						+ ": "
-						+ op.name
-						+ " -> "
-						+ successorTree)
-			}
+			op.compilerStepsDebuggerDescription(stepState, successorTree)
 		}
 		val timeBefore = captureNanos()
-		op.execute(this, stepState, instruction, successorTree)
+		op.execute(this, stepState, successorTree)
 		val timeAfter = captureNanos()
 		op.parsingStatisticInNanoseconds.record(timeAfter - timeBefore)
 	}

@@ -37,6 +37,8 @@ import avail.compiler.problems.CompilerDiagnostics
 import avail.compiler.splitter.CheckIndent.IndentationMatchType
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.IncreaseIndent
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.MatchIndent
+import avail.compiler.splitter.MessageSplitter.Companion.cache
+import avail.compiler.splitter.MessageSplitter.Companion.split
 import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
@@ -55,8 +57,6 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter.TILDE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
 import avail.compiler.splitter.MessageSplitter.Metacharacter.UP_ARROW
 import avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR
-import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
-import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_BundleTree
@@ -66,7 +66,6 @@ import avail.descriptor.methods.MacroDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
-import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
@@ -76,8 +75,6 @@ import avail.descriptor.phrases.PermutedListPhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
-import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -92,7 +89,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
@@ -126,12 +122,9 @@ import avail.exceptions.AvailErrorCode.E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SI
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 import avail.utility.iterableWith
-import avail.utility.safeWrite
 import org.availlang.cache.LRUCache
-import java.util.ArrayDeque
+import java.util.*
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.read
 
 /**
  * `MessageSplitter` is used to split Avail message names into a sequence of
@@ -698,30 +691,29 @@ private constructor(messageName: A_String)
 	}
 
 	/**
-	 * Answer a [tuple][TupleDescriptor] of Avail [integers][IntegerDescriptor]
-	 * describing how to parse this message. See `MessageSplitter` and
-	 * [ParsingOperation] for an understanding of the parse instructions.
+	 * Answer the [instructions][ParsingOperation] for parsing this message. See
+	 * [MessageSplitter] and [ParsingOperation] for an understanding of the
+	 * parse instructions.
 	 *
 	 * @param phraseType
 	 *   The phrase type (yielding a tuple type) for this signature.
 	 * @return
-	 *   The tuple of integers encoding parse instructions for this message and
-	 *   argument types.
+	 *   The [instructions][ParsingOperation] for this message.
 	 * @throws SignatureException
 	 *   If a plan cannot be constructed for this name and phrase type.
 	 */
 	@Throws(SignatureException::class)
-	fun instructionsTupleFor(phraseType: A_Type): A_Tuple
+	fun instructionsFor(phraseType: A_Type): List<ParsingOperation>
 	{
 		val generator = InstructionGenerator()
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
 		generator.optimizeInstructions()
-		return generator.instructionsTuple()
+		return generator.instructionList()
 	}
 
 	/**
 	 * Answer a [List] of [Expression] objects that correlates with the
-	 * [parsing&#32;instructions][instructionsTupleFor] generated for the
+	 * [parsing&#32;instructions][instructionsFor] generated for the
 	 * message name and the provided signature tuple type. Note that the list is
 	 * 0-based and the tuple is 1-based.
 	 *
@@ -737,7 +729,7 @@ private constructor(messageName: A_String)
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
 		generator.optimizeInstructions()
 		val expressions = generator.expressionList()
-		assert(expressions.size == generator.instructionsTuple().tupleSize)
+		assert(expressions.size == generator.instructionList().size)
 		return expressions
 	}
 
@@ -1664,38 +1656,6 @@ private constructor(messageName: A_String)
 		private val permutations = AtomicReference<A_Tuple>(emptyTuple)
 
 		/**
-		 * A statically-scoped [List] of unique constants needed as operands of
-		 * some [ParsingOperation]s.  The inverse [Map] (but containing
-		 * one-based indices) is kept in [constantsMap].
-		 */
-		private val constantsList = mutableListOf<AvailObject>()
-
-		/**
-		 * A statically-scoped map from Avail object to one-based index (into
-		 * [constantsList], after adjusting to a zero-based [List]), for which
-		 * some [ParsingOperation] needed to hold that constant as an operand.
-		 */
-		private val constantsMap = mutableMapOf<AvailObject, Int>()
-
-		/**
-		 * A lock to protect [constantsList] and [constantsMap].
-		 */
-		private val constantsLock = ReentrantReadWriteLock()
-
-		/**
-		 * Answer the permutation having the given one-based index.  We need a
-		 * read barrier here, but no lock, since the tuple of tuples is only
-		 * appended to, ensuring all extant indices will always be valid.
-		 *
-		 * @param index
-		 *   The index of the permutation to retrieve.
-		 * @return
-		 *   The permutation (a [tuple][A_Tuple] of Avail integers).
-		 */
-		fun permutationAtIndex(index: Int): AvailObject =
-			permutations.get().tupleAt(index)
-
-		/**
 		 * Answer the index of the given permutation (tuple of integers), adding
 		 * it to the global [permutations] tuple if necessary.
 		 *
@@ -1704,7 +1664,7 @@ private constructor(messageName: A_String)
 		 *   determined.
 		 * @return The permutation's one-based index.
 		 */
-		fun indexForPermutation(permutation: A_Tuple): Int
+		fun normalizedPermutation(permutation: A_Tuple): A_Tuple
 		{
 			var checkedLimit = 0
 			while (true)
@@ -1713,69 +1673,24 @@ private constructor(messageName: A_String)
 				val newLimit = before.tupleSize
 				for (i in checkedLimit + 1..newLimit)
 				{
-					if (before.tupleAt(i).equals(permutation))
+					val existing = before.tupleAt(i)
+					if (existing.equals(permutation))
 					{
 						// Already exists.
-						return i
+						return existing
 					}
 				}
 				val after =
 					before.appendCanDestroy(permutation, false).makeShared()
 				if (permutations.compareAndSet(before, after))
 				{
-					// Added it successfully.
-					return after.tupleSize
+					// Added it successfully. `permutation` is now shared, so
+					// it's safe to return it.
+					return permutation
 				}
 				checkedLimit = newLimit
 			}
 		}
-
-		/**
-		 * Answer the index of the given constant, adding it to the global
-		 * [constantsList] and [constantsMap]} if necessary.
-		 *
-		 * @param constant
-		 *   The type to look up or add to the global index.
-		 * @return
-		 *   The one-based index of the type, which can be retrieved later via
-		 *   [constantForIndex].
-		 */
-		fun indexForConstant(constant: A_BasicObject): Int
-		{
-			val strongConstant = constant.makeShared()
-			constantsLock.read {
-				val index = constantsMap[strongConstant]
-				index?.let { return it }
-			}
-
-			constantsLock.safeWrite {
-				val index = constantsMap[strongConstant]
-				index?.let { return it }
-				assert(constantsMap.size == constantsList.size)
-				val newIndex = constantsList.size + 1
-				constantsList.add(strongConstant)
-				constantsMap[strongConstant] = newIndex
-				return newIndex
-			}
-		}
-
-		/** The position at which true is stored in the [constantsList]. */
-		val indexForTrue = indexForConstant(trueObject)
-
-		/** The position at which false is stored in the [constantsList]. */
-		val indexForFalse = indexForConstant(falseObject)
-
-		/**
-		 * Answer the [AvailObject] having the given one-based index in the
-		 * static [constantsList] [List].
-		 *
-		 * @param index
-		 *   The one-based index of the constant to retrieve.
-		 * @return
-		 *   The [AvailObject] at the given index.
-		 */
-		fun constantForIndex(index: Int): AvailObject =
-			constantsLock.read { constantsList[index - 1] }
 
 		/**
 		 * If the condition is true, throw a [MalformedMessageException] with

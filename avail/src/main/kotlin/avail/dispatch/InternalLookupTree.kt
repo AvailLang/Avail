@@ -873,8 +873,20 @@ internal constructor(
 		// OBJECT_TYPE_TAG, so be aware of this possibility during subsequent
 		// variant testing.
 		tagToElements.forEach { (k, v) ->
-			k.iterableWith(TypeTag::parent).forEach {
-				tagToElements[it]?.let(v::addAll)
+			k.iterableWith(TypeTag::parent).forEach { t ->
+				tagToElements[t]?.let { elements ->
+					elements.forEach { e ->
+						// Only add the element if the intersection of the
+						// suprema is non-vacuous (treating bottom type as
+						// vacuous because it's already handled) – i.e., the
+						// element could accept something that has tag k.
+						if (!k.supremum.typeIntersection(t.supremum)
+								.isSubtypeOf(bottomMeta))
+						{
+							v.add(e)
+						}
+					}
+				}
 			}
 		}
 		assert(!alreadyTagTestedArguments.bitTest(argumentIndex - 1))

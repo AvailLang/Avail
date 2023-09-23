@@ -40,6 +40,7 @@ import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
+import avail.compiler.ParsingOperation
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -2331,7 +2332,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_SizeRange (self: AvailObject): A_Type
 
-	abstract fun o_LazyActions (self: AvailObject): A_Map
+	abstract fun o_LazyActions (
+		self: AvailObject
+	): MutableMap<ParsingOperation, A_Tuple>
 
 	abstract fun o_Stackp (self: AvailObject): Int
 
@@ -2935,7 +2938,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ParallelStream (self: AvailObject): Stream<AvailObject>
 
-	abstract fun o_ParsingInstructions (self: AvailObject): A_Tuple
+	abstract fun o_ParsingInstructions (
+		self: AvailObject
+	): List<ParsingOperation>
 
 	abstract fun o_Expression (self: AvailObject): A_Phrase
 

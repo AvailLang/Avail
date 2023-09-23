@@ -32,8 +32,7 @@
 package avail.descriptor.parsing
 
 import avail.compiler.AvailCompilerFragmentCache
-import avail.compiler.ParsingOperation
-import avail.compiler.ParsingOperation.Companion.decode
+import avail.compiler.JumpBackward
 import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.methods.A_Definition
@@ -56,12 +55,10 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS
 import avail.descriptor.types.TypeTag
-import java.util.IdentityHashMap
+import java.util.*
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -140,15 +137,16 @@ class ParsingPlanInProgressDescriptor private constructor(
 	override fun o_Kind(self: AvailObject): A_Type =
 		PARSING_PLAN_IN_PROGRESS.o
 
-	override fun o_IsBackwardJump(self: AvailObject): Boolean {
+	override fun o_IsBackwardJump(self: AvailObject): Boolean
+	{
 		val plan: A_DefinitionParsingPlan = self[PARSING_PLAN]
 		val instructions = plan.parsingInstructions
 		val pc = self[PARSING_PC]
-		if (pc > instructions.tupleSize) {
+		if (pc > instructions.size) {
 			return false
 		}
-		val instruction = instructions.tupleIntAt(pc)
-		return decode(instruction) === ParsingOperation.JUMP_BACKWARD
+		val instruction = instructions[pc - 1]
+		return instruction is JumpBackward
 	}
 
 	/**
