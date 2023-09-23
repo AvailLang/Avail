@@ -9,23 +9,8 @@ Versions
 	"Avail-1.6.1"
 Uses
 	"Avail"
-Extends
-    /* Needed for entry point creation parsing. */
-	"Avail" = (
-	        "…#",
-            "whitespace lexer",
-            "comment lexer",
-            "string token lexer",
-            "whole number lexer",
-            "keyword lexer",
-            "operator lexer"
-        )
 Names
-    "_'s⁇value",
-    "sample value wrapper",
-    "wrap_"
-Entries
-    "ribbit"
+    "Play_"
 Body
 
 // Dynamically link the primitives.
@@ -67,3 +52,19 @@ Method "Primitive play audio:_error:_" is
 	]
 ] : ⊤;
 
+/**
+ * Play resource file.
+ *
+ * @category "Audio"
+ * @method "Play_"
+ * @param "source" "<character…|1..∞>"
+ *        The root-relative fully qualified name of the source audio file to
+ *        play.
+ */
+Public method "Play_" is
+[
+	source : nonempty string
+|
+	old : string;
+	Primitive play audio: source error: ↑old;
+] : ⊤;

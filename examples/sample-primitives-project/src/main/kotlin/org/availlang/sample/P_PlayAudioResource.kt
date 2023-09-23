@@ -34,7 +34,6 @@
 package org.availlang.sample
 
 import avail.builder.ModuleRoot
-import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -45,6 +44,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor
+import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode
 import avail.interpreter.Primitive
@@ -60,7 +60,7 @@ import javax.sound.sampled.LineEvent
 import javax.sound.sampled.UnsupportedAudioFileException
 
 /**
- * **Primitive:** Play an audio resource stored inside the current [ModuleRoot].
+ * **Primitive:** Play an audio resource stored inside one of the [ModuleRoot]s.
  *
  * @author Richard Arriaga
  */
@@ -78,15 +78,14 @@ object P_PlayAudioResource : Primitive(2, CanInline, HasSideEffect)
 		// primitive if the audio file format is not supported.
 		val unsupportedFormatMessage: A_Variable =
 			interpreter.argument(1)
-		// The current A_Module where this resource is being played from
-		val module = interpreter.module()
-		// Transform the module name from an A_String to a native JVM string
-		val moduleName = module.moduleName.asNativeString()
-		val currentRoot = interpreter.runtime.moduleRoots().firstOrNull {
-			it.resolver.getResolverReference(moduleName) != null
+
+		// Search all the project's module roots for the resource
+		val resourceRoot = interpreter.runtime.moduleRoots().firstOrNull {
+			it.resolver.getResolverReference(resourcePath) != null
 		}!!
+		// Get the ResolverReference for the audio file
 		val soundReference =
-			currentRoot.resolver.getResolverReference(resourcePath)
+			resourceRoot.resolver.getResolverReference(resourcePath)
 				?: return interpreter.primitiveFailure(AvailErrorCode.E_NO_FILE)
 		val resourceFile = Paths.get(soundReference.uri).toFile()
 		if (!resourceFile.exists())
@@ -95,7 +94,6 @@ object P_PlayAudioResource : Primitive(2, CanInline, HasSideEffect)
 		}
 		return try
 		{
-			// TODO run on a fiber?
 			playAudio(resourceFile)
 			interpreter.primitiveSuccess(nil)
 		}
@@ -124,7 +122,7 @@ object P_PlayAudioResource : Primitive(2, CanInline, HasSideEffect)
 				open(it)
 				start()
 				addLineListener { event ->
-					if (event === LineEvent.Type.STOP)
+					if (event.type === LineEvent.Type.STOP)
 					{
 						semaphore.release()
 					}
@@ -136,7 +134,9 @@ object P_PlayAudioResource : Primitive(2, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(TupleTypeDescriptor.nonemptyStringType),
+			tuple(
+				TupleTypeDescriptor.nonemptyStringType,
+				variableTypeFor(TupleTypeDescriptor.stringType)),
 			PrimitiveTypeDescriptor.Types.TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =

@@ -3,7 +3,7 @@ SAMPLE HYBRID PROJECT OVERVIEW
 
 ![Version](https://img.shields.io/badge/v2.0.0.alpha02-0f824e)
 
-***NOTE: 2023.09.07 The current state of this example is: Expected to Work***
+***NOTE: 2023.09.23 The current state of this example is: Expected to Work***
 
 *This uses alpha version tools that are in flux. This README will be updated* 
 *to reflect accurate usage for the 2.0.0 production release of the Avail* 
