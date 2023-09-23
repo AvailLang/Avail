@@ -36,11 +36,13 @@ import avail.AvailRuntimeConfiguration
 import avail.anvil.AdaptiveColor
 import avail.anvil.AvailWorkbench
 import avail.anvil.window.AvailWorkbenchLayoutConfiguration.Companion.resource
+import avail.vmVersion
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dialog.ModalityType
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
+import java.time.LocalDate
 import javax.swing.Action
 import javax.swing.ImageIcon
 import javax.swing.JDialog
@@ -81,32 +83,38 @@ class AboutAction constructor(workbench: AvailWorkbench)
 
 		val logo = ImageIcon(
 			this.javaClass.getResource(
-				resource("Avail-logo-about.png")))
+				resource("AvailHammer.png")))
 		panel.add(JLabel(logo))
 
-		val builder = StringBuilder(200)
-		builder.append("<html><center>")
-		builder.append("<font size=+2>The Avail Workbench</font><br>")
-		builder.append("<font size=-1>Supported Versions:</font>")
-		for (version in AvailRuntimeConfiguration.activeVersions)
-		{
-			builder.append("<br><font size=-2>")
-			builder.append(version)
-			builder.append("</font>")
+
+		val content = buildString {
+			append("<html><center>")
+			append("<font size=+2>Anvil</font><br>")
+			append("<font size=-1>Supported Versions:</font>")
+			for (version in AvailRuntimeConfiguration.activeVersions)
+			{
+				append("<br><font size=-2>")
+				append(version)
+				append("</font>")
+			}
+			append("<br><br>")
+			append("<font size=-1>Avail VM Version: ")
+			append(vmVersion)
+			append("</font><br><br>")
+			append("Copyright \u00A9 1993-")
+			append(LocalDate.now().year)
+			append(" The Avail Foundation, LLC.<br>")
+			append("All rights reserved.<br><br>")
+			val siteColor = AdaptiveColor(
+				light = Color(16, 16, 192),
+				dark = Color(128, 160, 255))
+			val site = "www.availlang.org"
+			append("<font color=${siteColor.hex}>$site</font><br><br><br>")
+			append("</center></html>")
 		}
-		builder.append("<br><br>")
-		builder.append(
-			"Copyright \u00A9 1993-2022 The Avail Foundation, LLC.<br>")
-		builder.append("All rights reserved.<br><br>")
-		val siteColor = AdaptiveColor(
-			light = Color(16, 16, 192),
-			dark = Color(128, 160, 255))
-		val site = "www.availlang.org"
-		builder.append("<font color=${siteColor.hex}>$site</font><br><br><br>")
-		builder.append("</center></html>")
 		panel.add(
 			JLabel(
-				builder.toString(),
+				content,
 				SwingConstants.CENTER),
 			BorderLayout.SOUTH)
 

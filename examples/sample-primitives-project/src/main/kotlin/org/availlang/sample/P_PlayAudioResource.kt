@@ -65,7 +65,7 @@ import javax.sound.sampled.UnsupportedAudioFileException
  * @author Richard Arriaga
  */
 @Suppress("unused")
-object P_PlayAudioResource : Primitive(1, CanInline, HasSideEffect)
+object P_PlayAudioResource : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

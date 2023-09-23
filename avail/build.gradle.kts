@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.net.URI
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -413,6 +414,21 @@ tasks {
 				"for distribution."
 		group = "bootstrap"
 		projectGenerateBootStrap(this)
+	}
+
+	/**
+	 * Populate `VmVersion.kt` with the VM [version] of Avail.
+	 */
+	val generateVmVersion by creating(DefaultTask::class)
+	{
+		val generatedVmVersion = file(
+			"${projectDir.absolutePath}/src/main/resources/VmVersionTemplate.txt"
+		).readText()
+			.replace("{{YEAR}}", LocalDate.now().year.toString())
+			.replace("{{VERSION}}", version.toString())
+		file("${projectDir.absolutePath}/src/main/kotlin/avail/VmVersion.kt")
+			.writeText(generatedVmVersion)
+
 	}
 }
 

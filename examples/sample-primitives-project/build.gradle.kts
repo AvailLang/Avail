@@ -33,10 +33,10 @@ kotlin {
 
 dependencies {
     // Must use the Avail VM to build primitives
-    implementation("org.availlang:avail:2.0.0.alpha23")
+    implementation("org.availlang:avail:2.0.0.alpha27")
 
     // Downloads avail library to ~/.avail/libraries
-    avail("org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha14")
+    avail("org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha15")
 }
 
 avail {
@@ -119,6 +119,7 @@ tasks {
         doLast {
             // TODO copy Frog.wav from resources to
             //  roots/sounds-root/App.avail/Frog.wav
+
         }
     }
 }

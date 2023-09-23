@@ -29,7 +29,7 @@ Entries
 Body
 
 // Dynamically link the primitives.
-Link primitives: "/my-avail-root/App/sounds.jar";
+Link primitives: "/sounds-root/App/sounds.jar";
 
 /**
  * Play the resource sound file.
