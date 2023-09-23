@@ -19,7 +19,6 @@ Extends
             "whole number lexer",
             "keyword lexer",
             "operator lexer",
-			"After the current module is loaded,⁇do_",
             "After the current module is unloaded,⁇do_"
         )
 Names

@@ -34,7 +34,7 @@ java {
 
 dependencies {
     // Downloads avail library to ~/.avail/libraries
-    avail("org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha14")
+    avail("org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha15")
 }
 
 // This block configures an AvailExtension instance that is used by the Avail
@@ -46,7 +46,7 @@ avail {
 
     // The version of the Avail VM to target. This is used to specify the
     // version of the Avail VM when launching Anvil
-    availVersion = "2.0.0.alpha23"
+    availVersion = "2.0.0.alpha27"
 
     // The name of the Avail project. This will be the name of the Avail project
     // config file. It defaults to the Gradle project name.
@@ -57,7 +57,7 @@ avail {
     includeAvailLibDependency(
         rootName = "avail-stdlib",
         rootNameInJar = "avail",
-        dependency = "org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha14")
+        dependency = "org.availlang:avail-stdlib:2.0.0.alpha23-1.6.1.alpha15")
 
 
     // Specify the AvailLocation where to write the .repo files to. This
