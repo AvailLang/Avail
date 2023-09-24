@@ -1427,6 +1427,7 @@ class AvailRuntime constructor(
 			put(SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom)
 			put(SpecialAtom.FALSE.atom)
 			put(SpecialAtom.FILE_KEY.atom)
+			put(SpecialAtom.RESOURCE_KEY.atom)
 			put(SpecialAtom.HERITABLE_KEY.atom)
 			put(SpecialAtom.MACRO_BUNDLE_KEY.atom)
 			put(SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY.atom)

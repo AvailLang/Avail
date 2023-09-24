@@ -79,6 +79,7 @@ import avail.io.IOSystem.FileHandle
 import avail.serialization.Serializer
 import avail.serialization.SerializerOperation
 import avail.utility.ifZero
+import org.availlang.artifact.ResourceType
 import org.availlang.json.JSONWriter
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
@@ -486,7 +487,48 @@ open class AtomDescriptor protected constructor (
 		 * they were, we still wouldn't want to serialize one launched from a
 		 * debugger, so this atom itself doesn't need to be serializable.
 		 */
-		DONT_DEBUG_KEY("don't debug", heritable = true);
+		DONT_DEBUG_KEY("don't debug", heritable = true),
+
+		/**
+		 * The atom used as a property key under which to store a
+		 * [resource's][ResourceType] [FileHandle].
+		 */
+		// Avail.avail/IO.avail/Files.avail/Primitives.avail
+		//line 210:
+		//	Public method
+		//		"_opened«with alignment_»with options_«with file access rights_»" is
+		//
+		//line 113:
+		//	Public class "file" extends object
+		//
+		//
+		//Use module name resolver using the uncle search upwards to find the
+		// resource container
+		//
+		//Use AtomDescriptor.SpecialAtom.RESOURCE_KEY to make the item a special
+		// atom see the usage of AtomDescriptor.SpecialAtom.FILE_KEY on how to
+		// use it.
+		//
+		//Refer to P_FileOpen
+		//line 168 indicates return type is an atom
+		//line 130 creates the atom
+		//line 163 puts file handle in pojo that is then associated with the
+		// FILE_KEY.atom on line 164
+		//
+		//"resource_accessible_"
+		//first input is the resource container simple name that is looked up
+		// like a module, it can be a directory, zip, etc
+		//the second input is the manner in which the resouce is accessed from
+		// the container e.g. if a the container is a directory, this would be
+		// the path to the resource in the directory. If the resource were an
+		// sqlite db, it could be a select statement, etc.
+		//
+		//Need primitive to get system language localization
+		//
+		//follow up on where to hang the mime type. This might be a comparable
+		// resource handle that holds on to the file handle? Confirm later
+//		my resource notes are the comment above
+		RESOURCE_KEY("resource key"),;
 
 		/**
 		 * Create a `SpecialAtom` to hold a new atom constructed with the given
