@@ -483,10 +483,9 @@ private constructor(
 	 * specifically all [primitive&#32;types][PrimitiveTypeDescriptor].
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-
-	/**
-	 * Construct a new `Types` instance with the specified parent.  Use
+	 *
+	 * @constructor
+	 * Construct a new [Types] instance with the specified parent.  Use
 	 * [PrimitiveTypeDescriptor] for the new type's descriptor.
 	 *
 	 * @param parent

@@ -1,0 +1,37 @@
+[
+	{
+		"version": "1.0.0.rc02",
+		"outputLocation": 
+		{
+			"locationType": "project",
+			"scheme": "JAR",
+			"path": "/Users/Rich/Development/avail-repos/avail/examples/sample-library-linking-project/build/libs/sample-library-linking-project-2.0.0.alpha02.jar"
+		},
+		"artifactType": "APPLICATION",
+		"implementationTitle": "Avail Sample Hybrid Application",
+		"jarMainClass": "org.availlang.sample.AppKt",
+		"artifactDescription": "This description goes into the Avail manifest in the jar!",
+		"digestAlgorithm": "SHA=256",
+		"rootNames": 
+		[
+			"avail-stdlib",
+			"other-root",
+			"my-avail-root"
+		],
+		"includedFiles": 
+		[
+		],
+		"jarFileLocations": 
+		[
+		],
+		"zipFileLocations": 
+		[
+		],
+		"directoryLocations": 
+		[
+		],
+		"customManifestItems": 
+		{
+		}
+	}
+]

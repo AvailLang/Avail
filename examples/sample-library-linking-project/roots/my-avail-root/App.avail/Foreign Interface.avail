@@ -1,0 +1,91 @@
+/*
+ * Foreign Interface.avail
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * All rights reserved.
+ */
+
+Module "Foreign Interface"
+Versions
+	"Avail-1.6.1"
+Uses
+    "Avail"
+Extends
+    /* Needed for entry point creation parsing. */
+	"Avail" = (
+	        "…#",
+            "whitespace lexer",
+            "comment lexer",
+            "string token lexer",
+            "whole number lexer",
+            "keyword lexer",
+            "operator lexer",
+            "After the current module is unloaded,⁇do_",
+            "After the current module is loaded,⁇do_"
+        )
+Names
+    "_'s⁇value",
+    "sample value wrapper",
+    "wrap_"
+Entries
+    "wrap_and print"
+Body
+
+// Dynamically link the library.
+Link library: "/my-avail-root/App/sample-library.jar";
+
+/**
+ * A SampleValueWrapper from avail-java-ffi.
+ *
+ * @type "sample value wrapper"
+ */
+Public stable method "sample value wrapper" is
+	[org.availlang.samples.SampleValueWrapper];
+
+// Bind the constructor to an Avail function.
+sampleValueWrapperConstructor ::= constructor sample value wrapper (Java int);
+
+// Bind the `getValue` method to an Avail function.
+getValue ::= method sample value wrapper.getValue ();
+
+/**
+ * Construct a {@type "sample value wrapper"}.
+ *
+ * @method "wrap_"
+ * @param "value" "Java int"
+ *        The value to wrap.
+ * @returns "sample value wrapper"
+ */
+Public method "wrap_" is
+[
+    value : Java int
+|
+    sampleValueWrapperConstructor(value)
+]: sample value wrapper;
+
+/**
+ * Answer the value wrapped by the given {@type "sample value wrapper"}.
+ *
+ * @method "_'s⁇value"
+ * @param "wrapper" "sample value wrapper"
+ * @returns "Java int"
+ */
+Public stable method "_'s⁇value" is
+[
+	wrapper : sample value wrapper
+|
+	getValue(wrapper)
+]: integer;
+
+/**
+ * Answer the value wrapped by the given {@type "sample value wrapper"}.
+ *
+ * @method "wrap_and print"
+ * @param "value" "Java int"
+ */
+Method "wrap_and print" is
+[
+	value : Java int
+|
+	wrapped ::= wrap value;
+	Print: format "The wrapped value: “①”\n" with wrapped's value;
+];
