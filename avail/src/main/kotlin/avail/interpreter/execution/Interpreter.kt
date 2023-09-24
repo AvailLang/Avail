@@ -2359,7 +2359,7 @@ class Interpreter(
 
 		try
 		{
-			if (debugger != null)
+			if (debugger !== null)
 			{
 				// Do the call in a debugger-aware way.
 				val fiberHelper = fiber!!.fiberHelper
@@ -2385,6 +2385,15 @@ class Interpreter(
 						debugger = savedDebugger
 						debuggerRunCondition = savedRunCondition
 					}
+				}
+				else
+				{
+					// Don't check whether the debugger allows us to step or
+					// not, as that's a question to be asked by the target
+					// function being invoked.  Just make sure to drop to L1 to
+					// give it that chance.
+					chunk = unoptimizedChunk
+					offset = 0
 				}
 			}
 			return runChunk()
