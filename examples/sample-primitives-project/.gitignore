@@ -40,3 +40,4 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/.avail/sample-linking-primitives/sample-linking-primitives-local-state.json

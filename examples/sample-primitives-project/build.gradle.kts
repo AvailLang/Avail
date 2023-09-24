@@ -17,7 +17,7 @@ repositories {
 }
 
 val targetJVM = 17
-val kotlinLanguage = 1.7
+val kotlinLanguage = 1.9
 
 java {
     toolchain {

@@ -1,5 +1,5 @@
 /*
- * Frog.avail
+ * Frog Sound.avail
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  */
@@ -13,14 +13,14 @@ Uses
 Extends
     /* Needed for entry point creation parsing. */
 	"Avail" = (
-	        "…#",
-            "whitespace lexer",
-            "comment lexer",
-            "string token lexer",
-            "whole number lexer",
-            "keyword lexer",
-            "operator lexer"
-        )
+		"…#",
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer"
+	)
 Names
 	"ribbit"
 Entries
