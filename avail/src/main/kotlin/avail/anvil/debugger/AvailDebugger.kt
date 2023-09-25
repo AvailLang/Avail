@@ -87,6 +87,7 @@ import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type.Companion.instance
@@ -124,13 +125,20 @@ import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JTextArea
 import javax.swing.JToggleButton
+import javax.swing.JTree
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
+import javax.swing.event.TreeExpansionEvent
+import javax.swing.event.TreeExpansionListener
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter.HighlightPainter
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeCellRenderer
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeSelectionModel
 
 /**
  * [AvailDebugger] presents a user interface for debugging Avail
@@ -283,21 +291,62 @@ class AvailDebugger internal constructor (
 		}
 	}
 
-	/** Renders variables in the variables list view. */
-	class VariablesRenderer : DefaultListCellRenderer()
+	/**
+	 * Renders variables in the top level (excluding the invisible root) of the
+	 * variables tree view.
+	 */
+	class VariableRenderer : DefaultTreeCellRenderer()
 	{
-		override fun getListCellRendererComponent(
-			list: JList<*>?,
-			variable: Any?,
-			index: Int,
-			isSelected: Boolean,
-			cellHasFocus: Boolean
-		): Component = super.getListCellRendererComponent(
-			list,
-			(variable as Variable).presentationString,
-			index,
-			isSelected,
-			cellHasFocus)
+		override fun getTreeCellRendererComponent(
+			tree: JTree,
+			value: Any?,
+			sel: Boolean,
+			expanded: Boolean,
+			leaf: Boolean,
+			row: Int,
+			hasFocus: Boolean
+		): Component
+		{
+			val name = (value as LazyTreeNode).name()
+			return super.getTreeCellRendererComponent(
+				tree, name, sel, expanded, leaf, row, hasFocus)
+		}
+	}
+
+	class LazyTreeNode(
+		val value: Any?
+	) : DefaultMutableTreeNode()
+	{
+		private var name: String? = null
+
+		fun name(): String
+		{
+			computeNode()
+			return name!!
+		}
+
+		fun computeNode()
+		{
+			if (name == null)
+			{
+				val (
+					theName: String,
+					theChildren: List<LazyTreeNode>
+				) = when (value)
+				{
+					null -> "null" to emptyList()
+					is Variable -> value.presentationString to
+						listOf(LazyTreeNode(value.value))
+					is AvailObject -> value.nameForDebugger() to
+						value.describeForDebugger().map(::LazyTreeNode)
+					is AvailObjectFieldHelper -> value.nameForDebugger() to
+						value.describeForDebugger().map(::LazyTreeNode)
+					else -> "unknown(${value.javaClass.name})" to emptyList()
+				}
+				name = theName
+				theChildren.forEach(::add)
+			}
+		}
 	}
 
 	/**
@@ -534,7 +583,9 @@ class AvailDebugger internal constructor (
 
 		override fun actionPerformed(e: ActionEvent)
 		{
-			variablesPane.selectedValue?.run { inspect(name, value) }
+			(variablesPane.lastSelectedPathComponent as? LazyTreeNode)?.let {
+				inspect(it.name(), (it.value as? AvailObject) ?: nil)
+			}
 		}
 	}
 
@@ -597,15 +648,26 @@ class AvailDebugger internal constructor (
 	}
 
 	/** The list of variables in scope in the selected frame. */
-	private val variablesPane = JList(arrayOf<Variable>()).apply {
-		cellRenderer = VariablesRenderer()
-		selectionMode = SINGLE_SELECTION
-		selectionModel.addListSelectionListener {
-			if (!it.valueIsAdjusting)
-			{
-				updateVariableValuePane()
-			}
+	private val variablesPane = JTree(LazyTreeNode("dummy"), true).apply {
+		cellRenderer = VariableRenderer()
+		background = null
+		isEditable = false
+		isEnabled = true
+		showsRootHandles = true
+		isFocusable = true
+		selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+		toggleClickCount = 0
+		isRootVisible = false
+		selectionModel.addTreeSelectionListener {
+			updateVariableValuePane()
 		}
+		addTreeExpansionListener(object : TreeExpansionListener {
+			override fun treeExpanded(event: TreeExpansionEvent?) {
+				(lastSelectedPathComponent as? LazyTreeNode)?.computeNode()
+			}
+
+			override fun treeCollapsed(event: TreeExpansionEvent?) { }
+		})
 	}
 
 	/** The stringification of the selected variable. */
@@ -884,7 +946,7 @@ class AvailDebugger internal constructor (
 	 */
 	private fun updateVariablesList()
 	{
-		val oldName = variablesPane.selectedValue?.name
+		val oldPath = variablesPane.selectionPath
 		val entries = mutableListOf<Variable>()
 		stackListPane.selectedValue?.let { frame ->
 			val function = frame.function()
@@ -897,33 +959,41 @@ class AvailDebugger internal constructor (
 				.map { it.asNativeString() }
 				.iterator()
 			var frameIndex = 1
-			repeat (numArgs)
+			repeat(numArgs)
 			{
 				entries.add(
 					Variable(
 						"[arg] " + names.next(),
-						frame.frameAt(frameIndex++)))
+						frame.frameAt(frameIndex++)
+					)
+				)
 			}
-			repeat (numLocals)
+			repeat(numLocals)
 			{
 				entries.add(
 					Variable(
 						"[local] " + names.next(),
-						frame.frameAt(frameIndex++)))
+						frame.frameAt(frameIndex++)
+					)
+				)
 			}
-			repeat (numConstants)
+			repeat(numConstants)
 			{
 				entries.add(
 					Variable(
 						"[const] " + names.next(),
-						frame.frameAt(frameIndex++)))
+						frame.frameAt(frameIndex++)
+					)
+				)
 			}
-			for (i in 1..numOuters)
+			for (i in 1 .. numOuters)
 			{
 				entries.add(
 					Variable(
 						"[outer] " + names.next(),
-						function.outerVarAt(i)))
+						function.outerVarAt(i)
+					)
+				)
 			}
 			for (i in frame.numSlots() downTo frame.stackp())
 			{
@@ -935,18 +1005,14 @@ class AvailDebugger internal constructor (
 				entries.add(Variable(name, frame.frameAt(i)))
 			}
 		}
-		variablesPane.valueIsAdjusting = true
-		try
-		{
-			val index = entries.indexOfFirst { it.name == oldName }
-			variablesPane.setListData(entries.toTypedArray())
-			variablesPane.selectedIndices =
-				if (index == -1) intArrayOf() else intArrayOf(index)
-		}
-		finally
-		{
-			variablesPane.valueIsAdjusting = false
-		}
+		val root = variablesPane.model.root as LazyTreeNode
+		root.removeAllChildren()
+		entries.forEach { root.add(LazyTreeNode(it)) }
+		(variablesPane.model as DefaultTreeModel).nodeStructureChanged(root)
+		variablesPane.repaint()
+
+		//TODO Preserve selection based on oldPath
+		// variablesPane.selectionPath = oldPath
 	}
 
 	/**
@@ -973,13 +1039,14 @@ class AvailDebugger internal constructor (
 	private fun updateVariableValuePane()
 	{
 		val id = paneVersionTracker.allocator.getAndIncrement()
-		val variable = variablesPane.selectedValue
-		// Do some trickery to avoid stringifying null or nil.
+		val variable = variablesPane.lastSelectedPathComponent as? LazyTreeNode
+		// Do some trickery to avoid stringifying null or nil.  In either case,
+		// just plug in the trueObject instead.
 		val valueToStringify = when
 		{
 			variable == null -> trueObject //dummy
-			variable.value.isNil -> trueObject //dummy
-			else -> variable.value
+			variable.value is AvailObject -> variable.value.ifNil { trueObject }
+			else -> trueObject //any non-AvailObject
 		}
 		runtime.stringifyThen(
 			valueToStringify,
@@ -995,8 +1062,14 @@ class AvailDebugger internal constructor (
 			val string = when
 			{
 				variable == null -> ""
-				variable.value.isNil -> "nil\n"
-				else -> "${variable.value.typeTag}\n\n$it\n"
+				variable.value == nil -> "nil\n"
+				variable.value is AvailObject ->
+					"${variable.value.typeTag}\n\n$it\n"
+				else ->
+				{
+					val v = variable.value!!
+					"${v.javaClass.simpleName}\n\n$v"
+				}
 			}
 			// Delegate to the UI thread, for safety and simplicity.
 			SwingUtilities.invokeLater {

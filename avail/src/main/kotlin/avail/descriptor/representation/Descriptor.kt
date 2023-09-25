@@ -2815,6 +2815,14 @@ protected constructor (
 		endIndex: Int
 	): Int = unsupported
 
+	override fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int = unsupported
+
 	override fun o_LastIndexOf(
 		self: AvailObject,
 		value: A_BasicObject,

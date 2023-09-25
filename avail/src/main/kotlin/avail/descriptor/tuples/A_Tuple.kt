@@ -657,6 +657,33 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		): Int = dispatch { o_FirstIndexOf(it, value, startIndex, endIndex) }
 
 		/**
+		 * Search for one of two particular values in the tuple, starting at the
+		 * given index and working forward.  The first match of either [value]
+		 * or [otherValue] ends the search.
+		 *
+		 * @param value
+		 *   The value to search for in the receiver.
+		 * @param otherValue
+		 *   The other value to search for in the receiver.
+		 * @param startIndex
+		 *   The position at which to start scanning.
+		 * @param endIndex
+		 *   The position at which to stop scanning, which should be >= the
+		 *   startIndex for a non-empty range.
+		 * @return
+		 *   The first encountered index of the code point when scanning forward
+		 *   from the [startIndex].  If neither value is found, answer 0.
+		 */
+		fun A_Tuple.firstIndexOfOr(
+			value: A_BasicObject,
+			otherValue: A_BasicObject,
+			startIndex: Int,
+			endIndex: Int
+		): Int = dispatch {
+			o_FirstIndexOfOr(it, value, otherValue, startIndex, endIndex)
+		}
+
+		/**
 		 * Calculate the hash of the subtuple spanning the two indices.
 		 *
 		 * @param startIndex
