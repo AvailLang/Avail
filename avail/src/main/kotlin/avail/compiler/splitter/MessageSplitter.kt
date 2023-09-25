@@ -35,6 +35,7 @@ package avail.compiler.splitter
 import avail.compiler.ParsingOperation
 import avail.compiler.problems.CompilerDiagnostics
 import avail.compiler.splitter.CheckIndent.IndentationMatchType
+import avail.compiler.splitter.CheckIndent.IndentationMatchType.ForbidIncreaseIndent
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.IncreaseIndent
 import avail.compiler.splitter.CheckIndent.IndentationMatchType.MatchIndent
 import avail.compiler.splitter.MessageSplitter.Companion.cache
@@ -46,6 +47,7 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
 import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
 import avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
 import avail.compiler.splitter.MessageSplitter.Metacharacter.EXCLAMATION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.FORBID_INCREASE_INDENT
 import avail.compiler.splitter.MessageSplitter.Metacharacter.INCREASE_INDENT
 import avail.compiler.splitter.MessageSplitter.Metacharacter.MATCH_INDENT
 import avail.compiler.splitter.MessageSplitter.Metacharacter.OCTOTHORP
@@ -417,6 +419,22 @@ private constructor(messageName: A_String)
 		 * is introduced by the notation.
 		 */
 		MATCH_INDENT("↹"),
+
+		/**
+		 * When compiling indentation-sensitive languages, this message part
+		 * matches whitespace that does not increase the indentation beyond the
+		 * indentation that was active when starting to parse the message. It
+		 * will therefore match either a restoration of the original indentation
+		 * or an outdent to an even more reduced indentation. Note that the
+		 * start position is not necessarily where the first token of the
+		 * message occurred, since methods may start with leading arguments. In
+		 * that case, the indentation refers to the whitespace at the start of
+		 * the line where that leading argument begins.
+		 *
+		 * The indentation is treated merely as a filter, and no call argument
+		 * is introduced by the notation.
+		 */
+		FORBID_INCREASE_INDENT("⇤"),
 
 		/**
 		 * An octothorp (#) after an [ELLIPSIS] (…) indicates that a
@@ -1056,6 +1074,7 @@ private constructor(messageName: A_String)
 			++numberOfSectionCheckpoints)
 		peekFor(MATCH_INDENT) -> parseIndent(MatchIndent)
 		peekFor(INCREASE_INDENT) -> parseIndent(IncreaseIndent)
+		peekFor(FORBID_INCREASE_INDENT) -> parseIndent(ForbidIncreaseIndent)
 		else -> parseSimple()
 	}
 
@@ -1074,6 +1093,15 @@ private constructor(messageName: A_String)
 			indentationMatchType)
 		if (peekFor(DOUBLE_QUESTION_MARK))
 		{
+			if (indentationMatchType === ForbidIncreaseIndent)
+			{
+				// Making a forbidden increase indent optional is meaningless.
+				throwMalformedMessageException(
+					E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP,
+					"Double question mark (⁇) must not follow a forbid " +
+						"increase indent metacharacter"
+				)
+			}
 			val sequence = Sequence(
 				expression.startInName,
 				expression.pastEndInName,

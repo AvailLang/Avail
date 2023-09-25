@@ -1106,6 +1106,71 @@ object IncreaseIndent: ParsingOperation(false, true), ParsingOperationStatistics
 }
 
 /**
+ * Check whether we are positioned immediately after a newline and whitespace.
+ * If the current indentation string is a proper extension of the initial
+ * whitespace, report a weak error and abandon this parse theory, otherwise
+ * continue parsing. In other words, permit indent that matches or decreases the
+ * initial indentation.
+ */
+object ForbidIncreaseIndent:
+	ParsingOperation(false, true),
+	ParsingOperationStatistics
+{
+	override fun execute(
+		compiler: AvailCompiler,
+		stepState: ParsingStepState,
+		successorTree: A_BundleTree
+	)
+	{
+		skipWhitespaceAndComments(stepState.start) { successorStates ->
+			successorStates.forEach { parsingState ->
+				val state = stepState.copy { start = parsingState }
+				val initialIndent = state.initialIndentationString()
+				val currentIndent = state.currentIndentationString(true)
+				when
+				{
+					// Require a line feed.
+					currentIndent === null ->
+						state.start.expected(STRONG) { accept ->
+							accept(
+								"an indentation that does not exceed that at " +
+									"the beginning of the phrase " +
+									"(${initialIndent.q}), but this " +
+									"position is not after leading " +
+									"whitespace on the line")
+						}
+					// The indentation does not exceed the initial indentation,
+					// so continue parsing.
+					currentIndent.tupleSize <= initialIndent.tupleSize
+						&& initialIndent.compareFromToWithStartingAt(
+						1, currentIndent.tupleSize, currentIndent, 1)
+					-> compiler.eventuallyParseRestOfSendNode(
+						successorTree, state)
+					// Forbid an extension of the indent.
+					else -> state.start.expected(STRONG) { accept ->
+						accept(
+							"the indentation not to exceed that at the " +
+								"beginning of the phrase. The " +
+								"indentation at the beginning was " +
+								"${initialIndent.q}, but the current line " +
+								"begins with ${currentIndent.q}."
+						)
+					}
+				}
+			}
+		}
+	}
+
+	override val parsingStatisticInNanoseconds = Statistic(
+		RUNNING_PARSING_INSTRUCTIONS, name
+	)
+
+	override val expandingStatisticInNanoseconds = Statistic(
+		EXPANDING_PARSING_INSTRUCTIONS, name
+	)
+}
+
+/**
  * Ensure we are *not* positioned at a series of whitespace and comments that
  * include a line break.  This test is specifically to support "⇥⁇" and "↹⁇".
  * Without this filter instruction, the normal token processing would allow the
@@ -1141,7 +1206,7 @@ object NoLineBreak: ParsingOperation(false, true), ParsingOperationStatistics
 				{
 					// There were only interpretations that had whitespace
 					// that contained a line break, which are forbidden by
-					// this parsing instruction
+					// this parsing instruction.
 					val furthest = otherLine.maxBy(ParserState::position)
 					furthest.expected(WEAK) { accept ->
 						accept(

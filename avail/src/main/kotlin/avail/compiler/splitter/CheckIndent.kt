@@ -33,6 +33,7 @@ package avail.compiler.splitter
 
 import avail.compiler.IncreaseIndent
 import avail.compiler.MatchIndent
+import avail.compiler.ForbidIncreaseIndent
 import avail.compiler.splitter.CheckIndent.IndentationMatchType
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
@@ -74,10 +75,21 @@ internal class CheckIndent constructor(
 	private val indentationMatchType: IndentationMatchType
 ) : Expression(startInName, pastEndInName)
 {
+	/**
+	 * [IndentationMatchType] selects the kind of matching to be performed.
+	 */
 	enum class IndentationMatchType
 	{
+		/** The indentation must match the original indentation. */
 		MatchIndent,
-		IncreaseIndent
+
+		/** The indentation must be an extension of the original indentation. */
+		IncreaseIndent,
+
+		/**
+		 * The indentation must not be an increase of the original indentation.
+		 */
+		ForbidIncreaseIndent
 	}
 
 	override fun applyCaseInsensitive(): CheckIndent = this
@@ -106,6 +118,8 @@ internal class CheckIndent constructor(
 				generator.emit(this, MatchIndent)
 			IndentationMatchType.IncreaseIndent ->
 				generator.emit(this, IncreaseIndent)
+			IndentationMatchType.ForbidIncreaseIndent ->
+				generator.emit(this, ForbidIncreaseIndent)
 		}
 		return wrapState
 	}
@@ -121,6 +135,9 @@ internal class CheckIndent constructor(
 				Metacharacter.MATCH_INDENT.codepoint)
 			IndentationMatchType.IncreaseIndent -> builder.appendCodePoint(
 				Metacharacter.INCREASE_INDENT.codepoint)
+			IndentationMatchType.ForbidIncreaseIndent ->
+				builder.appendCodePoint(
+					Metacharacter.FORBID_INCREASE_INDENT.codepoint)
 		}
 	}
 
