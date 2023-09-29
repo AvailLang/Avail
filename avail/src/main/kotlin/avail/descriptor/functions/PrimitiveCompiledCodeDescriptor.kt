@@ -266,7 +266,7 @@ class PrimitiveCompiledCodeDescriptor internal constructor(
 	}
 
 	override fun o_NameForDebugger(self: AvailObject) =
-		super.o_NameForDebugger(self) + "($primitive): " + methodName
+		super.o_NameForDebugger(self) + " (${primitive.simpleName})"
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		returnTypeIfPrimitiveFails

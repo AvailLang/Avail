@@ -86,12 +86,16 @@ import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
+import avail.descriptor.representation.AvailIntegerValueHelper
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -255,15 +259,15 @@ class AvailDebugger internal constructor (
 	}
 
 	/** Helper for capturing values and labels for the variables list view. */
-	data class Variable(
+	private data class Variable constructor(
 		val name: String,
 		val value: AvailObject)
 	{
 		val presentationString = "$name = ${stringIfSimple(value)}"
 
 		/**
-		 * Answer a [String] representation of the given [value] if it's simple,
-		 * otherwise null.
+		 * Answer a [String] representation of the given [value] if it isn't too
+		 * complex, otherwise some sort of summary.
 		 */
 		private fun stringIfSimple(
 			value: AvailObject,
@@ -271,7 +275,7 @@ class AvailDebugger internal constructor (
 		): String = when {
 			depth > 3 -> "***depth***"
 			value.isNil -> "nil"
-			value.isString -> value.toString()
+			value.isString && value.tupleSize < 80 -> value.toString()
 			value.isInstanceOf(Types.NUMBER.o) -> value.toString()
 			value.isInstanceOf(Types.MESSAGE_BUNDLE.o) ->
 				value.message.atomName.asNativeString()
@@ -280,11 +284,12 @@ class AvailDebugger internal constructor (
 			value.isCharacter -> value.toString()
 			value.isInstanceOf(mostGeneralVariableType) ->
 				"var(${stringIfSimple(value.getValueForDebugger(), depth + 1)})"
-			!value.isType -> "(${value.typeTag})"
+			!value.isType -> "(${value.typeTag.name.removeSuffix("_TAG")})"
 			value.isTop -> value.toString()
 			value.isBottom -> value.toString()
 			value.traversed().descriptor() is PrimitiveTypeDescriptor ->
 				value.toString()
+			value.equals(booleanType) -> "boolean"
 			value.instanceCount.equalsInt(1) ->
 				"{${stringIfSimple(value.instance, depth + 1)}}ᵀ"
 			else -> "(${value.typeTag})"
@@ -295,8 +300,15 @@ class AvailDebugger internal constructor (
 	 * Renders variables in the top level (excluding the invisible root) of the
 	 * variables tree view.
 	 */
-	class VariableRenderer : DefaultTreeCellRenderer()
+	object VariableRenderer : DefaultTreeCellRenderer()
 	{
+		init
+		{
+			leafIcon = null
+			openIcon = null
+			closedIcon = null
+		}
+
 		override fun getTreeCellRendererComponent(
 			tree: JTree,
 			value: Any?,
@@ -307,45 +319,53 @@ class AvailDebugger internal constructor (
 			hasFocus: Boolean
 		): Component
 		{
-			val name = (value as LazyTreeNode).name()
+			val name = (value as LazyTreeNode).name
 			return super.getTreeCellRendererComponent(
 				tree, name, sel, expanded, leaf, row, hasFocus)
 		}
 	}
 
-	class LazyTreeNode(
-		val value: Any?
-	) : DefaultMutableTreeNode()
+	/**
+	 * A [DefaultMutableTreeNode] that can generate children dynamically, as
+	 * the tree is expanded.
+	 */
+	class LazyTreeNode constructor(
+		value: Any?
+	) : DefaultMutableTreeNode(value, true)
 	{
-		private var name: String? = null
-
-		fun name(): String
+		/** Lazily calculate the name. */
+		val name: String = when (val v = userObject)
 		{
-			computeNode()
-			return name!!
+			null -> "null"
+			is AvailObject -> v.nameForDebugger()
+			is AvailObjectFieldHelper -> v.nameForDebugger()
+			is AvailIntegerValueHelper -> v.longValue.toString()
+			else -> "unknown(${v.javaClass.simpleName})"
 		}
 
-		fun computeNode()
+		/** Whether the children of this node have been computed yet. */
+		private var childrenComputed = false
+
+		/**
+		 * Lazily calculate the list of children.  Answer true if children
+		 * were added.
+		 */
+		fun computeChildren(): Boolean
 		{
-			if (name == null)
+			if  (childrenComputed) return false
+			val list = when (val value = userObject)
 			{
-				val (
-					theName: String,
-					theChildren: List<LazyTreeNode>
-				) = when (value)
-				{
-					null -> "null" to emptyList()
-					is Variable -> value.presentationString to
-						listOf(LazyTreeNode(value.value))
-					is AvailObject -> value.nameForDebugger() to
-						value.describeForDebugger().map(::LazyTreeNode)
-					is AvailObjectFieldHelper -> value.nameForDebugger() to
-						value.describeForDebugger().map(::LazyTreeNode)
-					else -> "unknown(${value.javaClass.name})" to emptyList()
-				}
-				name = theName
-				theChildren.forEach(::add)
+				null -> emptyList()
+				is AvailObject ->
+					value.describeForDebugger().map(::LazyTreeNode)
+				is AvailObjectFieldHelper ->
+					value.describeForDebugger().map(::LazyTreeNode)
+				is AvailIntegerValueHelper -> emptyList()
+				else -> emptyList()
 			}
+			list.forEach(::add)
+			childrenComputed = true
+			return list.isNotEmpty()
 		}
 	}
 
@@ -583,8 +603,8 @@ class AvailDebugger internal constructor (
 
 		override fun actionPerformed(e: ActionEvent)
 		{
-			(variablesPane.lastSelectedPathComponent as? LazyTreeNode)?.let {
-				inspect(it.name(), (it.value as? AvailObject) ?: nil)
+			(variablesPane.lastSelectedPathComponent as? LazyTreeNode)?.run {
+				inspect(name, (userObject as? AvailObject) ?: nil)
 			}
 		}
 	}
@@ -649,7 +669,7 @@ class AvailDebugger internal constructor (
 
 	/** The list of variables in scope in the selected frame. */
 	private val variablesPane = JTree(LazyTreeNode("dummy"), true).apply {
-		cellRenderer = VariableRenderer()
+		cellRenderer = VariableRenderer
 		background = null
 		isEditable = false
 		isEnabled = true
@@ -661,9 +681,21 @@ class AvailDebugger internal constructor (
 		selectionModel.addTreeSelectionListener {
 			updateVariableValuePane()
 		}
+		val treeModel = model as DefaultTreeModel
+		treeModel.setAsksAllowsChildren(false)
 		addTreeExpansionListener(object : TreeExpansionListener {
 			override fun treeExpanded(event: TreeExpansionEvent?) {
-				(lastSelectedPathComponent as? LazyTreeNode)?.computeNode()
+				(lastSelectedPathComponent as? LazyTreeNode)?.let { n ->
+					// This node must already have been computed as part of the
+					// look-beneath.  Since we're expanding it and therefore
+					// need to decide how to show each child, ask each child to
+					// compute its own children internally.
+					n.children().asIterator().forEach { c ->
+						c as LazyTreeNode
+						c.computeChildren()
+						treeModel.nodeStructureChanged(c)
+					}
+				}
 			}
 
 			override fun treeCollapsed(event: TreeExpansionEvent?) { }
@@ -941,7 +973,7 @@ class AvailDebugger internal constructor (
 
 	/**
 	 * The current stack frame has changed, so re-present the variables that are
-	 * in scope.  Try to preserve selection of a [Variable] with the same
+	 * in scope.  TODO Try to preserve selection of a [Variable] with the same
 	 * [name][Variable.name] as the previous selection.
 	 */
 	private fun updateVariablesList()
@@ -1007,8 +1039,22 @@ class AvailDebugger internal constructor (
 		}
 		val root = variablesPane.model.root as LazyTreeNode
 		root.removeAllChildren()
-		entries.forEach { root.add(LazyTreeNode(it)) }
-		(variablesPane.model as DefaultTreeModel).nodeStructureChanged(root)
+		entries.forEach {
+			val node = LazyTreeNode(
+				AvailObjectFieldHelper(
+					null,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					it.value,
+					slotName = it.name,
+					forcedName = it.presentationString
+				)
+			)
+			node.computeChildren()
+			root.add(node)
+		}
+		val model = variablesPane.model as DefaultTreeModel
+		model.nodeStructureChanged(root)
 		variablesPane.repaint()
 
 		//TODO Preserve selection based on oldPath
@@ -1039,13 +1085,22 @@ class AvailDebugger internal constructor (
 	private fun updateVariableValuePane()
 	{
 		val id = paneVersionTracker.allocator.getAndIncrement()
-		val variable = variablesPane.lastSelectedPathComponent as? LazyTreeNode
+		val node = variablesPane.lastSelectedPathComponent as? LazyTreeNode
 		// Do some trickery to avoid stringifying null or nil.  In either case,
 		// just plug in the trueObject instead.
-		val valueToStringify = when
+		var v = node?.userObject
+		if (v is AvailObjectFieldHelper)
 		{
-			variable == null -> trueObject //dummy
-			variable.value is AvailObject -> variable.value.ifNil { trueObject }
+			v = v.value
+		}
+		if (v is AvailIntegerValueHelper)
+		{
+			v = v.longValue
+		}
+		val valueToStringify = when (v)
+		{
+			null -> trueObject //dummy
+			is AvailObject -> v.ifNil { trueObject }
 			else -> trueObject //any non-AvailObject
 		}
 		runtime.stringifyThen(
@@ -1059,17 +1114,12 @@ class AvailDebugger internal constructor (
 			})
 		{
 			// Undo the above trickery.
-			val string = when
+			val string = when (v)
 			{
-				variable == null -> ""
-				variable.value == nil -> "nil\n"
-				variable.value is AvailObject ->
-					"${variable.value.typeTag}\n\n$it\n"
-				else ->
-				{
-					val v = variable.value!!
-					"${v.javaClass.simpleName}\n\n$v"
-				}
+				null -> ""
+				nil -> "nil\n"
+				is AvailObject -> "${v.typeTag}\n\n$it\n"
+				else -> "${v.javaClass.simpleName}\n\n$v\n"
 			}
 			// Delegate to the UI thread, for safety and simplicity.
 			SwingUtilities.invokeLater {
@@ -1206,7 +1256,7 @@ class AvailDebugger internal constructor (
 				restartButton)
 		}
 		minimumSize = Dimension(550, 350)
-		preferredSize = Dimension(1000, 1000)
+		preferredSize = Dimension(1040, 900)
 		add(panel)
 		pack()
 		codeHighlightPainter = run {

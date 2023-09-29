@@ -184,6 +184,7 @@
       <option name="myAdditionalJavadocTags" value="return" />
       <IGNORE_ACCESSORS value="true" />
     </inspection_tool>
+    <inspection_tool class="JavaIoSerializableObjectMustHaveReadResolve" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="JavaLangImport" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="JavadocDeclaration" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ADDITIONAL_TAGS" value="return" />
@@ -454,11 +455,7 @@
       <option name="ADD_NONJAVA_TO_ENTRIES" value="false" />
       <option name="ADD_EXPORTED_PACKAGES_AND_SERVICES_TO_ENTRIES" value="false" />
       <option name="selected" value="false" />
-      <option name="ADD_ANDROID_COMPONENTS_TO_ENTRIES" value="false" />
-      <option name="selected" value="false" />
-      <option name="selected" value="false" />
       <option name="DEPRECATED_ENTRY_POINT" value="false" />
-      <option name="selected" value="false" />
     </inspection_tool>
   </profile>
 </component>
