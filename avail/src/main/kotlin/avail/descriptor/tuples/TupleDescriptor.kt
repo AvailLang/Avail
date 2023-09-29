@@ -692,6 +692,24 @@ protected constructor(
 		return 0
 	}
 
+	override fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int
+	{
+		if (value.equals(otherValue))
+			return o_FirstIndexOf(self, value, startIndex, endIndex)
+		for (i in startIndex..endIndex)
+		{
+			val element = self.tupleAt(i)
+			if (element.equals(value) || element.equals(otherValue)) return i
+		}
+		return 0
+	}
+
 	// Compute tuple's hash value over the given range.
 	override fun o_HashFromTo(
 		self: AvailObject,

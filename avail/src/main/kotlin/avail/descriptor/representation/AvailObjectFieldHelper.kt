@@ -200,11 +200,10 @@ class AvailObjectFieldHelper(
 		}
 	}
 
-	@Suppress("unused")
-	fun describeForDebugger(): Any? = when {
+	fun describeForDebugger(): Array<*> = when {
 		forcedChildren !== null -> forcedChildren
 		value is AvailObject -> value.describeForDebugger()
 		value is AvailIntegerValueHelper -> emptyArray<Any>()
-		else -> value
+		else -> arrayOf(value)
 	}
 }

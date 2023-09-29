@@ -1435,6 +1435,13 @@ abstract class AbstractDescriptor protected constructor (
 		startIndex: Int,
 		endIndex: Int): Int
 
+	abstract fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+
 	abstract fun o_SetContinuation (
 		self: AvailObject,
 		value: A_Continuation)

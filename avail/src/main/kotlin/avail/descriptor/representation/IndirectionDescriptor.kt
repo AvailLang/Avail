@@ -496,6 +496,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.extractNybbleFromTupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
+import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOfOr
 import avail.descriptor.tuples.A_Tuple.Companion.hashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import avail.descriptor.tuples.A_Tuple.Companion.lastIndexOf
@@ -4046,6 +4047,14 @@ class IndirectionDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int
 	): Int = self .. { firstIndexOf(value, startIndex, endIndex) }
+
+	override fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int = self .. { firstIndexOfOr(value, otherValue, startIndex, endIndex) }
 
 	override fun o_LastIndexOf(
 		self: AvailObject,

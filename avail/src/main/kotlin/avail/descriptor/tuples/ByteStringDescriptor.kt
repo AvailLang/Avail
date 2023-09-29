@@ -63,7 +63,11 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.hasZeroByte
+import avail.utility.lowBitsOfBytes
 import avail.utility.structures.EnumMap.Companion.enumMap
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * `ByteStringDescriptor` represents a string of Latin-1 characters.
@@ -405,10 +409,54 @@ class ByteStringDescriptor private constructor(
 		if (!strongValue.isCharacter) return 0
 		val codePoint = strongValue.codePoint
 		// This string only contains Unicode code points U+0000 - U+00FF.
-		if (codePoint > 255) return 0
-		for (i in startIndex .. endIndex)
+		if (codePoint > 0xFF) return 0
+		val byte = value.codePoint
+		val byteReplicated = byte * lowBitsOfBytes
+		for (slotIndex in (startIndex + 7).ushr(3) .. (endIndex + 7).ushr(3))
 		{
-			if (self.tupleCodePointAt(i) == codePoint) return i
+			val slot = self[RAW_LONGS_, slotIndex]
+			if ((slot xor byteReplicated).hasZeroByte())
+			{
+				for (i in max(slotIndex.shl(3) - 7, startIndex)
+					.. min(slotIndex.shl(3), endIndex))
+				{
+					if (self.byteSlot(RAW_LONGS_, i).toInt() == byte) return i
+				}
+			}
+		}
+		return 0
+	}
+
+	override fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		if (!(value as A_Character).isCharacter || value.codePoint > 0xFF)
+			return o_FirstIndexOf(self, otherValue, startIndex, endIndex)
+		if (!(otherValue as A_Character).isCharacter || value.codePoint > 0xFF)
+			return o_FirstIndexOf(self, value, startIndex, endIndex)
+		val byte1 = value.codePoint
+		val byte2 = otherValue.codePoint
+		if (byte1 == byte2)
+			return o_FirstIndexOf(self, value, startIndex, endIndex)
+		val byte1Replicated = byte1 * lowBitsOfBytes
+		val byte2Replicated = byte2 * lowBitsOfBytes
+		for (slotIndex in (startIndex + 7).ushr(3) .. (endIndex + 7).ushr(3))
+		{
+			val slot = self[RAW_LONGS_, slotIndex]
+			if ((slot xor byte1Replicated).hasZeroByte()
+				|| (slot xor byte2Replicated).hasZeroByte())
+			{
+				for (i in max(slotIndex.shl(3) - 7, startIndex)
+					.. min(slotIndex.shl(3), endIndex))
+				{
+					val code = self.byteSlot(RAW_LONGS_, i).toInt()
+					if (code == byte1 || code == byte2) return i
+				}
+			}
 		}
 		return 0
 	}
