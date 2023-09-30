@@ -35,6 +35,7 @@ kotlin {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
     api("org.availlang:avail-json:2.1.2")
     testImplementation(kotlin("test"))
 }
