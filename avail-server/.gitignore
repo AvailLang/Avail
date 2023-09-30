@@ -1,3 +1,4 @@
 /build
 /out
 .gradle
+/distro/lib/avail-server.jar
