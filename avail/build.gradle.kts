@@ -46,7 +46,7 @@ import java.util.Locale
 
 plugins {
 	id("java")
-	kotlin("jvm") version "1.9.0"
+	kotlin("jvm") version "1.9.10"
 	`maven-publish`
 	publishing
 	signing

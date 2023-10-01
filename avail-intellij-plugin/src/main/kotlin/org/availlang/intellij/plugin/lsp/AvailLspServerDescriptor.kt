@@ -5,7 +5,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
 import org.availlang.intellij.plugin.language.AvailFileType
-import org.eclipse.lsp4j.launch.LSPLauncher
 
 /**
  * The Avail [ProjectWideLspServerDescriptor] used to start and communicate with
