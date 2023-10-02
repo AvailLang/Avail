@@ -36,6 +36,7 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.module.ModuleTypeManager
 import com.intellij.openapi.roots.ModifiableRootModel
 
 /**
@@ -50,8 +51,11 @@ class AvailModuleBuilder: ModuleBuilder()
 		// TODO?
 	}
 
+	// TODO Using a ModuleType is discouraged, claims to be obsolete in
+	//  plugin.xml but an alternative is not yet clear.
 	override fun getModuleType(): ModuleType<*> =
-		AvailModuleType()
+		ModuleTypeManager.getInstance()
+			.findByID(AvailModuleType.AVAIL_MODULE_TYPE_ID)
 
 	override fun getCustomOptionsStep(
 		context: WizardContext,

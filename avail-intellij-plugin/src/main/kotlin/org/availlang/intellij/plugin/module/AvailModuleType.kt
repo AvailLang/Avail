@@ -38,6 +38,9 @@ import javax.swing.Icon
 /**
  * The [ModuleType] for an Avail module.
  *
+ * TODO this is claimed to be discouraged but it is unclear as to how to setup
+ *  a new project for a custom language.
+ *
  * @author Richard Arriaga
  */
 class AvailModuleType : ModuleType<AvailModuleBuilder>(AVAIL_MODULE_TYPE_ID)
@@ -53,6 +56,6 @@ class AvailModuleType : ModuleType<AvailModuleBuilder>(AVAIL_MODULE_TYPE_ID)
 	override fun getNodeIcon(p0: Boolean): Icon = AvailIcons.AvailIcon16x16
 
 	companion object {
-		const val AVAIL_MODULE_TYPE_ID = "AVAIL_MODULE"
+		const val AVAIL_MODULE_TYPE_ID = "AVAIL_MODULE_TYPE"
 	}
 }

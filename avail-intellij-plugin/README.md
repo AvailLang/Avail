@@ -25,6 +25,8 @@ project roadmap will grow over time.
 ---
 
 ### Project Start Milestone
+Tasks associated with starting the overall project.
+
 | Complete | Goals                                    |
 |:--------:|:-----------------------------------------|
 | &check;  | Create avail-language-server project     |
@@ -35,6 +37,8 @@ project roadmap will grow over time.
 ---
 
 ### Avail Project Creation Milestone
+Tasks associated with creating a new Avail project.
+
 | Complete | Goals                         |
 |:--------:|:------------------------------|
 |          | Avail Project Creation Wizard |

@@ -40,11 +40,8 @@
 			implementation="org.availlang.intellij.plugin.lsp.AvailLspServerSupportProvider"/>
 
 		<!-- Wizard -->
-<!--		<moduleBuilder-->
-<!--			builderClass="org.availlang.intellij.plugin.module.AvailModuleBuilder"-->
-<!--			id="DEMO_STEP"-->
-<!--			order="first"/>-->
 
+		<!--	TODO this claims to be obsolete but an alternative is not apparent	-->
 		<!--suppress PluginXmlValidity -->
 		<moduleType
 			id="AVAIL_MODULE_TYPE"
