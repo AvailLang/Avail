@@ -1,5 +1,5 @@
 /*
- * AvailLspServerDescriptor.kt
+ * AvailModuleType.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,33 +29,30 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.intellij.plugin.lsp
+package org.availlang.intellij.plugin.module
 
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
-import org.availlang.intellij.plugin.language.AvailFileType
+import com.intellij.openapi.module.ModuleType
+import org.availlang.intellij.plugin.icons.AvailIcons
+import javax.swing.Icon
 
 /**
- * The Avail [ProjectWideLspServerDescriptor] used to start and communicate with
- * the
- * [Avail Language Server](https://microsoft.github.io/language-server-protocol/).
+ * The [ModuleType] for an Avail module.
  *
  * @author Richard Arriaga
  */
-class AvailLspServerDescriptor(
-	project: Project
-): ProjectWideLspServerDescriptor(project, "Avail")
+class AvailModuleType : ModuleType<AvailModuleBuilder>(AVAIL_MODULE_TYPE_ID)
 {
-	override fun createCommandLine(): GeneralCommandLine
-	{
-//		LSPLauncher.createServerLauncher(AvailLanguageServer(),
-//			System.`in`,
-//			System.out);
-		TODO("Not yet implemented")
-	}
+	override fun createModuleBuilder(): AvailModuleBuilder =
+		AvailModuleBuilder()
 
-	override fun isSupportedFile(file: VirtualFile): Boolean =
-		file.fileType == AvailFileType
+	override fun getName(): String = "Avail"
+
+	override fun getDescription(): String =
+		"The Avail Programming Language"
+
+	override fun getNodeIcon(p0: Boolean): Icon = AvailIcons.AvailIcon16x16
+
+	companion object {
+		const val AVAIL_MODULE_TYPE_ID = "AVAIL_MODULE"
+	}
 }

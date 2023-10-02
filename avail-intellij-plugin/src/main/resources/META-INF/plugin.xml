@@ -25,6 +25,7 @@
 
 	<!-- Extension points defined by the plugin.
 		 Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+	<!--suppress PluginXmlValidity -->
 	<extensions defaultExtensionNs="com.intellij">
 		<!-- Language -->
 		<fileType name="Avail"
@@ -34,8 +35,20 @@
 				  fieldName="INSTANCE"/>
 
 		<!-- LSP -->
+		<!--suppress PluginXmlValidity -->
 		<platform.lsp.serverSupportProvider
 			implementation="org.availlang.intellij.plugin.lsp.AvailLspServerSupportProvider"/>
+
+		<!-- Wizard -->
+<!--		<moduleBuilder-->
+<!--			builderClass="org.availlang.intellij.plugin.module.AvailModuleBuilder"-->
+<!--			id="DEMO_STEP"-->
+<!--			order="first"/>-->
+
+		<!--suppress PluginXmlValidity -->
+		<moduleType
+			id="AVAIL_MODULE_TYPE"
+			implementationClass="org.availlang.intellij.plugin.module.AvailModuleType"/>
 
 	</extensions>
 </idea-plugin>

@@ -1,5 +1,5 @@
 /*
- * AvailLspServerDescriptor.kt
+ * AvailModuleBuilder.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,33 +29,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.intellij.plugin.lsp
+package org.availlang.intellij.plugin.module
 
-import com.intellij.execution.configurations.GeneralCommandLine
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.platform.lsp.api.ProjectWideLspServerDescriptor
-import org.availlang.intellij.plugin.language.AvailFileType
+import com.intellij.ide.util.projectWizard.ModuleBuilder
+import com.intellij.ide.util.projectWizard.ModuleWizardStep
+import com.intellij.ide.util.projectWizard.WizardContext
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.roots.ModifiableRootModel
 
 /**
- * The Avail [ProjectWideLspServerDescriptor] used to start and communicate with
- * the
- * [Avail Language Server](https://microsoft.github.io/language-server-protocol/).
+ * The [ModuleBuilder] for building an Avail module.
  *
- * @author Richard Arriaga
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailLspServerDescriptor(
-	project: Project
-): ProjectWideLspServerDescriptor(project, "Avail")
+class AvailModuleBuilder: ModuleBuilder()
 {
-	override fun createCommandLine(): GeneralCommandLine
+	override fun setupRootModel(modifiableRootModel: ModifiableRootModel)
 	{
-//		LSPLauncher.createServerLauncher(AvailLanguageServer(),
-//			System.`in`,
-//			System.out);
-		TODO("Not yet implemented")
+		// TODO?
 	}
 
-	override fun isSupportedFile(file: VirtualFile): Boolean =
-		file.fileType == AvailFileType
+	override fun getModuleType(): ModuleType<*> =
+		AvailModuleType()
+
+	override fun getCustomOptionsStep(
+		context: WizardContext,
+		parentDisposable: Disposable
+	): ModuleWizardStep = AvailModuleWizardStep()
 }
