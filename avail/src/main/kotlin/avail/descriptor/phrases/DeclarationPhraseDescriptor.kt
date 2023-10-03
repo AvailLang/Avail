@@ -596,7 +596,9 @@ class DeclarationPhraseDescriptor(
 				PRIMITIVE_FAILURE_REASON ->
 					SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION
 			}
-			context.loader.styleToken(self.token, style.kotlinString)
+			val token = self.token
+			context.loader.styleToken(token, style.kotlinString)
+			context.loader.addDeclarationToken(token)
 			then()
 		}
 	}

@@ -170,6 +170,7 @@ import avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
+import avail.descriptor.phrases.DeclarationPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -882,17 +883,50 @@ constructor(
 	 * corresponding declarations occur.
 	 */
 	@GuardedBy("styledRangesLock")
-	val usesToDefinitions = RunTree<LongRange>()
+	val usesToDeclarations = RunTree<LongRange>()
 
 	/**
-	 * Access the [usesToDefinitions] in the [action] while holding the lock.
+	 * A [MutableSet] of every file range containing the primary token of a
+	 * local [declaration][DeclarationPhraseDescriptor].
+	 */
+	@GuardedBy("styledRangesLock")
+	val allDeclarations = mutableSetOf<LongRange>()
+
+	/**
+	 * Access the [usesToDeclarations] in the [action] while holding the lock.
 	 *
 	 * @param action
-	 *   The action to perform with [usesToDefinitions] while holding the lock.
+	 *   The action to perform with [usesToDeclarations] while holding the lock.
 	 */
 	@ThreadSafe
-	fun <T> lockUsesToDefinitions(action: RunTree<LongRange>.()->T): T =
-		styledRangesLock.safeWrite { usesToDefinitions.action() }
+	fun <T> lockUsesToDeclarations(action: RunTree<LongRange>.()->T): T =
+		styledRangesLock.safeWrite { usesToDeclarations.action() }
+
+	/**
+	 * Access the [allDeclarations] in the [action] while holding the lock.
+	 *
+	 * @param action
+	 *   The action to perform with [allDeclarations] while holding the lock.
+	 */
+	@ThreadSafe
+	fun <T> lockAllDeclarations(action: MutableSet<LongRange>.()->T): T =
+		styledRangesLock.safeWrite { allDeclarations.action() }
+
+	/**
+	 * A [declaration][DeclarationPhraseDescriptor] phrase was encountered.
+	 * Record its range in the declarationToken [RunTree].  This construct
+	 * exists solely to detect unused declarations.  The range runs from the
+	 * one-based start through the one-based end.
+	 */
+	fun addDeclarationToken(declarationToken: A_Token)
+	{
+		if (!declarationToken.isInCurrentModule(module)) return
+		lockAllDeclarations {
+			add(
+				declarationToken.start().toLong() ..
+					declarationToken.end().toLong())
+		}
+	}
 
 	/**
 	 * A [variable-use][VariableUsePhraseDescriptor] was encountered, so record
@@ -905,8 +939,13 @@ constructor(
 		val useStart = useToken.start()
 		val declarationRange = declarationToken.start().toLong()..
 			declarationToken.end().toLong()
-		styledRangesLock.safeWrite {
-			usesToDefinitions.edit(useStart, useToken.pastEnd()) {
+		// Add the declaration to ensure the invariant that a value in
+		// usesToDeclarations must also be present in allDeclarations.
+		lockAllDeclarations {
+			add(declarationRange)
+		}
+		lockUsesToDeclarations {
+			edit(useStart, useToken.pastEnd()) {
 				// Just overwrite it, in the unexpected case of a conflict.
 				declarationRange
 			}

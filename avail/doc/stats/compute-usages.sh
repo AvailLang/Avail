@@ -36,8 +36,8 @@
 # Avail implementation, as a gauge on the level of effort for leaving behind the
 # JVM. Deliberately does not attempt to detect pojo usages from Avail.
 #
-# The script is intended to be run from $AVAIL/doc/stats. Do not try to run it
-# from elsewhere.
+# The script is intended to be run from $AVAIL/avail/doc/stats. Do not try to
+# run it from elsewhere.
 #
 # @author Todd L Smith <todd@availlang.org>
 #

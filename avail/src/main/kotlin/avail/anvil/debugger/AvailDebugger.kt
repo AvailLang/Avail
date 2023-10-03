@@ -731,7 +731,8 @@ class AvailDebugger internal constructor (
 	private var lineEnds = emptyList<Int>()
 
 	/** The [StylingRecord] to apply to the text. */
-	private var stylingRecord = StylingRecord(emptyList(), emptyList())
+	private var stylingRecord =
+		StylingRecord(emptyList(), emptyList(), emptyList())
 
 	/** The [PhrasePathRecord] to apply to the text for demarcating phrases. */
 	private var phrasePathRecord = PhrasePathRecord()

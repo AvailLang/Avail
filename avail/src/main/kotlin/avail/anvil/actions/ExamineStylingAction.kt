@@ -98,14 +98,18 @@ class ExamineStylingAction constructor (
 						val stylingRecord = StylingRecord(stylingBytes)
 						val description =
 							stylingRecord.styleRuns.joinToString("\n")
-						val localsDescription =
+						val usesDescription =
 							stylingRecord.variableUses.joinToString("\n")
+						val declarationsDescription =
+							stylingRecord.declarations.joinToString("\n")
 						val report = buildUnicodeBox(
 							"Style Classification Report"
 						) {
 							append(description)
-							append("\n\n --- locals ---\n\n")
-							append(localsDescription)
+							append("\n\n --- uses ---\n\n")
+							append(usesDescription)
+							append("\n\n --- declarations ---\n\n")
+							append(declarationsDescription)
 						}
 						workbench.writeText(report, StreamStyle.REPORT)
 					}

@@ -732,7 +732,7 @@ internal class BuildLoader constructor(
 			}
 		}
 		assert(styleRanges.all { (range, _) -> range.first < range.last })
-		val uses = loader.lockUsesToDefinitions {
+		val uses = loader.lockUsesToDeclarations {
 			map { (useStart, usePastEnd, defRange) ->
 				val utf16UseStart =
 					converter.availIndexToJavaIndex(useStart.toInt() - 1)
@@ -747,7 +747,16 @@ internal class BuildLoader constructor(
 					(utf16DefStart .. utf16DefEnd))
 			}
 		}
-		return StylingRecord(styleRanges, uses)
+		val declarations = loader.lockAllDeclarations {
+			map { defRange ->
+				val utf16DefStart =
+					converter.availIndexToJavaIndex(defRange.first.toInt() - 1)
+				val utf16DefEnd =
+					converter.availIndexToJavaIndex(defRange.last.toInt())
+				utf16DefStart .. utf16DefEnd
+			}
+		}
+		return StylingRecord(styleRanges, uses, declarations)
 	}
 
 	/**
