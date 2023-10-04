@@ -31,8 +31,8 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.PARSE_PART
-import avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
+import avail.compiler.ParsePart
+import avail.compiler.ParsePartCaseInsensitively
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
@@ -106,12 +106,12 @@ internal class Simple constructor(
 		wrapState: WrapState): WrapState
 	{
 		// Parse the specific keyword.
-		val op = when
+		generator.emit(this, when
 		{
-			generator.caseInsensitive -> PARSE_PART_CASE_INSENSITIVELY
-			else -> PARSE_PART
-		}
-		generator.emit(this, op, tokenIndex)
+			generator.caseInsensitive ->
+				ParsePartCaseInsensitively(tokenIndex)
+			else -> ParsePart(tokenIndex)
+		})
 		return wrapState
 	}
 

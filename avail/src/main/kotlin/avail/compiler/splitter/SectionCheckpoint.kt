@@ -31,9 +31,9 @@
  */
 package avail.compiler.splitter
 
+import avail.compiler.PrepareToRunPrefixFunction
 import avail.compiler.ParserState
-import avail.compiler.ParsingOperation.PREPARE_TO_RUN_PREFIX_FUNCTION
-import avail.compiler.ParsingOperation.RUN_PREFIX_FUNCTION
+import avail.compiler.RunPrefixFunction
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.types.A_Type
@@ -101,9 +101,9 @@ internal class SectionCheckpoint constructor(
 		generator.flushDelayed()
 		generator.emit(
 			this,
-			PREPARE_TO_RUN_PREFIX_FUNCTION,
-			generator.partialListsCount)
-		generator.emit(this, RUN_PREFIX_FUNCTION, subscript)
+			PrepareToRunPrefixFunction(generator.partialListsCount)
+		)
+		generator.emit(this, RunPrefixFunction(subscript))
 		return wrapState
 	}
 

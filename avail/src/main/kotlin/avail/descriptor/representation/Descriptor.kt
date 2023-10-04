@@ -36,6 +36,7 @@ import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
+import avail.compiler.ParsingOperation
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -1097,7 +1098,9 @@ protected constructor (
 
 	override fun o_SizeRange (self: AvailObject): A_Type = unsupported
 
-	override fun o_LazyActions (self: AvailObject): A_Map = unsupported
+	override fun o_LazyActions (
+		self: AvailObject
+	): MutableMap<ParsingOperation, A_Tuple> = unsupported
 
 	override fun o_Stackp (self: AvailObject): Int = unsupported
 
@@ -1520,8 +1523,9 @@ protected constructor (
 	override fun o_ParallelStream (self: AvailObject): Stream<AvailObject> =
 		unsupported
 
-	override fun o_ParsingInstructions (self: AvailObject): A_Tuple =
-		unsupported
+	override fun o_ParsingInstructions (
+		self: AvailObject
+	): List<ParsingOperation> = unsupported
 
 	override fun o_Expression (self: AvailObject): A_Phrase = unsupported
 
@@ -2807,6 +2811,14 @@ protected constructor (
 	override fun o_FirstIndexOf(
 		self: AvailObject,
 		value: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int = unsupported
+
+	override fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
 		startIndex: Int,
 		endIndex: Int
 	): Int = unsupported

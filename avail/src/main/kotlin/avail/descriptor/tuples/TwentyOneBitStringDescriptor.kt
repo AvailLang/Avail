@@ -61,6 +61,8 @@ import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTu
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * A [tuple][TupleDescriptor] implementation that consists entirely of Unicode
@@ -233,12 +235,64 @@ class TwentyOneBitStringDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int): Int
 	{
-		val strongValue = value as A_Character
-		if (!strongValue.isCharacter) return 0
-		val codePoint = strongValue.codePoint
-		for (i in startIndex .. endIndex)
+		if (!(value as A_Character).isCharacter) return 0
+		val code = value.codePoint
+		val codeLong = code.toLong()
+		for (slotIndex in (startIndex + 2).div3 .. (endIndex + 2).div3)
 		{
-			if (get21BitSlot(self, i) == codePoint) return i
+			val slot = self[RAW_LONGS_, slotIndex]
+			// Use fast testing for efficiency.
+			if (slot and twentyOneBitMask == codeLong
+				|| (slot ushr 21) and twentyOneBitMask == codeLong
+				|| (slot ushr 42) and twentyOneBitMask == codeLong)
+			{
+				// There's a hit in the slot, so do a slow scan.
+				for (i in max(slotIndex * 3 - 2, startIndex)
+					.. min(slotIndex * 3, endIndex))
+				{
+					if (get21BitSlot(self, i) == code) return i
+				}
+			}
+		}
+		return 0
+	}
+
+	override fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		if (!(value as A_Character).isCharacter)
+			return o_FirstIndexOf(self, otherValue, startIndex, endIndex)
+		if (!(otherValue as A_Character).isCharacter)
+			return o_FirstIndexOf(self, value, startIndex, endIndex)
+		val code1 = value.codePoint
+		val code1Long = code1.toLong()
+		val code2 = otherValue.codePoint
+		val code2Long = code2.toLong()
+		if (code1 == code2)
+			return o_FirstIndexOf(self, value, startIndex, endIndex)
+		for (slotIndex in (startIndex + 2).div3 .. (endIndex + 2).div3)
+		{
+			val slot = self[RAW_LONGS_, slotIndex]
+			// Use fast testing for efficiency.
+			if (slot and twentyOneBitMask == code1Long
+				|| slot and twentyOneBitMask == code2Long
+				|| (slot ushr 21) and twentyOneBitMask == code1Long
+				|| (slot ushr 21) and twentyOneBitMask == code2Long
+				|| (slot ushr 42) and twentyOneBitMask == code1Long
+				|| (slot ushr 42) and twentyOneBitMask == code2Long)
+			{
+				// There's a hit in the slot, so do a slow scan.
+				for (i in max(slotIndex * 3 - 2, startIndex)
+					.. min(slotIndex * 3, endIndex))
+				{
+					if (get21BitSlot(self, i) == code1) return i
+					if (get21BitSlot(self, i) == code2) return i
+				}
+			}
 		}
 		return 0
 	}
@@ -484,7 +538,7 @@ class TwentyOneBitStringDescriptor private constructor(
 		 * @return
 		 *   The new tuple, initialized to null characters (code point 0).
 		 */
-		fun mutableTwentyOneBitStringOfSize(size: Int): AvailObject =
+		private fun mutableTwentyOneBitStringOfSize(size: Int): AvailObject =
 			descriptorFor(MUTABLE, size).create((size + 2).div3)
 
 		/**
@@ -633,3 +687,6 @@ private val Int.div3: Int get() = (toULong() * thirdMultiplier shr 33).toInt()
 
 /** Calculate the receiver mod 3.  The receiver must be non-negative. */
 private val Int.mod3: Int get() = minus(div3 * 3)
+
+/** A [Long] with the lower 21 bits set, and the rest zero. */
+private const val twentyOneBitMask: Long = (1L shl 21) - 1L

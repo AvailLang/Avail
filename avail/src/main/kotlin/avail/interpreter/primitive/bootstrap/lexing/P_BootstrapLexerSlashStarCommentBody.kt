@@ -34,6 +34,8 @@ package avail.interpreter.primitive.bootstrap.lexing
 
 import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import avail.descriptor.character.A_Character
+import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber.Companion.currentLexer
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
@@ -41,6 +43,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
 import avail.descriptor.tuples.A_String.Companion.copyStringFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOfOr
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -85,17 +88,23 @@ object P_BootstrapLexerSlashStarCommentBody
 		var depth = 1
 		while (true)
 		{
-			if (position >= sourceSize)
+			// At least two characters are available to examine.  Do a fast
+			// scan to locate the next star or slash.
+			position = source.firstIndexOfOr(
+				slashCharacter,
+				starCharacter,
+				position,
+				// Don't include the final character in the scan.
+				sourceSize - 1)
+			if (position == 0)
 			{
-				// There aren't two characters left, so it can't close the outer
-				// nesting of the comment (with "*/").  Reject the lexing with a
-				// suitable warning.
+				// There are no more slashes or stars prior to the last
+				// character, so a "*/" or "/*" is impossible.  Reject the
+				// lexing with a suitable warning.
 				throw AvailRejectedParseException(
 					STRONG,
 					"Subsequent '*/' to close this (nestable) block comment")
 			}
-
-			// At least two characters are available to examine.
 			val c = source.tupleCodePointAt(position)
 			if (c == '*'.code
 				&& source.tupleCodePointAt(position + 1) == '/'.code)
@@ -135,4 +144,10 @@ object P_BootstrapLexerSlashStarCommentBody
 		lexerBodyFunctionType()
 
 	override fun bootstrapStyler() = P_BootstrapLexerSlashStarCommentBodyStyler
+
+	/** The [A_Character] for the '/' code point. */
+	private val slashCharacter = fromCodePoint('/'.code)
+
+	/** The [A_Character] for the '*' code point. */
+	private val starCharacter = fromCodePoint('*'.code)
 }

@@ -33,7 +33,6 @@
 package avail.compiler
 
 import avail.compiler.AvailCompiler.PartialSubexpressionList
-import avail.compiler.ParsingOperation.BRANCH_FORWARD
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.module.A_Module
 import avail.descriptor.phrases.A_Phrase
@@ -51,7 +50,7 @@ import kotlin.math.min
 
 /**
  * [ParsingStepState] captures the current state while parsing an expression.
- * It's mutable, but in the event of a fork (say, due to a [BRANCH_FORWARD]), a
+ * It's mutable, but in the event of a fork (say, due to a [BranchForward]), a
  * copy must be created before the original is mutated again.
  *
  * @constructor
@@ -178,8 +177,13 @@ internal class ParsingStepState constructor(
 	 * whitespace, then scan backward through the whitespace.  If during that
 	 * scan we reach a linefeed (or the beginning of the source), capture the
 	 * whitespace following that linefeed and return it.  Otherwise answer null.
+	 *
+	 * @param specialEndOfFileHandling
+	 *   Whether to consider the end of the file to be a linefeed.
 	 */
-	fun currentIndentationString(): A_String?
+	fun currentIndentationString(
+		specialEndOfFileHandling: Boolean = false
+	): A_String?
 	{
 		val source = start.lexingState.compilationContext.source
 		val size = source.tupleSize
@@ -196,7 +200,11 @@ internal class ParsingStepState constructor(
 		{
 			val codePoint = source.tupleCodePointAt(back)
 			if (codePoint == '\n'.code) break
-			if (!Character.isWhitespace(codePoint)) return null
+			if (!Character.isWhitespace(codePoint))
+			{
+				if (specialEndOfFileHandling && pos > size) break
+				else return null
+			}
 			back--
 		}
 		return source.copyStringFromToCanDestroy(back + 1, pos - 1, false)

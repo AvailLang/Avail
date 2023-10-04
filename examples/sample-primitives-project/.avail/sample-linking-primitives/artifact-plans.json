@@ -1,0 +1,36 @@
+[
+	{
+		"version": "1.0.0.rc01",
+		"outputLocation": 
+		{
+			"locationType": "project",
+			"scheme": "JAR",
+			"path": "build/libs/sample-primitives-project-1.0.0.alpha01.jar"
+		},
+		"artifactType": "APPLICATION",
+		"implementationTitle": "",
+		"jarMainClass": "",
+		"artifactDescription": "This description goes into the Avail manifest in the jar!",
+		"digestAlgorithm": "SHA=256",
+		"rootNames": 
+		[
+			"avail-stdlib",
+			"sounds-root"
+		],
+		"includedFiles": 
+		[
+		],
+		"jarFileLocations": 
+		[
+		],
+		"zipFileLocations": 
+		[
+		],
+		"directoryLocations": 
+		[
+		],
+		"customManifestItems": 
+		{
+		}
+	}
+]

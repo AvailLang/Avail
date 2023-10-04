@@ -36,6 +36,7 @@ import avail.compiler.AvailCodeGenerator
 import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
+import avail.compiler.ParsingOperation
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -495,6 +496,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.extractNybbleFromTupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
+import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOfOr
 import avail.descriptor.tuples.A_Tuple.Companion.hashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import avail.descriptor.tuples.A_Tuple.Companion.lastIndexOf
@@ -2307,8 +2309,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_SizeRange(self: AvailObject): A_Type =
 		self .. { sizeRange }
 
-	override fun o_LazyActions(self: AvailObject): A_Map =
-		self .. { lazyActions }
+	override fun o_LazyActions(
+		self: AvailObject
+	): MutableMap<ParsingOperation, A_Tuple> = self .. { lazyActions }
 
 	override fun o_Stackp(self: AvailObject): Int =
 		self .. { stackp() }
@@ -2361,8 +2364,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_VisibleNames(self: AvailObject): A_Set =
 		self .. { visibleNames }
 
-	override fun o_ParsingInstructions(self: AvailObject): A_Tuple =
-		self .. { parsingInstructions }
+	override fun o_ParsingInstructions(
+		self: AvailObject
+	): List<ParsingOperation> = self .. { parsingInstructions }
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self .. { expression }
@@ -4043,6 +4047,14 @@ class IndirectionDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int
 	): Int = self .. { firstIndexOf(value, startIndex, endIndex) }
+
+	override fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int
+	): Int = self .. { firstIndexOfOr(value, otherValue, startIndex, endIndex) }
 
 	override fun o_LastIndexOf(
 		self: AvailObject,

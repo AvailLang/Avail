@@ -1307,7 +1307,6 @@ class AvailWorkbench internal constructor(
 		modules: AbstractWorkbenchTreeNode,
 		entryPoints: AbstractWorkbenchTreeNode)
 	{
-		// Process the expansion/
 		mapOf(
 			moduleTree to modules,
 			entryPointsTree to entryPoints
@@ -1336,8 +1335,9 @@ class AvailWorkbench internal constructor(
 	}
 
 	/**
-	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
-	 * of the Avail module tree.
+	 * Produce a [tree&#32;node][TreeNode] that represents the (invisible) root
+	 * of the Avail module tree.  Pass it to the provided function when it's
+	 * ready, which might be within another [Thread].
 	 *
 	 * @param withTreeNode
 	 *   The lambda that accepts the (invisible) root of the module tree.

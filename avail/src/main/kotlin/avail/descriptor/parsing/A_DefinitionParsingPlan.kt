@@ -34,12 +34,9 @@ package avail.descriptor.parsing
 import avail.compiler.ParsingOperation
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.TupleDescriptor
 
 /**
  * `A_DefinitionParsingPlan` is an interface that specifies the operations that
@@ -73,9 +70,7 @@ interface A_DefinitionParsingPlan : A_BasicObject {
 			get() = dispatch { o_Definition(it) }
 
 		/**
-		 * Answer a [tuple][TupleDescriptor] of [integers][IntegerDescriptor]
-		 * encoding the [ParsingOperation]s and operands required to parse a
-		 * call to this parsing plan.
+		 * Answer a [list][List] of [ParsingOperation]s for this parsing plan.
 		 *
 		 * Matching parsing instructions for multiple messages can (usually) be
 		 * executed in aggregate, avoiding the separate cost of attempting to
@@ -84,7 +79,7 @@ interface A_DefinitionParsingPlan : A_BasicObject {
 		 * @return
 		 *   A tuple of integers encoding this plan's parsing instructions.
 		 */
-		val A_DefinitionParsingPlan.parsingInstructions: A_Tuple
+		val A_DefinitionParsingPlan.parsingInstructions: List<ParsingOperation>
 			get() = dispatch { o_ParsingInstructions(it) }
 	}
 }

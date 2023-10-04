@@ -32,6 +32,7 @@
 package avail.descriptor.types
 
 import avail.AvailRuntimeSupport
+import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCompiler
 import avail.descriptor.atoms.AtomDescriptor
@@ -151,6 +152,7 @@ private constructor(
 		 * The low 32 bits are used for caching the hash, and the upper 32 are
 		 * for the ordinal of the primitive type.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object
@@ -483,10 +485,9 @@ private constructor(
 	 * specifically all [primitive&#32;types][PrimitiveTypeDescriptor].
 	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
-	 */
-
-	/**
-	 * Construct a new `Types` instance with the specified parent.  Use
+	 *
+	 * @constructor
+	 * Construct a new [Types] instance with the specified parent.  Use
 	 * [PrimitiveTypeDescriptor] for the new type's descriptor.
 	 *
 	 * @param parent

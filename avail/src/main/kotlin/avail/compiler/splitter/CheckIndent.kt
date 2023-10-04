@@ -31,26 +31,25 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.INCREASE_INDENT
-import avail.compiler.ParsingOperation.MATCH_INDENT
+import avail.compiler.IncreaseIndent
+import avail.compiler.MatchIndent
+import avail.compiler.ForbidIncreaseIndent
 import avail.compiler.splitter.CheckIndent.IndentationMatchType
-import avail.compiler.splitter.CheckIndent.IndentationMatchType.IncreaseIndent
-import avail.compiler.splitter.CheckIndent.IndentationMatchType.MatchIndent
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.types.A_Type
 
 /**
  * A [CheckIndent] expression is an occurrence of either the
- * [Metacharacter.INCREASE_INDENT] ("⇥") or
- * [Metacharacter.MATCH_INDENT] ("↹") in a message name.  The parse position,
- * after skipping any whitespace, must be immediately after whitespace that
- * starts a line, otherwise the parse theory is rejected.  That leading
- * whitespace is compared to the whitespace that occurred on the line at which
- * the current phrase began (including a leading argument, if any).  If the
- * [indentationMatchType] is [MatchIndent], the indentation strings must be
- * equal to proceed past this test.  If the match type is [IncreaseIndent], the
- * current indentation must be an extension of the original indentation to pass.
+ * [Metacharacter.INCREASE_INDENT] ("⇥") or [Metacharacter.MATCH_INDENT] ("↹")
+ * in a message name.  The parse position, after skipping any whitespace, must
+ * be immediately after whitespace that starts a line, otherwise the parse
+ * theory is rejected.  That leading whitespace is compared to the whitespace
+ * that occurred on the line at which the current phrase began (including a
+ * leading argument, if any).  If the [indentationMatchType] is [MatchIndent],
+ * the indentation strings must be equal to proceed past this test.  If the
+ * match type is [IncreaseIndent], the current indentation must be an extension
+ * of the original indentation to pass.
  *
  * @property indentationMatchType
  *   An [IndentationMatchType] that selects the kind of matching to be
@@ -76,10 +75,21 @@ internal class CheckIndent constructor(
 	private val indentationMatchType: IndentationMatchType
 ) : Expression(startInName, pastEndInName)
 {
+	/**
+	 * [IndentationMatchType] selects the kind of matching to be performed.
+	 */
 	enum class IndentationMatchType
 	{
+		/** The indentation must match the original indentation. */
 		MatchIndent,
-		IncreaseIndent
+
+		/** The indentation must be an extension of the original indentation. */
+		IncreaseIndent,
+
+		/**
+		 * The indentation must not be an increase of the original indentation.
+		 */
+		ForbidIncreaseIndent
 	}
 
 	override fun applyCaseInsensitive(): CheckIndent = this
@@ -104,8 +114,12 @@ internal class CheckIndent constructor(
 		generator.flushDelayed()
 		when (indentationMatchType)
 		{
-			MatchIndent -> generator.emit(this, MATCH_INDENT)
-			IncreaseIndent -> generator.emit(this, INCREASE_INDENT)
+			IndentationMatchType.MatchIndent ->
+				generator.emit(this, MatchIndent)
+			IndentationMatchType.IncreaseIndent ->
+				generator.emit(this, IncreaseIndent)
+			IndentationMatchType.ForbidIncreaseIndent ->
+				generator.emit(this, ForbidIncreaseIndent)
 		}
 		return wrapState
 	}
@@ -117,10 +131,13 @@ internal class CheckIndent constructor(
 	{
 		when (indentationMatchType)
 		{
-			MatchIndent -> builder.appendCodePoint(
+			IndentationMatchType.MatchIndent -> builder.appendCodePoint(
 				Metacharacter.MATCH_INDENT.codepoint)
-			IncreaseIndent -> builder.appendCodePoint(
+			IndentationMatchType.IncreaseIndent -> builder.appendCodePoint(
 				Metacharacter.INCREASE_INDENT.codepoint)
+			IndentationMatchType.ForbidIncreaseIndent ->
+				builder.appendCodePoint(
+					Metacharacter.FORBID_INCREASE_INDENT.codepoint)
 		}
 	}
 

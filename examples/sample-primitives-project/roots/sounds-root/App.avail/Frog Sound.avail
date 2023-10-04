@@ -1,0 +1,36 @@
+/*
+ * Frog Sound.avail
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * All rights reserved.
+ */
+
+Module "Frog Sound"
+Versions
+	"Avail-1.6.1"
+Uses
+	"Avail",
+	"Sounds"
+Extends
+    /* Needed for entry point creation parsing. */
+	"Avail" = (
+		"…#",
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer"
+	)
+Names
+	"ribbit"
+Entries
+    "ribbit"
+Body
+
+/**
+ * Play Frog.wav.
+ */
+Public method "ribbit" is
+[
+	Play "/sounds-root/App/Frog.wav";
+];

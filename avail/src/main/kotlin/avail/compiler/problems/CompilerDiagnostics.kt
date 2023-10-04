@@ -709,6 +709,17 @@ class CompilerDiagnostics constructor(
 	}
 
 	/**
+	 * Clear all the accumulated expectations.  This should only be done just
+	 * before adding a *definitive* expectation, like a successful but ambiguous
+	 * parse of a top level statement.
+	 */
+	fun clearAllExpectations()
+	{
+		expectationsList.clear()
+		silentExpectationsList.clear()
+	}
+
+	/**
 	 * Handle a [problem][Problem] via the
 	 * [problem&#32;handler][problemHandler].
 	 *

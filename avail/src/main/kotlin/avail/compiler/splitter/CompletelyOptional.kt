@@ -31,10 +31,10 @@
  */
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
-import avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
-import avail.compiler.ParsingOperation.NO_LINE_BREAK
-import avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
+import avail.compiler.DiscardSavedParsePosition
+import avail.compiler.EnsureParseProgress
+import avail.compiler.NoLineBreak
+import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.phrases.A_Phrase
@@ -127,7 +127,7 @@ internal class CompletelyOptional constructor(
 			sequence.emitOn(phraseType, generator, wrapState)
 			generator.emitJumpForward(this, `$merge`)
 			generator.emit(`$noBreak`)
-			generator.emit(this, NO_LINE_BREAK)
+			generator.emit(this, NoLineBreak)
 			generator.emit(`$merge`)
 			return wrapState
 		}
@@ -141,7 +141,7 @@ internal class CompletelyOptional constructor(
 		val needsProgressCheck = sequence.mightBeEmpty(emptyListPhraseType())
 		val `$expressionSkip` = Label()
 		generator.emitBranchForward(this, `$expressionSkip`)
-		generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
+		generator.emitIf(needsProgressCheck, this, SaveParsePosition)
 		// The partialListsCount stays the same, in case there's a section
 		// checkpoint marker within this completely optional region.  That's a
 		// reasonable way to indicate that a prefix function should only run
@@ -154,9 +154,10 @@ internal class CompletelyOptional constructor(
 				generator,
 				WrapState.SHOULD_NOT_HAVE_ARGUMENTS)
 		}
-		generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+		generator.emitIf(needsProgressCheck, this, EnsureParseProgress)
 		generator.emitIf(
-			needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
+			needsProgressCheck, this, DiscardSavedParsePosition
+		)
 		generator.emit(`$expressionSkip`)
 		return wrapState
 	}

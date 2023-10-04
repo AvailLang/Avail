@@ -154,6 +154,11 @@
 		"expansion": "∀",
 		"markedForArtifactInclusion": true
 	},
+	"forbidincreaseindent":
+	{
+		"expansion": "⇤",
+		"markedForArtifactInclusion": true
+	},
 	"gte":
 	{
 		"expansion": "≥",
@@ -162,6 +167,16 @@
 	"guillemets":
 	{
 		"expansion": "«⁁»",
+		"markedForArtifactInclusion": true
+	},
+	"increaseindent":
+	{
+		"expansion": "⇥",
+		"markedForArtifactInclusion": true
+	},
+	"indent":
+	{
+		"expansion": "⇥",
 		"markedForArtifactInclusion": true
 	},
 	"infinity":
@@ -229,6 +244,11 @@
 		"expansion": "\uD83D\uDC49",
 		"markedForArtifactInclusion": true
 	},
+	"matchindent":
+	{
+		"expansion": "↹",
+		"markedForArtifactInclusion": true
+	},
 	"map":
 	{
 		"expansion": "{⁁}",
@@ -287,6 +307,11 @@
 	"notsupersetorequal":
 	{
 		"expansion": "⊉",
+		"markedForArtifactInclusion": true
+	},
+	"outdent":
+	{
+		"expansion": "⇤",
 		"markedForArtifactInclusion": true
 	},
 	"o1":
@@ -357,6 +382,11 @@
 	"quote":
 	{
 		"expansion": "⟦⁁⟧",
+		"markedForArtifactInclusion": true
+	},
+	"resetindent":
+	{
+		"expansion": "↹",
 		"markedForArtifactInclusion": true
 	},
 	"rightarrow":

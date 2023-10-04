@@ -64,6 +64,10 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.hasZeroShort
+import avail.utility.lowBitsOfShorts
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * A [tuple][TupleDescriptor] implementation that consists entirely of two-byte characters.
@@ -245,9 +249,54 @@ class TwoByteStringDescriptor private constructor(
 		val codePoint = strongValue.codePoint
 		// This string only contains Unicode code points U+0000 - U+FFFF.
 		if (codePoint > 0xFFFF) return 0
-		for (i in startIndex .. endIndex)
+		val short = value.codePoint
+		val shortReplicated = short * lowBitsOfShorts
+		for (slotIndex in (startIndex + 3).ushr(2) .. (endIndex + 3).ushr(2))
 		{
-			if (self.tupleCodePointAt(i) == codePoint) return i
+			val slot = self[RAW_LONGS_, slotIndex]
+			if ((slot xor shortReplicated).hasZeroShort())
+			{
+				for (i in max(slotIndex.shl(2) - 3, startIndex)
+					.. min(slotIndex.shl(2), endIndex))
+				{
+					if (self.shortSlot(RAW_LONGS_, i) == short) return i
+				}
+			}
+		}
+		return 0
+	}
+
+	override fun o_FirstIndexOfOr(
+		self: AvailObject,
+		value: A_BasicObject,
+		otherValue: A_BasicObject,
+		startIndex: Int,
+		endIndex: Int): Int
+	{
+		if (!(value as A_Character).isCharacter || value.codePoint > 0xFFFF)
+			return o_FirstIndexOf(self, otherValue, startIndex, endIndex)
+		if (!(otherValue as A_Character).isCharacter
+				|| value.codePoint > 0xFFFF)
+			return o_FirstIndexOf(self, value, startIndex, endIndex)
+		val short1 = value.codePoint
+		val short2 = otherValue.codePoint
+		if (short1 == short2)
+			return o_FirstIndexOf(self, value, startIndex, endIndex)
+		val short1Replicated = short1 * lowBitsOfShorts
+		val short2Replicated = short2 * lowBitsOfShorts
+		for (slotIndex in (startIndex + 3).ushr(2) .. (endIndex + 3).ushr(2))
+		{
+			val slot = self[RAW_LONGS_, slotIndex]
+			if ((slot xor short1Replicated).hasZeroShort()
+				|| (slot xor short2Replicated).hasZeroShort())
+			{
+				for (i in max(slotIndex.shl(2) - 3, startIndex)
+					.. min(slotIndex.shl(2), endIndex))
+				{
+					val code = self.shortSlot(RAW_LONGS_, i)
+					if (code == short1 || code == short2) return i
+				}
+			}
 		}
 		return 0
 	}

@@ -86,11 +86,16 @@ import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
+import avail.descriptor.representation.AvailIntegerValueHelper
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -124,13 +129,20 @@ import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JTextArea
 import javax.swing.JToggleButton
+import javax.swing.JTree
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
+import javax.swing.event.TreeExpansionEvent
+import javax.swing.event.TreeExpansionListener
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter.HighlightPainter
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeCellRenderer
+import javax.swing.tree.DefaultTreeModel
+import javax.swing.tree.TreeSelectionModel
 
 /**
  * [AvailDebugger] presents a user interface for debugging Avail
@@ -247,15 +259,15 @@ class AvailDebugger internal constructor (
 	}
 
 	/** Helper for capturing values and labels for the variables list view. */
-	data class Variable(
+	private data class Variable constructor(
 		val name: String,
 		val value: AvailObject)
 	{
 		val presentationString = "$name = ${stringIfSimple(value)}"
 
 		/**
-		 * Answer a [String] representation of the given [value] if it's simple,
-		 * otherwise null.
+		 * Answer a [String] representation of the given [value] if it isn't too
+		 * complex, otherwise some sort of summary.
 		 */
 		private fun stringIfSimple(
 			value: AvailObject,
@@ -263,7 +275,7 @@ class AvailDebugger internal constructor (
 		): String = when {
 			depth > 3 -> "***depth***"
 			value.isNil -> "nil"
-			value.isString -> value.toString()
+			value.isString && value.tupleSize < 80 -> value.toString()
 			value.isInstanceOf(Types.NUMBER.o) -> value.toString()
 			value.isInstanceOf(Types.MESSAGE_BUNDLE.o) ->
 				value.message.atomName.asNativeString()
@@ -272,32 +284,89 @@ class AvailDebugger internal constructor (
 			value.isCharacter -> value.toString()
 			value.isInstanceOf(mostGeneralVariableType) ->
 				"var(${stringIfSimple(value.getValueForDebugger(), depth + 1)})"
-			!value.isType -> "(${value.typeTag})"
+			!value.isType -> "(${value.typeTag.name.removeSuffix("_TAG")})"
 			value.isTop -> value.toString()
 			value.isBottom -> value.toString()
 			value.traversed().descriptor() is PrimitiveTypeDescriptor ->
 				value.toString()
+			value.equals(booleanType) -> "boolean"
 			value.instanceCount.equalsInt(1) ->
 				"{${stringIfSimple(value.instance, depth + 1)}}ᵀ"
 			else -> "(${value.typeTag})"
 		}
 	}
 
-	/** Renders variables in the variables list view. */
-	class VariablesRenderer : DefaultListCellRenderer()
+	/**
+	 * Renders variables in the top level (excluding the invisible root) of the
+	 * variables tree view.
+	 */
+	object VariableRenderer : DefaultTreeCellRenderer()
 	{
-		override fun getListCellRendererComponent(
-			list: JList<*>?,
-			variable: Any?,
-			index: Int,
-			isSelected: Boolean,
-			cellHasFocus: Boolean
-		): Component = super.getListCellRendererComponent(
-			list,
-			(variable as Variable).presentationString,
-			index,
-			isSelected,
-			cellHasFocus)
+		init
+		{
+			leafIcon = null
+			openIcon = null
+			closedIcon = null
+		}
+
+		override fun getTreeCellRendererComponent(
+			tree: JTree,
+			value: Any?,
+			sel: Boolean,
+			expanded: Boolean,
+			leaf: Boolean,
+			row: Int,
+			hasFocus: Boolean
+		): Component
+		{
+			val name = (value as LazyTreeNode).name
+			return super.getTreeCellRendererComponent(
+				tree, name, sel, expanded, leaf, row, hasFocus)
+		}
+	}
+
+	/**
+	 * A [DefaultMutableTreeNode] that can generate children dynamically, as
+	 * the tree is expanded.
+	 */
+	class LazyTreeNode constructor(
+		value: Any?
+	) : DefaultMutableTreeNode(value, true)
+	{
+		/** Lazily calculate the name. */
+		val name: String = when (val v = userObject)
+		{
+			null -> "null"
+			is AvailObject -> v.nameForDebugger()
+			is AvailObjectFieldHelper -> v.nameForDebugger()
+			is AvailIntegerValueHelper -> v.longValue.toString()
+			else -> "unknown(${v.javaClass.simpleName})"
+		}
+
+		/** Whether the children of this node have been computed yet. */
+		private var childrenComputed = false
+
+		/**
+		 * Lazily calculate the list of children.  Answer true if children
+		 * were added.
+		 */
+		fun computeChildren(): Boolean
+		{
+			if  (childrenComputed) return false
+			val list = when (val value = userObject)
+			{
+				null -> emptyList()
+				is AvailObject ->
+					value.describeForDebugger().map(::LazyTreeNode)
+				is AvailObjectFieldHelper ->
+					value.describeForDebugger().map(::LazyTreeNode)
+				is AvailIntegerValueHelper -> emptyList()
+				else -> emptyList()
+			}
+			list.forEach(::add)
+			childrenComputed = true
+			return list.isNotEmpty()
+		}
 	}
 
 	/**
@@ -534,7 +603,9 @@ class AvailDebugger internal constructor (
 
 		override fun actionPerformed(e: ActionEvent)
 		{
-			variablesPane.selectedValue?.run { inspect(name, value) }
+			(variablesPane.lastSelectedPathComponent as? LazyTreeNode)?.run {
+				inspect(name, (userObject as? AvailObject) ?: nil)
+			}
 		}
 	}
 
@@ -597,15 +668,38 @@ class AvailDebugger internal constructor (
 	}
 
 	/** The list of variables in scope in the selected frame. */
-	private val variablesPane = JList(arrayOf<Variable>()).apply {
-		cellRenderer = VariablesRenderer()
-		selectionMode = SINGLE_SELECTION
-		selectionModel.addListSelectionListener {
-			if (!it.valueIsAdjusting)
-			{
-				updateVariableValuePane()
-			}
+	private val variablesPane = JTree(LazyTreeNode("dummy"), true).apply {
+		cellRenderer = VariableRenderer
+		background = null
+		isEditable = false
+		isEnabled = true
+		showsRootHandles = true
+		isFocusable = true
+		selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
+		toggleClickCount = 0
+		isRootVisible = false
+		selectionModel.addTreeSelectionListener {
+			updateVariableValuePane()
 		}
+		val treeModel = model as DefaultTreeModel
+		treeModel.setAsksAllowsChildren(false)
+		addTreeExpansionListener(object : TreeExpansionListener {
+			override fun treeExpanded(event: TreeExpansionEvent?) {
+				(lastSelectedPathComponent as? LazyTreeNode)?.let { n ->
+					// This node must already have been computed as part of the
+					// look-beneath.  Since we're expanding it and therefore
+					// need to decide how to show each child, ask each child to
+					// compute its own children internally.
+					n.children().asIterator().forEach { c ->
+						c as LazyTreeNode
+						c.computeChildren()
+						treeModel.nodeStructureChanged(c)
+					}
+				}
+			}
+
+			override fun treeCollapsed(event: TreeExpansionEvent?) { }
+		})
 	}
 
 	/** The stringification of the selected variable. */
@@ -879,12 +973,12 @@ class AvailDebugger internal constructor (
 
 	/**
 	 * The current stack frame has changed, so re-present the variables that are
-	 * in scope.  Try to preserve selection of a [Variable] with the same
+	 * in scope.  TODO Try to preserve selection of a [Variable] with the same
 	 * [name][Variable.name] as the previous selection.
 	 */
 	private fun updateVariablesList()
 	{
-		val oldName = variablesPane.selectedValue?.name
+		val oldPath = variablesPane.selectionPath
 		val entries = mutableListOf<Variable>()
 		stackListPane.selectedValue?.let { frame ->
 			val function = frame.function()
@@ -897,33 +991,41 @@ class AvailDebugger internal constructor (
 				.map { it.asNativeString() }
 				.iterator()
 			var frameIndex = 1
-			repeat (numArgs)
+			repeat(numArgs)
 			{
 				entries.add(
 					Variable(
 						"[arg] " + names.next(),
-						frame.frameAt(frameIndex++)))
+						frame.frameAt(frameIndex++)
+					)
+				)
 			}
-			repeat (numLocals)
+			repeat(numLocals)
 			{
 				entries.add(
 					Variable(
 						"[local] " + names.next(),
-						frame.frameAt(frameIndex++)))
+						frame.frameAt(frameIndex++)
+					)
+				)
 			}
-			repeat (numConstants)
+			repeat(numConstants)
 			{
 				entries.add(
 					Variable(
 						"[const] " + names.next(),
-						frame.frameAt(frameIndex++)))
+						frame.frameAt(frameIndex++)
+					)
+				)
 			}
-			for (i in 1..numOuters)
+			for (i in 1 .. numOuters)
 			{
 				entries.add(
 					Variable(
 						"[outer] " + names.next(),
-						function.outerVarAt(i)))
+						function.outerVarAt(i)
+					)
+				)
 			}
 			for (i in frame.numSlots() downTo frame.stackp())
 			{
@@ -935,18 +1037,28 @@ class AvailDebugger internal constructor (
 				entries.add(Variable(name, frame.frameAt(i)))
 			}
 		}
-		variablesPane.valueIsAdjusting = true
-		try
-		{
-			val index = entries.indexOfFirst { it.name == oldName }
-			variablesPane.setListData(entries.toTypedArray())
-			variablesPane.selectedIndices =
-				if (index == -1) intArrayOf() else intArrayOf(index)
+		val root = variablesPane.model.root as LazyTreeNode
+		root.removeAllChildren()
+		entries.forEach {
+			val node = LazyTreeNode(
+				AvailObjectFieldHelper(
+					null,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					it.value,
+					slotName = it.name,
+					forcedName = it.presentationString
+				)
+			)
+			node.computeChildren()
+			root.add(node)
 		}
-		finally
-		{
-			variablesPane.valueIsAdjusting = false
-		}
+		val model = variablesPane.model as DefaultTreeModel
+		model.nodeStructureChanged(root)
+		variablesPane.repaint()
+
+		//TODO Preserve selection based on oldPath
+		// variablesPane.selectionPath = oldPath
 	}
 
 	/**
@@ -973,13 +1085,23 @@ class AvailDebugger internal constructor (
 	private fun updateVariableValuePane()
 	{
 		val id = paneVersionTracker.allocator.getAndIncrement()
-		val variable = variablesPane.selectedValue
-		// Do some trickery to avoid stringifying null or nil.
-		val valueToStringify = when
+		val node = variablesPane.lastSelectedPathComponent as? LazyTreeNode
+		// Do some trickery to avoid stringifying null or nil.  In either case,
+		// just plug in the trueObject instead.
+		var v = node?.userObject
+		if (v is AvailObjectFieldHelper)
 		{
-			variable == null -> trueObject //dummy
-			variable.value.isNil -> trueObject //dummy
-			else -> variable.value
+			v = v.value
+		}
+		if (v is AvailIntegerValueHelper)
+		{
+			v = v.longValue
+		}
+		val valueToStringify = when (v)
+		{
+			null -> trueObject //dummy
+			is AvailObject -> v.ifNil { trueObject }
+			else -> trueObject //any non-AvailObject
 		}
 		runtime.stringifyThen(
 			valueToStringify,
@@ -992,11 +1114,12 @@ class AvailDebugger internal constructor (
 			})
 		{
 			// Undo the above trickery.
-			val string = when
+			val string = when (v)
 			{
-				variable == null -> ""
-				variable.value.isNil -> "nil\n"
-				else -> "${variable.value.typeTag}\n\n$it\n"
+				null -> ""
+				nil -> "nil\n"
+				is AvailObject -> "${v.typeTag}\n\n$it\n"
+				else -> "${v.javaClass.simpleName}\n\n$v\n"
 			}
 			// Delegate to the UI thread, for safety and simplicity.
 			SwingUtilities.invokeLater {
@@ -1133,7 +1256,7 @@ class AvailDebugger internal constructor (
 				restartButton)
 		}
 		minimumSize = Dimension(550, 350)
-		preferredSize = Dimension(1000, 1000)
+		preferredSize = Dimension(1040, 900)
 		add(panel)
 		pack()
 		codeHighlightPainter = run {

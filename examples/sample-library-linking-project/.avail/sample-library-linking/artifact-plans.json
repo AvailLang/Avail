@@ -1,0 +1,37 @@
+[
+	{
+		"version": "2.0.0.alpha02",
+		"outputLocation":
+		{
+			"locationType": "project",
+			"scheme": "JAR",
+			"path": "/Users/Rich/Development/avail-repos/avail/examples/sample-linking-library-project/build/libs/sample-linking-library-project-2.0.0.alpha02.jar"
+		},
+		"artifactType": "LIBRARY",
+		"implementationTitle": "Avail Sample Linking Library Project",
+		"jarMainClass": "",
+		"artifactDescription": "This description goes into the Avail manifest in the jar!",
+		"digestAlgorithm": "SHA=256",
+		"rootNames":
+		[
+			"avail-stdlib",
+			"other-root",
+			"my-avail-root"
+		],
+		"includedFiles":
+		[
+		],
+		"jarFileLocations":
+		[
+		],
+		"zipFileLocations":
+		[
+		],
+		"directoryLocations":
+		[
+		],
+		"customManifestItems":
+		{
+		}
+	}
+]

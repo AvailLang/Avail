@@ -1,0 +1,54 @@
+{
+	"id": "503bdfe1-4f52-480b-8898-ddb81c2378f9",
+	"darkMode": true,
+	"serializationVersion": 1,
+	"name": "sample-linking-primitives",
+	"repositoryLocation": 
+	{
+		"locationType": "availRepositories",
+		"scheme": "FILE",
+		"path": ""
+	},
+	"disallow": 
+	[
+	],
+	"roots": 
+	[
+		{
+			"id": "79888a28-6449-4fa3-a149-9312f0c82a7b",
+			"name": "avail-stdlib",
+			"editable": false,
+			"visible": true,
+			"description": "",
+			"location": 
+			{
+				"locationType": "availLibraries",
+				"scheme": "JAR",
+				"path": "org/availlang/avail-stdlib-2.0.0.alpha23-1.6.1.alpha15.jar",
+				"rootNameInJar": "avail"
+			},
+			"moduleHeaders": 
+			[
+			]
+		},
+		{
+			"id": "fd789519-73bd-40bc-8e49-8a5bd377285a",
+			"name": "sounds-root",
+			"editable": true,
+			"visible": true,
+			"description": "",
+			"location": 
+			{
+				"locationType": "project",
+				"scheme": "FILE",
+				"path": "roots/sounds-root"
+			},
+			"moduleHeaders": 
+			[
+			]
+		}
+	],
+	"moduleHeaders": 
+	[
+	]
+}

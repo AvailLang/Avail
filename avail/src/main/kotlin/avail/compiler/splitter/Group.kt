@@ -32,18 +32,18 @@
 
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.APPEND_ARGUMENT
-import avail.compiler.ParsingOperation.CHECK_AT_LEAST
-import avail.compiler.ParsingOperation.CHECK_AT_MOST
-import avail.compiler.ParsingOperation.CONCATENATE
-import avail.compiler.ParsingOperation.DISCARD_SAVED_PARSE_POSITION
-import avail.compiler.ParsingOperation.EMPTY_LIST
-import avail.compiler.ParsingOperation.ENSURE_PARSE_PROGRESS
-import avail.compiler.ParsingOperation.PERMUTE_LIST
-import avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
+import avail.compiler.AppendArgument
+import avail.compiler.CheckAtLeast
+import avail.compiler.CheckAtMost
+import avail.compiler.Concatenate
+import avail.compiler.DiscardSavedParsePosition
+import avail.compiler.EmptyList
+import avail.compiler.EnsureParseProgress
+import avail.compiler.PermuteList
+import avail.compiler.SaveParsePosition
 import avail.compiler.splitter.InstructionGenerator.Label
 import avail.compiler.splitter.MessageSplitter.Companion.circledNumberCodePoint
-import avail.compiler.splitter.MessageSplitter.Companion.indexForPermutation
+import avail.compiler.splitter.MessageSplitter.Companion.normalizedPermutation
 import avail.compiler.splitter.MessageSplitter.Companion.throwSignatureException
 import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
@@ -348,7 +348,7 @@ constructor(
 		if (maxSize == 0)
 		{
 			// The type signature requires an empty list, so that's what we get.
-			generator.emit(this, EMPTY_LIST)
+			generator.emit(this, EmptyList)
 		}
 		else if (!needsDoubleWrapping)
 		{
@@ -396,16 +396,16 @@ constructor(
 				// avoids the progress check.  The case maxSize==0 was already
 				// handled above.
 				assert(maxSize > 0)
-				generator.emit(this, EMPTY_LIST)
+				generator.emit(this, EmptyList)
 				hasWrapped = true
 				generator.emitBranchForward(this, `$skip`)
 			}
 			if (!hasWrapped && beforeDagger.hasSectionCheckpoints)
 			{
-				generator.emit(this, EMPTY_LIST)
+				generator.emit(this, EmptyList)
 				hasWrapped = true
 			}
-			generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
+			generator.emitIf(needsProgressCheck, this, SaveParsePosition)
 			val `$exit` = Label()
 			for (index in 1 until endOfVariation)
 			{
@@ -440,7 +440,8 @@ constructor(
 				afterDagger.emitOn(
 					emptyListPhraseType(), generator, PUSHED_LIST)
 				generator.emitIf(
-					needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+					needsProgressCheck, this, EnsureParseProgress
+				)
 			}
 			// The homogenous part of the tuple, one or more iterations.
 			generator.flushDelayed()
@@ -465,25 +466,26 @@ constructor(
 					if (endOfVariation >= minSize) `$exit` else `$exitCheckMin`)
 				if (maxInteger.isFinite)
 				{
-					generator.emit(this, CHECK_AT_MOST, maxSize - 1)
+					generator.emit(this, CheckAtMost(maxSize - 1))
 				}
 				afterDagger.emitOn(
 					emptyListPhraseType(), generator, PUSHED_LIST)
 				generator.flushDelayed()
 				generator.emitIf(
-					needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+					needsProgressCheck, this, EnsureParseProgress)
 				generator.emitJumpBackward(this, `$loopStart`)
 				if (`$exitCheckMin`.isUsed)
 				{
 					generator.emit(`$exitCheckMin`)
-					generator.emit(this, CHECK_AT_LEAST, minSize)
+					generator.emit(this, CheckAtLeast(minSize))
 				}
 			}
 			generator.flushDelayed()
 			generator.emit(`$exit`)
-			generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+			generator.emitIf(needsProgressCheck, this, EnsureParseProgress)
 			generator.emitIf(
-				needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
+				needsProgressCheck, this, DiscardSavedParsePosition
+			)
 			generator.emit(`$skip`)
 			generator.partialListsCount--
 		}
@@ -550,7 +552,7 @@ constructor(
 				// avoids the progress check.  The case maxSize==0 was already
 				// handled above.
 				assert(maxSize > 0)
-				generator.emit(this, EMPTY_LIST)
+				generator.emit(this, EmptyList)
 				hasWrapped = true
 				generator.emitBranchForward(this, `$skip`)
 			}
@@ -558,10 +560,10 @@ constructor(
 				&& (beforeDagger.hasSectionCheckpoints
 					|| afterDagger.hasSectionCheckpoints))
 			{
-				generator.emit(this, EMPTY_LIST)
+				generator.emit(this, EmptyList)
 				hasWrapped = true
 			}
-			generator.emitIf(needsProgressCheck, this, SAVE_PARSE_POSITION)
+			generator.emitIf(needsProgressCheck, this, SaveParsePosition)
 			val `$exit` = Label()
 			for (index in 1 until endOfVariation)
 			{
@@ -586,10 +588,10 @@ constructor(
 				generator.flushDelayed()
 				if (hasWrapped)
 				{
-					generator.emit(this, APPEND_ARGUMENT)
+					generator.emit(this, AppendArgument)
 				}
 				generator.emitIf(
-					needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+					needsProgressCheck, this, EnsureParseProgress)
 			}
 			generator.flushDelayed()
 			if (!hasWrapped)
@@ -612,28 +614,28 @@ constructor(
 					if (endOfVariation >= minSize) `$exit` else `$exitCheckMin`)
 				if (maxInteger.isFinite)
 				{
-					generator.emit(this, CHECK_AT_MOST, maxSize - 1)
+					generator.emit(this, CheckAtMost(maxSize - 1))
 				}
 				emitDoubleWrappedAfterDaggerOn(generator, sublistPhraseType)
 				generator.flushDelayed()
-				generator.emit(this, APPEND_ARGUMENT)
+				generator.emit(this, AppendArgument)
 				generator.emitIf(
-					needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+					needsProgressCheck, this, EnsureParseProgress)
 				generator.emitJumpBackward(this, `$loopStart`)
 				if (`$exitCheckMin`.isUsed)
 				{
 					generator.emit(`$exitCheckMin`)
-					generator.emit(this, APPEND_ARGUMENT)
-					generator.emit(this, CHECK_AT_LEAST, minSize)
+					generator.emit(this, AppendArgument)
+					generator.emit(this, CheckAtLeast(minSize))
 					generator.emitJumpForward(this, `$mergedExit`)
 				}
 			}
 			generator.emit(`$exit`)
-			generator.emit(this, APPEND_ARGUMENT)
+			generator.emit(this, AppendArgument)
 			generator.emit(`$mergedExit`)
-			generator.emitIf(needsProgressCheck, this, ENSURE_PARSE_PROGRESS)
+			generator.emitIf(needsProgressCheck, this, EnsureParseProgress)
 			generator.emitIf(
-				needsProgressCheck, this, DISCARD_SAVED_PARSE_POSITION)
+				needsProgressCheck, this, DiscardSavedParsePosition)
 			generator.emit(`$skip`)
 		}
 		return wrapState.processAfterPushedArgument(this, generator)
@@ -720,9 +722,9 @@ constructor(
 			// Permute the list on top of stack.
 			val permutationTuple =
 				tupleFromIntegerList(beforeDagger.permutation)
-			val permutationIndex = indexForPermutation(permutationTuple)
+			val normalizedPermutation = normalizedPermutation(permutationTuple)
 			generator.flushDelayed()
-			generator.emit(this, PERMUTE_LIST, permutationIndex)
+			generator.emit(this, PermuteList(normalizedPermutation))
 		}
 	}
 
@@ -814,9 +816,9 @@ constructor(
 					afterDagger.yielders[i].explicitOrdinal + leftArgCount)
 			}
 			val permutationTuple = tupleFromIntegerList(adjustedPermutationList)
-			val permutationIndex = indexForPermutation(permutationTuple)
+			val normalizedPermutation = normalizedPermutation(permutationTuple)
 			generator.flushDelayed()
-			generator.emit(this, PERMUTE_LIST, permutationIndex)
+			generator.emit(this, PermuteList(normalizedPermutation))
 		}
 		// Ensure the tuple type was consumed up to its upperBound.
 		assert(
@@ -849,12 +851,12 @@ constructor(
 		}
 		else if (ungroupedArgCount == 1)
 		{
-			generator.emit(this, APPEND_ARGUMENT)
+			generator.emit(this, AppendArgument)
 		}
 		else if (ungroupedArgCount > 1)
 		{
 			generator.emitWrapped(this, ungroupedArgCount)
-			generator.emit(this, CONCATENATE)
+			generator.emit(this, Concatenate)
 		}
 	}
 

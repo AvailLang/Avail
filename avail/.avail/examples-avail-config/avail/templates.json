@@ -1,647 +1,662 @@
 {
-	"a": 
+	"a":
 	{
-		"expansion": "\u2200", 
+		"expansion": "∀",
 		"markedForArtifactInclusion": true
-	}, 
-	"bottom": 
+	},
+	"bottom":
 	{
-		"expansion": "\u22A5", 
+		"expansion": "⊥",
 		"markedForArtifactInclusion": true
-	}, 
-	"ceiling": 
+	},
+	"ceiling":
 	{
-		"expansion": "\u2308\u2041\u2309", 
+		"expansion": "⌈⁁⌉",
 		"markedForArtifactInclusion": true
-	}, 
-	"celsius": 
+	},
+	"celsius":
 	{
-		"expansion": "\u2103", 
+		"expansion": "℃",
 		"markedForArtifactInclusion": true
-	}, 
-	"cent": 
+	},
+	"cent":
 	{
-		"expansion": "\u00A2", 
+		"expansion": "¢",
 		"markedForArtifactInclusion": true
-	}, 
-	"conjunction": 
+	},
+	"conjunction":
 	{
-		"expansion": "\u2227", 
+		"expansion": "∧",
 		"markedForArtifactInclusion": true
-	}, 
-	"convert": 
+	},
+	"convert":
 	{
-		"expansion": "\u224D", 
+		"expansion": "≍",
 		"markedForArtifactInclusion": true
-	}, 
-	"copyright": 
+	},
+	"copyright":
 	{
-		"expansion": "\u00A9", 
+		"expansion": "©",
 		"markedForArtifactInclusion": true
-	}, 
-	"cubed": 
+	},
+	"cubed":
 	{
-		"expansion": "\u00B3", 
+		"expansion": "³",
 		"markedForArtifactInclusion": true
-	}, 
-	"degree": 
+	},
+	"degree":
 	{
-		"expansion": "\u00B0", 
+		"expansion": "°",
 		"markedForArtifactInclusion": true
-	}, 
-	"delta": 
+	},
+	"delta":
 	{
-		"expansion": "\u0394", 
+		"expansion": "Δ",
 		"markedForArtifactInclusion": true
-	}, 
-	"disjunction": 
+	},
+	"disjunction":
 	{
-		"expansion": "\u2228", 
+		"expansion": "∨",
 		"markedForArtifactInclusion": true
-	}, 
-	"divide": 
+	},
+	"divide":
 	{
-		"expansion": "\u00F7", 
+		"expansion": "÷",
 		"markedForArtifactInclusion": true
-	}, 
-	"dot": 
+	},
+	"dot":
 	{
-		"expansion": "\u00B7", 
+		"expansion": "·",
 		"markedForArtifactInclusion": true
-	}, 
-	"doubledagger": 
+	},
+	"doubledagger":
 	{
-		"expansion": "\u2021", 
+		"expansion": "‡",
 		"markedForArtifactInclusion": true
-	}, 
-	"doubleexclamation": 
+	},
+	"doubleexclamation":
 	{
-		"expansion": "\u203C", 
+		"expansion": "‼",
 		"markedForArtifactInclusion": true
-	}, 
-	"doublequestion": 
+	},
+	"doublequestion":
 	{
-		"expansion": "\u2047", 
+		"expansion": "⁇",
 		"markedForArtifactInclusion": true
-	}, 
-	"doublequotes": 
+	},
+	"doublequotes":
 	{
-		"expansion": "\u201C\u2041\u201D", 
+		"expansion": "“⁁”",
 		"markedForArtifactInclusion": true
-	}, 
-	"downarrow": 
+	},
+	"downarrow":
 	{
-		"expansion": "\u2193", 
+		"expansion": "↓",
 		"markedForArtifactInclusion": true
-	}, 
-	"downtack": 
+	},
+	"downtack":
 	{
-		"expansion": "\u22A4", 
+		"expansion": "⊤",
 		"markedForArtifactInclusion": true
-	}, 
-	"e": 
+	},
+	"e":
 	{
-		"expansion": "\u2203", 
+		"expansion": "∃",
 		"markedForArtifactInclusion": true
-	}, 
-	"elementof": 
+	},
+	"elementof":
 	{
-		"expansion": "\u2208", 
+		"expansion": "∈",
 		"markedForArtifactInclusion": true
-	}, 
-	"ellipsis": 
+	},
+	"ellipsis":
 	{
-		"expansion": "\u2026", 
+		"expansion": "…",
 		"markedForArtifactInclusion": true
-	}, 
-	"endash": 
+	},
+	"endash":
 	{
-		"expansion": "\u2013", 
+		"expansion": "–",
 		"markedForArtifactInclusion": true
-	}, 
-	"emdash": 
+	},
+	"emdash":
 	{
-		"expansion": "\u2014", 
+		"expansion": "—",
 		"markedForArtifactInclusion": true
-	}, 
-	"emptyset": 
+	},
+	"emptyset":
 	{
-		"expansion": "\u2205", 
+		"expansion": "∅",
 		"markedForArtifactInclusion": true
-	}, 
-	"enumeration": 
+	},
+	"enumeration":
 	{
-		"expansion": "{\u2041}\u1D40", 
+		"expansion": "{⁁}ᵀ",
 		"markedForArtifactInclusion": true
-	}, 
-	"equivalent": 
+	},
+	"equivalent":
 	{
-		"expansion": "\u224D", 
+		"expansion": "≍",
 		"markedForArtifactInclusion": true
-	}, 
-	"exists": 
+	},
+	"exists":
 	{
-		"expansion": "\u2203", 
+		"expansion": "∃",
 		"markedForArtifactInclusion": true
-	}, 
-	"floor": 
+	},
+	"floor":
 	{
-		"expansion": "\u230A\u2041\u230B", 
+		"expansion": "⌊⁁⌋",
 		"markedForArtifactInclusion": true
-	}, 
-	"forall": 
+	},
+	"forall":
 	{
-		"expansion": "\u2200", 
+		"expansion": "∀",
 		"markedForArtifactInclusion": true
-	}, 
-	"gte": 
+	},
+	"forbidincreaseindent":
 	{
-		"expansion": "\u2265", 
+		"expansion": "⇤",
 		"markedForArtifactInclusion": true
-	}, 
-	"guillemets": 
+	},
+	"gte":
 	{
-		"expansion": "\u00AB\u2041\u00BB", 
+		"expansion": "≥",
 		"markedForArtifactInclusion": true
-	}, 
-	"infinity": 
+	},
+	"guillemets":
 	{
-		"expansion": "\u221E", 
+		"expansion": "«⁁»",
 		"markedForArtifactInclusion": true
-	}, 
-	"interpunct": 
+	},
+	"increaseindent":
 	{
-		"expansion": "\u2022", 
+		"expansion": "⇥",
 		"markedForArtifactInclusion": true
-	}, 
-	"intersection": 
+	},
+	"indent":
 	{
-		"expansion": "\u2229", 
+		"expansion": "⇥",
 		"markedForArtifactInclusion": true
-	}, 
-	"leftarrow": 
+	},
+	"infinity":
 	{
-		"expansion": "\u2190", 
+		"expansion": "∞",
 		"markedForArtifactInclusion": true
-	}, 
-	"leftceiling": 
+	},
+	"interpunct":
 	{
-		"expansion": "\u2308", 
+		"expansion": "•",
 		"markedForArtifactInclusion": true
-	}, 
-	"leftdoublequote": 
+	},
+	"intersection":
 	{
-		"expansion": "\u201C", 
+		"expansion": "∩",
 		"markedForArtifactInclusion": true
-	}, 
-	"leftfloor": 
+	},
+	"leftarrow":
 	{
-		"expansion": "\u230A", 
+		"expansion": "←",
 		"markedForArtifactInclusion": true
-	}, 
-	"leftguillemet": 
+	},
+	"leftceiling":
 	{
-		"expansion": "\u00AB", 
+		"expansion": "⌈",
 		"markedForArtifactInclusion": true
-	}, 
-	"leftquote": 
+	},
+	"leftdoublequote":
 	{
-		"expansion": "\u27E6", 
+		"expansion": "“",
 		"markedForArtifactInclusion": true
-	}, 
-	"leftsinglequote": 
+	},
+	"leftfloor":
 	{
-		"expansion": "\u2018", 
+		"expansion": "⌊",
 		"markedForArtifactInclusion": true
-	}, 
-	"leftunquote": 
+	},
+	"leftguillemet":
 	{
-		"expansion": "\u298A", 
+		"expansion": "«",
 		"markedForArtifactInclusion": true
-	}, 
-	"lte": 
+	},
+	"leftquote":
 	{
-		"expansion": "\u2264", 
+		"expansion": "⟦",
 		"markedForArtifactInclusion": true
-	}, 
-	"manicule": 
+	},
+	"leftsinglequote":
 	{
-		"expansion": "\uD83D\uDC49", 
+		"expansion": "‘",
 		"markedForArtifactInclusion": true
-	}, 
-	"map": 
+	},
+	"leftunquote":
 	{
-		"expansion": "{\u2041}", 
+		"expansion": "⦊",
 		"markedForArtifactInclusion": true
-	}, 
-	"maplet": 
+	},
+	"lte":
 	{
-		"expansion": "\u21A6", 
+		"expansion": "≤",
 		"markedForArtifactInclusion": true
-	}, 
-	"mdash": 
+	},
+	"manicule":
 	{
-		"expansion": "\u2014", 
+		"expansion": "\uD83D\uDC49",
 		"markedForArtifactInclusion": true
-	}, 
-	"memberof": 
+	},
+	"matchindent":
 	{
-		"expansion": "\u2208", 
+		"expansion": "↹",
 		"markedForArtifactInclusion": true
-	}, 
-	"mu": 
+	},
+	"map":
 	{
-		"expansion": "\u00B5", 
+		"expansion": "{⁁}",
 		"markedForArtifactInclusion": true
-	}, 
-	"ndash": 
+	},
+	"maplet":
 	{
-		"expansion": "\u2013", 
+		"expansion": "↦",
 		"markedForArtifactInclusion": true
-	}, 
-	"ne": 
+	},
+	"mdash":
 	{
-		"expansion": "\u2260", 
+		"expansion": "—",
 		"markedForArtifactInclusion": true
-	}, 
-	"not": 
+	},
+	"memberof":
 	{
-		"expansion": "\u00AC", 
+		"expansion": "∈",
 		"markedForArtifactInclusion": true
-	}, 
-	"notelementof": 
+	},
+	"mu":
 	{
-		"expansion": "\u2209", 
+		"expansion": "µ",
 		"markedForArtifactInclusion": true
-	}, 
-	"notmemberof": 
+	},
+	"ndash":
 	{
-		"expansion": "\u2209", 
+		"expansion": "–",
 		"markedForArtifactInclusion": true
-	}, 
-	"notsubsetorequal": 
+	},
+	"ne":
 	{
-		"expansion": "\u2288", 
+		"expansion": "≠",
 		"markedForArtifactInclusion": true
-	}, 
-	"notsupersetorequal": 
+	},
+	"not":
 	{
-		"expansion": "\u2289", 
+		"expansion": "¬",
 		"markedForArtifactInclusion": true
-	}, 
-	"o1": 
+	},
+	"notelementof":
 	{
-		"expansion": "\u2460", 
+		"expansion": "∉",
 		"markedForArtifactInclusion": true
-	}, 
-	"o2": 
+	},
+	"notmemberof":
 	{
-		"expansion": "\u2461", 
+		"expansion": "∉",
 		"markedForArtifactInclusion": true
-	}, 
-	"o3": 
+	},
+	"notsubsetorequal":
 	{
-		"expansion": "\u2462", 
+		"expansion": "⊈",
 		"markedForArtifactInclusion": true
-	}, 
-	"o4": 
+	},
+	"notsupersetorequal":
 	{
-		"expansion": "\u2463", 
+		"expansion": "⊉",
 		"markedForArtifactInclusion": true
-	}, 
-	"o5": 
+	},
+	"outdent":
 	{
-		"expansion": "\u2464", 
+		"expansion": "⇤",
 		"markedForArtifactInclusion": true
-	}, 
-	"o6": 
+	},
+	"o1":
 	{
-		"expansion": "\u2465", 
+		"expansion": "①",
 		"markedForArtifactInclusion": true
-	}, 
-	"o7": 
+	},
+	"o2":
 	{
-		"expansion": "\u2466", 
+		"expansion": "②",
 		"markedForArtifactInclusion": true
-	}, 
-	"o8": 
+	},
+	"o3":
 	{
-		"expansion": "\u2467", 
+		"expansion": "③",
 		"markedForArtifactInclusion": true
-	}, 
-	"o9": 
+	},
+	"o4":
 	{
-		"expansion": "\u2468", 
+		"expansion": "④",
 		"markedForArtifactInclusion": true
-	}, 
-	"pi": 
+	},
+	"o5":
 	{
-		"expansion": "\u03C0", 
+		"expansion": "⑤",
 		"markedForArtifactInclusion": true
-	}, 
-	"picapital": 
+	},
+	"o6":
 	{
-		"expansion": "\u220F", 
+		"expansion": "⑥",
 		"markedForArtifactInclusion": true
-	}, 
-	"plusminus": 
+	},
+	"o7":
 	{
-		"expansion": "\u00B1", 
+		"expansion": "⑦",
 		"markedForArtifactInclusion": true
-	}, 
-	"prefix": 
+	},
+	"o8":
 	{
-		"expansion": "\u00A7", 
+		"expansion": "⑧",
 		"markedForArtifactInclusion": true
-	}, 
-	"propersubset": 
+	},
+	"o9":
 	{
-		"expansion": "\u2282", 
+		"expansion": "⑨",
 		"markedForArtifactInclusion": true
-	}, 
-	"propersuperset": 
+	},
+	"pi":
 	{
-		"expansion": "\u2283", 
+		"expansion": "π",
 		"markedForArtifactInclusion": true
-	}, 
-	"quote": 
+	},
+	"picapital":
 	{
-		"expansion": "\u27E6\u2041\u27E7", 
+		"expansion": "∏",
 		"markedForArtifactInclusion": true
-	}, 
-	"rightarrow": 
+	},
+	"plusminus":
 	{
-		"expansion": "\u2192", 
+		"expansion": "±",
 		"markedForArtifactInclusion": true
-	}, 
-	"rightceiling": 
+	},
+	"prefix":
 	{
-		"expansion": "\u2309", 
+		"expansion": "§",
 		"markedForArtifactInclusion": true
-	}, 
-	"rightdoublequote": 
+	},
+	"quote":
 	{
-		"expansion": "\u201D", 
+		"expansion": "⟦⁁⟧",
 		"markedForArtifactInclusion": true
-	}, 
-	"rightfloor": 
+	},
+	"resetindent":
 	{
-		"expansion": "\u230B", 
+		"expansion": "↹",
 		"markedForArtifactInclusion": true
-	}, 
-	"rightguillemet": 
+	},
+	"rightarrow":
 	{
-		"expansion": "\u00BB", 
+		"expansion": "→",
 		"markedForArtifactInclusion": true
-	}, 
-	"rightquote": 
+	},
+	"rightceiling":
 	{
-		"expansion": "\u27E7", 
+		"expansion": "⌉",
 		"markedForArtifactInclusion": true
-	}, 
-	"rightsinglequote": 
+	},
+	"rightdoublequote":
 	{
-		"expansion": "\u2019", 
+		"expansion": "”",
 		"markedForArtifactInclusion": true
-	}, 
-	"rightunquote": 
+	},
+	"rightfloor":
 	{
-		"expansion": "\u2989", 
+		"expansion": "⌋",
 		"markedForArtifactInclusion": true
-	}, 
-	"root": 
+	},
+	"rightguillemet":
 	{
-		"expansion": "\u221A", 
+		"expansion": "»",
 		"markedForArtifactInclusion": true
-	}, 
-	"section": 
+	},
+	"rightquote":
 	{
-		"expansion": "\u00A7", 
+		"expansion": "⟧",
 		"markedForArtifactInclusion": true
-	}, 
-	"set": 
+	},
+	"rightsinglequote":
 	{
-		"expansion": "{\u2041}", 
+		"expansion": "’",
 		"markedForArtifactInclusion": true
-	}, 
-	"sigma": 
+	},
+	"rightunquote":
 	{
-		"expansion": "\u2211", 
+		"expansion": "⦉",
 		"markedForArtifactInclusion": true
-	}, 
-	"singledagger": 
+	},
+	"root":
 	{
-		"expansion": "\u2020", 
+		"expansion": "√",
 		"markedForArtifactInclusion": true
-	}, 
-	"singlequotes": 
+	},
+	"section":
 	{
-		"expansion": "\u2018\u2041\u2019", 
+		"expansion": "§",
 		"markedForArtifactInclusion": true
-	}, 
-	"squared": 
+	},
+	"set":
 	{
-		"expansion": "\u00B2", 
+		"expansion": "{⁁}",
 		"markedForArtifactInclusion": true
-	}, 
-	"subsetorequal": 
+	},
+	"sigma":
 	{
-		"expansion": "\u2286", 
+		"expansion": "∑",
 		"markedForArtifactInclusion": true
-	}, 
-	"sum": 
+	},
+	"singledagger":
 	{
-		"expansion": "\u2211", 
+		"expansion": "†",
 		"markedForArtifactInclusion": true
-	}, 
-	"supersetorequal": 
+	},
+	"singlequotes":
 	{
-		"expansion": "\u2287", 
+		"expansion": "‘⁁’",
 		"markedForArtifactInclusion": true
-	}, 
-	"supert": 
+	},
+	"squared":
 	{
-		"expansion": "\u1D40", 
+		"expansion": "²",
 		"markedForArtifactInclusion": true
-	}, 
-	"swoop": 
+	},
+	"subsetorequal":
 	{
-		"expansion": "\u2937", 
+		"expansion": "⊆",
 		"markedForArtifactInclusion": true
-	}, 
-	"t": 
+	},
+	"sum":
 	{
-		"expansion": "\u1D40", 
+		"expansion": "∑",
 		"markedForArtifactInclusion": true
-	}, 
-	"thereexists": 
+	},
+	"supersetorequal":
 	{
-		"expansion": "\u2203", 
+		"expansion": "⊇",
 		"markedForArtifactInclusion": true
-	}, 
-	"thinspace": 
+	},
+	"supert":
 	{
-		"expansion": "\u2009", 
+		"expansion": "ᵀ",
 		"markedForArtifactInclusion": true
-	}, 
-	"times": 
+	},
+	"swoop":
 	{
-		"expansion": "\u00D7", 
+		"expansion": "⤷",
 		"markedForArtifactInclusion": true
-	}, 
-	"top": 
+	},
+	"t":
 	{
-		"expansion": "\u22A4", 
+		"expansion": "ᵀ",
 		"markedForArtifactInclusion": true
-	}, 
-	"tuple": 
+	},
+	"thereexists":
 	{
-		"expansion": "<\u2041>", 
+		"expansion": "∃",
 		"markedForArtifactInclusion": true
-	}, 
-	"union": 
+	},
+	"thinspace":
 	{
-		"expansion": "\u222A", 
+		"expansion": " ",
 		"markedForArtifactInclusion": true
-	}, 
-	"unquote": 
+	},
+	"times":
 	{
-		"expansion": "\u298A\u2041\u2989", 
+		"expansion": "×",
 		"markedForArtifactInclusion": true
-	}, 
-	"uparrow": 
+	},
+	"top":
 	{
-		"expansion": "\u2191", 
+		"expansion": "⊤",
 		"markedForArtifactInclusion": true
-	}, 
-	"uptack": 
+	},
+	"tuple":
 	{
-		"expansion": "\u22A5", 
+		"expansion": "<⁁>",
 		"markedForArtifactInclusion": true
-	}, 
-	"xor": 
+	},
+	"union":
 	{
-		"expansion": "\u2295", 
+		"expansion": "∪",
 		"markedForArtifactInclusion": true
-	}, 
-	"yields": 
+	},
+	"unquote":
 	{
-		"expansion": "\u21D2", 
+		"expansion": "⦊⁁⦉",
 		"markedForArtifactInclusion": true
-	}, 
-	"1": 
+	},
+	"uparrow":
 	{
-		"expansion": "\u00B9", 
+		"expansion": "↑",
 		"markedForArtifactInclusion": true
-	}, 
-	"2": 
+	},
+	"uptack":
 	{
-		"expansion": "\u00B2", 
+		"expansion": "⊥",
 		"markedForArtifactInclusion": true
-	}, 
-	"3": 
+	},
+	"xor":
 	{
-		"expansion": "\u00B3", 
+		"expansion": "⊕",
 		"markedForArtifactInclusion": true
-	}, 
-	"4": 
+	},
+	"yields":
 	{
-		"expansion": "\u2074", 
+		"expansion": "⇒",
 		"markedForArtifactInclusion": true
-	}, 
-	"5": 
+	},
+	"1":
 	{
-		"expansion": "\u2075", 
+		"expansion": "¹",
 		"markedForArtifactInclusion": true
-	}, 
-	"6": 
+	},
+	"2":
 	{
-		"expansion": "\u2076", 
+		"expansion": "²",
 		"markedForArtifactInclusion": true
-	}, 
-	"7": 
+	},
+	"3":
 	{
-		"expansion": "\u2077", 
+		"expansion": "³",
 		"markedForArtifactInclusion": true
-	}, 
-	"8": 
+	},
+	"4":
 	{
-		"expansion": "\u2078", 
+		"expansion": "⁴",
 		"markedForArtifactInclusion": true
-	}, 
-	"9": 
+	},
+	"5":
 	{
-		"expansion": "\u2079", 
+		"expansion": "⁵",
 		"markedForArtifactInclusion": true
-	}, 
-	"->": 
+	},
+	"6":
 	{
-		"expansion": "\u2192", 
+		"expansion": "⁶",
 		"markedForArtifactInclusion": true
-	}, 
-	"=>": 
+	},
+	"7":
 	{
-		"expansion": "\u21D2", 
+		"expansion": "⁷",
 		"markedForArtifactInclusion": true
-	}, 
-	"<-": 
+	},
+	"8":
 	{
-		"expansion": "\u2190", 
+		"expansion": "⁸",
 		"markedForArtifactInclusion": true
-	}, 
-	"*": 
+	},
+	"9":
 	{
-		"expansion": "\u00D7", 
+		"expansion": "⁹",
 		"markedForArtifactInclusion": true
-	}, 
-	"/": 
+	},
+	"->":
 	{
-		"expansion": "\u00F7", 
+		"expansion": "→",
 		"markedForArtifactInclusion": true
-	}, 
-	"<=": 
+	},
+	"=>":
 	{
-		"expansion": "\u2264", 
+		"expansion": "⇒",
 		"markedForArtifactInclusion": true
-	}, 
-	">=": 
+	},
+	"<-":
 	{
-		"expansion": "\u2265", 
+		"expansion": "←",
 		"markedForArtifactInclusion": true
-	}, 
-	"!": 
+	},
+	"*":
 	{
-		"expansion": "\u00AC", 
+		"expansion": "×",
 		"markedForArtifactInclusion": true
-	}, 
-	"!!": 
+	},
+	"/":
 	{
-		"expansion": "\u203C", 
+		"expansion": "÷",
 		"markedForArtifactInclusion": true
-	}, 
-	"!=": 
+	},
+	"<=":
 	{
-		"expansion": "\u2260", 
+		"expansion": "≤",
 		"markedForArtifactInclusion": true
-	}, 
-	"...": 
+	},
+	">=":
 	{
-		"expansion": "\u2026", 
+		"expansion": "≥",
 		"markedForArtifactInclusion": true
-	}, 
-	"??": 
+	},
+	"!":
 	{
-		"expansion": "\u2047", 
+		"expansion": "¬",
 		"markedForArtifactInclusion": true
-	}, 
-	"/**": 
+	},
+	"!!":
 	{
-		"expansion": "/**\n * \u2041\n */", 
+		"expansion": "‼",
 		"markedForArtifactInclusion": true
-	}, 
-	"qq": 
+	},
+	"!=":
 	{
-		"expansion": "qqqq", 
+		"expansion": "≠",
+		"markedForArtifactInclusion": true
+	},
+	"...":
+	{
+		"expansion": "…",
+		"markedForArtifactInclusion": true
+	},
+	"??":
+	{
+		"expansion": "⁇",
+		"markedForArtifactInclusion": true
+	},
+	"/**":
+	{
+		"expansion": "/**\n * \u2041\n */",
 		"markedForArtifactInclusion": true
 	}
 }

@@ -32,7 +32,7 @@
 
 package avail.compiler.splitter
 
-import avail.compiler.ParsingOperation.APPEND_ARGUMENT
+import avail.compiler.AppendArgument
 
 /**
  * An indication of the desired and actual stack state.
@@ -51,7 +51,7 @@ internal enum class WrapState
 			generator: InstructionGenerator): WrapState
 		{
 			generator.flushDelayed()
-			generator.emit(expression, APPEND_ARGUMENT)
+			generator.emit(expression, AppendArgument)
 			return this
 		}
 	},

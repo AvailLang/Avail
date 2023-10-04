@@ -148,6 +148,15 @@ private constructor(
 		UPPER_BOUND
 	}
 
+	override fun o_NameForDebugger(self: AvailObject): String
+	{
+		return (super.o_NameForDebugger(self)
+			+ " "
+			+ (if (lowerInclusive) "incl" else "excl")
+			+ ", "
+			+ (if (upperInclusive) "incl" else "excl"))
+	}
+
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,

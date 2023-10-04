@@ -31,7 +31,9 @@
  */
 package avail.descriptor.bundles
 
-import avail.compiler.ParsingOperation
+import avail.compiler.CheckArgument
+import avail.compiler.JumpBackward
+import avail.compiler.ParsePart
 import avail.descriptor.maps.A_Map
 import avail.descriptor.methods.A_Sendable
 import avail.descriptor.module.A_Module
@@ -46,7 +48,7 @@ import avail.descriptor.sets.A_Set
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
 import avail.dispatch.LookupTree
-import java.util.Deque
+import java.util.*
 
 /**
  * `A_BundleTree` is an interface that specifies the operations specific to a
@@ -158,11 +160,9 @@ interface A_BundleTree : A_BasicObject {
 			get() = dispatch { o_LazyIncompleteCaseInsensitive(it) }
 
 		/**
-		 * Answer the bundle trees that will be reached when specific parse
-		 * instructions run.  During normal processing, all such instructions
-		 * are attempted in parallel.  Certain instructions like
-		 * [ParsingOperation.PARSE_PART] do not get added to this map, and are
-		 * instead added to other structures such as [lazyIncomplete].
+		 * Answer the bundle trees that will be reached when specific parse instructions run.  During normal processing,
+		 * all such instructions are attempted in parallel.  Certain instructions like [ParsePart] do not get added to
+		 * this map, and are instead added to other structures such as [lazyIncomplete].
 		 *
 		 * Each key is an [integer][IntegerDescriptor] that encodes a parsing
 		 * instruction, and the value is a tuple of successor
@@ -181,16 +181,16 @@ interface A_BundleTree : A_BasicObject {
 		val A_BundleTree.lazyActions get() = dispatch { o_LazyActions(it) }
 
 		/**
-		 * Answer a map used by the [ParsingOperation.CHECK_ARGUMENT]
-		 * instruction to quickly eliminate arguments that are forbidden by
-		 * grammatical restrictions.  The map is from each restricted argument
-		 * [bundle][A_Bundle] to the successor bundle tree that includes every
-		 * bundle that *is* allowed when an argument is an invocation of a
-		 * restricted argument bundle.  Each argument bundle that is restricted
-		 * by at least one parent bundle at this point (just after having parsed
-		 * an argument) has an entry in this map.  Argument bundles that are not
-		 * restricted do not occur in this map, and are instead dealt with by an
-		 * entry in the [lazyActions] map.
+		 * Answer a map used by the [CheckArgument] instruction to quickly
+		 * eliminate arguments that are forbidden by grammatical restrictions.
+		 * The map is from each restricted argument [bundle][A_Bundle] to the
+		 * successor bundle tree that includes every bundle that *is* allowed
+		 * when an argument is an invocation of a restricted argument bundle.
+		 * Each argument bundle that is restricted by at least one parent bundle
+		 * at this point (just after having parsed an argument) has an entry in
+		 * this map.  Argument bundles that are not restricted do not occur in
+		 * this map, and are instead dealt with by an entry in the [lazyActions]
+		 * map.
 		 *
 		 * This technique leads to an increase in the number of bundle trees,
 		 * but is very fast at eliminating illegal parses, even when expressions
@@ -252,9 +252,8 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * Answer the nearest ancestor bundle tree that contained a
-		 * [ParsingOperation.JUMP_BACKWARD].  There may be closer ancestor
-		 * [A_BundleTree]s with a backward jump, but that jump wasn't present in
-		 * the bundle tree yet.
+		 * [JumpBackward].  There may be closer ancestor [A_BundleTree]s with a
+		 * backward jump, but that jump wasn't present in the bundle tree yet.
 		 *
 		 * @return
 		 *   The nearest ancestor backward-jump-containing bundle tree.
@@ -264,7 +263,7 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * Answer whether there are any parsing-plans-in-progress which are at a
-		 * [backward&#32;jump][ParsingOperation.JUMP_BACKWARD]].
+		 * [backward&#32;jump][JumpBackward]].
 		 *
 		 * @return
 		 *   Whether there are any backward jumps.

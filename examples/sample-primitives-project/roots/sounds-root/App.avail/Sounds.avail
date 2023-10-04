@@ -1,0 +1,70 @@
+/*
+ * Sounds.avail
+ * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * All rights reserved.
+ */
+
+Module "Sounds"
+Versions
+	"Avail-1.6.1"
+Uses
+	"Avail"
+Names
+    "Play_"
+Body
+
+// Dynamically link the primitives.
+Link primitives: "/sounds-root/App/sounds.jar";
+
+/**
+ * Play the resource sound file.
+ *
+ * @category "Primitives"
+ * @method "Primitive play audio:_error:_"
+ * @param "resource" "character+"
+ *        The root-relative fully qualified name of the audio resource file to 
+ *        play.
+ * @param unsupportedMessage
+ *        The error message variable that is populated by the primitive if the
+ *        audio file format is not supported.
+ * @returns "⊤"
+ * @raises "no-file exception"
+ * @raises "I/O exception"
+ * @raises "operation-not-supported exception"
+ */
+Method "Primitive play audio:_error:_" is
+[
+	resource: nonempty string,
+	unsupportedMessage: ↑string
+|
+	Primitive PlayAudioResource (failureCode : {
+		no-file code,
+		I/O-error code,
+		operation-not-supported code}ᵀ);
+	If failureCode = operation-not-supported code then
+	[
+		Raise a operation-not-supported exception with
+			error message ::= ↓unsupportedMessage
+	]
+	else
+	[
+		Raise an exception for failureCode
+	]
+] : ⊤;
+
+/**
+ * Play resource file.
+ *
+ * @category "Audio"
+ * @method "Play_"
+ * @param "source" "<character…|1..∞>"
+ *        The root-relative fully qualified name of the source audio file to
+ *        play.
+ */
+Public method "Play_" is
+[
+	source : nonempty string
+|
+	old : string;
+	Primitive play audio: source error: ↑old;
+] : ⊤;

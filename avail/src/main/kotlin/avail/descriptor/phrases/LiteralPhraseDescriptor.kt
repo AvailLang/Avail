@@ -191,6 +191,7 @@ class LiteralPhraseDescriptor(
 		aPhrase: A_Phrase
 	): Boolean
 	{
+		if (self.sameAddressAs(aPhrase)) return true
 		if (aPhrase.isMacroSubstitutionNode) return false
 		if (self.phraseKind != aPhrase.phraseKind) return false
 		val literal1 = self.token.literal()
