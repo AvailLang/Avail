@@ -80,6 +80,7 @@
       <w>misconnected</w>
       <w>mutable's</w>
       <w>mutables</w>
+      <w>nbsp</w>
       <w>noncanonical</w>
       <w>noninline</w>
       <w>nonlocal</w>
@@ -108,6 +109,7 @@
       <w>regenerators</w>
       <w>reifier</w>
       <w>reifier's</w>
+      <w>replayable</w>
       <w>resumable</w>
       <w>retranslator</w>
       <w>rewriter</w>
@@ -170,6 +172,7 @@
       <w>unpausing</w>
       <w>unquoter</w>
       <w>unreified</w>
+      <w>unreplayable</w>
       <w>unreturnable</w>
       <w>unreversed</w>
       <w>unstyled</w>
