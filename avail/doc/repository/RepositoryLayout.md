@@ -91,10 +91,10 @@ array.  Its format is described by [Metadata](#metadata) below.
 1. compilationTime (long)
 2. [recordNumber](#compilation-record) (long)
 3. [recordNumberOfBlockPhrases](#block-phrases) (long)
-4. recordNumberOfManifestEntries (long)
+4. [recordNumberOfManifestEntries](#manifestrecord) (long)
 5. [recordNumberOfStyling](#stylingrecord) (long)
 6. [recordNumberOfPhrasePaths](#phrasepathrecord) (long)
-7. recordNumberOfNamesIndex (long)
+7. [recordNumberOfNamesIndex](#namesindex) (long)
 
 -----------------------------------------------------------
 
@@ -333,3 +333,45 @@ See [PhrasePathRecord.kt](../../src/main/kotlin/avail/persistence/cache/record/P
    2. #children
 
 -----------------------------------------------------------
+
+## NamesIndex
+
+This record contains information about the atoms that are declared, have
+definitions added, or are invoked as methods, macros, or lexers inside the
+module.  The record is a
+[NamesIndex](../../src/main/kotlin/avail/persistence/cache/record/NamesIndex.kt).
+
+There is a mechanism for reducing the scope of searches using a Bloom filter,
+but that is not yet (2023.10.10) active.  The intention is to construct the
+filter for all (or some) packages, so that a search from the top of a module
+root could eliminate large branches quickly when searching for a name that
+doesn't happen to be used in that package.  For now, the standard library can be
+searched for the first time in at most a couple of seconds, and subsequent
+searches are imperceptibly fast.
+
+1. #modules with mentioned names,
+2. Each module name as a UTF-8 string,
+3. #mentioned atom name, or alias of a name,
+4. Each atom name or local alias as a UTF-8 string,
+5. #NameOccurrences,
+6. For each `NameOccurrences` object,
+   1. #declarations,
+   2. For each declaration of the name,
+      1. A boolean indicating this is an alias declaration
+      2. If it's an alias,
+         1. the index of the original atom's module name,
+         2. the index of the original atom's name,
+      3. The index of the phrase in the [PhrasePathRecord](#phrasepathrecord)
+         (not just of the top-level phrases) which was a declaration of the name
+         or alias,
+   3. #definitions of the name,
+   4. For each definition of the name,
+      1. The ordinal of the `DefinitionType` identifying the kind of definition
+         that this definition is (method, macro, etc),
+      2. An index into the module's [ManifestRecord](#manifestrecord) that also
+         identifies the definition.
+   5. #usages of the name,
+   6. For each usage of the name,
+      1. The ordinal of the usage's `UsageType` (method send, macro send, etc.),
+      2. The index of the phrase in the [PhrasePathRecord](#phrasepathrecord)
+         (not just of the top-level phrases) which was a usage of the name.
