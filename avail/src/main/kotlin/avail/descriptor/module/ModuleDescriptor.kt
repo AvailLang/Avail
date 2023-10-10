@@ -1209,7 +1209,7 @@ class ModuleDescriptor private constructor(
 		val resolved = runtime!!.moduleNameResolver.resolve(moduleName, null)
 		stylingRecord = if (stylingRecordIndex == -1L)
 		{
-			StylingRecord(emptyList(), emptyList())
+			StylingRecord(emptyList(), emptyList(), emptyList())
 		}
 		else
 		{

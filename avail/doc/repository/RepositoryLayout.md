@@ -49,6 +49,8 @@ ModuleCompilation:
 3. recordNumberOfBlockPhrases (long)
 4. recordNumberOfManifestEntries (long)
 5. recordNumberOfStyling (long)
+6. recordNumberOfPhrasePaths (long)
+7. recordNumberOfNamesIndex (long)
 -----------------------------------------------------------
 
 
@@ -62,7 +64,7 @@ StylingRecord
    1. styleNumber (compressed int, 0=no style)
    2. length (compressed int), measured in UTF-16 codepoints.
 5. #declarations
-6. For each declaration,
+6. For each local declaration,
    1. delta (compressed, in UTF-16 codepoints) from end of previous declaration
    2. length (compressed, in UTF-16 codepoints)
    3. Optional 0 for special treatment (note: #usages cannot be zero)

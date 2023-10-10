@@ -3516,18 +3516,18 @@ object RenderingEngine
 			}
 		}
 		// Add the information about local declarations and uses.
-		styleRecord?.declarationsWithUses()?.forEach { (definition, uses) ->
+		styleRecord?.declarationsWithUses()?.forEach { (declaration, uses) ->
 			val definitionSpan = Pair(
-				document.createPosition(definition.first),
-				document.createPosition(definition.last))
+				document.createPosition(declaration.first),
+				document.createPosition(declaration.last))
 			val useSpans = uses.map {
 				Pair(
 					document.createPosition(it.first),
 					document.createPosition(it.last))
 			}
 			val entry = DefinitionAndUsesInDocument(definitionSpan, useSpans)
-			// Add the definition's style.
-			renderingFunctions.edit(definition.first, definition.last)
+			// Add the declaration's style.
+			renderingFunctions.edit(declaration.first, declaration.last)
 			{ old ->
 				old compose { document, start, pastEnd ->
 					document.setCharacterAttributes(
@@ -3559,6 +3559,32 @@ object RenderingEngine
 				}
 			}
 		}
+		// Add the information about unused declarations.
+		styleRecord?.let { rec ->
+			val used = rec.variableUses.map(Pair<*, IntRange>::second)
+			val unused = rec.declarations - used.toSet()
+			unused.forEach { declaration ->
+				val declarationSpan = Pair(
+					document.createPosition(declaration.first),
+					document.createPosition(declaration.last))
+				renderingFunctions.edit(declaration.first, declaration.last)
+				{ old ->
+					old compose { document, start, pastEnd ->
+						document.setCharacterAttributes(
+							start,
+							pastEnd - start,
+							SimpleAttributeSet().apply {
+								addAttribute(
+									LocalDefinitionAttributeKey,
+									DefinitionAndUsesInDocument(
+										declarationSpan, emptyList()))
+							},
+							false)
+					}
+				}
+			}
+		}
+
 		// Now that all the ranges have been split appropriately to avoid any
 		// overlapping ranges (i.e., start A, start B, end A, end B), tell the
 		// document itself about them.
