@@ -239,7 +239,7 @@ features occur.
          entry,
       6. The line number of the start of the definition, such as the body of a
          method.
-      7. ex into the total sequence of phrase nodes (not just the list of
+      7. an index into the total sequence of phrase nodes (not just the list of
          top-level phrases) in this module's [PhrasePathRecord](#block-phrases),
          which identifies the phrase node responsible for the definition. This
          is useful for highlighting the entire definition.
