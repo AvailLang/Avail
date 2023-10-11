@@ -43,58 +43,58 @@ array.  Its format is described by [Metadata](#metadata) below.
 
 ## Metadata:
 
-1. #modules
+1. Count of `modules` (vlq)
 2. For each module,
    1. [moduleArchive](#modulearchive)
 
 
 ### ModuleArchive:
-1. UTF8 rootRelativeName
-2. digestCache size
+1. UTF8 `rootRelativeName`
+2. Count of `digestCache` (vlq)
 3. For each cached digest,
-   1. timestamp (long)
+   1. timestamp (vlq)
    2. digest (32 bytes)
-4. #versions
+4. # of versions
 5. For each version,
    1. [ModuleVersionKey](#moduleversionkey)
    2. [ModuleVersion](#moduleversion)
 
 
 ### ModuleVersionKey:
-1. isPackage (byte)
-2. digest (32 bytes)
+1. `isPackage` (byte)
+2. `digest` (32 bytes)
 
 
 ### ModuleVersion:
-1. moduleSize (long)
-2. localImportNames size (int)
+1. `moduleSize` (vlq)
+2. Count of `localImportNames` (vlq)
 3. For each import name,
    1. UTF8 import name
-4. entryPoints size (int)
+4. Count of `entryPoints` (vlq)
 5. For each entry point,
    1. UTF8 entry point name
-6. compilations size (int)
+6. Count of `compilations` (vlq)
 7. For each compilation,
    1. [ModuleCompilationKey](#modulecompilationkey)
    2. [ModuleCompilation](#modulecompilation)
-8. moduleHeaderRecordNumber (long)
-9. stacksRecordNumber (long) (obsolete)
+8. `moduleHeaderRecordNumber` (vlq)
+9. `stacksRecordNumber` (vlq) (obsolete)
 
 
 ### ModuleCompilationKey:
-1. #predecessorCompilationTimes (int)
+1. Count of `predecessorCompilationTimes` (vlq)
 2. For each predecessor compilation time,
-   1. predecessor compilation time (long)
+   1. predecessor compilation time (vlq)
 
 
 ### ModuleCompilation:
-1. compilationTime (long)
-2. [recordNumber](#compilation-record) (long)
-3. [recordNumberOfBlockPhrases](#block-phrases) (long)
-4. [recordNumberOfManifestEntries](#manifestrecord) (long)
-5. [recordNumberOfStyling](#stylingrecord) (long)
-6. [recordNumberOfPhrasePaths](#phrasepathrecord) (long)
-7. [recordNumberOfNamesIndex](#namesindex) (long)
+1. `compilationTime` (vlq)
+2. [recordNumber](#compilation-record) (vlq)
+3. [recordNumberOfBlockPhrases](#block-phrases) (vlq)
+4. [recordNumberOfManifestEntries](#manifestrecord) (vlq)
+5. [recordNumberOfStyling](#stylingrecord) (vlq)
+6. [recordNumberOfPhrasePaths](#phrasepathrecord) (vlq)
+7. [recordNumberOfNamesIndex](#namesindex) (vlq)
 
 -----------------------------------------------------------
 
@@ -227,7 +227,7 @@ features occur.
 
 1. For each entry, terminated by the end of the record,
    1. A [ModuleManifestEntry](../../src/main/kotlin/avail/compiler/ModuleManifestEntry.kt), comprising
-      1. ordinal (byte) of [SideEffectKind](../../src/main/kotlin/avail/compiler/SideEffectKind.kt)
+      1. Ordinal (byte) of [SideEffectKind](../../src/main/kotlin/avail/compiler/SideEffectKind.kt)
       2. Either null if byte = 0, or if byte = 1,
          1. NameInModule(module name UTF-8, atom name UTF-8)
       3. UTF-8 summary text to present in the [StructureView](
@@ -239,7 +239,7 @@ features occur.
          entry,
       6. The line number of the start of the definition, such as the body of a
          method.
-      7. an index into the total sequence of phrase nodes (not just the list of
+      7. An index into the total sequence of phrase nodes (not just the list of
          top-level phrases) in this module's [PhrasePathRecord](#block-phrases),
          which identifies the phrase node responsible for the definition. This
          is useful for highlighting the entire definition.
@@ -272,31 +272,32 @@ surrogate pairs occupy two distinct indices.
 
 See [StylingRecord.kt](../../src/main/kotlin/avail/persistence/cache/record/StylingRecord.kt)
 
-1. #styleNames
+1. Count of `styleNames` (vlq)
 2. For each styleName,
    1. UTF8 styleName
-3. #spans
+3. Count of  `spans` (vlq)
 4. For each span,
-   1. styleNumber (compressed int, 0=no style)
-   2. length (compressed int), measured in UTF-16 codepoints.
-5. #declarations
+   1. `styleNumber` (vlq, 0=no style)
+   2. length (vlq), measured in UTF-16 codepoints.
+5. Count of `declarations` (vlq)
 6. For each local declaration,
-   1. delta (compressed, in UTF-16 codepoints) from end of previous declaration
-   2. length (compressed, in UTF-16 codepoints)
+   1. `delta` (compressed, in UTF-16 codepoints) from end of previous 
+      declaration
+   2. `length` (compressed, in UTF-16 codepoints)
    3. Optional 0 for special treatment (note: #usages cannot be zero)
-   4. #usages, compressed
+   4. Count of `usages` (vlq)
    5. For each usage,
 
       If normal,
-      1. delta from end of previous declaration or usage (compressed, UTF-16).
+      1. `delta` from end of previous declaration or usage (compressed, UTF-16).
          Size is assumed to be same as declaration in this case.
 
       If special treatment,
-      1. position of start of usage in UTF-16 codepoints.
+      1. `position` of start of usage in UTF-16 codepoints.
          Absolute for first usage of a declaration, otherwise relative to
          previous usage's end.
-      2. size of usage token in UTF-16 codepoints.
-7. #unusedDeclarations
+      2. `size` of usage token in UTF-16 codepoints.
+7. Count of `unusedDeclarations` (vlq)
 8. For each unused declaration,
    1. Start of declaration token in UTF-16 codepoints.
    2. Size in UTF-16 codepoints
@@ -311,26 +312,26 @@ loaded to make use of it.
 
 See [PhrasePathRecord.kt](../../src/main/kotlin/avail/persistence/cache/record/PhrasePathRecord.kt)
 
-1. #moduleNames
+1. Count of `moduleNames` (vlq)
 2. For each module name,
    1. UTF-8 module name
-3. #atomNames
+3. Count of `atomNames` (vlq)
 4. For each atom name,
    1. UTF-8 atom name
-5. #root phrases
+5. Count of root phrases (vlq)
 6. For *each* phrase node in left-right, top-down order,
-   1. phrase node:
-      1. index of module name, or 0 if none
-      2. index of atom name, or 0 if none
-      3. [UsageType](../../src/main/kotlin/avail/persistence/cache/record/NamesIndex.kt) ordinal
-      4. #of [PhraseNodeTokens](../../src/main/kotlin/avail/persistence/cache/record/PhrasePathRecord.kt)
+   1. Phrase node:
+      1. Index of module name (vlq), or 0 if none
+      2. Index of atom name (vlq), or 0 if none
+      3. [UsageType](../../src/main/kotlin/avail/persistence/cache/record/NamesIndex.kt) ordinal (vlq)
+      4. Count of [PhraseNodeTokens](../../src/main/kotlin/avail/persistence/cache/record/PhrasePathRecord.kt) (vlq)
       5. For each token span,
-         1. token start relative to cursor
-         2. token size (adjusting cursor to pastEnd)
-         3. line number
-         4. token index in name (e.g., the `"+"` of `"_+_"` is 2)
-            1. if token index in name = 0, the UTF-8 token content string
-   2. #children
+         1. Token start relative to cursor (vlq)
+         2. Token size (adjusting cursor to pastEnd) (vlq)
+         3. Line number (vlq)
+         4. Token index in name (e.g., the `"+"` of `"_+_"` is 2) (vlq)
+            1. If token index in name = 0, the UTF-8 token content string
+   2. Count of `children` (vlq)
 
 -----------------------------------------------------------
 
@@ -342,36 +343,37 @@ module.  The record is a
 [NamesIndex](../../src/main/kotlin/avail/persistence/cache/record/NamesIndex.kt).
 
 There is a mechanism for reducing the scope of searches using a Bloom filter,
-but that is not yet (2023.10.10) active.  The intention is to construct the
+but that is not yet (_2023.10.10_) active.  The intention is to construct the
 filter for all (or some) packages, so that a search from the top of a module
 root could eliminate large branches quickly when searching for a name that
 doesn't happen to be used in that package.  For now, the standard library can be
 searched for the first time in at most a couple of seconds, and subsequent
 searches are imperceptibly fast.
 
-1. #modules with mentioned names,
-2. Each module name as a UTF-8 string,
-3. #mentioned atom name, or alias of a name,
-4. Each atom name or local alias as a UTF-8 string,
-5. #NameOccurrences,
+1. Count of modules with mentioned names (vlq)
+2. Each module name as a UTF-8 string
+3. Count of mentioned atom name, or alias of a name (vlq)
+4. Each atom name or local alias as a UTF-8 string
+5. Count of `NameOccurrences` (vlq)
 6. For each `NameOccurrences` object,
-   1. #declarations,
+   1. Count of declarations (vlq)
    2. For each declaration of the name,
       1. A boolean indicating this is an alias declaration
       2. If it's an alias,
-         1. the index of the original atom's module name,
-         2. the index of the original atom's name,
-      3. The index of the phrase in the [PhrasePathRecord](#phrasepathrecord)
+         1. The index of the original atom's module name (vlq)
+         2. The index of the original atom's name (vlq)
+      3. The index (vlq) of the phrase in the [PhrasePathRecord](#phrasepathrecord)
          (not just of the top-level phrases) which was a declaration of the name
-         or alias,
-   3. #definitions of the name,
+         or alias
+   3. Count of definitions of the name (vlq)
    4. For each definition of the name,
-      1. The ordinal of the `DefinitionType` identifying the kind of definition
-         that this definition is (method, macro, etc),
+      1. The ordinal (vlq) of the `DefinitionType` identifying the kind of
+         definition that this definition is (method, macro, etc)
       2. An index into the module's [ManifestRecord](#manifestrecord) that also
          identifies the definition.
-   5. #usages of the name,
+   5. Count of usages of the name (vlq)
    6. For each usage of the name,
-      1. The ordinal of the usage's `UsageType` (method send, macro send, etc.),
-      2. The index of the phrase in the [PhrasePathRecord](#phrasepathrecord)
+      1. The ordinal (vlq) of the usage's `UsageType` (method send, macro send,
+         etc.)
+      2. The index (vlq) of the phrase in the [PhrasePathRecord](#phrasepathrecord)
          (not just of the top-level phrases) which was a usage of the name.
