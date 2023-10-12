@@ -38,6 +38,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.module.ModuleTypeManager
 import com.intellij.openapi.roots.ModifiableRootModel
+import com.intellij.openapi.roots.ui.configuration.ModulesProvider
 
 /**
  * The [ModuleBuilder] for building an Avail module.
@@ -60,5 +61,7 @@ class AvailModuleBuilder: ModuleBuilder()
 	override fun getCustomOptionsStep(
 		context: WizardContext,
 		parentDisposable: Disposable
-	): ModuleWizardStep = AvailModuleWizardStep()
+	): ModuleWizardStep = AvailModuleWizardStep(this)
+
+
 }

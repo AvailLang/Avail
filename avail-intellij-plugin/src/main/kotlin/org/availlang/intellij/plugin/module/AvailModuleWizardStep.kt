@@ -31,24 +31,37 @@
  */
 package org.availlang.intellij.plugin.module
 
+import avail.anvil.environment.GlobalEnvironmentSettingsV1
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import javax.swing.JComponent
-import javax.swing.JLabel
 
 /**
  * The [ModuleWizardStep] used to set up a new Avail project.
  *
  * @author Richard Arriaga
  */
-class AvailModuleWizardStep: ModuleWizardStep()
+class AvailModuleWizardStep(builder: AvailModuleBuilder) : ModuleWizardStep()
 {
-	override fun getComponent(): JComponent
+
+	init
 	{
-		return JLabel("TODO!")
+		// this listener is called after you choose a location and a name
+		// even though we ask for the Avail module name and config first
+	  builder.addListener { module ->
+			createProjectPanel.create(
+				module.moduleFilePath.substringBeforeLast("/"), // this is the path to the parent of the module file
+				module.name
+			)
+		}
 	}
+
+	private val createProjectPanel: CreateAvailProjectPanel =
+		CreateAvailProjectPanel(GlobalEnvironmentSettingsV1())
+
+	override fun getComponent(): JComponent =
+		createProjectPanel
 
 	override fun updateDataModel()
 	{
-
 	}
 }
