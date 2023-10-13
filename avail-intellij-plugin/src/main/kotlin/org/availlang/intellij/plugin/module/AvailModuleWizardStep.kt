@@ -33,6 +33,7 @@ package org.availlang.intellij.plugin.module
 
 import avail.anvil.environment.GlobalEnvironmentSettingsV1
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
+import com.intellij.openapi.module.Module
 import javax.swing.JComponent
 
 /**
@@ -46,17 +47,29 @@ class AvailModuleWizardStep(builder: AvailModuleBuilder) : ModuleWizardStep()
 	init
 	{
 		// this listener is called after you choose a location and a name
-		// even though we ask for the Avail module name and config first
+		// even though we ask for the Avail module roots and config first
 	  builder.addListener { module ->
-			createProjectPanel.create(
-				module.moduleFilePath.substringBeforeLast("/"), // this is the path to the parent of the module file
-				module.name
-			)
+			AvailProjectTemplate.create(module.config)
 		}
 	}
 
+	private val Module.config get() =
+		createProjectPanel.let { panel ->
+			AvailProjectTemplate.Config(
+				projectLocation = moduleFilePath.substringBeforeLast("/"),
+				fileName = name,
+				rootsDir = panel.rootsDirField.input.ifEmpty { "roots" },
+				rootName = panel.rootNameField.input.ifEmpty { name },
+				importStyles = panel.importStyles.isSelected,
+				importTemplates = panel.importTemplates.isSelected,
+				libraryName = panel.libraryNameField.input.ifEmpty { null },
+				selectedLibrary = panel.selectedLibrary,
+				environmentSettings = GlobalEnvironmentSettingsV1()
+			)
+		}
+
 	private val createProjectPanel: CreateAvailProjectPanel =
-		CreateAvailProjectPanel(GlobalEnvironmentSettingsV1())
+		CreateAvailProjectPanel()
 
 	override fun getComponent(): JComponent =
 		createProjectPanel

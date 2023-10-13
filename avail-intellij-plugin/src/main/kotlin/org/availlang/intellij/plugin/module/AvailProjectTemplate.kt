@@ -1,0 +1,185 @@
+package org.availlang.intellij.plugin.module
+
+import avail.anvil.environment.AVAIL_STDLIB_ROOT_NAME
+import avail.anvil.environment.GlobalEnvironmentSettings
+import org.availlang.artifact.environment.AvailEnvironment
+import org.availlang.artifact.environment.location.AvailLibraries
+import org.availlang.artifact.environment.location.AvailRepositories
+import org.availlang.artifact.environment.location.ProjectHome
+import org.availlang.artifact.environment.location.Scheme
+import org.availlang.artifact.environment.project.*
+import org.availlang.artifact.jar.AvailArtifactJar
+import org.availlang.json.JSONWriter
+import java.io.File
+
+/**
+ * The project template you get when you create a new Avail Project.
+ *
+ * Adapted to IDEA from [avail.anvil.manager.CreateProjectPanel]
+ *
+ * @author Raul Raja
+ *
+ */
+object AvailProjectTemplate {
+
+  data class Config(
+    val projectLocation: String,
+    val fileName: String,
+    val rootsDir: String,
+    val rootName: String,
+    val importStyles: Boolean,
+    val importTemplates: Boolean,
+    val libraryName: String?,
+    val selectedLibrary: File?,
+    val environmentSettings: GlobalEnvironmentSettings
+  )
+
+  /**
+   * Create the Avail project.
+   */
+  @JvmStatic
+  fun create (config: Config)
+  {
+    val projectFilePath = "${config.projectLocation}/${config.fileName}.json"
+    val configPath =
+      AvailEnvironment.projectConfigPath(config.fileName, config.projectLocation)
+    AvailProject.optionallyInitializeConfigDirectory(configPath)
+    val localSettings = LocalSettings.from(File(configPath))
+    AvailProjectV1(
+      config.fileName,
+      true,
+      AvailRepositories(rootNameInJar = null),
+      localSettings
+    ).apply {
+      File(config.projectLocation).mkdirs()
+      val rootsDir = config.rootsDir
+      val rootName = config.rootName
+      val rootLocationDir = rootsLocationDir(rootsDir, rootName)
+      File("${config.projectLocation}/$rootLocationDir").mkdirs()
+
+      val rootConfigDir = AvailEnvironment.projectRootConfigPath(
+        config.fileName,
+        rootName,
+        config.projectLocation)
+      val root = availProjectRoot(rootConfigDir, config, rootName, rootLocationDir)
+      addRoot(root)
+      optionallyInitializeConfigDirectory(rootConfigDir)
+      config.selectedLibrary?.let { lib ->
+        configureAvailStdLib(config, lib)
+      }
+
+      updateBackingProjectFile(projectFilePath, config)
+    }
+  }
+
+  private fun AvailProjectV1.updateBackingProjectFile(
+    projectFilePath: String,
+    config: Config
+  ) {
+    if (projectFilePath.isNotEmpty()) {
+      // Update the backing project file.
+      val writer = JSONWriter.newPrettyPrinterWriter()
+      writeTo(writer)
+      File(projectFilePath).writeText(writer.contents())
+      config.environmentSettings.add(this, projectFilePath)
+    }
+  }
+
+  private fun AvailProjectV1.configureAvailStdLib(
+    config: Config,
+    lib: File
+  ) {
+    val libName = config.libraryName ?: AVAIL_STDLIB_ROOT_NAME
+    val libConfigDir = AvailEnvironment.projectRootConfigPath(
+      config.fileName, libName, config.projectLocation
+    )
+    optionallyInitializeConfigDirectory(libConfigDir)
+    val jar = AvailArtifactJar(lib.toURI())
+
+    val rootManifest = jar.manifest.roots[AVAIL_STDLIB_ROOT_NAME]
+    var sg =
+      importStyles(config, jar)
+    var tg =
+      importTemplates(config, jar)
+    val extensions = mutableListOf<String>()
+    var description = ""
+    rootManifest?.let {
+      sg = it.styles
+      tg = it.templates
+      extensions.addAll(it.availModuleExtensions)
+      description = it.description
+    }
+    val stdLib = AvailProjectRoot(
+      libConfigDir,
+      config.projectLocation,
+      libName,
+      AvailLibraries(
+        "org/availlang/${lib.name}",
+        Scheme.JAR,
+        AVAIL_STDLIB_ROOT_NAME
+      ),
+      LocalSettings(
+        AvailEnvironment.projectRootConfigPath(
+          config.fileName,
+          libName,
+          config.projectLocation
+        )
+      ),
+      sg,
+      tg,
+      extensions
+    )
+    stdLib.description = description
+    stdLib.saveLocalSettingsToDisk()
+    stdLib.saveTemplatesToDisk()
+    stdLib.saveStylesToDisk()
+    addRoot(stdLib)
+  }
+
+  private fun importTemplates(
+    config: Config,
+    jar: AvailArtifactJar
+  ) = if (config.importTemplates) {
+    jar.manifest.templatesFor(AVAIL_STDLIB_ROOT_NAME)
+      ?: TemplateGroup()
+  } else {
+    TemplateGroup()
+  }
+
+  private fun importStyles(
+    config: Config,
+    jar: AvailArtifactJar
+  ) = if (config.importStyles) {
+    jar.manifest.stylesFor(AVAIL_STDLIB_ROOT_NAME)
+      ?: StylingGroup()
+  } else {
+    StylingGroup()
+  }
+
+  private fun availProjectRoot(
+    rootConfigDir: String,
+    config: Config,
+    rootName: String,
+    rootLocationDir: String
+  ) = AvailProjectRoot(
+    rootConfigDir,
+    config.projectLocation,
+    rootName,
+    ProjectHome(
+      rootLocationDir,
+      Scheme.FILE,
+      config.projectLocation,
+      null
+    ),
+    LocalSettings(rootConfigDir),
+    StylingGroup(),
+    TemplateGroup()
+  )
+
+  private fun rootsLocationDir(rootsDir: String, rootName: String) = if (rootsDir.isNotEmpty()) {
+    "$rootsDir/$rootName"
+  } else {
+    rootName
+  }
+
+}
