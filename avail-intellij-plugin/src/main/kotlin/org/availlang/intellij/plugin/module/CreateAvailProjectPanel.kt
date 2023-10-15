@@ -36,9 +36,9 @@ import avail.anvil.components.TextFieldWithLabel
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.availStandardLibraries
 import org.availlang.artifact.environment.project.*
-import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.Insets
 import java.io.File
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -140,56 +140,49 @@ class CreateAvailProjectPanel: JPanel(GridBagLayout())
 
 	init
 	{
-		minimumSize = Dimension(600, 50)
-		preferredSize = Dimension(600, 50)
-		maximumSize = Dimension(600, 50)
-		add(rootNameField,
-			GridBagConstraints().apply {
-				weightx = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 0
-				gridy = 3
-				gridwidth = 2
-			})
-		add(rootsDirField,
-			GridBagConstraints().apply {
-				weightx = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 0
-				gridy = 4
-				gridwidth = 2
-			})
-		add(libraryNameField,
-			GridBagConstraints().apply {
-				weightx = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 0
-				gridy = 5
-				gridwidth = 1
-			})
-		add(libraryPicker,
-			GridBagConstraints().apply {
-				weightx = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 1
-				gridy = 5
-				gridwidth = 1
-			})
-		add(importStyles,
-			GridBagConstraints().apply {
-				weightx = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 1
-				gridy = 6
-				gridwidth = 1
-			})
-		add(importTemplates,
-			GridBagConstraints().apply {
-				weightx = 1.0
-				fill = GridBagConstraints.HORIZONTAL
-				gridx = 1
-				gridy = 7
-				gridwidth = 1
-			})
+		// Create some insets for padding around components
+		val padding = Insets(10, 10, 10, 10) // 10-pixel margins on all sides
+
+		val c = GridBagConstraints()
+		c.insets = padding // apply the insets to the constraints
+		c.fill = GridBagConstraints.HORIZONTAL
+		c.weightx = 1.0
+		c.weighty = 0.0
+		c.gridx = 0
+		c.gridwidth = 2 // Span across two columns for better spacing
+		c.anchor = GridBagConstraints.CENTER // center components
+
+		// The root name field
+		c.gridy = 0
+		add(rootNameField, c)
+
+		// The roots directory field
+		c.gridy = 1
+		add(rootsDirField, c)
+
+		// The library name field
+		c.gridy = 2
+		add(libraryNameField, c)
+
+		// The library picker
+		c.gridy = 3
+		add(libraryPicker, c)
+
+		// The import styles checkbox
+		c.gridy = 4
+		add(importStyles, c)
+
+		// The import templates checkbox
+		c.gridy = 5
+		add(importTemplates, c)
+
+		// Empty panel to push everything else to the top
+		val emptyPanel = JPanel()
+		c.gridy = 6
+		c.weighty = 1.0
+		c.fill = GridBagConstraints.BOTH
+		add(emptyPanel, c)
 	}
+
+
 }
