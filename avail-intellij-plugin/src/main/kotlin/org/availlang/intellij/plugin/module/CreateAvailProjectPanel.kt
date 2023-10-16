@@ -32,13 +32,14 @@
 
 package org.availlang.intellij.plugin.module
 
+import avail.anvil.components.ComboBoxWithLabel
 import avail.anvil.components.TextFieldWithLabel
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.availStandardLibraries
+import com.intellij.util.ui.JBUI
 import org.availlang.artifact.environment.project.*
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.Insets
 import java.io.File
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
@@ -120,9 +121,13 @@ class CreateAvailProjectPanel: JPanel(GridBagLayout())
 	/**
 	 * Updated the [JComboBox] used to pick a standard library to add as a root.
 	 */
-	private val libraryPicker = JComboBox(standardLibraryNames).apply {
-		addActionListener {
-			selectedItem?.toString()?.let { key ->
+	private val libraryPicker = ComboBoxWithLabel(
+		label = "Standard Library: ",
+		items = standardLibraryNames,
+		additionalComponents = arrayOf(importStyles, importTemplates)
+	).apply {
+		comboBox.addActionListener {
+			comboBox.selectedItem?.toString()?.let { key ->
 				standardLibraries[key]?.let { lib ->
 					selectedLibrary = lib
 					importTemplates.isEnabled = true
@@ -141,7 +146,7 @@ class CreateAvailProjectPanel: JPanel(GridBagLayout())
 	init
 	{
 		// Create some insets for padding around components
-		val padding = Insets(10, 10, 10, 10) // 10-pixel margins on all sides
+		val padding = JBUI.insets(10) // 10-pixel margins on all sides
 
 		val c = GridBagConstraints()
 		c.insets = padding // apply the insets to the constraints
@@ -168,17 +173,9 @@ class CreateAvailProjectPanel: JPanel(GridBagLayout())
 		c.gridy = 3
 		add(libraryPicker, c)
 
-		// The import styles checkbox
-		c.gridy = 4
-		add(importStyles, c)
-
-		// The import templates checkbox
-		c.gridy = 5
-		add(importTemplates, c)
-
 		// Empty panel to push everything else to the top
 		val emptyPanel = JPanel()
-		c.gridy = 6
+		c.gridy = 4
 		c.weighty = 1.0
 		c.fill = GridBagConstraints.BOTH
 		add(emptyPanel, c)

@@ -53,6 +53,12 @@ class AvailModuleWizardStep(builder: AvailModuleBuilder) : ModuleWizardStep()
 		}
 	}
 
+	/**
+	 * Given a Module and the [createProjectPanel] fields,
+	 * create the configuration for the module.
+	 *
+	 * @return The AvailProjectTemplate.Config object representing the configuration.
+	 */
 	private val Module.config get() =
 		createProjectPanel.let { panel ->
 			AvailProjectTemplate.Config(
@@ -68,6 +74,11 @@ class AvailModuleWizardStep(builder: AvailModuleBuilder) : ModuleWizardStep()
 			)
 		}
 
+	/**
+	 * Represents the panel used to create a new project.
+	 *
+	 * @property createProjectPanel The instance of the CreateAvailProjectPanel class used to display the create project form.
+	 */
 	private val createProjectPanel: CreateAvailProjectPanel =
 		CreateAvailProjectPanel()
 

@@ -22,6 +22,19 @@ import java.io.File
  */
 object AvailProjectTemplate {
 
+  /**
+   * Represents a configuration for an Avail software project.
+   *
+   * @property projectLocation The location of the project.
+   * @property fileName The name of the configuration file.
+   * @property rootsDir The directory where the project's root files are located.
+   * @property rootName The name of the project's root file.
+   * @property importStyles A flag indicating whether to import styles.
+   * @property importTemplates A flag indicating whether to import templates.
+   * @property libraryName The name of the library used in the project (optional).
+   * @property selectedLibrary The selected library file (optional).
+   * @property environmentSettings The global environment settings for the project.
+   */
   data class Config(
     val projectLocation: String,
     val fileName: String,
@@ -35,7 +48,9 @@ object AvailProjectTemplate {
   )
 
   /**
-   * Create the Avail project.
+   * Creates a new Avail project.
+   *
+   * @param config The configuration for the project.
    */
   @JvmStatic
   fun create (config: Config)
@@ -75,7 +90,8 @@ object AvailProjectTemplate {
   private fun AvailProjectV1.updateBackingProjectFile(
     projectFilePath: String,
     config: Config
-  ) {
+  )
+  {
     if (projectFilePath.isNotEmpty()) {
       // Update the backing project file.
       val writer = JSONWriter.newPrettyPrinterWriter()
@@ -88,7 +104,8 @@ object AvailProjectTemplate {
   private fun AvailProjectV1.configureAvailStdLib(
     config: Config,
     lib: File
-  ) {
+  )
+  {
     val libName = config.libraryName ?: AVAIL_STDLIB_ROOT_NAME
     val libConfigDir = AvailEnvironment.projectRootConfigPath(
       config.fileName, libName, config.projectLocation
@@ -97,10 +114,8 @@ object AvailProjectTemplate {
     val jar = AvailArtifactJar(lib.toURI())
 
     val rootManifest = jar.manifest.roots[AVAIL_STDLIB_ROOT_NAME]
-    var sg =
-      importStyles(config, jar)
-    var tg =
-      importTemplates(config, jar)
+    var sg = importStyles(config, jar)
+    var tg = importTemplates(config, jar)
     val extensions = mutableListOf<String>()
     var description = ""
     rootManifest?.let {
@@ -139,20 +154,24 @@ object AvailProjectTemplate {
   private fun importTemplates(
     config: Config,
     jar: AvailArtifactJar
-  ) = if (config.importTemplates) {
+  ) = if (config.importTemplates)
+  {
     jar.manifest.templatesFor(AVAIL_STDLIB_ROOT_NAME)
       ?: TemplateGroup()
-  } else {
+  } else
+  {
     TemplateGroup()
   }
 
   private fun importStyles(
     config: Config,
     jar: AvailArtifactJar
-  ) = if (config.importStyles) {
+  ) = if (config.importStyles)
+  {
     jar.manifest.stylesFor(AVAIL_STDLIB_ROOT_NAME)
       ?: StylingGroup()
-  } else {
+  } else
+  {
     StylingGroup()
   }
 
@@ -176,10 +195,8 @@ object AvailProjectTemplate {
     TemplateGroup()
   )
 
-  private fun rootsLocationDir(rootsDir: String, rootName: String) = if (rootsDir.isNotEmpty()) {
-    "$rootsDir/$rootName"
-  } else {
-    rootName
-  }
+  private fun rootsLocationDir(rootsDir: String, rootName: String) =
+    if (rootsDir.isNotEmpty()) "$rootsDir/$rootName"
+    else rootName
 
 }
