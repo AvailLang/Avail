@@ -87,6 +87,12 @@ object AvailProjectTemplate {
     }
   }
 
+  /**
+   * Updates the backing project file with the current AvailProjectV1 instance.
+   *
+   * @param projectFilePath The file path of the backing project file.
+   * @param config The configuration settings.
+   */
   private fun AvailProjectV1.updateBackingProjectFile(
     projectFilePath: String,
     config: Config
@@ -101,6 +107,12 @@ object AvailProjectTemplate {
     }
   }
 
+  /**
+   * Configures the Avail standard library for the given Avail project.
+   *
+   * @param config The configuration settings for the Avail project.
+   * @param lib The file representing the Avail standard library.
+   */
   private fun AvailProjectV1.configureAvailStdLib(
     config: Config,
     lib: File
@@ -151,6 +163,13 @@ object AvailProjectTemplate {
     addRoot(stdLib)
   }
 
+  /**
+   * Imports the templates from the given AvailArtifactJar and returns them as a TemplateGroup.
+   *
+   * @param config The configuration object that specifies whether to import templates.
+   * @param jar The AvailArtifactJar from which to import the templates.
+   * @return The imported templates as a TemplateGroup.
+   */
   private fun importTemplates(
     config: Config,
     jar: AvailArtifactJar
@@ -163,6 +182,13 @@ object AvailProjectTemplate {
     TemplateGroup()
   }
 
+  /**
+   * Imports the styles for the given Avail artifact jar.
+   *
+   * @param config The configuration object containing import options.
+   * @param jar The Avail artifact jar from which to import styles.
+   * @return The imported styling group if importStyles is enabled in the config object, otherwise an empty styling group.
+   */
   private fun importStyles(
     config: Config,
     jar: AvailArtifactJar
@@ -175,6 +201,15 @@ object AvailProjectTemplate {
     StylingGroup()
   }
 
+  /**
+   * Creates a new AvailProjectRoot object initialized with the provided parameters.
+   *
+   * @param rootConfigDir The root configuration directory.
+   * @param config The project configuration.
+   * @param rootName The root name.
+   * @param rootLocationDir The root location directory.
+   * @return The newly created AvailProjectRoot object.
+   */
   private fun availProjectRoot(
     rootConfigDir: String,
     config: Config,
@@ -195,6 +230,13 @@ object AvailProjectTemplate {
     TemplateGroup()
   )
 
+  /**
+   * Concatenates the given root directory and root name to form a new location directory.
+   *
+   * @param rootsDir The root directory string.
+   * @param rootName The root name string.
+   * @return The location directory string formed by concatenating rootsDir and rootName.
+   */
   private fun rootsLocationDir(rootsDir: String, rootName: String) =
     if (rootsDir.isNotEmpty()) "$rootsDir/$rootName"
     else rootName
