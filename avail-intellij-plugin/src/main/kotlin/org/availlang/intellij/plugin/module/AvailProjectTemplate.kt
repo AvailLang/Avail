@@ -20,20 +20,30 @@ import java.io.File
  * @author Raul Raja
  *
  */
-object AvailProjectTemplate {
+object AvailProjectTemplate
+{
 
   /**
    * Represents a configuration for an Avail software project.
    *
-   * @property projectLocation The location of the project.
-   * @property fileName The name of the configuration file.
-   * @property rootsDir The directory where the project's root files are located.
-   * @property rootName The name of the project's root file.
-   * @property importStyles A flag indicating whether to import styles.
-   * @property importTemplates A flag indicating whether to import templates.
-   * @property libraryName The name of the library used in the project (optional).
-   * @property selectedLibrary The selected library file (optional).
-   * @property environmentSettings The global environment settings for the project.
+   * @property projectLocation
+   *   The location of the project.
+   * @property fileName
+   *   The name of the configuration file.
+   * @property rootsDir
+   *   The directory where the project's root files are located.
+   * @property rootName
+   *   The name of the project's root file.
+   * @property importStyles
+   *   A flag indicating whether to import styles.
+   * @property importTemplates
+   *   A flag indicating whether to import templates.
+   * @property libraryName
+   *   The name of the library used in the project (optional).
+   * @property selectedLibrary
+   *   The selected library file (optional).
+   * @property environmentSettings
+   *  The global environment settings for the project.
    */
   data class Config(
     val projectLocation: String,
@@ -53,11 +63,14 @@ object AvailProjectTemplate {
    * @param config The configuration for the project.
    */
   @JvmStatic
-  fun create (config: Config)
+  fun create(config: Config)
   {
     val projectFilePath = "${config.projectLocation}/${config.fileName}.json"
     val configPath =
-      AvailEnvironment.projectConfigPath(config.fileName, config.projectLocation)
+      AvailEnvironment.projectConfigPath(
+        config.fileName,
+        config.projectLocation
+      )
     AvailProject.optionallyInitializeConfigDirectory(configPath)
     val localSettings = LocalSettings.from(File(configPath))
     AvailProjectV1(
@@ -75,8 +88,10 @@ object AvailProjectTemplate {
       val rootConfigDir = AvailEnvironment.projectRootConfigPath(
         config.fileName,
         rootName,
-        config.projectLocation)
-      val root = availProjectRoot(rootConfigDir, config, rootName, rootLocationDir)
+        config.projectLocation
+      )
+      val root =
+        availProjectRoot(rootConfigDir, config, rootName, rootLocationDir)
       addRoot(root)
       optionallyInitializeConfigDirectory(rootConfigDir)
       config.selectedLibrary?.let { lib ->
@@ -88,17 +103,21 @@ object AvailProjectTemplate {
   }
 
   /**
-   * Updates the backing project file with the current AvailProjectV1 instance.
+   * Updates the backing project file with the current [AvailProjectV1]
+   * instance.
    *
-   * @param projectFilePath The file path of the backing project file.
-   * @param config The configuration settings.
+   * @param projectFilePath
+   *   The file path of the backing project file.
+   * @param config
+   *   The [configuration][Config] settings.
    */
   private fun AvailProjectV1.updateBackingProjectFile(
     projectFilePath: String,
     config: Config
   )
   {
-    if (projectFilePath.isNotEmpty()) {
+    if (projectFilePath.isNotEmpty())
+    {
       // Update the backing project file.
       val writer = JSONWriter.newPrettyPrinterWriter()
       writeTo(writer)
@@ -110,8 +129,10 @@ object AvailProjectTemplate {
   /**
    * Configures the Avail standard library for the given Avail project.
    *
-   * @param config The configuration settings for the Avail project.
-   * @param lib The file representing the Avail standard library.
+   * @param config
+   *   The [configuration][Config] settings for the Avail project.
+   * @param lib
+   *   The file representing the Avail standard library.
    */
   private fun AvailProjectV1.configureAvailStdLib(
     config: Config,
@@ -164,11 +185,16 @@ object AvailProjectTemplate {
   }
 
   /**
-   * Imports the templates from the given AvailArtifactJar and returns them as a TemplateGroup.
+   * Imports the templates from the given [AvailArtifactJar] and returns them as
+   * a [TemplateGroup].
    *
-   * @param config The configuration object that specifies whether to import templates.
-   * @param jar The AvailArtifactJar from which to import the templates.
-   * @return The imported templates as a TemplateGroup.
+   * @param config
+   *   The [configuration][Config] object that specifies whether to import
+   *   templates.
+   * @param jar
+   *   The [AvailArtifactJar] from which to import the templates.
+   * @return
+   *   The imported templates as a [TemplateGroup].
    */
   private fun importTemplates(
     config: Config,
@@ -177,7 +203,8 @@ object AvailProjectTemplate {
   {
     jar.manifest.templatesFor(AVAIL_STDLIB_ROOT_NAME)
       ?: TemplateGroup()
-  } else
+  }
+  else
   {
     TemplateGroup()
   }
@@ -185,9 +212,13 @@ object AvailProjectTemplate {
   /**
    * Imports the styles for the given Avail artifact jar.
    *
-   * @param config The configuration object containing import options.
-   * @param jar The Avail artifact jar from which to import styles.
-   * @return The imported styling group if importStyles is enabled in the config object, otherwise an empty styling group.
+   * @param config
+   *   The [configuration][Config] object containing import options.
+   * @param jar
+   *   The Avail artifact jar from which to import styles.
+   * @return
+   *   The imported [styling group][StylingGroup] if importStyles is enabled in
+   *   the config object, otherwise an empty styling group.
    */
   private fun importStyles(
     config: Config,
@@ -196,19 +227,26 @@ object AvailProjectTemplate {
   {
     jar.manifest.stylesFor(AVAIL_STDLIB_ROOT_NAME)
       ?: StylingGroup()
-  } else
+  }
+  else
   {
     StylingGroup()
   }
 
   /**
-   * Creates a new AvailProjectRoot object initialized with the provided parameters.
+   * Creates a new [AvailProjectRoot] object initialized with the provided
+   * parameters.
    *
-   * @param rootConfigDir The root configuration directory.
-   * @param config The project configuration.
-   * @param rootName The root name.
-   * @param rootLocationDir The root location directory.
-   * @return The newly created AvailProjectRoot object.
+   * @param rootConfigDir
+   *   The root configuration directory.
+   * @param config
+   *   The project [configuration][Config].
+   * @param rootName
+   *   The [root name][AvailProjectRoot.name].
+   * @param rootLocationDir
+   *   The [root location directory][AvailProjectRoot.location].
+   * @return
+   *   The newly created [AvailProjectRoot] object.
    */
   private fun availProjectRoot(
     rootConfigDir: String,
