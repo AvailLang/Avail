@@ -91,19 +91,21 @@ class CreateAvailProjectPanel : JPanel(GridBagLayout())
 	 * A checkbox to whether or not [StylingGroup] should be imported from the
 	 * Avail Standard library.
 	 */
-	internal val importStyles = JCheckBox("Import Styles", false).apply {
-		isEnabled = false
-		toolTipText = "Imports styles packaged with standard library"
-	}
+	internal val importStyles =
+		JCheckBox("Import Styles", false).apply {
+			isEnabled = false
+			toolTipText = "Imports styles packaged with standard library"
+		}
 
 	/**
 	 * A checkbox to whether or not [TemplateGroup] should be imported from the
 	 * Avail Standard library.
 	 */
-	internal val importTemplates = JCheckBox("Import Templates", false).apply {
-		isEnabled = false
-		toolTipText = "Imports templates packaged with standard library"
-	}
+	internal val importTemplates =
+		JCheckBox("Import Templates", false).apply {
+			isEnabled = false
+			toolTipText = "Imports templates packaged with standard library"
+		}
 
 	/**
 	 * The [TextFieldWithLabel] used to set the standard library root name.

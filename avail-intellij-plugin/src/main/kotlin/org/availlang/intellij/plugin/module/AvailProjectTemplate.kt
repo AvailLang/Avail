@@ -223,8 +223,8 @@ object AvailProjectTemplate
 	 * @param jar
 	 *   The Avail artifact jar from which to import styles.
 	 * @return
-	 *   The imported [styling group][StylingGroup] if importStyles is enabled in
-	 *   the config object, otherwise an empty styling group.
+	 *   The imported [styling group][StylingGroup] if importStyles is enabled
+	 *   in the config object, otherwise an empty styling group.
 	 */
 	private fun importStyles(
 		config: Config,

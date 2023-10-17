@@ -67,7 +67,8 @@ class AvailModuleWizardStep(builder: AvailModuleBuilder) : ModuleWizardStep()
 		get() =
 			createProjectPanel.let { panel ->
 				AvailProjectTemplate.Config(
-					projectLocation = moduleFilePath.substringBeforeLast("/"),
+					projectLocation = moduleFilePath
+						.substringBeforeLast("/"),
 					fileName = name,
 					rootsDir = panel.rootsDirField.input.ifEmpty { "roots" },
 					rootName = panel.rootNameField.input.ifEmpty { name },

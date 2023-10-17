@@ -56,7 +56,8 @@ class ComboWithLabel<SelectionType> constructor(
 	val options: Array<SelectionType>,
 	emptySpaceRight: Double? = null,
 	emptySpaceLeft: Double? = null,
-	panelBorder: Border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+	panelBorder: Border =
+		BorderFactory.createEmptyBorder(10, 10, 10, 10)
 ) : JPanel(GridBagLayout())
 {
 	/**
