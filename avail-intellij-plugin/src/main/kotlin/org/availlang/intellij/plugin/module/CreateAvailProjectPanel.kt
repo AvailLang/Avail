@@ -50,14 +50,7 @@ import javax.swing.JPanel
  *
  * Adapted to IDEA from [avail.anvil.manager.CreateProjectPanel]
  *
- * @author Raul Raja
- *
- * @property config
- *   The [GlobalEnvironmentSettings] for this machine.
- * @property onCreate
- *   The function that accepts the newly created [AvailProject].
- * @property onCancel
- *   The function to call if creating a new project is canceled.
+ * @author Raúl Raja
  */
 class CreateAvailProjectPanel : JPanel(GridBagLayout())
 {

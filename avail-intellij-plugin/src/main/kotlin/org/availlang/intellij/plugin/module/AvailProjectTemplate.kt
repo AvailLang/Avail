@@ -275,7 +275,7 @@ object AvailProjectTemplate
    * @param rootName The root name string.
    * @return The location directory string formed by concatenating rootsDir and rootName.
    */
-  private fun rootsLocationDir(rootsDir: String, rootName: String) =
+  private fun rootsLocationDir(rootsDir: String, rootName: String): String =
     if (rootsDir.isNotEmpty()) "$rootsDir/$rootName"
     else rootName
 
