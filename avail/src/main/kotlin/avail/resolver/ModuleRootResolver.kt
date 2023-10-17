@@ -36,7 +36,6 @@ import avail.AvailThread
 import avail.anvil.AvailWorkbench
 import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
-import avail.builder.ModuleNameResolver.Companion.availExtension
 import avail.builder.ModuleNameResolver.ModuleNameResolutionResult
 import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
@@ -90,6 +89,9 @@ import java.util.UUID
  *   The [URI] that identifies the location of the [ModuleRoot].
  * @property fileManager
  *   The [FileManager] used for pooling I/O requests for this root.
+ * @property availFileExtensions
+ *   The set of Avail file extensions that represent an Avail module for the
+ *   associated [ModuleRoot].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -97,7 +99,8 @@ abstract class ModuleRootResolver
 constructor(
 	val name: String,
 	val uri: URI,
-	val fileManager: FileManager)
+	val fileManager: FileManager,
+	val availFileExtensions: Set<String>)
 {
 	/**
 	 * Answer whether data can be written to modules under this resolver.  Note
@@ -139,6 +142,35 @@ constructor(
 	 * The full [ModuleRoot] tree if available; or `null` if not yet set.
 	 */
 	internal var moduleRootTree: ResolverReference? = null
+
+	/**
+	 * Answers whether the provided file is consider an Avail module/package
+	 * representative in the associated [ModuleRoot].
+	 *
+	 * @param fileName
+	 *   The name of the file to check to see if it is an Avail module.
+	 * @return
+	 *   `true` if the provided file is consider an Avail module/package
+	 *   representative in the associated [ModuleRoot]; `false` otherwise.
+	 */
+	protected fun hasAvailModuleFileExtension(fileName: String): Boolean=
+		availFileExtensions.any {
+			fileName.endsWith(it)
+		}
+
+	/**
+	 * Answers Avail file extension used by the given file or an empty string
+	 * if none match.
+	 *
+	 * @param fileName
+	 *   The name of the file to get the Avail file extension for.
+	 * @return
+	 *   The Avail file extension or an empty string if not an extension.
+	 */
+	protected fun availModuleFileExtension(fileName: String): String =
+		availFileExtensions.firstOrNull {
+			fileName.endsWith(it)
+		} ?: ""
 
 	/**
 	 * Answer all the [ResolverReference]s known by this [ModuleRootResolver]
@@ -361,7 +393,8 @@ constructor(
 		withReference: (ResolverReference)->Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
-		val qname = qualifiedName.replace(availExtension, "")
+		val extension = availModuleFileExtension(qualifiedName)
+		val qname = qualifiedName.replace(extension, "")
 		referenceMap[qname]?.let { reference ->
 			return withReference(reference)
 		}
@@ -613,7 +646,8 @@ constructor(
 			"$targetURI is not in ModuleRoot, $moduleRoot"
 		}
 		val relative = targetURI.split(uriPath)[1]
-		val cleansedRelative = relative.replace(availExtension, "")
+		val extension = availModuleFileExtension(relative)
+		val cleansedRelative = relative.replace(extension, "")
 		return "/${moduleRoot.name}" +
 			(if (relative.startsWith("/")) "" else "/") +
 			cleansedRelative

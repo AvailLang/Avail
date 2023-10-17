@@ -57,6 +57,9 @@ interface ModuleRootResolverFactory
 	 * @param fileManager
 	 *   The [FileManager] used to manage the files accessed via the
 	 *   [ModuleRootResolver].
+	 * @param availFileExtensions
+	 *   The set of Avail file extensions that represent an Avail module for the
+	 *   associated [ModuleRoot].
 	 * @return
 	 *   The [ModuleRootResolver] that is linked to the [URI] of the
 	 *   [ModuleRoot].
@@ -64,7 +67,8 @@ interface ModuleRootResolverFactory
 	fun resolver (
 		name: String,
 		uri: URI,
-		fileManager: FileManager
+		fileManager: FileManager,
+		availFileExtensions: Set<String>
 	): ModuleRootResolver
 
 	/**

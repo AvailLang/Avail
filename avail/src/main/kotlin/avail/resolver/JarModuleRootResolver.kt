@@ -70,13 +70,17 @@ import kotlin.concurrent.withLock
  * @param fileManager
  *   The [FileManager] used to manage the files accessed via this
  *   [JarModuleRootResolver].
+ * @param availFileExtensions
+ *   The set of Avail file extensions that represent an Avail module for the
+ *   associated [ModuleRoot].
  */
 class JarModuleRootResolver
 constructor(
 	name: String,
 	uri: URI,
-	fileManager: FileManager
-) : ModuleRootResolver(name, uri, fileManager)
+	fileManager: FileManager,
+	availFileExtensions: Set<String>
+) : ModuleRootResolver(name, uri, fileManager, availFileExtensions)
 {
 	override val canSave: Boolean get() = false
 

@@ -3433,10 +3433,17 @@ class AvailWorkbench internal constructor(
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()
 			val semaphore = Semaphore(0)
-			val roots = ModuleRoots(fileManager, rootsString) { fails ->
-				failedResolutions.addAll(fails)
-				semaphore.release()
+			// TODO RAA - add function to AvailProjectRoot that prepends the
+			//  "." if not present on the file extension. This will cause
+			//  a need to publish update `avail-artifact`.
+			val extensions = project.availProjectRoots.associate { apr ->
+				apr.name to apr.availModuleExtensions.map { ".$it" }.toSet()
 			}
+			val roots =
+				ModuleRoots(fileManager, rootsString, extensions) { fails ->
+					failedResolutions.addAll(fails)
+					semaphore.release()
+				}
 			semaphore.acquireUninterruptibly()
 			val resolutionTime = currentTimeMillis() - rootResolutionStart
 			lateinit var resolver: ModuleNameResolver

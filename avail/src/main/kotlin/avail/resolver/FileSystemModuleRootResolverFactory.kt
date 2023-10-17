@@ -49,8 +49,11 @@ object FileSystemModuleRootResolverFactory: ModuleRootResolverFactory
 	override fun resolver(
 		name: String,
 		uri: URI,
-		fileManager: FileManager
-	): ModuleRootResolver = FileSystemModuleRootResolver(name, uri, fileManager)
+		fileManager: FileManager,
+		availFileExtensions: Set<String>
+	): ModuleRootResolver =
+		FileSystemModuleRootResolver(
+			name, uri, fileManager, availFileExtensions)
 
 	override val scheme: String = "file"
 }
