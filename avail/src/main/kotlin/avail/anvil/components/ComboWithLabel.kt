@@ -56,8 +56,8 @@ class ComboWithLabel<SelectionType> constructor(
 	val options: Array<SelectionType>,
 	emptySpaceRight: Double? = null,
 	emptySpaceLeft: Double? = null,
-	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
-): JPanel(GridBagLayout())
+	panelBorder: Border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+) : JPanel(GridBagLayout())
 {
 	/**
 	 * The next column for the layout.
@@ -82,14 +82,14 @@ class ComboWithLabel<SelectionType> constructor(
 	 * The [JLabel] to the left of the [JTextField].
 	 */
 	val label = JLabel(label).apply {
-			this@ComboWithLabel.add(
-				this,
-				GridBagConstraints().apply {
-					gridx = nextColumn++
-					gridy = 0
-					gridwidth = 1
-				})
-		}
+		this@ComboWithLabel.add(
+			this,
+			GridBagConstraints().apply {
+				gridx = nextColumn++
+				gridy = 0
+				gridwidth = 1
+			})
+	}
 
 	val combo = JComboBox(options).apply {
 		this@ComboWithLabel.add(
@@ -111,8 +111,9 @@ class ComboWithLabel<SelectionType> constructor(
 	 *   The [JComboBox] action called from [combo] that accepts the
 	 *   [ActionEvent] that has occurred.
 	 */
-	fun addComboActionListener (
-		action: JComboBox<SelectionType>.(ActionEvent) -> Unit)
+	fun addComboActionListener(
+		action: JComboBox<SelectionType>.(ActionEvent) -> Unit
+	)
 	{
 		combo.addActionListener {
 			combo.action(it)

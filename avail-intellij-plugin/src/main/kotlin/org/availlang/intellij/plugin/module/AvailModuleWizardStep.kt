@@ -50,49 +50,49 @@ import javax.swing.JComponent
 class AvailModuleWizardStep(builder: AvailModuleBuilder) : ModuleWizardStep()
 {
 
-  init
-  {
-    // this listener is called after you choose a location and a name
-    // even though we ask for the Avail module roots and config first
-    builder.addListener { module ->
-      AvailProjectTemplate.create(module.config)
-    }
-  }
+	init
+	{
+		// this listener is called after you choose a location and a name
+		// even though we ask for the Avail module roots and config first
+		builder.addListener { module ->
+			AvailProjectTemplate.create(module.config)
+		}
+	}
 
-  /**
-   * Given a Module and the [createProjectPanel] fields, create the
-   * [AvailProjectTemplate.Config] for the project to be created.
-   */
-  private val Module.config
-    get() =
-      createProjectPanel.let { panel ->
-        AvailProjectTemplate.Config(
-          projectLocation = moduleFilePath.substringBeforeLast("/"),
-          fileName = name,
-          rootsDir = panel.rootsDirField.input.ifEmpty { "roots" },
-          rootName = panel.rootNameField.input.ifEmpty { name },
-          importStyles = panel.importStyles.isSelected,
-          importTemplates = panel.importTemplates.isSelected,
-          libraryName = panel.libraryNameField.input.ifEmpty { null },
-          selectedLibrary = panel.selectedLibrary,
-          environmentSettings = GlobalEnvironmentSettingsV1()
-        )
-      }
+	/**
+	 * Given a Module and the [createProjectPanel] fields, create the
+	 * [AvailProjectTemplate.Config] for the project to be created.
+	 */
+	private val Module.config
+		get() =
+			createProjectPanel.let { panel ->
+				AvailProjectTemplate.Config(
+					projectLocation = moduleFilePath.substringBeforeLast("/"),
+					fileName = name,
+					rootsDir = panel.rootsDirField.input.ifEmpty { "roots" },
+					rootName = panel.rootNameField.input.ifEmpty { name },
+					importStyles = panel.importStyles.isSelected,
+					importTemplates = panel.importTemplates.isSelected,
+					libraryName = panel.libraryNameField.input.ifEmpty { null },
+					selectedLibrary = panel.selectedLibrary,
+					environmentSettings = GlobalEnvironmentSettingsV1()
+				)
+			}
 
-  /**
-   * Represents the panel used to create a new project.
-   *
-   * @property createProjectPanel
-   *   The instance of the CreateAvailProjectPanel class used to display the
-   *   create project form.
-   */
-  private val createProjectPanel: CreateAvailProjectPanel =
-    CreateAvailProjectPanel()
+	/**
+	 * Represents the panel used to create a new project.
+	 *
+	 * @property createProjectPanel
+	 *   The instance of the CreateAvailProjectPanel class used to display the
+	 *   create project form.
+	 */
+	private val createProjectPanel: CreateAvailProjectPanel =
+		CreateAvailProjectPanel()
 
-  override fun getComponent(): JComponent =
-    createProjectPanel
+	override fun getComponent(): JComponent =
+		createProjectPanel
 
-  override fun updateDataModel()
-  {
-  }
+	override fun updateDataModel()
+	{
+	}
 }
