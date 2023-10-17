@@ -269,11 +269,16 @@ object AvailProjectTemplate
   )
 
   /**
-   * Concatenates the given root directory and root name to form a new location directory.
+   * Concatenates the given root directory and root name to form a new
+   * location directory.
    *
-   * @param rootsDir The root directory string.
-   * @param rootName The root name string.
-   * @return The location directory string formed by concatenating rootsDir and rootName.
+   * @param rootsDir
+   *   The root directory string.
+   * @param rootName
+   *   The root name string.
+   * @return
+   *   The location directory string formed by concatenating rootsDir and
+   *   rootName.
    */
   private fun rootsLocationDir(rootsDir: String, rootName: String): String =
     if (rootsDir.isNotEmpty()) "$rootsDir/$rootName"
