@@ -150,10 +150,10 @@ constructor(
 	 * @param fileName
 	 *   The name of the file to check to see if it is an Avail module.
 	 * @return
-	 *   `true` if the provided file is consider an Avail module/package
+	 *   `true` if the provided file is considered an Avail module/package
 	 *   representative in the associated [ModuleRoot]; `false` otherwise.
 	 */
-	protected fun hasAvailModuleFileExtension(fileName: String): Boolean=
+	protected fun hasAvailModuleFileExtension(fileName: String): Boolean =
 		availFileExtensions.any {
 			fileName.endsWith(it)
 		}
@@ -394,7 +394,7 @@ constructor(
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
 		val extension = availModuleFileExtension(qualifiedName)
-		val qname = qualifiedName.replace(extension, "")
+		val qname = qualifiedName.removeSuffix(extension)
 		referenceMap[qname]?.let { reference ->
 			return withReference(reference)
 		}
@@ -647,7 +647,7 @@ constructor(
 		}
 		val relative = targetURI.split(uriPath)[1]
 		val extension = availModuleFileExtension(relative)
-		val cleansedRelative = relative.replace(extension, "")
+		val cleansedRelative = relative.removeSuffix(extension)
 		return "/${moduleRoot.name}" +
 			(if (relative.startsWith("/")) "" else "/") +
 			cleansedRelative
