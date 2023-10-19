@@ -1,5 +1,5 @@
 /*
- * ComboWithLabel.kt
+ * ComboBoxWithLabel.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,38 +35,43 @@ package avail.anvil.components
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
-import java.awt.event.ActionEvent
-import java.awt.event.ActionListener
-import javax.swing.BorderFactory
-import javax.swing.Box
-import javax.swing.JComboBox
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTextField
+import java.awt.Insets
+import javax.swing.*
 import javax.swing.border.Border
 
 /**
  * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left of a
- * [JTextField].
+ * [JComboBox].
  *
- * @author Richard Arriaga
+ * @param label
+ *   The text for the [JLabel] to the left of the [JComboBox].
+ * @param items
+ *   The items to be displayed in the [JComboBox].
+ * @param additionalComponents
+ *   Additional components to be added to the bottom of the [JComboBox].
+ * @param emptySpaceRight
+ *   Optional space to the right of the [JComboBox].
+ * @param emptySpaceLeft
+ *   Optional space to the left of the [JLabel].
+ * @param panelBorder
+ *   The border surrounding the [JPanel].
  */
-class ComboWithLabel<SelectionType> constructor(
+class ComboBoxWithLabel<T>(
 	label: String,
-	val options: Array<SelectionType>,
+	items: Array<T>,
+	additionalComponents: Array<JComponent> = emptyArray(),
 	emptySpaceRight: Double? = null,
 	emptySpaceLeft: Double? = null,
-	panelBorder: Border =
-		BorderFactory.createEmptyBorder(10, 10, 10, 10)
-) : JPanel(GridBagLayout())
+	panelBorder: Border = BorderFactory.createEmptyBorder(10,10,10,10)
+): JPanel(GridBagLayout())
 {
+
 	/**
 	 * The next column for the layout.
 	 */
 	private var nextColumn = 0
 
-	init
-	{
+	init {
 		emptySpaceLeft?.let {
 			add(
 				Box.createRigidArea(Dimension(1, 1)),
@@ -80,10 +85,10 @@ class ComboWithLabel<SelectionType> constructor(
 	}
 
 	/**
-	 * The [JLabel] to the left of the [JTextField].
+	 * The [JLabel] to the left of the [JComboBox].
 	 */
 	val label = JLabel(label).apply {
-		this@ComboWithLabel.add(
+		this@ComboBoxWithLabel.add(
 			this,
 			GridBagConstraints().apply {
 				gridx = nextColumn++
@@ -92,8 +97,11 @@ class ComboWithLabel<SelectionType> constructor(
 			})
 	}
 
-	val combo = JComboBox(options).apply {
-		this@ComboWithLabel.add(
+	/**
+	 * The [JComboBox] that displays the selectable items.
+	 */
+	val comboBox: JComboBox<T> = JComboBox(items).apply {
+		this@ComboBoxWithLabel.add(
 			this,
 			GridBagConstraints().apply {
 				weightx = 0.75
@@ -103,26 +111,24 @@ class ComboWithLabel<SelectionType> constructor(
 				gridy = 0
 				gridwidth = 1
 			})
-	}
-
-	/**
-	 * Add an [ActionListener] to the [combo].
-	 *
-	 * @param action
-	 *   The [JComboBox] action called from [combo] that accepts the
-	 *   [ActionEvent] that has occurred.
-	 */
-	fun addComboActionListener(
-		action: JComboBox<SelectionType>.(ActionEvent) -> Unit
-	)
-	{
-		combo.addActionListener {
-			combo.action(it)
+		additionalComponents.forEachIndexed { index, component ->
+			this@ComboBoxWithLabel.add(
+				component,
+				GridBagConstraints().apply {
+					weightx = 0.75
+					weighty = 0.0
+					fill = GridBagConstraints.HORIZONTAL
+					gridx = 0  // Align with the start of the combo box
+					gridy = index + 1  // Position under the combo box
+					gridwidth = 2  // Span across both label and combo box
+					// Add some top margin for better spacing
+					insets = Insets(10, 0, 0, 0)
+				})
 		}
 	}
 
-	init
-	{
+
+	init {
 		emptySpaceRight?.let {
 			add(
 				Box.createRigidArea(Dimension(1, 1)),
