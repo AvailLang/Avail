@@ -43,12 +43,18 @@ import javax.swing.border.Border
  * A [JPanel] with a [GridBagLayout] that places a [JLabel] to the left of a
  * [JComboBox].
  *
- * @param label The text for the [JLabel] to the left of the [JComboBox].
- * @param items The items to be displayed in the [JComboBox].
- * @param additionalComponents Additional components to be added to the bottom of the [JComboBox].
- * @param emptySpaceRight Optional space to the right of the [JComboBox].
- * @param emptySpaceLeft Optional space to the left of the [JLabel].
- * @param panelBorder The border surrounding the [JPanel].
+ * @param label
+ *   The text for the [JLabel] to the left of the [JComboBox].
+ * @param items
+ *   The items to be displayed in the [JComboBox].
+ * @param additionalComponents
+ *   Additional components to be added to the bottom of the [JComboBox].
+ * @param emptySpaceRight
+ *   Optional space to the right of the [JComboBox].
+ * @param emptySpaceLeft
+ *   Optional space to the left of the [JLabel].
+ * @param panelBorder
+ *   The border surrounding the [JPanel].
  */
 class ComboBoxWithLabel<T>(
 	label: String,
@@ -115,7 +121,8 @@ class ComboBoxWithLabel<T>(
 					gridx = 0  // Align with the start of the combo box
 					gridy = index + 1  // Position under the combo box
 					gridwidth = 2  // Span across both label and combo box
-					insets = Insets(10, 0, 0, 0)  // Add some top margin for better spacing
+					// Add some top margin for better spacing
+					insets = Insets(10, 0, 0, 0)
 				})
 		}
 	}

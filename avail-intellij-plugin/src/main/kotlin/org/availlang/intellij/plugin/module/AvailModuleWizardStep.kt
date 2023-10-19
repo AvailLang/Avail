@@ -40,6 +40,7 @@ import javax.swing.JComponent
  * The [ModuleWizardStep] used to set up a new Avail project.
  *
  * @author Richard Arriaga
+ * @author Raúl Raja
  *
  * @constructor
  * Construct an [AvailModuleWizardStep].
