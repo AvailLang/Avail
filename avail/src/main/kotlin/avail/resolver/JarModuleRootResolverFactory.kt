@@ -44,13 +44,15 @@ import java.net.URI
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object JarModuleRootResolverFactory: ModuleRootResolverFactory
-{
+object JarModuleRootResolverFactory : ModuleRootResolverFactory {
 	override fun resolver(
 		name: String,
 		uri: URI,
-		fileManager: FileManager
-	) = JarModuleRootResolver(name, uri, fileManager)
+		fileManager: FileManager,
+		availFileExtensions: Set<String>
+	) = JarModuleRootResolver(
+		name, uri, fileManager, availFileExtensions
+	)
 
 	override val scheme: String = "jar"
 }

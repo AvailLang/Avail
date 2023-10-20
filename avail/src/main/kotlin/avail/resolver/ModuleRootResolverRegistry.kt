@@ -79,6 +79,9 @@ object ModuleRootResolverRegistry
 	 * @param fileManager
 	 *   The [FileManager] used to manage the files accessed via the
 	 *   [ModuleRootResolver].
+	 * @param availFileExtensions
+	 *   The set of Avail file extensions that represent an Avail module for the
+	 *   associated [ModuleRoot].
 	 * @return
 	 *   The constructed [ModuleRootResolver].
 	 * @throws UnsupportedOperationException
@@ -88,7 +91,9 @@ object ModuleRootResolverRegistry
 	fun createResolver (
 		name: String,
 		uri: URI,
-		fileManager: FileManager): ModuleRootResolver
+		fileManager: FileManager,
+		availFileExtensions: Set<String>
+	): ModuleRootResolver
 	{
 		val lookup = when (uri.scheme)
 		{
@@ -102,7 +107,7 @@ object ModuleRootResolverRegistry
 				"URI scheme, ${uri.scheme}, does not have a registered " +
 					"ModuleRootResolverFactory.")
 		}
-		return factory.resolver(name, lookup, fileManager)
+		return factory.resolver(name, lookup, fileManager, availFileExtensions)
 	}
 
 	init

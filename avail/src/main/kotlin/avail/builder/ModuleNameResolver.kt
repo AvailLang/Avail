@@ -385,26 +385,6 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		 * The standard extension for Avail [module][ModuleDescriptor] source
 		 * files.
 		 */
-		const val availExtension = ".avail"
-
-		/**
-		 * The Avail module extension, with a slash appended, the way that we
-		 * expect to find directory names in a Jar file containing Avail source.
-		 */
-		const val availExtensionWithSlash = "$availExtension/"
-
-		/**
-		 * Trivially translate the specified package name and local module name
-		 * into a filename.
-		 *
-		 * @param packageName
-		 *   A package name.
-		 * @param localName
-		 *   A local module name.
-		 * @return
-		 *   A filename that specifies the module within the package.
-		 */
-		internal fun filenameFor(packageName: String, localName: String) =
-			"$packageName/$localName$availExtension"
+		const val defaultAvailExtension = ".avail"
 	}
 }

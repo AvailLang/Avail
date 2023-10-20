@@ -41,6 +41,7 @@ import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry.createResolver
 import avail.resolver.ResolverReference
 import avail.utility.parallelDoThen
+import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.json.JSONWriter
 import java.net.URI
 import java.util.Collections.singletonList
@@ -96,7 +97,9 @@ import kotlin.concurrent.withLock
 class ModuleRoots constructor(
 	val fileManager: FileManager,
 	modulePath: String,
-	withFailures: (List<String>) -> Unit) : Iterable<ModuleRoot>
+	extensionsByRoot: Map<String, Set<String>> = mapOf(),
+	withFailures: (List<String>) -> Unit,
+) : Iterable<ModuleRoot>
 {
 	/** A lock for accessing the rootMap. */
 	private val lock = ReentrantLock()
@@ -132,6 +135,7 @@ class ModuleRoots constructor(
 	 */
 	private fun parseAvailModulePathThen(
 		modulePath: String,
+		extensionsByRoot: Map<String, Set<String>>,
 		withFailures: (List<String>) -> Unit)
 	{
 		clearRoots()
@@ -148,7 +152,9 @@ class ModuleRoots constructor(
 					"Bad module root location setting: $component"
 				}
 				val (rootName, location) = binding
-				addRoot(rootName, location) { newFailures ->
+				val extensions = extensionsByRoot[rootName] ?:
+					setOf(ModuleNameResolver.defaultAvailExtension)
+				addRoot(rootName, location, extensions) { newFailures ->
 					failures.addAll(newFailures)
 					after()
 				}
@@ -164,6 +170,9 @@ class ModuleRoots constructor(
 	 * @param location
 	 *   The [String] representation of the [URI] for the base of the new
 	 *   [ModuleRoot].
+	 * @param availFileExtensions
+	 *   The [AvailProjectRoot.availModuleExtensions] used for the root being
+	 *   added.
 	 * @param withFailures
 	 *   What to invoke, with a [List] of new failure report strings, after the
 	 *   root has been added and scanned.
@@ -171,6 +180,7 @@ class ModuleRoots constructor(
 	fun addRoot(
 		rootName: String,
 		location: String,
+		availFileExtensions: Set<String>,
 		withFailures: (List<String>) -> Unit)
 	{
 		if (location.isEmpty())
@@ -181,7 +191,8 @@ class ModuleRoots constructor(
 			return
 		}
 		val rootUri =  URI(location.replace("\\", "/"))
-		val resolver = createResolver(rootName, rootUri, fileManager)
+		val resolver = createResolver(
+			rootName, rootUri, fileManager, availFileExtensions)
 		resolver.resolve(
 			successHandler = {
 				lock.withLock {
@@ -276,7 +287,7 @@ class ModuleRoots constructor(
 
 	init
 	{
-		parseAvailModulePathThen(modulePath, withFailures)
+		parseAvailModulePathThen(modulePath, extensionsByRoot, withFailures)
 	}
 
 	/**

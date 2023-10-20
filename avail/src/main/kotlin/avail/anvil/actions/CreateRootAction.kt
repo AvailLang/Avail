@@ -157,7 +157,8 @@ constructor (
 		val moduleRoots = workbench.runtime.moduleRoots()
 		moduleRoots.addRoot(
 			newProjectRoot.name,
-			location.fullPath
+			location.fullPath,
+			extensions.toSet()
 		) { allFailures ->
 			SwingUtilities.invokeLater {
 				// Alert the user about the tracing failures.

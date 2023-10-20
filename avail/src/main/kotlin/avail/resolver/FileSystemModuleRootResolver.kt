@@ -33,7 +33,6 @@
 package avail.resolver
 
 import avail.AvailRuntime
-import avail.builder.ModuleNameResolver.Companion.availExtension
 import avail.builder.ModuleRoot
 import avail.builder.ModuleRootErrorCode
 import avail.builder.ModuleRoots
@@ -101,13 +100,17 @@ import kotlin.io.path.moveTo
  * @param fileManager
  *   The [FileManager] used to manage the files accessed via this
  *   [FileSystemModuleRootResolver].
+ * @param availFileExtensions
+ *   The set of Avail file extensions that represent an Avail module for the
+ *   associated [ModuleRoot].
  */
 @Suppress("RemoveRedundantQualifierName")
 class FileSystemModuleRootResolver constructor(
 	name: String,
 	uri: URI,
-	fileManager: FileManager
-) : ModuleRootResolver(name, uri, fileManager)
+	fileManager: FileManager,
+	availFileExtensions: Set<String>
+) : ModuleRootResolver(name, uri, fileManager, availFileExtensions)
 {
 	override val canSave: Boolean get() = true
 
@@ -198,7 +201,8 @@ class FileSystemModuleRootResolver constructor(
 			file.extension == "avail" -> "text/plain"  // For performance.
 			else -> AvailFile.mimeType(path)
 		}
-		val qname = qualifiedName.replace(availExtension, "")
+		val extension = availModuleFileExtension(qualifiedName)
+		val qname = qualifiedName.replace(extension, "")
 		return ResolverReference(
 			this,
 			path.toUri(),
@@ -220,7 +224,7 @@ class FileSystemModuleRootResolver constructor(
 	private fun determineResourceType (file: File): ResourceType
 	{
 		val fileName = file.absolutePath
-		val endsWithExtension = fileName.endsWith(availExtension)
+		val endsWithExtension = hasAvailModuleFileExtension(fileName)
 		val isDirectory = file.isDirectory
 		return when
 		{
@@ -648,9 +652,10 @@ class FileSystemModuleRootResolver constructor(
 				// The directory is not a root. If it has an Avail
 				// extension, then it is a package.
 				val fileName = dir.fileName.toString()
-				if (fileName.endsWith(availExtension))
+				val extension = availModuleFileExtension(fileName)
+				if (extension.isNotBlank())
 				{
-					val localName = fileName.removeSuffix(availExtension)
+					val localName = fileName.removeSuffix(extension)
 					val qualifiedName = "${parent.qualifiedName}/$localName"
 					var dirURI = dir.toUri()
 					if (dirURI.scheme === null)
@@ -721,10 +726,11 @@ class FileSystemModuleRootResolver constructor(
 
 				// A file with an Avail extension is an Avail module.
 				val parent = stack.peekFirst()!!
-				if (fileName.endsWith(availExtension))
+				val extension = availModuleFileExtension(fileName)
+				if (extension.isNotBlank())
 				{
 					val localName = fileName.substring(
-						0, fileName.length - availExtension.length)
+						0, fileName.length - extension.length)
 					val type =
 						if (parent.isPackage && parent.localName == localName)
 							ResourceType.REPRESENTATIVE
