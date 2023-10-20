@@ -1426,7 +1426,7 @@ class AvailWorkbench internal constructor(
 					?: return@walkChildrenThen
 				when (it.type)
 				{
-					ResourceType.MODULE ->
+					ResourceType.Module ->
 					{
 						try
 						{
@@ -1445,7 +1445,7 @@ class AvailWorkbench internal constructor(
 							throw RuntimeException(e)
 						}
 					}
-					ResourceType.PACKAGE ->
+					ResourceType.Package ->
 					{
 						val moduleName = it.moduleName
 						val resolved: ResolvedModuleName
@@ -1472,12 +1472,12 @@ class AvailWorkbench internal constructor(
 						}
 						parentMap[it.qualifiedName] = node
 					}
-					ResourceType.DIRECTORY ->
+					ResourceType.Directory ->
 					{
 						val node = ResourceDirNode(this, it)
 						parentNode.add(node)
 					}
-					ResourceType.RESOURCE ->
+					ResourceType.Resource ->
 					{
 						parentNode.add(ResourceNode(this, it))
 					}

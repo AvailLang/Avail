@@ -51,12 +51,12 @@ import io.methvin.watcher.DirectoryChangeEvent.EventType
 import io.methvin.watcher.DirectoryWatcher
 import io.methvin.watcher.hashing.FileHasher
 import org.availlang.artifact.ResourceType
-import org.availlang.artifact.ResourceType.DIRECTORY
-import org.availlang.artifact.ResourceType.MODULE
-import org.availlang.artifact.ResourceType.PACKAGE
-import org.availlang.artifact.ResourceType.REPRESENTATIVE
-import org.availlang.artifact.ResourceType.RESOURCE
-import org.availlang.artifact.ResourceType.ROOT
+import org.availlang.artifact.ResourceType.Directory
+import org.availlang.artifact.ResourceType.Module
+import org.availlang.artifact.ResourceType.Package
+import org.availlang.artifact.ResourceType.Representative
+import org.availlang.artifact.ResourceType.Resource
+import org.availlang.artifact.ResourceType.Root
 import org.slf4j.helpers.NOPLogger
 import java.io.File
 import java.io.IOException
@@ -228,16 +228,16 @@ class FileSystemModuleRootResolver constructor(
 		val isDirectory = file.isDirectory
 		return when
 		{
-			!endsWithExtension && isDirectory -> DIRECTORY
-			!endsWithExtension -> RESOURCE
-			isDirectory -> PACKAGE
+			!endsWithExtension && isDirectory -> Directory
+			!endsWithExtension -> Resource
+			isDirectory -> Package
 			else ->
 			{
 				val localName = fileName.substringAfterLast('/')
 				val parent = fileName.substringBeforeLast('/', "")
 				val parentLocal = parent.substringAfterLast('/', "")
-				if (parentLocal == localName) REPRESENTATIVE
-				else MODULE
+				if (parentLocal == localName) Representative
+				else Module
 			}
 		}
 	}
@@ -498,7 +498,7 @@ class FileSystemModuleRootResolver constructor(
 		withContents: (ByteArray, UUID?)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
-		if (setOf(ROOT, DIRECTORY, PACKAGE).contains(reference.type))
+		if (setOf(Root, Directory, Package).contains(reference.type))
 		{
 			failureHandler(
 				StandardErrorCode.IO_EXCEPTION,
@@ -637,7 +637,7 @@ class FileSystemModuleRootResolver constructor(
 						this@FileSystemModuleRootResolver,
 						dirURI,
 						qualifiedName,
-						ROOT,
+						Root,
 						"",
 						0,
 						0,
@@ -666,7 +666,7 @@ class FileSystemModuleRootResolver constructor(
 						this@FileSystemModuleRootResolver,
 						dirURI,
 						qualifiedName,
-						ResourceType.PACKAGE,
+						ResourceType.Package,
 						"",
 						0,
 						0)
@@ -686,7 +686,7 @@ class FileSystemModuleRootResolver constructor(
 					this@FileSystemModuleRootResolver,
 					dirURI,
 					qualifiedName,
-					ResourceType.DIRECTORY,
+					ResourceType.Directory,
 					"",
 					0,
 					0)
@@ -733,9 +733,9 @@ class FileSystemModuleRootResolver constructor(
 						0, fileName.length - extension.length)
 					val type =
 						if (parent.isPackage && parent.localName == localName)
-							ResourceType.REPRESENTATIVE
+							ResourceType.Representative
 						else
-							ResourceType.MODULE
+							ResourceType.Module
 
 					val qualifiedName = "${parent.qualifiedName}/$localName"
 					val reference = resolverReference(file, qualifiedName, type)
@@ -748,7 +748,7 @@ class FileSystemModuleRootResolver constructor(
 					val qualifiedName = "${parent.qualifiedName}/$fileName"
 					val reference =
 						resolverReference(
-							file, qualifiedName, ResourceType.RESOURCE)
+							file, qualifiedName, ResourceType.Resource)
 					referenceMap[qualifiedName] = reference
 					parent.resources.add(reference)
 				}

@@ -393,7 +393,7 @@ class ManagedFileWrapper constructor(
 	override val file: AvailFile by lazy {
 		when
 		{
-			resolverReference.type == ResourceType.MODULE
+			resolverReference.type == ResourceType.Module
 				|| resolverReference.mimeType == AvailFile.availMimeType ->
 					AvailModuleFile(this)
 			AvailFile.isTextFile(resolverReference.mimeType) ->
@@ -464,8 +464,8 @@ class NullFileWrapper constructor(
 	override val file: AvailFile by lazy {
 		when
 		{
-			resolverReference.type == ResourceType.MODULE
-				|| resolverReference.type == ResourceType.REPRESENTATIVE
+			resolverReference.type == ResourceType.Module
+				|| resolverReference.type == ResourceType.Representative
 				|| resolverReference.mimeType == AvailFile.availMimeType ->
 				AvailModuleFile(this)
 			AvailFile.isTextFile(resolverReference.mimeType) ->

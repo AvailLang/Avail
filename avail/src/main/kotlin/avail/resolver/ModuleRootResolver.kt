@@ -337,7 +337,7 @@ constructor(
 			referenceMap[name]?.let { resolved ->
 				when (resolved.type)
 				{
-					ResourceType.PACKAGE ->
+					ResourceType.Package ->
 					{
 						// Look for the package representative.
 						val representativeComponents =
@@ -359,7 +359,7 @@ constructor(
 									initialCanonicalName.isRename))
 						}
 					}
-					ResourceType.MODULE ->
+					ResourceType.Module ->
 					{
 						return ModuleNameResolutionResult(
 							ResolvedModuleName(
@@ -562,11 +562,11 @@ constructor(
 
 	/**
 	 * Delete the [ResourceType] linked to the qualified name. If the
-	 * [ResourceType] is a [ResourceType.PACKAGE] or a [ResourceType.DIRECTORY],
+	 * [ResourceType] is a [ResourceType.Package] or a [ResourceType.Directory],
 	 * all of its children should be deleted as well. All deleted references
 	 * should be removed from the [reference tree][provideResolverReference].
 	 *
-	 * If it is a [ResourceType.REPRESENTATIVE], the package it represents
+	 * If it is a [ResourceType.Representative], the package it represents
 	 * should be deleted and handled as if the package were the target of
 	 * deletion.
 	 *

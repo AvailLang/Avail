@@ -6,29 +6,38 @@ package org.availlang.artifact
  *
  * @author Richard Arriaga
  */
-enum class ResourceType
+sealed interface ResourceType
 {
 	/** Represents an ordinary Avail module. */
-	MODULE,
+	data object Module: ResourceType
 
-	/** Represents an ordinary, headerless Avail module. */
-	HEADERLESS_MODULE,
+	/**
+	 * Represents an ordinary headerless Avail module. It must be associated
+	 * with a [ModuleHeader] in some way.
+	 */
+	data object HeaderlessModule: ResourceType
+
+	/**
+	 * Represents an Avail module with no header. It must be associated with a
+	 * [HeaderlessModule].
+	 */
+	data object ModuleHeader: ResourceType
 
 	/** Represents an Avail package representative. */
-	REPRESENTATIVE,
+	data object Representative: ResourceType
 
 	/** Represents an Avail package. */
-	PACKAGE,
+	data object Package: ResourceType
 
 	/** Represents an Avail root. */
-	ROOT,
+	data object Root: ResourceType
 
 	/** Represents an arbitrary directory. */
-	DIRECTORY,
+	data object Directory: ResourceType
 
 	/** Represents an arbitrary resource. */
-	RESOURCE;
+	data object Resource: ResourceType
 
 	/** A short description of the receiver. */
-	val label get() = name.lowercase()
+	val label get() = toString().lowercase()
 }

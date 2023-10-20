@@ -38,9 +38,9 @@ import avail.error.ErrorCode
 import avail.error.StandardErrorCode
 import avail.files.FileErrorCode
 import avail.files.FileManager
-import org.availlang.artifact.ResourceType.DIRECTORY
-import org.availlang.artifact.ResourceType.PACKAGE
-import org.availlang.artifact.ResourceType.ROOT
+import org.availlang.artifact.ResourceType.Directory
+import org.availlang.artifact.ResourceType.Package
+import org.availlang.artifact.ResourceType.Root
 import org.availlang.artifact.jar.AvailArtifactJar
 import java.io.File
 import java.io.IOException
@@ -135,7 +135,7 @@ constructor(
 					this,
 					URI(rootPrefix),
 					rootPrefix,
-					ROOT,
+					Root,
 					"",
 					0,
 					0,
@@ -271,7 +271,8 @@ constructor(
 		withContents: (ByteArray, UUID?)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
-		require(!setOf(ROOT, DIRECTORY, PACKAGE).contains(reference.type)) {
+		require(!setOf(Root, Directory,
+			Package).contains(reference.type)) {
 			"${reference.qualifiedName} is not a file that can be read!"
 		}
 		if (!bypassFileManager)

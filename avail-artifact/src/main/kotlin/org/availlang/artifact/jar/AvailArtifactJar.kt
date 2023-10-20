@@ -220,8 +220,8 @@ class AvailArtifactJar constructor(
 			if (entryName.isEmpty()) continue
 			val type = when
 			{
-				extensions.any { entryName.endsWith("$it/") } -> PACKAGE
-				entryName.endsWith("/") -> DIRECTORY
+				extensions.any { entryName.endsWith("$it/") } -> Package
+				entryName.endsWith("/") -> Directory
 				extensions.any { entryName.endsWith(it) } ->
 				{
 					assert(!entry.isDirectory)
@@ -230,11 +230,11 @@ class AvailArtifactJar constructor(
 					{
 						(parts.size >= 2
 								&& parts.last() == parts[parts.size - 2]
-								) -> REPRESENTATIVE
-						else -> MODULE
+								) -> Representative
+						else -> Module
 					}
 				}
-				else -> RESOURCE
+				else -> Resource
 			}
 			entryName = entryName.removeSuffix("/")
 			val qualifiedName = entryName
@@ -244,7 +244,7 @@ class AvailArtifactJar constructor(
 				}
 			val mimeType = when (type)
 			{
-				MODULE, REPRESENTATIVE -> "text/plain"
+				Module, Representative -> "text/plain"
 				else -> ""
 			}
 			metadata.add(

@@ -869,7 +869,7 @@ internal constructor(
 		// the actually occurring TypeTag will have to be looked up, and if not
 		// found, its ancestors must be searched.
 		// NOTE: Among other things, this can cause elements taking primitive
-		// types (e.g., ANY.o, or even MODULE.o) to be copied down into, say,
+		// types (e.g., ANY.o, or even Module.o) to be copied down into, say,
 		// OBJECT_TYPE_TAG, so be aware of this possibility during subsequent
 		// variant testing.
 		tagToElements.forEach { (k, v) ->
@@ -1042,7 +1042,7 @@ internal constructor(
 			val intersectedType = argType.instance
 				.typeIntersection(mostGeneralObjectType)
 			// There's probably an easier way of excluding non-object types
-			// (e.g., MODULE.o) earlier, but this should work fine.
+			// (e.g., Module.o) earlier, but this should work fine.
 			if (!intersectedType.isBottom)
 			{
 				val variant = intersectedType.objectTypeVariant

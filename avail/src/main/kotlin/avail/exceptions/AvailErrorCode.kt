@@ -800,7 +800,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS(508),
 
 	/**
-	 * The indicated [ResourceType.RESOURCE] has already been linked.
+	 * The indicated [ResourceType.Resource] has already been linked.
 	 */
 	E_LIBRARY_ALREADY_LINKED(600);
 
