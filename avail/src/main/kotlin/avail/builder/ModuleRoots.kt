@@ -41,7 +41,8 @@ import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry.createResolver
 import avail.resolver.ResolverReference
 import avail.utility.parallelDoThen
-import org.availlang.artifact.environment.project.AvailProjectRoot
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.json.JSONWriter
 import java.net.URI
 import java.util.Collections.singletonList
@@ -87,6 +88,9 @@ import kotlin.concurrent.withLock
  *   The associated [FileManager].
  * @param modulePath
  *   An Avail [module][ModuleDescriptor] path.
+ * @param resourceManagerByRoot
+ *   The map from the [ModuleRoot.name] to the associated [ResourceTypeManager]
+ *   that provides [ResourceType] management for the associated root.
  * @param withFailures
  *   A lambda that accepts [List] of the string [ModuleRoot] [URI]s that failed
  *   to [resolve][ModuleRootResolver.resolve].
@@ -97,7 +101,7 @@ import kotlin.concurrent.withLock
 class ModuleRoots constructor(
 	val fileManager: FileManager,
 	modulePath: String,
-	extensionsByRoot: Map<String, Set<String>> = mapOf(),
+	resourceManagerByRoot: Map<String, ResourceTypeManager> = mapOf(),
 	withFailures: (List<String>) -> Unit,
 ) : Iterable<ModuleRoot>
 {
@@ -126,6 +130,10 @@ class ModuleRoots constructor(
 	 *
 	 * @param modulePath
 	 *   The module roots path string.
+	 * @param resourceManagerByRoot
+	 *   The map from the [ModuleRoot.name] to the associated
+	 *   [ResourceTypeManager] that provides [ResourceType] management for the
+	 *   associated root.
 	 * @param withFailures
 	 *   A lambda that accepts the [List] of [ModuleRoot] string [URI]s that
 	 *   failed to [resolve][ModuleRootResolver.resolve].
@@ -135,7 +143,7 @@ class ModuleRoots constructor(
 	 */
 	private fun parseAvailModulePathThen(
 		modulePath: String,
-		extensionsByRoot: Map<String, Set<String>>,
+		resourceManagerByRoot: Map<String, ResourceTypeManager>,
 		withFailures: (List<String>) -> Unit)
 	{
 		clearRoots()
@@ -152,9 +160,9 @@ class ModuleRoots constructor(
 					"Bad module root location setting: $component"
 				}
 				val (rootName, location) = binding
-				val extensions = extensionsByRoot[rootName] ?:
-					setOf(ModuleNameResolver.defaultAvailExtension)
-				addRoot(rootName, location, extensions) { newFailures ->
+				val manager = resourceManagerByRoot[rootName] ?:
+					ResourceTypeManager()
+				addRoot(rootName, location, manager) { newFailures ->
 					failures.addAll(newFailures)
 					after()
 				}
@@ -170,9 +178,9 @@ class ModuleRoots constructor(
 	 * @param location
 	 *   The [String] representation of the [URI] for the base of the new
 	 *   [ModuleRoot].
-	 * @param availFileExtensions
-	 *   The [AvailProjectRoot.availModuleExtensions] used for the root being
-	 *   added.
+	 * @param resourceTypeManager
+	 *   The [ResourceTypeManager] that provides [ResourceType] management for
+	 *   the [ModuleRoot] being created.
 	 * @param withFailures
 	 *   What to invoke, with a [List] of new failure report strings, after the
 	 *   root has been added and scanned.
@@ -180,7 +188,7 @@ class ModuleRoots constructor(
 	fun addRoot(
 		rootName: String,
 		location: String,
-		availFileExtensions: Set<String>,
+		resourceTypeManager: ResourceTypeManager,
 		withFailures: (List<String>) -> Unit)
 	{
 		if (location.isEmpty())
@@ -192,7 +200,7 @@ class ModuleRoots constructor(
 		}
 		val rootUri =  URI(location.replace("\\", "/"))
 		val resolver = createResolver(
-			rootName, rootUri, fileManager, availFileExtensions)
+			rootName, rootUri, fileManager, resourceTypeManager)
 		resolver.resolve(
 			successHandler = {
 				lock.withLock {
@@ -287,7 +295,7 @@ class ModuleRoots constructor(
 
 	init
 	{
-		parseAvailModulePathThen(modulePath, extensionsByRoot, withFailures)
+		parseAvailModulePathThen(modulePath, resourceManagerByRoot, withFailures)
 	}
 
 	/**

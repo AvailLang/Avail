@@ -34,6 +34,8 @@ package avail.resolver
 
 import avail.builder.ModuleRoot
 import avail.files.FileManager
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceTypeManager
 import java.net.URI
 
 /**
@@ -57,9 +59,9 @@ interface ModuleRootResolverFactory
 	 * @param fileManager
 	 *   The [FileManager] used to manage the files accessed via the
 	 *   [ModuleRootResolver].
-	 * @param availFileExtensions
-	 *   The set of Avail file extensions that represent an Avail module for the
-	 *   associated [ModuleRoot].
+	 * @param resourceTypeManager
+	 *   The [ResourceTypeManager] that provides [ResourceType] management for
+	 *   the [ModuleRootResolver] being created.
 	 * @return
 	 *   The [ModuleRootResolver] that is linked to the [URI] of the
 	 *   [ModuleRoot].
@@ -68,7 +70,7 @@ interface ModuleRootResolverFactory
 		name: String,
 		uri: URI,
 		fileManager: FileManager,
-		availFileExtensions: Set<String>
+		resourceTypeManager: ResourceTypeManager
 	): ModuleRootResolver
 
 	/**

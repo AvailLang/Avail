@@ -1426,7 +1426,7 @@ class AvailWorkbench internal constructor(
 					?: return@walkChildrenThen
 				when (it.type)
 				{
-					ResourceType.Module ->
+					is ResourceType.Module ->
 					{
 						try
 						{
@@ -1445,7 +1445,7 @@ class AvailWorkbench internal constructor(
 							throw RuntimeException(e)
 						}
 					}
-					ResourceType.Package ->
+					is ResourceType.Package ->
 					{
 						val moduleName = it.moduleName
 						val resolved: ResolvedModuleName
@@ -3436,11 +3436,11 @@ class AvailWorkbench internal constructor(
 			// TODO RAA - add function to AvailProjectRoot that prepends the
 			//  "." if not present on the file extension. This will cause
 			//  a need to publish update `avail-artifact`.
-			val extensions = project.availProjectRoots.associate { apr ->
-				apr.name to apr.availModuleExtensions.map { ".$it" }.toSet()
+			val managers = project.availProjectRoots.associate { apr ->
+				apr.name to apr.resourceTypeManager
 			}
 			val roots =
-				ModuleRoots(fileManager, rootsString, extensions) { fails ->
+				ModuleRoots(fileManager, rootsString, managers) { fails ->
 					failedResolutions.addAll(fails)
 					semaphore.release()
 				}

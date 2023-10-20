@@ -37,7 +37,6 @@ import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
 import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
-import org.availlang.artifact.ResourceType
 import avail.builder.UnresolvedModuleException
 import avail.error.ErrorCode
 import avail.files.AvailFile
@@ -46,6 +45,7 @@ import avail.files.FileManager
 import avail.files.NullFileWrapper
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ModuleArchive
+import org.availlang.artifact.ResourceType
 import org.availlang.json.JSONWriter
 import java.net.URI
 import java.nio.ByteBuffer
@@ -113,21 +113,21 @@ class ResolverReference constructor(
 	 * `true` iff the [ResolverReference] represents a package, `false`
 	 *  otherwise.
 	 */
-	val isPackage: Boolean get() = type == ResourceType.Package
+	val isPackage: Boolean get() = type is ResourceType.Package
 
 	/**
 	 * `true` iff the [ResolverReference] represents a package representative
 	 * module, `false` otherwise.
 	 */
 	val isPackageRepresentative: Boolean get() =
-		type == ResourceType.Representative
+		type is ResourceType.Representative
 
 	/**
 	 * `true` iff the [ResolverReference] represents a module, `false`
 	 *  otherwise.
 	 */
 	val isModule: Boolean get() =
-		type == ResourceType.Module || type == ResourceType.Representative
+		type is ResourceType.Module || type is ResourceType.Representative
 
 	/**
 	 * Indicates whether or not this [ResolverReference] is a resource, not a
@@ -200,12 +200,11 @@ class ResolverReference constructor(
 	private val repository: Repository get() = resolver.moduleRoot.repository
 
 	/**
-	 * Answer the [Repository.ModuleArchive] for the file this
+	 * Answer the [ModuleArchive] for the file this
 	 * [ResolverReference] points to.
 	 */
 	private val archive: ModuleArchive
-		get() =
-		repository.getArchive(moduleName.rootRelativeName)
+		get() = repository.getArchive(moduleName.rootRelativeName)
 
 	/**
 	 * The file MIME type of the associated resource or empty String if
@@ -270,15 +269,15 @@ class ResolverReference constructor(
 	fun file (rawBytes: ByteArray): AvailFile =
 		when (type)
 		{
-			ResourceType.Module,
-			ResourceType.HeaderlessModule,
-			ResourceType.ModuleHeader,
-			ResourceType.Representative,
+			is ResourceType.Module,
+			is ResourceType.HeaderlessModule,
+			is ResourceType.HeaderModule,
+			is ResourceType.Representative,
 			ResourceType.Resource ->
 				AvailModuleFile(
 					rawBytes,
 					NullFileWrapper(rawBytes, this, resolver.fileManager))
-			ResourceType.Package,
+			is ResourceType.Package,
 			ResourceType.Root,
 			ResourceType.Directory ->
 				throw UnsupportedOperationException(
@@ -295,18 +294,18 @@ class ResolverReference constructor(
 	{
 		// Representatives should not have a visible footprint in the
 		// tree; we want their enclosing packages to represent them.
-		if (type !== ResourceType.Representative)
+		if (type !is ResourceType.Representative)
 		{
 			writer.writeObject {
 				at("localName") { write(localName) }
 				at("qualifiedName") { write(qualifiedName) }
-				at("type") { write(type.label) }
+				at("type") { write(type.name) }
 				accessException?.let {
 					at("error") { write(it.localizedMessage) }
 				}
 				when (type)
 				{
-					ResourceType.Package ->
+					is ResourceType.Package ->
 					{
 						// Handle a missing representative as a special
 						// kind of error, but only if another error
@@ -322,7 +321,7 @@ class ResolverReference constructor(
 						}
 						writeResolutionInformationOn(writer, builder)
 					}
-					ResourceType.Module ->
+					is ResourceType.Module ->
 						writeResolutionInformationOn(writer, builder)
 					else -> { }
 				}

@@ -27,6 +27,11 @@
 				"path": "org/availlang/avail-stdlib-2.0.0.alpha23-1.6.1.alpha14.jar",
 				"rootNameInJar": "avail"
 			},
+			"resourceTypeManager":
+			{
+				"moduleFileExtension": "avail",
+				"headerlessExtensions": []
+			},
 			"moduleHeaders": 
 			[
 			]
@@ -43,6 +48,11 @@
 				"scheme": "FILE",
 				"path": "roots/my-avail-root"
 			},
+			"resourceTypeManager":
+			{
+				"moduleFileExtension": "avail",
+				"headerlessExtensions": []
+			},
 			"moduleHeaders": 
 			[
 			]
@@ -58,6 +68,11 @@
 				"locationType": "project",
 				"scheme": "FILE",
 				"path": "roots/other-root"
+			},
+			"resourceTypeManager":
+			{
+				"moduleFileExtension": "avail",
+				"headerlessExtensions": []
 			},
 			"moduleHeaders": 
 			[

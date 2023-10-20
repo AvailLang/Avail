@@ -2,6 +2,8 @@ package org.availlang.artifact.manifest
 
 import org.availlang.artifact.AvailArtifact
 import org.availlang.artifact.AvailArtifactException
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.StylingGroup
 import org.availlang.artifact.environment.project.TemplateGroup
@@ -17,9 +19,9 @@ import java.security.MessageDigest
  *
  * @property name
  *   The name of the Avail root.
- * @property availModuleExtensions
- *   The file extensions that signify files that should be treated as Avail
- *   modules.
+ * @property resourceTypeManager
+ *   The [ResourceTypeManager] used for managing [ResourceType]s for the
+ *   associated Avail root.
  * @property entryPoints
  *   The Avail entry points exposed by this root.
  * @property templates
@@ -35,7 +37,7 @@ import java.security.MessageDigest
  */
 data class AvailRootManifest constructor(
 	val name: String,
-	val availModuleExtensions: MutableList<String>,
+	val resourceTypeManager: ResourceTypeManager,
 	val entryPoints: MutableList<String> = mutableListOf(),
 	val templates: TemplateGroup = TemplateGroup(),
 	val styles: StylingGroup = StylingGroup(),
@@ -49,8 +51,8 @@ data class AvailRootManifest constructor(
 			at(::name.name) { write(name) }
 			at(::description.name) { write(description) }
 			at(::digestAlgorithm.name) { write(digestAlgorithm) }
-			at(::availModuleExtensions.name) {
-				writeStrings(availModuleExtensions)
+			at(::resourceTypeManager.name) {
+				resourceTypeManager.writeTo(this)
 			}
 			at(::entryPoints.name) { writeStrings(entryPoints) }
 			at(::styles.name) { write(styles) }
@@ -85,10 +87,9 @@ data class AvailRootManifest constructor(
 
 			return AvailRootManifest(
 				name = name,
-				availModuleExtensions =
-					obj.getArrayOrNull(
-						AvailRootManifest::availModuleExtensions.name
-					)?.strings?.toMutableList() ?: mutableListOf(),
+				resourceTypeManager =
+					ResourceTypeManager.from(obj.getObject(
+						AvailProjectRoot::resourceTypeManager.name)),
 				entryPoints =
 					obj.getArrayOrNull(
 						AvailRootManifest::entryPoints.name

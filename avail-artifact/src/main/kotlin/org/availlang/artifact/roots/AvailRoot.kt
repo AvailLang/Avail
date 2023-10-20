@@ -32,14 +32,16 @@
 
 package org.availlang.artifact.roots
 
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLocation
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
 import org.availlang.artifact.environment.project.LocalSettings
 import org.availlang.artifact.environment.project.Palette
-import org.availlang.artifact.environment.project.TemplateGroup
 import org.availlang.artifact.environment.project.StylingGroup
+import org.availlang.artifact.environment.project.TemplateGroup
 import org.availlang.artifact.manifest.AvailRootManifest
 import java.security.MessageDigest
 
@@ -56,9 +58,9 @@ import java.security.MessageDigest
  *   The [MessageDigest] algorithm to use to create the digests for all the
  *   root's contents. This must be a valid algorithm accessible from
  *   [java.security.MessageDigest.getInstance].
- * @property availModuleExtensions
- *   The file extensions that signify files that should be treated as Avail
- *   modules.
+ * @property resourceTypeManager
+ *   The [ResourceTypeManager] that manages [ResourceType]s for this
+ *   [AvailRoot].
  * @property entryPoints
  *   The Avail entry points exposed by this root.
  * @property templateGroup
@@ -84,9 +86,9 @@ import java.security.MessageDigest
  *   The [MessageDigest] algorithm to use to create the digests for all the
  *   root's contents. This must be a valid algorithm accessible from
  *   [java.security.MessageDigest.getInstance].
- * @param availModuleExtensions
- *   The file extensions that signify files that should be treated as Avail
- *   modules.
+ * @param resourceTypeManager
+ *   The [ResourceTypeManager] that manages [ResourceType]s for this
+ *   [AvailRoot].
  * @param entryPoints
  *   The Avail entry points exposed by this root.
  * @param templateGroup
@@ -104,7 +106,7 @@ open class AvailRoot constructor(
 	val name: String,
 	val location: AvailLocation,
 	val digestAlgorithm: String = "SHA-256",
-	val availModuleExtensions: MutableList<String> = mutableListOf("avail"),
+	val resourceTypeManager: ResourceTypeManager = ResourceTypeManager(),
 	val entryPoints: MutableList<String> = mutableListOf(),
 	val templateGroup: TemplateGroup = TemplateGroup(),
 	val styles: StylingGroup = StylingGroup(),
@@ -132,7 +134,7 @@ open class AvailRoot constructor(
 		manifestRoot.name,
 		location,
 		manifestRoot.digestAlgorithm,
-		manifestRoot.availModuleExtensions,
+		manifestRoot.resourceTypeManager,
 		manifestRoot.entryPoints,
 		manifestRoot.templates,
 		manifestRoot.styles,
@@ -160,7 +162,7 @@ open class AvailRoot constructor(
 	val manifest: AvailRootManifest get() =
 		AvailRootManifest(
 			name,
-			availModuleExtensions,
+			resourceTypeManager,
 			entryPoints,
 			templateGroup.markedForInclusion,
 			styles,
@@ -197,7 +199,7 @@ open class AvailRoot constructor(
 					projectDirectory)),
 			styles,
 			templateGroup,
-			availModuleExtensions)
+			resourceTypeManager)
 
 	// Module packages always come before modules.
 	override fun compareTo(other: AvailRoot): Int =

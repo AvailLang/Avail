@@ -1,16 +1,20 @@
 package org.availlang.artifact.jar
 
-import org.availlang.artifact.*
+import org.availlang.artifact.ArtifactDescriptor
+import org.availlang.artifact.AvailArtifact
+import org.availlang.artifact.AvailArtifactException
+import org.availlang.artifact.AvailRootFileMetadata
+import org.availlang.artifact.DigestUtility
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.manifest.AvailArtifactManifest
 import org.availlang.json.jsonObject
 import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.net.URI
-import java.util.jar.JarFile
-import org.availlang.artifact.ResourceType.*
-import java.util.*
+import java.util.Enumeration
 import java.util.jar.Attributes
 import java.util.jar.JarEntry
+import java.util.jar.JarFile
 
 /**
  * An [AvailArtifact] packaged as a [JarFile].
@@ -174,13 +178,14 @@ class AvailArtifactJar constructor(
 	}
 
 	override fun extractFileMetadataForRoot(
-		rootName: String
+		rootName: String,
+		resourceTypeManager: ResourceTypeManager
 	): List<AvailRootFileMetadata>
 	{
 		val digests = extractDigestForRoot(rootName)
 		val entries = jarFile.entries()
 		return extractFileMetadataForRoot(
-			rootName, uri.fragment, entries, digests)
+			rootName, uri.fragment, resourceTypeManager, entries, digests)
 	}
 
 	/**
@@ -189,6 +194,8 @@ class AvailArtifactJar constructor(
 	 *
 	 * @param rootName
 	 *   The name of the root to extract metadata for.
+	 * @param rootNameInJar
+	 *   The name of the root to extract as it exists in the jar.
 	 * @param entries
 	 *   The [jarFile] [entries][JarFile.entries].
 	 * @param digests
@@ -202,63 +209,16 @@ class AvailArtifactJar constructor(
 	fun extractFileMetadataForRoot(
 		rootName: String,
 		rootNameInJar: String,
+		resourceTypeManager: ResourceTypeManager,
 		entries: Enumeration<JarEntry>,
 		digests: Map<String, ByteArray>
-	): List<AvailRootFileMetadata>
-	{
-		val extensions =
-			manifest.roots[rootNameInJar]?.availModuleExtensions ?:
-			listOf(AvailRootFileMetadata.availExtension)
-		val prefix = "${AvailArtifact.artifactRootDirectory}/$rootNameInJar/" +
-			"${AvailArtifact.availSourcesPathInArtifact}/"
-		val metadata = mutableListOf<AvailRootFileMetadata>()
-		for (entry in entries)
-		{
-			var entryName = entry.name.replace("\\", "/")
-			if (!entryName.startsWith(prefix)) continue
-			entryName = entryName.removePrefix(prefix)
-			if (entryName.isEmpty()) continue
-			val type = when
-			{
-				extensions.any { entryName.endsWith("$it/") } -> Package
-				entryName.endsWith("/") -> Directory
-				extensions.any { entryName.endsWith(it) } ->
-				{
-					assert(!entry.isDirectory)
-					val parts = entryName.split("/")
-					when
-					{
-						(parts.size >= 2
-								&& parts.last() == parts[parts.size - 2]
-								) -> Representative
-						else -> Module
-					}
-				}
-				else -> Resource
-			}
-			entryName = entryName.removeSuffix("/")
-			val qualifiedName = entryName
-				.split("/")
-				.joinToString("/", prefix = "/$rootName/") {
-					it.removeSuffix(AvailRootFileMetadata.availExtension)
-				}
-			val mimeType = when (type)
-			{
-				Module, Representative -> "text/plain"
-				else -> ""
-			}
-			metadata.add(
-				AvailRootFileMetadata(
-					entryName,
-					type,
-					qualifiedName,
-					mimeType,
-					entry.lastModifiedTime.toMillis(),
-					entry.size,
-					digests[entryName]))
-		}
-		return metadata
-	}
+	): List<AvailRootFileMetadata> =
+		resourceTypeManager.getAvailRootFilesMetadata(
+			rootName,
+			rootNameInJar,
+			entries,
+			digests
+		).values.toList()
 
 	override fun toString(): String = "$uri"
 

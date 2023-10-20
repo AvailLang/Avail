@@ -38,9 +38,9 @@ import avail.error.ErrorCode
 import avail.error.StandardErrorCode
 import avail.files.FileErrorCode
 import avail.files.FileManager
-import org.availlang.artifact.ResourceType.Directory
-import org.availlang.artifact.ResourceType.Package
+import org.availlang.artifact.ResourceType
 import org.availlang.artifact.ResourceType.Root
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.jar.AvailArtifactJar
 import java.io.File
 import java.io.IOException
@@ -70,17 +70,17 @@ import kotlin.concurrent.withLock
  * @param fileManager
  *   The [FileManager] used to manage the files accessed via this
  *   [JarModuleRootResolver].
- * @param availFileExtensions
- *   The set of Avail file extensions that represent an Avail module for the
- *   associated [ModuleRoot].
+ * @param resourceTypeManager
+ *   The [ResourceTypeManager] used by the [FileSystemModuleRootResolver] to
+ *   manage its the root's [ResourceType]s.
  */
 class JarModuleRootResolver
 constructor(
 	name: String,
 	uri: URI,
 	fileManager: FileManager,
-	availFileExtensions: Set<String>
-) : ModuleRootResolver(name, uri, fileManager, availFileExtensions)
+	resourceTypeManager: ResourceTypeManager
+) : ModuleRootResolver(name, uri, fileManager, resourceTypeManager)
 {
 	override val canSave: Boolean get() = false
 
@@ -101,8 +101,8 @@ constructor(
 	override fun resolvesToValidModuleRoot(): Boolean = File(uri.path).isFile
 
 	override fun resolve(
-		successHandler: (ResolverReference)->Unit,
-		failureHandler: (ErrorCode, Throwable?)->Unit)
+		successHandler: (ResolverReference) -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
 		executeTask {
 			val map = mutableMapOf<String, ResolverReference>()
@@ -116,7 +116,7 @@ constructor(
 					artifactJar.jarFileEntries
 				}
 				artifactJar.extractFileMetadataForRoot(
-					name, rootInJar, entries, digests
+					name, rootInJar, resourceTypeManager, entries, digests
 				).forEach {
 					val reference = ResolverReference(
 						this,
@@ -271,8 +271,8 @@ constructor(
 		withContents: (ByteArray, UUID?)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
-		require(!setOf(Root, Directory,
-			Package).contains(reference.type)) {
+		require(!reference.type.isDirectory)
+		{
 			"${reference.qualifiedName} is not a file that can be read!"
 		}
 		if (!bypassFileManager)

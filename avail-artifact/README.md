@@ -3,8 +3,25 @@ Avail Artifact
 [![Maven Central](https://img.shields.io/badge/maven--central-v2.0.0.alpha22-0f824e)](https://search.maven.org/artifact/org.availlang/avail-artifact)
 
 This is a standalone upstream library that supports Avail project definition and
-Avail artifact creation for the Avail [Programming Language](https://github.com/AvailLang/Avail).
+Avail artifact creation for the Avail [Programming Language](https://github.
+com/AvailLang/Avail). Avail needs a way to provide external tools knowledge of
+the shape of Avail without having to have deep knowledge of every aspect of the 
+Avail programming language. 
 
+This provides external tools the minimum information to:
+
+1. create Avail [projects](#project)
+2. open Avail projects in a third-party IDE
+3. package Avail [artifacts](#artifact)
+
+# Project
+Avail is an extremely powerful general purpose programming language that can 
+be customized in a lot of ways. Because of the potential for high complexity, it
+is important to impose a rigid project structure that can be known by both Avail
+and external tools. This rigid structure makes it easier to manage Avail 
+projects by making it predictable where project components can be found by both 
+Avail and Avail's external tools. This has the added benefit that it is also
+predictable in a singular way for programmers.
 
 # Artifact
 The Avail Artifact is a versioned package of an Avail library or application.

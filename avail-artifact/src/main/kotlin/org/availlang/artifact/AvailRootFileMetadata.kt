@@ -1,13 +1,15 @@
 package org.availlang.artifact
 
+import org.availlang.artifact.roots.AvailRoot
+
 /**
- * Metadata describing a file/directory found inside an Avail Module Root
- * directory inside an [AvailArtifact] including the root directory itself.
+ * Metadata describing a file/directory found inside an [AvailRoot] directory
+ * including the root directory itself.
  *
  * @author Richard Arriaga
  *
  * @property path
- *   The relative path of the file inside the [AvailArtifact].
+ *   The relative path of the file inside the [AvailRoot].
  * @property type
  *   The [ResourceType] that identifies the type of the file.
  * @property qualifiedName
@@ -29,16 +31,8 @@ class AvailRootFileMetadata constructor(
 	val mimeType: String,
 	val lastModified: Long,
 	val size: Long,
-	val digest: ByteArray?)
+	val digest: ByteArray? = null)
 {
 
 	override fun toString(): String = "[${type.name}] $qualifiedName"
-
-	companion object
-	{
-		/**
-		 * The standard extension for Avail module source files.
-		 */
-		const val availExtension = ".avail"
-	}
 }

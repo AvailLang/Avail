@@ -33,6 +33,7 @@
 package avail.resolver
 
 import avail.files.FileManager
+import org.availlang.artifact.ResourceTypeManager
 import java.net.URI
 
 /**
@@ -50,10 +51,10 @@ object FileSystemModuleRootResolverFactory: ModuleRootResolverFactory
 		name: String,
 		uri: URI,
 		fileManager: FileManager,
-		availFileExtensions: Set<String>
+		resourceTypeManager: ResourceTypeManager
 	): ModuleRootResolver =
 		FileSystemModuleRootResolver(
-			name, uri, fileManager, availFileExtensions)
+			name, uri, fileManager, resourceTypeManager)
 
 	override val scheme: String = "file"
 }
