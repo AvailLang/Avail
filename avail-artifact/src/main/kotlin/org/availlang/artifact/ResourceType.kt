@@ -68,10 +68,14 @@ sealed interface ResourceType
 	 * @property headerType
 	 *   The associated [HeaderModule] that provides the module header for this
 	 *   [HeaderlessModule].
+	 * @property fileIcon
+	 *   The [ResourceTypeManager.HeaderlessExtension.headerlessFileIcon] or
+	 *   `null` if no special icon chosen.
 	 */
 	data class HeaderlessModule constructor(
 		override val fileExtension: String,
-		val headerType: HeaderModule
+		val headerType: HeaderModule,
+		val fileIcon: String? = null
 	): ResourceType, FileExtension
 	{
 		override val name: String = "HeaderlessModule"
@@ -82,9 +86,13 @@ sealed interface ResourceType
 	/**
 	 * Represents an Avail module with no header. It must be associated with a
 	 * [HeaderlessModule].
+	 * @property fileIcon
+	 *   The [ResourceTypeManager.HeaderlessExtension.headerFileIcon] or
+	 *   `null` if no special icon chosen.
 	 */
 	data class HeaderModule constructor(
-		override val fileExtension: String
+		override val fileExtension: String,
+		val fileIcon: String? = null
 	): ResourceType, FileExtension
 	{
 		override val name: String = "HeaderModule"

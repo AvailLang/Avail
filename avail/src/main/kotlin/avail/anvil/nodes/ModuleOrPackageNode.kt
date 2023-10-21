@@ -39,6 +39,7 @@ import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleCorpus
 import avail.persistence.cache.record.ModuleVersionKey
+import org.availlang.artifact.ResourceType
 
 /**
  * This is a tree node representing a module file or a package.
@@ -49,7 +50,7 @@ import avail.persistence.cache.record.ModuleVersionKey
  *   The name of the module/package prior to resolution (renames).
  * @property resolvedModuleName
  *   The resolved name of the module or package.
- * @property isPackage
+ * @property resourceType
  *   Whether this module's name refers to a package (directory).
  * @constructor
  *   Construct a new [ModuleOrPackageNode].
@@ -60,23 +61,23 @@ import avail.persistence.cache.record.ModuleVersionKey
  *   The name of the module/package prior to resolution (renames).
  * @param resolvedModuleName
  *   The resolved name of the module or package.
- * @param isPackage
+ * @param resourceType
  *   Whether it's a package.
  */
-class ModuleOrPackageNode
-constructor(
+class ModuleOrPackageNode(
 	workbench: AvailWorkbench,
 	private val originalModuleName: ModuleName,
-	val resolvedModuleName: ResolvedModuleName,
-	val isPackage: Boolean
+	val resolvedModuleName: ResolvedModuleName
 ): OpenableFileNode(workbench)
 {
+	private val resourceType: ResourceType get() =
+		resolvedModuleName.resolverReference.type
 	/**
 	 * The list of [module corpora][ModuleCorpus] on which to operate.  This is
 	 * fetched from the repository as needed.
 	 */
 	private val corpora: List<ModuleCorpus> by lazy {
-		if (!isPackage)
+		if (resourceType !is ResourceType.Package)
 		{
 			// Only package representatives can define corpora, to avoid having
 			// multiple modules with overlapping claims.
@@ -126,7 +127,9 @@ constructor(
 		get() = resolvedModuleName.isRename
 
 	override fun iconResourceName(): String =
-		if (isPackage) "anvilicon-dir-module-outline" else AVAIL.fileIcon
+		if (resourceType is ResourceType.Package)
+			"anvilicon-dir-module-outline"
+		else AVAIL.fileIcon
 
 	override fun equalityText(): String = resolvedModuleName.localName
 
@@ -165,11 +168,13 @@ constructor(
 		workbench.perModuleProgress[resolvedModuleName] != null
 
 	override fun htmlStyle(selected: Boolean): String =
-		fontStyle(bold = isPackage, italic = !isLoaded) +
-			colorStyle(selected, isLoaded, isRenamedSource, isBuilding)
+		fontStyle(
+			bold = resourceType is ResourceType.Package,
+			italic = !isLoaded) +
+				colorStyle(selected, isLoaded, isRenamedSource, isBuilding)
 
 	override val sortMajor: Int
-		get() = if (isPackage) 10 else 20
+		get() = if (resourceType is ResourceType.Package) 10 else 20
 
 	override fun open()
 	{

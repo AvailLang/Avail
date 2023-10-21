@@ -1436,8 +1436,7 @@ class AvailWorkbench internal constructor(
 							val node = ModuleOrPackageNode(
 								this,
 								it.moduleName,
-								resolved,
-								false)
+								resolved)
 							parentNode.add(node)
 						}
 						catch (e: UnresolvedDependencyException)
@@ -1463,7 +1462,7 @@ class AvailWorkbench internal constructor(
 							return@walkChildrenThen
 						}
 						val node = ModuleOrPackageNode(
-							this, moduleName, resolved, true)
+							this, moduleName, resolved)
 						parentNode.add(node)
 						if (resolved.isRename)
 						{
