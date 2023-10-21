@@ -126,8 +126,14 @@ class ResolverReference constructor(
 	 * `true` iff the [ResolverReference] represents a module, `false`
 	 *  otherwise.
 	 */
-	val isModule: Boolean get() =
-		type is ResourceType.Module || type is ResourceType.Representative
+	val isModule: Boolean get() = type.isModule
+
+	/**
+	 * `true` iff the [ResolverReference] represents a module with a
+	 * [module header][ResourceType.hasModuleHeader], `false` otherwise.
+	 */
+	val hasModuleHeader: Boolean get() = type.hasModuleHeader
+
 
 	/**
 	 * Indicates whether or not this [ResolverReference] is a resource, not a
@@ -592,39 +598,11 @@ class ResolverReference constructor(
 							.forEach(stack::addFirst)
 					}
 				}
-				if (stack.isEmpty()) return visited
+				if (stack.isEmpty())
+					return visited
 				visited++
 				ref = stack.removeFirst()
 			}
 		}
 	}
 }
-
-///**
-// * A `ResourceType` represents the type of a [ResolverReference].
-// *
-// * @author Todd L Smith &lt;todd@availlang.org&gt;
-// */
-//enum class ResourceType
-//{
-//	/** Represents an ordinary Avail module. */
-//	Module,
-//
-//	/** Represents an Avail package representative. */
-//	Representative,
-//
-//	/** Represents an Avail package. */
-//	Package,
-//
-//	/** Represents an Avail root. */
-//	Root,
-//
-//	/** Represents an arbitrary directory. */
-//	Directory,
-//
-//	/** Represents an arbitrary resource. */
-//	Resource;
-//
-//	/** A short description of the receiver. */
-//	val label get() = name.lowercase()
-//}

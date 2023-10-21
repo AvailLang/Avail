@@ -1426,7 +1426,9 @@ class AvailWorkbench internal constructor(
 					?: return@walkChildrenThen
 				when (it.type)
 				{
-					is ResourceType.Module ->
+					is ResourceType.Module,
+					is ResourceType.HeaderModule,
+					is ResourceType.HeaderlessModule->
 					{
 						try
 						{
@@ -1481,8 +1483,7 @@ class AvailWorkbench internal constructor(
 					{
 						parentNode.add(ResourceNode(this, it))
 					}
-					else ->
-					{}
+					else -> {}
 				}
 			},
 			afterCreated)

@@ -23,6 +23,27 @@ sealed interface ResourceType
 	val isDirectory: Boolean get() = false
 
 	/**
+	 * `true` indicates this [ResourceType] is an Avail code module; `false`
+	 * otherwise. This covers:
+	 *
+	 * - [Module]
+	 * - [HeaderModule]
+	 * - [HeaderlessModule]
+	 * - [Representative]
+	 */
+	val isModule: Boolean get() = false
+
+	/**
+	 * `true` indicates this [ResourceType] [is an Avail code module][isModule]
+	 * and the module contains the standard Avail module header.
+	 *
+	 * - [Module]
+	 * - [HeaderModule]
+	 * - [Representative]
+	 */
+	val hasModuleHeader: Boolean get() = false
+
+	/**
 	 * Represents an ordinary Avail module.
 	 *
 	 * @property fileExtension
@@ -34,6 +55,8 @@ sealed interface ResourceType
 	{
 		override val name: String = "Module"
 		override val mimeType: String get() = availMimeType
+		override val hasModuleHeader: Boolean = true
+		override val isModule: Boolean = true
 	}
 
 	/**
@@ -53,6 +76,7 @@ sealed interface ResourceType
 	{
 		override val name: String = "HeaderlessModule"
 		override val mimeType: String get() = availMimeType
+		override val isModule: Boolean = true
 	}
 
 	/**
@@ -65,6 +89,8 @@ sealed interface ResourceType
 	{
 		override val name: String = "HeaderModule"
 		override val mimeType: String get() = availMimeType
+		override val hasModuleHeader: Boolean = true
+		override val isModule: Boolean = true
 	}
 
 	/**
@@ -84,6 +110,8 @@ sealed interface ResourceType
 	{
 		override val name: String = "Representative"
 		override val mimeType: String get() = availMimeType
+		override val hasModuleHeader: Boolean = true
+		override val isModule: Boolean = true
 	}
 
 	/**
