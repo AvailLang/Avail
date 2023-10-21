@@ -361,7 +361,7 @@ class AvailWorkbench internal constructor(
 	 * Read the [AvailProject] from [disk][availProjectFilePath].
 	 */
 	val projectFileFromDisk: AvailProject get() =
-		AvailProject.Companion.from(availProjectFilePath)
+		AvailProject.Companion.initializeProject(availProjectFilePath)
 
 	/**
 	 * The path to the project configuration directory.

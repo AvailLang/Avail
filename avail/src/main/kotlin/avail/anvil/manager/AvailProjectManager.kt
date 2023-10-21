@@ -510,7 +510,7 @@ class AvailProjectManager constructor(
 				val projectConfigFile = selectedFile
 				val project = try
 				{
-					AvailProject.from(selectedFile.absolutePath)
+					AvailProject.initializeProject(selectedFile.absolutePath)
 				}
 				catch (e: Throwable)
 				{

@@ -110,7 +110,7 @@ class CreateProjectPanel constructor(
 		val projectFilePath = "$projLocation/$fileName.json"
 		val configPath =
 			AvailEnvironment.projectConfigPath(fileName, projLocation)
-		AvailProject.optionallyInitializeConfigDirectory(configPath)
+		AvailProject.optionallyInitializeProjectConfigDirectory(configPath)
 		val localSettings = LocalSettings.from(File(configPath))
 		AvailProjectV1(
 			fileName,

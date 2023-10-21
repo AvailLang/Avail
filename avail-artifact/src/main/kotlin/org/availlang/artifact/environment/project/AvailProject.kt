@@ -52,6 +52,38 @@ import java.io.File
  * This also implements a [JSONFriendly] interface for writing this as a
  * configuration file used for starting up Avail project environments.
  *
+ * An Avail project is described by an Avail project configuration file. This is
+ * a JSON file that can be named anything, but it follows the JSON structure
+ * of this [AvailProject.writeTo].
+ *
+ * The Avail project configuration file lives at the top level of the Avail
+ * project; the project root. All project locations are relative to this
+ * directory. A project also has a `.avail` directory. Inside of this directory
+ * all of the project configuration files can be found. At the top level of the
+ * `.avail/` directory can be found a directory that shares the same name as the
+ * [AvailProject] configuration JSON file without the `.json` file extension.
+ * Inside this directory can be found:
+ *   - The configuration file for the [AvailArtifactBuildPlan] which describes
+ *   how to construct [AvailArtifact]s from this project.
+ *   - a file called `{name of config file}-local-state.json` that contains
+ *   window position location information about open Anvil windows. This should
+ *   not be added to git.
+ *   - `settings-local.json` file that provides settings information specific to
+ *   the local environment. This should not be added to git.
+ *   - `styles.json` file that contains the project-wide styles settings for the
+ *   project (covers all roots).
+ *   - `templates.json` file that contains the project wide templates (covers
+ *   all roots).
+ *   - a directory for each of the [AvailProjectRoot]s representing each of the
+ *   Avail module roots. These directories contain:
+ *     * `settings-local.json` file that contains local settings information
+ *     specific to that module for the current local environment. This should
+ *     not be checked in to git.
+ *     * `styles.json` file that contains the root-wide styles settings for the
+ *     project (covers all roots).
+ *     * `templates.json` file that contains the root-wide templates (covers
+ *     all roots).
+ *
  * @author Richard Arriaga
  */
 interface AvailProject: JSONFriendly
@@ -424,16 +456,16 @@ interface AvailProject: JSONFriendly
 		}
 
 		/**
-		 * Extract and build a [AvailProject] from the provided [JSONObject].
-		 * Initializes the project configuration directories if not already
-		 * created.
+		 * Given the path to an [AvailProject] configuration file, initialize
+		 * the directory structure for the project, then use the configuration
+		 * file to create and Answer the [AvailProject].
 		 *
 		 * @param projectFilePath
 		 *   The path to the project file.
 		 * @return
-		 *   The extracted `AvailProject`.
+		 *   The extracted [AvailProject].
 		 */
-		fun from (projectFilePath: String): AvailProject
+		fun initializeProject (projectFilePath: String): AvailProject
 		{
 			val file = File(projectFilePath)
 			val directory = file.parent
@@ -451,7 +483,8 @@ interface AvailProject: JSONFriendly
 		}
 
 		/**
-		 * Optionally create the files expected in the configuration directory.
+		 * Optionally create the files expected in the configuration directory
+		 * for this [AvailProject].
 		 *
 		 * @param configPath
 		 *   The path to the configuration directory.
@@ -460,7 +493,7 @@ interface AvailProject: JSONFriendly
 		 *   that may contain [TEMPLATE_FILE_NAME] and [STYLE_FILE_NAME]
 		 *   indicating those files had to be created.
 		 */
-		fun optionallyInitializeConfigDirectory(
+		fun optionallyInitializeProjectConfigDirectory(
 			configPath: String,
 			forRoot: Boolean = true
 		): Pair<File, List<String>>

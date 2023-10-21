@@ -80,7 +80,7 @@ class AvailProjectV1 constructor(
 	override fun optionallyInitializeConfigDirectory(
 		configPath: String
 	): Pair<File, List<String>> =
-		AvailProject.optionallyInitializeConfigDirectory(configPath)
+		AvailProject.optionallyInitializeProjectConfigDirectory(configPath)
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -131,7 +131,7 @@ class AvailProjectV1 constructor(
 			val projectConfigDir = AvailEnvironment.projectConfigPath(
 				dirName, projectDirectory)
 			val (_, createdList) =
-				AvailProject.optionallyInitializeConfigDirectory(
+				AvailProject.optionallyInitializeProjectConfigDirectory(
 					projectConfigDir, false)
 			val id = obj.getString(AvailProjectV1::id.name)
 			val name = obj.getString(AvailProjectV1::name.name)

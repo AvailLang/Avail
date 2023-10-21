@@ -100,7 +100,7 @@ object AvailProjectWorkbenchRunner
 		setupEnvironment()
 		val availProject = try
 		{
-			AvailProject.from(configFile.absolutePath)
+			AvailProject.initializeProject(configFile.absolutePath)
 		}
 		catch (e: Exception)
 		{
