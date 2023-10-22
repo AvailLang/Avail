@@ -79,7 +79,10 @@
 				"headerlessExtensions": [
 					{
 						"headerlessExtension": "quiz",
-						"headerExtension": "quiz.header"
+						"headerExtension": "quiz.header",
+						"headerFileIcon": null,
+						"headerlessFileIcon": "quiz-icon-file-avail.png"
+
 					}
 				]
 			},

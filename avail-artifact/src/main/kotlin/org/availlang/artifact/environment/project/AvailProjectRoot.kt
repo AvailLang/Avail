@@ -6,6 +6,7 @@ import org.availlang.artifact.ResourceType
 import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLocation
+import org.availlang.artifact.environment.project.AvailProject.Companion.ROOT_RES_DIR
 import org.availlang.artifact.environment.project.AvailProject.Companion.STYLE_FILE_NAME
 import org.availlang.artifact.environment.project.AvailProject.Companion.TEMPLATE_FILE_NAME
 import org.availlang.artifact.manifest.AvailRootManifest
@@ -16,7 +17,7 @@ import org.availlang.json.JSONWriter
 import org.availlang.json.jsonObject
 import java.io.File
 import java.security.MessageDigest
-import java.util.*
+import java.util.UUID
 
 /**
  * Represents an Avail module root in a [AvailProject].
@@ -68,6 +69,12 @@ class AvailProjectRoot constructor(
 	 * An optional description of this [AvailProjectRoot].
 	 */
 	var description: String = ""
+
+	/**
+	 * This [AvailProjectRoot]'s resources directory.
+	 */
+	val resourcesDirectory: File get() = File(
+		"$rootConfigDirectory${File.separator}$ROOT_RES_DIR")
 
 	/**
 	 * The [StylingSelection] used for styling this [AvailProjectRoot].

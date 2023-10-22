@@ -424,6 +424,12 @@ interface AvailProject: JSONFriendly
 		const val STYLE_FILE_NAME = "styles.json"
 
 		/**
+		 * The name of the root's resources directory used to store files such
+		 * as custom file icons.
+		 */
+		const val ROOT_RES_DIR = "resources"
+
+		/**
 		 * Extract and build a [AvailProject] from the provided [JSONObject].
 		 *
 		 * @param projectFileName

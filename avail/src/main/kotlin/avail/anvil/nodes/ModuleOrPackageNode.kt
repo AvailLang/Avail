@@ -39,7 +39,12 @@ import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleCorpus
 import avail.persistence.cache.record.ModuleVersionKey
+import avail.utility.ifZero
 import org.availlang.artifact.ResourceType
+import org.availlang.cache.LRUCache
+import java.awt.Image
+import java.io.File
+import javax.swing.ImageIcon
 
 /**
  * This is a tree node representing a module file or a package.
@@ -61,8 +66,6 @@ import org.availlang.artifact.ResourceType
  *   The name of the module/package prior to resolution (renames).
  * @param resolvedModuleName
  *   The resolved name of the module or package.
- * @param resourceType
- *   Whether it's a package.
  */
 class ModuleOrPackageNode(
 	workbench: AvailWorkbench,
@@ -98,6 +101,22 @@ class ModuleOrPackageNode(
 			} ?: emptyList()
 		}
 	}
+
+	override fun icon(lineHeight: Int): ImageIcon? =
+		when (val rt = resourceType)
+		{
+			is ResourceType.HeaderlessModule ->
+				rt.fileIcon
+			is ResourceType.HeaderModule ->
+				rt.fileIcon
+			else -> null
+		}?.let {
+			workbench.availProject.roots[resolvedModuleName.moduleRoot.name]
+				?.let { root ->
+					val path = File(root.resourcesDirectory, it).absolutePath
+					cachedCustomScaledIcons[path to lineHeight.ifZero { 19 }]
+				}
+		} ?: super.icon(lineHeight)
 
 	override fun modulePathString(): String = when
 	{
@@ -193,4 +212,21 @@ class ModuleOrPackageNode(
 
 	override fun toString(): String =
 		"${javaClass.simpleName}: ${text(false)}".removeSuffix(suffix)
+
+	companion object
+	{
+		/**
+		 * A static cache of scaled icons, organized by node class and line
+		 * height.
+		 */
+		private val cachedCustomScaledIcons =
+			LRUCache<Pair<String, Int>, ImageIcon>(
+			100, 20,
+				{ (iconPath, height) ->
+					val originalIcon = ImageIcon(iconPath)
+					val scaled = originalIcon.image.getScaledInstance(
+						-1, height, Image.SCALE_SMOOTH)
+					ImageIcon(scaled, iconPath)
+				})
+	}
 }

@@ -391,23 +391,31 @@ data class ResourceTypeManager(
 		 * the file extension, [headerExtension].
 		 */
 		val headerType: ResourceType.HeaderModule =
-			ResourceType.HeaderModule(headerExtension)
+			ResourceType.HeaderModule(headerExtension, headerFileIcon)
 
 		/**
 		 * The [ResourceType.HeaderlessModule] to assign headerless Avail
 		 * modules that have the file extension, [headerlessExtension].
 		 */
 		val headerlessType: ResourceType.HeaderlessModule =
-			ResourceType.HeaderlessModule(headerlessExtension, headerType)
+			ResourceType.HeaderlessModule(
+				headerlessExtension, headerType, headerlessFileIcon)
 
 		/**
+		 * Answer the [ResourceType] based on the provided file name's file
+		 * extension.
 		 *
+		 * @param filename
+		 *   The name of the file to determine the [ResourceType] for.
+		 * @return
+		 *   A [ResourceType] if it has an extension from this
+		 *   [HeaderlessExtension]; `null` otherwise.
 		 */
 		internal fun resourceType (filename: String): ResourceType? =
 			when
 			{
 				filename.endsWith(headerlessExtension) -> headerlessType
-				filename.endsWith(headerExtension)-> headerlessType
+				filename.endsWith(headerExtension)-> headerType
 				else -> null
 			}
 
