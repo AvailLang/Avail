@@ -51,7 +51,6 @@ import io.methvin.watcher.DirectoryChangeEvent.EventType
 import io.methvin.watcher.DirectoryWatcher
 import io.methvin.watcher.hashing.FileHasher
 import org.availlang.artifact.ResourceType
-import org.availlang.artifact.ResourceType.Directory
 import org.availlang.artifact.ResourceType.Package
 import org.availlang.artifact.ResourceType.Resource
 import org.availlang.artifact.ResourceType.Root
@@ -101,7 +100,7 @@ import kotlin.io.path.moveTo
  *   [FileSystemModuleRootResolver].
  * @param resourceTypeManager
  *   The [ResourceTypeManager] used by the [FileSystemModuleRootResolver] to
- *   manage its the root's [ResourceType]s.
+ *   manage the root's [ResourceType]s.
  */
 @Suppress("RemoveRedundantQualifierName")
 class FileSystemModuleRootResolver constructor(
@@ -465,9 +464,9 @@ class FileSystemModuleRootResolver constructor(
 		withContents: (ByteArray, UUID?)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
-		when(reference.type)
+		when
 		{
-			Root, Directory, is Package ->
+			reference.type.isDirectory ->
 			{
 				failureHandler(
 					StandardErrorCode.IO_EXCEPTION,

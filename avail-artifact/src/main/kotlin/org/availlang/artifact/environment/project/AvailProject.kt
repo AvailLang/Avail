@@ -427,7 +427,7 @@ interface AvailProject: JSONFriendly
 		 * The name of the root's resources directory used to store files such
 		 * as custom file icons.
 		 */
-		const val ROOT_RES_DIR = "resources"
+		const val ROOT_RESOURCE_DIRECTORY = "resources"
 
 		/**
 		 * Extract and build a [AvailProject] from the provided [JSONObject].
@@ -464,7 +464,7 @@ interface AvailProject: JSONFriendly
 		/**
 		 * Given the path to an [AvailProject] configuration file, initialize
 		 * the directory structure for the project, then use the configuration
-		 * file to create and Answer the [AvailProject].
+		 * file to create and answer the [AvailProject].
 		 *
 		 * @param projectFilePath
 		 *   The path to the project file.

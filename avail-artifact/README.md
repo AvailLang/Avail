@@ -29,7 +29,7 @@ The root of an Avail project is the class,
 
 An Avail project is described by an Avail project configuration file. This is
 a JSON file that can be named anything, but it follows the JSON structure
-of this `AvailProject.writeTo`.
+of the subtype-implementations of `AvailProject.writeTo`.
 
 The Avail project configuration file lives at the top level of the Avail
 project; the project root. All project locations are relative to this

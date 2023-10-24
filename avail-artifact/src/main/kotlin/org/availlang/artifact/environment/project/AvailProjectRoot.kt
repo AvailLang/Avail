@@ -6,7 +6,7 @@ import org.availlang.artifact.ResourceType
 import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLocation
-import org.availlang.artifact.environment.project.AvailProject.Companion.ROOT_RES_DIR
+import org.availlang.artifact.environment.project.AvailProject.Companion.ROOT_RESOURCE_DIRECTORY
 import org.availlang.artifact.environment.project.AvailProject.Companion.STYLE_FILE_NAME
 import org.availlang.artifact.environment.project.AvailProject.Companion.TEMPLATE_FILE_NAME
 import org.availlang.artifact.manifest.AvailRootManifest
@@ -74,7 +74,7 @@ class AvailProjectRoot constructor(
 	 * This [AvailProjectRoot]'s resources directory.
 	 */
 	val resourcesDirectory: File get() = File(
-		"$rootConfigDirectory${File.separator}$ROOT_RES_DIR")
+		"$rootConfigDirectory${File.separator}$ROOT_RESOURCE_DIRECTORY")
 
 	/**
 	 * The [StylingSelection] used for styling this [AvailProjectRoot].

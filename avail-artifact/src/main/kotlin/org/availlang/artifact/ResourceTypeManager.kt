@@ -58,8 +58,8 @@ import java.util.zip.ZipEntry
  *   1. It's neat!
  *   2. You are providing a DSL as a library, but you still need a package
  *   [ResourceType.Representative] in each of the [ResourceType.Package]s where
- *   the DSL [ResourceType.HeaderlessModule]s will be to linked inside the
- *   [package representative's][ResourceType.Representative] `Uses` section of
+ *   the DSL [ResourceType.HeaderlessModule]s will be linked inside the
+ *   [package representative's][ResourceType.Representative] `Corpus` section of
  *   the header so that the DSL modules are recognized and built by Avail.
  * @property headerlessExtensions
  *   The set of [HeaderlessExtension]s supported by the associated
@@ -91,7 +91,7 @@ data class ResourceTypeManager(
 	/**
 	 * The [ResourceType.Package] that does not use the [moduleFileExtension].
 	 */
-	private val packageTypeWithOutExtension =
+	private val packageTypeWithoutExtension =
 		ResourceType.Package("")
 
 	/**
@@ -110,7 +110,7 @@ data class ResourceTypeManager(
 		}
 		else
 		{
-			packageTypeWithOutExtension
+			packageTypeWithoutExtension
 		}
 
 	/**
@@ -209,9 +209,9 @@ data class ResourceTypeManager(
 					packageTypeWithExtension
 				file.listFiles { f ->
 						!f.isDirectory && f.name.endsWith(
-							"${file.name}.$moduleFileExtension")
+							"$fileName.$moduleFileExtension")
 					}?.isNotEmpty() ?: false ->
-						packageTypeWithOutExtension
+						packageTypeWithoutExtension
 				else -> ResourceType.Directory
 			}
 		}
@@ -318,12 +318,12 @@ data class ResourceTypeManager(
 		}
 		deferred.forEach { (entryName, entry) ->
 			val packageRepName =
-				"$entryName${entryName.split("/").last()}" +
+				"$entryName${entryName.split("/").last()}." +
 					moduleFileExtension
 			val type  =
 				if(metadataMap.containsKey(packageRepName))
 				{
-					packageTypeWithOutExtension
+					packageTypeWithoutExtension
 				}
 				else
 				{

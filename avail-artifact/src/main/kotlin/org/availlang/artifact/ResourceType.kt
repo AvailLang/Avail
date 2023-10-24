@@ -104,7 +104,7 @@ sealed interface ResourceType
 	/**
 	 * Represents an Avail package representative.
 	 *
-	 * **Note** A uses a `Representative` [fileExtension] **must** use the
+	 * **Note** Uses a `Representative` [fileExtension] **must** use the
 	 * [ResourceTypeManager.moduleFileExtension]. It is not permitted to use
 	 * a [ResourceTypeManager.HeaderlessExtension.headerlessExtension] nor a
 	 * [ResourceTypeManager.HeaderlessExtension.headerExtension].

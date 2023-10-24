@@ -1,5 +1,5 @@
 /*
- * HeaderModule.kt
+ * ModuleHeader.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -67,8 +67,7 @@ import avail.serialization.Serializer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
- *
- * Construct a new `HeaderModule`.
+ * Construct a new [ModuleHeader].
  *
  * @param moduleName
  *   The [resolved&#32;name][ResolvedModuleName] of the module.
