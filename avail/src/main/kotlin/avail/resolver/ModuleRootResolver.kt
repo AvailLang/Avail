@@ -48,6 +48,7 @@ import avail.files.ManagedFileWrapper
 import avail.persistence.cache.Repository
 import avail.utility.Strings.matchesAbbreviation
 import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceTypeManager
 import java.io.File
 import java.net.URI
 import java.net.URLEncoder
@@ -89,9 +90,9 @@ import java.util.UUID
  *   The [URI] that identifies the location of the [ModuleRoot].
  * @property fileManager
  *   The [FileManager] used for pooling I/O requests for this root.
- * @property availFileExtensions
- *   The set of Avail file extensions that represent an Avail module for the
- *   associated [ModuleRoot].
+ * @property resourceTypeManager
+ *   The [ResourceTypeManager] used by this [ModuleRoot] to manage its
+ *   [ResourceType]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -100,7 +101,7 @@ constructor(
 	val name: String,
 	val uri: URI,
 	val fileManager: FileManager,
-	val availFileExtensions: Set<String>)
+	val resourceTypeManager: ResourceTypeManager)
 {
 	/**
 	 * Answer whether data can be written to modules under this resolver.  Note
@@ -142,35 +143,6 @@ constructor(
 	 * The full [ModuleRoot] tree if available; or `null` if not yet set.
 	 */
 	internal var moduleRootTree: ResolverReference? = null
-
-	/**
-	 * Answers whether the provided file is consider an Avail module/package
-	 * representative in the associated [ModuleRoot].
-	 *
-	 * @param fileName
-	 *   The name of the file to check to see if it is an Avail module.
-	 * @return
-	 *   `true` if the provided file is considered an Avail module/package
-	 *   representative in the associated [ModuleRoot]; `false` otherwise.
-	 */
-	protected fun hasAvailModuleFileExtension(fileName: String): Boolean =
-		availFileExtensions.any {
-			fileName.endsWith(it)
-		}
-
-	/**
-	 * Answers Avail file extension used by the given file or an empty string
-	 * if none match.
-	 *
-	 * @param fileName
-	 *   The name of the file to get the Avail file extension for.
-	 * @return
-	 *   The Avail file extension or an empty string if not an extension.
-	 */
-	protected fun availModuleFileExtension(fileName: String): String =
-		availFileExtensions.firstOrNull {
-			fileName.endsWith(it)
-		} ?: ""
 
 	/**
 	 * Answer all the [ResolverReference]s known by this [ModuleRootResolver]
@@ -337,7 +309,7 @@ constructor(
 			referenceMap[name]?.let { resolved ->
 				when (resolved.type)
 				{
-					ResourceType.PACKAGE ->
+					is ResourceType.Package ->
 					{
 						// Look for the package representative.
 						val representativeComponents =
@@ -359,7 +331,7 @@ constructor(
 									initialCanonicalName.isRename))
 						}
 					}
-					ResourceType.MODULE ->
+					is ResourceType.Module ->
 					{
 						return ModuleNameResolutionResult(
 							ResolvedModuleName(
@@ -393,8 +365,7 @@ constructor(
 		withReference: (ResolverReference)->Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
-		val extension = availModuleFileExtension(qualifiedName)
-		val qname = qualifiedName.removeSuffix(extension)
+		val qname = resourceTypeManager.cleanseAsQualifiedName(qualifiedName)
 		referenceMap[qname]?.let { reference ->
 			return withReference(reference)
 		}
@@ -562,11 +533,11 @@ constructor(
 
 	/**
 	 * Delete the [ResourceType] linked to the qualified name. If the
-	 * [ResourceType] is a [ResourceType.PACKAGE] or a [ResourceType.DIRECTORY],
+	 * [ResourceType] is a [ResourceType.Package] or a [ResourceType.Directory],
 	 * all of its children should be deleted as well. All deleted references
 	 * should be removed from the [reference tree][provideResolverReference].
 	 *
-	 * If it is a [ResourceType.REPRESENTATIVE], the package it represents
+	 * If it is a [ResourceType.Representative], the package it represents
 	 * should be deleted and handled as if the package were the target of
 	 * deletion.
 	 *
@@ -646,8 +617,8 @@ constructor(
 			"$targetURI is not in ModuleRoot, $moduleRoot"
 		}
 		val relative = targetURI.split(uriPath)[1]
-		val extension = availModuleFileExtension(relative)
-		val cleansedRelative = relative.removeSuffix(extension)
+		val cleansedRelative =
+			resourceTypeManager.cleanseAsQualifiedName(relative)
 		return "/${moduleRoot.name}" +
 			(if (relative.startsWith("/")) "" else "/") +
 			cleansedRelative

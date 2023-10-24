@@ -26,6 +26,11 @@
 				"scheme": "FILE",
 				"path": "distro/src/avail"
 			},
+			"resourceTypeManager":
+			{
+				"moduleFileExtension": "avail",
+				"headerlessExtensions": []
+			},
 			"moduleHeaders":
 			[
 				{
@@ -47,6 +52,11 @@
 				"scheme": "FILE",
 				"path": "distro/src/builder-tests"
 			},
+			"resourceTypeManager":
+			{
+				"moduleFileExtension": "avail",
+				"headerlessExtensions": []
+			},
 			"moduleHeaders":
 			[
 			]
@@ -63,7 +73,19 @@
 				"scheme": "FILE",
 				"path": "distro/src/examples"
 			},
-			"availModuleExtensions": ["avail", "quiz"],
+			"resourceTypeManager":
+			{
+				"moduleFileExtension": "avail",
+				"headerlessExtensions": [
+					{
+						"headerlessExtension": "quiz",
+						"headerExtension": "quiz.header",
+						"headerFileIcon": null,
+						"headerlessFileIcon": "quiz-icon-file-avail.png"
+
+					}
+				]
+			},
 			"moduleHeaders":
 			[
 			]
@@ -79,6 +101,11 @@
 				"locationType": "project",
 				"scheme": "FILE",
 				"path": "distro/src/website"
+			},
+			"resourceTypeManager":
+			{
+				"moduleFileExtension": "avail",
+				"headerlessExtensions": []
 			},
 			"moduleHeaders":
 			[

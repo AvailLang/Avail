@@ -39,6 +39,7 @@ import avail.anvil.environment.AVAIL_STDLIB_ROOT_NAME
 import avail.anvil.icons.ProjectManagerIcons
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.availStandardLibraries
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLibraries
 import org.availlang.artifact.environment.location.AvailRepositories
@@ -109,7 +110,7 @@ class CreateProjectPanel constructor(
 		val projectFilePath = "$projLocation/$fileName.json"
 		val configPath =
 			AvailEnvironment.projectConfigPath(fileName, projLocation)
-		AvailProject.optionallyInitializeConfigDirectory(configPath)
+		AvailProject.optionallyInitializeProjectConfigDirectory(configPath)
 		val localSettings = LocalSettings.from(File(configPath))
 		AvailProjectV1(
 			fileName,
@@ -178,12 +179,12 @@ class CreateProjectPanel constructor(
 					{
 						TemplateGroup()
 					}
-				val extensions = mutableListOf<String>()
+				var manager = ResourceTypeManager()
 				var description = ""
 				rootManifest?.let {
 					sg = it.styles
 					tg = it.templates
-					extensions.addAll(it.availModuleExtensions)
+					manager = it.resourceTypeManager
 					description = it.description
 				}
 				val stdLib = AvailProjectRoot(
@@ -201,7 +202,7 @@ class CreateProjectPanel constructor(
 							projLocation)),
 					sg,
 					tg,
-					extensions)
+					manager)
 				stdLib.description = description
 				stdLib.saveLocalSettingsToDisk()
 				stdLib.saveTemplatesToDisk()

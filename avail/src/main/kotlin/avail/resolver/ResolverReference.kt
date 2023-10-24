@@ -37,7 +37,6 @@ import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
 import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
-import org.availlang.artifact.ResourceType
 import avail.builder.UnresolvedModuleException
 import avail.error.ErrorCode
 import avail.files.AvailFile
@@ -46,6 +45,7 @@ import avail.files.FileManager
 import avail.files.NullFileWrapper
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ModuleArchive
+import org.availlang.artifact.ResourceType
 import org.availlang.json.JSONWriter
 import java.net.URI
 import java.nio.ByteBuffer
@@ -107,42 +107,48 @@ class ResolverReference constructor(
 	/**
 	 * `true` iff the [ResolverReference] represents a root, `false` otherwise.
 	 */
-	val isRoot: Boolean get() = type == ResourceType.ROOT
+	val isRoot: Boolean get() = type == ResourceType.Root
 
 	/**
 	 * `true` iff the [ResolverReference] represents a package, `false`
 	 *  otherwise.
 	 */
-	val isPackage: Boolean get() = type == ResourceType.PACKAGE
+	val isPackage: Boolean get() = type is ResourceType.Package
 
 	/**
 	 * `true` iff the [ResolverReference] represents a package representative
 	 * module, `false` otherwise.
 	 */
 	val isPackageRepresentative: Boolean get() =
-		type == ResourceType.REPRESENTATIVE
+		type is ResourceType.Representative
 
 	/**
 	 * `true` iff the [ResolverReference] represents a module, `false`
 	 *  otherwise.
 	 */
-	val isModule: Boolean get() =
-		type == ResourceType.MODULE || type == ResourceType.REPRESENTATIVE
+	val isModule: Boolean get() = type.isModule
+
+	/**
+	 * `true` iff the [ResolverReference] represents a module with a
+	 * [module header][ResourceType.hasModuleHeader], `false` otherwise.
+	 */
+	val hasModuleHeader: Boolean get() = type.hasModuleHeader
+
 
 	/**
 	 * Indicates whether or not this [ResolverReference] is a resource, not a
 	 * [module][isModule] nor [package][isPackage]. `true` if it is either a
-	 * [ResourceType.RESOURCE] or [ResourceType.DIRECTORY]; `false` otherwise.
+	 * [ResourceType.Resource] or [ResourceType.Directory]; `false` otherwise.
 	 */
 	val isResource: Boolean get() =
-		type == ResourceType.RESOURCE || type == ResourceType.DIRECTORY
+		type == ResourceType.Resource || type == ResourceType.Directory
 
 	/**
 	 * `true` indicates that either [modules] or [resources] is not empty.
 	 * `false` indicates they are both empty.
 	 *
-	 * **NOTE** only a [package][ResourceType.PACKAGE],
-	 * [root][ResourceType.ROOT], or [directory][ResourceType.DIRECTORY] can
+	 * **NOTE** only a [package][ResourceType.Package],
+	 * [root][ResourceType.Root], or [directory][ResourceType.Directory] can
 	 * have child [ResolverReference]s.
 	 */
 	val hasChildren: Boolean get() =
@@ -200,12 +206,11 @@ class ResolverReference constructor(
 	private val repository: Repository get() = resolver.moduleRoot.repository
 
 	/**
-	 * Answer the [Repository.ModuleArchive] for the file this
+	 * Answer the [ModuleArchive] for the file this
 	 * [ResolverReference] points to.
 	 */
 	private val archive: ModuleArchive
-		get() =
-		repository.getArchive(moduleName.rootRelativeName)
+		get() = repository.getArchive(moduleName.rootRelativeName)
 
 	/**
 	 * The file MIME type of the associated resource or empty String if
@@ -270,16 +275,17 @@ class ResolverReference constructor(
 	fun file (rawBytes: ByteArray): AvailFile =
 		when (type)
 		{
-			ResourceType.MODULE,
-			ResourceType.HEADERLESS_MODULE,
-			ResourceType.REPRESENTATIVE,
-			ResourceType.RESOURCE ->
+			is ResourceType.Module,
+			is ResourceType.HeaderlessModule,
+			is ResourceType.HeaderModule,
+			is ResourceType.Representative,
+			ResourceType.Resource ->
 				AvailModuleFile(
 					rawBytes,
 					NullFileWrapper(rawBytes, this, resolver.fileManager))
-			ResourceType.PACKAGE,
-			ResourceType.ROOT,
-			ResourceType.DIRECTORY ->
+			is ResourceType.Package,
+			ResourceType.Root,
+			ResourceType.Directory ->
 				throw UnsupportedOperationException(
 					"$qualifiedName ($type) cannot be an AvailFile")
 		}
@@ -294,18 +300,18 @@ class ResolverReference constructor(
 	{
 		// Representatives should not have a visible footprint in the
 		// tree; we want their enclosing packages to represent them.
-		if (type !== ResourceType.REPRESENTATIVE)
+		if (type !is ResourceType.Representative)
 		{
 			writer.writeObject {
 				at("localName") { write(localName) }
 				at("qualifiedName") { write(qualifiedName) }
-				at("type") { write(type.label) }
+				at("type") { write(type.name) }
 				accessException?.let {
 					at("error") { write(it.localizedMessage) }
 				}
 				when (type)
 				{
-					ResourceType.PACKAGE ->
+					is ResourceType.Package ->
 					{
 						// Handle a missing representative as a special
 						// kind of error, but only if another error
@@ -321,7 +327,7 @@ class ResolverReference constructor(
 						}
 						writeResolutionInformationOn(writer, builder)
 					}
-					ResourceType.MODULE ->
+					is ResourceType.Module ->
 						writeResolutionInformationOn(writer, builder)
 					else -> { }
 				}
@@ -504,16 +510,16 @@ class ResolverReference constructor(
 
 	/**
 	 * Walk the [children][childReferences] of this [ResolverReference]. This
-	 * reference **must** be either a [root][ResourceType.ROOT],
-	 * [package][ResourceType.PACKAGE], or
-	 * [directory][ResourceType.DIRECTORY].
+	 * reference **must** be either a [root][ResourceType.Root],
+	 * [package][ResourceType.Package], or
+	 * [directory][ResourceType.Directory].
 	 *
 	 * **NOTE** Graph uses depth-first traversal to visit each reference.
 	 *
 	 * @param visitResources
 	 *   `true` indicates [resources][ResolverReference.isResource] should
 	 *   be included in the walk; `false` indicates walk should be
-	 *   restricted to packages and [modules][ResourceType.MODULE].
+	 *   restricted to packages and [modules][ResourceType.Module].
 	 * @param withReference
 	 *   The lambda that accepts the visited [ResolverReference]. This
 	 *   `ResolverReference` will not be provided to the lambda.
@@ -528,9 +534,9 @@ class ResolverReference constructor(
 		afterAllVisited: (Int)->Unit = {})
 	{
 		if (
-			type != ResourceType.ROOT
+			type != ResourceType.Root
 				&& !isPackage
-				&& type != ResourceType.DIRECTORY)
+				&& type != ResourceType.Directory)
 		{
 			// If there's nothing to walk, then walk nothing.
 			afterAllVisited(0)
@@ -563,7 +569,7 @@ class ResolverReference constructor(
 		 * @param visitResources
 		 *   `true` indicates [resources][ResolverReference.isResource] should
 		 *   be included in the walk; `false` indicates walk should be
-		 *   restricted to packages and [modules][ResourceType.MODULE].
+		 *   restricted to packages and [modules][ResourceType.Module].
 		 * @param withReference
 		 *   The lambda that accepts the visited [ResolverReference]. This
 		 *   `ResolverReference` will not be provided to the lambda.
@@ -592,39 +598,11 @@ class ResolverReference constructor(
 							.forEach(stack::addFirst)
 					}
 				}
-				if (stack.isEmpty()) return visited
+				if (stack.isEmpty())
+					return visited
 				visited++
 				ref = stack.removeFirst()
 			}
 		}
 	}
 }
-
-///**
-// * A `ResourceType` represents the type of a [ResolverReference].
-// *
-// * @author Todd L Smith &lt;todd@availlang.org&gt;
-// */
-//enum class ResourceType
-//{
-//	/** Represents an ordinary Avail module. */
-//	MODULE,
-//
-//	/** Represents an Avail package representative. */
-//	REPRESENTATIVE,
-//
-//	/** Represents an Avail package. */
-//	PACKAGE,
-//
-//	/** Represents an Avail root. */
-//	ROOT,
-//
-//	/** Represents an arbitrary directory. */
-//	DIRECTORY,
-//
-//	/** Represents an arbitrary resource. */
-//	RESOURCE;
-//
-//	/** A short description of the receiver. */
-//	val label get() = name.lowercase()
-//}

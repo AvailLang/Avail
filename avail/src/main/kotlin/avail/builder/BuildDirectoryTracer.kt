@@ -181,7 +181,7 @@ class BuildDirectoryTracer constructor(
 				refRoot.walkChildrenThen(
 					visitResources = false,
 					withReference = { visited ->
-						if (visited.isRoot || visited.isPackage)
+						if (!visited.hasModuleHeader)
 						{
 							// We don't want to trace packages.
 							return@walkChildrenThen

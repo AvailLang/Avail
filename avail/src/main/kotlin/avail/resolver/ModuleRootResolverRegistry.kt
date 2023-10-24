@@ -34,11 +34,13 @@ package avail.resolver
 
 import avail.builder.ModuleRoot
 import avail.files.FileManager
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceTypeManager
 import java.net.URI
 
 /**
- * `ModuleRootResolverRegistry` manages all the active
- * [ModuleRootResolverFactory]s known by this instance of Avail.
+ * Manages all the active [ModuleRootResolverFactory]s known by this instance of
+ * Avail.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -79,9 +81,9 @@ object ModuleRootResolverRegistry
 	 * @param fileManager
 	 *   The [FileManager] used to manage the files accessed via the
 	 *   [ModuleRootResolver].
-	 * @param availFileExtensions
-	 *   The set of Avail file extensions that represent an Avail module for the
-	 *   associated [ModuleRoot].
+	 * @param resourceTypeManager
+	 *   The [ResourceTypeManager] that provides [ResourceType] management for
+	 *   the [ModuleRootResolver] being created.
 	 * @return
 	 *   The constructed [ModuleRootResolver].
 	 * @throws UnsupportedOperationException
@@ -92,7 +94,7 @@ object ModuleRootResolverRegistry
 		name: String,
 		uri: URI,
 		fileManager: FileManager,
-		availFileExtensions: Set<String>
+		resourceTypeManager: ResourceTypeManager
 	): ModuleRootResolver
 	{
 		val lookup = when (uri.scheme)
@@ -107,7 +109,7 @@ object ModuleRootResolverRegistry
 				"URI scheme, ${uri.scheme}, does not have a registered " +
 					"ModuleRootResolverFactory.")
 		}
-		return factory.resolver(name, lookup, fileManager, availFileExtensions)
+		return factory.resolver(name, lookup, fileManager, resourceTypeManager)
 	}
 
 	init

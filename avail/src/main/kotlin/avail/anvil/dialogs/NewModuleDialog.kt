@@ -32,13 +32,13 @@
 
 package avail.anvil.dialogs
 
-import avail.builder.ModuleName
-import avail.builder.ModuleRoot
 import avail.anvil.AvailEditor
 import avail.anvil.AvailWorkbench
 import avail.anvil.actions.RefreshAction
 import avail.anvil.components.ComboWithLabel
 import avail.anvil.streams.StreamStyle
+import avail.builder.ModuleName
+import avail.builder.ModuleRoot
 import avail.resolver.ModuleRootResolver
 import avail.utility.notNullAnd
 import org.availlang.artifact.environment.project.AvailProjectRoot
@@ -101,17 +101,11 @@ class NewModuleDialog constructor(
 	 * The possible file extensions for the new Avail module per the project
 	 * configuration.
 	 */
-	private val extensionOptions get() =
-		targetProjectRoot.availModuleExtensions.let {
-			if (it.isEmpty())
-			{
-				listOf("avail")
-			}
-			else
-			{
-				it
-			}
-		}.toTypedArray()
+	private val extensionOptions: Array<String> get() =
+		(listOf(targetProjectRoot.resourceTypeManager.moduleFileExtension) +
+			targetProjectRoot.resourceTypeManager.headerlessExtensions
+				.flatMap { setOf(it.headerExtension, it.headerlessExtension) })
+		.toTypedArray()
 
 	/**
 	 * The [JTextField] field to use wto set the module name.

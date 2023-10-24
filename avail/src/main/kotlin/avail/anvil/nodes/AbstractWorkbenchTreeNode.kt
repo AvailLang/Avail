@@ -124,7 +124,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 *   The desired icon height in pixels.
 	 * @return The icon.
 	 */
-	fun icon(lineHeight: Int): ImageIcon?
+	open fun icon(lineHeight: Int): ImageIcon?
 	{
 		val iconResourceName = iconResourceName() ?: return null
 		val pair = iconResourceName to lineHeight.ifZero { 19 }

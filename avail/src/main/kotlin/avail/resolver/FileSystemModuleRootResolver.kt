@@ -51,12 +51,10 @@ import io.methvin.watcher.DirectoryChangeEvent.EventType
 import io.methvin.watcher.DirectoryWatcher
 import io.methvin.watcher.hashing.FileHasher
 import org.availlang.artifact.ResourceType
-import org.availlang.artifact.ResourceType.DIRECTORY
-import org.availlang.artifact.ResourceType.MODULE
-import org.availlang.artifact.ResourceType.PACKAGE
-import org.availlang.artifact.ResourceType.REPRESENTATIVE
-import org.availlang.artifact.ResourceType.RESOURCE
-import org.availlang.artifact.ResourceType.ROOT
+import org.availlang.artifact.ResourceType.Package
+import org.availlang.artifact.ResourceType.Resource
+import org.availlang.artifact.ResourceType.Root
+import org.availlang.artifact.ResourceTypeManager
 import org.slf4j.helpers.NOPLogger
 import java.io.File
 import java.io.IOException
@@ -100,17 +98,17 @@ import kotlin.io.path.moveTo
  * @param fileManager
  *   The [FileManager] used to manage the files accessed via this
  *   [FileSystemModuleRootResolver].
- * @param availFileExtensions
- *   The set of Avail file extensions that represent an Avail module for the
- *   associated [ModuleRoot].
+ * @param resourceTypeManager
+ *   The [ResourceTypeManager] used by the [FileSystemModuleRootResolver] to
+ *   manage the root's [ResourceType]s.
  */
 @Suppress("RemoveRedundantQualifierName")
 class FileSystemModuleRootResolver constructor(
 	name: String,
 	uri: URI,
 	fileManager: FileManager,
-	availFileExtensions: Set<String>
-) : ModuleRootResolver(name, uri, fileManager, availFileExtensions)
+	resourceTypeManager:ResourceTypeManager
+) : ModuleRootResolver(name, uri, fileManager, resourceTypeManager)
 {
 	override val canSave: Boolean get() = true
 
@@ -184,62 +182,30 @@ class FileSystemModuleRootResolver constructor(
 	fun resolverReference(
 		path: Path,
 		qualifiedName: String,
-		type: ResourceType?): ResolverReference
+		type: ResourceType): ResolverReference
 	{
 		val file = path.toFile()
 		if (!file.exists())
 		{
 			throw NoSuchFileException(file, reason = "$path not found")
 		}
-		val resourceType = type ?: determineResourceType(file)
 		val isPackage = file.isDirectory
 		val lastModified = file.lastModified()
 		val size = if (isPackage) 0 else file.length()
-		val mimeType = when
+		val mimeType = when(type)
 		{
-			isPackage -> ""
-			file.extension == "avail" -> "text/plain"  // For performance.
-			else -> AvailFile.mimeType(path)
+			Resource -> AvailFile.mimeType(path)
+			else -> type.mimeType
 		}
-		val extension = availModuleFileExtension(qualifiedName)
-		val qname = qualifiedName.replace(extension, "")
+		val qname = resourceTypeManager.cleanseAsQualifiedName(qualifiedName)
 		return ResolverReference(
 			this,
 			path.toUri(),
 			qname,
-			resourceType,
+			type,
 			mimeType,
 			lastModified,
 			size)
-	}
-
-	/**
-	 * Answer the appropriate [ResourceType] for the provided [File].
-	 *
-	 * @param file
-	 *   The `File` to check.
-	 * @return
-	 *   The `ResourceType`.
-	 */
-	private fun determineResourceType (file: File): ResourceType
-	{
-		val fileName = file.absolutePath
-		val endsWithExtension = hasAvailModuleFileExtension(fileName)
-		val isDirectory = file.isDirectory
-		return when
-		{
-			!endsWithExtension && isDirectory -> DIRECTORY
-			!endsWithExtension -> RESOURCE
-			isDirectory -> PACKAGE
-			else ->
-			{
-				val localName = fileName.substringAfterLast('/')
-				val parent = fileName.substringBeforeLast('/', "")
-				val parentLocal = parent.substringAfterLast('/', "")
-				if (parentLocal == localName) REPRESENTATIVE
-				else MODULE
-			}
-		}
 	}
 
 	override fun refreshResolverMetaData(
@@ -498,14 +464,18 @@ class FileSystemModuleRootResolver constructor(
 		withContents: (ByteArray, UUID?)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
-		if (setOf(ROOT, DIRECTORY, PACKAGE).contains(reference.type))
+		when
 		{
-			failureHandler(
-				StandardErrorCode.IO_EXCEPTION,
-				IOException(
-					"${reference.qualifiedName} is a directory, not a file",
-					null))
-			return
+			reference.type.isDirectory ->
+			{
+				failureHandler(
+					StandardErrorCode.IO_EXCEPTION,
+					IOException(
+						"${reference.qualifiedName} is a directory, not a file",
+						null))
+				return
+			}
+			else -> {}
 		}
 		if (!bypassFileManager)
 		{
@@ -617,6 +587,11 @@ class FileSystemModuleRootResolver constructor(
 		val stack = ArrayDeque<ResolverReference>()
 		return object : FileVisitor<Path>
 		{
+			/**
+			 * The [URI] to the [ModuleRoot] being walked by this [FileVisitor].
+			 */
+			private lateinit var rootUri: URI
+
 			override fun preVisitDirectory(
 				dir: Path,
 				attrs: BasicFileAttributes
@@ -637,7 +612,7 @@ class FileSystemModuleRootResolver constructor(
 						this@FileSystemModuleRootResolver,
 						dirURI,
 						qualifiedName,
-						ROOT,
+						Root,
 						"",
 						0,
 						0,
@@ -646,18 +621,21 @@ class FileSystemModuleRootResolver constructor(
 					referenceMap[qualifiedName] = reference
 					moduleRootTree = reference
 					stack.add(reference)
+					rootUri = dirURI
 					return FileVisitResult.CONTINUE
 				}
 				val parent = stack.peekFirst()!!
 				// The directory is not a root. If it has an Avail
 				// extension, then it is a package.
 				val fileName = dir.fileName.toString()
-				val extension = availModuleFileExtension(fileName)
-				if (extension.isNotBlank())
+				val type =
+					resourceTypeManager.determineResourceType(dir.toFile())
+				if (type is Package)
 				{
-					val localName = fileName.removeSuffix(extension)
-					val qualifiedName = "${parent.qualifiedName}/$localName"
 					var dirURI = dir.toUri()
+					val qualifiedName = resourceTypeManager
+						.getQualifiedName(
+							moduleRoot.name, rootUri, dir.toString(), type)
 					if (dirURI.scheme === null)
 					{
 						dirURI = URI("file://$dir")
@@ -666,7 +644,7 @@ class FileSystemModuleRootResolver constructor(
 						this@FileSystemModuleRootResolver,
 						dirURI,
 						qualifiedName,
-						ResourceType.PACKAGE,
+						type,
 						"",
 						0,
 						0)
@@ -686,7 +664,7 @@ class FileSystemModuleRootResolver constructor(
 					this@FileSystemModuleRootResolver,
 					dirURI,
 					qualifiedName,
-					ResourceType.DIRECTORY,
+					ResourceType.Directory,
 					"",
 					0,
 					0)
@@ -726,31 +704,36 @@ class FileSystemModuleRootResolver constructor(
 
 				// A file with an Avail extension is an Avail module.
 				val parent = stack.peekFirst()!!
-				val extension = availModuleFileExtension(fileName)
-				if (extension.isNotBlank())
+				val type = resourceTypeManager
+					.determineResourceType(file.toFile())
+				when (type)
 				{
-					val localName = fileName.substring(
-						0, fileName.length - extension.length)
-					val type =
-						if (parent.isPackage && parent.localName == localName)
-							ResourceType.REPRESENTATIVE
-						else
-							ResourceType.MODULE
-
-					val qualifiedName = "${parent.qualifiedName}/$localName"
-					val reference = resolverReference(file, qualifiedName, type)
-					referenceMap[qualifiedName] = reference
-					parent.modules.add(reference)
-				}
-				// Otherwise, it is a resource.
-				else
-				{
-					val qualifiedName = "${parent.qualifiedName}/$fileName"
-					val reference =
-						resolverReference(
-							file, qualifiedName, ResourceType.RESOURCE)
-					referenceMap[qualifiedName] = reference
-					parent.resources.add(reference)
+					Resource ->
+					{
+						val qualifiedName = "${parent.qualifiedName}/$fileName"
+						val reference =
+							resolverReference(
+								file, qualifiedName, ResourceType.Resource)
+						referenceMap[qualifiedName] = reference
+						parent.resources.add(reference)
+					}
+					is ResourceType.FileExtension ->
+					{
+						val qualifiedName = resourceTypeManager
+							.getQualifiedName(
+								moduleRoot.name, rootUri, file.toString(), type)
+						val reference =
+							resolverReference(file, qualifiedName, type)
+						referenceMap[qualifiedName] = reference
+						parent.modules.add(reference)
+					}
+					else ->
+					{
+						throw IOException(
+							"While walking ${moduleRoot.name} encountered a " +
+								"$type in `visitFile` which is not a file " +
+								"ResourceType")
+					}
 				}
 				return FileVisitResult.CONTINUE
 			}
@@ -873,7 +856,7 @@ class FileSystemModuleRootResolver constructor(
 						// Already exists.
 						return
 					}
-					val type = determineResourceType(file)
+					val type = resourceTypeManager.determineResourceType(file)
 					val added = LinkedList<ResolverReference>()
 					var ref = resolverReference(
 						file.toPath(),
@@ -892,7 +875,8 @@ class FileSystemModuleRootResolver constructor(
 						if (!parentExisted)
 						{
 							val parentFile = File(ref.uri).parentFile
-							val parentType = determineResourceType(parentFile)
+							val parentType =
+								resourceTypeManager.determineResourceType(file)
 							parent = resolverReference(
 								parentFile.toPath(),
 								ref.parentName,

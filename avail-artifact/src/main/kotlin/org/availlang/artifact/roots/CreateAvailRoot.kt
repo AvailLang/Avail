@@ -1,5 +1,7 @@
 package org.availlang.artifact.roots
 
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.environment.location.AvailLocation
 import org.availlang.artifact.environment.project.StylingGroup
 import org.availlang.artifact.environment.project.TemplateGroup
@@ -22,9 +24,8 @@ import java.security.MessageDigest
  *   The [MessageDigest] algorithm to use to create the digests for all the
  *   root's contents. This must be a valid algorithm accessible from
  *   [java.security.MessageDigest.getInstance].
- * @param availModuleExtensions
- *   The file extensions that signify files that should be treated as Avail
- *   modules.
+ * @param resourceTypeManager
+ *   The [ResourceTypeManager] used to manage the different [ResourceType]s.
  * @param entryPoints
  *   The Avail entry points exposed by this root.
  * @param templates
@@ -42,7 +43,7 @@ class CreateAvailRoot constructor(
 	name: String,
 	location: AvailLocation,
 	digestAlgorithm: String = "SHA-256",
-	availModuleExtensions: MutableList<String> = mutableListOf("avail"),
+	resourceTypeManager: ResourceTypeManager = ResourceTypeManager(),
 	entryPoints: MutableList<String> = mutableListOf(),
 	templates: TemplateGroup = TemplateGroup(),
 	styles: StylingGroup = StylingGroup(),
@@ -52,7 +53,7 @@ class CreateAvailRoot constructor(
 	name,
 	location,
 	digestAlgorithm,
-	availModuleExtensions,
+	resourceTypeManager,
 	entryPoints,
 	templates,
 	styles,
@@ -79,7 +80,7 @@ class CreateAvailRoot constructor(
 		manifestRoot.name,
 		location,
 		manifestRoot.digestAlgorithm,
-		manifestRoot.availModuleExtensions,
+		manifestRoot.resourceTypeManager,
 		manifestRoot.entryPoints,
 		manifestRoot.templates,
 		manifestRoot.styles,

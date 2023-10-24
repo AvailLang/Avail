@@ -20,6 +20,11 @@
 			"editable": true,
 			"visible": true,
 			"description": "",
+			"resourceTypeManager":
+			{
+				"moduleFileExtension": "avail",
+				"headerlessExtensions": []
+			},
 			"location": 
 			{
 				"locationType": "project",

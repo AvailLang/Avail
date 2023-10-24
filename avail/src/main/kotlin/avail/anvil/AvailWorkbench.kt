@@ -361,7 +361,7 @@ class AvailWorkbench internal constructor(
 	 * Read the [AvailProject] from [disk][availProjectFilePath].
 	 */
 	val projectFileFromDisk: AvailProject get() =
-		AvailProject.Companion.from(availProjectFilePath)
+		AvailProject.Companion.initializeProject(availProjectFilePath)
 
 	/**
 	 * The path to the project configuration directory.
@@ -1426,7 +1426,9 @@ class AvailWorkbench internal constructor(
 					?: return@walkChildrenThen
 				when (it.type)
 				{
-					ResourceType.MODULE ->
+					is ResourceType.Module,
+					is ResourceType.HeaderModule,
+					is ResourceType.HeaderlessModule->
 					{
 						try
 						{
@@ -1434,8 +1436,7 @@ class AvailWorkbench internal constructor(
 							val node = ModuleOrPackageNode(
 								this,
 								it.moduleName,
-								resolved,
-								false)
+								resolved)
 							parentNode.add(node)
 						}
 						catch (e: UnresolvedDependencyException)
@@ -1445,7 +1446,7 @@ class AvailWorkbench internal constructor(
 							throw RuntimeException(e)
 						}
 					}
-					ResourceType.PACKAGE ->
+					is ResourceType.Package ->
 					{
 						val moduleName = it.moduleName
 						val resolved: ResolvedModuleName
@@ -1461,7 +1462,7 @@ class AvailWorkbench internal constructor(
 							return@walkChildrenThen
 						}
 						val node = ModuleOrPackageNode(
-							this, moduleName, resolved, true)
+							this, moduleName, resolved)
 						parentNode.add(node)
 						if (resolved.isRename)
 						{
@@ -1472,17 +1473,16 @@ class AvailWorkbench internal constructor(
 						}
 						parentMap[it.qualifiedName] = node
 					}
-					ResourceType.DIRECTORY ->
+					ResourceType.Directory ->
 					{
 						val node = ResourceDirNode(this, it)
 						parentNode.add(node)
 					}
-					ResourceType.RESOURCE ->
+					ResourceType.Resource ->
 					{
 						parentNode.add(ResourceNode(this, it))
 					}
-					else ->
-					{}
+					else -> {}
 				}
 			},
 			afterCreated)
@@ -3436,11 +3436,11 @@ class AvailWorkbench internal constructor(
 			// TODO RAA - add function to AvailProjectRoot that prepends the
 			//  "." if not present on the file extension. This will cause
 			//  a need to publish update `avail-artifact`.
-			val extensions = project.availProjectRoots.associate { apr ->
-				apr.name to apr.availModuleExtensions.map { ".$it" }.toSet()
+			val managers = project.availProjectRoots.associate { apr ->
+				apr.name to apr.resourceTypeManager
 			}
 			val roots =
-				ModuleRoots(fileManager, rootsString, extensions) { fails ->
+				ModuleRoots(fileManager, rootsString, managers) { fails ->
 					failedResolutions.addAll(fails)
 					semaphore.release()
 				}

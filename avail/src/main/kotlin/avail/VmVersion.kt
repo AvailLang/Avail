@@ -37,4 +37,4 @@ package avail
 ////////////////////////////////////////////////////////////////////////////////
 
 /** The version of this Avail VM. */
-const val vmVersion = "2.0.0.alpha27"
+const val vmVersion = "2.0.0.alpha28"

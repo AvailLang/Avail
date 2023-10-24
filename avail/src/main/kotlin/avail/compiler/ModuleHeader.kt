@@ -67,8 +67,7 @@ import avail.serialization.Serializer
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
- *
- * Construct a new `ModuleHeader`.
+ * Construct a new [ModuleHeader].
  *
  * @param moduleName
  *   The [resolved&#32;name][ResolvedModuleName] of the module.

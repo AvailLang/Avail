@@ -54,13 +54,17 @@ interface AvailArtifact
 	 *
 	 * @param rootName
 	 *   The name of the root to extract metadata for.
+	 * @param resourceTypeManager
+	 *   The [ResourceTypeManager] that manages [ResourceType]s for the target
+	 *   Avail module root.
 	 * @return
 	 *   The list of extracted [AvailRootFileMetadata].
 	 * @throws AvailArtifactException
 	 *   Should be thrown if there is trouble accessing the roots files.
 	 */
 	fun extractFileMetadataForRoot (
-		rootName: String
+		rootName: String,
+		resourceTypeManager: ResourceTypeManager
 	): List<AvailRootFileMetadata>
 
 	companion object

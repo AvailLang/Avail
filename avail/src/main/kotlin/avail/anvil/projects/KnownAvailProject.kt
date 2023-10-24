@@ -103,7 +103,7 @@ data class KnownAvailProject constructor (
 		}
 		return try
 		{
-			AvailProject.from(configFile.absolutePath)
+			AvailProject.initializeProject(configFile.absolutePath)
 		}
 		catch (e: Throwable)
 		{

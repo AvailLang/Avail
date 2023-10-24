@@ -41,7 +41,7 @@ import java.nio.file.Files
 
 /**
  * This is a tree node representing an [AvailProjectRoot]
- * [resource directory][ResourceType.DIRECTORY].
+ * [resource directory][ResourceType.Directory].
  *
  * @author Richard Arriaga
  *
@@ -98,7 +98,7 @@ class ResourceDirNode constructor(
 							reference.resolver,
 							it.toURI(),
 							"${reference.qualifiedName}/${it.name}",
-							ResourceType.DIRECTORY,
+							ResourceType.Directory,
 							"",
 							0,
 							0)
@@ -111,7 +111,7 @@ class ResourceDirNode constructor(
 							reference.resolver,
 							it.toURI(),
 							"${reference.qualifiedName}/${it.name}",
-							ResourceType.RESOURCE,
+							ResourceType.Resource,
 							"",
 							it.lastModified(),
 							Files.size(it.toPath()))

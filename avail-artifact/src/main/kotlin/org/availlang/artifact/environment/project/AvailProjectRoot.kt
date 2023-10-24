@@ -2,8 +2,11 @@
 
 package org.availlang.artifact.environment.project
 
+import org.availlang.artifact.ResourceType
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLocation
+import org.availlang.artifact.environment.project.AvailProject.Companion.ROOT_RESOURCE_DIRECTORY
 import org.availlang.artifact.environment.project.AvailProject.Companion.STYLE_FILE_NAME
 import org.availlang.artifact.environment.project.AvailProject.Companion.TEMPLATE_FILE_NAME
 import org.availlang.artifact.manifest.AvailRootManifest
@@ -14,7 +17,7 @@ import org.availlang.json.JSONWriter
 import org.availlang.json.jsonObject
 import java.io.File
 import java.security.MessageDigest
-import java.util.*
+import java.util.UUID
 
 /**
  * Represents an Avail module root in a [AvailProject].
@@ -36,9 +39,10 @@ import java.util.*
  *   The [StylingGroup] for this [AvailProjectRoot].
  * @property templateGroup
  *   The [TemplateGroup] for this [AvailProjectRoot].
- * @property availModuleExtensions
- *   The file extensions that signify files that should be treated as Avail
- *   modules.
+ * @property resourceTypeManager
+ *   The [ResourceTypeManager] used to manage [ResourceType]s for this
+ *   [AvailProjectRoot]. Changing the [ResourceTypeManager] will require
+ *   re-walking the associated module root to re-set it up.
  * @property editable
  *   `true` indicates this root is editable by the project; `false` otherwise.
  * @property id
@@ -55,7 +59,7 @@ class AvailProjectRoot constructor(
 	var localSettings: LocalSettings,
 	var styles: StylingGroup = StylingGroup(),
 	var templateGroup: TemplateGroup = TemplateGroup(),
-	val availModuleExtensions: MutableList<String> = mutableListOf("avail"),
+	var resourceTypeManager: ResourceTypeManager = ResourceTypeManager(),
 	var editable: Boolean = location.editable,
 	val id: String = UUID.randomUUID().toString(),
 	var visible: Boolean = true
@@ -65,6 +69,12 @@ class AvailProjectRoot constructor(
 	 * An optional description of this [AvailProjectRoot].
 	 */
 	var description: String = ""
+
+	/**
+	 * This [AvailProjectRoot]'s resources directory.
+	 */
+	val resourcesDirectory: File get() = File(
+		"$rootConfigDirectory${File.separator}$ROOT_RESOURCE_DIRECTORY")
 
 	/**
 	 * The [StylingSelection] used for styling this [AvailProjectRoot].
@@ -193,7 +203,7 @@ class AvailProjectRoot constructor(
 	): AvailRootManifest =
 		AvailRootManifest(
 			name,
-			availModuleExtensions,
+			resourceTypeManager,
 			entryPoints,
 			templateGroup.markedForInclusion,
 			styles,
@@ -208,7 +218,7 @@ class AvailProjectRoot constructor(
 		AvailRoot(
 			name = name,
 			location = location,
-			availModuleExtensions = availModuleExtensions,
+			resourceTypeManager = resourceTypeManager,
 			templateGroup = templateGroup,
 			styles = styles,
 			description = description)
@@ -222,12 +232,7 @@ class AvailProjectRoot constructor(
 			at(::visible.name) { write(visible) }
 			at(::description.name) { write(description) }
 			at(::location.name) { location.writeTo(this@writeObject) }
-			if (availModuleExtensions != listOf("avail"))
-			{
-				at(::availModuleExtensions.name) {
-					writeStrings(availModuleExtensions)
-				}
-			}
+			at(::resourceTypeManager.name) { resourceTypeManager.writeTo(this )}
 			at(::moduleHeaders.name)
 			{
 				ModuleHeaderFileMetadata.writeTo(this, moduleHeaders)
@@ -287,9 +292,9 @@ class AvailProjectRoot constructor(
 				localSettings = localSettings,
 				styles = styles,
 				templateGroup = templateGroup,
-				availModuleExtensions = obj.getArrayOrNull(
-					AvailProjectRoot::availModuleExtensions.name
-				)?.strings?.toMutableList() ?: mutableListOf("avail"),
+				resourceTypeManager =
+					ResourceTypeManager.from(obj.getObject(
+						AvailProjectRoot::resourceTypeManager.name)),
 				editable = obj.getBoolean(
 					AvailProjectRoot::editable.name
 				) { false },

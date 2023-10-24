@@ -34,6 +34,7 @@ package avail.anvil.actions
 
 import avail.anvil.AvailWorkbench
 import avail.anvil.scroll
+import org.availlang.artifact.ResourceTypeManager
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.location.AvailLocation.LocationType
 import org.availlang.artifact.environment.location.Scheme
@@ -123,7 +124,7 @@ constructor (
 			.optionallyInitializeConfigDirectory(rootConfigPath)
 		var sg = StylingGroup()
 		var tg = TemplateGroup()
-		val extensions = mutableListOf<String>()
+		var resourceTypeManager = ResourceTypeManager()
 		var description = ""
 		if (schema == Scheme.JAR && rootNameInJar.isNotBlank())
 		{
@@ -131,7 +132,7 @@ constructor (
 			jar.manifest.roots[rootNameInJar]?.let {
 				sg = it.styles
 				tg = it.templates
-				extensions.addAll(it.availModuleExtensions)
+				resourceTypeManager = it.resourceTypeManager
 				description = it.description
 			}
 		}
@@ -143,7 +144,7 @@ constructor (
 			LocalSettings(rootConfigPath),
 			sg,
 			tg,
-			extensions,
+			resourceTypeManager,
 			editable = editor.editable.isSelected,
 			visible = editor.visible.isSelected)
 		newProjectRoot.description = description
@@ -158,7 +159,7 @@ constructor (
 		moduleRoots.addRoot(
 			newProjectRoot.name,
 			location.fullPath,
-			extensions.toSet()
+			resourceTypeManager
 		) { allFailures ->
 			SwingUtilities.invokeLater {
 				// Alert the user about the tracing failures.
