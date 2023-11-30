@@ -155,6 +155,7 @@ import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.cast
+import avail.utility.isNullOr
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import avail.utility.removeLast
@@ -614,12 +615,25 @@ class L2Generator internal constructor(
 	 */
 	fun readInt(
 		semanticUnboxed: L2SemanticUnboxedInt,
-		onFailure: L2BasicBlock): L2ReadIntOperand
+		onFailure: L2BasicBlock
+	): L2ReadIntOperand
 	{
 		if (currentManifest.hasSemanticValue(semanticUnboxed))
 		{
 			// It already exists in an unboxed int register.
 			return currentManifest.readInt(semanticUnboxed)
+		}
+		// Synonyms of ints are tricky, so check if there's an int version of
+		// a synonym available.
+		for (otherBoxed in
+			currentManifest.semanticValueToSynonym(semanticUnboxed.base)
+				.semanticValues())
+		{
+			val otherUnboxed = L2SemanticUnboxedInt(otherBoxed)
+			if (currentManifest.hasSemanticValue(otherUnboxed))
+			{
+				return currentManifest.readInt(otherUnboxed)
+			}
 		}
 		// Because of the way synonyms work, the boxed form might have
 		// synonymous boxed semantic values, without the unboxed form having all
@@ -1193,6 +1207,14 @@ class L2Generator internal constructor(
 		generatePhis: Boolean = true,
 		regenerator: L2Regenerator? = null)
 	{
+		currentBlock?.instructions()?.run {
+			assert(isNotEmpty())
+			assert(last().altersControlFlow) {
+				"Previous block was not finished: ${currentBlock!!.name()}"
+			}
+		}
+		// Verify that all predecessor blocks have been finished.
+		block.predecessorEdges().forEach { it.instruction }
 		if (!block.isIrremovable)
 		{
 			val predecessorCount = block.predecessorEdges().size
@@ -1206,7 +1228,8 @@ class L2Generator internal constructor(
 				val predecessorEdge = block.predecessorEdges()[0]
 				val predecessorBlock = predecessorEdge.sourceBlock()
 				val jump = predecessorBlock.finalInstruction()
-				if (jump.operation === L2_JUMP)
+				if (jump.operation === L2_JUMP
+					&& regenerator.isNullOr { canCollapseUnconditionalJumps })
 				{
 					// The new block has only one predecessor, which
 					// unconditionally jumps to it.  Remove the jump and
@@ -1217,7 +1240,8 @@ class L2Generator internal constructor(
 						listOf(predecessorEdge.manifest()),
 						this,
 						false,
-						false)
+						false,
+						regenerator)
 					predecessorBlock.instructions().removeAt(
 						predecessorBlock.instructions().size - 1)
 					jump.justRemoved()

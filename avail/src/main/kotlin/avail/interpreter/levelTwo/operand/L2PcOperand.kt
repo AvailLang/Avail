@@ -328,7 +328,6 @@ class L2PcOperand constructor (
 		targetBlock = newTarget
 		oldTarget.removePredecessorEdge(this)
 		newTarget.addPredecessorEdge(this)
-		instruction.targetEdges
 	}
 
 
@@ -469,4 +468,3 @@ class L2PcOperand constructor (
 		}
 	}
 }
-

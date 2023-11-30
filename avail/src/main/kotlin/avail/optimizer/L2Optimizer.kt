@@ -88,7 +88,8 @@ class L2Optimizer internal constructor(
 	private val controlFlowGraph = generator.controlFlowGraph
 
 	/** The mutable list of blocks taken from the [controlFlowGraph]. */
-	val blocks: MutableList<L2BasicBlock> = controlFlowGraph.basicBlockOrder
+	val blocks: MutableList<L2BasicBlock>
+		get() = controlFlowGraph.basicBlockOrder
 
 	/** The register coloring algorithm. */
 	private var colorer: L2RegisterColorer? = null
@@ -245,7 +246,7 @@ class L2Optimizer internal constructor(
 		val startingRequests =
 			mutableMapOf<L2BasicBlock, MutableSet<L2SplitCondition>>()
 		val allConditions = mutableSetOf<L2SplitCondition>()
-		blocks.forEach { block ->
+		controlFlowGraph.forwardVisit { block ->
 			block.instructions().forEach { instruction ->
 				val newConditions = instruction.interestingConditions()
 				// Ignore ones that were already true along all incoming edges
@@ -298,13 +299,13 @@ class L2Optimizer internal constructor(
 		// predecessor.
 		val edgeWishes = mutableMapOf<L2PcOperand, Set<L2SplitCondition>>()
 		startingRequests.forEach { (block, conditions) ->
-			block.predecessorEdges().forEach { predEdge ->
-				edgeWishes[predEdge] = conditions
+			block.predecessorEdges().forEach { incomingEdge ->
+				edgeWishes[incomingEdge] = conditions
 			}
 		}
 		controlFlowGraph.backwardVisit { block ->
 			val successorEdges =
-				block.successorEdges().filter { !it.isBackward }
+				block.successorEdges().filterNot(L2PcOperand::isBackward)
 			val unionOfConditions =
 				if (successorEdges.isNotEmpty())
 				{
@@ -362,11 +363,11 @@ class L2Optimizer internal constructor(
 		// We now know all the places that code splits can start, which blocks
 		// are affected, and where the subgraphs end.
 		val splitConditions = blocks.associateWithTo(mutableMapOf()) { block ->
-			block.predecessorEdges()
-				.map { edge -> edgeWishes[edge]!! }
-				.fold(emptySet(), Set<L2SplitCondition>::union)
+			block.predecessorEdges().flatMapTo(mutableSetOf()) { edge ->
+				edgeWishes[edge]!!
+			}
 		}
-		splitConditions.values.removeAll { it.isEmpty() }
+		splitConditions.values.remove(emptySet())
 		if (splitConditions.isEmpty())
 		{
 			// Nothing to split.
@@ -375,6 +376,8 @@ class L2Optimizer internal constructor(
 		//TODO Remove
 		if (true)
 		{
+			// Annotate the original graph to make it easier to see what
+			// splitting should happen.
 			blocks.forEach { block ->
 				splitConditions[block]?.let { conditions ->
 					block.debugNote.append("Available splits:")
@@ -396,61 +399,14 @@ class L2Optimizer internal constructor(
 		}
 		// Here's a good place to breakpoint to see the condition-labeled graph
 		// prior to regeneration.
-		val edgeTranslations = mutableListOf<Pair<L2PcOperand, L2PcOperand>>()
-		regenerateGraph(true, edgeTranslations) { sourceInstruction ->
+
+		regenerateGraph(
+			generatePhis = true,
+			interestingConditionsByOldBlock = splitConditions)
+		{ sourceInstruction ->
 			if (!sourceInstruction.operation.isPhi)
 			{
-				edgeTranslations.clear()
 				basicProcessInstruction(sourceInstruction)
-				// Adjust branch targets based on splitConditions, using the
-				// manifests already produced for each edge.
-				edges@ for ((oldEdge, newEdge) in edgeTranslations)
-				{
-					val oldTarget = oldEdge.targetBlock()
-					val conditions = splitConditions[oldTarget]
-					if (conditions !== null)
-					{
-						assert(conditions.isNotEmpty())
-						val trueConditions = when
-						{
-							// Ignore splitting request if it's a special block,
-							// since the execution machinery will require
-							// exactly one in the target graph (for each
-							// SpecialBlock entry).
-							newEdge.targetBlock() in inverseSpecialBlockMap ->
-								emptySet()
-
-							else -> conditions.filter {
-								it.holdsFor(newEdge.manifest())
-							}.toSet()
-						}
-						if (trueConditions.isEmpty())
-						{
-							// The newEdge is already pointing at the
-							// translation of the block with no conditions.
-							continue@edges
-						}
-						// Since the newEdge was pointing to an equivalent block
-						// with no conditions, the submap will exist.
-						val submap = blockMap[oldTarget]!!
-						val newTarget = submap.computeIfAbsent(trueConditions) {
-							val suffix = when (trueConditions.size)
-							{
-								1 -> " split ${trueConditions.single()}"
-								else -> " multi-split #" +
-									submap.keys.count { it.size > 1}
-							}
-							val newBlock = L2BasicBlock(
-								oldTarget.name() + suffix,
-								oldTarget.isLoopHead,
-								oldTarget.zone)
-							if (oldTarget.isIrremovable)
-								newBlock.makeIrremovable()
-							newBlock
-						}
-						newEdge.changeUngeneratedTarget(newTarget)
-					}
-				}
 			}
 		}
 	}
@@ -668,16 +624,18 @@ class L2Optimizer internal constructor(
 	 *   Whether to produce phi instructions automatically based on semantic
 	 *   values that are in common among incoming edges at merge points.  This
 	 *   is false when phis have already been replaced with non-SSA moves.
-	 * @param edgeCollector
-	 *   An optional [MutableList] containing <old, new> pairs of edges
-	 *   generated since the last time it was cleared.  The old edge is from the
-	 *   old graph, and the new edge is the corresponding edge in the new graph.
-	 *   If the old edge is lost (e.g., unreachable, due to stronger
-	 *   restrictions when code splitting), no entry is added to the list.
+	 * @param interestingConditionsByOldBlock
+	 *   A map that contains information about which conditions should be
+	 *   preserved through splitting of which original blocks (because the
+	 *   condition may be tested downstream.  If an original block is not
+	 *   present, it should not be split.
+	 * @param transformer
+	 *   What to do with each [L2Instruction] encountered in the old graph.
 	 */
 	private fun regenerateGraph(
 		generatePhis: Boolean,
-		edgeCollector: MutableList<Pair<L2PcOperand, L2PcOperand>>? = null,
+		interestingConditionsByOldBlock:
+			Map<L2BasicBlock, Set<L2SplitCondition>> = emptyMap(),
 		transformer: L2Regenerator.(L2Instruction)->Unit)
 	{
 		// Use an L2Regenerator to do the substitution.  First empty the CFG
@@ -687,9 +645,14 @@ class L2Optimizer internal constructor(
 		controlFlowGraph.evacuateTo(oldGraph)
 		val inverseSpecialBlockMap =
 			generator.specialBlocks.entries.associate { (s, b) -> b to s }
-		val regenerator = object : L2Regenerator(
-			generator, generatePhis, edgeCollector)
+		val regenerator = object : L2Regenerator(generator, generatePhis)
 		{
+			/**
+			 * Collapsing unconditional jumps wouldn't preserve all blocks that
+			 * we're generating, which would break some simplifying assumptions.
+			 */
+			override val canCollapseUnconditionalJumps: Boolean get() = false
+
 			override fun processInstruction(
 				sourceInstruction: L2Instruction)
 			{
@@ -702,7 +665,8 @@ class L2Optimizer internal constructor(
 		regenerator.inverseSpecialBlockMap.clear()
 		regenerator.inverseSpecialBlockMap.putAll(inverseSpecialBlockMap)
 		generator.specialBlocks.clear()
-		regenerator.processSourceGraph(oldGraph)
+		regenerator.processSourceGraph(
+			oldGraph, interestingConditionsByOldBlock)
 	}
 
 	/**
@@ -1181,13 +1145,19 @@ class L2Optimizer internal constructor(
 		val uses = mutableMapOf<L2Register, MutableSet<L2ReadOperand<*>>>()
 		val definitions =
 			mutableMapOf<L2Register, MutableSet<L2WriteOperand<*>>>()
-		blocks.deepForEach({ instructions() }) { instruction ->
-			instruction.assertHasBeenEmitted()
-			instruction.readOperands.forEach {
-				uses.getOrPut(it.register()) { mutableSetOf() }.add(it)
-			}
-			instruction.writeOperands.forEach {
-				definitions.getOrPut(it.register()) { mutableSetOf() }.add(it)
+		blocks.forEach { block ->
+			assert(block.instructions().isNotEmpty())
+			assert(block.instructions().last().altersControlFlow)
+			block.instructions().forEach { instruction ->
+				instruction.assertHasBeenEmitted()
+				instruction.readOperands.forEach {
+					uses.getOrPut(it.register(), ::mutableSetOf).add(it)
+				}
+				instruction.writeOperands.forEach {
+					definitions
+						.getOrPut(it.register(), ::mutableSetOf)
+						.add(it)
+				}
 			}
 		}
 		val mentionedRegs = uses.keys.toMutableSet()

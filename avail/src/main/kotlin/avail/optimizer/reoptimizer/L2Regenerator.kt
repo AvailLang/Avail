@@ -109,20 +109,13 @@ import avail.utility.mapToSet
  *   Whether to produce phi instructions automatically based on semantic values
  *   that are in common among incoming edges at merge points.  This is false
  *   when phis have already been replaced with non-SSA moves.
- * @param edgeCollector
- *   An optional [MutableList] containing <old, new> pairs of edges generated
- *   since the last time it was cleared.  The old edge is from the old graph,
- *   and the new edge is the corresponding edge in the new graph.  If the old
- *   edge is lost (e.g., unreachable, due to stronger restrictions when code
- *   splitting), no entry is added to the list.
  *
  * @constructor
  *   Construct a new `L2Regenerator`.
  */
 abstract class L2Regenerator internal constructor(
 	val targetGenerator: L2Generator,
-	private val generatePhis: Boolean,
-	val edgeCollector: MutableList<Pair<L2PcOperand, L2PcOperand>>? = null)
+	private val generatePhis: Boolean)
 {
 	/**
 	 * An [AbstractOperandTransformer] is an [L2OperandDispatcher] suitable for
@@ -199,18 +192,17 @@ abstract class L2Regenerator internal constructor(
 		override fun doOperand(operand: L2PcOperand)
 		{
 			// Note: Even during code splitting, always produce an edge to the
-			// unconstrained version of the replacement block.  The splitter
-			// will adjust it after the instruction generates, so that the
-			// manifest along each edge will be populated, and therefore usable
-			// for determining which conditions hold.
+			// no-conditions version of the replacement block.  The splitter has
+			// the opportunity to generate new code in the no-conditions block
+			// before any of the has-conditions variants, so just prior to that
+			// we adjust the target of any *predecessors* of the no-conditions
+			// block.  We can't make that selection here, because we don't have
+			// complete manifest information for the edge yet.
 			val edge = L2PcOperand(
 				mapBlock(operand.targetBlock()),
 				operand.isBackward,
 				targetGenerator.currentManifest,
 				operand.optionalName)
-			// Save the old/new edge pair in edgeCollector for the splitter code
-			// to adjust.
-			edgeCollector?.run { add(operand to edge) }
 			// Generate clamped entities based on the originals.
 			operand.forcedClampedEntities?.let { oldClamped ->
 				val manifest = targetGenerator.currentManifest
@@ -414,14 +406,22 @@ abstract class L2Regenerator internal constructor(
 		}
 	}
 
+	/**
+	 * Answer whether this [L2Generator] is allowed to collapse unconditional
+	 * jumps during code generation.  This is usually allowed, but the code
+	 * splitter disallows it to make the logic simpler.
+	 */
+	open val canCollapseUnconditionalJumps: Boolean get() = true
+
 	/** This regenerator's reusable [AbstractOperandTransformer]. */
 	private val operandInlineTransformer =
 		if (generatePhis) OperandSemanticTransformer()
 		else OperandRegisterTransformer()
 
 	/**
-	 * The mapping from the [L2BasicBlock]s in the source graph to the
-	 * corresponding `L2BasicBlock` in the target graph.
+	 * The mapping from the [L2BasicBlock]s in the source graph to the generated
+	 * [L2BasicBlock]s in the target graph, keyed by the set of required
+	 * [L2SplitCondition]s.
 	 */
 	val blockMap = mutableMapOf<
 		L2BasicBlock,
@@ -472,8 +472,18 @@ abstract class L2Regenerator internal constructor(
 	 * @param oldGraph
 	 *   The [L2ControlFlowGraph] from which to start translation and code
 	 *   generation.
+	 * @param interestingConditionsByOldBlock
+	 *   A map from each [L2BasicBlock] in the [oldGraph] to a set of split
+	 *   conditions, each of which should be preserved for potential use by a
+	 *   downstream block.  Create a new [L2BasicBlock] for each encountered
+	 *   (old block, split set), where the split set is a subset of conditions
+	 *   to be preserved at this old block, and was actually ensured by some
+	 *   regenerated edge.
 	 */
-	fun processSourceGraph(oldGraph: L2ControlFlowGraph)
+	fun processSourceGraph(
+		oldGraph: L2ControlFlowGraph,
+		interestingConditionsByOldBlock:
+			Map<L2BasicBlock, Set<L2SplitCondition>>)
 	{
 		val firstSourceBlock = oldGraph.basicBlockOrder[0]
 		val start = L2BasicBlock(firstSourceBlock.name())
@@ -481,12 +491,56 @@ abstract class L2Regenerator internal constructor(
 		blockMap[firstSourceBlock] = mutableMapOf(
 			emptySet<L2SplitCondition>() to start)
 		oldGraph.forwardVisit { originalBlock ->
-			// All forward-edge predecessors have already been processed.
-			val submap = blockMap[originalBlock] ?: run {
+			// All predecessors must have already been processed.
+			val submap = blockMap.computeIfAbsent(originalBlock) {
 				mutableMapOf(emptySet<L2SplitCondition>() to L2BasicBlock(
 					originalBlock.name(),
 					originalBlock.isLoopHead,
 					originalBlock.zone))
+			}
+			val interestingConditions =
+				interestingConditionsByOldBlock[originalBlock] ?: emptySet()
+			if (interestingConditions.isNotEmpty())
+			{
+				// During translation of previous blocks, they were all directed
+				// to point to the no-condition image of this block.  Do the
+				// code splitting here, *altering* the target of each
+				// predecessor if it should target something more specific than
+				// the no-condition block.  We have to do it here rather than at
+				// edge generation time, because the edge's manifest isn't fully
+				// available then.
+				val noConditionBlock = submap[emptySet()]!!
+				// Copy the list because we'll be removing the entries that
+				// should point elsewhere.
+				val incomingEdges = noConditionBlock.predecessorEdges().toList()
+				incomingEdges.forEach { incomingEdge ->
+					val trueConditions =
+						interestingConditions.filterTo(mutableSetOf()) {
+							it.holdsFor(incomingEdge.manifest())
+						}
+					val betterBlock = submap.computeIfAbsent(trueConditions) {
+						val suffix = when (trueConditions.size)
+						{
+							1 -> " split ${trueConditions.single()}"
+							else -> " multi-split #" +
+								submap.keys.count { it.size > 1 }
+						}
+						val newBlock = L2BasicBlock(
+							originalBlock.name() + suffix,
+							originalBlock.isLoopHead,
+							originalBlock.zone)
+						if (originalBlock.isIrremovable)
+							newBlock.makeIrremovable()
+						newBlock
+					}
+					if (betterBlock !== incomingEdge.targetBlock())
+					{
+						// This also removes it from the current block's
+						// predecessors, but above we made sure to iterate over
+						// a copy.
+						incomingEdge.changeUngeneratedTarget(betterBlock)
+					}
+				}
 			}
 			submap.forEach { (_, targetBlock) ->
 				targetGenerator.startBlock(targetBlock, generatePhis, this)

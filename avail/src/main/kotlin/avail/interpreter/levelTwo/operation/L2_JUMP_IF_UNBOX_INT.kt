@@ -41,6 +41,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -48,6 +49,8 @@ import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticUnboxedInt
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -72,7 +75,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		assert(this == instruction.operation)
 		val source = instruction.operand<L2ReadBoxedOperand>(0)
 		val destination = instruction.operand<L2WriteIntOperand>(1)
-		//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
+//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
 //		final L2PcOperand ifUnboxed = instruction.operand(3);
 		renderPreamble(instruction, builder)
 		builder.append(' ')
@@ -129,7 +132,6 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		translator.jump(method, instruction, ifUnboxed)
 	}
 
-
 	override fun interestingConditions(
 		instruction: L2Instruction
 	): List<L2SplitCondition>
@@ -139,5 +141,60 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		return listOf(
 			unboxedIntCondition(
 				listOf(source.register(), destination.register())))
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val source = transformedOperands[0] as L2ReadBoxedOperand
+		val destination = transformedOperands[1] as L2WriteIntOperand
+		val ifNotUnboxed = transformedOperands[2] as L2PcOperand
+		val ifUnboxed = transformedOperands[3] as L2PcOperand
+
+		// Regeneration can strengthen this type via code splitting, or even
+		// obviate the need to re-extract into an int register if it's
+		// already in one along this split path.
+		val generator = regenerator.targetGenerator
+		val manifest = generator.currentManifest
+		val restriction = manifest.restrictionFor(source.semanticValue())
+		// See if there's an int version of a synonym of the source.  There
+		// must be a less messy way of doing this.
+		val sourceInt = manifest.semanticValueToSynonym(source.semanticValue())
+			.semanticValues()
+			.map(::L2SemanticUnboxedInt)
+			.firstOrNull(manifest::hasSemanticValue)
+			?: L2SemanticUnboxedInt(source.semanticValue())
+		when
+		{
+			manifest.hasSemanticValue(sourceInt) ->
+			{
+				// It's already unboxed.  However, ensure all destination
+				// semantic values have been written.
+				destination.semanticValues().forEach { dest ->
+					if (!manifest.hasSemanticValue(dest))
+						generator.moveRegister(
+							L2_MOVE.unboxedInt, sourceInt, dest)
+				}
+				generator.jumpTo(ifUnboxed.targetBlock())
+			}
+			restriction.containedByType(i32) ->
+			{
+				// It's not already unboxed, but it's an int32.
+				generator.addInstruction(L2_UNBOX_INT, source, destination)
+				generator.jumpTo(ifUnboxed.targetBlock())
+			}
+			!restriction.intersectsType(i32) ->
+			{
+				// It can't be an int32.
+				generator.jumpTo(ifNotUnboxed.targetBlock())
+			}
+			else ->
+			{
+				// It's contingent on the value.
+				super.emitTransformedInstruction(
+					transformedOperands, regenerator)
+			}
+		}
 	}
 }

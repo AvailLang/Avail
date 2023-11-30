@@ -38,11 +38,14 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticUnboxedInt
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -92,5 +95,40 @@ object L2_UNBOX_INT : L2Operation(
 		return listOf(
 			unboxedIntCondition(
 				listOf(source.register(), destination.register())))
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val source = transformedOperands[0] as L2ReadBoxedOperand
+		val destination = transformedOperands[1] as L2WriteIntOperand
+
+		// Synonyms of ints are tricky, so check if there's an int version of
+		// a synonym of the source available.
+		val generator = regenerator.targetGenerator
+		val manifest = generator.currentManifest
+		for (otherBoxed in
+			manifest.semanticValueToSynonym(source.semanticValue())
+				.semanticValues())
+		{
+			val otherUnboxed = L2SemanticUnboxedInt(otherBoxed)
+			if (manifest.hasSemanticValue(otherUnboxed))
+			{
+				// It's already unboxed in an int register.  Make sure each
+				// destination int semantic value gets written.
+				for (destInt in destination.semanticValues())
+				{
+					if (!manifest.hasSemanticValue(destInt))
+					{
+						generator.moveRegister(
+							L2_MOVE.unboxedInt, otherUnboxed, destInt)
+					}
+				}
+				return
+			}
+		}
+		// We have to unbox it.
+		super.emitTransformedInstruction(transformedOperands, regenerator)
 	}
 }

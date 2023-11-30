@@ -1004,7 +1004,10 @@ class FiberDescriptor private constructor(
 		assert(!helper.getFlag(Flag.TRACE_VARIABLE_WRITES))
 		val map = helper.tracedVariables
 		return synchronized(map) {
-			val set = setFromCollection(map.keys)
+			// Collect the keys strongly, because setFromCollection() doesn't
+			// work with weak sets (it expects the size to be stable).
+			val strongList = map.keys.toList()
+			val set = setFromCollection(strongList)
 			map.clear()
 			set
 		}
