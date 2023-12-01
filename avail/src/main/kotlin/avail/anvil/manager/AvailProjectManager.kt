@@ -54,6 +54,7 @@ import java.awt.event.WindowEvent
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.lang.UnsupportedOperationException
 import javax.swing.ImageIcon
 import javax.swing.JComponent
 import javax.swing.JFileChooser
@@ -208,25 +209,32 @@ class AvailProjectManager constructor(
 				globalSettings.saveToDisk()
 			}
 		})
-		Desktop.getDesktop().setQuitHandler { _, response ->
-			// Abort the explicit quit request.
-			response.cancelQuit()
-			// Now find the workbench that is currently in focus, if any are.
-			openWorkbenches.firstOrNull(
-				AvailWorkbench::workbenchWindowIsFocused
-			)?.let {
-				// Send the WINDOW_CLOSING event to the workbench, to trigger
-				// nice cleanup.
-				it.dispatchEvent(
-					WindowEvent(it, WindowEvent.WINDOW_CLOSING))
+		try
+		{
+			Desktop.getDesktop().setQuitHandler { _, response ->
+				// Abort the explicit quit request.
+				response.cancelQuit()
+				// Now find the workbench that is currently in focus, if any are.
+				openWorkbenches.firstOrNull(
+					AvailWorkbench::workbenchWindowIsFocused
+				)?.let {
+					// Send the WINDOW_CLOSING event to the workbench, to trigger
+					// nice cleanup.
+					it.dispatchEvent(
+						WindowEvent(it, WindowEvent.WINDOW_CLOSING))
+				}
+				if (openWorkbenches.isEmpty())
+				{
+					// No workbenches are open, so send the project manager a
+					// WINDOW_CLOSING event to trigger nice cleanup.
+					processWindowEvent(
+						WindowEvent(this, WindowEvent.WINDOW_CLOSING))
+				}
 			}
-			if (openWorkbenches.isEmpty())
-			{
-				// No workbenches are open, so send the project manager a
-				// WINDOW_CLOSING event to trigger nice cleanup.
-				processWindowEvent(
-					WindowEvent(this, WindowEvent.WINDOW_CLOSING))
-			}
+		}
+		catch (e: UnsupportedOperationException)
+		{
+			// Just ignore this on Windows.
 		}
 		layoutConfiguration.placement?.let {
 			this.bounds = it
