@@ -77,11 +77,11 @@ object L2_STRIP_MANIFEST : L2Operation(
 		// P_RestartWithArguments, we *must not* allow any additional postponed
 		// instructions to run.  There was a rare case (2022.07.07) in which an
 		// L2_MAKE_IMMUTABLE was still present in the postponed instructions
-		// map, and was getting its input from other instructions that had their
-		// from semantic values already stripped from the manifest.  So we clear
-		// postponed instructions, since after this L2_STRIP_MANIFEST there is
-		// no valid thing that can be done except moves from those registers,
-		// another strip-manifest for safety, and an L2_JUMP_BACK.
+		// map, and was getting its input from other instructions that got their
+		// value from semantic values already stripped from the manifest.  So we
+		// clear postponed instructions, since after this L2_STRIP_MANIFEST
+		// there is no valid thing that can be done except moves from those
+		// registers, another strip-manifest for safety, and an L2_JUMP_BACK.
 		manifest.postponedInstructions.clear()
 	}
 

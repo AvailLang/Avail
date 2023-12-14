@@ -226,7 +226,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		while (index >= first)
 		{
 			val itemHash =
-				hashOfUnsignedByte((array[index].toShort() and 0xFF)) xor
+				hashOfUnsignedByte(array[index].toShort() and 0xFF) xor
 					preToggle
 			hash = (hash + itemHash) * AvailObject.multiplier
 			index--
@@ -417,7 +417,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		// Answer the element at the given index in the tuple object.
 		val array =
 			self[BYTE_ARRAY_POJO].javaObjectNotNull<ByteArray>()
-		return fromUnsignedByte((array[index - 1].toShort() and 0xFF))
+		return fromUnsignedByte(array[index - 1].toShort() and 0xFF)
 	}
 
 	override fun o_TupleAtPuttingCanDestroy(

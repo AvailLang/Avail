@@ -111,23 +111,39 @@ constructor(
 		var savedArguments: List<AvailObject>? = null
 		if (offset == 0 && primitive !== null)
 		{
-			// Happiest path first, attempt a primitive.
-			savedArguments = interpreter.argsBuffer.toList()
-			val reifier = interpreter.attemptThePrimitive(
-				interpreter.function!!, primitive)
-			// Reified during the primitive invocation, or while setting up a
-			// non-inline primitive to be in the right setup to run. Either way,
-			// what should happen next is already captured inside the reifier's
-			// action.
-			reifier?.let { return it }
-			// Exit right away if the primitive was successful.
-			if (interpreter.returnNow) return null
-			// The primitive failed.
-			assert(!primitive.hasFlag(Flag.CannotFail))
-			// Put the arguments back, for the fallback nybblecodes to use.
-			interpreter.argsBuffer.run {
-				clear()
-				addAll(savedArguments!!)
+			if (primitive.hasFlag(Flag.CannotFail))
+			{
+				// Infallible primitive.  No need to save the arguments.
+				val reifier = interpreter.attemptThePrimitive(
+					interpreter.function!!, primitive)
+				// Reified during the primitive invocation, or while setting up
+				// a non-inline primitive to be in the right setup to run.
+				// Either way, what should happen next is already captured
+				// inside the reifier's action.
+				return reifier
+			}
+			else
+			{
+				// Fallible primitive needs to save the arguments so that it can
+				// run the fall-back code.
+				// Happiest path first, attempt a primitive.
+				savedArguments = interpreter.argsBuffer.toList()
+				val reifier = interpreter.attemptThePrimitive(
+					interpreter.function!!, primitive)
+				// Reified during the primitive invocation, or while setting up a
+				// non-inline primitive to be in the right setup to run. Either way,
+				// what should happen next is already captured inside the reifier's
+				// action.
+				reifier?.let { return it }
+				// Exit right away if the primitive was successful.
+				if (interpreter.returnNow) return null
+				// The primitive failed.
+				assert(!primitive.hasFlag(Flag.CannotFail))
+				// Put the arguments back, for the fallback nybblecodes to use.
+				interpreter.argsBuffer.run {
+					clear()
+					addAll(savedArguments!!)
+				}
 			}
 		}
 
