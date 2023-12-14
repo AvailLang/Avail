@@ -1,5 +1,5 @@
 /*
- * L2Optimizer.kt
+ * L2SplitCondition.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -60,11 +60,15 @@ sealed class L2SplitCondition
 	/**
 	 * Answer whether the condition is guaranteed to hold for values constrained
 	 * by the given [L2ValueManifest].
+	 *
+	 * @param manifest
+	 *   The current manifest used to check if the condition currently holds.
 	 */
 	abstract fun holdsFor(manifest: L2ValueManifest): Boolean
 
 	abstract override fun equals(other: Any?): Boolean
 
+	/** The pre-computed hash. */
 	abstract val hash: Int
 
 	final override fun hashCode(): Int = hash
@@ -73,7 +77,7 @@ sealed class L2SplitCondition
 	 * A condition that holds if some register (an [L2IntRegister]) holds the
 	 * unboxed [Int] form of some value.
 	 */
-	class L2IsUnboxedIntCondition constructor (
+	class L2IsUnboxedIntCondition private constructor (
 		private val semanticValues: Set<L2SemanticUnboxedInt>
 	) : L2SplitCondition()
 	{
@@ -90,44 +94,20 @@ sealed class L2SplitCondition
 
 		companion object
 		{
+			/**
+			 * Create an [L2IsUnboxedIntCondition] that is true when any of the
+			 * ancestors of the given registers was in an unboxed form.
+			 *
+			 * @param startingRegisters
+			 *   The list of registers from which to search for ancestors.
+			 * @return
+			 *   The [L2IsUnboxedIntCondition].
+			 */
 			fun unboxedIntCondition(
 				startingRegisters: List<L2Register>
 			): L2IsUnboxedIntCondition
 			{
-				// We're not just interested in whether the source or
-				// destination register was ever unboxed, we also care whether
-				// any register that led to these through a series of
-				// phis/moves/boxes/unboxes was ever unboxed.
-				val allRegisters = mutableListOf<L2Register>()
-				val moreRegisters = startingRegisters.toMutableSet()
-				while (moreRegisters.isNotEmpty())
-				{
-					allRegisters.addAll(moreRegisters)
-					val moreRegistersCopy = moreRegisters.toList()
-					moreRegisters.clear()
-					moreRegistersCopy.forEach { reg ->
-						reg.definitions().forEach { defWrite ->
-							val def = defWrite.instruction
-							val readOperands = when (def.operation)
-							{
-								is L2_PHI_PSEUDO_OPERATION<*, *, *, *> ->
-									def.readOperands
-								is L2_MOVE<*, *, *, *> -> def.readOperands
-								is L2_BOX_INT -> def.readOperands
-								is L2_UNBOX_INT -> def.readOperands
-								is L2_JUMP_IF_UNBOX_INT -> def.readOperands
-								else -> emptyList()
-							}
-							readOperands.mapTo(moreRegisters) { it.register() }
-						}
-					}
-					// Ignore ones we've already visited.
-					moreRegisters.removeAll(allRegisters)
-				}
-				val allValues = allRegisters.map {
-					it.definition().semanticValues()
-				}.fold(emptySet(), Set<L2SemanticValue>::union)
-				val intValues = allValues
+				val intValues = ancestorsOf(startingRegisters)
 					.mapNotNull { value ->
 						when (value.kind)
 						{
@@ -145,7 +125,7 @@ sealed class L2SplitCondition
 	 * A condition that holds if a register having one of the given
 	 * [semanticValues] is guaranteed to satisfy the provided [TypeRestriction].
 	 */
-	class L2MeetsRestrictionCondition constructor (
+	class L2MeetsRestrictionCondition private constructor (
 		private val semanticValues: Set<L2SemanticValue>,
 		private val requiredRestriction: TypeRestriction
 	) : L2SplitCondition()
@@ -169,5 +149,92 @@ sealed class L2SplitCondition
 
 		override fun toString(): String =
 			"Restrict: $semanticValues, $requiredRestriction"
+
+		companion object
+		{
+			/**
+			 * Create an [L2MeetsRestrictionCondition] that is true when any of
+			 * the ancestors of the given registers satisfies the given
+			 * [TypeRestriction].
+			 *
+			 * @param startingRegisters
+			 *   The registers from which to search for ancestors.
+			 * @param requiredRestriction
+			 *   The [TypeRestriction] that will be applied to the ancestor
+			 *   [L2SemanticValue]s when determining if the condition holds at
+			 *   some point in the [L2ControlFlowGraph].
+			 * @return
+			 *   The [L2MeetsRestrictionCondition].
+			 */
+			fun typeRestrictionCondition(
+				startingRegisters: Iterable<L2Register>,
+				requiredRestriction: TypeRestriction
+			): L2MeetsRestrictionCondition
+			{
+				val ancestorValues = ancestorsOf(startingRegisters)
+					.mapNotNull { value ->
+						when (value.kind)
+						{
+							INTEGER_KIND -> (value as L2SemanticUnboxedInt).base
+							BOXED_KIND -> value
+							else -> null
+						}
+					}.toSet()
+				return L2MeetsRestrictionCondition(
+					ancestorValues, requiredRestriction)
+			}
+		}
+	}
+
+	companion object
+	{
+		/**
+		 * Computes all ancestors of the given registers, following phis, moves,
+		 * boxes, and unboxes.
+		 *
+		 * @param startingRegisters
+		 *   The registers from which to search for ancestors.
+		 * @return
+		 *   The set of ancestor [L2SemanticValue]s of the given registers.
+		 */
+		private fun ancestorsOf(
+			startingRegisters: Iterable<L2Register>
+		): Set<L2SemanticValue>
+		{
+			// We're not just interested in whether the source or destination
+			// register ever satisfied the type restriction, we also care
+			// whether any register that led to these through a series of
+			// phis/moves/boxes/unboxes was ever unboxed.
+			val allRegisters = mutableListOf<L2Register>()
+			val moreRegisters = startingRegisters.toMutableSet()
+			while (moreRegisters.isNotEmpty())
+			{
+				allRegisters.addAll(moreRegisters)
+				val moreRegistersCopy = moreRegisters.toList()
+				moreRegisters.clear()
+				moreRegistersCopy.forEach { reg ->
+					reg.definitions().forEach { defWrite ->
+						val def = defWrite.instruction
+						val readOperands = when (def.operation)
+						{
+							is L2_PHI_PSEUDO_OPERATION<*, *, *, *> ->
+								def.readOperands
+							is L2_MOVE<*, *, *, *> -> def.readOperands
+							is L2_BOX_INT -> def.readOperands
+							is L2_UNBOX_INT -> def.readOperands
+							is L2_JUMP_IF_UNBOX_INT -> def.readOperands
+							else -> emptyList()
+						}
+						readOperands.mapTo(moreRegisters) { it.register() }
+					}
+				}
+				// Ignore ones we've already visited.
+				moreRegisters.removeAll(allRegisters)
+			}
+			val allValues = allRegisters.map {
+				it.definition().semanticValues()
+			}.fold(emptySet(), Set<L2SemanticValue>::union)
+			return allValues
+		}
 	}
 }

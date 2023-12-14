@@ -33,6 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.AbstractNumberDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -41,6 +42,8 @@ import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -101,5 +104,24 @@ object L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_OBJECT : L2ConditionalJump(
 			Opcodes.IFNE,
 			ifGreaterOrEqual,
 			ifNotGreaterOrEqual)
+	}
+
+	//TODO override emit...
+	override fun interestingConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition>
+	{
+		val first = instruction.operand<L2ReadBoxedOperand>(0)
+		val second = instruction.operand<L2ReadBoxedOperand>(1)
+
+		return when
+		{
+			!first.restriction().intersectsType(i32) -> emptyList()
+			!second.restriction().intersectsType(i32) -> emptyList()
+			else -> listOf(
+				unboxedIntCondition(
+					listOf(first.register(), second.register()))
+			)
+		}
 	}
 }

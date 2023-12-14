@@ -37,14 +37,15 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_INT
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -54,6 +55,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncodin
 import avail.optimizer.L2Generator
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.Tuple4
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -61,7 +63,8 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * Jump to the target if int1 is less than int2.
+ * Jump to the target if int1 compares to int2 in the way requested by the
+ * [opcode].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -213,6 +216,21 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 	override fun toString(): String
 	{
 		return super.toString() + "(" + opcodeName + ")"
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator
+	)
+	{
+		val int1Reg = transformedOperands[0] as L2ReadIntOperand
+		val int2Reg = transformedOperands[1] as L2ReadIntOperand
+		val ifTrue = transformedOperands[2] as L2PcOperand
+		val ifFalse = transformedOperands[3] as L2PcOperand
+
+		// Use the basic generator to check if the branch can be elided.
+		compareAndBranch(
+			regenerator.targetGenerator, int1Reg, int2Reg, ifTrue, ifFalse)
 	}
 
 	override fun translateToJVM(

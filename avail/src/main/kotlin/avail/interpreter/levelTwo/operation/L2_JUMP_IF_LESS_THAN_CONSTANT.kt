@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
@@ -43,6 +44,8 @@ import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -97,5 +100,21 @@ object L2_JUMP_IF_LESS_THAN_CONSTANT : L2ConditionalJump(
 		AbstractNumberDescriptor.Order.isLessMethod.generateCall(method)
 		emitBranch(
 			translator, method, instruction, Opcodes.IFNE, ifLess, ifNotLess)
+	}
+
+	//TODO override emit...
+	override fun interestingConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition>
+	{
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constant = instruction.operand<L2ConstantOperand>(1)
+
+		return when
+		{
+			constant.constant.isInt ->
+				listOf(unboxedIntCondition(listOf(value.register())))
+			else -> emptyList()
+		}
 	}
 }

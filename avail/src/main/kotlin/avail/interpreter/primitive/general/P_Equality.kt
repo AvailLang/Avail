@@ -153,12 +153,27 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		translator.generator.run {
 			val ifEqual = createBasicBlock("equal")
 			val ifNotEqual = createBasicBlock("not equal")
-			addInstruction(
-				L2_JUMP_IF_OBJECTS_EQUAL,
-				readBoxed(firstReg.semanticValue()),
-				readBoxed(secondReg.semanticValue()),
-				edgeTo(ifEqual),
-				edgeTo(ifNotEqual))
+			val c1 = firstReg.constantOrNull()
+			val c2 = secondReg.constantOrNull()
+			when
+			{
+				c1 !== null -> jumpIfEqualsConstant(
+					readBoxed(secondReg.semanticValue()),
+					c1,
+					ifEqual,
+					ifNotEqual)
+				c2 !== null -> jumpIfEqualsConstant(
+					readBoxed(firstReg.semanticValue()),
+					c2,
+					ifEqual,
+					ifNotEqual)
+				else -> addInstruction(
+					L2_JUMP_IF_OBJECTS_EQUAL,
+					readBoxed(firstReg.semanticValue()),
+					readBoxed(secondReg.semanticValue()),
+					edgeTo(ifEqual),
+					edgeTo(ifNotEqual))
+			}
 			startBlock(ifEqual)
 			callSiteHelper.useAnswer(boxedConstant(trueObject))
 			startBlock(ifNotEqual)

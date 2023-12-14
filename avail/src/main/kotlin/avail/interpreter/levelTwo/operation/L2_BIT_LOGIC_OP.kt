@@ -45,6 +45,8 @@ import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.optimizer.L1Translator
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticUnboxedInt
 import org.objectweb.asm.MethodVisitor
@@ -142,6 +144,18 @@ class L2_BIT_LOGIC_OP(
 		return true
 	}
 
+	override fun interestingConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition>
+	{
+		val input1 = instruction.operand<L2ReadIntOperand>(0)
+		val input2 = instruction.operand<L2ReadIntOperand>(1)
+		val output = instruction.operand<L2WriteIntOperand>(2)
+		return listOf(
+			unboxedIntCondition(
+				listOf(
+					input1.register(), input2.register(), output.register())))
+	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

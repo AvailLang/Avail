@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinalMethod
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.TypeTag
@@ -40,8 +41,12 @@ import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
@@ -74,6 +79,18 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 			.append(")")
 	}
 
+	override fun interestingConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition>
+	{
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
+
+		return listOf(
+			L2SplitCondition.L2IsUnboxedIntCondition.unboxedIntCondition(
+				listOf(value.register(), tagOrdinal.register())))
+	}
+
 	override fun generateReplacement(
 		instruction: L2Instruction,
 		regenerator: L2Regenerator)
@@ -90,13 +107,78 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 		{
 			// This tag always applies, and it has no children, not even the
 			// bottom type (which is special in the TypeTag hierarchy).
-			regenerator.targetGenerator.addInstruction(
-				L2_MOVE_CONSTANT.unboxedInt,
-				L2IntImmediateOperand(baseTag.ordinal),
-				tagOrdinal)
+			regenerator.targetGenerator.run {
+				val existingValue =
+					tagOrdinal.semanticValues().firstOrNull {
+						currentManifest.hasSemanticValue(it)
+					}
+				when (existingValue)
+				{
+					null -> addInstruction(
+						L2_MOVE_CONSTANT.unboxedInt,
+						L2IntImmediateOperand(baseTag.ordinal),
+						intWrite(
+							tagOrdinal.semanticValues(),
+							restrictionForConstant(
+								fromInt(baseTag.ordinal),
+								UNBOXED_INT_FLAG)))
+					else -> tagOrdinal.semanticValues().forEach { otherValue ->
+						if (!currentManifest.hasSemanticValue(otherValue))
+						{
+							moveRegister(
+								L2_MOVE.unboxedInt, existingValue, otherValue)
+						}
+					}
+				}
+			}
 			return
 		}
 		super.generateReplacement(instruction, regenerator)
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val value = transformedOperands[0] as L2ReadBoxedOperand
+		val tagOrdinal = transformedOperands[1] as L2WriteIntOperand
+
+		// If the tag is statically deducible at this point, use the constant.
+		val type = value.type()
+		val baseTag = type.instanceTag
+		if (baseTag.ordinal == baseTag.highOrdinal
+			&& (!baseTag.isSubtagOf(TypeTag.TOP_TYPE_TAG)
+				|| baseTag == TypeTag.BOTTOM_TYPE_TAG))
+		{
+			// This tag always applies, and it has no children, not even the
+			// bottom type (which is special in the TypeTag hierarchy).
+			regenerator.targetGenerator.run {
+				val existingValue =
+					tagOrdinal.semanticValues().firstOrNull {
+						currentManifest.hasSemanticValue(it)
+					}
+				when (existingValue)
+				{
+					null -> addInstruction(
+						L2_MOVE_CONSTANT.unboxedInt,
+						L2IntImmediateOperand(baseTag.ordinal),
+						intWrite(
+							tagOrdinal.semanticValues(),
+							restrictionForConstant(
+								fromInt(baseTag.ordinal),
+								UNBOXED_INT_FLAG)))
+					else -> tagOrdinal.semanticValues().forEach { otherValue ->
+						if (!currentManifest.hasSemanticValue(otherValue))
+						{
+							moveRegister(
+								L2_MOVE.unboxedInt, existingValue, otherValue)
+						}
+					}
+				}
+			}
+			return
+		}
+		super.emitTransformedInstruction(transformedOperands, regenerator)
 	}
 
 	override fun translateToJVM(

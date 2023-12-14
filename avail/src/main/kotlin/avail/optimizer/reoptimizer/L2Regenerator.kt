@@ -518,12 +518,16 @@ abstract class L2Regenerator internal constructor(
 						interestingConditions.filterTo(mutableSetOf()) {
 							it.holdsFor(incomingEdge.manifest())
 						}
+
 					val betterBlock = submap.computeIfAbsent(trueConditions) {
 						val suffix = when (trueConditions.size)
 						{
-							1 -> " split ${trueConditions.single()}"
-							else -> " multi-split #" +
-								submap.keys.count { it.size > 1 }
+							1 -> "\nsplit: ${trueConditions.single()}"
+							else -> "\nsplits:\n\t" +
+								submap.keys
+									.filter(Set<*>::isNotEmpty)
+									.joinToString(
+										",\n\t", transform = Any::toString)
 						}
 						val newBlock = L2BasicBlock(
 							originalBlock.name() + suffix,

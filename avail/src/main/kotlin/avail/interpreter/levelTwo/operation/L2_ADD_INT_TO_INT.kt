@@ -42,6 +42,7 @@ import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
@@ -101,6 +102,21 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		builder.append(" + ")
 		builder.append(addend.registerString())
 		renderOperandsStartingAt(instruction, 3, desiredTypes, builder)
+	}
+
+	override fun interestingConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition>
+	{
+		val augendReg = instruction.operand<L2ReadIntOperand>(0)
+		val addendReg = instruction.operand<L2ReadIntOperand>(1)
+		val sumReg = instruction.operand<L2WriteIntOperand>(2)
+		return listOf(
+			L2SplitCondition.L2IsUnboxedIntCondition.unboxedIntCondition(
+				listOf(
+					augendReg.register(),
+					addendReg.register(),
+					sumReg.register())))
 	}
 
 	override fun translateToJVM(

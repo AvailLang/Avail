@@ -820,11 +820,17 @@ class L2ValueManifest
 	fun recordDefinitionNoCheck(writer: L2WriteOperand<*>)
 	{
 		assert(writer.instructionHasBeenEmitted)
-		val pickSemanticValue = writer.pickSemanticValue()
 		val synonym: L2Synonym
-		if (hasSemanticValue(pickSemanticValue))
+		val pickSemanticValue =
+			writer.semanticValues().firstOrNull(::hasSemanticValue)
+		if (pickSemanticValue !== null)
 		{
 			// This is a new RegisterKind for an existing semantic value.
+			writer.semanticValues()
+				.filterNot(::hasSemanticValue)
+				.forEach {
+					extendSynonym(semanticValueToSynonym(pickSemanticValue), it)
+				}
 			synonym = semanticValueToSynonym(pickSemanticValue)
 			constraints[synonym]!!.run {
 				// There shouldn't already be a register for this kind.

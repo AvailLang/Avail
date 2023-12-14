@@ -1145,6 +1145,8 @@ class L2Optimizer internal constructor(
 		val uses = mutableMapOf<L2Register, MutableSet<L2ReadOperand<*>>>()
 		val definitions =
 			mutableMapOf<L2Register, MutableSet<L2WriteOperand<*>>>()
+		val allSuccessors = mutableListOf<L2PcOperand>()
+		val allPredecessors = mutableListOf<L2PcOperand>()
 		blocks.forEach { block ->
 			assert(block.instructions().isNotEmpty())
 			assert(block.instructions().last().altersControlFlow)
@@ -1159,7 +1161,22 @@ class L2Optimizer internal constructor(
 						.add(it)
 				}
 			}
+			// Ensure the successorEdges of the block agree with the edges of
+			// the last instruction.  Also collect all successor and predecessor
+			// edges to check for duplicates.
+			val successors = block.instructions().last().targetEdges
+			assert(successors == block.successorEdges())
+			successors.forEach { successorEdge ->
+				assert(successorEdge.sourceBlock() == block)
+				val targetBlock = successorEdge.targetBlock()
+				assert(successorEdge in targetBlock.predecessorEdges())
+			}
+			allSuccessors.addAll(successors)
+			allPredecessors.addAll(block.predecessorEdges())
 		}
+		assert(allSuccessors.size == allSuccessors.toSet().size)
+		assert(allPredecessors.size == allPredecessors.toSet().size)
+		assert(allSuccessors.toSet() == allPredecessors.toSet())
 		val mentionedRegs = uses.keys.toMutableSet()
 		mentionedRegs.addAll(definitions.keys)
 		val myEmptySet = setOf<L2ReadOperand<*>>()
@@ -1381,7 +1398,7 @@ class L2Optimizer internal constructor(
 	companion object
 	{
 		/** Whether to sanity-check the graph between optimization steps. */
-		var shouldSanityCheck = false
+		var shouldSanityCheck = true //false
 
 		/** Statistic for tracking the cost of sanity checks. */
 		private val sanityCheckStat = Statistic(
