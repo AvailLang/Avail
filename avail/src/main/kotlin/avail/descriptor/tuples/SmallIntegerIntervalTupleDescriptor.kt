@@ -285,8 +285,8 @@ constructor(
 			{
 				val newSize = self[SIZE] + otherDirect[SIZE].toLong()
 				// and the other's start is one delta away from my end,
-				if ((self[END] + delta == otherDirect[START].toLong()
-					&& newSize == newSize.toInt().toLong()))
+				if (self[END] + delta == otherDirect[START].toLong()
+					&& newSize == newSize.toInt().toLong())
 				{
 					// then we're adjacent.
 

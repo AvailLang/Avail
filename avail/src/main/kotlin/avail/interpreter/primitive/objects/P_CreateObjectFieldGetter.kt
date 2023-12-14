@@ -48,6 +48,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
@@ -120,7 +121,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 			emptyTuple,
 			-1,
 			nil,
-			emptyTuple)
+			packedDeclarationNamesForGeneratedFunction)
 		val newFunction = createWithOuters1(rawFunction, fieldAtom)
 		return interpreter.primitiveSuccess(newFunction)
 	}
@@ -174,4 +175,6 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		// instructions that access the field by index.
 		return false
 	}
+
+	val packedDeclarationNamesForGeneratedFunction = stringFrom("arg1,outer1")
 }

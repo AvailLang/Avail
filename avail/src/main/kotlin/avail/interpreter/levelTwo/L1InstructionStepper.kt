@@ -939,9 +939,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val implicitObserveFunction =
 				interpreter.runtime.implicitObserveFunction()
 			interpreter.argsBuffer.clear()
-			interpreter.argsBuffer.add((assignmentFunction() as AvailObject))
+			interpreter.argsBuffer.add(assignmentFunction() as AvailObject)
 			interpreter.argsBuffer.add(
-				(tuple(variable, value) as AvailObject))
+				tuple(variable, value) as AvailObject)
 			val reifier =
 				interpreter.invokeFunction(implicitObserveFunction)
 			pointers = savedPointers

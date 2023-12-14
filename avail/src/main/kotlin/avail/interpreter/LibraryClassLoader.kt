@@ -1,5 +1,5 @@
 /*
- * PrimitiveClassLoader.kt
+ * LibraryClassLoader.kt
  * Copyright © 1993-2023, The Avail Foundation, LLC.
  * All rights reserved.
  *

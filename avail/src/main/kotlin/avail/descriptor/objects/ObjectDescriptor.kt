@@ -265,11 +265,15 @@ class ObjectDescriptor internal constructor(
 		val kind = self[KIND].ifNil { anObject[KIND] }
 		if (!isShared)
 		{
-			anObject[KIND] = kind.makeImmutable()
+			if (anObject.descriptor().isShared)
+				anObject[KIND] = kind.makeShared()
+			else
+				anObject[KIND] = kind.makeImmutable()
 			self.becomeIndirectionTo(anObject)
 		}
 		else if (!anObject.descriptor().isShared)
 		{
+			// We tested it above, and the receiver wasn't shared.
 			self[KIND] = kind.makeImmutable()
 			anObject.becomeIndirectionTo(self)
 		}
@@ -701,4 +705,3 @@ class ObjectDescriptor internal constructor(
 			AvailObject::class.java)
 	}
 }
-

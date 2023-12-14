@@ -288,7 +288,7 @@ class L2Generator internal constructor(
 			// Create it as a normal node, so L1 translation can produce simple
 			// edges to it, then switch it to be a loop head so that placeholder
 			// instructions can still connect to it with back-edges when they
-			// get they generate their replacement code.
+			// generate their replacement code.
 			unreachableBlock = createBasicBlock("UNREACHABLE")
 			specialBlocks[UNREACHABLE] = unreachableBlock
 		}
@@ -1344,12 +1344,8 @@ class L2Generator internal constructor(
 					// If either operand of P_Equality is a constant, recurse to
 					// allow deeper replacement.
 					var previousConstant = read1.constantOrNull()
-					val previousRegister: L2ReadBoxedOperand
-					if (previousConstant !== null)
-					{
-						previousRegister = read2
-					}
-					else
+					var previousRegister = read2
+					if (previousConstant === null)
 					{
 						previousConstant = read2.constantOrNull()
 						previousRegister = read1
