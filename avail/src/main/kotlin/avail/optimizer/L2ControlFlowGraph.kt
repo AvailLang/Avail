@@ -66,7 +66,7 @@ class L2ControlFlowGraph
 		 * writes to its output register the value corresponding to the numbered
 		 * predecessor edge by which the block was reached.
 		 */
-		class IS_SSA : StateFlag()
+		object IS_SSA : StateFlag()
 
 		/**
 		 * Whether the control flow graph is in edge-split form, which ensures
@@ -74,14 +74,14 @@ class L2ControlFlowGraph
 		 * leads to a node with multiple predecessor edges.
 		 */
 		@Suppress("unused")
-		class IS_EDGE_SPLIT : StateFlag()
+		object IS_EDGE_SPLIT : StateFlag()
 
 		/**
 		 * Indicates that every [L2_PHI_PSEUDO_OPERATION] has been replaced by
 		 * moves to the same [L2Register] along each (split) incoming edge.
 		 */
 		@Suppress("unused")
-		class HAS_ELIMINATED_PHIS : StateFlag()
+		object HAS_ELIMINATED_PHIS : StateFlag()
 	}
 
 	/**

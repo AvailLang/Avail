@@ -165,6 +165,8 @@ internal enum class OptimizationPhase constructor(
 	 * Insert phi moves along preceding edges.  This requires the CFG to be in
 	 * edge-split form, although strict SSA isn't required.
 	 */
+	@Requires(IS_SSA::class)
+	@Clears(IS_SSA::class)
 	INSERT_PHI_MOVES({ insertPhiMoves() }),
 
 	/**

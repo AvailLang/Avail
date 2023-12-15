@@ -40,10 +40,12 @@ import avail.interpreter.levelTwo.L2OperandType.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -98,6 +100,34 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		builder.append(" ∈ ")
 		builder.append(constantType.constant)
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator
+	)
+	{
+		val value = transformedOperands[0] as L2ReadBoxedOperand
+		val constantType = transformedOperands[1] as L2ConstantOperand
+		val ifKind = transformedOperands[2] as L2PcOperand
+		val ifNotKind = transformedOperands[3] as L2PcOperand
+
+		// Check for special cases.
+		val typeConstant = constantType.constant
+		if (value.restriction().containedByType(typeConstant))
+		{
+			// Always true.
+			regenerator.targetGenerator.jumpTo(ifKind.targetBlock())
+			return
+		}
+		if (!value.restriction().intersectsType(typeConstant))
+		{
+			// Always false.
+			regenerator.targetGenerator.jumpTo(ifNotKind.targetBlock())
+			return
+		}
+
+		super.emitTransformedInstruction(transformedOperands, regenerator)
 	}
 
 	override fun translateToJVM(

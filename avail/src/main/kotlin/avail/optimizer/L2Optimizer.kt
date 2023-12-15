@@ -48,6 +48,7 @@ import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import avail.optimizer.L2ControlFlowGraph.StateFlag
+import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.performance.Statistic
@@ -1331,6 +1332,27 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
+	 * Check that all registers have a unique definition.  This should only be
+	 * called if the graph is expected to be in single-static-assignment form
+	 * ([IS_SSA]).
+	 */
+	private fun checkUniqueRegisterDefinitions()
+	{
+		for (block in blocks)
+		{
+			for (instruction in block.instructions())
+			{
+				instruction.sourceRegisters.forEach { r ->
+					assert(r.definitions().size == 1)
+				}
+				instruction.destinationRegisters.forEach { r ->
+					assert(r.definitions().size == 1)
+				}
+			}
+		}
+	}
+
+	/**
 	 * Ensure each instruction that's an
 	 * [entry point][L2Instruction.isEntryPoint] occurs at the start of a block.
 	 */
@@ -1358,6 +1380,10 @@ class L2Optimizer internal constructor(
 			checkUniqueOperands()
 			checkEdgesAndPhis()
 			checkRegistersAreInitialized(L2Register::uniqueValue)
+			if (IS_SSA::class in generator.controlFlowGraph.state)
+			{
+				checkUniqueRegisterDefinitions()
+			}
 			checkEntryPoints()
 			val after = AvailRuntimeSupport.captureNanos()
 			sanityCheckStat.record(
