@@ -2181,21 +2181,6 @@ class AvailWorkbench internal constructor(
 						}
 					}
 				})
-			addMouseListener(
-				object : MouseAdapter()
-				{
-					override fun mouseClicked(e: MouseEvent)
-					{
-						if (buildAction.isEnabled
-							&& e.clickCount == 2
-							&& e.button == MouseEvent.BUTTON1)
-						{
-							e.consume()
-							buildAction.actionPerformed(
-								ActionEvent(moduleTree, -1, "Build"))
-						}
-					}
-				})
 		}
 
 		// Create the entry points tree.
@@ -2218,11 +2203,11 @@ class AvailWorkbench internal constructor(
 				{
 					override fun mouseClicked(e: MouseEvent)
 					{
-						if (selectedEntryPoint() !== null)
+						if (insertEntryPointAction.isEnabled
+							&& e.clickCount == 2
+							&& e.button == MouseEvent.BUTTON1)
 						{
-							if (insertEntryPointAction.isEnabled
-								&& e.clickCount == 2
-								&& e.button == MouseEvent.BUTTON1)
+							if (selectedEntryPoint() !== null)
 							{
 								e.consume()
 								val actionEvent = ActionEvent(
@@ -2230,12 +2215,7 @@ class AvailWorkbench internal constructor(
 								insertEntryPointAction.actionPerformed(
 									actionEvent)
 							}
-						}
-						else if (selectedEntryPointModule() !== null)
-						{
-							if (buildEntryPointModuleAction.isEnabled
-								&& e.clickCount == 2
-								&& e.button == MouseEvent.BUTTON1)
+							else if (selectedEntryPointModule() !== null)
 							{
 								e.consume()
 								val actionEvent = ActionEvent(
@@ -3316,13 +3296,11 @@ class AvailWorkbench internal constructor(
 					is AbstractWorkbenchTreeNode ->
 					{
 						val icon = value.icon(tree.rowHeight)
-						setLeafIcon(icon)
-						setOpenIcon(icon)
-						setClosedIcon(icon)
 						var html = value.htmlText(selected)
 						html = "<html>$html</html>"
-						super.getTreeCellRendererComponent(
-							tree, html, selected, expanded, leaf, row, hasFocus)
+						// For this kind of node, use the MUCH faster caching of
+						// a JLabel for rarely changing text.
+						value.labelForText(html, icon)
 					}
 					else -> return super.getTreeCellRendererComponent(
 						tree, value, selected, expanded, leaf, row, hasFocus)
