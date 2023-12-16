@@ -50,7 +50,10 @@ import org.availlang.cache.LRUCache
 import java.awt.Color
 import java.awt.Image
 import javax.swing.ImageIcon
+import javax.swing.JLabel
+import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreeCellRenderer
 
 /**
  * A [DefaultMutableTreeNode] is a tree node used within an [AvailWorkbench].
@@ -69,6 +72,50 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	internal val workbench: AvailWorkbench
 ) : DefaultMutableTreeNode(), Comparable<AbstractWorkbenchTreeNode>
 {
+	/**
+	 * Part of a cache optimization to get around Swing [JTree]'s RIDICULOUSLY
+	 * bad [TreeCellRenderer].  When the text attempting to be rendered agrees
+	 * with [cachedText], the [cachedLabel] should be used directly instead of
+	 * running it through the glacial HTML3.2 engine.
+	 */
+	private var cachedText: String? = null
+
+	/**
+	 * Part of a cache optimization to get around Swing [JTree]'s RIDICULOUSLY
+	 * bad [TreeCellRenderer].  When the text attempting to be rendered agrees
+	 * with [cachedText], the [cachedLabel] should be used directly instead of
+	 * running it through the glacial HTML3.2 engine.
+ 	 */
+	private var cachedLabel: JLabel? = null
+
+	/**
+	 * Given text which is likely to match previously supplied text for this
+	 * node, answer either a JLabel, using and/or caching it as appropriate.
+	 *
+	 * @param text
+	 *   The text to present, possibly starting with "&lt;html>" to indicate it
+	 *   should be interpreted as HTML3.2 styled text.
+	 * @param icon
+	 *   The optional [ImageIcon] to show to the left of the text.
+	 * @return
+	 *   A suitable JLabel to present the provided text.
+	 */
+	fun labelForText(text: String, icon: ImageIcon?): JLabel
+	{
+		val label = when (text)
+		{
+			cachedText -> cachedLabel!!
+			else ->
+			{
+				cachedText = text
+				cachedLabel = JLabel(text)
+				cachedLabel!!
+			}
+		}
+		label.icon = icon
+		return label
+	}
+
 	/** The [AvailWorkbench.availBuilder]. */
 	internal val builder: AvailBuilder get() = workbench.availBuilder
 
