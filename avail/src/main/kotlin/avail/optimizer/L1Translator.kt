@@ -1539,7 +1539,9 @@ class L1Translator private constructor(
 
 		// Check the return value against the expectedType.
 		val passedCheck = generator.createBasicBlock("passed return check")
-		val failedCheck = generator.createBasicBlock("failed return check")
+		val failedCheck = generator.createBasicBlock(
+			"failed return check",
+			ZoneType.DEAD_END.createZone("failed check"))
 		if (!uncheckedValueRead.restriction().intersectsType(expectedType))
 		{
 			// It's impossible to return a valid value here, since the value's
@@ -1733,7 +1735,8 @@ class L1Translator private constructor(
 		val lookupSucceeded = generator.createBasicBlock(
 			"lookup succeeded for " + callSiteHelper.quotedBundleName)
 		val lookupFailed = generator.createBasicBlock(
-			"lookup failed for " + callSiteHelper.quotedBundleName)
+			"lookup failed for " + callSiteHelper.quotedBundleName,
+			ZoneType.DEAD_END.createZone("lookup failed"))
 		val argumentRestrictions = semanticArguments.mapIndexed { i, arg ->
 			restrictionForType(
 				callSiteHelper.superUnionType.typeAtIndex(i + 1), BOXED_FLAG
@@ -1908,6 +1911,7 @@ class L1Translator private constructor(
 		argumentRestrictions: List<TypeRestriction>,
 		argumentReads: List<L2ReadBoxedOperand>)
 	{
+		val currentZone = generator.currentBlock().zone
 		val invalidSendReg =
 			generator.boxedWriteTemp(
 			restrictionForType(
@@ -1929,7 +1933,7 @@ class L1Translator private constructor(
 					callSiteHelper.quotedBundleName,
 				ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(
 			"Continue reification during lookup failure handler"))
-		val unreachable = L2BasicBlock("unreachable")
+		val unreachable = L2BasicBlock("unreachable", zone = currentZone)
 		addInstruction(
 			L2_INVOKE,
 			readBoxed(invalidSendReg),
@@ -2037,7 +2041,9 @@ class L1Translator private constructor(
 	{
 		assert(getOperation.isVariableGet)
 		val success = generator.createBasicBlock("successfully read variable")
-		val failure = generator.createBasicBlock("failed to read variable")
+		val failure = generator.createBasicBlock(
+			"failed to read variable",
+			ZoneType.DEAD_END.createZone("failed read"))
 
 		// Emit the specified get-variable instruction variant.
 		val valueWrite = generator.boxedWrite(
@@ -2094,7 +2100,7 @@ class L1Translator private constructor(
 	{
 		assert(setOperation.isVariableSet)
 		val success = generator.createBasicBlock("set local success")
-		val failure = generator.createBasicBlock("set local failure")
+		val failure = generator.createBasicBlock("set local failure/observe")
 		val onReificationDuringFailure = generator.createBasicBlock(
 			"reify during set local failure",
 			ZoneType.PROPAGATE_REIFICATION_FOR_INVOKE.createZone(

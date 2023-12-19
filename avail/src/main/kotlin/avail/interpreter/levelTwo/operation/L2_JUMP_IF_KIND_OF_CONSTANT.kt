@@ -104,8 +104,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 
 	override fun emitTransformedInstruction(
 		transformedOperands: Array<L2Operand>,
-		regenerator: L2Regenerator
-	)
+		regenerator: L2Regenerator)
 	{
 		val value = transformedOperands[0] as L2ReadBoxedOperand
 		val constantType = transformedOperands[1] as L2ConstantOperand
@@ -114,20 +113,21 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 
 		// Check for special cases.
 		val typeConstant = constantType.constant
-		if (value.restriction().containedByType(typeConstant))
+		val generator = regenerator.targetGenerator
+		val manifest = generator.currentManifest
+		val restriction = manifest.restrictionFor(value.semanticValue())
+		when
 		{
 			// Always true.
-			regenerator.targetGenerator.jumpTo(ifKind.targetBlock())
-			return
-		}
-		if (!value.restriction().intersectsType(typeConstant))
-		{
+			restriction.containedByType(typeConstant) ->
+				generator.jumpTo(ifKind.targetBlock())
 			// Always false.
-			regenerator.targetGenerator.jumpTo(ifNotKind.targetBlock())
-			return
+			!restriction.intersectsType(typeConstant) ->
+				generator.jumpTo(ifNotKind.targetBlock())
+			// Still contingent.
+			else -> super.emitTransformedInstruction(
+				transformedOperands, regenerator)
 		}
-
-		super.emitTransformedInstruction(transformedOperands, regenerator)
 	}
 
 	override fun translateToJVM(

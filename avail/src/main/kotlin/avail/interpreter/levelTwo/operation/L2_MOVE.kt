@@ -43,6 +43,7 @@ import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT
 import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
@@ -67,6 +68,7 @@ import avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
 import avail.optimizer.L2Generator
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 import avail.utility.structures.EnumMap.Companion.enumMap
@@ -123,7 +125,8 @@ private constructor(
 	 */
 	abstract fun createRead(
 		semanticValue: L2SemanticValue,
-		manifest: L2ValueManifest): RR
+		manifest: L2ValueManifest
+	): RR
 
 	/**
 	 * Synthesize an [L2WriteOperand] of the appropriately strengthened type
@@ -135,13 +138,18 @@ private constructor(
 	 *   The [L2SemanticValue]s to populate.
 	 * @param restriction
 	 *   The [TypeRestriction] that the stored values will satisfy.
+	 * @param forceRegister
+	 *   If specified and non-null, this is the register to be written.
+	 *   Otherwise, a new one will be allocated.
 	 * @return
 	 *   A new [L2WriteOperand] of the appropriate type [WR].
 	 */
 	abstract fun createWrite(
 		generator: L2Generator,
 		semanticValues: Set<L2SemanticValue>,
-		restriction: TypeRestriction): WR
+		restriction: TypeRestriction,
+		forceRegister: R? = null
+	): WR
 
 	/**
 	 * Create an [L2ReadVectorOperand] suitable for the [RegisterKind].  This
@@ -156,7 +164,8 @@ private constructor(
 
 	override fun instructionWasAdded(
 		instruction: L2Instruction,
-		manifest: L2ValueManifest)
+		manifest: L2ValueManifest
+	)
 	{
 		assert(this === instruction.operation)
 		val source = instruction.operand<L2ReadOperand<R>>(0)
@@ -195,7 +204,8 @@ private constructor(
 	 *   The move's source [L2ReadOperand].
 	 */
 	fun sourceOf(
-		instruction: L2Instruction): RR
+		instruction: L2Instruction
+	): RR
 	{
 		assert(instruction.operation is L2_MOVE<*, *, *, *>)
 		return instruction.operand(0)
@@ -211,7 +221,8 @@ private constructor(
 	 *   The move's source [L2WriteOperand].
 	 */
 	fun destinationOf(
-		instruction: L2Instruction): WR
+		instruction: L2Instruction
+	): WR
 	{
 		assert(instruction.operation === this)
 		return instruction.operand(1)
@@ -221,7 +232,8 @@ private constructor(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean)->Unit)
+		warningStyleChange: (Boolean)->Unit
+	)
 	{
 		assert(this === instruction.operation)
 		val source = instruction.operand<L2ReadOperand<R>>(0)
@@ -248,10 +260,30 @@ private constructor(
 		return generator.extractTupleElement(source, index)
 	}
 
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		// Try to strengthen the output restriction.
+		val source: L2ReadOperand<R> = transformedOperands[0].cast()
+		val destination: L2WriteOperand<R> = transformedOperands[1].cast()
+
+		val generator = regenerator.targetGenerator
+		val restriction =
+			generator.currentManifest.restrictionFor(source.semanticValue())
+		val newDestination = createWrite(
+			generator,
+			destination.semanticValues(),
+			restriction,
+			destination.register())
+		generator.addInstruction(this, source, newDestination)
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
-		instruction: L2Instruction)
+		instruction: L2Instruction
+	)
 	{
 		val source = instruction.operand<L2ReadOperand<R>>(0)
 		val destination = instruction.operand<L2WriteOperand<R>>(1)
@@ -273,13 +305,14 @@ private constructor(
 		 * Initialize the move operation for boxed values.
 		 */
 		val boxed = object : L2_MOVE<
-				L2BoxedRegister,
-				L2ReadBoxedOperand,
-				L2WriteBoxedOperand,
-				L2ReadBoxedVectorOperand>(
+			L2BoxedRegister,
+			L2ReadBoxedOperand,
+			L2WriteBoxedOperand,
+			L2ReadBoxedVectorOperand>(
 			BOXED_KIND,
 			READ_BOXED.named("source boxed"),
-			WRITE_BOXED.named("destination boxed"))
+			WRITE_BOXED.named("destination boxed")
+		)
 		{
 			override fun createRead(
 				semanticValue: L2SemanticValue,
@@ -289,11 +322,12 @@ private constructor(
 			override fun createWrite(
 				generator: L2Generator,
 				semanticValues: Set<L2SemanticValue>,
-				restriction: TypeRestriction
+				restriction: TypeRestriction,
+				forceRegister: L2BoxedRegister?
 			) = L2WriteBoxedOperand(
 				semanticValues,
 				restriction,
-				L2BoxedRegister(generator.nextUnique()))
+				forceRegister ?: L2BoxedRegister(generator.nextUnique()))
 
 			override fun createVector(elements: List<L2ReadBoxedOperand>) =
 				L2ReadBoxedVectorOperand(elements)
@@ -303,13 +337,14 @@ private constructor(
 		 * Initialize the move operation for int values.
 		 */
 		val unboxedInt = object : L2_MOVE<
-				L2IntRegister,
-				L2ReadIntOperand,
-				L2WriteIntOperand,
-				L2ReadIntVectorOperand>(
+			L2IntRegister,
+			L2ReadIntOperand,
+			L2WriteIntOperand,
+			L2ReadIntVectorOperand>(
 			INTEGER_KIND,
 			READ_INT.named("source int"),
-			WRITE_INT.named("destination int"))
+			WRITE_INT.named("destination int")
+		)
 		{
 			override fun createRead(
 				semanticValue: L2SemanticValue,
@@ -319,8 +354,10 @@ private constructor(
 			override fun createWrite(
 				generator: L2Generator,
 				semanticValues: Set<L2SemanticValue>,
-				restriction: TypeRestriction
-			) = generator.intWrite(semanticValues.cast(), restriction)
+				restriction: TypeRestriction,
+				forceRegister: L2IntRegister?
+			) = generator.intWrite(
+				semanticValues.cast(), restriction, forceRegister)
 
 			override fun createVector(elements: List<L2ReadIntOperand>) =
 				L2ReadIntVectorOperand(elements)
@@ -330,13 +367,14 @@ private constructor(
 		 * Initialize the move operation for float values.
 		 */
 		val unboxedFloat = object : L2_MOVE<
-				L2FloatRegister,
-				L2ReadFloatOperand,
-				L2WriteFloatOperand,
-				L2ReadFloatVectorOperand>(
+			L2FloatRegister,
+			L2ReadFloatOperand,
+			L2WriteFloatOperand,
+			L2ReadFloatVectorOperand>(
 			FLOAT_KIND,
 			READ_FLOAT.named("source float"),
-			WRITE_FLOAT.named("destination float"))
+			WRITE_FLOAT.named("destination float")
+		)
 		{
 			override fun createRead(
 				semanticValue: L2SemanticValue,
@@ -346,8 +384,10 @@ private constructor(
 			override fun createWrite(
 				generator: L2Generator,
 				semanticValues: Set<L2SemanticValue>,
-				restriction: TypeRestriction
-			) = generator.floatWrite(semanticValues.cast(), restriction)
+				restriction: TypeRestriction,
+				forceRegister: L2FloatRegister?
+			) = generator.floatWrite(
+				semanticValues.cast(), restriction, forceRegister)
 
 			override fun createVector(elements: List<L2ReadFloatOperand>) =
 				L2ReadFloatVectorOperand(elements)
@@ -375,7 +415,7 @@ private constructor(
 			RR : L2ReadOperand<R>,
 			WR : L2WriteOperand<R>,
 			RV : L2ReadVectorOperand<R, RR>>
-		moveByKind(registerKind: RegisterKind): L2_MOVE<R, RR, WR, RV> =
+			moveByKind(registerKind: RegisterKind): L2_MOVE<R, RR, WR, RV> =
 			movesByKind[registerKind]!!.cast()
 	}
 

@@ -384,13 +384,15 @@ class L2Generator internal constructor(
 	 */
 	fun intWrite(
 		semanticValues: Set<L2SemanticUnboxedInt>,
-		restriction: TypeRestriction): L2WriteIntOperand
+		restriction: TypeRestriction,
+		forceRegister: L2IntRegister? = null
+	): L2WriteIntOperand
 	{
 		assert(restriction.isUnboxedInt)
 		return L2WriteIntOperand(
 			semanticValues,
 			restriction,
-			L2IntRegister(nextUnique()))
+			forceRegister ?: L2IntRegister(nextUnique()))
 	}
 
 	/**
@@ -421,13 +423,15 @@ class L2Generator internal constructor(
 	 */
 	fun floatWrite(
 		semanticValues: Set<L2SemanticUnboxedFloat>,
-		restriction: TypeRestriction): L2WriteFloatOperand
+		restriction: TypeRestriction,
+		forceRegister: L2FloatRegister? = null
+	): L2WriteFloatOperand
 	{
 		assert(restriction.isUnboxedFloat)
 		return L2WriteFloatOperand(
 			semanticValues,
 			restriction,
-			L2FloatRegister(nextUnique()))
+			forceRegister ?: L2FloatRegister(nextUnique()))
 	}
 
 	/**
@@ -1535,12 +1539,14 @@ class L2Generator internal constructor(
 		failedCheck: L2BasicBlock)
 	{
 		// Check for special cases.
-		if (valueRead.restriction().containedByType(expectedType))
+		val restriction =
+			currentManifest.restrictionFor(valueRead.semanticValue())
+		if (restriction.containedByType(expectedType))
 		{
 			jumpTo(passedCheck)
 			return
 		}
-		if (!valueRead.restriction().intersectsType(expectedType))
+		if (!restriction.intersectsType(expectedType))
 		{
 			jumpTo(failedCheck)
 			return

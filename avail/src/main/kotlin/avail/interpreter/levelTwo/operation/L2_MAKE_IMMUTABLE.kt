@@ -38,11 +38,14 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.optimizer.L2Generator
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
@@ -113,6 +116,45 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		builder.append(write.registerString())
 		builder.append(" ← ")
 		builder.append(read.registerString())
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		// Try to strengthen the output.
+		val source = transformedOperands[0] as L2ReadBoxedOperand
+		val destination = transformedOperands[1] as L2WriteBoxedOperand
+
+		val generator = regenerator.targetGenerator
+		val manifest = generator.currentManifest
+		val sourceRestriction =
+			manifest.restrictionFor(source.semanticValue())
+		if (sourceRestriction.hasFlag(IMMUTABLE_FLAG))
+		{
+			// The input is already immutable, perhaps due to code splitting,
+			// where this particular path is a constant (or some other way that
+			// the register happens to always be immutable here).  Convert this
+			// to a move to ensure all the right semantic values get written.
+			val newDestinations = destination.semanticValues() -
+				manifest.semanticValueToSynonym(source.semanticValue())
+					.semanticValues()
+			for (newDestination in newDestinations)
+			{
+				generator.moveRegister(
+					L2_MOVE.boxed,
+					source.semanticValue(),
+					newDestination)
+			}
+			return
+		}
+		val destinationRestriction = destination.restriction()
+		assert(destinationRestriction.hasFlag(IMMUTABLE_FLAG))
+		val newDestination = L2WriteBoxedOperand(
+			destination.semanticValues(),
+			sourceRestriction.intersection(destinationRestriction),
+			destination.register())
+		generator.addInstruction(this, source, newDestination)
 	}
 
 	override fun translateToJVM(

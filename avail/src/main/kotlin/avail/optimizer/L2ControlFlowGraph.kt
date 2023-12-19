@@ -192,7 +192,13 @@ class L2ControlFlowGraph
 		 * when this zone is entered, and the invoke logic ensures the callers
 		 * have already been reified by the time this zone runs.
 		 */
-		PROPAGATE_REIFICATION_FOR_INVOKE("#c0e0c0/10a010", "#e0ffe0/103010");
+		PROPAGATE_REIFICATION_FOR_INVOKE("#c0e0c0/10a010", "#e0ffe0/103010"),
+
+		/**
+		 * A zone used to visually indicate a dead end, such as a failed read
+		 * from a variable, or a failed return type check.
+		 */
+		DEAD_END("#ffc0c0/905050", "#ffd8d8/502828");
 
 		/**
 		 * Create a new [Zone] of this type, with an optional descriptive

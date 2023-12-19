@@ -113,7 +113,7 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 
 		val generator = translator.generator
 		val success = generator.createBasicBlock("set local success")
-		val failure = generator.createBasicBlock("set local failure")
+		val failure = generator.createBasicBlock("set local failure/observe")
 		// Emit the set-variable instruction.
 		translator.addInstruction(
 			setOperation,

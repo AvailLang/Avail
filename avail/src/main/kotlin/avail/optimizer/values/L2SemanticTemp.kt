@@ -69,6 +69,9 @@ internal class L2SemanticTemp constructor(frame: Frame, val uniqueId: Int)
 
 	override fun primaryVisualSortKey() = PrimaryVisualSortKey.TEMP
 
-	override fun toString(): String =
-		"Temp#$uniqueId${if (frame.depth() == 1) "" else "Temp#$uniqueId in $frame"}"
+	override fun toString() = buildString {
+			append("T")
+			append(uniqueId)
+			if (frame.depth() > 1) append("in $frame")
+		}
 }

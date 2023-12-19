@@ -94,10 +94,10 @@ internal class L2SemanticSlot constructor(
 	override fun toString(): String = buildString {
 		when (optionalName)
 		{
-			null -> append("Slot#$slotIndex")
+			null -> append(slotIndex)
 			else -> append(optionalName)
 		}
-		append("@")
+		append("-")
 		append(pcAfter)
 		if (frame.depth() > 1) append("[$frame]")
 	}
@@ -109,7 +109,7 @@ internal class L2SemanticSlot constructor(
 			null -> append(slotIndex)
 			else -> append(optionalName)
 		}
-		append("@")
+		append("-")
 		append(pcAfter)
 		if (frame.depth() > 1) append("[$frame]")
 	}
