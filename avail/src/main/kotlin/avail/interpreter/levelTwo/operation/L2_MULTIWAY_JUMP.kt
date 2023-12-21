@@ -50,6 +50,8 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import avail.optimizer.L2ControlFlowGraph.Zone
+import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -114,10 +116,13 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		generateSubtree(
 			generator,
 			value,
+			value.definition().instruction.operation == L2_EXTRACT_TAG_ORDINAL,
 			splitTuple,
 			edges.edges,
 			1,
-			splitTuple.tupleSize)
+			splitTuple.tupleSize,
+			ZoneType.MULTI_WAY_EXPANSION.createZone(
+				"multi-way branch:\n\tsplits = ${splitPoints.constant}"))
 	}
 
 	override fun translateToJVM(
@@ -141,10 +146,12 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 	private fun generateSubtree(
 		generator: L2Generator,
 		value: L2ReadIntOperand,
+		isForTag: Boolean,
 		splitPoints: A_Tuple,
 		edges: List<L2PcOperand>,
 		firstSplit: Int,
-		lastSplit: Int)
+		lastSplit: Int,
+		zone: Zone?)
 	{
 		if (!generator.currentlyReachable()) return
 		if (firstSplit > lastSplit)
@@ -179,31 +186,35 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 				rightName += "..${TypeTag.tagFromOrdinal(high)}"
 			}
 		}
-		val left = generator.createBasicBlock(leftName)
-		val right = generator.createBasicBlock(rightName)
+		val left = generator.createBasicBlock(leftName, zone)
+		val right = generator.createBasicBlock(rightName, zone)
 		L2_JUMP_IF_COMPARE_INT.greaterOrEqual.compareAndBranch(
 			generator,
 			value,
 			generator.unboxedIntConstant(splitValue),
-			L2Generator.edgeTo(right),
-			L2Generator.edgeTo(left))
+			L2Generator.edgeTo(right, rightName),
+			L2Generator.edgeTo(left, leftName))
 		// Generate the left side.
 		generator.startBlock(left)
 		generateSubtree(
 			generator,
 			value,
+			isForTag,
 			splitPoints,
 			edges,
 			firstSplit,
-			splitIndex - 1)
+			splitIndex - 1,
+			zone)
 		// Generate the right side.
 		generator.startBlock(right)
 		generateSubtree(
 			generator,
 			value,
+			isForTag,
 			splitPoints,
 			edges,
 			splitIndex + 1,
-			lastSplit)
+			lastSplit,
+			zone)
 	}
 }

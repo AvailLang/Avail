@@ -198,7 +198,12 @@ class L2ControlFlowGraph
 		 * A zone used to visually indicate a dead end, such as a failed read
 		 * from a variable, or a failed return type check.
 		 */
-		DEAD_END("#ffc0c0/905050", "#ffd8d8/502828");
+		DEAD_END("#ffc0c0/905050", "#ffd8d8/502828"),
+
+		/**
+		 * A cluster of test/branch nodes used to effect a multi-way branch.
+		 */
+		MULTI_WAY_EXPANSION("#ffffc0/909050", "#ffffd8/505028");
 
 		/**
 		 * Create a new [Zone] of this type, with an optional descriptive

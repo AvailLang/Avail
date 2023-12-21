@@ -767,7 +767,7 @@ class AvailObject private constructor(
 	override fun makeImmutable(): AvailObject
 	{
 		val descriptor = descriptor()
-		if (!descriptor.isMutable) return this
+		if (!descriptor.isMutable) return traversed()
 		// Switch the descriptor to prevent it from being added to the queue
 		// again.
 		setDescriptor(descriptor.immutable())
@@ -792,7 +792,7 @@ class AvailObject private constructor(
 
 	override fun makeShared(): AvailObject
 	{
-		if (descriptor().isShared) return this
+		if (descriptor().isShared) return traversed()
 		// Switch the descriptor to prevent it from being added to the queue
 		// again.
 		setDescriptor(descriptor().shared())

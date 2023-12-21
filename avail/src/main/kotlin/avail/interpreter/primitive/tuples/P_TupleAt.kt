@@ -52,10 +52,10 @@ import avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
-import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
@@ -74,6 +74,7 @@ import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
@@ -153,7 +154,9 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		if (fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
 			// We can't guarantee success, so do a dynamic bounds check.
-			val failed = generator.createBasicBlock("failed bounds check")
+			val failed = generator.createBasicBlock(
+				"failed bounds check",
+				ZoneType.DEAD_END.createZone("failed bounds check"))
 			val unboxedSemanticSize = L2SemanticUnboxedInt(
 				primitiveInvocation(
 					P_TupleSize, listOf(tupleReg.semanticValue())))

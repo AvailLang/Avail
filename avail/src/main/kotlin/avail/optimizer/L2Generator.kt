@@ -70,15 +70,16 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instan
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
+import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -1310,10 +1311,16 @@ class L2Generator internal constructor(
 	 *
 	 * @param targetBlock
 	 *   The target [L2BasicBlock].
+	 * @param optionalName
+	 *   An optional name to display for the edge for presenting in graphs, if
+	 *   the branching operation's name for that edge isn't sufficiently
+	 *   informative.
 	 */
-	fun jumpTo(targetBlock: L2BasicBlock)
+	fun jumpTo(
+		targetBlock: L2BasicBlock,
+		optionalName: String? = null)
 	{
-		addInstruction(L2_JUMP, edgeTo(targetBlock))
+		addInstruction(L2_JUMP, edgeTo(targetBlock, optionalName))
 	}
 
 	/**
@@ -1811,15 +1818,22 @@ class L2Generator internal constructor(
 		 *
 		 * @param targetBlock
 		 *   The target [L2BasicBlock].
+		 * @param optionalName
+		 *   An optional name for this edge.  If omitted or null, the name that
+		 *   will be presented for this edge will depend on the [L2Operation]'s
+		 *   list of [L2NamedOperandType]s.
 		 * @return
 		 *   The new [L2PcOperand].
 		 */
-		fun edgeTo(targetBlock: L2BasicBlock): L2PcOperand
+		fun edgeTo(
+			targetBlock: L2BasicBlock,
+			optionalName: String? = null
+		): L2PcOperand
 		{
 			// Only back-edges may reach a block that has already been
 			// generated.
 			assert(targetBlock.instructions().isEmpty())
-			return L2PcOperand(targetBlock, false)
+			return L2PcOperand(targetBlock, false, optionalName = optionalName)
 		}
 
 		/**

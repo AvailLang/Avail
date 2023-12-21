@@ -199,7 +199,7 @@ Private method "Time all tests_time|times" is
 	count : natural number
 |
 	$escape : ⊤;
-	Repeat
+	For each iteration in 1 to count do
 	[
 		startTime ::= high-precision timer value;
 		report ::= report on all tests;
@@ -212,8 +212,8 @@ Private method "Time all tests_time|times" is
 			Print: test suite-oriented “report”;
 			Exit escape
 		];
-		Print: “elapsed ÷ 1000000” ++ " ms\n";
-	] count times;
+		Print: “iteration” ++ ": " ++ “elapsed ÷ 1000000” ++ " ms\n";
+	];
 ] : ⊤;
 
 /**

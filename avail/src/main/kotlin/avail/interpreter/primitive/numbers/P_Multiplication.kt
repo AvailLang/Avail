@@ -297,8 +297,9 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(i32).isBottom
-			|| bType.typeIntersection(i32).isBottom)
+		val aIntersectInt32 = aType.typeIntersection(i32)
+		val bIntersectInt32 = bType.typeIntersection(i32)
+		if (aIntersectInt32.isBottom || bIntersectInt32.isBottom)
 		{
 			return false
 		}
@@ -311,47 +312,45 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			L2SemanticUnboxedInt(a.semanticValue()), fallback)
 		val intB = generator.readInt(
 			L2SemanticUnboxedInt(b.semanticValue()), fallback)
-		if (generator.currentlyReachable())
+		assert(generator.currentlyReachable())
+		// The happy path is reachable.  Generate the most efficient available
+		// unboxed arithmetic.
+		val returnTypeIfInts = returnTypeGuaranteedByVM(
+			rawFunction,
+			listOf(aIntersectInt32, bIntersectInt32))
+		val semanticTemp = primitiveInvocation(
+			this, listOf(a.semanticValue(), b.semanticValue()))
+		val tempWriter = generator.intWrite(
+			setOf(L2SemanticUnboxedInt(semanticTemp)),
+			restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
+		if (returnTypeIfInts.isSubtypeOf(i32))
 		{
-			// The happy path is reachable.  Generate the most efficient
-			// available unboxed arithmetic.
-			val returnTypeIfInts = returnTypeGuaranteedByVM(
-				rawFunction,
-				argumentTypes.map { it.typeIntersection(i32) })
-			val semanticTemp = primitiveInvocation(
-				this, listOf(a.semanticValue(), b.semanticValue()))
-			val tempWriter = generator.intWrite(
-				setOf(L2SemanticUnboxedInt(semanticTemp)),
-				restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
-			if (returnTypeIfInts.isSubtypeOf(i32))
-			{
-				// The result is guaranteed not to overflow, so emit an
-				// instruction that won't bother with an overflow check.  Note
-				// that both the unboxed and boxed registers end up in the same
-				// synonym, so subsequent uses of the result might use either
-				// register, depending whether an unboxed value is desired.
-				translator.addInstruction(
-					L2_BIT_LOGIC_OP.wrappedMultiply, intA, intB, tempWriter)
-			}
-			else
-			{
-				// The result could exceed an int32.
-				val success =
-					generator.createBasicBlock("product is in range")
-				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT,
-					intA,
-					intB,
-					tempWriter,
-					edgeTo(fallback),
-					edgeTo(success))
-				generator.startBlock(success)
-			}
-			// Even though we're just using the boxed value again, the unboxed
-			// form is also still available for use by subsequent primitives,
-			// which could allow the boxing instruction to evaporate.
-			callSiteHelper.useAnswer(generator.readBoxed(semanticTemp))
+			// The result is guaranteed not to overflow, so emit an instruction
+			// that won't bother with an overflow check.  Note that both the
+			// unboxed and boxed registers end up in the same synonym, so
+			// subsequent uses of the result might use either register,
+			// depending whether an unboxed value is desired.
+			translator.addInstruction(
+				L2_BIT_LOGIC_OP.wrappedMultiply, intA, intB, tempWriter)
 		}
+		else
+		{
+			// The result could exceed an int32.
+			val success =
+				generator.createBasicBlock("product is in range")
+			translator.addInstruction(
+				L2_MULTIPLY_INT_BY_INT,
+				intA,
+				intB,
+				tempWriter,
+				edgeTo(fallback),
+				edgeTo(success))
+			generator.startBlock(success)
+		}
+		// Even though we're just using the boxed value again, the unboxed form
+		// is also still available for use by subsequent primitives, which could
+		// allow the boxing instruction to evaporate.
+		callSiteHelper.useAnswer(generator.readBoxed(semanticTemp))
 		if (fallback.predecessorEdges().isNotEmpty())
 		{
 			// The fallback block is reachable, so generate the slow case within

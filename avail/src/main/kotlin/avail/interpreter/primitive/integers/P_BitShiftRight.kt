@@ -161,8 +161,9 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
-		if (aType.typeIntersection(i32).isBottom
-			|| bType.typeIntersection(i32).isBottom)
+		val aIntersectInt32 = aType.typeIntersection(i32)
+		val bIntersectInt32 = bType.typeIntersection(i32)
+		if (aIntersectInt32.isBottom || bIntersectInt32.isBottom)
 		{
 			return false
 		}
@@ -189,7 +190,7 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 			this, listOf(a.semanticValue(), b.semanticValue()))
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction,
-			argumentTypes.map { it.typeIntersection(i32) })
+			listOf(aIntersectInt32, bIntersectInt32))
 		val tempIntWriter = generator.intWrite(
 			setOf(L2SemanticUnboxedInt(semanticTemp)),
 			restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))

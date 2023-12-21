@@ -361,6 +361,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				|| (it is L2PcVectorOperand && it.edges.contains(edge))
 		}
 		val type = types[operandIndex]
+		val basicName = edge.optionalName ?: type.name()
 		// The selection of Helvetica as the font is important. Some
 		// renderers, like Viz.js, only seem to fully support a small number
 		// of standard, widely available fonts:
@@ -374,7 +375,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				tag("tr") {
 					tag("td", "balign" to "left") {
 						tag("font", "face" to "Helvetica") {
-							tag("b") { append(escape(type.name())) }
+							tag("b") { append(escape(basicName)) }
 						}
 						append("<br/>")
 
