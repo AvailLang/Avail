@@ -273,6 +273,7 @@ import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.stackToString
 import avail.utility.structures.EnumMap.Companion.enumMap
+import org.availlang.artifact.environment.project.AvailProject
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.Timer
@@ -308,11 +309,15 @@ import kotlin.math.min
  * @param moduleNameResolver
  *   The [module name resolver][ModuleNameResolver] that this `AvailRuntime`
  *   should use to resolve unqualified [module][ModuleDescriptor] names.
+ * @param project
+ *   The [AvailProject] that describes the project that is being run by this
+ *   [AvailRuntime].
  * @param fileManager
  *   The [FileManager] of the running Avail.
  */
 class AvailRuntime constructor(
 	val moduleNameResolver: ModuleNameResolver,
+	val project: AvailProject,
 	fileManager: FileManager)
 {
 	init

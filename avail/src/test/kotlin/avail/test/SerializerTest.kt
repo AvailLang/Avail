@@ -74,6 +74,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.primitive.floats.P_FloatFloor
 import avail.serialization.Deserializer
 import avail.serialization.Serializer
+import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.persistence.MalformedSerialStreamException
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -149,7 +150,7 @@ class SerializerTest
 		{
 			throw RuntimeException(e)
 		}
-		runtime = AvailRuntime(resolver, fileManager)
+		runtime = AvailRuntime(resolver, AvailProject.NON_PROJECT,  fileManager)
 		fileManager.associateRuntime(runtime())
 	}
 

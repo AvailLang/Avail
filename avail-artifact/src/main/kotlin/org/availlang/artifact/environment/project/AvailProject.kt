@@ -39,6 +39,7 @@ import org.availlang.artifact.AvailArtifactException
 import org.availlang.artifact.environment.AvailEnvironment
 import org.availlang.artifact.environment.AvailEnvironment.projectConfigDirectory
 import org.availlang.artifact.environment.location.AvailLocation
+import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.manifest.AvailArtifactManifest
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
@@ -428,6 +429,15 @@ interface AvailProject: JSONFriendly
 		 * as custom file icons.
 		 */
 		const val ROOT_RESOURCE_DIRECTORY = "resources"
+
+		/**
+		 * The canonical representation of the `Null` Avail project.
+		 */
+		val NON_PROJECT: AvailProject get() = AvailProjectV1(
+			"--No Project--",
+			true,
+			AvailRepositories(rootNameInJar = null),
+			LocalSettings(""))
 
 		/**
 		 * Extract and build a [AvailProject] from the provided [JSONObject].

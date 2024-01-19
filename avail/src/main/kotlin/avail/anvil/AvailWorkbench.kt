@@ -199,10 +199,8 @@ import com.formdev.flatlaf.util.SystemInfo
 import org.availlang.artifact.AvailArtifact
 import org.availlang.artifact.ResourceType
 import org.availlang.artifact.environment.AvailEnvironment
-import org.availlang.artifact.environment.location.AvailRepositories
 import org.availlang.artifact.environment.project.AvailProject
 import org.availlang.artifact.environment.project.AvailProjectRoot
-import org.availlang.artifact.environment.project.AvailProjectV1
 import org.availlang.artifact.environment.project.LocalSettings
 import org.availlang.json.JSONWriter
 import java.awt.Color
@@ -3372,11 +3370,7 @@ class AvailWorkbench internal constructor(
 		@JvmStatic
 		fun launchWorkbench(
 			globalEnvironmentSettings: GlobalEnvironmentSettings,
-			project: AvailProject = AvailProjectV1(
-				"--No Project--",
-				true,
-				AvailRepositories(rootNameInJar = null),
-				LocalSettings("")),
+			project: AvailProject = AvailProject.NON_PROJECT,
 			availProjectFilePath: String = "",
 			initial: String = "",
 			customWindowTitle: String = "",
@@ -3468,7 +3462,7 @@ class AvailWorkbench internal constructor(
 				{
 					IO.closeIfNotNull(reader)
 				}
-				runtime = AvailRuntime(resolver, fileManager)
+				runtime = AvailRuntime(resolver, project, fileManager)
 				runtimeReady.release()
 			}
 

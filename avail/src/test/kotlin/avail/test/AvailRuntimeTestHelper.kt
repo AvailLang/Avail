@@ -47,6 +47,7 @@ import avail.io.TextOutputChannel
 import avail.test.AvailRuntimeTestHelper.Companion.testDirectory
 import avail.utility.IO.closeIfNotNull
 import avail.utility.cast
+import org.availlang.artifact.environment.project.AvailProject
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -92,7 +93,8 @@ class AvailRuntimeTestHelper constructor (
 	}
 
 	/** The [Avail runtime][AvailRuntime]. */
-	val runtime: AvailRuntime = createAvailRuntime(resolver, fileManager)
+	val runtime: AvailRuntime =
+		createAvailRuntime(resolver, fileManager)
 
 	/** The [Avail builder][AvailBuilder]. */
 	val builder: AvailBuilder = createAvailBuilder()
@@ -428,7 +430,7 @@ class AvailRuntimeTestHelper constructor (
 	private fun createAvailRuntime(
 		resolver: ModuleNameResolver,
 		fileManager: FileManager): AvailRuntime =
-		AvailRuntime(resolver, fileManager)
+		AvailRuntime(resolver, AvailProject.NON_PROJECT, fileManager )
 
 	companion object
 	{
