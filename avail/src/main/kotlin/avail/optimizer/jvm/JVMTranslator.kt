@@ -177,6 +177,7 @@ import java.util.logging.Level
 import java.util.regex.Pattern
 import javax.annotation.Nonnull
 import javax.annotation.Nullable
+import kotlin.io.path.writeText
 
 /**
  * A `JVMTranslator` converts a single [L2Chunk] into a [JVMChunk] in a naive
@@ -1471,7 +1472,7 @@ class JVMTranslator constructor(
 	 *   The absolute path of the resultant file, for inclusion in a
 	 *   [JVMChunkL2Source] annotation of the generated [JVMChunk] subclass.
 	 */
-	private fun dumpL2SourceToFile(fileName: Path): String? =
+	private fun dumpL2GraphToFile(fileName: Path): String? =
 		try
 		{
 			val lastSlash = classInternalName.lastIndexOf('/')
@@ -1533,6 +1534,7 @@ class JVMTranslator constructor(
 		method.visitParameter(
 			"offset",
 			if (debugNicerJavaDecompilation) 0 else ACC_FINAL)
+		var l2LineTableByL2: MutableList<Int>? = null
 		if (debugJVM)
 		{
 			val lastSlash = classInternalName.lastIndexOf('/')
@@ -1561,15 +1563,35 @@ class JVMTranslator constructor(
 					annotation.visitEnd()
 				}
 			}
-			val l2Path = dumpL2SourceToFile(dir.resolve("$baseFileName.dot"))
-			if (l2Path !== null)
+			val l2GraphPath =
+				dumpL2GraphToFile(dir.resolve("$baseFileName.dot"))
+			if (l2GraphPath !== null)
 			{
 				val annotation = method.visitAnnotation(
 					Type.getDescriptor(JVMChunkL2Source::class.java),
 					true)
-				annotation.visit("sourcePath", l2Path)
+				annotation.visit("sourcePath", l2GraphPath)
 				annotation.visitEnd()
 			}
+			val l2TextPath = dir.resolve("$baseFileName.l2")
+			l2LineTableByL2 = mutableListOf()
+			var line = 1
+			val builder = StringBuilder()
+			instructions.forEach { instruction ->
+				val block = instruction.basicBlock()
+				if (instruction == block.instructions()[0])
+				{
+					val label = "// ${block.name()}\n"
+					builder.append(label)
+					line += label.count { it == '\n' }
+				}
+				l2LineTableByL2.add(line)
+				val instructionText = instruction.toString()
+				builder.append(instructionText).append('\n')
+				line += instructionText.count { it == '\n' } + 1
+			}
+			l2TextPath.writeText(builder.toString())
+			classNode.sourceFile = l2TextPath.fileName.toString()
 		}
 		val endLabel = Label()
 		method.visitAnnotation(
@@ -1656,7 +1678,13 @@ class JVMTranslator constructor(
 			if (label !== null)
 			{
 				method.visitLabel(label)
-				method.visitLineNumber(instruction.offset, label)
+				method.visitLineNumber(
+					when (l2LineTableByL2)
+					{
+						null -> instruction.offset
+						else -> l2LineTableByL2[instruction.offset]
+					},
+					label)
 			}
 			if (callTraceL2AfterEveryInstruction)
 			{

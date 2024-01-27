@@ -1,6 +1,6 @@
 /*
  * VmVersion.kt
- * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
