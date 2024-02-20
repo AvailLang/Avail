@@ -31,20 +31,18 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
@@ -78,20 +76,18 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 	{
 		assert(this == instruction.operation)
 		//		final L2ReadIntOperand dividend = instruction.operand(0);
-		val divisor =
-			instruction.operand<L2ReadIntOperand>(1)
+		val divisor = instruction.operand<L2ReadIntOperand>(1)
 		//		final L2WriteIntOperand quotient = instruction.operand(2);
 //		final L2WriteIntOperand remainder = instruction.operand(3);
 //		final L2PcOperand outOfRange = instruction.operand(4);
-		val zeroDivisor =
-			instruction.operand<L2PcOperand>(5)
+		val zeroDivisor = instruction.operand<L2PcOperand>(5)
 		//		final L2PcOperand success = instruction.operand(6);
 		super.instructionWasAdded(instruction, manifest)
 
 		// On the zeroDivisor edge, the divisor is definitely zero.
 		zeroDivisor.manifest().setRestriction(
 			divisor.semanticValue(),
-			restrictionForConstant(zero, UNBOXED_INT_FLAG))
+			intRestrictionForConstant(0))
 	}
 
 	override fun appendToWithWarnings(

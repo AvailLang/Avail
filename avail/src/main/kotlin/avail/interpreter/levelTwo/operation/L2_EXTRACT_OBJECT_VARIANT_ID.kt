@@ -36,14 +36,18 @@ import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticValue
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -74,6 +78,30 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 			.append(")")
 	}
 
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val value = transformedOperands[0] as L2ReadBoxedOperand
+		val variantId = transformedOperands[1] as L2WriteIntOperand
+
+		val generator = regenerator.targetGenerator
+		val manifest = generator.currentManifest
+		val equivalentVariantId = variantId.semanticValues()
+			.firstNotNullOfOrNull(manifest::equivalentSemanticValue)
+		if (equivalentVariantId !== null)
+		{
+			// We already have an equivalent register holding the variant id.
+			// Emit a move.
+			generator.moveRegister(
+				L2_MOVE.unboxedInt,
+				equivalentVariantId,
+				variantId.semanticValues())
+			return
+		}
+		super.emitTransformedInstruction(transformedOperands, regenerator)
+	}
+
 	override fun generateReplacement(
 		instruction: L2Instruction,
 		regenerator: L2Regenerator)
@@ -96,6 +124,18 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 			return
 		}
 		super.generateReplacement(instruction, regenerator)
+	}
+
+	/**
+	 * Extract the [L2ReadBoxedOperand] that provided the object whose variant
+	 * is being extracted.
+	 */
+	fun sourceOfObjectVariant(
+		instruction: L2Instruction
+	): L2ReadBoxedOperand
+	{
+		assert(instruction.operation == this)
+		return instruction.operand(0)
 	}
 
 	override fun translateToJVM(

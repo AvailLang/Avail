@@ -86,7 +86,6 @@ object P_PushArgument2 : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// The value is available in the second argument register.  Doesn't even

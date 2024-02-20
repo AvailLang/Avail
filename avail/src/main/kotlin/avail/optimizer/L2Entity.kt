@@ -32,7 +32,7 @@
 package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import avail.interpreter.levelTwo.register.RegisterKind
 
 /**
  * An `L2Entity` is an abstraction for things that have reads and writes within
@@ -40,21 +40,14 @@ import avail.interpreter.levelTwo.register.L2Register.RegisterKind
  *
  * @see DataCouplingMode
  */
-interface L2Entity
-// No methods are needed, beyond equals() and hashCode().
-
-/**
- * An `L2EntityAndKind` bundles an [L2Entity] and [RegisterKind].  It's useful
- * for keeping track of the needs and production of values in the
- * [L2ControlFlowGraph] by the [DeadCodeAnalyzer], to determine which
- * instructions can be removed and which are essential.
- */
-data class L2EntityAndKind constructor(
-	val entity: L2Entity,
-	val kind: RegisterKind)
+interface L2Entity<K: RegisterKind<K>>
 {
-	override fun toString(): String
-	{
-		return "$entity[${kind.kindName}]"
-	}
+	/**
+	 * Answer the kind of register that this entity operates on. Different
+	 * register kinds are allocated from different virtual banks, and do not
+	 * interfere in terms of register liveness computation.
+	 *
+	 * @return The [RegisterKind].
+	 */
+	val kind: K
 }

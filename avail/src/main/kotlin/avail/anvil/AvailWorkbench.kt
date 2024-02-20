@@ -86,6 +86,7 @@ import avail.anvil.actions.SetLoadOnStartAction
 import avail.anvil.actions.ShowCCReportAction
 import avail.anvil.actions.ShowVMReportAction
 import avail.anvil.actions.SubmitInputAction
+import avail.anvil.actions.ToggleAvailableSplits
 import avail.anvil.actions.ToggleDebugAfterUnload
 import avail.anvil.actions.ToggleDebugInterpreterL1
 import avail.anvil.actions.ToggleDebugInterpreterL2
@@ -747,6 +748,9 @@ class AvailWorkbench internal constructor(
 	 */
 	private val toggleDebugAfterUnload = ToggleDebugAfterUnload(this)
 
+	/** Show additional code splitting opportunities in control flow graphs. */
+	private val toggleAvailableSplits = ToggleAvailableSplits(this)
+
 	/** The [toggle JVM dump debug action][ToggleDebugJVM]. */
 	private val toggleDebugJVM = ToggleDebugJVM(this)
 
@@ -1246,8 +1250,7 @@ class AvailWorkbench internal constructor(
 			}
 			catch (e: BadLocationException)
 			{
-				// Shouldn't happen.
-				assert(false)
+				throw AssertionError(e)
 			}
 		}
 	}
@@ -1825,8 +1828,7 @@ class AvailWorkbench internal constructor(
 		}
 		catch (e: BadLocationException)
 		{
-			// Shouldn't happen.
-			assert(false)
+			throw AssertionError(e)
 		}
 
 		perModuleProgressLock.safeWrite {
@@ -2105,6 +2107,7 @@ class AvailWorkbench internal constructor(
 					check(toggleDebugPrimitives)
 					check(toggleDebugWorkUnits)
 					check(toggleDebugAfterUnload)
+					check(toggleAvailableSplits)
 					separator()
 					check(toggleDebugJVM)
 					check(toggleDebugJVMCodeGeneration)

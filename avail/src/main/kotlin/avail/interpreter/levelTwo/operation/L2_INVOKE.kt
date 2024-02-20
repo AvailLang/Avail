@@ -39,10 +39,10 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
@@ -50,7 +50,9 @@ import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
@@ -170,7 +172,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 	fun generatePushArgumentsAndInvoke(
 		translator: JVMTranslator,
 		method: MethodVisitor,
-		argsRegsList: List<L2ReadBoxedOperand>,
+		argsRegsList: List<L2ReadOperand<BOXED_KIND>>,
 		result: L2WriteBoxedOperand,
 		onNormalReturn: L2PcOperand,
 		onReification: L2PcOperand)

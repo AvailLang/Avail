@@ -32,7 +32,9 @@
 package avail.interpreter.primitive.numbers
 
 import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.AbstractNumberDescriptor
@@ -47,12 +49,11 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
@@ -65,15 +66,19 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.operation.L2_BOX_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
+import avail.utility.notNullAnd
 
 /**
  * **Primitive:** Add two [numbers][AbstractNumberDescriptor].
@@ -103,7 +108,9 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
 	{
 		val (aType, bType) = argumentTypes
 		try
@@ -114,7 +121,8 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				val bInstances = bType.instances
 				// Compute the Cartesian product as an enumeration if there will
 				// be few enough entries.
-				if (aInstances.setSize * bInstances.setSize.toLong() < 100)
+				if (aInstances.setSize.toLong() * bInstances.setSize.toLong()
+					< 100)
 				{
 					var answers = emptySet
 					for (aInstance in aInstances)
@@ -181,88 +189,138 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper
-	): Boolean
-	{
-		val (a, b) = arguments
-		val (aType, bType) = argumentTypes
-
-		// If either of the argument types does not intersect with int32, then
-		// fall back to the primitive invocation.
-		val aIntersectInt32 = aType.typeIntersection(i32)
-		val bIntersectInt32 = bType.typeIntersection(i32)
-		if (aIntersectInt32.isBottom || bIntersectInt32.isBottom)
-		{
-			return false
-		}
-		// lowest and highest can be at most ±2^32, so there's lots of room in
-		// a long.
-		val lowest = aIntersectInt32.lowerBound.extractLong +
-			bIntersectInt32.lowerBound.extractLong
-		val highest = aIntersectInt32.lowerBound.extractLong +
-			bIntersectInt32.lowerBound.extractLong
-		if (lowest > Int.MAX_VALUE || highest < Int.MIN_VALUE)
-		{
-			// The sum is definitely out of range, so don't bother switching to
-			// int math.
-			return false
-		}
-
-		// Attempt to unbox the arguments.
-		val generator = translator.generator
-		val fallback = generator.createBasicBlock("fall back to boxed addition")
-		val intA = generator.readInt(
-			L2SemanticUnboxedInt(a.semanticValue()), fallback)
-		val intB = generator.readInt(
-			L2SemanticUnboxedInt(b.semanticValue()), fallback)
-		assert(generator.currentlyReachable())
-		// The happy path is reachable.  Generate the most efficient available
-		// unboxed arithmetic.
-		val returnTypeIfInts = returnTypeGuaranteedByVM(
-			rawFunction,
-			listOf(aIntersectInt32, bIntersectInt32))
-		val semanticTemp = primitiveInvocation(
-			this, listOf(a.semanticValue(), b.semanticValue()))
-		val tempWriter = generator.intWrite(
-			setOf(L2SemanticUnboxedInt(semanticTemp)),
-			restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
-		if (returnTypeIfInts.isSubtypeOf(i32))
-		{
-			// The result is guaranteed not to overflow, so emit an instruction
-			// that won't bother with an overflow check.  Note that both the
-			// unboxed and boxed registers end up in the same synonym, so
-			// subsequent uses of the result might use either register,
-			// depending whether an unboxed value is desired.
-			translator.addInstruction(
-				L2_BIT_LOGIC_OP.wrappedAdd, intA, intB, tempWriter)
-		}
-		else
-		{
-			// The result could exceed an int32.
-			val success = generator.createBasicBlock("sum is in range")
-			translator.addInstruction(
+	): Boolean = attemptToGenerateTwoIntToIntPrimitive(
+		callSiteHelper,
+		functionToCallReg,
+		rawFunction,
+		arguments,
+		argumentTypes,
+		ifOutputIsInt = {
+			generator.addInstruction(
+				L2_BIT_LOGIC_OP.wrappedAdd, intA, intB, intWrite)
+		},
+		ifOutputIsPossiblyInt = {
+			generator.addInstruction(
 				L2_ADD_INT_TO_INT,
 				intA,
 				intB,
-				tempWriter,
-				edgeTo(fallback),
-				edgeTo(success))
-			generator.startBlock(success)
-		}
-		// Even though we're just using the boxed value again, the unboxed form
-		// is also still available for use by subsequent primitives, which could
-		// allow the boxing instruction to evaporate.
-		callSiteHelper.useAnswer(generator.readBoxed(semanticTemp))
-		if (fallback.predecessorEdges().isNotEmpty())
+				intWrite,
+				edgeTo(intFailure),
+				edgeTo(intSuccess))
+		})
+
+	override fun emitTransformedInfalliblePrimitive(
+		operation: L2_RUN_INFALLIBLE_PRIMITIVE,
+		rawFunction: A_RawFunction,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand,
+		regenerator: L2Regenerator)
+	{
+		val generator = regenerator.targetGenerator
+		val manifest = generator.currentManifest
+		val (arg1, arg2) = arguments.elements
+		val restriction1 = manifest.restrictionFor(arg1.semanticValue())
+		val restriction2 = manifest.restrictionFor(arg2.semanticValue())
+
+		// See if both inputs are constant first.
+		val const1 = restriction1.constantOrNull
+		val const2 = restriction2.constantOrNull
+
+		val resultRestriction = result.restriction().intersectionWithType(
+			returnTypeGuaranteedByVM(
+				rawFunction,
+				listOf(arg1.type(), arg2.type())))
+		val resultType = resultRestriction.type
+		if (resultType.isIntegerRangeType &&
+			resultType.lowerBound.equals(resultType.upperBound))
 		{
-			// The fallback block is reachable, so generate the slow case within
-			// it.  Fallback may happen from conversion of non-int32 arguments,
-			// or from int32 overflow calculating the sum.
-			generator.startBlock(fallback)
-			translator.generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
+			// The restriction already narrowed it down to a single value.
+			try
+			{
+				val sum = resultType.lowerBound
+				generator.moveRegister(
+					L2_MOVE.boxed,
+					generator.boxedConstant(sum).semanticValue(),
+					result.semanticValues())
+				if (sum.isInt)
+				{
+					// It's an i32, so put it in the int semantic value, so that
+					// code downstream may use it without unboxing.
+					generator.moveRegister(
+						L2_MOVE.unboxedInt,
+						generator.unboxedIntConstant(sum.extractInt)
+							.semanticValue(),
+						result.semanticValues().map(::L2SemanticUnboxedInt))
+				}
+				return
+			}
+			catch (e: ArithmeticException)
+			{
+				// This was supposed to be an infallible primitive invocation,
+				// so the code is wrong.
+				throw AssertionError(
+					"Infallible addition of constants failed ($const1, $const2)",
+					e)
+			}
 		}
-		return true
+
+		// Only check for identities if the inputs are extended integers.
+		if (!restriction1.containedByType(extendedIntegers)
+			|| !restriction2.containedByType(extendedIntegers))
+		{
+			if (const1.notNullAnd { equalsInt(0) })
+			{
+				// 0 + x = x  (since x is an extended integer).
+				generator.moveRegister(
+            		L2_MOVE.boxed,
+					arg2.semanticValue(),
+					result.semanticValues())
+				return
+			}
+			if (const2.notNullAnd { equalsInt(0) })
+			{
+				// x + 0 = x  (since x is an extended integer).
+				generator.moveRegister(
+					L2_MOVE.boxed,
+					arg1.semanticValue(),
+					result.semanticValues())
+				return
+			}
+			// TODO We could look for chains of additions and subtractions where
+			//  every value was an integer, and commute/associate all the
+			//  constants together, folding them.
+		}
+
+		// Only further optimize if the inputs and output are ints.
+		if (!restriction1.containedByType(i32)
+			|| !restriction2.containedByType(i32)
+			|| !resultRestriction.containedByType(i32))
+		{
+			super.emitTransformedInfalliblePrimitive(
+				operation, rawFunction, arguments, result, regenerator)
+			return
+		}
+
+		// Replace with a non-overflowing i32 addition.
+		val unreachable = L2BasicBlock("should not reach")
+		val intWrite = generator.intWrite(
+			result.semanticValues().map(::L2SemanticUnboxedInt).toSet(),
+			resultRestriction.forUnboxedInt())
+		generator.addInstruction(
+			L2_BIT_LOGIC_OP.wrappedAdd,
+			generator.readInt(
+				L2SemanticUnboxedInt(arg1.semanticValue()),
+				unreachable),
+			generator.readInt(
+				L2SemanticUnboxedInt(arg2.semanticValue()),
+				unreachable),
+			intWrite)
+		// Unbox it, in case something needs it unboxed downstream.
+		generator.addInstruction(
+			L2_BOX_INT,
+			manifest.readInt(intWrite.pickSemanticValue()),
+			result)
+		assert(unreachable.currentlyReachable())
 	}
 }

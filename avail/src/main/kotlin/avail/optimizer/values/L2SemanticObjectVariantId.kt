@@ -35,6 +35,7 @@ import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.types.TypeTag
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 
 /**
@@ -54,19 +55,23 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
  *   The semantic value holding the value for which a [TypeTag] has been
  *   extracted.
  */
-class L2SemanticObjectVariantId constructor(val base: L2SemanticValue)
-	: L2SemanticValue(base.hash xor 0x788919B8)
+class L2SemanticObjectVariantId
+constructor(
+	val base: L2SemanticValue<BOXED_KIND>
+) : L2SemanticBoxedValue(base.hash xor 0x788919B8)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		other is L2SemanticObjectVariantId
 			&& base.equalsSemanticValue(other.base)
 
 	override fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticValue = semanticValueTransformer(base).let {
-		if (it == base) this else L2SemanticObjectVariantId(it)
-	}
+	): L2SemanticBoxedValue =
+		semanticValueTransformer(base).let {
+			if (it == base) this else L2SemanticObjectVariantId(it)
+		}
 
 	override fun toString(): String = "Variant($base)"
 }

@@ -2847,7 +2847,7 @@ protected constructor (
 		 *
 		 * @see printObjectOnAvoidingIndent
 		 */
-		val compressionRegex = """\n\t*""".toRegex()
+		val compressionRegex = """(\n[ \t]*)+""".toRegex()
 
 		/**
 		 * The maximum length of the concise primitive description. Values whose
@@ -2871,17 +2871,16 @@ protected constructor (
 		 */
 		inline fun StringBuilder.brief(
 			printer: StringBuilder.() -> Unit
-		) = StringBuilder().let { builder ->
-			builder.printer()
-			if (builder.length <= maxBrief)
+		): Unit = StringBuilder().let { newBuilder ->
+			newBuilder.printer()
+			if (newBuilder.length <= maxBrief)
 			{
-				append(builder.replace(compressionRegex, " "))
+				append(newBuilder.replace(compressionRegex, " "))
 			}
 			else
 			{
-				append(builder)
+				append(newBuilder)
 			}
-			Unit
 		}
 	}
 }

@@ -33,6 +33,7 @@ package avail.interpreter.levelTwo.operand
 
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 
 /**
  * An `L2IntImmediateOperand` is an operand of type
@@ -52,8 +53,7 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2IntImmediateOperand constructor(val value: Int) : L2Operand()
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.INT_IMMEDIATE
+	override val operandType: L2OperandType get() = INT_IMMEDIATE
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

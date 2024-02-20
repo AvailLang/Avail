@@ -33,8 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -71,8 +71,8 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 
 		// Play the reads against the old manifest, which is then filtered.
 		preservedReads.instructionWasAdded(manifest)
-		val semanticValuesToKeep = mutableSetOf<L2SemanticValue>()
-		val registersToKeep = mutableSetOf<L2Register>()
+		val semanticValuesToKeep = mutableSetOf<L2SemanticValue<*>>()
+		val registersToKeep = mutableSetOf<L2Register<*>>()
 		preservedReads.elements.forEach {
 			semanticValuesToKeep.add(it.semanticValue())
 			registersToKeep.add(it.register())

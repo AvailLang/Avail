@@ -35,8 +35,8 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -86,7 +86,7 @@ object L2_UNBOX_INT : L2Operation(
 		translator.store(method, destination.register())
 	}
 
-	override fun interestingConditions(
+	override fun interestingSplitConditions(
 		instruction: L2Instruction
 	): List<L2SplitCondition>
 	{
@@ -122,7 +122,7 @@ object L2_UNBOX_INT : L2Operation(
 					if (!manifest.hasSemanticValue(destInt))
 					{
 						generator.moveRegister(
-							L2_MOVE.unboxedInt, otherUnboxed, destInt)
+							L2_MOVE.unboxedInt, otherUnboxed, setOf(destInt))
 					}
 				}
 				return

@@ -36,14 +36,11 @@ import avail.descriptor.methods.A_Definition
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instanceTag
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
@@ -54,24 +51,26 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
-import avail.interpreter.levelTwo.operation.L2_STRENGTHEN_TYPE
+import avail.interpreter.levelTwo.operation.TagSplitter
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticExtractedTag
 import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
-import avail.utility.cast
-import avail.utility.notNullAnd
+import avail.utility.isNullOr
 import avail.utility.partitionRunsBy
 import avail.utility.removeLast
 import java.lang.String.format
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * This is a [DecisionStep] which dispatches to subtrees by looking up the
@@ -192,17 +191,6 @@ constructor(
 		list.addAll(tagToSubtree.values)
 	}
 
-	override fun addChildrenTo(
-		list: MutableList<
-			Pair<LookupTree<Element, Result>, List<L2SemanticValue>>>,
-		semanticValues: List<L2SemanticValue>,
-		extraSemanticValues: List<L2SemanticValue>)
-	{
-		tagToSubtree.values.forEach { subtree ->
-			list.add(subtree to extraSemanticValues)
-		}
-	}
-
 	/**
 	 * A private class for keeping track of a run of tags and its associated
 	 * information.
@@ -225,7 +213,7 @@ constructor(
 		val subtree: LookupTree<A_Definition, A_Tuple>?,
 		val tag: TypeTag?,
 		var restriction: TypeRestriction? = tag?.run {
-			restrictionForType(supremum, BOXED_FLAG)
+			boxedRestrictionForType(supremum)
 		})
 
 	/**
@@ -244,26 +232,39 @@ constructor(
 			high = span.high
 			span.tag?.let { tag = tag?.commonAncestorWith(it) ?: it }
 		}
+		// Compute the union of any restrictions that occurred in this run.
+		// None of them should have been bottom.  If they were all null, use
+		// null as the restriction, which simply indicates the fallback lookup
+		// should be performed for this case.
+		val restrictionUnion = spans
+			.mapNotNull(Span::restriction)
+			.fold(bottomRestriction, TypeRestriction::union)
 		val subtrees = spans.mapNotNull { it.subtree }.toSet()
 		assert(subtrees.size <= 1)
-		return Span(low, high, subtrees.firstOrNull(), tag)
+		return Span(
+			low,
+			high,
+			subtrees.firstOrNull(),
+			tag,
+			if (restrictionUnion == bottomRestriction) null
+			else restrictionUnion)
 	}
 
 	override fun generateEdgesFor(
-		semanticArguments: List<L2SemanticValue>,
-		extraSemanticArguments: List<L2SemanticValue>,
+		semanticArguments: List<L2SemanticBoxedValue>,
+		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticValue>>>
+			List<L2SemanticBoxedValue>>>
 	{
 		// For simplicity, let super-lookups via type tags always fall back.
-		//  They're *very* difficult to reason about.
+		// They're *very* difficult to reason about.
 		if (callSiteHelper.isSuper)
 		{
-			callSiteHelper.generator().jumpTo(
+			callSiteHelper.generator.jumpTo(
 				callSiteHelper.onFallBackToSlowLookup)
 			return emptyList()
 		}
@@ -273,21 +274,19 @@ constructor(
 		// outstanding, to know when to resume or finish them.
 		val semanticSource =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val generator = callSiteHelper.generator()
+		val generator = callSiteHelper.generator
 		val currentRestriction =
 			generator.currentManifest.restrictionFor(semanticSource)
 		val couldBeBottom = currentRestriction.intersectsType(bottomMeta)
 		val restrictionTag = currentRestriction.type.instanceTag
-		val strongTagToSubtree:
-				Map<TypeTag, LookupTree<A_Definition, A_Tuple>> =
-			tagToSubtree.cast()
 		// Keep the entries that are both valid solutions (1 method def) and
 		// reachable (tags could actually occur).
-		val reducedMap = strongTagToSubtree
+		val reducedMap = tagToSubtree
 			.filterKeys {
 				restrictionTag.isSubtagOf(it) || it.isSubtagOf(restrictionTag)
 			}
-			.mapValuesTo(mutableMapOf()) { (tag, subtree) ->
+			.mapValuesTo(mutableMapOf()) { (tag, subtreeWeak) ->
+				val subtree = subtreeWeak.castForGenerator()
 				when
 				{
 					!containsAnyValidLookup(subtree) -> null
@@ -302,9 +301,15 @@ constructor(
 		{
 			// This condition shouldn't be possible at runtime, so force an
 			// actual bottom type coming in to be looked up the slow way.
-			reducedMap[TypeTag.BOTTOM_TYPE_TAG] = null
+			reducedMap.remove(TypeTag.BOTTOM_TYPE_TAG)
 		}
-		val runs = mutableListOf(Span(0, TypeTag.count - 1, null, null))
+		val runs = mutableListOf(
+			Span(
+				0,
+				TypeTag.count - 1,
+				null,
+				null,
+				currentRestriction))
 		reducedMap.entries.sortedBy { it.key }.forEach { (tag, subtree) ->
 			val index = runs.binarySearch { (low, high, _, _) ->
 				when
@@ -323,9 +328,11 @@ constructor(
 				}
 			}
 			// Replace the existing element with a left part, the new value,
-			// and a right part, omitting any empty ranges.
+			// and a right part, omitting any empty ranges, or ranges that only
+			// contain impossible (e.g., abstract) tags.
 			val (low, high, existing, oldTag, oldRestriction) = runs[index]
 			runs.removeAt(index)
+			val newRestriction = boxedRestrictionForType(tag.supremum)
 			runs.addAll(
 				index,
 				listOf(
@@ -338,13 +345,15 @@ constructor(
 					Span(
 						tag.ordinal,
 						tag.ordinal,
-						(if (tag.isAbstract) null else subtree),
-						(if (tag.isAbstract) null else tag)),
+						if (tag.isAbstract) null else subtree,
+						if (tag.isAbstract) null else tag,
+						newRestriction),
 					Span(
 						tag.ordinal + 1,
 						tag.highOrdinal,
 						subtree,
-						tag),
+						tag,
+						newRestriction),
 					Span(
 						tag.highOrdinal + 1,
 						high,
@@ -353,29 +362,59 @@ constructor(
 						oldRestriction)
 				).filter { (low, high) -> low <= high })
 		}
-		val ordinalRestriction = restrictionForType(
-			inclusive(
-				fromInt(
-					restrictionTag.ordinal +
-						(if (restrictionTag.isAbstract) 1 else 0)),
-				fromInt(
-					if (couldBeBottom) TypeTag.BOTTOM_TYPE_TAG.ordinal
-					else restrictionTag.highOrdinal)),
-			UNBOXED_INT_FLAG)
-		// We have to smear it both directions, in case there were multiple
-		// entries that homogenized with entries that later homogenized with
-		// something different, breaking the equivalence.  Forward then
-		// backward over the indices should be sufficient to handle all such
-		// cases.
+		var ordinalRestriction = run {
+			val low = restrictionTag.ordinal +
+				(if (restrictionTag.isAbstract) 1 else 0)
+			val high = restrictionTag.highOrdinal
+			val bottomOrdinal = TypeTag.BOTTOM_TYPE_TAG.ordinal
+			if (couldBeBottom && high != bottomOrdinal)
+			{
+				intRestrictionForType(inclusive(low, bottomOrdinal))
+					.minusType(inclusive(high + 1, bottomOrdinal - 1))
+			}
+			else
+			{
+				intRestrictionForType(inclusive(low, high))
+			}
+		}
+		// Exclude all abstract type tags from the ordinalRestriction, since
+		// there are no values that have exactly those tags.
+		val impossibleOrdinals =
+			(restrictionTag.ordinal..<restrictionTag.highOrdinal)
+				.filter { ord ->
+					val tag = tagFromOrdinal(ord)
+					tag.isAbstract
+						|| !currentRestriction.intersectsType(tag.supremum)
+						|| run {
+							val newRestriction = reducedMap.keys
+								.filter { subtag ->
+									subtag != tag && subtag.isSubtagOf(tag) }
+								.map(TypeTag::supremum)
+								.fold(
+									currentRestriction
+										.intersectionWithType(tag.supremum),
+									TypeRestriction::minusType)
+							newRestriction == bottomRestriction
+						}
+				}
+		if (impossibleOrdinals.isNotEmpty())
+		{
+			ordinalRestriction = ordinalRestriction.minusValues(
+				impossibleOrdinals.map(::fromInt))
+		}
 		val ordinalLow = ordinalRestriction.type.lowerBound.extractInt
 		val ordinalHigh = ordinalRestriction.type.upperBound.extractInt
-		val reachableSpans = runs.filter { (low, high) ->
-			high >= ordinalLow && low <= ordinalHigh
+		val reachableSpans = runs.filter { (low, high, _, _, restriction) ->
+			// Keep the span if it has a possible tag and a possible type.
+			ordinalRestriction.intersectsType(inclusive(low, high))
+				&& restriction.isNullOr {
+					intersection(currentRestriction) != bottomRestriction
+				}
 		}
 		if (reachableSpans.all { it.subtree == null })
 		{
-			// Just jump to the slow lookup, and don't continue down any
-			// more lookup subtrees.
+			// Just jump to the slow lookup, and don't continue down any more
+			// lookup subtrees.
 			generator.jumpTo(callSiteHelper.onFallBackToSlowLookup)
 			return emptyList()
 		}
@@ -383,126 +422,109 @@ constructor(
 		// that the entire tag range is covered.  Initially pad to the left,
 		// then do a separate step at the end to pad the last one rightward.
 		var nextOrdinal = 0
-		val padded = reachableSpans.map { (_, high, subtree, tag) ->
-			Span(nextOrdinal, high, subtree, tag).also {
+		val padded = reachableSpans.map { (_, high, subtree, tag, rest) ->
+			Span(nextOrdinal, high, subtree, tag, rest).also {
 				nextOrdinal = high + 1
 			}
 		}.toMutableList()
 		// Extend the last one.
-		padded.add(padded.removeLast().copy(high = TypeTag.count - 1))
+		padded.removeLast().let { old ->
+			padded.add(
+				old.copy(
+					high = TypeTag.count - 1,
+					restriction = old.restriction))
+		}
 		// Merge consecutive spans that have the same outcome.
 		val reducedSpans = padded
 			.partitionRunsBy(Span::subtree)
 			.map(::mergeSpans)
 
 		// We now have contiguous runs that cover the tag space, with no
-		// spurious checks.
+		// unnecessary checks.
 		if (reducedSpans.size == 1)
 		{
 			// Only one path is reachable.
-			reducedSpans[0].run {
-				// Check if the value is already as strong as the
-				// restriction in the span.
-				if (currentRestriction.isStrongerThan(restriction!!))
-				{
-					// No need to strengthen the type.
-					val target = L2BasicBlock("Sole target")
-					generator.jumpTo(target)
-					return listOf(
-						Triple(target, subtree!!, extraSemanticArguments))
+			val span = reducedSpans[0]
+			span.restriction?.let { r ->
+				generator.currentManifest.updateRestriction(semanticSource) {
+					intersection(r)
 				}
-				// We need to strengthen the type to correspond with the
-				// fact that it now has this tag.
-				val strengthenerBlock = L2BasicBlock(
-					"Strengthen for " +
-						"[$low(${tagFromOrdinal(low)}).." +
-						"$high(${tagFromOrdinal(high)})]")
-				val soleTarget = L2BasicBlock(
-					"Guaranteed lookup for " +
-						"[$low(${tagFromOrdinal(low)}).." +
-						"$high(${tagFromOrdinal(high)})]")
-				generator.jumpTo(strengthenerBlock)
-				generator.startBlock(strengthenerBlock)
-				generator.addInstruction(
-					L2_STRENGTHEN_TYPE,
-					generator.readBoxed(semanticSource),
-					generator.boxedWrite(
-						semanticSource,
-						currentRestriction.intersection(restriction!!)))
-				generator.jumpTo(soleTarget)
-				return listOf(
-					Triple(soleTarget, subtree!!, extraSemanticArguments))
 			}
+			val target = L2BasicBlock("Sole target")
+			generator.jumpTo(target)
+			return listOf(
+				Triple(target, span.subtree!!, extraSemanticArguments))
 		}
 		// Generate a multi-way branch.
-		val splitsTuple =
-			tupleFromIntegerList(reducedSpans.drop(1).map(Span::low))
-		val edges = reducedSpans.map { (low, high, subtree) ->
-			when (subtree)
-			{
-				null -> callSiteHelper.onFallBackToSlowLookup
-				else -> L2BasicBlock("Tag in [$low..$high]")
-			}
-		}
-		val semanticTag = L2SemanticUnboxedInt(
-			L2SemanticExtractedTag(semanticSource))
+		val splits = reducedSpans.drop(1).map(Span::low)
+		val semanticTag =
+			L2SemanticUnboxedInt(L2SemanticExtractedTag(semanticSource))
 		return generator.run {
-			// Assume the base type is sufficient to limit the possible tag
-			// ordinals.
-			addInstruction(
-				L2_EXTRACT_TAG_ORDINAL,
-				readBoxed(semanticSource),
-				intWrite(setOf(semanticTag), ordinalRestriction))
-			addInstruction(
-				L2_MULTIWAY_JUMP,
-				currentManifest.readInt(semanticTag),
-				L2ConstantOperand(splitsTuple),
-				L2PcVectorOperand(
-					edges.mapIndexed { index, target ->
-						val low =
-							if (index == 0) "-∞"
-							else splitsTuple.tupleAt(index).toString()
-						val high =
-							if (index == splitsTuple.tupleSize) "∞"
-							else splitsTuple.tupleAt(index + 1).toString()
+			if (!currentManifest.hasSemanticValue(semanticTag))
+			{
+				// Assume the base type is sufficient to limit the possible tag
+				// ordinals.
+				addInstruction(
+					L2_EXTRACT_TAG_ORDINAL,
+					readBoxed(semanticSource),
+					intWrite(setOf(semanticTag), ordinalRestriction))
+			}
+			val edges = reducedSpans.mapIndexed {
+					index, (low, high, subtree, _, restriction) ->
+				val nameLow =
+					if (index == 0) ordinalLow
+					else splits[index - 1]
+				val nameHigh =
+					if (index == splits.size) ordinalHigh
+					else splits[index] - 1
+				val lowName = tagFromOrdinal(nameLow).shorterName
+				val highName = tagFromOrdinal(nameHigh).shorterName
+				val spanName =
+					if (nameLow == nameHigh) lowName
+					else "$lowName..$highName"
+				val edgeManifest = L2ValueManifest(currentManifest)
+				edgeManifest.updateRestriction(semanticTag) {
+					intersectionWithType(inclusive(low, high))
+				}
+				when (subtree)
+				{
+					null ->
+						L2PcOperand(
+							callSiteHelper.onFallBackToSlowLookup,
+							false,
+							edgeManifest,
+							"Fallback: $nameLow..$nameHigh, $spanName")
+					else ->
+					{
+						val target = L2BasicBlock(
+							"Tag in [${max(low, ordinalLow)}.." +
+								"${min(high, ordinalHigh)}]")
+						restriction?.let { r ->
+							edgeManifest.updateRestriction(semanticSource) {
+								intersection(r)
+							}
+						}
 						L2PcOperand(
 							target,
 							false,
-							null,
-							"$low..$high")
-					}))
-			// Generate type strengthening clauses along every non-fallback
-			// path.
-			reducedSpans.mapIndexedNotNull {
-					index, (low, high, subtree, tag, restriction) ->
-				val supremum = tag?.supremum
-				when
-				{
-					subtree == null -> null
-					supremum.notNullAnd {
-						currentRestriction.type.isSubtypeOf(this@notNullAnd)
-					} ->
-					{
-						// No need to further restrict the type.
-						Triple(edges[index], subtree, extraSemanticArguments)
+							edgeManifest,
+							"$nameLow..$nameHigh, $spanName")
 					}
-					else ->
-					{
-						// Restrict the type to the supremum that the actual
-						// encountered type tag guarantees.
-						startBlock(edges[index])
-						addInstruction(
-							L2_STRENGTHEN_TYPE,
-							readBoxed(semanticSource),
-							boxedWrite(
-								semanticSource,
-								currentRestriction.intersection(
-									restriction!!)))
-						val newBlock =
-							L2BasicBlock("Strengthened [$low..$high]")
-						jumpTo(newBlock)
-						Triple(newBlock, subtree, extraSemanticArguments)
-					}
+				}
+			}
+			val splitter = TagSplitter(splits, reducedSpans.map(Span::tag))
+			addInstruction(
+				L2_MULTIWAY_JUMP,
+				currentManifest.readInt(semanticTag),
+				L2ConstantOperand(identityPojo(splitter)),
+				L2PcVectorOperand(edges))
+			reducedSpans.mapIndexedNotNull { index, (_, _, subtree, _, _) ->
+				subtree?.let {
+					// No need to further restrict the type.
+					Triple(
+						edges[index].targetBlock(),
+						subtree,
+						extraSemanticArguments)
 				}
 			}
 		}

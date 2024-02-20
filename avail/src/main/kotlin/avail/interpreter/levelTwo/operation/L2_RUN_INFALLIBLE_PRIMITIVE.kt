@@ -35,10 +35,10 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.PRIMITIVE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PRIMITIVE
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
@@ -46,11 +46,16 @@ import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -71,8 +76,8 @@ import org.objectweb.asm.MethodVisitor
  * @constructor
  * Construct an `L2_RUN_INFALLIBLE_PRIMITIVE`.
  */
-abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
-	: L2Operation(
+abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
+) : L2Operation(
 	CONSTANT.named("raw function"),  // Used for inlining/reoptimization.
 	PRIMITIVE.named("primitive to run"),
 	READ_BOXED_VECTOR.named("arguments"),
@@ -119,10 +124,10 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	{
 		// It depends on the primitive.
 		assert(instruction.operation === this)
-		//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
-		//		final L2ReadBoxedVectorOperand arguments = instruction.operand(2);
-//		final L2WriteBoxedOperand result = instruction.operand(3);
+		//val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
+		//val result = instruction.operand<L2WriteBoxedOperand>(3)
 		val prim = primitive.primitive
 		return (prim.hasFlag(Flag.HasSideEffect)
 			|| prim.hasFlag(Flag.CatchException)
@@ -147,12 +152,12 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this === instruction.operation)
-		//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
 		val result = instruction.operand<L2WriteBoxedOperand>(3)
 		renderPreamble(instruction, builder)
-		builder.append(' ')
+		builder.append("\n\t")
 		builder.append(result.registerString())
 		builder.append(" ← ")
 		builder.append(primitive)
@@ -161,12 +166,31 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		builder.append(')')
 	}
 
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		// Give the primitive another chance to produce something more specific
+		// than a basic infallible primitive invocation.
+		val rawFunction = transformedOperands[0] as L2ConstantOperand
+		val primitive = transformedOperands[1] as L2PrimitiveOperand
+		val arguments = transformedOperands[2] as L2ReadBoxedVectorOperand
+		val result = transformedOperands[3] as L2WriteBoxedOperand
+
+		primitive.primitive.emitTransformedInfalliblePrimitive(
+			this,
+			rawFunction.constant,
+			arguments,
+			result,
+			regenerator)
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
 		val result = instruction.operand<L2WriteBoxedOperand>(3)
@@ -250,7 +274,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		 *   primitive.
 		 */
 		@JvmStatic
-		fun argsOf(instruction: L2Instruction): List<L2ReadBoxedOperand>
+		fun argsOf(instruction: L2Instruction): List<L2ReadOperand<BOXED_KIND>>
 		{
 			assert(instruction.operation is L2_RUN_INFALLIBLE_PRIMITIVE)
 			val vector = instruction.operand<L2ReadBoxedVectorOperand>(2)

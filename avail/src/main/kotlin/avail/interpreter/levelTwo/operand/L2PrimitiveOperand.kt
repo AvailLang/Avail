@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operand
 import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.PRIMITIVE
 
 /**
  * An `L2PrimitiveOperand` is an operand of type [L2OperandType.PRIMITIVE].  The
@@ -53,8 +54,7 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2PrimitiveOperand constructor(val primitive: Primitive) : L2Operand()
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.PRIMITIVE
+	override val operandType: L2OperandType get() = PRIMITIVE
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

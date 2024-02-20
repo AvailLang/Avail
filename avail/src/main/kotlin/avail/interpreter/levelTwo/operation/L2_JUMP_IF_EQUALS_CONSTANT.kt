@@ -39,16 +39,15 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
@@ -91,7 +90,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		val oldRestriction = reader.restriction()
 		ifEqual.manifest().setRestriction(
 			reader.semanticValue(),
-			restrictionForConstant(constant.constant, BOXED_FLAG))
+			boxedRestrictionForConstant(constant.constant))
 		ifNotEqual.manifest().setRestriction(
 			reader.semanticValue(),
 			oldRestriction.minusValue(constant.constant))
@@ -172,7 +171,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 			if (valueRestriction.isUnboxedInt)
 			{
 				// Otherwise, compare as ints.
-				L2_JUMP_IF_COMPARE_INT.equal.compareAndBranch(
+				NumericComparator.Equal.compareAndBranchInt(
 					generator,
 					generator.currentManifest.readInt(
 						L2SemanticUnboxedInt(value.semanticValue())),
@@ -205,7 +204,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 			translator, method, instruction, Opcodes.IFNE, ifEqual, ifUnequal)
 	}
 
-	override fun interestingConditions(
+	override fun interestingSplitConditions(
 		instruction: L2Instruction
 	): List<L2SplitCondition>
 	{
@@ -219,13 +218,13 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 				add(
 					typeRestrictionCondition(
 						setOf(reader.register()),
-						restrictionForConstant(
-							constant.constant, UNBOXED_INT_FLAG)))
+						intRestrictionForConstant(
+							constant.constant.extractInt)))
 			}
 			add(
 				typeRestrictionCondition(
 					setOf(reader.register()),
-					restrictionForConstant(constant.constant, BOXED_FLAG)))
+					boxedRestrictionForConstant(constant.constant)))
 		}
 	}
 }

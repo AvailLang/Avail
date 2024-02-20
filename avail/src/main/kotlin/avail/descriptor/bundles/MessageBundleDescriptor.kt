@@ -104,8 +104,7 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.SignatureException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.Collections.nCopies
@@ -214,8 +213,7 @@ class MessageBundleDescriptor private constructor(
 				toList(self[MACROS_TUPLE]),
 				nCopies(
 					numArgs,
-					restrictionForType(
-						PARSE_PHRASE.mostGeneralType, BOXED_FLAG)),
+					boxedRestrictionForType(PARSE_PHRASE.mostGeneralType)),
 				Unit)
 			do
 			{

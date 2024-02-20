@@ -33,7 +33,6 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -116,7 +115,7 @@ constructor(
 	 * yet.  There must be one, and it must be the last instruction in the
 	 * block.
 	 */
-	private var hasControlFlowAtEnd = false
+	var hasControlFlowAtEnd = false
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -196,7 +195,7 @@ constructor(
 					// exhausted them.
 					break
 				}
-				val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
+				val phiOperation: L2_PHI_PSEUDO_OPERATION<*> =
 					operation.cast()
 
 				// The body of the loop is required to still have available
@@ -226,7 +225,7 @@ constructor(
 					// Phi functions are always at the start of a block.
 					break
 				}
-				val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
+				val phiOperation: L2_PHI_PSEUDO_OPERATION<*> =
 					instruction.operation.cast()
 				val replacement = phiOperation.withoutIndex(instruction, index)
 				instruction.justRemoved()
@@ -360,22 +359,21 @@ constructor(
 	}
 
 	/**
-	 * Answer the zero-based index of the first index beyond any
-	 * [L2_ENTER_L2_CHUNK] or [L2_PHI_PSEUDO_OPERATION]s.  It might be just past
-	 * the last valid index (i.e., equal to the size).
+	 * Returns the first instruction in the list of instructions that is an
+	 * entry point, or null if no such instruction exists.  Note that if
+	 * present, an entry point instruction must occur immediately after the phi
+	 * instructions, if any.
 	 *
-	 * @return
-	 *   The index of the first instruction that isn't an entry point or phi.
+	 * @return The entry point instruction, or null if absent.
 	 */
-	fun indexAfterEntryPointAndPhis(): Int
+	fun entryPointOrNull(): L2Instruction?
 	{
-		instructions.forEachIndexed { i, instruction ->
-			if (!instruction.isEntryPoint && !instruction.operation.isPhi)
-			{
-				return i
-			}
+		for (instruction in instructions)
+		{
+			if (instruction.isEntryPoint) return instruction
+			if (!instruction.operation.isPhi) return null
 		}
-		return instructions.size - 1
+		return null
 	}
 
 	/**

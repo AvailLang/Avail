@@ -155,7 +155,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 *   The instruction containing this operand.
 	 */
 	open fun replaceRegisters(
-		registerRemap: Map<L2Register, L2Register>,
+		registerRemap: Map<L2Register<*>, L2Register<*>>,
 		theInstruction: L2Instruction)
 	{
 		// By default do nothing.
@@ -204,7 +204,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * @param sourceRegisters
 	 *   The [MutableList] to update.
 	 */
-	open fun addSourceRegistersTo(sourceRegisters: MutableList<L2Register>)
+	open fun addSourceRegistersTo(sourceRegisters: MutableList<L2Register<*>>)
 	{
 		// Do nothing by default.
 	}
@@ -216,7 +216,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 *   The [MutableList] to update.
 	 */
 	open fun addDestinationRegistersTo(
-		destinationRegisters: MutableList<L2Register>)
+		destinationRegisters: MutableList<L2Register<*>>)
 	{
 		// Do nothing by default.
 	}
@@ -291,7 +291,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 							return false
 						}
 					}
-					is L2ReadVectorOperand<*, *> ->
+					is L2ReadVectorOperand<*> ->
 					{
 						if (operand.elements.contains(this))
 						{

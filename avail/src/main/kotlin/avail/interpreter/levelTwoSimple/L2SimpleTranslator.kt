@@ -84,10 +84,9 @@ import avail.interpreter.levelOne.L1OperationDispatcher
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2SimpleChunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.nilRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.optimizer.OptimizationLevel
 import avail.performance.Statistic
@@ -137,20 +136,19 @@ constructor(
 	{
 		val funType = code.functionType()
 		// Set up the restriction for r[0], the current function.
-		restrictions[0] = restrictionForType(funType, BOXED_FLAG)
+		restrictions[0] = boxedRestrictionForType(funType)
 		// Set up the restrictions for the arguments r[1]..r[n].
 		val paramTypes = funType.argsTupleType
 		val numArgs = code.numArgs()
 		for (i in 1.. numArgs)
 		{
-			restrictions[i] = restrictionForType(
-				paramTypes.typeAtIndex(i), BOXED_FLAG)
+			restrictions[i] = boxedRestrictionForType(paramTypes.typeAtIndex(i))
 		}
 		// Also set up the local variables (but not constants).
 		for (i in 1..code.numLocals)
 		{
-			restrictions[i + numArgs] = restrictionForType(
-				code.localTypeAt(i), BOXED_FLAG)
+			restrictions[i + numArgs] =
+				boxedRestrictionForType(code.localTypeAt(i))
 		}
 		code.setUpInstructionDecoder(instructionDecoder)
 		instructionDecoder.pc(1)
@@ -246,8 +244,8 @@ constructor(
 		{
 			restrictions[i] = nilRestriction
 		}
-		restrictions[stackp] = restrictionForType(
-			possibleType.typeIntersection(expectedType), BOXED_FLAG)
+		restrictions[stackp] = boxedRestrictionForType(
+			possibleType.typeIntersection(expectedType))
 	}
 
 	/**
@@ -305,9 +303,8 @@ constructor(
 				L2Simple_MoveConstant(
 					guaranteedReturnType.instance.makeShared(),
 					stackp))
-			return restrictionForType(
-				guaranteedReturnType.typeIntersection(expectedType),
-				BOXED_FLAG
+			return boxedRestrictionForType(
+				guaranteedReturnType.typeIntersection(expectedType)
 			).withFlag(IMMUTABLE_FLAG)
 		}
 		else
@@ -321,8 +318,8 @@ constructor(
 					expectedType,
 					!guaranteedReturnType.isSubtypeOf(expectedType),
 					calledFunction))
-			return restrictionForType(
-				guaranteedReturnType.typeIntersection(expectedType), BOXED_FLAG)
+			return boxedRestrictionForType(
+				guaranteedReturnType.typeIntersection(expectedType))
 		}
 	}
 
@@ -401,8 +398,7 @@ constructor(
 	{
 		val value = code.literalAt(instructionDecoder.getOperand())
 		add(L2Simple_MoveConstant(value, --stackp))
-		restrictions[stackp] =
-			restrictionForConstant(value, BOXED_FLAG).withFlag(IMMUTABLE_FLAG)
+		restrictions[stackp] = boxedRestrictionForConstant(value)
 	}
 
 	override fun L1_doPushLastLocal()
@@ -435,7 +431,7 @@ constructor(
 		val outer = instructionDecoder.getOperand()
 		add(L2Simple_PushLastOuter(outer, --stackp))
 		restrictions[stackp] =
-			restrictionForType(code.outerTypeAt(outer), BOXED_FLAG)
+			boxedRestrictionForType(code.outerTypeAt(outer))
 	}
 
 	override fun L1_doClose()
@@ -459,7 +455,7 @@ constructor(
 		for (i in oldStackp until stackp)
 			restrictions[i] = nilRestriction
 		restrictions[stackp] =
-			restrictionForType(rawFunction.functionType, BOXED_FLAG)
+			boxedRestrictionForType(rawFunction.functionType)
 	}
 
 	override fun L1_doSetLocal()
@@ -486,7 +482,7 @@ constructor(
 				liveIndices(),
 				local))
 		restrictions[stackp] =
-			restrictionForType(restrictions[local].type.readType, BOXED_FLAG)
+			boxedRestrictionForType(restrictions[local].type.readType)
 	}
 
 	override fun L1_doPushOuter()
@@ -494,7 +490,7 @@ constructor(
 		val outer = instructionDecoder.getOperand()
 		add(L2Simple_PushOuter(outer, --stackp))
 		restrictions[stackp] =
-			restrictionForType(code.outerTypeAt(outer), BOXED_FLAG)
+			boxedRestrictionForType(code.outerTypeAt(outer))
 	}
 
 	override fun L1_doPop()
@@ -513,8 +509,8 @@ constructor(
 				instructions.size + 1,
 				liveIndices(),
 				outer))
-		restrictions[stackp] = restrictionForType(
-			code.outerTypeAt(outer).readType, BOXED_FLAG)
+		restrictions[stackp] =
+			boxedRestrictionForType(code.outerTypeAt(outer).readType)
 	}
 
 	override fun L1_doSetOuter()
@@ -541,7 +537,7 @@ constructor(
 				liveIndices(),
 				local))
 		restrictions[stackp] =
-			restrictionForType(restrictions[local].type.readType, BOXED_FLAG)
+			boxedRestrictionForType(restrictions[local].type.readType)
 				.withFlag(IMMUTABLE_FLAG)
 	}
 
@@ -577,7 +573,7 @@ constructor(
 				restrictions[i] = nilRestriction
 			instructions.add(
 				L2Simple_MoveConstant(tuple.makeShared(), stackp))
-			restrictions[stackp] = restrictionForConstant(tuple, BOXED_FLAG)
+			restrictions[stackp] = boxedRestrictionForConstant(tuple)
 			return
 		}
 		add(
@@ -595,7 +591,7 @@ constructor(
 		for (i in oldStackp until stackp)
 			restrictions[i] = nilRestriction
 		restrictions[stackp] =
-			restrictionForType(tupleTypeForTypesList(types), BOXED_FLAG)
+			boxedRestrictionForType(tupleTypeForTypesList(types))
 	}
 
 	override fun L1_doGetOuter()
@@ -609,13 +605,13 @@ constructor(
 				liveIndices(),
 				outer))
 		restrictions[stackp] =
-			restrictionForType(code.outerTypeAt(outer).readType, BOXED_FLAG)
+			boxedRestrictionForType(code.outerTypeAt(outer).readType)
 				.withFlag(IMMUTABLE_FLAG)
 	}
 
 	override fun L1_doExtension()
 	{
-		assert(false) { "Illegal dispatch nybblecode" }
+		throw AssertionError("Illegal dispatch nybblecode")
 	}
 
 	override fun L1Ext_doPushLabel()
@@ -626,8 +622,8 @@ constructor(
 		// continues running (right after the push) will see that the pushed
 		// label has indeed been preserved across the reification and reentry.
 		--stackp
-		restrictions[stackp] = restrictionForType(
-			continuationTypeForFunctionType(code.functionType()), BOXED_FLAG)
+		restrictions[stackp] = boxedRestrictionForType(
+			continuationTypeForFunctionType(code.functionType()))
 		add(
 			L2Simple_PushLabel(
 				stackp,
@@ -647,7 +643,7 @@ constructor(
 				liveIndices(),
 				variable))
 		restrictions[stackp] =
-			restrictionForType(variable.kind().readType, BOXED_FLAG)
+			boxedRestrictionForType(variable.kind().readType)
 				.withFlag(IMMUTABLE_FLAG)
 	}
 

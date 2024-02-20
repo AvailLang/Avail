@@ -61,7 +61,6 @@ import avail.interpreter.execution.Interpreter
 import avail.io.IOSystem
 import java.io.IOError
 import java.io.IOException
-import java.lang.Long.MAX_VALUE
 import java.nio.file.AccessDeniedException
 import java.nio.file.Files
 import java.nio.file.InvalidPathException
@@ -163,7 +162,7 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(6),
 				tuple(mostGeneralPojoType(), inclusive(1, 4)),
-				inclusive(0, MAX_VALUE)))
+				inclusive(0L, Long.MAX_VALUE)))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR))

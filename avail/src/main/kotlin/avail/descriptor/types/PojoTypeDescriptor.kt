@@ -84,7 +84,11 @@ import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i16
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i8
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u16
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.exceptions.MarshalingException
@@ -462,10 +466,7 @@ protected constructor(
 		 * The [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
 		 * corresponds to Java `byte`.
 		 */
-		private val byteRange: A_Type =
-			IntegerRangeTypeDescriptor.inclusive(
-				Byte.MIN_VALUE.toLong(),
-				Byte.MAX_VALUE.toLong()).makeShared()
+		private val byteRange: A_Type = i8
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -480,10 +481,7 @@ protected constructor(
 		 * The [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
 		 * corresponds to Java `short`.
 		 */
-		private val shortRange: A_Type =
-			IntegerRangeTypeDescriptor.inclusive(
-				Short.MIN_VALUE.toLong(),
-				Short.MAX_VALUE.toLong()).makeShared()
+		private val shortRange: A_Type = i16
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -528,10 +526,7 @@ protected constructor(
 		 * The [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
 		 * corresponds to Java `char`.
 		 */
-		private val charRange: A_Type =
-			IntegerRangeTypeDescriptor.inclusive(
-				Character.MIN_VALUE.code.toLong(),
-				Character.MAX_VALUE.code.toLong()).makeShared()
+		private val charRange: A_Type = u16
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -904,13 +899,8 @@ protected constructor(
 							Types.DOUBLE.o
 						java.lang.Character::class.javaPrimitiveType ->
 							charRange()
-						else ->
-						{
-							assert(false) {
-								"There are only nine primitive types!"
-							}
-							throw RuntimeException()
-						}
+						else -> throw AssertionError(
+							"There are only nine primitive types!")
 					}
 				}
 				when (type)
@@ -948,14 +938,9 @@ protected constructor(
 						is Class<*> -> decl
 						is Constructor<*> -> decl.declaringClass
 						is Method -> decl.declaringClass
-						else ->
-						{
-							assert(false) {
-								"There should only be three contexts that " +
-									"can define a type variable!"
-							}
-							throw RuntimeException()
-						}
+						else -> throw AssertionError(
+							"There should only be three contexts that " +
+								"can define a type variable!")
 					}
 				val name = stringFrom("${javaClass.name}.${type.name}")
 				// If the type variable is bound, answer the binding.
@@ -979,8 +964,7 @@ protected constructor(
 					type.rawType as Class<*>,
 					tupleFromList(resolved))
 			}
-			assert(false) { "Unsupported generic declaration" }
-			throw RuntimeException()
+			throw AssertionError("Unsupported generic declaration")
 		}
 
 		/**
@@ -1089,10 +1073,7 @@ protected constructor(
 							arg.rawType as Class<*>, localArgs))
 					}
 					else ->
-					{
-						assert(false) { "Unsupported generic declaration" }
-						throw RuntimeException()
-					}
+						throw AssertionError("Unsupported generic declaration")
 				}
 			}
 			return tupleFromList(propagation)
@@ -1135,11 +1116,7 @@ protected constructor(
 						TypeVariableMap(target),
 						typeArgs,
 						canon)
-				else ->
-				{
-					assert(false) { "Unsupported generic declaration" }
-					throw RuntimeException()
-				}
+				else -> throw AssertionError("Unsupported generic declaration")
 			}
 		}
 

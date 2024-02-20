@@ -102,12 +102,12 @@ class CheckedField private constructor(
 		{
 			// Check the annotation before anything else, in case we selected
 			// the wrong method.
-			@Suppress("UNUSED_VARIABLE")
 			val annotation = f.getAnnotation(
-				ReferencedInGeneratedCode::class.java) ?:
-			error(
+				ReferencedInGeneratedCode::class.java)
+			assert(annotation !== null) {
 				"Field $fieldNameString should have had " +
-					"ReferencedInGeneratedCode annotation")
+					"ReferencedInGeneratedCode annotation"
+			}
 		}
 		val modifiers = f.modifiers
 		assert(modifiers and Modifier.PUBLIC != 0)

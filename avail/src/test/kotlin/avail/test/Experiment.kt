@@ -209,11 +209,11 @@ constructor(private val instructionClass: Class<Instruction>)
 
 	@Suppress("UNCHECKED_CAST")
 	private val vectorReadOperandFields:
-			List<OperandField<L2ReadVectorOperand<*, *>>> =
+			List<OperandField<L2ReadVectorOperand<*>>> =
 		operandFields
 			.filter {
 				L2ReadVectorOperand::class.java.isAssignableFrom(it.type)
-			} as List<OperandField<L2ReadVectorOperand<*, *>>>
+			} as List<OperandField<L2ReadVectorOperand<*>>>
 
 	@Suppress("UNCHECKED_CAST")
 	private val writeOperandFields: List<OperandField<L2WriteOperand<*>>> =
@@ -297,9 +297,8 @@ class ExampleUsage
 		val semanticTemp = generator.newTemp()
 		val write = generator.intWrite(
 			setOf(L2SemanticUnboxedInt(semanticTemp)),
-			TypeRestriction.restrictionForType(
-				IntegerRangeTypeDescriptor.i32,
-				TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG))
+			TypeRestriction.intRestrictionForType(
+				IntegerRangeTypeDescriptor.i32))
 		val add = L2_ADD_INTS(
 			augend = generator.unboxedIntConstant(10),
 			addend = generator.unboxedIntConstant(20),

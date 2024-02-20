@@ -38,22 +38,21 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Entity
-import avail.optimizer.L2EntityAndKind
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.structures.EnumMap.Companion.enumMap
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -98,9 +97,9 @@ class L2PcOperand constructor (
 	 * only populated during optimization, while the control flow graph is still
 	 * in SSA form.
 	 *
-	 * This is a superset of [sometimesLiveInRegisters].
+	 * This is a subset of [sometimesLiveInRegisters].
 	 */
-	val alwaysLiveInRegisters = mutableSetOf<L2Register>()
+	val alwaysLiveInRegisters = mutableSetOf<L2Register<*>>()
 
 	/**
 	 * The [Set] of [L2Register]s that are written in all pasts, and are
@@ -108,18 +107,17 @@ class L2PcOperand constructor (
 	 * only populated during optimization, while the control flow graph is still
 	 * in SSA form.
 	 *
-	 * This is a subset of [alwaysLiveInRegisters].
+	 * This is a superset of [alwaysLiveInRegisters].
 	 */
-	val sometimesLiveInRegisters = mutableSetOf<L2Register>()
+	val sometimesLiveInRegisters = mutableSetOf<L2Register<*>>()
 
 	/**
-	 * Either `null`, the normal case, or a set with each
-	 * [L2Entity]/[RegisterKind] that is allowed to pass along this edge.  This
-	 * mechanism is used to break control flow cycles, allowing a simple
-	 * liveness algorithm to be used, instead of iterating (backward) through
-	 * loops until the live set has converged.
+	 * Either `null`, the normal case, or a set with each [L2Entity] that is
+	 * allowed to pass along this edge.  This mechanism is used to break control
+	 * flow cycles, allowing a simple liveness algorithm to be used, instead of
+	 * iterating (backward) through loops until the live set has converged.
 	 */
-	var forcedClampedEntities: MutableSet<L2EntityAndKind>? = null
+	var forcedClampedEntities: MutableSet<L2Entity<*>>? = null
 
 	/**
 	 * A counter of how many times this edge has been traversed.  This will be
@@ -141,8 +139,7 @@ class L2PcOperand constructor (
 		counter = null
 	}
 
-	override val operandType: L2OperandType
-		get() = L2OperandType.PC
+	override val operandType: L2OperandType get() = PC
 
 	/**
 	 * Answer the [L2ValueManifest] for this edge, which describes which
@@ -197,20 +194,19 @@ class L2PcOperand constructor (
 	}
 
 	override fun replaceRegisters(
-		registerRemap: Map<L2Register, L2Register>,
+		registerRemap: Map<L2Register<*>, L2Register<*>>,
 		theInstruction: L2Instruction)
 	{
 		forcedClampedEntities?.run {
-			toMutableList().forEach { pair ->
-				val (entity, kind) = pair
+			toList().forEach { entity ->
 				if (registerRemap.containsKey(entity))
 				{
-					remove(pair)
-					add(L2EntityAndKind(registerRemap[entity]!!, kind))
+					remove(entity)
+					add(registerRemap[entity]!!)
 				}
 			}
-			super.replaceRegisters(registerRemap, theInstruction)
 		}
+		super.replaceRegisters(registerRemap, theInstruction)
 	}
 
 	/**
@@ -330,7 +326,6 @@ class L2PcOperand constructor (
 		newTarget.addPredecessorEdge(this)
 	}
 
-
 	/**
 	 * Write JVM bytecodes to the JVMTranslator which will push:
 	 *
@@ -371,12 +366,13 @@ class L2PcOperand constructor (
 		// the target will restore the register dump found in the continuation.
 		val targetInstruction = targetBlock.instructions()[0]
 		assert(targetInstruction.operation === L2_ENTER_L2_CHUNK)
-		val liveMap = enumMap { _: RegisterKind -> mutableListOf<Int>() }
+		val liveMap = RegisterKind.all
+			.associateWithTo(mutableMapOf()) {mutableListOf<Int>() }
 		val liveRegistersList =
 			(alwaysLiveInRegisters + sometimesLiveInRegisters)
-				.sortedBy(L2Register::finalIndex)
+				.sortedBy(L2Register<*>::finalIndex)
 		liveRegistersList.forEach {
-			liveMap[it.registerKind]!!.add(
+			liveMap[it.kind]!!.add(
 				translator.localNumberFromRegister(it))
 		}
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =
@@ -463,8 +459,6 @@ class L2PcOperand constructor (
 		manifest = null
 		alwaysLiveInRegisters.clear()
 		sometimesLiveInRegisters.clear()
-		forcedClampedEntities?.retainAll {
-			(entity, _) -> entity is L2Register
-		}
+		forcedClampedEntities?.retainAll { it is L2Register<*> }
 	}
 }

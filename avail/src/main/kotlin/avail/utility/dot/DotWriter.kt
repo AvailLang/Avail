@@ -961,12 +961,10 @@ class DotWriter constructor(
 					}
 					else
 					{
-						assert(false) {
+						throw AssertionError(
 							"""allowed node types are String, DecoratedNode
 							and CheckedConsumer<GraphWriter>, but
-							${o.javaClass.name} is none of these""".trim()
-						}
-						throw RuntimeException()
+							${o.javaClass.name} is none of these""".trim())
 					}
 					if (i < limit - 1)
 					{

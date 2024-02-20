@@ -32,6 +32,7 @@
 package avail.optimizer
 
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
@@ -96,8 +97,7 @@ internal enum class OptimizationPhase constructor(
 	 * expense of producing more code.
 	 */
 	@Requires(IS_SSA::class, IS_EDGE_SPLIT::class)
-	@Clears(IS_EDGE_SPLIT::class)
-	DO_CODE_SPLITTING({ doCodeSplitting() }),
+	@Clears(IS_EDGE_SPLIT::class)DO_CODE_SPLITTING({ doCodeSplitting() }),
 
 	/**
 	 * Code splitting preserves SSA, but can lose the edge-split property.
@@ -237,19 +237,14 @@ internal enum class OptimizationPhase constructor(
 	 * [L2ControlFlowGraph], since this information is not preserved across such
 	 * a regeneration.
 	 */
-	COMPUTE_LIVENESS_AT_EDGES_2({ computeLivenessAtEachEdge() });
+	COMPUTE_LIVENESS_AT_EDGES_2({ computeLivenessAtEachEdge() }),
 
-	// Additional optimization ideas:
-	//		-When optimizing, keep track of when a TypeRestriction on a phi
-	//		  register is too weak to qualify, but the types of some of the phi
-	//		  source registers would qualify it for a reasonable expectation of
-	//		  better performance.  Write a hint into such phis.  If we have a
-	//		  high enough requested optimization level, apply code-splitting.
-	//		  The block that defines that phi can be duplicated for each
-	//		  interesting incoming edge.  That way the duplicated blocks will
-	//		  get more specific types to work with.
-	//		-Splitting for int32s.
-	//		-Leverage more inter-primitive identities.
+	/**
+	 * Insert an [L2_MAKE_IMMUTABLE] instruction just prior to any use of a
+	 * register is not already provably immutable and may be used again later.
+	 */
+	INSERT_MAKE_IMMUTABLES({ insertMakeImmutable() });
+
 
 	/** The [Statistic] for tracking this pass's cost. */
 	val stat: Statistic = Statistic(L2_OPTIMIZATION_TIME, name)

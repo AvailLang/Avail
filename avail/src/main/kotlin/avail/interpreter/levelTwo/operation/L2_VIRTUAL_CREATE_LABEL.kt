@@ -39,10 +39,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
@@ -51,9 +51,8 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator
@@ -88,9 +87,7 @@ import org.objectweb.asm.MethodVisitor
  * - [L2_SAVE_ALL_AND_PC_TO_INT], falling through to
  * - [L2_GET_CURRENT_FUNCTION] (or [L2_MOVE_CONSTANT]), if the current
  *     function isn't already visible,
- * - [L2_MAKE_IMMUTABLE] for the current function,
  * - [L2_GET_CURRENT_CONTINUATION]
- * - [L2_MAKE_IMMUTABLE] for the current caller,
  * - [L2_CREATE_CONTINUATION].
  * - The target of the [L2_SAVE_ALL_AND_PC_TO_INT] is in another block, which
  *   contains an unconditional [L2_JUMP_BACK] to the
@@ -196,9 +193,9 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
 				L2CommentOperand("Transient, cannot be invalid."))
 			val tempOffset = generator.intWriteTemp(
-				restrictionForType(i32, UNBOXED_INT_FLAG))
+				intRestrictionForType(i32))
 			val tempRegisterDump = generator.boxedWriteTemp(
-				restrictionForType(Types.ANY.o, BOXED_FLAG))
+				boxedRestrictionForType(Types.ANY.o))
 			generator.addInstruction(
 				L2_SAVE_ALL_AND_PC_TO_INT,
 				edgeTo(afterReification),
@@ -209,12 +206,12 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 			generator.startBlock(reificationOfframp)
 			val tempCaller = generator.boxedWrite(
 				generator.topFrame.reifiedCaller(),
-				restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
+				boxedRestrictionForType(mostGeneralContinuationType))
 			val tempFunction = generator.boxedWrite(
 				generator.topFrame.function(),
-				restrictionForType(mostGeneralFunctionType(), BOXED_FLAG))
+				boxedRestrictionForType(mostGeneralFunctionType()))
 			val dummyContinuation = generator.boxedWriteTemp(
-				restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
+				boxedRestrictionForType(mostGeneralContinuationType))
 			generator.addInstruction(
 				L2_GET_CURRENT_CONTINUATION,
 				tempCaller)
@@ -253,17 +250,15 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		}
 		// Caller has been reified, or is known to already be reified.
 		val tempCallerWrite = generator.boxedWriteTemp(
-			restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
+			boxedRestrictionForType(mostGeneralContinuationType))
 		generator.addInstruction(L2_GET_CURRENT_CONTINUATION, tempCallerWrite)
 
 		val fallThrough = generator.createBasicBlock(
 			"Fall-through for label creation",
 			generator.currentBlock().zone)
-		val writeOffset = generator.intWriteTemp(
-			restrictionForType(i32, UNBOXED_INT_FLAG))
+		val writeOffset = generator.intWriteTemp(intRestrictionForType(i32))
 		val writeRegisterDump =
-			generator.boxedWriteTemp(
-				restrictionForType(Types.ANY.o, BOXED_FLAG))
+			generator.boxedWriteTemp(boxedRestrictionForType(Types.ANY.o))
 		generator.addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT,
 			backEdgeTo(generator.specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!),
@@ -285,8 +280,8 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }
 		generator.addInstruction(
 			L2_CREATE_CONTINUATION,
-			generator.makeImmutable(function),
-			generator.makeImmutable(generator.readBoxed(tempCallerWrite)),
+			function,
+			generator.readBoxed(tempCallerWrite),
 			L2IntImmediateOperand(0),  // indicates a label.
 			L2IntImmediateOperand(frameSizeInt + 1),  // empty stack
 			L2ReadBoxedVectorOperand(slots),  // each immutable

@@ -64,15 +64,13 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -146,10 +144,10 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (tupleReg, subscriptReg) = arguments
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		if (fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
@@ -160,9 +158,8 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			val unboxedSemanticSize = L2SemanticUnboxedInt(
 				primitiveInvocation(
 					P_TupleSize, listOf(tupleReg.semanticValue())))
-			val intSizeRestriction = restrictionForType(
-				tupleReg.type().sizeRange.typeIntersection(i31),
-				UNBOXED_INT_FLAG)
+			val intSizeRestriction = intRestrictionForType(
+				tupleReg.type().sizeRange.typeIntersection(i31))
 			val intSizeType = intSizeRestriction.type
 			if (intSizeType.lowerBound.equals(intSizeType.upperBound))
 			{
@@ -171,7 +168,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				generator.moveRegister(
 					L2_MOVE.unboxedInt,
 					sizeRead.semanticValue(),
-					unboxedSemanticSize)
+					setOf(unboxedSemanticSize))
 			}
 			else
 			{
@@ -192,7 +189,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			{
 				val success1 = generator.createBasicBlock(
 					"passed lower bound check")
-				L2_JUMP_IF_COMPARE_INT.greaterOrEqual.compareAndBranch(
+				NumericComparator.GreaterOrEqual.compareAndBranchInt(
 					generator,
 					readSubscript,
 					generator.unboxedIntConstant(1),
@@ -207,7 +204,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			{
 				val success2 = generator.createBasicBlock(
 					"passed upper bound check")
-				L2_JUMP_IF_COMPARE_INT.lessOrEqual.compareAndBranch(
+				NumericComparator.LessOrEqual.compareAndBranchInt(
 					generator,
 					readSubscript,
 					translator.currentManifest.readInt(unboxedSemanticSize),
@@ -217,13 +214,12 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			}
 			if (generator.currentlyReachable())
 			{
-				val resultRestriction = restrictionForType(
+				val resultRestriction = boxedRestrictionForType(
 					returnTypeGuaranteedByVM(
 						rawFunction,
-						listOf(argumentTypes[0], intSizeRestriction.type)),
-					BOXED_FLAG)
+						listOf(argumentTypes[0], intSizeRestriction.type)))
 				val semanticResult = primitiveInvocation(
-					this, arguments.map { it.semanticValue() })
+					this, arguments.map(L2ReadBoxedOperand::semanticValue))
 				val writeResult =
 					generator.boxedWrite(semanticResult, resultRestriction)
 				generator.addInstruction(
@@ -244,7 +240,6 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				rawFunction,
 				arguments,
 				argumentTypes,
-				translator,
 				callSiteHelper)
 			// We failed the dynamic range check, so fall back to a regular call
 			// site.
@@ -254,9 +249,8 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		val lower = subscriptType.lowerBound
 		val upper = subscriptType.upperBound
 		val writer = generator.boxedWriteTemp(
-			restrictionForType(
-				returnTypeGuaranteedByVM(rawFunction, argumentTypes),
-				BOXED_FLAG))
+			boxedRestrictionForType(
+				returnTypeGuaranteedByVM(rawFunction, argumentTypes)))
 		if (lower.equals(upper))
 		{
 			// The subscript is a constant (and it's within range).

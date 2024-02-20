@@ -409,10 +409,7 @@ private constructor(
 				isSet -> singleInt(setSize)
 				isMap -> singleInt(mapSize)
 				else ->
-				{
-					assert(false) { "Unexpected instance for sizeRange" }
-					nil
-				}
+					throw AssertionError("Unexpected instance for sizeRange")
 			}
 		}
 

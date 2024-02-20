@@ -131,7 +131,6 @@ object P_EmergencyExit : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// Never inline.  Ensure the caller reifies the stack before calling it.

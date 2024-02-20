@@ -51,10 +51,8 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -86,11 +84,11 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val tupleReg = arguments[0]
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val lower = returnType.lowerBound
@@ -107,8 +105,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 				// extract it into an int register, then move that to a boxed
 				// register.  If the boxed form isn't needed, that instruction
 				// will be eliminated later.
-				val restriction =
-					restrictionForType(returnType, UNBOXED_INT_FLAG)
+				val restriction = intRestrictionForType(returnType)
 				val writer = generator.intWriteTemp(restriction)
 				generator.addInstruction(
 					L2_TUPLE_SIZE,

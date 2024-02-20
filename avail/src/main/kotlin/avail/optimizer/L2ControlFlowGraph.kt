@@ -316,17 +316,11 @@ class L2ControlFlowGraph
 	 * @return
 	 *   A [List] of [L2Register]s without repetitions.
 	 */
-	fun allRegisters(): List<L2Register>
+	fun allRegisters(): List<L2Register<*>>
 	{
-		val allRegisters = mutableSetOf<L2Register>()
-		for (block in basicBlockOrder)
-		{
-			for (instruction in block.instructions())
-			{
-				allRegisters.addAll(instruction.destinationRegisters)
-			}
-		}
-		return allRegisters.toMutableList()
+		return basicBlockOrder.flatMapTo(mutableSetOf()) {
+			it.instructions().flatMap(L2Instruction::destinationRegisters)
+		}.toList()
 	}
 
 	/**

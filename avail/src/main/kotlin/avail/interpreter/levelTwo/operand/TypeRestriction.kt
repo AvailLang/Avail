@@ -42,6 +42,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObject
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObject.Companion.combine6
 import avail.descriptor.representation.AvailObjectRepresentation
 import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -55,14 +56,17 @@ import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.trimType
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
@@ -81,12 +85,12 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Synonym
 import avail.utility.cast
 import avail.utility.mapToSet
 import java.util.EnumSet
-import java.util.Objects
+import java.util.Objects.hashCode
 
 /**
  * This mechanism describes a restriction of a type without saying what it's to
@@ -127,7 +131,8 @@ class TypeRestriction private constructor(
 		assert(flags == BOXED_FLAG.mask
 			|| flags == (BOXED_FLAG.mask + IMMUTABLE_FLAG.mask)
 			|| flags == UNBOXED_INT_FLAG.mask
-			|| flags == UNBOXED_FLOAT_FLAG.mask)
+			|| flags == UNBOXED_FLOAT_FLAG.mask
+			|| type.isBottom)
 		positiveGroup.constants?.run { assert(size == 1) }
 		assert(positiveGroup.types.size == 1)
 		// Ensure all referenced objects are immutable.  When a CFG is used for
@@ -366,7 +371,7 @@ class TypeRestriction private constructor(
 		if (constantOrNull !== null)
 		{
 			// We're a constant, so the metaRestriction is also a constant type.
-			return restrictionForConstant(type, BOXED_FLAG)
+			return boxedRestrictionForConstant(type)
 		}
 		// No object has exact type ⊥ or ⊤.
 		val resultExcludedValues = mutableSetOf<A_BasicObject>(
@@ -443,12 +448,12 @@ class TypeRestriction private constructor(
 		val positiveVariants = positiveGroup.objectVariants?.let { v1 ->
 			other.positiveGroup.objectVariants?.let(v1::union)
 		}
+		val excludedVariants = negativeGroup.objectVariants?.let { v1 ->
+			other.negativeGroup.objectVariants?.let(v1::intersect)
+		}?.ifEmpty { null }
 		val positiveTypeVariants = positiveGroup.objectTypeVariants?.let { v1 ->
 			other.positiveGroup.objectTypeVariants?.let(v1::union)
 		}
-		val excludedVariants = negativeGroup.objectVariants?.let { v1 ->
-			other.negativeGroup.objectVariants?.let(v1::intersect)
-		}?.ifEmpty { return bottomRestriction }
 		val excludedTypeVariants = negativeGroup.objectTypeVariants?.let { v1 ->
 			other.negativeGroup.objectTypeVariants?.let(v1::intersect)
 		}?.ifEmpty { null }
@@ -486,36 +491,46 @@ class TypeRestriction private constructor(
 			// intersection is empty.
 			return bottomRestriction
 		}
-		val positiveVariants = positiveGroup.objectVariants.let { v1 ->
+		var positiveVariants = positiveGroup.objectVariants.let { v1 ->
 			other.positiveGroup.objectVariants.let { v2 ->
 				if (v1 == null || v2 == null) v1 ?: v2
 				else v2.intersect(v2).ifEmpty { return bottomRestriction }
 			}
 		}
-		val positiveTypeVariants = positiveGroup.objectTypeVariants.let { v1 ->
-			other.positiveGroup.objectTypeVariants.let { v2 ->
-				if (v1 == null || v2 == null) v1 ?: v2
-				else v2.intersect(v2).ifEmpty { return bottomRestriction }
-			}
-		}
-		val excludedVariants = negativeGroup.objectVariants.let { v1 ->
+		var excludedVariants = negativeGroup.objectVariants.let { v1 ->
 			other.negativeGroup.objectVariants.let { v2 ->
 				if (v1 == null || v2 == null) v1 ?: v2
 				else v1.union(v2)
 			}
 		}
-		val excludedTypeVariants = negativeGroup.objectTypeVariants.let { v1 ->
+		if (positiveVariants !== null && excludedVariants !== null)
+		{
+			positiveVariants -= excludedVariants
+			excludedVariants = null
+		}
+		var positiveTypeVariants = positiveGroup.objectTypeVariants.let { v1 ->
+			other.positiveGroup.objectTypeVariants.let { v2 ->
+				if (v1 == null || v2 == null) v1 ?: v2
+				else v2.intersect(v2).ifEmpty { return bottomRestriction }
+			}
+		}
+		var excludedTypeVariants = negativeGroup.objectTypeVariants.let { v1 ->
 			other.negativeGroup.objectTypeVariants.let { v2 ->
 				if (v1 == null || v2 == null) v1 ?: v2
 				else v1.union(v2)
 			}
+		}
+		if (positiveTypeVariants !== null && excludedTypeVariants !== null)
+		{
+			positiveTypeVariants -= excludedTypeVariants
+			excludedTypeVariants = null
 		}
 		return restriction(
 			type.typeIntersection(other.type),
 			c1 ?: c2,
 			excludedTypes + other.excludedTypes,
 			excludedValues + other.excludedValues,
-			positiveVariants,
+			positiveVariants?.let { it - (excludedVariants ?: emptySet()) },
 			excludedVariants,
 			positiveTypeVariants,
 			excludedTypeVariants,
@@ -534,8 +549,10 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun intersectionWithType(typeToIntersect: A_Type) =
-		restriction(
+	fun intersectionWithType(typeToIntersect: A_Type) = when
+	{
+		this == bottomRestriction -> this
+		else -> restriction(
 			type.typeIntersection(typeToIntersect),
 			constantOrNull,
 			excludedTypes,
@@ -545,6 +562,7 @@ class TypeRestriction private constructor(
 			positiveGroup.objectTypeVariants,
 			negativeGroup.objectTypeVariants,
 			flags)
+	}
 
 	/**
 	 * Create the asymmetric difference of the receiver and the given A_Type.
@@ -557,8 +575,10 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun minusType(typeToExclude: A_Type) =
-		restriction(
+	fun minusType(typeToExclude: A_Type) = when
+	{
+		this == bottomRestriction -> this
+		else -> restriction(
 			type,
 			constantOrNull,
 			excludedTypes + typeToExclude,
@@ -568,6 +588,7 @@ class TypeRestriction private constructor(
 			positiveGroup.objectTypeVariants,
 			negativeGroup.objectTypeVariants,
 			flags)
+	}
 
 	/**
 	 * Create the asymmetric difference of the receiver and the given exact
@@ -581,8 +602,10 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun minusValue(valueToExclude: A_BasicObject) =
-		restriction(
+	fun minusValue(valueToExclude: A_BasicObject) = when
+	{
+		this == bottomRestriction -> this
+		else -> restriction(
 			type,
 			constantOrNull,
 			excludedTypes,
@@ -592,6 +615,7 @@ class TypeRestriction private constructor(
 			positiveGroup.objectTypeVariants,
 			negativeGroup.objectTypeVariants,
 			flags)
+	}
 
 	/**
 	 * Create the asymmetric difference of the receiver and each of the given
@@ -605,8 +629,10 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun minusValues(valuesToExclude: Iterable<A_BasicObject>) =
-		restriction(
+	fun minusValues(valuesToExclude: Iterable<A_BasicObject>) = when
+	{
+		this == bottomRestriction -> this
+		else -> restriction(
 			type,
 			constantOrNull,
 			excludedTypes,
@@ -616,6 +642,7 @@ class TypeRestriction private constructor(
 			positiveGroup.objectTypeVariants,
 			negativeGroup.objectTypeVariants,
 			flags)
+	}
 
 	/**
 	 * Create the intersection of the receiver with the given object variant
@@ -631,16 +658,20 @@ class TypeRestriction private constructor(
 	 */
 	fun intersectionWithObjectVariant(
 		variantToIntersect: ObjectLayoutVariant
-	): TypeRestriction = intersection(
-		TypeRestriction(
-			RestrictionGroup(
-				null,
-				setOf(variantToIntersect.mostGeneralObjectType),
-				setOf(variantToIntersect),
-				null,
-				setOf(OBJECT_TAG)),
-			RestrictionGroup(emptySet(), emptySet(), null, null, null),
-			flags))
+	): TypeRestriction = when
+		{
+			this == bottomRestriction -> this
+			else -> intersection(
+				TypeRestriction(
+					RestrictionGroup(
+						null,
+						setOf(variantToIntersect.mostGeneralObjectType),
+						setOf(variantToIntersect),
+						null,
+						setOf(OBJECT_TAG)),
+					RestrictionGroup(emptySet(), emptySet(), null, null, null),
+					flags))
+	}
 
 	/**
 	 * Create the intersection of the receiver with the given object type
@@ -657,16 +688,20 @@ class TypeRestriction private constructor(
 	 */
 	fun intersectionWithObjectTypeVariant(
 		variantToIntersect: ObjectLayoutVariant
-	): TypeRestriction = intersection(
-		TypeRestriction(
-			RestrictionGroup(
-				null,
-				setOf(variantToIntersect.mostGeneralObjectMeta),
-				null,
-				setOf(variantToIntersect),
-				setOf(OBJECT_TYPE_TAG)),
-			RestrictionGroup(emptySet(), emptySet(), null, null, null),
-			flags))
+	): TypeRestriction = when
+	{
+		this == bottomRestriction -> this
+		else -> intersection(
+			TypeRestriction(
+				RestrictionGroup(
+					null,
+					setOf(variantToIntersect.mostGeneralObjectMeta),
+					null,
+					setOf(variantToIntersect),
+					setOf(OBJECT_TYPE_TAG)),
+				RestrictionGroup(emptySet(), emptySet(), null, null, null),
+				flags))
+	}
 
 	/**
 	 * Create the difference between the receiver and the given object variant
@@ -682,6 +717,7 @@ class TypeRestriction private constructor(
 	 */
 	fun minusObjectVariant(variantToRemove: ObjectLayoutVariant) = when
 	{
+		this == bottomRestriction -> this
 		positiveGroup.objectVariants == null ->
 			TypeRestriction(
 				positiveGroup,
@@ -714,6 +750,7 @@ class TypeRestriction private constructor(
 	 */
 	fun minusObjectTypeVariant(variantToRemove: ObjectLayoutVariant) = when
 	{
+		this == bottomRestriction -> this
 		positiveGroup.objectTypeVariants == null ->
 			TypeRestriction(
 				positiveGroup,
@@ -796,11 +833,15 @@ class TypeRestriction private constructor(
 	fun intersectsType(testType: A_Type): Boolean
 	{
 		constantOrNull?.run { return isInstanceOf(testType) }
-		val intersectedType = testType.typeIntersection(type)
-		if (intersectedType.isVacuousType)
-		{
-			return false
+		var intersectedType = testType.typeIntersection(type)
+		if (intersectedType.isVacuousType) return false
+		intersectedType = excludedTypes.fold(intersectedType) { type, exclude ->
+			type.trimType(exclude)
 		}
+		intersectedType = excludedValues.fold(intersectedType) { type, value ->
+			type.trimType(instanceTypeOrMetaOn(value))
+		}
+		if (intersectedType.isVacuousType) return false
 		if (excludedTypes.any { intersectedType.isSubtypeOf(it) })
 		{
 			// Even though the bare types intersect, the intersection was
@@ -923,15 +964,15 @@ class TypeRestriction private constructor(
 		else
 		{
 			restriction(
-			type,
-			constantOrNull,
-			excludedTypes,
-			excludedValues,
-			positiveGroup.objectVariants,
-			negativeGroup.objectVariants,
-			positiveGroup.objectTypeVariants,
-			negativeGroup.objectTypeVariants,
-			flags and flagEncoding.mask.inv())
+				type,
+				constantOrNull,
+				excludedTypes,
+				excludedValues,
+				positiveGroup.objectVariants,
+				negativeGroup.objectVariants,
+				positiveGroup.objectTypeVariants,
+				negativeGroup.objectTypeVariants,
+				flags and flagEncoding.mask.inv())
 		}
 
 	/**
@@ -979,7 +1020,7 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new `TypeRestriction`, or the receiver.
 	 */
-	fun restrictingKindsTo(kinds: EnumSet<RegisterKind>): TypeRestriction
+	fun restrictingKindsTo(kinds: Set<RegisterKind<*>>): TypeRestriction
 	{
 		return restrictingKindsTo(kinds.sumOf { it.restrictionFlag.mask })
 	}
@@ -1014,8 +1055,8 @@ class TypeRestriction private constructor(
 	 *   The [EnumSet] of [RegisterKind]s known to be available at some place
 	 *   when an [L2Synonym] has this restriction.
 	 */
-	fun kinds(): EnumSet<RegisterKind> =
-		RegisterKind.all.filterTo(EnumSet.noneOf(RegisterKind::class.java)) {
+	fun kinds(): Set<RegisterKind<*>> =
+		RegisterKind.all.filterTo(mutableSetOf()) {
 			(flags and it.restrictionFlag.mask) != 0
 		}
 
@@ -1023,15 +1064,18 @@ class TypeRestriction private constructor(
 	{
 		(other !is TypeRestriction) -> false
 		this === other -> true
-		else -> type.equals(other.type)
-			&& constantOrNull === other.constantOrNull
-			&& excludedTypes == other.excludedTypes
-			&& excludedValues == other.excludedValues
+		else -> positiveGroup == other.positiveGroup
+			&& negativeGroup == other.negativeGroup
 			&& flags == other.flags
 	}
 
-	override fun hashCode(): Int =
-		Objects.hash(type, constantOrNull, excludedTypes, excludedValues, flags)
+	override fun hashCode(): Int = combine6(
+		0x4BB8483F,
+		type.hash(),
+		hashCode(constantOrNull),
+		excludedTypes.hashCode(),
+		excludedValues.hashCode(),
+		flags)
 
 	/**
 	 * Answer whether this `TypeRestriction` is a specialization of the given
@@ -1282,7 +1326,7 @@ class TypeRestriction private constructor(
 				objectTypeVariants = null,
 				tags = null),
 			isImmutable = true,
-			isBoxed = true,  // Still considered boxed.
+			isBoxed = false,
 			isUnboxedInt = false,
 			isUnboxedFloat = false)
 
@@ -1607,7 +1651,7 @@ class TypeRestriction private constructor(
 		 * Create or reuse an immutable `TypeRestriction`, canonicalizing the
 		 * arguments.
 		 *
-		 * @param type
+		 * @param givenType
 		 *   The Avail type that constrains some value somewhere.
 		 * @param constantOrNull
 		 *   Either `null` or the exact value that some value somewhere must
@@ -1638,7 +1682,7 @@ class TypeRestriction private constructor(
 		 *   The new or existing canonical `TypeRestriction`.
 		 */
 		fun restriction(
-			type: A_Type,
+			givenType: A_Type,
 			constantOrNull: A_BasicObject?,
 			givenExcludedTypes: Set<A_Type>,
 			givenExcludedValues: Set<A_BasicObject>,
@@ -1648,10 +1692,21 @@ class TypeRestriction private constructor(
 			excludedTypeVariants: Set<ObjectLayoutVariant>?,
 			flags: Int): TypeRestriction
 		{
-			type.makeImmutable()
+			givenType.makeImmutable()
 			constantOrNull?.run(A_BasicObject::makeImmutable)
 			givenExcludedTypes.forEach(A_BasicObject::makeImmutable)
 			givenExcludedValues.forEach(A_BasicObject::makeImmutable)
+			assert(possibleVariants === null || excludedVariants === null)
+			assert(possibleTypeVariants === null
+				|| excludedTypeVariants === null)
+			// Strengthen singular integer range types to constants.
+			val type = when
+			{
+				givenType.isIntegerRangeType &&
+					givenType.lowerBound.equals(givenType.upperBound)
+				-> instanceType(givenType.lowerBound)
+				else -> givenType
+			}
 			if (constantOrNull === null && type.isEnumeration
 				&& (!type.isInstanceMeta || type.instance.isBottom))
 			{
@@ -1821,7 +1876,7 @@ class TypeRestriction private constructor(
 			type: A_Type,
 			encoding: RestrictionFlagEncoding
 		): TypeRestriction = restriction(
-			type = type,
+			givenType = type,
 			constantOrNull = null,
 			givenExcludedTypes = emptySet(),
 			givenExcludedValues = emptySet(),
@@ -1833,7 +1888,33 @@ class TypeRestriction private constructor(
 
 		/**
 		 * Create or reuse a `TypeRestriction`, for which no constant
-		 * information is provided (but might be deduced from the type).
+		 * information is provided (but might be deduced from the type).  The
+		 * register kind is boxed.
+		 *
+		 * @param type
+		 *   The Avail type that constrains some value somewhere.
+		 * @return
+		 *   The new or existing canonical TypeRestriction.
+		 */
+		fun boxedRestrictionForType(type: A_Type): TypeRestriction =
+			restrictionForType(type, BOXED_FLAG)
+
+		/**
+		 * Create or reuse a `TypeRestriction`, for which no constant
+		 * information is provided (but might be deduced from the type).  The
+		 * register kind is unboxed int.
+		 *
+		 * @param type
+		 *   The Avail type that constrains some value somewhere.
+		 * @return
+		 *   The new or existing canonical TypeRestriction.
+		 */
+		fun intRestrictionForType(type: A_Type): TypeRestriction =
+			restrictionForType(type, UNBOXED_INT_FLAG)
+
+		/**
+		 * Create or reuse a `TypeRestriction`, for which a constant is
+		 * specified.
 		 *
 		 * If the requested register encoding is [BOXED_FLAG], also flag the
 		 * restriction as [IMMUTABLE_FLAG].
@@ -1849,7 +1930,8 @@ class TypeRestriction private constructor(
 		 */
 		fun restrictionForConstant(
 			constant: A_BasicObject,
-			encoding: RestrictionFlagEncoding): TypeRestriction
+			encoding: RestrictionFlagEncoding
+		): TypeRestriction
 		{
 			assert(encoding == BOXED_FLAG
 					|| encoding == UNBOXED_INT_FLAG
@@ -1885,5 +1967,35 @@ class TypeRestriction private constructor(
 					else -> encoding.mask
 				})
 		}
+
+		/**
+		 * Create or reuse a [TypeRestriction], for which a constant is
+		 * specified.  The register kind will be [BOXED_FLAG], and the
+		 * [IMMUTABLE_FLAG] will also be set.
+		 *
+		 * @param constant
+		 *   The sole Avail value that this restriction permits.
+		 * @return
+		 *   The new or existing canonical [TypeRestriction].
+		 */
+		fun boxedRestrictionForConstant(
+			constant: A_BasicObject
+		): TypeRestriction =
+			restrictionForConstant(constant, BOXED_FLAG)
+
+		/**
+		 * Create or reuse a [TypeRestriction], for which an [i32] constant is
+		 * specified (as a Kotlin [Int]).  The register kind will be
+		 * [UNBOXED_INT_FLAG].
+		 *
+		 * @param constant
+		 *   The sole [Int] value that this restriction permits.
+		 * @return
+		 *   The new or existing canonical [TypeRestriction].
+		 */
+		fun intRestrictionForConstant(
+			constant: Int
+		): TypeRestriction =
+			restrictionForConstant(fromInt(constant), UNBOXED_INT_FLAG)
 	}
 }

@@ -33,10 +33,12 @@ package avail.interpreter.levelTwo.operand
 
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.Descriptor.Companion.brief
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.interpreter.levelOne.L1Decompiler.Companion.decompile
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 
 /**
  * An `L2ConstantOperand` is an operand of type [L2OperandType.CONSTANT].  It
@@ -58,32 +60,24 @@ class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
 	 */
 	val constant: AvailObject = constant.makeShared()
 
-	override val operandType: L2OperandType
-		get() = L2OperandType.CONSTANT
+	override val operandType: L2OperandType get() = CONSTANT
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
 		dispatcher.doOperand(this)
 	}
 
-	override fun appendTo(builder: StringBuilder) =
-		with(builder)
+	override fun appendTo(builder: StringBuilder): Unit = with(builder)
+	{
+		append("$(")
+		if (constant.isInstanceOf(mostGeneralCompiledCodeType()))
 		{
-			append("$(")
-			if (constant.isInstanceOf(mostGeneralCompiledCodeType()))
-			{
-				append(decompile(constant))
-			}
-			else
-			{
-				var string = constant.toString()
-				if (string.length > 40)
-				{
-					string = string.take(40) + "…"
-				}
-				append(string)
-			}
-			append(")")
-			Unit
+			append(decompile(constant))
 		}
+		else
+		{
+			brief { append(constant.toString()) }
+		}
+		append(")")
+	}
 }

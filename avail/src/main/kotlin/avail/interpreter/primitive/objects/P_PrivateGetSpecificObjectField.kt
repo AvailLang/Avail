@@ -48,8 +48,7 @@ import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import avail.optimizer.L1Translator
 
@@ -100,7 +99,6 @@ object P_PrivateGetSpecificObjectField : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean {
 		// This primitive is private, and the function *should* only have been
@@ -113,6 +111,8 @@ object P_PrivateGetSpecificObjectField : Primitive(
 		val fieldAtom = function.outerVarAt(1)
 		val fieldType = objectType.fieldTypeAt(fieldAtom)
 		val constant = objectReg.restriction().constantOrNull
+
+		val translator = callSiteHelper.translator
 		when {
 			// Do the folding here.  If we made this primitive CanFold, it would
 			// attempt to access the interpreter.function during evaluation,
@@ -130,7 +130,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 
 			else -> {
 				val write = translator.generator.boxedWriteTemp(
-					restrictionForType(fieldType, BOXED_FLAG))
+					boxedRestrictionForType(fieldType))
 				translator.addInstruction(
 					L2_GET_OBJECT_FIELD,
 					objectReg,

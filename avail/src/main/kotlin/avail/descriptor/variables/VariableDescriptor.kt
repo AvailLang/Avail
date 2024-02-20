@@ -542,8 +542,7 @@ open class VariableDescriptor protected constructor(
 	override fun o_RemoveDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(!isShared)
-		assert(false) { "Chunk removed but not added!" }
-		unsupported
+		throw AssertionError("Chunk removed but not added!")
 	}
 
 	override fun o_AddWriteReactor(

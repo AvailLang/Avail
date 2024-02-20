@@ -239,10 +239,11 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (functionReg, tupleReg) = arguments
+
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 
 		// Examine the function type.

@@ -84,7 +84,6 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
@@ -94,7 +93,7 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 		val functionReg = arguments[1]
 		// the function in the 2nd (=args[1]) argument.
 		// takes no arguments.
-		translator.generateGeneralFunctionInvocation(
+		callSiteHelper.translator.generateGeneralFunctionInvocation(
 			functionReg, emptyList(), true, callSiteHelper)
 		return true
 	}

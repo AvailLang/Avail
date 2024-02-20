@@ -58,7 +58,6 @@ import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_RETURN
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -130,13 +129,13 @@ object P_ExitContinuationWithResultIf : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (continuationReg, valueReg, conditionReg) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val manifest = generator.currentManifest
 		val synonym = manifest.semanticValueToSynonym(
@@ -147,18 +146,18 @@ object P_ExitContinuationWithResultIf : Primitive(
 		{
 			// We're conditionally exiting the current frame.
 			val exit = generator.createBasicBlock("Exit")
-			val dontExit = generator.createBasicBlock("Don't exit")
+			val noExit = generator.createBasicBlock("Don't exit")
 			generator.jumpIfEqualsConstant(
 				generator.readBoxed(
-					conditionReg.originalBoxedWriteSkippingMoves(true)),
+					conditionReg.originalBoxedWriteSkippingMoves()),
 				trueObject,
 				exit,
-				dontExit)
+				noExit)
 			generator.startBlock(exit)
 			generator.addInstruction(
 				L2_RETURN,
 				valueReg)
-			generator.startBlock(dontExit)
+			generator.startBlock(noExit)
 			if (generator.currentlyReachable())
 			{
 				callSiteHelper.useAnswer(

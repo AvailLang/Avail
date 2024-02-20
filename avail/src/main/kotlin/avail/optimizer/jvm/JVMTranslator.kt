@@ -76,18 +76,19 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
 import avail.optimizer.StackReifier
@@ -95,8 +96,6 @@ import avail.optimizer.jvm.JVMTranslator.LiteralAccessor.Companion.invalidIndex
 import avail.performance.Statistic
 import avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME
 import avail.utility.Strings.traceFor
-import avail.utility.structures.EnumMap
-import avail.utility.structures.EnumMap.Companion.enumMap
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
 import org.objectweb.asm.Label
@@ -273,7 +272,7 @@ class JVMTranslator constructor(
 	 * numbers*.
 	 */
 	val liveLocalNumbersByKindPerEntryPoint =
-		mutableMapOf<L2Instruction, EnumMap<RegisterKind, MutableList<Int>>>()
+		mutableMapOf<L2Instruction, Map<RegisterKind<*>, MutableList<Int>>>()
 
 	/**
 	 * We're at a point where reification has been requested.  A [StackReifier]
@@ -433,7 +432,7 @@ class JVMTranslator constructor(
 	 *   Unused.
 	 */
 	@Deprecated("")
-	fun literal(method: MethodVisitor?, reg: L2Register?)
+	fun literal(method: MethodVisitor?, reg: L2Register<*>?)
 	{
 		throw UnsupportedOperationException()
 	}
@@ -475,7 +474,9 @@ class JVMTranslator constructor(
 	 * The [L2Register]s used by the [L2Chunk], mapped to their JVM local
 	 * indices.
 	 */
-	val locals = enumMap { _: RegisterKind -> mutableMapOf<Int, Int>() }
+	val locals = RegisterKind.all.associateWithTo(mutableMapOf()) {
+		mutableMapOf<Int, Int>()
+	}
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -524,8 +525,8 @@ class JVMTranslator constructor(
 	 * @return
 	 *   Its position in the JVM frame.
 	 */
-	fun localNumberFromRegister(register: L2Register): Int =
-		locals[register.registerKind]!![register.finalIndex()]!!
+	fun localNumberFromRegister(register: L2Register<*>): Int =
+		locals[register.kind]!![register.finalIndex()]!!
 
 	/**
 	 * Generate a load of the local associated with the specified [L2Register].
@@ -536,10 +537,10 @@ class JVMTranslator constructor(
 	 * @param register
 	 *   A bound `L2Register`.
 	 */
-	fun load(method: MethodVisitor, register: L2Register)
+	fun load(method: MethodVisitor, register: L2Register<*>)
 	{
 		method.visitVarInsn(
-			register.registerKind.loadInstruction,
+			register.kind.loadInstruction,
 			localNumberFromRegister(register))
 	}
 
@@ -554,10 +555,10 @@ class JVMTranslator constructor(
 	 * @param register
 	 *   A bound `L2Register`.
 	 */
-	fun store(method: MethodVisitor, register: L2Register)
+	fun store(method: MethodVisitor, register: L2Register<*>)
 	{
 		method.visitVarInsn(
-			register.registerKind.storeInstruction,
+			register.kind.storeInstruction,
 			localNumberFromRegister(register))
 	}
 	/**
@@ -648,17 +649,17 @@ class JVMTranslator constructor(
 
 		override fun doOperand(vector: L2ReadBoxedVectorOperand)
 		{
-			vector.elements.forEach(this::doOperand)
+			vector.elements.forEach { doOperand(it as L2ReadBoxedOperand) }
 		}
 
 		override fun doOperand(vector: L2ReadIntVectorOperand)
 		{
-			vector.elements.forEach(this::doOperand)
+			vector.elements.forEach { doOperand(it as L2ReadIntOperand) }
 		}
 
 		override fun doOperand(vector: L2ReadFloatVectorOperand)
 		{
-			vector.elements.forEach(this::doOperand)
+			vector.elements.forEach { doOperand(it as L2ReadFloatOperand) }
 		}
 
 		override fun doOperand(operand: L2SelectorOperand)
@@ -920,10 +921,9 @@ class JVMTranslator constructor(
 			}
 			// Capture the maximum stack depth and locals, for spoonfeeding into
 			// the checker.
-			val methodWriterAsNode = methodWriter as MethodNode
 			method.visitMaxs(
-				methodWriterAsNode.maxStack,
-				methodWriterAsNode.maxLocals)
+				methodNode.maxStack,
+				methodNode.maxLocals)
 		}
 	}
 
@@ -1139,7 +1139,7 @@ class JVMTranslator constructor(
 	 */
 	fun objectArray(
 		method: MethodVisitor,
-		operands: List<L2ReadBoxedOperand>,
+		operands: List<L2ReadOperand<BOXED_KIND>>,
 		arrayClass: Class<out A_BasicObject>)
 	{
 		if (operands.isEmpty())
@@ -1192,11 +1192,7 @@ class JVMTranslator constructor(
 			IF_ACMPNE -> IF_ACMPEQ
 			IFNULL -> IFNONNULL
 			IFNONNULL -> IFNULL
-			else ->
-			{
-				assert(false) { "bad opcode ($opcode)" }
-				throw RuntimeException("bad opcode ($opcode)")
-			}
+			else -> throw AssertionError("bad opcode ($opcode)")
 		}
 
 	/**
@@ -1952,7 +1948,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = true
+		const val debugNicerJavaDecompilation = false //TODO true
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to

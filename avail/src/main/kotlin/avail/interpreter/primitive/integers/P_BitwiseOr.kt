@@ -72,7 +72,6 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean = L2_BIT_LOGIC_OP.bitwiseOr.generateBinaryIntOperation(
 		arguments,
