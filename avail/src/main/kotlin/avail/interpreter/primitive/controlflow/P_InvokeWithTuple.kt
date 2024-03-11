@@ -56,9 +56,9 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.Primitive
@@ -72,7 +72,6 @@ import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 import java.util.Collections.nCopies
@@ -239,10 +238,11 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (functionReg, tupleReg) = arguments
+
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 
 		// Examine the function type.

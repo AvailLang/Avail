@@ -670,7 +670,7 @@ class L1Decompiler constructor(
 
 		override fun L1_doExtension()
 		{
-			assert(false) { "Illegal dispatch nybblecode" }
+			throw AssertionError("Illegal dispatch nybblecode")
 		}
 
 		override fun L1Ext_doPushLabel()

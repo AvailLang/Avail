@@ -1346,8 +1346,8 @@ class AvailRuntime constructor(
 			put(TokenType.OPERATOR.atom)
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
-			put(inclusive(1L, 4L))
-			put(inclusive(0L, 31L))
+			put(inclusive(1, 4))
+			put(inclusive(0, 31))
 			put(
 				continuationTypeForFunctionType(
 					functionTypeReturning(TOP.o)))

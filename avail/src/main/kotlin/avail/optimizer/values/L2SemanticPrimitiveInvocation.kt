@@ -33,6 +33,7 @@ package avail.optimizer.values
 
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.Primitive
+import avail.interpreter.levelTwo.register.BOXED_KIND
 
 /**
  * An [L2SemanticValue] which represents the result produced by a [Primitive]
@@ -56,17 +57,18 @@ import avail.interpreter.Primitive
  * @param argumentSemanticValues
  *   The semantic values supplied as arguments.
  */
-class L2SemanticPrimitiveInvocation internal constructor(
+class L2SemanticPrimitiveInvocation
+internal constructor(
 	val primitive: Primitive,
-	val argumentSemanticValues: List<L2SemanticValue>
-) : L2SemanticValue(computeHash(primitive, argumentSemanticValues))
+	val argumentSemanticValues: List<L2SemanticValue<BOXED_KIND>>
+) : L2SemanticBoxedValue(computeHash(primitive, argumentSemanticValues))
 {
 	init
 	{
 		assert(primitive.hasFlag(Primitive.Flag.CanFold))
 	}
 
-	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		(other is L2SemanticPrimitiveInvocation
 			&& primitive === other.primitive
 			&& argumentSemanticValues == other.argumentSemanticValues)
@@ -78,16 +80,19 @@ class L2SemanticPrimitiveInvocation internal constructor(
 	}
 
 	override fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticBoxedValue
 	{
 		val numArgs = argumentSemanticValues.size
-		val newArguments =
-			argumentSemanticValues.mapTo(mutableListOf()) {
-				it.transform(semanticValueTransformer, frameTransformer)
-			}
+		val newArguments = argumentSemanticValues.mapTo(mutableListOf()) {
+			it.transform(semanticValueTransformer, frameTransformer)
+		}
 
-		if ((0 until numArgs).all { newArguments[it] == argumentSemanticValues[it] })
+		if ((0 until numArgs).all {
+			newArguments[it] == argumentSemanticValues[it]
+		})
 		{
 			return this
 		}
@@ -112,7 +117,7 @@ class L2SemanticPrimitiveInvocation internal constructor(
 		 */
 		private fun computeHash(
 			primitive: Primitive,
-			argumentSemanticValues: List<L2SemanticValue>): Int
+			argumentSemanticValues: List<L2SemanticValue<BOXED_KIND>>): Int
 		{
 			var h = primitive.name.hashCode() xor 0x72C5FD8B
 			for (argument in argumentSemanticValues)

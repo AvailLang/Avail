@@ -113,7 +113,7 @@ import java.util.stream.Stream
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class MessageSplitterTest private constructor ()
+class MessageAbstractMultiWaySplitterTest private constructor ()
 {
 	/**
 	 * This is a helper class for building test cases.

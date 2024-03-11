@@ -37,7 +37,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.attemptTheInlinePrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.attemptTheNonInlinePrimitiveMethod
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.PRIMITIVE
+import avail.interpreter.levelTwo.L2OperandType.Companion.PRIMITIVE
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
@@ -102,4 +102,3 @@ object L2_TRY_PRIMITIVE : L2Operation(
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }
-

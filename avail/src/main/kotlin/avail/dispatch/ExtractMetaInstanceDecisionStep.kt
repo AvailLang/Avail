@@ -40,13 +40,12 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_INSTANCE_OF_META
 import avail.interpreter.primitive.types.P_InstanceOfMeta
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
@@ -231,8 +230,8 @@ constructor(
 	}
 
 	private fun newSemanticValue(
-		semanticValues: List<L2SemanticValue>,
-		extraSemanticValues: List<L2SemanticValue>
+		semanticValues: List<L2SemanticBoxedValue>,
+		extraSemanticValues: List<L2SemanticBoxedValue>
 	) = primitiveInvocation(
 		P_InstanceOfMeta,
 		listOf(sourceSemanticValue(semanticValues, extraSemanticValues)))
@@ -243,28 +242,17 @@ constructor(
 		list.add(childNode)
 	}
 
-	override fun addChildrenTo(
-		list: MutableList<
-			Pair<LookupTree<Element, Result>, List<L2SemanticValue>>>,
-		semanticValues: List<L2SemanticValue>,
-		extraSemanticValues: List<L2SemanticValue>)
-	{
-		val newSemanticValue =
-			newSemanticValue(semanticValues, extraSemanticValues)
-		list.add(childNode to extraSemanticValues.append(newSemanticValue))
-	}
-
 	override fun generateEdgesFor(
-		semanticArguments: List<L2SemanticValue>,
-		extraSemanticArguments: List<L2SemanticValue>,
+		semanticArguments: List<L2SemanticBoxedValue>,
+		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticValue>>>
+			List<L2SemanticBoxedValue>>>
 	{
-		val generator = callSiteHelper.generator()
+		val generator = callSiteHelper.generator
 		val baseSemanticValue =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
 		val baseRestriction =
@@ -272,7 +260,7 @@ constructor(
 		val instanceSemanticValue =
 			newSemanticValue(semanticArguments, extraSemanticArguments)
 		val instanceRestriction =
-			restrictionForType(baseRestriction.type.instance, BOXED_FLAG)
+			boxedRestrictionForType(baseRestriction.type.instance)
 		generator.addInstruction(
 			L2_INSTANCE_OF_META,
 			generator.readBoxed(baseSemanticValue),

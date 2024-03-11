@@ -42,8 +42,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
@@ -51,7 +50,7 @@ import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import java.lang.String.format
@@ -82,6 +81,11 @@ constructor(
 	private val ifCheckFails: LookupTree<Element, Result>
 ) : DecisionStep<Element, Result>(argumentPositionToTest)
 {
+	init
+	{
+		argumentTypeToTest.makeShared()
+	}
+
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
 		extraValues: List<A_BasicObject>,
@@ -166,27 +170,17 @@ constructor(
 		list.add(ifCheckFails)
 	}
 
-	override fun addChildrenTo(
-		list: MutableList<
-			Pair<LookupTree<Element, Result>, List<L2SemanticValue>>>,
-		semanticValues: List<L2SemanticValue>,
-		extraSemanticValues: List<L2SemanticValue>)
-	{
-		list.add(ifCheckHolds to extraSemanticValues)
-		list.add(ifCheckFails to extraSemanticValues)
-	}
-
 	override fun generateEdgesFor(
-		semanticArguments: List<L2SemanticValue>,
-		extraSemanticArguments: List<L2SemanticValue>,
+		semanticArguments: List<L2SemanticBoxedValue>,
+		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticValue>>>
+			List<L2SemanticBoxedValue>>>
 	{
-		val translator = callSiteHelper.translator()
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		if (!generator.currentlyReachable())
 		{
@@ -310,8 +304,7 @@ constructor(
 		generator.addInstruction(L2_GET_TYPE, argRead, argTypeWrite)
 		val superUnionReg = generator.boxedConstant(superUnionElementType)
 		val unionReg = generator.boxedWriteTemp(
-			restrictionForType(
-				argMeta.typeUnion(superUnionReg.type()), BOXED_FLAG))
+			boxedRestrictionForType(argMeta.typeUnion(superUnionReg.type())))
 		generator.addInstruction(
 			L2_TYPE_UNION,
 			generator.readBoxed(argTypeWrite),

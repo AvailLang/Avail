@@ -69,8 +69,7 @@ class BuildOutputStream constructor(
 		}
 		catch (e: UnsupportedEncodingException)
 		{
-			assert(false) { "Somehow Java doesn't support characters" }
-			throw RuntimeException(e)
+			throw AssertionError("Somehow Java doesn't support characters")
 		}
 
 		if (text.isEmpty())

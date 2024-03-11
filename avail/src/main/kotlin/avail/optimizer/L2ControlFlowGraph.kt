@@ -316,17 +316,11 @@ class L2ControlFlowGraph
 	 * @return
 	 *   A [List] of [L2Register]s without repetitions.
 	 */
-	fun allRegisters(): List<L2Register>
+	fun allRegisters(): List<L2Register<*>>
 	{
-		val allRegisters = mutableSetOf<L2Register>()
-		for (block in basicBlockOrder)
-		{
-			for (instruction in block.instructions())
-			{
-				allRegisters.addAll(instruction.destinationRegisters)
-			}
-		}
-		return allRegisters.toMutableList()
+		return basicBlockOrder.flatMapTo(mutableSetOf()) {
+			it.instructions().flatMap(L2Instruction::destinationRegisters)
+		}.toList()
 	}
 
 	/**
@@ -384,20 +378,26 @@ class L2ControlFlowGraph
 	 * Answer a visualization of this `L2ControlFlowGraph`. This is a
 	 * debug method, intended to be called via evaluation during debugging.
 	 *
+	 * @param generator
+	 *   The [L2Generator], if any, that is in the process of populating this
+	 *   graph.
 	 * @return
 	 *   The requested visualization.
 	 */
 	@Suppress("unused")
-	fun visualize() = StringBuilder().let { builder ->
+	fun visualize(
+		generator: L2Generator? = null
+	) = StringBuilder().let { builder ->
 		L2ControlFlowGraphVisualizer(
-			"«control flow graph»",
-			"«chunk»",
-			80,
-			this,
-			true,
-			true,
-			true,
-			builder
+			fileName = "«control flow graph»",
+			name = "«chunk»",
+			charactersPerLine = 80,
+			controlFlowGraph = this,
+			visualizeLiveness = true,
+			visualizeManifest = true,
+			visualizeRegisterDescriptions = true,
+			accumulator = builder,
+			generator = generator
 		).visualize()
 		builder.toString()
 	}
@@ -406,19 +406,25 @@ class L2ControlFlowGraph
 	 * Answer a visualization of this `L2ControlFlowGraph`. This is a
 	 * debug method, intended to be called via evaluation during debugging.
 	 *
+	 * @param generator
+	 *   The [L2Generator], if any, that is in the process of populating this
+	 *   graph.
 	 * @return
 	 *   The requested visualization.
 	 */
-	fun simplyVisualize() = StringBuilder().let { builder ->
+	fun simplyVisualize(
+		generator: L2Generator? = null
+	) = StringBuilder().let { builder ->
 		L2ControlFlowGraphVisualizer(
-			"«SIMPLE control flow graph»",
-			"«chunk»",
-			80,
-			this,
-			false,
-			false,
-			false,
-			builder
+			fileName = "«SIMPLE control flow graph»",
+			name = "«chunk»",
+			charactersPerLine = 80,
+			controlFlowGraph = this,
+			visualizeLiveness = false,
+			visualizeManifest = false,
+			visualizeRegisterDescriptions = false,
+			accumulator = builder,
+			generator = generator
 		).visualize()
 		builder.toString()
 	}

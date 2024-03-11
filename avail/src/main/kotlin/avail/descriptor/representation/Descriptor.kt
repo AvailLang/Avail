@@ -110,6 +110,7 @@ import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
 import avail.serialization.SerializerOperation
+import avail.utility.Strings.truncateTo
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -2847,7 +2848,7 @@ protected constructor (
 		 *
 		 * @see printObjectOnAvoidingIndent
 		 */
-		val compressionRegex = """\n\t*""".toRegex()
+		val compressionRegex = """(\n[ \t]*)+""".toRegex()
 
 		/**
 		 * The maximum length of the concise primitive description. Values whose
@@ -2871,17 +2872,17 @@ protected constructor (
 		 */
 		inline fun StringBuilder.brief(
 			printer: StringBuilder.() -> Unit
-		) = StringBuilder().let { builder ->
-			builder.printer()
-			if (builder.length <= maxBrief)
+		): Unit = StringBuilder().let { newBuilder ->
+			newBuilder.printer()
+			if (newBuilder.length > maxBrief)
 			{
-				append(builder.replace(compressionRegex, " "))
+				val oneLine = newBuilder.replace(compressionRegex, " ")
+				append(oneLine.truncateTo(maxBrief))
 			}
 			else
 			{
-				append(builder)
+				append(newBuilder)
 			}
-			Unit
 		}
 	}
 }

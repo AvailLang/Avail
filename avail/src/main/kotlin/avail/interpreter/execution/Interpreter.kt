@@ -146,6 +146,7 @@ import avail.interpreter.primitive.variables.P_SetValue
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedField
 import avail.optimizer.jvm.CheckedField.Companion.instanceField
@@ -1262,9 +1263,8 @@ class Interpreter(
 			}
 			FIBER_SUSPENDED ->
 			{
-				assert(false)
-				{ "CanInline primitive must not suspend fiber" }
-				null
+				throw AssertionError(
+					"CanInline primitive must not suspend fiber")
 			}
 		}
 	}
@@ -1309,12 +1309,12 @@ class Interpreter(
 	fun optionalReifierIfCanSwitchContinuations(
 		primitive: Primitive,
 		result: Result
-	) = when (result)
+	): StackReifier? = when (result)
 	{
-		SUCCESS -> null
 		CONTINUATION_CHANGED -> reifierForChangedContinuation(primitive)
-		else -> error("Invalid result from infallible " +
-			"CanSwitchContinuations primitive")
+		SUCCESS -> null
+		else -> throw AssertionError(
+			"Invalid result from infallible CanSwitchContinuations primitive")
 	}
 
 	/**
@@ -1400,7 +1400,8 @@ class Interpreter(
 				}
 				READY_TO_INVOKE ->
 				{
-					assert(false) { "Invoking primitives should be inlineable" }
+					throw AssertionError(
+						"Invoking primitives should be inlineable")
 				}
 				CONTINUATION_CHANGED ->
 				{
@@ -1589,7 +1590,7 @@ class Interpreter(
 							continuation.function().code().methodName
 								.toString() +
 								" (unoptimized)"
-						else -> (theChunk.name() + ", offset= " +
+						else -> (theChunk.name + ", offset= " +
 							continuation.levelTwoOffset())
 					}
 				}
@@ -1636,7 +1637,7 @@ class Interpreter(
 			}
 			else
 			{
-				builder.append(ptr.levelTwoChunk().name())
+				builder.append(ptr.levelTwoChunk().name)
 			}
 			ptr = ptr.caller()
 		}
@@ -2745,6 +2746,13 @@ class Interpreter(
 		 */
 		@Volatile
 		var debugWorkUnits = false
+
+		/**
+		 * If true, annotate the control flow graph with additional information
+		 * about which [L2SplitCondition]s are available.
+		 */
+		@Volatile
+		var debugAvailableSplits = false
 
 		/**
 		 * Whether to divert logging into fibers' [A_Fiber.debugLog], which is

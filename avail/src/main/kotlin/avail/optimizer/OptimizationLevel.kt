@@ -69,14 +69,14 @@ constructor(val countdown: Long)
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
-			assert(false) { "Should not use as target optimization level" }
+			throw AssertionError("Should not use as target optimization level")
 		}
 	},
 
 	/**
 	 * Translate the nybblecodes quickly into an [L2SimpleChunk].
 	 */
-	SIMPLE_TRANSLATION(10_000)
+	SIMPLE_TRANSLATION(1) //TODO 10_000
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
@@ -103,7 +103,7 @@ constructor(val countdown: Long)
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
 			code.countdownToReoptimize(countdown)
-			L1Translator.translateToLevelTwo(
+			L1Translator.`🌼translateToLevelTwo`(
 				code, SECOND_JVM_TRANSLATION, interpreter)
 		}
 	},
@@ -127,7 +127,7 @@ constructor(val countdown: Long)
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
 			code.countdownToReoptimize(countdown)
-			L1Translator.translateToLevelTwo(code, CHASED_BLOCKS, interpreter)
+			L1Translator.`🌼translateToLevelTwo`(code, CHASED_BLOCKS, interpreter)
 		}
 	},
 
@@ -145,7 +145,7 @@ constructor(val countdown: Long)
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
 			code.countdownToReoptimize(countdown)
-			L1Translator.translateToLevelTwo(code, CHASED_BLOCKS, interpreter)
+			L1Translator.`🌼translateToLevelTwo`(code, CHASED_BLOCKS, interpreter)
 		}
 	};
 

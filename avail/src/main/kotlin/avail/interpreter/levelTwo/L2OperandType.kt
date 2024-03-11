@@ -54,7 +54,6 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 
-
 /**
  * An `L2OperandType` specifies the nature of a level two operand.  It doesn't
  * fully specify how the operand is used, but it does say whether the associated
@@ -68,120 +67,10 @@ import avail.interpreter.levelTwo.register.L2IntRegister
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-enum class L2OperandType
+sealed class L2OperandType
 constructor(
 	val canHavePurpose: Boolean = false)
 {
-	/**
-	 * An [L2ConstantOperand] holds a Java object of any type, except
-	 * [AvailObject], which should be handled with a [CONSTANT] operand.
-	 */
-	ARBITRARY_CONSTANT,
-
-	/**
-	 * An [L2ConstantOperand] holds a specific [AvailObject].  The value is
-	 * always made immutable for safety during L2 code generation.  And then
-	 * made shared prior to installing the [L2Chunk].
-	 */
-	CONSTANT,
-
-	/**
-	 * An [L2IntImmediateOperand] holds an [Int] value.
-	 */
-	INT_IMMEDIATE,
-
-	/**
-	 * An [L2FloatImmediateOperand] holds a `double` value.
-	 */
-	FLOAT_IMMEDIATE,
-
-	/**
-	 * An [L2PcOperand] holds an offset into the chunk's instructions,
-	 * presumably for the purpose of branching there at some time and under some
-	 * condition.
-	 */
-	PC(true),
-
-	/**
-	 * An [L2PrimitiveOperand] holds a [Primitive] to be invoked.
-	 */
-	PRIMITIVE,
-
-	/**
-	 * Like a [CONSTANT], the [L2SelectorOperand] holds the actual AvailObject,
-	 * but it is known to be an [A_Bundle].  The [L2Chunk] depends on this
-	 * bundle, invalidating itself if its [definitions][DefinitionDescriptor]
-	 * change.
-	 */
-	SELECTOR,
-
-	/**
-	 * The [L2ReadBoxedOperand] holds the [L2BoxedRegister] that
-	 * will be read.
-	 */
-	READ_BOXED,
-
-	/**
-	 * The [L2WriteBoxedOperand] holds the [L2BoxedRegister] that
-	 * will be written.
-	 */
-	WRITE_BOXED(true),
-
-	/**
-	 * The [L2ReadIntOperand] holds the [L2IntRegister] that
-	 * will be read.
-	 */
-	READ_INT,
-
-	/**
-	 * The [L2WriteIntOperand] holds the [L2IntRegister] that
-	 * will be written.
-	 */
-	WRITE_INT(true),
-
-	/**
-	 * The [L2WriteFloatOperand] holds the [L2FloatRegister] that
-	 * will be read.
-	 */
-	READ_FLOAT,
-
-	/**
-	 * The [L2WriteFloatOperand] holds the [L2FloatRegister] that
-	 * will be written.
-	 */
-	WRITE_FLOAT(true),
-
-	/**
-	 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s which
-	 * will be read.
-	 */
-	READ_BOXED_VECTOR,
-
-	/**
-	 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s which
-	 * will be read.
-	 */
-	READ_INT_VECTOR,
-
-	/**
-	 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s which
-	 * will be read.
-	 */
-	READ_FLOAT_VECTOR,
-
-	/**
-	 * The [L2PcVectorOperand] holds a [List] of [L2PcOperand]s which can be
-	 * the targets of a multi-way jump.
-	 */
-	PC_VECTOR(true),
-
-	/**
-	 * The [L2CommentOperand] holds descriptive text that does not affect
-	 * analysis or execution of level two code.  It is for diagnostic purposes
-	 * only.
-	 */
-	COMMENT;
-
 	/**
 	 * Create a [L2NamedOperandType] from the receiver and a [String] naming its
 	 * role within some [L2Operation].
@@ -212,5 +101,132 @@ constructor(
 	{
 		assert(canHavePurpose)
 		return L2NamedOperandType(this, roleName, purpose)
+	}
+
+	init
+	{
+		@Suppress("LeakingThis")
+		privateAllOperandTypes.add(this)
+	}
+
+	companion object
+	{
+		// A mutable set that will be populated by the constructor invocations
+		// below.
+		private val privateAllOperandTypes = mutableSetOf<L2OperandType>()
+
+		/**
+		 * An [L2ConstantOperand] holds a Java object of any type, except
+		 * [AvailObject], which should be handled with a [CONSTANT] operand.
+		 */
+		object ARBITRARY_CONSTANT : L2OperandType()
+
+		/**
+		 * An [L2ConstantOperand] holds a specific [AvailObject].  The value is
+		 * always made immutable for safety during L2 code generation.  And then
+		 * made shared prior to installing the [L2Chunk].
+		 */
+		object CONSTANT : L2OperandType()
+
+		/**
+		 * An [L2IntImmediateOperand] holds an [Int] value.
+		 */
+		object INT_IMMEDIATE : L2OperandType()
+
+		/**
+		 * An [L2FloatImmediateOperand] holds a `double` value.
+		 */
+		object FLOAT_IMMEDIATE : L2OperandType()
+
+		/**
+		 * An [L2PcOperand] holds an offset into the chunk's instructions,
+		 * presumably for the purpose of branching there at some time and under
+		 * some condition.
+		 */
+		object PC : L2OperandType(true)
+
+		/**
+		 * An [L2PrimitiveOperand] holds a [Primitive] to be invoked.
+		 */
+		object PRIMITIVE : L2OperandType()
+
+		/**
+		 * Like a [CONSTANT], the [L2SelectorOperand] holds the actual
+		 * AvailObject, but it is known to be an [A_Bundle].  The [L2Chunk]
+		 * depends on this bundle, invalidating itself if its
+		 * [definitions][DefinitionDescriptor] change.
+		 */
+		object SELECTOR : L2OperandType()
+
+		/**
+		 * The [L2ReadBoxedOperand] holds the [L2BoxedRegister] that will be
+		 * read.
+		 */
+		object READ_BOXED : L2OperandType()
+
+		/**
+		 * The [L2WriteBoxedOperand] holds the [L2BoxedRegister] that will be
+		 * written.
+		 */
+		object WRITE_BOXED : L2OperandType(true)
+
+		/**
+		 * The [L2ReadIntOperand] holds the [L2IntRegister] that will be read.
+		 */
+		object READ_INT : L2OperandType()
+
+		/**
+		 * The [L2WriteIntOperand] holds the [L2IntRegister] that will be
+		 * written.
+		 */
+		object WRITE_INT : L2OperandType(true)
+
+		/**
+		 * The [L2WriteFloatOperand] holds the [L2FloatRegister] that will be
+		 * read.
+		 */
+		object READ_FLOAT : L2OperandType()
+
+		/**
+		 * The [L2WriteFloatOperand] holds the [L2FloatRegister] that will be
+		 * written.
+		 */
+		object WRITE_FLOAT : L2OperandType(true)
+
+		/**
+		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
+		 * which will be read.
+		 */
+		object READ_BOXED_VECTOR : L2OperandType()
+
+		/**
+		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
+		 * which will be read.
+		 */
+		object READ_INT_VECTOR : L2OperandType()
+
+		/**
+		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
+		 * which will be read.
+		 */
+		object READ_FLOAT_VECTOR : L2OperandType()
+
+		/**
+		 * The [L2PcVectorOperand] holds a [List] of [L2PcOperand]s which can be
+		 * the targets of a multi-way jump.
+		 */
+		object PC_VECTOR : L2OperandType(true)
+
+		/**
+		 * The [L2CommentOperand] holds descriptive text that does not affect
+		 * analysis or execution of level two code.  It is for diagnostic
+		 * purposes only.
+		 */
+		object COMMENT : L2OperandType()
+
+		/**
+		 * An immutable [Set] of each [L2OperandType].
+		 */
+		val allOperandTypes: Set<L2OperandType> = privateAllOperandTypes
 	}
 }

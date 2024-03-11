@@ -46,7 +46,6 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -77,12 +76,12 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// Note that we exclude the values ⊥ and ⊤, as these are not the exact
 		// types of any objects.
 		val restriction = arguments[0].restriction().metaRestriction()
+		val translator = callSiteHelper.translator
 		val writer = translator.generator.boxedWriteTemp(restriction)
 		translator.addInstruction(
 			L2_GET_TYPE,

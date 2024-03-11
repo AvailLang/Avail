@@ -2216,14 +2216,9 @@ enum class SerializerOperation constructor(
 				"char" -> javaClass = Character.TYPE
 				"float" -> javaClass = java.lang.Float.TYPE
 				"double" -> javaClass = java.lang.Double.TYPE
-				else ->
-				{
-					assert(false) {
-						("There are only nine primitive types " +
-							"(and $className is not one of them)!")
-					}
-					throw RuntimeException()
-				}
+				else -> throw AssertionError(
+					"There are only nine primitive types " +
+						"(and $className is not one of them)!")
 			}
 			return equalityPojo(javaClass)
 		}

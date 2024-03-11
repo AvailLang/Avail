@@ -31,21 +31,19 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinalMethod
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -59,7 +57,7 @@ import org.objectweb.asm.MethodVisitor
  */
 object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 	READ_BOXED.named("value"),
-	WRITE_INT.named("metatag ordinal"))
+	WRITE_INT.named("type tag ordinal"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -79,16 +77,26 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 			.append(")")
 	}
 
-	override fun interestingConditions(
+	override fun interestingSplitConditions(
 		instruction: L2Instruction
-	): List<L2SplitCondition>
+	): List<L2SplitCondition?>
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		//val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
 
 		return listOf(
 			L2SplitCondition.L2IsUnboxedIntCondition.unboxedIntCondition(
-				listOf(value.register(), tagOrdinal.register())))
+				listOf(tagOrdinal.register())))
+	}
+
+	/**
+	 * Extract the [L2ReadBoxedOperand] that provided the object whose [TypeTag]
+	 * is being extracted.
+	 */
+	fun sourceOfExtractTag(instruction: L2Instruction): L2ReadBoxedOperand
+	{
+		assert(instruction.operation == this)
+		return instruction.operand(0)
 	}
 
 	override fun generateReplacement(
@@ -107,26 +115,29 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 		{
 			// This tag always applies, and it has no children, not even the
 			// bottom type (which is special in the TypeTag hierarchy).
-			regenerator.targetGenerator.run {
+			regenerator.run {
 				val existingValue =
 					tagOrdinal.semanticValues().firstOrNull {
 						currentManifest.hasSemanticValue(it)
 					}
 				when (existingValue)
 				{
-					null -> addInstruction(
-						L2_MOVE_CONSTANT.unboxedInt,
-						L2IntImmediateOperand(baseTag.ordinal),
-						intWrite(
-							tagOrdinal.semanticValues(),
-							restrictionForConstant(
-								fromInt(baseTag.ordinal),
-								UNBOXED_INT_FLAG)))
+					null ->
+						regenerator.moveRegister(
+							L2_MOVE.unboxedInt,
+							regenerator.unboxedIntConstant(baseTag.ordinal)
+								.semanticValue(),
+							intWrite(
+								tagOrdinal.semanticValues(),
+								intRestrictionForConstant(baseTag.ordinal)
+							).semanticValues())
 					else -> tagOrdinal.semanticValues().forEach { otherValue ->
 						if (!currentManifest.hasSemanticValue(otherValue))
 						{
 							moveRegister(
-								L2_MOVE.unboxedInt, existingValue, otherValue)
+								L2_MOVE.unboxedInt,
+								existingValue,
+								setOf(otherValue))
 						}
 					}
 				}
@@ -152,26 +163,28 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 		{
 			// This tag always applies, and it has no children, not even the
 			// bottom type (which is special in the TypeTag hierarchy).
-			regenerator.targetGenerator.run {
+			regenerator.run {
 				val existingValue =
 					tagOrdinal.semanticValues().firstOrNull {
 						currentManifest.hasSemanticValue(it)
 					}
 				when (existingValue)
 				{
-					null -> addInstruction(
-						L2_MOVE_CONSTANT.unboxedInt,
-						L2IntImmediateOperand(baseTag.ordinal),
+					null -> moveRegister(
+						L2_MOVE.unboxedInt,
+						regenerator.unboxedIntConstant(baseTag.ordinal)
+							.semanticValue(),
 						intWrite(
 							tagOrdinal.semanticValues(),
-							restrictionForConstant(
-								fromInt(baseTag.ordinal),
-								UNBOXED_INT_FLAG)))
+							intRestrictionForConstant(baseTag.ordinal)
+						).semanticValues())
 					else -> tagOrdinal.semanticValues().forEach { otherValue ->
 						if (!currentManifest.hasSemanticValue(otherValue))
 						{
 							moveRegister(
-								L2_MOVE.unboxedInt, existingValue, otherValue)
+								L2_MOVE.unboxedInt,
+								existingValue,
+								setOf(otherValue))
 						}
 					}
 				}

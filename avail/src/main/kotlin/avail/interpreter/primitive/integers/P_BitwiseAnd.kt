@@ -55,7 +55,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.optimizer.L1Translator
+import avail.optimizer.L1Translator.CallSiteHelper
 import kotlin.math.min
 
 /**
@@ -75,7 +75,9 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
 	{
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
@@ -127,23 +129,34 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
-		callSiteHelper: L1Translator.CallSiteHelper
-	): Boolean = L2_BIT_LOGIC_OP.bitwiseAnd.generateBinaryIntOperation(
-		arguments,
-		argumentTypes,
-		callSiteHelper,
-		typeGuaranteeFunction = { restrictedArgTypes ->
-			returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
-		},
-		fallbackBody = {
-			tryToGenerateGeneralPrimitiveInvocation(
-				rawFunction,
-				arguments,
-				argumentTypes,
-				translator,
-				callSiteHelper)
-		})
+		callSiteHelper: CallSiteHelper
+	): Boolean
+	{
+		val translator = callSiteHelper.translator
+		val generator = translator.generator
+		val bound = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		if (bound.lowerBound.equals(bound.upperBound))
+		{
+			// Constant result.
+			callSiteHelper.useAnswer(generator.boxedConstant(bound.lowerBound))
+			return true
+		}
+		return L2_BIT_LOGIC_OP.bitwiseAnd.generateBinaryIntOperation(
+			arguments,
+			argumentTypes,
+			callSiteHelper,
+			typeGuaranteeFunction = { restrictedArgTypes ->
+				returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
+			},
+			fallbackBody = {
+				tryToGenerateGeneralPrimitiveInvocation(
+					rawFunction,
+					arguments,
+					argumentTypes,
+					translator,
+					callSiteHelper)
+			})
+	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(integers, integers), integers)

@@ -36,15 +36,21 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.utility.Strings.repeated
 import avail.utility.Strings.tag
+import avail.utility.Strings.tagIf
+import avail.utility.Strings.truncateTo
 import avail.utility.deepForEach
 import avail.utility.dot.DotWriter
 import avail.utility.dot.DotWriter.AttributeWriter
@@ -52,13 +58,13 @@ import avail.utility.dot.DotWriter.Companion.node
 import avail.utility.dot.DotWriter.CompassPoint
 import avail.utility.dot.DotWriter.DefaultAttributeBlockType
 import avail.utility.dot.DotWriter.GraphWriter
+import avail.utility.notNullAnd
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.ArrayDeque
-import java.util.EnumSet
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.regex.Pattern
 
@@ -114,6 +120,8 @@ import java.util.regex.Pattern
  *   Whether to include descriptions with registers.
  * @param accumulator
  *   The [accumulator][Appendable] for the generated `dot` source text.
+ * @param generator
+ *   The [L2Generator], if any, that is in the process of populating the graph.
  */
 class L2ControlFlowGraphVisualizer constructor(
 	private val fileName: String,
@@ -123,7 +131,8 @@ class L2ControlFlowGraphVisualizer constructor(
 	private val visualizeLiveness: Boolean,
 	private val visualizeManifest: Boolean,
 	private val visualizeRegisterDescriptions: Boolean,
-	private val accumulator: Appendable)
+	private val accumulator: Appendable,
+	private val generator: L2Generator? = null)
 {
 	/**
 	 * Emit a banner.
@@ -206,32 +215,24 @@ class L2ControlFlowGraphVisualizer constructor(
 		writer: GraphWriter,
 		started: Boolean)
 	{
+		val isCurrent = generator.notNullAnd {
+			currentBlock() == basicBlock && !basicBlock.hasControlFlowAtEnd }
 		val rhs = buildString {
 			tag("table", "border" to "0", "cellspacing" to "0") {
 				val instructions = basicBlock.instructions()
-				val first =
-					if (instructions.isNotEmpty()) basicBlock.instructions()[0]
-					else null
 				val (fillcolor: String, fontcolor: String) = when
 				{
+					isCurrent -> currentBlockBackColor to currentBlockForeColor
 					!started -> "#202080/303000" to "#ffffff/e0e0e0"
 					basicBlock.instructions().any {
 						it.operation === L2_UNREACHABLE_CODE
 					} -> "#400000/600000" to "#ffffff/ffffff"
 					basicBlock.isLoopHead ->
 						"#9070ff/302090" to "#000000/f0f0f0"
-					first !== null && first.isEntryPoint ->
+					basicBlock.entryPointOrNull() !== null ->
 						"#ffd394/604000" to "#000000/e0e0e0"
 					else -> "#c1f0f6/104048" to "#000000/e0e0e0"
 				}
-				// The selection of Helvetica as the font is important. Some
-				// renderers, like Viz.js, only seem to fully support a small
-				// number of standard, widely available fonts:
-				//
-				// https://github.com/mdaines/viz.js/issues/82
-				//
-				// In particular, Courier, Arial, Helvetica, and Times are
-				// supported.
 				tag("tr") {
 					tag(
 						"td",
@@ -241,24 +242,22 @@ class L2ControlFlowGraphVisualizer constructor(
 						"sides" to "LTB",
 						"bgcolor" to writer.adjust(fillcolor)
 					) {
-						tag(
-							"font",
-							"face" to "Courier",
-							"color" to writer.adjust(fontcolor)
-						) {
+						font(
+							face = "Courier",
+							color = writer.adjust(fontcolor))
+						{
 							append(escape(basicBlock.name()))
 						}
 						if (basicBlock.debugNote.isNotEmpty())
 						{
-							tag(
-								"font",
-								"face" to "Courier",
-								"color" to writer.adjust(commentTextColor)
-							) {
-								basicBlock.debugNote.lines().forEach { line ->
-									append("<br/>")
-									append(escape(line))
-								}
+							font(
+								face = "Courier",
+								color = writer.adjust(commentTextColor))
+							{
+								basicBlock.debugNote.lines().joinTo(
+									this@buildString,
+									"<br/>",
+									transform = ::escape)
 							}
 						}
 					}
@@ -269,12 +268,11 @@ class L2ControlFlowGraphVisualizer constructor(
 						"sides" to "RTB",
 						"bgcolor" to writer.adjust(fillcolor)
 					) {
-						tag(
-							"font",
-							"face" to "Courier",
-							"color" to writer.adjust(commentTextColor)
-						) {
-							append("#" + (basicBlockNumbers[basicBlock]?:"?"))
+						font(
+							face = "Courier",
+							color = writer.adjust(commentTextColor))
+						{
+							append("#" + (basicBlockNumbers[basicBlock] ?: "?"))
 						}
 					}
 				}
@@ -293,7 +291,7 @@ class L2ControlFlowGraphVisualizer constructor(
 							if (instruction.isPlaceholder) {
 								cellAttributes.add(
 									"bgcolor" to
-										writer.adjust("#ff9090/#500000"))
+										writer.adjust("#ffC090/#604800"))
 							}
 							tag("td", *cellAttributes.toTypedArray()) {
 								append(instruction(instruction, writer))
@@ -320,8 +318,37 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		try
 		{
-			writer.node(basicBlockName(basicBlock))
-				{ it.attribute("label", rhs) }
+			writer.node(basicBlockName(basicBlock)) {
+				it.attribute("label", rhs)
+			}
+			if (isCurrent)
+			{
+				val manifestText = buildString {
+					tag("table", "border" to "0", "cellspacing" to "0") {
+						tag("tr") {
+							tag("td", "balign" to "left") {
+								manifest(
+									generator!!.currentManifest,
+									writer,
+									generator.currentBlock()
+										.predecessorEdges())
+							}
+						}
+					}
+				}
+				val manifestNodeName = "(current manifest)"
+				writer.node(manifestNodeName) {
+					it.attribute("label", manifestText)
+				}
+				// Draw an edge from the current block to its manifest, which is
+				// written as a vertex with no border.
+				writer.edge(basicBlockName(basicBlock), manifestNodeName) {
+					it.attribute("style", "dashed")
+					it.attribute("arrowhead", "dot")
+					it.attribute(
+						"color", writer.adjust(currentBlockBackColor))
+				}
+			}
 		}
 		catch (e: IOException)
 		{
@@ -362,20 +389,12 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		val type = types[operandIndex]
 		val basicName = edge.optionalName ?: type.name()
-		// The selection of Helvetica as the font is important. Some
-		// renderers, like Viz.js, only seem to fully support a small number
-		// of standard, widely available fonts:
-		//
-		// https://github.com/mdaines/viz.js/issues/82
-		//
-		// In particular, Courier, Arial, Helvetica, and Times are
-		// supported.
 		val edgeLabel = buildString {
 			tag("table", "border" to "0", "cellspacing" to "0") {
 				tag("tr") {
 					tag("td", "balign" to "left") {
-						tag("font", "face" to "Helvetica") {
-							tag("b") { append(escape(basicName)) }
+						font(bold = true) {
+							append(escape(basicName))
 						}
 						append("<br/>")
 
@@ -387,9 +406,9 @@ class L2ControlFlowGraphVisualizer constructor(
 							// declared always live along this edge, and act as
 							// the (cycle breaking) end-roots for dead code
 							// analysis.
-							tag("i") { append("CLAMPED:") }
+							font(italic = true) { append("CLAMPED:") }
 							append("<br/>")
-							tag("b") {
+							font(bold = true) {
 								append(repeated("&nbsp;", 4))
 								append(escape(edge.forcedClampedEntities))
 							}
@@ -399,12 +418,14 @@ class L2ControlFlowGraphVisualizer constructor(
 						{
 							if (edge.alwaysLiveInRegisters.isNotEmpty())
 							{
-								tag("i") { append("always live-in:") }
+								font(italic = true) {
+									append("always live-in:")
+								}
 								append("<br/>")
-								tag("b") {
+								font(bold = true) {
 									append(repeated("&nbsp;", 4))
 									edge.alwaysLiveInRegisters
-										.sortedBy { it.finalIndex() }
+										.sortedBy(L2Register<*>::finalIndex)
 										.joinTo(this, ", ") { escape(it) }
 								}
 								append("<br/>")
@@ -415,25 +436,25 @@ class L2ControlFlowGraphVisualizer constructor(
 								edge.alwaysLiveInRegisters)
 							if (notAlwaysLiveInRegisters.isNotEmpty())
 							{
-								tag("i") {
+								font(italic = true) {
 									append("sometimes live-in:")
 								}
 								append("<br/>")
-								tag("b") {
+								font(bold = true) {
 									append(repeated("&nbsp;", 4))
 									notAlwaysLiveInRegisters
-										.sortedBy { it.finalIndex() }
-										.joinTo(this, ", ") {
-											escape(it)
-										}
+										.sortedBy(L2Register<*>::finalIndex)
+										.joinTo(this, ", ") { escape(it) }
 								}
 								append("<br/>")
 							}
 						}
 						val manifest = edge.manifestOrNull()
+						val predecessorEdges =
+							edge.instruction.basicBlock().predecessorEdges()
 						if (visualizeManifest && manifest != null)
 						{
-							manifest(manifest, writer)
+							manifest(manifest, writer, predecessorEdges)
 						}
 					}
 				}
@@ -462,7 +483,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			) { attr: AttributeWriter ->
 				// Number each edge uniquely, to allow a multigraph.
 				attr.attribute(
-					"id", (edgeCounter.getAndIncrement()).toString())
+					"id", edgeCounter.getAndIncrement().toString())
 				if (!started)
 				{
 					attr.attribute("color", "#4040ff/8080ff")
@@ -518,61 +539,40 @@ class L2ControlFlowGraphVisualizer constructor(
 	 */
 	private fun StringBuilder.manifest(
 		manifest: L2ValueManifest,
-		writer: GraphWriter)
+		writer: GraphWriter,
+		predecessorEdges: Iterable<L2PcOperand>)
 	{
 		val synonyms = manifest.synonymsArray()
 		if (synonyms.isNotEmpty())
 		{
-			tag("i") { append("manifest:") }
+			font(italic = true) { append("manifest:") }
 			synonyms.sort()
 			for (synonym in synonyms)
 			{
-				// If the restriction flags and the available
-				// register kinds disagree, show the synonym
-				// entry in red.
-				val restriction = manifest.restrictionFor(
-					synonym.pickSemanticValue())
-				val defs = manifest.definitionsForDescribing(
-					synonym)
-				val kindsOfRegisters =
-					EnumSet.noneOf(RegisterKind::class.java)
-				for (register in defs)
-				{
-					kindsOfRegisters.add(register.registerKind)
-				}
-				val body: StringBuilder.()->Unit = {
-					append("<br/>")
-					append(repeated("&nbsp;", 4))
-					append(escape(synonym))
-					append("<br/>")
-					append(repeated("&nbsp;", 8))
-					append(":&nbsp;")
-					append(escape(restriction))
-					append("<br/>")
-					append(repeated("&nbsp;", 8))
-					defs.joinTo(this, ", ", "in {", "}") { it.toString() }
-				}
-				if (restriction.kinds() == kindsOfRegisters)
-					body()
-				else
-					tag(
-						"font",
-						"color" to writer.adjust(errorTextColor),
-						body = body)
+				val pick = synonym.pickSemanticValue()
+				synonym(
+					writer,
+					synonym,
+					manifest.restrictionFor(pick),
+					manifest.getDefinitions(pick),
+					predecessorEdges)
 			}
 		}
-		manifest.postponedInstructions.let { postponements ->
-			append("<br/>")
-			tag("i") { append("postponements:") }
-			append("<br/>")
+		manifest.postponedInstructions().let { postponements ->
+			if (postponements.isNotEmpty())
+			{
+				append("<br/>")
+				font(italic = true) { append("postponements:") }
+				append("<br/>")
+			}
 			val sortedSubmap = postponements.entries.sortedBy { it.key }
 			sortedSubmap.forEach { (semanticValue, oldInstructions) ->
-				tag(
-					"font",
-					"color" to writer.adjust(errorTextColor))
+				font(color = writer.adjust(
+					if (semanticValue.kind == BOXED_KIND) postponementsColor
+					else unboxedSynonymColor))
 				{
 					append(repeated("&nbsp;", 4))
-					append(semanticValue.kind)
+					append(semanticValue.kind.kindName)
 					append("/")
 					append(escape(semanticValue))
 					append(" = ")
@@ -592,6 +592,98 @@ class L2ControlFlowGraphVisualizer constructor(
 					append("<br/>")
 				}
 			}
+		}
+	}
+
+	private fun StringBuilder.synonym(
+		writer: GraphWriter,
+		synonym: L2Synonym<*>,
+		restriction: TypeRestriction,
+		definitions: Iterable<L2Register<*>>,
+		predecessorEdges: Iterable<L2PcOperand>)
+	{
+		// If the restriction flags and the available register kinds disagree,
+		// show the synonym entry in red.
+		val kindsOfRegisters = mutableSetOf<RegisterKind<*>>()
+		synonym.semanticValues().mapTo(kindsOfRegisters) { it.kind }
+		definitions.mapTo(kindsOfRegisters, L2Register<*>::kind)
+		// If any edge has a different synonym or the synonym has a different
+		// constraint than in any predecessor edge's manifest, highlight this
+		// synonym to show that the basic block altered it in some way.
+		var newSynonym = false
+		var changedSynonym = false
+		var changedRestriction = false
+		var changedDefinitions = false
+		predecessorEdges.forEach { previousEdge ->
+			val otherManifest = previousEdge.manifest()
+			val pick = synonym.semanticValues().firstNotNullOfOrNull {
+				otherManifest.equivalentSemanticValue(it)
+			}
+			if (pick == null)
+			{
+				// None of the semantic values of the synonym are present in
+				// that previous edge.  This will color the entire entry to show
+				// the synonym is new.
+				newSynonym = true
+				return@forEach
+			}
+			val otherSynonym = otherManifest.semanticValueToSynonym(pick)
+			if (otherSynonym != synonym)
+			{
+				// The synonym membership has changed, so highlight the synonym
+				// line.
+				changedSynonym = true
+			}
+			if (otherManifest.restrictionFor(pick) != restriction)
+			{
+				// The restriction changed (or is entirely new).
+				changedRestriction = true
+			}
+			if (otherManifest.getDefinitions(pick) != definitions)
+			{
+				// There's a new or removed definition.
+				changedDefinitions = true
+			}
+		}
+		val isError = (kindsOfRegisters.size != 1 || restriction.isImpossible)
+		val isUnboxed = kindsOfRegisters != setOf(BOXED_KIND)
+		val (synonymColor, restrictionColor, definitionsColor) = when
+		{
+			isError -> listOf(errorTextColor, errorTextColor, errorTextColor)
+			newSynonym -> listOf(newEntryColor, newEntryColor, newEntryColor)
+			else ->
+				listOf(
+					when
+					{
+						changedSynonym -> changedEntryColor
+						isUnboxed -> unboxedSynonymColor
+						else -> null
+					},
+					if (changedRestriction) changedEntryColor else null,
+					if (changedDefinitions) changedEntryColor else null)
+		}
+		append("<br/>")
+		font(color = writer.adjust(synonymColor ?: "")) {
+			append(repeated("&nbsp;", 4))
+			// Truncate synonyms of Constant(nil), since they tend to be long
+			// and not very interesting.
+			var synonymText = synonym.toString()
+			if (restriction.constantOrNull.notNullAnd { isNil })
+			{
+				synonymText = synonymText.truncateTo(30)
+			}
+			append(escape(synonymText))
+		}
+		append("<br/>")
+		font(color = writer.adjust(restrictionColor ?: "")) {
+			append(repeated("&nbsp;", 8))
+			append(":&nbsp;")
+			append(escape(restriction))
+		}
+		append("<br/>")
+		font(color = writer.adjust(definitionsColor ?: "")) {
+			append(repeated("&nbsp;", 8))
+			definitions.joinTo(this, ", ", "in {", "}")
 		}
 	}
 
@@ -686,16 +778,17 @@ class L2ControlFlowGraphVisualizer constructor(
 			// In particular, Courier, Arial, Helvetica, and Times are
 			// supported.
 			writer.graph { graph: GraphWriter ->
+				graph.attribute("fontname", "Helvetica")
 				graph.attribute("bgcolor", "#00ffff/000000")
 				graph.attribute("rankdir", "TB")
 				graph.attribute("newrank", "true")
 				graph.attribute("overlap", "false")
 				graph.attribute("splines", "true")
 				graph.defaultAttributeBlock(DefaultAttributeBlockType.NODE) {
+					it.attribute("fontname", "Helvetica")
 					it.attribute("bgcolor", "#ffffff/a0a0a0")
 					it.attribute("color", "#000000/b0b0b0")
 					it.attribute("fixedsize", "false")
-					it.attribute("fontname", "Helvetica")
 					it.attribute("fontsize", "11")
 					it.attribute("fontcolor", "#000000/d0d0d0")
 					it.attribute("shape", "none")
@@ -763,27 +856,16 @@ class L2ControlFlowGraphVisualizer constructor(
 	): String = buildString {
 		// Hoist a comment operand, if one is present.
 		instruction.operands.forEach { operand: L2Operand ->
-			if (operand.operandType === L2OperandType.COMMENT)
+			if (operand.operandType === COMMENT)
 			{
-				// The selection of Helvetica as the font is important. Some
-				// renderers, like Viz.js, only seem to fully support a
-				// small number of standard, widely available fonts:
-				//
-				// https://github.com/mdaines/viz.js/issues/82
-				//
-				// In particular, Courier, Arial, Helvetica, and Times are
-				// supported.
-				tag(
-					"font",
-					"face" to "Helvetica",
-					"color" to writer.adjust(
+				font(
+					italic = true,
+					color = writer.adjust(
 						operand.isMisconnected,
 						errorTextColor,
-						commentTextColor)
-				) {
-					tag("i") {
-						append(escape(operand))
-					}
+						commentTextColor))
+				{
+					append(escape(operand))
 				}
 				append("<br/>")
 			}
@@ -791,9 +873,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		// Make a note of the current length of the builder. We will need to
 		// escape everything after this point.
 		val escapeIndex = length
-		val desiredTypes: Set<L2OperandType> =
-			EnumSet.complementOf(
-				EnumSet.of(L2OperandType.PC, L2OperandType.COMMENT))
+		val desiredTypes = L2OperandType.allOperandTypes - listOf(PC, COMMENT)
 		if (instruction.operation === L2_JUMP
 			&& instruction.offset != -1
 			&& (L2_JUMP.jumpTarget(instruction).offset()
@@ -801,31 +881,29 @@ class L2ControlFlowGraphVisualizer constructor(
 		{
 			// Show fall-through jumps in grey.
 			val edge = L2_JUMP.jumpTarget(instruction)
-			tag(
-				"font",
-				"color" to writer.adjust(
+			font(
+				italic = true,
+				color = writer.adjust(
 					edge.isMisconnected,
 					errorTextColor,
-					"#404040/808080")
-			) {
-				tag("i") {
-					val escapableStart = length
-					if (visualizeRegisterDescriptions)
-					{
-						instruction.operation.appendToWithWarnings(
-							instruction, desiredTypes, this) { }
-					}
-					else
-					{
-						// Use a simplified instruction output.
-						instruction.operation.simpleAppendTo(
-							instruction, this)
-					}
-					replace(
-						escapableStart,
-						length,
-						escape(substring(escapableStart)))
+					"#404040/808080"))
+			{
+				val escapableStart = length
+				if (visualizeRegisterDescriptions)
+				{
+					instruction.operation.appendToWithWarnings(
+						instruction, desiredTypes, this) { }
 				}
+				else
+				{
+					// Use a simplified instruction output.
+					instruction.operation.simpleAppendTo(
+						instruction, this)
+				}
+				replace(
+					escapableStart,
+					length,
+					escape(substring(escapableStart)))
 			}
 			append("<br/>")
 		}
@@ -885,7 +963,27 @@ class L2ControlFlowGraphVisualizer constructor(
 		 */
 		private const val errorTextColor = "#e04040/ff6060"
 
+		/**
+		 * A color [String] suitable for [GraphWriter.adjust], specifying what
+		 * background color to use for an [L2Generator]'s current block.
+		 */
+		private const val currentBlockBackColor = "#c08080/803030"
+
+		/**
+		 * A color [String] suitable for [GraphWriter.adjust], specifying what
+		 * foreground text color to use for an [L2Generator]'s current block.
+		 */
+		private const val currentBlockForeColor = "#200000/ffd0d0"
+
 		private const val commentTextColor = "#404040/a0a0a0"
+
+		private const val unboxedSynonymColor = "#4040c0/a0a0f0"
+
+		private const val postponementsColor = "#803030/ffc0c0"
+
+		private const val newEntryColor = "#209020/b0ffb0"
+
+		private const val changedEntryColor = "#909020/e0e0a0"
 
 		/** Characters that should be removed outright from class names. */
 		private val matchUglies = Pattern.compile("[\"\\\\]")
@@ -928,6 +1026,42 @@ class L2ControlFlowGraphVisualizer constructor(
 					}
 				}
 				i += Character.charCount(cp)
+			}
+		}
+	}
+}
+
+fun StringBuilder.font(
+	face: String? = null,
+	size: Int? = null,
+	bold: Boolean = false,
+	italic: Boolean = false,
+	color: String? = null,
+	body: StringBuilder.()->Unit)
+{
+	if (face === null
+		&& size === null
+		&& !bold
+		&& !italic
+		&& (color === null || color.isEmpty()))
+	{
+		body()
+		return
+	}
+	val attributes = mutableListOf<Pair<String, String>>()
+	face?.let { attributes.add("face" to face) }
+	size?.let { attributes.add("point-size" to size.toString()) }
+	if (color.notNullAnd(String::isNotEmpty)) attributes.add("color" to color!!)
+	tagIf(
+		attributes.isNotEmpty(),
+		"font",
+		*attributes.toTypedArray())
+	{
+		tagIf(bold, "B")
+		{
+			tagIf(italic, "I")
+			{
+				body()
 			}
 		}
 	}

@@ -36,9 +36,9 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -69,14 +69,19 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		manifest: L2ValueManifest)
 	{
 		assert(this == instruction.operation)
-		//		final L2ReadIntOperand augendReg = instruction.operand(0);
-//		final L2ReadIntOperand addendReg = instruction.operand(1);
+		val augendReg = instruction.operand<L2ReadIntOperand>(0)
+		val addendReg = instruction.operand<L2ReadIntOperand>(1)
 		val sumReg = instruction.operand<L2WriteIntOperand>(2)
-		//		final L2PcOperand outOfRange = instruction.operand(3);
+		val outOfRange = instruction.operand<L2PcOperand>(3)
 		val inRange = instruction.operand<L2PcOperand>(4)
-		super.instructionWasAdded(instruction, manifest)
-		inRange.manifest().intersectType(
-			sumReg.pickSemanticValue(), i32)
+
+		augendReg.instructionWasAdded(manifest)
+		addendReg.instructionWasAdded(manifest)
+		outOfRange.instructionWasAdded(manifest)
+		// The remaining changes only affect the inRange case.
+		sumReg.instructionWasAdded(manifest)
+		manifest.intersectType(sumReg.pickSemanticValue(), i32)
+		inRange.instructionWasAdded(manifest)
 	}
 
 	// It jumps if the result doesn't fit in an int.
@@ -89,28 +94,30 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation)
-		val augend = instruction.operand<L2ReadIntOperand>(0)
-		val addend = instruction.operand<L2ReadIntOperand>(1)
-		val sum = instruction.operand<L2WriteIntOperand>(2)
-		//		final L2PcOperand outOfRange = instruction.operand(3);
-//		final L2PcOperand inRange = instruction.operand(4);
+		val augendReg = instruction.operand<L2ReadIntOperand>(0)
+		val addendReg = instruction.operand<L2ReadIntOperand>(1)
+		val sumReg = instruction.operand<L2WriteIntOperand>(2)
+		//val outOfRange = instruction.operand<L2PcOperand>(3)
+		//val inRange = instruction.operand<L2PcOperand>(4)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
-		builder.append(sum.registerString())
+		builder.append(sumReg.registerString())
 		builder.append(" ← ")
-		builder.append(augend.registerString())
+		builder.append(augendReg.registerString())
 		builder.append(" + ")
-		builder.append(addend.registerString())
+		builder.append(addendReg.registerString())
 		renderOperandsStartingAt(instruction, 3, desiredTypes, builder)
 	}
 
-	override fun interestingConditions(
+	override fun interestingSplitConditions(
 		instruction: L2Instruction
-	): List<L2SplitCondition>
+	): List<L2SplitCondition?>
 	{
 		val augendReg = instruction.operand<L2ReadIntOperand>(0)
 		val addendReg = instruction.operand<L2ReadIntOperand>(1)
 		val sumReg = instruction.operand<L2WriteIntOperand>(2)
+		//val outOfRange = instruction.operand<L2PcOperand>(3)
+		//val inRange = instruction.operand<L2PcOperand>(4)
 		return listOf(
 			L2SplitCondition.L2IsUnboxedIntCondition.unboxedIntCondition(
 				listOf(

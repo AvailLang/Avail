@@ -34,7 +34,6 @@ package avail.utility.structures
 
 import avail.descriptor.representation.AvailObject
 import avail.utility.unvlqInt
-import avail.utility.unvlqLong
 import avail.utility.vlq
 import java.io.DataInputStream
 import java.io.DataOutputStream

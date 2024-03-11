@@ -35,8 +35,8 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -86,9 +86,9 @@ object L2_UNBOX_INT : L2Operation(
 		translator.store(method, destination.register())
 	}
 
-	override fun interestingConditions(
+	override fun interestingSplitConditions(
 		instruction: L2Instruction
-	): List<L2SplitCondition>
+	): List<L2SplitCondition?>
 	{
 		val source = instruction.operand<L2ReadBoxedOperand>(0)
 		val destination = instruction.operand<L2WriteIntOperand>(1)
@@ -106,8 +106,7 @@ object L2_UNBOX_INT : L2Operation(
 
 		// Synonyms of ints are tricky, so check if there's an int version of
 		// a synonym of the source available.
-		val generator = regenerator.targetGenerator
-		val manifest = generator.currentManifest
+		val manifest = regenerator.currentManifest
 		for (otherBoxed in
 			manifest.semanticValueToSynonym(source.semanticValue())
 				.semanticValues())
@@ -115,14 +114,15 @@ object L2_UNBOX_INT : L2Operation(
 			val otherUnboxed = L2SemanticUnboxedInt(otherBoxed)
 			if (manifest.hasSemanticValue(otherUnboxed))
 			{
+				if (manifest.getDefinitions(otherUnboxed).isEmpty()) continue
 				// It's already unboxed in an int register.  Make sure each
 				// destination int semantic value gets written.
 				for (destInt in destination.semanticValues())
 				{
 					if (!manifest.hasSemanticValue(destInt))
 					{
-						generator.moveRegister(
-							L2_MOVE.unboxedInt, otherUnboxed, destInt)
+						regenerator.moveRegister(
+							L2_MOVE.unboxedInt, otherUnboxed, setOf(destInt))
 					}
 				}
 				return

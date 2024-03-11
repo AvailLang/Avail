@@ -238,7 +238,7 @@ constructor(
 	override fun dumpChunk(): String
 	{
 		val translator = JVMTranslator(
-			code, name(), null, controlFlowGraph, instructions)
+			code, name, null, controlFlowGraph, instructions)
 		val savedDebugFlag = JVMTranslator.debugJVM
 		JVMTranslator.debugJVM = true
 		try

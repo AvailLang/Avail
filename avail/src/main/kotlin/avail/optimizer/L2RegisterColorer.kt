@@ -64,7 +64,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		 * The [Set] of [L2Register]s that may have the same color because they
 		 * don't carry values at the same time.
 		 */
-		val registers = mutableSetOf<L2Register?>()
+		val registers = mutableSetOf<L2Register<*>?>()
 
 		/** This group's final coloring, or -1 during calculation. */
 		var finalIndex = -1
@@ -83,13 +83,14 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	/**
 	 * The [List] of all [L2Register]s that occur in the control flow graph.
 	 */
-	private val allRegisters: List<L2Register> = controlFlowGraph.allRegisters()
+	private val allRegisters: List<L2Register<*>> =
+		controlFlowGraph.allRegisters()
 
 	/**
 	 * The unique number of the register being traced from its uses back to its
 	 * definition(s).
 	 */
-	private var registerBeingTraced: L2Register? = null
+	private var registerBeingTraced: L2Register<*>? = null
 
 	/**
 	 * A map from registers to sets of registers that can be colored the same
@@ -101,7 +102,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	 * interference graph first.  We populate the registerSets with singleton
 	 * sets before this.
 	 */
-	private val registerGroups = mutableMapOf<L2Register, RegisterGroup>()
+	private val registerGroups = mutableMapOf<L2Register<*>, RegisterGroup>()
 
 	/**
 	 * The set of blocks that so far have been reached, but not necessarily
@@ -140,16 +141,11 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				val instruction = read.instruction
 				if (instruction.operation.isPhi)
 				{
-					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
+					val phiOperation: L2_PHI_PSEUDO_OPERATION<*> =
 						instruction.operation.cast()
-					for (predBlock in phiOperation.predecessorBlocksForUseOf(
-						instruction, reg))
-					{
-						if (reachedBlocks.add(predBlock))
-						{
-							blocksToTrace.add(predBlock)
-						}
-					}
+					phiOperation.predecessorBlocksForUseOf(
+						instruction, reg
+					).filterTo(blocksToTrace, reachedBlocks::add)
 				}
 				else
 				{
@@ -212,7 +208,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				// Register banks are numbered independently, so the notion
 				// of interference between registers in different banks is
 				// moot (i.e., they don't interfere).
-				if (registerBeingTraced!!.registerKind !== written.registerKind)
+				if (registerBeingTraced!!.kind !== written.kind)
 				{
 					continue
 				}

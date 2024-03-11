@@ -47,7 +47,7 @@ import java.nio.file.Paths
  * A [JVMChunk] is an [ExecutableChunk] for the Java Virtual Machine. It is
  * produced by a [JVMTranslator] on behalf of an [L2Generator] that has just
  * completed a
- * [translation&#32;or&#32;optimization][L1Translator.translateToLevelTwo].
+ * [translation&#32;or&#32;optimization][L1Translator].
  *
  * In the initial cheesy version of JVM translation, the generated subclasses of
  * `JVMChunk` simply embed the reified [L2Instruction]s directly and execute
@@ -134,6 +134,101 @@ constructor() : ExecutableChunk
 			JVMChunk::class.java,
 			::noObjects.name,
 			Array<AvailObject>::class.java)
+
+		/** Create an array containing one [AvailObject]. */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun createObjectArray1(
+			value1: AvailObject
+		): Array<AvailObject> =
+			arrayOf(value1)
+
+		/** The [CheckedMethod] for [createObjectArray1]. */
+		val createObjectArray1Method = CheckedMethod.staticMethod(
+			JVMChunk::class.java,
+			::createObjectArray1.name,
+			Array<AvailObject>::class.java,
+			AvailObject::class.java)
+
+		/** Create an array containing 2 [AvailObject]s. */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun createObjectArray2(
+			value1: AvailObject,
+			value2: AvailObject
+		): Array<AvailObject> =
+			arrayOf(value1, value2)
+
+		/** The [CheckedMethod] for [createObjectArray2]. */
+		val createObjectArray2Method = CheckedMethod.staticMethod(
+			JVMChunk::class.java,
+			::createObjectArray2.name,
+			Array<AvailObject>::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** Create an array containing 3 [AvailObject]s. */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun createObjectArray3(
+			value1: AvailObject,
+			value2: AvailObject,
+			value3: AvailObject
+		): Array<AvailObject> =
+			arrayOf(value1, value2, value3)
+
+		/** The [CheckedMethod] for [createObjectArray3]. */
+		val createObjectArray3Method = CheckedMethod.staticMethod(
+			JVMChunk::class.java,
+			::createObjectArray3.name,
+			Array<AvailObject>::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** Create an array containing 4 [AvailObject]s. */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun createObjectArray4(
+			value1: AvailObject,
+			value2: AvailObject,
+			value3: AvailObject,
+			value4: AvailObject
+		): Array<AvailObject> =
+			arrayOf(value1, value2, value3, value4)
+
+		/** The [CheckedMethod] for [createObjectArray4]. */
+		val createObjectArray4Method = CheckedMethod.staticMethod(
+			JVMChunk::class.java,
+			::createObjectArray4.name,
+			Array<AvailObject>::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		/** Create an array containing 5 [AvailObject]s. */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun createObjectArray5(
+			value1: AvailObject,
+			value2: AvailObject,
+			value3: AvailObject,
+			value4: AvailObject,
+			value5: AvailObject
+		): Array<AvailObject> =
+			arrayOf(value1, value2, value3, value4, value5)
+
+		/** The [CheckedMethod] for [createObjectArray5]. */
+		val createObjectArray5Method = CheckedMethod.staticMethod(
+			JVMChunk::class.java,
+			::createObjectArray5.name,
+			Array<AvailObject>::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java,
+			AvailObject::class.java)
 
 		/**
 		 * Throw a [RuntimeException] on account of a bad offset into the

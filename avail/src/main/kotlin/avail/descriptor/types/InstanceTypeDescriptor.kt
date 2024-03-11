@@ -46,7 +46,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
@@ -409,10 +408,7 @@ private constructor(
 				isSet -> singleInt(setSize)
 				isMap -> singleInt(mapSize)
 				else ->
-				{
-					assert(false) { "Unexpected instance for sizeRange" }
-					nil
-				}
+					throw AssertionError("Unexpected instance for sizeRange")
 			}
 		}
 

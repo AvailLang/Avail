@@ -32,7 +32,9 @@
 package avail.optimizer.values
 
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.representation.AvailObject
+import avail.interpreter.levelTwo.register.BOXED_KIND
 
 /**
  * A semantic value which represents a slot of some [Frame]'s effective
@@ -65,7 +67,7 @@ internal class L2SemanticSlot constructor(
 	frame: Frame,
 	val slotIndex: Int,
 	val pcAfter: Int,
-	val optionalName: String?
+	private val optionalName: String?
 ) : L2FrameSpecificSemanticValue(
 	frame, slotIndex * AvailObject.multiplier xor pcAfter)
 {
@@ -75,16 +77,18 @@ internal class L2SemanticSlot constructor(
 	}
 
 	// Note: Ignore the optionalName.
-	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		(other is L2SemanticSlot
 			&& super.equalsSemanticValue(other)
 			&& slotIndex == other.slotIndex
 			&& pcAfter == other.pcAfter)
 
 	override fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer(frame()).let {
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticBoxedValue =
+		frameTransformer(frame()).let {
 			if (it == frame()) this
 			else L2SemanticSlot(it, slotIndex, pcAfter, optionalName)
 		}

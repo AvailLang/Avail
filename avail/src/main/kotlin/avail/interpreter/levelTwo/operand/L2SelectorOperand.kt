@@ -39,6 +39,7 @@ import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.SELECTOR
 
 /**
  * An `L2SelectorOperand` is an operand of type [L2OperandType.SELECTOR].  It
@@ -61,8 +62,7 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2SelectorOperand constructor(val bundle: A_Bundle) : L2Operand()
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.SELECTOR
+	override val operandType: L2OperandType get() = SELECTOR
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

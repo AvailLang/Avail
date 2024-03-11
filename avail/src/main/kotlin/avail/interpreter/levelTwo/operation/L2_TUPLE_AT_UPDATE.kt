@@ -34,13 +34,15 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -82,7 +84,7 @@ object L2_TUPLE_AT_UPDATE : L2Operation(
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
+		tupleReg: L2ReadOperand<BOXED_KIND>,
 		index: Int,
 		generator: L2Generator
 	): L2ReadBoxedOperand

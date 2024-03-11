@@ -49,6 +49,8 @@ import org.objectweb.asm.Opcodes
  */
 object L2_UNREACHABLE_CODE : L2ControlFlowOperation()
 {
+	override val isCold: Boolean get() = true
+
 	override val hasSideEffect get() = true
 
 	/**

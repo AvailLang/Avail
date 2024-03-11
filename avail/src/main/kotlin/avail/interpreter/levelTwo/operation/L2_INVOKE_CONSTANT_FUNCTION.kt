@@ -31,25 +31,36 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.Primitive.Flag.Invokes
+import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -92,17 +103,67 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 		val constantFunction = instruction.operand<L2ConstantOperand>(0)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val result = instruction.operand<L2WriteBoxedOperand>(2)
-		//		final L2PcOperand onReturn = instruction.operand(3);
-		//		final L2PcOperand onReification = instruction.operand(4);
-		renderPreamble(instruction, builder)
-		builder.append(' ')
-		builder.append(result.registerString())
-		builder.append(" ← ")
-		builder.append(constantFunction.constant)
-		builder.append("(")
-		builder.append(arguments.elements)
-		builder.append(")")
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		//val onReturn = instruction.operand<L2PcOperand>(3)
+		//val onReification = instruction.operand<L2PcOperand>(4)
+
+		val function = constantFunction.constant
+		with(builder) {
+			renderPreamble(instruction, builder)
+			append(' ')
+			append(result.registerString())
+			append(" ← /* ")
+			append(function.code().methodName.asNativeString())
+			append(" */\n")
+			append(function)
+			append("(")
+			append(arguments.elements)
+			append(")")
+			renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		}
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		// See if the new situation has become specialized enough to invoke a
+		// primitive that's infallible for these arguments.
+		val constantFunction = transformedOperands[0] as L2ConstantOperand
+		val arguments = transformedOperands[1] as L2ReadBoxedVectorOperand
+		val result = transformedOperands[2] as L2WriteBoxedOperand
+		val onReturn = transformedOperands[3] as L2PcOperand
+		//val onReification = transformedOperands[4] as L2PcOperand
+
+		val rawFunction = constantFunction.constant.code()
+		val primitive = rawFunction.codePrimitive()
+			?: return super.emitTransformedInstruction(
+				transformedOperands, regenerator)
+		val argumentTypes = arguments.elements.map(L2ReadBoxedOperand::type)
+		when
+		{
+			!primitive.hasFlag(CanInline) -> { }
+			primitive.hasFlag(CanSwitchContinuations) -> { }
+			primitive.hasFlag(Invokes) -> { }
+			primitive.hasFlag(Unknown) -> { }
+			primitive.fallibilityForArgumentTypes(argumentTypes)
+				== CallSiteCannotFail ->
+			{
+				val resultType = primitive.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
+				regenerator.addInstruction(
+					L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
+					L2ConstantOperand(rawFunction),
+					L2PrimitiveOperand(primitive),
+					arguments,
+					regenerator.boxedWrite(
+						result.semanticValues(),
+						result.restriction().intersectionWithType(resultType)))
+				// Don't forget to jump to the onReturn edge's target.
+				regenerator.jumpTo(onReturn.targetBlock())
+				return
+			}
+		}
+		super.emitTransformedInstruction(transformedOperands, regenerator)
 	}
 
 	override fun translateToJVM(

@@ -46,6 +46,7 @@ import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
@@ -61,15 +62,15 @@ import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2ControlFlowOperation
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2Generator
@@ -92,6 +93,7 @@ import org.objectweb.asm.MethodVisitor
  * Avail implementation, but modern hardware has enough memory that this should
  * really always be present.
  *
+ * @
  * @constructor
  *   Protect the constructor so the subclasses can maintain a fly-weight pattern
  *   (or arguably a singleton).
@@ -157,14 +159,14 @@ protected constructor(
 	 * [L2Instruction]s using this operation.  Note that all reads are
 	 * considered to happen before all writes.
 	 */
-	var readsHiddenVariablesMask = 0
+	private var readsHiddenVariablesMask = 0
 
 	/**
 	 * The bitwise-or of the masks of [HiddenVariable]s that are overwritten by
 	 * [L2Instruction]s using this operation.  Note that all reads are
 	 * considered to happen before all writes.
 	 */
-	var writesHiddenVariablesMask = 0
+	private var writesHiddenVariablesMask = 0
 
 	/**
 	 * Is the enclosing [L2Instruction] an entry point into its [L2Chunk]?
@@ -184,7 +186,7 @@ protected constructor(
 		theNamedOperandTypes.clone().also { types ->
 			assert(this is L2ControlFlowOperation
 				|| this is L2_SAVE_ALL_AND_PC_TO_INT
-				|| types.none { it.operandType() == L2OperandType.PC })
+				|| types.none { it.operandType() == PC })
 		}
 
 	/**
@@ -355,6 +357,14 @@ protected constructor(
 	open val isUnconditionalJump: Boolean get() = false
 
 	/**
+	 * Answer whether an instruction using this operation, which occurs at the
+	 * end of some block, should be evidence that the block isn't worth having
+	 * code splitting applied to it.  The code splitter propagates this coldness
+	 * information backward to any blocks that lead exclusively to cold blocks.
+	 */
+	open val isCold: Boolean get() = false
+
+	/**
 	 * This is the operation for the given instruction, which was just added to
 	 * its basic block.  Do any post-processing appropriate for having added
 	 * the instruction.  Its operands have already had their instruction fields
@@ -402,15 +412,15 @@ protected constructor(
 			for (edge in edges)
 			{
 				val purpose = namedOperandTypes[operandIndex].purpose()
-				val manifestCopy = L2ValueManifest(manifest)
-				for (i in operands.indices)
-				{
-					val namedOperandType = namedOperandTypes[i]
+				val manifestCopy =
+					L2ValueManifest(/*TODO edge.manifestOrNull() ?:*/ manifest)
+				(operands zip namedOperandTypes).forEach {
+						(operand, namedOperandType)  ->
 					if (namedOperandType.purpose() == purpose
-						&& operands[i] !is L2PcOperand
-						&& operands[i] !is L2PcVectorOperand)
+						&& operand !is L2PcOperand
+						&& operand !is L2PcVectorOperand)
 					{
-						operands[i].instructionWasAdded(manifestCopy)
+						operand.instructionWasAdded(manifestCopy)
 					}
 				}
 				edge.instructionWasAdded(manifestCopy)
@@ -428,10 +438,16 @@ protected constructor(
 	 */
 	fun instructionWasInserted(instruction: L2Instruction)
 	{
-		assert(
-			!isEntryPoint(instruction)
-				|| instruction.basicBlock().instructions()[0] == instruction)
-		{ "Entry point instruction must be at start of a block" }
+		if (isEntryPoint(instruction))
+		{
+			assert(
+				instruction.basicBlock().instructions().all {
+					it.operation.isPhi || it == instruction
+				}
+			) {
+				"Entry point instruction must be after phis"
+			}
+		}
 		instruction.operands.forEach {
 			it.instructionWasInserted(instruction)
 		}
@@ -452,7 +468,7 @@ protected constructor(
 		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		regenerator.emitInstruction(this, *transformedOperands)
+		regenerator.addInstruction(this, *transformedOperands)
 	}
 
 	/**
@@ -484,7 +500,7 @@ protected constructor(
 		generator: L2Generator): L2ReadBoxedOperand
 	{
 		assert(instruction.operation === this)
-		var restriction = restrictionForType(outerType, BOXED_FLAG)
+		var restriction = boxedRestrictionForType(outerType)
 		if (functionRegister.restriction().isImmutable)
 		{
 			// An immutable function has immutable captured outers.
@@ -727,7 +743,7 @@ protected constructor(
 					commands.add(operand.primitive.name)
 				is L2ReadOperand<*> ->
 					sources.add(operand.register().toString())
-				is L2ReadVectorOperand<*, *> -> sources.add(
+				is L2ReadVectorOperand<*> -> sources.add(
 					operand.elements.joinToString(", ", "[", "]") {
 						it.register().toString()
 					})
@@ -833,13 +849,14 @@ protected constructor(
 	 *   An [L2ReadBoxedOperand] that will contain the specified tuple element.
 	 */
 	open fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
+		tupleReg: L2ReadOperand<BOXED_KIND>,
 		index: Int,
-		generator: L2Generator): L2ReadBoxedOperand
+		generator: L2Generator
+	): L2ReadBoxedOperand
 	{
 		// The default case is to dynamically extract the value from the tuple.
 		val elementWriter = generator.boxedWriteTemp(
-			restrictionForType(tupleReg.type().typeAtIndex(index), BOXED_FLAG))
+			boxedRestrictionForType(tupleReg.type().typeAtIndex(index)))
 		generator.addInstruction(
 			L2_TUPLE_AT_CONSTANT,
 			tupleReg,
@@ -854,8 +871,14 @@ protected constructor(
 	 * true on edges leading to ancestor phis, and if so, it may perform code
 	 * splitting to avoid erasing that information prematurely through a control
 	 * flow merge.
+	 *
+	 * @param instruction
+	 *   The [L2Instruction] holding this [L2Operation].
+	 * @return
+	 *   The [List] of [L2SplitCondition]s which would be profitable to preserve
+	 *   upstream.
 	 */
-	open fun interestingConditions(
+	open fun interestingSplitConditions(
 		instruction: L2Instruction
-	): List<L2SplitCondition> = emptyList()
+	): List<L2SplitCondition?> = emptyList()
 }

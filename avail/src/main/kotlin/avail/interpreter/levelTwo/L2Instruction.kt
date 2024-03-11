@@ -49,7 +49,6 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
-import java.util.EnumSet
 
 /**
  * `L2Instruction` is the foundation for all instructions understood by
@@ -75,7 +74,7 @@ import java.util.EnumSet
  * Construct a new `L2Instruction`.
  *
  * @param basicBlock
- *   The [L2BasicBlock] which will contain this instruction  or `null` if none.
+ *   The [L2BasicBlock] which will contain this instruction or `null` if none.
  * @param operation
  *   The [L2Operation] that this instruction performs.
  * @param theOperands
@@ -98,12 +97,12 @@ constructor(
 	/**
 	 * The source [L2Register]s.
 	 */
-	val sourceRegisters = mutableListOf<L2Register>()
+	val sourceRegisters = mutableListOf<L2Register<*>>()
 
 	/**
 	 * The destination [L2Register]s.
 	 */
-	val destinationRegisters = mutableListOf<L2Register>()
+	val destinationRegisters = mutableListOf<L2Register<*>>()
 
 	/**
 	 * The [L2Operand]s to supply to the operation.
@@ -318,12 +317,13 @@ constructor(
 	 *
 	 * @param registerRemap
 	 *   A mapping from existing [L2Register]s to replacement [L2Register]s
-	 *   having the same [L2Register.registerKind].
+	 *   having the same [L2Register.kind].
 	 */
-	fun replaceRegisters(registerRemap: Map<L2Register, L2Register>)
+	fun replaceRegisters(registerRemap: Map<L2Register<*>, L2Register<*>>)
 	{
-		val sourcesBefore: List<L2Register> = sourceRegisters.toList()
-		val destinationsBefore: List<L2Register> = destinationRegisters.toList()
+		val sourcesBefore: List<L2Register<*>> = sourceRegisters.toList()
+		val destinationsBefore: List<L2Register<*>> =
+			destinationRegisters.toList()
 		operands.forEach { it.replaceRegisters(registerRemap, this) }
 		sourceRegisters.replaceAll { r -> registerRemap[r] ?: r }
 		destinationRegisters.replaceAll { r -> registerRemap[r] ?: r }
@@ -340,8 +340,15 @@ constructor(
 	 */
 	fun justAdded(manifest: L2ValueManifest)
 	{
-		assert(!isEntryPoint || basicBlock().instructions()[0] == this) {
-			"Entry point instruction must be at start of a block"
+		if (isEntryPoint)
+		{
+			assert(
+				basicBlock().instructions().all {
+					it === this || it.operation.isPhi
+				}
+			) {
+				"Entry point instruction must be after phis"
+			}
 		}
 		operands.forEach { it.setInstruction(this) }
 		operation.instructionWasAdded(this, manifest)
@@ -371,6 +378,30 @@ constructor(
 	}
 
 	/**
+	 * Remove this instruction from its current [L2BasicBlock], and insert it at
+	 * the specified index in the [newBlock]'s instructions.
+	 */
+	fun moveToBlock(newBlock: L2BasicBlock, index: Int)
+	{
+		val oldBlock = basicBlock!!
+		oldBlock.instructions().remove(this)
+		basicBlock = newBlock
+		newBlock.instructions().add(index, this)
+		if (altersControlFlow)
+		{
+			assert(index == newBlock.instructions().size - 1)
+			assert (oldBlock.hasControlFlowAtEnd)
+			oldBlock.hasControlFlowAtEnd = false
+			assert (!newBlock.hasControlFlowAtEnd)
+			newBlock.hasControlFlowAtEnd = true
+			targetEdges.forEach { edge ->
+				oldBlock.removeSuccessorEdge(edge)
+				newBlock.addSuccessorEdge(edge)
+			}
+		}
+	}
+
+	/**
 	 * Answer whether this instruction should be emitted during final code
 	 * generation (from the non-SSA [L2ControlFlowGraph] into a flat
 	 * sequence of `L2Instruction`s.  Allow the operation to decide.
@@ -380,12 +411,8 @@ constructor(
 	 */
 	val shouldEmit: Boolean get() = operation.shouldEmit(this)
 
-	override fun toString(): String
-	{
-		val builder = StringBuilder()
-		appendToWithWarnings(
-			builder, EnumSet.allOf(L2OperandType::class.java)) { }
-		return builder.toString()
+	override fun toString() = buildString {
+		appendToWithWarnings(this, L2OperandType.allOperandTypes) { }
 	}
 
 	/**
@@ -428,12 +455,13 @@ constructor(
 	 *   The [L2Regenerator] through which to write this instruction's
 	 *   equivalent effect.
 	 */
-	fun transformAndEmitOn(regenerator: L2Regenerator) =
-		operation.emitTransformedInstruction(
-			Array(operands.size) {
-				regenerator.transformOperand(operand(it))
-			},
-			regenerator)
+	fun transformAndEmitOn(regenerator: L2Regenerator)
+	{
+		val transformedOperands = Array(operands.size) {
+			regenerator.transformOperand(operand(it))
+		}
+		operation.emitTransformedInstruction(transformedOperands, regenerator)
+	}
 
 	/**
 	 * Translate the `L2Instruction` into corresponding JVM instructions.
@@ -479,6 +507,17 @@ constructor(
 		}
 	}
 
-	fun interestingConditions(): List<L2SplitCondition> =
-		operation.interestingConditions(this)
+	/**
+	 * Returns a list of [L2SplitCondition]s which, if they were satisfied at
+	 * this instruction, would be likely to lead to a useful optimization.  If
+	 * this condition is determined to be true at some upstream edge, but will
+	 * be destroyed after merging control flow, the graph between that edge and
+	 * this instruction will be "split" into a duplicate code, allowing that
+	 * condition to be preserved.  This eliminates extra type tests, unboxing to
+	 * int registers, recomputing stable primitives, etc.
+	 *
+	 * @return A [List] of [L2SplitCondition] to watch for upstream.
+	 */
+	fun interestingConditions(): List<L2SplitCondition?> =
+		operation.interestingSplitConditions(this)
 }

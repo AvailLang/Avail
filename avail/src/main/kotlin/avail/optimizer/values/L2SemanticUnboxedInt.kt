@@ -31,8 +31,9 @@
  */
 package avail.optimizer.values
 
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
-import avail.interpreter.levelTwo.register.L2Register
 
 /**
  * A semantic value which represents the [base] semantic value, but unboxed as
@@ -46,18 +47,21 @@ import avail.interpreter.levelTwo.register.L2Register
  * @param base
  *   The unboxed semantic value from which this unboxed value is derived.
  */
-class L2SemanticUnboxedInt constructor(val base: L2SemanticValue)
-	: L2SemanticValue(base.hash xor 0x27F6F766)
+class L2SemanticUnboxedInt
+constructor(
+	val base: L2SemanticValue<BOXED_KIND>
+) : L2SemanticValue<INTEGER_KIND>(base.hash xor 0x27F6F766)
 {
-	override val kind = L2Register.RegisterKind.INTEGER_KIND
+	override val kind get() = INTEGER_KIND
 
-	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		other is L2SemanticUnboxedInt && base.equalsSemanticValue(other.base)
 
 	override fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticValue =
+	): L2SemanticUnboxedInt =
 		semanticValueTransformer(base).let {
 			if (it == base) this else L2SemanticUnboxedInt(it)
 		}

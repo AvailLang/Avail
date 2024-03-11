@@ -650,7 +650,8 @@ private constructor(
 			integerRangeType(lowerBound, true, upperBound, true)
 
 		/**
-		 * Create an inclusive-inclusive range with the given endpoints.
+		 * Create an inclusive-inclusive range with the given endpoints,
+		 * provided as [Long]s.
 		 *
 		 * @param lowerBound
 		 *   The low end, inclusive, of the range.
@@ -662,6 +663,21 @@ private constructor(
 		fun inclusive(lowerBound: Long, upperBound: Long): A_Type =
 			integerRangeType(
 				fromLong(lowerBound), true, fromLong(upperBound), true)
+
+		/**
+		 * Create an inclusive-inclusive range with the given endpoints,
+		 * provided as [Int]s.
+		 *
+		 * @param lowerBound
+		 *   The low end, inclusive, of the range.
+		 * @param upperBound
+		 *   The high end, inclusive, of the range.
+		 * @return
+		 *   The integral type containing the bounds and all integers between.
+		 */
+		fun inclusive(lowerBound: Int, upperBound: Int): A_Type =
+			integerRangeType(
+				fromInt(lowerBound), true, fromInt(upperBound), true)
 
 		/**
 		 * The [EnumMap] keyed on [Mutability], where the value is an [Array] of
@@ -725,7 +741,7 @@ private constructor(
 
 		/** The range of Unicode code points, [0..1114111]. */
 		val characterCodePoints: A_Type =
-			inclusive(0, maxCodePointInt.toLong()).makeShared()
+			inclusive(0, maxCodePointInt).makeShared()
 
 		/** The range of integers including infinities, [-∞..∞]. */
 		val extendedIntegers: A_Type =
@@ -755,25 +771,25 @@ private constructor(
 
 		/** The range [-128..127]. */
 		val i8: A_Type = inclusive(
-			Byte.MIN_VALUE.toLong(), Byte.MAX_VALUE.toLong()).makeShared()
+			Byte.MIN_VALUE.toInt(), Byte.MAX_VALUE.toInt()).makeShared()
 
 		/** The range [0..65535]. */
-		val u16: A_Type = inclusive(0, 65535L).makeShared()
+		val u16: A_Type = inclusive(0, 65535).makeShared()
 
 		/** The range [-32768..32767]. */
 		val i16: A_Type = inclusive(
-			Short.MIN_VALUE.toLong(), Short.MAX_VALUE.toLong()).makeShared()
+			Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).makeShared()
 
 		/** The non-negative part of the range of int32s, `[0..2^31)`. */
 		val i31: A_Type =
-			inclusive(0, Int.MAX_VALUE.toLong()).makeShared()
+			inclusive(0, Int.MAX_VALUE).makeShared()
 
 		/** The range of an unsigned 32-bit `int`, `[0..2^32)`. */
 		val u32: A_Type = inclusive(0, 4294967295L).makeShared()
 
 		/** The range of a signed 32-bit `int`, `[-2^31..2^31)`. */
-		val i32: A_Type = inclusive(
-			Int.MIN_VALUE.toLong(), Int.MAX_VALUE.toLong()).makeShared()
+		val i32: A_Type =
+			inclusive(Int.MIN_VALUE, Int.MAX_VALUE).makeShared()
 
 		/** The range of an unsigned 64-bit `long`, `[0..2^64)`. */
 		val u64: A_Type = inclusive(

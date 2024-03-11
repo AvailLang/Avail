@@ -35,8 +35,8 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -98,7 +98,7 @@ object L2_STRENGTHEN_TYPE : L2Operation(
 		// Trace it back toward the actual function creation. We don't care if
 		// the function is still mutable, since the generated JVM code will make
 		// the outer variable immutable.
-		val earlierInstruction = read.definitionSkippingMoves(true)
+		val earlierInstruction = read.definitionSkippingMoves()
 		return earlierInstruction.operation.extractFunctionOuter(
 			earlierInstruction,
 			functionRegister,
@@ -108,23 +108,25 @@ object L2_STRENGTHEN_TYPE : L2Operation(
 	}
 
 	override fun instructionWasAdded(
-		instruction: L2Instruction, manifest: L2ValueManifest)
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
 		val read = instruction.operand<L2ReadBoxedOperand>(0)
 		val write = instruction.operand<L2WriteBoxedOperand>(1)
 
 		read.instructionWasAdded(manifest)
-		val oldSynonym = manifest.semanticValueToSynonym(read.semanticValue())
-		manifest.forgetBoxedRegistersFor(oldSynonym)
+		manifest.updateDefinitions(read.semanticValue()) {
+			// Remove all registers that might have held a value, to ensure
+			// there's no way to reorder this instruction past consumers.
+			emptyList()
+		}
 		write.instructionWasAddedForMove(read.semanticValue(), manifest)
-		val newSynonym =
-			manifest.semanticValueToSynonym(write.pickSemanticValue())
-		manifest.updateConstraint(newSynonym) {
-			restriction = restriction.intersection(write.restriction())
+		manifest.updateRestriction(write.pickSemanticValue()) {
+			intersection(write.restriction())
 		}
 	}
 
-	override fun appendToWithWarnings(
+ 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,

@@ -232,7 +232,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 					append(';')
 				}
 				append(']')
-				return
+				return@brief
 			}
 		}
 

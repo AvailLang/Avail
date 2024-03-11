@@ -129,7 +129,6 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean
 	{
@@ -148,7 +147,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		// This is the pattern "x's type [y]".  Since x is some actual
 		// function, the resulting argument type can't be top or bottom.
 		val function = L2_GET_TYPE.sourceValueOf(functionTypeDefinition)
-		val generator = translator.generator
+		val generator = callSiteHelper.generator
 		val read = generator.extractParameterTypeFromFunction(
 			function, exactIndex.extractInt)
 		callSiteHelper.useAnswer(read)

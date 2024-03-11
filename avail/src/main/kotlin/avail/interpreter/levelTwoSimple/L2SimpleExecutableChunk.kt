@@ -205,9 +205,9 @@ constructor(
 				}
 				catch (e: Exception)
 				{
-					assert(false) {
-						"Failure variable was not suitable for failure value"
-					}
+					throw AssertionError(
+						"Failure variable was not suitable for failure value",
+						e)
 				}
 			}
 		}

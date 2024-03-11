@@ -38,8 +38,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportUnassignedVariableReadMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
@@ -65,6 +65,8 @@ object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
 	INT_IMMEDIATE.named("stackp"),
 	READ_BOXED_VECTOR.named("frame values"))
 {
+	override val isCold: Boolean get() = true
+
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
@@ -81,7 +83,7 @@ object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
 		builder.append(", stackp: ")
 		builder.append(stackp.value)
 		builder.append("\n\tframe data: ")
-		frameValues.elements.joinTo(builder) { it.registerString() }
+		frameValues.elements.joinTo(builder, limit = 5) { it.registerString() }
 	}
 
 	// Never remove this.

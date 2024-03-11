@@ -131,7 +131,6 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
-			assert(false)
 			return interpreter.primitiveFailure(E_IO_ERROR)
 		}
 
