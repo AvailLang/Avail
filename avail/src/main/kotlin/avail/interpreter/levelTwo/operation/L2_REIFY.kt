@@ -35,9 +35,9 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.ARBITRARY_CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.ARBITRARY_CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -71,6 +71,8 @@ object L2_REIFY : L2ControlFlowOperation(
 	ARBITRARY_CONSTANT.named("statistic"),
 	PC.named("on reification", OFF_RAMP))
 {
+	override fun isCold(instruction: L2Instruction): Boolean = true
+
 	/**
 	 * An enumeration of reasons for reification, for the purpose of
 	 * categorizing statistics gathering.

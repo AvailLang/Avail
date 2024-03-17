@@ -133,7 +133,7 @@ internal constructor(elementClass: Class<ElementType>) where
 	{
 		assert(elementClass.isEnum)
 		// Capture the elements of the enumeration.
-		var elements: Array<ElementType>? = null
+		val elements: Array<ElementType>?
 		try
 		{
 			val valuesMethod = elementClass.getMethod("values")
@@ -144,30 +144,30 @@ internal constructor(elementClass: Class<ElementType>) where
 		catch (e: SecurityException)
 		{
 			// This never happens.
-			assert(false)
+			throw AssertionError(e)
 		}
 		catch (e: NoSuchMethodException)
 		{
-			assert(false)
+			throw AssertionError(e)
 		}
 		catch (e: IllegalArgumentException)
 		{
-			assert(false)
+			throw AssertionError(e)
 		}
 		catch (e: IllegalAccessException)
 		{
-			assert(false)
+			throw AssertionError(e)
 		}
 		catch (e: InvocationTargetException)
 		{
-			assert(false)
+			throw AssertionError(e)
 		}
 
 		// Initialize other data structures.
 		elementsByQName = mutableMapOf()
 		allowedChildren = mutableMapOf()
 		var root: ElementType? = null
-		elements!!.forEach { element ->
+		elements.forEach { element ->
 			elementsByQName[element.qName] = element
 			if (element.allowedParents.isEmpty())
 			{

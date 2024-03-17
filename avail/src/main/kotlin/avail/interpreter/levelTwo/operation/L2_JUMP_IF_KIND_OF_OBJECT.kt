@@ -37,12 +37,14 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -66,7 +68,7 @@ object L2_JUMP_IF_KIND_OF_OBJECT : L2ConditionalJump(
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val type = instruction.operand<L2ReadBoxedOperand>(1)
 		val ifKind = instruction.operand<L2PcOperand>(2)
-		//		final L2PcOperand ifNotKind = instruction.operand(3);
+		// val ifNotKind = instruction.operand<L2PcOperand>(3)
 		super.instructionWasAdded(instruction, manifest)
 
 		// Restrict the value to the type along the ifKind branch, but because
@@ -75,6 +77,29 @@ object L2_JUMP_IF_KIND_OF_OBJECT : L2ConditionalJump(
 		ifKind.manifest().intersectType(
 			value.semanticValue(),
 			type.type().instance)
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val value = transformedOperands[0] as L2ReadBoxedOperand
+		val type = transformedOperands[1] as L2ReadBoxedOperand
+		val ifKind = transformedOperands[2] as L2PcOperand
+		val ifNotKind = transformedOperands[3] as L2PcOperand
+
+		type.restriction().constantOrNull?.let { constantType ->
+			regenerator.jumpIfKindOfConstant(
+				value,
+				constantType,
+				ifKind.targetBlock(),
+				ifNotKind.targetBlock())
+			return
+		}
+		ifKind.manifest().intersectType(
+			value.semanticValue(),
+			type.type().instance)
+		super.emitTransformedInstruction(transformedOperands, regenerator)
 	}
 
 	override fun appendToWithWarnings(
@@ -86,8 +111,8 @@ object L2_JUMP_IF_KIND_OF_OBJECT : L2ConditionalJump(
 		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val type = instruction.operand<L2ReadBoxedOperand>(1)
-		//		final L2PcOperand ifKind = instruction.operand(2);
-//		final L2PcOperand ifNotKind = instruction.operand(3);
+		// val ifKind = instruction.operand<L2PcOperand>(2)
+		// val ifNotKind = instruction.operand<L2PcOperand>(3)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(value.registerString())

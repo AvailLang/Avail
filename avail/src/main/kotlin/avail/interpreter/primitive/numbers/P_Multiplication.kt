@@ -48,7 +48,6 @@ import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instances
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
@@ -56,8 +55,8 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.exceptions.ArithmeticException
@@ -69,15 +68,10 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Multiply two extended integers.
@@ -130,7 +124,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 							answers = answers.setWithElementCanDestroy(
 								aValue.timesCanDestroy(bValue, false),
 								false)
-						} catch (e: ArithmeticException)
+						}
+						catch (e: ArithmeticException)
 						{
 							// Ignore that combination of inputs, as it will
 							// fail rather than return a value.
@@ -168,7 +163,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	 *   Another integer range type.
 	 */
 	class BoundCalculator internal constructor(
-		private val aType: A_Type, private val bType: A_Type)
+		private val aType: A_Type,
+		private val bType: A_Type)
 	{
 		/** Accumulate the range. */
 		private var union = bottom
@@ -238,7 +234,9 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			{
 				union = union.typeUnion(inclusive(infinity, infinity))
 			}
-			return union
+			return if (union.lowerBound.equals(union.upperBound))
+				instanceType(union.lowerBound)
+			else union
 		}
 
 		companion object
@@ -255,8 +253,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			 */
 			private fun split(type: A_Type): List<A_Type> =
 				interestingRanges
-					.map{ type.typeIntersection(it) }
-					.filter { subrange -> !subrange.isBottom }
+					.map { type.typeIntersection(it) }
+					.filterNot(A_Type::isBottom)
 		}
 	}
 
@@ -273,14 +271,11 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		val bTypeIncludesInfinity =
 			negativeInfinity.isInstanceOf(bType)
 				|| positiveInfinity.isInstanceOf(bType)
-		return if (aTypeIncludesZero && bTypeIncludesInfinity
-			|| aTypeIncludesInfinity && bTypeIncludesZero)
+		return when
 		{
-			CallSiteCanFail
-		}
-		else
-		{
-			CallSiteCannotFail
+			aTypeIncludesZero && bTypeIncludesInfinity -> CallSiteCanFail
+			aTypeIncludesInfinity && bTypeIncludesZero -> CallSiteCanFail
+			else -> CallSiteCannotFail
 		}
 	}
 
@@ -289,78 +284,24 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
-		callSiteHelper: CallSiteHelper): Boolean
-	{
-		val (a, b) = arguments
-		val (aType, bType) = argumentTypes
-
-		// If either of the argument types does not intersect with int32, then
-		// fall back to the primitive invocation.
-		if (aType.typeIntersection(i32).isBottom
-			|| bType.typeIntersection(i32).isBottom)
-		{
-			return false
-		}
-
-		// Attempt to unbox the arguments.
-		val generator = translator.generator
-		val fallback = generator.createBasicBlock(
-			"fall back to boxed multiplication")
-		val intA = generator.readInt(
-			L2SemanticUnboxedInt(a.semanticValue()), fallback)
-		val intB = generator.readInt(
-			L2SemanticUnboxedInt(b.semanticValue()), fallback)
-		if (generator.currentlyReachable())
-		{
-			// The happy path is reachable.  Generate the most efficient
-			// available unboxed arithmetic.
-			val returnTypeIfInts = returnTypeGuaranteedByVM(
-				rawFunction,
-				argumentTypes.map { it.typeIntersection(i32) })
-			val semanticTemp = primitiveInvocation(
-				this, listOf(a.semanticValue(), b.semanticValue()))
-			val tempWriter = generator.intWrite(
-				setOf(L2SemanticUnboxedInt(semanticTemp)),
-				restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
-			if (returnTypeIfInts.isSubtypeOf(i32))
-			{
-				// The result is guaranteed not to overflow, so emit an
-				// instruction that won't bother with an overflow check.  Note
-				// that both the unboxed and boxed registers end up in the same
-				// synonym, so subsequent uses of the result might use either
-				// register, depending whether an unboxed value is desired.
-				translator.addInstruction(
-					L2_BIT_LOGIC_OP.wrappedMultiply, intA, intB, tempWriter)
-			}
-			else
-			{
-				// The result could exceed an int32.
-				val success =
-					generator.createBasicBlock("product is in range")
-				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT,
-					intA,
-					intB,
-					tempWriter,
-					edgeTo(fallback),
-					edgeTo(success))
-				generator.startBlock(success)
-			}
-			// Even though we're just using the boxed value again, the unboxed
-			// form is also still available for use by subsequent primitives,
-			// which could allow the boxing instruction to evaporate.
-			callSiteHelper.useAnswer(generator.readBoxed(semanticTemp))
-		}
-		if (fallback.predecessorEdges().isNotEmpty())
-		{
-			// The fallback block is reachable, so generate the slow case within
-			// it.  Fallback may happen from conversion of non-int32 arguments,
-			// or from int32 overflow calculating the product.
-			generator.startBlock(fallback)
-			translator.generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
-		}
-		return true
-	}
+		callSiteHelper: CallSiteHelper
+	): Boolean = attemptToGenerateTwoIntToIntPrimitive(
+		callSiteHelper,
+		functionToCallReg,
+		rawFunction,
+		arguments,
+		argumentTypes,
+		ifOutputIsInt = {
+			generator.addInstruction(
+				L2_BIT_LOGIC_OP.wrappedMultiply, intA, intB, intWrite)
+		},
+		ifOutputIsPossiblyInt = {
+			generator.addInstruction(
+				L2_MULTIPLY_INT_BY_INT,
+				intA,
+				intB,
+				intWrite,
+				edgeTo(intFailure),
+				edgeTo(intSuccess))
+		})
 }

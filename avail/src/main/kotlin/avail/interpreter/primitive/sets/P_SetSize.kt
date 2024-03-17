@@ -40,7 +40,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.interpreter.Primitive
@@ -71,6 +71,5 @@ object P_SetSize : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
-	): A_Type =
-		argumentTypes[0].sizeRange.typeIntersection(i32)
+	): A_Type = argumentTypes[0].sizeRange.typeIntersection(i31)
 }

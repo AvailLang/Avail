@@ -54,7 +54,6 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
@@ -74,7 +73,9 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
 	{
 		assert(argumentTypes.size == 2)
 		val (type1, type2) = argumentTypes
@@ -109,12 +110,12 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (firstReg, secondReg) = arguments
 
-		val manifest = callSiteHelper.generator().currentManifest
+		val translator = callSiteHelper.translator
+		val manifest = callSiteHelper.generator.currentManifest
 		if (manifest.synonymsForRegister(firstReg.register())
 			.intersect(manifest.synonymsForRegister(secondReg.register()))
 			.isNotEmpty())
@@ -153,16 +154,37 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		translator.generator.run {
 			val ifEqual = createBasicBlock("equal")
 			val ifNotEqual = createBasicBlock("not equal")
-			addInstruction(
-				L2_JUMP_IF_OBJECTS_EQUAL,
-				readBoxed(firstReg.semanticValue()),
-				readBoxed(secondReg.semanticValue()),
-				edgeTo(ifEqual),
-				edgeTo(ifNotEqual))
-			startBlock(ifEqual)
-			callSiteHelper.useAnswer(boxedConstant(trueObject))
-			startBlock(ifNotEqual)
-			callSiteHelper.useAnswer(boxedConstant(falseObject))
+			val c1 = firstReg.constantOrNull()
+			val c2 = secondReg.constantOrNull()
+			when
+			{
+				c1 !== null -> jumpIfEqualsConstant(
+					readBoxed(secondReg.semanticValue()),
+					c1,
+					ifEqual,
+					ifNotEqual)
+				c2 !== null -> jumpIfEqualsConstant(
+					readBoxed(firstReg.semanticValue()),
+					c2,
+					ifEqual,
+					ifNotEqual)
+				else -> addInstruction(
+					L2_JUMP_IF_OBJECTS_EQUAL,
+					readBoxed(firstReg.semanticValue()),
+					readBoxed(secondReg.semanticValue()),
+					edgeTo(ifEqual),
+					edgeTo(ifNotEqual))
+			}
+			if (ifEqual.currentlyReachable())
+			{
+				startBlock(ifEqual)
+				callSiteHelper.useAnswer(boxedConstant(trueObject))
+			}
+			if (ifNotEqual.currentlyReachable())
+			{
+				startBlock(ifNotEqual)
+				callSiteHelper.useAnswer(boxedConstant(falseObject))
+			}
 		}
 		return true
 	}

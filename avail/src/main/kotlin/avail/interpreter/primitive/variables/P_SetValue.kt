@@ -58,7 +58,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_SET_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
@@ -97,7 +96,6 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (varReg, valueReg) = arguments
@@ -111,9 +109,10 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		else
 			L2_SET_VARIABLE
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val success = generator.createBasicBlock("set local success")
-		val failure = generator.createBasicBlock("set local failure")
+		val failure = generator.createBasicBlock("set local failure/observe")
 		// Emit the set-variable instruction.
 		translator.addInstruction(
 			setOperation,

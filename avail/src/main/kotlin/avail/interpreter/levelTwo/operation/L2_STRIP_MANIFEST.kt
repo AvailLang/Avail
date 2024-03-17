@@ -32,13 +32,16 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.mapToSet
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -63,26 +66,40 @@ object L2_STRIP_MANIFEST : L2Operation(
 
 		// Clear the manifest, other than the mentioned semantic values and
 		// registers.
-		val liveSemanticValues = mutableSetOf<L2SemanticValue>()
-		val liveRegisters = mutableSetOf<L2Register>()
-		for (read in liveVector.elements)
-		{
-			liveSemanticValues.add(read.semanticValue())
-			liveRegisters.add(read.register())
-		}
-		manifest.retainSemanticValues(liveSemanticValues)
-		manifest.retainRegisters(liveRegisters)
-		liveVector.instructionWasAdded(manifest)
+		val elements = liveVector.elements
+		val liveSemanticValues = elements.mapToSet { it.semanticValue() }
+		val liveRegisters = elements.mapToSet { it.register() }
 		// After stripping the manifest down to the block arguments needed for a
 		// P_RestartWithArguments, we *must not* allow any additional postponed
 		// instructions to run.  There was a rare case (2022.07.07) in which an
-		// L2_MAKE_IMMUTABLE was still present in the postponed instructions
-		// map, and was getting its input from other instructions that got their
-		// value from semantic values already stripped from the manifest.  So we
-		// clear postponed instructions, since after this L2_STRIP_MANIFEST
-		// there is no valid thing that can be done except moves from those
-		// registers, another strip-manifest for safety, and an L2_JUMP_BACK.
-		manifest.postponedInstructions.clear()
+		// L2_MAKE_IMMUTABLE was still present in the postponed instructions map
+		// [MvG 2024.01.15 - immutability is now handled differently], and was
+		// getting its input from other instructions that got their value from
+		// semantic values already stripped from the manifest.  So we clear
+		// postponed instructions, since after this L2_STRIP_MANIFEST there is
+		// no valid thing that can be done except moves from those registers,
+		// another strip-manifest for safety, and an L2_JUMP_BACK.
+		manifest.clearPostponedInstructions()
+		manifest.retainSemanticValues(liveSemanticValues)
+		manifest.retainRegisters(liveRegisters)
+		liveVector.instructionWasAdded(manifest)
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val liveVector = transformedOperands[0] as L2ReadBoxedVectorOperand
+
+		// Re-strip the manifest.
+		val manifest = regenerator.currentManifest
+		val elements = liveVector.elements
+		val liveSemanticValues = elements.mapToSet { it.semanticValue() }
+		val liveRegisters = elements.mapToSet { it.register() }
+		// Any postponed instructions that produce the values consumed by this
+		// instruction have already been generated, so discard the rest.
+		manifest.stripManifest(liveSemanticValues, liveRegisters, regenerator)
+		super.emitTransformedInstruction(transformedOperands, regenerator)
 	}
 
 	override fun translateToJVM(

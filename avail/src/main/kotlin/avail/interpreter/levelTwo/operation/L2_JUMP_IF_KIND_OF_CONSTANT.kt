@@ -31,19 +31,36 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.types.A_Type.Companion.instanceCount
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.typeIntersection
+import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.optimizer.L2BasicBlock
+import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticUnboxedInt
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -68,11 +85,12 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		val constantType = instruction.operand<L2ConstantOperand>(1)
 		val ifKind = instruction.operand<L2PcOperand>(2)
 		val ifNotKind = instruction.operand<L2PcOperand>(3)
-		super.instructionWasAdded(instruction, manifest)
 
+		super.instructionWasAdded(instruction, manifest)
 		// Restrict to the intersection along the ifKind branch, and exclude the
 		// type along the ifNotKind branch.
-		val oldRestriction = value.restriction()
+		val oldRestriction = value.restriction().intersection(
+			manifest.restrictionFor(value.semanticValue()))
 		ifKind.manifest().setRestriction(
 			value.semanticValue(),
 			oldRestriction.intersectionWithType(constantType.constant))
@@ -98,6 +116,107 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		builder.append(" ∈ ")
 		builder.append(constantType.constant)
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val value = transformedOperands[0] as L2ReadBoxedOperand
+		val constantType = transformedOperands[1] as L2ConstantOperand
+		val ifKind = transformedOperands[2] as L2PcOperand
+		val ifNotKind = transformedOperands[3] as L2PcOperand
+
+		// Check for special cases.
+		val valueValue = value.semanticValue()
+		val unboxedValueValue = L2SemanticUnboxedInt(valueValue)
+		val typeConstant = constantType.constant
+		val manifest = regenerator.currentManifest
+		val restriction = manifest.restrictionFor(value.semanticValue())
+		when
+		{
+			// Always true.
+			restriction.containedByType(typeConstant) ->
+			{
+				regenerator.jumpTo(ifKind.targetBlock())
+				return
+			}
+			// Always false.
+			!restriction.intersectsType(typeConstant) ->
+			{
+				regenerator.jumpTo(ifNotKind.targetBlock())
+				return
+			}
+			// Contingent.  Check int range case.
+			manifest.hasSemanticValue(unboxedValueValue) ->
+			{
+				// We have the value in an unboxed int.  Use it.
+				val constantIntType = typeConstant.typeIntersection(i32)
+				val low = constantIntType.lowerBound.extractInt
+				val high = constantIntType.upperBound.extractInt
+				val isContiguous = !constantIntType.isEnumeration
+					|| constantIntType.instanceCount.equalsInt(
+						high - low + 1)
+				if (isContiguous)
+				{
+					val firstSuccess = L2BasicBlock("low bound ok")
+					regenerator.compareAndBranchInt(
+						NumericComparator.GreaterOrEqual,
+						manifest.readInt(unboxedValueValue),
+						regenerator.unboxedIntConstant(low),
+						edgeTo(firstSuccess),
+						ifNotKind)
+					regenerator.startBlock(firstSuccess)
+					regenerator.compareAndBranchInt(
+						NumericComparator.LessOrEqual,
+						manifest.readInt(unboxedValueValue),
+						regenerator.unboxedIntConstant(high),
+						ifKind,
+						ifNotKind)
+					return
+				}
+				// Rather than do spot-checks here, just fall through.
+			}
+		}
+		// The test is still contingent, and too much hassle to optimize.
+		super.emitTransformedInstruction(transformedOperands, regenerator)
+	}
+
+	override fun interestingSplitConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition?>
+	{
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constantType = instruction.operand<L2ConstantOperand>(1).constant
+		val ifKind = instruction.operand<L2PcOperand>(2)
+		val ifNotKind = instruction.operand<L2PcOperand>(3)
+
+		val conditions = mutableListOf<L2SplitCondition?>()
+		if (!ifKind.targetBlock().isCold)
+		{
+			// The ifKind target is warm, so allow a split back to a point where
+			// the value is known to be of the requested kind.
+			val constantTypeWhenInt = constantType.typeIntersection(i32)
+			if (!constantTypeWhenInt.isVacuousType)
+			{
+				conditions.add(unboxedIntCondition(listOf(value.register())))
+			}
+			conditions.add(
+				typeRestrictionCondition(
+					listOf(value.register()),
+					boxedRestrictionForType(constantType)))
+		}
+		if (!ifNotKind.targetBlock().isCold)
+		{
+			// The ifNotKind target is warm, so allow a split back to a point
+			// where the value is known *not* to be an instance.
+			conditions.add(
+				typeRestrictionCondition(
+					listOf(value.register()),
+					boxedRestrictionForType(ANY.o)
+						.minusType(constantType)))
+		}
+		return conditions
 	}
 
 	override fun translateToJVM(

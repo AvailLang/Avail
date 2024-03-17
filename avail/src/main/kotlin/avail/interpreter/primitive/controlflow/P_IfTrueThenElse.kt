@@ -47,7 +47,6 @@ import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -91,7 +90,6 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// Fold out the call of this primitive, replacing it with an invoke of
@@ -100,6 +98,7 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 		val thenFunction = arguments[1]
 		// 'then' function
 		// takes no arguments.
+		val translator = callSiteHelper.translator
 		translator.generateGeneralFunctionInvocation(
 			thenFunction, emptyList(), true, callSiteHelper)
 		return true

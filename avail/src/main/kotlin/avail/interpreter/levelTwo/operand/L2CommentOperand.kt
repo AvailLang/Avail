@@ -33,6 +33,7 @@ package avail.interpreter.levelTwo.operand
 
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 
 /**
  * An `L2CommentOperand` holds a descriptive string during level two
@@ -51,8 +52,7 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2CommentOperand constructor(val comment: String) : L2Operand()
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.COMMENT
+	override val operandType: L2OperandType get() = COMMENT
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

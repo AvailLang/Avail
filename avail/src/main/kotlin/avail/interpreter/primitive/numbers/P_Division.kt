@@ -40,7 +40,6 @@ import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.AbstractNumberDescriptor.Companion.binaryNumericOperationTypeBound
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
@@ -58,9 +57,8 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
@@ -76,10 +74,9 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
+import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -188,11 +185,11 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		if (quotients.isEmpty()) return bottom
 		val min = quotients.minWithOrNull { a, b ->
 			if (a.lessThan(b)) -1 else 1
-		}
+		}!!.makeImmutable()
 		val max = quotients.maxWithOrNull { a, b ->
 			if (a.lessThan(b)) -1 else 1
-		}
-		return inclusive(min!!, max!!)
+		}!!.makeImmutable()
+		return inclusive(min, max)
 			.typeIntersection(integers)
 			.makeImmutable()
 	}
@@ -231,28 +228,32 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper): Boolean
 	{
-		//TODO Fix this – it leads to infinite Avail stack recursion somehow.
-		if (true)
-		{
-			translator.generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
-			return true
-		}
 		val (a, b) = arguments
 		val (aType, bType) = argumentTypes
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
-		// If either of the argument types does not intersect with int32, then
-		// fall back to boxed division.
-		if (aType.typeIntersection(i32).isBottom
-			|| bType.typeIntersection(i32).isBottom)
+
+		// Division by one works whether boxed or not, and even if the numerator
+		// is negative or infinity.
+		if (bType.isSubtypeOf(singleInt(1)))
 		{
-			translator.generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
+			callSiteHelper.useAnswer(a)
 			return true
+		}
+
+		// If either of the argument types does not intersect with the
+		// non-negative range int31, then fall back to boxed division, since
+		// Java does division of negatives differently than Avail.  Also fall
+		// back if the denominator can't be strictly positive.
+		val aIntersectInt31 = aType.typeIntersection(i31)
+		val bIntersectPos31 = bType.typeIntersection(
+			inclusive(1, Int.MAX_VALUE))
+		if (aIntersectInt31.isBottom || bIntersectPos31.isBottom)
+		{
+			return false
 		}
 
 		// Extract int32s, falling back if the actual values aren't in range.
@@ -261,45 +262,39 @@ object P_Division : Primitive(2, CanFold, CanInline)
 			L2SemanticUnboxedInt(a.semanticValue()), fallback)
 		val intB = generator.readInt(
 			L2SemanticUnboxedInt(b.semanticValue()), fallback)
-		// We've checked that both arguments intersected int32, so now we're
-		// on the happy path where we've extracted two ints.
+		// We've checked that both arguments intersected int32, so now we're on
+		// the happy path where we've extracted two ints.
 		assert(generator.currentlyReachable())
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction,
-			argumentTypes.map { it.typeIntersection(i32) })
+			listOf(aIntersectInt31, bIntersectPos31))
 		val semanticQuotient = L2SemanticValue.primitiveInvocation(
 			this, listOf(a.semanticValue(), b.semanticValue()))
 		val quotientWriter = generator.intWrite(
 			setOf(L2SemanticUnboxedInt(semanticQuotient)),
-			restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
+			intRestrictionForType(returnTypeIfInts))
+
+		val nonnegativeNumerator = L2BasicBlock("nonnegative numerator")
+		NumericComparator.GreaterOrEqual.compareAndBranchInt(
+			generator,
+			intA,
+			generator.unboxedIntConstant(0),
+			edgeTo(nonnegativeNumerator),
+			edgeTo(fallback))
+		assert(nonnegativeNumerator.currentlyReachable())
+
+		generator.startBlock(nonnegativeNumerator)
 		val notZeroDenominator = L2BasicBlock("fast path division")
-		// This branch is optimized out if the denominator can't equal zero.
-		L2_JUMP_IF_COMPARE_INT.notEqual.compareAndBranch(
+		NumericComparator.Greater.compareAndBranchInt(
 			generator,
 			intB,
 			generator.unboxedIntConstant(0),
 			edgeTo(notZeroDenominator),
 			edgeTo(fallback))
+
+		assert(notZeroDenominator.currentlyReachable())
 		generator.startBlock(notZeroDenominator)
-		// At this point the denominator isn't zero.
-		val manifest = generator.currentManifest
-		val aRestriction = manifest.restrictionFor(intA.semanticValue())
-		val bRestriction = manifest.restrictionFor(intB.semanticValue())
-		if (aRestriction.intersectsType(instanceType(fromInt(Int.MIN_VALUE)))
-			&& bRestriction.intersectsType(instanceType(negativeOne)))
-		{
-			// The combination MIN_INT/-1 is possible here, so test just the
-			// numerator and fall back to the slow path if it's MIN_INT, even if
-			// the denominator isn't -1.
-			val notMinInt = L2BasicBlock("not MIN_INT")
-			L2_JUMP_IF_COMPARE_INT.notEqual.compareAndBranch(
-				generator,
-				intA,
-				generator.unboxedIntConstant(Int.MIN_VALUE),
-				edgeTo(notMinInt),
-				edgeTo(fallback))
-			generator.startBlock(notMinInt)
-		}
+		// At this point the numerator is ≥ 0 and the denominator is > 0.
 		// At this point the result will not throw division-by-zero or overflow
 		// an int32.
 		translator.addInstruction(
@@ -309,7 +304,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		// which could allow the boxing instruction to evaporate.
 		callSiteHelper.useAnswer(generator.readBoxed(semanticQuotient))
 
-		if (fallback.predecessorEdges().isNotEmpty())
+		if (fallback.currentlyReachable())
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,

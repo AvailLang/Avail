@@ -238,7 +238,7 @@ constructor(
 	override fun dumpChunk(): String
 	{
 		val translator = JVMTranslator(
-			code, name(), null, controlFlowGraph, instructions)
+			code, name, null, controlFlowGraph, instructions)
 		val savedDebugFlag = JVMTranslator.debugJVM
 		JVMTranslator.debugJVM = true
 		try
@@ -349,16 +349,15 @@ constructor(
 					"Resume L1 reified continuation after interrupt")
 			val initialBlock = L2BasicBlock("Default entry")
 			val reenterFromRestartBlock = L2BasicBlock("Default restart")
-			val loopBlock = L2BasicBlock("Default loop", true, null)
+			val loopBlock =
+				L2BasicBlock("Default loop", null, isLoopHead = true)
 			val reenterFromCallBlock =
 				L2BasicBlock(
 					"Default return from call",
-					false,
 					returnFromCallZone)
 			val reenterFromInterruptBlock =
 				L2BasicBlock(
 					"Default reentry from interrupt",
-					false,
 					resumeAfterInterruptZone)
 			val unreachableBlock = L2BasicBlock("unreachable")
 			val controlFlowGraph =

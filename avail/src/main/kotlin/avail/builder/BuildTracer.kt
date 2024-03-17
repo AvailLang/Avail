@@ -248,9 +248,9 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 						compiler.compilationContext.diagnostics
 							.setSuccessAndFailureReporters(
 								{
-									assert(false) {
+									throw AssertionError(
 										"Should not succeed from header parsing"
-									}
+									)
 								},
 								this::indicateTraceCompleted)
 						compiler.parseModuleHeader { _, _ ->

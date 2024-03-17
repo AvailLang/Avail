@@ -30,13 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 import java.net.URI
 import java.time.Instant
 import java.time.LocalDate
@@ -45,8 +42,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 plugins {
-	id("java")
 	kotlin("jvm") version "1.9.0"
+	id("java")
 	`maven-publish`
 	publishing
 	signing
@@ -60,7 +57,7 @@ repositories {
 }
 
 group = "org.availlang"
-version = "2.0.0.alpha27"
+version = "2.0.0.alpha28"
 
 /** The version of Kotlin to be used by Avail. */
 val kotlin = "1.9.0"
@@ -84,7 +81,7 @@ val directoryWatcherVersion = "0.16.1"
 val jsrVersion = "3.0.2"
 
 /** The `org.junit.jupiter:junit-jupiter` version. */
-val junitVersion = "5.9.2"
+val junitVersion = "5.10.1"
 
 /** The language level version of Kotlin. */
 val kotlinLanguage = "1.9"
@@ -179,7 +176,7 @@ dependencies {
 	implementation("com.formdev:flatlaf:$flatlafVersion")
 	compileOnly("org.jetbrains:annotations:$kotlinAnnotations")
 	testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitVersion")
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".

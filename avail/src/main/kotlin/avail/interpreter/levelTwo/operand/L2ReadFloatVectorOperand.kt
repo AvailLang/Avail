@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo.operand
 
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.register.L2FloatRegister
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT_VECTOR
 import avail.utility.cast
 
 /**
@@ -50,22 +50,18 @@ import avail.utility.cast
  * @param elements
  *   The list of [L2ReadFloatOperand]s.
  */
-class L2ReadFloatVectorOperand constructor(
-		elements: List<L2ReadFloatOperand>)
-	: L2ReadVectorOperand<L2FloatRegister, L2ReadFloatOperand>(elements)
+class L2ReadFloatVectorOperand
+constructor(
+	elements: List<L2ReadFloatOperand>
+) : L2ReadVectorOperand<L2ReadFloatOperand>(elements)
 {
-	override fun clone(): L2ReadFloatVectorOperand =
-		L2ReadFloatVectorOperand(
-			// Requires explicit parameter typing
-			elements.map<L2ReadFloatOperand, L2ReadFloatOperand> {
-				it.clone().cast()
-			})
+	override fun clone() =
+		L2ReadFloatVectorOperand(elements.map { it.clone().cast() })
 
-	override fun clone(replacementElements: List<L2ReadFloatOperand>) =
-		L2ReadFloatVectorOperand(replacementElements)
+	override fun clone(replacementElements: List<L2ReadOperand<*>>) =
+		L2ReadFloatVectorOperand(replacementElements.cast())
 
-	override val operandType: L2OperandType
-		get() = L2OperandType.READ_FLOAT_VECTOR
+	override val operandType: L2OperandType get() = READ_FLOAT_VECTOR
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

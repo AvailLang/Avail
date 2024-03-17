@@ -31,6 +31,8 @@
  */
 package avail.optimizer.values
 
+import avail.interpreter.levelTwo.register.BOXED_KIND
+
 /**
  * A semantic value which represents the fully reified caller of the current
  * [Frame].  When inlining, it can be equated with parent frame's
@@ -47,15 +49,17 @@ package avail.optimizer.values
 internal class L2SemanticCaller constructor(frame: Frame)
 	: L2FrameSpecificSemanticValue(frame, 0x5A9556AA)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue<*>): Boolean =
 		other is L2SemanticCaller && super.equalsSemanticValue(other)
 
 	override fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer(frame).let {
-				if (it == frame) this else L2SemanticCaller(it)
-			}
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticBoxedValue =
+		frameTransformer(frame).let {
+			if (it == frame) this else L2SemanticCaller(it)
+		}
 
 	override fun primaryVisualSortKey() = PrimaryVisualSortKey.CALLER
 

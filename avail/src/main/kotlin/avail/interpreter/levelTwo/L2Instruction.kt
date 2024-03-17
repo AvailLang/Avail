@@ -39,16 +39,17 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
-import java.util.EnumSet
 
 /**
  * `L2Instruction` is the foundation for all instructions understood by
@@ -74,7 +75,7 @@ import java.util.EnumSet
  * Construct a new `L2Instruction`.
  *
  * @param basicBlock
- *   The [L2BasicBlock] which will contain this instruction  or `null` if none.
+ *   The [L2BasicBlock] which will contain this instruction or `null` if none.
  * @param operation
  *   The [L2Operation] that this instruction performs.
  * @param theOperands
@@ -97,12 +98,12 @@ constructor(
 	/**
 	 * The source [L2Register]s.
 	 */
-	val sourceRegisters = mutableListOf<L2Register>()
+	val sourceRegisters = mutableListOf<L2Register<*>>()
 
 	/**
 	 * The destination [L2Register]s.
 	 */
-	val destinationRegisters = mutableListOf<L2Register>()
+	val destinationRegisters = mutableListOf<L2Register<*>>()
 
 	/**
 	 * The [L2Operand]s to supply to the operation.
@@ -311,18 +312,77 @@ constructor(
 	val isEntryPoint get() = operation.isEntryPoint(this)
 
 	/**
+	 * Answer whether this instruction, which occurs at the end of a basic
+	 * block, should cause the block to be treated as cold.  Non-terminal blocks
+	 * whose successors are all cold are also treated as cold, recursively.  Any
+	 * [L2SplitCondition]s that would otherwise be requested by the instructions
+	 * in a cold block are ignored.  That's to reduce the amount of fruitless
+	 * code splitting that happens along paths that aren't expected to be
+	 * reached very often (i.e., they're "cold").  Reification and error paths
+	 * are considered cold, among other circumstances.
+	 */
+	val isCold get() = operation.isCold(this)
+
+
+	/**
+	 * Determine whether this instruction can commute with [another] instruction
+	 * which follows it.  Here are the scenarios that prevent the commutation:
+	 *  1. *Both* instructions have side effects.
+	 *  2. The second instruction reads a register written by the first.
+	 *  3. The later instruction [L2Operation.goesMultipleWays], and the earlier
+	 *   instruction is not an [L2_MOVE_CONSTANT].
+	 *  4. One is annotated as [WritesHiddenVariable], and the other is marked
+	 *   as either [WritesHiddenVariable] or [ReadsHiddenVariable] for the same
+	 *   [HiddenVariableShift].
+	 * In all other circumstances, it's acceptable to change the order in which
+	 * the instructions execute.
+	 *
+	 * Note: As of 2024.03.13, this mechanism is not used.  Instead, the
+	 * instruction postponement pass allows entirely side-effect-free
+	 * instructions to be postponed until their values are needed, or until they
+	 * hit an [L2Operation.goesMultipleWays] instruction, but allowing constant
+	 * moves through.
+	 *
+	 * Eventually, the postponement phase will record in each edge a *directed
+	 * graph* of instructions, where an edge indicates the source instruction
+	 * must execute before the destination instruction.  This will have value in
+	 * determining instruction scheduling to produce values at the most
+	 * convenient time when making function calls, as well as "sucking down"
+	 * phi-equivalent instructions at control flow merges, rather than requiring
+	 * only *identical* instructions to be eligible for motion across a merge.
+	 */
+	fun canCommuteWith(another: L2Instruction): Boolean = when
+	{
+		hasSideEffect && another.hasSideEffect -> false
+		destinationRegisters.intersect(another.sourceRegisters)
+			.isNotEmpty() -> false
+		another.operation.goesMultipleWays
+			&& operation !is L2_MOVE_CONSTANT<*, *> -> false
+		else ->
+		{
+			val writes1 = operation.writesHiddenVariablesMask
+			val reads1 = operation.readsHiddenVariablesMask
+			val writes2 = another.operation.writesHiddenVariablesMask
+			val reads2 = another.operation.readsHiddenVariablesMask
+			(writes1 and (writes2 or reads2)) or (reads1 and writes2) == 0
+		}
+	}
+
+
+	/**
 	 * Replace all registers in this instruction using the registerRemap.  If a
 	 * register is not present as a key of that map, leave it alone.  Do not
 	 * assume SSA form.
 	 *
 	 * @param registerRemap
 	 *   A mapping from existing [L2Register]s to replacement [L2Register]s
-	 *   having the same [L2Register.registerKind].
+	 *   having the same [L2Register.kind].
 	 */
-	fun replaceRegisters(registerRemap: Map<L2Register, L2Register>)
+	fun replaceRegisters(registerRemap: Map<L2Register<*>, L2Register<*>>)
 	{
-		val sourcesBefore: List<L2Register> = sourceRegisters.toList()
-		val destinationsBefore: List<L2Register> = destinationRegisters.toList()
+		val sourcesBefore: List<L2Register<*>> = sourceRegisters.toList()
+		val destinationsBefore: List<L2Register<*>> =
+			destinationRegisters.toList()
 		operands.forEach { it.replaceRegisters(registerRemap, this) }
 		sourceRegisters.replaceAll { r -> registerRemap[r] ?: r }
 		destinationRegisters.replaceAll { r -> registerRemap[r] ?: r }
@@ -339,8 +399,15 @@ constructor(
 	 */
 	fun justAdded(manifest: L2ValueManifest)
 	{
-		assert(!isEntryPoint || basicBlock().instructions()[0] == this) {
-			"Entry point instruction must be at start of a block"
+		if (isEntryPoint)
+		{
+			assert(
+				basicBlock().instructions().all {
+					it === this || it.operation.isPhi
+				}
+			) {
+				"Entry point instruction must be after phis"
+			}
 		}
 		operands.forEach { it.setInstruction(this) }
 		operation.instructionWasAdded(this, manifest)
@@ -370,6 +437,30 @@ constructor(
 	}
 
 	/**
+	 * Remove this instruction from its current [L2BasicBlock], and insert it at
+	 * the specified index in the [newBlock]'s instructions.
+	 */
+	fun moveToBlock(newBlock: L2BasicBlock, index: Int)
+	{
+		val oldBlock = basicBlock!!
+		oldBlock.instructions().remove(this)
+		basicBlock = newBlock
+		newBlock.instructions().add(index, this)
+		if (altersControlFlow)
+		{
+			assert(index == newBlock.instructions().size - 1)
+			assert (oldBlock.hasControlFlowAtEnd)
+			oldBlock.hasControlFlowAtEnd = false
+			assert (!newBlock.hasControlFlowAtEnd)
+			newBlock.hasControlFlowAtEnd = true
+			targetEdges.forEach { edge ->
+				oldBlock.removeSuccessorEdge(edge)
+				newBlock.addSuccessorEdge(edge)
+			}
+		}
+	}
+
+	/**
 	 * Answer whether this instruction should be emitted during final code
 	 * generation (from the non-SSA [L2ControlFlowGraph] into a flat
 	 * sequence of `L2Instruction`s.  Allow the operation to decide.
@@ -379,12 +470,8 @@ constructor(
 	 */
 	val shouldEmit: Boolean get() = operation.shouldEmit(this)
 
-	override fun toString(): String
-	{
-		val builder = StringBuilder()
-		appendToWithWarnings(
-			builder, EnumSet.allOf(L2OperandType::class.java)) { }
-		return builder.toString()
+	override fun toString() = buildString {
+		appendToWithWarnings(this, L2OperandType.allOperandTypes) { }
 	}
 
 	/**
@@ -427,12 +514,13 @@ constructor(
 	 *   The [L2Regenerator] through which to write this instruction's
 	 *   equivalent effect.
 	 */
-	fun transformAndEmitOn(regenerator: L2Regenerator) =
-		operation.emitTransformedInstruction(
-			Array(operands.size) {
-				regenerator.transformOperand(operand(it))
-			},
-			regenerator)
+	fun transformAndEmitOn(regenerator: L2Regenerator)
+	{
+		val transformedOperands = Array(operands.size) {
+			regenerator.transformOperand(operand(it))
+		}
+		operation.emitTransformedInstruction(transformedOperands, regenerator)
+	}
 
 	/**
 	 * Translate the `L2Instruction` into corresponding JVM instructions.
@@ -477,4 +565,18 @@ constructor(
 			operand.postOptimizationCleanup()
 		}
 	}
+
+	/**
+	 * Returns a list of [L2SplitCondition]s which, if they were satisfied at
+	 * this instruction, would be likely to lead to a useful optimization.  If
+	 * this condition is determined to be true at some upstream edge, but will
+	 * be destroyed after merging control flow, the graph between that edge and
+	 * this instruction will be "split" into a duplicate code, allowing that
+	 * condition to be preserved.  This eliminates extra type tests, unboxing to
+	 * int registers, recomputing stable primitives, etc.
+	 *
+	 * @return A [List] of [L2SplitCondition] to watch for upstream.
+	 */
+	fun interestingConditions(): List<L2SplitCondition?> =
+		operation.interestingSplitConditions(this)
 }

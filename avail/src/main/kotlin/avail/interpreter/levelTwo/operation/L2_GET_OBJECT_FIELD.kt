@@ -34,14 +34,17 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import org.objectweb.asm.MethodVisitor
 
@@ -79,6 +82,32 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 		builder.append("]")
 	}
 
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		// Strengthen the field value's type in case the incoming object type
+		// is now stronger, perhaps due to code splitting.
+		val objectRead = transformedOperands[0] as L2ReadBoxedOperand
+		val fieldAtom = transformedOperands[1] as L2ConstantOperand
+		val fieldValue = transformedOperands[2] as L2WriteBoxedOperand
+
+		val manifest = regenerator.currentManifest
+		val objectRestriction = objectRead.restriction().intersection(
+			manifest.restrictionFor(objectRead.semanticValue()))
+		val objectType = objectRestriction.type
+		val fieldType = objectType.fieldTypeAt(fieldAtom.constant)
+		val newFieldRestriction =
+			fieldValue.restriction().intersectionWithType(fieldType)
+		val newFieldWrite = L2WriteBoxedOperand(
+			fieldValue.semanticValues(),
+			newFieldRestriction,
+			fieldValue.register())
+		super.emitTransformedInstruction(
+			arrayOf(objectRead, fieldAtom, newFieldWrite),
+			regenerator)
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
@@ -91,13 +120,13 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 
 		translator.load(method, objectRead.register())
 		val variants = objectRead.restriction().positiveGroup.objectVariants
-		if (variants.notNullAnd { map { it.variantId }.toSet().size == 1 })
+		val indices = variants
+			?.mapToSet { it.fieldToSlotIndex[fieldAtom.constant]!! }
+		if (indices.notNullAnd { size == 1 })
 		{
 			// The field index is the same for every variant possible at this
 			// point.  Get the field by index.
-			val variant = variants!!.first()
-			val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
-			translator.intConstant(method, fieldIndex)
+			translator.intConstant(method, indices!!.single())
 			AvailObject.fieldAtIndexMethod.generateCall(method)
 		}
 		else

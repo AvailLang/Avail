@@ -33,19 +33,29 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticExtractedTag
+import avail.optimizer.values.L2SemanticUnboxedInt
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -70,8 +80,8 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		assert(this == instruction.operation)
 		val source = instruction.operand<L2ReadBoxedOperand>(0)
 		val destination = instruction.operand<L2WriteIntOperand>(1)
-		//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
-//		final L2PcOperand ifUnboxed = instruction.operand(3);
+		//val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
+		//val ifUnboxed = instruction.operand<L2PcOperand>(3)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
@@ -89,12 +99,16 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		val destination = instruction.operand<L2WriteIntOperand>(1)
 		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
 		val ifUnboxed = instruction.operand<L2PcOperand>(3)
+
 		source.instructionWasAdded(manifest)
+		val semanticSource = source.semanticValue()
+		// Don't add the destination along the failure edge.
 		ifNotUnboxed.instructionWasAdded(
 			L2ValueManifest(manifest).apply {
-				subtractType(source.semanticValue(), i32)
+				subtractType(semanticSource, i32)
 			})
 		// Ensure the value is available along the success edge.
+		manifest.intersectType(source.semanticValue(), i32)
 		destination.instructionWasAdded(manifest)
 		ifUnboxed.instructionWasAdded(
 			L2ValueManifest(manifest).apply {
@@ -125,5 +139,107 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		A_Number.extractIntStaticMethod.generateCall(method)
 		translator.store(method, destination.register())
 		translator.jump(method, instruction, ifUnboxed)
+	}
+
+	override fun interestingSplitConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition?>
+	{
+		val source = instruction.operand<L2ReadBoxedOperand>(0)
+		val destination = instruction.operand<L2WriteIntOperand>(1)
+		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
+		val ifUnboxed = instruction.operand<L2PcOperand>(3)
+
+		val conditions = mutableListOf<L2SplitCondition?>()
+		if (!ifUnboxed.targetBlock().isCold)
+		{
+			// The ifUnboxed path is warm, so split to preserve the value being
+			// in an unboxed int register.
+			conditions.add(
+				unboxedIntCondition(
+					listOf(source.register(), destination.register())))
+		}
+		if (!ifNotUnboxed.targetBlock().isCold)
+		{
+			// The ifNotUnboxedpath is warm, so split to preserve the value
+			// falling entirely outside the range of an int.
+			conditions.add(
+				typeRestrictionCondition(
+					listOf(source.register(), destination.register()),
+					boxedRestrictionForType(ANY.o).minusType(i32)))
+		}
+		return conditions
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val source = transformedOperands[0] as L2ReadBoxedOperand
+		val destination = transformedOperands[1] as L2WriteIntOperand
+		val ifNotUnboxed = transformedOperands[2] as L2PcOperand
+		val ifUnboxed = transformedOperands[3] as L2PcOperand
+
+		// Regeneration can strengthen this type via code splitting, or even
+		// obviate the need to re-extract into an int register if it's
+		// already in one along this split path.
+		val manifest = regenerator.currentManifest
+		val sourceRestriction = manifest.restrictionFor(source.semanticValue())
+		val sourceSemanticValue = source.semanticValue()
+		// See if there's an int version of a synonym of the source.  There
+		// must be a less messy way of doing this.
+		val sourceInt = manifest.semanticValueToSynonym(source.semanticValue())
+			.semanticValues()
+			.map(::L2SemanticUnboxedInt)
+			.firstOrNull(manifest::hasSemanticValue)
+			?: L2SemanticUnboxedInt(source.semanticValue())
+		// If the value's tag has been extracted already, strengthen it.
+		val tagSemanticValue = manifest.equivalentPopulatedSemanticValue(
+			L2SemanticUnboxedInt(L2SemanticExtractedTag(sourceSemanticValue)))
+		tagSemanticValue?.let {
+			// Narrow the tag's range if possible.
+			manifest.updateRestriction(it) {
+				intersectionWithType(
+					sourceRestriction.type.instanceTag.tagRangeType())
+			}
+		}
+		when
+		{
+			manifest.hasSemanticValue(sourceInt) ->
+			{
+				// It's already unboxed.  However, ensure all destination
+				// semantic values have been written.
+				destination.semanticValues().forEach { dest ->
+					if (!manifest.hasSemanticValue(dest))
+						regenerator.moveRegister(
+							L2_MOVE.unboxedInt, sourceInt, setOf(dest))
+				}
+				tagSemanticValue?.let {
+					manifest.updateRestriction(it) {
+						intersectionWithType(
+							manifest.restrictionFor(sourceInt).type.instanceTag
+								.tagRangeType())
+					}
+				}
+				regenerator.jumpTo(ifUnboxed.targetBlock())
+			}
+			sourceRestriction.containedByType(i32) ->
+			{
+				// It's not already unboxed, but it's an int32.
+				regenerator.addInstruction(L2_UNBOX_INT, source, destination)
+				regenerator.jumpTo(ifUnboxed.targetBlock())
+			}
+			!sourceRestriction.intersectsType(i32) ->
+			{
+				// It can't be an int32.
+				regenerator.jumpTo(ifNotUnboxed.targetBlock())
+			}
+			else ->
+			{
+				// It's still contingent on the value.
+				super.emitTransformedInstruction(
+					transformedOperands, regenerator)
+			}
+		}
 	}
 }

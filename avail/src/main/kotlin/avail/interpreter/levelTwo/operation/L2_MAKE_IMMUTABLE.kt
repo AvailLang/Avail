@@ -35,15 +35,15 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2Generator
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.utility.cast
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -73,30 +73,9 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		outerType: A_Type,
 		generator: L2Generator): L2ReadBoxedOperand
 	{
-		assert(this == instruction.operation)
-		val read = instruction.operand<L2ReadBoxedOperand>(0)
-		// val write: L2WriteBoxedOperand = instruction.operand(1)
-
-		// Trace it back toward the actual function creation. We don't care if
-		// the function is still mutable, since the generated JVM code will make
-		// the outer variable immutable.
-		val earlierInstruction = read.definitionSkippingMoves(true)
-		return earlierInstruction.operation.extractFunctionOuter(
-			earlierInstruction,
-			functionRegister,
-			outerIndex,
-			outerType,
-			generator)
-	}
-
-	override fun instructionWasAdded(
-		instruction: L2Instruction, manifest: L2ValueManifest)
-	{
-		val read = instruction.operand<L2ReadBoxedOperand>(0)
-		val write = instruction.operand<L2WriteBoxedOperand>(1)
-		read.instructionWasAdded(manifest)
-		write.instructionWasAddedForMakeImmutable(
-			read.semanticValue(), manifest)
+		// The make-immutable instruction should only be inserted near the end
+		// of optimization.
+		throw AssertionError("Should not reach this")
 	}
 
 	override fun appendToWithWarnings(
@@ -115,6 +94,15 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		builder.append(read.registerString())
 	}
 
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		// The make-immutable instruction should only be inserted near the end
+		// of optimization.
+		throw AssertionError("Should not reach this")
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
@@ -127,39 +115,5 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		translator.load(method, read.register())
 		A_BasicObject.makeImmutableMethod.generateCall(method)
 		translator.store(method, write.register())
-	}
-
-	/**
-	 * Given an [L2Instruction] using this operation, extract the source
-	 * [L2ReadBoxedOperand] that is made immutable by the instruction.
-	 *
-	 * @param instruction
-	 *   The make-immutable instruction to examine.
-	 * @return
-	 *   The instruction's source [L2ReadBoxedOperand].
-	 */
-	fun sourceOfImmutable(instruction: L2Instruction): L2ReadBoxedOperand
-	{
-		assert(instruction.operation is L2_MAKE_IMMUTABLE)
-		{
-			"$instruction is an  ${instruction.operation}"
-		}
-		return instruction.operand<L2ReadBoxedOperand>(0).cast()
-	}
-
-	/**
-	 * Given an [L2Instruction] using this operation, extract the destination
-	 * [L2WriteBoxedOperand] that receives the immutable value produced by the
-	 * instruction.
-	 *
-	 * @param instruction
-	 *   The make-immutable instruction to examine.
-	 * @return
-	 *   The instruction's destination [L2WriteBoxedOperand].
-	 */
-	fun destinationOfImmutable(instruction: L2Instruction): L2WriteBoxedOperand
-	{
-		assert(instruction.operation is L2_MAKE_IMMUTABLE)
-		return instruction.operand<L2WriteBoxedOperand>(1).cast()
 	}
 }

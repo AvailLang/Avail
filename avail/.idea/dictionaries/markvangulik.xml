@@ -18,6 +18,7 @@
       <w>cardinalities</w>
       <w>cellspacing</w>
       <w>checkable</w>
+      <w>checkcast</w>
       <w>cislyn</w>
       <w>combinatoric</w>
       <w>comparables</w>
@@ -29,6 +30,7 @@
       <w>decl's</w>
       <w>decompilable</w>
       <w>deemphasize</w>
+      <w>defs</w>
       <w>deoptimize</w>
       <w>deoptimized</w>
       <w>dest</w>
@@ -105,6 +107,7 @@
       <w>recanonicalize</w>
       <w>recurses</w>
       <w>recursing</w>
+      <w>regenerator</w>
       <w>regenerator's</w>
       <w>regenerators</w>
       <w>reifier</w>
@@ -156,6 +159,7 @@
       <w>superclass's</w>
       <w>supernode</w>
       <w>superunion</w>
+      <w>suprema</w>
       <w>supremum</w>
       <w>synchronizer</w>
       <w>tailrec</w>

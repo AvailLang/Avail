@@ -31,16 +31,24 @@
  */
 package avail.interpreter.primitive.types
 
+import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instances
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
+import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.exceptions.AvailErrorCode.E_NOT_AN_ENUMERATION
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
@@ -48,6 +56,18 @@ import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 
 /**
  * **Primitive:** Obtain the instances of the specified
@@ -72,8 +92,75 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 			tuple(topMeta()),
 			mostGeneralSetType())
 
+	override fun interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>,
+		rawFunction: A_RawFunction
+	): List<L2SplitCondition?>
+	{
+		// It would be nice to know the number of instances.  For now, split on
+		// whether the given type is bottom – and therefore has ∅ as its
+		// instances.
+		val register = readBoxedOperands[0].register()
+		return listOf(
+			typeRestrictionCondition(
+				setOf(register),
+				boxedRestrictionForConstant(bottom)))
+	}
+
+	override fun emitTransformedInfalliblePrimitive(
+		operation: L2_RUN_INFALLIBLE_PRIMITIVE,
+		rawFunction: A_RawFunction,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand,
+		regenerator: L2Regenerator)
+	{
+		val argument = arguments.elements[0]
+
+		val manifest = regenerator.currentManifest
+		val countSemanticValue = L2SemanticPrimitiveInvocation(
+			P_InstanceCount,
+			listOf(argument.semanticValue()))
+		manifest.equivalentSemanticValue(countSemanticValue)?.let {
+				equivalentCount ->
+			val countRange = manifest.restrictionFor(equivalentCount).type
+			if (countRange.isSubtypeOf(inclusive(zero, zero)))
+			{
+				// The input must be bottom, so the output should be ∅.
+				regenerator.moveRegister(
+					L2_MOVE.boxed,
+					regenerator.boxedConstant(emptySet).semanticValue(),
+					result.semanticValues())
+				return
+			}
+			if (countRange.upperBound.isFinite)
+			{
+				// We've deduced the possible sizes of the set of instances.  We
+				// also proved it's finite, so the primitive won't fail.
+				regenerator.addInstruction(
+					L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(this),
+					L2ConstantOperand(rawFunction),
+					L2PrimitiveOperand(this),
+					arguments,
+					regenerator.boxedWrite(
+						result.semanticValues(),
+						result.restriction().intersectionWithType(
+							setTypeForSizesContentType(
+								countRange,
+								argument.restriction().type))))
+				return
+			}
+		}
+		super.emitTransformedInfalliblePrimitive(
+			operation,
+			rawFunction,
+			arguments,
+			result,
+			regenerator)
+	}
+
 	override fun fallibilityForArgumentTypes(
-		argumentTypes: List<A_Type>): Fallibility
+		argumentTypes: List<A_Type>
+	): Fallibility
 	{
 		val meta = argumentTypes[0]
 		return if (meta.instance.isEnumeration) CallSiteCannotFail

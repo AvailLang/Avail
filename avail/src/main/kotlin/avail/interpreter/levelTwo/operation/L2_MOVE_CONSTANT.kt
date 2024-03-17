@@ -32,30 +32,43 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_Function
+import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.Descriptor.Companion.brief
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.FLOAT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_FLOAT
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
-import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
-import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.interpreter.levelTwo.register.L2FloatRegister
-import avail.interpreter.levelTwo.register.L2IntRegister
-import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Generator
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticUnboxedFloat
+import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticValue
+import avail.utility.Strings.increaseIndentation
+import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -64,10 +77,8 @@ import org.objectweb.asm.MethodVisitor
  *
  * @param C
  *   The [L2Operand] that provides the constant value.
- * @param R
- *   The kind of [L2Register] to populate.
- * @param WR
- *   The kind of [L2WriteOperand] used to write to the register.
+ * @param K
+ *   The [RegisterKind] that can hold the constant.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -84,19 +95,22 @@ import org.objectweb.asm.MethodVisitor
  *   An array of [L2NamedOperandType]s that describe this particular
  *   L2Operation, allowing it to be specialized by register type.
  */
-class L2_MOVE_CONSTANT<C : L2Operand, R : L2Register, WR : L2WriteOperand<R>>
+sealed class L2_MOVE_CONSTANT<C: L2Operand, K: RegisterKind<K>>
 private constructor(
 	private val variantName: String,
+	private val moveOperation: L2_MOVE<K>,
+	private val getConstantSemanticValue: (C)->L2SemanticValue<K>,
 	private val pushConstant: (JVMTranslator, MethodVisitor, C) -> Unit,
 	vararg theNamedOperandTypes: L2NamedOperandType)
 : L2Operation(*theNamedOperandTypes)
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction, manifest: L2ValueManifest)
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
 		assert(this == instruction.operation)
 		val source: C = instruction.operand(0)
-		val destination: WR = instruction.operand(1)
+		val destination: L2WriteOperand<K> = instruction.operand(1)
 
 		// Ensure the new write ends up in the same synonym as the source.
 		source.instructionWasAdded(manifest)
@@ -114,6 +128,37 @@ private constructor(
 			destination.instructionWasAdded(manifest)
 		}
 	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val constant = transformedOperands[0]
+		val write: L2WriteOperand<K> = transformedOperands[1].cast()
+
+		// If the constant is already present in the manifest, we *must*
+		// do a move from the existing synonym, otherwise it will get
+		// confused later, when it sees a definition with an overlapping
+		// synonym.
+		val manifest = regenerator.currentManifest
+		val semanticConstant = getConstantSemanticValue(constant.cast())
+		if (manifest.hasSemanticValue(semanticConstant)
+			&& manifest.getDefinitions(semanticConstant).isNotEmpty())
+		{
+			val newValues = write.semanticValues()
+				.filterNot(manifest::hasSemanticValue)
+			if (newValues.isNotEmpty())
+			{
+				regenerator.moveRegister(
+					moveOperation,
+					semanticConstant,
+					newValues)
+			}
+			return
+		}
+		super.emitTransformedInstruction(transformedOperands, regenerator)
+	}
+
 
 	override fun extractFunctionOuter(
 		instruction: L2Instruction,
@@ -136,18 +181,20 @@ private constructor(
 	{
 		assert(this == instruction.operation)
 		val constant: C = instruction.operand(0)
-		val destination: WR = instruction.operand(1)
+		val destination: L2WriteOperand<K> = instruction.operand(1)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		destination.appendWithWarningsTo(builder, 0, warningStyleChange)
 		builder.append(" ← ")
-		builder.append(constant)
+		builder.brief {
+			this.append(increaseIndentation(constant.toString(), 2))
+		}
 	}
 
-	override fun toString(): String = "${super.toString()}($variantName)"
+	override fun toString(): String = "MOVE_CONSTANT($variantName)"
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
+		tupleReg: L2ReadOperand<BOXED_KIND>,
 		index: Int,
 		generator: L2Generator
 	): L2ReadBoxedOperand
@@ -167,7 +214,7 @@ private constructor(
 		instruction: L2Instruction)
 	{
 		val constantOperand: C = instruction.operand(0)
-		val destinationWriter: WR = instruction.operand(1)
+		val destinationWriter: L2WriteOperand<K> = instruction.operand(1)
 
 		// :: destination = constant;
 		pushConstant(translator, method, constantOperand)
@@ -179,55 +226,56 @@ private constructor(
 		/**
 		 * Initialize the move-constant operation for boxed values.
 		 */
-		@JvmField
-		val boxed = L2_MOVE_CONSTANT<
-				L2ConstantOperand,
-				L2BoxedRegister,
-				L2WriteBoxedOperand>(
+		object boxed : L2_MOVE_CONSTANT<L2ConstantOperand, BOXED_KIND>(
 			"boxed",
+			L2_MOVE.boxed,
+			{ L2SemanticConstant(it.constant) },
 			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
 				operand: L2ConstantOperand ->
 					translator.literal(method, operand.constant)
 			},
-			L2OperandType.CONSTANT.named("constant"),
-			L2OperandType.WRITE_BOXED.named("destination boxed"))
+			CONSTANT.named("constant"),
+			WRITE_BOXED.named("destination boxed"))
 
 		/**
 		 * Initialize the move-constant operation for int values.
 		 */
-		@JvmField
-		val unboxedInt = L2_MOVE_CONSTANT<
-				L2IntImmediateOperand,
-				L2IntRegister,
-				L2WriteIntOperand>(
+		object unboxedInt : L2_MOVE_CONSTANT<
+				L2IntImmediateOperand, INTEGER_KIND>(
 			"int",
+			L2_MOVE.unboxedInt,
+			{
+				L2SemanticUnboxedInt(L2SemanticConstant(fromInt(it.value)))
+			},
 			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
 				operand: L2IntImmediateOperand ->
 				translator.literal(method, operand.value)
 			},
-			L2OperandType.INT_IMMEDIATE.named("constant int"),
-			L2OperandType.WRITE_INT.named("destination int"))
+			INT_IMMEDIATE.named("constant int"),
+			WRITE_INT.named("destination int"))
 
 		/**
 		 * Initialize the move-constant operation for float values.
 		 */
-		val unboxedFloat = L2_MOVE_CONSTANT<
-				L2FloatImmediateOperand,
-				L2FloatRegister,
-				L2WriteFloatOperand>(
+		object unboxedFloat : L2_MOVE_CONSTANT<
+				L2FloatImmediateOperand, FLOAT_KIND>(
 			"float",
+			L2_MOVE.unboxedFloat,
+			{
+				L2SemanticUnboxedFloat(L2SemanticConstant(fromDouble(it.value)))
+			},
 			{
 				translator: JVMTranslator,
 				method: MethodVisitor,
 				operand: L2FloatImmediateOperand ->
 				translator.literal(method, operand.value)
 			},
-			L2OperandType.FLOAT_IMMEDIATE.named("constant float"),
-			L2OperandType.WRITE_FLOAT.named("destination float"))
+			FLOAT_IMMEDIATE.named("constant float"),
+			WRITE_FLOAT.named("destination float"))
 
 		/**
 		 * Given an [L2Instruction] using the boxed form of this operation,

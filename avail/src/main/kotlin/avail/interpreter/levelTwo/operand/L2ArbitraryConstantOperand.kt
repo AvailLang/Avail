@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operand
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.ARBITRARY_CONSTANT
 
 /**
  * An `L2ArbitraryConstantOperand` is an operand of type
@@ -52,8 +53,7 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2ArbitraryConstantOperand(val constant: Any) : L2Operand()
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.ARBITRARY_CONSTANT
+	override val operandType: L2OperandType get() = ARBITRARY_CONSTANT
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

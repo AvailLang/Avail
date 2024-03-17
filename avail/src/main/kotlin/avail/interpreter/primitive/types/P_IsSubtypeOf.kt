@@ -53,7 +53,6 @@ import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
@@ -96,14 +95,13 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (xTypeReg, yTypeReg) = arguments
-
 		val xType = xTypeReg.type().instance
 		val yType = yTypeReg.type().instance
 
+		val translator = callSiteHelper.translator
 		val constantYType = yTypeReg.constantOrNull()
 		if (constantYType !== null)
 		{
@@ -147,7 +145,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val ifSubtype = translator.generator.createBasicBlock("if subtype")
 		val ifNotSubtype = translator.generator.createBasicBlock("not subtype")
 
-		val xDef = xTypeReg.definitionSkippingMoves(true)
+		val xDef = xTypeReg.definitionSkippingMoves()
 		if (xDef.operation == L2_GET_TYPE)
 		{
 			// X is an L2_GET_TYPE of some other register.

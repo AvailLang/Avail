@@ -82,12 +82,12 @@ import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraphVisualizer
 import avail.optimizer.StackReifier
@@ -95,15 +95,12 @@ import avail.optimizer.jvm.JVMTranslator.LiteralAccessor.Companion.invalidIndex
 import avail.performance.Statistic
 import avail.performance.StatisticReport.FINAL_JVM_TRANSLATION_TIME
 import avail.utility.Strings.traceFor
-import avail.utility.structures.EnumMap
-import avail.utility.structures.EnumMap.Companion.enumMap
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Opcodes.AALOAD
-import org.objectweb.asm.Opcodes.AASTORE
 import org.objectweb.asm.Opcodes.ACC_FINAL
 import org.objectweb.asm.Opcodes.ACC_MANDATED
 import org.objectweb.asm.Opcodes.ACC_PRIVATE
@@ -111,7 +108,6 @@ import org.objectweb.asm.Opcodes.ACC_PUBLIC
 import org.objectweb.asm.Opcodes.ACC_STATIC
 import org.objectweb.asm.Opcodes.ACONST_NULL
 import org.objectweb.asm.Opcodes.ALOAD
-import org.objectweb.asm.Opcodes.ANEWARRAY
 import org.objectweb.asm.Opcodes.ARETURN
 import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Opcodes.ASTORE
@@ -161,8 +157,6 @@ import org.objectweb.asm.Opcodes.SIPUSH
 import org.objectweb.asm.Opcodes.V11
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
-import org.objectweb.asm.tree.MethodNode
-import org.objectweb.asm.util.CheckClassAdapter
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.nio.charset.StandardCharsets
@@ -177,6 +171,7 @@ import java.util.logging.Level
 import java.util.regex.Pattern
 import javax.annotation.Nonnull
 import javax.annotation.Nullable
+import kotlin.io.path.writeText
 
 /**
  * A `JVMTranslator` converts a single [L2Chunk] into a [JVMChunk] in a naive
@@ -272,7 +267,7 @@ class JVMTranslator constructor(
 	 * numbers*.
 	 */
 	val liveLocalNumbersByKindPerEntryPoint =
-		mutableMapOf<L2Instruction, EnumMap<RegisterKind, MutableList<Int>>>()
+		mutableMapOf<L2Instruction, Map<RegisterKind<*>, List<Int>>>()
 
 	/**
 	 * We're at a point where reification has been requested.  A [StackReifier]
@@ -432,7 +427,7 @@ class JVMTranslator constructor(
 	 *   Unused.
 	 */
 	@Deprecated("")
-	fun literal(method: MethodVisitor?, reg: L2Register?)
+	fun literal(method: MethodVisitor?, reg: L2Register<*>?)
 	{
 		throw UnsupportedOperationException()
 	}
@@ -474,7 +469,9 @@ class JVMTranslator constructor(
 	 * The [L2Register]s used by the [L2Chunk], mapped to their JVM local
 	 * indices.
 	 */
-	val locals = enumMap { _: RegisterKind -> mutableMapOf<Int, Int>() }
+	val locals = RegisterKind.all.associateWithTo(mutableMapOf()) {
+		mutableMapOf<Int, Int>()
+	}
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -523,8 +520,8 @@ class JVMTranslator constructor(
 	 * @return
 	 *   Its position in the JVM frame.
 	 */
-	fun localNumberFromRegister(register: L2Register): Int =
-		locals[register.registerKind]!![register.finalIndex()]!!
+	fun localNumberFromRegister(register: L2Register<*>): Int =
+		locals[register.kind]!![register.finalIndex()]!!
 
 	/**
 	 * Generate a load of the local associated with the specified [L2Register].
@@ -535,10 +532,10 @@ class JVMTranslator constructor(
 	 * @param register
 	 *   A bound `L2Register`.
 	 */
-	fun load(method: MethodVisitor, register: L2Register)
+	fun load(method: MethodVisitor, register: L2Register<*>)
 	{
 		method.visitVarInsn(
-			register.registerKind.loadInstruction,
+			register.kind.loadInstruction,
 			localNumberFromRegister(register))
 	}
 
@@ -553,10 +550,10 @@ class JVMTranslator constructor(
 	 * @param register
 	 *   A bound `L2Register`.
 	 */
-	fun store(method: MethodVisitor, register: L2Register)
+	fun store(method: MethodVisitor, register: L2Register<*>)
 	{
 		method.visitVarInsn(
-			register.registerKind.storeInstruction,
+			register.kind.storeInstruction,
 			localNumberFromRegister(register))
 	}
 	/**
@@ -657,7 +654,7 @@ class JVMTranslator constructor(
 
 		override fun doOperand(vector: L2ReadFloatVectorOperand)
 		{
-			vector.elements.forEach(this::doOperand)
+			vector.elements.forEach { doOperand(it) }
 		}
 
 		override fun doOperand(operand: L2SelectorOperand)
@@ -878,52 +875,6 @@ class JVMTranslator constructor(
 		// required for canonical correctness, and the library might change.
 		method.visitMaxs(0, 0)
 		method.visitEnd()
-		if (debugJVMCodeGeneration)
-		{
-			// Now we need to trick ASM into computing the stack map frames and
-			// recording the maximum stack depth and locals so that we can
-			// record them. This is essential for running the debug analyzer
-			// when finishing the whole class.
-			val methodNode = method as MethodNode
-			val classWriter = ClassWriter(COMPUTE_FRAMES)
-			classWriter.visit(
-				classNode.version,
-				classNode.access,
-				classNode.name,
-				classNode.signature,
-				classNode.superName,
-				classNode.interfaces.toTypedArray())
-			val methodWriter = classWriter.visitMethod(
-				methodNode.access,
-				methodNode.name,
-				methodNode.desc,
-				methodNode.signature,
-				methodNode.exceptions.toTypedArray())
-			try
-			{
-				// Compute the stack map frames, including the maximum stack
-				// depth and locals.
-				methodNode.accept(methodWriter)
-			} catch (e: Exception)
-			{
-				if (debugJVM)
-				{
-					log(
-						Interpreter.loggerDebugJVM,
-						Level.SEVERE,
-						"stack map frame computation failed for {0}",
-						className)
-					dumpTraceToFile(e)
-				}
-				throw e
-			}
-			// Capture the maximum stack depth and locals, for spoonfeeding into
-			// the checker.
-			val methodWriterAsNode = methodWriter as MethodNode
-			method.visitMaxs(
-				methodWriterAsNode.maxStack,
-				methodWriterAsNode.maxLocals)
-		}
 	}
 
 	/**
@@ -1125,41 +1076,78 @@ class JVMTranslator constructor(
 	}
 
 	/**
+	 * Emit code to store each of the values from the [L2ReadBoxedOperand]s into
+	 * a new array. Leave the new array on top of the stack.
+	 *
+	 * @param method
+	 *   The [method][MethodVisitor] into which the generated JVM instructions
+	 *   will be written.
+	 * @param readOperands
+	 *   The [L2ReadBoxedOperand]s holding values to put in the array.
+	 * @param arrayClass
+	 *   The element type of the new array.
+	 */
+	fun objectArray(
+		method: MethodVisitor,
+		readOperands: List<L2ReadBoxedOperand>,
+		arrayClass: Class<out A_BasicObject>)
+	{
+		objectArrayFromRegisters(
+			method,
+			readOperands.map { it.register() as L2BoxedRegister },
+			arrayClass)
+	}
+
+	/**
 	 * Emit code to store each of the [L2BoxedRegister]s into a new array. Leave
 	 * the new array on top of the stack.
 	 *
 	 * @param method
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
 	 *   will be written.
-	 * @param operands
-	 *   The [L2ReadBoxedOperand]s that hold the registers.
+	 * @param registers
+	 *   The [L2Register]s holding values to put in the array.
 	 * @param arrayClass
 	 *   The element type of the new array.
 	 */
-	fun objectArray(
+	fun objectArrayFromRegisters(
 		method: MethodVisitor,
-		operands: List<L2ReadBoxedOperand>,
+		registers: List<L2BoxedRegister>,
 		arrayClass: Class<out A_BasicObject>)
 	{
-		if (operands.isEmpty())
+		val size = registers.size
+		val factory = when (size)
 		{
-			JVMChunk.noObjectsField.generateRead(method)
-		}
-		else
-		{
-			// :: array = new «arrayClass»[«limit»];
-			val limit = operands.size
-			intConstant(method, limit)
-			method.visitTypeInsn(ANEWARRAY, Type.getInternalName(arrayClass))
-			for (i in 0 until limit)
+			0 ->
 			{
-				// :: array[«i»] = «operands[i]»;
-				method.visitInsn(DUP)
-				intConstant(method, i)
-				load(method, operands[i].register())
-				method.visitInsn(AASTORE)
+				JVMChunk.noObjectsField.generateRead(method)
+				return
+			}
+			1 -> JVMChunk.createObjectArray1Method
+			2 -> JVMChunk.createObjectArray2Method
+			3 -> JVMChunk.createObjectArray3Method
+			4 -> JVMChunk.createObjectArray4Method
+			5 -> JVMChunk.createObjectArray5Method
+			else ->
+			{
+				intConstant(method, size)
+				method.visitTypeInsn(
+					Opcodes.ANEWARRAY,
+					Type.getInternalName(arrayClass))
+				registers.forEachIndexed { i, register ->
+					method.visitInsn(Opcodes.DUP)
+					intConstant(method, i)
+					load(method, register)
+					method.visitInsn(Opcodes.AASTORE)
+				}
+				return
 			}
 		}
+		for (local in registers)
+		{
+			load(method, local)
+		}
+		factory.generateCall(method)
 	}
 
 	/**
@@ -1191,11 +1179,7 @@ class JVMTranslator constructor(
 			IF_ACMPNE -> IF_ACMPEQ
 			IFNULL -> IFNONNULL
 			IFNONNULL -> IFNULL
-			else ->
-			{
-				assert(false) { "bad opcode ($opcode)" }
-				throw RuntimeException("bad opcode ($opcode)")
-			}
+			else -> throw AssertionError("bad opcode ($opcode)")
 		}
 
 	/**
@@ -1471,20 +1455,20 @@ class JVMTranslator constructor(
 	 *   The absolute path of the resultant file, for inclusion in a
 	 *   [JVMChunkL2Source] annotation of the generated [JVMChunk] subclass.
 	 */
-	private fun dumpL2SourceToFile(fileName: Path): String? =
+	private fun dumpL2GraphToFile(fileName: Path): String? =
 		try
 		{
 			val lastSlash = classInternalName.lastIndexOf('/')
 			val builder = StringBuilder()
 			val visualizer = L2ControlFlowGraphVisualizer(
-				classInternalName.substring(lastSlash + 1),
-				chunkName,
-				80,
-				controlFlowGraph,
-				true,
-				false,
-				true,
-				builder)
+				fileName = classInternalName.substring(lastSlash + 1),
+				name = chunkName,
+				charactersPerLine = 80,
+				controlFlowGraph = controlFlowGraph,
+				visualizeLiveness = true,
+				visualizeManifest = true,
+				visualizeRegisterDescriptions = true,
+				accumulator = builder)
 			visualizer.visualize()
 			val buffer = StandardCharsets.UTF_8.encode(builder.toString())
 			val bytes = ByteArray(buffer.limit())
@@ -1533,6 +1517,7 @@ class JVMTranslator constructor(
 		method.visitParameter(
 			"offset",
 			if (debugNicerJavaDecompilation) 0 else ACC_FINAL)
+		var l2LineTableByL2: MutableList<Int>? = null
 		if (debugJVM)
 		{
 			val lastSlash = classInternalName.lastIndexOf('/')
@@ -1561,15 +1546,39 @@ class JVMTranslator constructor(
 					annotation.visitEnd()
 				}
 			}
-			val l2Path = dumpL2SourceToFile(dir.resolve("$baseFileName.dot"))
-			if (l2Path !== null)
+			val l2GraphPath =
+				dumpL2GraphToFile(dir.resolve("$baseFileName.dot"))
+			if (l2GraphPath !== null)
 			{
 				val annotation = method.visitAnnotation(
 					Type.getDescriptor(JVMChunkL2Source::class.java),
 					true)
-				annotation.visit("sourcePath", l2Path)
+				annotation.visit("sourcePath", l2GraphPath)
 				annotation.visitEnd()
 			}
+			val l2TextPath = dir.resolve("$baseFileName.l2")
+			l2LineTableByL2 = mutableListOf()
+			var line = 1
+			val builder = StringBuilder()
+			instructions.forEach { instruction ->
+				val block = instruction.basicBlock()
+				if (instruction == block.instructions()[0])
+				{
+					builder.append("// ")
+					block.zone?.let { z ->
+						builder.append("[ZONE: ${z.zoneName}] ")
+					}
+					builder.append(block.name())
+					builder.append('\n')
+					line += block.name().count { it == 'n' } + 1
+				}
+				l2LineTableByL2.add(line)
+				val instructionText = instruction.toString()
+				builder.append(instructionText).append('\n')
+				line += instructionText.count { it == '\n' } + 1
+			}
+			l2TextPath.writeText(builder.toString())
+			classNode.sourceFile = l2TextPath.fileName.toString()
 		}
 		val endLabel = Label()
 		method.visitAnnotation(
@@ -1656,7 +1665,13 @@ class JVMTranslator constructor(
 			if (label !== null)
 			{
 				method.visitLabel(label)
-				method.visitLineNumber(instruction.offset, label)
+				method.visitLineNumber(
+					when (l2LineTableByL2)
+					{
+						null -> instruction.offset
+						else -> l2LineTableByL2[instruction.offset]
+					},
+					label)
 			}
 			if (callTraceL2AfterEveryInstruction)
 			{
@@ -1774,11 +1789,6 @@ class JVMTranslator constructor(
 	{
 		val writer = ClassWriter(COMPUTE_FRAMES)
 		classNode.accept(writer)
-		if (debugJVMCodeGeneration)
-		{
-			val checker = CheckClassAdapter(writer)
-			classNode.accept(checker)
-		}
 		classBytes = writer.toByteArray()
 		if (debugJVM)
 		{
@@ -1987,12 +1997,6 @@ class JVMTranslator constructor(
 		 * instruction.
 		 */
 		var debugJVM = false
-
-		/**
-		 * `true` to enable aggressive sanity checking during JVM code
-		 * generation.
-		 */
-		var debugJVMCodeGeneration = false
 	}
 
 	init

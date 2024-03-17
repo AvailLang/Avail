@@ -119,7 +119,7 @@ internal class NumberedChoice constructor(
 		// The declared type of the subexpression must be a subtype of
 		// [1..N] where N is the number of alternatives.
 		if (!argumentType.isSubtypeOf(
-				inclusive(1, alternation.alternatives.size.toLong())))
+				inclusive(1, alternation.alternatives.size)))
 		{
 			throwSignatureException(E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE)
 		}

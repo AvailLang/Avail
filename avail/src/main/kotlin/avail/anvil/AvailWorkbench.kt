@@ -86,12 +86,12 @@ import avail.anvil.actions.SetLoadOnStartAction
 import avail.anvil.actions.ShowCCReportAction
 import avail.anvil.actions.ShowVMReportAction
 import avail.anvil.actions.SubmitInputAction
+import avail.anvil.actions.ToggleAvailableSplits
 import avail.anvil.actions.ToggleDebugAfterUnload
 import avail.anvil.actions.ToggleDebugInterpreterL1
 import avail.anvil.actions.ToggleDebugInterpreterL2
 import avail.anvil.actions.ToggleDebugInterpreterPrimitives
 import avail.anvil.actions.ToggleDebugJVM
-import avail.anvil.actions.ToggleDebugJVMCodeGeneration
 import avail.anvil.actions.ToggleDebugWorkUnits
 import avail.anvil.actions.ToggleFastLoaderAction
 import avail.anvil.actions.ToggleL2SanityCheck
@@ -747,11 +747,11 @@ class AvailWorkbench internal constructor(
 	 */
 	private val toggleDebugAfterUnload = ToggleDebugAfterUnload(this)
 
+	/** Show additional code splitting opportunities in control flow graphs. */
+	private val toggleAvailableSplits = ToggleAvailableSplits(this)
+
 	/** The [toggle JVM dump debug action][ToggleDebugJVM]. */
 	private val toggleDebugJVM = ToggleDebugJVM(this)
-
-	/** The [toggle JVM code generation][ToggleDebugJVMCodeGeneration]. */
-	private val toggleDebugJVMCodeGeneration = ToggleDebugJVMCodeGeneration(this)
 
 	/**
 	 * The
@@ -1246,8 +1246,7 @@ class AvailWorkbench internal constructor(
 			}
 			catch (e: BadLocationException)
 			{
-				// Shouldn't happen.
-				assert(false)
+				throw AssertionError(e)
 			}
 		}
 	}
@@ -1825,8 +1824,7 @@ class AvailWorkbench internal constructor(
 		}
 		catch (e: BadLocationException)
 		{
-			// Shouldn't happen.
-			assert(false)
+			throw AssertionError(e)
 		}
 
 		perModuleProgressLock.safeWrite {
@@ -2105,9 +2103,9 @@ class AvailWorkbench internal constructor(
 					check(toggleDebugPrimitives)
 					check(toggleDebugWorkUnits)
 					check(toggleDebugAfterUnload)
+					check(toggleAvailableSplits)
 					separator()
 					check(toggleDebugJVM)
-					check(toggleDebugJVMCodeGeneration)
 					separator()
 					item(parserIntegrityCheckAction)
 					item(examineRepositoryAction)
@@ -2181,21 +2179,6 @@ class AvailWorkbench internal constructor(
 						}
 					}
 				})
-			addMouseListener(
-				object : MouseAdapter()
-				{
-					override fun mouseClicked(e: MouseEvent)
-					{
-						if (buildAction.isEnabled
-							&& e.clickCount == 2
-							&& e.button == MouseEvent.BUTTON1)
-						{
-							e.consume()
-							buildAction.actionPerformed(
-								ActionEvent(moduleTree, -1, "Build"))
-						}
-					}
-				})
 		}
 
 		// Create the entry points tree.
@@ -2218,11 +2201,11 @@ class AvailWorkbench internal constructor(
 				{
 					override fun mouseClicked(e: MouseEvent)
 					{
-						if (selectedEntryPoint() !== null)
+						if (insertEntryPointAction.isEnabled
+							&& e.clickCount == 2
+							&& e.button == MouseEvent.BUTTON1)
 						{
-							if (insertEntryPointAction.isEnabled
-								&& e.clickCount == 2
-								&& e.button == MouseEvent.BUTTON1)
+							if (selectedEntryPoint() !== null)
 							{
 								e.consume()
 								val actionEvent = ActionEvent(
@@ -2230,12 +2213,7 @@ class AvailWorkbench internal constructor(
 								insertEntryPointAction.actionPerformed(
 									actionEvent)
 							}
-						}
-						else if (selectedEntryPointModule() !== null)
-						{
-							if (buildEntryPointModuleAction.isEnabled
-								&& e.clickCount == 2
-								&& e.button == MouseEvent.BUTTON1)
+							else if (selectedEntryPointModule() !== null)
 							{
 								e.consume()
 								val actionEvent = ActionEvent(
@@ -3270,8 +3248,13 @@ class AvailWorkbench internal constructor(
 				})
 		}
 
-		/** Truncate the start of the document any time it exceeds this. */
-		private const val maxDocumentSize = 10_000_000
+		/**
+		 * Truncate the start of the document any time the transcript exceeds
+		 * this.  While this is a relatively tiny value, Swing is *extremely*
+		 * inefficient and has a variety of pathologies that lead to the
+		 * appearance of a hung system if we make this too big.
+		 */
+		private const val maxDocumentSize = 2_000_000
 
 		/** The [Statistic] for tracking text insertions. */
 		private val insertStringStat =
@@ -3316,13 +3299,11 @@ class AvailWorkbench internal constructor(
 					is AbstractWorkbenchTreeNode ->
 					{
 						val icon = value.icon(tree.rowHeight)
-						setLeafIcon(icon)
-						setOpenIcon(icon)
-						setClosedIcon(icon)
 						var html = value.htmlText(selected)
 						html = "<html>$html</html>"
-						super.getTreeCellRendererComponent(
-							tree, html, selected, expanded, leaf, row, hasFocus)
+						// For this kind of node, use the MUCH faster caching of
+						// a JLabel for rarely changing text.
+						value.labelForText(html, icon)
 					}
 					else -> return super.getTreeCellRendererComponent(
 						tree, value, selected, expanded, leaf, row, hasFocus)

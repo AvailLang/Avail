@@ -33,7 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -96,12 +97,12 @@ abstract class L2ControlFlowOperation protected constructor(
 	init
 	{
 		val labelIndicesList = namedOperandTypes.indices.filter {
-			namedOperandTypes[it].operandType == L2OperandType.PC
+			namedOperandTypes[it].operandType == PC
 		}
 		labelOperandIndices =
 			IntArray(labelIndicesList.size) { labelIndicesList[it] }
 		val labelVectorIndicesList = namedOperandTypes.indices.filter {
-			namedOperandTypes[it].operandType == L2OperandType.PC_VECTOR
+			namedOperandTypes[it].operandType == PC_VECTOR
 		}
 		labelVectorOperandIndices =
 			IntArray(labelVectorIndicesList.size) { labelVectorIndicesList[it] }

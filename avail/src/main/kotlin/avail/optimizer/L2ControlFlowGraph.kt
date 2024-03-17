@@ -40,8 +40,8 @@ import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
+import avail.utility.Mutable
 import avail.utility.Strings.increaseIndentation
-import java.lang.StringBuilder
 import java.util.Collections
 import kotlin.reflect.KClass
 
@@ -66,7 +66,7 @@ class L2ControlFlowGraph
 		 * writes to its output register the value corresponding to the numbered
 		 * predecessor edge by which the block was reached.
 		 */
-		class IS_SSA : StateFlag()
+		object IS_SSA : StateFlag()
 
 		/**
 		 * Whether the control flow graph is in edge-split form, which ensures
@@ -74,14 +74,14 @@ class L2ControlFlowGraph
 		 * leads to a node with multiple predecessor edges.
 		 */
 		@Suppress("unused")
-		class IS_EDGE_SPLIT : StateFlag()
+		object IS_EDGE_SPLIT : StateFlag()
 
 		/**
 		 * Indicates that every [L2_PHI_PSEUDO_OPERATION] has been replaced by
 		 * moves to the same [L2Register] along each (split) incoming edge.
 		 */
 		@Suppress("unused")
-		class HAS_ELIMINATED_PHIS : StateFlag()
+		object HAS_ELIMINATED_PHIS : StateFlag()
 	}
 
 	/**
@@ -192,7 +192,18 @@ class L2ControlFlowGraph
 		 * when this zone is entered, and the invoke logic ensures the callers
 		 * have already been reified by the time this zone runs.
 		 */
-		PROPAGATE_REIFICATION_FOR_INVOKE("#c0e0c0/10a010", "#e0ffe0/103010");
+		PROPAGATE_REIFICATION_FOR_INVOKE("#c0e0c0/10a010", "#e0ffe0/103010"),
+
+		/**
+		 * A zone used to visually indicate a dead end, such as a failed read
+		 * from a variable, or a failed return type check.
+		 */
+		DEAD_END("#ffc0c0/905050", "#ffd8d8/502828"),
+
+		/**
+		 * A cluster of test/branch nodes used to effect a multi-way branch.
+		 */
+		MULTI_WAY_EXPANSION("#ffffc0/909050", "#ffffd8/505028");
 
 		/**
 		 * Create a new [Zone] of this type, with an optional descriptive
@@ -229,23 +240,87 @@ class L2ControlFlowGraph
 	}
 
 	/**
+	 * Visit the blocks of the graph in forward order, predecessors before
+	 * successors, ignoring backward branches.
+	 */
+	fun forwardVisit(action: (L2BasicBlock)->Unit)
+	{
+		val countdowns = mutableMapOf<L2BasicBlock, Mutable<Int>>()
+		basicBlockOrder.forEach { block ->
+			countdowns[block] =
+				Mutable(block.predecessorEdges().count { !it.isBackward })
+		}
+		countdowns[basicBlockOrder[0]]!!.value++
+		val queue = ArrayDeque<L2BasicBlock>()
+		queue.add(basicBlockOrder[0])
+		while (queue.isNotEmpty())
+		{
+			val block = queue.removeFirst()
+			val countdown = --countdowns[block]!!.value
+			assert(countdown >= 0)
+			if (countdown == 0)
+			{
+				action(block)
+				block.successorEdges().forEach { edge ->
+					if (!edge.isBackward)
+					{
+						queue.add(edge.targetBlock())
+					}
+				}
+			}
+		}
+		assert(countdowns.values.all { it.value == 0 })
+	}
+
+	/**
+	 * Visit the blocks of the graph in reverse order, successors before
+	 * predecessors, ignoring backward branches.
+	 */
+	fun backwardVisit(action: (L2BasicBlock)->Unit)
+	{
+		val countdowns = mutableMapOf<L2BasicBlock, Mutable<Int>>()
+		basicBlockOrder.forEach { block ->
+			countdowns[block] =
+				Mutable(block.successorEdges().count { !it.isBackward })
+		}
+		val queue = ArrayDeque<L2BasicBlock>()
+		val ends = mutableListOf<L2BasicBlock>()
+		basicBlockOrder.filterTo(ends) { block ->
+			block.successorEdges().all { it.isBackward }
+		}
+		queue.addAll(ends)
+		ends.forEach { countdowns[it]!!.value++ }
+		while (queue.isNotEmpty())
+		{
+			val block = queue.removeFirst()
+			val countdown = --countdowns[block]!!.value
+			assert(countdown >= 0)
+			if (countdown == 0)
+			{
+				action(block)
+				block.predecessorEdges().forEach { edge ->
+					if (!edge.isBackward)
+					{
+						queue.add(edge.sourceBlock())
+					}
+				}
+			}
+		}
+		assert(countdowns.values.all { it.value == 0 })
+	}
+
+	/**
 	 * Collect the list of all distinct [L2Register]s assigned anywhere within
 	 * this control flow graph.
 	 *
 	 * @return
 	 *   A [List] of [L2Register]s without repetitions.
 	 */
-	fun allRegisters(): List<L2Register>
+	fun allRegisters(): List<L2Register<*>>
 	{
-		val allRegisters = mutableSetOf<L2Register>()
-		for (block in basicBlockOrder)
-		{
-			for (instruction in block.instructions())
-			{
-				allRegisters.addAll(instruction.destinationRegisters)
-			}
-		}
-		return allRegisters.toMutableList()
+		return basicBlockOrder.flatMapTo(mutableSetOf()) {
+			it.instructions().flatMap(L2Instruction::destinationRegisters)
+		}.toList()
 	}
 
 	/**
@@ -303,20 +378,26 @@ class L2ControlFlowGraph
 	 * Answer a visualization of this `L2ControlFlowGraph`. This is a
 	 * debug method, intended to be called via evaluation during debugging.
 	 *
+	 * @param generator
+	 *   The [L2Generator], if any, that is in the process of populating this
+	 *   graph.
 	 * @return
 	 *   The requested visualization.
 	 */
 	@Suppress("unused")
-	fun visualize() = StringBuilder().let { builder ->
+	fun visualize(
+		generator: L2Generator? = null
+	) = StringBuilder().let { builder ->
 		L2ControlFlowGraphVisualizer(
-			"«control flow graph»",
-			"«chunk»",
-			80,
-			this,
-			true,
-			true,
-			true,
-			builder
+			fileName = "«control flow graph»",
+			name = "«chunk»",
+			charactersPerLine = 80,
+			controlFlowGraph = this,
+			visualizeLiveness = true,
+			visualizeManifest = true,
+			visualizeRegisterDescriptions = true,
+			accumulator = builder,
+			generator = generator
 		).visualize()
 		builder.toString()
 	}
@@ -325,19 +406,25 @@ class L2ControlFlowGraph
 	 * Answer a visualization of this `L2ControlFlowGraph`. This is a
 	 * debug method, intended to be called via evaluation during debugging.
 	 *
+	 * @param generator
+	 *   The [L2Generator], if any, that is in the process of populating this
+	 *   graph.
 	 * @return
 	 *   The requested visualization.
 	 */
-	fun simplyVisualize() = StringBuilder().let { builder ->
+	fun simplyVisualize(
+		generator: L2Generator? = null
+	) = StringBuilder().let { builder ->
 		L2ControlFlowGraphVisualizer(
-			"«SIMPLE control flow graph»",
-			"«chunk»",
-			80,
-			this,
-			false,
-			false,
-			false,
-			builder
+			fileName = "«SIMPLE control flow graph»",
+			name = "«chunk»",
+			charactersPerLine = 80,
+			controlFlowGraph = this,
+			visualizeLiveness = false,
+			visualizeManifest = false,
+			visualizeRegisterDescriptions = false,
+			accumulator = builder,
+			generator = generator
 		).visualize()
 		builder.toString()
 	}

@@ -85,9 +85,9 @@ internal class SectionCheckpoint constructor(
 
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
-		assert(false) {
-			"checkType() should not be called for SectionCheckpoint expressions"
-		}
+		throw AssertionError(
+			"checkType() should not be called for SectionCheckpoint " +
+				"expressions.")
 	}
 
 	override fun emitOn(

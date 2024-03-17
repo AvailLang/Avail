@@ -1045,7 +1045,7 @@ constructor(
 		registers: Array<AvailObject>
 	): StackReifier?
 	{
-		// The variable had no value.
+		// The variable had an observer attached.
 		assert(e.numericCode.equals(
 			E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode()))
 		val thisChunk = interpreter.chunk!!

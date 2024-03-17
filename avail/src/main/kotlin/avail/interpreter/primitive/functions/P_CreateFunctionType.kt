@@ -31,11 +31,20 @@
  */
 package avail.interpreter.primitive.functions
 
+import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.sizeRange
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.Primitive
@@ -57,6 +66,29 @@ object P_CreateFunctionType : Primitive(2, CannotFail, CanFold, CanInline)
 		val argTypes = interpreter.argument(0)
 		val returnType = interpreter.argument(1)
 		return interpreter.primitiveSuccess(functionType(argTypes, returnType))
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		val (argTypes, returnType) = argumentTypes
+
+		val sizeRange = argTypes.sizeRange
+		val arity = sizeRange.lowerBound
+		return when
+		{
+			sizeRange.upperBound.equals(arity) ->
+			{
+				// The function arity is known.
+				instanceMeta(
+					functionType(
+						createRepeatedElementTuple(arity.extractInt, nil),
+						returnType))
+			}
+			else -> instanceMeta(functionTypeReturning(returnType))
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

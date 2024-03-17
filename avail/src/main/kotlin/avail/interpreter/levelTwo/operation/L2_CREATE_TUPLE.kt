@@ -53,19 +53,21 @@ import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -223,7 +225,7 @@ object L2_CREATE_TUPLE : L2Operation(
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
+		tupleReg: L2ReadOperand<BOXED_KIND>,
 		index: Int,
 		generator: L2Generator
 	): L2ReadBoxedOperand
@@ -233,23 +235,5 @@ object L2_CREATE_TUPLE : L2Operation(
 		// val tuple = instruction.operand<L2WriteBoxedOperand>(1)
 
 		return values.elements[index - 1]
-	}
-
-	/**
-	 * Given an [L2Instruction] using this operation, extract the list of
-	 * registers that supply the elements of the tuple.
-	 *
-	 * @param instruction
-	 *   The tuple creation instruction to examine.
-	 * @return
-	 *   The instruction's [List] of [L2ReadBoxedOperand]s that supply the tuple
-	 *   elements.
-	 */
-	fun tupleSourceRegistersOf(
-		instruction: L2Instruction): List<L2ReadBoxedOperand>
-	{
-		assert(instruction.operation === this)
-		val vector = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		return vector.elements
 	}
 }

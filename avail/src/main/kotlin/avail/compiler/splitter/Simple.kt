@@ -95,9 +95,8 @@ internal class Simple constructor(
 		argumentType: A_Type,
 		sectionNumber: Int)
 	{
-		assert(false) {
-			"checkType() should not be called for Simple expressions"
-		}
+		throw AssertionError(
+			"checkType() should not be called for Simple expressions.")
 	}
 
 	override fun emitOn(
