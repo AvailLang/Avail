@@ -35,7 +35,7 @@ import avail.AvailRuntime
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
@@ -56,6 +56,14 @@ import org.objectweb.asm.MethodVisitor
 object L2_GET_INVALID_MESSAGE_SEND_FUNCTION : L2Operation(
 	WRITE_BOXED.named("invalid message send function"))
 {
+	/**
+	 * Fetching this hook function is sufficient to disable code splitting along
+	 * this path.  It's highly unlikely that this hookable function is going to
+	 * be accessed in a tight loop anyhow, let alone benefit from code
+	 * splitting.
+	 */
+	override fun isCold(instruction: L2Instruction): Boolean = true
+
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

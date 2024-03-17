@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo.operand
 
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.utility.cast
 
 /**
@@ -50,18 +50,18 @@ import avail.utility.cast
  * @param elements
  *   The list of [L2ReadBoxedOperand]s.
  */
-class L2ReadBoxedVectorOperand constructor(
-		elements: List<L2ReadBoxedOperand>)
-	: L2ReadVectorOperand<L2BoxedRegister, L2ReadBoxedOperand>(elements)
+class L2ReadBoxedVectorOperand
+constructor(
+	elements: List<L2ReadBoxedOperand>
+) : L2ReadVectorOperand<L2ReadBoxedOperand>(elements)
 {
-	override fun clone(): L2ReadBoxedVectorOperand =
+	override fun clone() =
 		L2ReadBoxedVectorOperand(elements.map { it.clone().cast() })
 
-	override fun clone(replacementElements: List<L2ReadBoxedOperand>) =
-		L2ReadBoxedVectorOperand(replacementElements)
+	override fun clone(replacementElements: List<L2ReadOperand<*>>) =
+		L2ReadBoxedVectorOperand(replacementElements.cast())
 
-	override val operandType: L2OperandType
-		get() = L2OperandType.READ_BOXED_VECTOR
+	override val operandType: L2OperandType get() = READ_BOXED_VECTOR
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

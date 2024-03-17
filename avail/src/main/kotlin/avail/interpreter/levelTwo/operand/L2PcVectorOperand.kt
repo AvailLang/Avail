@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operand
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
@@ -67,8 +68,7 @@ class L2PcVectorOperand constructor(
 		edges.forEach { it.adjustCloneForInstruction(theInstruction) }
 	}
 
-	override val operandType: L2OperandType
-		get() = L2OperandType.PC_VECTOR
+	override val operandType: L2OperandType get() = PC_VECTOR
 
 	override fun setInstruction(theInstruction: L2Instruction?)
 	{
@@ -102,7 +102,7 @@ class L2PcVectorOperand constructor(
 	}
 
 	override fun replaceRegisters(
-		registerRemap: Map<L2Register, L2Register>,
+		registerRemap: Map<L2Register<*>, L2Register<*>>,
 		theInstruction: L2Instruction)
 	{
 		edges.forEach { it.replaceRegisters(registerRemap, theInstruction) }
@@ -114,7 +114,9 @@ class L2PcVectorOperand constructor(
 		append("→ <")
 		edges.forEachIndexed { zeroIndex, edge ->
 			append("\n\t(#").append(zeroIndex + 1).append("): ")
-			edge.appendTo(builder)
+			val entryBuilder = StringBuilder()
+			edge.appendTo(entryBuilder)
+			builder.append(entryBuilder.toString().replace("\n", "\n\t\t"))
 		}
 		append("\n>")
 	}

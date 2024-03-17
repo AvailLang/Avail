@@ -37,14 +37,18 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticUnboxedInt
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -71,7 +75,6 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		//val ifNotEqual = instruction.operand<L2PcOperand>(3)
 
 		super.instructionWasAdded(instruction, manifest)
-
 		// Merge the source and destination only along the ifEqual branch.
 		ifEqual.manifest().mergeExistingSemanticValues(
 			first.semanticValue(), second.semanticValue())
@@ -86,8 +89,8 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		assert(this == instruction.operation)
 		val first = instruction.operand<L2ReadBoxedOperand>(0)
 		val second = instruction.operand<L2ReadBoxedOperand>(1)
-		//val ifEqual = instruction.operand<L2PcOperand>(2);
-		//val ifNotEqual = instruction.operand<L2PcOperand>(3);
+		//val ifEqual = instruction.operand<L2PcOperand>(2)
+		//val ifNotEqual = instruction.operand<L2PcOperand>(3)
 
 		renderPreamble(instruction, builder)
 		builder.append(' ')
@@ -116,22 +119,83 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 			translator, method, instruction, Opcodes.IFNE, ifEqual, ifNotEqual)
 	}
 
-	//TODO override emit...
-	override fun interestingConditions(
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val boxed1Reg = transformedOperands[0] as L2ReadBoxedOperand
+		val boxed2Reg = transformedOperands[1] as L2ReadBoxedOperand
+		val ifTrue = transformedOperands[2] as L2PcOperand
+		val ifFalse = transformedOperands[3] as L2PcOperand
+
+		val manifest = regenerator.currentManifest
+		val restriction1 = manifest.restrictionFor(boxed1Reg.semanticValue())
+		val restriction2 = manifest.restrictionFor(boxed2Reg.semanticValue())
+		if (restriction1.intersection(restriction2).isImpossible)
+		{
+			// The restrictions are disjoint, so the comparison is always false.
+			// Jump unconditionally to the false case.
+			regenerator.jumpTo(ifFalse.targetBlock())
+			return
+		}
+		restriction1.constantOrNull?.let { c1 ->
+			restriction2.constantOrNull?.let { c2 ->
+				if (c1.equals(c2))
+				{
+					// The restrictions say the values are the same constant, so
+					// it's always true.  Jump unconditionally to the true case.
+					regenerator.jumpTo(ifTrue.targetBlock())
+					return
+				}
+			}
+		}
+		if (!boxed1Reg.restriction().containedByType(i32)
+			|| !boxed2Reg.restriction().containedByType(i32))
+		{
+			return super.emitTransformedInstruction(
+				transformedOperands, regenerator)
+		}
+		// The values are definitely ints, even if they're not necessarily both
+		// (or either) in int registers.
+		val unreachable = L2BasicBlock("should not reach")
+		val int1Reg = regenerator.readInt(
+			L2SemanticUnboxedInt(boxed1Reg.semanticValue()), unreachable)
+		val int2Reg = regenerator.readInt(
+			L2SemanticUnboxedInt(boxed2Reg.semanticValue()), unreachable)
+		// Note that we *must not* reuse the manifests in the translated edges
+		// ifTrue and ifFalse, since they might not include information about
+		// registers freshly generated for int1Reg and int2Reg, which might have
+		// had to be constructed from boxed forms.  In particular, there was a
+		// case where a boxed value was unboxed (unconditionally), but removed
+		// as dead code in the same pass that translated a downstream occurrence
+		// of L2_JUMP_IF_OBJECT_EQUAL, which could be translated to an
+		// L2_JUMP_IF_COMPARE_INT by the compareAndBranchInt() below.
+		regenerator.compareAndBranchInt(
+			NumericComparator.Equal,
+			int1Reg,
+			int2Reg,
+			L2PcOperand(ifTrue.targetBlock(), ifTrue.isBackward),
+			L2PcOperand(ifFalse.targetBlock(), ifFalse.isBackward))
+		assert(!unreachable.currentlyReachable())
+	}
+
+	override fun interestingSplitConditions(
 		instruction: L2Instruction
-	): List<L2SplitCondition>
+	): List<L2SplitCondition?>
 	{
 		val first = instruction.operand<L2ReadBoxedOperand>(0)
 		val second = instruction.operand<L2ReadBoxedOperand>(1)
+		//val ifEqual = instruction.operand<L2PcOperand>(2)
+		//val ifNotEqual = instruction.operand<L2PcOperand>(3)
 
-		return when
+		val conditions = mutableListOf<L2SplitCondition?>()
+		if (first.restriction().intersectsType(i32)
+			&& second.restriction().intersectsType(i32))
 		{
-			!first.restriction().intersectsType(i32) -> emptyList()
-			!second.restriction().intersectsType(i32) -> emptyList()
-			else -> listOf(
+			conditions.add(
 				unboxedIntCondition(
-					listOf(first.register(), second.register()))
-			)
+					listOf(first.register(), second.register())))
 		}
+		return conditions
 	}
 }

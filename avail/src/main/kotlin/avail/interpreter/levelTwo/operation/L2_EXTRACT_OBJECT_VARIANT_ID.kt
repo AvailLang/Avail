@@ -36,10 +36,10 @@ import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -74,6 +74,35 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 			.append(")")
 	}
 
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		//val value = transformedOperands[0] as L2ReadBoxedOperand
+		val variantId = transformedOperands[1] as L2WriteIntOperand
+
+		val manifest = regenerator.currentManifest
+		val equivalentVariantId = variantId.semanticValues()
+			.firstNotNullOfOrNull(manifest::equivalentPopulatedSemanticValue)
+		if (equivalentVariantId !== null)
+		{
+			// We already have an equivalent register holding the variant id.
+			val unpopulated = variantId.semanticValues()
+				.filterNot(manifest::hasSemanticValue)
+			// Emit a move if there are any unpopulated semantic values to be
+			// written.
+			if (unpopulated.isNotEmpty())
+			{
+				regenerator.moveRegister(
+					L2_MOVE.unboxedInt,
+					equivalentVariantId,
+					variantId.semanticValues())
+			}
+			return
+		}
+		super.emitTransformedInstruction(transformedOperands, regenerator)
+	}
+
 	override fun generateReplacement(
 		instruction: L2Instruction,
 		regenerator: L2Regenerator)
@@ -83,19 +112,31 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 
 		// If the variantId is statically deducible at this point, use the
 		// constant.
-		val generator = regenerator.targetGenerator
 		val restriction =
-			generator.currentManifest.restrictionFor(value.semanticValue())
+			regenerator.currentManifest.restrictionFor(value.semanticValue())
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectVariant
-			generator.addInstruction(
-				L2_MOVE_CONSTANT.unboxedInt,
-				L2IntImmediateOperand(variant.variantId),
-				variantId)
+			regenerator.moveRegister(
+				L2_MOVE.unboxedInt,
+				regenerator.unboxedIntConstant(variant.variantId)
+					.semanticValue(),
+				variantId.semanticValues())
 			return
 		}
 		super.generateReplacement(instruction, regenerator)
+	}
+
+	/**
+	 * Extract the [L2ReadBoxedOperand] that provided the object whose variant
+	 * is being extracted.
+	 */
+	fun sourceOfObjectVariant(
+		instruction: L2Instruction
+	): L2ReadBoxedOperand
+	{
+		assert(instruction.operation == this)
+		return instruction.operand(0)
 	}
 
 	override fun translateToJVM(

@@ -45,11 +45,9 @@ import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -82,13 +80,13 @@ object P_PushLastOuter : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val constantFunction = functionToCallReg.constantOrNull()
 
 		// Check for the rare case that the exact function is known (noting that
 		// it has an outer).
+		val translator = callSiteHelper.translator
 		if (constantFunction !== null)
 		{
 			callSiteHelper.useAnswer(
@@ -101,7 +99,7 @@ object P_PushLastOuter : Primitive(
 		// the original register that provided the value for the outer.  This
 		// should allow us to skip the creation of the function.
 		val functionCreationInstruction =
-			functionToCallReg.definitionSkippingMoves(true)
+			functionToCallReg.definitionSkippingMoves()
 		val returnType = functionToCallReg.type().returnType
 		val outerReg = functionCreationInstruction.operation
 			.extractFunctionOuter(
@@ -134,6 +132,6 @@ object P_PushLastOuter : Primitive(
 		val constant = functionIfKnown.outerVarAt(1)
 		simpleTranslator.add(
 			L2Simple_MoveConstant(constant, simpleTranslator.stackp))
-		return restrictionForConstant(constant, BOXED_FLAG)
+		return boxedRestrictionForConstant(constant)
 	}
 }

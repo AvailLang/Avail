@@ -90,6 +90,9 @@ import avail.interpreter.levelTwo.L2Chunk
  *   it can be reconstructed by asking the [module] to look up the phrase it has
  *   stored under the [originatingPhraseIndex], which may then be cached in this
  *   field.
+ * @param packedDeclarationNames
+ *   A packed [A_String] containing the names of the block's arguments, locals,
+ *   constants, optional label, and outers.
  * @param lineNumber
  *   The starting [lineNumber] of this function, if known, otherwise `0`.
  * @param lineNumberEncodedDeltas

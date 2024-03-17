@@ -74,10 +74,9 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
+import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -186,11 +185,11 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		if (quotients.isEmpty()) return bottom
 		val min = quotients.minWithOrNull { a, b ->
 			if (a.lessThan(b)) -1 else 1
-		}
+		}!!.makeImmutable()
 		val max = quotients.maxWithOrNull { a, b ->
 			if (a.lessThan(b)) -1 else 1
-		}
-		return inclusive(min!!, max!!)
+		}!!.makeImmutable()
+		return inclusive(min, max)
 			.typeIntersection(integers)
 			.makeImmutable()
 	}
@@ -229,12 +228,12 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper): Boolean
 	{
 		val (a, b) = arguments
 		val (aType, bType) = argumentTypes
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 
 		// Division by one works whether boxed or not, and even if the numerator
@@ -251,7 +250,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		// back if the denominator can't be strictly positive.
 		val aIntersectInt31 = aType.typeIntersection(i31)
 		val bIntersectPos31 = bType.typeIntersection(
-			inclusive(1L, Int.MAX_VALUE.toLong()))
+			inclusive(1, Int.MAX_VALUE))
 		if (aIntersectInt31.isBottom || bIntersectPos31.isBottom)
 		{
 			return false
@@ -273,10 +272,10 @@ object P_Division : Primitive(2, CanFold, CanInline)
 			this, listOf(a.semanticValue(), b.semanticValue()))
 		val quotientWriter = generator.intWrite(
 			setOf(L2SemanticUnboxedInt(semanticQuotient)),
-			restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
+			intRestrictionForType(returnTypeIfInts))
 
 		val nonnegativeNumerator = L2BasicBlock("nonnegative numerator")
-		L2_JUMP_IF_COMPARE_INT.greaterOrEqual.compareAndBranch(
+		NumericComparator.GreaterOrEqual.compareAndBranchInt(
 			generator,
 			intA,
 			generator.unboxedIntConstant(0),
@@ -286,7 +285,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 
 		generator.startBlock(nonnegativeNumerator)
 		val notZeroDenominator = L2BasicBlock("fast path division")
-		L2_JUMP_IF_COMPARE_INT.greater.compareAndBranch(
+		NumericComparator.Greater.compareAndBranchInt(
 			generator,
 			intB,
 			generator.unboxedIntConstant(0),

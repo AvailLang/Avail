@@ -138,8 +138,7 @@ internal class Sequence constructor(
 	override val yieldsValue: Boolean
 		get()
 		{
-			assert(false) { "Should not ask sequence if it yields a value" }
-			return false
+			throw AssertionError("Should not ask sequence if it yields a value")
 		}
 
 	override val underscoreCount: Int

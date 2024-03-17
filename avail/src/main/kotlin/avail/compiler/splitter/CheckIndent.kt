@@ -98,9 +98,8 @@ internal class CheckIndent constructor(
 
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
-		assert(false) {
-			"checkType() should not be called for a CheckIndent expression"
-		}
+		throw AssertionError(
+			"checkType() should not be called for a CheckIndent expression")
 	}
 
 	override fun emitOn(

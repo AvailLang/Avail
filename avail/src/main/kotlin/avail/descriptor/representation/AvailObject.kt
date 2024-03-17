@@ -198,6 +198,11 @@ class AvailObject private constructor(
 						descriptor().printObjectOnAvoidingIndent(
 							this@AvailObject, builder, recursionMap, indent)
 					}
+					catch (e: Exception)
+					{
+						// Nice place to put a breakpoint to debug.
+						throw e
+					}
 					finally
 					{
 						recursionMap.remove(this@AvailObject)

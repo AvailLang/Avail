@@ -33,7 +33,7 @@
 package avail.test
 
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.types.IntegerRangeTypeDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
@@ -45,7 +45,7 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.OptimizationLevel
@@ -209,11 +209,11 @@ constructor(private val instructionClass: Class<Instruction>)
 
 	@Suppress("UNCHECKED_CAST")
 	private val vectorReadOperandFields:
-			List<OperandField<L2ReadVectorOperand<*, *>>> =
+			List<OperandField<L2ReadVectorOperand<*>>> =
 		operandFields
 			.filter {
 				L2ReadVectorOperand::class.java.isAssignableFrom(it.type)
-			} as List<OperandField<L2ReadVectorOperand<*, *>>>
+			} as List<OperandField<L2ReadVectorOperand<*>>>
 
 	@Suppress("UNCHECKED_CAST")
 	private val writeOperandFields: List<OperandField<L2WriteOperand<*>>> =
@@ -288,18 +288,15 @@ class ExampleUsage
 	{
 		val generator = L2Generator(
 			OptimizationLevel.FIRST_JVM_TRANSLATION,
-			Frame(null, nil, "top frame"),
-			"Example code")
-		val startBlock: L2BasicBlock =
-			generator.createBasicBlock("START for ${generator.codeName}")
+			Frame(null, nil, "code name", "top frame"))
+		val startBlock = generator.createBasicBlock(
+			"START for ${generator.topFrame.codeName}")
 		startBlock.makeIrremovable()
 		generator.startBlock(startBlock)
 		val semanticTemp = generator.newTemp()
 		val write = generator.intWrite(
 			setOf(L2SemanticUnboxedInt(semanticTemp)),
-			TypeRestriction.restrictionForType(
-				IntegerRangeTypeDescriptor.i32,
-				TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG))
+			intRestrictionForType(i32))
 		val add = L2_ADD_INTS(
 			augend = generator.unboxedIntConstant(10),
 			addend = generator.unboxedIntConstant(20),

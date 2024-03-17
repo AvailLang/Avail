@@ -35,8 +35,8 @@ import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_FLOAT
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -73,10 +73,8 @@ object L2_BOX_FLOAT : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val source =
-			instruction.operand<L2ReadFloatOperand>(0)
-		val destinationReg =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		val source = instruction.operand<L2ReadFloatOperand>(0)
+		val destinationReg = instruction.operand<L2WriteBoxedOperand>(1)
 
 		// :: destination = IntegerDescriptor.fromInt(source);
 		translator.load(method, source.register())

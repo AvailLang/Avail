@@ -185,6 +185,9 @@ import kotlin.math.max
  *   it can be reconstructed by asking the [module] to look up the phrase it has
  *   stored under the [originatingPhraseIndex], which may then be cached in this
  *   field.
+ * @param packedDeclarationNames
+ *   A packed [A_String] containing the names of the block's arguments, locals,
+ *   constants, optional label, and outers.
  * @param lineNumber
  *   The starting [lineNumber] of this function, if known, otherwise `0`.
  * @param lineNumberEncodedDeltas
@@ -1275,7 +1278,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 *   or [nil] if such a phrase does not exist.
 		 * @param packedDeclarationNames
 		 *   A packed [A_String] containing the names of the block's arguments,
-		 *   locals, and constants.
+		 *   locals, constants, optional label, and outers.
 		 * @return
 		 *   The new compiled code object.
 		 */

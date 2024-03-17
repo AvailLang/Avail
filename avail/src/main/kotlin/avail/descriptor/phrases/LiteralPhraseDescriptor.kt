@@ -70,6 +70,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelOne.L1Decompiler
 import avail.serialization.SerializerOperation
+import avail.utility.Strings
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
 import java.util.IdentityHashMap
@@ -109,7 +110,9 @@ class LiteralPhraseDescriptor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(self.token.string().asNativeString())
+		builder.append(
+			self.token.string().asNativeString()
+				.replace("\n", "\n" + Strings.tabs(indent + 1)))
 	}
 
 	override fun o_ApplyStylesThen(

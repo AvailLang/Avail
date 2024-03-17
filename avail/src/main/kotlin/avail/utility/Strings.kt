@@ -219,10 +219,9 @@ object Strings
 			e.printStackTrace(trace)
 			String(traceBytes.toByteArray(), StandardCharsets.UTF_8)
 		}
-		catch (x: UnsupportedEncodingException)
+		catch (e: UnsupportedEncodingException)
 		{
-			assert(false) { "This never happens!" }
-			throw RuntimeException(x)
+			throw AssertionError("This never happens!", e)
 		}
 	}
 
@@ -256,14 +255,31 @@ object Strings
 	/**
 	 * Output an XML tag with the given tag name and attributes supplied as
 	 * [Pair]s.  The values of the attributes will be escaped and quoted.  Then
-	 * run the body function and output a matching close tag.  If at exception
+	 * run the body function and output a matching close tag.  If an exception
 	 * is thrown by the body, still attempt to output the close tag.
+	 *
+	 * If [condition] is false, just run the body.
+	 *
+	 * @param condition
+	 *   Whether to apply the style.  Defaults to `true`.
+	 * @param tag
+	 *   The tag to apply
+	 * @param attributes
+	 *   The vararg key/value [Pair]s of attributes for the tag.
+	 * @param body
+	 *   The function that produces text to be wrapped (or not) with the tag.
 	 */
-	fun StringBuilder.tag(
+	fun StringBuilder.tagIf(
+		condition: Boolean = true,
 		tag: String,
 		vararg attributes: Pair<String, String>,
 		body: StringBuilder.()->Unit)
 	{
+		if (!condition)
+		{
+			body()
+			return
+		}
 		append("<")
 		append(tag)
 		attributes.forEach { (key, value) ->
@@ -278,6 +294,27 @@ object Strings
 		{
 			append("</$tag>")
 		}
+	}
+
+	/**
+	 * Output an XML tag with the given tag name and attributes supplied as
+	 * [Pair]s.  The values of the attributes will be escaped and quoted.  Then
+	 * run the body function and output a matching close tag.  If an exception
+	 * is thrown by the body, still attempt to output the close tag.
+	 *
+	 * @param tag
+	 *   The tag to apply
+	 * @param attributes
+	 *   The vararg key/value [Pair]s of attributes for the tag.
+	 * @param body
+	 *   The function that produces text to be wrapped with the tag.
+	 */
+	fun StringBuilder.tag(
+		tag: String,
+		vararg attributes: Pair<String, String>,
+		body: StringBuilder.()->Unit)
+	{
+		tagIf(true, tag, *attributes, body = body)
 	}
 
 	/**

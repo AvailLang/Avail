@@ -32,7 +32,6 @@
 package avail.interpreter.levelTwo.register
 
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.*
 import avail.optimizer.L2Generator
 import avail.optimizer.reoptimizer.L2Regenerator
 
@@ -50,9 +49,12 @@ import avail.optimizer.reoptimizer.L2Regenerator
  *   A value used to distinguish the new instance visually during debugging of
  *   L2 translations.
  */
-class L2BoxedRegister constructor(debugValue: Int) : L2Register(debugValue)
+class L2BoxedRegister
+constructor(
+	debugValue: Int
+) : L2Register<BOXED_KIND>(debugValue)
 {
-	override val registerKind get() = BOXED_KIND
+	override val kind get() = BOXED_KIND
 
 	override fun copyForTranslator(generator: L2Generator): L2BoxedRegister =
 		L2BoxedRegister(generator.nextUnique())

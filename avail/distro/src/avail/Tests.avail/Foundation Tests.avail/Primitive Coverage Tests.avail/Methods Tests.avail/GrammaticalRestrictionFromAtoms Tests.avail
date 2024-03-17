@@ -173,4 +173,3 @@ Test "GrammaticalRestrictionFromAtoms fails with inconsistent-argument-reorderin
 	Skip test;
 ]
 must raise inconsistent-argument-reordering exception;
-

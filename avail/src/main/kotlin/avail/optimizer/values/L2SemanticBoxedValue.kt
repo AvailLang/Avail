@@ -1,5 +1,5 @@
 /*
- * ToggleDebugJVMCodeGeneration.kt
+ * L2SemanticBoxedValue.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,45 +29,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.optimizer.values
 
-package avail.anvil.actions
-
-import avail.anvil.AvailWorkbench
-import avail.optimizer.jvm.JVMTranslator
-import java.awt.event.ActionEvent
-import javax.swing.Action
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 
 /**
- * A `ToggleDebugJVMCodeGeneration` toggles the flag that indicates whether
- * enable deep code generation debugging support for JVM translation.
+ * A semantic value representing boxed values in [L2BoxedRegister]s.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- * Construct a new `ToggleDebugJVMCodeGeneration`.
- *
- * @param workbench
- *   The owning [AvailWorkbench].
+ *   Create a new `L2SemanticBoxedValue` semantic value.
  */
-class ToggleDebugJVMCodeGeneration constructor(
-	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(workbench, "Debug JVM code generation")
+abstract class L2SemanticBoxedValue
+constructor(
+	hash: Int
+) : L2SemanticValue<BOXED_KIND>(hash)
 {
-	// Do nothing
-	override fun updateIsEnabled(busy: Boolean) {}
-
-	override fun actionPerformed(event: ActionEvent)
-	{
-
-		JVMTranslator.debugJVMCodeGeneration =
-			JVMTranslator.debugJVMCodeGeneration xor true
-	}
-
-	init
-	{
-		putValue(
-			Action.SHORT_DESCRIPTION,
-			"Toggle debugging support for JVM code generation.")
-		putValue(Action.SELECTED_KEY, JVMTranslator.debugJVMCodeGeneration)
-	}
+	override val kind get() = BOXED_KIND
 }

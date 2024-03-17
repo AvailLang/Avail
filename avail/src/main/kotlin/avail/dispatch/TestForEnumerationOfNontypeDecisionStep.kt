@@ -35,28 +35,11 @@ package avail.dispatch
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.Companion.createSmallInterval
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operand.L2PcVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_HASH
-import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
-import avail.interpreter.primitive.general.P_Hash
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
+import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
@@ -93,6 +76,11 @@ constructor(
 	private val fallThrough: LookupTree<Element, Result>
 ) : DecisionStep<Element, Result>(argumentPositionToTest)
 {
+	init
+	{
+		instanceTypeToSubtree.keys.forEach(A_Type::makeShared)
+	}
+
 	//////////////////////////////
 	//       Lookup steps.      //
 	//////////////////////////////
@@ -187,181 +175,30 @@ constructor(
 		list.add(fallThrough)
 	}
 
-	override fun addChildrenTo(
-		list: MutableList<
-			Pair<LookupTree<Element, Result>, List<L2SemanticValue>>>,
-		semanticValues: List<L2SemanticValue>,
-		extraSemanticValues: List<L2SemanticValue>)
-	{
-		instanceTypeToSubtree.values.forEach { subtree ->
-			list.add(subtree to extraSemanticValues)
-		}
-		list.add(fallThrough to extraSemanticValues)
-	}
-
 	override fun generateEdgesFor(
-		semanticArguments: List<L2SemanticValue>,
-		extraSemanticArguments: List<L2SemanticValue>,
+		semanticArguments: List<L2SemanticBoxedValue>,
+		extraSemanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper
 	): List<
 		Triple<
 			L2BasicBlock,
 			LookupTree<A_Definition, A_Tuple>,
-			List<L2SemanticValue>>>
+			List<L2SemanticBoxedValue>>>
 	{
 		// For simplicity, let super-lookups always fall back.
 		// They're *very* difficult to reason about.
 		if (callSiteHelper.isSuper)
 		{
-			callSiteHelper.generator().jumpTo(
+			callSiteHelper.generator.jumpTo(
 				callSiteHelper.onFallBackToSlowLookup)
 			return emptyList()
 		}
 
-		val semanticSource =
-			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val generator = callSiteHelper.generator()
-		val manifest = generator.currentManifest
-		val sourceRestriction = manifest.restrictionFor(semanticSource)
-		var residue = sourceRestriction
-		val reachableEntries = instanceTypeToSubtree.entries.filter {
-				(key, _) ->
-			residue = residue.minusValue(key)
-			sourceRestriction.intersectsType(instanceTypeOrMetaOn(key))
-		}
-		// True if there are no other possible values that could occur.
-		val exhaustive = residue.type.isBottom
-		when
-		{
-			reachableEntries.isEmpty() && exhaustive ->
-			{
-				// Nothing is possible here.
-				generator.addUnreachableCode()
-				return emptyList()
-			}
-			(reachableEntries.size == 1 && exhaustive)
-				|| (reachableEntries.isEmpty() && !exhaustive) ->
-			{
-				// Exactly one subtree is possible, so jump to it.
-				val onlyTree = when
-				{
-					exhaustive -> reachableEntries.single().value
-					else -> fallThrough
-				}
-				val target = L2BasicBlock("Only outcome")
-				generator.jumpTo(target)
-				return listOf(
-					Triple(target, onlyTree.cast(), extraSemanticArguments))
-			}
-		}
-		// There are multiple targets.  Use the shifted version of the hash
-		// value that spreads over the most targets.
-		val hashes = reachableEntries.map { (k, _) -> k.hash() }.toIntArray()
-		val leadingZeros = hashes.size.countLeadingZeroBits()
-		val mask = -1 ushr leadingZeros
-		val ratingsByShift = (0..leadingZeros).map { shift ->
-			shift to hashes.map { (it ushr shift) and mask }.distinct().size
-		}
-		val (bestShift, _) = ratingsByShift.maxByOrNull(Pair<*, Int>::second)!!
-		// Whichever shift factor spread the hashes to the most bins should be
-		// good enough.  We already had to test the actual values for equality,
-		// so handle collisions by simply having multiple such tests.
-		val targetsByShiftedHash = reachableEntries
-			.groupBy { (it.key.hash() ushr bestShift) and mask }
-			.mapValues { (shiftedKey, subtrees) ->
-				L2BasicBlock("shifted hash = $shiftedKey") to subtrees
-			}
-		val fallThroughBlock = L2BasicBlock(
-			"No instanceType matched by equality")
-		// First, extract the hash value.
-		val int32Restriction = restrictionForType(i32, UNBOXED_INT_FLAG)
-		val semanticHash = primitiveInvocation(P_Hash, listOf(semanticSource))
-		val semanticHashInt = L2SemanticUnboxedInt(semanticHash)
-		if (!generator.currentManifest.hasSemanticValue(semanticHashInt))
-		{
-			generator.addInstruction(
-				L2_HASH,
-				generator.readBoxed(semanticSource),
-				generator.intWrite(setOf(semanticHashInt), int32Restriction))
-		}
-		// Now extract the relevant bits.  Use temps.
-		val indexRestriction =
-			restrictionForType(inclusive(0L, mask.toLong()), UNBOXED_INT_FLAG)
-		val indexWrite = generator.intWriteTemp(indexRestriction)
-		val tempShifted = generator.intWriteTemp(int32Restriction)
-		if (bestShift != 0)
-		{
-			generator.addInstruction(
-				L2_BIT_LOGIC_OP.bitwiseUnsignedShiftRight,
-				L2ReadIntOperand(
-					semanticHashInt,
-					int32Restriction,
-					generator.currentManifest),
-				generator.unboxedIntConstant(bestShift),
-				tempShifted)
-		}
-		else
-		{
-			generator.moveRegister(
-				L2_MOVE.unboxedInt,
-				semanticHashInt,
-				tempShifted.pickSemanticValue())
-		}
-		generator.addInstruction(
-			L2_BIT_LOGIC_OP.bitwiseAnd,
-			L2ReadIntOperand(
-				semanticHashInt,
-				int32Restriction,
-				generator.currentManifest),
-			generator.unboxedIntConstant(mask),
-			indexWrite)
-		// indexWrite's register now contains the shifted, masked value with
-		// which to dispatch.
-		val triples = mutableListOf(
-			Triple(
-				fallThroughBlock,
-				fallThrough
-					.cast<LookupTree<*,*>, LookupTree<A_Definition, A_Tuple>>(),
-				extraSemanticArguments))
-		generator.addInstruction(
-			L2_MULTIWAY_JUMP,
-			L2ReadIntOperand(
-				indexWrite.pickSemanticValue(),
-				indexRestriction,
-				generator.currentManifest),
-			L2ConstantOperand(createSmallInterval(1, mask, 1)),
-			L2PcVectorOperand(
-				(0..mask).map { index ->
-					L2PcOperand(
-						targetsByShiftedHash[index]?.first ?: fallThroughBlock,
-						false,
-						null,
-						"masked = $$${Integer.toHexString(index)}")
-				}))
-		// At each of the targets of the multi-way jump, we still have to
-		// test for the exact object(s).  The successful paths from those tests
-		// lead to blocks we create for each subtree.  The chains that are
-		// unsuccessful lead to the noMatchSubtree's block.
-		targetsByShiftedHash.forEach { (_, pair) ->
-			val (block, valuesWithTrees) = pair
-			generator.startBlock(block)
-			var nextFailure: L2BasicBlock?
-			valuesWithTrees.forEach { (valueToCheck, targetTree) ->
-				val success = L2BasicBlock("InstanceType equality succeeded")
-				nextFailure = L2BasicBlock("InstanceType equality failed")
-				generator.jumpIfEqualsConstant(
-					generator.readBoxed(semanticSource),
-					valueToCheck,
-					success,
-					nextFailure!!)
-				triples.add(
-					Triple(success, targetTree.cast(), extraSemanticArguments))
-				generator.startBlock(nextFailure!!)
-			}
-			// We're now inside the last failure block for this masked index.
-			// Jump to the noMatch case.
-			generator.jumpTo(fallThroughBlock)
-		}
-		return triples
+		return generateDispatchTriples(
+			semanticArguments,
+			extraSemanticArguments,
+			callSiteHelper,
+			instanceTypeToSubtree.cast(),
+			fallThrough)
 	}
 }

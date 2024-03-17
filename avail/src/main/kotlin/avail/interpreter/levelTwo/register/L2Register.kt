@@ -31,30 +31,15 @@
  */
 package avail.interpreter.levelTwo.register
 
-import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
-import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Generator
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticValue
-import avail.utility.cast
-import org.objectweb.asm.Opcodes
-import org.objectweb.asm.Type
 
 /**
  * `L2Register` models the conceptual use of a register by a [level&#32;two Avail
@@ -72,185 +57,11 @@ import org.objectweb.asm.Type
  * @param uniqueValue
  *   A value used to distinguish distinct registers.
  */
-abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
+abstract class L2Register<K: RegisterKind<K>>
+constructor (
+	val uniqueValue: Int
+) : L2Entity<K>
 {
-	/**
-	 * One of the kinds of registers that Level Two supports.
-	 *
-	 * @property kindName
-	 *   The descriptive name of this register kind.
-	 * @property prefix
-	 *   The prefix to use for registers of this kind.
-	 * @property jvmTypeString
-	 *    The JVM [Type] string.
-	 * @property loadInstruction
-	 *   The JVM instruction that loads a register of this kind.
-	 * @property storeInstruction
-	 *   The JVM instruction for storing.
-	 * @property restrictionFlag
-	 *   The [RestrictionFlagEncoding] used to indicate a [TypeRestriction] has
-	 *   an available register of this kind.
-	 *
-	 * @constructor
-	 * Create an instance of the enum.
-	 *
-	 * @param kindName
-	 *   A descriptive name for this kind of register.
-	 * @param prefix
-	 *   The prefix to use when naming registers of this kind.
-	 * @param jvmTypeString
-	 *   The canonical [String] used to identify this [Type] of register to the
-	 *   JVM.
-	 * @param loadInstruction
-	 *   The JVM instruction for loading.
-	 * @param storeInstruction
-	 *   The JVM instruction for storing.
-	 * @param restrictionFlag
-	 *   The corresponding [RestrictionFlagEncoding].
-	 */
-	enum class RegisterKind constructor (
-		val kindName: String,
-		val prefix: String,
-		val jvmTypeString: String,
-		val loadInstruction: Int,
-		val storeInstruction: Int,
-		val restrictionFlag: RestrictionFlagEncoding)
-	{
-		/**
-		 * The kind of register that holds an [AvailObject].
-		 */
-		BOXED_KIND(
-			"boxed",
-			"r",
-			Type.getDescriptor(AvailObject::class.java),
-			Opcodes.ALOAD,
-			Opcodes.ASTORE,
-			BOXED_FLAG)
-		{
-			override fun <R : L2Register, RR : L2ReadOperand<R>> readOperand(
-				semanticValue: L2SemanticValue,
-				restriction: TypeRestriction,
-				register: R): RR
-			{
-				return L2ReadBoxedOperand(
-					semanticValue,
-					restriction,
-					register as L2BoxedRegister).cast<L2ReadOperand<*>?, RR>()
-			}
-		},
-
-		/**
-		 * The kind of register that holds an [Int].
-		 */
-		INTEGER_KIND(
-			"int",
-			"i",
-			Type.INT_TYPE.descriptor,
-			Opcodes.ILOAD,
-			Opcodes.ISTORE,
-			UNBOXED_INT_FLAG)
-		{
-			override fun <R : L2Register, RR : L2ReadOperand<R>> readOperand(
-				semanticValue: L2SemanticValue,
-				restriction: TypeRestriction,
-				register: R): RR
-			{
-				return L2ReadIntOperand(
-					semanticValue,
-					restriction,
-					register as L2IntRegister).cast<L2ReadOperand<*>?, RR>()
-			}
-		},
-
-		/**
-		 * The kind of register that holds a `double`.
-		 */
-		FLOAT_KIND(
-			"float",
-			"f",
-			Type.DOUBLE_TYPE.descriptor,
-			Opcodes.DLOAD,
-			Opcodes.DSTORE,
-			UNBOXED_FLOAT_FLAG)
-		{
-			override fun <R : L2Register, RR : L2ReadOperand<R>> readOperand(
-				semanticValue: L2SemanticValue,
-				restriction: TypeRestriction,
-				register: R): RR
-			{
-				return L2ReadFloatOperand(
-					semanticValue,
-					restriction,
-					register as L2FloatRegister).cast<L2ReadOperand<*>?, RR>()
-			}
-		};
-
-		//		/**
-		//		 * The kind of register that holds the value of some variable prior to
-		//		 * the variable having escaped, if ever.  TODO Implement this.
-		//		 */
-		//		UNESCAPED_VARIABLE_VALUE
-
-		/**
-		 * Answer a suitable [L2ReadOperand] for extracting the indicated
-		 * [L2SemanticValue] of this kind.
-		 *
-		 * @param semanticValue
-		 *   The [L2SemanticValue] to consume via an [L2ReadOperand].
-		 * @param restriction
-		 *   The [TypeRestriction] relevant to this read.
-		 * @param register
-		 *   The earliest known defining [L2Register] of the [L2SemanticValue].
-		 * @return
-		 *   The new [L2ReadOperand].
-		 * @param R
-		 *   The [L2Register] subclass.
-		 * @param RR
-		 *   The [L2ReadOperand] subclass.
-		 */
-		abstract fun <R : L2Register, RR : L2ReadOperand<R>> readOperand(
-			semanticValue: L2SemanticValue,
-			restriction: TypeRestriction,
-			register: R): RR
-
-		/**
-		 * Answer a suitable [L2_MOVE] operation for transferring values of this
-		 * kind.
-		 *
-		 * @param R
-		 *   The [L2Register] subclass.
-		 * @param RR
-		 *   The [L2ReadOperand] subclass.
-		 * @param WR
-		 *   The [L2WriteOperand] subclass.
-		 * @param RV
-		 *   The [L2ReadVectorOperand] subclass.
-		 * @return
-		 *   The new [L2ReadOperand].
-		 */
-		fun <
-			R : L2Register,
-			RR : L2ReadOperand<R>,
-			WR : L2WriteOperand<R>,
-			RV : L2ReadVectorOperand<R, RR>>
-		move(): L2_MOVE<R, RR, WR, RV> = L2_MOVE.moveByKind(this)
-
-		companion object
-		{
-			/** Don't modify this array. */
-			val all = entries.toTypedArray()
-		}
-	}
-
-	/**
-	 * Answer the kind of register this is. Different register kinds are
-	 * allocated from different virtual banks, and do not interfere in terms of
-	 * register liveness computation.
-	 *
-	 * @return The [RegisterKind].
-	 */
-	abstract val registerKind: RegisterKind
-
 	/**
 	 * A coloring number to be used by the [interpreter][Interpreter] at runtime
 	 * to identify the storage location of a [register][L2Register].
@@ -284,7 +95,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * The [L2WriteOperand]s that assign to this register.  While the
 	 * [L2ControlFlowGraph] is in SSA form, there should be exactly one.
 	 */
-	private val definitions = mutableSetOf<L2WriteOperand<*>>()
+	private val definitions = mutableSetOf<L2WriteOperand<K>>()
 
 	/**
 	 * Record this [L2WriteOperand] in my set of defining write operands.
@@ -293,7 +104,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 *   An [L2WriteOperand] that's an operand of an instruction that writes to
 	 *   this register in the control flow graph of basic blocks.
 	 */
-	fun addDefinition(write: L2WriteOperand<*>)
+	fun addDefinition(write: L2WriteOperand<K>)
 	{
 		definitions.add(write)
 	}
@@ -304,7 +115,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * @param write
 	 *   The [L2WriteOperand] to remove from my set of defining write operands.
 	 */
-	fun removeDefinition(write: L2WriteOperand<*>)
+	fun removeDefinition(write: L2WriteOperand<K>)
 	{
 		definitions.remove(write)
 	}
@@ -318,7 +129,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * @return
 	 *   The requested `L2WriteOperand`.
 	 */
-	fun definition(): L2WriteOperand<*>
+	fun definition(): L2WriteOperand<K>
 	{
 		assert(definitions.size == 1)
 		return definitions.single()
@@ -331,7 +142,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * @return
 	 *   This register's defining [L2WriteOperand]s.
 	 */
-	fun definitions(): Collection<L2WriteOperand<*>> = definitions
+	fun definitions(): Collection<L2WriteOperand<K>> = definitions
 
 	/**
 	 * The [L2ReadOperand]s of emitted [L2Instruction]s that read from this
@@ -381,7 +192,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * @return
 	 *   The new `L2Register`.
 	 */
-	abstract fun copyForTranslator(generator: L2Generator): L2Register
+	abstract fun copyForTranslator(generator: L2Generator): L2Register<K>
 
 	/**
 	 * Answer a new register like this one, but where the uniqueValue has been
@@ -390,7 +201,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * @return
 	 *   The new `L2Register`.
 	 */
-	abstract fun copyAfterColoring(): L2Register
+	abstract fun copyAfterColoring(): L2Register<K>
 
 	/**
 	 * Answer a copy of the receiver. Subclasses can be covariantly stronger in
@@ -401,29 +212,11 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * @return
 	 *   A copy of the receiver.
 	 */
-	abstract fun copyForRegenerator(regenerator: L2Regenerator): L2Register
+	abstract fun copyForRegenerator(regenerator: L2Regenerator): L2Register<K>
 
-	/**
-	 * Answer the prefix for non-constant registers. This is used only for
-	 * register printing.
-	 *
-	 * @return
-	 *   The prefix.
-	 */
-	fun namePrefix(): String = registerKind.prefix
-
-	override fun toString(): String
-	{
-		val builder = StringBuilder()
-		builder.append(namePrefix())
-		if (finalIndex() != -1)
-		{
-			builder.append(finalIndex())
-		}
-		else
-		{
-			builder.append(uniqueValue)
-		}
-		return builder.toString()
+	override fun toString() = buildString {
+		append(kind.prefix)
+		if (finalIndex() != -1) append(finalIndex())
+		else append(uniqueValue)
 	}
 }

@@ -100,10 +100,10 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean
 	{
+		val translator = callSiteHelper.translator
 		val (variableReg, referenceReg, newValueReg) = arguments
 		if (!newValueReg.type().isSubtypeOf(variableReg.type().writeType))
 		{
@@ -114,7 +114,6 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 				rawFunction,
 				arguments,
 				argumentTypes,
-				translator,
 				callSiteHelper)
 		}
 		val generator = translator.generator

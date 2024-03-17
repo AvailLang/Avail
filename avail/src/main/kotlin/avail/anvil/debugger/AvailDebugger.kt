@@ -979,7 +979,7 @@ class AvailDebugger internal constructor (
 	 */
 	private fun updateVariablesList()
 	{
-		val oldPath = variablesPane.selectionPath
+		//val oldPath = variablesPane.selectionPath
 		val entries = mutableListOf<Variable>()
 		stackListPane.selectedValue?.let { frame ->
 			val function = frame.function()

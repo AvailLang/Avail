@@ -71,7 +71,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import avail.interpreter.levelTwo.operation.L2_CONCATENATE_TUPLES
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.utility.notNullAnd
 
@@ -156,12 +155,12 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper
 	): Boolean {
 		assert(arguments.size == 1)
 		val tupleOfTuplesReg = arguments[0]
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val tupleOfTuplesType = tupleOfTuplesReg.type()
 		val range = tupleOfTuplesType.sizeRange

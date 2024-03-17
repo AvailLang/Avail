@@ -66,6 +66,7 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
@@ -400,6 +401,7 @@ constructor(
 	 * direct instances.
 	 */
 	var isAbstract = false
+		private set
 
 	/**
 	 * Some [TypeTag]s occur in exactly one [AvailObject].  If so, this field is
@@ -436,6 +438,11 @@ constructor(
 	 * The array of [Contra]variant relationships defined during construction.
 	 */
 	val contravariants = mutableListOf<Contra>()
+
+	/**
+	 * Precompute the name without the "_TAG" suffix.
+	 */
+	val shorterName = name.removeSuffix("_TAG")
 
 	init
 	{
@@ -595,6 +602,12 @@ constructor(
 		assert(this != UNKNOWN_TAG && other != UNKNOWN_TAG)
 		return myParent!!.commonAncestorWith(otherParent)
 	}
+
+	/**
+	 * Answer the integer range [type][IntegerRangeTypeDescriptor] that contains
+	 * the values of the ordinals of this tag and its children.
+	 */
+	fun tagRangeType(): A_Type = inclusive(ordinal, highOrdinal)
 
 	companion object
 	{
