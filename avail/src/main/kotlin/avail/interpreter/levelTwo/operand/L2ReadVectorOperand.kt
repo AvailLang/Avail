@@ -37,29 +37,29 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
-import java.util.Collections
+import avail.utility.cast
+import java.util.Collections.unmodifiableList
 
 /**
  * An `L2ReadVectorOperand` is an operand of type
  * [L2OperandType.READ_BOXED_VECTOR]. It holds a [List] of [L2ReadOperand]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @param RR
- *   A subclass of [L2ReadOperand]&lt;R>.
  * @param R
- *   A subclass of L2Register
+ *   The kind of [L2ReadOperand]s in the vector.
  */
-abstract class L2ReadVectorOperand<
-	R : L2Register,
-	RR : L2ReadOperand<R>>
-constructor(elements: List<RR>) : L2Operand()
+abstract class L2ReadVectorOperand<out R: L2ReadOperand<*>>
+constructor(
+	elements: List<R>
+) : L2Operand()
 {
-	/**
-	 * The [List] of [L2ReadBoxedOperand]s.
-	 */
-	val elements: List<RR> = Collections.unmodifiableList(elements)
+	/** The [List] of [L2ReadOperand]s. */
+	protected val privateElements: List<R> = unmodifiableList(elements)
 
-	abstract override fun clone(): L2ReadVectorOperand<R, RR>
+	/** The [List] of [L2ReadOperand]s. */
+	open val elements: List<R> get() = privateElements
+
+	abstract override fun clone(): L2ReadVectorOperand<R>
 
 	/**
 	 * Create a vector like this one, but using the provided elements.
@@ -67,12 +67,12 @@ constructor(elements: List<RR>) : L2Operand()
 	 * @param replacementElements
 	 *   The [List] of [L2ReadOperand]s to use in the clone.
 	 * @return
-	 *   A new `L2ReadVectorOperand`, of the same type as the receiver, but
+	 *   A new [L2ReadVectorOperand], of the same type as the receiver, but
 	 *   having the given elements.
 	 */
 	abstract fun clone(
-		replacementElements: List<RR>
-	): L2ReadVectorOperand<R, RR>
+		replacementElements: List<L2ReadOperand<*>>
+	): L2ReadVectorOperand<R>
 
 	override fun assertHasBeenEmitted()
 	{
@@ -88,7 +88,8 @@ constructor(elements: List<RR>) : L2Operand()
 	 * @return
 	 *   The list of [L2Register]s that I read.
 	 */
-	fun registers(): List<R> = elements.map { obj: RR -> obj.register() }
+	fun registers(): List<L2Register<*>> =
+		elements.map(L2ReadOperand<*>::register)
 
 	abstract override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 
@@ -111,7 +112,7 @@ constructor(elements: List<RR>) : L2Operand()
 	}
 
 	override fun replaceRegisters(
-		registerRemap: Map<L2Register, L2Register>,
+		registerRemap: Map<L2Register<*>, L2Register<*>>,
 		theInstruction: L2Instruction)
 	{
 		elements.forEach { it.replaceRegisters(registerRemap, theInstruction) }
@@ -124,16 +125,11 @@ constructor(elements: List<RR>) : L2Operand()
 
 	override fun transformEachRead(
 		transformer: (L2ReadOperand<*>) -> (L2ReadOperand<*>)
-	) : L2ReadVectorOperand<R, RR>
-	{
-		val vs: List<RR> = elements.map {
-			@Suppress("UNCHECKED_CAST")
-			it.transformEachRead(transformer) as RR
-		}
-		return clone(vs)
-	}
+	) : L2ReadVectorOperand<R> =
+		clone(elements.map { it.transformEachRead(transformer).cast() })
 
-	override fun addSourceRegistersTo(sourceRegisters: MutableList<L2Register>)
+	override fun addSourceRegistersTo(
+		sourceRegisters: MutableList<L2Register<*>>)
 	{
 		elements.forEach { it.addSourceRegistersTo(sourceRegisters) }
 	}
@@ -169,7 +165,7 @@ constructor(elements: List<RR>) : L2Operand()
 	}
 
 	override fun postOptimizationCleanup() =
-		elements.forEach { it.postOptimizationCleanup() }
+		elements.forEach(L2ReadOperand<*>::postOptimizationCleanup)
 
 	/**
 	 * This vector operand is the input to an [L2_PHI_PSEUDO_OPERATION]

@@ -36,14 +36,13 @@ import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.optimizer.L1Translator
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
@@ -105,7 +104,7 @@ class L2_BIT_LOGIC_OP(
 		}
 
 		// Attempt to unbox the arguments.
-		val generator = callSiteHelper.generator()
+		val generator = callSiteHelper.generator
 		val fallback = generator.createBasicBlock("fall back to boxed logic")
 		val intA = generator.readInt(
 			L2SemanticUnboxedInt(a.semanticValue()), fallback)
@@ -123,7 +122,7 @@ class L2_BIT_LOGIC_OP(
 			val tempWriter =
 				generator.intWrite(
 					setOf(L2SemanticUnboxedInt(semanticTemp)),
-					restrictionForType(typeGuarantee, UNBOXED_INT_FLAG))
+					intRestrictionForType(typeGuarantee))
 			// Note that both the unboxed and boxed registers end up in the same
 			// synonym, so subsequent uses of the result might use either
 			// register, depending whether an unboxed value is desired.
@@ -139,14 +138,14 @@ class L2_BIT_LOGIC_OP(
 			// it.  Fallback may happen from conversion of non-int32 arguments,
 			// or from int32 overflow calculating the sum.
 			generator.startBlock(fallback)
-			callSiteHelper.translator().fallbackBody()
+			callSiteHelper.translator.fallbackBody()
 		}
 		return true
 	}
 
-	override fun interestingConditions(
+	override fun interestingSplitConditions(
 		instruction: L2Instruction
-	): List<L2SplitCondition>
+	): List<L2SplitCondition?>
 	{
 		val input1 = instruction.operand<L2ReadIntOperand>(0)
 		val input2 = instruction.operand<L2ReadIntOperand>(1)
@@ -232,5 +231,13 @@ class L2_BIT_LOGIC_OP(
 		 */
 		val bitwiseSignedShiftRight =
 			L2_BIT_LOGIC_OP("signedShiftRight", Opcodes.ISHR)
+
+		/**
+		 * The [L2Operation] for shifting an [Int] leftward by the specified
+		 * number of bit positions, respecting its sign.  The second operand
+		 * should be between 0 and 31 (otherwise only the bottom five bits will
+		 * be used).
+		 */
+		val bitwiseShiftLeft = L2_BIT_LOGIC_OP("shiftLeft", Opcodes.ISHL)
 	}
 }

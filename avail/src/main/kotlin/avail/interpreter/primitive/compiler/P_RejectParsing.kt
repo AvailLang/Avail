@@ -76,7 +76,7 @@ object P_RejectParsing : Primitive(2, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				inclusive(1L, 4L),
+				inclusive(1, 4),
 				stringType),
 			bottom)
 

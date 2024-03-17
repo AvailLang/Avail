@@ -76,7 +76,9 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions {
             jvmTarget = targetJVM.toString()
-            freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
+            freeCompilerArgs = listOf(
+                "-Xjvm-default=all-compatibility",
+                "-Xcontext-receivers")
             languageVersion = "1.9"
         }
     }

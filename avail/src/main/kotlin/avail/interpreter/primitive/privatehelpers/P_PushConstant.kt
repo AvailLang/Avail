@@ -47,12 +47,10 @@ import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
 import avail.interpreter.primitive.privatehelpers.P_PushConstant.tryToGenerateSpecialPrimitiveInvocation
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -92,10 +90,10 @@ object P_PushConstant : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val constant = rawFunction.literalAt(1)
+		val translator = callSiteHelper.translator
 		callSiteHelper.useAnswer(translator.generator.boxedConstant(constant))
 		return true
 	}
@@ -110,6 +108,6 @@ object P_PushConstant : Primitive(
 		val constant = rawFunction.literalAt(1)
 		simpleTranslator.add(
 			L2Simple_MoveConstant(constant, simpleTranslator.stackp))
-		return restrictionForConstant(constant, BOXED_FLAG)
+		return boxedRestrictionForConstant(constant)
 	}
 }

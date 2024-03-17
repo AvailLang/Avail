@@ -77,14 +77,16 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMENTS
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
-import avail.optimizer.L2EntityAndKind
+import avail.optimizer.L2Entity
 import avail.optimizer.L2Generator.Companion.backEdgeTo
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.L2Generator.SpecialBlock.RESTART_LOOP_HEAD
+import avail.optimizer.L2GeneratorInterface.SpecialBlock.RESTART_LOOP_HEAD
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.cast
 
 /**
  * **Primitive:** Restart the given [continuation][ContinuationDescriptor], but
@@ -166,13 +168,13 @@ object P_RestartContinuationWithArguments : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (continuationReg, argumentsTupleReg) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val manifest = generator.currentManifest
 		val synonym = manifest.semanticValueToSynonym(
@@ -203,21 +205,23 @@ object P_RestartContinuationWithArguments : Primitive(
 			val explodedTupleRegs = generator.explodeTupleIfPossible(
 				argumentsTupleReg, argTypesTuple.toList())
 			// First, move these values into fresh temps.
-			val tempSemanticValues = mutableSetOf<L2SemanticValue>()
-			val tempRegisters = mutableSetOf<L2Register>()
+			val tempSemanticValues = mutableSetOf<L2SemanticValue<BOXED_KIND>>()
+			val tempRegisters = mutableSetOf<L2Register<BOXED_KIND>>()
 			val tempReads = mutableListOf<L2ReadBoxedOperand>()
 			explodedTupleRegs!!.forEach { read ->
 				val temp = generator.newTemp()
 				tempSemanticValues.add(temp)
 				val tempWrite = L2_MOVE.boxed.createWrite(
-					generator, setOf(temp), read.restriction())
+					generator::nextUnique, setOf(temp), read.restriction())
 				generator.addInstruction(L2_MOVE.boxed, read, tempWrite)
 				val move = generator.currentBlock().instructions().last()
 				assert(move.operation == L2_MOVE.boxed)
-				tempRegisters.addAll(move.destinationRegisters)
+				tempRegisters.addAll(move.destinationRegisters.cast())
 				tempReads.add(
 					L2ReadBoxedOperand(
-						temp, read.restriction(), tempWrite.register()))
+						temp,
+						read.restriction(),
+						tempWrite.register() as L2BoxedRegister))
 			}
 
 			// Now keep only the new temps visible in the manifest.
@@ -240,7 +244,7 @@ object P_RestartContinuationWithArguments : Primitive(
 				L2ReadBoxedOperand(
 					newArg,
 					writeOperand.restriction(),
-					writeOperand.register())
+					writeOperand.register() as L2BoxedRegister)
 			}
 
 			// Now keep only the new args visible in the manifest.
@@ -265,15 +269,11 @@ object P_RestartContinuationWithArguments : Primitive(
 				backEdgeTo(generator.specialBlocks[RESTART_LOOP_HEAD]!!))
 
 			// Ensure only the n@1 slots and registers are considered live.
-			val liveEntities = mutableSetOf<L2EntityAndKind>()
+			val liveEntities = mutableSetOf<L2Entity<*>>()
 			for (newRead in newReads)
 			{
-				liveEntities.add(
-					L2EntityAndKind(
-						newRead.semanticValue(), newRead.registerKind))
-				liveEntities.add(
-					L2EntityAndKind(
-						newRead.register(), newRead.registerKind))
+				liveEntities.add(newRead.semanticValue())
+				liveEntities.add(newRead.register())
 			}
 			generator.currentBlock().successorEdges()[0].forcedClampedEntities =
 				liveEntities

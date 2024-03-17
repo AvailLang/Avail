@@ -33,13 +33,14 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_FLOAT
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -88,11 +89,21 @@ object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
 		val destination = instruction.operand<L2WriteFloatOperand>(1)
 		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
 		val ifUnboxed = instruction.operand<L2PcOperand>(3)
+
 		source.instructionWasAdded(manifest)
-		ifNotUnboxed.instructionWasAdded(manifest)
+		val semanticSource = source.semanticValue()
+		// Don't add the destination along the failure edge.
+		ifNotUnboxed.instructionWasAdded(
+			L2ValueManifest(manifest).apply {
+				subtractType(semanticSource, DOUBLE.o)
+			})
 		// Ensure the value is available along the success edge.
+		manifest.intersectType(source.semanticValue(), DOUBLE.o)
 		destination.instructionWasAdded(manifest)
-		ifUnboxed.instructionWasAdded(manifest)
+		ifUnboxed.instructionWasAdded(
+			L2ValueManifest(manifest).apply {
+				intersectType(destination.pickSemanticValue(), DOUBLE.o)
+			})
 	}
 
 	override fun translateToJVM(

@@ -36,7 +36,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.optimizer.jvm.JVMTranslator

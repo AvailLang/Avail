@@ -73,10 +73,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -148,7 +146,6 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// If we know the exact keys, we can statically determine the
@@ -159,6 +156,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		val pairsType = argumentTypes[0]
 		val sizeRange = pairsType.sizeRange
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 
 		if (!sizeRange.lowerBound.isInt) return false
@@ -200,7 +198,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		val typeGuarantee = objectTypeFromTuple(tupleFromList(fieldTypePairs))
 		val write = generator.boxedWriteTemp(
-			restrictionForType(typeGuarantee, BOXED_FLAG)
+			boxedRestrictionForType(typeGuarantee)
 				.intersectionWithObjectVariant(variant))
 		generator.addInstruction(
 			L2_CREATE_OBJECT,

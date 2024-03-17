@@ -86,12 +86,12 @@ import avail.anvil.actions.SetLoadOnStartAction
 import avail.anvil.actions.ShowCCReportAction
 import avail.anvil.actions.ShowVMReportAction
 import avail.anvil.actions.SubmitInputAction
+import avail.anvil.actions.ToggleAvailableSplits
 import avail.anvil.actions.ToggleDebugAfterUnload
 import avail.anvil.actions.ToggleDebugInterpreterL1
 import avail.anvil.actions.ToggleDebugInterpreterL2
 import avail.anvil.actions.ToggleDebugInterpreterPrimitives
 import avail.anvil.actions.ToggleDebugJVM
-import avail.anvil.actions.ToggleDebugJVMCodeGeneration
 import avail.anvil.actions.ToggleDebugWorkUnits
 import avail.anvil.actions.ToggleFastLoaderAction
 import avail.anvil.actions.ToggleL2SanityCheck
@@ -747,11 +747,11 @@ class AvailWorkbench internal constructor(
 	 */
 	private val toggleDebugAfterUnload = ToggleDebugAfterUnload(this)
 
+	/** Show additional code splitting opportunities in control flow graphs. */
+	private val toggleAvailableSplits = ToggleAvailableSplits(this)
+
 	/** The [toggle JVM dump debug action][ToggleDebugJVM]. */
 	private val toggleDebugJVM = ToggleDebugJVM(this)
-
-	/** The [toggle JVM code generation][ToggleDebugJVMCodeGeneration]. */
-	private val toggleDebugJVMCodeGeneration = ToggleDebugJVMCodeGeneration(this)
 
 	/**
 	 * The
@@ -1246,8 +1246,7 @@ class AvailWorkbench internal constructor(
 			}
 			catch (e: BadLocationException)
 			{
-				// Shouldn't happen.
-				assert(false)
+				throw AssertionError(e)
 			}
 		}
 	}
@@ -1825,8 +1824,7 @@ class AvailWorkbench internal constructor(
 		}
 		catch (e: BadLocationException)
 		{
-			// Shouldn't happen.
-			assert(false)
+			throw AssertionError(e)
 		}
 
 		perModuleProgressLock.safeWrite {
@@ -2105,9 +2103,9 @@ class AvailWorkbench internal constructor(
 					check(toggleDebugPrimitives)
 					check(toggleDebugWorkUnits)
 					check(toggleDebugAfterUnload)
+					check(toggleAvailableSplits)
 					separator()
 					check(toggleDebugJVM)
-					check(toggleDebugJVMCodeGeneration)
 					separator()
 					item(parserIntegrityCheckAction)
 					item(examineRepositoryAction)
@@ -3251,7 +3249,7 @@ class AvailWorkbench internal constructor(
 		}
 
 		/** Truncate the start of the document any time it exceeds this. */
-		private const val maxDocumentSize = 10_000_000
+		private const val maxDocumentSize = 2_000_000
 
 		/** The [Statistic] for tracking text insertions. */
 		private val insertStringStat =

@@ -36,8 +36,8 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.staticObjectTypeV
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -83,19 +83,31 @@ object L2_EXTRACT_OBJECT_TYPE_VARIANT_ID : L2Operation(
 
 		// If the variantId is statically deducible at this point, use the
 		// constant.
-		val generator = regenerator.targetGenerator
 		val restriction =
-			generator.currentManifest.restrictionFor(value.semanticValue())
+			regenerator.restrictionFor(value.semanticValue())
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectTypeVariant
-			generator.addInstruction(
-				L2_MOVE_CONSTANT.unboxedInt,
-				L2IntImmediateOperand(variant.variantId),
-				variantId)
+			regenerator.moveRegister(
+				L2_MOVE.unboxedInt,
+				regenerator.unboxedIntConstant(variant.variantId)
+					.semanticValue(),
+				variantId.semanticValues())
 			return
 		}
 		super.generateReplacement(instruction, regenerator)
+	}
+
+	/**
+	 * Extract the [L2ReadBoxedOperand] that provided the object type whose
+	 * variant is being extracted.
+	 */
+	fun sourceOfObjectTypeVariant(
+		instruction: L2Instruction
+	): L2ReadBoxedOperand
+	{
+		assert(instruction.operation == this)
+		return instruction.operand(0)
 	}
 
 	override fun translateToJVM(

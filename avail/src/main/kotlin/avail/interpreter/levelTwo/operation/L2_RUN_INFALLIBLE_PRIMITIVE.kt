@@ -35,10 +35,10 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.PRIMITIVE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PRIMITIVE
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
@@ -46,24 +46,27 @@ import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Execute a primitive with the provided arguments, writing the result into
- * the specified register.  The primitive must not fail.  Don't check the result
+ * Execute a primitive with the provided arguments, writing the result into the
+ * specified register.  The primitive must not fail.  Don't check the result
  * type, since the VM has already guaranteed it is correct.
  *
- * Unlike for [L2_INVOKE] and related operations, we do not provide
- * the calling continuation here.  That's because by inlining the primitive
- * attempt we have avoided (or at worst postponed) construction of the
- * continuation that reifies the current function execution.  This is a Good
- * Thing, performance-wise.
- *
+ * Unlike for [L2_INVOKE] and related operations, we do not provide the calling
+ * continuation here.  That's because by inlining the primitive attempt we have
+ * avoided (or at worst postponed) construction of the continuation that reifies
+ * the current function execution.  This is a Good Thing, performance-wise.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -71,8 +74,8 @@ import org.objectweb.asm.MethodVisitor
  * @constructor
  * Construct an `L2_RUN_INFALLIBLE_PRIMITIVE`.
  */
-abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
-	: L2Operation(
+abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
+) : L2Operation(
 	CONSTANT.named("raw function"),  // Used for inlining/reoptimization.
 	PRIMITIVE.named("primitive to run"),
 	READ_BOXED_VECTOR.named("arguments"),
@@ -119,10 +122,10 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	{
 		// It depends on the primitive.
 		assert(instruction.operation === this)
-		//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
-		//		final L2ReadBoxedVectorOperand arguments = instruction.operand(2);
-//		final L2WriteBoxedOperand result = instruction.operand(3);
+		//val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
+		//val result = instruction.operand<L2WriteBoxedOperand>(3)
 		val prim = primitive.primitive
 		return (prim.hasFlag(Flag.HasSideEffect)
 			|| prim.hasFlag(Flag.CatchException)
@@ -147,12 +150,12 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this === instruction.operation)
-		//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
 		val result = instruction.operand<L2WriteBoxedOperand>(3)
 		renderPreamble(instruction, builder)
-		builder.append(' ')
+		builder.append("\n\t")
 		builder.append(result.registerString())
 		builder.append(" ← ")
 		builder.append(primitive)
@@ -161,12 +164,63 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		builder.append(')')
 	}
 
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		// Give the primitive another chance to produce something more specific
+		// than a basic infallible primitive invocation.
+		val rawFunction = transformedOperands[0] as L2ConstantOperand
+		val primitive = transformedOperands[1] as L2PrimitiveOperand
+		val arguments = transformedOperands[2] as L2ReadBoxedVectorOperand
+		val result = transformedOperands[3] as L2WriteBoxedOperand
+
+		val strongerResultType =
+			primitive.primitive.returnTypeGuaranteedByVM(
+				rawFunction.constant,
+				arguments.elements.map(L2ReadBoxedOperand::type))
+		val strongerRestriction =
+			result.restriction().intersectionWithType(strongerResultType)
+		val strongerResult = L2WriteBoxedOperand(
+			result.semanticValues(),
+			strongerRestriction,
+			result.register())
+		strongerRestriction.constantOrNull?.let { constant ->
+			if (primitive.primitive.hasFlag(Flag.CanFold))
+			{
+				// This invocation is now known to produce a constant that can
+				// be folded.  Generate a constant move instead.
+				regenerator.moveRegister(
+					L2_MOVE.boxed,
+					regenerator.boxedConstant(constant).semanticValue(),
+					strongerResult.semanticValues())
+				return
+			}
+		}
+		primitive.primitive.emitTransformedInfalliblePrimitive(
+			this, rawFunction.constant, arguments, strongerResult, regenerator)
+	}
+
+	override fun interestingSplitConditions(
+		instruction: L2Instruction
+	): List<L2SplitCondition?>
+	{
+		val rawFunction = instruction.operand<L2ConstantOperand>(0)
+		val primitive = instruction.operand<L2PrimitiveOperand>(1)
+		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
+		//val result = instruction.operand<L2WriteBoxedOperand>(3)
+
+		return primitive.primitive.interestingSplitConditions(
+			arguments.elements,
+			rawFunction.constant)
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-//		final L2ConstantOperand rawFunction = instruction.operand(0);
+		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
 		val result = instruction.operand<L2WriteBoxedOperand>(3)
@@ -254,7 +308,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		{
 			assert(instruction.operation is L2_RUN_INFALLIBLE_PRIMITIVE)
 			val vector = instruction.operand<L2ReadBoxedVectorOperand>(2)
-			return vector.elements
+			return vector.elements.cast()
 		}
 	}
 }

@@ -34,6 +34,12 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_FLOAT
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -41,9 +47,8 @@ import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
@@ -54,6 +59,7 @@ import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.cast
+import avail.utility.mapToSet
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -72,14 +78,8 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
- * @property R
- *   The kind of [L2Register] to merge.
- * @property RR
- *   The kind of [L2ReadOperand]s to merge.
- * @property WR
- *   The kind of [L2WriteOperand]s to write the result to.
- * @property RV
- *   The kind of [L2ReadVectorOperand]s associated with [R].
+ * @property K
+ *   The [RegisterKind] that says what kind of data is being processed.
  *
  * @property moveOperation
  *   The [L2_MOVE] operation to substitute for this instruction on incoming
@@ -93,13 +93,9 @@ import org.objectweb.asm.MethodVisitor
  * @param writeOperandType
  *   The [L2NamedOperandType] that describes the write destination of this move.
  */
-class L2_PHI_PSEUDO_OPERATION<
-	R : L2Register,
-	RR : L2ReadOperand<R>,
-	WR : L2WriteOperand<R>,
-	RV : L2ReadVectorOperand<R, RR>>
+class L2_PHI_PSEUDO_OPERATION<K: RegisterKind<K>>
 private constructor(
-	val moveOperation: L2_MOVE<R, RR, WR, RV>,
+	val moveOperation: L2_MOVE<K>,
 	readOperandType: L2NamedOperandType,
 	writeOperandType: L2NamedOperandType
 ) : L2Operation(readOperandType, writeOperandType)
@@ -113,8 +109,9 @@ private constructor(
 		// The reads in the input vector are from the positionally corresponding
 		// incoming edges, which carry the manifests that should be used to
 		// look up the best source semantic values.
-		val sources: L2ReadVectorOperand<R, RR> = instruction.operand(0)
-		val destination: L2WriteOperand<R> = instruction.operand(1)
+		val sources: L2ReadVectorOperand<L2ReadOperand<K>> =
+			instruction.operand(0)
+		val destination: L2WriteOperand<K> = instruction.operand(1)
 		sources.instructionWasAddedForPhi(
 			instruction.basicBlock().predecessorEdges())
 		destination.instructionWasAdded(manifest)
@@ -142,10 +139,12 @@ private constructor(
 	 */
 	fun withoutIndex(
 		instruction: L2Instruction,
-		inputIndex: Int): L2Instruction
+		inputIndex: Int
+	): L2Instruction
 	{
-		val oldVector: L2ReadVectorOperand<R, RR> = instruction.operand(0)
-		val destinationReg: L2WriteOperand<R> = instruction.operand(1)
+		val oldVector: L2ReadVectorOperand<L2ReadOperand<K>> =
+			instruction.operand(0)
+		val destinationReg: L2WriteOperand<K> = instruction.operand(1)
 		val newSources = oldVector.elements.toMutableList()
 		newSources.removeAt(inputIndex)
 		val onlyOneRegister = newSources.size == 1
@@ -179,17 +178,18 @@ private constructor(
 	 */
 	private fun updateVectorOperand(
 		instruction: L2Instruction,
-		updater: (MutableList<RR>) -> Unit)
+		updater: (MutableList<L2ReadOperand<K>>) -> Unit)
 	{
 		assert(instruction.operation === this)
 		val block = instruction.basicBlock()
 		val instructionIndex = block.instructions().indexOf(instruction)
-		val vectorOperand: L2ReadVectorOperand<R, RR> = instruction.operand(0)
-		val writeOperand: L2WriteOperand<R> = instruction.operand(1)
+		val vectorOperand: L2ReadVectorOperand<L2ReadOperand<K>> =
+			instruction.operand(0)
+		val writeOperand: L2WriteOperand<K> = instruction.operand(1)
 		instruction.justRemoved()
 		val passedCopy = vectorOperand.elements.toMutableList()
 		updater(passedCopy)
-		val finalCopy: List<RR> = passedCopy.toList()
+		val finalCopy: List<L2ReadOperand<K>> = passedCopy.toList()
 		val replacementInstruction = L2Instruction(
 			block, this, vectorOperand.clone(finalCopy), writeOperand)
 		block.instructions()[instructionIndex] = replacementInstruction
@@ -211,10 +211,11 @@ private constructor(
 	 */
 	fun predecessorBlocksForUseOf(
 		instruction: L2Instruction,
-		usedRegister: L2Register): List<L2BasicBlock>
+		usedRegister: L2Register<*>): List<L2BasicBlock>
 	{
 		assert(this == instruction.operation)
-		val sources: L2ReadVectorOperand<R, RR> = instruction.operand(0)
+		val sources: L2ReadVectorOperand<L2ReadOperand<K>> =
+			instruction.operand(0)
 		assert(
 			sources.elements.size
 				== instruction.basicBlock().predecessorEdges().size)
@@ -235,15 +236,14 @@ private constructor(
 	 * used when generating phi moves (which takes the [L2ControlFlowGraph] out
 	 * of Static Single Assignment form).
 	 *
-	 * @param W
-	 *   The type of the [L2WriteOperand].
 	 * @param instruction
 	 *   The instruction to examine. It must be a phi operation.
 	 * @return
 	 *   The instruction's destination [L2WriteOperand].
 	 */
-	fun <W : L2WriteOperand<R>> destinationRegisterWrite(
-		instruction: L2Instruction): W
+	fun destinationRegisterWrite(
+		instruction: L2Instruction
+	): L2WriteOperand<K>
 	{
 		assert(this == instruction.operation)
 		return instruction.operand(1)
@@ -258,11 +258,10 @@ private constructor(
 	 * @return
 	 *   The instruction's list of sources.
 	 */
-	fun sourceRegisterReads(instruction: L2Instruction): List<RR>
-	{
-		val vector: L2ReadVectorOperand<R, RR> = instruction.operand(0)
-		return vector.elements
-	}
+	fun sourceRegisterReads(
+		instruction: L2Instruction
+	): List<L2ReadOperand<*>> =
+		instruction.operand<L2ReadVectorOperand<*>>(0).elements
 
 	/**
 	 * Update an `L2_PHI_PSEUDO_OPERATION` instruction that's in a loop head
@@ -278,12 +277,13 @@ private constructor(
 		instruction: L2Instruction)
 	{
 		assert(instruction.operation === this)
-		val semanticValue = sourceRegisterReads(instruction)[0].semanticValue()
+		val semanticValue: L2SemanticValue<K> =
+			sourceRegisterReads(instruction)[0].semanticValue().cast()
 		val kind = moveOperation.kind
-		val readOperand: RR = kind.readOperand(
+		val readOperand = kind.readOperand(
 			semanticValue,
 			predecessorManifest.restrictionFor(semanticValue),
-			predecessorManifest.getDefinition(semanticValue, kind))
+			predecessorManifest.getDefinition(semanticValue))
 		updateVectorOperand(instruction) { it.add(readOperand) }
 	}
 
@@ -308,11 +308,11 @@ private constructor(
 		regenerator: L2Regenerator)
 	{
 		//val readVector: RV = transformedOperands[0].cast()
-		val write: WR = transformedOperands[1].cast()
+		val write: L2WriteOperand<K> = transformedOperands[1].cast()
 
-		val manifest = regenerator.targetGenerator.currentManifest
-		val defined = mutableListOf<L2SemanticValue>()
-		val undefined = mutableListOf<L2SemanticValue>()
+		val manifest = regenerator.currentManifest
+		val defined = mutableListOf<L2SemanticValue<K>>()
+		val undefined = mutableListOf<L2SemanticValue<K>>()
 		write.semanticValues().forEach {
 			when
 			{
@@ -324,8 +324,8 @@ private constructor(
 		val source = defined[0]
 		for (eachTarget in undefined)
 		{
-			regenerator.targetGenerator.moveRegister(
-				moveOperation, source, eachTarget)
+			regenerator.moveRegister(
+				moveOperation, source, setOf(eachTarget))
 		}
 	}
 
@@ -380,7 +380,7 @@ private constructor(
 	 */
 	fun generatePhi(
 		generator: L2Generator,
-		relatedSemanticValues: List<L2SemanticValue>,
+		relatedSemanticValues: List<L2SemanticValue<K>>,
 		forcePhiCreation: Boolean,
 		typeRestriction: TypeRestriction,
 		sourceManifests: List<L2ValueManifest>)
@@ -394,7 +394,7 @@ private constructor(
 		val manifest = generator.currentManifest
 		val pickSemanticValue = relatedSemanticValues[0]
 		val completeRegistersBySource = sourceManifests.map { m ->
-			m.getDefinitions<R>(pickSemanticValue).filter {
+			m.getDefinitions(pickSemanticValue).filter {
 				r -> r.definitions().all {
 					w -> w.semanticValues().containsAll(relatedSemanticValues)
 				}
@@ -402,6 +402,41 @@ private constructor(
 		}
 		val completeRegisters = completeRegistersBySource[0].toMutableList()
 		completeRegistersBySource.forEach(completeRegisters::retainAll)
+		val restriction = sourceManifests
+			.map { it.restrictionFor(pickSemanticValue) }
+			.reduce(TypeRestriction::union)
+			.intersection(typeRestriction)
+		// We've already done all the synonym extensions for moves as they were
+		// recorded as postponed instructions.  So be delicate when extending
+		// synonyms in general.  Adding actual move instructions will normally
+		// turn into an extension of the latest write if it's in the same block,
+		// but we couldn't do that for postponed instructions, because we don't
+		// know what block(s) they'll end up in.
+		val (inSynonym, notInSynonym) =
+			relatedSemanticValuesSet.partition(manifest::hasSemanticValue)
+		val existingSynonyms =
+			inSynonym.mapToSet(transform = manifest::semanticValueToSynonym)
+		if (existingSynonyms.isNotEmpty())
+		{
+			// There's at least one synonym.  Merge them, then add any new
+			// semantic values.
+			val pick = existingSynonyms.first().pickSemanticValue()
+			existingSynonyms.forEach {
+				manifest.mergeExistingSemanticValues(
+					pick, it.pickSemanticValue())
+			}
+			notInSynonym.forEach {
+				manifest.extendSynonym(
+					manifest.semanticValueToSynonym(pick), it)
+			}
+		}
+		else
+		{
+			// None of the semantic values is in a synonym yet, so create it in
+			// one step.
+			manifest.introduceSynonym(
+				L2Synonym(relatedSemanticValues), restriction)
+		}
 		when
 		{
 			completeRegisters.isNotEmpty() && !forcePhiCreation ->
@@ -410,16 +445,10 @@ private constructor(
 				// values in each of the predecessors.  Expose one of the
 				// existing registers directly.  The updateConstraint() works
 				// whether the synonym exists yet or not.
-				manifest.updateConstraint(L2Synonym(relatedSemanticValuesSet))
-				{
+				manifest.updateDefinitions(pickSemanticValue) {
 					// No need to keep multiple registers around for the same
 					// purpose.
-					definitions = definitions.append(completeRegisters[0])
-					restriction = when (restriction)
-						{
-							bottomRestriction -> typeRestriction
-							else -> restriction.intersection(typeRestriction)
-						}
+					append(completeRegisters[0])
 				}
 			}
 			else ->
@@ -434,7 +463,9 @@ private constructor(
 					this,
 					moveOperation.createVector(sources),
 					moveOperation.createWrite(
-						generator, relatedSemanticValuesSet, typeRestriction))
+						generator::nextUnique,
+						relatedSemanticValuesSet,
+						typeRestriction))
 			}
 		}
 		manifest.check()
@@ -466,8 +497,8 @@ private constructor(
 		@JvmField
 		val boxed = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.boxed,
-			L2OperandType.READ_BOXED_VECTOR.named("potential boxed sources"),
-			L2OperandType.WRITE_BOXED.named("boxed destination"))
+			READ_BOXED_VECTOR.named("potential boxed sources"),
+			WRITE_BOXED.named("boxed destination"))
 
 		/**
 		 * Initialize the instance used for merging boxed values.
@@ -475,8 +506,8 @@ private constructor(
 		@JvmField
 		val unboxedInt = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.unboxedInt,
-			L2OperandType.READ_INT_VECTOR.named("potential int sources"),
-			L2OperandType.WRITE_INT.named("int destination"))
+			READ_INT_VECTOR.named("potential int sources"),
+			WRITE_INT.named("int destination"))
 
 		/**
 		 * Initialize the instance used for merging boxed values.
@@ -484,8 +515,8 @@ private constructor(
 		@JvmField
 		val unboxedFloat = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.unboxedFloat,
-			L2OperandType.READ_FLOAT_VECTOR.named("potential float sources"),
-			L2OperandType.WRITE_FLOAT.named("float destination"))
+			READ_FLOAT_VECTOR.named("potential float sources"),
+			WRITE_FLOAT.named("float destination"))
 
 		/**
 		 * The collection of phi operations, one per [RegisterKind].

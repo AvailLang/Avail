@@ -609,8 +609,7 @@ class ModuleDescriptor private constructor(
 			}
 			catch (e: UnresolvedDependencyException)
 			{
-				assert(false) { "This never happens" }
-				throw RuntimeException(e)
+				throw AssertionError("This never happens", e)
 			}
 
 			val availRef = stringFrom(ref.qualifiedName)
@@ -1334,8 +1333,8 @@ class ModuleDescriptor private constructor(
 				}
 				catch (e: MalformedMessageException)
 				{
-					assert(false) { "This should not happen!" }
-					throw AvailRuntimeException(e.errorCode)
+					throw AssertionError(
+						"This should not happen: ${e.errorCode}")
 				}
 			}
 		}

@@ -66,8 +66,9 @@ object P_CurrentMacroName : Primitive(0, CanInline)
 		{
 			return interpreter.primitiveFailure(E_NOT_EVALUATING_MACRO)
 		}
+		// Macro expansion shouldn't be possible after loading.
 		interpreter.fiber().availLoader
-			?: error("Macro expansion shouldn't be possible after loading")
+			?: return interpreter.primitiveFailure(E_NOT_EVALUATING_MACRO)
 		val fiberGlobals = interpreter.fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val currentMacroBundle = clientData.mapAt(MACRO_BUNDLE_KEY.atom)

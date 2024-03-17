@@ -211,7 +211,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 	override fun o_ExtractBoolean (self: AvailObject): Boolean = when (this) {
 		sharedForTrue -> true
 		sharedForFalse -> false
-		else -> error("Atom is not a boolean")
+		else -> throw AssertionError("Atom is not a boolean")
 	}
 
 	override fun o_GetAtomProperty(

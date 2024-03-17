@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo.operand
 
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.register.L2IntRegister
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT_VECTOR
 import avail.utility.cast
 
 /**
@@ -49,21 +49,18 @@ import avail.utility.cast
  * @param elements
  * The list of [L2ReadIntOperand]s.
  */
-class L2ReadIntVectorOperand constructor(elements: List<L2ReadIntOperand>)
-	: L2ReadVectorOperand<L2IntRegister, L2ReadIntOperand>(elements)
+class L2ReadIntVectorOperand
+constructor(
+	elements: List<L2ReadIntOperand>
+) : L2ReadVectorOperand<L2ReadIntOperand>(elements)
 {
-	override fun clone(): L2ReadIntVectorOperand =
-		L2ReadIntVectorOperand(
-			// Requires explicit parameter typing
-			elements.map<L2ReadIntOperand, L2ReadIntOperand>{
-				it.clone().cast()
-			})
+	override fun clone() =
+		L2ReadIntVectorOperand(elements.map{ it.clone().cast() })
 
-	override fun clone(replacementElements: List<L2ReadIntOperand>) =
-		L2ReadIntVectorOperand(replacementElements)
+	override fun clone(replacementElements: List<L2ReadOperand<*>>) =
+		L2ReadIntVectorOperand(replacementElements.cast())
 
-	override val operandType: L2OperandType
-		get() = L2OperandType.READ_INT_VECTOR
+	override val operandType: L2OperandType get() = READ_INT_VECTOR
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

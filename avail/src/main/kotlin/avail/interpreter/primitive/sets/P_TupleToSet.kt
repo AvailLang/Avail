@@ -60,8 +60,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_SET
 import avail.optimizer.L1Translator
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
@@ -121,11 +120,11 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper): Boolean
 	{
 		val tupleReg = arguments[0]
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		if (!generator.currentlyReachable())
 		{
@@ -148,7 +147,7 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		val semanticResult = primitiveInvocation(
 			this, arguments.map { it.semanticValue() })
 		val write = generator.boxedWrite(
-			semanticResult, restrictionForType(restriction, BOXED_FLAG))
+			semanticResult, boxedRestrictionForType(restriction))
 		generator.addInstruction(
 			L2_CREATE_SET,
 			L2ReadBoxedVectorOperand(elementRegs),

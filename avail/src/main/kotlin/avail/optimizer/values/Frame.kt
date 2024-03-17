@@ -63,12 +63,15 @@ import avail.utility.iterableWith
  *   occurred, or `null` if this is the outermost frame.
  * @param code
  *   The actual [A_RawFunction] that has the L1 code for this frame.
+ * @param codeName
+ *   A [String] describing which code
  * @param debugName
  *   What to name this frame.
  */
 class Frame constructor(
 	val outerFrame: Frame?,
 	val code: A_RawFunction,
+	val codeName: String,
 	val debugName: String)
 {
 	/**
@@ -90,7 +93,7 @@ class Frame constructor(
 	 * @return
 	 *   This frame's [L2SemanticFunction].
 	 */
-	fun function(): L2SemanticValue = L2SemanticFunction(this)
+	fun function(): L2SemanticBoxedValue = L2SemanticFunction(this)
 
 	/**
 	 * Answer the [L2SemanticValue] representing this frame's label.
@@ -98,7 +101,7 @@ class Frame constructor(
 	 * @return
 	 *   This frame's [L2SemanticLabel].
 	 */
-	fun label(): L2SemanticValue = L2SemanticLabel(this)
+	fun label(): L2SemanticBoxedValue = L2SemanticLabel(this)
 
 	/**
 	 * Answer the [L2SemanticValue] representing one of this frame's
@@ -112,7 +115,7 @@ class Frame constructor(
 	 * @return
 	 *   The [L2SemanticValue] representing the specified outer.
 	 */
-	fun outer(outerIndex: Int, optionalName: String?): L2SemanticValue =
+	fun outer(outerIndex: Int, optionalName: String?): L2SemanticBoxedValue =
 		L2SemanticOuter(this, outerIndex, optionalName)
 
 	/**
@@ -134,7 +137,7 @@ class Frame constructor(
 		slotIndex: Int,
 		afterPc: Int,
 		optionalName: String?
-	): L2SemanticValue =
+	): L2SemanticBoxedValue =
 		L2SemanticSlot(this, slotIndex, afterPc, optionalName)
 
 	/**
@@ -144,7 +147,7 @@ class Frame constructor(
 	 * @return
 	 *   The [L2SemanticValue] representing the return result.
 	 */
-	fun result(): L2SemanticValue = L2SemanticResult(this)
+	fun result(): L2SemanticBoxedValue = L2SemanticResult(this)
 
 	/**
 	 * Answer the semantic value representing a new temporary value.
@@ -156,7 +159,8 @@ class Frame constructor(
 	 *   An [L2SemanticTemp] representing the temporary value, generalized to an
 	 *   [L2SemanticValue].
 	 */
-	fun temp(uniqueId: Int): L2SemanticValue = L2SemanticTemp(this, uniqueId)
+	fun temp(uniqueId: Int): L2SemanticBoxedValue =
+		L2SemanticTemp(this, uniqueId)
 
 	/**
 	 * Answer an [L2SemanticValue] that represents the reified caller
@@ -165,7 +169,7 @@ class Frame constructor(
 	 * @return
 	 *   The reified caller (an [A_Continuation] at runtime) of this  frame.
 	 */
-	fun reifiedCaller(): L2SemanticValue = L2SemanticCaller(this)
+	fun reifiedCaller(): L2SemanticBoxedValue = L2SemanticCaller(this)
 
 	/**
 	 * Transform the receiver via the given [Function].
@@ -182,16 +186,10 @@ class Frame constructor(
 		topFrameReplacement: Frame,
 		frameTransformer: (Frame) -> Frame): Frame
 	{
-		if (outerFrame === null)
-		{
-			return topFrameReplacement
-		}
+		if (outerFrame === null) return topFrameReplacement
 		val newOuterFrame = frameTransformer(outerFrame)
-		return if (newOuterFrame == outerFrame)
-		{
-			this
-		}
-		else Frame(newOuterFrame, code, "$debugName (inlined)")
+		if (newOuterFrame == outerFrame) return this
+		return Frame(newOuterFrame, code, codeName, "$debugName (inlined)")
 	}
 
 }

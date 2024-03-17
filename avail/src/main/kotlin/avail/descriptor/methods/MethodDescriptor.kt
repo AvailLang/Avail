@@ -1130,15 +1130,15 @@ class MethodDescriptor private constructor(
 											newPrimitiveRawFunction(
 												prefixPrim, nil, 0),
 											emptyTuple())
-									})),
+									}
+								).makeShared()
+							),
 							true)
 					}
 				}
 				catch (e: SignatureException)
 				{
-					assert(false) { "This should not happen!" }
-					throw RuntimeException(
-						"VM method name is invalid: $name", e)
+					throw AssertionError("VM method name is invalid: $name", e)
 				}
 			}
 			assert(atom.descriptor().isShared)
@@ -1181,7 +1181,7 @@ class MethodDescriptor private constructor(
 				override fun constructResult(
 					elements: List<A_Definition>,
 					memento: Unit
-				) = tupleFromList(elements)
+				) = tupleFromList(elements).makeShared()
 
 				override fun compareTypes(
 					argumentRestrictions: List<TypeRestriction>,

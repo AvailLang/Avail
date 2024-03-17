@@ -56,6 +56,8 @@ import org.objectweb.asm.Opcodes
 	STACK_REIFIER::class)
 object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
 {
+	override fun isCold(instruction: L2Instruction): Boolean = true
+
 	override val hasSideEffect: Boolean
 		get()
 		{

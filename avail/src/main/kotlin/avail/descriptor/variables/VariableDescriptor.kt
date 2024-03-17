@@ -71,7 +71,7 @@ import avail.descriptor.types.A_Type.Companion.readType
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.A_Type.Companion.writeType
-import avail.descriptor.types.IntegerRangeTypeDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
@@ -410,8 +410,7 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self[KIND]
-		assert(outerKind.readType.isSubtypeOf(
-			IntegerRangeTypeDescriptor.extendedIntegers))
+		assert(outerKind.readType.isSubtypeOf(extendedIntegers))
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
@@ -542,8 +541,7 @@ open class VariableDescriptor protected constructor(
 	override fun o_RemoveDependentChunk(self: AvailObject, chunk: L2Chunk)
 	{
 		assert(!isShared)
-		assert(false) { "Chunk removed but not added!" }
-		unsupported
+		throw AssertionError("Chunk removed but not added!")
 	}
 
 	override fun o_AddWriteReactor(

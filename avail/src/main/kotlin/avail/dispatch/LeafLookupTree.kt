@@ -69,6 +69,11 @@ class LeafLookupTree<
 internal constructor(private val finalResult: Result)
 : LookupTree<Element, Result>()
 {
+	init
+	{
+		finalResult.makeShared()
+	}
+
 	override val solutionOrNull: Result
 		get() = finalResult
 

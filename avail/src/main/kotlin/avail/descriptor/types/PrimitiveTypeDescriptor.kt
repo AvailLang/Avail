@@ -347,10 +347,8 @@ private constructor(
 				}
 			}
 		}
-		assert(false) {
-			"All cases have been dealt with, and each forces a return"
-		}
-		throw RuntimeException()
+		throw AssertionError(
+			"All cases have been dealt with, and each forces a return")
 	}
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =

@@ -33,26 +33,35 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.returnType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.cast
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -87,6 +96,51 @@ object L2_INVOKE : L2ControlFlowOperation(
 	override val hasSideEffect: Boolean
 		get() = true
 
+	override fun isCold(instruction: L2Instruction): Boolean
+	{
+		assert(this == instruction.operation)
+		val function = instruction.operand<L2ReadBoxedOperand>(0)
+		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val result = instruction.operand<L2WriteBoxedOperand>(2)
+		//val onReturn = instruction.operand<L2PcOperand>(3);
+		//val onReification = instruction.operand<L2PcOperand>(4);
+
+		// If the function is bottom-valued, treat the block as cold, and don't
+		// bother splitting paths that lead only to it and other cold blocks.
+		// The called function will definitely have to raise an exception, exit
+		// or restart a continuation, loop forever, or terminate the fiber, so
+		// splitting the code is not likely to have a big impact.
+		val functionType = function.restriction().type
+		assert(functionType.isSubtypeOf(mostGeneralFunctionType()))
+		return functionType.returnType.isBottom
+	}
+
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val function = transformedOperands[0] as L2ReadBoxedOperand
+		val arguments = transformedOperands[1] as L2ReadBoxedVectorOperand
+		val result = transformedOperands[2] as L2WriteBoxedOperand
+		val onNormalReturn = transformedOperands[3] as L2PcOperand
+		val onReification = transformedOperands[4] as L2PcOperand
+
+		function.restriction().constantOrNull?.let { constantFunction ->
+			// Rewrite it as a constant function invocation, allowing that emit
+			// operation to do its own further optimizations.
+			L2_INVOKE_CONSTANT_FUNCTION.emitTransformedInstruction(
+				arrayOf(
+					L2ConstantOperand(constantFunction),
+					arguments,
+					result,
+					onNormalReturn,
+					onReification),
+				regenerator)
+			return
+		}
+		super.emitTransformedInstruction(transformedOperands, regenerator)
+	}
+
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
@@ -97,8 +151,9 @@ object L2_INVOKE : L2ControlFlowOperation(
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val result = instruction.operand<L2WriteBoxedOperand>(2)
-		//		final L2PcOperand onReturn = instruction.operand(3);
-//		final L2PcOperand onReification = instruction.operand(4);
+		//val onReturn = instruction.operand<L2PcOperand>(3);
+		//val onReification = instruction.operand<L2PcOperand>(4);
+
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(result.registerString())
@@ -170,7 +225,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 	fun generatePushArgumentsAndInvoke(
 		translator: JVMTranslator,
 		method: MethodVisitor,
-		argsRegsList: List<L2ReadBoxedOperand>,
+		argsRegsList: List<L2ReadOperand<BOXED_KIND>>,
 		result: L2WriteBoxedOperand,
 		onNormalReturn: L2PcOperand,
 		onReification: L2PcOperand)
@@ -186,7 +241,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		else
 		{
 			translator.objectArray(
-				method, argsRegsList, AvailObject::class.java)
+				method, argsRegsList.cast(), AvailObject::class.java)
 			// :: [interpreter, callingChunk, interpreter, function, argsArray]
 			Interpreter.preinvokeMethod.generateCall(method)
 		}

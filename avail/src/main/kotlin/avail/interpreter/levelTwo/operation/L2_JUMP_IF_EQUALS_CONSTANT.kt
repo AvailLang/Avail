@@ -31,24 +31,27 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
@@ -77,7 +80,8 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		PC.named("if unequal", FAILURE))
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction, manifest: L2ValueManifest)
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
 		assert(this == instruction.operation)
 		val reader = instruction.operand<L2ReadBoxedOperand>(0)
@@ -91,7 +95,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		val oldRestriction = reader.restriction()
 		ifEqual.manifest().setRestriction(
 			reader.semanticValue(),
-			restrictionForConstant(constant.constant, BOXED_FLAG))
+			boxedRestrictionForConstant(constant.constant))
 		ifNotEqual.manifest().setRestriction(
 			reader.semanticValue(),
 			oldRestriction.minusValue(constant.constant))
@@ -129,7 +133,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 			instruction.operand<L2PcOperand>(2))
 		val ifUnequal = regenerator.transformOperand(
 			instruction.operand<L2PcOperand>(3))
-		regenerator.targetGenerator.jumpIfEqualsConstant(
+		regenerator.jumpIfEqualsConstant(
 			value,
 			constant.constant,
 			ifEqual.targetBlock(),
@@ -145,25 +149,25 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		val ifEqual = transformedOperands[2] as L2PcOperand
 		val ifUnequal = transformedOperands[3] as L2PcOperand
 
-		val generator = regenerator.targetGenerator
+
+		assert(!regenerator.currentManifest.hasImpossibleRestriction)
 		val valueRestriction =
-			generator.currentManifest.restrictionFor(value.semanticValue())
+			regenerator.currentManifest.restrictionFor(value.semanticValue())
 		valueRestriction.constantOrNull?.let { valueValue ->
 			// The value is a constant here, so compare it statically.
-			if (valueValue.equals(constant.constant))
+			val target = when
 			{
-				// Constants agree.
-				generator.jumpTo(ifEqual.targetBlock())
-				return
+				valueValue.equals(constant.constant) -> ifEqual
+				else -> ifUnequal
 			}
-			// Just fall through for the unequal case, and let the
-			// vacuous type intersection handle it.
+			regenerator.jumpTo(target.targetBlock())
+			return
 		}
 		if (!valueRestriction.intersectsType(
 				instanceTypeOrMetaOn(constant.constant)))
 		{
 			// The restriction says it can never equal the constant.
-			generator.jumpTo(ifUnequal.targetBlock())
+			regenerator.jumpTo(ifUnequal.targetBlock())
 			return
 		}
 		if (constant.constant.isInt)
@@ -172,11 +176,12 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 			if (valueRestriction.isUnboxedInt)
 			{
 				// Otherwise, compare as ints.
-				L2_JUMP_IF_COMPARE_INT.equal.compareAndBranch(
-					generator,
-					generator.currentManifest.readInt(
+				regenerator.compareAndBranchInt(
+					NumericComparator.Equal,
+					regenerator.currentManifest.readInt(
 						L2SemanticUnboxedInt(value.semanticValue())),
-					generator.unboxedIntConstant(constant.constant.extractInt),
+					regenerator.unboxedIntConstant(
+						constant.constant.extractInt),
 					ifEqual,
 					ifUnequal)
 				return
@@ -196,36 +201,64 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		val ifEqual = instruction.operand<L2PcOperand>(2)
 		val ifUnequal = instruction.operand<L2PcOperand>(3)
 
-		// :: if (value.equals(constant)) goto ifEqual;
-		// :: else goto ifUnequal;
-		translator.load(method, value.register())
-		translator.literal(method, constant.constant)
-		A_BasicObject.equalsMethod.generateCall(method)
+		if (constant.constant.isInstanceOf(i32))
+		{
+			// Even though the value might not be an i32, we can use the
+			// A_Number.equalsIntStatic(i32) method.
+			translator.load(method, value.register())
+			translator.intConstant(method, constant.constant.extractInt)
+			A_Number.equalsIntMethod.generateCall(method)
+		}
+		else
+		{
+			// :: if (value.equals(constant)) goto ifEqual;
+			// :: else goto ifUnequal;
+			translator.load(method, value.register())
+			translator.literal(method, constant.constant)
+			A_BasicObject.equalsMethod.generateCall(method)
+		}
 		emitBranch(
 			translator, method, instruction, Opcodes.IFNE, ifEqual, ifUnequal)
 	}
 
-	override fun interestingConditions(
+	override fun interestingSplitConditions(
 		instruction: L2Instruction
-	): List<L2SplitCondition>
+	): List<L2SplitCondition?>
 	{
 		val reader = instruction.operand<L2ReadBoxedOperand>(0)
 		val constant = instruction.operand<L2ConstantOperand>(1)
+		val ifEqual = instruction.operand<L2PcOperand>(2)
+		val ifUnequal = instruction.operand<L2PcOperand>(3)
 
-		return mutableListOf<L2SplitCondition>().apply {
+		val conditions = mutableListOf<L2SplitCondition?>()
+		if (!ifEqual.targetBlock().isCold)
+		{
+			// The ifEqual path is warm, so allow a code split back to a point
+			// where it's known to be equal to the constant.
 			if (constant.constant.isInt)
 			{
-				add(unboxedIntCondition(listOf(reader.register())))
-				add(
+				conditions.add(unboxedIntCondition(listOf(reader.register())))
+				conditions.add(
 					typeRestrictionCondition(
 						setOf(reader.register()),
-						restrictionForConstant(
-							constant.constant, UNBOXED_INT_FLAG)))
+						intRestrictionForConstant(
+							constant.constant.extractInt)))
 			}
-			add(
+			conditions.add(
 				typeRestrictionCondition(
 					setOf(reader.register()),
-					restrictionForConstant(constant.constant, BOXED_FLAG)))
+					boxedRestrictionForConstant(constant.constant)))
 		}
+		if (!ifUnequal.targetBlock().isCold)
+		{
+			// The ifUnequal path is warm, so allow a code split back to a point
+			// where the value is known to be unequal to the constant.
+			conditions.add(
+				typeRestrictionCondition(
+					setOf(reader.register()),
+					boxedRestrictionForType(ANY.o)
+						.minusValue(constant.constant)))
+		}
+		return conditions
 	}
 }

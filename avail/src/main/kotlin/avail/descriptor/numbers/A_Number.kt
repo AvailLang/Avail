@@ -1287,6 +1287,19 @@ interface A_Number : A_BasicObject
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
+		fun equalsIntStatic(self: AvailObject, intValue: Int): Boolean =
+			self.descriptor().o_EqualsInt(self, intValue)
+
+		/** The [CheckedMethod] for [isInt]. */
+		val equalsIntMethod = staticMethod(
+			A_Number::class.java,
+			::equalsIntStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun isDoubleStatic(self: AvailObject): Boolean =
 			self.descriptor().o_IsDouble(self)
 
@@ -1295,6 +1308,116 @@ interface A_Number : A_BasicObject
 			A_Number::class.java,
 			::isDoubleStatic.name,
 			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		// Numeric comparison operations:
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun numericLessThanStatic(
+			self: AvailObject,
+			another: AvailObject
+		): Boolean =
+			self.descriptor().o_NumericCompare(self, another).isLess()
+
+		/**
+		 * The [CheckedMethod] for [numericLessThanStatic].
+		 */
+		val numericLessThanMethod = staticMethod(
+			A_Number::class.java,
+			::numericLessThanStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun numericLessOrEqualStatic(
+			self: AvailObject,
+			another: AvailObject
+		): Boolean =
+			self.descriptor().o_NumericCompare(self, another).isLessOrEqual()
+
+		/**
+		 * The [CheckedMethod] for [numericLessOrEqualStatic].
+		 */
+		val numericLessOrEqualMethod = staticMethod(
+			A_Number::class.java,
+			::numericLessOrEqualStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun numericGreaterThanStatic(
+			self: AvailObject,
+			another: AvailObject
+		): Boolean =
+			self.descriptor().o_NumericCompare(self, another).isMore()
+
+		/**
+		 * The [CheckedMethod] for [numericGreaterThanStatic].
+		 */
+		val numericGreaterThanMethod = staticMethod(
+			A_Number::class.java,
+			::numericGreaterThanStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun numericGreaterOrEqualStatic(
+			self: AvailObject,
+			another: AvailObject
+		): Boolean =
+			self.descriptor().o_NumericCompare(self, another).isMoreOrEqual()
+
+		/**
+		 * The [CheckedMethod] for [numericGreaterOrEqualStatic].
+		 */
+		val numericGreaterOrEqualMethod = staticMethod(
+			A_Number::class.java,
+			::numericGreaterOrEqualStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun numericEqualStatic(
+			self: AvailObject,
+			another: AvailObject
+		): Boolean =
+			self.descriptor().o_NumericCompare(self, another).isEqual()
+
+		/**
+		 * The [CheckedMethod] for [numericEqualStatic].
+		 */
+		val numericEqualMethod = staticMethod(
+			A_Number::class.java,
+			::numericEqualStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun numericNotEqualStatic(
+			self: AvailObject,
+			another: AvailObject
+		): Boolean =
+			self.descriptor().o_NumericCompare(self, another).isEqual().not()
+
+		/**
+		 * The [CheckedMethod] for [numericNotEqualStatic].
+		 */
+		val numericNotEqualMethod = staticMethod(
+			A_Number::class.java,
+			::numericNotEqualStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java,
 			AvailObject::class.java)
 	}
 }

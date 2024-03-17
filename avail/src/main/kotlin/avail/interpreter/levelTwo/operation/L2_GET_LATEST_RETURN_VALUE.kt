@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
@@ -53,6 +53,14 @@ import org.objectweb.asm.MethodVisitor
 object L2_GET_LATEST_RETURN_VALUE : L2Operation(
 	WRITE_BOXED.named("latest result"))
 {
+	/**
+	 * Technically, it doesn't have a side effect, but it does have a read
+	 * dependency on the [Interpreter.latestResult] field.  Until we've written
+	 * code to track a directed graph of dependencies between postponed
+	 * instructions, this will work just fine.
+	 */
+	override val hasSideEffect: Boolean get() = true
+
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

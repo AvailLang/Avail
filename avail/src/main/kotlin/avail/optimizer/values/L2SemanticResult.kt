@@ -31,6 +31,8 @@
  */
 package avail.optimizer.values
 
+import avail.interpreter.levelTwo.register.BOXED_KIND
+
 /**
  * A semantic value which represents the return value produced by the invocation
  * corresponding to a particular [Frame].
@@ -43,17 +45,21 @@ package avail.optimizer.values
  * @param frame
  *   The frame for which this represents the return result.
  */
-internal class L2SemanticResult constructor(frame: Frame)
-	: L2FrameSpecificSemanticValue(frame, 0x6ABDC9DB)
+internal class L2SemanticResult
+constructor(
+	frame: Frame
+) : L2FrameSpecificSemanticValue(frame, 0x6ABDC9DB)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		other is L2SemanticResult && super.equalsSemanticValue(other)
 
 	override fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer(frame()).let {
-				if (it == frame) this else L2SemanticResult(it)
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticBoxedValue =
+		frameTransformer(frame()).let {
+			if (it == frame) this else L2SemanticResult(it)
 		}
 
 	override fun toString(): String = "Result of ${frame()}"

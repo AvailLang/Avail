@@ -33,8 +33,10 @@ package avail.interpreter.levelTwo.operand
 
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
+import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.values.L2SemanticValue
 
 /**
@@ -56,14 +58,14 @@ import avail.optimizer.values.L2SemanticValue
  */
 class L2WriteBoxedOperand
 constructor(
-	semanticValues: Set<L2SemanticValue>,
+	semanticValues: Set<L2SemanticValue<BOXED_KIND>>,
 	restriction: TypeRestriction,
-	register: L2BoxedRegister
-) : L2WriteOperand<L2BoxedRegister>(semanticValues, restriction, register)
+	register: L2Register<BOXED_KIND>
+) : L2WriteOperand<BOXED_KIND>(semanticValues, restriction, register)
 {
-	override val operandType: L2OperandType get() = L2OperandType.WRITE_BOXED
+	override val operandType: L2OperandType get() = WRITE_BOXED
 
-	override val registerKind get() = BOXED_KIND
+	override val kind get() = BOXED_KIND
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

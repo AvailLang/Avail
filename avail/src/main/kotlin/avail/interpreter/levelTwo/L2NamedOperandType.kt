@@ -142,7 +142,7 @@ class L2NamedOperandType internal constructor(
 
 	override fun toString(): String
 	{
-		return operandType.name + "(" + name + ")"
+		return operandType::class.simpleName + "(" + name + ")"
 	}
 
 	init

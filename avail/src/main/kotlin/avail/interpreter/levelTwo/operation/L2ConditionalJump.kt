@@ -61,7 +61,8 @@ abstract class L2ConditionalJump protected constructor(
 	: L2ControlFlowOperation(*theNamedOperandTypes)
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction, manifest: L2ValueManifest)
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(instruction, manifest)
 		targetEdges(instruction).forEach {
