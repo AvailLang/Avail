@@ -1781,7 +1781,8 @@ enum class SerializerOperation constructor(
 			for ((moduleName, atomName) in pairs)
 			{
 				if (moduleName.notNil &&
-					deserializer.loadedModules.hasKey(moduleName))
+					(moduleName.equals(deserializer.currentModule.moduleName)
+						|| deserializer.loadedModules.hasKey(moduleName)))
 				{
 					val atom = lookupAtom(atomName, moduleName, deserializer)
 					val bundle = atom.bundleOrNil

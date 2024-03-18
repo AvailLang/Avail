@@ -55,7 +55,7 @@ import javax.swing.JLayer
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
-import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities
 import javax.swing.plaf.LayerUI
@@ -188,7 +188,7 @@ internal fun createScrollPane(
 	JScrollPane(
 		innerComponent,
 		VERTICAL_SCROLLBAR_ALWAYS,
-		HORIZONTAL_SCROLLBAR_NEVER
+		HORIZONTAL_SCROLLBAR_ALWAYS
 	).apply {
 		minimumSize = Dimension(minWidth, minHeight)
 	}
