@@ -1094,9 +1094,9 @@ class Interpreter(
 		val aFiber = fiber()
 		aFiber.lock {
 			assert(aFiber.executionState === RUNNING)
-			aFiber.executionState = state
 			aFiber.continuation = nil
 			aFiber.fiberResult = finalObject as AvailObject
+			aFiber.executionState = state
 			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
 			aFiber.fiberHelper.stopCountingCPU()
 			assert(bound)
