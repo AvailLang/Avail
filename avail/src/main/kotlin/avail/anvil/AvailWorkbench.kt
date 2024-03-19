@@ -1155,6 +1155,7 @@ class AvailWorkbench internal constructor(
 				val beforeRemove = System.nanoTime()
 				document.remove(
 					statusSize, min(amountToRemove, length - statusSize))
+				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
 				removeStringStat.record(System.nanoTime() - beforeRemove)
 			}
@@ -1165,6 +1166,7 @@ class AvailWorkbench internal constructor(
 					document.length, // The current length
 					entry.string,
 					context.documentAttributes)
+				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
 				insertStringStat.record(System.nanoTime() - before)
 			}
@@ -1241,6 +1243,7 @@ class AvailWorkbench internal constructor(
 				document.remove(
 					perModuleStatusTextSize,
 					document.length - perModuleStatusTextSize)
+				transcript.undoManager.discardAllEdits()
 				// Always use index 0, since this only happens in the UI thread.
 				removeStringStat.record(System.nanoTime() - beforeRemove)
 			}
