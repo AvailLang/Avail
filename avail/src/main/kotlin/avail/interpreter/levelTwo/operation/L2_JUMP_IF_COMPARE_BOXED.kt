@@ -73,7 +73,6 @@ class L2_JUMP_IF_COMPARE_BOXED internal constructor(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		super.instructionWasAdded(instruction, manifest)
 		val number1Reg = instruction.operand<L2ReadBoxedOperand>(0)
 		val number2Reg = instruction.operand<L2ReadBoxedOperand>(1)
@@ -111,7 +110,6 @@ class L2_JUMP_IF_COMPARE_BOXED internal constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val number1Reg = instruction.operand<L2ReadBoxedOperand>(0)
 		val number2Reg = instruction.operand<L2ReadBoxedOperand>(1)
 		//val ifTrue = instruction.operand<L2PcOperand>(2)

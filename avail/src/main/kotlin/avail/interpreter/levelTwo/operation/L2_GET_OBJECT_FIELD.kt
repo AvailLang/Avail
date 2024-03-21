@@ -68,7 +68,6 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
 		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
@@ -113,7 +112,6 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		assert(this == instruction.operation)
 		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
 		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)

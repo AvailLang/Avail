@@ -81,7 +81,6 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val variable = instruction.operand<L2ReadBoxedOperand>(0)
 		val value = instruction.operand<L2WriteBoxedOperand>(1)
 		//		final L2PcOperand success = instruction.operand(2);

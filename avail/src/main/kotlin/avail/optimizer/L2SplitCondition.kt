@@ -35,15 +35,6 @@ import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
-import avail.interpreter.levelTwo.operation.L2_BOX_INT
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
-import avail.interpreter.levelTwo.operation.L2_HASH
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
-import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
-import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind.*
@@ -288,17 +279,17 @@ sealed class L2SplitCondition
 				moreRegistersCopy.forEach { reg ->
 					reg.definitions().forEach { defWrite ->
 						val def = defWrite.instruction
-						val readOperands = when (def.operation)
+						val readOperands = when
 						{
-							is L2_PHI_PSEUDO_OPERATION<*>,
-							is L2_MOVE<*>,
-							is L2_BOX_INT,
-							is L2_UNBOX_INT,
-							is L2_JUMP_IF_UNBOX_INT,
-							is L2_HASH,
-							is L2_EXTRACT_TAG_ORDINAL,
-							is L2_EXTRACT_OBJECT_VARIANT_ID,
-							is L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
+							def.isPhi ||
+							def.isMove||
+							def.isBoxInt||
+							def.isUnboxInt||
+							def.isJumpIfUnboxInt||
+							def.isHash||
+							def.isExtractTagOrdinal||
+							def.isExtractObjectVariantId||
+							def.isExtractObjectTypeVariantId
 								-> def.readOperands
 							else -> emptyList()
 						}

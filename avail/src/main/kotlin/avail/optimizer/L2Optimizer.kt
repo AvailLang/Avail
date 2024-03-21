@@ -47,7 +47,6 @@ import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -60,7 +59,6 @@ import avail.optimizer.values.L2SemanticValue
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.Strings.increaseIndentation
-import avail.utility.cast
 import avail.utility.deepForEach
 import avail.utility.removeLast
 import java.util.ArrayDeque
@@ -449,7 +447,7 @@ class L2Optimizer internal constructor(
 			generatePhis = true,
 			interestingConditionsByOldBlock = splitConditions)
 		{ sourceInstruction ->
-			if (!sourceInstruction.operation.isPhi)
+			if (!sourceInstruction.isPhi)
 			{
 				basicProcessInstruction(sourceInstruction)
 			}
@@ -539,7 +537,7 @@ class L2Optimizer internal constructor(
 			for (i in instructions.indices.reversed())
 			{
 				val instruction = instructions[i]
-				if (instruction.operation.isPhi)
+				if (instruction.isPhi)
 				{
 					// We've reached the phis at the start of the block.
 					lastPhiIndex = i
@@ -564,14 +562,11 @@ class L2Optimizer internal constructor(
 				for (i in finalLastPhiIndex downTo 0)
 				{
 					val phiInstruction = instructions[i]
-					val phiOperation: L2_PHI_PSEUDO_OPERATION<*> =
-						phiInstruction.operation.cast()
 					edgeSometimesLiveIn.removeAll(
 						phiInstruction.destinationRegisters)
 					edgeAlwaysLiveIn.removeAll(
 						phiInstruction.destinationRegisters)
-					val sources =
-						phiOperation.sourceRegisterReads(phiInstruction)
+					val sources = phiInstruction.phiSourceRegisterReads
 					val source = sources[edgeIndex].register()
 					edgeSometimesLiveIn.add(source)
 					edgeAlwaysLiveIn.add(source)
@@ -644,7 +639,7 @@ class L2Optimizer internal constructor(
 		// Emit the transformation of the given instruction, emitting any
 		// necessary postponed instructions first.
 		regenerateGraph(true) { sourceInstruction ->
-			if (sourceInstruction.operation.goesMultipleWays)
+			if (sourceInstruction.goesMultipleWays)
 			{
 				// Don't allow instructions to be delayed across an instruction
 				// that goes both ways, since that would make the computation in
@@ -659,7 +654,7 @@ class L2Optimizer internal constructor(
 			}
 			when
 			{
-				sourceInstruction.operation.isPhi ->
+				sourceInstruction.isPhi ->
 				{
 					// Ignore it.
 				}
@@ -724,7 +719,7 @@ class L2Optimizer internal constructor(
 			override fun processInstruction(
 				sourceInstruction: L2Instruction)
 			{
-				if (!sourceInstruction.operation.isPhi)
+				if (!sourceInstruction.isPhi)
 				{
 					transformer(sourceInstruction)
 				}
@@ -749,7 +744,7 @@ class L2Optimizer internal constructor(
 					assert(unpopulated.isEmpty()) {
 						buildString {
 							append("Regeneration (")
-							append(sourceInstruction.operation)
+							append(sourceInstruction)
 							append(") failed to populate values: ")
 							append(unpopulated)
 						}
@@ -779,8 +774,7 @@ class L2Optimizer internal constructor(
 		}
 		// Use an L2Regenerator to do the substitution.
 		regenerateGraph(true) { sourceInstruction ->
-			sourceInstruction.operation.generateReplacement(
-				sourceInstruction, this)
+			sourceInstruction.generateReplacement(this)
 		}
 	}
 
@@ -800,44 +794,40 @@ class L2Optimizer internal constructor(
 			while (instructionIterator.hasNext())
 			{
 				val instruction = instructionIterator.next()
-				if (!instruction.operation.isPhi)
+				if (!instruction.isPhi)
 				{
 					// Phi functions are always at the start, so we must be past
 					// them, if any.
 					break
 				}
-				val phiOperation: L2_PHI_PSEUDO_OPERATION<*> =
-					instruction.operation.cast()
-				val phiSources = phiOperation.sourceRegisterReads(instruction)
+				val phiSources = instruction.phiSourceRegisterReads
 				val fanIn = block.predecessorEdges().size
 				assert(fanIn == phiSources.size)
-				val targetWriter =
-					phiOperation.destinationRegisterWrite(instruction)
+				val targetWriter = instruction.phiDestinationRegisterWrite
 				// Insert a non-SSA move in each predecessor block.
 				for (i in 0 until fanIn)
 				{
 					val edge = block.predecessorEdges()[i]
 					val predecessor = edge.sourceBlock()
 					val instructions = predecessor.instructions()
-					assert(
-						predecessor.finalInstruction().operation
-							.isUnconditionalJump)
+					assert(predecessor.finalInstruction()
+						.isUnconditionalJumpForward)
 					val sourceRead = phiSources[i]
 					val move = L2Instruction(
 						predecessor,
-						phiOperation.moveOperation,
+						instruction.phiMoveOperation,
 						sourceRead,
 						targetWriter.clone())
 					predecessor.insertInstruction(instructions.size - 1, move)
 					if (edge.isBackward)
 					{
 						edge.manifest().replaceDefinitions(
-							phiOperation.moveOperation.destinationOf(move))
+							instruction.phiMoveOperation.destinationOf(move))
 					}
 					else
 					{
 						edge.manifest().recordDefinitionNoCheck(
-							phiOperation.moveOperation.destinationOf(move))
+							instruction.phiMoveOperation.destinationOf(move))
 					}
 					if (edge.forcedClampedEntities !== null)
 					{
@@ -945,7 +935,7 @@ class L2Optimizer internal constructor(
 			while (iterator.hasNext())
 			{
 				val instruction = iterator.next()
-				if (instruction.operation.isMove
+				if (instruction.isMove
 					&& instruction.sourceRegisters[0].finalIndex()
 					== instruction.destinationRegisters[0].finalIndex())
 				{
@@ -974,7 +964,7 @@ class L2Optimizer internal constructor(
 			{
 				assert(block !in blocksToRemove)
 				val jump = block.finalInstruction()
-				if (jump.operation !is L2_JUMP) continue
+				if (!jump.isUnconditionalJumpForward) continue
 				val edge = jump.targetEdges.single()
 				val target = edge.targetBlock()
 				// Don't remove the block if it's irremovable or a loop head.
@@ -1025,11 +1015,11 @@ class L2Optimizer internal constructor(
 					continue
 				}
 				val soleInstruction = block.finalInstruction()
-				val jumpEdge = if (soleInstruction.operation === L2_JUMP)
+				val jumpEdge = if (soleInstruction.isUnconditionalJumpForward)
 				{
 					L2_JUMP.jumpTarget(soleInstruction)
 				}
-				else if (soleInstruction.operation === L2_JUMP_BACK)
+				else if (soleInstruction.isUnconditionalJumpBackward)
 				{
 					L2_JUMP_BACK.jumpTarget(soleInstruction)
 				}
@@ -1180,7 +1170,7 @@ class L2Optimizer internal constructor(
 			}
 			instructions.forEachIndexed { i, instruction ->
 				// Deal with the register reads.
-				if (instruction.operation is L2_MOVE<*>
+				if (instruction.isMove
 					&& instruction.sourceRegisters.single()
 						== instruction.destinationRegisters.single())
 				{
@@ -1216,9 +1206,9 @@ class L2Optimizer internal constructor(
 					.forEach { writeReg ->
 						firstUses.remove(writeReg)
 						mutables.remove(writeReg)
-						when (instruction.operation)
+						when
 						{
-							is L2_MOVE_CONSTANT<*, *> ->
+							instruction.isMoveConstant ->
 							{
 								// Constants are always immutable.
 							}
@@ -1489,7 +1479,7 @@ class L2Optimizer internal constructor(
 			for (instruction in block.instructions())
 			{
 				assert(
-					!instruction.operation.isPhi
+					!instruction.isPhi
 						|| instruction.sourceRegisters.size
 						== block.predecessorEdges().size)
 				allEdgesFromBlock.addAll(instruction.targetEdges)
@@ -1555,7 +1545,7 @@ class L2Optimizer internal constructor(
 			val workingSet = UsedRegisters(checked)
 			for (instruction in block.instructions())
 			{
-				if (!instruction.operation.isPhi)
+				if (!instruction.isPhi)
 				{
 					for (register in instruction.sourceRegisters)
 					{
@@ -1581,7 +1571,7 @@ class L2Optimizer internal constructor(
 				}
 				for (phiInTarget in targetBlock.instructions())
 				{
-					if (!phiInTarget.operation.isPhi)
+					if (!phiInTarget.isPhi)
 					{
 						// All the phis are at the start of the block.
 						break
@@ -1637,7 +1627,7 @@ class L2Optimizer internal constructor(
 					// Also catch a second entry point.
 					anyNonPhi = true
 				}
-				else if (!instruction.operation.isPhi)
+				else if (!instruction.isPhi)
 				{
 					anyNonPhi = true
 				}

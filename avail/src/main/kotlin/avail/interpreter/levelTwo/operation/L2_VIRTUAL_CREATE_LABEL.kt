@@ -119,7 +119,6 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val outputLabel = instruction.operand<L2WriteBoxedOperand>(0)
 		val function = instruction.operand<L2ReadBoxedOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
@@ -135,7 +134,6 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		instruction: L2Instruction,
 		regenerator: L2Regenerator
 	): Unit = regenerator.run {
-		assert(this@L2_VIRTUAL_CREATE_LABEL == instruction.operation)
 		val labelOutput = transformOperand(
 			instruction.operand<L2WriteBoxedOperand>(0))
 		val function = transformOperand(
@@ -267,8 +265,8 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		// Force there to be nothing considered live in the edge leading to the
 		// label's entry point.
 		val saveInstruction = currentBlock().instructions().last()
-		val referenceEdge: L2PcOperand =
-			L2_SAVE_ALL_AND_PC_TO_INT.referenceOf(saveInstruction)
+		val referenceEdge: L2PcOperand = saveInstruction.referenceOfSaveAll
+			L2_SAVE_ALL_AND_PC_TO_INT.referenceOfSaveAll(saveInstruction)
 		referenceEdge.forcedClampedEntities = mutableSetOf()
 
 		startBlock(fallThrough)

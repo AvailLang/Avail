@@ -78,7 +78,6 @@ object L2_ENTER_L2_CHUNK_FOR_CALL : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		//val comment = instruction.operand<L2CommentOperand>(0)
 		val writeArguments = instruction.operand<L2WriteBoxedVectorOperand>(1)
 		renderPreamble(instruction, builder)

@@ -42,7 +42,6 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_FLOAT
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2Operand
-import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
@@ -100,8 +99,6 @@ private constructor(
 	writeOperandType: L2NamedOperandType
 ) : L2Operation(readOperandType, writeOperandType)
 {
-	override val isPhi: Boolean get() = true
-
 	override fun instructionWasAdded(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
@@ -137,7 +134,7 @@ private constructor(
 	 *   A replacement [L2Instruction], whose operation may be either another
 	 *   `L2_PHI_PSEUDO_OPERATION` or an [L2_MOVE].
 	 */
-	fun withoutIndex(
+	fun phiWithoutIndex(
 		instruction: L2Instruction,
 		inputIndex: Int
 	): L2Instruction
@@ -180,7 +177,6 @@ private constructor(
 		instruction: L2Instruction,
 		updater: (MutableList<L2ReadOperand<K>>) -> Unit)
 	{
-		assert(instruction.operation === this)
 		val block = instruction.basicBlock()
 		val instructionIndex = block.instructions().indexOf(instruction)
 		val vectorOperand: L2ReadVectorOperand<L2ReadOperand<K>> =
@@ -213,17 +209,14 @@ private constructor(
 		instruction: L2Instruction,
 		usedRegister: L2Register<*>): List<L2BasicBlock>
 	{
-		assert(this == instruction.operation)
 		val sources: L2ReadVectorOperand<L2ReadOperand<K>> =
 			instruction.operand(0)
 		assert(
 			sources.elements.size
 				== instruction.basicBlock().predecessorEdges().size)
 		val list = mutableListOf<L2BasicBlock>()
-		var i = 0
-		instruction.basicBlock().predecessorEdges().forEach {
-			edge: L2PcOperand ->
-			if (sources.elements[i++].register() === usedRegister)
+		instruction.basicBlock().predecessorEdges().forEachIndexed { i, edge ->
+			if (sources.elements[i].register() === usedRegister)
 			{
 				list.add(edge.sourceBlock())
 			}
@@ -241,13 +234,9 @@ private constructor(
 	 * @return
 	 *   The instruction's destination [L2WriteOperand].
 	 */
-	fun destinationRegisterWrite(
+	fun phiDestinationRegisterWrite(
 		instruction: L2Instruction
-	): L2WriteOperand<K>
-	{
-		assert(this == instruction.operation)
-		return instruction.operand(1)
-	}
+	): L2WriteOperand<K> = instruction.operand(1)
 
 	/**
 	 * Answer the [List] of [L2ReadOperand]s for this phi function.
@@ -258,7 +247,7 @@ private constructor(
 	 * @return
 	 *   The instruction's list of sources.
 	 */
-	fun sourceRegisterReads(
+	fun phiSourceRegisterReads(
 		instruction: L2Instruction
 	): List<L2ReadOperand<*>> =
 		instruction.operand<L2ReadVectorOperand<*>>(0).elements
@@ -276,9 +265,8 @@ private constructor(
 		predecessorManifest: L2ValueManifest,
 		instruction: L2Instruction)
 	{
-		assert(instruction.operation === this)
 		val semanticValue: L2SemanticValue<K> =
-			sourceRegisterReads(instruction)[0].semanticValue().cast()
+			phiSourceRegisterReads(instruction)[0].semanticValue().cast()
 		val kind = moveOperation.kind
 		val readOperand = kind.readOperand(
 			semanticValue,
@@ -339,7 +327,6 @@ private constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val vector = instruction.operand<L2Operand>(0)
 		val target = instruction.operand<L2Operand>(1)
 		builder.append("ϕ ")

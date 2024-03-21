@@ -96,7 +96,6 @@ object L2_INVOKE : L2ControlFlowOperation(
 
 	override fun isCold(instruction: L2Instruction): Boolean
 	{
-		assert(this == instruction.operation)
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
 		//val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		//val result = instruction.operand<L2WriteBoxedOperand>(2)
@@ -145,7 +144,6 @@ object L2_INVOKE : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val result = instruction.operand<L2WriteBoxedOperand>(2)

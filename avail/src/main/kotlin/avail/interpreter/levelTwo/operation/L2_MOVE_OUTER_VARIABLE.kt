@@ -67,7 +67,6 @@ object L2_MOVE_OUTER_VARIABLE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val outerIndex =
 			instruction.operand<L2IntImmediateOperand>(0)
 		val function =

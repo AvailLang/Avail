@@ -75,7 +75,6 @@ object L2_CREATE_FUNCTION : L2Operation(
 		outerType: A_Type,
 		generator: L2Generator): L2ReadBoxedOperand
 	{
-		assert(this == instruction.operation)
 		val code = instruction.operand<L2ConstantOperand>(0)
 		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		// val function = instruction.operand<L2WriteBoxedOperand>(2)
@@ -128,7 +127,6 @@ object L2_CREATE_FUNCTION : L2Operation(
 	override fun getConstantCodeFrom(
 		instruction: L2Instruction): A_RawFunction
 	{
-		assert(instruction.operation === this)
 		val constant = instruction.operand<L2ConstantOperand>(0)
 		return constant.constant
 	}
@@ -139,7 +137,6 @@ object L2_CREATE_FUNCTION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val code = instruction.operand<L2ConstantOperand>(0)
 		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val function = instruction.operand<L2WriteBoxedOperand>(2)
@@ -214,7 +211,6 @@ object L2_CREATE_FUNCTION : L2Operation(
 	@JvmStatic
 	fun constantRawFunctionOf(instruction: L2Instruction): A_RawFunction
 	{
-		assert(instruction.operation is L2_CREATE_FUNCTION)
 		val constant = instruction.operand<L2ConstantOperand>(0)
 		return constant.constant
 	}

@@ -80,7 +80,6 @@ object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val returnedValue = instruction.operand<L2ReadBoxedOperand>(0)
 		val expectedType = instruction.operand<L2ConstantOperand>(1)
 		val pc = instruction.operand<L2IntImmediateOperand>(2)

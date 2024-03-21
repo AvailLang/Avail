@@ -33,7 +33,6 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
@@ -43,7 +42,6 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -229,7 +227,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					isCurrent -> currentBlockBackColor to currentBlockForeColor
 					!started -> "#202080/303000" to "#ffffff/e0e0e0"
 					basicBlock.instructions().any {
-						it.operation === L2_UNREACHABLE_CODE
+						it.isUnreachableInstruction
 					} -> "#400000/600000" to "#ffffff/ffffff"
 					basicBlock.isLoopHead ->
 						"#9070ff/302090" to "#000000/f0f0f0"
@@ -400,9 +398,8 @@ class L2ControlFlowGraphVisualizer constructor(
 		val sourceInstruction = edge.instruction
 		val targetBlock = edge.targetBlock()
 		val isTargetTheUnreachableBlock = targetBlock.instructions()
-			.any { it.operation === L2_UNREACHABLE_CODE }
-		val types: Array<out L2NamedOperandType> =
-			sourceInstruction.operation.operandTypes()
+			.any { it.isUnreachableInstruction }
+		val types = sourceInstruction.operandTypes
 		val operands = sourceInstruction.operands
 		val operandIndex = operands.indexOfFirst {
 			it == edge
@@ -898,7 +895,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		// escape everything after this point.
 		val escapeIndex = length
 		val desiredTypes = L2OperandType.allOperandTypes - listOf(PC, COMMENT)
-		if (instruction.operation === L2_JUMP
+		if (instruction.isUnconditionalJumpForward
 			&& instruction.offset != -1
 			&& (L2_JUMP.jumpTarget(instruction).offset()
 				== instruction.offset))
@@ -915,14 +912,12 @@ class L2ControlFlowGraphVisualizer constructor(
 				val escapableStart = length
 				if (visualizeRegisterDescriptions)
 				{
-					instruction.operation.appendToWithWarnings(
-						instruction, desiredTypes, this) { }
+					instruction.appendToWithWarnings(desiredTypes, this) { }
 				}
 				else
 				{
 					// Use a simplified instruction output.
-					instruction.operation.simpleAppendTo(
-						instruction, this)
+					instruction.simpleAppendTo(this)
 				}
 				replace(
 					escapableStart,
@@ -944,7 +939,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			else
 			{
 				// Use a simplified instruction output.
-				instruction.operation.simpleAppendTo(instruction, this)
+				instruction.simpleAppendTo( this)
 			}
 			// Escape everything since the saved position.  Add a final sentinel
 			// to avoid duplicating code below.

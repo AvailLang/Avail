@@ -215,7 +215,7 @@ object P_RestartContinuationWithArguments : Primitive(
 					generator::nextUnique, setOf(temp), read.restriction())
 				generator.addInstruction(L2_MOVE.boxed, read, tempWrite)
 				val move = generator.currentBlock().instructions().last()
-				assert(move.operation == L2_MOVE.boxed)
+				assert(move.isMoveBoxed)
 				tempRegisters.addAll(move.destinationRegisters.cast())
 				tempReads.add(
 					L2ReadBoxedOperand(

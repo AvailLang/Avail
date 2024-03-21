@@ -116,7 +116,6 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		//		final L2SelectorOperand bundle = instruction.operand(0);
 		val argTypeRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val functionReg = instruction.operand<L2WriteBoxedOperand>(2)

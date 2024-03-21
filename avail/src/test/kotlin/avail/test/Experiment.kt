@@ -34,7 +34,6 @@ package avail.test
 
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -69,7 +68,7 @@ import java.util.concurrent.ConcurrentHashMap
 // to avoid reflection entirely.
 
 
-abstract class Instruction
+abstract class NewL2Instruction
 {
 	// Current L2Instruction requires this.
 	var basicBlock: L2BasicBlock? = null
@@ -97,17 +96,16 @@ abstract class Instruction
 	// Use the layout's operandFields for the operand names and other
 	// information shared by instances of the same instruction subclass.
 	override fun toString() = buildString {
-		append("${this@Instruction.javaClass.simpleName}:\n\t")
+		append("${this@NewL2Instruction.javaClass.simpleName}:\n\t")
 		layout.operandFields.joinTo(this, ",\n\t") {
-			"${it.name} = ${it.get(this@Instruction)}"
+			"${it.name} = ${it.get(this@NewL2Instruction)}"
 		}
 	}
 
 	// Current L2Instruction has this.
 	abstract fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 
 
 
@@ -152,14 +150,14 @@ abstract class Instruction
 		// Access to an existing layout generally involves no locks or
 		// modification of contended memory.
 		val layoutsByClass =
-			ConcurrentHashMap<Class<Instruction>, InstructionLayout>(100)
+			ConcurrentHashMap<Class<NewL2Instruction>, InstructionLayout>(100)
 	}
 }
 
 // One per class.  See layoutsByClass a little bit above, and the
 // Instruction.layout field.
 class InstructionLayout
-constructor(private val instructionClass: Class<Instruction>)
+constructor(private val instructionClass: Class<NewL2Instruction>)
 {
 	// One per lexical field definition (e.g., L2_ADD_INTS' augend field).
 	inner class OperandField<O: L2Operand>
@@ -181,21 +179,20 @@ constructor(private val instructionClass: Class<Instruction>)
 
 		val purpose = javaField.getAnnotation(On::class.java)?.purpose
 
-		fun get(instruction: Instruction): O =
+		fun get(instruction: NewL2Instruction): O =
 			getterMethod.invoke(instruction).cast()
 
-		fun set(instruction: Instruction, operand: O) {
+		fun set(instruction: NewL2Instruction, operand: O) {
 			setterMethod.invoke(instruction, operand)
 		}
 
 		fun update(
-			instruction: Instruction,
+			instruction: NewL2Instruction,
 			transformation: (O)->O)
 		{
 			set(instruction, transformation(get(instruction)))
 		}
 	}
-
 
 	val operandFields = instructionClass.declaredFields
 		.filter { L2Operand::class.java.isAssignableFrom(it.type) }
@@ -207,24 +204,25 @@ constructor(private val instructionClass: Class<Instruction>)
 			.filter { L2ReadOperand::class.java.isAssignableFrom(it.type) }
 			as List<OperandField<L2ReadOperand<*>>>
 
-	@Suppress("UNCHECKED_CAST")
 	private val vectorReadOperandFields:
 			List<OperandField<L2ReadVectorOperand<*>>> =
 		operandFields
 			.filter {
 				L2ReadVectorOperand::class.java.isAssignableFrom(it.type)
-			} as List<OperandField<L2ReadVectorOperand<*>>>
+			}.cast()
 
-	@Suppress("UNCHECKED_CAST")
 	private val writeOperandFields: List<OperandField<L2WriteOperand<*>>> =
 		operandFields
-			.filter { L2WriteOperand::class.java.isAssignableFrom(it.type) }
-			as List<OperandField<L2WriteOperand<*>>>
+			.filter {
+				L2WriteOperand::class.java.isAssignableFrom(it.type)
+			}.cast()
 
-	fun operands(instruction: Instruction) =
+	fun operands(instruction: NewL2Instruction) =
 		operandFields.map { it.get(instruction) }
 
-	fun readOperands(instruction: Instruction): List<L2ReadOperand<*>> = when
+	fun readOperands(
+		instruction: NewL2Instruction
+	): List<L2ReadOperand<*>> = when
 	{
 		vectorReadOperandFields.isEmpty() ->
 			scalarReadOperandFields.map { it.get(instruction) }
@@ -238,7 +236,7 @@ constructor(private val instructionClass: Class<Instruction>)
 		}
 	}
 
-	fun writeOperands(instruction: Instruction): List<L2WriteOperand<*>> =
+	fun writeOperands(instruction: NewL2Instruction): List<L2WriteOperand<*>> =
 		writeOperandFields.map { it.get(instruction) }
 }
 
@@ -255,12 +253,11 @@ class L2_ADD_INTS constructor(
 	@On(SUCCESS) var sum: L2WriteIntOperand,
 	@On(FAILURE) var outOfRange: L2PcOperand,
 	@On(SUCCESS) var inRange: L2PcOperand
-) : Instruction()
+) : NewL2Instruction()
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		// No more need to extract the augend operand from a clumsy array, and
 		// to strengthen its type!

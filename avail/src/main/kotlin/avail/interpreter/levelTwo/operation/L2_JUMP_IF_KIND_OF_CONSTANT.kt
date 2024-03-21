@@ -80,7 +80,6 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val constantType = instruction.operand<L2ConstantOperand>(1)
 		val ifKind = instruction.operand<L2PcOperand>(2)
@@ -105,7 +104,6 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val constantType = instruction.operand<L2ConstantOperand>(1)
 		//		final L2PcOperand ifKind = instruction.operand(2);

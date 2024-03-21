@@ -68,7 +68,6 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		val first = instruction.operand<L2ReadBoxedOperand>(0)
 		val second = instruction.operand<L2ReadBoxedOperand>(1)
 		val ifEqual = instruction.operand<L2PcOperand>(2)
@@ -86,7 +85,6 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val first = instruction.operand<L2ReadBoxedOperand>(0)
 		val second = instruction.operand<L2ReadBoxedOperand>(1)
 		//val ifEqual = instruction.operand<L2PcOperand>(2)

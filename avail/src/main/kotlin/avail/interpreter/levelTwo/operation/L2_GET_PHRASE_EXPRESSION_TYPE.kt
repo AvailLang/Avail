@@ -57,7 +57,6 @@ object L2_GET_PHRASE_EXPRESSION_TYPE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val phraseRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val expressionType = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
@@ -72,7 +71,6 @@ object L2_GET_PHRASE_EXPRESSION_TYPE : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		assert(this == instruction.operation)
 		val phraseRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val expressionType = instruction.operand<L2WriteBoxedOperand>(1)
 

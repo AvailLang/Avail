@@ -68,7 +68,6 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		val augendReg = instruction.operand<L2ReadIntOperand>(0)
 		val addendReg = instruction.operand<L2ReadIntOperand>(1)
 		val sumReg = instruction.operand<L2WriteIntOperand>(2)
@@ -93,7 +92,6 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val augendReg = instruction.operand<L2ReadIntOperand>(0)
 		val addendReg = instruction.operand<L2ReadIntOperand>(1)
 		val sumReg = instruction.operand<L2WriteIntOperand>(2)

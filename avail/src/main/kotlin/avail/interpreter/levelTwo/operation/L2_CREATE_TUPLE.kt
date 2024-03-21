@@ -91,7 +91,6 @@ object L2_CREATE_TUPLE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val tuple = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)

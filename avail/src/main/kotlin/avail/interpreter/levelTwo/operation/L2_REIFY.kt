@@ -125,7 +125,6 @@ object L2_REIFY : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
 		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
 		val statisticConstant =
@@ -153,7 +152,7 @@ object L2_REIFY : L2ControlFlowOperation(
 			}
 			builder.append(']')
 		}
-		val type = operandTypes()[3]
+		val type = operandTypes[3]
 		if (desiredTypes.contains(type.operandType()))
 		{
 			val operand = instruction.operand<L2Operand>(3)

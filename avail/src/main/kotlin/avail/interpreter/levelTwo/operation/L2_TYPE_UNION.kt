@@ -60,7 +60,6 @@ object L2_TYPE_UNION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val firstType = instruction.operand<L2ReadBoxedOperand>(0)
 		val secondType = instruction.operand<L2ReadBoxedOperand>(1)
 		val outputType = instruction.operand<L2WriteBoxedOperand>(2)

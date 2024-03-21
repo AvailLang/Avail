@@ -39,9 +39,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION.constantRawFunctionOf
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.Companion.constantOf
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -140,13 +138,13 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 			return constantFunction.code().functionType()
 		}
 		val originOfFunction = definitionSkippingMoves()
-		if (originOfFunction.operation === L2_MOVE_CONSTANT.Companion.boxed)
+		if (originOfFunction.isMoveBoxedConstant)
 		{
 			// Function came from a constant (although the TypeRestriction
 			// should have ensured the clause above caught it).
 			return constantOf(originOfFunction).code().functionType()
 		}
-		if (originOfFunction.operation === L2_CREATE_FUNCTION)
+		if (originOfFunction.isCreateFunction)
 		{
 			// We found where the function was closed from a raw function,
 			// which knows the exact function type that it'll be.  Use that.

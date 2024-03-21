@@ -59,8 +59,6 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 	// It jumps, which counts as a side effect.
 	override val hasSideEffect get() = true
 
-	override val isUnconditionalJump get() = true
-
 	override fun instructionWasAdded(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
@@ -106,7 +104,6 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 	@JvmStatic
 	fun jumpTarget(instruction: L2Instruction): L2PcOperand
 	{
-		assert(instruction.operation === this)
 		return instruction.operand(0)
 	}
 }

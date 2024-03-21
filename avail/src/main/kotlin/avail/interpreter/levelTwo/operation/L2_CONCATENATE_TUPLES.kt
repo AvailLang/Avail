@@ -70,7 +70,6 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
 		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val output = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)

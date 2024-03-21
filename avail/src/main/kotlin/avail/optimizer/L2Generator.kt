@@ -114,7 +114,6 @@ import avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
-import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE.sourceValueOf
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
@@ -128,7 +127,6 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_UPDATE
@@ -634,7 +632,7 @@ class L2Generator internal constructor(
 				it.instruction.basicBlock().instructions()
 					.indexOf(it.instruction)
 			}!!
-			if (!latestWrite.instruction.operation.isPhi)
+			if (!latestWrite.instruction.isPhi)
 			{
 				// Walk backward through instructions until the latest
 				// equivalent write, watching for disqualifying pitfalls.
@@ -814,7 +812,7 @@ class L2Generator internal constructor(
 		tupleReg: L2ReadOperand<BOXED_KIND>,
 		index: Int): L2ReadBoxedOperand
 	{
-		return tupleReg.definition().instruction.operation
+		return tupleReg.definition().instruction
 			.extractTupleElement(tupleReg, index, this)
 	}
 
@@ -989,7 +987,7 @@ class L2Generator internal constructor(
 				val predecessorEdge = block.predecessorEdges()[0]
 				val predecessorBlock = predecessorEdge.sourceBlock()
 				val jump = predecessorBlock.finalInstruction()
-				if (jump.operation === L2_JUMP
+				if (jump.isUnconditionalJumpForward
 					&& regenerator.isNullOr { canCollapseUnconditionalJumps })
 				{
 					// The new block has only one predecessor, which
@@ -1091,7 +1089,7 @@ class L2Generator internal constructor(
 			val boolSource = registerToTest.definitionSkippingMoves()
 			when
 			{
-				boolSource.operation !is L2_RUN_INFALLIBLE_PRIMITIVE ->
+				!boolSource.isRunInfalliblePrimitive ->
 				{
 				}
 				primitiveOf(boolSource) === P_Equality ->
@@ -1128,7 +1126,7 @@ class L2Generator internal constructor(
 						edgeTo(if (constantBool) failBlock else passBlock))
 					return
 				}
-				boolSource.operation === L2_JUMP_IF_SUBTYPE_OF_CONSTANT ->
+				boolSource.isJumpIfSubtypeOfConstant ->
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1139,7 +1137,7 @@ class L2Generator internal constructor(
 						boolSource.operand<L2ConstantOperand>(1)
 					val firstTypeSource =
 						firstTypeOperand.definitionSkippingMoves()
-					if (firstTypeSource.operation === L2_GET_TYPE)
+					if (firstTypeSource.isGetType)
 					{
 						// There's a get-type followed by an is-subtype
 						// followed by a compare-and-branch of the result
@@ -1163,7 +1161,7 @@ class L2Generator internal constructor(
 						edgeTo(if (constantBool) failBlock else passBlock))
 					return
 				}
-				boolSource.operation === L2_JUMP_IF_SUBTYPE_OF_OBJECT ->
+				boolSource.isJumpIfSubtypeOfObject ->
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1174,7 +1172,7 @@ class L2Generator internal constructor(
 						boolSource.operand<L2ReadBoxedOperand>(0)
 					val firstTypeSource =
 						firstTypeOperand.definitionSkippingMoves()
-					if (firstTypeSource.operation === L2_GET_TYPE)
+					if (firstTypeSource.isGetType)
 					{
 						// There's a get-type followed by an is-subtype
 						// followed by a compare-and-branch of the result
@@ -1316,9 +1314,7 @@ class L2Generator internal constructor(
 		}
 		// See if we can at least find out the raw function that the function
 		// was created from.
-		val functionDefinition = functionToCallReg.definitionSkippingMoves()
-		return functionDefinition.operation.getConstantCodeFrom(
-			functionDefinition)
+		return functionToCallReg.definitionSkippingMoves().constantCode
 	}
 
 	/**

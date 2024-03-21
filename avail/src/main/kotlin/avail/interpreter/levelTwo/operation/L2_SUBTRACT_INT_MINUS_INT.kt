@@ -70,7 +70,6 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val minuend = instruction.operand<L2ReadIntOperand>(0)
 		val subtrahend = instruction.operand<L2ReadIntOperand>(1)
 		val difference = instruction.operand<L2WriteIntOperand>(2)

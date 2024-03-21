@@ -71,7 +71,6 @@ object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		renderPreamble(instruction, builder)
 	}
 

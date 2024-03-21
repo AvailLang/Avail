@@ -79,7 +79,6 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		//		final L2IntImmediateOperand offsetInDefaultChunk =
 //			instruction.operand(0);
 //		final L2CommentOperand comment = instruction.operand(1);

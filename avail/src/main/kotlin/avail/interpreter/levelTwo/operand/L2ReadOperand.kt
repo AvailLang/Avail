@@ -35,8 +35,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2ValueManifest
@@ -246,13 +244,9 @@ protected constructor(
 		var other = definition().instruction
 		while (true)
 		{
-			val op = other.operation
 			other = when
 			{
-				op is L2_MOVE<*> ->
-				{
-					op.sourceOf(other).definition().instruction
-				}
+				other.isMove -> other.sourceOfMove().definition().instruction
 				else -> return other
 			}
 		}
@@ -348,11 +342,9 @@ protected constructor(
 				earliestBoxed = def
 			}
 			val instruction = def.instruction
-			if (instruction.operation.isMove)
+			if (instruction.isMove)
 			{
-				val operation = instruction.operation
-					.cast<L2Operation?, L2_MOVE<K>>()
-				def = operation.sourceOf(instruction).definition()
+				def = instruction.sourceOfMove().definition()
 				continue
 			}
 			//TODO: Trace back through L2_[BOX|UNBOX]_[INT|FLOAT], etc.

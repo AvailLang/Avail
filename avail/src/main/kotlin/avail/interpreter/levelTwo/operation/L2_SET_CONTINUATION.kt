@@ -61,7 +61,6 @@ object L2_SET_CONTINUATION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')

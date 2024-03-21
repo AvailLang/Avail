@@ -62,7 +62,6 @@ object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val function = instruction.operand<L2WriteBoxedOperand>(0)
 
 		renderPreamble(instruction, builder)

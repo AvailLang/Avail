@@ -59,7 +59,6 @@ object L2_CLEAR_VARIABLE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val variableReg = instruction.operand<L2Operand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')

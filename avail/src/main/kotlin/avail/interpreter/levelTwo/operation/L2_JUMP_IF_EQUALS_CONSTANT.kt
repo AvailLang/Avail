@@ -83,7 +83,6 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		val reader = instruction.operand<L2ReadBoxedOperand>(0)
 		val constant = instruction.operand<L2ConstantOperand>(1)
 		val ifEqual = instruction.operand<L2PcOperand>(2)
@@ -107,7 +106,6 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val constant = instruction.operand<L2ConstantOperand>(1)
 		//		final L2PcOperand ifEqual = instruction.operand(2);

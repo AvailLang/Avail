@@ -80,7 +80,6 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		super.instructionWasAdded(instruction, manifest)
 		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
 		val constant = instruction.operand<L2IntImmediateOperand>(1)
@@ -109,7 +108,6 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 		warningStyleChange: (Boolean) -> Unit
 	) = with(builder)
 	{
-		assert(this@L2_JUMP_IF_COMPARE_INT_CONSTANT == instruction.operation)
 		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
 		val constant = instruction.operand<L2IntImmediateOperand>(1)
 		//val ifTrue = instruction.operand<L2PcOperand>(2)

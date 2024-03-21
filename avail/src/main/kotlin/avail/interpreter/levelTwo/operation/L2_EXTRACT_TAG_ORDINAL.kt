@@ -65,7 +65,6 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
 		renderPreamble(instruction, builder)
@@ -93,7 +92,6 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 	 */
 	fun sourceOfExtractTag(instruction: L2Instruction): L2ReadBoxedOperand
 	{
-		assert(instruction.operation == this)
 		return instruction.operand(0)
 	}
 

@@ -70,7 +70,6 @@ import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2Generator
@@ -223,7 +222,7 @@ protected constructor(
 	 *
 	 * @return The named operand types that this operation expects.
 	 */
-	fun operandTypes(): Array<out L2NamedOperandType> = namedOperandTypes
+	val operandTypes: Array<out L2NamedOperandType> get() = namedOperandTypes
 
 	/**
 	 * Initialize the name from the constructor argument, or produce a default
@@ -283,7 +282,6 @@ protected constructor(
 	 */
 	open fun hasSideEffect(instruction: L2Instruction): Boolean
 	{
-		assert(instruction.operation === this)
 		return hasSideEffect
 	}
 
@@ -342,26 +340,6 @@ protected constructor(
 		get() = false
 
 	/**
-	 * Answer whether this operation is a move between (compatible) registers.
-	 *
-	 * @return
-	 *   `true` if this operation simply moves data between two registers of the
-	 *   same [RegisterKind], otherwise `false`.
-	 */
-	open val isMove: Boolean
-		get() = false
-
-	/**
-	 * Answer whether this operation is a phi-function.  This is a convenient
-	 * fiction that allows control flow to merge while in SSA form.
-	 *
-	 * @return
-	 *   `true` if this is a phi operation, `false` otherwise.
-	 */
-	open val isPhi: Boolean
-		get() = false
-
-	/**
 	 * Answer whether this operation is a placeholder, and should be replaced
 	 * using the [L2Regenerator]. Placeholder instructions (like
 	 * [L2_VIRTUAL_CREATE_LABEL]) are free to be moved through much of the
@@ -375,14 +353,6 @@ protected constructor(
 	 *   subject to later substitution.
 	 */
 	open val isPlaceholder get() = false
-
-	/**
-	 * Answer whether this operation causes unconditional control flow jump to
-	 * another [L2BasicBlock].
-	 *
-	 * @return `true` iff this is an unconditional jump.
-	 */
-	open val isUnconditionalJump: Boolean get() = false
 
 	/**
 	 * Answer whether the [instruction], using this operation, which occurs at
@@ -474,7 +444,7 @@ protected constructor(
 		{
 			assert(
 				instruction.basicBlock().instructions().all {
-					it.operation.isPhi || it == instruction
+					it.isPhi || it == instruction
 				}
 			) {
 				"Entry point instruction must be after phis"
@@ -531,7 +501,6 @@ protected constructor(
 		outerType: A_Type,
 		generator: L2Generator): L2ReadBoxedOperand
 	{
-		assert(instruction.operation === this)
 		var restriction = boxedRestrictionForType(outerType)
 		if (functionRegister.restriction().isImmutable)
 		{
@@ -559,7 +528,6 @@ protected constructor(
 	 */
 	open fun getConstantCodeFrom(instruction: L2Instruction): A_RawFunction?
 	{
-		assert(instruction.operation === this)
 		return null
 	}
 
@@ -578,7 +546,6 @@ protected constructor(
 	open fun primitiveResultRegister(
 		instruction: L2Instruction): L2WriteBoxedOperand?
 	{
-		assert(instruction.operation === this)
 		return null
 	}
 
@@ -614,7 +581,6 @@ protected constructor(
 	protected fun renderPreamble(
 		instruction: L2Instruction, builder: StringBuilder)
 	{
-		assert(this === instruction.operation)
 		val offset = instruction.offset
 		if (offset != -1)
 		{
@@ -645,7 +611,7 @@ protected constructor(
 		builder: StringBuilder)
 	{
 		val operands = instruction.operands
-		val types = operandTypes()
+		val types = operandTypes
 		var i = start
 		val limit = operands.size
 		while (i < limit)
@@ -685,9 +651,8 @@ protected constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this === instruction.operation)
 		renderPreamble(instruction, builder)
-		val types = operandTypes()
+		val types = operandTypes
 		val operands = instruction.operands
 		var i = 0
 		val limit = operands.size
@@ -712,7 +677,6 @@ protected constructor(
 	 */
 	fun simpleAppendTo(instruction: L2Instruction, builder: StringBuilder)
 	{
-		assert(this === instruction.operation)
 		renderPreamble(instruction, builder)
 		builder.append(": ")
 		val operands = instruction.operands
@@ -844,7 +808,7 @@ protected constructor(
 	 * @param generator
 	 *   The [L2Generator] on which to write code to extract the tuple element,
 	 *   if necessary.
-	 * @param
+	 * @return
 	 *   An [L2ReadBoxedOperand] that will contain the specified tuple element.
 	 */
 	open fun extractTupleElement(

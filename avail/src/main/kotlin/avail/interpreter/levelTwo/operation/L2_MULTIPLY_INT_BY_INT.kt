@@ -71,7 +71,6 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val multiplicandReg = instruction.operand<L2ReadIntOperand>(0)
 		val multiplierReg = instruction.operand<L2ReadIntOperand>(1)
 		val productReg = instruction.operand<L2WriteIntOperand>(2)

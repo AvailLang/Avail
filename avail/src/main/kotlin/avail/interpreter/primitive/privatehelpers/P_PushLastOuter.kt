@@ -101,13 +101,11 @@ object P_PushLastOuter : Primitive(
 		val functionCreationInstruction =
 			functionToCallReg.definitionSkippingMoves()
 		val returnType = functionToCallReg.type().returnType
-		val outerReg = functionCreationInstruction.operation
-			.extractFunctionOuter(
-				functionCreationInstruction,
-				functionToCallReg,
-				1,
-				returnType,
-				translator.generator)
+		val outerReg = functionCreationInstruction.extractFunctionOuter(
+			functionToCallReg,
+			1,
+			returnType,
+			translator.generator)
 		callSiteHelper.useAnswer(outerReg)
 		return true
 	}

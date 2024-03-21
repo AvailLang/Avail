@@ -62,9 +62,7 @@ object L2_GET_RETURNING_FUNCTION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
+		val function = instruction.operand<L2WriteBoxedOperand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(function.registerString())

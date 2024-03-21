@@ -70,7 +70,6 @@ object L2_SET_VARIABLE : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val variable = instruction.operand<L2ReadBoxedOperand>(0)
 		val value = instruction.operand<L2ReadBoxedOperand>(1)
 		//		final int successIndex = instruction.pcOffsetAt(2);

@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
-import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -186,7 +185,7 @@ class L2PcOperand constructor (
 		val sourceBlock = instruction.basicBlock()
 		sourceBlock.removeSuccessorEdge(this)
 		targetBlock.removePredecessorEdge(this)
-		if (instruction.operation.altersControlFlow)
+		if (instruction.altersControlFlow)
 		{
 			sourceBlock.removedControlFlowInstruction()
 		}
@@ -377,10 +376,10 @@ class L2PcOperand constructor (
 			liveMap.mapValues { (_, list) ->
 				list.map(translator::localNumberFromRegister)
 			}
-		when (targetInstruction.operation)
+		when
 		{
-			is L2_ENTER_L2_CHUNK -> {}
-			is L2_ENTER_L2_CHUNK_FOR_CALL -> {
+			targetInstruction.isEnterL2Chunk -> {}
+			targetInstruction.isEnterL2ChunkForCall -> {
 				// There should be no live registers on the edge back to the
 				// start due to a surviving L2_VIRTUAL_CREATE_LABEL.
 				assert(liveMap.values.all(List<*>::isEmpty))

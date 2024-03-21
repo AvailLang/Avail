@@ -65,7 +65,6 @@ object L2_GET_TYPE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val type = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
@@ -126,7 +125,6 @@ object L2_GET_TYPE : L2Operation(
 	fun sourceValueOf(
 		instruction: L2Instruction): L2ReadBoxedOperand
 	{
-		assert(instruction.operation === this)
 		return instruction.operand(0)
 	}
 }

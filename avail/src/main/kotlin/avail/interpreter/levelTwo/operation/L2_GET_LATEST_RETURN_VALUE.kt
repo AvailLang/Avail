@@ -67,7 +67,6 @@ object L2_GET_LATEST_RETURN_VALUE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val value = instruction.operand<L2WriteBoxedOperand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')

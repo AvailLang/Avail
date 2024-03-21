@@ -61,7 +61,6 @@ object L2_EXTRACT_OBJECT_TYPE_VARIANT_ID : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val variantId = instruction.operand<L2WriteIntOperand>(1)
 		renderPreamble(instruction, builder)
@@ -105,7 +104,6 @@ object L2_EXTRACT_OBJECT_TYPE_VARIANT_ID : L2Operation(
 		instruction: L2Instruction
 	): L2ReadBoxedOperand
 	{
-		assert(instruction.operation == this)
 		return instruction.operand(0)
 	}
 

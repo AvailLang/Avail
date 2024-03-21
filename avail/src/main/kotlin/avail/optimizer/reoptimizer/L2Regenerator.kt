@@ -58,7 +58,6 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
@@ -769,7 +768,7 @@ abstract class L2Regenerator internal constructor(
 		// Never translate a phi instruction.  Either they should be produced
 		// as part of generation, or they should already have been replaced by
 		// moves.
-		assert(!sourceInstruction.operation.isPhi)
+		assert(!sourceInstruction.isPhi)
 		sourceInstruction.transformAndEmitOn(this)
 	}
 
@@ -886,8 +885,7 @@ abstract class L2Regenerator internal constructor(
 			{
 				manifest.postponedInstructions().values.forEach { sub ->
 					sub.forEach { instruction ->
-						assert(instruction.operation is L2_MOVE<*>
-							|| instruction.operation is L2_MOVE_CONSTANT<*, *>)
+						assert(instruction.isMove || instruction.isMoveConstant)
 					}
 				}
 			}
@@ -925,9 +923,7 @@ abstract class L2Regenerator internal constructor(
 			}
 		}
 		if (omitConstantMoves &&
-			list.all {
-				it.operation is L2_MOVE<*> ||
-					it.operation is L2_MOVE_CONSTANT<*, *> })
+			list.all { it.isMove || it.isMoveConstant })
 		{
 			// There are only moves and constant moves here.  Leave them
 			// postponed for now.

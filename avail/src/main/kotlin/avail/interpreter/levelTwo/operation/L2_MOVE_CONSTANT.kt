@@ -95,7 +95,7 @@ import org.objectweb.asm.MethodVisitor
  *   An array of [L2NamedOperandType]s that describe this particular
  *   L2Operation, allowing it to be specialized by register type.
  */
-sealed class L2_MOVE_CONSTANT<C: L2Operand, K: RegisterKind<K>>
+abstract class L2_MOVE_CONSTANT<C: L2Operand, K: RegisterKind<K>>
 private constructor(
 	private val variantName: String,
 	private val moveOperation: L2_MOVE<K>,
@@ -108,7 +108,6 @@ private constructor(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		val source: C = instruction.operand(0)
 		val destination: L2WriteOperand<K> = instruction.operand(1)
 
@@ -168,7 +167,7 @@ private constructor(
 		generator: L2Generator): L2ReadBoxedOperand
 	{
 		// The exact function is known statically.
-		assert(this == instruction.operation && this == boxed)
+		assert(this === boxed)
 		val constantFunction: A_Function = constantOf(instruction)
 		return generator.boxedConstant(constantFunction.outerVarAt(outerIndex))
 	}
@@ -179,7 +178,6 @@ private constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val constant: C = instruction.operand(0)
 		val destination: L2WriteOperand<K> = instruction.operand(1)
 		renderPreamble(instruction, builder)
@@ -226,7 +224,7 @@ private constructor(
 		/**
 		 * Initialize the move-constant operation for boxed values.
 		 */
-		object boxed : L2_MOVE_CONSTANT<L2ConstantOperand, BOXED_KIND>(
+		val boxed = object : L2_MOVE_CONSTANT<L2ConstantOperand, BOXED_KIND>(
 			"boxed",
 			L2_MOVE.boxed,
 			{ L2SemanticConstant(it.constant) },
@@ -238,11 +236,12 @@ private constructor(
 			},
 			CONSTANT.named("constant"),
 			WRITE_BOXED.named("destination boxed"))
+		{}
 
 		/**
 		 * Initialize the move-constant operation for int values.
 		 */
-		object unboxedInt : L2_MOVE_CONSTANT<
+		val unboxedInt = object : L2_MOVE_CONSTANT<
 				L2IntImmediateOperand, INTEGER_KIND>(
 			"int",
 			L2_MOVE.unboxedInt,
@@ -257,11 +256,12 @@ private constructor(
 			},
 			INT_IMMEDIATE.named("constant int"),
 			WRITE_INT.named("destination int"))
+		{}
 
 		/**
 		 * Initialize the move-constant operation for float values.
 		 */
-		object unboxedFloat : L2_MOVE_CONSTANT<
+		val unboxedFloat = object : L2_MOVE_CONSTANT<
 				L2FloatImmediateOperand, FLOAT_KIND>(
 			"float",
 			L2_MOVE.unboxedFloat,
@@ -276,6 +276,7 @@ private constructor(
 			},
 			FLOAT_IMMEDIATE.named("constant float"),
 			WRITE_FLOAT.named("destination float"))
+		{}
 
 		/**
 		 * Given an [L2Instruction] using the boxed form of this operation,
@@ -288,7 +289,6 @@ private constructor(
 		 */
 		fun constantOf(instruction: L2Instruction): AvailObject
 		{
-			assert(instruction.operation === boxed)
 			val constant = instruction.operand<L2ConstantOperand>(0)
 			return constant.constant
 		}

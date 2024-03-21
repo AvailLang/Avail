@@ -33,10 +33,8 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.interpreter.levelTwo.register.L2Register
 import avail.utility.Graph
-import avail.utility.cast
 import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Deque
@@ -139,13 +137,10 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			for (read in reg.uses())
 			{
 				val instruction = read.instruction
-				if (instruction.operation.isPhi)
+				if (instruction.isPhi)
 				{
-					val phiOperation: L2_PHI_PSEUDO_OPERATION<*> =
-						instruction.operation.cast()
-					phiOperation.predecessorBlocksForUseOf(
-						instruction, reg
-					).filterTo(blocksToTrace, reachedBlocks::add)
+					instruction.predecessorBlocksForUseOf(reg)
+						.filterTo(blocksToTrace, reachedBlocks::add)
 				}
 				else
 				{
@@ -216,7 +211,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				// interest (registerBeingTraced) and the destination of the
 				// move, but only if the live-out variable isn't also the source
 				// of the move.
-				if (instruction.operation.isMove
+				if (instruction.isMove
 					&& instruction.sourceRegisters[0] === registerBeingTraced)
 				{
 					continue
@@ -255,7 +250,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			for (write in reg.definitions())
 			{
 				val instruction = write.instruction
-				if (instruction.operation.isMove)
+				if (instruction.isMove)
 				{
 					// The source and destination registers shouldn't be
 					// considered interfering if they'll hold the same value.

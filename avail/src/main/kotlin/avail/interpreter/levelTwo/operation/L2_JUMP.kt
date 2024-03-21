@@ -52,9 +52,6 @@ object L2_JUMP : L2ControlFlowOperation(
 	override val hasSideEffect: Boolean
 		get() = true
 
-	override val isUnconditionalJump: Boolean
-		get() = true
-
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
@@ -77,7 +74,6 @@ object L2_JUMP : L2ControlFlowOperation(
 	@JvmStatic
 	fun jumpTarget(instruction: L2Instruction): L2PcOperand
 	{
-		assert(instruction.operation === this)
 		return instruction.operand(0)
 	}
 }

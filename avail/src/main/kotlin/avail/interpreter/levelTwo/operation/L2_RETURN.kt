@@ -60,7 +60,6 @@ object L2_RETURN : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')

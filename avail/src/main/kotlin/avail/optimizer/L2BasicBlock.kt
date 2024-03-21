@@ -34,9 +34,7 @@ package avail.optimizer
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.utility.cast
 import java.lang.Integer.toHexString
 
 /**
@@ -202,19 +200,15 @@ constructor(
 			for (i in instructions.indices)
 			{
 				val instruction = instructions[i]
-				val operation = instruction.operation
-				if (!operation.isPhi)
+				if (!instruction.isPhi)
 				{
 					// All the phi instructions are at the start, so we've
 					// exhausted them.
 					break
 				}
-				val phiOperation: L2_PHI_PSEUDO_OPERATION<*> =
-					operation.cast()
-
 				// The body of the loop is required to still have available
 				// every semantic value mentioned in the original phis.
-				phiOperation.updateLoopHeadPhi(predecessorManifest, instruction)
+				instruction.updateLoopHeadPhi(predecessorManifest)
 			}
 		}
 	}
@@ -234,14 +228,12 @@ constructor(
 			for (i in instructions.indices)
 			{
 				val instruction = instructions[i]
-				if (!instruction.operation.isPhi)
+				if (!instruction.isPhi)
 				{
 					// Phi functions are always at the start of a block.
 					break
 				}
-				val phiOperation: L2_PHI_PSEUDO_OPERATION<*> =
-					instruction.operation.cast()
-				val replacement = phiOperation.withoutIndex(instruction, index)
+				val replacement = instruction.phiWithoutIndex(index)
 				instruction.justRemoved()
 				instructions[i] = replacement
 				replacement.justInserted()
@@ -358,7 +350,7 @@ constructor(
 	{
 		assert(!hasControlFlowAtEnd)
 		assert(instruction.basicBlock() == this)
-		if (instruction.operation.isPhi)
+		if (instruction.isPhi)
 		{
 			// For simplicity, phi functions are routed to the *start* of the
 			// block.
@@ -385,7 +377,7 @@ constructor(
 		for (instruction in instructions)
 		{
 			if (instruction.isEntryPoint) return instruction
-			if (!instruction.operation.isPhi) return null
+			if (!instruction.isPhi) return null
 		}
 		return null
 	}
@@ -477,7 +469,7 @@ constructor(
 			if (output.isNotEmpty())
 			{
 				val previousInstruction = output[output.size - 1]
-				if (previousInstruction.operation === L2_JUMP)
+				if (previousInstruction.isUnconditionalJumpForward)
 				{
 					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
 						== this)

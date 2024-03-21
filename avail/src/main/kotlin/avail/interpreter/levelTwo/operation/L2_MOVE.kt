@@ -165,7 +165,6 @@ private constructor(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this === instruction.operation)
 		val source = instruction.operand<L2ReadOperand<K>>(0)
 		val destination = instruction.operand<L2WriteOperand<K>>(1)
 
@@ -176,21 +175,17 @@ private constructor(
 
 	override fun getConstantCodeFrom(instruction: L2Instruction): A_RawFunction?
 	{
-		assert(instruction.operation === boxed)
-		val source = sourceOf(instruction)
-		val producer = source.definition().instruction
-		return producer.operation.getConstantCodeFrom(producer)
+		assert(this === boxed)
+		val source = sourceOfMove(instruction)
+		return source.definition().instruction.constantCode
 	}
 
 	override fun shouldEmit(instruction: L2Instruction): Boolean
 	{
-		assert(instruction.operation === this)
 		val source = instruction.operand<L2ReadOperand<K>>(0)
 		val destination = instruction.operand<L2WriteOperand<K>>(1)
 		return source.finalIndex() != destination.finalIndex()
 	}
-
-	override val isMove: Boolean get() = true
 
 	/**
 	 * Given an [L2Instruction] using an operation of this class, extract the
@@ -201,10 +196,9 @@ private constructor(
 	 * @return
 	 *   The move's source [L2ReadOperand].
 	 */
-	fun sourceOf(
+	fun sourceOfMove(
 		instruction: L2Instruction
-	): L2ReadOperand<K> =
-		instruction.operand(0)
+	): L2ReadOperand<K> = instruction.operand(0)
 
 	/**
 	 * Given an [L2Instruction] using this operation, extract the source
@@ -226,7 +220,6 @@ private constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this === instruction.operation)
 		val source = instruction.operand<L2ReadOperand<K>>(0)
 		val destination = instruction.operand<L2WriteOperand<K>>(1)
 		renderPreamble(instruction, builder)
