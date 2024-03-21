@@ -72,10 +72,8 @@ constructor(
 	override fun onlySemanticValue(): L2SemanticUnboxedInt =
 		super.onlySemanticValue().cast()
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	init
 	{

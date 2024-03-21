@@ -38,7 +38,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
@@ -64,8 +63,7 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(
 	CURRENT_CONTINUATION::class,
-	CURRENT_FUNCTION::class,
-	CURRENT_ARGUMENTS::class)
+	CURRENT_FUNCTION::class)
 @WritesHiddenVariable(
 	LATEST_RETURN_VALUE::class)
 object L2_TRY_OPTIONAL_PRIMITIVE : L2Operation()

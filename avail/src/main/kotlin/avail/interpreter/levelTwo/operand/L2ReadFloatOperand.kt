@@ -111,10 +111,8 @@ class L2ReadFloatOperand : L2ReadOperand<FLOAT_KIND>
 
 	override fun createNewRegister() = L2FloatRegister(-1)
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override val kind get() = FLOAT_KIND
 }

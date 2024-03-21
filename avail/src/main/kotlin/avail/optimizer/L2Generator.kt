@@ -100,6 +100,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
@@ -1492,6 +1493,14 @@ class L2Generator internal constructor(
 		override fun doOperand(operand: L2WriteBoxedOperand)
 		{
 			objectMax = objectMax.coerceAtLeast(operand.finalIndex())
+		}
+
+		override fun doOperand(operand: L2WriteBoxedVectorOperand)
+		{
+			for (register in operand.elements)
+			{
+				objectMax = objectMax.coerceAtLeast(register.finalIndex())
+			}
 		}
 
 		override fun doOperand(operand: L2PcVectorOperand) = Unit

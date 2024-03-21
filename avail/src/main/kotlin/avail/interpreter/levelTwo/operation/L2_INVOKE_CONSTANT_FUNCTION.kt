@@ -48,7 +48,6 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.WritesHiddenVariable
@@ -83,7 +82,6 @@ import org.objectweb.asm.MethodVisitor
  */
 @WritesHiddenVariable(
 	CURRENT_FUNCTION::class,
-	CURRENT_ARGUMENTS::class,
 	LATEST_RETURN_VALUE::class)
 object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 	CONSTANT.named("constant function"),

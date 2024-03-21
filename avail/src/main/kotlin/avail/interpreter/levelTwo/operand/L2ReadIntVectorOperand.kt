@@ -62,8 +62,6 @@ constructor(
 
 	override val operandType: L2OperandType get() = READ_INT_VECTOR
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 }

@@ -119,10 +119,8 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 
 	override fun createNewRegister() = L2BoxedRegister(-1)
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override val kind get() = BOXED_KIND
 

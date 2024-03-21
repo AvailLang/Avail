@@ -78,6 +78,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
@@ -681,6 +682,11 @@ class JVMTranslator constructor(
 			locals[BOXED_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex())
 				{ nextLocal(Type.getType(AvailObject::class.java)) }
+		}
+
+		override fun doOperand(vector: L2WriteBoxedVectorOperand)
+		{
+			vector.elements.forEach { doOperand(it) }
 		}
 
 		override fun doOperand(operand: L2PcVectorOperand)

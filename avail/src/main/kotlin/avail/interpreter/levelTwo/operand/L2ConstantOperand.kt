@@ -62,10 +62,8 @@ class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
 
 	override val operandType: L2OperandType get() = CONSTANT
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override fun appendTo(builder: StringBuilder): Unit = with(builder) {
 		append("$(")

@@ -55,10 +55,8 @@ class L2IntImmediateOperand constructor(val value: Int) : L2Operand()
 {
 	override val operandType: L2OperandType get() = INT_IMMEDIATE
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override fun appendTo(builder: StringBuilder)
 	{

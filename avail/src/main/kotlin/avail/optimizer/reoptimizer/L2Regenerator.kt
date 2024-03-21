@@ -51,6 +51,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
@@ -314,6 +315,13 @@ abstract class L2Regenerator internal constructor(
 		}
 
 		override fun doOperand(operand: L2SelectorOperand) = Unit
+
+		override fun doOperand(operand: L2WriteBoxedVectorOperand)
+		{
+			// Note: this clobbers currentOperand, but we'll set it later.
+			currentOperand = L2WriteBoxedVectorOperand(
+				operand.elements.map(::transformOperand).cast())
+		}
 
 		override fun doOperand(operand: L2PcVectorOperand)
 		{

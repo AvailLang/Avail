@@ -67,10 +67,8 @@ constructor(
 
 	override val kind get() = BOXED_KIND
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	init
 	{

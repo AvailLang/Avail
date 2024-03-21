@@ -77,10 +77,8 @@ class L2PcVectorOperand constructor(
 		edges.forEach { it.setInstruction(theInstruction) }
 	}
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{

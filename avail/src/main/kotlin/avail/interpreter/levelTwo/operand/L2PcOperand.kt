@@ -40,6 +40,7 @@ import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -160,10 +161,8 @@ class L2PcOperand constructor (
 	 */
 	fun manifestOrNull(): L2ValueManifest? = manifest
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
@@ -365,8 +364,6 @@ class L2PcOperand constructor (
 		// dump containing the state of all live registers.  A subsequent
 		// L2_CREATE_CONTINUATION will use both, and the L2_ENTER_L2_CHUNK at
 		// the target will restore the register dump found in the continuation.
-		val targetInstruction = targetBlock.instructions()[0]
-		assert(targetInstruction.operation === L2_ENTER_L2_CHUNK)
 		val liveMap = RegisterKind.all
 			.associateWithTo(mutableMapOf()) { mutableListOf<L2Register<*>>() }
 		val liveRegistersList =
@@ -375,12 +372,23 @@ class L2PcOperand constructor (
 		liveRegistersList.forEach {
 			liveMap[it.kind]!!.add(it)
 		}
+		val targetInstruction = targetBlock.instructions()[0]
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =
 			liveMap.mapValues { (_, list) ->
 				list.map(translator::localNumberFromRegister)
 			}
+		when (targetInstruction.operation)
+		{
+			is L2_ENTER_L2_CHUNK -> {}
+			is L2_ENTER_L2_CHUNK_FOR_CALL -> {
+				// There should be no live registers on the edge back to the
+				// start due to a surviving L2_VIRTUAL_CREATE_LABEL.
+				assert(liveMap.values.all(List<*>::isEmpty))
+			}
+			else -> throw AssertionError("Invalid target of $this")
+		}
 
-		if (skipIfEmpty && liveMap.values.all { it.isEmpty() })
+		if (skipIfEmpty && liveMap.values.all(List<*>::isEmpty))
 		{
 			// The stack was not affected.
 			return false

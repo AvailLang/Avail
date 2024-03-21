@@ -54,10 +54,8 @@ class L2CommentOperand constructor(val comment: String) : L2Operand()
 {
 	override val operandType: L2OperandType get() = COMMENT
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override fun appendTo(builder: StringBuilder)
 	{

@@ -141,6 +141,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
@@ -152,7 +153,7 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import avail.interpreter.levelTwo.operation.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
-import avail.interpreter.levelTwo.operation.L2_GET_ARGUMENT
+import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_GET_IMPLICIT_OBSERVE_FUNCTION
@@ -2215,12 +2216,19 @@ class L1Translator private constructor(
 		// it can fall back gracefully to L1 (the default chunk) by entering it
 		// at the TO_RESTART entry point.  Note that there can't be a primitive
 		// for such continuations.
+		// Capture the arguments.
+		val numArgs = code.numArgs()
+		val tupleType = code.functionType().argsTupleType
 		addInstruction(
-			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk),
+			L2_ENTER_L2_CHUNK_FOR_CALL,
 			L2CommentOperand(
-				"If invalid, reenter «default» at the beginning."))
+				"If invalid, reenter «default» at the beginning."),
+			L2WriteBoxedVectorOperand(
+				(1..numArgs).map { i ->
+					generator.boxedWrite(
+						semanticSlot(i),
+						boxedRestrictionForType(tupleType.typeAtIndex(i)))
+				}))
 
 		// Do any reoptimization before capturing arguments.
 		val optimization = generator.optimizationLevel
@@ -2235,25 +2243,6 @@ class L1Translator private constructor(
 				L2IntImmediateOperand(0))
 			// If it was reoptimized, it would have jumped to the
 			// afterOptionalInitialPrimitiveBlock in the new chunk.
-		}
-
-		// Capture the arguments.
-		val numArgs = code.numArgs()
-		if (numArgs > 0)
-		{
-			val tupleType = code.functionType().argsTupleType
-			for (i in 1 .. numArgs)
-			{
-				// Create a new semantic slot at the current pc, representing
-				// this newly written value.
-				val argReg = generator.boxedWrite(
-					semanticSlot(i),
-					boxedRestrictionForType(tupleType.typeAtIndex(i)))
-				addInstruction(
-					L2_GET_ARGUMENT,
-					L2IntImmediateOperand(i - 1),
-					argReg)
-			}
 		}
 
 		// Here's where a local P_RestartContinuationWithArguments is optimized

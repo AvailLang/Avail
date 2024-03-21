@@ -55,10 +55,8 @@ class L2ArbitraryConstantOperand(val constant: Any) : L2Operand()
 {
 	override val operandType: L2OperandType get() = ARBITRARY_CONSTANT
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override fun appendTo(builder: StringBuilder) = with(builder)
 	{

@@ -175,16 +175,12 @@ protected constructor(
 		@HiddenVariableShift(1)
 		class CURRENT_FUNCTION : HiddenVariable()
 
-		/** How the current arguments of this frame are affected. */
-		@HiddenVariableShift(2)
-		class CURRENT_ARGUMENTS : HiddenVariable()
-
 		/** How the latest return value field is affected. */
-		@HiddenVariableShift(3)
+		@HiddenVariableShift(2)
 		class LATEST_RETURN_VALUE : HiddenVariable()
 
 		/** How the current stack reifier field is affected. */
-		@HiddenVariableShift(4)
+		@HiddenVariableShift(3)
 		class STACK_REIFIER : HiddenVariable()
 
 		/**
@@ -196,7 +192,7 @@ protected constructor(
 		 * and [Flag.WritesToHiddenGlobalState] flags in their constructors to
 		 * indicate that `GLOBAL_STATE` is affected.
 		 */
-		@HiddenVariableShift(5)
+		@HiddenVariableShift(4)
 		class GLOBAL_STATE : HiddenVariable()
 	}
 

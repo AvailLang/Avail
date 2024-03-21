@@ -50,6 +50,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -203,6 +204,14 @@ interface L2OperandDispatcher
 	 */
 	fun doOperand(operand: L2WriteBoxedOperand)
 
+	/**
+	 * Process an operand which is a write of a vector of [AvailObject]
+	 * registers.
+	 *
+	 * @param operand
+	 *   An [L2WriteBoxedVectorOperand].
+	 */
+	fun doOperand(operand: L2WriteBoxedVectorOperand)
 
 	/**
 	 * Process an operand which is a vector of [L2PcOperand]s.

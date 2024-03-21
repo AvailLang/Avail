@@ -212,6 +212,12 @@ constructor(
 		object READ_FLOAT_VECTOR : L2OperandType()
 
 		/**
+		 * The [L2WriteVectorOperand] holds a [List] of [L2WriteBoxedOperand]s
+		 * which will all be written.
+		 */
+		object WRITE_BOXED_VECTOR : L2OperandType()
+
+		/**
 		 * The [L2PcVectorOperand] holds a [List] of [L2PcOperand]s which can be
 		 * the targets of a multi-way jump.
 		 */

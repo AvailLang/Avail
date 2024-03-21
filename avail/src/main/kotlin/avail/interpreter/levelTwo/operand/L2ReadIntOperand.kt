@@ -111,10 +111,8 @@ class L2ReadIntOperand : L2ReadOperand<INTEGER_KIND>
 
 	override fun createNewRegister() = L2IntRegister(-1)
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
 	override val kind get() = INTEGER_KIND
 }
