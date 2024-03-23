@@ -102,6 +102,7 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND
 import avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.INSTANCES
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter

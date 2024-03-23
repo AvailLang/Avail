@@ -69,7 +69,7 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 		val constantType = instruction.operand<L2ConstantOperand>(1)
 		//		final L2PcOperand isSubtype = instruction.operand(2);
 //		final L2PcOperand notSubtype = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(typeToCheck.registerString())
 		builder.append(" ⊆ ")

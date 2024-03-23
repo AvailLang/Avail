@@ -63,7 +63,7 @@ object L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		val function = instruction.operand<L2WriteBoxedOperand>(0)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(function.registerString())
 	}

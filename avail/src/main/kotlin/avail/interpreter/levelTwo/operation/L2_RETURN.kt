@@ -61,7 +61,7 @@ object L2_RETURN : L2ControlFlowOperation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(value.registerString())
 	}

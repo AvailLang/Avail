@@ -33,6 +33,7 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
@@ -214,7 +215,9 @@ class L2ControlFlowGraphVisualizer constructor(
 		started: Boolean)
 	{
 		val isCurrent = generator.notNullAnd {
-			currentBlock() == basicBlock && !basicBlock.hasControlFlowAtEnd }
+			currentlyReachable() &&
+				currentBlock() == basicBlock && !basicBlock.hasControlFlowAtEnd
+		}
 		val rhs = buildString {
 			tag(
 				"table",
@@ -399,14 +402,17 @@ class L2ControlFlowGraphVisualizer constructor(
 		val targetBlock = edge.targetBlock()
 		val isTargetTheUnreachableBlock = targetBlock.instructions()
 			.any { it.isUnreachableInstruction }
-		val types = sourceInstruction.operandTypes
-		val operands = sourceInstruction.operands
-		val operandIndex = operands.indexOfFirst {
-			it == edge
-				|| (it is L2PcVectorOperand && it.edges.contains(edge))
+		var namedOperandType: L2NamedOperandType? = null
+		edge.instruction.operandsWithNamedTypesDo { operand, namedType ->
+			when (operand)
+			{
+				is L2PcOperand ->
+					if (operand == edge) namedOperandType = namedType
+				is L2PcVectorOperand ->
+					if (edge in operand.edges) namedOperandType = namedType
+			}
 		}
-		val type = types[operandIndex]
-		val basicName = edge.optionalName ?: type.name()
+		val basicName = edge.optionalName ?: namedOperandType!!.name()
 		val edgeLabel = buildString {
 			tag(
 				"table",
@@ -530,7 +536,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				}
 				else
 				{
-					when (type.purpose()!!)
+					when (namedOperandType!!.purpose!!)
 					{
 						// Nothing. The default styling will be fine.
 						Purpose.SUCCESS -> Unit

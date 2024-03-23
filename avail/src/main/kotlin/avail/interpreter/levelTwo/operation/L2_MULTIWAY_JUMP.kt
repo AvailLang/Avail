@@ -116,7 +116,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 			instruction.operand<L2ArbitraryConstantOperand>(1)
 		//val edges = instruction.operand<L2PcVectorOperand>(2)
 
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder
 			.append(" ")
 			.append(value.registerString())

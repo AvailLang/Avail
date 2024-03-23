@@ -133,6 +133,7 @@ import avail.exceptions.MalformedMessageException
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.MethodDefinitionException.Companion.extractUniqueMethod
 import avail.exceptions.SignatureException
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.DEPENDENCY_CHANGED

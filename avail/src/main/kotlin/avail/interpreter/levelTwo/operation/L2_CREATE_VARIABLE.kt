@@ -63,7 +63,7 @@ object L2_CREATE_VARIABLE : L2Operation(
 	{
 		val outerType = instruction.operand<L2ConstantOperand>(0)
 		val variable = instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(variable.registerString())
 		builder.append(" ← new ")

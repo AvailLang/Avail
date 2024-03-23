@@ -80,7 +80,7 @@ object L2_ENTER_L2_CHUNK_FOR_CALL : L2Operation(
 	{
 		//val comment = instruction.operand<L2CommentOperand>(0)
 		val writeArguments = instruction.operand<L2WriteBoxedVectorOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		writeArguments.elements.forEachIndexed { i, write ->
 			builder.append("\n\t")
 			builder.append(write.registerString())

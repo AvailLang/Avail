@@ -85,7 +85,7 @@ object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
 		val pc = instruction.operand<L2IntImmediateOperand>(2)
 		val stackp = instruction.operand<L2IntImmediateOperand>(3)
 		val frameValues = instruction.operand<L2ReadBoxedVectorOperand>(4)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(" got: ")
 		builder.append(returnedValue.registerString())
 		builder.append(", expected: ")

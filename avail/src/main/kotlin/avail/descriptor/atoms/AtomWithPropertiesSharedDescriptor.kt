@@ -65,6 +65,7 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String
 import avail.descriptor.types.TypeTag
 import avail.exceptions.MalformedMessageException
+import avail.exceptions.unsupported
 import avail.serialization.Serializer
 import avail.serialization.SerializerOperation
 import avail.utility.ifZero

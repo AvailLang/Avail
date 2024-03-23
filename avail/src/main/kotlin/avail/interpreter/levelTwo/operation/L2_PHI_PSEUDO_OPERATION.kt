@@ -33,6 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT_VECTOR
@@ -145,20 +146,24 @@ private constructor(
 		val newSources = oldVector.elements.toMutableList()
 		newSources.removeAt(inputIndex)
 		val onlyOneRegister = newSources.size == 1
-		return if (onlyOneRegister)
+		return when
 		{
-			// Replace the phi function with a simple move.
-			L2Instruction(
-				instruction.basicBlock(),
-				moveOperation,
-				newSources[0],
-				destinationReg)
-		}
-		else L2Instruction(
-			instruction.basicBlock(),
-			this,
-			oldVector.clone(newSources),
-			destinationReg)
+			onlyOneRegister ->
+			{
+				// Replace the phi function with a simple move.
+				L2OldInstruction(
+					moveOperation,
+					newSources[0],
+					destinationReg)
+			}
+			else ->
+			{
+				L2OldInstruction(
+					this,
+					oldVector.clone(newSources),
+					destinationReg)
+			}
+		}.cloneFor(instruction.basicBlock())
 	}
 
 	/**
@@ -186,8 +191,10 @@ private constructor(
 		val passedCopy = vectorOperand.elements.toMutableList()
 		updater(passedCopy)
 		val finalCopy: List<L2ReadOperand<K>> = passedCopy.toList()
-		val replacementInstruction = L2Instruction(
-			block, this, vectorOperand.clone(finalCopy), writeOperand)
+		val replacementInstruction =
+			L2OldInstruction(
+				this, vectorOperand.clone(finalCopy), writeOperand
+			).cloneFor(block)
 		block.instructions()[instructionIndex] = replacementInstruction
 		replacementInstruction.justInserted()
 	}

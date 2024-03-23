@@ -76,7 +76,7 @@ object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
 		val pc = instruction.operand<L2IntImmediateOperand>(0)
 		val stackp = instruction.operand<L2IntImmediateOperand>(1)
 		val frameValues = instruction.operand<L2ReadBoxedVectorOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(" pc: ")
 		builder.append(pc.value)
 		builder.append(", stackp: ")

@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.types.A_Type
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.new.L2NewInstruction.Companion.toString
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -42,27 +43,10 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BOX_INT
-import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
-import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
-import avail.interpreter.levelTwo.operation.L2_GET_TYPE
-import avail.interpreter.levelTwo.operation.L2_HASH
-import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
-import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -74,6 +58,7 @@ import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.PublicCloneable
 import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
@@ -96,25 +81,20 @@ import org.objectweb.asm.MethodVisitor
  *   The [L2BasicBlock] to which the instruction belongs.
  * @property operation
  *   The [L2Operation] whose execution this instruction represents.
- *
- * @constructor
- * Construct a new `L2Instruction`.
- *
- * @param basicBlock
- *   The [L2BasicBlock] which will contain this instruction or `null` if none.
- * @param operation
- *   The [L2Operation] that this instruction performs.
- * @param theOperands
- *   The array of [L2Operand]s on which this instruction operates.  These must
- *   agree with the operation's array of [L2NamedOperandType]s.
  */
-class L2Instruction
-constructor(
-	private var basicBlock: L2BasicBlock?,
-	private val operation: L2Operation,
-	vararg theOperands: L2Operand
-): L2AbstractInstruction()
+abstract class L2Instruction
+: L2AbstractInstruction, PublicCloneable<L2Instruction>()
 {
+	/**
+	 * The [L2BasicBlock] to which the instruction belongs.  This only gets set
+	 * by [cloneFor] and special cases like [moveToBlock].  It gets cleared in
+	 * the new instruction by [clone].
+	 */
+	private var basicBlock: L2BasicBlock? = null
+
+	/** A short name indicating the kind of operation this is. */
+	abstract val name: String
+
 	/**
 	 * The position of this instruction within its array of instructions.
 	 * Only valid near the end of translation.
@@ -124,30 +104,46 @@ constructor(
 	/**
 	 * The source [L2Register]s.
 	 */
-	val sourceRegisters = mutableListOf<L2Register<*>>()
+	var sourceRegisters = mutableListOf<L2Register<*>>()
+		private set
 
 	/**
 	 * The destination [L2Register]s.
 	 */
-	val destinationRegisters = mutableListOf<L2Register<*>>()
+	var destinationRegisters = mutableListOf<L2Register<*>>()
+		private set
 
 	/**
 	 * The [L2Operand]s to supply to the operation.
 	 */
-	val operands = run {
-		assert(operation.namedOperandTypes.size == theOperands.size)
-		for ((i, namedOperandType) in operation.namedOperandTypes.withIndex())
-		{
-			assert(
-				theOperands[i].operandType === namedOperandType.operandType())
+	abstract val operands: Array<L2Operand>
+
+	override fun clone(): L2Instruction =
+		super.clone().apply {
+			basicBlock = null
+			sourceRegisters = mutableListOf()
+			destinationRegisters = mutableListOf()
 		}
-		Array(theOperands.size) {
-			val operand = theOperands[it].clone()
-			operand.adjustCloneForInstruction(this)
-			operand.addSourceRegistersTo(sourceRegisters)
-			operand.addDestinationRegistersTo(destinationRegisters)
-			operand
+
+	/**
+	 * Copy this instruction, but setting the [basicBlock] in the copy.
+	 * Answer the copy.
+	 *
+	 * @param block
+	 *   The [L2BasicBlock] that this instruction's clone will be inserted
+	 *   into.
+	 * @return
+	 *   The cloned [L2Instruction].
+	 */
+	fun cloneFor(block: L2BasicBlock): L2Instruction
+	{
+		val clone = clone()
+		clone.basicBlock = block
+		clone.operands.forEach { operand ->
+			operand.addSourceRegistersTo(clone.sourceRegisters)
+			operand.addDestinationRegistersTo(clone.destinationRegisters)
 		}
+		return clone
 	}
 
 	/**
@@ -158,13 +154,8 @@ constructor(
 	 *   The lambda to evaluate.
 	 */
 	@Suppress("unused")
-	fun operandsWithNamedTypesDo(
+	abstract fun operandsWithNamedTypesDo(
 		consumer: (L2Operand, L2NamedOperandType) -> Unit)
-	{
-		operands.forEachIndexed { i, operand ->
-			consumer(operand, operation.namedOperandTypes[i])
-		}
-	}
 
 	/**
 	 * Evaluate the given function with each [edge][L2PcOperand] and its
@@ -181,17 +172,15 @@ constructor(
 	fun edgesAndPurposesDo(
 		consumer: (L2PcOperand, Purpose?) -> Unit)
 	{
-		operands.forEachIndexed { i, operand ->
+		operandsWithNamedTypesDo { operand, namedOperandType ->
 			when (operand)
 			{
-				is L2PcOperand ->
-					consumer(operand, operation.namedOperandTypes[i].purpose())
+				is L2PcOperand -> consumer(operand, namedOperandType.purpose)
 				is L2PcVectorOperand ->
 					operand.edges.forEach { edge ->
-						consumer(edge, operation.namedOperandTypes[i].purpose())
+						consumer(edge, namedOperandType.purpose)
 					}
-			}
-		}
+			}}
 	}
 
 	/**
@@ -214,10 +203,10 @@ constructor(
 		consumer: (L2WriteOperand<*>) -> Unit)
 	{
 		assert(altersControlFlow)
-		operands.forEachIndexed { i, operand ->
+		operandsWithNamedTypesDo { operand, namedOperandType ->
 			if (operand is L2WriteOperand<*>)
 			{
-				if (operation.namedOperandTypes[i].purpose() === purpose)
+				if (namedOperandType.purpose === purpose)
 				{
 					consumer(operand)
 				}
@@ -238,24 +227,6 @@ constructor(
 	fun <O : L2Operand> operand(index: Int): O = operands[index].cast()
 
 	/**
-	 * Construct a new `L2Instruction`.  The instruction will be added somewhere
-	 * within the given [L2Generator]'s current [L2BasicBlock].
-	 *
-	 * @param generator
-	 *   The [L2Generator] in which this instruction is being regenerated.
-	 * @param operation
-	 *   The [L2Operation] that this instruction performs.
-	 * @param theOperands
-	 *   The array of [L2Operand]s on which this instruction operates.  These
-	 *   must agree with the operation's array of [L2NamedOperandType]s.
-	 */
-	constructor(
-		generator: L2Generator,
-		operation: L2Operation,
-		vararg theOperands: L2Operand
-	) : this(generator.currentBlock(), operation, *theOperands)
-
-	/**
 	 * Check that this instruction's [basicBlock] has been set, and that each
 	 * operand's instruction field has also been set.
 	 */
@@ -265,18 +236,16 @@ constructor(
 		operands.forEach(L2Operand::assertHasBeenEmitted)
 	}
 
+
 	/**
 	 * Answer a [List] of this instruction's [L2ReadOperand]s.
 	 *
 	 * @return
 	 *  The list of read operands.
 	 */
-	val readOperands: List<L2ReadOperand<*>>
-		get()
-		{
-			val list = mutableListOf<L2ReadOperand<*>>()
+	open val readOperands: List<L2ReadOperand<*>>
+		get() = mutableListOf<L2ReadOperand<*>>().also { list ->
 			operands.forEach { it.addReadsTo(list) }
-			return list
 		}
 
 	/**
@@ -285,12 +254,9 @@ constructor(
 	 * @return
 	 *   The list of write operands.
 	 */
-	val writeOperands: List<L2WriteOperand<*>>
-		get()
-		{
-			val list = mutableListOf<L2WriteOperand<*>>()
+	open val writeOperands: List<L2WriteOperand<*>>
+		get() = mutableListOf<L2WriteOperand<*>>().also { list ->
 			operands.forEach { it.addWritesTo(list) }
-			return list
 		}
 
 	/**
@@ -303,7 +269,7 @@ constructor(
 	 * @return
 	 *   A [List] of [L2PcOperand]s leading to the successor [L2BasicBlock]s.
 	 */
-	val targetEdges get() = operation.targetEdges(this)
+	open val targetEdges: List<L2PcOperand> = emptyList()
 
 	/**
 	 * Answer whether this instruction can alter control flow.  That's true for
@@ -317,7 +283,7 @@ constructor(
 	 *   Whether this instruction can do something other than fall through to
 	 *   the next instruction of its basic block.
 	 */
-	val altersControlFlow get() = operation.altersControlFlow
+	abstract val altersControlFlow: Boolean
 
 	/**
 	 * Answer whether this instruction has any observable effect besides
@@ -326,7 +292,7 @@ constructor(
 	 * @return
 	 *   s\Whether this instruction has side effects.
 	 */
-	val hasSideEffect get() = operation.hasSideEffect(this)
+	abstract val hasSideEffect: Boolean
 
 	/**
 	 * Answer whether this instruction is an entry point, which uses the
@@ -335,7 +301,7 @@ constructor(
 	 * @return
 	 *   Whether the instruction is an entry point.
 	 */
-	val isEntryPoint get() = operation.isEntryPoint(this)
+	abstract val isEntryPoint: Boolean
 
 	/**
 	 * Answer whether this operation is a move between (compatible) registers.
@@ -344,9 +310,17 @@ constructor(
 	 *   `true` if this operation simply moves data between two registers of the
 	 *   same [RegisterKind], otherwise `false`.
 	 */
-	val isMove: Boolean get() = operation is L2_MOVE<*>
+	abstract val isMove: Boolean
 
-	val isMoveBoxed: Boolean get() = operation == L2_MOVE.boxed
+	/**
+	 * Answer whether this operation is a move between boxed registers.
+	 *
+	 * @return
+	 *   `true` if this operation simply moves data between two boxed registers,
+	 *   otherwise `false`.
+	 */
+	abstract val isMoveBoxed: Boolean
+
 	/**
 	 * Answer whether this operation is a move of a constant to a register.
 	 *
@@ -354,11 +328,10 @@ constructor(
 	 *   `true` if this operation simply moves constant data to a register,
 	 *   otherwise `false`.
 	 */
-	val isMoveConstant: Boolean get() = operation is L2_MOVE_CONSTANT<*, *>
+	abstract val isMoveConstant: Boolean
 
-	/** Answer whether this operation is *boxed* constant move. */
-	val isMoveBoxedConstant: Boolean
-		get() = operation == L2_MOVE_CONSTANT.Companion.boxed
+	/** Answer whether this operation is a *boxed* constant move. */
+	abstract val isMoveBoxedConstant: Boolean
 
 	/**
 	 * Answer whether this instruction is a phi-function.  This is a convenient
@@ -367,99 +340,90 @@ constructor(
 	 * @return
 	 *   `true` if this is a phi instruction, `false` otherwise.
 	 */
-	val isPhi get() = operation is L2_PHI_PSEUDO_OPERATION<*>
+	abstract val isPhi: Boolean
 
 	/**
 	 * Answer true if this instruction runs an infallible primitive, otherwise
 	 * false.
 	 */
-	val isRunInfalliblePrimitive
-		get() = operation is L2_RUN_INFALLIBLE_PRIMITIVE
+	abstract val isRunInfalliblePrimitive: Boolean
 
 	/**
 	 * Answer whether this instruction creates a function from a constant raw
 	 * function and a vector of outer values.
 	 */
-	val isCreateFunction get() = operation is L2_CREATE_FUNCTION
+	abstract val isCreateFunction: Boolean
 
 	/**
 	 * Answer whether this instruction causes unconditional control flow jump to
 	 * another [L2BasicBlock] which is "forward" in the graph.
 	 */
-	val isUnconditionalJumpForward get() = operation is L2_JUMP
+	abstract val isUnconditionalJumpForward: Boolean
 
 	/**
 	 * Answer whether this instruction causes unconditional control flow jump to
 	 * another [L2BasicBlock] which is "backward" in the graph.
 	 */
-	val isUnconditionalJumpBackward get() = operation is L2_JUMP_BACK
+	abstract val isUnconditionalJumpBackward: Boolean
 
 	/**
 	 * Answer whether this instruction extracts the tag ordinal from some value.
 	 */
-	val isExtractTagOrdinal get() = operation is L2_EXTRACT_TAG_ORDINAL
+	abstract val isExtractTagOrdinal: Boolean
 
 	/**
 	 * Answer whether this instruction extracts an object's variant id.
 	 */
-	val isExtractObjectVariantId
-		get() = operation is L2_EXTRACT_OBJECT_VARIANT_ID
+	abstract val isExtractObjectVariantId: Boolean
 
 	/**
 	 * Answer whether this instruction extracts an object type's variant id.
 	 */
-	val isExtractObjectTypeVariantId: Boolean
-		get() = operation is L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
+	abstract val isExtractObjectTypeVariantId: Boolean
 
 	/**
 	 * Answer whether this instruction branches based on whether a value in a
 	 * boxed register is a subtype of a constant.
 	 */
-	val isJumpIfSubtypeOfConstant
-		get() = operation is L2_JUMP_IF_SUBTYPE_OF_CONSTANT
+	abstract val isJumpIfSubtypeOfConstant: Boolean
 
 	/**
 	 * Answer whether this instruction branches based on whether a value in a
 	 * boxed register is a subtype of a type in another boxed register.
 	 */
-	val isJumpIfSubtypeOfObject: Boolean
-		get() = operation is L2_JUMP_IF_SUBTYPE_OF_OBJECT
+	abstract val isJumpIfSubtypeOfObject: Boolean
 
 	/** Answer whether this instruction gets the type of a value. */
-	val isGetType get() = operation is L2_GET_TYPE
+	abstract val isGetType: Boolean
 
 	/** Answer whether this instruction is a re-entry point. */
-	val isEnterL2Chunk get() = operation is L2_ENTER_L2_CHUNK
+	abstract val isEnterL2Chunk: Boolean
 
 	/** Answer whether this instruction is the main entry point. */
-	val isEnterL2ChunkForCall get() = operation is L2_ENTER_L2_CHUNK_FOR_CALL
+	abstract val isEnterL2ChunkForCall: Boolean
 
 	/**
 	 * Answer whether this instruction performs the given infallible bit-logic
 	 * operation.
 	 */
-	fun isBitLogicOperation(op: L2_BIT_LOGIC_OP): Boolean = operation == op
+	abstract fun isBitLogicOperation(op: L2_BIT_LOGIC_OP): Boolean
 
 	/**
 	 * Answer whether this instruction computes the 32-bit hash of an object.
 	 */
-	val isHash: Boolean get() = operation == L2_HASH
+	abstract val isHash: Boolean
 
 	/** Ansswer whether this is an unreachable-code instruction. */
-	val isUnreachableInstruction: Boolean
-		get() = operation is L2_UNREACHABLE_CODE
+	abstract val isUnreachableInstruction: Boolean
 
 	/** Answer whether this boxed an int. */
-	val isBoxInt: Boolean get() = operation is L2_BOX_INT
-
-	/** Answer whether this unconditional unboxes an int. */
-	val isUnboxInt: Boolean get() = operation is L2_UNBOX_INT
+	abstract val isBoxInt: Boolean
 
 	/**
 	 * Answer whether this conditionally unboxes an int, jumping somewhere on
 	 * failure.
 	 */
-	val isJumpIfUnboxInt: Boolean get() = operation is L2_JUMP_IF_UNBOX_INT
+	abstract val isJumpIfUnboxInt: Boolean
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
@@ -481,14 +445,7 @@ constructor(
 	 *   Whether multiple branches may be taken following the circumstance of
 	 *   arriving at this instruction.
 	 */
-	val goesMultipleWays: Boolean get() = operation.goesMultipleWays
-
-	/**
-	 * Answer the [L2NamedOperandType]s that this instruction requires.
-	 *
-	 * @return The named operand types that this operation requires.
-	 */
-	val operandTypes get() = operation.operandTypes
+	abstract val goesMultipleWays: Boolean
 
 	/**
 	 * Extract the constant [A_RawFunction] that's enclosed by the function
@@ -499,10 +456,18 @@ constructor(
 	 *   The constant [A_RawFunction] extracted from the instruction, or `null`
 	 *   if unknown.
 	 */
-	val constantCode: A_RawFunction? get() = operation.getConstantCodeFrom(this)
+	abstract val constantCode: A_RawFunction?
 
-	fun <K: RegisterKind<K>> sourceOfMove(): L2ReadOperand<K> =
-		(operation as L2_MOVE<*>).sourceOfMove(this).cast()
+	/**
+	 * If this is a move instruction, extract the source [L2ReadOperand] that is
+	 * moved by the instruction.  Otherwise fail.
+	 *
+	 * @param instruction
+	 *   The move instruction to examine.
+	 * @return
+	 *   The move's source [L2ReadOperand].
+	 */
+	abstract fun <K: RegisterKind<K>> sourceOfMove(): L2ReadOperand<K>
 
 	/**
 	 * Produce an [L2ReadBoxedOperand] that provides the specified index of the
@@ -520,12 +485,11 @@ constructor(
 	 * @return
 	 *   An [L2ReadBoxedOperand] that will contain the specified tuple element.
 	 */
-	fun extractTupleElement(
+	abstract fun extractTupleElement(
 		tupleReg: L2ReadOperand<BOXED_KIND>,
 		index: Int,
 		generator: L2Generator
-	): L2ReadBoxedOperand =
-		operation.extractTupleElement(tupleReg, index, generator)
+	): L2ReadBoxedOperand
 
 	/**
 	 * Emit code to extract the specified outer value from the function produced
@@ -545,14 +509,12 @@ constructor(
 	 * @return
 	 *   The [L2ReadBoxedOperand] holding the outer value.
 	 */
-	fun extractFunctionOuter(
+	abstract fun extractFunctionOuter(
 		functionRegister: L2ReadBoxedOperand,
 		outerIndex: Int,
 		outerType: A_Type,
 		generator: L2Generator
-	): L2ReadBoxedOperand =
-		operation.extractFunctionOuter(
-			this, functionRegister, outerIndex, outerType, generator)
+	): L2ReadBoxedOperand
 
 	/**
 	 * Answer the [List] of [L2ReadOperand]s for the receiver, which must be a
@@ -562,32 +524,18 @@ constructor(
 	 * @return
 	 *   The instruction's list of sources.
 	 */
-	val phiSourceRegisterReads: List<L2ReadOperand<*>>
-		get()
-		{
-			assert(isPhi)
-			return (operation as L2_PHI_PSEUDO_OPERATION<*>)
-				.phiSourceRegisterReads(this)
-		}
+	abstract val phiSourceRegisterReads: List<L2ReadOperand<*>>
 
 	/**
 	 * Answer the [L2WriteOperand] into which a phi-merged value is written.
 	 */
-	val phiDestinationRegisterWrite: L2WriteOperand<*>
-		get()
-		{
-			assert(isPhi)
-			return (operation as L2_PHI_PSEUDO_OPERATION<*>)
-				.phiDestinationRegisterWrite(this)
-		}
-
+	abstract val phiDestinationRegisterWrite: L2WriteOperand<*>
 
 	/**
 	 * Given a phi instruction, answer the [L2_MOVE] operation having the same
 	 * [RegisterKind].
 	 */
-	val phiMoveOperation: L2_MOVE<*>
-		get() = (operation as L2_PHI_PSEUDO_OPERATION<*>).moveOperation
+	abstract val phiMoveOperation: L2_MOVE<*>
 
 	/**
 	 * Examine this phi instruction and answer the predecessor [L2BasicBlock]s
@@ -600,14 +548,9 @@ constructor(
 	 *   A [List] of predecessor blocks that supplied the usedRegister as an
 	 *   input to this phi operation.
 	 */
-	fun predecessorBlocksForUseOf(
+	abstract fun predecessorBlocksForUseOf(
 		usedRegister: L2Register<*>
 	): List<L2BasicBlock>
-	{
-		assert(isPhi)
-		return (operation as L2_PHI_PSEUDO_OPERATION<*>)
-			.predecessorBlocksForUseOf(this, usedRegister)
-	}
 
 	/**
 	 * Update a phi instruction that's in a loop head basic block.
@@ -615,12 +558,8 @@ constructor(
 	 * @param predecessorManifest
 	 *   The [L2ValueManifest] in some predecessor edge.
 	 */
-	fun <K: RegisterKind<K>> updateLoopHeadPhi(
+	abstract fun <K: RegisterKind<K>> updateLoopHeadPhi(
 		predecessorManifest: L2ValueManifest)
-	{
-		val phiOperation: L2_PHI_PSEUDO_OPERATION<K> = operation.cast()
-		phiOperation.updateLoopHeadPhi(predecessorManifest, this)
-	}
 
 	/**
 	 * One of this phi instruction's predecessors has been removed because it's
@@ -634,20 +573,15 @@ constructor(
 	 *   A replacement [L2Instruction], whose operation may be either another
 	 *   `L2_PHI_PSEUDO_OPERATION` or an [L2_MOVE].
 	 */
-	fun <K: RegisterKind<K>> phiWithoutIndex(
+	abstract fun <K: RegisterKind<K>> phiWithoutIndex(
 		inputIndex: Int
 	): L2Instruction
-	{
-		val phiOperation: L2_PHI_PSEUDO_OPERATION<K> = operation.cast()
-		return phiOperation.phiWithoutIndex(this, inputIndex)
-	}
 
 	/**
 	 * Given an [L2_SAVE_ALL_AND_PC_TO_INT], extract the edge that leads to the
 	 * code that saves the frame's live state.
 	 */
-	val referenceOfSaveAll: L2PcOperand
-		get() = L2_SAVE_ALL_AND_PC_TO_INT.referenceOfSaveAll(this)
+	abstract val referenceOfSaveAll: L2PcOperand
 
 	/**
 	 * Answer whether this instruction, which occurs at the end of a basic
@@ -659,7 +593,7 @@ constructor(
 	 * reached very often (i.e., they're "cold").  Reification and error paths
 	 * are considered cold, among other circumstances.
 	 */
-	val isCold get() = operation.isCold(this)
+	abstract val isCold: Boolean
 
 	/**
 	 * Generate code to replace this [L2Instruction].  Leave the generator in a
@@ -672,9 +606,22 @@ constructor(
 	 *   An [L2Regenerator] that has been configured for writing arbitrary
 	 *   replacement code for this instruction.
 	 */
-	fun generateReplacement(
-		regenerator: L2Regenerator
-	): Unit = operation.generateReplacement(this, regenerator)
+	abstract fun generateReplacement(
+		regenerator: L2Regenerator)
+
+	/**
+	 * An [Int] with bit positions corresponding to entries from
+	 * [HiddenVariableShift], indicating what hidden state is written by this
+	 * instruction.
+	 */
+	abstract val writesHiddenVariablesMask: Int
+
+	/**
+	 * An [Int] with bit positions corresponding to entries from
+	 * [HiddenVariableShift], indicating what hidden state is read by this
+	 * instruction.
+	 */
+	abstract val readsHiddenVariablesMask: Int
 
 	/**
 	 * Determine whether this instruction can commute with [another] instruction
@@ -706,20 +653,18 @@ constructor(
 	fun canCommuteWith(another: L2Instruction): Boolean = when
 	{
 		hasSideEffect && another.hasSideEffect -> false
-		destinationRegisters.intersect(another.sourceRegisters)
-			.isNotEmpty() -> false
-		another.goesMultipleWays
-			&& operation !is L2_MOVE_CONSTANT<*, *> -> false
+		destinationRegisters.intersect(another.sourceRegisters).isNotEmpty() ->
+			false
+		another.goesMultipleWays && !isMoveConstant -> false
 		else ->
 		{
-			val writes1 = operation.writesHiddenVariablesMask
-			val reads1 = operation.readsHiddenVariablesMask
-			val writes2 = another.operation.writesHiddenVariablesMask
-			val reads2 = another.operation.readsHiddenVariablesMask
+			val writes1 = writesHiddenVariablesMask
+			val reads1 = readsHiddenVariablesMask
+			val writes2 = another.writesHiddenVariablesMask
+			val reads2 = another.readsHiddenVariablesMask
 			(writes1 and (writes2 or reads2)) or (reads1 and writes2) == 0
 		}
 	}
-
 
 	/**
 	 * Replace all registers in this instruction using the registerRemap.  If a
@@ -751,29 +696,93 @@ constructor(
 	 */
 	fun justAdded(manifest: L2ValueManifest)
 	{
+		//TODO - move this part to entry point sublasses, when they exist.
 		if (isEntryPoint)
 		{
 			assert(
 				basicBlock().instructions().all {
-					it === this || it.isPhi
+					it.isPhi || it == this
 				}
 			) {
 				"Entry point instruction must be after phis"
 			}
 		}
+
 		operands.forEach { it.setInstruction(this) }
-		operation.instructionWasAdded(this, manifest)
+		instructionWasAdded(manifest)
+	}
+
+	/**
+	 * This is the operation for the given instruction, which was just added to
+	 * its basic block.  Do any post-processing appropriate for having added
+	 * the instruction.  Its operands have already had their instruction fields
+	 * set to the given instruction.
+	 *
+	 * Automatically handle [L2WriteOperand]s that list a
+	 * [L2NamedOperandType.Purpose] in their corresponding [L2NamedOperandType],
+	 * ensuring the write is only considered to happen along the edge
+	 * ([L2PcOperand]) having the same purpose.  Subclasses may want to do
+	 * additional postprocessing.
+	 *
+	 * @param instruction
+	 *   The [L2Instruction] that was just added.
+	 * @param manifest
+	 *   The [L2ValueManifest] that is active at this instruction.
+	 */
+	open fun instructionWasAdded(
+		manifest: L2ValueManifest)
+	{
+		// Process all operands without a purpose first.
+		operandsWithNamedTypesDo { operand, namedOperandType ->
+			namedOperandType.purpose ?: run {
+				operand.instructionWasAdded(manifest)
+			}
+		}
+		// Track a copy of the manifest for each purpose that occurs in a
+		// non-edge operand, applying their effects.
+		val manifestByPurposeOrdinal =
+			arrayOfNulls<L2ValueManifest>(Purpose.entries.size)
+		operandsWithNamedTypesDo { operand, namedOperandType ->
+			val purpose = namedOperandType.purpose
+			purpose ?: return@operandsWithNamedTypesDo
+			if (operand is L2PcOperand) return@operandsWithNamedTypesDo
+			if (operand is L2PcVectorOperand) return@operandsWithNamedTypesDo
+			var manifestCopy = manifestByPurposeOrdinal[purpose.ordinal]
+			if (manifestCopy === null)
+			{
+				manifestCopy = L2ValueManifest(manifest)
+				manifestByPurposeOrdinal[purpose.ordinal] = manifestCopy
+			}
+			operand.instructionWasAdded(manifestCopy)
+		}
+		// Now plug the suitable-purposed manifest copies into each edge.
+		operandsWithNamedTypesDo { operand, namedOperandType ->
+			val purpose = namedOperandType.purpose
+			purpose ?: return@operandsWithNamedTypesDo
+			when (operand)
+			{
+				is L2PcOperand ->
+				{
+					operand.instructionWasAdded(
+						manifestByPurposeOrdinal[purpose.ordinal] ?: manifest)
+				}
+				is L2PcVectorOperand ->
+				{
+					val manifestCopy =
+						manifestByPurposeOrdinal[purpose.ordinal] ?: manifest
+					operand.edges.forEach { edge ->
+						edge.instructionWasAdded(manifestCopy)
+					}
+				}
+			}
+		}
 	}
 
 	/**
 	 * This instruction was just added to its [L2BasicBlock] as part of an
 	 * optimization pass.
 	 */
-	fun justInserted()
-	{
-		operands.forEach { it.setInstruction(this) }
-		operation.instructionWasInserted(this)
-	}
+	abstract fun justInserted()
 
 	/**
 	 * This instruction was just removed from its [L2BasicBlock]'s list of
@@ -820,7 +829,7 @@ constructor(
 	 * @return
 	 *   Whether to preserve this instruction during final code generation.
 	 */
-	val shouldEmit: Boolean get() = operation.shouldEmit(this)
+	abstract val shouldEmit: Boolean
 
 	override fun toString() = buildString {
 		appendToWithWarnings(this, L2OperandType.allOperandTypes) { }
@@ -832,47 +841,68 @@ constructor(
 	 *
 	 * @param builder
 	 *   Where to write the description of this instruction.
-	 * @param operandTypes
+	 * @param desiredOperandTypes
 	 *   Which [L2OperandType]s to include.
 	 * @param warningStyleChange
 	 *   A lambda that takes `true` to start the warning style at the
 	 *   current builder position, and `false` to end it.  It must be invoked in
 	 *   (true, false) pairs.
 	 */
-	fun appendToWithWarnings(
+	open fun appendToWithWarnings(
 		builder: StringBuilder,
-		operandTypes: Set<L2OperandType>,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		if (basicBlock === null)
-		{
-			warningStyleChange(true)
-			builder.append("DEAD: ")
-			warningStyleChange(false)
+		renderPreamble(builder)
+		operandsWithNamedTypesDo { operand, namedOperandType ->
+			if (namedOperandType.operandType() in desiredOperandTypes)
+			{
+				builder.append("\n\t")
+				builder.append(namedOperandType.name())
+				builder.append(" = ")
+				operand.appendWithWarningsTo(builder, 1, warningStyleChange)
+			}
 		}
-		operation.appendToWithWarnings(
-			this,
-			operandTypes,
-			builder,
-			warningStyleChange)
 	}
 
 	/**
-	 * Write the equivalent of this instruction through the given
-	 * [L2Regenerator]. Certain types of [L2Operation]s are transformed in ways
-	 * specific to the kind of regenerator being used.
+	 * Produce a sensible preamble for the textual rendition of the specified
+	 * [L2Instruction] that includes the [offset][L2Instruction.offset] and
+	 * [name][toString] of the `L2Operation`.
+	 *
+	 * @param builder
+	 *   The `StringBuilder` to which the preamble should be written.
+	 */
+	fun renderPreamble(builder: StringBuilder)
+	{
+		if (offset != -1)
+		{
+			builder.append(offset)
+			builder.append(". ")
+		}
+		builder.append(name)
+	}
+
+	/**
+	 * Create an equivalent of this instruction, transforming each [L2Operand]
+	 * through the given [L2Regenerator].  Don't do deeper processing than just
+	 * transforming each operand.
 	 *
 	 * @param regenerator
-	 *   The [L2Regenerator] through which to write this instruction's
-	 *   equivalent effect.
+	 *   The [L2Regenerator] by which to transform the given insstruction.
+	 * @return
+	 *   A new instruction like the given one.
 	 */
-	fun transformAndEmitOn(regenerator: L2Regenerator)
-	{
-		val transformedOperands = Array(operands.size) {
-			regenerator.transformOperand(operand(it))
-		}
-		operation.emitTransformedInstruction(transformedOperands, regenerator)
-	}
+	abstract fun transformedByRegenerator(
+		regenerator: L2Regenerator
+	): L2Instruction
+
+	/**
+	 * Given this instruction, which is already a transformation of the same
+	 * kind of instruction from an earlier graph, write to the regenerator an
+	 * equivalent instruction or seriess of replacement instructions.
+	 */
+	abstract fun emitTransformedInstruction(regenerator: L2Regenerator)
 
 	/**
 	 * Translate the `L2Instruction` into corresponding JVM instructions.
@@ -883,11 +913,13 @@ constructor(
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
 	 *   will be written.
 	 */
-	fun translateToJVM(translator: JVMTranslator, method: MethodVisitor) =
-		operation.translateToJVM(translator, method, this)
+	abstract fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor)
 
 	/**
-	 * Answer the [L2BasicBlock] to which this instruction belongs.
+	 * Answer the [L2BasicBlock] to which this instruction belongs.  Fail if it
+	 * has not yet been added to a basic block.
 	 *
 	 * @return
 	 *   This instruction's [L2BasicBlock].
@@ -895,11 +927,16 @@ constructor(
 	fun basicBlock(): L2BasicBlock = basicBlock!!
 
 	/**
+	 * Answer true iff this instruction is in an [L2BasicBlock].
+	 */
+	val hasBeenEmitted: Boolean get() = basicBlock !== null
+
+	/**
 	 * Determine if this instruction is a place-holding instruction that will be
 	 * re-emitted as an arbitrary graph of instructions at some point, via
 	 * [generateReplacement].
 	 */
-	val isPlaceholder get() = operation.isPlaceholder
+	abstract val isPlaceholder: Boolean
 
 	/**
 	 * Now that chunk optimization has completed, remove information from this
@@ -929,8 +966,7 @@ constructor(
 	 *
 	 * @return A [List] of [L2SplitCondition] to watch for upstream.
 	 */
-	fun interestingConditions(): List<L2SplitCondition?> =
-		operation.interestingSplitConditions(this)
+	abstract fun interestingConditions(): List<L2SplitCondition?>
 
 	/**
 	 * Produce a sensible textual rendition of this [L2Instruction].
@@ -945,12 +981,10 @@ constructor(
 	 *   listen to, to track regions of the builder to highlight in its own
 	 *   warning style.  This must be invoked in (true, false) pairs.
 	 */
-	fun appendToWithWarnings(
+	abstract fun appendToWithWarnings(
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit
-	): Unit = operation.appendToWithWarnings(
-		this, desiredTypes, builder, warningStyleChange)
+		warningStyleChange: (Boolean) -> Unit)
 
 	/**
 	 * Output this [L2Instruction] compactly to the builder.
@@ -958,6 +992,5 @@ constructor(
 	 * @param builder
 	 *   The [StringBuilder] on which to write this instruction compactly.
 	 */
-	fun simpleAppendTo(builder: StringBuilder) =
-		operation.simpleAppendTo(this, builder)
+	abstract fun simpleAppendTo(builder: StringBuilder)
 }

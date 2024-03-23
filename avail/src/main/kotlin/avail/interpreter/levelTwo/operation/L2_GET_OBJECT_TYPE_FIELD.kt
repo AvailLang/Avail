@@ -68,7 +68,7 @@ object L2_GET_OBJECT_TYPE_FIELD : L2Operation(
 		val objectTypeRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
 		val fieldTypeWrite = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(fieldTypeWrite.registerString())
 		builder.append(" ← ")

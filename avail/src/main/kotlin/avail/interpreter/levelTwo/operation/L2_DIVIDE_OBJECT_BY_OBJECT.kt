@@ -81,7 +81,7 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
 		val remainder = instruction.operand<L2WriteBoxedOperand>(3)
 		//		final L2PcOperand undefined = instruction.operand(4);
 //		final L2PcOperand success = instruction.operand(5);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(quotient.registerString())
 		builder.append(", ")

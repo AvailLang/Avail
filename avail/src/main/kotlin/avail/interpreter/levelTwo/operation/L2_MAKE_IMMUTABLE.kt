@@ -86,7 +86,7 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 	{
 		val read = instruction.operand<L2ReadBoxedOperand>(0)
 		val write = instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(write.registerString())
 		builder.append(" ← ")

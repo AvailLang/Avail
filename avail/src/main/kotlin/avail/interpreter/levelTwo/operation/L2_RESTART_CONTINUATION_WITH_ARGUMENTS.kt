@@ -74,7 +74,7 @@ object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
 	{
 		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(continuation.registerString())
 		builder.append("(")

@@ -97,7 +97,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		val sumReg = instruction.operand<L2WriteIntOperand>(2)
 		//val outOfRange = instruction.operand<L2PcOperand>(3)
 		//val inRange = instruction.operand<L2PcOperand>(4)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(sumReg.registerString())
 		builder.append(" ← ")

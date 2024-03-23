@@ -64,7 +64,7 @@ object L2_GET_CURRENT_CONTINUATION : L2Operation(
 	{
 		val continuation =
 			instruction.operand<L2WriteBoxedOperand>(0)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(continuation.registerString())
 	}

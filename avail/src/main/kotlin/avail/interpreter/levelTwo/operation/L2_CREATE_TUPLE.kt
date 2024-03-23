@@ -93,7 +93,7 @@ object L2_CREATE_TUPLE : L2Operation(
 	{
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val tuple = instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(tuple.registerString())
 		builder.append(" ← ")

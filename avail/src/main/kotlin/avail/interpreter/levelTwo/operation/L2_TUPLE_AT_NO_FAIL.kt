@@ -65,7 +65,7 @@ object L2_TUPLE_AT_NO_FAIL : L2Operation(
 		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
 		val subscript = instruction.operand<L2ReadIntOperand>(1)
 		val destination = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")

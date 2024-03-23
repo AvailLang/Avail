@@ -55,9 +55,18 @@ import org.objectweb.asm.Opcodes
  * My instances are logic operations that take two [Int]s and produce an [Int].
  * They must not overflow.
  *
+ * @constructor
+ *   Instantiate a two-arcgument i32 logic operation for a particular purpose,
+ *   such as addition or exclusive-or.
+ * @property jvmOpcodes
+ *   A sequence of Int opcodes to emit for this logic operation, once the two
+ *   int values have been pushed.  It should have the effect of removing them
+ *   from the JVM operand stack and leaving a single int as the result.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_BIT_LOGIC_OP(
+class L2_BIT_LOGIC_OP
+private constructor(
 	name: String,
 	private vararg val jvmOpcodes: Int
 ) : L2Operation(
@@ -75,7 +84,7 @@ class L2_BIT_LOGIC_OP(
 		val input1 = instruction.operand<L2ReadIntOperand>(0)
 		val input2 = instruction.operand<L2ReadIntOperand>(1)
 		val output = instruction.operand<L2WriteIntOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(output.registerString())
 		builder.append(" ← ")

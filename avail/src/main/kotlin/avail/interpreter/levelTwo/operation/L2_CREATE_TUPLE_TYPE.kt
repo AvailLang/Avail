@@ -64,7 +64,7 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 	{
 		val types = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val tupleType = instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(tupleType.registerString())
 		builder.append(" ← ")

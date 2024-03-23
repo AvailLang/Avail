@@ -85,7 +85,7 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 		val value = instruction.operand<L2WriteBoxedOperand>(1)
 		//		final L2PcOperand success = instruction.operand(2);
 //		final L2PcOperand failure = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" ← ↓")

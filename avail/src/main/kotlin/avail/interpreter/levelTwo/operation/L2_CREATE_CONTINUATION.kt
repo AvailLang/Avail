@@ -86,7 +86,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		val destReg = instruction.operand<L2WriteBoxedOperand>(5)
 		//		final L2ReadIntOperand labelIntReg = instruction.operand(6);
 		//		final L2ReadBoxedOperand registerDumpReg = instruction.operand(7);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destReg)
 		builder.append(" ← $[")

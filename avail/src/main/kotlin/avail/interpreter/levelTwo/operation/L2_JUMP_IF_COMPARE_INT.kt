@@ -110,7 +110,7 @@ class L2_JUMP_IF_COMPARE_INT internal constructor(
 		//val ifTrue = instruction.operand<L2PcOperand>(2)
 		//val ifFalse = instruction.operand<L2PcOperand>(3)
 
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(int1Reg.registerString())
 		builder.append(" ")

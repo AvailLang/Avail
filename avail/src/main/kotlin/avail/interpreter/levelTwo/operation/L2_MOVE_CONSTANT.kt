@@ -102,7 +102,7 @@ private constructor(
 	private val getConstantSemanticValue: (C)->L2SemanticValue<K>,
 	private val pushConstant: (JVMTranslator, MethodVisitor, C) -> Unit,
 	vararg theNamedOperandTypes: L2NamedOperandType)
-: L2Operation(*theNamedOperandTypes)
+: L2Operation("MOVE_CONSTANT($variantName)", *theNamedOperandTypes)
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,
@@ -180,8 +180,7 @@ private constructor(
 	{
 		val constant: C = instruction.operand(0)
 		val destination: L2WriteOperand<K> = instruction.operand(1)
-		renderPreamble(instruction, builder)
-		builder.append(' ')
+		instruction.renderPreamble(builder)
 		destination.appendWithWarningsTo(builder, 0, warningStyleChange)
 		builder.append(" ← ")
 		builder.brief {

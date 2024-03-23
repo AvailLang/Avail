@@ -108,7 +108,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		val constantType = instruction.operand<L2ConstantOperand>(1)
 		//		final L2PcOperand ifKind = instruction.operand(2);
 //		final L2PcOperand ifNotKind = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" ∈ ")

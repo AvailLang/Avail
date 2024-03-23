@@ -71,7 +71,7 @@ object L2_TUPLE_AT_UPDATE : L2Operation(
 		val index = instruction.operand<L2IntImmediateOperand>(1)
 		val newElement = instruction.operand<L2ReadBoxedOperand>(2)
 		val outputTuple = instruction.operand<L2WriteBoxedOperand>(3)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(outputTuple.registerString())
 		builder.append(" ← ")

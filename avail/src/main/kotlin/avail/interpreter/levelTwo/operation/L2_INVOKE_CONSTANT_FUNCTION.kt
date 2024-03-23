@@ -123,7 +123,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 
 		val function = constantFunction.constant
 		with(builder) {
-			renderPreamble(instruction, builder)
+			instruction.renderPreamble(builder)
 			append(' ')
 			append(result.registerString())
 			append(" ← /* ")

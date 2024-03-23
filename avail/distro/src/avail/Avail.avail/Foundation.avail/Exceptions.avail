@@ -372,7 +372,8 @@ Private method "Private guard_intercept_ensure_" is
 	 * If the failureCode is non-zero, report it with a "hard" fiber failure,
 	 * not an exception.
 	 */
-	Cast ↓failureCode into
+	failureVariable ::= failureCode;
+	Cast ↓failureVariable into
 	[
 		code : natural number
 	|
@@ -392,11 +393,11 @@ Private method "Private guard_intercept_ensure_" is
 			 * raised in the unwind should propagate (unmodified by causal
 			 * chaining) to any enclosing handlers.
 			 */
-			If ↓failureCode = 0 then
+			If ↓failureVariable = 0 then
 			[
-				Mark guard variable failureCode with handler-sentinel code;
+				Mark guard variable failureVariable with handler-sentinel code;
 				unwind();
-				Mark guard variable failureCode with unwind-sentinel code;
+				Mark guard variable failureVariable with unwind-sentinel code;
 			];
 		];
 ] : ⊤

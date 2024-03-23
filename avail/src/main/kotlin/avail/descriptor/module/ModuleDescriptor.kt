@@ -173,6 +173,7 @@ import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
+import avail.exceptions.unsupported
 import avail.interpreter.LibraryClassLoader
 import avail.interpreter.PrimitiveClassLoader
 import avail.interpreter.execution.AvailLoader

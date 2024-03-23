@@ -150,7 +150,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		//val onReturn = instruction.operand<L2PcOperand>(3);
 		//val onReification = instruction.operand<L2PcOperand>(4);
 
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(result.registerString())
 		builder.append(" ← ")

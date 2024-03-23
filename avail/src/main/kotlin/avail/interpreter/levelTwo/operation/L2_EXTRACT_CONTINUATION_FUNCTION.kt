@@ -63,7 +63,7 @@ object L2_EXTRACT_CONTINUATION_FUNCTION : L2Operation(
 			instruction.operand<L2ReadBoxedOperand>(0)
 		val function =
 			instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(function.registerString())
 		builder.append(" ← ")

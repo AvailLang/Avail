@@ -74,7 +74,7 @@ object L2_SET_VARIABLE : L2ControlFlowOperation(
 		val value = instruction.operand<L2ReadBoxedOperand>(1)
 		//		final int successIndex = instruction.pcOffsetAt(2);
 //		final L2PcOperand failure = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(" ↓")
 		builder.append(variable.registerString())
 		builder.append(" ← ")

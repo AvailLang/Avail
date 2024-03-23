@@ -71,7 +71,7 @@ object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 	}
 
 	override fun translateToJVM(

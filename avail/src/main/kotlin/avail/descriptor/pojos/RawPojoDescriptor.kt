@@ -42,6 +42,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
 import avail.descriptor.types.TypeTag
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import avail.utility.cast
 import java.lang.reflect.Constructor
@@ -175,10 +176,7 @@ open class RawPojoDescriptor protected constructor(
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun mutable(): Nothing
-	{
-		unsupportedOperation()
-	}
+	override fun mutable(): Nothing = unsupported
 
 	override fun immutable() =
 		RawPojoDescriptor(Mutability.IMMUTABLE, javaObject)

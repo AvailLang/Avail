@@ -67,7 +67,7 @@ object L2_CREATE_OBJECT : L2Operation(
 		val variantOperand = instruction.operand<L2ArbitraryConstantOperand>(0)
 		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val newObject = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(newObject.registerString())
 		builder.append(" ← {")

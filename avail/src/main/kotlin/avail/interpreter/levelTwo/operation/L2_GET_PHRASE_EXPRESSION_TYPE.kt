@@ -59,7 +59,7 @@ object L2_GET_PHRASE_EXPRESSION_TYPE : L2Operation(
 	{
 		val phraseRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val expressionType = instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(expressionType.registerString())
 		builder.append(" ← yield type of ")

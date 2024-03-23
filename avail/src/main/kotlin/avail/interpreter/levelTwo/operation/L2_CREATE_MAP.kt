@@ -64,7 +64,7 @@ object L2_CREATE_MAP : L2Operation(
 		val keys = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val map = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(map.registerString())
 		builder.append(" ← {")

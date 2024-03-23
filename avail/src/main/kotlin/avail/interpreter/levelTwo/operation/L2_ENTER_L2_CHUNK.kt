@@ -82,7 +82,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 		//		final L2IntImmediateOperand offsetInDefaultChunk =
 //			instruction.operand(0);
 //		final L2CommentOperand comment = instruction.operand(1);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 	}
 
 	override fun translateToJVM(

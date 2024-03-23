@@ -127,19 +127,6 @@ class L2NamedOperandType internal constructor(
 		REFERENCED_AS_INT
 	}
 
-	/**
-	 * Answer the [Purpose] that best describes the [L2NamedOperandType], if
-	 * any.
-	 *
-	 * @return
-	 *   The receiver's purpose, or `null` if nothing additional is known about
-	 *   its purpose.
-	 */
-	fun purpose(): Purpose?
-	{
-		return purpose
-	}
-
 	override fun toString(): String
 	{
 		return operandType::class.simpleName + "(" + name + ")"

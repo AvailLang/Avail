@@ -63,7 +63,7 @@ object L2_TYPE_UNION : L2Operation(
 		val firstType = instruction.operand<L2ReadBoxedOperand>(0)
 		val secondType = instruction.operand<L2ReadBoxedOperand>(1)
 		val outputType = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(outputType.registerString())
 		builder.append(" ← ")

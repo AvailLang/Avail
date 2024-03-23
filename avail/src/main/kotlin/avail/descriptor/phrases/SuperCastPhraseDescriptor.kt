@@ -48,6 +48,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TypeTag
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap

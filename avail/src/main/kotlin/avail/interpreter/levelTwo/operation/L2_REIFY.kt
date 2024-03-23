@@ -132,7 +132,7 @@ object L2_REIFY : L2ControlFlowOperation(
 		//		final L2PcOperand onReification = instruction.operand(3);
 
 		val statistic = statisticConstant.constant as Statistic
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(statistic.name())
 		if (actuallyReify.value != 0 || processInterrupt.value != 0)

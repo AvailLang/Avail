@@ -120,6 +120,7 @@ import avail.dispatch.LeafLookupTree
 import avail.dispatch.LookupTree
 import avail.dispatch.LookupTreeAdaptor
 import avail.dispatch.TypeComparison.Companion.compareForParsing
+import avail.exceptions.unsupported
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType

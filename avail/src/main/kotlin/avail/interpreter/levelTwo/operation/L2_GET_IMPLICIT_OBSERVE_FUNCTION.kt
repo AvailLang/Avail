@@ -64,7 +64,7 @@ object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
 	{
 		val function = instruction.operand<L2WriteBoxedOperand>(0)
 
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(function.registerString())
 	}

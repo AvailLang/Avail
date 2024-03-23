@@ -114,7 +114,7 @@ class L2_JUMP_IF_COMPARE_BOXED internal constructor(
 		val number2Reg = instruction.operand<L2ReadBoxedOperand>(1)
 		//val ifTrue = instruction.operand<L2PcOperand>(2)
 		//val ifFalse = instruction.operand<L2PcOperand>(3)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(number1Reg.registerString())
 		builder.append(" ")

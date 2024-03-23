@@ -67,7 +67,7 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
 		val parameterIndex = instruction.operand<L2IntImmediateOperand>(1)
 		val parameterType = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(parameterType.registerString())
 		builder.append(" ← ")

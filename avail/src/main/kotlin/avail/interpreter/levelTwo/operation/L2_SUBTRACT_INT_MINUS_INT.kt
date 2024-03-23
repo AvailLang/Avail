@@ -75,7 +75,7 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 		val difference = instruction.operand<L2WriteIntOperand>(2)
 		//		final L2PcOperand outOfRange = instruction.operand(3);
 //		final L2PcOperand inRange = instruction.operand(4);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(difference.registerString())
 		builder.append(" ← ")

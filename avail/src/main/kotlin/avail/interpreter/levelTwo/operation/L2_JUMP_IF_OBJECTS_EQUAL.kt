@@ -90,7 +90,7 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		//val ifEqual = instruction.operand<L2PcOperand>(2)
 		//val ifNotEqual = instruction.operand<L2PcOperand>(3)
 
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(first.registerString())
 		builder.append(" = ")

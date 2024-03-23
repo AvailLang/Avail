@@ -71,7 +71,7 @@ object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
 		val destination = instruction.operand<L2WriteFloatOperand>(1)
 		//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
 //		final L2PcOperand ifUnboxed = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ←? ")

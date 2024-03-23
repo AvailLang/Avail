@@ -110,7 +110,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		val targetAsInt = instruction.operand<L2WriteIntOperand>(1)
 		val registerDump = instruction.operand<L2WriteBoxedOperand>(2)
 		//		final L2PcOperand fallThrough = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(targetAsInt)
 		builder.append(" ← address of label $[")

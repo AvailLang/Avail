@@ -69,6 +69,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
 import avail.descriptor.types.TypeTag
 import avail.exceptions.SignatureException
+import avail.exceptions.unsupported
 import avail.utility.stackToString
 import java.util.*
 

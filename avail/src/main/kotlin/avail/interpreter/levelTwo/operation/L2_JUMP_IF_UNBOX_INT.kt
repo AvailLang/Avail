@@ -81,7 +81,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		val destination = instruction.operand<L2WriteIntOperand>(1)
 		//val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
 		//val ifUnboxed = instruction.operand<L2PcOperand>(3)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ←? ")
@@ -224,7 +224,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 			sourceRestriction.containedByType(i32) ->
 			{
 				// It's not already unboxed, but it's an int32.
-				regenerator.addInstruction(L2_UNBOX_INT, source, destination)
+				regenerator.addInstruction(L2_UNBOX_INT(source, destination))
 				regenerator.jumpTo(ifUnboxed.targetBlock())
 			}
 			!sourceRestriction.intersectsType(i32) ->

@@ -77,7 +77,7 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 		//val outOfRange = instruction.operand<L2WriteIntOperand>(3)
 		//val inRange = instruction.operand<L2WriteIntOperand>(4)
 
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(productReg.registerString())
 		builder.append(" ← ")

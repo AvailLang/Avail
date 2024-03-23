@@ -111,7 +111,7 @@ object L2_JUMP_IF_KIND_OF_OBJECT : L2ConditionalJump(
 		val type = instruction.operand<L2ReadBoxedOperand>(1)
 		// val ifKind = instruction.operand<L2PcOperand>(2)
 		// val ifNotKind = instruction.operand<L2PcOperand>(3)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" ∈ ")

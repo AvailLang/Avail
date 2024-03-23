@@ -76,7 +76,7 @@ object L2_SET_VARIABLE_NO_CHECK : L2ControlFlowOperation(
 	{
 		val variable = instruction.operand<L2ReadBoxedOperand>(0)
 		val value = instruction.operand<L2ReadBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(" ↓")
 		builder.append(variable.registerString())
 		builder.append(" ← ")

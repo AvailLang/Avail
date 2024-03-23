@@ -71,7 +71,7 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
 		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(fieldValue.registerString())
 		builder.append(" ← ")

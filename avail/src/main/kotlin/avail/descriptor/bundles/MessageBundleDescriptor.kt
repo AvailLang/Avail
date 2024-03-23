@@ -102,6 +102,7 @@ import avail.descriptor.types.TypeTag
 import avail.dispatch.LookupTree
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.SignatureException
+import avail.exceptions.unsupported
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType

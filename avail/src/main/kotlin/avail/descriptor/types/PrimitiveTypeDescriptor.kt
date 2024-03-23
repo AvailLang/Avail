@@ -99,6 +99,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.variables.VariableDescriptor
+import avail.exceptions.unsupported
 import avail.interpreter.execution.LexicalScanner
 import avail.serialization.SerializerOperation
 import avail.utility.iterableWith

@@ -154,7 +154,6 @@ import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.dispatch.LookupTree
 import avail.exceptions.AvailException
-import avail.exceptions.AvailUnsupportedOperationException
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.SignatureException
@@ -806,7 +805,6 @@ abstract class AbstractDescriptor protected constructor (
 				.single()
 		}
 		while (cls != Any::class)
-		members.remove(AbstractDescriptor::unsupported)
 		members.remove(AbstractDescriptor::allocationStat)
 		members.remove(AbstractDescriptor::debugIntegerSlots)
 		members.remove(AbstractDescriptor::debugObjectSlots)
@@ -845,43 +843,6 @@ abstract class AbstractDescriptor protected constructor (
 					}
 			}
 	}
-
-	/**
-	 * Throw an [AvailUnsupportedOperationException] suitable to be thrown by
-	 * the sender.
-	 *
-	 * The exception indicates that the receiver does not meaningfully implement
-	 * the method that immediately invoked this.  This is a strong indication
-	 * that the wrong kind of object is being used somewhere.
-	 *
-	 * @throws AvailUnsupportedOperationException
-	 */
-	fun unsupportedOperation (): Nothing
-	{
-		val callerName =
-			try
-			{
-				throw Exception("just want the caller's frame")
-			}
-			catch (e: Exception)
-			{
-				var name = e.stackTrace[1].methodName
-				if (name == "getUnsupported")  // ::unsupported property getter.
-				{
-					name = e.stackTrace[2].methodName
-				}
-				name
-			}
-		throw AvailUnsupportedOperationException(javaClass, callerName)
-	}
-
-	/**
-	 * This read-only property can be used in place of [unsupportedOperation].
-	 * Using the getter produces almost the same diagnostic stack trace when
-	 * executed, but is a much shorter expression.
-	 */
-	val unsupported: Nothing
-		get() = unsupportedOperation()
 
 	/**
 	 * Answer whether the [argument&#32;types][A_Type.argsTupleType]

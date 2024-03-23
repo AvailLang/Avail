@@ -134,7 +134,7 @@ import kotlin.reflect.full.memberProperties
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-sealed class L2SimpleInstruction : L2AbstractInstruction()
+sealed class L2SimpleInstruction : L2AbstractInstruction
 {
 	/**
 	 * Perform this instruction, a single step of an [L2SimpleChunk].  The

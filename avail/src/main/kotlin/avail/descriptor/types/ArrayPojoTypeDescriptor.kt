@@ -70,6 +70,7 @@ import avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
 import avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.SIZE_RANGE
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.io.Serializable
@@ -250,17 +251,13 @@ private constructor(
 
 	override fun o_TypeIntersectionOfPojoFusedType(
 		self: AvailObject,
-		aFusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		aFusedPojoType: A_Type
+	): A_Type = unsupported
 
 	override fun o_TypeIntersectionOfPojoUnfusedType(
 		self: AvailObject,
-		anUnfusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		anUnfusedPojoType: A_Type
+	): A_Type = unsupported
 
 	override fun o_TypeUnionOfPojoType(
 		self: AvailObject,

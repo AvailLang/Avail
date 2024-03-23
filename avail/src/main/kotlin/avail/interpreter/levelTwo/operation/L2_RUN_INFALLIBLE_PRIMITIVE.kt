@@ -151,7 +151,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
 		val result = instruction.operand<L2WriteBoxedOperand>(3)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append("\n\t")
 		builder.append(result.registerString())
 		builder.append(" ← ")

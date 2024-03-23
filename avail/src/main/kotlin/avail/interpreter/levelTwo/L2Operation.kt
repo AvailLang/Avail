@@ -155,6 +155,11 @@ protected constructor(
 		writesHiddenVariablesMask = writeMask
 	}
 
+	/**
+	 * Create an [L2Operation], using null for the name.  This is to simplify
+	 * the constructor calls from subclasses, since optional arguments before a
+	 * vararg can look awkward in Kotlin.
+	 */
 	protected constructor(
 		vararg theNamedOperandTypes: L2NamedOperandType
 	) : this(null, *theNamedOperandTypes)
@@ -391,7 +396,7 @@ protected constructor(
 		val operands = instruction.operands
 		operands.forEachIndexed { i, operand ->
 			val namedOperandType = namedOperandTypes[i]
-			val purpose = namedOperandType.purpose()
+			val purpose = namedOperandType.purpose
 			if (purpose === null)
 			{
 				// Process all operands without a purpose first.
@@ -413,12 +418,12 @@ protected constructor(
 			}
 			for (edge in edges)
 			{
-				val purpose = namedOperandTypes[operandIndex].purpose()
+				val purpose = namedOperandTypes[operandIndex].purpose
 				val manifestCopy =
 					L2ValueManifest(manifest)
 				(operands zip namedOperandTypes).forEach {
 						(operand, namedOperandType)  ->
-					if (namedOperandType.purpose() == purpose
+					if (namedOperandType.purpose == purpose
 						&& operand !is L2PcOperand
 						&& operand !is L2PcVectorOperand)
 					{
@@ -578,16 +583,11 @@ protected constructor(
 	 * @param builder
 	 *   The `StringBuilder` to which the preamble should be written.
 	 */
-	protected fun renderPreamble(
-		instruction: L2Instruction, builder: StringBuilder)
+	fun renderPreamble(
+		instruction: L2Instruction,
+		builder: StringBuilder)
 	{
-		val offset = instruction.offset
-		if (offset != -1)
-		{
-			builder.append(instruction.offset)
-			builder.append(". ")
-		}
-		builder.append(this)
+		instruction.renderPreamble(builder)
 	}
 
 	/**
@@ -651,7 +651,7 @@ protected constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		val types = operandTypes
 		val operands = instruction.operands
 		var i = 0
@@ -677,7 +677,7 @@ protected constructor(
 	 */
 	fun simpleAppendTo(instruction: L2Instruction, builder: StringBuilder)
 	{
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(": ")
 		val operands = instruction.operands
 		val targets = mutableListOf<String>()

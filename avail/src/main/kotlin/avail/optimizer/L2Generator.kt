@@ -80,6 +80,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
@@ -518,7 +519,7 @@ class L2Generator internal constructor(
 		val boxedRead = currentManifest.readBoxed(semanticBoxed)
 		if (restriction.containedByType(i32))
 		{
-			addInstruction(L2_UNBOX_INT, boxedRead, intWrite)
+			addInstruction(L2_UNBOX_INT(boxedRead, intWrite))
 		}
 		else
 		{
@@ -1019,22 +1020,22 @@ class L2Generator internal constructor(
 	override fun currentlyReachable(): Boolean =
 		currentBlock.notNullAnd(L2BasicBlock::currentlyReachable)
 
+	//TODO Remove after migrating instruction representation
 	override fun addInstruction(
 		operation: L2Operation,
 		vararg operands: L2Operand)
 	{
 		currentBlock?.let { block ->
 			block.addInstruction(
-				L2Instruction(block, operation, *operands),
-				currentManifest
-			)
+				L2OldInstruction(operation, *operands).cloneFor(block),
+				currentManifest)
 		}
 	}
 
 	override fun addInstruction(instruction: L2Instruction)
 	{
-		currentBlock?.run {
-			addInstruction(instruction, currentManifest)
+		currentBlock?.let { block ->
+			block.addInstruction(instruction.cloneFor(block), currentManifest)
 		}
 	}
 

@@ -109,6 +109,7 @@ import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.TypeTag
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1OperandType

@@ -769,7 +769,8 @@ abstract class L2Regenerator internal constructor(
 		// as part of generation, or they should already have been replaced by
 		// moves.
 		assert(!sourceInstruction.isPhi)
-		sourceInstruction.transformAndEmitOn(this)
+		val transformed = sourceInstruction.transformedByRegenerator(this)
+		transformed.emitTransformedInstruction(this)
 	}
 
 	/**

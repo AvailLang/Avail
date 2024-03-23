@@ -103,7 +103,7 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 		//		final L2PcOperand outOfRange = instruction.operand(4);
 //		final L2PcOperand zeroDivisor = instruction.operand(5);
 //		final L2PcOperand success = instruction.operand(6);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append("quo=")
 		builder.append(quotient.registerString())
 		builder.append(", rem=")

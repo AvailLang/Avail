@@ -111,7 +111,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		//		final L2PcOperand ifEqual = instruction.operand(2);
 		//		final L2PcOperand ifUnequal = instruction.operand(3);
 
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" = ")

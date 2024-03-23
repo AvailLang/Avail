@@ -36,18 +36,25 @@ import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
+import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -69,6 +76,7 @@ import avail.interpreter.levelTwo.register.L2IntRegister
  */
 sealed class L2OperandType
 constructor(
+	val operandClass: Class<out L2Operand>,
 	val canHavePurpose: Boolean = false)
 {
 	/**
@@ -107,6 +115,7 @@ constructor(
 	{
 		@Suppress("LeakingThis")
 		privateAllOperandTypes.add(this)
+		privateOperandTypeByOperandClass[operandClass] = this
 	}
 
 	companion object
@@ -115,40 +124,47 @@ constructor(
 		// below.
 		private val privateAllOperandTypes = mutableSetOf<L2OperandType>()
 
+		private val privateOperandTypeByOperandClass =
+			mutableMapOf<Class<out L2Operand>, L2OperandType>()
+
 		/**
 		 * An [L2ConstantOperand] holds a Java object of any type, except
 		 * [AvailObject], which should be handled with a [CONSTANT] operand.
 		 */
-		object ARBITRARY_CONSTANT : L2OperandType()
+		object ARBITRARY_CONSTANT : L2OperandType(
+			L2ArbitraryConstantOperand::class.java)
 
 		/**
 		 * An [L2ConstantOperand] holds a specific [AvailObject].  The value is
 		 * always made immutable for safety during L2 code generation.  And then
 		 * made shared prior to installing the [L2Chunk].
 		 */
-		object CONSTANT : L2OperandType()
+		object CONSTANT : L2OperandType(L2ConstantOperand::class.java)
 
 		/**
 		 * An [L2IntImmediateOperand] holds an [Int] value.
 		 */
-		object INT_IMMEDIATE : L2OperandType()
+		object INT_IMMEDIATE : L2OperandType(L2IntImmediateOperand::class.java)
 
 		/**
 		 * An [L2FloatImmediateOperand] holds a `double` value.
 		 */
-		object FLOAT_IMMEDIATE : L2OperandType()
+		object FLOAT_IMMEDIATE : L2OperandType(
+			L2FloatImmediateOperand::class.java)
 
 		/**
 		 * An [L2PcOperand] holds an offset into the chunk's instructions,
 		 * presumably for the purpose of branching there at some time and under
 		 * some condition.
 		 */
-		object PC : L2OperandType(true)
+		object PC : L2OperandType(
+			L2PcOperand::class.java,
+			true)
 
 		/**
 		 * An [L2PrimitiveOperand] holds a [Primitive] to be invoked.
 		 */
-		object PRIMITIVE : L2OperandType()
+		object PRIMITIVE : L2OperandType(L2PrimitiveOperand::class.java)
 
 		/**
 		 * Like a [CONSTANT], the [L2SelectorOperand] holds the actual
@@ -156,83 +172,97 @@ constructor(
 		 * depends on this bundle, invalidating itself if its
 		 * [definitions][DefinitionDescriptor] change.
 		 */
-		object SELECTOR : L2OperandType()
+		object SELECTOR : L2OperandType(L2SelectorOperand::class.java)
 
 		/**
 		 * The [L2ReadBoxedOperand] holds the [L2BoxedRegister] that will be
 		 * read.
 		 */
-		object READ_BOXED : L2OperandType()
+		object READ_BOXED : L2OperandType(L2ReadBoxedOperand::class.java)
 
 		/**
 		 * The [L2WriteBoxedOperand] holds the [L2BoxedRegister] that will be
 		 * written.
 		 */
-		object WRITE_BOXED : L2OperandType(true)
+		object WRITE_BOXED : L2OperandType(
+			L2WriteBoxedOperand::class.java,
+			true)
 
 		/**
 		 * The [L2ReadIntOperand] holds the [L2IntRegister] that will be read.
 		 */
-		object READ_INT : L2OperandType()
+		object READ_INT : L2OperandType(L2ReadIntOperand::class.java)
 
 		/**
 		 * The [L2WriteIntOperand] holds the [L2IntRegister] that will be
 		 * written.
 		 */
-		object WRITE_INT : L2OperandType(true)
+		object WRITE_INT : L2OperandType(
+			L2WriteIntOperand::class.java,
+			true)
 
 		/**
 		 * The [L2WriteFloatOperand] holds the [L2FloatRegister] that will be
 		 * read.
 		 */
-		object READ_FLOAT : L2OperandType()
+		object READ_FLOAT : L2OperandType(L2ReadFloatOperand::class.java)
 
 		/**
 		 * The [L2WriteFloatOperand] holds the [L2FloatRegister] that will be
 		 * written.
 		 */
-		object WRITE_FLOAT : L2OperandType(true)
+		object WRITE_FLOAT : L2OperandType(
+			L2WriteFloatOperand::class.java,
+			true)
 
 		/**
 		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
 		 * which will be read.
 		 */
-		object READ_BOXED_VECTOR : L2OperandType()
+		object READ_BOXED_VECTOR : L2OperandType(
+			L2ReadBoxedVectorOperand::class.java)
 
 		/**
 		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
 		 * which will be read.
 		 */
-		object READ_INT_VECTOR : L2OperandType()
+		object READ_INT_VECTOR : L2OperandType(
+			L2ReadIntVectorOperand::class.java)
 
 		/**
 		 * The [L2ReadVectorOperand] holds a [List] of [L2ReadBoxedOperand]s
 		 * which will be read.
 		 */
-		object READ_FLOAT_VECTOR : L2OperandType()
+		object READ_FLOAT_VECTOR : L2OperandType(
+			L2ReadFloatVectorOperand::class.java)
 
 		/**
 		 * The [L2WriteVectorOperand] holds a [List] of [L2WriteBoxedOperand]s
 		 * which will all be written.
 		 */
-		object WRITE_BOXED_VECTOR : L2OperandType()
+		object WRITE_BOXED_VECTOR : L2OperandType(
+			L2WriteBoxedVectorOperand::class.java)
 
 		/**
 		 * The [L2PcVectorOperand] holds a [List] of [L2PcOperand]s which can be
 		 * the targets of a multi-way jump.
 		 */
-		object PC_VECTOR : L2OperandType(true)
+		object PC_VECTOR : L2OperandType(L2PcVectorOperand::class.java, true)
 
 		/**
 		 * The [L2CommentOperand] holds descriptive text that does not affect
 		 * analysis or execution of level two code.  It is for diagnostic
 		 * purposes only.
 		 */
-		object COMMENT : L2OperandType()
+		object COMMENT : L2OperandType(L2CommentOperand::class.java)
 
 		/**
 		 * An immutable [Set] of each [L2OperandType].
 		 */
 		val allOperandTypes: Set<L2OperandType> = privateAllOperandTypes
+
+		fun operandTypeForOperandClass(
+			operandClass: Class<out L2Operand>
+		): L2OperandType = privateOperandTypeByOperandClass[operandClass]!!
 	}
 }

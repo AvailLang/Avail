@@ -73,7 +73,7 @@ object L2_MOVE_OUTER_VARIABLE : L2Operation(
 			instruction.operand<L2ReadBoxedOperand>(1)
 		val destination =
 			instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")

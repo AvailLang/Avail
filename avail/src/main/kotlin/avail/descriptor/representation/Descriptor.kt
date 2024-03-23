@@ -99,6 +99,7 @@ import avail.exceptions.MethodDefinitionException
 import avail.exceptions.SignatureException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner

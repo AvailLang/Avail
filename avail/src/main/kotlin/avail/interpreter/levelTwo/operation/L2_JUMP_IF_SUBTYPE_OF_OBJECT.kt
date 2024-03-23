@@ -67,7 +67,7 @@ object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
 		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
 		//		final L2PcOperand isSubtype = instruction.operand(2);
 //		final L2PcOperand notSubtype = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(firstReg.registerString())
 		builder.append(" ⊆ ")

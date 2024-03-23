@@ -94,6 +94,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRAS
 import avail.descriptor.types.TypeTag
 import avail.exceptions.AvailErrorCode.E_BLOCK_MUST_NOT_CONTAIN_OUTERS
 import avail.exceptions.AvailRuntimeException
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.serialization.SerializerOperation

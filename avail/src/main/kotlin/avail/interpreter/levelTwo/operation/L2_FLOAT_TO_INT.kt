@@ -59,7 +59,7 @@ object L2_FLOAT_TO_INT : L2Operation(
 	{
 		val source = instruction.operand<L2ReadFloatOperand>(0)
 		val destination = instruction.operand<L2WriteIntOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")

@@ -60,7 +60,7 @@ object L2_UNBOX_FLOAT : L2Operation(
 	{
 		val source = instruction.operand<L2ReadBoxedOperand>(0)
 		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")

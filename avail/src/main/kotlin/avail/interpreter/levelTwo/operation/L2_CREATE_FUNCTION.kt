@@ -140,7 +140,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		val code = instruction.operand<L2ConstantOperand>(0)
 		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val function = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(function.registerString())
 		builder.append(" ← ")

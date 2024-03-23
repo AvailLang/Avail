@@ -222,7 +222,7 @@ private constructor(
 	{
 		val source = instruction.operand<L2ReadOperand<K>>(0)
 		val destination = instruction.operand<L2WriteOperand<K>>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		if (destination.restriction().constantOrNull.notNullAnd { isNil })
 		{

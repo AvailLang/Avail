@@ -60,7 +60,7 @@ object L2_CLEAR_VARIABLE : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		val variableReg = instruction.operand<L2Operand>(0)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(variableReg)
 	}

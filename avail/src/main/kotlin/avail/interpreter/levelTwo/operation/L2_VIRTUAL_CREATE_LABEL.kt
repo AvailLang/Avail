@@ -123,7 +123,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		val function = instruction.operand<L2ReadBoxedOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
 		val frameSize = instruction.operand<L2IntImmediateOperand>(3)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(" ").append(outputLabel)
 		builder.append("\n\tfunction = ").append(function)
 		builder.append("\n\targuments = ").append(arguments)

@@ -64,6 +64,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.descriptor.types.TypeTag
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import org.availlang.json.JSONWriter

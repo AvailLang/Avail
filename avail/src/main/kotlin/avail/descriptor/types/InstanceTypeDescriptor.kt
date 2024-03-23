@@ -83,6 +83,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.INSTANCE
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -505,10 +506,7 @@ private constructor(
 	override fun o_ValueType(self: AvailObject): A_Type =
 		enumerationWith(getInstance(self).valuesAsTuple.asSet)
 
-	override fun o_Parent(self: AvailObject): A_BasicObject
-	{
-		unsupportedOperation()
-	}
+	override fun o_Parent(self: AvailObject): A_BasicObject = unsupported
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
 		getSuperkind(self).returnType

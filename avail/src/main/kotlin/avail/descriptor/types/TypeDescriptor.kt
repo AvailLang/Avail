@@ -47,6 +47,7 @@ import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.operand.TypeRestriction
 
 /**

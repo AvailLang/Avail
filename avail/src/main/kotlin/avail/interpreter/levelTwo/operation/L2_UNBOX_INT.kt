@@ -33,12 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2Operand
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.L2SplitCondition
@@ -53,19 +49,17 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_UNBOX_INT : L2Operation(
-	READ_BOXED.named("source"),
-	WRITE_INT.named("destination"))
+class L2_UNBOX_INT(
+	var source: L2ReadBoxedOperand,
+	var destination: L2WriteIntOperand
+) : L2NewInstruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteIntOperand>(1)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")
@@ -74,36 +68,22 @@ object L2_UNBOX_INT : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteIntOperand>(1)
-
 		// :: destination = source.extractInt();
 		translator.load(method, source.register())
 		A_Number.extractIntStaticMethod.generateCall(method)
 		translator.store(method, destination.register())
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
-	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteIntOperand>(1)
-		return listOf(
+	override fun interestingConditions(): List<L2SplitCondition?> =
+		listOf(
 			unboxedIntCondition(
 				listOf(source.register(), destination.register())))
-	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		val source = transformedOperands[0] as L2ReadBoxedOperand
-		val destination = transformedOperands[1] as L2WriteIntOperand
-
 		// Synonyms of ints are tricky, so check if there's an int version of
 		// a synonym of the source available.
 		val manifest = regenerator.currentManifest
@@ -129,6 +109,6 @@ object L2_UNBOX_INT : L2Operation(
 			}
 		}
 		// We have to unbox it.
-		super.emitTransformedInstruction(transformedOperands, regenerator)
+		super.emitTransformedInstruction(regenerator)
 	}
 }

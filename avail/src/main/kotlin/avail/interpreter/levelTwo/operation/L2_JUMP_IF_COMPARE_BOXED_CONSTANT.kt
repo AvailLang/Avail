@@ -117,7 +117,7 @@ class L2_JUMP_IF_COMPARE_BOXED_CONSTANT internal constructor(
 		val constant = instruction.operand<L2ConstantOperand>(1)
 		//val ifTrue = instruction.operand<L2PcOperand>(2)
 		//val ifFalse = instruction.operand<L2PcOperand>(3)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		append(' ')
 		append(number1Reg.registerString())
 		append(' ')

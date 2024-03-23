@@ -40,6 +40,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPojoBottomType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -105,16 +106,14 @@ constructor(mutability: Mutability) : PojoTypeDescriptor(mutability, null, null)
 
 	override fun o_TypeIntersectionOfPojoFusedType(
 		self: AvailObject,
-		aFusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		aFusedPojoType: A_Type
+	): A_Type = unsupported
 
 	override fun o_TypeIntersectionOfPojoUnfusedType(
 		self: AvailObject,
 		anUnfusedPojoType: A_Type): A_Type
 	{
-		unsupportedOperation()
+		unsupported
 	}
 
 	override fun o_TypeUnionOfPojoType(
@@ -123,22 +122,15 @@ constructor(mutability: Mutability) : PojoTypeDescriptor(mutability, null, null)
 
 	override fun o_TypeUnionOfPojoFusedType(
 		self: AvailObject,
-		aFusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		aFusedPojoType: A_Type
+	): A_Type = unsupported
 
 	override fun o_TypeUnionOfPojoUnfusedType(
 		self: AvailObject,
-		anUnfusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		anUnfusedPojoType: A_Type
+	): A_Type = unsupported
 
-	override fun o_TypeVariables(self: AvailObject): A_Map
-	{
-		unsupportedOperation()
-	}
+	override fun o_TypeVariables(self: AvailObject): A_Map = unsupported
 
 	@ThreadSafe
 	override fun o_SerializerOperation(

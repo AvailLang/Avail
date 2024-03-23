@@ -60,7 +60,7 @@ object L2_BOX_FLOAT : L2Operation(
 	{
 		val sourceReg = instruction.operand<L2ReadFloatOperand>(0)
 		val destinationReg = instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destinationReg.registerString())
 		builder.append(" ← ")

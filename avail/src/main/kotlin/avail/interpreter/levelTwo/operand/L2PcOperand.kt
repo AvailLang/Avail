@@ -36,6 +36,7 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.bitCastDoubleToLongMethod
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
@@ -273,10 +274,10 @@ class L2PcOperand constructor (
 		val manifestCopy = L2ValueManifest(manifest())
 		newBlock.insertInstruction(
 			0,
-			L2Instruction(
-				newBlock,
+			L2OldInstruction(
 				L2_JUMP,
-				L2PcOperand(newBlock, isBackward, manifestCopy)))
+				L2PcOperand(newBlock, isBackward, manifestCopy)
+			).cloneFor(newBlock))
 		val newJump = newBlock.instructions()[0]
 		val jumpEdge = L2_JUMP.jumpTarget(newJump)
 

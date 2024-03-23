@@ -64,7 +64,7 @@ object L2_EXTRACT_CONTINUATION_SLOT : L2Operation(
 		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
 		val slotIndex = instruction.operand<L2IntImmediateOperand>(1)
 		val slotValue = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		instruction.renderPreamble(builder)
 		builder.append(' ')
 		builder.append(slotValue.registerString())
 		builder.append(" ← ")

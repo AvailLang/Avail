@@ -35,6 +35,7 @@ import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind.*
@@ -282,13 +283,13 @@ sealed class L2SplitCondition
 						val readOperands = when
 						{
 							def.isPhi ||
-							def.isMove||
-							def.isBoxInt||
-							def.isUnboxInt||
-							def.isJumpIfUnboxInt||
-							def.isHash||
-							def.isExtractTagOrdinal||
-							def.isExtractObjectVariantId||
+							def.isMove ||
+							def.isBoxInt ||
+							def is L2_UNBOX_INT ||
+							def.isJumpIfUnboxInt ||
+							def.isHash ||
+							def.isExtractTagOrdinal ||
+							def.isExtractObjectVariantId ||
 							def.isExtractObjectTypeVariantId
 								-> def.readOperands
 							else -> emptyList()
