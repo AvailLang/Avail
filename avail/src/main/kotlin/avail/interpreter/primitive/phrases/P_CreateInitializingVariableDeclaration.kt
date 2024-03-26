@@ -75,7 +75,7 @@ object P_CreateInitializingVariableDeclaration : Primitive(
 		functionType(
 			tuple(
 				TOKEN.o,
-				anyMeta(),
+				anyMeta,
 				EXPRESSION_PHRASE.create(ANY.o)),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType)
 }

@@ -244,7 +244,7 @@ class L1InstructionWriter constructor(
 	 */
 	fun createLocal(localType: A_Type): Int
 	{
-		assert(localType.isInstanceOf(topMeta()))
+		assert(localType.isInstanceOf(topMeta))
 		assert(constantTypes.size == 0) {
 			"Must declare local types before allocating constants"
 		}
@@ -263,7 +263,7 @@ class L1InstructionWriter constructor(
 	 */
 	fun createConstant(constantType: A_Type): Int
 	{
-		assert(constantType.isInstanceOf(topMeta()))
+		assert(constantType.isInstanceOf(topMeta))
 		constantTypes.add(constantType)
 		return argumentTypes.size + localTypes.size + constantTypes.size
 	}

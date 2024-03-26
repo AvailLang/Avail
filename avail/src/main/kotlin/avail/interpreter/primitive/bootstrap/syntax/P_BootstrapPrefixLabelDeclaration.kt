@@ -134,7 +134,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 				assert(argumentPair.expressionsSize == 2)
 				val typePhrase = argumentPair.lastExpression
 				assert(typePhrase.isInstanceOfKind(
-					LITERAL_PHRASE.create(anyMeta())))
+					LITERAL_PHRASE.create(anyMeta)))
 				val argType = typePhrase.token.literal()
 				assert(argType.isType)
 				blockArgumentTypes.add(argType)
@@ -173,7 +173,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 								/* Argument name, a token. */
 								TOKEN.o,
 								/* Argument type. */
-								anyMeta())))),
+								anyMeta)))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
@@ -189,7 +189,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 									/* Primitive failure variable name token */
 									TOKEN.o,
 									/* Primitive failure variable type */
-									anyMeta()))))),
+									anyMeta))))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Optional label declaration. */
@@ -201,6 +201,6 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 							/* Optional label return type. */
 							zeroOrOneOf(
 								/* Label return type. */
-								topMeta()))))),
+								topMeta))))),
 			TOP.o)
 }

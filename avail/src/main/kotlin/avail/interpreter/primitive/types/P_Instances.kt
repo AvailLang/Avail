@@ -89,7 +89,7 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(topMeta()),
+			tuple(topMeta),
 			mostGeneralSetType())
 
 	override fun interestingSplitConditions(

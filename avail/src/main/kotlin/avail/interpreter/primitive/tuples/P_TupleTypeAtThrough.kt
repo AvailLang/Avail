@@ -85,5 +85,5 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 				inclusive(
 					zero,
 					positiveInfinity)),
-			anyMeta())
+			anyMeta)
 }

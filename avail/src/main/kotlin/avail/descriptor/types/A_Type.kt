@@ -1063,7 +1063,7 @@ interface A_Type : A_BasicObject
 				isSubtypeOf(instanceMeta(bottomMeta)) -> SystemStyle.METATYPE
 				isSubtypeOf(instanceMeta(PARSE_PHRASE.mostGeneralType)) ->
 					SystemStyle.PHRASE_TYPE
-				isSubtypeOf(instanceMeta(topMeta())) -> SystemStyle.METATYPE
+				isSubtypeOf(instanceMeta(topMeta)) -> SystemStyle.METATYPE
 				isSubtypeOf(PARSE_PHRASE.mostGeneralType) ->
 					SystemStyle.PHRASE
 				isInstanceMeta -> SystemStyle.TYPE

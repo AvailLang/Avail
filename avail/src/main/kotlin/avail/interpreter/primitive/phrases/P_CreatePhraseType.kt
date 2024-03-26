@@ -74,6 +74,6 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline, CannotFail)
 		functionType(
 			tuple(
 				instanceMeta(PARSE_PHRASE.mostGeneralType),
-				topMeta()),
+				topMeta),
 			instanceMeta(PARSE_PHRASE.mostGeneralType))
 }

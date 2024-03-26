@@ -915,7 +915,7 @@ class L2Generator internal constructor(
 		// Extract it at runtime instead.  Note that an actual function's
 		// argument type can't be bottom, so we specifically exclude it.
 		val parameterTypeWrite = boxedWriteTemp(
-			boxedRestrictionForType(anyMeta()).minusValue(bottom))
+			boxedRestrictionForType(anyMeta).minusValue(bottom))
 		addInstruction(
 			L2_FUNCTION_PARAMETER_TYPE,
 			functionRead,

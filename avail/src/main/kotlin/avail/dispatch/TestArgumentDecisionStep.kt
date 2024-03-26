@@ -306,10 +306,10 @@ constructor(
 		val unionReg = generator.boxedWriteTemp(
 			boxedRestrictionForType(argMeta.typeUnion(superUnionReg.type())))
 		generator.addInstruction(
-			L2_TYPE_UNION,
-			generator.readBoxed(argTypeWrite),
-			superUnionReg,
-			unionReg)
+			L2_TYPE_UNION(
+				generator.readBoxed(argTypeWrite),
+				superUnionReg,
+				unionReg))
 		generator.addInstruction(
 			L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
 			generator.readBoxed(unionReg),

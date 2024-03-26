@@ -104,7 +104,7 @@ object P_BootstrapVariableDeclarationMacro
 				/* Variable name phrase. */
 				LITERAL_PHRASE.create(TOKEN.o),
 				/* Variable type's literal phrase. */
-				LITERAL_PHRASE.create(anyMeta())),
+				LITERAL_PHRASE.create(anyMeta)),
 			DECLARATION_PHRASE.mostGeneralType)
 
 	override fun bootstrapStyler() = P_BootstrapStatementStyler

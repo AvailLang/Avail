@@ -99,7 +99,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 			tuple(
 				functionMeta(),
 				naturalNumbers),
-			anyMeta())
+			anyMeta)
 
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility

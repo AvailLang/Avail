@@ -367,7 +367,7 @@ internal constructor(
 			{
 				val zeroArgNumber = argNumber - 1
 				val restriction = knownArgumentRestrictions[zeroArgNumber]
-				if (restriction.type.isSubtypeOf(instanceMeta(topMeta()))
+				if (restriction.type.isSubtypeOf(instanceMeta(topMeta))
 					&& !restriction.type.isSubtypeOf(bottomMeta))
 				{
 					// Extract the meta's instance, itself a type.  The instance
@@ -382,7 +382,7 @@ internal constructor(
 					}
 				}
 				if (!alreadyEnumerationOfNontypeTested.bitTest(zeroArgNumber)
-					&& restriction.type.isSubtypeOf(topMeta())
+					&& restriction.type.isSubtypeOf(topMeta)
 					&& !restriction.type.isSubtypeOf(bottomMeta))
 				{
 					// If at least one of the elements expect a meta, *and* that

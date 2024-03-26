@@ -217,7 +217,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				action = { restriction, after ->
 					val finalCount = fiberCount++
 					val forkedFiber = createFiber(
-						topMeta(),
+						topMeta,
 						runtime,
 						loader,
 						originalFiber.textInterface,
@@ -328,7 +328,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			tuple(
 				ATOM.o,
 				LIST_PHRASE.mostGeneralType,
-				topMeta()),
+				topMeta),
 			tupleTypeForTypes(
 				zeroOrOneOf(SEND_PHRASE.mostGeneralType),
 				stringType))

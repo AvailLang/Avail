@@ -59,5 +59,5 @@ object P_TupleTypeDefaultType : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(tupleMeta), anyMeta())
+		functionType(tuple(tupleMeta), anyMeta)
 }

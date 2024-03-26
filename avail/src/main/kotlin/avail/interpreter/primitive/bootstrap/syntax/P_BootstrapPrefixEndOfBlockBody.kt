@@ -142,7 +142,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 								/* Argument name, a token. */
 								TOKEN.o,
 								/* Argument type. */
-								anyMeta())))),
+								anyMeta)))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
@@ -158,7 +158,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 									/* Primitive failure variable name token */
 									TOKEN.o,
 									/* Primitive failure variable type */
-									anyMeta()))))),
+									anyMeta))))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Optional label declaration. */
@@ -170,7 +170,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 							/* Optional label return type. */
 							zeroOrOneOf(
 								/* Label return type. */
-								topMeta())))),
+								topMeta)))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Statements and declarations so far. */

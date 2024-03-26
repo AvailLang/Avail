@@ -218,7 +218,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		{
 			// Copy the objects.
 			val deltaSlots = newSize - self.variableObjectSlotsCount()
-			val result = newLike(mutable(), self, deltaSlots, 0)
+			val result = newLike(mutable, self, deltaSlots, 0)
 			result.setSlotsFromTuple(TUPLE_AT_, size1 + 1, otherTuple, 1, size2)
 			result[HASH_OR_ZERO] = 0
 			return result

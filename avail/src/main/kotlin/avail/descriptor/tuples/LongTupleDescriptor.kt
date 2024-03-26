@@ -293,7 +293,7 @@ private constructor(
 	 */
 	override fun o_CopyAsMutableLongTuple(self: AvailObject): A_Tuple
 	{
-		return newLike(mutable(), self, 0, 0)
+		return newLike(mutable, self, 0, 0)
 	}
 
 	override fun o_CopyTupleFromToCanDestroy(
@@ -519,7 +519,7 @@ private constructor(
 		}
 		val result =
 			if (canDestroy && isMutable) self
-			else newLike(mutable(), self, 0, 0)
+			else newLike(mutable, self, 0, 0)
 		result[LONG_AT_, index] = newValueStrong.extractLong
 		result[HASH_OR_ZERO] = 0
 		return result

@@ -66,5 +66,5 @@ object P_PojoArrayTypeContentType : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				instanceMeta(mostGeneralPojoArrayType())),
-			anyMeta())
+			anyMeta)
 }

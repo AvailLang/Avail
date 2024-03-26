@@ -64,7 +64,7 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(ANY.o),
-			anyMeta())
+			anyMeta)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

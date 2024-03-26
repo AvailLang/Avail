@@ -73,10 +73,8 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
-				topMeta(),
-				topMeta()),
-			topMeta())
+			tuple(topMeta, topMeta),
+			topMeta)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

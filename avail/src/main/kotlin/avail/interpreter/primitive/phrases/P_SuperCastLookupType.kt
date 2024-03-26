@@ -63,5 +63,5 @@ object P_SuperCastLookupType : Primitive(1, CanFold, CanInline, CannotFail)
 		functionType(
 			tuple(
 				SUPER_CAST_PHRASE.mostGeneralType),
-			anyMeta())
+			anyMeta)
 }

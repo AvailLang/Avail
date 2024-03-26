@@ -73,9 +73,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(
-				topMeta(),
-				topMeta()),
+			tuple(topMeta, topMeta),
 			booleanType)
 
 	/**

@@ -77,7 +77,7 @@ object P_CreateInitializedVariable : Primitive(2, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(anyMeta(), ANY.o),
+			tuple(anyMeta, ANY.o),
 			mostGeneralVariableType)
 
 	override fun privateFailureVariableType(): A_Type =

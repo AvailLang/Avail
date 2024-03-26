@@ -71,7 +71,7 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ANY.o, topMeta()),
+			tuple(ANY.o, topMeta),
 			booleanType)
 
 	/**

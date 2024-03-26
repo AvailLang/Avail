@@ -70,6 +70,6 @@ object P_MapToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, ATOM.o, anyMeta())),
+					wholeNumbers, ATOM.o, anyMeta)),
 			mostGeneralObjectMeta)
 }

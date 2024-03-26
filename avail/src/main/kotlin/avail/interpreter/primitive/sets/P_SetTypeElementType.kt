@@ -60,5 +60,5 @@ object P_SetTypeElementType : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(setMeta()), anyMeta())
+		functionType(tuple(setMeta()), anyMeta)
 }

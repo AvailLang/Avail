@@ -69,6 +69,6 @@ object P_CreateArgumentDeclaration : Primitive(2, CanInline, CannotFail)
 		functionType(
 			tuple(
 				TOKEN.o,
-				anyMeta()),
+				anyMeta),
 			ARGUMENT_PHRASE.mostGeneralType)
 }

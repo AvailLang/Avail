@@ -59,5 +59,5 @@ object P_VariableWriteType : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralVariableMeta), topMeta())
+		functionType(tuple(mostGeneralVariableMeta), topMeta)
 }

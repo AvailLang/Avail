@@ -67,8 +67,8 @@ object P_InstanceOfMeta : Primitive(1, Private, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(instanceMeta(topMeta())),
-			topMeta())
+			tuple(instanceMeta(topMeta)),
+			topMeta)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NOT_AN_ENUMERATION))

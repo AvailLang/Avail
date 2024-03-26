@@ -71,6 +71,6 @@ object P_CreatePrimitiveFailureVariableDeclaration : Primitive(
 		functionType(
 			tuple(
 				TOKEN.o,
-				anyMeta()),
+				anyMeta),
 			PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType)
 }

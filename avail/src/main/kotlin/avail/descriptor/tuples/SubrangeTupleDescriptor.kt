@@ -165,7 +165,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			if (canDestroy && isMutable)
 			{
 				self[SIZE] = originalSize + 1
-				self[HASH_OR_ZERO] = 0 
+				self[HASH_OR_ZERO] = 0
 				return self
 			}
 			basisTuple.makeImmutable()

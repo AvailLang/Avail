@@ -51,6 +51,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.unsupported
@@ -263,7 +264,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 		{
 			true
 		}
-		else aType.isSubtypeOf(InstanceMetaDescriptor.topMeta())
+		else aType.isSubtypeOf(topMeta)
 		// Bottom is an instance of every meta (everything that inherits
 		// from TYPE).
 	}
@@ -274,7 +275,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	{
 		assert(!aType.isBottom)
 		return (aType.isSupertypeOfPrimitiveTypeEnum(ANY)
-				|| aType.isSubtypeOf(InstanceMetaDescriptor.topMeta()))
+				|| aType.isSubtypeOf(topMeta))
 	}
 
 	// Because ⊥ is a subtype of all other types, it is considered an

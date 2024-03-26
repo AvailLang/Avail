@@ -114,7 +114,7 @@ object P_CreateSendExpression : Primitive(3, CanInline)
 			tuple(
 				ATOM.o,
 				LIST_PHRASE.mostGeneralType,
-				topMeta()),
+				topMeta),
 			SEND_PHRASE.mostGeneralType)
 
 	override fun returnTypeGuaranteedByVM(

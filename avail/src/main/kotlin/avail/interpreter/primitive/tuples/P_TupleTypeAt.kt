@@ -97,5 +97,5 @@ object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 			tuple(
 				tupleMeta,
 				naturalNumbers),
-			anyMeta())
+			anyMeta)
 }

@@ -725,8 +725,9 @@ class AvailRuntime constructor(
 			functionType(
 				tuple(
 					mostGeneralFunctionType(),
-					topMeta(),
-					variableTypeFor(Types.ANY.o)),
+					topMeta,
+					variableTypeFor(Types.ANY.o)
+				),
 				bottom),
 			null),
 
@@ -1111,7 +1112,7 @@ class AvailRuntime constructor(
 			put(Types.ATOM.o)
 			put(Types.DOUBLE.o)
 			put(extendedIntegers)
-			put(instanceMeta(zeroOrMoreOf(anyMeta())))
+			put(instanceMeta(zeroOrMoreOf(anyMeta)))
 			put(Types.FLOAT.o)
 			put(Types.NUMBER.o)
 			put(integers)
@@ -1135,7 +1136,7 @@ class AvailRuntime constructor(
 			put(Types.NONTYPE.o)
 			put(mostGeneralTupleType)
 			put(tupleMeta)
-			put(topMeta())
+			put(topMeta)
 			put(TOP.o)
 			put(wholeNumbers)
 			put(naturalNumbers)
@@ -1176,13 +1177,13 @@ class AvailRuntime constructor(
 			put(PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralType)
 			put(PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralType)
 			put(PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType)
-			put(anyMeta())
+			put(anyMeta)
 
 			at(70)
 			put(trueObject)
 			put(falseObject)
 			put(zeroOrMoreOf(stringType))
-			put(zeroOrMoreOf(topMeta()))
+			put(zeroOrMoreOf(topMeta))
 			put(
 				zeroOrMoreOf(
 					setTypeForSizesContentType(wholeNumbers, stringType)))
@@ -1213,7 +1214,7 @@ class AvailRuntime constructor(
 					wholeNumbers, Types.ATOM.o, Types.ANY.o))
 			put(
 				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, Types.ATOM.o, anyMeta()))
+					wholeNumbers, Types.ATOM.o, anyMeta))
 			put(
 				tupleTypeForSizesTypesDefaultType(
 					wholeNumbers,
@@ -1239,12 +1240,12 @@ class AvailRuntime constructor(
 			put(emptyTuple)
 			put(functionType(tuple(bottom), TOP.o))
 			put(instanceType(zero))
-			put(functionTypeReturning(topMeta()))
+			put(functionTypeReturning(topMeta))
 			put(
 				tupleTypeForSizesTypesDefaultType(
 					wholeNumbers,
 					emptyTuple(),
-					functionTypeReturning(topMeta())))
+					functionTypeReturning(topMeta)))
 			put(
 				functionTypeReturning(
 					PhraseKind.PARSE_PHRASE.mostGeneralType))
@@ -1261,13 +1262,13 @@ class AvailRuntime constructor(
 					wholeNumbers, Types.ATOM.o))
 			put(Types.TOKEN.o)
 			put(mostGeneralLiteralTokenType())
-			put(zeroOrMoreOf(anyMeta()))
+			put(zeroOrMoreOf(anyMeta))
 			put(inclusive(zero, positiveInfinity))
 			put(
 				zeroOrMoreOf(
 					tupleTypeForSizesTypesDefaultType(
 						singleInt(2),
-						tuple(Types.ATOM.o), anyMeta())))
+						tuple(Types.ATOM.o), anyMeta)))
 
 			at(120)
 			put(
@@ -1291,7 +1292,7 @@ class AvailRuntime constructor(
 			put(u8)
 
 			at(130)
-			put(zeroOrMoreOf(zeroOrMoreOf(anyMeta())))
+			put(zeroOrMoreOf(zeroOrMoreOf(anyMeta)))
 			put(variableReadWriteType(extendedIntegers, bottom))
 			put(fiberMeta())
 			put(nonemptyStringType)

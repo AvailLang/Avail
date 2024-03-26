@@ -92,5 +92,5 @@ object P_CreateFunctionType : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(zeroOrMoreOf(anyMeta()), topMeta()), functionMeta())
+		functionType(tuple(zeroOrMoreOf(anyMeta), topMeta), functionMeta())
 }

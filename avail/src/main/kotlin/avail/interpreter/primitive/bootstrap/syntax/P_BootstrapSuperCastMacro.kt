@@ -94,6 +94,6 @@ object P_BootstrapSuperCastMacro
 		functionType(
 			tuple(
 				EXPRESSION_PHRASE.create(ANY.o),
-				LITERAL_PHRASE.create(anyMeta())),
+				LITERAL_PHRASE.create(anyMeta)),
 			SUPER_CAST_PHRASE.mostGeneralType)
 }

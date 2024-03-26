@@ -129,7 +129,7 @@ object P_BootstrapInitializingVariableDeclarationMacro
 				/* Variable name token */
 				LITERAL_PHRASE.create(TOKEN.o),
 				/* Variable type */
-				LITERAL_PHRASE.create(anyMeta()),
+				LITERAL_PHRASE.create(anyMeta),
 				/* Initialization expression */
 				EXPRESSION_PHRASE.create(ANY.o)),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType)

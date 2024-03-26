@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.InstanceTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.interpreter.levelTwo.L2Instruction
@@ -91,8 +92,7 @@ object L2_GET_TYPE : L2Operation(
 				// The value will *never* be a type.
 				InstanceTypeDescriptor.instanceTypeMethod.generateCall(method)
 			}
-			value.restriction().containedByType(
-				InstanceMetaDescriptor.topMeta()) ->
+			value.restriction().containedByType(topMeta) ->
 			{
 				// The value will *always* be a type. Strengthen to AvailObject.
 				InstanceMetaDescriptor.instanceMetaMethod.generateCall(method)

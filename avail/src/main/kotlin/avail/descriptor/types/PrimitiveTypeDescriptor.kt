@@ -196,7 +196,8 @@ private constructor(
 	// Primitive types compare by identity.
 	override fun o_EqualsPrimitiveType(
 		self: AvailObject,
-		aPrimitiveType: A_Type): Boolean = self.sameAddressAs(aPrimitiveType)
+		aPrimitiveType: A_Type
+	): Boolean = self.sameAddressAs(aPrimitiveType)
 
 	override fun o_Hash(self: AvailObject): Int = self[HASH]
 
@@ -212,115 +213,115 @@ private constructor(
 	// this primitive type is a supertype of NONTYPE.
 	override fun o_IsSupertypeOfFiberType(
 		self: AvailObject,
-		aType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	// This primitive type is a supertype of aFunctionType if and only if
 	// this primitive type is a supertype of NONTYPE.
 	override fun o_IsSupertypeOfFunctionType(
 		self: AvailObject,
-		aFunctionType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aFunctionType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	override fun o_IsSupertypeOfListNodeType(
 		self: AvailObject,
-		aListNodeType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aListNodeType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	// A primitive type is a supertype of a variable type if it is a
 	// supertype of NONTYPE.
 	override fun o_IsSupertypeOfVariableType(
 		self: AvailObject,
-		aVariableType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aVariableType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	// A primitive type is a supertype of a continuation type if it is a
 	// supertype of NONTYPE.
 	override fun o_IsSupertypeOfContinuationType(
 		self: AvailObject,
-		aContinuationType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aContinuationType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	// A primitive type is a supertype of a compiled code type if it is a
 	// supertype of NONTYPE.
 	override fun o_IsSupertypeOfCompiledCodeType(
 		self: AvailObject,
-		aCompiledCodeType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aCompiledCodeType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	// Parent of the top integer range type is number, so continue
 	// searching there.
 	override fun o_IsSupertypeOfIntegerRangeType(
 		self: AvailObject,
-		anIntegerRangeType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NUMBER)
+		anIntegerRangeType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NUMBER)
 
 	// This primitive type is a supertype of aTokenType if and only if this
 	// primitive type is a supertype of TOKEN.
 	override fun o_IsSupertypeOfTokenType(
 		self: AvailObject,
-		aTokenType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(TOKEN)
+		aTokenType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(TOKEN)
 
 	// This primitive type is a supertype of aLiteralTokenType if and only
 	// if this primitive type is a supertype of TOKEN.
 	override fun o_IsSupertypeOfLiteralTokenType(
 		self: AvailObject,
-		aLiteralTokenType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(TOKEN)
+		aLiteralTokenType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(TOKEN)
 
 	// This primitive type is a supertype of aMapType if and only if this
 	// primitive type is a supertype of NONTYPE.
 	override fun o_IsSupertypeOfMapType(
 		self: AvailObject,
-		aMapType: AvailObject): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aMapType: AvailObject
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	// Check if I'm a supertype of the given eager object type. Only NONTYPE
 	// and its ancestors are supertypes of an object type.
 	override fun o_IsSupertypeOfObjectType(
 		self: AvailObject,
-		anObjectType: AvailObject): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		anObjectType: AvailObject
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	override fun o_IsSupertypeOfPhraseType(
 		self: AvailObject,
-		aPhraseType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aPhraseType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	override fun o_IsSupertypeOfPojoBottomType(
 		self: AvailObject,
-		aPojoType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aPojoType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	override fun o_IsSupertypeOfPojoType(
 		self: AvailObject,
-		aPojoType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aPojoType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	override fun o_IsSupertypeOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: Types): Boolean =
-			primitiveTypeEnum.superTests[extractOrdinal(self)]
+		primitiveTypeEnum: Types
+	): Boolean = primitiveTypeEnum.superTests[extractOrdinal(self)]
 
 	// This primitive type is a supertype of aSetType if and only if this
 	// primitive type is a supertype of NONTYPE.
 	override fun o_IsSupertypeOfSetType(
 		self: AvailObject,
-		aSetType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aSetType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	// This primitive type is a supertype of aTupleType if and only if this
 	// primitive type is a supertype of NONTYPE.
 	override fun o_IsSupertypeOfTupleType(
 		self: AvailObject,
-		aTupleType: A_Type): Boolean =
-			self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
+		aTupleType: A_Type
+	): Boolean = self.isSupertypeOfPrimitiveTypeEnum(NONTYPE)
 
 	override fun o_IsSupertypeOfEnumerationType(
 		self: AvailObject,
-		anEnumerationType: A_Type): Boolean =
-			topMeta().isSubtypeOf(self)
+		anEnumerationType: A_Type
+	): Boolean = topMeta.isSubtypeOf(self)
 
 	@ThreadSafe
 	override fun o_IsTop(self: AvailObject): Boolean = self.sameAddressAs(TOP.o)
@@ -360,33 +361,40 @@ private constructor(
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.ARBITRARY_PRIMITIVE_TYPE
 
-	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
+	override fun o_TypeIntersection(
+		self: AvailObject,
+		another: A_Type
+	): A_Type =
 		another.typeIntersectionOfPrimitiveTypeEnum(extractEnum(self))
 
 	override fun o_TypeIntersectionOfListNodeType(
 		self: AvailObject,
-		aListNodeType: A_Type): A_Type =
-			if (NONTYPE.superTests[extractOrdinal(self)]) aListNodeType
-			else bottom
+		aListNodeType: A_Type
+	): A_Type =
+		if (NONTYPE.superTests[extractOrdinal(self)]) aListNodeType
+		else bottom
 
 	override fun o_TypeIntersectionOfPhraseType(
 		self: AvailObject,
-		aPhraseType: A_Type): A_Type =
-			if (NONTYPE.superTests[extractOrdinal(self)]) aPhraseType
-			else bottom
+		aPhraseType: A_Type
+	): A_Type =
+		if (NONTYPE.superTests[extractOrdinal(self)]) aPhraseType
+		else bottom
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: Types): A_Type =
-			primitiveTypeEnum.intersectionTypes[extractOrdinal(self)]!!
+		primitiveTypeEnum: Types
+	): A_Type =
+		primitiveTypeEnum.intersectionTypes[extractOrdinal(self)]!!
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		another.typeUnionOfPrimitiveTypeEnum(extractEnum(self))
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: Types): A_Type =
-			primitiveTypeEnum.unionTypes[extractOrdinal(self)]!!
+		primitiveTypeEnum: Types
+	): A_Type =
+		primitiveTypeEnum.unionTypes[extractOrdinal(self)]!!
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{

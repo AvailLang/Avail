@@ -258,10 +258,10 @@ class TypeConsistencyTest
 
 			/** The most general metatype. */
 			private val TOP_META = Node(
-				"TOP_META", topMeta(), primitiveTypes[Types.ANY]!!)
+				"TOP_META", topMeta, primitiveTypes[Types.ANY]!!)
 
 			/** The type of `any`. */
-			private val ANY_META = Node("ANY_META", anyMeta(), TOP_META)
+			private val ANY_META = Node("ANY_META", anyMeta, TOP_META)
 
 			/** The type of `nontype`. */
 			private val NONTYPE_META = Node(
@@ -1277,7 +1277,7 @@ class TypeConsistencyTest
 				assertT(
 					x
 						.union(y)
-						.isInstanceOf(topMeta()),
+						.isInstanceOf(topMeta),
 					"union closure: %s, %s",
 					x,
 					y)
@@ -1393,7 +1393,7 @@ class TypeConsistencyTest
 			{
 				assertT(
 					x.intersect(y).isInstanceOf(
-						topMeta()),
+						topMeta),
 					"intersection closure: %s, %s",
 					x,
 					y)

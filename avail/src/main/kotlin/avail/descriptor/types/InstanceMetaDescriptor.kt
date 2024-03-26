@@ -430,28 +430,12 @@ private constructor(
 		/**
 		 * `⊤`'s type, cached statically for convenience.
 		 */
-		private val topMeta: A_Type = instanceMeta(Types.TOP.o).makeShared()
-
-		/**
-		 * Answer ⊤'s type, the most general metatype.
-		 *
-		 * @return
-		 *   `⊤`'s type.
-		 */
-		fun topMeta(): A_Type = topMeta
+		val topMeta: A_Type = instanceMeta(Types.TOP.o).makeShared()
 
 		/**
 		 * Any's type, cached statically for convenience.
 		 */
-		private val anyMeta: A_Type = instanceMeta(ANY.o).makeShared()
-
-		/**
-		 * Answer any's type, a metatype.
-		 *
-		 * @return
-		 *   `any`'s type.
-		 */
-		fun anyMeta(): A_Type = anyMeta
+		val anyMeta: A_Type = instanceMeta(ANY.o).makeShared()
 
 		/**
 		 * Answer a new instance of this descriptor based on some object whose

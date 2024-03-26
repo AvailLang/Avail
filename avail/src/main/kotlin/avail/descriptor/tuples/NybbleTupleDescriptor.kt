@@ -786,14 +786,14 @@ class NybbleTupleDescriptor private constructor(
 	}
 
 	override fun mutable(): NybbleTupleDescriptor =
-		descriptors[(16 - unusedNybblesOfLastLong and 15) * 3
-					+ MUTABLE.ordinal]!!
+		descriptors[
+			(16 - unusedNybblesOfLastLong and 15) * 3 + MUTABLE.ordinal]!!
 
 	override fun immutable(): NybbleTupleDescriptor =
-		descriptors[(16 - unusedNybblesOfLastLong and 15) * 3
-					+ IMMUTABLE.ordinal]!!
+		descriptors[
+			(16 - unusedNybblesOfLastLong and 15) * 3 + IMMUTABLE.ordinal]!!
 
 	override fun shared(): NybbleTupleDescriptor =
-		descriptors[(16 - unusedNybblesOfLastLong and 15) * 3
-			+ SHARED.ordinal]!!
+		descriptors[
+			(16 - unusedNybblesOfLastLong and 15) * 3 + SHARED.ordinal]!!
 }

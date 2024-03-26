@@ -427,7 +427,6 @@ class MessageBundleDescriptor private constructor(
 		}
 	}
 
-
 	@Deprecated("Not supported", ReplaceWith("newBundle()"))
 	override fun mutable() = unsupported
 

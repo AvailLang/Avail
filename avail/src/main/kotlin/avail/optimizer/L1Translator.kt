@@ -1851,10 +1851,11 @@ class L1Translator private constructor(
 							addInstruction(
 								L2_GET_TYPE, argReg, originalArgTypeWrite)
 							addInstruction(
-								L2_TYPE_UNION,
-								readBoxed(originalArgTypeWrite),
-								generator.boxedConstant(superUnionElementType),
-								argTypeWrite)
+								L2_TYPE_UNION(
+									readBoxed(originalArgTypeWrite),
+									generator.boxedConstant(
+										superUnionElementType),
+									argTypeWrite))
 						}
 						readBoxed(argTypeWrite)
 					}

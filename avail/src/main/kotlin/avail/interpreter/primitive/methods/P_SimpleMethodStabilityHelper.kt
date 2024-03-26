@@ -266,8 +266,8 @@ object P_SimpleMethodStabilityHelper : Primitive(
 			val outerIndex = createOuter(instanceType(evaluationFunction))
 			assert(outerIndex == 1)
 			argumentTypesTuple(tupleFromList(metaTypes))
-			returnType = topMeta()
-			returnTypeIfPrimitiveFails = topMeta()
+			returnType = topMeta
+			returnTypeIfPrimitiveFails = topMeta
 			writeDefaultFailureCode(
 				methodBodyCode.codeStartingLineNumber, this, numArgs)
 			compiledCode()
@@ -294,5 +294,5 @@ object P_SimpleMethodStabilityHelper : Primitive(
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
-	): A_Type = topMeta()
+	): A_Type = topMeta
 }

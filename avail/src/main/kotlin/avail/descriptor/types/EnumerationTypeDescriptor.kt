@@ -101,6 +101,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND
 import avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.INSTANCES
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -395,8 +396,8 @@ private constructor(
 			// One more thing:  The special case of another being bottom should
 			// not be treated as being a meta for our purposes, even though
 			// bottom technically is a meta.
-			if (self.isSubtypeOf(InstanceMetaDescriptor.topMeta())
-				&& another.isSubtypeOf(InstanceMetaDescriptor.topMeta())
+			if (self.isSubtypeOf(topMeta)
+				&& another.isSubtypeOf(topMeta)
 				&& !another.isBottom)
 			{
 				return bottomMeta

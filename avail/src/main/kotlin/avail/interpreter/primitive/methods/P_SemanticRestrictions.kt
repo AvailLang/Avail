@@ -88,8 +88,8 @@ object P_SemanticRestrictions : Primitive(2, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(METHOD.o, zeroOrMoreOf(anyMeta())),
-			zeroOrMoreOf(functionTypeReturning(topMeta())))
+			tuple(METHOD.o, zeroOrMoreOf(anyMeta)),
+			zeroOrMoreOf(functionTypeReturning(topMeta)))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INCORRECT_NUMBER_OF_ARGUMENTS))

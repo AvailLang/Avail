@@ -115,7 +115,9 @@ object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o, functionTypeReturning(topMeta())), TOP.o)
+		functionType(
+			tuple(ATOM.o, functionTypeReturning(topMeta)),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

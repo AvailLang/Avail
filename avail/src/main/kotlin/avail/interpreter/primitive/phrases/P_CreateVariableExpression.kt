@@ -69,6 +69,6 @@ object P_CreateVariableExpression : Primitive(2, CanInline, CannotFail)
 		functionType(
 			tuple(
 				TOKEN.o,
-				anyMeta()),
+				anyMeta),
 			LOCAL_VARIABLE_PHRASE.mostGeneralType)
 }

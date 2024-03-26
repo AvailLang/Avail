@@ -65,5 +65,5 @@ object P_BlockReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				BLOCK_PHRASE.mostGeneralType),
-			topMeta())
+			topMeta)
 }

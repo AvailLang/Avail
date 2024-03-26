@@ -428,7 +428,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 								/* Argument name, a token. */
 								TOKEN.o,
 								/* Argument type. */
-								anyMeta())))),
+								anyMeta)))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
@@ -444,7 +444,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 									/* Primitive failure variable name token */
 									TOKEN.o,
 									/* Primitive failure variable type */
-									anyMeta()))))),
+									anyMeta))))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Optional label declaration. */
@@ -456,7 +456,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 							/* Optional label return type. */
 							zeroOrOneOf(
 								/* Label return type. */
-								topMeta())))),
+								topMeta)))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Statements and declarations so far. */
@@ -469,7 +469,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				/* Optional return expression */
 				LIST_PHRASE.create(zeroOrOneOf(PARSE_PHRASE.create(ANY.o))),
 				/* Optional return type */
-				LIST_PHRASE.create(zeroOrOneOf(topMeta())),
+				LIST_PHRASE.create(zeroOrOneOf(topMeta)),
 				/* Optional tuple of exception types */
 				LIST_PHRASE.create(zeroOrOneOf(oneOrMoreOf(exceptionType)))),
 			/* ...and produce a block phrase. */

@@ -66,7 +66,7 @@ object P_CreateEnumeration : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralSetType()),
-			anyMeta())
+			anyMeta)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

@@ -2110,7 +2110,8 @@ class IntegerDescriptor private constructor(
 		}
 	}
 
-	override fun mutable() = descriptors[MUTABLE]!![unusedIntsOfLastLong.toInt()]
+	override fun mutable() =
+		descriptors[MUTABLE]!![unusedIntsOfLastLong.toInt()]
 
 	override fun immutable() =
 		descriptors[IMMUTABLE]!![unusedIntsOfLastLong.toInt()]

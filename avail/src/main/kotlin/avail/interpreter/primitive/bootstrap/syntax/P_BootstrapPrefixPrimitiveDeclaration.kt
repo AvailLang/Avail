@@ -204,7 +204,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 								/* Argument name, a token. */
 								TOKEN.o,
 								/* Argument type. */
-								anyMeta())))),
+								anyMeta)))),
 				/* Macro argument is a phrase. */
 				LIST_PHRASE.create(
 					/* Optional primitive declaration. */
@@ -220,6 +220,6 @@ object P_BootstrapPrefixPrimitiveDeclaration
 									/* Primitive failure variable name token */
 									TOKEN.o,
 									/* Primitive failure variable type */
-									anyMeta())))))),
+									anyMeta)))))),
 			TOP.o)
 }
