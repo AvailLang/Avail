@@ -57,9 +57,11 @@ import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.utility.cast
+import avail.utility.Strings
 import org.objectweb.asm.MethodVisitor
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty0
 
 /**
  * An instruction to be placed in an [L2BasicBlock] within an
@@ -77,19 +79,23 @@ abstract class L2NewInstruction : L2Instruction()
 	override val name: String get() = layout.name
 
 	/**
+	 * Strengthen [clone]'s type as a convenience.
+	 * TODO - This will be removed when L2OldInstruction is obsoleted.
+	 */
+	override fun clone() = super.clone() as L2NewInstruction
+
+	/**
 	 * An [InstructionLayout] object, set during construction, which captures
 	 * the reflection information necessary for accessing the operands of the
 	 * instruction in a generic way.  The layouts are placed in a cache as they
 	 * are created, to minimize the reflection cost.
 	 */
-	@Suppress("UNCHECKED_CAST")
-	private val layout: InstructionLayout =
-		(
-			layoutsByClass[javaClass] ?:
-				layoutsByClass.computeIfAbsent(javaClass) {
-					InstructionLayout(it.cast())
-				}
-		).cast()
+	val layout: InstructionLayout<out L2NewInstruction> =
+		layoutsByClass[this::class] ?:
+			layoutsByClass.computeIfAbsent(this::class) {
+				@Suppress("UNCHECKED_CAST")
+				InstructionLayout(it as KClass<out L2NewInstruction>)
+			}
 
 	/**
 	 * Use the cached [layout] to extract all the operands.
@@ -119,10 +125,11 @@ abstract class L2NewInstruction : L2Instruction()
 	 */
 	override fun operandsWithNamedTypesDo(
 		consumer: (L2Operand, L2NamedOperandType) -> Unit
-	) = layout.operandsWithNamedTypesDo(this.cast(), consumer)
+	) = layout.operandsWithNamedTypesDo(this, consumer)
 
-	// TODO Override in L2ControlFlowOperation when it becomes an instruction.
+	/** This is overridden in [L2NewControlFlowOperation]. */
 	override open val targetEdges: List<L2PcOperand> get() = emptyList()
+
 	override open val altersControlFlow: Boolean get() = false
 	override open val hasSideEffect: Boolean get() = false
 
@@ -150,7 +157,6 @@ abstract class L2NewInstruction : L2Instruction()
 	override open val isHash: Boolean get() = false
 	override open val isUnreachableInstruction: Boolean get() = false
 	override open val isBoxInt: Boolean get() = false
-	override open val isJumpIfUnboxInt: Boolean get() = false
 	override open val goesMultipleWays: Boolean get() = false
 	override val constantCode: A_RawFunction? get() = null
 
@@ -224,28 +230,60 @@ abstract class L2NewInstruction : L2Instruction()
 	override fun appendToWithWarnings(
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean)->Unit
-	)
+		warningStyleChange: (Boolean)->Unit)
 	{
 		TODO("Not yet implemented")
 	}
 
+	/**
+	 * Generically render all [operands][L2Operand] of this [L2Instruction],
+	 * except for those linked to the given [Field]s.
+	 *
+	 * @param excludedFields
+	 *   The vararg array of [fields][KProperty] whose corresponding
+	 *   [L2Operand]s should be excluded.
+	 * @param desiredTypes
+	 *   The [L2OperandType]s of [L2Operand]s to be included in generic
+	 *   renditions. Customized renditions may not honor these types.
+	 * @param builder
+	 *   The [StringBuilder] to which the rendition should be written.
+	 */
+	fun renderOperandsExcludingFields(
+		builder: StringBuilder,
+		vararg excludedFields: KMutableProperty0<out L2Operand>)
+	{
+		val excludedNames = excludedFields.mapTo(mutableSetOf()) { it.name }
+		operandsWithNamedTypesDo { operand, namedOperandType ->
+			if (namedOperandType.name !in excludedNames)
+			{
+				builder.append("\n\t")
+				builder.append(namedOperandType.name())
+				builder.append(" = ")
+				builder.append(
+					Strings.increaseIndentation(operand.toString(), 1))
+			}
+		}
+	}
+
+	/**
+	 * Transform this instruction's [L2Operand]s for the given [regenerator].
+	 *
+	 * @param regenerator
+	 *   The [L2Regenerator] that will take operands from an old graph and
+	 *   produce corresponding operators for the new graph being generated.
+	 */
 	override fun transformedByRegenerator(
 		regenerator: L2Regenerator
 	): L2Instruction
 	{
 		val clone = clone()
-		layout.operandFields.forEach { field ->
-			field.update(clone.cast(), regenerator::transformOperand)
-		}
+		layout.updateOperands(clone, regenerator::transformOperand)
 		return clone
 	}
 
 	override open fun emitTransformedInstruction(
 		regenerator: L2Regenerator
 	): Unit = regenerator.addInstruction(this)
-
-	override open val isPlaceholder: Boolean get() = false
 
 	override open fun interestingConditions(): List<L2SplitCondition?> =
 		emptyList()
@@ -261,9 +299,14 @@ abstract class L2NewInstruction : L2Instruction()
 	 * subclass.
 	 */
 	override fun toString() = buildString {
-		append("${this@L2NewInstruction.javaClass.simpleName}:\n\t")
-		layout.operandFields.joinTo(this, ",\n\t") {
-			"${it.name} = ${it.get(this@L2NewInstruction.cast())}"
+		val instruction = this
+		append("${instruction::class.simpleName}:\n\t")
+		var pairs = mutableListOf<Pair<String, L2Operand>>()
+		operandsWithNamedTypesDo { operand, namedOperandType ->
+			pairs.add(namedOperandType.name to operand)
+		}
+		pairs.joinTo(this, ",\n\t") { (name, operand) ->
+			"$name = $operand"
 		}
 	}
 
@@ -280,6 +323,6 @@ abstract class L2NewInstruction : L2Instruction()
 		// Access to an existing layout generally involves no locks or
 		// modification of contended memory.
 		val layoutsByClass =
-			ConcurrentHashMap<Class<*>, InstructionLayout>(100)
+			ConcurrentHashMap<KClass<*>, InstructionLayout<*>>(100)
 	}
 }

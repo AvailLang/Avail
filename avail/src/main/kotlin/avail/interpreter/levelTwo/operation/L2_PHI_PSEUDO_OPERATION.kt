@@ -329,7 +329,7 @@ private constructor(
 		super.toString() + "(" + moveOperation.kind.kindName + ")"
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

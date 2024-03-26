@@ -35,6 +35,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypesForTypesArrayMethod
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
@@ -57,7 +58,7 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 	WRITE_BOXED.named("tuple type"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

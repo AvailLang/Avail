@@ -56,7 +56,7 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_INTERPRET_LEVEL_ONE : L2ControlFlowOperation(
+object L2_INTERPRET_LEVEL_ONE : L2OldControlFlowOperation(
 	PC.named("call reentry point", ON_RAMP),
 	PC.named("interrupt reentry point", ON_RAMP))
 {

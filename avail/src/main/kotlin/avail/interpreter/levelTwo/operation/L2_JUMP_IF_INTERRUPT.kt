@@ -49,7 +49,7 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_INTERRUPT : L2ConditionalJump(
+object L2_JUMP_IF_INTERRUPT : L2OldConditionalJump(
 	PC.named("if interrupt", OFF_RAMP),
 	PC.named("if not interrupt", SUCCESS))
 {

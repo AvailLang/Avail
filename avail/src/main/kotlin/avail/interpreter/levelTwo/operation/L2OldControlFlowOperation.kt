@@ -55,9 +55,9 @@ import avail.optimizer.L2BasicBlock
  *   The vararg array of [L2NamedOperandType]s that defines the layout of
  *   operands for [L2Instruction]s this use this operation.
  */
-abstract class L2ControlFlowOperation protected constructor(
-		vararg theNamedOperandTypes: L2NamedOperandType)
-	: L2Operation(*theNamedOperandTypes)
+abstract class L2OldControlFlowOperation protected constructor(
+		vararg theNamedOperandTypes: L2NamedOperandType
+) : L2Operation(*theNamedOperandTypes)
 {
 	/**
 	 * The array of operand indices which have type [L2PcOperand].

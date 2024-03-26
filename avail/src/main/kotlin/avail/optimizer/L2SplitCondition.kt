@@ -35,6 +35,7 @@ import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
@@ -286,7 +287,7 @@ sealed class L2SplitCondition
 							def.isMove ||
 							def.isBoxInt ||
 							def is L2_UNBOX_INT ||
-							def.isJumpIfUnboxInt ||
+							def is L2_JUMP_IF_UNBOX_INT ||
 							def.isHash ||
 							def.isExtractTagOrdinal ||
 							def.isExtractObjectVariantId ||

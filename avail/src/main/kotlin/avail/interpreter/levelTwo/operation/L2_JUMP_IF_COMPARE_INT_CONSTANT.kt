@@ -37,6 +37,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
@@ -70,7 +71,7 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 	private val numericComparator: NumericComparator
-) : L2ConditionalJump(
+) : L2OldConditionalJump(
 	READ_INT.named("int value"),
 	INT_IMMEDIATE.named("constant"),
 	PC.named("if true", SUCCESS),
@@ -102,7 +103,7 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit
@@ -120,7 +121,7 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 		append(numericComparator.comparatorName)
 		append(" #")
 		append(constant.value.toString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 	}
 
 	override fun toString(): String

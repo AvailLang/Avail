@@ -40,6 +40,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.FLOAT_IMMEDIATE
@@ -173,7 +174,7 @@ private constructor(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

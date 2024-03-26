@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PRIMITIVE
@@ -142,7 +143,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

@@ -36,6 +36,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
@@ -73,7 +74,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 	COMMENT.named("usage comment"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -109,7 +110,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		builder.append(levelOneStackp)
 		builder.append("]\n\tcaller=")
 		builder.append(caller)
-		renderOperandsStartingAt(instruction, 6, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(6, desiredTypes, builder)
 	}
 
 	override fun translateToJVM(

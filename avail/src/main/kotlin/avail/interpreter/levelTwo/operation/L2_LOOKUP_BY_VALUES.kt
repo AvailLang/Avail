@@ -93,7 +93,7 @@ import java.util.logging.Level
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
+object L2_LOOKUP_BY_VALUES : L2OldControlFlowOperation(
 	SELECTOR.named("message bundle"),
 	READ_BOXED_VECTOR.named("arguments"),
 	WRITE_BOXED.named("looked up function", SUCCESS),

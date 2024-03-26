@@ -35,6 +35,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
@@ -76,7 +77,7 @@ private constructor(
 	WRITE_INT.named("output"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

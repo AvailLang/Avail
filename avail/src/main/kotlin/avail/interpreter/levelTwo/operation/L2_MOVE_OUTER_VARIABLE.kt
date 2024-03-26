@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -62,7 +63,7 @@ object L2_MOVE_OUTER_VARIABLE : L2Operation(
 	WRITE_BOXED.named("destination"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

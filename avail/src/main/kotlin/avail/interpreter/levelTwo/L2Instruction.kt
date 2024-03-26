@@ -419,11 +419,6 @@ abstract class L2Instruction
 	/** Answer whether this boxed an int. */
 	abstract val isBoxInt: Boolean
 
-	/**
-	 * Answer whether this conditionally unboxes an int, jumping somewhere on
-	 * failure.
-	 */
-	abstract val isJumpIfUnboxInt: Boolean
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
@@ -936,7 +931,7 @@ abstract class L2Instruction
 	 * re-emitted as an arbitrary graph of instructions at some point, via
 	 * [generateReplacement].
 	 */
-	abstract val isPlaceholder: Boolean
+	open val isPlaceholder: Boolean get() = false
 
 	/**
 	 * Now that chunk optimization has completed, remove information from this

@@ -45,7 +45,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP : L2ControlFlowOperation(
+object L2_JUMP : L2OldControlFlowOperation(
 	PC.named("target", SUCCESS))
 {
 	// It jumps, which counts as a side effect.

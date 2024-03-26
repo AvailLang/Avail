@@ -423,6 +423,9 @@ class L2ControlFlowGraphVisualizer constructor(
 					tag("td", "balign" to "left") {
 						font(bold = true) {
 							append(escape(basicName))
+							namedOperandType?.purpose?.let {
+								append(" ($it)")
+							}
 						}
 						append("<br/>")
 

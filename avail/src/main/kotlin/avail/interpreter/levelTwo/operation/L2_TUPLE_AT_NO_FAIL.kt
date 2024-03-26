@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
@@ -57,7 +58,7 @@ object L2_TUPLE_AT_NO_FAIL : L2Operation(
 	WRITE_BOXED.named("destination"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

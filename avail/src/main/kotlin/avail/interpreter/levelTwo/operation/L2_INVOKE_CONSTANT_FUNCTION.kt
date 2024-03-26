@@ -43,6 +43,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
@@ -83,7 +84,7 @@ import org.objectweb.asm.MethodVisitor
 @WritesHiddenVariable(
 	CURRENT_FUNCTION::class,
 	LATEST_RETURN_VALUE::class)
-object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
+object L2_INVOKE_CONSTANT_FUNCTION : L2OldControlFlowOperation(
 	CONSTANT.named("constant function"),
 	READ_BOXED_VECTOR.named("arguments"),
 	WRITE_BOXED.named("result", SUCCESS),
@@ -110,7 +111,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -133,7 +134,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 			append("(")
 			append(arguments.elements)
 			append(")")
-			renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+			instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 		}
 	}
 

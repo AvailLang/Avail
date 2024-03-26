@@ -60,7 +60,7 @@ import org.objectweb.asm.Opcodes
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_JUMP_IF_ALREADY_REIFIED : L2ConditionalJump(
+object L2_JUMP_IF_ALREADY_REIFIED : L2OldConditionalJump(
 	PC.named("already reified", SUCCESS),
 	PC.named("not yet interrupt", FAILURE))
 {

@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -49,13 +50,13 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_RETURN : L2ControlFlowOperation(
+object L2_RETURN : L2OldControlFlowOperation(
 	READ_BOXED.named("return value"))
 {
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

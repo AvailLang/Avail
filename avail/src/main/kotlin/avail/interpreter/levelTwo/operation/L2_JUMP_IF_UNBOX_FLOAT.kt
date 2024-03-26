@@ -37,6 +37,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -55,14 +56,14 @@ import org.objectweb.asm.Opcodes
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
+object L2_JUMP_IF_UNBOX_FLOAT : L2OldConditionalJump(
 	READ_BOXED.named("source"),
 	WRITE_FLOAT.named("destination", SUCCESS),
 	PC.named("if not unboxed", FAILURE),
 	PC.named("if unboxed", SUCCESS))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -76,7 +77,7 @@ object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
 		builder.append(destination.registerString())
 		builder.append(" ←? ")
 		builder.append(source.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 	}
 
 	override fun instructionWasAdded(

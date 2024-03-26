@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
@@ -57,7 +58,7 @@ object L2_GET_RETURNING_FUNCTION : L2Operation(
 	WRITE_BOXED.named("returning function"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

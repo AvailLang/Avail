@@ -35,6 +35,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
@@ -59,7 +60,7 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
+object L2_DIVIDE_INT_BY_INT : L2OldControlFlowOperation(
 	READ_INT.named("dividend"),
 	READ_INT.named("divisor"),
 	WRITE_INT.named("quotient", SUCCESS),
@@ -91,7 +92,7 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -112,7 +113,7 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 		builder.append(dividend.registerString())
 		builder.append(" ÷ ")
 		builder.append(divisor.registerString())
-		renderOperandsStartingAt(instruction, 4, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(4, desiredTypes, builder)
 	}
 
 	override fun translateToJVM(

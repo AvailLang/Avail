@@ -37,6 +37,7 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportWrongReturnTypeMethod
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
@@ -65,7 +66,7 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
 @WritesHiddenVariable(CURRENT_FUNCTION::class)
-object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
+object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2OldControlFlowOperation(
 	READ_BOXED.named("returned value"),
 	CONSTANT.named("expected type"),
 	INT_IMMEDIATE.named("pc"),
@@ -75,7 +76,7 @@ object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
 	override fun isCold(instruction: L2Instruction): Boolean = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

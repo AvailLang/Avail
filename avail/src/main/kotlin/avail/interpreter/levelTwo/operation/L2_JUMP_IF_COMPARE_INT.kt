@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
@@ -59,7 +60,7 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_JUMP_IF_COMPARE_INT internal constructor(
 	private val numericComparator: NumericComparator
-) : L2ConditionalJump(
+) : L2OldConditionalJump(
 	READ_INT.named("int1"),
 	READ_INT.named("int2"),
 	PC.named("if true", SUCCESS),
@@ -100,7 +101,7 @@ class L2_JUMP_IF_COMPARE_INT internal constructor(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -117,7 +118,7 @@ class L2_JUMP_IF_COMPARE_INT internal constructor(
 		builder.append(numericComparator.comparatorName)
 		builder.append(" ")
 		builder.append(int2Reg.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 	}
 
 	override fun toString(): String

@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
@@ -56,7 +57,7 @@ object L2_CREATE_VARIABLE : L2Operation(
 	WRITE_BOXED.named("variable"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

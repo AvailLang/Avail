@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT
@@ -215,7 +216,7 @@ private constructor(
 		instruction.operand(1)
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean)->Unit)

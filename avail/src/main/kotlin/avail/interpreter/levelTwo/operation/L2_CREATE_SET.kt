@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
@@ -54,7 +55,7 @@ object L2_CREATE_SET : L2Operation(
 	WRITE_BOXED.named("new set"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean)->Unit)

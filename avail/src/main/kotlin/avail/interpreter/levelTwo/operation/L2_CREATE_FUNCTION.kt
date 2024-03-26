@@ -39,6 +39,7 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
@@ -132,7 +133,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

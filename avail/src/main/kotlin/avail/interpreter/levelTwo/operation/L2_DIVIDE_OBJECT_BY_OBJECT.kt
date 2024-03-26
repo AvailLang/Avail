@@ -36,6 +36,7 @@ import avail.exceptions.ArithmeticException
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -57,7 +58,7 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
+object L2_DIVIDE_OBJECT_BY_OBJECT : L2OldControlFlowOperation(
 	READ_BOXED.named("dividend"),
 	READ_BOXED.named("divisor"),
 	WRITE_BOXED.named("quotient", SUCCESS),
@@ -70,7 +71,7 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
 		get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -90,7 +91,7 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
 		builder.append(dividend.registerString())
 		builder.append(" ÷ ")
 		builder.append(divisor.registerString())
-		renderOperandsStartingAt(instruction, 4, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(4, desiredTypes, builder)
 	}
 
 	override fun translateToJVM(

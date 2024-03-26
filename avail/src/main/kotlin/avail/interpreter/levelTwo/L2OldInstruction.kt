@@ -53,7 +53,6 @@ import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
@@ -71,6 +70,7 @@ import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.Strings
 import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
@@ -291,12 +291,6 @@ constructor(
 
 	/** Answer whether this boxed an int. */
 	override val isBoxInt: Boolean get() = operation is L2_BOX_INT
-
-	/**
-	 * Answer whether this conditionally unboxes an int, jumping somewhere on
-	 * failure.
-	 */
-	override val isJumpIfUnboxInt: Boolean get() = operation is L2_JUMP_IF_UNBOX_INT
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
@@ -579,6 +573,49 @@ constructor(
 			desiredOperandTypes,
 			builder,
 			warningStyleChange)
+	}
+
+	/**
+	 * Generically render all [operands][L2Operand] of the specified
+	 * [L2Instruction] starting at the specified index.
+	 *
+	 * @param instruction
+	 *   The `L2Instruction`.
+	 * @param start
+	 *   The start index.
+	 * @param desiredTypes
+	 *   The [L2OperandType]s of [L2Operand]s to be included in generic
+	 *   renditions. Customized renditions may not honor these types.
+	 * @param builder
+	 *   The [StringBuilder] to which the rendition should be written.
+	 */
+	fun renderOperandsStartingAt(
+		start: Int,
+		desiredTypes: Set<L2OperandType>,
+		builder: StringBuilder)
+	{
+		val types = operation.operandTypes
+		var i = start
+		val limit = operands.size
+		while (i < limit)
+		{
+			val type = types[i]
+			if (desiredTypes.contains(type.operandType()))
+			{
+				val operand = operand<L2Operand>(i)
+				builder.append("\n\t")
+				assert(operand.operandType == type.operandType())
+				builder.append(type.name())
+				builder.append(" = ")
+				builder.append(
+					Strings.increaseIndentation(
+						operand.toString(),
+						1
+					)
+				)
+			}
+			i++
+		}
 	}
 
 	override fun transformedByRegenerator(

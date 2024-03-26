@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -59,7 +60,7 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 	WRITE_BOXED.named("parameter type"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

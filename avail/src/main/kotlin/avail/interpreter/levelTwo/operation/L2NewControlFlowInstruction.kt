@@ -1,5 +1,5 @@
 /*
- * L2ConditionalJump.kt
+ * L2NewControlFlowInstruction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,82 +33,42 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.optimizer.L2ValueManifest
-import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.optimizer.L2BasicBlock
 
 /**
- * Jump to `"if satisfied"` if some condition is met, otherwise jump to
- * `"if unsatisfied"`.
+ * An [L2Operation] that alters control flow, and therefore does not fall
+ * through to the next instruction.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
  * Protect the constructor so the subclasses can maintain a fly-weight
  * pattern (or arguably a singleton).
  *
- * By convention, there are always 2 [targetEdges], the first of which is the
- * "taken" branch, and the second of which is the "not taken" branch.
- *
  * @param theNamedOperandTypes
- *   The vararg array of [L2NamedOperandType]s that describe the operands of
- *   such an instruction.
+ *   The vararg array of [L2NamedOperandType]s that defines the layout of
+ *   operands for [L2Instruction]s this use this operation.
  */
-abstract class L2ConditionalJump protected constructor(
-		vararg theNamedOperandTypes: L2NamedOperandType)
-	: L2ControlFlowOperation(*theNamedOperandTypes)
+abstract class L2NewControlFlowInstruction : L2NewInstruction()
 {
-	override fun instructionWasAdded(
-		instruction: L2Instruction,
-		manifest: L2ValueManifest)
-	{
-		super.instructionWasAdded(instruction, manifest)
-		targetEdges(instruction).forEach {
-			it.installCounter()
-		}
-	}
+	override val altersControlFlow get() = true
 
-	// It jumps, which counts as a side effect.
-	override val hasSideEffect: Boolean get() = true
-
-	companion object
-	{
-		/**
-		 * Emit a conditional branch, including an increment for the counters
-		 * along each path.
-		 *
-		 * @param translator
-		 *   The [JVMTranslator] controlling code generation.
-		 * @param method
-		 *   The [MethodVisitor] on which to write the instructions.
-		 * @param instruction
-		 *   The [L2Instruction] causing this code generation.
-		 * @param opcode
-		 *   The Java bytecode to emit for the branch instruction.
-		 * @param conditionHolds
-		 *   Where to jump if the condition holds.
-		 * @param conditionDoesNotHold
-		 *   Where to jump if the condition does not hold.
-		 */
-		@JvmStatic
-		protected fun emitBranch(
-			translator: JVMTranslator,
-			method: MethodVisitor,
-			instruction: L2Instruction,
-			opcode: Int,
-			conditionHolds: L2PcOperand,
-			conditionDoesNotHold: L2PcOperand)
-		{
-			translator.branch(
-				method,
-				instruction,
-				opcode,
-				conditionHolds,
-				conditionDoesNotHold,
-				conditionHolds.counter!!,
-				conditionDoesNotHold.counter!!)
-		}
-	}
+	/**
+	 * Extract the operands which are [L2PcOperand]s.  These are what lead to
+	 * other [L2BasicBlock]s.  They also carry an edge-specific array of slots,
+	 * and edge-specific [TypeRestriction]s for registers.
+	 *
+	 * @param instruction
+	 *   The [L2Instruction] to examine.
+	 * @return
+	 *   The [List] of target [L2PcOperand]s that are operands of the given
+	 *   instruction.  These may be reachable directly via a control flow
+	 *   change, or reachable only from some other mechanism like continuation
+	 *   reification and later resumption of a continuation.
+	 */
+	override val targetEdges: List<L2PcOperand> = layout.pcOperands(this)
 }

@@ -35,6 +35,7 @@ import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -51,14 +52,14 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
+object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2OldConditionalJump(
 	READ_BOXED.named("first type"),
 	READ_BOXED.named("second type"),
 	PC.named("is subtype", SUCCESS),
 	PC.named("not subtype", FAILURE))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -72,7 +73,7 @@ object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
 		builder.append(firstReg.registerString())
 		builder.append(" ⊆ ")
 		builder.append(secondReg.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 	}
 
 	override fun translateToJVM(

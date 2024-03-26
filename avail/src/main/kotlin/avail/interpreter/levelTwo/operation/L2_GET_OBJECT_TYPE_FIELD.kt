@@ -33,6 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -60,7 +61,7 @@ object L2_GET_OBJECT_TYPE_FIELD : L2Operation(
 	WRITE_BOXED.named("field type"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

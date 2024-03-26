@@ -64,7 +64,7 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
-import avail.interpreter.levelTwo.operation.L2ControlFlowOperation
+import avail.interpreter.levelTwo.operation.L2OldControlFlowOperation
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
@@ -80,7 +80,6 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.escape
-import avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -216,7 +215,7 @@ protected constructor(
 	 */
 	val namedOperandTypes: Array<out L2NamedOperandType> =
 		theNamedOperandTypes.clone().also { types ->
-			assert(this is L2ControlFlowOperation
+			assert(this is L2OldControlFlowOperation
 				|| this is L2_SAVE_ALL_AND_PC_TO_INT
 				|| types.none { it.operandType() == PC })
 		}
@@ -591,46 +590,6 @@ protected constructor(
 	}
 
 	/**
-	 * Generically render all [operands][L2Operand] of the specified
-	 * [L2Instruction] starting at the specified index.
-	 *
-	 * @param instruction
-	 *   The `L2Instruction`.
-	 * @param start
-	 *   The start index.
-	 * @param desiredTypes
-	 *   The [L2OperandType]s of [L2Operand]s to be included in generic
-	 *   renditions. Customized renditions may not honor these types.
-	 * @param builder
-	 *   The [StringBuilder] to which the rendition should be written.
-	 */
-	protected fun renderOperandsStartingAt(
-		instruction: L2Instruction,
-		start: Int,
-		desiredTypes: Set<L2OperandType>,
-		builder: StringBuilder)
-	{
-		val operands = instruction.operands
-		val types = operandTypes
-		var i = start
-		val limit = operands.size
-		while (i < limit)
-		{
-			val type = types[i]
-			if (desiredTypes.contains(type.operandType()))
-			{
-				val operand = instruction.operand<L2Operand>(i)
-				builder.append("\n\t")
-				assert(operand.operandType == type.operandType())
-				builder.append(type.name())
-				builder.append(" = ")
-				builder.append(increaseIndentation(operand.toString(), 1))
-			}
-			i++
-		}
-	}
-
-	/**
 	 * Produce a sensible textual rendition of the specified [L2Instruction].
 	 *
 	 * @param instruction
@@ -646,7 +605,7 @@ protected constructor(
 	 *   warning style.  This must be invoked in (true, false) pairs.
 	 */
 	open fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

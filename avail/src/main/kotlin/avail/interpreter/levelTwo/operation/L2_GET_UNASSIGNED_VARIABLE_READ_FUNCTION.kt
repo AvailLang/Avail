@@ -37,6 +37,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
@@ -57,7 +58,7 @@ object L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION : L2Operation(
 	WRITE_BOXED.named("unassigned variable read function"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

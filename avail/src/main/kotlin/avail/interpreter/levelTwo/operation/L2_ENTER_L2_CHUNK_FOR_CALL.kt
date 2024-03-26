@@ -36,6 +36,7 @@ import avail.interpreter.JavaLibrary.listGetMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED_VECTOR
@@ -73,7 +74,7 @@ object L2_ENTER_L2_CHUNK_FOR_CALL : L2Operation(
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

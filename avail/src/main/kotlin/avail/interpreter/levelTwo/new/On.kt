@@ -41,6 +41,6 @@ import avail.interpreter.levelTwo.L2NamedOperandType
  * with the same [Purpose] is taken.  That's the only way that registers can be
  * conditionally assigned in L2.
  */
-@Target(AnnotationTarget.VALUE_PARAMETER)
+@Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class On constructor(val purpose: L2NamedOperandType.Purpose)

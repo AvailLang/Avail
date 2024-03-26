@@ -37,6 +37,7 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -58,7 +59,7 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @WritesHiddenVariable(GLOBAL_STATE::class)
-object L2_SET_VARIABLE_NO_CHECK : L2ControlFlowOperation(
+object L2_SET_VARIABLE_NO_CHECK : L2OldControlFlowOperation(
 	READ_BOXED.named("variable"),
 	READ_BOXED.named("value to write"),
 	PC.named("write succeeded", SUCCESS),
@@ -69,7 +70,7 @@ object L2_SET_VARIABLE_NO_CHECK : L2ControlFlowOperation(
 	override val isVariableSet: Boolean get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -81,7 +82,7 @@ object L2_SET_VARIABLE_NO_CHECK : L2ControlFlowOperation(
 		builder.append(variable.registerString())
 		builder.append(" ← ")
 		builder.append(value.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 	}
 
 	override fun translateToJVM(

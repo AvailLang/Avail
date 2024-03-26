@@ -37,6 +37,7 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportUnassignedVariableReadMethod
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
@@ -60,7 +61,7 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
 @WritesHiddenVariable(CURRENT_FUNCTION::class)
-object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
+object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2OldControlFlowOperation(
 	INT_IMMEDIATE.named("pc"),
 	INT_IMMEDIATE.named("stackp"),
 	READ_BOXED_VECTOR.named("frame values"))
@@ -68,7 +69,7 @@ object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
 	override fun isCold(instruction: L2Instruction): Boolean = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

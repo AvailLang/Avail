@@ -41,6 +41,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
@@ -73,7 +74,7 @@ import org.objectweb.asm.Opcodes
  * Construct an `L2_JUMP_IF_EQUALS_CONSTANT`.
  */
 object L2_JUMP_IF_EQUALS_CONSTANT :
-	L2ConditionalJump(
+	L2OldConditionalJump(
 		READ_BOXED.named("value"),
 		CONSTANT.named("constant"),
 		PC.named("if equal", SUCCESS),
@@ -101,7 +102,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -116,7 +117,7 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		builder.append(value.registerString())
 		builder.append(" = ")
 		builder.append(constant.constant)
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 	}
 
 	override fun generateReplacement(

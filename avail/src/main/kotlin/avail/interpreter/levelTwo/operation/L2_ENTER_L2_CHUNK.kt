@@ -38,6 +38,7 @@ import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
@@ -74,7 +75,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

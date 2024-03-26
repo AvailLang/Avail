@@ -56,6 +56,7 @@ import avail.descriptor.types.TypeTag.Companion.tagFromOrdinal
 import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.ARBITRARY_CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
@@ -100,13 +101,13 @@ import kotlin.math.min
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_MULTIWAY_JUMP : L2ConditionalJump(
+object L2_MULTIWAY_JUMP : L2OldConditionalJump(
 	READ_INT.named("value"),
 	ARBITRARY_CONSTANT.named("splitter"),
 	PC_VECTOR.named("branch edges", SUCCESS))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -122,7 +123,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 			.append(value.registerString())
 			.append(" in ")
 			.append(extractSplitter(splitterConstant))
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 	}
 
 	override fun instructionWasAdded(

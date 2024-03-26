@@ -47,7 +47,7 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_UNREACHABLE_CODE : L2ControlFlowOperation()
+object L2_UNREACHABLE_CODE : L2OldControlFlowOperation()
 {
 	override fun isCold(instruction: L2Instruction): Boolean = true
 

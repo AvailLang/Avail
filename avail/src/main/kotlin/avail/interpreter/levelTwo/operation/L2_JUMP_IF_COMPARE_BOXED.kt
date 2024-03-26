@@ -35,6 +35,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -63,7 +64,7 @@ import org.objectweb.asm.Opcodes
  */
 class L2_JUMP_IF_COMPARE_BOXED internal constructor(
 	private val numericComparator: NumericComparator
-) : L2ConditionalJump(
+) : L2OldConditionalJump(
 	READ_BOXED.named("number1"),
 	READ_BOXED.named("number2"),
 	PC.named("if true", SUCCESS),
@@ -105,7 +106,7 @@ class L2_JUMP_IF_COMPARE_BOXED internal constructor(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -121,7 +122,7 @@ class L2_JUMP_IF_COMPARE_BOXED internal constructor(
 		builder.append(numericComparator.comparatorName)
 		builder.append(" ")
 		builder.append(number2Reg.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
 	}
 
 	override fun toString(): String

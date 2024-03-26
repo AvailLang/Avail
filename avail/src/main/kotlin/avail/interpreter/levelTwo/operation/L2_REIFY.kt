@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.ARBITRARY_CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
@@ -65,7 +66,7 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @WritesHiddenVariable(STACK_REIFIER::class)
-object L2_REIFY : L2ControlFlowOperation(
+object L2_REIFY : L2OldControlFlowOperation(
 	INT_IMMEDIATE.named("capture frames"),
 	INT_IMMEDIATE.named("process interrupt"),
 	ARBITRARY_CONSTANT.named("statistic"),
@@ -120,7 +121,7 @@ object L2_REIFY : L2ControlFlowOperation(
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
@@ -54,7 +55,7 @@ object L2_EXTRACT_CONTINUATION_FUNCTION : L2Operation(
 	WRITE_BOXED.named("extracted function"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

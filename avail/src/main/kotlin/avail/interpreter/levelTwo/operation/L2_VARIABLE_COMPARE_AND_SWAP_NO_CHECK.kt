@@ -38,6 +38,7 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -69,7 +70,7 @@ import org.objectweb.asm.Type
  */
 @ReadsHiddenVariable(GLOBAL_STATE::class)
 @WritesHiddenVariable(GLOBAL_STATE::class)
-object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2ControlFlowOperation(
+object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2OldControlFlowOperation(
 	READ_BOXED.named("variable"),
 	READ_BOXED.named("reference"),
 	READ_BOXED.named("value to write"),
@@ -83,7 +84,7 @@ object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2ControlFlowOperation(
 		get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
@@ -98,7 +99,7 @@ object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2ControlFlowOperation(
 		builder.append(newValue.registerString())
 		builder.append(" only if it was ")
 		builder.append(reference.registerString())
-		renderOperandsStartingAt(instruction, 3, desiredTypes, builder)
+		instruction.renderOperandsStartingAt(3, desiredTypes, builder)
 	}
 
 	override fun translateToJVM(

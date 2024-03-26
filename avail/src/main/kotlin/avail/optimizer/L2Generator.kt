@@ -526,11 +526,11 @@ class L2Generator internal constructor(
 			// Conversion may succeed or fail at runtime.
 			val onSuccess = createBasicBlock("successfully unboxed")
 			addInstruction(
-				L2_JUMP_IF_UNBOX_INT,
-				boxedRead,
-				intWrite,
-				edgeTo(onFailure),
-				edgeTo(onSuccess))
+				L2_JUMP_IF_UNBOX_INT(
+					boxedRead,
+					intWrite,
+					edgeTo(onFailure),
+					edgeTo(onSuccess)))
 			startBlock(onSuccess)
 		}
 		return currentManifest.readInt(semanticUnboxed)

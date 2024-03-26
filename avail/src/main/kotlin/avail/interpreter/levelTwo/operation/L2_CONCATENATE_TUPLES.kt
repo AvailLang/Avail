@@ -38,6 +38,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.concatenateTupleMethod
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
@@ -65,7 +66,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 	WRITE_BOXED.named("concatenated tuple"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean)->Unit)

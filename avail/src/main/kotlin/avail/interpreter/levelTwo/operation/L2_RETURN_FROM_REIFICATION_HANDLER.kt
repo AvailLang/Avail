@@ -33,6 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
@@ -54,7 +55,7 @@ import org.objectweb.asm.Opcodes
 @ReadsHiddenVariable(
 	CURRENT_CONTINUATION::class,
 	STACK_REIFIER::class)
-object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
+object L2_RETURN_FROM_REIFICATION_HANDLER : L2OldControlFlowOperation()
 {
 	override fun isCold(instruction: L2Instruction): Boolean = true
 
@@ -66,7 +67,7 @@ object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
 		}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

@@ -36,14 +36,10 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
-import avail.interpreter.levelTwo.operand.L2Operand
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -65,39 +61,29 @@ import org.objectweb.asm.Opcodes
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
-	READ_BOXED.named("source"),
-	WRITE_INT.named("destination", SUCCESS),
-	PC.named("if not unboxed", FAILURE),
-	PC.named("if unboxed", SUCCESS))
+class L2_JUMP_IF_UNBOX_INT
+constructor(
+	var source: L2ReadBoxedOperand,
+	@On(SUCCESS) var destination: L2WriteIntOperand,
+	@On(FAILURE) var ifNotUnboxed: L2PcOperand,
+	@On(SUCCESS) var ifUnboxed: L2PcOperand
+): L2NewConditionalJump()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteIntOperand>(1)
-		//val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
-		//val ifUnboxed = instruction.operand<L2PcOperand>(3)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ←? ")
 		builder.append(source.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		renderOperandsExcludingFields(builder, ::source, ::destination)
 	}
 
-	override fun instructionWasAdded(
-		instruction: L2Instruction,
-		manifest: L2ValueManifest)
+	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteIntOperand>(1)
-		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
-		val ifUnboxed = instruction.operand<L2PcOperand>(3)
-
 		source.instructionWasAdded(manifest)
 		val semanticSource = source.semanticValue()
 		// Don't add the destination along the failure edge.
@@ -116,14 +102,8 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteIntOperand>(1)
-		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
-		val ifUnboxed = instruction.operand<L2PcOperand>(3)
-
 		// :: if (!source.isInt()) goto ifNotUnboxed;
 		translator.load(method, source.register())
 		A_Number.isIntMethod.generateCall(method)
@@ -136,18 +116,11 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		translator.load(method, source.register())
 		A_Number.extractIntStaticMethod.generateCall(method)
 		translator.store(method, destination.register())
-		translator.jump(method, instruction, ifUnboxed)
+		translator.jump(method, this, ifUnboxed)
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
+	override fun interestingConditions(): List<L2SplitCondition?>
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteIntOperand>(1)
-		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
-		val ifUnboxed = instruction.operand<L2PcOperand>(3)
-
 		val conditions = mutableListOf<L2SplitCondition?>()
 		if (!ifUnboxed.targetBlock().isCold)
 		{
@@ -170,14 +143,8 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		val source = transformedOperands[0] as L2ReadBoxedOperand
-		val destination = transformedOperands[1] as L2WriteIntOperand
-		val ifNotUnboxed = transformedOperands[2] as L2PcOperand
-		val ifUnboxed = transformedOperands[3] as L2PcOperand
-
 		// Regeneration can strengthen this type via code splitting, or even
 		// obviate the need to re-extract into an int register if it's
 		// already in one along this split path.
@@ -235,8 +202,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 			else ->
 			{
 				// It's still contingent on the value.
-				super.emitTransformedInstruction(
-					transformedOperands, regenerator)
+				super.emitTransformedInstruction(regenerator)
 			}
 		}
 	}

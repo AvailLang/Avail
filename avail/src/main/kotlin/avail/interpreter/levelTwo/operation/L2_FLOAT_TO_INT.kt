@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
@@ -52,7 +53,7 @@ object L2_FLOAT_TO_INT : L2Operation(
 	WRITE_INT.named("destination"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)

@@ -35,6 +35,7 @@ import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.staticObjectTypeVariantIdMethod
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
@@ -56,7 +57,7 @@ object L2_EXTRACT_OBJECT_TYPE_VARIANT_ID : L2Operation(
 	WRITE_INT.named("variantId"))
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
+		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
