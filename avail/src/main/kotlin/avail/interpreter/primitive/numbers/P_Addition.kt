@@ -71,8 +71,9 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -239,7 +240,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			{
 				val sum = resultType.lowerBound
 				regenerator.moveRegister(
-					L2_MOVE.boxed,
+					BOXED_KIND,
 					regenerator.boxedConstant(sum).semanticValue(),
 					result.semanticValues())
 				if (sum.isInt)
@@ -247,7 +248,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 					// It's an i32, so put it in the int semantic value, so that
 					// code downstream may use it without unboxing.
 					regenerator.moveRegister(
-						L2_MOVE.unboxedInt,
+						INTEGER_KIND,
 						regenerator.unboxedIntConstant(sum.extractInt)
 							.semanticValue(),
 						result.semanticValues().map(::L2SemanticUnboxedInt))
@@ -272,7 +273,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			{
 				// 0 + x = x  (since x is an extended integer).
 				regenerator.moveRegister(
-            		L2_MOVE.boxed,
+            		BOXED_KIND,
 					arg2.semanticValue(),
 					result.semanticValues())
 				return
@@ -281,7 +282,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			{
 				// x + 0 = x  (since x is an extended integer).
 				regenerator.moveRegister(
-					L2_MOVE.boxed,
+					BOXED_KIND,
 					arg1.semanticValue(),
 					result.semanticValues())
 				return

@@ -49,7 +49,7 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
-import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.VariantSplitter
 import avail.optimizer.L1Translator.CallSiteHelper
@@ -317,11 +317,11 @@ constructor(
 			// The exact variant is known, which can make dispatching
 			// particularly fast.
 			else -> generator.addInstruction(
-				L2_MOVE.unboxedInt,
-				generator.unboxedIntConstant(exactVariantId),
-				generator.intWrite(
-					setOf(semanticVariantId),
-					intRestrictionForConstant(exactVariantId)))
+				L2_MOVE_INT(
+					generator.unboxedIntConstant(exactVariantId),
+					generator.intWrite(
+						setOf(semanticVariantId),
+						intRestrictionForConstant(exactVariantId))))
 		}
 		// There are at least two variants that can lead to valid solutions,
 		// so create a multi-way branch.

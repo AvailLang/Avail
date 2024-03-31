@@ -33,42 +33,67 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.primitive.controlflow.P_RestartContinuation
+import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.mapToSet
 import org.objectweb.asm.MethodVisitor
 
 /**
- * This is a helper operation which produces no JVM code, but is useful to limit
- * which [L2Register]s and [L2SemanticValue]s are live when reaching
- * a back-edge.
+ * This is a special operation which limits which [L2Register]s and
+ * [L2SemanticValue]s are live when reaching a back-edge.  Otherwise there could
+ * be confusion about whether a write preceded a read, since multiple loop
+ * iterations could overlap in the analysis.  This way, only the writes
+ * performed by the strip-manifest will be visible along the back-edge, sealing
+ * up cycles tidily.  Some day, loop-specific optimizations may be able to
+ * cautiously look past these barriers.
+ *
+ * Say the code generator detects a loop, by encountering an invocation of
+ * [P_RestartContinuation] or [P_RestartContinuationWithArguments] with the
+ * current frame's label as the first argument.  It will replace this, if
+ * possible, with code to strip the manifest down to just the (new) input
+ * arguments to the function, and do a backward jump to a special block near the
+ * top of the graph.  To strip the manifest safely, we move the live values into
+ * temp registers, strip the manifest to those registers, move the values into
+ * new registers associated with the function's input arguments' semantic
+ * values, strip them again, and do a backward jump.
+ *
+ * The [L2_STRIP_MANIFEST] instructions must not be removed, but during register
+ * coloring the corresponding inputs and outputs should be treated as moves, to
+ * allow them to have the same color, and thereby elide any JVM code for the
+ * actual moves.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_STRIP_MANIFEST : L2Operation(
-	READ_BOXED_VECTOR.named("live values"))
+	READ_BOXED_VECTOR.named("input values"),
+	WRITE_BOXED_VECTOR.named("stripped output values"))
 {
-	// Prevent this instruction from being removed, because it constrains
-	// the manifest along a back-edge, even after optimization.
+	// Prevent this instruction from being removed, because it constrains the
+	// manifest along a back-edge, even after optimization.
 	override val hasSideEffect get() = true
 
 	override fun instructionWasAdded(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		val liveVector = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val reads = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val writes = instruction.operand<L2WriteBoxedVectorOperand>(1)
 
-		// Clear the manifest, other than the mentioned semantic values and
-		// registers.
-		val elements = liveVector.elements
-		val liveSemanticValues = elements.mapToSet { it.semanticValue() }
-		val liveRegisters = elements.mapToSet { it.register() }
+		reads.instructionWasAdded(manifest)
+
+		// Clear the manifest, other than the semantic values and registers that
+		// are written by this instruction.
+		val liveSemanticValues =
+			writes.elements.mapToSet { it.onlySemanticValue() }
+		val liveRegisters = writes.elements.mapToSet { it.register() }
 		// After stripping the manifest down to the block arguments needed for a
 		// P_RestartWithArguments, we *must not* allow any additional postponed
 		// instructions to run.  There was a rare case (2022.07.07) in which an
@@ -79,27 +104,10 @@ object L2_STRIP_MANIFEST : L2Operation(
 		// postponed instructions, since after this L2_STRIP_MANIFEST there is
 		// no valid thing that can be done except moves from those registers,
 		// another strip-manifest for safety, and an L2_JUMP_BACK.
+		writes.instructionWasAdded(manifest)
 		manifest.clearPostponedInstructions()
 		manifest.retainSemanticValues(liveSemanticValues)
 		manifest.retainRegisters(liveRegisters)
-		liveVector.instructionWasAdded(manifest)
-	}
-
-	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
-		regenerator: L2Regenerator)
-	{
-		val liveVector = transformedOperands[0] as L2ReadBoxedVectorOperand
-
-		// Re-strip the manifest.
-		val manifest = regenerator.currentManifest
-		val elements = liveVector.elements
-		val liveSemanticValues = elements.mapToSet { it.semanticValue() }
-		val liveRegisters = elements.mapToSet { it.register() }
-		// Any postponed instructions that produce the values consumed by this
-		// instruction have already been generated, so discard the rest.
-		manifest.stripManifest(liveSemanticValues, liveRegisters, regenerator)
-		super.emitTransformedInstruction(transformedOperands, regenerator)
 	}
 
 	override fun translateToJVM(
@@ -107,6 +115,18 @@ object L2_STRIP_MANIFEST : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		// No effect.
+		// Transfer from the sources to the corresponding destinations.  Most of
+		// these pairs will have been assigned to the same register, and can be
+		// elided.
+		val reads = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val writes = instruction.operand<L2WriteBoxedVectorOperand>(1)
+		(reads.elements zip writes.elements).forEach { (read, write) ->
+			if (read.register().finalIndex() != write.register().finalIndex())
+			{
+				// Emit an actual move.
+				translator.load(method, read.register())
+				translator.store(method, write.register())
+			}
+		}
 	}
 }

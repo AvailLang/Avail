@@ -44,6 +44,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
@@ -177,7 +178,7 @@ constructor(
 				destination.semanticValues().forEach { dest ->
 					if (!manifest.hasSemanticValue(dest))
 						regenerator.moveRegister(
-							L2_MOVE.unboxedInt, sourceInt, setOf(dest))
+							INTEGER_KIND, sourceInt, setOf(dest))
 				}
 				tagSemanticValue?.let {
 					manifest.updateRestriction(it) {

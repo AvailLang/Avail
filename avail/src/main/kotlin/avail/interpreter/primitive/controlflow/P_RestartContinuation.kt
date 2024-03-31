@@ -53,22 +53,8 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION
-import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.L2BoxedRegister
-import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L1Translator.CallSiteHelper
-import avail.optimizer.L2Entity
-import avail.optimizer.L2Generator.Companion.backEdgeTo
-import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.L2GeneratorInterface.SpecialBlock.RESTART_LOOP_HEAD
-import avail.optimizer.values.L2SemanticValue
-import avail.utility.cast
 
 /**
  * **Primitive:** Restart the given [continuation][A_Continuation]. Make sure
@@ -144,86 +130,10 @@ object P_RestartContinuation : Primitive(
 		if (manifest.hasSemanticValue(label) &&
 			manifest.semanticValueToSynonym(label) == synonym)
 		{
-			// Simply jump to the RESTART_LOOP_HEAD, where the n@1 semantic
-			// slots will be connected to the phis.
-
-			// Copy the current argument values (which may have been made
-			// immutable) into fresh temps.
-			val tempSemanticValues = mutableSetOf<L2SemanticValue<BOXED_KIND>>()
-			val tempRegisters = mutableSetOf<L2Register<BOXED_KIND>>()
-			val tempReads = mutableListOf<L2ReadBoxedOperand>()
-			for (i in 1 .. translator.code.numArgs())
-			{
-				val read = translator.readSlot(i)
-				val temp = generator.newTemp()
-				tempSemanticValues.add(temp)
-				val tempWrite = L2_MOVE.boxed.createWrite(
-					generator::nextUnique, setOf(temp), read.restriction())
-				generator.addInstruction(L2_MOVE.boxed, read, tempWrite)
-				val move = generator.currentBlock().instructions().last()
-				assert(move.isMoveBoxed)
-				tempRegisters.addAll(move.destinationRegisters.cast())
-				tempReads.add(
-					L2ReadBoxedOperand(
-						temp,
-						read.restriction(),
-						tempWrite.register() as L2BoxedRegister))
-			}
-
-			// Now keep only the new temps visible in the manifest.
-			generator.addInstruction(
-				L2_STRIP_MANIFEST,
-				L2ReadBoxedVectorOperand(tempReads))
-
-			// Now move them into semantic slots n@1, so the phis at the
-			// RESTART_LOOP_HEAD will know what to do with them.  Force a move
-			// for simplicity (i.e., suppress the mechanism that moveRegister()
-			// uses to simply enlarge synonyms.
-			val newReads = tempSemanticValues.mapIndexed { zeroIndex, temp ->
-				val newArg = translator.createSemanticSlot(zeroIndex + 1, 1)
-				val writeOperand = generator.boxedWrite(
-					newArg, manifest.restrictionFor(temp))
-				generator.addInstruction(
-					L2_MOVE.boxed,
-					generator.readBoxed(temp),
-					writeOperand)
-				L2ReadBoxedOperand(
-					newArg,
-					writeOperand.restriction(),
-					writeOperand.register() as L2BoxedRegister)
-			}
-
-			// Now keep only the new args visible in the manifest.
-			generator.addInstruction(
-				L2_STRIP_MANIFEST,
-				L2ReadBoxedVectorOperand(newReads))
-
-			val trampolineBlock = generator.createBasicBlock(
-				"edge-split for restart")
-
-			// Use an L2_JUMP_BACK to get to the trampoline block.
-			generator.addInstruction(
-				L2_JUMP_BACK,
-				edgeTo(trampolineBlock),
-				L2ReadBoxedVectorOperand(newReads))
-
-			// Finally, jump to the RESTART_LOOP_HEAD, where the n@1 semantic
-			// slots will be added to the phis.
-			generator.startBlock(trampolineBlock)
-			generator.addInstruction(
-				L2_JUMP,
-				backEdgeTo(generator.specialBlocks[RESTART_LOOP_HEAD]!!))
-
-			// Ensure only the n@1 slots and registers are considered live.
-			val liveEntities = mutableSetOf<L2Entity<*>>()
-			for (newRead in newReads)
-			{
-				liveEntities.add(newRead.semanticValue())
-				liveEntities.add(newRead.register())
-			}
-			generator.currentBlock().successorEdges()[0].forcedClampedEntities =
-				liveEntities
-
+			val numArgs = translator.code.numArgs()
+			val indices = 0 ..< numArgs
+			translator.generateRestartContinuation(
+				indices.map { translator.readSlot(it + 1) })
 			return true
 		}
 

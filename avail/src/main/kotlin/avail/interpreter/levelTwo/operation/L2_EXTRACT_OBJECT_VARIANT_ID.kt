@@ -43,6 +43,7 @@ import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
@@ -94,7 +95,7 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 			if (unpopulated.isNotEmpty())
 			{
 				regenerator.moveRegister(
-					L2_MOVE.unboxedInt,
+					INTEGER_KIND,
 					equivalentVariantId,
 					variantId.semanticValues())
 			}
@@ -118,7 +119,7 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectVariant
 			regenerator.moveRegister(
-				L2_MOVE.unboxedInt,
+				INTEGER_KIND,
 				regenerator.unboxedIntConstant(variant.variantId)
 					.semanticValue(),
 				variantId.semanticValues())

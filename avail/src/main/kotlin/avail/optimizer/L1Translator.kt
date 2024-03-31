@@ -168,10 +168,10 @@ import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_INTERRUPT
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_TYPES
 import avail.interpreter.levelTwo.operation.L2_LOOKUP_BY_VALUES
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_PREPARE_NEW_FRAME_FOR_L1
@@ -185,11 +185,14 @@ import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_SET_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK
+import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.optimizer.L2ControlFlowGraph.ZoneType
@@ -326,6 +329,16 @@ class L1Translator private constructor(
 	val pc: Int get() = instructionDecoder.pc()
 
 	/**
+	 * Create a semantic slot for the given one-based [index], representing the
+	 * state just before reaching the specified [afterPc].
+	 */
+	fun createSemanticSlot(index: Int, afterPc: Int): L2SemanticBoxedValue =
+		generator.topFrame.semanticSlot(
+			index,
+			afterPc,
+			if (index <= slotNames.size) slotNames[index - 1] else null)
+
+	/**
 	 * Answer the [L2SemanticValue] representing the virtual continuation slot
 	 * having the given one-based index.
 	 *
@@ -433,7 +446,7 @@ class L1Translator private constructor(
 		val slotSemanticValue = createSemanticSlot(slotIndex, effectivePc)
 		semanticSlots[slotIndex - 1] = slotSemanticValue
 		generator.moveRegister(
-			L2_MOVE.boxed,
+			BOXED_KIND,
 			sourceSemanticValue,
 			setOf(slotSemanticValue))
 		currentManifest.setRestriction(slotSemanticValue, restriction)
@@ -723,6 +736,65 @@ class L1Translator private constructor(
 		{
 			generator.addUnreachableCode()
 		}
+	}
+
+	/**
+	 * We've reached a position in code generation where we know the current
+	 * continuation (a label) is being restarted.  Generate code to strip the
+	 * manifest and jump back to the [RESTART_LOOP_HEAD].
+	 *
+	 * @param restartArguments
+	 *   The [L2ReadBoxedOperand]s providing values with which to restart the
+	 *   current frame.
+	 */
+	fun generateRestartContinuation(
+		restartArguments: List<L2ReadBoxedOperand>)
+	{
+		val numArgs = code.numArgs()
+		val indices = 0 ..< numArgs
+		val restrictions = restartArguments.map(L2ReadBoxedOperand::restriction)
+		val temps = restartArguments.map { generator.newTemp() }
+		val tempWrites = indices.map { i ->
+			generator.boxedWrite(temps[i], restrictions[i])
+		}
+		// For safety, first copy the arguments into temps.
+		generator.addInstruction(
+			L2_STRIP_MANIFEST,
+			L2ReadBoxedVectorOperand(restartArguments),
+			L2WriteBoxedVectorOperand(tempWrites))
+		// Now copy from the temps into the arguments.
+		val finalSlots = indices.map { i -> createSemanticSlot(i + 1, 1) }
+		val finalWrites = indices.map { i ->
+			L2WriteBoxedOperand(
+				setOf(finalSlots[i]),
+				restrictions[i],
+				L2BoxedRegister(generator.nextUnique()))
+		}
+		generator.addInstruction(
+			L2_STRIP_MANIFEST,
+			L2ReadBoxedVectorOperand(tempWrites.map(generator::readBoxed)),
+			L2WriteBoxedVectorOperand(finalWrites))
+		val liveEntities = mutableSetOf<L2Entity<*>>()
+		liveEntities.addAll(finalSlots)
+		finalWrites.mapTo(liveEntities, L2WriteBoxedOperand::register)
+
+		// Jump back to the RESTART_LOOP_HEAD, where the n@1 semantic slots will
+		// be added to the phis.
+		generator.addInstruction(
+			L2_JUMP_BACK,
+			backEdgeTo(generator.specialBlocks[RESTART_LOOP_HEAD]!!),
+			L2ReadBoxedVectorOperand(
+				indices.map {
+					generator.readBoxed(createSemanticSlot(it + 1, 1))
+				}))
+
+		// Ensure only the n@1 slots and registers are considered live, both
+		// before and after the trampoline.
+		//TODO it might not be necessary to have a forcedClampedEntities
+		// mechanism any more, sincce the L2_STRIP_MANIFEST will reproduce
+		// the effeccts of a stripped manifest upon regeneration.
+		generator.currentBlock().successorEdges().single()
+			.forcedClampedEntities = liveEntities.toMutableSet()
 	}
 
 	/**
@@ -2681,7 +2753,7 @@ class L1Translator private constructor(
 		{
 			val source = semanticSlot(stackp + size - i)
 			val temp = generator.newTemp()
-			generator.moveRegister(L2_MOVE.boxed, source, setOf(temp))
+			generator.moveRegister(BOXED_KIND, source, setOf(temp))
 			temps[permutation.tupleIntAt(i) - 1] = temp
 		}
 		for (i in size downTo 1)
@@ -2712,16 +2784,6 @@ class L1Translator private constructor(
 		nilSlot(stackp)
 		stackp++
 	}
-
-	/**
-	 * Create a semantic slot for the given one-based [index], representing the
-	 * state just before reaching the specified [afterPc].
-	 */
-	fun createSemanticSlot(index: Int, afterPc: Int): L2SemanticBoxedValue =
-		generator.topFrame.semanticSlot(
-			index,
-			afterPc,
-			if (index <= slotNames.size) slotNames[index - 1] else null)
 
 	companion object
 	{

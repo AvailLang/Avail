@@ -58,8 +58,9 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
@@ -130,7 +131,7 @@ import avail.utility.mapToSet
  */
 abstract class L2Regenerator internal constructor(
 	private val targetGenerator: L2Generator,
-	private val generatePhis: Boolean,
+	val generatePhis: Boolean,
 	private val isRegeneratingDeadCode: Boolean
 ) : L2GeneratorInterface by targetGenerator
 {
@@ -506,12 +507,12 @@ abstract class L2Regenerator internal constructor(
 	 *
 	 * If [generatePhis] is `true` (the default), reconcile the live
 	 * [L2SemanticValue]s and how they're grouped into [L2Synonym]s in each
-	 * predecessor edge, creating [L2_PHI_PSEUDO_OPERATION]s as needed.
+	 * predecessor edge, creating [L2_PHI]s as needed.
 	 *
 	 * @param block
 	 *   The [L2BasicBlock] beginning its code generation.
 	 * @param generatePhis
-	 *   Whether to automatically generate [L2_PHI_PSEUDO_OPERATION]s if there
+	 *   Whether to automatically generate [L2_PHI]s if there
 	 *   are multiple incoming edges with different [L2Register]s associated
 	 *   with the same [L2SemanticValue]s.
 	 */
@@ -519,7 +520,6 @@ abstract class L2Regenerator internal constructor(
 		block: L2BasicBlock,
 		generatePhis: Boolean = true
 	): Unit = targetGenerator.startBlock(block, generatePhis, this)
-
 
 	/** This regenerator's reusable [AbstractOperandTransformer]. */
 	private val operandInlineTransformer =
@@ -768,7 +768,7 @@ abstract class L2Regenerator internal constructor(
 		// Never translate a phi instruction.  Either they should be produced
 		// as part of generation, or they should already have been replaced by
 		// moves.
-		assert(!sourceInstruction.isPhi)
+		assert(sourceInstruction !is L2_PHI<*>)
 		val transformed = sourceInstruction.transformedByRegenerator(this)
 		transformed.emitTransformedInstruction(this)
 	}
@@ -886,7 +886,8 @@ abstract class L2Regenerator internal constructor(
 			{
 				manifest.postponedInstructions().values.forEach { sub ->
 					sub.forEach { instruction ->
-						assert(instruction.isMove || instruction.isMoveConstant)
+						assert(instruction is L2_MOVE<*> ||
+							instruction.isMoveConstant)
 					}
 				}
 			}
@@ -924,7 +925,7 @@ abstract class L2Regenerator internal constructor(
 			}
 		}
 		if (omitConstantMoves &&
-			list.all { it.isMove || it.isMoveConstant })
+			list.all { it is L2_MOVE<*> || it.isMoveConstant })
 		{
 			// There are only moves and constant moves here.  Leave them
 			// postponed for now.

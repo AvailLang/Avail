@@ -1576,7 +1576,7 @@ class JVMTranslator constructor(
 					}
 					builder.append(block.name())
 					builder.append('\n')
-					line += block.name().count { it == 'n' } + 1
+					line += block.name().count { it == '\n' } + 1
 				}
 				l2LineTableByL2.add(line)
 				val instructionText = instruction.toString()

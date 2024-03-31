@@ -169,7 +169,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			{
 				return false
 			}
-			// It's at known to be a particular atom, and not instanceMeta.
+			// It's known to be a particular atom, and not instanceMeta.
 			keyType.instance
 		}
 		// Check that the atoms are unique.
@@ -190,9 +190,13 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			fieldMap[atom]?.let { index ->
 				if (index != 0)
 				{
-					val fieldRead = generator.extractTupleElement(pairSource, 2)
-					sourcesByFieldIndex[index - 1] = fieldRead
-					fieldTypePairs.add(tuple(atom, fieldRead.type()))
+					val valueType = pairSource.type().typeAtIndex(2)
+					val fieldWrite = generator.boxedWriteTemp(
+						boxedRestrictionForType(valueType))
+					generator.extractTupleElement(pairSource, 2, fieldWrite)
+					sourcesByFieldIndex[index - 1] =
+						generator.readBoxed(fieldWrite)
+					fieldTypePairs.add(tuple(atom, valueType))
 				}
 			}
 		}

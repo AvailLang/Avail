@@ -40,7 +40,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
@@ -66,10 +65,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2OldControlFlowOperation
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2Generator
@@ -448,7 +447,7 @@ protected constructor(
 		{
 			assert(
 				instruction.basicBlock().instructions().all {
-					it.isPhi || it == instruction
+					it is L2_PHI<*> || it == instruction
 				}
 			) {
 				"Entry point instruction must be after phis"
@@ -771,20 +770,17 @@ protected constructor(
 	 *   An [L2ReadBoxedOperand] that will contain the specified tuple element.
 	 */
 	open fun extractTupleElement(
-		tupleReg: L2ReadOperand<BOXED_KIND>,
+		tupleReg: L2ReadBoxedOperand,
 		index: Int,
-		generator: L2Generator
-	): L2ReadBoxedOperand
+		write: L2WriteBoxedOperand,
+		generator: L2Generator)
 	{
 		// The default case is to dynamically extract the value from the tuple.
-		val elementWriter = generator.boxedWriteTemp(
-			boxedRestrictionForType(tupleReg.type().typeAtIndex(index)))
 		generator.addInstruction(
 			L2_TUPLE_AT_CONSTANT,
 			tupleReg,
 			L2IntImmediateOperand(index),
-			elementWriter)
-		return generator.readBoxed(elementWriter)
+			write)
 	}
 
 	/**

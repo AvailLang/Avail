@@ -41,9 +41,11 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
+import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -77,17 +79,26 @@ object L2_TUPLE_AT_CONSTANT : L2Operation(
 		builder.append(']')
 	}
 
+	override fun emitTransformedInstruction(
+		transformedOperands: Array<L2Operand>,
+		regenerator: L2Regenerator)
+	{
+		val tupleRead = transformedOperands[0] as L2ReadBoxedOperand
+    	val subscriptImmediate = transformedOperands[1] as L2IntImmediateOperand
+    	val write = transformedOperands[2] as L2WriteBoxedOperand
+
+		val subscript = subscriptImmediate.value
+		regenerator.extractTupleElement(tupleRead, subscript, write)
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val tuple =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val subscript =
-			instruction.operand<L2IntImmediateOperand>(1)
-		val destination =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
+		val subscript = instruction.operand<L2IntImmediateOperand>(1)
+		val destination = instruction.operand<L2WriteBoxedOperand>(2)
 
 		// :: destination = tuple.tupleAt(subscript);
 		translator.load(method, tuple.register())

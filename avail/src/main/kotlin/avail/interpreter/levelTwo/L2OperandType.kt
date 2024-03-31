@@ -111,22 +111,8 @@ constructor(
 		return L2NamedOperandType(this, roleName, purpose)
 	}
 
-	init
-	{
-		@Suppress("LeakingThis")
-		privateAllOperandTypes.add(this)
-		privateOperandTypeByOperandClass[operandClass] = this
-	}
-
 	companion object
 	{
-		// A mutable set that will be populated by the constructor invocations
-		// below.
-		private val privateAllOperandTypes = mutableSetOf<L2OperandType>()
-
-		private val privateOperandTypeByOperandClass =
-			mutableMapOf<Class<out L2Operand>, L2OperandType>()
-
 		/**
 		 * An [L2ConstantOperand] holds a Java object of any type, except
 		 * [AvailObject], which should be handled with a [CONSTANT] operand.
@@ -255,14 +241,39 @@ constructor(
 		 * purposes only.
 		 */
 		object COMMENT : L2OperandType(L2CommentOperand::class.java)
-
-		/**
-		 * An immutable [Set] of each [L2OperandType].
-		 */
-		val allOperandTypes: Set<L2OperandType> = privateAllOperandTypes
-
-		fun operandTypeForOperandClass(
-			operandClass: Class<out L2Operand>
-		): L2OperandType = privateOperandTypeByOperandClass[operandClass]!!
 	}
+}
+
+object OperandTypeMap
+{
+	/** The set of all [L2OperandType]s. */
+	val allOperandTypes: Set<L2OperandType>
+
+	/** A private map from [L2Operand] class to its [L2OperandType]. */
+	private val privateOperandTypeByOperandClass:
+		Map<Class<out L2Operand>, L2OperandType>
+
+	init
+	{
+		// Force all singletons to be instantiated, and therefore added to
+		// privateAllOperandTypes and privateOperandTypeByOperandClass.
+		val operandClassToOperandType =
+			mutableMapOf<Class<out L2Operand>, L2OperandType>()
+		val allTypes = mutableSetOf<L2OperandType>()
+		L2OperandType::class.sealedSubclasses.forEach { subclass ->
+			val operandType = subclass.objectInstance!!
+			val operandClass = operandType.operandClass
+			operandClassToOperandType[operandClass] = operandType
+			allTypes.add(operandType)
+		}
+		privateOperandTypeByOperandClass = operandClassToOperandType
+		allOperandTypes = allTypes
+	}
+
+	/**
+	 * Given an [L2Operand] class, get its [L2OperandType].
+	 */
+	fun operandTypeForOperandClass(
+		operandClass: Class<out L2Operand>
+	): L2OperandType = privateOperandTypeByOperandClass[operandClass]!!
 }

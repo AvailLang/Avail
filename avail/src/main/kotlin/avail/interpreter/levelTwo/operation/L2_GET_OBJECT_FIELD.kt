@@ -52,10 +52,6 @@ import org.objectweb.asm.MethodVisitor
 /**
  * Extract the specified field of the object.
  *
- * TODO - Eventually we should generate code to collect stats on which variants
- * occur, then at reoptimization time inline tests for the likely ones, and use
- * the field indices directly for those variants.
- *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_GET_OBJECT_FIELD : L2Operation(

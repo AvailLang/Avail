@@ -37,7 +37,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import avail.utility.Mutable
@@ -62,7 +62,7 @@ class L2ControlFlowGraph
 		 * Whether the control flow graph is in static single-assignment form.
 		 * In this form, every register has a single instruction that writes to
 		 * it.  Where control flow merges, the target [L2BasicBlock] can contain
-		 * "phi" ([L2_PHI_PSEUDO_OPERATION]) instructions.  Such an instruction
+		 * "phi" ([L2_PHI]) instructions.  Such an instruction
 		 * writes to its output register the value corresponding to the numbered
 		 * predecessor edge by which the block was reached.
 		 */
@@ -77,7 +77,7 @@ class L2ControlFlowGraph
 		object IS_EDGE_SPLIT : StateFlag()
 
 		/**
-		 * Indicates that every [L2_PHI_PSEUDO_OPERATION] has been replaced by
+		 * Indicates that every [L2_PHI] has been replaced by
 		 * moves to the same [L2Register] along each (split) incoming edge.
 		 */
 		@Suppress("unused")

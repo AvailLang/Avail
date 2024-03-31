@@ -65,7 +65,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L1Translator
 import avail.utility.notNullAnd
 
@@ -202,7 +202,7 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 				{
 					// The resulting value is known precisely.
 					generator.moveRegister(
-						L2_MOVE.unboxedInt,
+						INTEGER_KIND,
 						generator.unboxedIntConstant(
 							outputType.lowerBound.extractInt
 						).semanticValue(),
@@ -216,7 +216,7 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 					//      left or right, has no effect, or
 					//   2. The shift is always zero, likewise having no effect.
 					generator.moveRegister(
-						L2_MOVE.unboxedInt,
+						INTEGER_KIND,
 						intA.semanticValue(),
 						intWrite.semanticValues())
 				}

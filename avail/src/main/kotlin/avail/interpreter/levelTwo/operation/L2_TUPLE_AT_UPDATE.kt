@@ -41,9 +41,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -84,10 +82,10 @@ object L2_TUPLE_AT_UPDATE : L2Operation(
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadOperand<BOXED_KIND>,
+		tupleReg: L2ReadBoxedOperand,
 		index: Int,
-		generator: L2Generator
-	): L2ReadBoxedOperand
+		write: L2WriteBoxedOperand,
+		generator: L2Generator)
 	{
 		val instruction = tupleReg.definition().instruction
 		val inputTuple = instruction.operand<L2ReadBoxedOperand>(0)
@@ -95,10 +93,16 @@ object L2_TUPLE_AT_UPDATE : L2Operation(
 		val newElement = instruction.operand<L2ReadBoxedOperand>(2)
 		// val outputTuple = instruction.operand<L2WriteBoxedOperand>(3)
 
-		return when (index)
+		if (index == updateIndex.value)
 		{
-			updateIndex.value -> newElement
-			else -> generator.extractTupleElement(inputTuple, index)
+			// Use the value that was used to update that element.
+			generator.addInstruction(
+				L2_MOVE_BOXED(newElement, write))
+		}
+		else
+		{
+			// It wasn't affected by this tuple update.
+			generator.extractTupleElement(inputTuple, index, write)
 		}
 	}
 

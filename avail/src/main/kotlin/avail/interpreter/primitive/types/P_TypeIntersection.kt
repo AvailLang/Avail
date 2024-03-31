@@ -49,8 +49,8 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -136,7 +136,7 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		moveSource?.let { source ->
 			regenerator.moveRegister(
-				L2_MOVE.boxed,
+				BOXED_KIND,
 				source.semanticValue(),
 				result.semanticValues())
 		}

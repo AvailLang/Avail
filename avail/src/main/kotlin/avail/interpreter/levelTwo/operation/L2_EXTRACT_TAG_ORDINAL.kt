@@ -44,6 +44,7 @@ import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
@@ -121,7 +122,7 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 				{
 					null ->
 						regenerator.moveRegister(
-							L2_MOVE.unboxedInt,
+							INTEGER_KIND,
 							regenerator.unboxedIntConstant(baseTag.ordinal)
 								.semanticValue(),
 							intWrite(
@@ -132,7 +133,7 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 						if (!currentManifest.hasSemanticValue(otherValue))
 						{
 							moveRegister(
-								L2_MOVE.unboxedInt,
+								INTEGER_KIND,
 								existingValue,
 								setOf(otherValue))
 						}
@@ -168,7 +169,7 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 				when (existingValue)
 				{
 					null -> moveRegister(
-						L2_MOVE.unboxedInt,
+						INTEGER_KIND,
 						regenerator.unboxedIntConstant(baseTag.ordinal)
 							.semanticValue(),
 						intWrite(
@@ -179,7 +180,7 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 						if (!currentManifest.hasSemanticValue(otherValue))
 						{
 							moveRegister(
-								L2_MOVE.unboxedInt,
+								INTEGER_KIND,
 								existingValue,
 								setOf(otherValue))
 						}

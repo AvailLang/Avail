@@ -53,6 +53,7 @@ import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -189,7 +190,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 				// This invocation is now known to produce a constant that can
 				// be folded.  Generate a constant move instead.
 				regenerator.moveRegister(
-					L2_MOVE.boxed,
+					BOXED_KIND,
 					regenerator.boxedConstant(constant).semanticValue(),
 					strongerResult.semanticValues())
 				return

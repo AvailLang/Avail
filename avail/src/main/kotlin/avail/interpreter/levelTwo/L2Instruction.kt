@@ -41,15 +41,14 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
@@ -135,11 +134,12 @@ abstract class L2Instruction
 	 * @return
 	 *   The cloned [L2Instruction].
 	 */
-	fun cloneFor(block: L2BasicBlock): L2Instruction
+	open fun cloneFor(block: L2BasicBlock): L2Instruction
 	{
 		val clone = clone()
 		clone.basicBlock = block
 		clone.operands.forEach { operand ->
+			operand.adjustCloneForInstruction(clone)
 			operand.addSourceRegistersTo(clone.sourceRegisters)
 			operand.addDestinationRegistersTo(clone.destinationRegisters)
 		}
@@ -304,24 +304,6 @@ abstract class L2Instruction
 	abstract val isEntryPoint: Boolean
 
 	/**
-	 * Answer whether this operation is a move between (compatible) registers.
-	 *
-	 * @return
-	 *   `true` if this operation simply moves data between two registers of the
-	 *   same [RegisterKind], otherwise `false`.
-	 */
-	abstract val isMove: Boolean
-
-	/**
-	 * Answer whether this operation is a move between boxed registers.
-	 *
-	 * @return
-	 *   `true` if this operation simply moves data between two boxed registers,
-	 *   otherwise `false`.
-	 */
-	abstract val isMoveBoxed: Boolean
-
-	/**
 	 * Answer whether this operation is a move of a constant to a register.
 	 *
 	 * @return
@@ -332,15 +314,6 @@ abstract class L2Instruction
 
 	/** Answer whether this operation is a *boxed* constant move. */
 	abstract val isMoveBoxedConstant: Boolean
-
-	/**
-	 * Answer whether this instruction is a phi-function.  This is a convenient
-	 * fiction that allows control flow to merge while in SSA form.
-	 *
-	 * @return
-	 *   `true` if this is a phi instruction, `false` otherwise.
-	 */
-	abstract val isPhi: Boolean
 
 	/**
 	 * Answer true if this instruction runs an infallible primitive, otherwise
@@ -419,6 +392,14 @@ abstract class L2Instruction
 	/** Answer whether this boxed an int. */
 	abstract val isBoxInt: Boolean
 
+	/**
+	 * Answer whether this operation strips the current [L2ValueManifest] to
+	 * inclcude only the mentioned semantic values and registers.
+	 *
+	 * @return
+	 *   `true` if this instruction strips the manifest.
+	 */
+	open val isStripManifest: Boolean get() = false
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
@@ -454,17 +435,6 @@ abstract class L2Instruction
 	abstract val constantCode: A_RawFunction?
 
 	/**
-	 * If this is a move instruction, extract the source [L2ReadOperand] that is
-	 * moved by the instruction.  Otherwise fail.
-	 *
-	 * @param instruction
-	 *   The move instruction to examine.
-	 * @return
-	 *   The move's source [L2ReadOperand].
-	 */
-	abstract fun <K: RegisterKind<K>> sourceOfMove(): L2ReadOperand<K>
-
-	/**
 	 * Produce an [L2ReadBoxedOperand] that provides the specified index of the
 	 * tuple in the given register.  If the source of that index is not readily
 	 * available, generate code to produce it from the tuple, and answer the
@@ -481,10 +451,10 @@ abstract class L2Instruction
 	 *   An [L2ReadBoxedOperand] that will contain the specified tuple element.
 	 */
 	abstract fun extractTupleElement(
-		tupleReg: L2ReadOperand<BOXED_KIND>,
+		tupleReg: L2ReadBoxedOperand,
 		index: Int,
-		generator: L2Generator
-	): L2ReadBoxedOperand
+		write: L2WriteBoxedOperand,
+		generator: L2Generator)
 
 	/**
 	 * Emit code to extract the specified outer value from the function produced
@@ -510,67 +480,6 @@ abstract class L2Instruction
 		outerType: A_Type,
 		generator: L2Generator
 	): L2ReadBoxedOperand
-
-	/**
-	 * Answer the [List] of [L2ReadOperand]s for the receiver, which must be a
-	 * phi instruction.  The order is correlated to the instruction's blocks
-	 * predecessorEdges.
-	 *
-	 * @return
-	 *   The instruction's list of sources.
-	 */
-	abstract val phiSourceRegisterReads: List<L2ReadOperand<*>>
-
-	/**
-	 * Answer the [L2WriteOperand] into which a phi-merged value is written.
-	 */
-	abstract val phiDestinationRegisterWrite: L2WriteOperand<*>
-
-	/**
-	 * Given a phi instruction, answer the [L2_MOVE] operation having the same
-	 * [RegisterKind].
-	 */
-	abstract val phiMoveOperation: L2_MOVE<*>
-
-	/**
-	 * Examine this phi instruction and answer the predecessor [L2BasicBlock]s
-	 * that supply a value from the specified register.
-	 *
-	 * @param usedRegister
-	 *   The [L2Register] whose use we're trying to trace back to its
-	 *   definition.
-	 * @return
-	 *   A [List] of predecessor blocks that supplied the usedRegister as an
-	 *   input to this phi operation.
-	 */
-	abstract fun predecessorBlocksForUseOf(
-		usedRegister: L2Register<*>
-	): List<L2BasicBlock>
-
-	/**
-	 * Update a phi instruction that's in a loop head basic block.
-	 *
-	 * @param predecessorManifest
-	 *   The [L2ValueManifest] in some predecessor edge.
-	 */
-	abstract fun <K: RegisterKind<K>> updateLoopHeadPhi(
-		predecessorManifest: L2ValueManifest)
-
-	/**
-	 * One of this phi instruction's predecessors has been removed because it's
-	 * dead code.  Clean up its vector of inputs by removing the specified
-	 * index, answering the new instruction.  If there's only one entry left,
-	 * answer a simple move instead.
-	 *
-	 * @param inputIndex
-	 *   The index to remove.
-	 * @return
-	 *   A replacement [L2Instruction], whose operation may be either another
-	 *   `L2_PHI_PSEUDO_OPERATION` or an [L2_MOVE].
-	 */
-	abstract fun <K: RegisterKind<K>> phiWithoutIndex(
-		inputIndex: Int
-	): L2Instruction
 
 	/**
 	 * Given an [L2_SAVE_ALL_AND_PC_TO_INT], extract the edge that leads to the
@@ -696,7 +605,7 @@ abstract class L2Instruction
 		{
 			assert(
 				basicBlock().instructions().all {
-					it.isPhi || it == this
+					it is L2_PHI<*> || it == this
 				}
 			) {
 				"Entry point instruction must be after phis"
@@ -827,7 +736,7 @@ abstract class L2Instruction
 	abstract val shouldEmit: Boolean
 
 	override fun toString() = buildString {
-		appendToWithWarnings(this, L2OperandType.allOperandTypes) { }
+		appendToWithWarnings(this, OperandTypeMap.allOperandTypes) { }
 	}
 
 	/**

@@ -33,6 +33,7 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.values.L2SemanticValue
@@ -117,7 +118,7 @@ internal class DeadCodeAnalyzer constructor(
 			while (--index >= 0)
 			{
 				val instruction = instructions[index]
-				if (instruction.isPhi)
+				if (instruction is L2_PHI<*>)
 				{
 					break
 				}
@@ -143,7 +144,7 @@ internal class DeadCodeAnalyzer constructor(
 				while (index >= 0)
 				{
 					val phiInstruction = instructions[index]
-					val readOperands = phiInstruction.phiSourceRegisterReads
+					phiInstruction as L2_PHI<*>
 					for (predecessorIndex in 0 until predecessorCount)
 					{
 						val entities = entitiesByPredecessor[predecessorIndex]
@@ -153,7 +154,8 @@ internal class DeadCodeAnalyzer constructor(
 							|| phiInstruction.hasSideEffect)
 						{
 							liveInstructions.add(phiInstruction)
-							val readOperand = readOperands[predecessorIndex]
+							val readOperand = phiInstruction.sources()
+								.elements[predecessorIndex]
 							dataCouplingMode.addEntitiesFromRead(
 								readOperand, entities)
 							entities.addAll(

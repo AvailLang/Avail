@@ -43,13 +43,11 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
-import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -185,16 +183,10 @@ interface L2GeneratorInterface
 	 * synonyms for the source and destination are effectively merged, which is
 	 * justified by virtue of SSA (static-single-assignment) being in effect.
 	 *
-	 * @param <R>
-	 *   The kind of [L2Register] to move.
-	 * @param <RR>
-	 *   The kind of [L2ReadOperand] for reading.
-	 * @param <WR>
-	 *   The kind of [L2WriteOperand] for writing.
-	 * @param <RV>
-	 *   The kind of [L2ReadVectorOperand] for creating read vectors.
-	 * @param moveOperation
-	 *   The [L2_MOVE] operation to generate.
+	 * @param <K>
+	 *   The [RegisterKind] of [L2Register] to move.
+	 * @param kind
+	 *   The [RegisterKind] specified by type as [K].
 	 * @param sourceSemanticValue
 	 *   Which [L2SemanticValue] to read.
 	 * @param targetSemanticValues
@@ -202,7 +194,7 @@ interface L2GeneratorInterface
 	 *   semantic value.
 	 */
 	fun <K : RegisterKind<K>> moveRegister(
-		moveOperation: L2_MOVE<K>,
+		kind: K,
 		sourceSemanticValue: L2SemanticValue<K>,
 		targetSemanticValues: Iterable<L2SemanticValue<K>>
 	)
@@ -470,8 +462,30 @@ interface L2GeneratorInterface
 		valueRead: L2ReadBoxedOperand,
 		expectedType: A_Type,
 		passedCheck: L2BasicBlock,
-		failedCheck: L2BasicBlock
-	)
+		failedCheck: L2BasicBlock)
+
+	/**
+	 * Given an [L2ReadBoxedOperand] that will hold a tuple and a fixed index
+	 * that is known to be in range, generate code to ensure the given
+	 * [L2WriteBoxedOperand], or the equivalent semantic values, will get that
+	 * element.
+	 *
+	 * Depending on the source of the tuple, this may cause the creation of the
+	 * tuple to be entirely elided.
+	 *
+	 * This must only be used while the [controlFlowGraph] is still in SSA form.
+	 *
+	 * @param tupleRead
+	 *   The [L2BoxedRegister] containing the tuple.
+	 * @param index
+	 *   The one-based subscript into the tuple.
+	 * @param elementWrite
+	 *   The [L2WriteOperand] whose semantic value will be populated.
+	 */
+	fun extractTupleElement(
+		tupleRead: L2ReadBoxedOperand,
+		index: Int,
+		write: L2WriteBoxedOperand)
 
 	/**
 	 * Pass-through to [L2ControlFlowGraph].  This can be used in the debugger

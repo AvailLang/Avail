@@ -45,9 +45,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -81,10 +79,10 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadOperand<BOXED_KIND>,
+		tupleReg: L2ReadBoxedOperand,
 		index: Int,
-		generator: L2Generator
-	): L2ReadBoxedOperand
+		write: L2WriteBoxedOperand,
+		generator: L2Generator)
 	{
 		// If we can tell (1) which subtuple we're getting the value from, and
 		// (2) the index within that subtuple, then extract the value from the
@@ -108,7 +106,8 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 			if (residualIndex <= lowerBoundInt)
 			{
 				// It's definitely in this subtuple.
-				return generator.extractTupleElement(elementRead, residualIndex)
+				generator.extractTupleElement(elementRead, residualIndex, write)
+				return
 			}
 			if (!lowerBound.equals(sizeRange.upperBound))
 			{
@@ -119,7 +118,7 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 			residualIndex -= lowerBoundInt
 		}
 		// It fell back, so do the default tuple element extraction.
-		return super.extractTupleElement(tupleReg, index, generator)
+		super.extractTupleElement(tupleReg, index, write, generator)
 	}
 
 	override fun translateToJVM(

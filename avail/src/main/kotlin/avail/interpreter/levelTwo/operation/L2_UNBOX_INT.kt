@@ -37,6 +37,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
@@ -102,7 +103,7 @@ class L2_UNBOX_INT(
 					if (!manifest.hasSemanticValue(destInt))
 					{
 						regenerator.moveRegister(
-							L2_MOVE.unboxedInt, otherUnboxed, setOf(destInt))
+							INTEGER_KIND, otherUnboxed, setOf(destInt))
 					}
 				}
 				return

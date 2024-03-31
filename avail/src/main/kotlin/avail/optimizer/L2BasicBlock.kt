@@ -34,6 +34,7 @@ package avail.optimizer
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.optimizer.reoptimizer.L2Regenerator
 import java.lang.Integer.toHexString
 
@@ -200,7 +201,7 @@ constructor(
 			for (i in instructions.indices)
 			{
 				val instruction = instructions[i]
-				if (!instruction.isPhi)
+				if (instruction !is L2_PHI<*>)
 				{
 					// All the phi instructions are at the start, so we've
 					// exhausted them.
@@ -228,11 +229,12 @@ constructor(
 			for (i in instructions.indices)
 			{
 				val instruction = instructions[i]
-				if (!instruction.isPhi)
+				if (instruction !is L2_PHI<*>)
 				{
 					// Phi functions are always at the start of a block.
 					break
 				}
+				//TODO - Will this sometimes insert a move before a phi?
 				val replacement = instruction.phiWithoutIndex(index)
 				instruction.justRemoved()
 				instructions[i] = replacement
@@ -352,7 +354,7 @@ constructor(
 		assert(instruction.basicBlock() == this)
 
 		//TODO Move this variation to the Phi instruction class when it exists.
-		if (instruction.isPhi)
+		if (instruction is L2_PHI<*>)
 		{
 			// For simplicity, phi functions are routed to the *start* of the
 			// block.
@@ -379,7 +381,7 @@ constructor(
 		for (instruction in instructions)
 		{
 			if (instruction.isEntryPoint) return instruction
-			if (!instruction.isPhi) return null
+			if (instruction !is L2_PHI<*>) return null
 		}
 		return null
 	}

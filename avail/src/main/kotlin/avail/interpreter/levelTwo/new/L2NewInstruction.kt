@@ -38,26 +38,26 @@ import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.Strings
+import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
@@ -80,9 +80,20 @@ abstract class L2NewInstruction : L2Instruction()
 
 	/**
 	 * Strengthen [clone]'s type as a convenience.
-	 * TODO - This will be removed when L2OldInstruction is obsoleted.
+	 * TODO - This will be merged into L2Instruction when L2OldInstruction is
+	 *  obsoleted.
 	 */
-	override fun clone() = super.clone() as L2NewInstruction
+	override fun clone(): L2NewInstruction
+	{
+		val clone = super.clone() as L2NewInstruction
+		clone.layout.transformOperands(clone) { operand ->
+			operand.clone()
+		}
+		return clone
+	}
+
+	override fun cloneFor(block: L2BasicBlock): L2NewInstruction =
+		super.cloneFor(block).cast()
 
 	/**
 	 * An [InstructionLayout] object, set during construction, which captures
@@ -136,11 +147,8 @@ abstract class L2NewInstruction : L2Instruction()
 	// TODO These can turn into type tests when they become instructions.
 
 	override open val isEntryPoint: Boolean get() = false
-	override open val isMove: Boolean get() = false
-	override open val isMoveBoxed: Boolean get() = false
 	override open val isMoveConstant: Boolean get() = false
 	override open val isMoveBoxedConstant: Boolean get() = false
-	override open val isPhi: Boolean get() = false
 	override open val isRunInfalliblePrimitive: Boolean get() = false
 	override open val isCreateFunction: Boolean get() = false
 	override open val isUnconditionalJumpForward: Boolean get() = false
@@ -160,14 +168,17 @@ abstract class L2NewInstruction : L2Instruction()
 	override open val goesMultipleWays: Boolean get() = false
 	override val constantCode: A_RawFunction? get() = null
 
-	override fun <K : RegisterKind<K>> sourceOfMove(): L2ReadOperand<K> =
-		unsupported
-
+	// The default case is to dynamically extract the value from the tuple.
 	override fun extractTupleElement(
-		tupleReg: L2ReadOperand<BOXED_KIND>,
+		tupleReg: L2ReadBoxedOperand,
 		index: Int,
+		write: L2WriteBoxedOperand,
 		generator: L2Generator
-	): L2ReadBoxedOperand = unsupported
+	): Unit = generator.addInstruction(
+		L2_TUPLE_AT_CONSTANT,
+		tupleReg,
+		L2IntImmediateOperand(index),
+		write)
 
 	override fun extractFunctionOuter(
 		functionRegister: L2ReadBoxedOperand,
@@ -175,21 +186,6 @@ abstract class L2NewInstruction : L2Instruction()
 		outerType: A_Type,
 		generator: L2Generator
 	): L2ReadBoxedOperand = unsupported
-
-	override open val phiSourceRegisterReads: List<L2ReadOperand<*>>
-		get() = unsupported
-	override open val phiDestinationRegisterWrite: L2WriteOperand<*>
-		get() = unsupported
-	override open val phiMoveOperation: L2_MOVE<*> get() = unsupported
-	override open fun predecessorBlocksForUseOf(
-		usedRegister: L2Register<*>
-	): List<L2BasicBlock> = unsupported
-	override open fun <K : RegisterKind<K>> updateLoopHeadPhi(
-		predecessorManifest: L2ValueManifest
-	): Unit = unsupported
-	override open fun <K : RegisterKind<K>> phiWithoutIndex(
-		inputIndex: Int
-	): L2Instruction = unsupported
 
 	override open val referenceOfSaveAll: L2PcOperand get() = unsupported
 
@@ -204,25 +200,22 @@ abstract class L2NewInstruction : L2Instruction()
 	override val readsHiddenVariablesMask: Int
 		get() = layout.readsHiddenVariablesMask
 
-	//fun instructionWasInserted(instruction: L2Instruction)
-	//{
-	//	if (isEntryPoint(instruction))
-	//	{
-	//		assert(
-	//			instruction.basicBlock().instructions().all {
-	//				it.isPhi || it == instruction
-	//			}
-	//		) {
-	//			"Entry point instruction must be after phis"
-	//		}
-	//	}
-	//	instruction.operands.forEach {
-	//		it.instructionWasInserted(instruction)
-	//	}
-	//}
 	override fun justInserted()
 	{
-		TODO("Not yet implemented")
+		operands.forEach { it.setInstruction(this) }
+		if (isEntryPoint)
+		{
+			assert(
+				basicBlock().instructions().all {
+					it is L2_PHI<*> || it == this
+				}
+			) {
+				"Entry point instruction must be after phis"
+			}
+		}
+		operands.forEach {
+			it.instructionWasInserted(this)
+		}
 	}
 
 	override open val shouldEmit: Boolean get() = true
@@ -299,7 +292,7 @@ abstract class L2NewInstruction : L2Instruction()
 	 * subclass.
 	 */
 	override fun toString() = buildString {
-		val instruction = this
+		val instruction = this@L2NewInstruction
 		append("${instruction::class.simpleName}:\n\t")
 		var pairs = mutableListOf<Pair<String, L2Operand>>()
 		operandsWithNamedTypesDo { operand, namedOperandType ->

@@ -54,7 +54,7 @@ import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2ReadOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -99,7 +99,7 @@ import org.objectweb.asm.MethodVisitor
 abstract class L2_MOVE_CONSTANT<C: L2Operand, K: RegisterKind<K>>
 private constructor(
 	private val variantName: String,
-	private val moveOperation: L2_MOVE<K>,
+	private val kind: K,
 	private val getConstantSemanticValue: (C)->L2SemanticValue<K>,
 	private val pushConstant: (JVMTranslator, MethodVisitor, C) -> Unit,
 	vararg theNamedOperandTypes: L2NamedOperandType)
@@ -149,10 +149,7 @@ private constructor(
 				.filterNot(manifest::hasSemanticValue)
 			if (newValues.isNotEmpty())
 			{
-				regenerator.moveRegister(
-					moveOperation,
-					semanticConstant,
-					newValues)
+				regenerator.moveRegister(kind, semanticConstant, newValues)
 			}
 			return
 		}
@@ -192,10 +189,10 @@ private constructor(
 	override fun toString(): String = "MOVE_CONSTANT($variantName)"
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadOperand<BOXED_KIND>,
+		tupleReg: L2ReadBoxedOperand,
 		index: Int,
-		generator: L2Generator
-	): L2ReadBoxedOperand
+		write: L2WriteBoxedOperand,
+		generator: L2Generator)
 	{
 		val instruction = tupleReg.definition().instruction
 		val source: L2ConstantOperand = instruction.operand(0)
@@ -203,7 +200,8 @@ private constructor(
 
 		// Extract the element from the constant right now.
 		val tupleElement = source.constant.tupleAt(index)
-		return generator.boxedConstant(tupleElement)
+		generator.addInstruction(
+			L2_MOVE_BOXED(generator.boxedConstant(tupleElement), write))
 	}
 
 	override fun translateToJVM(
@@ -226,7 +224,7 @@ private constructor(
 		 */
 		val boxed = object : L2_MOVE_CONSTANT<L2ConstantOperand, BOXED_KIND>(
 			"boxed",
-			L2_MOVE.boxed,
+			BOXED_KIND,
 			{ L2SemanticConstant(it.constant) },
 			{
 				translator: JVMTranslator,
@@ -244,7 +242,7 @@ private constructor(
 		val unboxedInt = object : L2_MOVE_CONSTANT<
 				L2IntImmediateOperand, INTEGER_KIND>(
 			"int",
-			L2_MOVE.unboxedInt,
+			INTEGER_KIND,
 			{
 				L2SemanticUnboxedInt(L2SemanticConstant(fromInt(it.value)))
 			},
@@ -264,7 +262,7 @@ private constructor(
 		val unboxedFloat = object : L2_MOVE_CONSTANT<
 				L2FloatImmediateOperand, FLOAT_KIND>(
 			"float",
-			L2_MOVE.unboxedFloat,
+			FLOAT_KIND,
 			{
 				L2SemanticUnboxedFloat(L2SemanticConstant(fromDouble(it.value)))
 			},

@@ -65,11 +65,11 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import avail.interpreter.levelTwo.operation.NumericComparator
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -165,7 +165,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				val sizeRead = generator.unboxedIntConstant(
 					intSizeType.lowerBound.extractInt)
 				generator.moveRegister(
-					L2_MOVE.unboxedInt,
+					INTEGER_KIND,
 					sizeRead.semanticValue(),
 					setOf(unboxedSemanticSize))
 			}

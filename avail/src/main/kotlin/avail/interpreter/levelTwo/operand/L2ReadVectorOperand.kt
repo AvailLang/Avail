@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operand
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
 import avail.utility.cast
@@ -168,7 +168,7 @@ constructor(
 		elements.forEach(L2ReadOperand<*>::postOptimizationCleanup)
 
 	/**
-	 * This vector operand is the input to an [L2_PHI_PSEUDO_OPERATION]
+	 * This vector operand is the input to an [L2_PHI]
 	 * instruction that has just been added.  Update it specially, to take into
 	 * account the correspondence between vector elements and predecessor edges.
 	 *

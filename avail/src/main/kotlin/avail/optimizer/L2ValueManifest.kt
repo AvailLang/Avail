@@ -54,7 +54,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2Register
@@ -96,7 +96,7 @@ import kotlin.collections.set
  * [Constraint]s are mutable, and are copied when cloning a manifest.
  *
  * During code [generation][L2Generator] or [regeneration][L2Regenerator],
- * control flow merges usually create [phi][L2_PHI_PSEUDO_OPERATION]
+ * control flow merges usually create [phi][L2_PHI]
  * instructions in the destination block, partitioning incoming synonyms so that
  * only semantic values that are in the same synonyms in *all* incoming edges
  * will be in the same synonym at the destination.  The restriction for a
@@ -1518,7 +1518,7 @@ class L2ValueManifest
 	 * @param generator
 	 *   The [L2Generator] on which to write any necessary phi functions.
 	 * @param generatePhis
-	 *   Whether to automatically generate [L2_PHI_PSEUDO_OPERATION]s if there
+	 *   Whether to automatically generate [L2_PHI]s if there
 	 *   are multiple incoming edges with different [L2Register]s associated
 	 *   with the same [L2SemanticValue]s.
 	 * @param forcePhis
@@ -1660,21 +1660,13 @@ class L2ValueManifest
 				val restriction = manifests
 					.map { it.restrictionFor(firstSemanticValue) }
 					.reduce(TypeRestriction::union)
-				// Implicitly discard it if there were no common register kinds
-				// between all the inputs.
-				L2_PHI_PSEUDO_OPERATION.allPhiOperations.forEach { phiOp ->
-					val kind = phiOp.moveOperation.kind
-					if (restriction.hasFlag(kind.restrictionFlag))
-					{
-						// Generate a phi instruction of this kind.
-						phiOp.generatePhi(
-							generator,
-							relatedSemanticValues.cast(),
-							forcePhis,
-							restriction.restrictingKindsTo(setOf(kind)),
-							manifests)
-					}
-				}
+				// Generate a phi instruction of this kind.
+				firstSemanticValue.kind.generatePhi(
+					generator,
+					relatedSemanticValues.cast(),
+					forcePhis,
+					restriction,
+					manifests)
 			}
 		}
 		else

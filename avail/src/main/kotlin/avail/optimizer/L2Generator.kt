@@ -110,6 +110,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
@@ -125,11 +127,11 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
-import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
+import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_UPDATE
 import avail.interpreter.levelTwo.operation.L2_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
@@ -489,7 +491,7 @@ class L2Generator internal constructor(
 				if (currentManifest.hasSemanticValue(equivalentUnboxed))
 				{
 					moveRegister(
-						L2_MOVE.unboxedInt,
+						INTEGER_KIND,
 						equivalentUnboxed,
 						setOf(semanticUnboxed))
 					return currentManifest.readInt(semanticUnboxed)
@@ -615,7 +617,7 @@ class L2Generator internal constructor(
 	}
 
 	override fun <K: RegisterKind<K>> moveRegister(
-		moveOperation: L2_MOVE<K>,
+		kind: K,
 		sourceSemanticValue: L2SemanticValue<K>,
 		targetSemanticValues: Iterable<L2SemanticValue<K>>)
 	{
@@ -629,17 +631,23 @@ class L2Generator internal constructor(
 		if (sourceWritesInBlock.isNotEmpty())
 		{
 			// Find the latest equivalent write in this block.
-			val latestWrite = sourceWritesInBlock.maxByOrNull {
+			val latestWrite = sourceWritesInBlock.maxBy {
 				it.instruction.basicBlock().instructions()
 					.indexOf(it.instruction)
-			}!!
-			if (!latestWrite.instruction.isPhi)
+			}
+			if (latestWrite.instruction !is L2_PHI<*>)
 			{
 				// Walk backward through instructions until the latest
 				// equivalent write, watching for disqualifying pitfalls.
 				for (i in block.instructions().indices.reversed())
 				{
 					val eachInstruction = block.instructions()[i]
+					// Don't allow an L2_STRIP_MANIFEST to intervene, because
+					// the register and semantic value written in prior
+					// instructions may not be visible (that's literally what
+					// the instruction is there to ensure).
+					if (eachInstruction.isStripManifest)
+						break
 					if (eachInstruction == latestWrite.instruction)
 					{
 						// We reached the writing instruction without trouble.
@@ -671,15 +679,13 @@ class L2Generator internal constructor(
 		// move can still be updated by subsequent moves from the same synonym.
 		val restriction = currentManifest.restrictionFor(sourceSemanticValue)
 		val register = currentManifest.getDefinition(sourceSemanticValue)
-		val operand = moveOperation.kind.readOperand(
-			sourceSemanticValue, restriction, register)
 		addInstruction(
-			moveOperation,
-			operand,
-			moveOperation.createWrite(
-				::nextUnique,
-				targetSemanticValues.toSet(),
-				restriction))
+			kind.move(
+				kind.readOperand(sourceSemanticValue, restriction, register),
+				kind.createWrite(
+					::nextUnique,
+					targetSemanticValues.toSet(),
+					restriction)))
 	}
 
 	/**
@@ -791,30 +797,48 @@ class L2Generator internal constructor(
 	}
 
 	/**
-	 * Given a register that will hold a tuple and a fixed index that is known
-	 * to be in range, generate code and answer a [L2ReadBoxedOperand] that
-	 * accesses that element.
+	 * Given an [L2ReadBoxedOperand] that will hold a tuple and a fixed index
+	 * that is known to be in range, generate code to populate the [write] with
+	 * that element.
 	 *
-	 * Depending on the source of the tuple, this may cause the creation of
-	 * the tuple to be entirely elided.
+	 * Depending on the source of the tuple, this may cause the creation of the
+	 * tuple to be entirely elided.
 	 *
-	 * This must only be used while the [controlFlowGraph] is still in SSA form.
+	 * This is only effective if the [controlFlowGraph] is still in SSA form, or
+	 * if the register providing the tuple happened to have a single defining
+	 * write, otherwise a simple tuple extraction instruction will be emitted.
 	 *
-	 * @param tupleReg
+	 * @param tupleRead
 	 *   The [L2BoxedRegister] containing the tuple.
 	 * @param index
 	 *   The one-based subscript into the tuple.
-	 * @return
-	 *   A [L2ReadBoxedOperand]s that provides that element of the tuple,
-	 *   whether by tracing the source of the instruction that created the tuple
-	 *   or by extracting the value from the tuple.
+	 * @param write
+	 *   Where to ensure the tuple element will be written.
 	 */
-	fun extractTupleElement(
-		tupleReg: L2ReadOperand<BOXED_KIND>,
-		index: Int): L2ReadBoxedOperand
+	override fun extractTupleElement(
+		tupleRead: L2ReadBoxedOperand,
+		index: Int,
+		write: L2WriteBoxedOperand)
 	{
-		return tupleReg.definition().instruction
-			.extractTupleElement(tupleReg, index, this)
+		val tupleDefinitions = tupleRead.register().definitions()
+		if (tupleDefinitions.size == 1)
+		{
+			// Either the graph is still SSA or at least this particular
+			// register has one defining write.
+			tupleDefinitions.single()
+				.instruction
+				.extractTupleElement(tupleRead, index, write, this)
+		}
+		else
+		{
+			// The graph is not in SSA, so just emit the default tuple element
+			// extraction instruction.
+			addInstruction(
+				L2_TUPLE_AT_CONSTANT,
+				tupleRead,
+				L2IntImmediateOperand(index),
+				write)
+		}
 	}
 
 	/**
@@ -839,7 +863,8 @@ class L2Generator internal constructor(
 	 */
 	fun explodeTupleIfPossible(
 		tupleReg: L2ReadBoxedOperand,
-		requiredTypes: List<A_Type>): List<L2ReadBoxedOperand>?
+		requiredTypes: List<A_Type>
+	): List<L2ReadBoxedOperand>?
 	{
 		// First see if there's enough type information available about the
 		// tuple.
@@ -871,7 +896,12 @@ class L2Generator internal constructor(
 		// At this point we know the tuple has the right type.  Extract each
 		// element, using registers originally provided to the tuple's creation
 		// if possible.
-		return (1 .. tupleSize).map { extractTupleElement(tupleReg, it) }
+		return (1 .. tupleSize).map { i ->
+			val write = boxedWriteTemp(
+				restrictionForType(tupleType.typeAtIndex(i), BOXED_FLAG))
+			extractTupleElement(tupleReg, i, write)
+			readBoxed(write)
+		}
 	}
 
 	/**
@@ -951,12 +981,12 @@ class L2Generator internal constructor(
 	 *
 	 * If [generatePhis] is `true` (the default), reconcile the live
 	 * [L2SemanticValue]s and how they're grouped into [L2Synonym]s in each
-	 * predecessor edge, creating [L2_PHI_PSEUDO_OPERATION]s as needed.
+	 * predecessor edge, creating [L2_PHI]s as needed.
 	 *
 	 * @param block
 	 *   The [L2BasicBlock] beginning code generation.
 	 * @param generatePhis
-	 *   Whether to automatically generate [L2_PHI_PSEUDO_OPERATION]s if there
+	 *   Whether to automatically generate [L2_PHI]s if there
 	 *   are multiple incoming edges with different [L2Register]s associated
 	 *   with the same [L2SemanticValue]s.
 	 * @param regenerator
@@ -1238,7 +1268,7 @@ class L2Generator internal constructor(
 		if (!currentManifest.hasSemanticValue(semanticConstant))
 		{
 			moveRegister(
-				L2_MOVE.boxed,
+				BOXED_KIND,
 				registerToTest.semanticValue(),
 				setOf(semanticConstant))
 		}

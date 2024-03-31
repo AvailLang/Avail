@@ -1932,7 +1932,8 @@ class TypeRestriction private constructor(
 
 			excludedTypes.remove(BottomTypeDescriptor.bottom)
 			val iterator = excludedTypes.iterator()
-			iterator.forEachRemaining { t: A_Type ->
+			for (t in iterator)
+			{
 				when
 				{
 					// Convert an excluded enumeration into individual excluded

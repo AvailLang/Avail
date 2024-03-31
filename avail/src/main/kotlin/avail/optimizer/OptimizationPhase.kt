@@ -36,6 +36,7 @@ import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.optimizer.DataCouplingMode.FOLLOW_REGISTERS
 import avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
 import avail.optimizer.L2ControlFlowGraph.StateFlag
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_EDGE_SPLIT
@@ -175,7 +176,7 @@ internal enum class OptimizationPhase constructor(
 	 * constant moves after phis (the ones that are constant-valued).
 	 */
 	REMOVE_DEAD_CODE_AFTER_PHI_MOVES(
-		{ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS, false) }),
+		{ removeDeadCode(FOLLOW_REGISTERS, false) }),
 
 	/**
 	 * Compute the register-coloring interference graph while we're just out of

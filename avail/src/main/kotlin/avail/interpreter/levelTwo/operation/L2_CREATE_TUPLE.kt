@@ -66,9 +66,7 @@ import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -225,15 +223,16 @@ object L2_CREATE_TUPLE : L2Operation(
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadOperand<BOXED_KIND>,
+		tupleReg: L2ReadBoxedOperand,
 		index: Int,
-		generator: L2Generator
-	): L2ReadBoxedOperand
+		write: L2WriteBoxedOperand,
+		generator: L2Generator)
 	{
 		val instruction = tupleReg.definition().instruction
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		// val tuple = instruction.operand<L2WriteBoxedOperand>(1)
 
-		return values.elements[index - 1]
+		generator.addInstruction(
+			L2_MOVE_BOXED(values.elements[index - 1], write))
 	}
 }

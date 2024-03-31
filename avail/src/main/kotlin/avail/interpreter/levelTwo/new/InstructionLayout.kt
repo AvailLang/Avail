@@ -36,8 +36,8 @@ import avail.interpreter.levelTwo.HiddenVariableShift
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable
+import avail.interpreter.levelTwo.OperandTypeMap
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2Operand
@@ -113,7 +113,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 		 * [Purpose].
 		 */
 		val namedOperandType: L2NamedOperandType = L2NamedOperandType(
-			L2OperandType.operandTypeForOperandClass(type),
+			OperandTypeMap.operandTypeForOperandClass(type),
 			name,
 			property.javaField!!.getAnnotation(On::class.java)?.purpose)
 
@@ -150,9 +150,20 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 */
 	val name = instructionClass.simpleName!!
 
+	/**
+	 * In Kotlin/JVM, declaredFields seems to produce the fields in declaration
+	 * order, so this is a handy sorting index for preserving that when starting
+	 * with the declared properties.
+	 */
+	val fieldNumbering = instructionClass.java.declaredFields
+		.withIndex()
+		.associate { (i, field) -> field to i }
+
 	private val operandFields = instructionClass.declaredMemberProperties
 		.filterIsInstance<KMutableProperty1<I, out L2Operand>>()
 		.filter { L2Operand::class.java.isAssignableFrom(it.javaField!!.type) }
+		// Preserve the field declaration order (seems to work on Kotlin/JVM).
+		.sortedBy { fieldNumbering[it.javaField] }
 		.map { OperandField(it) }
 
 	fun updateOperands(
@@ -297,7 +308,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 *   same [Class].
 	 */
 	fun transformOperands(
-		instruction: I,
+		instruction: L2NewInstruction,
 		transform: (L2Operand) -> L2Operand)
 	{
 		operandFields.forEach { operandField ->

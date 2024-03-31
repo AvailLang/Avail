@@ -70,5 +70,5 @@ abstract class L2NewControlFlowInstruction : L2NewInstruction()
 	 *   change, or reachable only from some other mechanism like continuation
 	 *   reification and later resumption of a continuation.
 	 */
-	override val targetEdges: List<L2PcOperand> = layout.pcOperands(this)
+	override val targetEdges: List<L2PcOperand> get() = layout.pcOperands(this)
 }

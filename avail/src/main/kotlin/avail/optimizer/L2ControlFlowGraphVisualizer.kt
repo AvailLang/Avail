@@ -35,14 +35,16 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
+import avail.interpreter.levelTwo.OperandTypeMap
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -420,7 +422,11 @@ class L2ControlFlowGraphVisualizer constructor(
 				"cellspacing" to "0"
 			) {
 				tag("tr") {
-					tag("td", "balign" to "left") {
+					tag("td",
+						"balign" to "left",
+						// Spacing between the edge line and its label.
+						"cellpadding" to "5"
+					) {
 						font(bold = true) {
 							append(escape(basicName))
 							namedOperandType?.purpose?.let {
@@ -560,6 +566,17 @@ class L2ControlFlowGraphVisualizer constructor(
 					}
 				}
 				attr.attribute("label", edgeLabel)
+				if (targetBlock.instructions().any { it is L2_PHI<*> })
+				{
+					// The target includes phi instructions, so label this
+					// inccoming edge with its index within the target's list of
+					// predecessors, which corresponds with the phis' vectors
+					// of source values.
+					val predecessors = edge.targetBlock().predecessorEdges()
+					val targetIndex = predecessors.indexOf(edge) + 1
+					attr.attribute(
+						"headlabel", "#$targetIndex/${predecessors.size}")
+				}
 			}
 		}
 		catch (e: IOException)
@@ -826,6 +843,8 @@ class L2ControlFlowGraphVisualizer constructor(
 					it.attribute("shape", "none")
 				}
 				graph.defaultAttributeBlock(DefaultAttributeBlockType.EDGE) {
+					it.attribute("labeldistance", "3")
+					it.attribute("labelangle", "-75")
 					it.attribute("fontname", "Helvetica")
 					it.attribute("fontsize", "8")
 					it.attribute("fontcolor", "#000000/dddddd")
@@ -903,11 +922,11 @@ class L2ControlFlowGraphVisualizer constructor(
 		// Make a note of the current length of the builder. We will need to
 		// escape everything after this point.
 		val escapeIndex = length
-		val desiredTypes = L2OperandType.allOperandTypes - listOf(PC, COMMENT)
+		val desiredTypes = OperandTypeMap.allOperandTypes -
+			listOf(PC, PC_VECTOR, COMMENT)
 		if (instruction.isUnconditionalJumpForward
 			&& instruction.offset != -1
-			&& (L2_JUMP.jumpTarget(instruction).offset()
-				== instruction.offset))
+			&& (L2_JUMP.jumpTarget(instruction).offset() == instruction.offset))
 		{
 			// Show fall-through jumps in grey.
 			val edge = L2_JUMP.jumpTarget(instruction)

@@ -57,7 +57,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
@@ -132,9 +132,9 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 		val restriction = instanceTypeRead.restriction()
 		restriction.constantOrNull?.let { constant ->
 			regenerator.addInstruction(
-				L2_MOVE.boxed,
-				regenerator.boxedConstant(constant.instanceCount),
-				result)
+				L2_MOVE_BOXED(
+					regenerator.boxedConstant(constant.instanceCount),
+					result))
 			return
 		}
 		val canBeBottom = restriction.intersectsType(bottomMeta)
@@ -158,9 +158,9 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 				{
 					// There's only one value it can be.
 					regenerator.addInstruction(
-						L2_MOVE.boxed,
-						regenerator.boxedConstant(range.lowerBound),
-						result)
+						L2_MOVE_BOXED(
+							regenerator.boxedConstant(range.lowerBound),
+							result))
 					return
 				}
 				// At least we can narrow (possibly) the result type.
