@@ -200,8 +200,7 @@ protected constructor(
 	}
 
 	/**
-	 * Update an `L2_PHI` instruction that's in a loop head
-	 * basic block.
+	 * Update an [L2_PHI] instruction that's in a loop head basic block.
 	 *
 	 * @param predecessorManifest
 	 *   The [L2ValueManifest] in some predecessor edge.

@@ -50,6 +50,7 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.utility.cast
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.javaField
@@ -158,6 +159,21 @@ internal constructor(private val instructionClass: KClass<out I>)
 	val fieldNumbering = instructionClass.java.declaredFields
 		.withIndex()
 		.associate { (i, field) -> field to i }
+
+	init
+	{
+		// Make sure there aren't any accidental val fields, since that won't
+		// work for the things we need to do to fields.
+		val valFields = instructionClass.declaredMemberProperties
+			.filterIsInstance<KProperty1<I, L2Operand>>()
+			.filter { it !is KMutableProperty1<*, *> }
+			.filter { it.javaField !== null }
+		assert(valFields.isEmpty())
+		{
+			"Found val fields ($valFields) in instruction class " +
+				"($instructionClass).  They must be var."
+		}
+	}
 
 	private val operandFields = instructionClass.declaredMemberProperties
 		.filterIsInstance<KMutableProperty1<I, out L2Operand>>()

@@ -759,9 +759,9 @@ class L1Translator private constructor(
 		}
 		// For safety, first copy the arguments into temps.
 		generator.addInstruction(
-			L2_STRIP_MANIFEST,
-			L2ReadBoxedVectorOperand(restartArguments),
-			L2WriteBoxedVectorOperand(tempWrites))
+			L2_STRIP_MANIFEST(
+				L2ReadBoxedVectorOperand(restartArguments),
+				L2WriteBoxedVectorOperand(tempWrites)))
 		// Now copy from the temps into the arguments.
 		val finalSlots = indices.map { i -> createSemanticSlot(i + 1, 1) }
 		val finalWrites = indices.map { i ->
@@ -771,9 +771,9 @@ class L1Translator private constructor(
 				L2BoxedRegister(generator.nextUnique()))
 		}
 		generator.addInstruction(
-			L2_STRIP_MANIFEST,
-			L2ReadBoxedVectorOperand(tempWrites.map(generator::readBoxed)),
-			L2WriteBoxedVectorOperand(finalWrites))
+			L2_STRIP_MANIFEST(
+				L2ReadBoxedVectorOperand(tempWrites.map(generator::readBoxed)),
+				L2WriteBoxedVectorOperand(finalWrites)))
 		val liveEntities = mutableSetOf<L2Entity<*>>()
 		liveEntities.addAll(finalSlots)
 		finalWrites.mapTo(liveEntities, L2WriteBoxedOperand::register)

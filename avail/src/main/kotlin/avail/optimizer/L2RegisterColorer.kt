@@ -35,6 +35,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.register.L2Register
 import avail.utility.Graph
 import java.util.ArrayDeque
@@ -257,7 +258,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 					// An L2_STRIP_MANIFEST has a vector of inputs that map to a
 					// vector of outputs.  Map the particular one we're working
 					// on to its corresponding output.
-					instruction.isStripManifest ->
+					instruction is L2_STRIP_MANIFEST ->
 					{
 						val index = instruction.destinationRegisters
 							.indexOf(destinationReg)

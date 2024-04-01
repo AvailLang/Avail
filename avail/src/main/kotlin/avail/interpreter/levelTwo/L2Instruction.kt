@@ -393,15 +393,6 @@ abstract class L2Instruction
 	abstract val isBoxInt: Boolean
 
 	/**
-	 * Answer whether this operation strips the current [L2ValueManifest] to
-	 * inclcude only the mentioned semantic values and registers.
-	 *
-	 * @return
-	 *   `true` if this instruction strips the manifest.
-	 */
-	open val isStripManifest: Boolean get() = false
-
-	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
 	 * which can be reached.  This is not the same as a branch, in which only
 	 * one will be reached for any circumstance of reaching this instruction.

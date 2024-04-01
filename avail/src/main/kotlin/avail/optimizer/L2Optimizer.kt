@@ -49,6 +49,7 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
@@ -1558,7 +1559,7 @@ class L2Optimizer internal constructor(
 			for (instruction in block.instructions())
 			{
 				if (instruction is L2_PHI<*>) continue
-				if (instruction.isStripManifest)
+				if (instruction is L2_STRIP_MANIFEST)
 				{
 					for (register in instruction.sourceRegisters)
 					{

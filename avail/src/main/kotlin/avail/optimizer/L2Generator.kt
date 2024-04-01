@@ -131,6 +131,7 @@ import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
+import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_UPDATE
 import avail.interpreter.levelTwo.operation.L2_UNBOX_FLOAT
@@ -646,8 +647,7 @@ class L2Generator internal constructor(
 					// the register and semantic value written in prior
 					// instructions may not be visible (that's literally what
 					// the instruction is there to ensure).
-					if (eachInstruction.isStripManifest)
-						break
+					if (eachInstruction is L2_STRIP_MANIFEST) break
 					if (eachInstruction == latestWrite.instruction)
 					{
 						// We reached the writing instruction without trouble.

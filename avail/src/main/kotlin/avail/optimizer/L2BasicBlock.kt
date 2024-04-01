@@ -353,7 +353,6 @@ constructor(
 		assert(!hasControlFlowAtEnd)
 		assert(instruction.basicBlock() == this)
 
-		//TODO Move this variation to the Phi instruction class when it exists.
 		if (instruction is L2_PHI<*>)
 		{
 			// For simplicity, phi functions are routed to the *start* of the

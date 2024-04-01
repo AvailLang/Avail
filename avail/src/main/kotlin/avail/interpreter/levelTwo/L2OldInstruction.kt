@@ -56,7 +56,6 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
@@ -267,8 +266,6 @@ constructor(
 
 	/** Answer whether this boxed an int. */
 	override val isBoxInt: Boolean get() = operation is L2_BOX_INT
-
-	override val isStripManifest: Boolean get() = operation is L2_STRIP_MANIFEST
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of

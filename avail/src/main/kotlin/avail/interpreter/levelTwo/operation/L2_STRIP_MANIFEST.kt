@@ -31,10 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
@@ -57,8 +54,8 @@ import org.objectweb.asm.MethodVisitor
  *
  * Say the code generator detects a loop, by encountering an invocation of
  * [P_RestartContinuation] or [P_RestartContinuationWithArguments] with the
- * current frame's label as the first argument.  It will replace this, if
- * possible, with code to strip the manifest down to just the (new) input
+ * current frame's label as the first argument.  It will replace the invocation,
+ * if possible, with code to strip the manifest down to just the (new) input
  * arguments to the function, and do a backward jump to a special block near the
  * top of the graph.  To strip the manifest safely, we move the live values into
  * temp registers, strip the manifest to those registers, move the values into
@@ -70,30 +67,35 @@ import org.objectweb.asm.MethodVisitor
  * allow them to have the same color, and thereby elide any JVM code for the
  * actual moves.
  *
+ * @constructor
+ *   Create a new [L2_STRIP_MANIFEST] instruction.
+ * @property inputs
+ *   An [L2ReadBoxedVectorOperand] of inputs that correspond to the [outputs].
+ * @property outputs
+ *   An [L2WriteBoxedVectorOperand] that correspond to the [inputs].
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_STRIP_MANIFEST : L2Operation(
-	READ_BOXED_VECTOR.named("input values"),
-	WRITE_BOXED_VECTOR.named("stripped output values"))
+class L2_STRIP_MANIFEST(
+	var inputs: L2ReadBoxedVectorOperand,
+	var outputs: L2WriteBoxedVectorOperand
+): L2NewInstruction()
 {
-	// Prevent this instruction from being removed, because it constrains the
-	// manifest along a back-edge, even after optimization.
+	/**
+	 * Prevent this instruction from being removed, because it constrains the
+	 * manifest along a back-edge, even after optimization.
+	 */
 	override val hasSideEffect get() = true
 
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		val reads = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val writes = instruction.operand<L2WriteBoxedVectorOperand>(1)
-
-		reads.instructionWasAdded(manifest)
+		super.instructionWasAdded(manifest)
 
 		// Clear the manifest, other than the semantic values and registers that
 		// are written by this instruction.
 		val liveSemanticValues =
-			writes.elements.mapToSet { it.onlySemanticValue() }
-		val liveRegisters = writes.elements.mapToSet { it.register() }
+			outputs.elements.mapToSet { it.onlySemanticValue() }
+		val liveRegisters = outputs.elements.mapToSet { it.register() }
 		// After stripping the manifest down to the block arguments needed for a
 		// P_RestartWithArguments, we *must not* allow any additional postponed
 		// instructions to run.  There was a rare case (2022.07.07) in which an
@@ -104,7 +106,6 @@ object L2_STRIP_MANIFEST : L2Operation(
 		// postponed instructions, since after this L2_STRIP_MANIFEST there is
 		// no valid thing that can be done except moves from those registers,
 		// another strip-manifest for safety, and an L2_JUMP_BACK.
-		writes.instructionWasAdded(manifest)
 		manifest.clearPostponedInstructions()
 		manifest.retainSemanticValues(liveSemanticValues)
 		manifest.retainRegisters(liveRegisters)
@@ -112,18 +113,16 @@ object L2_STRIP_MANIFEST : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		// Transfer from the sources to the corresponding destinations.  Most of
 		// these pairs will have been assigned to the same register, and can be
 		// elided.
-		val reads = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val writes = instruction.operand<L2WriteBoxedVectorOperand>(1)
-		(reads.elements zip writes.elements).forEach { (read, write) ->
+		(inputs.elements zip outputs.elements).forEach { (read, write) ->
 			if (read.register().finalIndex() != write.register().finalIndex())
 			{
-				// Emit an actual move.
+				// That pair didn't get eliminated during coloring, so emit an
+				// actual move.
 				translator.load(method, read.register())
 				translator.store(method, write.register())
 			}
