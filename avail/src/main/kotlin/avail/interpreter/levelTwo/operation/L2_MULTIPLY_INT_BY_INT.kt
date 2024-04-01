@@ -31,14 +31,10 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -56,53 +52,41 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_MULTIPLY_INT_BY_INT : L2OldControlFlowOperation(
-	READ_INT.named("multiplicand"),
-	READ_INT.named("multiplier"),
-	WRITE_INT.named("product", SUCCESS),
-	PC.named("out of range", FAILURE),
-	PC.named("in range", SUCCESS))
+class L2_MULTIPLY_INT_BY_INT(
+	var multiplicand: L2ReadIntOperand,
+	var multiplier: L2ReadIntOperand,
+	@On(SUCCESS) var product: L2WriteIntOperand,
+	@On(FAILURE) var outOfRange: L2PcOperand,
+	@On(SUCCESS) var inRange: L2PcOperand
+): L2NewControlFlowInstruction()
 {
 	// It jumps if the result doesn't fit in an int.
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val multiplicandReg = instruction.operand<L2ReadIntOperand>(0)
-		val multiplierReg = instruction.operand<L2ReadIntOperand>(1)
-		val productReg = instruction.operand<L2WriteIntOperand>(2)
-		//val outOfRange = instruction.operand<L2WriteIntOperand>(3)
-		//val inRange = instruction.operand<L2WriteIntOperand>(4)
-
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(productReg.registerString())
+		builder.append(product.registerString())
 		builder.append(" ← ")
-		builder.append(multiplicandReg.registerString())
+		builder.append(multiplicand.registerString())
 		builder.append(" × ")
-		builder.append(multiplierReg.registerString())
-		instruction.renderOperandsStartingAt(3, desiredTypes, builder)
+		builder.append(multiplier.registerString())
+		renderOperandsExcludingFields(
+			builder, ::multiplicand, ::multiplier, ::product)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val multiplicandReg = instruction.operand<L2ReadIntOperand>(0)
-		val multiplierReg = instruction.operand<L2ReadIntOperand>(1)
-		val productReg = instruction.operand<L2WriteIntOperand>(2)
-		val outOfRange = instruction.operand<L2PcOperand>(3)
-		val inRange = instruction.operand<L2PcOperand>(4)
-
 		// :: longProduct = (long) multiplicand * (long) multiplier;
-		translator.load(method, multiplicandReg.register())
+		translator.load(method, multiplicand.register())
 		method.visitInsn(Opcodes.I2L)
-		translator.load(method, multiplierReg.register())
+		translator.load(method, multiplier.register())
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LMUL)
 		val longProductStart = Label()
@@ -130,7 +114,7 @@ object L2_MULTIPLY_INT_BY_INT : L2OldControlFlowOperation(
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
 		method.visitInsn(Opcodes.L2I)
-		translator.store(method, productReg.register())
+		translator.store(method, product.register())
 		translator.jump(method, inRange)
 		method.visitLabel(longProductEnd)
 		translator.endLocal(longProductLocal, Type.LONG_TYPE)

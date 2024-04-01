@@ -297,11 +297,11 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(
-				L2_MULTIPLY_INT_BY_INT,
-				intA,
-				intB,
-				intWrite,
-				edgeTo(intFailure),
-				edgeTo(intSuccess))
+				L2_MULTIPLY_INT_BY_INT(
+					intA,
+					intB,
+					intWrite,
+					edgeTo(intFailure),
+					edgeTo(intSuccess)))
 		})
 }

@@ -184,11 +184,11 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(
-				L2_SUBTRACT_INT_MINUS_INT,
-				intA,
-				intB,
-				intWrite,
-				edgeTo(intFailure),
-				edgeTo(intSuccess))
+				L2_SUBTRACT_INT_MINUS_INT(
+					intA,
+					intB,
+					intWrite,
+					edgeTo(intFailure),
+					edgeTo(intSuccess)))
 		})
 }

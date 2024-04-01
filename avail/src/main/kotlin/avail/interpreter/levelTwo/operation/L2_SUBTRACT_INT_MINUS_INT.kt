@@ -31,14 +31,10 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -55,48 +51,37 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_SUBTRACT_INT_MINUS_INT : L2OldControlFlowOperation(
-	READ_INT.named("minuend"),
-	READ_INT.named("subtrahend"),
-	WRITE_INT.named("difference", SUCCESS),
-	PC.named("out of range", FAILURE),
-	PC.named("in range", SUCCESS))
+class L2_SUBTRACT_INT_MINUS_INT(
+	var minuend: L2ReadIntOperand,
+	var subtrahend: L2ReadIntOperand,
+	@On(SUCCESS) var difference: L2WriteIntOperand,
+	@On(FAILURE) var outOfRange: L2PcOperand,
+	@On(SUCCESS) var inRange: L2PcOperand
+): L2NewControlFlowInstruction()
 {
 	// It jumps if the result doesn't fit in an int.
 	override val hasSideEffect: Boolean get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val minuend = instruction.operand<L2ReadIntOperand>(0)
-		val subtrahend = instruction.operand<L2ReadIntOperand>(1)
-		val difference = instruction.operand<L2WriteIntOperand>(2)
-		//		final L2PcOperand outOfRange = instruction.operand(3);
-//		final L2PcOperand inRange = instruction.operand(4);
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(difference.registerString())
 		builder.append(" ← ")
 		builder.append(minuend.registerString())
 		builder.append(" - ")
 		builder.append(subtrahend.registerString())
-		instruction.renderOperandsStartingAt(3, desiredTypes, builder)
+		renderOperandsExcludingFields(
+			builder, ::minuend, ::subtrahend, ::difference)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val minuend = instruction.operand<L2ReadIntOperand>(0)
-		val subtrahend = instruction.operand<L2ReadIntOperand>(1)
-		val difference = instruction.operand<L2WriteIntOperand>(2)
-		val outOfRange = instruction.operand<L2PcOperand>(3)
-		val inRange = instruction.operand<L2PcOperand>(4)
-
 		// :: longDifference = (long) minuend - (long) subtrahend;
 		translator.load(method, minuend.register())
 		method.visitInsn(Opcodes.I2L)

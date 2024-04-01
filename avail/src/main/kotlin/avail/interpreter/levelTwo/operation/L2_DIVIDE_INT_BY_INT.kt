@@ -31,15 +31,11 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -60,30 +56,23 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_DIVIDE_INT_BY_INT : L2OldControlFlowOperation(
-	READ_INT.named("dividend"),
-	READ_INT.named("divisor"),
-	WRITE_INT.named("quotient", SUCCESS),
-	WRITE_INT.named("remainder", SUCCESS),
-	PC.named("out of range", FAILURE),
-	PC.named("zero divisor", OFF_RAMP),
-	PC.named("success", SUCCESS))
+class L2_DIVIDE_INT_BY_INT(
+	var dividend: L2ReadIntOperand,
+	var divisor: L2ReadIntOperand,
+	@On(SUCCESS) var quotient: L2WriteIntOperand,
+	@On(SUCCESS) var remainder: L2WriteIntOperand,
+	@On(FAILURE) var outOfRange: L2PcOperand,
+	@On(OFF_RAMP) var zeroDivisor: L2PcOperand,
+	@On(SUCCESS) var success: L2PcOperand
+): L2NewControlFlowInstruction()
 {
 	// It jumps for division by zero or out-of-range.
 	override val hasSideEffect get() = true
 
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		//		final L2ReadIntOperand dividend = instruction.operand(0);
-		val divisor = instruction.operand<L2ReadIntOperand>(1)
-		//		final L2WriteIntOperand quotient = instruction.operand(2);
-//		final L2WriteIntOperand remainder = instruction.operand(3);
-//		final L2PcOperand outOfRange = instruction.operand(4);
-		val zeroDivisor = instruction.operand<L2PcOperand>(5)
-		//		final L2PcOperand success = instruction.operand(6);
-		super.instructionWasAdded(instruction, manifest)
+		super.instructionWasAdded(manifest)
 
 		// On the zeroDivisor edge, the divisor is definitely zero.
 		zeroDivisor.manifest().setRestriction(
@@ -92,19 +81,11 @@ object L2_DIVIDE_INT_BY_INT : L2OldControlFlowOperation(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val dividend = instruction.operand<L2ReadIntOperand>(0)
-		val divisor = instruction.operand<L2ReadIntOperand>(1)
-		val quotient = instruction.operand<L2WriteIntOperand>(2)
-		val remainder = instruction.operand<L2WriteIntOperand>(3)
-		//		final L2PcOperand outOfRange = instruction.operand(4);
-//		final L2PcOperand zeroDivisor = instruction.operand(5);
-//		final L2PcOperand success = instruction.operand(6);
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append("quo=")
 		builder.append(quotient.registerString())
 		builder.append(", rem=")
@@ -113,22 +94,14 @@ object L2_DIVIDE_INT_BY_INT : L2OldControlFlowOperation(
 		builder.append(dividend.registerString())
 		builder.append(" ÷ ")
 		builder.append(divisor.registerString())
-		instruction.renderOperandsStartingAt(4, desiredTypes, builder)
+		renderOperandsExcludingFields(
+			builder, ::dividend, ::divisor, ::quotient, ::remainder)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val dividend = instruction.operand<L2ReadIntOperand>(0)
-		val divisor = instruction.operand<L2ReadIntOperand>(1)
-		val quotient = instruction.operand<L2WriteIntOperand>(2)
-		val remainder = instruction.operand<L2WriteIntOperand>(3)
-		val outOfRange = instruction.operand<L2PcOperand>(4)
-		val zeroDivisor = instruction.operand<L2PcOperand>(5)
-		val success = instruction.operand<L2PcOperand>(6)
-
 		// :: if (divisor == 0) goto zeroDivisorIndex;
 		translator.load(method, divisor.register())
 		method.visitJumpInsn(Opcodes.IFEQ, translator.labelFor(zeroDivisor.offset()))
