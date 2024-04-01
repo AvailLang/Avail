@@ -472,10 +472,9 @@ constructor(
 			if (output.isNotEmpty())
 			{
 				val previousInstruction = output[output.size - 1]
-				if (previousInstruction.isUnconditionalJumpForward)
+				if (previousInstruction is L2_JUMP)
 				{
-					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
-						== this)
+					if (previousInstruction.target.targetBlock() == this)
 					{
 						output.removeAt(output.size - 1)
 						changed = true

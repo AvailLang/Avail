@@ -45,6 +45,7 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
@@ -232,7 +233,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					isCurrent -> currentBlockBackColor to currentBlockForeColor
 					!started -> "#202080/303000" to "#ffffff/e0e0e0"
 					basicBlock.instructions().any {
-						it.isUnreachableInstruction
+						it is L2_UNREACHABLE_CODE
 					} -> "#400000/600000" to "#ffffff/ffffff"
 					basicBlock.isLoopHead ->
 						"#9070ff/302090" to "#000000/f0f0f0"
@@ -403,7 +404,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		val sourceInstruction = edge.instruction
 		val targetBlock = edge.targetBlock()
 		val isTargetTheUnreachableBlock = targetBlock.instructions()
-			.any { it.isUnreachableInstruction }
+			.any { it is L2_UNREACHABLE_CODE }
 		var namedOperandType: L2NamedOperandType? = null
 		edge.instruction.operandsWithNamedTypesDo { operand, namedType ->
 			when (operand)
@@ -924,12 +925,12 @@ class L2ControlFlowGraphVisualizer constructor(
 		val escapeIndex = length
 		val desiredTypes = OperandTypeMap.allOperandTypes -
 			listOf(PC, PC_VECTOR, COMMENT)
-		if (instruction.isUnconditionalJumpForward
+		if (instruction is L2_JUMP
 			&& instruction.offset != -1
-			&& (L2_JUMP.jumpTarget(instruction).offset() == instruction.offset))
+			&& (instruction.target.offset() == instruction.offset))
 		{
 			// Show fall-through jumps in grey.
-			val edge = L2_JUMP.jumpTarget(instruction)
+			val edge = instruction.target
 			font(
 				italic = true,
 				color = writer.adjust(

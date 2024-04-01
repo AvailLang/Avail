@@ -48,14 +48,11 @@ import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_HASH
-import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
-import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Generator
@@ -197,18 +194,6 @@ constructor(
 	override val isCreateFunction get() = operation is L2_CREATE_FUNCTION
 
 	/**
-	 * Answer whether this instruction causes unconditional control flow jump to
-	 * another [L2BasicBlock] which is "forward" in the graph.
-	 */
-	override val isUnconditionalJumpForward get() = operation is L2_JUMP
-
-	/**
-	 * Answer whether this instruction causes unconditional control flow jump to
-	 * another [L2BasicBlock] which is "backward" in the graph.
-	 */
-	override val isUnconditionalJumpBackward get() = operation is L2_JUMP_BACK
-
-	/**
 	 * Answer whether this instruction extracts the tag ordinal from some value.
 	 */
 	override val isExtractTagOrdinal get() = operation is L2_EXTRACT_TAG_ORDINAL
@@ -258,10 +243,6 @@ constructor(
 	 * Answer whether this instruction computes the 32-bit hash of an object.
 	 */
 	override val isHash: Boolean get() = operation == L2_HASH
-
-	/** Ansswer whether this is an unreachable-code instruction. */
-	override val isUnreachableInstruction: Boolean
-		get() = operation is L2_UNREACHABLE_CODE
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of

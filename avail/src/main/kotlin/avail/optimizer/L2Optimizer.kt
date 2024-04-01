@@ -827,9 +827,8 @@ class L2Optimizer internal constructor(
 					val edge = block.predecessorEdges()[i]
 					val predecessor = edge.sourceBlock()
 					val instructions = predecessor.instructions()
-					assert(predecessor.finalInstruction().run {
-						isUnconditionalJumpForward ||
-							isUnconditionalJumpBackward
+					assert(predecessor.finalInstruction().let {
+						it is L2_JUMP || it is L2_JUMP_BACK
 					})
 					val move =
 						instruction.replacementMoveForIndex(i, predecessor)
@@ -977,7 +976,7 @@ class L2Optimizer internal constructor(
 			{
 				assert(block !in blocksToRemove)
 				val jump = block.finalInstruction()
-				if (!jump.isUnconditionalJumpForward) continue
+				if (jump !is L2_JUMP) continue
 				val edge = jump.targetEdges.single()
 				val target = edge.targetBlock()
 				// Don't remove the block if it's irremovable or a loop head.
@@ -1027,17 +1026,11 @@ class L2Optimizer internal constructor(
 					continue
 				}
 				val soleInstruction = block.finalInstruction()
-				val jumpEdge = if (soleInstruction.isUnconditionalJumpForward)
+				val jumpEdge = when
 				{
-					L2_JUMP.jumpTarget(soleInstruction)
-				}
-				else if (soleInstruction.isUnconditionalJumpBackward)
-				{
-					L2_JUMP_BACK.jumpTarget(soleInstruction)
-				}
-				else
-				{
-					continue
+					soleInstruction is L2_JUMP -> soleInstruction.target
+					soleInstruction is L2_JUMP_BACK -> soleInstruction.target
+					else -> continue
 				}
 				// Redirect all predecessors through the jump.
 				val jumpTarget = jumpEdge.targetBlock()

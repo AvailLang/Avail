@@ -228,7 +228,7 @@ class L2Generator internal constructor(
 	/** The control flow graph being generated. */
 	val controlFlowGraph = L2ControlFlowGraph()
 
-	override fun addUnreachableCode() = addInstruction(L2_UNREACHABLE_CODE)
+	override fun addUnreachableCode() = addInstruction(L2_UNREACHABLE_CODE())
 
 	override fun unreachablePcOperand(): L2PcOperand
 	{
@@ -1018,7 +1018,7 @@ class L2Generator internal constructor(
 				val predecessorEdge = block.predecessorEdges()[0]
 				val predecessorBlock = predecessorEdge.sourceBlock()
 				val jump = predecessorBlock.finalInstruction()
-				if (jump.isUnconditionalJumpForward
+				if (jump is L2_JUMP
 					&& regenerator.isNullOr { canCollapseUnconditionalJumps })
 				{
 					// The new block has only one predecessor, which
@@ -1073,7 +1073,7 @@ class L2Generator internal constructor(
 		targetBlock: L2BasicBlock,
 		optionalName: String?)
 	{
-		addInstruction(L2_JUMP, edgeTo(targetBlock, optionalName))
+		addInstruction(L2_JUMP(edgeTo(targetBlock, optionalName)))
 	}
 
 	override fun compareAndBranchInt(

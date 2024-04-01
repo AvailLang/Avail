@@ -375,8 +375,7 @@ constructor(
 				reenterFromRestartBlock.offset(),
 				instructions,
 				controlFlowGraph,
-				emptySet
-			)
+				emptySet)
 			assert(initialBlock.offset() == 0)
 			assert(reenterFromRestartBlock.offset()
 				== ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)

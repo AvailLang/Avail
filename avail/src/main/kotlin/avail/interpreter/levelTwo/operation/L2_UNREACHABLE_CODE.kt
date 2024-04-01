@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
@@ -47,48 +46,51 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_UNREACHABLE_CODE : L2OldControlFlowOperation()
+class L2_UNREACHABLE_CODE(
+): L2NewControlFlowInstruction()
 {
-	override fun isCold(instruction: L2Instruction): Boolean = true
+	override val isCold get() = true
 
 	override val hasSideEffect get() = true
 
 	/**
-	 * `UnreachableCodeException` is thrown only if unreachable code is
-	 * actually reached.
+	 * [UnreachableCodeException] is thrown only if unreachable code is actually
+	 * reached.
 	 */
 	class UnreachableCodeException : RuntimeException()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		// :: throw throwUnreachableCodeException();
 		throwUnreachableCodeExceptionMethod.generateCall(method)
 		method.visitInsn(Opcodes.ATHROW)
 	}
 
-	/**
-	 * Throw an [UnreachableCodeException], but pretend to return one to
-	 * make JVM data flow analysis happy (and keep instruction count low in the
-	 * generated code for `L2_UNREACHABLE_CODE`).
-	 *
-	 * @return
-	 * Never returns, always throws `UnreachableCodeException`.
-	 */
-	@ReferencedInGeneratedCode
-	@JvmStatic
-	fun throwUnreachableCodeException(): UnreachableCodeException
+	companion object
 	{
-		throw UnreachableCodeException()
-	}
+		/**
+		 * Throw an [UnreachableCodeException], but pretend to return one to
+		 * make JVM data flow analysis happy (and keep instruction count low in
+		 * the generated code for `L2_UNREACHABLE_CODE`).
+		 *
+		 * @return
+		 * Never returns, always throws `UnreachableCodeException`.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun throwUnreachableCodeException(): UnreachableCodeException
+		{
+			throw UnreachableCodeException()
+		}
 
-	/**
-	 * The [CheckedMethod] for [throwUnreachableCodeException].
-	 */
-	val throwUnreachableCodeExceptionMethod = staticMethod(
-		L2_UNREACHABLE_CODE::class.java,
-		::throwUnreachableCodeException.name,
-		UnreachableCodeException::class.java)
+		/**
+		 * The [CheckedMethod] for [throwUnreachableCodeException].
+		 */
+		val throwUnreachableCodeExceptionMethod = staticMethod(
+			L2_UNREACHABLE_CODE::class.java,
+			::throwUnreachableCodeException.name,
+			UnreachableCodeException::class.java)
+	}
 }

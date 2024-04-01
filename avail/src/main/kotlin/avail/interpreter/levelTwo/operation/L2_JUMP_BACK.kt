@@ -31,11 +31,8 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
@@ -52,58 +49,36 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_BACK : L2OldControlFlowOperation(
-	PC.named("target", SUCCESS),
-	READ_BOXED_VECTOR.named("registers to keep"))
+class L2_JUMP_BACK(
+	@On(SUCCESS) var target: L2PcOperand,
+	var registersToKeep: L2ReadBoxedVectorOperand
+): L2NewControlFlowInstruction()
 {
 	// It jumps, which counts as a side effect.
 	override val hasSideEffect get() = true
 
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		val target = instruction.operand<L2PcOperand>(0)
-		val preservedReads =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-
 		// Play the reads against the old manifest, which is then filtered.
-		preservedReads.instructionWasAdded(manifest)
+		registersToKeep.instructionWasAdded(manifest)
 		val semanticValuesToKeep = mutableSetOf<L2SemanticValue<*>>()
-		val registersToKeep = mutableSetOf<L2Register<*>>()
-		preservedReads.elements.forEach {
+		val toKeep = mutableSetOf<L2Register<*>>()
+		registersToKeep.elements.forEach {
 			semanticValuesToKeep.add(it.semanticValue())
-			registersToKeep.add(it.register())
+			toKeep.add(it.register())
 		}
 		manifest.clearPostponedInstructions()
 		manifest.retainSemanticValues(semanticValuesToKeep)
-		manifest.retainRegisters(registersToKeep)
+		manifest.retainRegisters(toKeep)
 		target.instructionWasAdded(manifest)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val target = instruction.operand<L2PcOperand>(0)
-
 		// :: goto offset;
 		translator.jumpOrFallThrough(method, target)
-	}
-
-	/**
-	 * Extract the target of the given jump-back instruction.
-	 *
-	 * @param instruction
-	 *   The [L2Instruction] to examine.  Its [L2Operation] must be an
-	 *   `L2_JUMP_BACK`.
-	 * @return
-	 *   The [L2PcOperand] to which the instruction jumps.
-	 */
-	@JvmStatic
-	fun jumpTarget(instruction: L2Instruction): L2PcOperand
-	{
-		return instruction.operand(0)
 	}
 }

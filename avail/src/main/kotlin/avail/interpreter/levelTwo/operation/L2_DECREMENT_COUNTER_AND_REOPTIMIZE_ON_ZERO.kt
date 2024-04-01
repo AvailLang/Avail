@@ -37,9 +37,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToRe
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.CheckedMethod
@@ -59,31 +57,23 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
-	INT_IMMEDIATE.named("new optimization level"),
-	INT_IMMEDIATE.named("is entry point"))
+class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
+	var newOptimizationLevel: L2IntImmediateOperand,
+	var isEntryPointFlag: L2IntImmediateOperand
+): L2NewInstruction()
 {
-	override val hasSideEffect: Boolean
-		get() = true
+	override val hasSideEffect: Boolean get() = true
 
-	override fun isEntryPoint(instruction: L2Instruction): Boolean
-	{
-		val immediate = instruction.operand<L2IntImmediateOperand>(1)
-		return immediate.value != 0
-	}
+	override val isEntryPoint get() = isEntryPointFlag.value != 0
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val optimization = instruction.operand<L2IntImmediateOperand>(0)
-		//val isEntryPoint: L2IntImmediateOperand = instruction.operand(1)
-
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;
 		translator.loadInterpreter(method)
-		translator.literal(method, optimization.value)
+		translator.literal(method, newOptimizationLevel.value)
 		decrementMethod.generateCall(method)
 		val didNotOptimize = Label()
 		method.visitJumpInsn(Opcodes.IFEQ, didNotOptimize)
@@ -91,46 +81,50 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 		method.visitInsn(Opcodes.ARETURN)
 		method.visitLabel(didNotOptimize)
 	}
-	/**
-	 * Decrement the counter associated with the code.  If this thread was
-	 * responsible for decrementing it to zero, (re)optimize the code by
-	 * producing a new chunk.  Return whether the chunk was replaced.
-	 *
-	 * @param interpreter
-	 *   The interpreter for the current thread.
-	 * @param targetOptimizationLevel
-	 *   What level of optimization to apply if reoptimization occurs.
-	 * @return
-	 *   Whether a new chunk was activated, whether or not the optimization was
-	 *   due to this fiber.
-	 */
-	@ReferencedInGeneratedCode
-	@JvmStatic
-	fun decrement(
-		interpreter: Interpreter,
-		targetOptimizationLevel: Int
-	): Boolean
-	{
-		val code = interpreter.function!!.code()
-		return code.decrementCountdownToReoptimize { optimize: Boolean ->
-			if (optimize)
-			{
-				OptimizationLevel.optimizationLevel(targetOptimizationLevel)
-					.optimize(code, interpreter)
-			}
-			val chunk = code.startingChunk
-			interpreter.chunk = chunk
-			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive)
-		}
-	}
 
-	/**
-	 * The [CheckedMethod] for [decrement].
-	 */
-	private val decrementMethod = staticMethod(
-		L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO::class.java,
-		::decrement.name,
-		Boolean::class.javaPrimitiveType!!,
-		Interpreter::class.java,
-		Int::class.javaPrimitiveType!!)
+	companion object
+	{
+		/**
+		 * Decrement the counter associated with the code.  If this thread was
+		 * responsible for decrementing it to zero, (re)optimize the code by
+		 * producing a new chunk.  Return whether the chunk was replaced.
+		 *
+		 * @param interpreter
+		 *   The interpreter for the current thread.
+		 * @param targetOptimizationLevel
+		 *   What level of optimization to apply if reoptimization occurs.
+		 * @return
+		 *   Whether a new chunk was activated, whether or not the optimization
+		 *   was due to this fiber.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun decrement(
+			interpreter: Interpreter,
+			targetOptimizationLevel: Int
+		): Boolean
+		{
+			val code = interpreter.function!!.code()
+			return code.decrementCountdownToReoptimize { optimize: Boolean ->
+				if (optimize)
+				{
+					OptimizationLevel.optimizationLevel(targetOptimizationLevel)
+						.optimize(code, interpreter)
+				}
+				val chunk = code.startingChunk
+				interpreter.chunk = chunk
+				interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive)
+			}
+		}
+
+		/**
+		 * The [CheckedMethod] for [decrement].
+		 */
+		private val decrementMethod = staticMethod(
+			L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO::class.java,
+			::decrement.name,
+			Boolean::class.javaPrimitiveType!!,
+			Interpreter::class.java,
+			Int::class.javaPrimitiveType!!)
+	}
 }

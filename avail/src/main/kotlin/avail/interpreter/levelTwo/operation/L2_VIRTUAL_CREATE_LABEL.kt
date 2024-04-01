@@ -233,7 +233,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 				L2_RETURN_FROM_REIFICATION_HANDLER)
 
 			startBlock(unreachable)
-			addInstruction(L2_UNREACHABLE_CODE)
+			addInstruction(L2_UNREACHABLE_CODE())
 
 			startBlock(afterReification)
 			addInstruction(

@@ -151,8 +151,6 @@ abstract class L2NewInstruction : L2Instruction()
 	override open val isMoveBoxedConstant: Boolean get() = false
 	override open val isRunInfalliblePrimitive: Boolean get() = false
 	override open val isCreateFunction: Boolean get() = false
-	override open val isUnconditionalJumpForward: Boolean get() = false
-	override open val isUnconditionalJumpBackward: Boolean get() = false
 	override open val isExtractTagOrdinal: Boolean get() = false
 	override open val isExtractObjectVariantId: Boolean get() = false
 	override open val isExtractObjectTypeVariantId: Boolean get() = false
@@ -163,7 +161,6 @@ abstract class L2NewInstruction : L2Instruction()
 	override open val isEnterL2ChunkForCall: Boolean get() = false
 	override fun isBitLogicOperation(op: L2_BIT_LOGIC_OP): Boolean = false
 	override open val isHash: Boolean get() = false
-	override open val isUnreachableInstruction: Boolean get() = false
 	override open val goesMultipleWays: Boolean get() = false
 	override val constantCode: A_RawFunction? get() = null
 
@@ -188,7 +185,7 @@ abstract class L2NewInstruction : L2Instruction()
 
 	override open val referenceOfSaveAll: L2PcOperand get() = unsupported
 
-	override open val isCold: Boolean get() = false
+	override open val isCold get() = false
 
 	override open fun generateReplacement(regenerator: L2Regenerator) =
 		regenerator.basicProcessInstruction(this)
@@ -224,7 +221,16 @@ abstract class L2NewInstruction : L2Instruction()
 		builder: StringBuilder,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		TODO("Not yet implemented")
+		renderPreamble(builder)
+		operandsWithNamedTypesDo { operand, namedOperandType ->
+			if (desiredTypes.contains(namedOperandType.operandType()))
+			{
+				builder.append("\n\t")
+				builder.append(namedOperandType.name())
+				builder.append(" = ")
+				operand.appendWithWarningsTo(builder, 1, warningStyleChange)
+			}
+		}
 	}
 
 	/**

@@ -265,7 +265,7 @@ object L2_MULTIWAY_JUMP : L2OldConditionalJump(
 			// It's a leaf.
 			assert(firstSplit == lastSplit + 1)
 			val edge = edges[firstSplit - 1]  // Convert to zero-based.
-			regenerator.addInstruction(L2_JUMP, edge)
+			regenerator.addInstruction(L2_JUMP(edge))
 			return
 		}
 		// It's not a leaf.  Pick a split point near the middle of the range.
@@ -394,9 +394,7 @@ abstract class AbstractMultiWaySplitter(
 		}
 		if (possibleEdges.size == 1)
 		{
-			generator.addInstruction(
-				L2_JUMP,
-				possibleEdges.single())
+			generator.addInstruction(L2_JUMP(possibleEdges.single()))
 			return
 		}
 

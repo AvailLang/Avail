@@ -42,7 +42,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
@@ -64,65 +64,68 @@ import java.util.logging.Level
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_REENTER_L1_CHUNK_FROM_INTERRUPT : L2Operation()
+class L2_REENTER_L1_CHUNK_FROM_INTERRUPT(
+): L2NewInstruction()
 {
 	override val hasSideEffect get() = true
 
-	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
+	override val isEntryPoint get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		// :: L2_REENTER_L1_CHUNK_FROM_INTERRUPT.reenter();
 		translator.loadInterpreter(method)
 		reenterMethod.generateCall(method)
 	}
 
-	/**
-	 * Reenter from an interrupt.
-	 *
-	 * @param interpreter
-	 *   The [Interpreter].
-	 */
-	@ReferencedInGeneratedCode
-	@JvmStatic
-	fun reenter(interpreter: Interpreter)
+	companion object
 	{
-		val continuation: A_Continuation =
-			interpreter.getReifiedContinuation()!!
-		interpreter.setReifiedContinuation(continuation.caller())
-		if (Interpreter.debugL1)
+		/**
+		 * Reenter from an interrupt.
+		 *
+		 * @param interpreter
+		 *   The [Interpreter].
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun reenter(interpreter: Interpreter)
 		{
-			log(
-				Interpreter.loggerDebugL1,
-				Level.FINER,
-				"{0}Reenter L1 from interrupt",
-				interpreter.debugModeString)
-		}
-		val function = interpreter.function!!
-		assert(function === continuation.function())
-		val numSlots = continuation.numSlots()
-		// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
-		val stepper = interpreter.levelOneStepper
-		stepper.pointers = Array(numSlots + 1)
-		{
-			when (it)
+			val continuation: A_Continuation =
+				interpreter.getReifiedContinuation()!!
+			interpreter.setReifiedContinuation(continuation.caller())
+			if (Interpreter.debugL1)
 			{
-				0 -> nil
-				else -> continuation.stackAt(it)
+				log(
+					Interpreter.loggerDebugL1,
+					Level.FINER,
+					"{0}Reenter L1 from interrupt",
+					interpreter.debugModeString)
 			}
+			val function = interpreter.function!!
+			assert(function === continuation.function())
+			val numSlots = continuation.numSlots()
+			// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
+			val stepper = interpreter.levelOneStepper
+			stepper.pointers = Array(numSlots + 1)
+			{
+				when (it)
+				{
+					0 -> nil
+					else -> continuation.stackAt(it)
+				}
+			}
+			function.code().setUpInstructionDecoder(stepper.instructionDecoder)
+			stepper.instructionDecoder.pc(continuation.pc())
+			stepper.stackp = continuation.stackp()
 		}
-		function.code().setUpInstructionDecoder(stepper.instructionDecoder)
-		stepper.instructionDecoder.pc(continuation.pc())
-		stepper.stackp = continuation.stackp()
-	}
 
-	/** The [CheckedMethod] for [reenter]. */
-	private val reenterMethod = staticMethod(
-		L2_REENTER_L1_CHUNK_FROM_INTERRUPT::class.java,
-		::reenter.name,
-		Void.TYPE,
-		Interpreter::class.java)
+		/** The [CheckedMethod] for [reenter]. */
+		private val reenterMethod = staticMethod(
+			L2_REENTER_L1_CHUNK_FROM_INTERRUPT::class.java,
+			::reenter.name,
+			Void.TYPE,
+			Interpreter::class.java)
+	}
 }

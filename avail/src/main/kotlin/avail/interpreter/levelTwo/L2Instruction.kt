@@ -328,18 +328,6 @@ abstract class L2Instruction
 	abstract val isCreateFunction: Boolean
 
 	/**
-	 * Answer whether this instruction causes unconditional control flow jump to
-	 * another [L2BasicBlock] which is "forward" in the graph.
-	 */
-	abstract val isUnconditionalJumpForward: Boolean
-
-	/**
-	 * Answer whether this instruction causes unconditional control flow jump to
-	 * another [L2BasicBlock] which is "backward" in the graph.
-	 */
-	abstract val isUnconditionalJumpBackward: Boolean
-
-	/**
 	 * Answer whether this instruction extracts the tag ordinal from some value.
 	 */
 	abstract val isExtractTagOrdinal: Boolean
@@ -385,9 +373,6 @@ abstract class L2Instruction
 	 * Answer whether this instruction computes the 32-bit hash of an object.
 	 */
 	abstract val isHash: Boolean
-
-	/** Ansswer whether this is an unreachable-code instruction. */
-	abstract val isUnreachableInstruction: Boolean
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of

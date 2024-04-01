@@ -723,7 +723,7 @@ class L1Translator private constructor(
 		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER)
 
 		generator.startBlock(unreachable)
-		generator.addInstruction(L2_UNREACHABLE_CODE)
+		generator.addInstruction(L2_UNREACHABLE_CODE())
 
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified)
@@ -781,12 +781,12 @@ class L1Translator private constructor(
 		// Jump back to the RESTART_LOOP_HEAD, where the n@1 semantic slots will
 		// be added to the phis.
 		generator.addInstruction(
-			L2_JUMP_BACK,
-			backEdgeTo(generator.specialBlocks[RESTART_LOOP_HEAD]!!),
-			L2ReadBoxedVectorOperand(
-				indices.map {
-					generator.readBoxed(createSemanticSlot(it + 1, 1))
-				}))
+			L2_JUMP_BACK(
+				backEdgeTo(generator.specialBlocks[RESTART_LOOP_HEAD]!!),
+				L2ReadBoxedVectorOperand(
+					indices.map {
+						generator.readBoxed(createSemanticSlot(it + 1, 1))
+					})))
 
 		// Ensure only the n@1 slots and registers are considered live, both
 		// before and after the trampoline.
@@ -1574,7 +1574,7 @@ class L1Translator private constructor(
 				edgeTo(reificationTarget))
 		}
 		generator.startBlock(unreachable)
-		generator.addInstruction(L2_UNREACHABLE_CODE)
+		generator.addInstruction(L2_UNREACHABLE_CODE())
 
 		generator.startBlock(reificationTarget)
 		generator.addInstruction(
@@ -2040,7 +2040,7 @@ class L1Translator private constructor(
 			edgeTo(onReificationDuringFailure))
 
 		generator.startBlock(unreachable)
-		generator.addInstruction(L2_UNREACHABLE_CODE)
+		generator.addInstruction(L2_UNREACHABLE_CODE())
 
 		// Reification has been requested while the failure call is in
 		// progress.
@@ -2311,9 +2311,9 @@ class L1Translator private constructor(
 		{
 			// Optimize it again if it's called frequently enough.
 			addInstruction(
-				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO,
-				L2IntImmediateOperand(optimization.ordinal + 1),
-				L2IntImmediateOperand(0))
+				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
+					L2IntImmediateOperand(optimization.ordinal + 1),
+					L2IntImmediateOperand(0)))
 			// If it was reoptimized, it would have jumped to the
 			// afterOptionalInitialPrimitiveBlock in the new chunk.
 		}
@@ -2358,7 +2358,7 @@ class L1Translator private constructor(
 				edgeTo(unreachable))
 
 			generator.startBlock(unreachable)
-			generator.addInstruction(L2_UNREACHABLE_CODE)
+			generator.addInstruction(L2_UNREACHABLE_CODE())
 
 			generator.startBlock(success)
 		}
@@ -2405,7 +2405,7 @@ class L1Translator private constructor(
 		{
 			// Generate the unreachable block.
 			generator.startBlock(unreachableBlock)
-			addInstruction(L2_UNREACHABLE_CODE)
+			addInstruction(L2_UNREACHABLE_CODE())
 			// Now make it a loop head, just so code generated later from
 			// placeholders (L2Operation#isPlaceholder) can still connect to
 			// it, as long as it uses a back-edge.
@@ -2865,8 +2865,7 @@ class L1Translator private constructor(
 
 			// 0. First try to run it as a primitive.
 			generator.startBlock(initialBlock)
-			generator.addInstruction(
-				L2_TRY_OPTIONAL_PRIMITIVE)
+			generator.addInstruction(L2_TRY_OPTIONAL_PRIMITIVE())
 			generator.jumpTo(reenterFromRestartBlock)
 			// Only if the primitive fails should we even consider optimizing the
 			// fallback code.
@@ -2874,40 +2873,34 @@ class L1Translator private constructor(
 			// 1. Update counter and maybe optimize *before* extracting arguments.
 			generator.startBlock(reenterFromRestartBlock)
 			generator.addInstruction(
-				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO,
-				L2IntImmediateOperand(UNOPTIMIZED.ordinal + 1),
-				L2IntImmediateOperand(1))
+				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
+					L2IntImmediateOperand(UNOPTIMIZED.ordinal + 1),
+					L2IntImmediateOperand(1)))
 			// 2. Build registers, get arguments, create locals, capture primitive
 			// failure value, if any.
-			generator.addInstruction(L2_PREPARE_NEW_FRAME_FOR_L1)
+			generator.addInstruction(L2_PREPARE_NEW_FRAME_FOR_L1())
 			generator.jumpTo(loopBlock)
 
 			// 3. The main L1 interpreter loop.
 			generator.startBlock(loopBlock)
 			generator.addInstruction(
-				L2_INTERPRET_LEVEL_ONE,
-				edgeTo(reenterFromCallBlock),
-				edgeTo(reenterFromInterruptBlock))
+				L2_INTERPRET_LEVEL_ONE(
+					edgeTo(reenterFromCallBlock),
+					edgeTo(reenterFromInterruptBlock)))
 
 			// 4,5. If reified, calls return here.
 			generator.startBlock(reenterFromCallBlock)
-			generator.addInstruction(
-				L2_REENTER_L1_CHUNK_FROM_CALL)
-			generator.addInstruction(
-				L2_JUMP,
-				backEdgeTo(loopBlock))
+			generator.addInstruction(L2_REENTER_L1_CHUNK_FROM_CALL())
+			generator.addInstruction(L2_JUMP(backEdgeTo(loopBlock)))
 
 			// 6,7. If reified, interrupts return here.
 			generator.startBlock(reenterFromInterruptBlock)
-			generator.addInstruction(
-				L2_REENTER_L1_CHUNK_FROM_INTERRUPT)
-			generator.addInstruction(
-				L2_JUMP,
-				backEdgeTo(loopBlock))
+			generator.addInstruction(L2_REENTER_L1_CHUNK_FROM_INTERRUPT())
+			generator.addInstruction(L2_JUMP(backEdgeTo(loopBlock)))
 
 			// 8. Unreachable.
 			generator.startBlock(unreachableBlock)
-			generator.addInstruction(L2_UNREACHABLE_CODE)
+			generator.addInstruction(L2_UNREACHABLE_CODE())
 			return generator.controlFlowGraph
 		}
 
