@@ -147,8 +147,6 @@ abstract class L2NewInstruction : L2Instruction()
 	// TODO These can turn into type tests when they become instructions.
 
 	override open val isEntryPoint: Boolean get() = false
-	override open val isMoveConstant: Boolean get() = false
-	override open val isMoveBoxedConstant: Boolean get() = false
 	override open val isRunInfalliblePrimitive: Boolean get() = false
 	override open val isCreateFunction: Boolean get() = false
 	override open val isExtractTagOrdinal: Boolean get() = false

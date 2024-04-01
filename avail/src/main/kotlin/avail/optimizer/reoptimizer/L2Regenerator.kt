@@ -887,7 +887,7 @@ abstract class L2Regenerator internal constructor(
 				manifest.postponedInstructions().values.forEach { sub ->
 					sub.forEach { instruction ->
 						assert(instruction is L2_MOVE<*> ||
-							instruction.isMoveConstant)
+							instruction is L2_MOVE_CONSTANT<*, *>)
 					}
 				}
 			}
@@ -925,7 +925,7 @@ abstract class L2Regenerator internal constructor(
 			}
 		}
 		if (omitConstantMoves &&
-			list.all { it is L2_MOVE<*> || it.isMoveConstant })
+			list.all { it is L2_MOVE<*> || it is L2_MOVE_CONSTANT<*, *> })
 		{
 			// There are only moves and constant moves here.  Leave them
 			// postponed for now.

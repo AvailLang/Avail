@@ -193,40 +193,40 @@ constructor(
 		translator.load(method, source().register())
 		translator.store(method, destination().register())
 	}
-}
 
-class L2_MOVE_BOXED
-constructor(
-	var source: L2ReadBoxedOperand,
-	var destination: L2WriteBoxedOperand
-): L2_MOVE<BOXED_KIND>(BOXED_KIND)
-{
-	override fun source(): L2ReadBoxedOperand = source
+	class L2_MOVE_BOXED
+	constructor(
+		var source: L2ReadBoxedOperand,
+		var destination: L2WriteBoxedOperand
+	): L2_MOVE<BOXED_KIND>(BOXED_KIND)
+	{
+		override fun source(): L2ReadBoxedOperand = source
 
-	override fun destination(): L2WriteBoxedOperand = destination
+		override fun destination(): L2WriteBoxedOperand = destination
 
-	override val constantCode: A_RawFunction?
-		get() = source().definition().instruction.constantCode
-}
+		override val constantCode: A_RawFunction?
+			get() = source().definition().instruction.constantCode
+	}
 
-class L2_MOVE_INT
-constructor(
-	var source: L2ReadIntOperand,
-	var destination: L2WriteIntOperand
-): L2_MOVE<INTEGER_KIND>(INTEGER_KIND)
-{
-	override fun source(): L2ReadIntOperand = source
+	class L2_MOVE_INT
+	constructor(
+		var source: L2ReadIntOperand,
+		var destination: L2WriteIntOperand
+	): L2_MOVE<INTEGER_KIND>(INTEGER_KIND)
+	{
+		override fun source(): L2ReadIntOperand = source
 
-	override fun destination(): L2WriteIntOperand = destination
-}
+		override fun destination(): L2WriteIntOperand = destination
+	}
 
-class L2_MOVE_FLOAT
-constructor(
-	var source: L2ReadFloatOperand,
-	var destination: L2WriteFloatOperand
-): L2_MOVE<FLOAT_KIND>(FLOAT_KIND)
-{
-	override fun source(): L2ReadFloatOperand = source
+	class L2_MOVE_FLOAT
+	constructor(
+		var source: L2ReadFloatOperand,
+		var destination: L2WriteFloatOperand
+	): L2_MOVE<FLOAT_KIND>(FLOAT_KIND)
+	{
+		override fun source(): L2ReadFloatOperand = source
 
-	override fun destination(): L2WriteFloatOperand = destination
+		override fun destination(): L2WriteFloatOperand = destination
+	}
 }

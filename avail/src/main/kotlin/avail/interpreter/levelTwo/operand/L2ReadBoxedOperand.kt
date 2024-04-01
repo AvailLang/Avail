@@ -40,7 +40,7 @@ import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION.constantRawFunctionOf
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.Companion.constantOf
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
@@ -138,11 +138,11 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 			return constantFunction.code().functionType()
 		}
 		val originOfFunction = definitionSkippingMoves()
-		if (originOfFunction.isMoveBoxedConstant)
+		if (originOfFunction is L2_MOVE_CONSTANT_BOXED)
 		{
 			// Function came from a constant (although the TypeRestriction
 			// should have ensured the clause above caught it).
-			return constantOf(originOfFunction).code().functionType()
+			return originOfFunction.constant().constant.code().functionType()
 		}
 		if (originOfFunction.isCreateFunction)
 		{

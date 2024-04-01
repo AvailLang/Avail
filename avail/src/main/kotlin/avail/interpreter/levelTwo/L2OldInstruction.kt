@@ -50,7 +50,6 @@ import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_HASH
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.optimizer.L2BasicBlock
@@ -166,19 +165,6 @@ constructor(
 	 *   Whether the instruction is an entry point.
 	 */
 	override val isEntryPoint get() = operation.isEntryPoint(this)
-
-	/**
-	 * Answer whether this operation is a move of a constant to a register.
-	 *
-	 * @return
-	 *   `true` if this operation simply moves constant data to a register,
-	 *   otherwise `false`.
-	 */
-	override val isMoveConstant: Boolean get() = operation is L2_MOVE_CONSTANT<*, *>
-
-	/** Answer whether this operation is *boxed* constant move. */
-	override val isMoveBoxedConstant: Boolean
-		get() = operation == L2_MOVE_CONSTANT.Companion.boxed
 
 	/**
 	 * Answer true if this instruction runs an infallible primitive, otherwise

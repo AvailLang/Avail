@@ -304,18 +304,6 @@ abstract class L2Instruction
 	abstract val isEntryPoint: Boolean
 
 	/**
-	 * Answer whether this operation is a move of a constant to a register.
-	 *
-	 * @return
-	 *   `true` if this operation simply moves constant data to a register,
-	 *   otherwise `false`.
-	 */
-	abstract val isMoveConstant: Boolean
-
-	/** Answer whether this operation is a *boxed* constant move. */
-	abstract val isMoveBoxedConstant: Boolean
-
-	/**
 	 * Answer true if this instruction runs an infallible primitive, otherwise
 	 * false.
 	 */
@@ -532,7 +520,7 @@ abstract class L2Instruction
 		hasSideEffect && another.hasSideEffect -> false
 		destinationRegisters.intersect(another.sourceRegisters).isNotEmpty() ->
 			false
-		another.goesMultipleWays && !isMoveConstant -> false
+		another.goesMultipleWays && this !is L2_MOVE_CONSTANT<*, *> -> false
 		else ->
 		{
 			val writes1 = writesHiddenVariablesMask

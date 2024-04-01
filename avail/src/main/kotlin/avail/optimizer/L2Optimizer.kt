@@ -48,6 +48,7 @@ import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
@@ -1213,7 +1214,7 @@ class L2Optimizer internal constructor(
 						mutables.remove(writeReg)
 						when
 						{
-							instruction.isMoveConstant ->
+							instruction is L2_MOVE_CONSTANT<*, *> ->
 							{
 								// Constants are always immutable.
 							}

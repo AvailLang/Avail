@@ -50,9 +50,9 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncodin
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_MOVE
-import avail.interpreter.levelTwo.operation.L2_MOVE_BOXED
-import avail.interpreter.levelTwo.operation.L2_MOVE_FLOAT
-import avail.interpreter.levelTwo.operation.L2_MOVE_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_FLOAT
+import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_PHI_BOXED
 import avail.interpreter.levelTwo.operation.L2_PHI_FLOAT

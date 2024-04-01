@@ -42,6 +42,7 @@ import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor

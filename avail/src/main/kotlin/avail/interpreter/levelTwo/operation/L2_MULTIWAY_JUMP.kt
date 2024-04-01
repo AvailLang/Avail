@@ -592,7 +592,7 @@ class TagSplitter(
 			sourceInstruction.isExtractTagOrdinal ->
 				L2_EXTRACT_TAG_ORDINAL.sourceOfExtractTag(sourceInstruction)
 					.semanticValue()
-			sourceInstruction.isMoveConstant -> null
+			sourceInstruction is L2_MOVE_CONSTANT<*, *> -> null
 			else -> return
 		}
 		val bottomOrdinal = TypeTag.BOTTOM_TYPE_TAG.ordinal

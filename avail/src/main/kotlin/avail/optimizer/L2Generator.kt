@@ -128,6 +128,8 @@ import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_FLOAT
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_INT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
@@ -347,11 +349,11 @@ class L2Generator internal constructor(
 			currentManifest.equivalentPopulatedSemanticValue(semanticConstant)
 		populated?.let { return readBoxed(it) }
 		addInstruction(
-			L2_MOVE_CONSTANT.Companion.boxed,
-			L2ConstantOperand(value),
-			boxedWrite(
-				semanticConstant,
-				boxedRestrictionForConstant(value)))
+			L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED(
+				L2ConstantOperand(value),
+				boxedWrite(
+					semanticConstant,
+					boxedRestrictionForConstant(value))))
 		return readBoxed(semanticConstant)
 	}
 
@@ -369,9 +371,9 @@ class L2Generator internal constructor(
 		val restriction = intRestrictionForConstant(value)
 		currentManifest.introduceSynonym(synonym, restriction)
 		addInstruction(
-			L2_MOVE_CONSTANT.Companion.unboxedInt,
-			L2IntImmediateOperand(value),
-			intWrite(unboxedSet, restriction))
+			L2_MOVE_CONSTANT_INT(
+				L2IntImmediateOperand(value),
+				intWrite(unboxedSet, restriction)))
 		return L2ReadIntOperand(
 			semanticUnboxedValue, restriction, currentManifest)
 	}
@@ -400,9 +402,9 @@ class L2Generator internal constructor(
 		val restriction = restrictionForConstant(boxedValue, UNBOXED_FLOAT_FLAG)
 		currentManifest.introduceSynonym(synonym, restriction)
 		addInstruction(
-			L2_MOVE_CONSTANT.Companion.unboxedFloat,
-			L2FloatImmediateOperand(value),
-			floatWrite(unboxedSet, restriction))
+			L2_MOVE_CONSTANT_FLOAT(
+				L2FloatImmediateOperand(value),
+				floatWrite(unboxedSet, restriction)))
 		return L2ReadFloatOperand(
 			semanticUnboxedValue, restriction, currentManifest)
 	}

@@ -50,7 +50,7 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
-import avail.interpreter.levelTwo.operation.L2_MOVE_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.VariantSplitter
 import avail.interpreter.levelTwo.register.INTEGER_KIND
