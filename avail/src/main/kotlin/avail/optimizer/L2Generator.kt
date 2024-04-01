@@ -433,9 +433,9 @@ class L2Generator internal constructor(
 				restriction.forBoxed(),
 				L2BoxedRegister(nextUnique()))
 			addInstruction(
-				L2_BOX_INT,
-				currentManifest.readInt(unboxedInt),
-				writer)
+				L2_BOX_INT(
+					currentManifest.readInt(unboxedInt),
+					writer))
 			return currentManifest.readBoxed(semanticBoxed)
 		}
 		val unboxedFloat = L2SemanticUnboxedFloat(semanticBoxed)
@@ -449,9 +449,9 @@ class L2Generator internal constructor(
 				restriction.forBoxed(),
 				L2BoxedRegister(nextUnique()))
 			addInstruction(
-				L2_BOX_FLOAT,
-				currentManifest.readFloat(unboxedFloat),
-				writer)
+				L2_BOX_FLOAT(
+					currentManifest.readFloat(unboxedFloat),
+					writer))
 			return currentManifest.readBoxed(semanticBoxed)
 		}
 		throw AssertionError(
@@ -600,7 +600,7 @@ class L2Generator internal constructor(
 		val boxedRead = currentManifest.readBoxed(semanticBoxed)
 		if (restriction.containedByType(Types.DOUBLE.o))
 		{
-			addInstruction(L2_UNBOX_FLOAT, boxedRead, floatWrite)
+			addInstruction(L2_UNBOX_FLOAT(boxedRead, floatWrite))
 		}
 		else
 		{

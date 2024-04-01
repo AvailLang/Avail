@@ -164,7 +164,6 @@ abstract class L2NewInstruction : L2Instruction()
 	override fun isBitLogicOperation(op: L2_BIT_LOGIC_OP): Boolean = false
 	override open val isHash: Boolean get() = false
 	override open val isUnreachableInstruction: Boolean get() = false
-	override open val isBoxInt: Boolean get() = false
 	override open val goesMultipleWays: Boolean get() = false
 	override val constantCode: A_RawFunction? get() = null
 

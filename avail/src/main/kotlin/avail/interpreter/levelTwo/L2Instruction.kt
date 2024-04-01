@@ -389,9 +389,6 @@ abstract class L2Instruction
 	/** Ansswer whether this is an unreachable-code instruction. */
 	abstract val isUnreachableInstruction: Boolean
 
-	/** Answer whether this boxed an int. */
-	abstract val isBoxInt: Boolean
-
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
 	 * which can be reached.  This is not the same as a branch, in which only

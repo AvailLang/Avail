@@ -170,8 +170,8 @@ internal constructor(private val instructionClass: KClass<out I>)
 			.filter { it.javaField !== null }
 		assert(valFields.isEmpty())
 		{
-			"Found val fields ($valFields) in instruction class " +
-				"($instructionClass).  They must be var."
+			"Found val fields (${valFields.map { it.name }}) in " +
+				"instruction class ($instructionClass).  They must be var."
 		}
 	}
 

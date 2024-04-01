@@ -33,12 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_FLOAT
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -49,19 +45,17 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_UNBOX_FLOAT : L2Operation(
-	READ_BOXED.named("source"),
-	WRITE_FLOAT.named("destination"))
+class L2_UNBOX_FLOAT(
+	var source: L2ReadBoxedOperand,
+	var destination: L2WriteFloatOperand
+): L2NewInstruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")
@@ -70,12 +64,8 @@ object L2_UNBOX_FLOAT : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-
 		// :: destination = source.extractDouble();
 		translator.load(method, source.register())
 		A_Number.extractDoubleMethod.generateCall(method)

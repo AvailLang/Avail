@@ -318,9 +318,9 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			intWrite)
 		// Unbox it, in case something needs it unboxed downstream.
 		regenerator.addInstruction(
-			L2_BOX_INT,
-			manifest.readInt(intWrite.pickSemanticValue()),
-			result)
+			L2_BOX_INT(
+				manifest.readInt(intWrite.pickSemanticValue()),
+				result))
 		assert(unreachable.currentlyReachable())
 	}
 }

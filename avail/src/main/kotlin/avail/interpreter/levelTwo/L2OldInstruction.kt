@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
@@ -263,9 +262,6 @@ constructor(
 	/** Ansswer whether this is an unreachable-code instruction. */
 	override val isUnreachableInstruction: Boolean
 		get() = operation is L2_UNREACHABLE_CODE
-
-	/** Answer whether this boxed an int. */
-	override val isBoxInt: Boolean get() = operation is L2_BOX_INT
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of

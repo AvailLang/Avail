@@ -33,52 +33,42 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Box a `double` into an [AvailObject].
+ * Box a [Double] into an [AvailObject].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_BOX_FLOAT : L2Operation(
-	READ_FLOAT.named("source"),
-	WRITE_BOXED.named("destination"))
+class L2_BOX_FLOAT(
+	var source: L2ReadFloatOperand,
+	var destination: L2WriteBoxedOperand
+): L2NewInstruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val sourceReg = instruction.operand<L2ReadFloatOperand>(0)
-		val destinationReg = instruction.operand<L2WriteBoxedOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(destinationReg.registerString())
+		builder.append(destination.registerString())
 		builder.append(" ← ")
-		builder.append(sourceReg.registerString())
+		builder.append(source.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val source = instruction.operand<L2ReadFloatOperand>(0)
-		val destinationReg = instruction.operand<L2WriteBoxedOperand>(1)
-
 		// :: destination = IntegerDescriptor.fromInt(source);
 		translator.load(method, source.register())
 		DoubleDescriptor.fromDoubleMethod.generateCall(method)
-		translator.store(method, destinationReg.register())
+		translator.store(method, destination.register())
 	}
 }
