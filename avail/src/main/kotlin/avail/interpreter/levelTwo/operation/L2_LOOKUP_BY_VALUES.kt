@@ -209,7 +209,7 @@ object L2_LOOKUP_BY_VALUES : L2OldControlFlowOperation(
 			Type.getInternalName(AvailObject::class.java))
 		translator.store(method, errorCodeReg.register())
 		// ::    goto lookupFailed;
-		translator.jump(method, instruction, lookupFailed)
+		translator.jumpOrFallThrough(method, lookupFailed)
 		// :: }
 	}
 

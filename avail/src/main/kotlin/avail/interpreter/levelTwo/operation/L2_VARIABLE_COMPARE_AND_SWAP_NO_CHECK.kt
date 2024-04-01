@@ -140,7 +140,7 @@ object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2OldControlFlowOperation(
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
 		// ::    goto exception;
-		translator.jump(method, instruction, exception)
+		translator.jumpOrFallThrough(method, exception)
 		// :: }
 	}
 }

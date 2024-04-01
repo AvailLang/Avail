@@ -117,7 +117,7 @@ constructor(
 		translator.load(method, source.register())
 		A_Number.extractIntStaticMethod.generateCall(method)
 		translator.store(method, destination.register())
-		translator.jump(method, this, ifUnboxed)
+		translator.jumpOrFallThrough(method, ifUnboxed)
 	}
 
 	override fun interestingConditions(): List<L2SplitCondition?>

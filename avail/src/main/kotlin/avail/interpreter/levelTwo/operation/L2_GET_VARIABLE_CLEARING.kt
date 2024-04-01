@@ -150,7 +150,7 @@ object L2_GET_VARIABLE_CLEARING : L2OldControlFlowOperation(
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
 		// ::    goto failure;
-		translator.jump(method, instruction, failure)
+		translator.jumpOrFallThrough(method, failure)
 		// :: }
 	}
 }

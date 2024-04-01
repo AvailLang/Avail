@@ -131,7 +131,7 @@ object L2_MULTIPLY_INT_BY_INT : L2OldControlFlowOperation(
 		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
 		method.visitInsn(Opcodes.L2I)
 		translator.store(method, productReg.register())
-		translator.jump(method, instruction, inRange)
+		translator.jump(method, inRange)
 		method.visitLabel(longProductEnd)
 		translator.endLocal(longProductLocal, Type.LONG_TYPE)
 	}

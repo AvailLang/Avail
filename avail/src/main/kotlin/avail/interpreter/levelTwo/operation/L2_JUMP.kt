@@ -60,7 +60,7 @@ object L2_JUMP : L2OldControlFlowOperation(
 		val target = instruction.operand<L2PcOperand>(0)
 
 		// :: goto offset;
-		translator.jump(method, instruction, target)
+		translator.jumpOrFallThrough(method, target)
 	}
 
 	/**

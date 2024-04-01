@@ -151,7 +151,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		translator.store(method, targetAsInt.register())
 
 		// Jump is usually elided.
-		translator.jump(method, instruction, fallThrough)
+		translator.jumpOrFallThrough(method, fallThrough)
 	}
 
 	/**

@@ -203,12 +203,12 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(
-				L2_ADD_INT_TO_INT,
-				intA,
-				intB,
-				intWrite,
-				edgeTo(intFailure),
-				edgeTo(intSuccess))
+				L2_ADD_INT_TO_INT(
+					intA,
+					intB,
+					intWrite,
+					edgeTo(intFailure),
+					edgeTo(intSuccess)))
 		})
 
 	override fun emitTransformedInfalliblePrimitive(

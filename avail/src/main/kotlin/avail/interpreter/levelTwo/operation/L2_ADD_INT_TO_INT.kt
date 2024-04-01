@@ -32,14 +32,10 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -58,29 +54,23 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_ADD_INT_TO_INT : L2OldControlFlowOperation(
-	READ_INT.named("augend"),
-	READ_INT.named("addend"),
-	WRITE_INT.named("sum", SUCCESS),
-	PC.named("out of range", FAILURE),
-	PC.named("in range", SUCCESS))
+class L2_ADD_INT_TO_INT(
+	var augend: L2ReadIntOperand,
+	var addend: L2ReadIntOperand,
+	@On(SUCCESS) var sum: L2WriteIntOperand,
+	@On(FAILURE) var outOfRange: L2PcOperand,
+	@On(SUCCESS) var inRange: L2PcOperand
+): L2NewControlFlowInstruction()
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		val augendReg = instruction.operand<L2ReadIntOperand>(0)
-		val addendReg = instruction.operand<L2ReadIntOperand>(1)
-		val sumReg = instruction.operand<L2WriteIntOperand>(2)
-		val outOfRange = instruction.operand<L2PcOperand>(3)
-		val inRange = instruction.operand<L2PcOperand>(4)
-
-		augendReg.instructionWasAdded(manifest)
-		addendReg.instructionWasAdded(manifest)
+		augend.instructionWasAdded(manifest)
+		addend.instructionWasAdded(manifest)
 		outOfRange.instructionWasAdded(manifest)
 		// The remaining changes only affect the inRange case.
-		sumReg.instructionWasAdded(manifest)
-		manifest.intersectType(sumReg.pickSemanticValue(), i32)
+		sum.instructionWasAdded(manifest)
+		manifest.intersectType(sum.pickSemanticValue(), i32)
 		inRange.instructionWasAdded(manifest)
 	}
 
@@ -88,56 +78,33 @@ object L2_ADD_INT_TO_INT : L2OldControlFlowOperation(
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val augendReg = instruction.operand<L2ReadIntOperand>(0)
-		val addendReg = instruction.operand<L2ReadIntOperand>(1)
-		val sumReg = instruction.operand<L2WriteIntOperand>(2)
-		//val outOfRange = instruction.operand<L2PcOperand>(3)
-		//val inRange = instruction.operand<L2PcOperand>(4)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(sumReg.registerString())
+		builder.append(sum.registerString())
 		builder.append(" ← ")
-		builder.append(augendReg.registerString())
+		builder.append(augend.registerString())
 		builder.append(" + ")
-		builder.append(addendReg.registerString())
-		instruction.renderOperandsStartingAt(3, desiredTypes, builder)
+		builder.append(addend.registerString())
+		renderOperandsExcludingFields(builder, ::augend, ::addend, ::sum)
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
-	{
-		//val augendReg = instruction.operand<L2ReadIntOperand>(0)
-		//val addendReg = instruction.operand<L2ReadIntOperand>(1)
-		val sumReg = instruction.operand<L2WriteIntOperand>(2)
-		//val outOfRange = instruction.operand<L2PcOperand>(3)
-		//val inRange = instruction.operand<L2PcOperand>(4)
-		return listOf(
+	override fun interestingConditions(): List<L2SplitCondition?> =
+		listOf(
 			L2SplitCondition.L2IsUnboxedIntCondition.unboxedIntCondition(
-				listOf(
-					sumReg.register())))
-	}
+				listOf(sum.register())))
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val augendReg = instruction.operand<L2ReadIntOperand>(0)
-		val addendReg = instruction.operand<L2ReadIntOperand>(1)
-		val sumReg = instruction.operand<L2WriteIntOperand>(2)
-		val outOfRange = instruction.operand<L2PcOperand>(3)
-		val inRange = instruction.operand<L2PcOperand>(4)
-
 		// :: longSum = (long) augend + (long) addend;
-		translator.load(method, augendReg.register())
+		translator.load(method, augend.register())
 		method.visitInsn(Opcodes.I2L)
-		translator.load(method, addendReg.register())
+		translator.load(method, addend.register())
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LADD)
 		val longSumStart = Label()
@@ -165,8 +132,8 @@ object L2_ADD_INT_TO_INT : L2OldControlFlowOperation(
 		// :: }
 		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
 		method.visitInsn(Opcodes.L2I)
-		translator.store(method, sumReg.register())
-		translator.jump(method, instruction, inRange)
+		translator.store(method, sum.register())
+		translator.jump(method, inRange)
 		method.visitLabel(longSumEnd)
 		translator.endLocal(longSumLocal, Type.LONG_TYPE)
 	}

@@ -116,7 +116,7 @@ object L2_SET_VARIABLE : L2OldControlFlowOperation(
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
 		// ::    goto failure;
-		translator.jump(method, instruction, failure)
+		translator.jumpOrFallThrough(method, failure)
 		// :: }
 	}
 }

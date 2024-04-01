@@ -127,6 +127,6 @@ object L2_JUMP_IF_UNBOX_FLOAT : L2OldConditionalJump(
 		translator.load(method, source.register())
 		A_Number.extractDoubleMethod.generateCall(method)
 		translator.store(method, destination.register())
-		translator.jump(method, instruction, ifUnboxed)
+		translator.jumpOrFallThrough(method, ifUnboxed)
 	}
 }

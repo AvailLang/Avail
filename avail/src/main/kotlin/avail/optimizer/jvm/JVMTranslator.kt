@@ -1196,19 +1196,16 @@ class JVMTranslator constructor(
 	 * @param method
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
 	 *   will be written.
-	 * @param instruction
-	 *   The [L2Instruction] that includes the operand.
 	 * @param operand
-	 *   The `L2PcOperand` that specifies the branch target.
+	 *   The [L2PcOperand] that specifies the branch target.
 	 */
-	fun jump(
+	fun jumpOrFallThrough(
 		method: MethodVisitor,
-		instruction: L2Instruction,
 		operand: L2PcOperand)
 	{
 		// If the jump target is the very next instruction, then don't emit a
 		// jump at all; just fall through.
-		if (operand.offset() != instruction.offset + 1)
+		if (operand.offset() != operand.instruction.offset + 1)
 		{
 			jump(method, operand)
 		}
@@ -1222,7 +1219,7 @@ class JVMTranslator constructor(
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
 	 *   will be written.
 	 * @param operand
-	 *   The `L2PcOperand` that specifies the branch target.
+	 *   The [L2PcOperand] that specifies the branch target.
 	 */
 	fun jump(
 		method: MethodVisitor,
@@ -1288,10 +1285,10 @@ class JVMTranslator constructor(
 	 *  The JVM opcode, e.g., [Opcodes.IFEQ], that decides between the two
 	 *  branch targets.
 	 * @param success
-	 *   The `L2PcOperand` that specifies the branch target in the event that
+	 *   The [L2PcOperand] that specifies the branch target in the event that
 	 *   the opcode succeeds, i.e., actually branches.
 	 * @param failure
-	 *   The `L2PcOperand` that specifies the branch target in the event that
+	 *   The [L2PcOperand] that specifies the branch target in the event that
 	 *   the opcode fails, i.e., does not actually branch and falls through to a
 	 *   branch.
 	 * @param successCounter
@@ -1331,7 +1328,7 @@ class JVMTranslator constructor(
 				failure)
 			// If the success branch targets the next instruction, jump() will
 			// fall through, otherwise it will jump to failure.
-			jump(method, instruction, success)
+			jumpOrFallThrough(method, success)
 		}
 	}
 

@@ -142,7 +142,7 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2OldControlFlowOperation(
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
 		// ::    goto undefined;
-		translator.jump(method, instruction, undefined)
+		translator.jumpOrFallThrough(method, undefined)
 		// :: }
 	}
 }

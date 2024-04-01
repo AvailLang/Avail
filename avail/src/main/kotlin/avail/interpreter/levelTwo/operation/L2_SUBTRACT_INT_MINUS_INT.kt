@@ -129,7 +129,7 @@ object L2_SUBTRACT_INT_MINUS_INT : L2OldControlFlowOperation(
 		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
 		method.visitInsn(Opcodes.L2I)
 		translator.store(method, difference.register())
-		translator.jump(method, instruction, inRange)
+		translator.jump(method, inRange)
 		method.visitLabel(longDifferenceEnd)
 		translator.endLocal(longDifferenceLocal, Type.LONG_TYPE)
 	}

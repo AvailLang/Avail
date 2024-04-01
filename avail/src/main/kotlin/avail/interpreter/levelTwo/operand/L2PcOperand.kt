@@ -61,7 +61,7 @@ import org.objectweb.asm.Opcodes
 import java.util.concurrent.atomic.LongAdder
 
 /**
- * An `L2PcOperand` is an operand of type [L2OperandType.PC].
+ * An [L2PcOperand] is an operand of type [L2OperandType.PC].
  * It refers to a target [L2BasicBlock], that either be branched to at
  * runtime, or captured in some other way that flow control may end up there.
  *
@@ -74,7 +74,7 @@ import java.util.concurrent.atomic.LongAdder
  *   [L2BasicBlock.isLoopHead], thereby closing a loop.
  *
  * @constructor
- * Construct a new `L2PcOperand` that leads to the specified [L2BasicBlock].
+ * Construct a new [L2PcOperand] that leads to the specified [L2BasicBlock].
  * Set [isBackward] to true if this is a back-link to a
  * [loop&#32;head][L2BasicBlock.isLoopHead],
  *
