@@ -39,7 +39,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION.constantRawFunctionOf
+import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -144,11 +144,11 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 			// should have ensured the clause above caught it).
 			return originOfFunction.constant().constant.code().functionType()
 		}
-		if (originOfFunction.isCreateFunction)
+		if (originOfFunction is L2_CREATE_FUNCTION)
 		{
 			// We found where the function was closed from a raw function,
 			// which knows the exact function type that it'll be.  Use that.
-			return constantRawFunctionOf(originOfFunction).functionType()
+			return originOfFunction.code.constant.functionType()
 		}
 		return null
 	}

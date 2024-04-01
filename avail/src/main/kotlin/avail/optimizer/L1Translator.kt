@@ -545,10 +545,10 @@ class L1Translator private constructor(
 		}
 		val outerWrite = generator.boxedWrite(semanticOuter, restriction)
 		addInstruction(
-			L2_MOVE_OUTER_VARIABLE,
-			L2IntImmediateOperand(outerIndex),
-			functionRead,
-			outerWrite)
+			L2_MOVE_OUTER_VARIABLE(
+				L2IntImmediateOperand(outerIndex),
+				functionRead,
+				outerWrite))
 		return readBoxed(outerWrite)
 	}
 
@@ -2501,13 +2501,13 @@ class L1Translator private constructor(
 		// Pop the outers, but reserve room for the pushed function.
 		stackp += count - 1
 		addInstruction(
-			L2_CREATE_FUNCTION,
-			L2ConstantOperand(codeLiteral),
-			L2ReadBoxedVectorOperand(outers),
-			writeSlot(
-				stackp,
-				pc,
-				boxedRestrictionForType(codeLiteral.functionType())))
+			L2_CREATE_FUNCTION(
+				L2ConstantOperand(codeLiteral),
+				L2ReadBoxedVectorOperand(outers),
+				writeSlot(
+					stackp,
+					pc,
+					boxedRestrictionForType(codeLiteral.functionType()))))
 
 		// Now that the function has been constructed, clear the slots that
 		// were used for outer values -- except the destination slot, which

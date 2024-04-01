@@ -310,12 +310,6 @@ abstract class L2Instruction
 	abstract val isRunInfalliblePrimitive: Boolean
 
 	/**
-	 * Answer whether this instruction creates a function from a constant raw
-	 * function and a vector of outer values.
-	 */
-	abstract val isCreateFunction: Boolean
-
-	/**
 	 * Answer whether this instruction extracts the tag ordinal from some value.
 	 */
 	abstract val isExtractTagOrdinal: Boolean

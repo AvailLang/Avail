@@ -33,15 +33,10 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -57,24 +52,18 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
-object L2_MOVE_OUTER_VARIABLE : L2Operation(
-	INT_IMMEDIATE.named("outer index"),
-	READ_BOXED.named("function"),
-	WRITE_BOXED.named("destination"))
+class L2_MOVE_OUTER_VARIABLE(
+	var outerIndex: L2IntImmediateOperand,
+	var function: L2ReadBoxedOperand,
+	var destination: L2WriteBoxedOperand
+): L2NewInstruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val outerIndex =
-			instruction.operand<L2IntImmediateOperand>(0)
-		val function =
-			instruction.operand<L2ReadBoxedOperand>(1)
-		val destination =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")
@@ -86,13 +75,8 @@ object L2_MOVE_OUTER_VARIABLE : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val outerIndex = instruction.operand<L2IntImmediateOperand>(0)
-		val function = instruction.operand<L2ReadBoxedOperand>(1)
-		val destination = instruction.operand<L2WriteBoxedOperand>(2)
-
 		// :: destination = function.outerVarAt(outerIndex);
 		translator.load(method, function.register())
 		translator.literal(method, outerIndex.value)

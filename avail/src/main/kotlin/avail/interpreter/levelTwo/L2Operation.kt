@@ -512,10 +512,10 @@ protected constructor(
 		}
 		val writer = generator.boxedWriteTemp(restriction)
 		generator.addInstruction(
-			L2_MOVE_OUTER_VARIABLE,
-			L2IntImmediateOperand(outerIndex),
-			functionRegister,
-			writer)
+			L2_MOVE_OUTER_VARIABLE(
+				L2IntImmediateOperand(outerIndex),
+				functionRegister,
+				writer))
 		return generator.readBoxed(writer)
 	}
 

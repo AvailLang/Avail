@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
@@ -172,12 +171,6 @@ constructor(
 	 */
 	override val isRunInfalliblePrimitive
 		get() = operation is L2_RUN_INFALLIBLE_PRIMITIVE
-
-	/**
-	 * Answer whether this instruction creates a function from a constant raw
-	 * function and a vector of outer values.
-	 */
-	override val isCreateFunction get() = operation is L2_CREATE_FUNCTION
 
 	/**
 	 * Answer whether this instruction extracts the tag ordinal from some value.

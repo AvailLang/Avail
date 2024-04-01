@@ -148,7 +148,6 @@ abstract class L2NewInstruction : L2Instruction()
 
 	override open val isEntryPoint: Boolean get() = false
 	override open val isRunInfalliblePrimitive: Boolean get() = false
-	override open val isCreateFunction: Boolean get() = false
 	override open val isExtractTagOrdinal: Boolean get() = false
 	override open val isExtractObjectVariantId: Boolean get() = false
 	override open val isExtractObjectTypeVariantId: Boolean get() = false
