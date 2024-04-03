@@ -167,15 +167,15 @@ class L2_VIRTUAL_CREATE_LABEL(
 
 			startBlock(startReification)
 			addInstruction(
-				L2_REIFY,
-				L2IntImmediateOperand(1),
-				L2IntImmediateOperand(0),
-				L2ArbitraryConstantOperand(
-					Statistic(
-						REIFICATIONS,
-						"Reification for label creation in L2: "
-							+ topFrame.codeName.replace('\n', ' '))),
-				edgeTo(onReification))
+				L2_REIFY(
+					L2IntImmediateOperand(1),
+					L2IntImmediateOperand(0),
+					L2ArbitraryConstantOperand(
+						Statistic(
+							REIFICATIONS,
+							"Reification for label creation in L2: "
+								+ topFrame.codeName.replace('\n', ' '))),
+					edgeTo(onReification)))
 
 			startBlock(onReification)
 			addInstruction(
@@ -218,10 +218,8 @@ class L2_VIRTUAL_CREATE_LABEL(
 					readInt(tempOffset.onlySemanticValue(), unreachable),
 					readBoxed(tempRegisterDump),
 					L2CommentOperand("Dummy reification continuation.")))
-			addInstruction(
-				L2_SET_CONTINUATION(readBoxed(dummyContinuation)))
-			addInstruction(
-				L2_RETURN_FROM_REIFICATION_HANDLER)
+			addInstruction(L2_SET_CONTINUATION(readBoxed(dummyContinuation)))
+			addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER())
 
 			startBlock(unreachable)
 			addInstruction(L2_UNREACHABLE_CODE())

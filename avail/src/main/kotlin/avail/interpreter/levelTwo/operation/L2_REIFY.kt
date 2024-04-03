@@ -32,18 +32,14 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.ARBITRARY_CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
@@ -66,13 +62,21 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @WritesHiddenVariable(STACK_REIFIER::class)
-object L2_REIFY : L2OldControlFlowOperation(
-	INT_IMMEDIATE.named("capture frames"),
-	INT_IMMEDIATE.named("process interrupt"),
-	ARBITRARY_CONSTANT.named("statistic"),
-	PC.named("on reification", OFF_RAMP))
+class L2_REIFY(
+	var captureFrames: L2IntImmediateOperand,
+	var processInterrupt: L2IntImmediateOperand,
+	var statistic: L2ArbitraryConstantOperand,
+	@On(OFF_RAMP) var ifReification: L2PcOperand
+) : L2NewControlFlowInstruction()
 {
-	override fun isCold(instruction: L2Instruction): Boolean = true
+	override val isCold get() = true
+
+	/**
+	 * Technically it doesn't have a side-effect, but this flag keeps the
+	 * instruction from being re-ordered to a place where the interpreter's top
+	 * reified continuation is no longer the right one.
+	 */
+	override val hasSideEffect get() = true
 
 	/**
 	 * An enumeration of reasons for reification, for the purpose of
@@ -115,31 +119,19 @@ object L2_REIFY : L2OldControlFlowOperation(
 		}
 	}
 
-	// Technically it doesn't have a side-effect, but this flag keeps the
-	// instruction from being re-ordered to a place where the interpreter's
-	// top reified continuation is no longer the right one.
-	override val hasSideEffect get() = true
-
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
-		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
-		val statisticConstant =
-			instruction.operand<L2ArbitraryConstantOperand>(2)
-		//		final L2PcOperand onReification = instruction.operand(3);
-
-		val statistic = statisticConstant.constant as Statistic
-		instruction.renderPreamble(builder)
+		val statistic = statistic.constant as Statistic
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(statistic.name())
-		if (actuallyReify.value != 0 || processInterrupt.value != 0)
+		if (captureFrames.value != 0 || processInterrupt.value != 0)
 		{
 			builder.append(" [")
-			if (actuallyReify.value != 0)
+			if (captureFrames.value != 0)
 			{
 				builder.append("actually reify")
 				if (processInterrupt.value != 0)
@@ -153,39 +145,29 @@ object L2_REIFY : L2OldControlFlowOperation(
 			}
 			builder.append(']')
 		}
-		val type = operandTypes[3]
-		if (desiredTypes.contains(type.operandType()))
+		if (PC in desiredTypes)
 		{
-			val operand = instruction.operand<L2Operand>(3)
 			builder.append("\n\t")
-			assert(operand.operandType === type.operandType())
-			builder.append(type.name())
+			builder.append(::ifReification.name)
 			builder.append(" = ")
-			builder.append(increaseIndentation(operand.toString(), 1))
+			builder.append(increaseIndentation(ifReification.toString(), 1))
 		}
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
-		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
-		val statisticConstant =
-			instruction.operand<L2ArbitraryConstantOperand>(2)
-		val onReification = instruction.operand<L2PcOperand>(3)
-
 		// :: reifier = interpreter.reify(
 		// ::    actuallyReify, processInterrupt, statistic);
 		translator.loadInterpreter(method)
-		translator.literal(method, actuallyReify.value)
+		translator.literal(method, captureFrames.value)
 		translator.literal(method, processInterrupt.value)
-		translator.literal(method, statisticConstant.constant as Statistic)
+		translator.literal(method, statistic.constant as Statistic)
 		Interpreter.reifyMethod.generateCall(method)
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an
 		// L2_ENTER_L2_CHUNK.
-		translator.generateReificationPreamble(method, onReification)
+		translator.generateReificationPreamble(method, ifReification)
 	}
 }

@@ -33,10 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -50,34 +47,30 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_RETURN : L2OldControlFlowOperation(
-	READ_BOXED.named("return value"))
+class L2_RETURN(
+	var returnValue: L2ReadBoxedOperand
+): L2NewControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(value.registerString())
+		builder.append(returnValue.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-
 		// :: interpreter.setLatestResult(value);
 		translator.loadInterpreter(method)
 		method.visitInsn(Opcodes.DUP)
-		translator.load(method, value.register())
+		translator.load(method, returnValue.register())
 		Interpreter.setLatestResultMethod.generateCall(method)
 		// :: interpreter.returnNow = true;
 		method.visitInsn(Opcodes.DUP)

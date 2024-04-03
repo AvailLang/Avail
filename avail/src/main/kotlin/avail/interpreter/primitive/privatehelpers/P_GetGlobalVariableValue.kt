@@ -47,7 +47,6 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
 import avail.optimizer.L1Translator.CallSiteHelper
@@ -111,7 +110,7 @@ object P_GetGlobalVariableValue : Primitive(
 			return true
 		}
 		val valueReg = translator.emitGetVariableOffRamp(
-			L2_GET_VARIABLE,
+			false,
 			translator.generator.boxedConstant(variable),
 			translator.generator.newTemp())
 		callSiteHelper.useAnswer(valueReg)

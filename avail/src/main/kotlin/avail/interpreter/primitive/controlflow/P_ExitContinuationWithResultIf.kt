@@ -154,9 +154,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 				exit,
 				noExit)
 			generator.startBlock(exit)
-			generator.addInstruction(
-				L2_RETURN,
-				valueReg)
+			generator.addInstruction(L2_RETURN(valueReg))
 			generator.startBlock(noExit)
 			if (generator.currentlyReachable())
 			{

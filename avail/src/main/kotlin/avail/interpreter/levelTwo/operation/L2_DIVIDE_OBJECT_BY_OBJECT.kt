@@ -33,14 +33,10 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.exceptions.ArithmeticException
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -58,31 +54,24 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_DIVIDE_OBJECT_BY_OBJECT : L2OldControlFlowOperation(
-	READ_BOXED.named("dividend"),
-	READ_BOXED.named("divisor"),
-	WRITE_BOXED.named("quotient", SUCCESS),
-	WRITE_BOXED.named("remainder", SUCCESS),
-	PC.named("if undefined", OFF_RAMP),
-	PC.named("success", SUCCESS))
+class L2_DIVIDE_OBJECT_BY_OBJECT(
+	var dividend: L2ReadBoxedOperand,
+	var divisor: L2ReadBoxedOperand,
+	@On(SUCCESS) var quotient: L2WriteBoxedOperand,
+	@On(SUCCESS) var remainder: L2WriteBoxedOperand,
+	@On(OFF_RAMP) var ifUndefined: L2PcOperand,
+	@On(SUCCESS) var ifSuccess: L2PcOperand
+): L2NewControlFlowInstruction()
 {
-	override val hasSideEffect: Boolean
-		// It jumps for division by zero.
-		get() = true
+	// It jumps for division by zero.
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val dividend = instruction.operand<L2ReadBoxedOperand>(0)
-		val divisor = instruction.operand<L2ReadBoxedOperand>(1)
-		val quotient = instruction.operand<L2WriteBoxedOperand>(2)
-		val remainder = instruction.operand<L2WriteBoxedOperand>(3)
-		//		final L2PcOperand undefined = instruction.operand(4);
-//		final L2PcOperand success = instruction.operand(5);
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(quotient.registerString())
 		builder.append(", ")
@@ -91,21 +80,14 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2OldControlFlowOperation(
 		builder.append(dividend.registerString())
 		builder.append(" ÷ ")
 		builder.append(divisor.registerString())
-		instruction.renderOperandsStartingAt(4, desiredTypes, builder)
+		renderOperandsExcludingFields(
+			builder, ::dividend, ::divisor, ::quotient, ::remainder)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val dividend = instruction.operand<L2ReadBoxedOperand>(0)
-		val divisor = instruction.operand<L2ReadBoxedOperand>(1)
-		val quotient = instruction.operand<L2WriteBoxedOperand>(2)
-		val remainder = instruction.operand<L2WriteBoxedOperand>(3)
-		val undefined = instruction.operand<L2PcOperand>(4)
-		val success = instruction.operand<L2PcOperand>(5)
-
 		// :: try {
 		val tryStart = Label()
 		val catchStart = Label()
@@ -137,12 +119,12 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2OldControlFlowOperation(
 		// fall through, because the next instruction expects a
 		// ArithmeticException to be pushed onto the stack. So always do the
 		// jump.
-		translator.jump(method, success)
+		translator.jump(method, ifSuccess)
 		// :: } catch (ArithmeticException e) {
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
 		// ::    goto undefined;
-		translator.jumpOrFallThrough(method, undefined)
+		translator.jumpOrFallThrough(method, ifUndefined)
 		// :: }
 	}
 }

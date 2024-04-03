@@ -121,13 +121,13 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		val failure = generator.createBasicBlock("swap failure")
 		val exception = generator.createBasicBlock("swap exception")
 		translator.addInstruction(
-			L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK,
-			variableReg,
-			referenceReg,
-			newValueReg,
-			edgeTo(success),
-			edgeTo(failure),
-			edgeTo(exception))
+			L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK(
+				variableReg,
+				referenceReg,
+				newValueReg,
+				edgeTo(success),
+				edgeTo(failure),
+				edgeTo(exception)))
 		generator.startBlock(success)
 		callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
 

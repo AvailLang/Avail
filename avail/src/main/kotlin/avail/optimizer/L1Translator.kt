@@ -720,7 +720,7 @@ class L1Translator private constructor(
 			L2_SET_CONTINUATION(generator.readBoxed(newContinuationWrite)))
 
 		// Right after creating the continuation.
-		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER)
+		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER())
 
 		generator.startBlock(unreachable)
 		generator.addInstruction(L2_UNREACHABLE_CODE())
@@ -1556,22 +1556,22 @@ class L1Translator private constructor(
 		if (constantFunction !== null)
 		{
 			addInstruction(
-				L2_INVOKE_CONSTANT_FUNCTION,
-				L2ConstantOperand(constantFunction),
-				L2ReadBoxedVectorOperand(arguments),
-				writeResult,
-				edgeTo(if (canReturn) successBlock else unreachable),
-				edgeTo(reificationTarget))
+				L2_INVOKE_CONSTANT_FUNCTION(
+					L2ConstantOperand(constantFunction),
+					L2ReadBoxedVectorOperand(arguments),
+					writeResult,
+					edgeTo(if (canReturn) successBlock else unreachable),
+					edgeTo(reificationTarget)))
 		}
 		else
 		{
 			addInstruction(
-				L2_INVOKE,
-				functionToCallReg,
-				L2ReadBoxedVectorOperand(arguments),
-				writeResult,
-				edgeTo(if (canReturn) successBlock else unreachable),
-				edgeTo(reificationTarget))
+				L2_INVOKE(
+					functionToCallReg,
+					L2ReadBoxedVectorOperand(arguments),
+					writeResult,
+					edgeTo(if (canReturn) successBlock else unreachable),
+					edgeTo(reificationTarget)))
 		}
 		generator.startBlock(unreachable)
 		generator.addInstruction(L2_UNREACHABLE_CODE())
@@ -1654,20 +1654,20 @@ class L1Translator private constructor(
 		// The type check failed, so report it.
 		generator.startBlock(failedCheck)
 		generator.addInstruction(
-			L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION,
-			uncheckedValueRead,
-			L2ConstantOperand(expectedType),
-			L2IntImmediateOperand(pc),
-			L2IntImmediateOperand(stackp),
-			L2ReadBoxedVectorOperand(
-				(1..numSlots).map {
-					when (it)
-					{
-						// Make it look like the expectedType has been pushed.
-						stackp -> generator.boxedConstant(expectedType)
-						else -> readSlot(it)
-					}
-				}))
+			L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
+				uncheckedValueRead,
+				L2ConstantOperand(expectedType),
+				L2IntImmediateOperand(pc),
+				L2IntImmediateOperand(stackp),
+				L2ReadBoxedVectorOperand(
+					(1..numSlots).map {
+						when (it)
+						{
+							// Make it look like the expectedType has been pushed.
+							stackp -> generator.boxedConstant(expectedType)
+							else -> readSlot(it)
+						}
+					})))
 		assert(!generator.currentlyReachable())
 
 		// Generate the much more likely passed-check flow.
@@ -1872,13 +1872,13 @@ class L1Translator private constructor(
 		{
 			// Not a super-call.
 			addInstruction(
-				L2_LOOKUP_BY_VALUES,
-				L2SelectorOperand(bundle),
-				L2ReadBoxedVectorOperand(argumentReads),
-				functionWrite,
-				errorCodeWrite,
-				edgeTo(lookupSucceeded),
-				edgeTo(lookupFailed))
+				L2_LOOKUP_BY_VALUES(
+					L2SelectorOperand(bundle),
+					L2ReadBoxedVectorOperand(argumentReads),
+					functionWrite,
+					errorCodeWrite,
+					edgeTo(lookupSucceeded),
+					edgeTo(lookupFailed)))
 		}
 		else
 		{
@@ -1934,13 +1934,13 @@ class L1Translator private constructor(
 				argTypeRegs.add(argTypeReg)
 			}
 			addInstruction(
-				L2_LOOKUP_BY_TYPES,
-				L2SelectorOperand(bundle),
-				L2ReadBoxedVectorOperand(argTypeRegs),
-				functionWrite,
-				errorCodeWrite,
-				edgeTo(lookupSucceeded),
-				edgeTo(lookupFailed))
+				L2_LOOKUP_BY_TYPES(
+					L2SelectorOperand(bundle),
+					L2ReadBoxedVectorOperand(argTypeRegs),
+					functionWrite,
+					errorCodeWrite,
+					edgeTo(lookupSucceeded),
+					edgeTo(lookupFailed)))
 		}
 		// At this point, we've attempted to look up the method, and either
 		// jumped to lookupSucceeded with functionWrite set to the body
@@ -2028,16 +2028,16 @@ class L1Translator private constructor(
 				isCold = true)
 		val unreachable = L2BasicBlock("unreachable", currentZone)
 		addInstruction(
-			L2_INVOKE,
-			readBoxed(invalidSendReg),
-			L2ReadBoxedVectorOperand(
-				listOf(
-					errorCodeRead,
-					generator.boxedConstant(method),
-					readBoxed(argumentsTupleWrite))),
-			generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
-			edgeTo(unreachable),
-			edgeTo(onReificationDuringFailure))
+			L2_INVOKE(
+				readBoxed(invalidSendReg),
+				L2ReadBoxedVectorOperand(
+					listOf(
+						errorCodeRead,
+						generator.boxedConstant(method),
+						readBoxed(argumentsTupleWrite))),
+				generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
+				edgeTo(unreachable),
+				edgeTo(onReificationDuringFailure)))
 
 		generator.startBlock(unreachable)
 		generator.addInstruction(L2_UNREACHABLE_CODE())
@@ -2089,12 +2089,12 @@ class L1Translator private constructor(
 				"Start reification and run interrupt"),
 			isCold = true)
 		addInstruction(
-			L2_REIFY,
-			L2IntImmediateOperand(1),
-			L2IntImmediateOperand(1),
-			L2ArbitraryConstantOperand(
-				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic),
-			edgeTo(onReification))
+			L2_REIFY(
+				L2IntImmediateOperand(1),
+				L2IntImmediateOperand(1),
+				L2ArbitraryConstantOperand(
+					StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic),
+				edgeTo(onReification)))
 		generator.startBlock(onReification)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
@@ -2116,9 +2116,8 @@ class L1Translator private constructor(
 	 * Emit the specified variable-reading instruction, and an off-ramp to deal
 	 * with the case that the variable is unassigned.
 	 *
-	 * @param getOperation
-	 *   The [variable reading][L2Operation.isVariableGet]
-	 *   [operation][L2Operation].
+	 * @param shouldClear
+	 *   Whether the read from the variable should also clear it.
 	 * @param variable
 	 *   The location of the [variable][A_Variable].
 	 * @return
@@ -2126,11 +2125,10 @@ class L1Translator private constructor(
 	 *   written, including having made it immutable if requested.
 	 */
 	fun emitGetVariableOffRamp(
-		getOperation: L2Operation,
+		shouldClear: Boolean,
 		variable: L2ReadBoxedOperand,
 		targetSemanticValue: L2SemanticBoxedValue): L2ReadBoxedOperand
 	{
-		assert(getOperation.isVariableGet)
 		val success = generator.createBasicBlock("successfully read variable")
 		val failure = generator.createBasicBlock(
 			"failed to read variable",
@@ -2142,21 +2140,24 @@ class L1Translator private constructor(
 			targetSemanticValue,
 			boxedRestrictionForType(variable.type().readType))
 		addInstruction(
-			getOperation,
-			variable,
-			valueWrite,
-			edgeTo(success),
-			edgeTo(failure))
+			when
+			{
+				shouldClear -> L2_GET_VARIABLE_CLEARING(
+					variable, valueWrite, edgeTo(success), edgeTo(failure))
+				else -> L2_GET_VARIABLE(
+					variable, valueWrite, edgeTo(success), edgeTo(failure))
+			})
 
 		// Emit the failure path. Unbind the destination of the variable-get in
 		// this case, since it won't have been populated (by definition,
 		// otherwise we wouldn't have failed).
 		generator.startBlock(failure)
 		generator.addInstruction(
-			L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION,
-			L2IntImmediateOperand(pc),
-			L2IntImmediateOperand(stackp),
-			L2ReadBoxedVectorOperand((1..numSlots).map(this::readSlot)))
+			L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION(
+				L2IntImmediateOperand(pc),
+				L2IntImmediateOperand(stackp),
+				L2ReadBoxedVectorOperand(
+					(1..numSlots).map(this::readSlot))))
 		assert(!generator.currentlyReachable())
 
 		// End with the success path.
@@ -2170,20 +2171,15 @@ class L1Translator private constructor(
 	 * [write-reactors][VariableAccessReactor] but variable write
 	 * [tracing][Interpreter.traceVariableWrites] is disabled.
 	 *
-	 * @param setOperation
-	 *   The [variable reading][L2Operation.isVariableSet]
-	 *   [operation][L2Operation].
 	 * @param variable
 	 *   The location of the [variable][A_Variable].
 	 * @param newValue
 	 *   The location of the new value.
 	 */
 	private fun emitSetVariableOffRamp(
-		setOperation: L2Operation,
 		variable: L2ReadBoxedOperand,
 		newValue: L2ReadBoxedOperand)
 	{
-		assert(setOperation.isVariableSet)
 		val success = generator.createBasicBlock("set local success")
 		val failure = generator.createBasicBlock(
 			"set local failure/observe",
@@ -2195,11 +2191,11 @@ class L1Translator private constructor(
 			isCold = true)
 		// Emit the set-variable instruction.
 		addInstruction(
-			setOperation,
-			variable,
-			newValue,
-			edgeTo(success),
-			edgeTo(failure))
+			L2_SET_VARIABLE_NO_CHECK(
+				variable,
+				newValue,
+				edgeTo(success),
+				edgeTo(failure)))
 
 		// Emit the failure path.
 		generator.startBlock(failure)
@@ -2218,17 +2214,17 @@ class L1Translator private constructor(
 		// Note: the handler block's value is discarded; also, since it's not a
 		// method definition, it can't have a semantic restriction.
 		addInstruction(
-			L2_INVOKE,
-			readBoxed(observeFunction),
-			L2ReadBoxedVectorOperand(
-				listOf(
-					generator
-						.boxedConstant(assignmentFunction()),
-					readBoxed(variableAndValueTupleReg))),
-			// Unreachable:
-			generator.boxedWriteTemp(TypeRestriction.anyRestriction),
-			edgeTo(success),
-			edgeTo(onReificationDuringFailure))
+			L2_INVOKE(
+				readBoxed(observeFunction),
+				L2ReadBoxedVectorOperand(
+					listOf(
+						generator
+							.boxedConstant(assignmentFunction()),
+						readBoxed(variableAndValueTupleReg))),
+				// Unreachable:
+				generator.boxedWriteTemp(TypeRestriction.anyRestriction),
+				edgeTo(success),
+				edgeTo(onReificationDuringFailure)))
 		generator.startBlock(onReificationDuringFailure)
 		generator.addInstruction(
 			L2_ENTER_L2_CHUNK,
@@ -2351,11 +2347,11 @@ class L1Translator private constructor(
 			val success = generator.createBasicBlock("success")
 			val unreachable = L2BasicBlock("unreachable")
 			addInstruction(
-				L2_SET_VARIABLE_NO_CHECK,
-				readSlot(numArgs + 1),
-				getLatestReturnValue(code.localTypeAt(1).writeType),
-				edgeTo(success),
-				edgeTo(unreachable))
+				L2_SET_VARIABLE_NO_CHECK(
+					readSlot(numArgs + 1),
+					getLatestReturnValue(code.localTypeAt(1).writeType),
+					edgeTo(success),
+					edgeTo(unreachable)))
 
 			generator.startBlock(unreachable)
 			generator.addInstruction(L2_UNREACHABLE_CODE())
@@ -2395,7 +2391,7 @@ class L1Translator private constructor(
 		if (generator.currentlyReachable())
 		{
 			val readResult = readSlot(stackp)
-			addInstruction(L2_RETURN, readResult)
+			addInstruction(L2_RETURN(readResult))
 			assert(stackp == numSlots)
 			stackp = Int.MIN_VALUE
 		}
@@ -2522,7 +2518,6 @@ class L1Translator private constructor(
 	{
 		val localIndex = instructionDecoder.getOperand()
 		emitSetVariableOffRamp(
-			L2_SET_VARIABLE_NO_CHECK,
 			readSlot(localIndex),
 			readSlot(stackp))
 		// Now we have to nil the stack slot which held the value that we
@@ -2537,7 +2532,7 @@ class L1Translator private constructor(
 		val index = instructionDecoder.getOperand()
 		stackp--
 		val valueReg = emitGetVariableOffRamp(
-			L2_GET_VARIABLE_CLEARING,
+			true,
 			readSlot(index),
 			generator.newTemp())
 		forceSlotRegister(stackp, pc, valueReg)
@@ -2566,7 +2561,7 @@ class L1Translator private constructor(
 		stackp--
 		val outerType = code.outerTypeAt(outerIndex)
 		val valueReg = emitGetVariableOffRamp(
-			L2_GET_VARIABLE_CLEARING,
+			true,
 			getOuterRegister(outerIndex, outerType),
 			generator.newTemp())
 		forceSlotRegister(stackp, pc, valueReg)
@@ -2578,7 +2573,6 @@ class L1Translator private constructor(
 		val outerType = code.outerTypeAt(outerIndex)
 		val tempVarReg = getOuterRegister(outerIndex, outerType)
 		emitSetVariableOffRamp(
-			L2_SET_VARIABLE_NO_CHECK,
 			tempVarReg,
 			readSlot(stackp))
 		// Now we have to nil the stack slot which held the value that we
@@ -2596,7 +2590,7 @@ class L1Translator private constructor(
 		val index = instructionDecoder.getOperand()
 		stackp--
 		val valueReg = emitGetVariableOffRamp(
-			L2_GET_VARIABLE,
+			false,
 			readSlot(index),
 			generator.newTemp())
 		forceSlotRegister(stackp, pc, valueReg)
@@ -2627,7 +2621,7 @@ class L1Translator private constructor(
 		stackp--
 		val outerType = code.outerTypeAt(outerIndex)
 		val valueReg = emitGetVariableOffRamp(
-			L2_GET_VARIABLE,
+			false,
 			getOuterRegister(outerIndex, outerType),
 			generator.newTemp())
 		forceSlotRegister(stackp, pc, valueReg)
@@ -2707,7 +2701,7 @@ class L1Translator private constructor(
 		else
 		{
 			val valueReg = emitGetVariableOffRamp(
-				L2_GET_VARIABLE,
+				false,
 				generator.boxedConstant(literalVariable),
 				generator.newTemp())
 			forceSlotRegister(stackp, pc, valueReg)
@@ -2719,7 +2713,6 @@ class L1Translator private constructor(
 		val literalVariable: A_Variable = code.literalAt(
 			instructionDecoder.getOperand())
 		emitSetVariableOffRamp(
-			L2_SET_VARIABLE_NO_CHECK,
 			generator.boxedConstant(literalVariable),
 			readSlot(stackp))
 		// Now we have to nil the stack slot which held the value that we

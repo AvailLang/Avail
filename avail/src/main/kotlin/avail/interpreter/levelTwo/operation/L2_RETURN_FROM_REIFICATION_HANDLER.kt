@@ -32,8 +32,6 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
@@ -55,30 +53,24 @@ import org.objectweb.asm.Opcodes
 @ReadsHiddenVariable(
 	CURRENT_CONTINUATION::class,
 	STACK_REIFIER::class)
-object L2_RETURN_FROM_REIFICATION_HANDLER : L2OldControlFlowOperation()
+class L2_RETURN_FROM_REIFICATION_HANDLER(
+) : L2NewControlFlowInstruction()
 {
-	override fun isCold(instruction: L2Instruction): Boolean = true
+	override val isCold: Boolean get() = true
 
-	override val hasSideEffect: Boolean
-		get()
-		{
-			// Never remove this.
-			return true
-		}
+	override val hasSideEffect: Boolean get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		method.visitInsn(Opcodes.ACONST_NULL)
 		method.visitInsn(Opcodes.ARETURN)

@@ -41,11 +41,9 @@ import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
-import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
@@ -63,7 +61,6 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
-import avail.interpreter.levelTwo.operation.L2OldControlFlowOperation
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
@@ -213,12 +210,7 @@ protected constructor(
 	 * [operation][L2Operation] expects.
 	 */
 	val namedOperandTypes: Array<out L2NamedOperandType> =
-		theNamedOperandTypes.clone().also { types ->
-			assert(this is L2OldControlFlowOperation
-				|| this is L2_SAVE_ALL_AND_PC_TO_INT
-				|| types.none { it.operandType() == PC })
-		}
-
+		theNamedOperandTypes.clone()
 	/**
 	 * Answer the [named&#32;operand&#32;types][L2NamedOperandType] that this
 	 * `L2Operation operation` expects.
@@ -320,26 +312,6 @@ protected constructor(
 	 *   arriving at this instruction.
 	 */
 	open val goesMultipleWays: Boolean
-		get() = false
-
-	/**
-	 * Answer whether execution of this instruction causes a
-	 * [variable][A_Variable] to be read.
-	 *
-	 * @return
-	 *   Whether the instruction causes a variable to be read.
-	 */
-	open val isVariableGet: Boolean
-		get() = false
-
-	/**
-	 * Answer whether execution of this instruction causes a
-	 * [variable][A_Variable] to be written.
-	 *
-	 * @return
-	 *   Whether the instruction causes a variable to be written.
-	 */
-	open val isVariableSet: Boolean
 		get() = false
 
 	/**

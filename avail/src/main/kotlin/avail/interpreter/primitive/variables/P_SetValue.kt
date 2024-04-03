@@ -103,23 +103,29 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		val valueType = valueReg.type()
 		val varInnerType = varType.writeType
 
-		// These two operations have the same operand layouts.
-		val setOperation = if (valueType.isSubtypeOf(varInnerType))
-			L2_SET_VARIABLE_NO_CHECK
-		else
-			L2_SET_VARIABLE
-
 		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val success = generator.createBasicBlock("set local success")
 		val failure = generator.createBasicBlock("set local failure/observe")
 		// Emit the set-variable instruction.
-		translator.addInstruction(
-			setOperation,
-			varReg,
-			valueReg,
-			edgeTo(success),
-			edgeTo(failure))
+		if (valueType.isSubtypeOf(varInnerType))
+		{
+			translator.addInstruction(
+				L2_SET_VARIABLE_NO_CHECK(
+					varReg,
+					valueReg,
+					edgeTo(success),
+					edgeTo(failure)))
+		}
+		else
+		{
+			translator.addInstruction(
+				L2_SET_VARIABLE(
+					varReg,
+					valueReg,
+					edgeTo(success),
+					edgeTo(failure)))
+		}
 
 		// Emit the failure path.  Simply invoke the primitive function.
 		generator.startBlock(failure)

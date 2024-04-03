@@ -228,9 +228,9 @@ object P_RestartContinuationWithArguments : Primitive(
 		explodedArgumentRegs ?: return false
 
 		translator.addInstruction(
-			L2_RESTART_CONTINUATION_WITH_ARGUMENTS,
-			continuationReg,
-			L2ReadBoxedVectorOperand(explodedArgumentRegs))
+			L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
+				continuationReg,
+				L2ReadBoxedVectorOperand(explodedArgumentRegs)))
 		assert(!generator.currentlyReachable())
 		generator.startBlock(
 			generator.createBasicBlock(

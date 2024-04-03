@@ -141,8 +141,7 @@ object P_RestartContinuation : Primitive(
 		// First, pop out of the Java stack frames back into the outer L2 run
 		// loop (which saves/restores the current frame and continues at the
 		// next L2 instruction).
-		translator.addInstruction(
-			L2_RESTART_CONTINUATION, continuationReg)
+		translator.addInstruction(L2_RESTART_CONTINUATION(continuationReg))
 		assert(!translator.generator.currentlyReachable())
 		return true
 	}
