@@ -107,10 +107,8 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT(
 		renderOperandsExcludingFields(builder, ::intValue, ::constant)
 	}
 
-	override fun toString(): String
-	{
-		return super.toString() + "(" + numericComparator.comparatorName + ")"
-	}
+	override val name: String
+		get() = "${super.name} (${numericComparator.comparatorName})"
 
 	override fun interestingConditions(): List<L2SplitCondition?>
 	{

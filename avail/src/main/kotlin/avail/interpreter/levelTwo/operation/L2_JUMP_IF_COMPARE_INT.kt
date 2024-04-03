@@ -106,10 +106,8 @@ class L2_JUMP_IF_COMPARE_INT(
 		renderOperandsExcludingFields(builder, ::int1, ::int2)
 	}
 
-	override fun toString(): String
-	{
-		return super.toString() + "(" + numericComparator.comparatorName + ")"
-	}
+	override val name: String
+		get() = "${super.name} (${numericComparator.comparatorName})"
 
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator
