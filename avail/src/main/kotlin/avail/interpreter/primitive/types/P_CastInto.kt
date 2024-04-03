@@ -173,11 +173,11 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 					translator.generator.extractParameterTypeFromFunction(
 						castFunctionRead, 1)
 				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_OBJECT,
-					valueRead,
-					parameterTypeRead,
-					edgeTo(castBlock),
-					edgeTo(elseBlock))
+					L2_JUMP_IF_KIND_OF_OBJECT(
+						valueRead,
+						parameterTypeRead,
+						edgeTo(castBlock),
+						edgeTo(elseBlock)))
 			}
 			passedTest === null ->
 				// Couldn't prove or disprove type test, but we know statically

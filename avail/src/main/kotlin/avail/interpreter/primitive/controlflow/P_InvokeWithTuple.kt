@@ -299,11 +299,11 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 				{
 					// The arg type was extracted at runtime from the function.
 					generator.addInstruction(
-						L2_JUMP_IF_KIND_OF_OBJECT,
-						argReg,
-						exactTypeReg,
-						edgeTo(passedAnother),
-						edgeTo(failurePath))
+						L2_JUMP_IF_KIND_OF_OBJECT(
+							argReg,
+							exactTypeReg,
+							edgeTo(passedAnother),
+							edgeTo(failurePath)))
 				}
 				generator.startBlock(passedAnother)
 			}

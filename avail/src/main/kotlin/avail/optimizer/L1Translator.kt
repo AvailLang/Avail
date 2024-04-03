@@ -2072,9 +2072,9 @@ class L1Translator private constructor(
 		val merge =
 			generator.createBasicBlock("merge after possible interrupt")
 		addInstruction(
-			L2_JUMP_IF_INTERRUPT,
-			edgeTo(serviceInterrupt),
-			edgeTo(merge))
+			L2_JUMP_IF_INTERRUPT(
+				edgeTo(serviceInterrupt),
+				edgeTo(merge)))
 		generator.startBlock(serviceInterrupt)
 		// Service the interrupt:  Generate the reification instructions,
 		// ensuring that when returning into the resulting continuation, it will

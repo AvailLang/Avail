@@ -151,8 +151,6 @@ abstract class L2NewInstruction : L2Instruction()
 	override open val isExtractTagOrdinal: Boolean get() = false
 	override open val isExtractObjectVariantId: Boolean get() = false
 	override open val isExtractObjectTypeVariantId: Boolean get() = false
-	override open val isJumpIfSubtypeOfConstant: Boolean get() = false
-	override open val isJumpIfSubtypeOfObject: Boolean get() = false
 	override open val isGetType: Boolean get() = false
 	override open val isEnterL2Chunk: Boolean get() = false
 	override open val isEnterL2ChunkForCall: Boolean get() = false

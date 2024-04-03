@@ -159,11 +159,15 @@ internal constructor(private val instructionClass: KClass<out I>)
 	init
 	{
 		// Make sure there aren't any accidental val fields, since that won't
-		// work for the things we need to do to fields.
+		// work for the things we need to do to fields.  It's fine to have val
+		// fields for non-L2Operands.
 		val valFields = instructionClass.declaredMemberProperties
 			.filterIsInstance<KProperty1<I, L2Operand>>()
 			.filter { it !is KMutableProperty1<*, *> }
 			.filter { it.javaField !== null }
+			.filter {
+				L2Operand::class.java.isAssignableFrom(it.javaField!!.type)
+			}
 		assert(valFields.isEmpty())
 		{
 			"Found val fields (${valFields.map { it.name }}) in " +

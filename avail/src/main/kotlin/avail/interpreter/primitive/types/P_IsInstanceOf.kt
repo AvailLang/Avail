@@ -120,11 +120,11 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		else
 		{
 			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT,
-				xReg,
-				yTypeReg,
-				edgeTo(ifInstance),
-				edgeTo(ifNotInstance))
+				L2_JUMP_IF_KIND_OF_OBJECT(
+					xReg,
+					yTypeReg,
+					edgeTo(ifInstance),
+					edgeTo(ifNotInstance)))
 		}
 		generator.startBlock(ifInstance)
 		if (generator.currentlyReachable())

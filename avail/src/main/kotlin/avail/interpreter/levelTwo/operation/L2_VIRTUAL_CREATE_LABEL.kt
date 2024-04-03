@@ -158,9 +158,9 @@ class L2_VIRTUAL_CREATE_LABEL(
 			val unreachable =
 				createBasicBlock("unreachable")
 			addInstruction(
-				L2_JUMP_IF_ALREADY_REIFIED,
-				edgeTo(alreadyReifiedEdgeSplit),
-				edgeTo(startReification))
+				L2_JUMP_IF_ALREADY_REIFIED(
+					edgeTo(alreadyReifiedEdgeSplit),
+					edgeTo(startReification)))
 
 			startBlock(alreadyReifiedEdgeSplit)
 			jumpTo(callerIsReified)

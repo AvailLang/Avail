@@ -31,14 +31,10 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
-import avail.interpreter.levelTwo.operand.L2Operand
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -58,28 +54,23 @@ import org.objectweb.asm.MethodVisitor
  * @property numericComparator
  *   The [NumericComparator] on which this [L2_JUMP_IF_COMPARE_INT] is based.
  */
-class L2_JUMP_IF_COMPARE_INT internal constructor(
-	private val numericComparator: NumericComparator
-) : L2OldConditionalJump(
-	READ_INT.named("int1"),
-	READ_INT.named("int2"),
-	PC.named("if true", SUCCESS),
-	PC.named("if false", FAILURE))
+class L2_JUMP_IF_COMPARE_INT(
+	private val numericComparator: NumericComparator,
+	var int1: L2ReadIntOperand,
+	var int2: L2ReadIntOperand,
+	@On(SUCCESS) var ifTrue: L2PcOperand,
+	@On(FAILURE) var ifFalse: L2PcOperand
+): L2NewConditionalJump()
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(instruction, manifest)
-		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
-		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
-		val ifTrue = instruction.operand<L2PcOperand>(2)
-		val ifFalse = instruction.operand<L2PcOperand>(3)
+		super.instructionWasAdded(manifest)
 
-		val restriction1 = int1Reg.restriction().intersection(
-			manifest.restrictionFor(int1Reg.semanticValue()))
-		val restriction2 = int2Reg.restriction().intersection(
-			manifest.restrictionFor(int2Reg.semanticValue()))
+		val restriction1 = int1.restriction().intersection(
+			manifest.restrictionFor(int1.semanticValue()))
+		val restriction2 = int2.restriction().intersection(
+			manifest.restrictionFor(int2.semanticValue()))
 
 		// Restrict both values along both branches.
 		val (rest1, rest2, rest3, rest4) =
@@ -87,38 +78,32 @@ class L2_JUMP_IF_COMPARE_INT internal constructor(
 				restriction1.forBoxed(), restriction2.forBoxed()
 			).map(TypeRestriction::forUnboxedInt)
 		ifTrue.manifest().setRestriction(
-			int1Reg.semanticValue(),
+			int1.semanticValue(),
 			restriction1.intersection(rest1))
 		ifTrue.manifest().setRestriction(
-			int2Reg.semanticValue(),
+			int2.semanticValue(),
 			restriction2.intersection(rest2))
 		ifFalse.manifest().setRestriction(
-			int1Reg.semanticValue(),
+			int1.semanticValue(),
 			restriction1.intersection(rest3))
 		ifFalse.manifest().setRestriction(
-			int2Reg.semanticValue(),
+			int2.semanticValue(),
 			restriction2.intersection(rest4))
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
-		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
-		//val ifTrue = instruction.operand<L2PcOperand>(2)
-		//val ifFalse = instruction.operand<L2PcOperand>(3)
-
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(int1Reg.registerString())
+		builder.append(int1.registerString())
 		builder.append(" ")
 		builder.append(numericComparator.comparatorName)
 		builder.append(" ")
-		builder.append(int2Reg.registerString())
-		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
+		builder.append(int2.registerString())
+		renderOperandsExcludingFields(builder, ::int1, ::int2)
 	}
 
 	override fun toString(): String
@@ -127,38 +112,26 @@ class L2_JUMP_IF_COMPARE_INT internal constructor(
 	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator
 	)
 	{
-		val int1Reg = transformedOperands[0] as L2ReadIntOperand
-		val int2Reg = transformedOperands[1] as L2ReadIntOperand
-		val ifTrue = transformedOperands[2] as L2PcOperand
-		val ifFalse = transformedOperands[3] as L2PcOperand
-
 		// Use the basic generator to check if the branch can be elided.
 		regenerator.compareAndBranchInt(
-			numericComparator, int1Reg, int2Reg, ifTrue, ifFalse)
+			numericComparator, int1, int2, ifTrue, ifFalse)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
-		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
-		val ifTrue = instruction.operand<L2PcOperand>(2)
-		val ifFalse = instruction.operand<L2PcOperand>(3)
-
 		// :: if (int1 op int2) goto ifTrue;
 		// :: else goto ifFalse;
-		translator.load(method, int1Reg.register())
-		translator.load(method, int2Reg.register())
+		translator.load(method, int1.register())
+		translator.load(method, int2.register())
 		emitBranch(
 			translator,
 			method,
-			instruction,
+			this,
 			numericComparator.opcode,
 			ifTrue,
 			ifFalse)

@@ -311,11 +311,11 @@ constructor(
 				superUnionReg,
 				unionReg))
 		generator.addInstruction(
-			L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
-			generator.readBoxed(unionReg),
-			L2ConstantOperand(argumentTypeToTest),
-			edgeTo(passBlock),
-			edgeTo(failBlock))
+			L2_JUMP_IF_SUBTYPE_OF_CONSTANT(
+				generator.readBoxed(unionReg),
+				L2ConstantOperand(argumentTypeToTest),
+				edgeTo(passBlock),
+				edgeTo(failBlock)))
 		return result
 	}
 }

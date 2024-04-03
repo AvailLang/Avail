@@ -569,35 +569,35 @@ constructor(
 			(1 .. mask).toList(),
 			(0 .. mask).toList())
 		generator.addInstruction(
-			L2_MULTIWAY_JUMP,
-			L2ReadIntOperand(
-				indexWrite.pickSemanticValue(),
-				indexRestriction,
-				generator.currentManifest),
-			L2ArbitraryConstantOperand(splitter),
-			L2PcVectorOperand(
-				(0 .. mask).map { index ->
-					val pair = targetsByShiftedHash[index]
-					L2PcOperand(
-						pair?.first ?: noMatchBlock,
-						false,
-						L2ValueManifest(generator.currentManifest).apply {
-							if (pair === null) return@apply
-							// Exclude the values that aren't on this
-							// branch.  This technique was chosen so
-							// so that it works for exhaustive or not.
-							val excluded = mutableSetOf<A_BasicObject>()
-							targetsByShiftedHash.forEach { (i, pair) ->
-								if (i == index) return@forEach
-								pair.second.forEach { excluded.add(it.key) }
-							}
-							subtractType(
-								semanticSource,
-								enumerationWith(
-									setFromCollection(excluded)))
-						},
-						"masked = 0x${toHexString(index)}")
-				}))
+			L2_MULTIWAY_JUMP(
+				L2ReadIntOperand(
+					indexWrite.pickSemanticValue(),
+					indexRestriction,
+					generator.currentManifest),
+				L2ArbitraryConstantOperand(splitter),
+				L2PcVectorOperand(
+					(0 .. mask).map { index ->
+						val pair = targetsByShiftedHash[index]
+						L2PcOperand(
+							pair?.first ?: noMatchBlock,
+							false,
+							L2ValueManifest(generator.currentManifest).apply {
+								if (pair === null) return@apply
+								// Exclude the values that aren't on this
+								// branch.  This technique was chosen so
+								// so that it works for exhaustive or not.
+								val excluded = mutableSetOf<A_BasicObject>()
+								targetsByShiftedHash.forEach { (i, pair) ->
+									if (i == index) return@forEach
+									pair.second.forEach { excluded.add(it.key) }
+								}
+								subtractType(
+									semanticSource,
+									enumerationWith(
+										setFromCollection(excluded)))
+							},
+							"masked = 0x${toHexString(index)}")
+					})))
 		// At each of the targets of the multi-way jump, we still have to
 		// test for the exact object(s).  The successful paths from those tests
 		// lead to blocks we create for each subtree.  The chains that are

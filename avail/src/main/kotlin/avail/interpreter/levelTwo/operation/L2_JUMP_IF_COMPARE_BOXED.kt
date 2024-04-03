@@ -32,14 +32,10 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.operand.L2Operand
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2SplitCondition
@@ -62,26 +58,20 @@ import org.objectweb.asm.Opcodes
  * @property numericComparator
  *   The [NumericComparator] on which this [L2_JUMP_IF_COMPARE_BOXED] is based.
  */
-class L2_JUMP_IF_COMPARE_BOXED internal constructor(
-	private val numericComparator: NumericComparator
-) : L2OldConditionalJump(
-	READ_BOXED.named("number1"),
-	READ_BOXED.named("number2"),
-	PC.named("if true", SUCCESS),
-	PC.named("if false", FAILURE))
+class L2_JUMP_IF_COMPARE_BOXED(
+	private val numericComparator: NumericComparator,
+	var number1: L2ReadBoxedOperand,
+	var number2: L2ReadBoxedOperand,
+	@On(SUCCESS) var ifTrue: L2PcOperand,
+	@On(FAILURE) var ifFalse: L2PcOperand
+) : L2NewConditionalJump()
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(instruction, manifest)
-		val number1Reg = instruction.operand<L2ReadBoxedOperand>(0)
-		val number2Reg = instruction.operand<L2ReadBoxedOperand>(1)
-		val ifTrue = instruction.operand<L2PcOperand>(2)
-		val ifFalse = instruction.operand<L2PcOperand>(3)
-
-		val restriction1 = number1Reg.restriction()
-		val restriction2 = number2Reg.restriction()
+		super.instructionWasAdded(manifest)
+		val restriction1 = number1.restriction()
+		val restriction2 = number2.restriction()
 
 		if (restriction1.containedByType(integers)
 			&& restriction2.containedByType(integers))
@@ -91,38 +81,33 @@ class L2_JUMP_IF_COMPARE_BOXED internal constructor(
 				numericComparator.computeRestrictions(
 					restriction1, restriction2)
 			ifTrue.manifest().setRestriction(
-				number1Reg.semanticValue(),
+				number1.semanticValue(),
 				restriction1.intersection(rest1))
 			ifTrue.manifest().setRestriction(
-				number2Reg.semanticValue(),
+				number2.semanticValue(),
 				restriction2.intersection(rest2))
 			ifFalse.manifest().setRestriction(
-				number1Reg.semanticValue(),
+				number1.semanticValue(),
 				restriction1.intersection(rest3))
 			ifFalse.manifest().setRestriction(
-				number2Reg.semanticValue(),
+				number2.semanticValue(),
 				restriction2.intersection(rest4))
 		}
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val number1Reg = instruction.operand<L2ReadBoxedOperand>(0)
-		val number2Reg = instruction.operand<L2ReadBoxedOperand>(1)
-		//val ifTrue = instruction.operand<L2PcOperand>(2)
-		//val ifFalse = instruction.operand<L2PcOperand>(3)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(number1Reg.registerString())
+		builder.append(number1.registerString())
 		builder.append(" ")
 		builder.append(numericComparator.comparatorName)
 		builder.append(" ")
-		builder.append(number2Reg.registerString())
-		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
+		builder.append(number2.registerString())
+		renderOperandsExcludingFields(builder, ::number1, ::number2)
 	}
 
 	override fun toString(): String
@@ -130,54 +115,40 @@ class L2_JUMP_IF_COMPARE_BOXED internal constructor(
 		return super.toString() + "(" + numericComparator.comparatorName + ")"
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
+	override fun interestingConditions(): List<L2SplitCondition?>
 	{
 		// It would be nice if the input values were both already available in
 		// int registers.  A conjunction mechanism would be very hard to use,
 		// and harder to implement, so we split on each register instead.
-		return instruction.readOperands.map { read ->
+		return readOperands.map { read ->
 			unboxedIntCondition(listOf(read.register()))
 		}
 	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		val number1Reg = transformedOperands[0] as L2ReadBoxedOperand
-		val number2Reg = transformedOperands[1] as L2ReadBoxedOperand
-		val ifTrue = transformedOperands[2] as L2PcOperand
-		val ifFalse = transformedOperands[3] as L2PcOperand
-
 		// Use the basic generator to check if the branch can be elided.
 		regenerator.compareAndBranchBoxed(
 			numericComparator,
-			number1Reg,
-			number2Reg,
+			number1,
+			number2,
 			ifTrue,
 			ifFalse)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val number1Reg = instruction.operand<L2ReadBoxedOperand>(0)
-		val number2Reg = instruction.operand<L2ReadBoxedOperand>(1)
-		val ifTrue = instruction.operand<L2PcOperand>(2)
-		val ifFalse = instruction.operand<L2PcOperand>(3)
-
 		// :: if (num1 op num2) goto ifTrue;
 		// :: else goto ifFalse;
-		translator.load(method, number1Reg.register())
-		translator.load(method, number2Reg.register())
+		translator.load(method, number1.register())
+		translator.load(method, number2.register())
 		numericComparator.comparatorMethod.generateCall(method)
 		// The boolean is now on the stack.  See if we can emit a single branch
 		// and fall-through, versus having to emit a branch and a jump.
-		when (instruction.offset + 1)
+		when (offset + 1)
 		{
 			ifTrue.instruction.offset ->
 				translator.jumpIf(method, Opcodes.IFEQ, ifFalse)

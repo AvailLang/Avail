@@ -40,16 +40,11 @@ import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
@@ -71,22 +66,17 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_KIND_OF_CONSTANT : L2OldConditionalJump(
-	READ_BOXED.named("value"),
-	CONSTANT.named("constant type"),
-	PC.named("is kind", SUCCESS),
-	PC.named("is not kind", FAILURE))
+class L2_JUMP_IF_KIND_OF_CONSTANT(
+	var value: L2ReadBoxedOperand,
+	var constantType: L2ConstantOperand,
+	@On(SUCCESS) var ifKind: L2PcOperand,
+	@On(FAILURE) var ifNotKind: L2PcOperand
+): L2NewConditionalJump()
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val constantType = instruction.operand<L2ConstantOperand>(1)
-		val ifKind = instruction.operand<L2PcOperand>(2)
-		val ifNotKind = instruction.operand<L2PcOperand>(3)
-
-		super.instructionWasAdded(instruction, manifest)
+		super.instructionWasAdded(manifest)
 		// Restrict to the intersection along the ifKind branch, and exclude the
 		// type along the ifNotKind branch.
 		val oldRestriction = value.restriction().intersection(
@@ -100,32 +90,21 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2OldConditionalJump(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val constantType = instruction.operand<L2ConstantOperand>(1)
-		//		final L2PcOperand ifKind = instruction.operand(2);
-//		final L2PcOperand ifNotKind = instruction.operand(3);
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" ∈ ")
 		builder.append(constantType.constant)
-		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
+		renderOperandsExcludingFields(builder, ::value, ::constantType)
 	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		val value = transformedOperands[0] as L2ReadBoxedOperand
-		val constantType = transformedOperands[1] as L2ConstantOperand
-		val ifKind = transformedOperands[2] as L2PcOperand
-		val ifNotKind = transformedOperands[3] as L2PcOperand
-
 		// Check for special cases.
 		val valueValue = value.semanticValue()
 		val unboxedValueValue = L2SemanticUnboxedInt(valueValue)
@@ -178,24 +157,18 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2OldConditionalJump(
 			}
 		}
 		// The test is still contingent, and too much hassle to optimize.
-		super.emitTransformedInstruction(transformedOperands, regenerator)
+		super.emitTransformedInstruction(regenerator)
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
+	override fun interestingConditions(): List<L2SplitCondition?>
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val constantType = instruction.operand<L2ConstantOperand>(1).constant
-		val ifKind = instruction.operand<L2PcOperand>(2)
-		val ifNotKind = instruction.operand<L2PcOperand>(3)
-
 		val conditions = mutableListOf<L2SplitCondition?>()
 		if (!ifKind.targetBlock().isCold)
 		{
 			// The ifKind target is warm, so allow a split back to a point where
 			// the value is known to be of the requested kind.
-			val constantTypeWhenInt = constantType.typeIntersection(i32)
+			val constantTypeWhenInt =
+				constantType.constant.typeIntersection(i32)
 			if (!constantTypeWhenInt.isVacuousType)
 			{
 				conditions.add(unboxedIntCondition(listOf(value.register())))
@@ -203,7 +176,7 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2OldConditionalJump(
 			conditions.add(
 				typeRestrictionCondition(
 					listOf(value.register()),
-					boxedRestrictionForType(constantType)))
+					boxedRestrictionForType(constantType.constant)))
 		}
 		if (!ifNotKind.targetBlock().isCold)
 		{
@@ -213,26 +186,20 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2OldConditionalJump(
 				typeRestrictionCondition(
 					listOf(value.register()),
 					boxedRestrictionForType(ANY.o)
-						.minusType(constantType)))
+						.minusType(constantType.constant)))
 		}
 		return conditions
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val constantType = instruction.operand<L2ConstantOperand>(1)
-		val ifKind = instruction.operand<L2PcOperand>(2)
-		val ifNotKind = instruction.operand<L2PcOperand>(3)
-
 		// :: if (value.isInstanceOf(type)) goto isKind;
 		// :: else goto notKind;
 		translator.load(method, value.register())
 		translator.literal(method, constantType.constant)
 		A_BasicObject.isInstanceOfMethod.generateCall(method)
-		emitBranch(translator, method, instruction, Opcodes.IFNE, ifKind, ifNotKind)
+		emitBranch(translator, method, this, Opcodes.IFNE, ifKind, ifNotKind)
 	}
 }

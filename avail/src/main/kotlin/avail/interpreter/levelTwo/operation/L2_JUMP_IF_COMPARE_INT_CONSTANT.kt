@@ -34,16 +34,11 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -69,25 +64,19 @@ import org.objectweb.asm.MethodVisitor
  *   The [NumericComparator] on which this [L2_JUMP_IF_COMPARE_INT_CONSTANT] is
  *   based.
  */
-class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
-	private val numericComparator: NumericComparator
-) : L2OldConditionalJump(
-	READ_INT.named("int value"),
-	INT_IMMEDIATE.named("constant"),
-	PC.named("if true", SUCCESS),
-	PC.named("if false", FAILURE))
+class L2_JUMP_IF_COMPARE_INT_CONSTANT(
+	private val numericComparator: NumericComparator,
+	var intValue: L2ReadIntOperand,
+	var constant: L2IntImmediateOperand,
+	@On(SUCCESS) var ifTrue: L2PcOperand,
+	@On(FAILURE) var ifFalse: L2PcOperand
+) : L2NewConditionalJump()
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(instruction, manifest)
-		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
-		val constant = instruction.operand<L2IntImmediateOperand>(1)
-		val ifTrue = instruction.operand<L2PcOperand>(2)
-		val ifFalse = instruction.operand<L2PcOperand>(3)
-
-		val restriction1 = int1Reg.restriction()
+		super.instructionWasAdded(manifest)
+		val restriction1 = intValue.restriction()
 		val restriction2 = intRestrictionForConstant(constant.value)
 
 		// Restrict the value along both branches.
@@ -95,33 +84,27 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 			restriction1.forBoxed(), restriction2.forBoxed()
 		).map(TypeRestriction::forUnboxedInt)
 		ifTrue.manifest().setRestriction(
-			int1Reg.semanticValue(),
+			intValue.semanticValue(),
 			restriction1.intersection(rest1))
 		ifFalse.manifest().setRestriction(
-			int1Reg.semanticValue(),
+			intValue.semanticValue(),
 			restriction1.intersection(rest3))
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit
 	) = with(builder)
 	{
-		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
-		val constant = instruction.operand<L2IntImmediateOperand>(1)
-		//val ifTrue = instruction.operand<L2PcOperand>(2)
-		//val ifFalse = instruction.operand<L2PcOperand>(3)
-
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		append(' ')
-		append(int1Reg.registerString())
+		append(intValue.registerString())
 		append(' ')
 		append(numericComparator.comparatorName)
 		append(" #")
 		append(constant.value.toString())
-		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
+		renderOperandsExcludingFields(builder, ::intValue, ::constant)
 	}
 
 	override fun toString(): String
@@ -129,15 +112,8 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 		return super.toString() + "(" + numericComparator.comparatorName + ")"
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
+	override fun interestingConditions(): List<L2SplitCondition?>
 	{
-		val number1Reg = instruction.operand<L2ReadIntOperand>(0)
-		val constant = instruction.operand<L2IntImmediateOperand>(1)
-		val ifTrue = instruction.operand<L2PcOperand>(2)
-		val ifFalse = instruction.operand<L2PcOperand>(3)
-
 		// We can tell from the output restrictions what condition to wish for
 		// (and its negation).  However, earlier comparisons may have made the
 		// restriction unduly restrictive, and it may fail to find a suitable
@@ -162,28 +138,22 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 		if (!ifTrue.targetBlock().isCold)
 		{
 			conditions.add(
-				typeRestrictionCondition(setOf(number1Reg.register()), rest1))
+				typeRestrictionCondition(setOf(intValue.register()), rest1))
 		}
 		if (!ifFalse.targetBlock().isCold)
 		{
 			conditions.add(
-				typeRestrictionCondition(setOf(number1Reg.register()), rest3))
+				typeRestrictionCondition(setOf(intValue.register()), rest3))
 		}
 		return conditions
 	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		val int1Reg = transformedOperands[0] as L2ReadIntOperand
-		val constant = transformedOperands[1] as L2IntImmediateOperand
-		val ifTrue = transformedOperands[2] as L2PcOperand
-		val ifFalse = transformedOperands[3] as L2PcOperand
-
 		val manifest = regenerator.currentManifest
-		val int1Value = int1Reg.semanticValue()
-		val restriction1 = int1Reg.restriction().intersection(
+		val int1Value = intValue.semanticValue()
+		val restriction1 = intValue.restriction().intersection(
 			manifest.restrictionFor(int1Value))
 		val restriction2 = intRestrictionForConstant(constant.value)
 
@@ -215,44 +185,35 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT internal constructor(
 			}
 			else ->
 			{
-				//val int1Reg = instruction.operand<L2ReadIntOperand>(0)
-				//val constant = instruction.operand<L2IntImmediateOperand>(1)
-				//val ifTrue = instruction.operand<L2PcOperand>(2)
-				//val ifFalse = instruction.operand<L2PcOperand>(3)
 				regenerator.addInstruction(
-					this,
-					int1Reg,
-					constant,
-					L2PcOperand(
-						ifTrue.targetBlock(),
-						ifTrue.isBackward,
-						trueManifest),
-					L2PcOperand(
-						ifFalse.targetBlock(),
-						ifFalse.isBackward,
-						falseManifest))
+					L2_JUMP_IF_COMPARE_INT_CONSTANT(
+						numericComparator,
+						intValue,
+						constant,
+						L2PcOperand(
+							ifTrue.targetBlock(),
+							ifTrue.isBackward,
+							trueManifest),
+						L2PcOperand(
+							ifFalse.targetBlock(),
+							ifFalse.isBackward,
+							falseManifest)))
 			}
 		}
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
-		val constant = instruction.operand<L2IntImmediateOperand>(1)
-		val ifTrue = instruction.operand<L2PcOperand>(2)
-		val ifFalse = instruction.operand<L2PcOperand>(3)
-
 		// :: if (int1 op const) goto ifTrue;
 		// :: else goto ifFalse;
-		translator.load(method, int1Reg.register())
+		translator.load(method, intValue.register())
 		translator.intConstant(method, constant.value)
 		emitBranch(
 			translator,
 			method,
-			instruction,
+			this,
 			numericComparator.opcode,
 			ifTrue,
 			ifFalse)

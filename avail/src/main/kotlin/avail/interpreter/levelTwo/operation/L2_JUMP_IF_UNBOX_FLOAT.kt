@@ -34,14 +34,10 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_FLOAT
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -56,39 +52,29 @@ import org.objectweb.asm.Opcodes
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_UNBOX_FLOAT : L2OldConditionalJump(
-	READ_BOXED.named("source"),
-	WRITE_FLOAT.named("destination", SUCCESS),
-	PC.named("if not unboxed", FAILURE),
-	PC.named("if unboxed", SUCCESS))
+class L2_JUMP_IF_UNBOX_FLOAT(
+	var source: L2ReadBoxedOperand,
+	@On(SUCCESS) var destination: L2WriteFloatOperand,
+	@On(FAILURE) var ifNotUnboxed: L2PcOperand,
+	@On(SUCCESS) var ifUnboxed: L2PcOperand
+): L2NewConditionalJump()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
-//		final L2PcOperand ifUnboxed = instruction.operand(3);
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ←? ")
 		builder.append(source.registerString())
-		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
+		renderOperandsExcludingFields(builder, ::source, ::destination)
 	}
 
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
-		val ifUnboxed = instruction.operand<L2PcOperand>(3)
-
 		source.instructionWasAdded(manifest)
 		val semanticSource = source.semanticValue()
 		// Don't add the destination along the failure edge.
@@ -107,14 +93,8 @@ object L2_JUMP_IF_UNBOX_FLOAT : L2OldConditionalJump(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
-		val ifUnboxed = instruction.operand<L2PcOperand>(3)
-
 		// :: if (!source.isDouble()) goto ifNotUnboxed;
 		translator.load(method, source.register())
 		A_Number.isDoubleMethod.generateCall(method)

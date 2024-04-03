@@ -180,11 +180,11 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 				translator.generator.extractParameterTypeFromFunction(
 					castFunctionRead, 1)
 			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT,
-				valueRead,
-				parameterTypeRead,
-				edgeTo(castBlock),
-				edgeTo(elseBlock))
+				L2_JUMP_IF_KIND_OF_OBJECT(
+					valueRead,
+					parameterTypeRead,
+					edgeTo(castBlock),
+					edgeTo(elseBlock)))
 		}
 
 		// We couldn't skip the runtime type check, which takes us to either

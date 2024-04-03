@@ -45,8 +45,6 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
-import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -174,32 +172,6 @@ enum class NumericComparator(
 		::equalHelper);
 
 	/**
-	 * A suitable [L2_JUMP_IF_COMPARE_BOXED] to use as an operation for
-	 * numerically comparing two boxed numbers.
-	 */
-	private val jumpIfCompareNumber = L2_JUMP_IF_COMPARE_BOXED(this)
-
-	/**
-	 * A suitable [L2_JUMP_IF_COMPARE_BOXED] to use as an operation for
-	 * numerically comparing a boxed number to an constant (a [CONSTANT]].
-	 */
-	private val jumpIfCompareNumberConstant =
-		L2_JUMP_IF_COMPARE_BOXED_CONSTANT(this)
-
-	/**
-	 * A suitable [L2_JUMP_IF_COMPARE_INT] to use as an operation for comparing
-	 * two ints already in int registers.
-	 */
-	private val jumpIfCompareInt = L2_JUMP_IF_COMPARE_INT(this)
-
-	/**
-	 * A suitable [L2_JUMP_IF_COMPARE_INT_CONSTANT] to use as an operation for
-	 * comparing two ints, the second of which is a constant (an
-	 * [INT_IMMEDIATE]).
-	 */
-	private val jumpIfCompareIntConstant = L2_JUMP_IF_COMPARE_INT_CONSTANT(this)
-
-	/**
 	 * Compute the output ranges along the ifTrue and ifFalse edges. It takes
 	 * the [TypeRestriction]s of the two values being compared, and produces
 	 * four restrictions for the outbound edges:
@@ -281,11 +253,12 @@ enum class NumericComparator(
 			// numeric kinds, it would be too tricky anyhow.  Plus, only the
 			// integers have range types.
 			generator.addInstruction(
-				jumpIfCompareNumber,
-				number1Reg,
-				number2Reg,
-				ifTrue,
-				ifFalse)
+				L2_JUMP_IF_COMPARE_BOXED(
+					this,
+					number1Reg,
+					number2Reg,
+					ifTrue,
+					ifFalse))
 			return
 		}
 		// They're both (boxed) integers.
@@ -323,24 +296,27 @@ enum class NumericComparator(
 			{
 				// Special case where second value is constant.
 				generator.addInstruction(
-					jumpIfCompareNumberConstant,
-					number1Reg,
-					L2ConstantOperand(restriction2.constantOrNull!!),
-					ifTrue,
-					ifFalse)
+					L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
+						this,
+						number1Reg,
+						L2ConstantOperand(restriction2.constantOrNull!!),
+						ifTrue,
+						ifFalse))
 			}
 			restriction1.constantOrNull !== null ->
 			{
 				// First value is constant, so reverse them.
 				generator.addInstruction(
-					reversed().jumpIfCompareNumberConstant,
-					number2Reg,
-					L2ConstantOperand(restriction1.constantOrNull!!),
-					ifTrue,
-					ifFalse)
+					L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
+						reversed(),
+						number2Reg,
+						L2ConstantOperand(restriction1.constantOrNull!!),
+						ifTrue,
+						ifFalse))
 			}
 			else -> generator.addInstruction(
-				jumpIfCompareNumber, number1Reg, number2Reg, ifTrue, ifFalse)
+				L2_JUMP_IF_COMPARE_BOXED(
+					this, number1Reg, number2Reg, ifTrue, ifFalse))
 		}
 	}
 
@@ -403,26 +379,28 @@ enum class NumericComparator(
 			{
 				// Special case where second value is constant.
 				generator.addInstruction(
-					jumpIfCompareIntConstant,
-					int1Reg,
-					L2IntImmediateOperand(
-						restriction2.constantOrNull!!.extractInt),
-					ifTrue,
-					ifFalse)
+					L2_JUMP_IF_COMPARE_INT_CONSTANT(
+						this,
+						int1Reg,
+						L2IntImmediateOperand(
+							restriction2.constantOrNull!!.extractInt),
+						ifTrue,
+						ifFalse))
 			}
 			restriction1.constantOrNull !== null ->
 			{
 				// First value is constant, so reverse them.
 				generator.addInstruction(
-					reversed().jumpIfCompareIntConstant,
-					int2Reg,
-					L2IntImmediateOperand(
-						restriction1.constantOrNull!!.extractInt),
-					ifTrue,
-					ifFalse)
+					L2_JUMP_IF_COMPARE_INT_CONSTANT(
+						reversed(),
+						int2Reg,
+						L2IntImmediateOperand(
+							restriction1.constantOrNull!!.extractInt),
+						ifTrue,
+						ifFalse))
 			}
 			else -> generator.addInstruction(
-				jumpIfCompareInt, int1Reg, int2Reg, ifTrue, ifFalse)
+				L2_JUMP_IF_COMPARE_INT(this, int1Reg, int2Reg, ifTrue, ifFalse))
 		}
 	}
 }

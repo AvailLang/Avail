@@ -47,8 +47,6 @@ import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_HASH
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.optimizer.L2BasicBlock
@@ -188,20 +186,6 @@ constructor(
 	 */
 	override val isExtractObjectTypeVariantId: Boolean
 		get() = operation is L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
-
-	/**
-	 * Answer whether this instruction branches based on whether a value in a
-	 * boxed register is a subtype of a constant.
-	 */
-	override val isJumpIfSubtypeOfConstant
-		get() = operation is L2_JUMP_IF_SUBTYPE_OF_CONSTANT
-
-	/**
-	 * Answer whether this instruction branches based on whether a value in a
-	 * boxed register is a subtype of a type in another boxed register.
-	 */
-	override val isJumpIfSubtypeOfObject: Boolean
-		get() = operation is L2_JUMP_IF_SUBTYPE_OF_OBJECT
 
 	/** Answer whether this instruction gets the type of a value. */
 	override val isGetType get() = operation is L2_GET_TYPE

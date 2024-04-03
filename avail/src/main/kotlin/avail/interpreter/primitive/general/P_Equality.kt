@@ -169,11 +169,11 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 					ifEqual,
 					ifNotEqual)
 				else -> addInstruction(
-					L2_JUMP_IF_OBJECTS_EQUAL,
-					readBoxed(firstReg.semanticValue()),
-					readBoxed(secondReg.semanticValue()),
-					edgeTo(ifEqual),
-					edgeTo(ifNotEqual))
+					L2_JUMP_IF_OBJECTS_EQUAL(
+						readBoxed(firstReg.semanticValue()),
+						readBoxed(secondReg.semanticValue()),
+						edgeTo(ifEqual),
+						edgeTo(ifNotEqual)))
 			}
 			if (ifEqual.currentlyReachable())
 			{

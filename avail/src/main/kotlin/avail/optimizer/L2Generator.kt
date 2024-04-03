@@ -98,7 +98,6 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
-import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
@@ -609,11 +608,11 @@ class L2Generator internal constructor(
 			// Conversion may succeed or fail at runtime.
 			val onSuccess = createBasicBlock("successfully unboxed")
 			addInstruction(
-				L2_JUMP_IF_UNBOX_FLOAT,
-				boxedRead,
-				floatWrite,
-				edgeTo(onFailure),
-				edgeTo(onSuccess))
+				L2_JUMP_IF_UNBOX_FLOAT(
+					boxedRead,
+					floatWrite,
+					edgeTo(onFailure),
+					edgeTo(onSuccess)))
 			startBlock(onSuccess)
 		}
 		return currentManifest.readFloat(semanticUnboxed)
@@ -1097,7 +1096,7 @@ class L2Generator internal constructor(
 		this, number1Reg, number2Reg, ifTrue, ifFalse)
 
 	override fun jumpIfEqualsConstant(
-		registerToTest: L2ReadOperand<BOXED_KIND>,
+		registerToTest: L2ReadBoxedOperand,
 		constantValue: A_BasicObject,
 		passBlock: L2BasicBlock,
 		failBlock: L2BasicBlock)
@@ -1152,14 +1151,14 @@ class L2Generator internal constructor(
 					// Neither value is a constant, but we can still do the
 					// compare-and-branch without involving Avail booleans.
 					addInstruction(
-						L2_JUMP_IF_OBJECTS_EQUAL,
-						read1,
-						read2,
-						edgeTo(if (constantBool) passBlock else failBlock),
-						edgeTo(if (constantBool) failBlock else passBlock))
+						L2_JUMP_IF_OBJECTS_EQUAL(
+							read1,
+							read2,
+							edgeTo(if (constantBool) passBlock else failBlock),
+							edgeTo(if (constantBool) failBlock else passBlock)))
 					return
 				}
-				boolSource.isJumpIfSubtypeOfConstant ->
+				boolSource is L2_JUMP_IF_SUBTYPE_OF_CONSTANT ->
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1187,14 +1186,14 @@ class L2Generator internal constructor(
 					// Perform a branch-if-is-subtype-of instead of checking
 					// whether the Avail boolean is true or false.
 					addInstruction(
-						L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
-						firstTypeOperand,
-						secondConstantOperand,
-						edgeTo(if (constantBool) passBlock else failBlock),
-						edgeTo(if (constantBool) failBlock else passBlock))
+						L2_JUMP_IF_SUBTYPE_OF_CONSTANT(
+							firstTypeOperand,
+							secondConstantOperand,
+							edgeTo(if (constantBool) passBlock else failBlock),
+							edgeTo(if (constantBool) failBlock else passBlock)))
 					return
 				}
-				boolSource.isJumpIfSubtypeOfObject ->
+				boolSource is L2_JUMP_IF_SUBTYPE_OF_OBJECT ->
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1213,21 +1212,25 @@ class L2Generator internal constructor(
 						// branch-if-kind.
 						val valueSource = sourceValueOf(firstTypeSource)
 						addInstruction(
-							L2_JUMP_IF_KIND_OF_OBJECT,
-							valueSource,
-							secondTypeOperand,
-							edgeTo(if (constantBool) passBlock else failBlock),
-							edgeTo(if (constantBool) failBlock else passBlock))
+							L2_JUMP_IF_KIND_OF_OBJECT(
+								valueSource,
+								secondTypeOperand,
+								edgeTo(
+									if (constantBool) passBlock
+									else failBlock),
+								edgeTo(
+									if (constantBool) failBlock
+									else passBlock)))
 						return
 					}
 					// Perform a branch-if-is-subtype-of instead of checking
 					// whether the Avail boolean is true or false.
 					addInstruction(
-						L2_JUMP_IF_SUBTYPE_OF_OBJECT,
-						firstTypeOperand,
-						secondTypeOperand,
-						edgeTo(if (constantBool) passBlock else failBlock),
-						edgeTo(if (constantBool) failBlock else passBlock))
+						L2_JUMP_IF_SUBTYPE_OF_OBJECT(
+							firstTypeOperand,
+							secondTypeOperand,
+							edgeTo(if (constantBool) passBlock else failBlock),
+							edgeTo(if (constantBool) failBlock else passBlock)))
 					return
 				}
 				// TODO MvG - We could check for other special cases here, like
@@ -1259,11 +1262,11 @@ class L2Generator internal constructor(
 		else
 		{
 			addInstruction(
-				L2_JUMP_IF_EQUALS_CONSTANT,
-				registerToTest,
-				L2ConstantOperand(constantValue),
-				edgeTo(innerPass),
-				edgeTo(failBlock))
+				L2_JUMP_IF_EQUALS_CONSTANT(
+					registerToTest,
+					L2ConstantOperand(constantValue),
+					edgeTo(innerPass),
+					edgeTo(failBlock)))
 		}
 		startBlock(innerPass)
 		val semanticConstant = L2SemanticConstant(constantValue)
@@ -1319,11 +1322,11 @@ class L2Generator internal constructor(
 		}
 		// We can't pin it down statically, so do the dynamic check.
 		addInstruction(
-			L2_JUMP_IF_KIND_OF_CONSTANT,
-			valueRead,
-			L2ConstantOperand(expectedType),
-			edgeTo(passedCheck),
-			edgeTo(failedCheck))
+			L2_JUMP_IF_KIND_OF_CONSTANT(
+				valueRead,
+				L2ConstantOperand(expectedType),
+				edgeTo(passedCheck),
+				edgeTo(failedCheck)))
 	}
 
 	/**

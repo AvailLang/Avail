@@ -56,14 +56,10 @@ import avail.descriptor.types.TypeTag.Companion.tagFromOrdinal
 import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.ARBITRARY_CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -101,45 +97,34 @@ import kotlin.math.min
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_MULTIWAY_JUMP : L2OldConditionalJump(
-	READ_INT.named("value"),
-	ARBITRARY_CONSTANT.named("splitter"),
-	PC_VECTOR.named("branch edges", SUCCESS))
+class L2_MULTIWAY_JUMP(
+	var value: L2ReadIntOperand,
+	var splitter: L2ArbitraryConstantOperand,
+	@On(SUCCESS) var branchEdges: L2PcVectorOperand
+): L2NewConditionalJump()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val value = instruction.operand<L2ReadIntOperand>(0)
-		val splitterConstant =
-			instruction.operand<L2ArbitraryConstantOperand>(1)
-		//val edges = instruction.operand<L2PcVectorOperand>(2)
-
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder
 			.append(" ")
 			.append(value.registerString())
 			.append(" in ")
-			.append(extractSplitter(splitterConstant))
-		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
+			.append(extractSplitter(splitter))
+		renderOperandsExcludingFields(builder, ::value, ::splitter)
 	}
 
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
 		// Note: Instructions that add multi-way jumps always set up the
 		// manifests in the edges.
-		val value = instruction.operand<L2ReadIntOperand>(0)
-		val splitterConstant =
-			instruction.operand<L2ArbitraryConstantOperand>(1)
-		val edges = instruction.operand<L2PcVectorOperand>(2)
-
 		value.instructionWasAdded(manifest)
-		splitterConstant.instructionWasAdded(manifest)
-		edges.edges.forEach { edge ->
+		splitter.instructionWasAdded(manifest)
+		branchEdges.edges.forEach { edge ->
 			// Feed the edge its own manifest.
 			edge.instructionWasAdded(edge.manifest())
 		}
@@ -156,62 +141,44 @@ object L2_MULTIWAY_JUMP : L2OldConditionalJump(
 	) = constantOperand.constant as AbstractMultiWaySplitter
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		val value = transformedOperands[0] as L2ReadIntOperand
-		val splitterConstant =
-			transformedOperands[1] as L2ArbitraryConstantOperand
-		val edges = transformedOperands[2] as L2PcVectorOperand
-
 		// Delegate to the MultiWaySplitter.
-		extractSplitter(splitterConstant)
-			.emitInstruction(value, edges.edges, regenerator)
+		extractSplitter(splitter)
+			.emitInstruction(value, branchEdges.edges, regenerator)
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
+	override fun interestingConditions(): List<L2SplitCondition?>
 	{
-		val value = instruction.operand<L2ReadIntOperand>(0)
-		val splitterConstant =
-			instruction.operand<L2ArbitraryConstantOperand>(1)
-		val edges = instruction.operand<L2PcVectorOperand>(2)
-
 		// Delegate to the MultiWaySplitter.
-		return extractSplitter(splitterConstant)
-			.interestingConditions(value, edges.edges)
+		return extractSplitter(splitter)
+			.interestingConditions(value, branchEdges.edges)
 	}
 
 	override fun generateReplacement(
-		instruction: L2Instruction,
 		regenerator: L2Regenerator)
 	{
 		//TODO: If a lookupswitch instruction would be better than the binary
 		// search mechanism, we could just do a super call to leave this
 		// instruction intact, and then alter translateToJVM to generate the
 		// lookupswitch instruction.
-		val value = instruction.operand<L2ReadIntOperand>(0)
-		val splitterConstant = instruction.operand<L2ArbitraryConstantOperand>(1)
-		val edges = instruction.operand<L2PcVectorOperand>(2)
-
-		val splitter = extractSplitter(splitterConstant)
+		val splitterInstance = extractSplitter(splitter)
 		generateSubtree(
 			regenerator,
 			value,
-			splitter,
-			splitter.originalValueSource(value),
-			edges.edges,
+			splitterInstance,
+			splitterInstance.originalValueSource(value),
+			branchEdges.edges,
 			1,
-			splitter.splitPoints.size,
+			splitterInstance.splitPoints.size,
 			ZoneType.MULTI_WAY_EXPANSION.createZone(
-				"multi-way branch:\n\tsplits = ${splitter.splitPoints}"))
+				"multi-way branch:\n" +
+					"\tsplits = ${splitterInstance.splitPoints}"))
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		throw UnsupportedOperationException(
 			"${javaClass.simpleName} should " +
@@ -425,10 +392,10 @@ abstract class AbstractMultiWaySplitter(
 		val newSplitter = cloneForReducedEdges(edges, newEdges, newSplits)
 		newSplitter.adjustEdgeManifests(readValue, newEdges)
 		generator.addInstruction(
-			L2_MULTIWAY_JUMP,
-			readValue,
-			L2ArbitraryConstantOperand(newSplitter),
-			L2PcVectorOperand(newEdges))
+			L2_MULTIWAY_JUMP(
+				readValue,
+				L2ArbitraryConstantOperand(newSplitter),
+				L2PcVectorOperand(newEdges)))
 	}
 
 	/**

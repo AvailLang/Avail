@@ -391,10 +391,10 @@ constructor(
 		}
 		// Generate the multi-way branch.
 		generator.addInstruction(
-			L2_MULTIWAY_JUMP,
-			manifest.readInt(semanticVariantId),
-			L2ArbitraryConstantOperand(VariantSplitter(true, splits, variants)),
-			L2PcVectorOperand(graphEdges))
+			L2_MULTIWAY_JUMP(
+				manifest.readInt(semanticVariantId),
+				L2ArbitraryConstantOperand(VariantSplitter(true, splits, variants)),
+				L2PcVectorOperand(graphEdges)))
 		return triples.map { (block, subtree, _) ->
 			Triple(block, subtree, extraSemanticArguments)
 		}

@@ -32,13 +32,10 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -52,46 +49,36 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2OldConditionalJump(
-	READ_BOXED.named("first type"),
-	READ_BOXED.named("second type"),
-	PC.named("is subtype", SUCCESS),
-	PC.named("not subtype", FAILURE))
+class L2_JUMP_IF_SUBTYPE_OF_OBJECT(
+	var firstType: L2ReadBoxedOperand,
+	var seccondType: L2ReadBoxedOperand,
+	@On(SUCCESS) var ifSubtype: L2PcOperand,
+	@On(FAILURE) var ifNotSubtype: L2PcOperand
+): L2NewConditionalJump()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
-		//		final L2PcOperand isSubtype = instruction.operand(2);
-//		final L2PcOperand notSubtype = instruction.operand(3);
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(firstReg.registerString())
+		builder.append(firstType.registerString())
 		builder.append(" ⊆ ")
-		builder.append(secondReg.registerString())
-		instruction.renderOperandsStartingAt(2, desiredTypes, builder)
+		builder.append(seccondType.registerString())
+		renderOperandsExcludingFields(builder, ::firstType, ::seccondType)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
-		val isSubtype = instruction.operand<L2PcOperand>(2)
-		val notSubtype = instruction.operand<L2PcOperand>(3)
-
 		// :: if (first.isSubtypeOf(second)) goto isSubtype;
 		// :: else goto notSubtype;
-		translator.load(method, firstReg.register())
-		translator.load(method, secondReg.register())
+		translator.load(method, firstType.register())
+		translator.load(method, seccondType.register())
 		A_Type.isSubtypeOfMethod.generateCall(method)
 		emitBranch(
-			translator, method, instruction, Opcodes.IFNE, isSubtype, notSubtype)
+			translator, method, this, Opcodes.IFNE, ifSubtype, ifNotSubtype)
 	}
 }

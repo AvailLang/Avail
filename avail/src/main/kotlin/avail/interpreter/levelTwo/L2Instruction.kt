@@ -324,18 +324,6 @@ abstract class L2Instruction
 	 */
 	abstract val isExtractObjectTypeVariantId: Boolean
 
-	/**
-	 * Answer whether this instruction branches based on whether a value in a
-	 * boxed register is a subtype of a constant.
-	 */
-	abstract val isJumpIfSubtypeOfConstant: Boolean
-
-	/**
-	 * Answer whether this instruction branches based on whether a value in a
-	 * boxed register is a subtype of a type in another boxed register.
-	 */
-	abstract val isJumpIfSubtypeOfObject: Boolean
-
 	/** Answer whether this instruction gets the type of a value. */
 	abstract val isGetType: Boolean
 

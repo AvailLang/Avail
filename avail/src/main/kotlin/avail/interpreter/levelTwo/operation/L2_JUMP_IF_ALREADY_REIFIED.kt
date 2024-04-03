@@ -33,10 +33,9 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_Continuation
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -60,18 +59,15 @@ import org.objectweb.asm.Opcodes
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_JUMP_IF_ALREADY_REIFIED : L2OldConditionalJump(
-	PC.named("already reified", SUCCESS),
-	PC.named("not yet interrupt", FAILURE))
+class L2_JUMP_IF_ALREADY_REIFIED(
+	@On(SUCCESS) var ifAlreadyReified: L2PcOperand,
+	@On(FAILURE) var ifNotAlreadyReified: L2PcOperand
+): L2NewConditionalJump()
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val alreadyReified = instruction.operand<L2PcOperand>(0)
-		val notYetReified = instruction.operand<L2PcOperand>(1)
-
 		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
 		// :: else goto ifNotInterrupt;
 		translator.loadInterpreter(method)
@@ -79,9 +75,9 @@ object L2_JUMP_IF_ALREADY_REIFIED : L2OldConditionalJump(
 		emitBranch(
 			translator,
 			method,
-			instruction,
+			this,
 			Opcodes.IFNE,
-			alreadyReified,
-			notYetReified)
+			ifAlreadyReified,
+			ifNotAlreadyReified)
 	}
 }

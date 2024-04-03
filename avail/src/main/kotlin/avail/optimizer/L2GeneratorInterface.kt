@@ -438,7 +438,7 @@ interface L2GeneratorInterface
 	 *   Where to go if the register's value does not equal the constant.
 	 */
 	fun jumpIfEqualsConstant(
-		registerToTest: L2ReadOperand<BOXED_KIND>,
+		registerToTest: L2ReadBoxedOperand,
 		constantValue: A_BasicObject,
 		passBlock: L2BasicBlock,
 		failBlock: L2BasicBlock
