@@ -163,7 +163,7 @@ constructor(
 	 * @return
 	 *   Whether the instruction is an entry point.
 	 */
-	override val isEntryPoint get() = operation.isEntryPoint(this)
+	override val isEntryPoint get() = operation.isEntryPoint
 
 	/**
 	 * Answer true if this instruction runs an infallible primitive, otherwise

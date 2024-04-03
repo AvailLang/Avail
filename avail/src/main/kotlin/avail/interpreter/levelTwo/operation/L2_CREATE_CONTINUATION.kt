@@ -35,16 +35,9 @@ import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinu
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
-import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -62,41 +55,33 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_CREATE_CONTINUATION : L2Operation(
-	READ_BOXED.named("function"),
-	READ_BOXED.named("caller"),
-	INT_IMMEDIATE.named("level one pc"),
-	INT_IMMEDIATE.named("stack pointer"),
-	READ_BOXED_VECTOR.named("slot values"),
-	WRITE_BOXED.named("destination"),
-	READ_INT.named("label address"),
-	READ_BOXED.named("register dump"),
-	COMMENT.named("usage comment"))
+class L2_CREATE_CONTINUATION(
+	var function: L2ReadBoxedOperand,
+	var caller: L2ReadBoxedOperand,
+	var levelOnePc: L2IntImmediateOperand,
+	var levelOneStackp: L2IntImmediateOperand,
+	var slotValues: L2ReadBoxedVectorOperand,
+	var destination: L2WriteBoxedOperand,
+	var labelAddress: L2ReadIntOperand,
+	var registerDump: L2ReadBoxedOperand,
+	var comment: L2CommentOperand
+): L2NewInstruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val function = instruction.operand<L2ReadBoxedOperand>(0)
-		val caller = instruction.operand<L2ReadBoxedOperand>(1)
-		val levelOnePC = instruction.operand<L2IntImmediateOperand>(2)
-		val levelOneStackp = instruction.operand<L2IntImmediateOperand>(3)
-		val slots = instruction.operand<L2ReadBoxedVectorOperand>(4)
-		val destReg = instruction.operand<L2WriteBoxedOperand>(5)
-		//		final L2ReadIntOperand labelIntReg = instruction.operand(6);
-		//		final L2ReadBoxedOperand registerDumpReg = instruction.operand(7);
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(destReg)
+		builder.append(destination)
 		builder.append(" ← $[")
 		builder.append(function)
 		builder.append("]\n\tpc=")
-		builder.append(levelOnePC)
+		builder.append(levelOnePc)
 		builder.append("\n\tstack=[")
 		var first = true
-		for (slot in slots.elements)
+		for (slot in slotValues.elements)
 		{
 			if (!first)
 			{
@@ -110,23 +95,20 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		builder.append(levelOneStackp)
 		builder.append("]\n\tcaller=")
 		builder.append(caller)
-		instruction.renderOperandsStartingAt(6, desiredTypes, builder)
+		renderOperandsExcludingFields(
+			builder,
+			::function,
+			::caller,
+			::levelOnePc,
+			::levelOneStackp,
+			::slotValues,
+			::destination)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val function = instruction.operand<L2ReadBoxedOperand>(0)
-		val caller = instruction.operand<L2ReadBoxedOperand>(1)
-		val levelOnePC = instruction.operand<L2IntImmediateOperand>(2)
-		val levelOneStackp = instruction.operand<L2IntImmediateOperand>(3)
-		val slots = instruction.operand<L2ReadBoxedVectorOperand>(4)
-		val destReg = instruction.operand<L2WriteBoxedOperand>(5)
-		val labelIntReg = instruction.operand<L2ReadIntOperand>(6)
-		val registerDumpReg = instruction.operand<L2ReadBoxedOperand>(7)
-
 		// :: continuation = createContinuationExceptFrame(
 		// ::    function,
 		// ::    caller,
@@ -137,18 +119,18 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		// ::    onRampOffset);
 		translator.load(method, function.register())
 		translator.load(method, caller.register())
-		translator.load(method, registerDumpReg.register())
-		translator.literal(method, levelOnePC.value)
+		translator.load(method, registerDump.register())
+		translator.literal(method, levelOnePc.value)
 		translator.literal(method, levelOneStackp.value)
 		translator.loadInterpreter(method)
 		Interpreter.chunkField.generateRead(method)
-		translator.load(method, labelIntReg.register())
+		translator.load(method, labelAddress.register())
 		createContinuationExceptFrameMethod.generateCall(method)
-		val slotCount = slots.elements.size
+		val slotCount = slotValues.elements.size
 		var pushed = 0
 		for (i in 0 until slotCount)
 		{
-			val regRead = slots.elements[i]
+			val regRead = slotValues.elements[i]
 			val constant: A_BasicObject? = regRead.constantOrNull()
 			// Skip if it's always nil, since the continuation was already
 			// initialized with nils.
@@ -157,7 +139,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 				// :: continuation.frameAtPut(«i + 1», «slots[i]»)...
 				// [continuation]
 				translator.intConstant(method, i + 1)
-				translator.load(method, slots.elements[i].register())
+				translator.load(method, slotValues.elements[i].register())
 				if (++pushed == 6)
 				{
 					AvailObject.frameAtPut6Method.generateCall(method)
@@ -179,6 +161,6 @@ object L2_CREATE_CONTINUATION : L2Operation(
 				"Internal error - wrong bulk write size for frame")
 		}
 		// [continuation]
-		translator.store(method, destReg.register())
+		translator.store(method, destination.register())
 	}
 }

@@ -124,14 +124,10 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 		instruction: L2Instruction,
 		regenerator: L2Regenerator)
 	{
-		val value = regenerator.transformOperand(
-			instruction.operand<L2ReadBoxedOperand>(0))
-		val constant = regenerator.transformOperand(
-			instruction.operand<L2ConstantOperand>(1))
-		val ifEqual = regenerator.transformOperand(
-			instruction.operand<L2PcOperand>(2))
-		val ifUnequal = regenerator.transformOperand(
-			instruction.operand<L2PcOperand>(3))
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val constant = instruction.operand<L2ConstantOperand>(1)
+		val ifEqual = instruction.operand<L2PcOperand>(2)
+		val ifUnequal = instruction.operand<L2PcOperand>(3)
 		regenerator.jumpIfEqualsConstant(
 			value,
 			constant.constant,

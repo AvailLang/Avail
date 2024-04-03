@@ -34,12 +34,8 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.ContinuationDescriptor
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -50,41 +46,30 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_EXTRACT_CONTINUATION_FUNCTION : L2Operation(
-	READ_BOXED.named("continuation"),
-	WRITE_BOXED.named("extracted function"))
+class L2_EXTRACT_CONTINUATION_FUNCTION(
+	var continuation: L2ReadBoxedOperand,
+	var extractedFunction: L2WriteBoxedOperand
+): L2NewInstruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val continuation =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(function.registerString())
+		builder.append(extractedFunction.registerString())
 		builder.append(" ← ")
 		builder.append(continuation.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		// Extract the function from the given continuation.
-		val continuation =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(1)
-
 		// :: function = continuation.function();
 		translator.load(method, continuation.register())
 		ContinuationDescriptor.continuationFunctionMethod.generateCall(method)
-		translator.store(method, function.register())
+		translator.store(method, extractedFunction.register())
 	}
 }

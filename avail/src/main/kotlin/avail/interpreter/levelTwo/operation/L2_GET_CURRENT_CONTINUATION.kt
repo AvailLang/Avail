@@ -32,13 +32,10 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -54,33 +51,27 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @ReadsHiddenVariable(CURRENT_CONTINUATION::class)
-object L2_GET_CURRENT_CONTINUATION : L2Operation(
-	WRITE_BOXED.named("current continuation"))
+class L2_GET_CURRENT_CONTINUATION(
+	var currentContinuation: L2WriteBoxedOperand
+): L2NewInstruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val continuation =
-			instruction.operand<L2WriteBoxedOperand>(0)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(continuation.registerString())
+		builder.append(currentContinuation.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val continuation =
-			instruction.operand<L2WriteBoxedOperand>(0)
-
 		// :: target = interpreter.getReifiedContinuation();
 		translator.loadInterpreter(method)
 		Interpreter.getReifiedContinuationMethod.generateCall(method)
-		translator.store(method, continuation.register())
+		translator.store(method, currentContinuation.register())
 	}
 }

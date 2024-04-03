@@ -206,7 +206,7 @@ protected constructor(
 	 * @return
 	 *   `true` if this `L2Operation` is an entry point, `false` otherwise.
 	 */
-	open fun isEntryPoint(instruction: L2Instruction): Boolean = false
+	open val isEntryPoint: Boolean get() = false
 
 	/**
 	 * The [named&#32;operand&#32;types][L2NamedOperandType] that this
@@ -443,7 +443,7 @@ protected constructor(
 	 */
 	fun instructionWasInserted(instruction: L2Instruction)
 	{
-		if (isEntryPoint(instruction))
+		if (isEntryPoint)
 		{
 			assert(
 				instruction.basicBlock().instructions().all {
@@ -750,7 +750,7 @@ protected constructor(
 		instruction: L2Instruction,
 		regenerator: L2Regenerator)
 	{
-		regenerator.basicProcessInstruction(instruction)
+		instruction.emitTransformedInstruction(regenerator)
 	}
 
 	/**

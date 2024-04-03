@@ -69,7 +69,7 @@ object L2_ENTER_L2_CHUNK_FOR_CALL : L2Operation(
 	COMMENT.named("chunk entry point name"),
 	WRITE_BOXED_VECTOR.named("arguments"))
 {
-	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
+	override val isEntryPoint get() = true
 
 	override val hasSideEffect get() = true
 
@@ -119,7 +119,7 @@ object L2_ENTER_L2_CHUNK_FOR_CALL : L2Operation(
 		method.visitLabel(isValidLabel)
 
 		// If this chunk had an L2_VIRTUAL_CREATE_LABEL that survived, producing
-		// an empty register dump, or it didn't producing no entry at all.
+		// an empty register dump, or it didn't, producing no entry at all.
 		// Either is acceptable, and should be ignored.
 		val localNumberLists =
 			translator.liveLocalNumbersByKindPerEntryPoint[instruction]

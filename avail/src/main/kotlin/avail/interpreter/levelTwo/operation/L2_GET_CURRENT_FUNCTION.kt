@@ -33,13 +33,10 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -54,37 +51,31 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
-object L2_GET_CURRENT_FUNCTION : L2Operation(
-	WRITE_BOXED.named("current function"))
+class L2_GET_CURRENT_FUNCTION(
+	var currentFunction: L2WriteBoxedOperand
+): L2NewInstruction()
 {
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(function.registerString())
+		builder.append(currentFunction.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
-
 		// :: register = interpreter.function;
 		translator.loadInterpreter(method)
 		Interpreter.interpreterFunctionField.generateRead(method)
 		method.visitTypeInsn(
 			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
-		translator.store(method, function.register())
+		translator.store(method, currentFunction.register())
 	}
 }

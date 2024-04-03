@@ -753,7 +753,8 @@ abstract class L2Regenerator internal constructor(
 	 */
 	open fun processInstruction(sourceInstruction: L2Instruction)
 	{
-		basicProcessInstruction(sourceInstruction)
+		basicTransformInstruction(sourceInstruction)
+			.emitTransformedInstruction(this)
 	}
 
 	/**
@@ -763,14 +764,26 @@ abstract class L2Regenerator internal constructor(
 	 * @param sourceInstruction
 	 *   An [L2Instruction] from the source graph.
 	 */
-	fun basicProcessInstruction(sourceInstruction: L2Instruction)
+	fun <I : L2Instruction> basicTransformInstruction(sourceInstruction: I): I
 	{
 		// Never translate a phi instruction.  Either they should be produced
 		// as part of generation, or they should already have been replaced by
 		// moves.
 		assert(sourceInstruction !is L2_PHI<*>)
 		val transformed = sourceInstruction.transformedByRegenerator(this)
-		transformed.emitTransformedInstruction(this)
+		if (shouldSanityCheck)
+		{
+			// Special sanity check.
+			for (read in transformed.readOperands)
+			{
+				val semanticValue = read.semanticValue()
+				val register = read.register()
+				assert(currentManifest.hasSemanticValue(semanticValue))
+				assert(
+					currentManifest.synonymsForRegister(register).isNotEmpty())
+			}
+		}
+		return transformed.cast()
 	}
 
 	/**
@@ -802,7 +815,8 @@ abstract class L2Regenerator internal constructor(
 		sourceInstruction.readOperands.forEach { read ->
 			forceTranslationForRead(read.semanticValue())
 		}
-		basicProcessInstruction(sourceInstruction)
+		basicTransformInstruction(sourceInstruction)
+			.emitTransformedInstruction(this)
 	}
 
 	/**

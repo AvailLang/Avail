@@ -461,9 +461,15 @@ abstract class L2Instruction
 	 * regenerator at the point where subsequent instructions of the rebuilt
 	 * block will be re-emitted, whether that's in the same block or not.
 	 *
+	 * Note that the receiver, the instruction, has already undergone a basic
+	 * transformation from registers and blocks of the old graph into registers
+	 * and blocks in the new graph, so the operands can be directly used in
+	 * alternative instructions.
+	 *
 	 * @param regenerator
 	 *   An [L2Regenerator] that has been configured for writing arbitrary
-	 *   replacement code for this instruction.
+	 *   replacement code for this instruction, which has already had its
+	 *   operands transformed for the new graph.
 	 */
 	abstract fun generateReplacement(
 		regenerator: L2Regenerator)

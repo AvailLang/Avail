@@ -70,7 +70,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 	INT_IMMEDIATE.named("entry point offset in default chunk"),
 	COMMENT.named("chunk entry point name"))
 {
-	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
+	override val isEntryPoint get() = true
 
 	override val hasSideEffect get() = true
 

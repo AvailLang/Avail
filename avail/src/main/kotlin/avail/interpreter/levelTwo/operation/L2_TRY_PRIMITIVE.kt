@@ -64,12 +64,11 @@ import org.objectweb.asm.Opcodes
 @ReadsHiddenVariable(
 	CURRENT_CONTINUATION::class,
 	CURRENT_FUNCTION::class,
-	//	CURRENT_ARGUMENTS.class,
 	LATEST_RETURN_VALUE::class)
 object L2_TRY_PRIMITIVE : L2Operation(
 	PRIMITIVE.named("primitive"))
 {
-	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
+	override val isEntryPoint get() = true
 
 	// It could fail and jump.
 	override val hasSideEffect get() = true

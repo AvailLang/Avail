@@ -83,8 +83,7 @@ object L2_EXTRACT_OBJECT_TYPE_VARIANT_ID : L2Operation(
 
 		// If the variantId is statically deducible at this point, use the
 		// constant.
-		val restriction =
-			regenerator.restrictionFor(value.semanticValue())
+		val restriction = regenerator.restrictionFor(value.semanticValue())
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectTypeVariant

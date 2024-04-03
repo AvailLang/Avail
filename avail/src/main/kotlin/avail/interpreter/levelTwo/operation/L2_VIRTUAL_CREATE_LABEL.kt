@@ -31,20 +31,15 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -104,27 +99,34 @@ import org.objectweb.asm.MethodVisitor
  * are recorded – for level one.  For level two, it also captures the register
  * dump and the level two offset of the entry point above.
  *
+ * @property outputLabel
+ *   Where to write the new continuation.
+ * @property function
+ *   The [A_Function] to use for the continuation.  Must be immutable.
+ * @property arguments
+ *   The [vector][L2ReadBoxedVectorOperand] of arguments that the [function]
+ *   received when it was invoked.
+ * @property frameSize
+ *   The number of slots to allocate in the continuation, where only the
+ *   [arguments] will be populated.  The rest will be [nil].
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_VIRTUAL_CREATE_LABEL : L2Operation(
-	WRITE_BOXED.named("output label"),
-	READ_BOXED.named("immutable function"),
-	READ_BOXED_VECTOR.named("arguments"),
-	INT_IMMEDIATE.named("frame size"))
+class L2_VIRTUAL_CREATE_LABEL(
+	var outputLabel: L2WriteBoxedOperand,
+	var function: L2ReadBoxedOperand,
+	var arguments: L2ReadBoxedVectorOperand,
+	var frameSize: L2IntImmediateOperand
+): L2NewInstruction()
 {
 	override val isPlaceholder get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val outputLabel = instruction.operand<L2WriteBoxedOperand>(0)
-		val function = instruction.operand<L2ReadBoxedOperand>(1)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
-		val frameSize = instruction.operand<L2IntImmediateOperand>(3)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(" ").append(outputLabel)
 		builder.append("\n\tfunction = ").append(function)
 		builder.append("\n\targuments = ").append(arguments)
@@ -132,16 +134,8 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 	}
 
 	override fun generateReplacement(
-		instruction: L2Instruction,
 		regenerator: L2Regenerator
 	): Unit = regenerator.run {
-		val labelOutput = transformOperand(
-			instruction.operand<L2WriteBoxedOperand>(0))
-		val function = transformOperand(
-			instruction.operand<L2ReadBoxedOperand>(1))
-		val arguments = transformOperand(
-			instruction.operand<L2ReadBoxedVectorOperand>(2))
-		val frameSize = instruction.operand<L2IntImmediateOperand>(3)
 		if (currentBlock().zone == null)
 		{
 			// Force the caller to be reified.  Use a dummy continuation
@@ -210,25 +204,22 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 			val dummyContinuation = boxedWriteTemp(
 				boxedRestrictionForType(mostGeneralContinuationType))
 			addInstruction(
-				L2_GET_CURRENT_CONTINUATION,
-				tempCaller)
+				L2_GET_CURRENT_CONTINUATION(tempCaller))
 			addInstruction(
-				L2_GET_CURRENT_FUNCTION,
-				tempFunction)
+				L2_GET_CURRENT_FUNCTION(tempFunction))
 			addInstruction(
-				L2_CREATE_CONTINUATION,
-				readBoxed(tempFunction),
-				readBoxed(tempCaller),
-				L2IntImmediateOperand(Int.MAX_VALUE),
-				L2IntImmediateOperand(Int.MAX_VALUE),
-				L2ReadBoxedVectorOperand(emptyList()),
-				dummyContinuation,
-				readInt(tempOffset.onlySemanticValue(), unreachable),
-				readBoxed(tempRegisterDump),
-				L2CommentOperand("Dummy reification continuation."))
+				L2_CREATE_CONTINUATION(
+					readBoxed(tempFunction),
+					readBoxed(tempCaller),
+					L2IntImmediateOperand(Int.MAX_VALUE),
+					L2IntImmediateOperand(Int.MAX_VALUE),
+					L2ReadBoxedVectorOperand(emptyList()),
+					dummyContinuation,
+					readInt(tempOffset.onlySemanticValue(), unreachable),
+					readBoxed(tempRegisterDump),
+					L2CommentOperand("Dummy reification continuation.")))
 			addInstruction(
-				L2_SET_CONTINUATION,
-				readBoxed(dummyContinuation))
+				L2_SET_CONTINUATION(readBoxed(dummyContinuation)))
 			addInstruction(
 				L2_RETURN_FROM_REIFICATION_HANDLER)
 
@@ -248,7 +239,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		// Caller has been reified, or is known to already be reified.
 		val tempCallerWrite = boxedWriteTemp(
 			boxedRestrictionForType(mostGeneralContinuationType))
-		addInstruction(L2_GET_CURRENT_CONTINUATION, tempCallerWrite)
+		addInstruction(L2_GET_CURRENT_CONTINUATION(tempCallerWrite))
 
 		val fallThrough = createBasicBlock(
 			"Fall-through for label creation",
@@ -276,24 +267,23 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		val nilRead = boxedConstant(nil)
 		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }
 		addInstruction(
-			L2_CREATE_CONTINUATION,
-			function,
-			readBoxed(tempCallerWrite),
-			L2IntImmediateOperand(0),  // indicates a label.
-			L2IntImmediateOperand(frameSizeInt + 1),  // empty stack
-			L2ReadBoxedVectorOperand(slots),  // each immutable
-			labelOutput,
-			readInt(
-				writeOffset.onlySemanticValue(),
-				unreachablePcOperand().targetBlock()),
-			readBoxed(writeRegisterDump),
-			L2CommentOperand("Create label."))
+			L2_CREATE_CONTINUATION(
+				function,
+				readBoxed(tempCallerWrite),
+				L2IntImmediateOperand(0),  // indicates a label.
+				L2IntImmediateOperand(frameSizeInt + 1),  // empty stack
+				L2ReadBoxedVectorOperand(slots),  // each immutable
+				outputLabel,
+				readInt(
+					writeOffset.onlySemanticValue(),
+					unreachablePcOperand().targetBlock()),
+				readBoxed(writeRegisterDump),
+				L2CommentOperand("Create label.")))
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		throw UnsupportedOperationException(
 			"${javaClass.simpleName} should " +

@@ -213,7 +213,10 @@ class L2Optimizer internal constructor(
 			isRemovingDeadCode = true
 		) { sourceInstruction ->
 			if (sourceInstruction in liveInstructions)
-				basicProcessInstruction(sourceInstruction)
+			{
+				basicTransformInstruction(sourceInstruction)
+					.emitTransformedInstruction(this)
+			}
 		}
 	}
 
@@ -452,7 +455,8 @@ class L2Optimizer internal constructor(
 		{ sourceInstruction ->
 			if (sourceInstruction !is L2_PHI<*>)
 			{
-				basicProcessInstruction(sourceInstruction)
+				basicTransformInstruction(sourceInstruction)
+					.emitTransformedInstruction(this)
 			}
 		}
 	}
@@ -792,7 +796,8 @@ class L2Optimizer internal constructor(
 		}
 		// Use an L2Regenerator to do the substitution.
 		regenerateGraph(true) { sourceInstruction ->
-			sourceInstruction.generateReplacement(this)
+			basicTransformInstruction(sourceInstruction)
+				.generateReplacement(this)
 		}
 	}
 
@@ -1182,6 +1187,16 @@ class L2Optimizer internal constructor(
 				{
 					// Treat it as a pass-through, since it just moves from a
 					// register to itself.
+					return@forEachIndexed
+				}
+				// Deal with L2_STRIP_MANIFEST instructions that have their
+				// data moves *entirely* elided due to register coloring.  If
+				// even one move is still needed, generate makeImmutables for
+				// *all* of the registers.
+				if (instruction is L2_STRIP_MANIFEST
+					&& instruction.sourceRegisters
+						== instruction.destinationRegisters)
+				{
 					return@forEachIndexed
 				}
 				instruction.readOperands

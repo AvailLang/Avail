@@ -144,6 +144,8 @@ internal constructor(private val instructionClass: KClass<out I>)
 			instruction: L2NewInstruction,
 			transformation: (L2Operand)->L2Operand
 		) = set(instruction, transformation(get(instruction)).cast())
+
+		override fun toString(): String = "${type.simpleName}.$name"
 	}
 
 	/**
@@ -151,14 +153,8 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 */
 	val name = instructionClass.simpleName!!
 
-	/**
-	 * In Kotlin/JVM, declaredFields seems to produce the fields in declaration
-	 * order, so this is a handy sorting index for preserving that when starting
-	 * with the declared properties.
-	 */
-	val fieldNumbering = instructionClass.java.declaredFields
-		.withIndex()
-		.associate { (i, field) -> field to i }
+	/** The list of [OperandField]s, in declaration order. */
+	private val operandFields: List<OperandField<out L2Operand>>
 
 	init
 	{
@@ -173,14 +169,20 @@ internal constructor(private val instructionClass: KClass<out I>)
 			"Found val fields (${valFields.map { it.name }}) in " +
 				"instruction class ($instructionClass).  They must be var."
 		}
+		// In Kotlin/JVM, declaredFields seems to produce the fields in
+		// declaration order, so this is a handy sorting index for preserving
+		// that when starting with the declared properties.`
+		val fieldNumbering = instructionClass.java.declaredFields
+			.withIndex()
+			.associate { (i, field) -> field to i }
+		operandFields = instructionClass.declaredMemberProperties
+			.filterIsInstance<KMutableProperty1<I, out L2Operand>>()
+			.filter {
+				L2Operand::class.java.isAssignableFrom(it.javaField!!.type)
+			}
+			.sortedBy { fieldNumbering[it.javaField] }
+			.map { OperandField(it) }
 	}
-
-	private val operandFields = instructionClass.declaredMemberProperties
-		.filterIsInstance<KMutableProperty1<I, out L2Operand>>()
-		.filter { L2Operand::class.java.isAssignableFrom(it.javaField!!.type) }
-		// Preserve the field declaration order (seems to work on Kotlin/JVM).
-		.sortedBy { fieldNumbering[it.javaField] }
-		.map { OperandField(it) }
 
 	fun updateOperands(
 		instruction: L2NewInstruction,

@@ -185,7 +185,7 @@ abstract class L2NewInstruction : L2Instruction()
 	override open val isCold get() = false
 
 	override open fun generateReplacement(regenerator: L2Regenerator) =
-		regenerator.basicProcessInstruction(this)
+		emitTransformedInstruction(regenerator)
 
 	override val writesHiddenVariablesMask: Int
 		get() = layout.writesHiddenVariablesMask

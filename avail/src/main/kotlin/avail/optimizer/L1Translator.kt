@@ -502,7 +502,7 @@ class L1Translator private constructor(
 			val restriction = boxedRestrictionForType(code.functionType())
 			val functionWrite =
 				generator.boxedWrite(semanticFunction, restriction)
-			addInstruction(L2_GET_CURRENT_FUNCTION, functionWrite)
+			addInstruction(L2_GET_CURRENT_FUNCTION(functionWrite))
 			return readBoxed(functionWrite)
 		}
 
@@ -679,24 +679,24 @@ class L1Translator private constructor(
 			topFrame().reifiedCaller(),
 			boxedRestrictionForType(mostGeneralContinuationType))
 		addInstruction(
-			L2_GET_CURRENT_CONTINUATION,
-			writeReifiedCaller)
+			L2_GET_CURRENT_CONTINUATION(writeReifiedCaller))
 		val unreachable = L2BasicBlock("unreachable")
 		if (typeOfEntryPoint === ChunkEntryPoint.TRANSIENT)
 		{
 			// L1 can never see this continuation, so it can be minimal.
 			addInstruction(
-				L2_CREATE_CONTINUATION,
-				currentFunction,
-				generator.readBoxed(writeReifiedCaller),
-				L2IntImmediateOperand(Int.MAX_VALUE),
-				L2IntImmediateOperand(Int.MAX_VALUE),
-				L2ReadBoxedVectorOperand(emptyList()),
-				newContinuationWrite,
-				generator.readInt(writeOffset.onlySemanticValue(), unreachable),
-				generator.readBoxed(writeRegisterDump),
-				L2CommentOperand(
-					"Create a dummy reification continuation."))
+				L2_CREATE_CONTINUATION(
+					currentFunction,
+					generator.readBoxed(writeReifiedCaller),
+					L2IntImmediateOperand(Int.MAX_VALUE),
+					L2IntImmediateOperand(Int.MAX_VALUE),
+					L2ReadBoxedVectorOperand(emptyList()),
+					newContinuationWrite,
+					generator.readInt(
+						writeOffset.onlySemanticValue(), unreachable),
+					generator.readBoxed(writeRegisterDump),
+					L2CommentOperand(
+						"Create a dummy reification continuation.")))
 		}
 		else
 		{
@@ -704,20 +704,20 @@ class L1Translator private constructor(
 			// it to resume in the L2Chunk#unoptimizedChunk, which can only see
 			// L1 content.
 			addInstruction(
-				L2_CREATE_CONTINUATION,
-				currentFunction,
-				readBoxed(writeReifiedCaller),
-				L2IntImmediateOperand(pc),
-				L2IntImmediateOperand(stackp),
-				L2ReadBoxedVectorOperand(readSlotsBefore.toList()),
-				newContinuationWrite,
-				generator.readInt(writeOffset.onlySemanticValue(), unreachable),
-				generator.readBoxed(writeRegisterDump),
-				L2CommentOperand("Create a reification continuation."))
+				L2_CREATE_CONTINUATION(
+					currentFunction,
+					readBoxed(writeReifiedCaller),
+					L2IntImmediateOperand(pc),
+					L2IntImmediateOperand(stackp),
+					L2ReadBoxedVectorOperand(readSlotsBefore.toList()),
+					newContinuationWrite,
+					generator.readInt(
+						writeOffset.onlySemanticValue(), unreachable),
+					generator.readBoxed(writeRegisterDump),
+					L2CommentOperand("Create a reification continuation.")))
 		}
 		addInstruction(
-			L2_SET_CONTINUATION,
-			generator.readBoxed(newContinuationWrite))
+			L2_SET_CONTINUATION(generator.readBoxed(newContinuationWrite)))
 
 		// Right after creating the continuation.
 		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER)
@@ -2672,11 +2672,11 @@ class L1Translator private constructor(
 			val destinationRegister = generator.boxedWrite(
 				semanticLabel, restriction(continuationType, null))
 			addInstruction(
-				L2_VIRTUAL_CREATE_LABEL,
-				destinationRegister,
-				currentFunction,
-				L2ReadBoxedVectorOperand(argumentsForLabel),
-				L2IntImmediateOperand(code.numSlots))
+				L2_VIRTUAL_CREATE_LABEL(
+					destinationRegister,
+					currentFunction,
+					L2ReadBoxedVectorOperand(argumentsForLabel),
+					L2IntImmediateOperand(code.numSlots)))
 		}
 		// Now push the label.
 		stackp--

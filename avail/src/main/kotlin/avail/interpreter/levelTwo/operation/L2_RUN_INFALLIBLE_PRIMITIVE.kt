@@ -114,7 +114,6 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 	@WritesHiddenVariable(
 		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
-		//		CURRENT_ARGUMENTS.class,
 		LATEST_RETURN_VALUE::class,
 		GLOBAL_STATE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency

@@ -191,12 +191,9 @@ object L2_MULTIWAY_JUMP : L2OldConditionalJump(
 		// search mechanism, we could just do a super call to leave this
 		// instruction intact, and then alter translateToJVM to generate the
 		// lookupswitch instruction.
-		val value = regenerator.transformOperand(
-			instruction.operand<L2ReadIntOperand>(0))
-		val splitterConstant = regenerator.transformOperand(
-			instruction.operand<L2ArbitraryConstantOperand>(1))
-		val edges = regenerator.transformOperand(
-			instruction.operand<L2PcVectorOperand>(2))
+		val value = instruction.operand<L2ReadIntOperand>(0)
+		val splitterConstant = instruction.operand<L2ArbitraryConstantOperand>(1)
+		val edges = instruction.operand<L2PcVectorOperand>(2)
 
 		val splitter = extractSplitter(splitterConstant)
 		generateSubtree(
