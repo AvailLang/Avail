@@ -33,11 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.AvailRuntime
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
@@ -50,37 +47,31 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
-	WRITE_BOXED.named("implicit observe function"))
+class L2_GET_IMPLICIT_OBSERVE_FUNCTION(
+	var implicitObserveFunction: L2WriteBoxedOperand
+): L2NewInstruction()
 {
-	override val hasSideEffect: Boolean
-		// Keep this instruction pinned in place for safety during inlining.
-		get() = true
+	// Keep this instruction pinned in place for safety during inlining.
+	override val hasSideEffect: Boolean get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val function = instruction.operand<L2WriteBoxedOperand>(0)
-
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(function.registerString())
+		builder.append(implicitObserveFunction.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val function = instruction.operand<L2WriteBoxedOperand>(0)
-
 		// :: register = interpreter.runtime().implicitObserveFunction();
 		translator.loadInterpreter(method)
 		Interpreter.runtimeField.generateRead(method)
 		AvailRuntime.implicitObserveFunctionMethod.generateCall(method)
-		translator.store(method, function.register())
+		translator.store(method, implicitObserveFunction.register())
 	}
 }

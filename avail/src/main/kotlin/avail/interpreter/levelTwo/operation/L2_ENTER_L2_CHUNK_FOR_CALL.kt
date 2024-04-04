@@ -34,16 +34,13 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.listGetMethod
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -65,23 +62,21 @@ import org.objectweb.asm.Type
  */
 @ReadsHiddenVariable(CURRENT_CONTINUATION::class)
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
-object L2_ENTER_L2_CHUNK_FOR_CALL : L2Operation(
-	COMMENT.named("chunk entry point name"),
-	WRITE_BOXED_VECTOR.named("arguments"))
+class L2_ENTER_L2_CHUNK_FOR_CALL(
+	var chunkEntryPointName: L2CommentOperand,
+	var writeArguments: L2WriteBoxedVectorOperand
+) : L2NewInstruction()
 {
 	override val isEntryPoint get() = true
 
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		//val comment = instruction.operand<L2CommentOperand>(0)
-		val writeArguments = instruction.operand<L2WriteBoxedVectorOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		writeArguments.elements.forEachIndexed { i, write ->
 			builder.append("\n\t")
 			builder.append(write.registerString())
@@ -92,12 +87,8 @@ object L2_ENTER_L2_CHUNK_FOR_CALL : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		//val comment = instruction.operand<L2CommentOperand>(0)
-		val writeArguments = instruction.operand<L2WriteBoxedVectorOperand>(1)
-
 		// While it's true that the raw function's starting chunk will be
 		// switched to the default chunk during invalidation, we can still reach
 		// this point via a restart of an existing continuation that still
@@ -122,7 +113,7 @@ object L2_ENTER_L2_CHUNK_FOR_CALL : L2Operation(
 		// an empty register dump, or it didn't, producing no entry at all.
 		// Either is acceptable, and should be ignored.
 		val localNumberLists =
-			translator.liveLocalNumbersByKindPerEntryPoint[instruction]
+			translator.liveLocalNumbersByKindPerEntryPoint[this]
 		if (localNumberLists !== null)
 		{
 			val boxedList = localNumberLists[BOXED_KIND]!!

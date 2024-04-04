@@ -49,7 +49,7 @@ abstract class AvailLocation constructor(
 	 * Are the contents of this location editable by this project? `true`
 	 * indicates it is; `false` otherwise.
 	 */
-	open val editable: Boolean = false
+	open val editable: Boolean get() = false
 
 	/**
 	 * Create a new [AvailLocation] relative to this one.

@@ -35,7 +35,6 @@ import avail.AvailRuntimeSupport
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -1270,15 +1269,13 @@ class L2Optimizer internal constructor(
 				reads.forEach { read ->
 					block.insertInstruction(
 						i,
-						L2OldInstruction(
-							L2_MAKE_IMMUTABLE,
+						L2_MAKE_IMMUTABLE(
 							read,
 							L2WriteBoxedOperand(
 								setOf(read.semanticValue()),
 								read.restriction(),
 								read.register())
-						).cloneFor(block)
-					)
+						).cloneFor(block))
 				}
 			}
 			// Add edges for the successor blocks to use.

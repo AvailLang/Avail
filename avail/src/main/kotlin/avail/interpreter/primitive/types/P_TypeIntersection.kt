@@ -49,7 +49,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
@@ -107,7 +106,6 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun emitTransformedInfalliblePrimitive(
-		operation: L2_RUN_INFALLIBLE_PRIMITIVE,
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand,
@@ -141,10 +139,6 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 				result.semanticValues())
 		}
 		super.emitTransformedInfalliblePrimitive(
-			operation,
-			rawFunction,
-			arguments,
-			result,
-			regenerator)
+			rawFunction, arguments, result, regenerator)
 	}
 }

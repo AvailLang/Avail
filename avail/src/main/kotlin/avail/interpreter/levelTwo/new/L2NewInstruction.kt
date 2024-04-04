@@ -147,13 +147,10 @@ abstract class L2NewInstruction : L2Instruction()
 	// TODO These can turn into type tests when they become instructions.
 
 	override open val isEntryPoint: Boolean get() = false
-	override open val isRunInfalliblePrimitive: Boolean get() = false
 	override open val isExtractTagOrdinal: Boolean get() = false
 	override open val isExtractObjectVariantId: Boolean get() = false
 	override open val isExtractObjectTypeVariantId: Boolean get() = false
 	override open val isGetType: Boolean get() = false
-	override open val isEnterL2Chunk: Boolean get() = false
-	override open val isEnterL2ChunkForCall: Boolean get() = false
 	override fun isBitLogicOperation(op: L2_BIT_LOGIC_OP): Boolean = false
 	override open val isHash: Boolean get() = false
 	override open val goesMultipleWays: Boolean get() = false
@@ -177,8 +174,6 @@ abstract class L2NewInstruction : L2Instruction()
 		outerType: A_Type,
 		generator: L2Generator
 	): L2ReadBoxedOperand = unsupported
-
-	override open val referenceOfSaveAll: L2PcOperand get() = unsupported
 
 	override open val isCold get() = false
 

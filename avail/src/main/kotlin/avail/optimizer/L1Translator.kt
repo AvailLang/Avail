@@ -565,7 +565,7 @@ class L1Translator private constructor(
 	{
 		val writer = generator.boxedWriteTemp(
 			boxedRestrictionForType(guaranteedType))
-		addInstruction(L2_GET_LATEST_RETURN_VALUE, writer)
+		addInstruction(L2_GET_LATEST_RETURN_VALUE(writer))
 		return readBoxed(writer)
 	}
 
@@ -667,11 +667,11 @@ class L1Translator private constructor(
 			boxedRestrictionForType(Types.ANY.o))
 		val fallThrough = generator.createBasicBlock("Off-ramp", zone)
 		addInstruction(
-			L2_SAVE_ALL_AND_PC_TO_INT,
-			edgeTo(onReturnIntoReified),
-			writeOffset,
-			writeRegisterDump,
-			edgeTo(fallThrough))
+			L2_SAVE_ALL_AND_PC_TO_INT(
+				edgeTo(onReturnIntoReified),
+				writeOffset,
+				writeRegisterDump,
+				edgeTo(fallThrough)))
 		generator.startBlock(fallThrough)
 		// We're in a reification handler here, so the caller is guaranteed to
 		// contain the reified caller.
@@ -728,10 +728,11 @@ class L1Translator private constructor(
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified)
 		addInstruction(
-			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
-			L2CommentOperand(
-				"If invalid, reenter «default» at ${typeOfEntryPoint.name}."))
+			L2_ENTER_L2_CHUNK(
+				L2IntImmediateOperand(typeOfEntryPoint.offsetInDefaultChunk),
+				L2CommentOperand(
+					"If invalid, reenter «default» " +
+						"at ${typeOfEntryPoint.name}.")))
 		if (expectedValueOrNull !== null && expectedValueOrNull.isVacuousType)
 		{
 			generator.addUnreachableCode()
@@ -1473,11 +1474,11 @@ class L1Translator private constructor(
 							arguments.map(L2ReadBoxedOperand::semanticValue)),
 						boxedRestrictionForType(resultType))
 					addInstruction(
-						L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
-						L2ConstantOperand(rawFunction),
-						L2PrimitiveOperand(primitive),
-						L2ReadBoxedVectorOperand(arguments),
-						writer)
+						L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+							L2ConstantOperand(rawFunction),
+							L2PrimitiveOperand(primitive),
+							L2ReadBoxedVectorOperand(arguments),
+							writer))
 					if (willAlwaysFailPrimitive &&
 						rawFunction.returnTypeIfPrimitiveFails.isBottom)
 					{
@@ -1578,10 +1579,10 @@ class L1Translator private constructor(
 
 		generator.startBlock(reificationTarget)
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-			L2CommentOperand("Transient - cannot be invalid."))
+			L2_ENTER_L2_CHUNK(
+				L2IntImmediateOperand(
+					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+				L2CommentOperand("Transient - cannot be invalid.")))
 		generator.jumpTo(targetBlock)
 
 		generator.startBlock(successBlock)
@@ -2009,8 +2010,7 @@ class L1Translator private constructor(
 			generator.boxedWriteTemp(
 			boxedRestrictionForType(HookType.INVALID_MESSAGE_SEND.functionType))
 		addInstruction(
-			L2_GET_INVALID_MESSAGE_SEND_FUNCTION,
-			invalidSendReg)
+			L2_GET_INVALID_MESSAGE_SEND_FUNCTION(invalidSendReg))
 		// Collect the argument types into a tuple type.
 		val argTypes = argumentRestrictions.map { it.type }
 		val argumentsTupleWrite = generator.boxedWriteTemp(
@@ -2046,11 +2046,11 @@ class L1Translator private constructor(
 		// progress.
 		generator.startBlock(onReificationDuringFailure)
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-			L2CommentOperand(
-				"Transient - cannot be invalid."))
+			L2_ENTER_L2_CHUNK(
+				L2IntImmediateOperand(
+					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+				L2CommentOperand(
+					"Transient - cannot be invalid.")))
 		reify(bottom, ChunkEntryPoint.TO_RETURN_INTO)
 	}
 
@@ -2097,11 +2097,11 @@ class L1Translator private constructor(
 				edgeTo(onReification)))
 		generator.startBlock(onReification)
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-			L2CommentOperand(
-				"Transient, for interrupt - cannot be invalid."))
+			L2_ENTER_L2_CHUNK(
+				L2IntImmediateOperand(
+					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+				L2CommentOperand(
+					"Transient, for interrupt - cannot be invalid.")))
 
 		// When the lambda below runs, it's generating code at the point where
 		// continuationReg will have the new continuation.
@@ -2202,8 +2202,7 @@ class L1Translator private constructor(
 		val observeFunction = generator.boxedWriteTemp(
 			boxedRestrictionForType(HookType.IMPLICIT_OBSERVE.functionType))
 		addInstruction(
-			L2_GET_IMPLICIT_OBSERVE_FUNCTION,
-			observeFunction)
+			L2_GET_IMPLICIT_OBSERVE_FUNCTION(observeFunction))
 		val variableAndValueTupleReg = generator.boxedWriteTemp(
 			boxedRestrictionForType(
 				tupleTypeForTypes(variable.type(), newValue.type())))
@@ -2227,11 +2226,11 @@ class L1Translator private constructor(
 				edgeTo(onReificationDuringFailure)))
 		generator.startBlock(onReificationDuringFailure)
 		generator.addInstruction(
-			L2_ENTER_L2_CHUNK,
-			L2IntImmediateOperand(
-				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-			L2CommentOperand(
-				"Transient - cannot be invalid."))
+			L2_ENTER_L2_CHUNK(
+				L2IntImmediateOperand(
+					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+				L2CommentOperand(
+					"Transient - cannot be invalid.")))
 		reify(Types.TOP.o, ChunkEntryPoint.TO_RETURN_INTO)
 		generator.jumpTo(success)
 
@@ -2262,8 +2261,7 @@ class L1Translator private constructor(
 		{
 			// Try the primitive, automatically returning if successful.
 			addInstruction(
-				L2_TRY_PRIMITIVE,
-				L2PrimitiveOperand(primitive))
+				L2_TRY_PRIMITIVE(L2PrimitiveOperand(primitive)))
 			if (primitive.hasFlag(Flag.CannotFail))
 			{
 				// Infallible primitives don't need any other L2 code.
@@ -2289,15 +2287,15 @@ class L1Translator private constructor(
 		val numArgs = code.numArgs()
 		val tupleType = code.functionType().argsTupleType
 		addInstruction(
-			L2_ENTER_L2_CHUNK_FOR_CALL,
-			L2CommentOperand(
-				"If invalid, reenter «default» at the beginning."),
-			L2WriteBoxedVectorOperand(
-				(1..numArgs).map { i ->
-					generator.boxedWrite(
-						semanticSlot(i),
-						boxedRestrictionForType(tupleType.typeAtIndex(i)))
-				}))
+			L2_ENTER_L2_CHUNK_FOR_CALL(
+				L2CommentOperand(
+					"If invalid, reenter «default» at the beginning."),
+				L2WriteBoxedVectorOperand(
+					(1..numArgs).map { i ->
+						generator.boxedWrite(
+							semanticSlot(i),
+							boxedRestrictionForType(tupleType.typeAtIndex(i)))
+					})))
 
 		// Do any reoptimization before capturing arguments.
 		val optimization = generator.optimizationLevel

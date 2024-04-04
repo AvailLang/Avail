@@ -51,8 +51,8 @@ import avail.utility.cast
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
-import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
 
 /**
@@ -161,7 +161,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 		// Make sure there aren't any accidental val fields, since that won't
 		// work for the things we need to do to fields.  It's fine to have val
 		// fields for non-L2Operands.
-		val valFields = instructionClass.declaredMemberProperties
+		val valFields = instructionClass.memberProperties
 			.filterIsInstance<KProperty1<I, L2Operand>>()
 			.filter { it !is KMutableProperty1<*, *> }
 			.filter { it.javaField !== null }
@@ -173,13 +173,13 @@ internal constructor(private val instructionClass: KClass<out I>)
 			"Found val fields (${valFields.map { it.name }}) in " +
 				"instruction class ($instructionClass).  They must be var."
 		}
-		// In Kotlin/JVM, declaredFields seems to produce the fields in
-		// declaration order, so this is a handy sorting index for preserving
-		// that when starting with the declared properties.`
-		val fieldNumbering = instructionClass.java.declaredFields
+		// In Kotlin/JVM, `fields` seems to produce the fields in declaration
+		// order (grouped by hierarchy), so this is a handy sorting index for
+		// preserving that when starting with the declared properties.`
+		val fieldNumbering = instructionClass.java.fields
 			.withIndex()
 			.associate { (i, field) -> field to i }
-		operandFields = instructionClass.declaredMemberProperties
+		operandFields = instructionClass.memberProperties
 			.filterIsInstance<KMutableProperty1<I, out L2Operand>>()
 			.filter {
 				L2Operand::class.java.isAssignableFrom(it.javaField!!.type)

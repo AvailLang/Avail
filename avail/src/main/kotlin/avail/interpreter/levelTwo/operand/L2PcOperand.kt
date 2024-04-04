@@ -40,6 +40,7 @@ import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
@@ -376,8 +377,8 @@ class L2PcOperand constructor (
 			}
 		when
 		{
-			targetInstruction.isEnterL2Chunk -> {}
-			targetInstruction.isEnterL2ChunkForCall -> {
+			targetInstruction is L2_ENTER_L2_CHUNK -> { }
+			targetInstruction is L2_ENTER_L2_CHUNK_FOR_CALL -> {
 				// There should be no live registers on the edge back to the
 				// start due to a surviving L2_VIRTUAL_CREATE_LABEL.
 				assert(liveMap.values.all(List<*>::isEmpty))

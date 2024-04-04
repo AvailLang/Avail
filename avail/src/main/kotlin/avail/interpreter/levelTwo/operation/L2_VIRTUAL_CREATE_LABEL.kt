@@ -43,7 +43,6 @@ import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -179,20 +178,20 @@ class L2_VIRTUAL_CREATE_LABEL(
 
 			startBlock(onReification)
 			addInstruction(
-				L2_ENTER_L2_CHUNK,
-				L2IntImmediateOperand(
-					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-				L2CommentOperand("Transient, cannot be invalid."))
+				L2_ENTER_L2_CHUNK(
+					L2IntImmediateOperand(
+						ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+					L2CommentOperand("Transient, cannot be invalid.")))
 			val tempOffset = intWriteTemp(
 				intRestrictionForType(i32))
 			val tempRegisterDump = boxedWriteTemp(
 				boxedRestrictionForType(Types.ANY.o))
 			addInstruction(
-				L2_SAVE_ALL_AND_PC_TO_INT,
-				edgeTo(afterReification),
-				tempOffset,
-				tempRegisterDump,
-				edgeTo(reificationOfframp))
+				L2_SAVE_ALL_AND_PC_TO_INT(
+					edgeTo(afterReification),
+					tempOffset,
+					tempRegisterDump,
+					edgeTo(reificationOfframp)))
 
 			startBlock(reificationOfframp)
 			val tempCaller = boxedWrite(
@@ -226,10 +225,10 @@ class L2_VIRTUAL_CREATE_LABEL(
 
 			startBlock(afterReification)
 			addInstruction(
-				L2_ENTER_L2_CHUNK,
-				L2IntImmediateOperand(
-					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-				L2CommentOperand("Transient, cannot be invalid."))
+				L2_ENTER_L2_CHUNK(
+					L2IntImmediateOperand(
+						ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+					L2CommentOperand("Transient, cannot be invalid.")))
 			jumpTo(callerIsReified)
 
 			startBlock(callerIsReified)
@@ -246,17 +245,17 @@ class L2_VIRTUAL_CREATE_LABEL(
 		val writeRegisterDump =
 			boxedWriteTemp(boxedRestrictionForType(Types.ANY.o))
 		addInstruction(
-			L2_SAVE_ALL_AND_PC_TO_INT,
-			backEdgeTo(specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!),
-			writeOffset,
-			writeRegisterDump,
-			edgeTo(fallThrough))
+			L2_SAVE_ALL_AND_PC_TO_INT(
+				backEdgeTo(specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!),
+				writeOffset,
+				writeRegisterDump,
+				edgeTo(fallThrough)))
 
 		// Force there to be nothing considered live in the edge leading to the
 		// label's entry point.
-		val saveInstruction = currentBlock().instructions().last()
-		val referenceEdge: L2PcOperand = saveInstruction.referenceOfSaveAll
-			L2_SAVE_ALL_AND_PC_TO_INT.referenceOfSaveAll(saveInstruction)
+		val saveInstruction =
+			currentBlock().instructions().last() as L2_SAVE_ALL_AND_PC_TO_INT
+		val referenceEdge = saveInstruction.reference
 		referenceEdge.forcedClampedEntities = mutableSetOf()
 
 		startBlock(fallThrough)

@@ -36,13 +36,11 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.attemptTheInlinePrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.attemptTheNonInlinePrimitiveMethod
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.Companion.PRIMITIVE
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -65,8 +63,9 @@ import org.objectweb.asm.Opcodes
 	CURRENT_CONTINUATION::class,
 	CURRENT_FUNCTION::class,
 	LATEST_RETURN_VALUE::class)
-object L2_TRY_PRIMITIVE : L2Operation(
-	PRIMITIVE.named("primitive"))
+class L2_TRY_PRIMITIVE(
+	var primitive: L2PrimitiveOperand
+): L2NewInstruction()
 {
 	override val isEntryPoint get() = true
 
@@ -75,20 +74,17 @@ object L2_TRY_PRIMITIVE : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val primitiveOperand = instruction.operand<L2PrimitiveOperand>(0)
-		val primitive = primitiveOperand.primitive
 		translator.loadInterpreter(method)
 		// interpreter
 		method.visitInsn(Opcodes.DUP)
 		// interpreter, interpreter
 		Interpreter.interpreterFunctionField.generateRead(method)
 		// interpreter, fn
-		translator.literal(method, primitive)
+		translator.literal(method, primitive.primitive)
 		// interpreter, fn, prim
-		if (primitive.hasFlag(Primitive.Flag.CanInline))
+		if (primitive.primitive.hasFlag(Primitive.Flag.CanInline))
 		{
 			// :: return interpreter.attemptInlinePrimitive(function, primitive)
 			attemptTheInlinePrimitiveMethod.generateCall(method)

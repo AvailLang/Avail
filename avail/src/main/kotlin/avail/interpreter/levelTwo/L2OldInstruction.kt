@@ -41,13 +41,11 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
-import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_HASH
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
@@ -163,12 +161,6 @@ constructor(
 	 */
 	override val isEntryPoint get() = operation.isEntryPoint
 
-	/**
-	 * Answer true if this instruction runs an infallible primitive, otherwise
-	 * false.
-	 */
-	override val isRunInfalliblePrimitive
-		get() = operation is L2_RUN_INFALLIBLE_PRIMITIVE
 
 	/**
 	 * Answer whether this instruction extracts the tag ordinal from some value.
@@ -189,12 +181,6 @@ constructor(
 
 	/** Answer whether this instruction gets the type of a value. */
 	override val isGetType get() = operation is L2_GET_TYPE
-
-	/** Answer whether this instruction is a re-entry point. */
-	override val isEnterL2Chunk get() = operation is L2_ENTER_L2_CHUNK
-
-	/** Answer whether this instruction is the main entry point. */
-	override val isEnterL2ChunkForCall get() = operation is L2_ENTER_L2_CHUNK_FOR_CALL
 
 	/**
 	 * Answer whether this instruction performs the given infallible bit-logic
@@ -290,13 +276,6 @@ constructor(
 	): L2ReadBoxedOperand =
 		operation.extractFunctionOuter(
 			this, functionRegister, outerIndex, outerType, generator)
-
-	/**
-	 * Given an [L2_SAVE_ALL_AND_PC_TO_INT], extract the edge that leads to the
-	 * code that saves the frame's live state.
-	 */
-	override val referenceOfSaveAll: L2PcOperand
-		get() = L2_SAVE_ALL_AND_PC_TO_INT.referenceOfSaveAll(this)
 
 	/**
 	 * Answer whether this instruction, which occurs at the end of a basic

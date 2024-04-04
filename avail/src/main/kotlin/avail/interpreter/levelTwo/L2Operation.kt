@@ -507,24 +507,6 @@ protected constructor(
 	}
 
 	/**
-	 * If this instruction is an attempt to execute a primitive, answer the
-	 * register into which the primitive's result will be written if successful.
-	 * Otherwise answer `null`.
-	 *
-	 * @param instruction
-	 *   The [L2Instruction] for which the receiver is the `L2Operation`.
-	 * @return
-	 *   The register into which the primitive attempted by this instruction
-	 *   will write its result, or null if the instruction isn't an attempt to
-	 *   run a primitive.
-	 */
-	open fun primitiveResultRegister(
-		instruction: L2Instruction): L2WriteBoxedOperand?
-	{
-		return null
-	}
-
-	/**
 	 * Extract the operands which are [L2PcOperand]s.  These are what lead
 	 * to other [L2BasicBlock]s.  They also carry an edge-specific array
 	 * of slots, and edge-specific [TypeRestriction]s for registers.

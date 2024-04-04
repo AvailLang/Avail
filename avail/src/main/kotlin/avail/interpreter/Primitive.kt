@@ -933,11 +933,11 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		}
 		val writer = generator.boxedWrite(semanticValue, restriction)
 		translator.addInstruction(
-			L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(this),
-			L2ConstantOperand(rawFunction),
-			L2PrimitiveOperand(this),
-			L2ReadBoxedVectorOperand(arguments),
-			writer)
+			L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+				L2ConstantOperand(rawFunction),
+				L2PrimitiveOperand(this),
+				L2ReadBoxedVectorOperand(arguments),
+				writer))
 		when
 		{
 			guaranteedType.isBottom -> generator.addUnreachableCode()
@@ -1053,17 +1053,16 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   invocation.
 	 */
 	open fun emitTransformedInfalliblePrimitive(
-		operation: L2_RUN_INFALLIBLE_PRIMITIVE,
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand,
 		regenerator: L2Regenerator
 	) = regenerator.addInstruction(
-		operation,
-		L2ConstantOperand(rawFunction),
-		L2PrimitiveOperand(this),
-		arguments,
-		result)
+		L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+			L2ConstantOperand(rawFunction),
+			L2PrimitiveOperand(this),
+			arguments,
+			result))
 
 	/**
 	 * A syntactic helper class for [attemptToGenerateTwoIntToIntPrimitive] to

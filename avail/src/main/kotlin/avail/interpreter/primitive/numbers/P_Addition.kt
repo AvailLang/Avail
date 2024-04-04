@@ -71,7 +71,6 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L1Translator.CallSiteHelper
@@ -212,7 +211,6 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		})
 
 	override fun emitTransformedInfalliblePrimitive(
-		operation: L2_RUN_INFALLIBLE_PRIMITIVE,
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand,
@@ -298,7 +296,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			|| !resultRestriction.containedByType(i32))
 		{
 			super.emitTransformedInfalliblePrimitive(
-				operation, rawFunction, arguments, result, regenerator)
+				rawFunction, arguments, result, regenerator)
 			return
 		}
 

@@ -151,7 +151,7 @@ class EditRange constructor(
 
 	override val type: FileActionType = FileActionType.EDIT_RANGE
 
-	override val isTraced: Boolean = true
+	override val isTraced: Boolean get() = true
 }
 
 /**
@@ -179,7 +179,7 @@ class ReplaceContents constructor(val data: ByteArray): FileAction
 
 	override val type: FileActionType = FileActionType.REPLACE_CONTENTS
 
-	override val isTraced: Boolean = true
+	override val isTraced: Boolean get() = true
 }
 
 /**

@@ -58,7 +58,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -122,7 +121,6 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun emitTransformedInfalliblePrimitive(
-		operation: L2_RUN_INFALLIBLE_PRIMITIVE,
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand,
@@ -165,7 +163,6 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 				}
 				// At least we can narrow (possibly) the result type.
 				super.emitTransformedInfalliblePrimitive(
-					operation,
 					rawFunction,
 					arguments,
 					L2WriteBoxedOperand(
@@ -177,7 +174,7 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 			}
 		}
 		super.emitTransformedInfalliblePrimitive(
-			operation, rawFunction, arguments, result, regenerator)
+			rawFunction, arguments, result, regenerator)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

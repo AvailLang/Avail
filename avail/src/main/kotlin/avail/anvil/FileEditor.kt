@@ -92,7 +92,7 @@ abstract class FileEditor<CE> constructor(
 	/**
 	 * Whether to auto save the backing file to disk after changes.
 	 */
-	open val autoSave: Boolean = true
+	open val autoSave: Boolean get() = true
 
 	/**
 	 * When the first edit was after a save, or the first ever.

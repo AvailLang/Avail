@@ -32,13 +32,10 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -51,8 +48,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @ReadsHiddenVariable(LATEST_RETURN_VALUE::class)
-object L2_GET_LATEST_RETURN_VALUE : L2Operation(
-	WRITE_BOXED.named("latest result"))
+class L2_GET_LATEST_RETURN_VALUE(
+	var latestResult: L2WriteBoxedOperand
+): L2NewInstruction()
 {
 	/**
 	 * Technically, it doesn't have a side effect, but it does have a read
@@ -63,27 +61,22 @@ object L2_GET_LATEST_RETURN_VALUE : L2Operation(
 	override val hasSideEffect: Boolean get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val value = instruction.operand<L2WriteBoxedOperand>(0)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(value.registerString())
+		builder.append(latestResult.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2WriteBoxedOperand>(0)
-
 		// :: target = interpreter.getLatestResult();
 		translator.loadInterpreter(method)
 		Interpreter.getLatestResultMethod.generateCall(method)
-		translator.store(method, value.register())
+		translator.store(method, latestResult.register())
 	}
 }

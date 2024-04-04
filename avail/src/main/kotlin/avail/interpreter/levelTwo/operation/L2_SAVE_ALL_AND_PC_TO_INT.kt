@@ -34,15 +34,11 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDumpMethod
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.emptyRegisterDumpField
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.new.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -62,16 +58,15 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
-	PC.named("reference", REFERENCED_AS_INT),
-	WRITE_INT.named("L2 address", SUCCESS),
-	WRITE_BOXED.named("register dump", SUCCESS),
-	PC.named("fall-through", SUCCESS))
+class L2_SAVE_ALL_AND_PC_TO_INT(
+	@On(REFERENCED_AS_INT) var reference: L2PcOperand,
+	@On(SUCCESS) var l2Address: L2WriteIntOperand,
+	@On(SUCCESS) var registerDump: L2WriteBoxedOperand,
+	@On(SUCCESS) var ifFallThrough: L2PcOperand
+): L2NewInstruction()
 {
-	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand>
-	{
-		return listOf(instruction.operand(0), instruction.operand(3))
-	}
+	override val targetEdges: List<L2PcOperand>
+		get() = listOf(reference, ifFallThrough)
 
 	override val hasSideEffect get() = true
 
@@ -98,28 +93,22 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 	 *   Whether multiple branches may be taken following the circumstance of
 	 *   arriving at this instruction.
 	 */
-	override val goesMultipleWays: Boolean
-		get() = true
+	override val goesMultipleWays: Boolean get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val target = instruction.operand<L2PcOperand>(0)
-		val targetAsInt = instruction.operand<L2WriteIntOperand>(1)
-		val registerDump = instruction.operand<L2WriteBoxedOperand>(2)
-		//		final L2PcOperand fallThrough = instruction.operand(3);
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(targetAsInt)
+		builder.append(l2Address)
 		builder.append(" ← address of label $[")
-		builder.append(target.targetBlock().name())
+		builder.append(reference.targetBlock().name())
 		builder.append("]")
-		if (target.offset() != -1)
+		if (reference.offset() != -1)
 		{
-			builder.append("(=").append(target.offset()).append(")")
+			builder.append("(=").append(reference.offset()).append(")")
 		}
 		builder.append(",\n\tdump registers ")
 		builder.append(registerDump)
@@ -127,14 +116,9 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val target = instruction.operand<L2PcOperand>(0)
-		val targetAsInt = instruction.operand<L2WriteIntOperand>(1)
-		val registerDump = instruction.operand<L2WriteBoxedOperand>(2)
-		val fallThrough = instruction.operand<L2PcOperand>(3)
-		if (target.createAndPushRegisterDumpArrays(translator, method, true))
+		if (reference.createAndPushRegisterDumpArrays(translator, method, true))
 		{
 			// :: [AvailObject[], long[]]
 			createRegisterDumpMethod.generateCall(method)
@@ -147,28 +131,10 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		// :: [registerDump]
 		translator.store(method, registerDump.register())
 		// :: []
-		translator.intConstant(method, target.offset())
-		translator.store(method, targetAsInt.register())
+		translator.intConstant(method, reference.offset())
+		translator.store(method, l2Address.register())
 
 		// Jump is usually elided.
-		translator.jumpOrFallThrough(method, fallThrough)
-	}
-
-	/**
-	 * From the given [L2Instruction], extract the [edge][L2PcOperand] that
-	 * indicates the L2 offset to capture as an [Int] in the second argument.
-	 * The conversion of the edge to an int occurs very late, in
-	 * [translateToJVM], as does the decision about which registers should be
-	 * captured in the register dump – and restored when the [L2_ENTER_L2_CHUNK]
-	 * at the referenced edge's target is reached.
-	 *
-	 * @param instruction
-	 *   The instruction from which to extract the reference edge.
-	 * @return
-	 *   The referenced [edge][L2PcOperand].
-	 */
-	fun referenceOfSaveAll(instruction: L2Instruction): L2PcOperand
-	{
-		return instruction.operand(0)
+		translator.jumpOrFallThrough(method, ifFallThrough)
 	}
 }

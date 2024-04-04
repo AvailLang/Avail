@@ -142,13 +142,14 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 				val resultType = primitive.returnTypeGuaranteedByVM(
 					rawFunction, argumentTypes)
 				regenerator.addInstruction(
-					L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(primitive),
-					L2ConstantOperand(rawFunction),
-					L2PrimitiveOperand(primitive),
-					arguments,
-					regenerator.boxedWrite(
-						result.semanticValues(),
-						result.restriction().intersectionWithType(resultType)))
+					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+						L2ConstantOperand(rawFunction),
+						L2PrimitiveOperand(primitive),
+						arguments,
+						regenerator.boxedWrite(
+							result.semanticValues(),
+							result.restriction()
+								.intersectionWithType(resultType))))
 				// Don't forget to jump to the onReturn edge's target.
 				regenerator.jumpTo(ifReturn.targetBlock())
 				return

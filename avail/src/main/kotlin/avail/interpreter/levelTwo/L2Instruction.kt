@@ -304,12 +304,6 @@ abstract class L2Instruction
 	abstract val isEntryPoint: Boolean
 
 	/**
-	 * Answer true if this instruction runs an infallible primitive, otherwise
-	 * false.
-	 */
-	abstract val isRunInfalliblePrimitive: Boolean
-
-	/**
 	 * Answer whether this instruction extracts the tag ordinal from some value.
 	 */
 	abstract val isExtractTagOrdinal: Boolean
@@ -326,12 +320,6 @@ abstract class L2Instruction
 
 	/** Answer whether this instruction gets the type of a value. */
 	abstract val isGetType: Boolean
-
-	/** Answer whether this instruction is a re-entry point. */
-	abstract val isEnterL2Chunk: Boolean
-
-	/** Answer whether this instruction is the main entry point. */
-	abstract val isEnterL2ChunkForCall: Boolean
 
 	/**
 	 * Answer whether this instruction performs the given infallible bit-logic
@@ -423,12 +411,6 @@ abstract class L2Instruction
 		outerType: A_Type,
 		generator: L2Generator
 	): L2ReadBoxedOperand
-
-	/**
-	 * Given an [L2_SAVE_ALL_AND_PC_TO_INT], extract the edge that leads to the
-	 * code that saves the frame's live state.
-	 */
-	abstract val referenceOfSaveAll: L2PcOperand
 
 	/**
 	 * Answer whether this instruction, which occurs at the end of a basic

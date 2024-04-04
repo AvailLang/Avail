@@ -32,12 +32,8 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2Operand
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -48,32 +44,26 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_CLEAR_VARIABLE : L2Operation(
-	READ_BOXED.named("variable"))
+class L2_CLEAR_VARIABLE(
+	var variable: L2ReadBoxedOperand
+): L2NewInstruction()
 {
-	override val hasSideEffect: Boolean
-		get() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val variableReg = instruction.operand<L2Operand>(0)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(variableReg)
+		builder.append(variable)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val variable =
-			instruction.operand<L2ReadBoxedOperand>(0)
-
 		// TODO: [TLS/MvG] clearValue() can throw VariableSetException. Deal.
 		// :: variable.clearValue();
 		translator.load(method, variable.register())

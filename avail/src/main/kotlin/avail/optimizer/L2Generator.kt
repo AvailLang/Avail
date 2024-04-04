@@ -130,6 +130,7 @@ import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_FLOAT
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_INT
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
@@ -786,11 +787,11 @@ class L2Generator internal constructor(
 				val newWrite = boxedWriteTemp(
 					boxedRestrictionForType(tupleTypeForTypesList(typesList)))
 				addInstruction(
-					L2_TUPLE_AT_UPDATE,
-					latestRead,
-					L2IntImmediateOperand(zeroIndex + 1),
-					read,
-					newWrite)
+					L2_TUPLE_AT_UPDATE(
+						latestRead,
+						L2IntImmediateOperand(zeroIndex + 1),
+						read,
+						newWrite))
 				latestRead = readBoxed(newWrite)
 			}
 		}
@@ -1121,7 +1122,7 @@ class L2Generator internal constructor(
 			val boolSource = registerToTest.definitionSkippingMoves()
 			when
 			{
-				!boolSource.isRunInfalliblePrimitive ->
+				boolSource !is L2_RUN_INFALLIBLE_PRIMITIVE ->
 				{
 				}
 				primitiveOf(boolSource) === P_Equality ->

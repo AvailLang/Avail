@@ -211,7 +211,7 @@ abstract class AbstractWorkbenchTreeNode internal constructor(
 	 * Whether this [AbstractWorkbenchTreeNode] represent an Avail module
 	 * that is actively being [built][BuildTask].
 	 */
-	open val isBuilding: Boolean = false
+	open val isBuilding: Boolean get() = false
 
 	/**
 	 * Sort the direct children of this node.  The default sort order is

@@ -34,21 +34,15 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.Companion.PRIMITIVE
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -76,18 +70,22 @@ import org.objectweb.asm.MethodVisitor
  * @constructor
  * Construct an `L2_RUN_INFALLIBLE_PRIMITIVE`.
  */
-abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
-) : L2Operation(
-	CONSTANT.named("raw function"),  // Used for inlining/reoptimization.
-	PRIMITIVE.named("primitive to run"),
-	READ_BOXED_VECTOR.named("arguments"),
-	WRITE_BOXED.named("primitive result"))
+sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
+	var rawFunction: L2ConstantOperand,
+	var primitive: L2PrimitiveOperand,
+	var arguments: L2ReadBoxedVectorOperand,
+	var result: L2WriteBoxedOperand
+): L2NewInstruction()
 {
 	/** The subclass for primitives that have no global dependency. */
 	@WritesHiddenVariable(
 		LATEST_RETURN_VALUE::class)
-	private class L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency
-		: L2_RUN_INFALLIBLE_PRIMITIVE()
+	private class L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency(
+		rawFunction: L2ConstantOperand,
+		primitive: L2PrimitiveOperand,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand
+	): L2_RUN_INFALLIBLE_PRIMITIVE(rawFunction, primitive, arguments, result)
 
 	/** The subclass for primitives that have global read dependency. */
 	@ReadsHiddenVariable(
@@ -96,8 +94,12 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
 		LATEST_RETURN_VALUE::class)
-	private class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency
-		: L2_RUN_INFALLIBLE_PRIMITIVE()
+	private class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency(
+		rawFunction: L2ConstantOperand,
+		primitive: L2PrimitiveOperand,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand
+	): L2_RUN_INFALLIBLE_PRIMITIVE(rawFunction, primitive, arguments, result)
 
 	/** The subclass for primitives that have global write dependency. */
 	@WritesHiddenVariable(
@@ -105,8 +107,12 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 		CURRENT_FUNCTION::class,
 		LATEST_RETURN_VALUE::class,
 		GLOBAL_STATE::class)
-	private class L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency
-		: L2_RUN_INFALLIBLE_PRIMITIVE()
+	private class L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency(
+		rawFunction: L2ConstantOperand,
+		primitive: L2PrimitiveOperand,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand
+	): L2_RUN_INFALLIBLE_PRIMITIVE(rawFunction, primitive, arguments, result)
 
 	/** The subclass for primitives that have global read/write dependency. */
 	@ReadsHiddenVariable(
@@ -116,43 +122,34 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 		CURRENT_FUNCTION::class,
 		LATEST_RETURN_VALUE::class,
 		GLOBAL_STATE::class)
-	private class L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency
-		: L2_RUN_INFALLIBLE_PRIMITIVE()
+	private class L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency(
+		rawFunction: L2ConstantOperand,
+		primitive: L2PrimitiveOperand,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand
+	): L2_RUN_INFALLIBLE_PRIMITIVE(rawFunction, primitive, arguments, result)
 
-	override fun hasSideEffect(instruction: L2Instruction): Boolean
-	{
-		// It depends on the primitive.
-		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
-		val primitive = instruction.operand<L2PrimitiveOperand>(1)
-		//val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
-		//val result = instruction.operand<L2WriteBoxedOperand>(3)
-		val prim = primitive.primitive
-		return (prim.hasFlag(Flag.HasSideEffect)
-			|| prim.hasFlag(Flag.CatchException)
-			|| prim.hasFlag(Flag.Invokes)
-			|| prim.hasFlag(Flag.CanSwitchContinuations)
-			|| prim.hasFlag(Flag.ReadsFromHiddenGlobalState)
-			|| prim.hasFlag(Flag.WritesToHiddenGlobalState)
-			|| prim.hasFlag(Flag.Unknown))
-	}
-
-	override fun primitiveResultRegister(
-		instruction: L2Instruction): L2WriteBoxedOperand?
-	{
-		return instruction.operand(3)
-	}
+	/** It depends on the primitive. */
+	override val hasSideEffect: Boolean
+		get()
+		{
+			val prim = primitive.primitive
+			return (prim.hasFlag(Flag.HasSideEffect)
+				|| prim.hasFlag(Flag.CatchException)
+				|| prim.hasFlag(Flag.Invokes)
+				|| prim.hasFlag(Flag.CanSwitchContinuations)
+				|| prim.hasFlag(Flag.ReadsFromHiddenGlobalState)
+				|| prim.hasFlag(Flag.WritesToHiddenGlobalState)
+				|| prim.hasFlag(Flag.Unknown))
+		}
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
-		val primitive = instruction.operand<L2PrimitiveOperand>(1)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
-		val result = instruction.operand<L2WriteBoxedOperand>(3)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append("\n\t")
 		builder.append(result.registerString())
 		builder.append(" ← ")
@@ -162,17 +159,13 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 		builder.append(')')
 	}
 
+	/**
+	 * Give the primitive another chance to produce something more specific
+	 * than a basic infallible primitive invocation.
+	 */
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		// Give the primitive another chance to produce something more specific
-		// than a basic infallible primitive invocation.
-		val rawFunction = transformedOperands[0] as L2ConstantOperand
-		val primitive = transformedOperands[1] as L2PrimitiveOperand
-		val arguments = transformedOperands[2] as L2ReadBoxedVectorOperand
-		val result = transformedOperands[3] as L2WriteBoxedOperand
-
 		val strongerResultType =
 			primitive.primitive.returnTypeGuaranteedByVM(
 				rawFunction.constant,
@@ -196,18 +189,11 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 			}
 		}
 		primitive.primitive.emitTransformedInfalliblePrimitive(
-			this, rawFunction.constant, arguments, strongerResult, regenerator)
+			rawFunction.constant, arguments, strongerResult, regenerator)
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
+	override fun interestingConditions(): List<L2SplitCondition?>
 	{
-		val rawFunction = instruction.operand<L2ConstantOperand>(0)
-		val primitive = instruction.operand<L2PrimitiveOperand>(1)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
-		//val result = instruction.operand<L2WriteBoxedOperand>(3)
-
 		return primitive.primitive.interestingSplitConditions(
 			arguments.elements,
 			rawFunction.constant)
@@ -215,35 +201,14 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
-		val primitive = instruction.operand<L2PrimitiveOperand>(1)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
-		val result = instruction.operand<L2WriteBoxedOperand>(3)
 		primitive.primitive.generateJvmCode(
 			translator, method, arguments, result)
 	}
 
 	companion object
 	{
-		/** An instance for no global dependencies. */
-		private val noDependency: L2_RUN_INFALLIBLE_PRIMITIVE =
-			L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency()
-
-		/** An instance for global read dependencies. */
-		private val readDependency: L2_RUN_INFALLIBLE_PRIMITIVE =
-			L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency()
-
-		/** An instance for global write dependencies. */
-		private val writeDependency: L2_RUN_INFALLIBLE_PRIMITIVE =
-			L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency()
-
-		/** An instance for global read/write dependencies. */
-		private val readWriteDependency: L2_RUN_INFALLIBLE_PRIMITIVE =
-			L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency()
-
 		/**
 		 * Select an appropriate variant of the operation for the supplied
 		 * [Primitive], based on its global interference declarations.
@@ -254,24 +219,36 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor(
 		 *   A suitable `L2_RUN_INFALLIBLE_PRIMITIVE` instance.
 		 */
 		@JvmStatic
-		fun forPrimitive(primitive: Primitive): L2_RUN_INFALLIBLE_PRIMITIVE
+		fun createInstruction(
+			rawFunction: L2ConstantOperand,
+			primitive: L2PrimitiveOperand,
+			arguments: L2ReadBoxedVectorOperand,
+			result: L2WriteBoxedOperand
+		): L2_RUN_INFALLIBLE_PRIMITIVE
 		{
 			// Until we have all primitives annotated with global read/write
 			// flags, pay attention to other flags that we expect to prevent
 			// commutation of invocations.
-			if (primitive.hasFlag(Flag.HasSideEffect)
-				|| primitive.hasFlag(Flag.Unknown))
+			val prim = primitive.primitive
+			if (prim.hasFlag(Flag.HasSideEffect)
+				|| prim.hasFlag(Flag.Unknown))
 			{
-				return readWriteDependency
+				return L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency(
+					rawFunction, primitive, arguments, result)
 			}
-			val read = primitive.hasFlag(Flag.ReadsFromHiddenGlobalState)
-			val write = primitive.hasFlag(Flag.WritesToHiddenGlobalState)
+			val read = prim.hasFlag(Flag.ReadsFromHiddenGlobalState)
+			val write = prim.hasFlag(Flag.WritesToHiddenGlobalState)
 			return when
 			{
-				read && write -> readWriteDependency
-				read -> readDependency
-				write -> writeDependency
-				else -> noDependency
+				read && write ->
+					L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency(
+						rawFunction, primitive, arguments, result)
+				read -> L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency(
+					rawFunction, primitive, arguments, result)
+				write -> L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency(
+					rawFunction, primitive, arguments, result)
+				else -> L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency(
+					rawFunction, primitive, arguments, result)
 			}
 		}
 

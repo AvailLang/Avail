@@ -108,7 +108,6 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 	}
 
 	override fun emitTransformedInfalliblePrimitive(
-		operation: L2_RUN_INFALLIBLE_PRIMITIVE,
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand,
@@ -137,25 +136,21 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 				// We've deduced the possible sizes of the set of instances.  We
 				// also proved it's finite, so the primitive won't fail.
 				regenerator.addInstruction(
-					L2_RUN_INFALLIBLE_PRIMITIVE.forPrimitive(this),
-					L2ConstantOperand(rawFunction),
-					L2PrimitiveOperand(this),
-					arguments,
-					regenerator.boxedWrite(
-						result.semanticValues(),
-						result.restriction().intersectionWithType(
-							setTypeForSizesContentType(
-								countRange,
-								argument.restriction().type))))
+					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+						L2ConstantOperand(rawFunction),
+						L2PrimitiveOperand(this),
+						arguments,
+						regenerator.boxedWrite(
+							result.semanticValues(),
+							result.restriction().intersectionWithType(
+								setTypeForSizesContentType(
+									countRange,
+									argument.restriction().type)))))
 				return
 			}
 		}
 		super.emitTransformedInfalliblePrimitive(
-			operation,
-			rawFunction,
-			arguments,
-			result,
-			regenerator)
+			rawFunction, arguments, result, regenerator)
 	}
 
 	override fun fallibilityForArgumentTypes(

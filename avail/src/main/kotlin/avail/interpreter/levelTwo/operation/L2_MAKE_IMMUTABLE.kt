@@ -33,13 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2Operand
+import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2Generator
@@ -63,12 +58,12 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_MAKE_IMMUTABLE : L2Operation(
-	READ_BOXED.named("input"),
-	WRITE_BOXED.named("output"))
+class L2_MAKE_IMMUTABLE(
+	var input: L2ReadBoxedOperand,
+	var output: L2WriteBoxedOperand
+): L2NewInstruction()
 {
 	override fun extractFunctionOuter(
-		instruction: L2Instruction,
 		functionRegister: L2ReadBoxedOperand,
 		outerIndex: Int,
 		outerType: A_Type,
@@ -80,22 +75,18 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		val read = instruction.operand<L2ReadBoxedOperand>(0)
-		val write = instruction.operand<L2WriteBoxedOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(write.registerString())
+		builder.append(output.registerString())
 		builder.append(" ← ")
-		builder.append(read.registerString())
+		builder.append(input.registerString())
 	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
 		// The make-immutable instruction should only be inserted near the end
@@ -105,15 +96,11 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val read = instruction.operand<L2ReadBoxedOperand>(0)
-		val write = instruction.operand<L2WriteBoxedOperand>(1)
-
 		// :: output = input.makeImmutable();
-		translator.load(method, read.register())
+		translator.load(method, input.register())
 		A_BasicObject.makeImmutableMethod.generateCall(method)
-		translator.store(method, write.register())
+		translator.store(method, output.register())
 	}
 }

@@ -59,7 +59,6 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.reoptimizer.L2Regenerator
 
@@ -131,7 +130,6 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun emitTransformedInfalliblePrimitive(
-		operation: L2_RUN_INFALLIBLE_PRIMITIVE,
 		rawFunction: A_RawFunction,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand,
@@ -145,7 +143,7 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 			// it could be a choice between multiple atoms that are known to be
 			// fields of the object.  Fall back.
 			super.emitTransformedInfalliblePrimitive(
-				operation, rawFunction, arguments, result, regenerator)
+				rawFunction, arguments, result, regenerator)
 			return
 		}
 		objectRead.constantOrNull()?.let { exactObject ->

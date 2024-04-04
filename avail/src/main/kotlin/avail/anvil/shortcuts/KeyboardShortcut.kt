@@ -150,7 +150,7 @@ abstract class KeyboardShortcut: BaseKeyboardShortcut
 	/**
 	 * This [KeyboardShortcut] is permitted to customized for an environment.
 	 */
-	open val customizable: Boolean = true
+	open val customizable: Boolean get() = true
 
 	/**
 	 * The description of the action the shortcut performs.
