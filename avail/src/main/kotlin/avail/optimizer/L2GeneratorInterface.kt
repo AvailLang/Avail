@@ -37,8 +37,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -151,19 +149,6 @@ interface L2GeneratorInterface
 	 * code generation position.
 	 */
 	fun restrictionFor(semanticValue: L2SemanticValue<*>): TypeRestriction
-
-	/**
-	 * Create and add an [L2Instruction] with the given [L2Operation] and
-	 * variable number of [L2Operand]s.
-	 *
-	 * @param operation
-	 *   The operation to invoke.
-	 * @param operands
-	 *   The operands of the instruction.
-	 */
-	fun addInstruction(
-		operation: L2Operation,
-		vararg operands: L2Operand)
 
 	/**
 	 * Add an [L2Instruction].

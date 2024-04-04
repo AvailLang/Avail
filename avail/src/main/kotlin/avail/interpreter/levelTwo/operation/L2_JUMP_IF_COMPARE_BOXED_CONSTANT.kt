@@ -36,7 +36,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -71,7 +71,7 @@ class L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
 	var constant: L2ConstantOperand,
 	@On(SUCCESS) var ifTrue: L2PcOperand,
 	@On(FAILURE) var ifFalse: L2PcOperand
-) : L2NewConditionalJump()
+) : L2ConditionalJump()
 {
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
@@ -97,10 +97,9 @@ class L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
 	}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit
-	) = with(builder)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit) = with(builder)
 	{
 		renderPreamble(builder)
 		append(' ')

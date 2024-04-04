@@ -31,28 +31,24 @@
  */
 package avail.interpreter.levelTwo
 
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable
 import avail.optimizer.L2Optimizer
 import kotlin.reflect.KClass
 
 /**
- * `WritesHiddenVariable` indicates that an [L2Instruction] using
- * the annotated [L2Operation] will finish by writing to a particular kind
- * of [HiddenVariable](s). This annotation is used to restrict code
- * motion by the [L2Optimizer].
+ * [WritesHiddenVariable] indicates that an [L2Instruction] will finish by
+ * writing to particular kinds of [HiddenVariable]s. This annotation is used to
+ * restrict code motion by the [L2Optimizer].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @property value
- *   The classes of [HiddenVariable] written by an [L2Instruction] using the
- *   annotated [L2Operation].
+ *   The classes of [HiddenVariable] written by an [L2Instruction].
  *
  * @constructor
  *   Construct a [WritesHiddenVariable].
  *
  * @param value
- *   The classes of [HiddenVariable] written by an [L2Instruction] using the
- *   annotated [L2Operation].
+ *   The classes of [HiddenVariable] written by an [L2Instruction].
  */
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)

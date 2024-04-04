@@ -32,15 +32,9 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -54,43 +48,35 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_GET_OBJECT_FIELD : L2Operation(
-	READ_BOXED.named("object"),
-	CONSTANT.named("field atom"),
-	WRITE_BOXED.named("field value"))
+class L2_GET_OBJECT_FIELD(
+	var sourceObject: L2ReadBoxedOperand,
+	var fieldAtom: L2ConstantOperand,
+	var fieldValue: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
-		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
-		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(fieldValue.registerString())
 		builder.append(" ← ")
-		builder.append(objectRead)
+		builder.append(sourceObject)
 		builder.append("[")
 		builder.append(fieldAtom)
 		builder.append("]")
 	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
 		// Strengthen the field value's type in case the incoming object type
 		// is now stronger, perhaps due to code splitting.
-		val objectRead = transformedOperands[0] as L2ReadBoxedOperand
-		val fieldAtom = transformedOperands[1] as L2ConstantOperand
-		val fieldValue = transformedOperands[2] as L2WriteBoxedOperand
-
 		val manifest = regenerator.currentManifest
-		val objectRestriction = objectRead.restriction().intersection(
-			manifest.restrictionFor(objectRead.semanticValue()))
+		val objectRestriction = sourceObject.restriction().intersection(
+			manifest.restrictionFor(sourceObject.semanticValue()))
 		val objectType = objectRestriction.type
 		val fieldType = objectType.fieldTypeAt(fieldAtom.constant)
 		val newFieldRestriction =
@@ -99,22 +85,16 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 			fieldValue.semanticValues(),
 			newFieldRestriction,
 			fieldValue.register())
-		super.emitTransformedInstruction(
-			arrayOf(objectRead, fieldAtom, newFieldWrite),
-			regenerator)
+		regenerator.addInstruction(
+			L2_GET_OBJECT_FIELD(sourceObject, fieldAtom, newFieldWrite))
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
-		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
-		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
-
-		translator.load(method, objectRead.register())
-		val variants = objectRead.restriction().positiveGroup.objectVariants
+		translator.load(method, sourceObject.register())
+		val variants = sourceObject.restriction().positiveGroup.objectVariants
 		val indices = variants
 			?.mapToSet { it.fieldToSlotIndex[fieldAtom.constant]!! }
 		if (indices.notNullAnd { size == 1 })

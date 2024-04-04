@@ -35,9 +35,9 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
+import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -67,7 +67,7 @@ class L2_REIFY(
 	var processInterrupt: L2IntImmediateOperand,
 	var statistic: L2ArbitraryConstantOperand,
 	@On(OFF_RAMP) var ifReification: L2PcOperand
-) : L2NewControlFlowInstruction()
+) : L2ControlFlowInstruction()
 {
 	override val isCold get() = true
 
@@ -120,9 +120,9 @@ class L2_REIFY(
 	}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		val statistic = statistic.constant as Statistic
 		renderPreamble(builder)
@@ -145,7 +145,7 @@ class L2_REIFY(
 			}
 			builder.append(']')
 		}
-		if (PC in desiredTypes)
+		if (PC in desiredOperandTypes)
 		{
 			builder.append("\n\t")
 			builder.append(::ifReification.name)

@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo
 
 /**
  * `HiddenVariableShift` provides the amount to shift `1` to the left to get the
- * mask for a [L2Operation.HiddenVariable] subclass.
+ * mask for a [HiddenVariable] subclass.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *

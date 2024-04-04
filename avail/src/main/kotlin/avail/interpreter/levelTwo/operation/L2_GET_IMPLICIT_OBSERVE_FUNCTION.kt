@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.AvailRuntime
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
@@ -49,15 +49,15 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_GET_IMPLICIT_OBSERVE_FUNCTION(
 	var implicitObserveFunction: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	// Keep this instruction pinned in place for safety during inlining.
 	override val hasSideEffect: Boolean get() = true
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

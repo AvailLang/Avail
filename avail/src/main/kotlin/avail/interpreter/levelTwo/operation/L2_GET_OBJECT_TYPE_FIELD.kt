@@ -32,13 +32,8 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -55,25 +50,22 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_GET_OBJECT_TYPE_FIELD : L2Operation(
-	READ_BOXED.named("object type"),
-	CONSTANT.named("field atom"),
-	WRITE_BOXED.named("field type"))
+class L2_GET_OBJECT_TYPE_FIELD(
+	var objectType: L2ReadBoxedOperand,
+	var fieldAtom: L2ConstantOperand,
+	var fieldType: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		val objectTypeRead = instruction.operand<L2ReadBoxedOperand>(0)
-		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
-		val fieldTypeWrite = instruction.operand<L2WriteBoxedOperand>(2)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(fieldTypeWrite.registerString())
+		builder.append(fieldType.registerString())
 		builder.append(" ← ")
-		builder.append(objectTypeRead)
+		builder.append(objectType)
 		builder.append("[")
 		builder.append(fieldAtom)
 		builder.append("]")
@@ -81,16 +73,10 @@ object L2_GET_OBJECT_TYPE_FIELD : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val objectTypeRead = instruction.operand<L2ReadBoxedOperand>(0)
-		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
-		val fieldTypeWrite = instruction.operand<L2WriteBoxedOperand>(2)
-
-		translator.load(method, objectTypeRead.register())
-		val variants =
-			objectTypeRead.restriction().positiveGroup.objectTypeVariants
+		translator.load(method, objectType.register())
+		val variants = objectType.restriction().positiveGroup.objectTypeVariants
 		if (variants.notNullAnd { distinctBy { it.variantId }.size == 1 })
 		{
 			// The field index is the same for every variant possible at this
@@ -105,6 +91,6 @@ object L2_GET_OBJECT_TYPE_FIELD : L2Operation(
 			translator.literal(method, fieldAtom.constant)
 			AvailObject.fieldTypeAtMethod.generateCall(method)
 		}
-		translator.store(method, fieldTypeWrite.register())
+		translator.store(method, fieldType.register())
 	}
 }

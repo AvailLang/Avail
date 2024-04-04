@@ -31,7 +31,6 @@
  */
 package avail.optimizer
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.register.RegisterKind
 
 /**

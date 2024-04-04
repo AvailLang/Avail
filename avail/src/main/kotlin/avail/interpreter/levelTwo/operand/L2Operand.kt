@@ -31,9 +31,9 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ValueManifest

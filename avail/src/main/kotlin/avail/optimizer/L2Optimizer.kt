@@ -35,7 +35,6 @@ import avail.AvailRuntimeSupport
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -782,9 +781,10 @@ class L2Optimizer internal constructor(
 
 	/**
 	 * Find any remaining occurrences of [L2_VIRTUAL_CREATE_LABEL], or any other
-	 * [L2Instruction] using an [L2Operation] that says it
-	 * [L2Operation.isPlaceholder].  This happens in a fresh control flow graph,
-	 * as part of the injected behavior of an [L2Regenerator].
+	 * [L2Instruction] that says it is a
+	 * [placeholder][L2Instruction.isPlaceholder]. This happens in a fresh
+	 * control flow graph, as part of the injected behavior of an
+	 * [L2Regenerator].
 	 */
 	fun replacePlaceholderInstructions()
 	{

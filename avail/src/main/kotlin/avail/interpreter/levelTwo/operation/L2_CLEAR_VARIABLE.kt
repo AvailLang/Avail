@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -46,14 +46,14 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_CLEAR_VARIABLE(
 	var variable: L2ReadBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

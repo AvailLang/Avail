@@ -54,7 +54,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
 import avail.optimizer.L1Translator.CallSiteHelper
 import kotlin.math.min
 
@@ -141,7 +141,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			callSiteHelper.useAnswer(generator.boxedConstant(bound.lowerBound))
 			return true
 		}
-		return L2_BIT_LOGIC_OP.bitwiseAnd.generateBinaryIntOperation(
+		return And.generateBinaryIntOperation(
 			arguments,
 			argumentTypes,
 			callSiteHelper,

@@ -149,9 +149,9 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		val write = generator.boxedWrite(
 			semanticResult, boxedRestrictionForType(restriction))
 		generator.addInstruction(
-			L2_CREATE_SET,
-			L2ReadBoxedVectorOperand(elementRegs),
-			write)
+			L2_CREATE_SET(
+				L2ReadBoxedVectorOperand(elementRegs),
+				write))
 		callSiteHelper.useAnswer(translator.readBoxed(write))
 		return true
 	}

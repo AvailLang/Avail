@@ -37,7 +37,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -57,12 +57,12 @@ class L2_JUMP_IF_UNBOX_FLOAT(
 	@On(SUCCESS) var destination: L2WriteFloatOperand,
 	@On(FAILURE) var ifNotUnboxed: L2PcOperand,
 	@On(SUCCESS) var ifUnboxed: L2PcOperand
-): L2NewConditionalJump()
+): L2ConditionalJump()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

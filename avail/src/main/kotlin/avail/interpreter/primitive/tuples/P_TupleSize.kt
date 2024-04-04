@@ -107,10 +107,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 				// will be eliminated later.
 				val restriction = intRestrictionForType(returnType)
 				val writer = generator.intWriteTemp(restriction)
-				generator.addInstruction(
-					L2_TUPLE_SIZE,
-					tupleReg,
-					writer)
+				generator.addInstruction(L2_TUPLE_SIZE(tupleReg, writer))
 				callSiteHelper.useAnswer(
 					generator.readBoxed(writer.onlySemanticValue().base))
 			}

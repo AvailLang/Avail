@@ -98,7 +98,7 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val restriction = intRestrictionForType(returnType)
 		val writer = generator.intWriteTemp(restriction)
-		generator.addInstruction(L2_HASH, valueReg, writer)
+		generator.addInstruction(L2_HASH(valueReg, writer))
 		callSiteHelper.useAnswer(
 			generator.readBoxed(writer.onlySemanticValue().base))
 		return true

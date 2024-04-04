@@ -37,6 +37,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
+import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
+import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
+import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
+import avail.interpreter.levelTwo.operation.L2_HASH
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -295,10 +299,10 @@ sealed class L2SplitCondition
 							def is L2_UNBOX_INT ||
 							def is L2_UNBOX_FLOAT ||
 							def is L2_JUMP_IF_UNBOX_INT ||
-							def.isHash ||
-							def.isExtractTagOrdinal ||
-							def.isExtractObjectVariantId ||
-							def.isExtractObjectTypeVariantId
+							def is L2_HASH ||
+							def is L2_EXTRACT_TAG_ORDINAL ||
+							def is L2_EXTRACT_OBJECT_VARIANT_ID ||
+							def is L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
 								-> def.readOperands
 							else -> emptyList()
 						}

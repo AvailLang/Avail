@@ -33,7 +33,6 @@ package avail.optimizer.jvm
 
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator

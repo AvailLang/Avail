@@ -36,7 +36,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -65,12 +65,12 @@ class L2_CREATE_CONTINUATION(
 	var labelAddress: L2ReadIntOperand,
 	var registerDump: L2ReadBoxedOperand,
 	var comment: L2CommentOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

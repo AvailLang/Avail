@@ -34,9 +34,9 @@ package avail.interpreter.levelTwo.operation
 import avail.AvailRuntime
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
@@ -53,7 +53,7 @@ import org.objectweb.asm.MethodVisitor
 @ReadsHiddenVariable(GLOBAL_STATE::class)
 class L2_GET_INVALID_MESSAGE_SEND_FUNCTION(
 	var invalidMessageSendFunction: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	/**
 	 * Fetching this hook function is sufficient to disable code splitting along
@@ -64,9 +64,9 @@ class L2_GET_INVALID_MESSAGE_SEND_FUNCTION(
 	override val isCold get() = true
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

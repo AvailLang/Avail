@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2Generator
@@ -61,7 +61,7 @@ import org.objectweb.asm.MethodVisitor
 class L2_MAKE_IMMUTABLE(
 	var input: L2ReadBoxedOperand,
 	var output: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override fun extractFunctionOuter(
 		functionRegister: L2ReadBoxedOperand,
@@ -75,9 +75,9 @@ class L2_MAKE_IMMUTABLE(
 	}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

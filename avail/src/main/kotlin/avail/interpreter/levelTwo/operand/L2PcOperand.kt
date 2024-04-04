@@ -35,10 +35,10 @@ import avail.descriptor.functions.ContinuationRegisterDumpDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.bitCastDoubleToLongMethod
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_JUMP
@@ -173,7 +173,8 @@ class L2PcOperand constructor (
 	}
 
 	override fun instructionWasInserted(
-		newInstruction: L2Instruction)
+		newInstruction: L2Instruction
+	)
 	{
 		super.instructionWasInserted(newInstruction)
 		newInstruction.basicBlock().addSuccessorEdge(this)

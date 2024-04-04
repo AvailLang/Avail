@@ -265,10 +265,10 @@ constructor(
 			P_PhraseExpressionType,
 			listOf(baseSemanticValue))
 		generator.addInstruction(
-			L2_GET_PHRASE_EXPRESSION_TYPE,
-			generator.readBoxed(baseSemanticValue),
-			generator.boxedWrite(
-				expressionTypeSemanticValue, expressionTypeRestriction))
+			L2_GET_PHRASE_EXPRESSION_TYPE(
+				generator.readBoxed(baseSemanticValue),
+				generator.boxedWrite(
+					expressionTypeSemanticValue, expressionTypeRestriction)))
 		val target = L2BasicBlock("after extracting field")
 		generator.jumpTo(target)
 		return listOf(

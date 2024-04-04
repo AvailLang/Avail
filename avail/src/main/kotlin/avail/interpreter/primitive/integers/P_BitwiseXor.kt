@@ -58,7 +58,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Xor
 import avail.optimizer.L1Translator
 import kotlin.math.min
 
@@ -139,7 +139,7 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
 		callSiteHelper: L1Translator.CallSiteHelper
-	): Boolean = L2_BIT_LOGIC_OP.bitwiseXor.generateBinaryIntOperation(
+	): Boolean = Xor.generateBinaryIntOperation(
 		arguments,
 		argumentTypes,
 		callSiteHelper,

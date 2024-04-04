@@ -80,9 +80,7 @@ import avail.interpreter.execution.Interpreter.Companion.optionalReifierIfCanSwi
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -1413,8 +1411,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * splitting to avoid erasing that information prematurely through a control
 	 * flow merge.
 	 *
-	 * @param instruction
-	 *   The [L2Instruction] holding this [L2Operation].
 	 * @return
 	 *   The [List] of [L2SplitCondition]s which would be profitable to preserve
 	 *   upstream.

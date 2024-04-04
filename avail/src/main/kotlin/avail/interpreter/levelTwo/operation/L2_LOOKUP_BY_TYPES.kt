@@ -65,7 +65,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2SelectorOperand
@@ -98,7 +98,7 @@ class L2_LOOKUP_BY_TYPES(
 	@On(FAILURE) var errorCode: L2WriteBoxedOperand,
 	@On(SUCCESS) var ifLookupSucceeded: L2PcOperand,
 	@On(FAILURE) var ifLookupFailed: L2PcOperand
-) : L2NewControlFlowInstruction()
+) : L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
 

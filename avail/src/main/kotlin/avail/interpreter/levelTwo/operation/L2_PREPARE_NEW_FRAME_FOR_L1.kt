@@ -46,7 +46,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -74,7 +74,7 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_PREPARE_NEW_FRAME_FOR_L1(
-): L2NewInstruction()
+): L2Instruction()
 {
 	override val hasSideEffect get() = true
 

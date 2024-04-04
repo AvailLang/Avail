@@ -941,7 +941,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				val escapableStart = length
 				if (visualizeRegisterDescriptions)
 				{
-					instruction.appendToWithWarnings(desiredTypes, this) { }
+					instruction.appendToWithWarnings(this, desiredTypes) { }
 				}
 				else
 				{
@@ -968,7 +968,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			else
 			{
 				// Use a simplified instruction output.
-				instruction.simpleAppendTo( this)
+				instruction.simpleAppendTo(this)
 			}
 			// Escape everything since the saved position.  Add a final sentinel
 			// to avoid duplicating code below.

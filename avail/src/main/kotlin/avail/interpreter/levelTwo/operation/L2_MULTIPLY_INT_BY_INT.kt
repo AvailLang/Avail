@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -58,15 +58,15 @@ class L2_MULTIPLY_INT_BY_INT(
 	@On(SUCCESS) var product: L2WriteIntOperand,
 	@On(FAILURE) var outOfRange: L2PcOperand,
 	@On(SUCCESS) var inRange: L2PcOperand
-): L2NewControlFlowInstruction()
+): L2ControlFlowInstruction()
 {
 	// It jumps if the result doesn't fit in an int.
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

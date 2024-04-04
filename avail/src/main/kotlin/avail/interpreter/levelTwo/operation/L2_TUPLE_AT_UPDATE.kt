@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -55,12 +55,12 @@ class L2_TUPLE_AT_UPDATE(
 	var updateIndex: L2IntImmediateOperand,
 	var newElement: L2ReadBoxedOperand,
 	var outputTuple: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

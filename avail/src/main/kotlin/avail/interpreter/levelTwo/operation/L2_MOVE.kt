@@ -33,10 +33,9 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.InstructionLayout
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.InstructionLayout
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -82,14 +81,11 @@ import org.objectweb.asm.MethodVisitor
  *
  * @param kind
  *   The [RegisterKind] serviced by this operation.
- * @param theNamedOperandTypes
- *   An array of [L2NamedOperandType]s that describe this particular
- *   L2Operation, allowing it to be specialized by register type.
  */
 abstract class L2_MOVE<K: RegisterKind<K>>
 constructor(
 	val kind: K,
-) : L2NewInstruction()
+) : L2Instruction()
 {
 	/**
 	 * The source of this move.  This is a member function instead of a field,
@@ -123,8 +119,8 @@ constructor(
 		source().finalIndex() != destination().finalIndex()
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
+		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
 		val source = source()

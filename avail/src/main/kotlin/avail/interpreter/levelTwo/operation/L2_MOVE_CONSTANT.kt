@@ -41,8 +41,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.InstructionLayout
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.InstructionLayout
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -90,11 +90,11 @@ import org.objectweb.asm.MethodVisitor
  *   A function to invoke to generate JVM code to push the constant value.
  * @param theNamedOperandTypes
  *   An array of [L2NamedOperandType]s that describe this particular
- *   L2Operation, allowing it to be specialized by register type.
+ *   instruction, allowing it to be specialized by [RegisterKind].
  */
 abstract class L2_MOVE_CONSTANT<C: L2Operand, K: RegisterKind<K>>
 private constructor(
-): L2NewInstruction()
+): L2Instruction()
 {
 	/** Subclasses should answer the appropriate [RegisterKind]. */
 	abstract val kind: K
@@ -171,9 +171,9 @@ private constructor(
 	}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		destination().appendWithWarningsTo(builder, 0, warningStyleChange)

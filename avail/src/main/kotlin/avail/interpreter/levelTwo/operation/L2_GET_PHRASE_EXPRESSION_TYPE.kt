@@ -32,12 +32,8 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.phrases.A_Phrase
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -48,35 +44,29 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_GET_PHRASE_EXPRESSION_TYPE : L2Operation(
-	READ_BOXED.named("phrase"),
-	WRITE_BOXED.named("expression type"))
+class L2_GET_PHRASE_EXPRESSION_TYPE(
+	var phrase: L2ReadBoxedOperand,
+	var expressionType: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		val phraseRead = instruction.operand<L2ReadBoxedOperand>(0)
-		val expressionType = instruction.operand<L2WriteBoxedOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(expressionType.registerString())
 		builder.append(" ← yield type of ")
-		builder.append(phraseRead)
+		builder.append(phrase)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val phraseRead = instruction.operand<L2ReadBoxedOperand>(0)
-		val expressionType = instruction.operand<L2WriteBoxedOperand>(1)
-
 		// :: phrase.
-		translator.load(method, phraseRead.register())
+		translator.load(method, phrase.register())
 		A_Phrase.phraseExpressionTypeMethod.generateCall(method)
 		translator.store(method, expressionType.register())
 	}

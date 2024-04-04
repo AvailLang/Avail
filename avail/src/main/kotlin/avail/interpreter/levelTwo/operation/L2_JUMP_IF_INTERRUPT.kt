@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -51,7 +51,7 @@ import org.objectweb.asm.Opcodes
 class L2_JUMP_IF_INTERRUPT(
 	@On(OFF_RAMP) var ifInterrupt: L2PcOperand,
 	@On(SUCCESS) var ifNotInterrupt: L2PcOperand
-): L2NewConditionalJump()
+): L2ConditionalJump()
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,

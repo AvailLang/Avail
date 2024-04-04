@@ -44,32 +44,27 @@ import java.text.Collator
 import java.util.EnumSet
 
 /**
- * The statistic reports requested of the compiler:
- *
- *  * L2Operations ~ The most time-intensive level-two operations
- *  * DynamicLookups ~ The most time-intensive dynamic method lookups.
- *  * Primitives ~ The primitives that are the most time-intensive to run
- *  overall.
- *  * PrimitiveReturnTypeChecks ~ The primitives that take the most time
- *  checking return types.
- *  * NonprimitiveReturnTypeChecks ~ Returns from non-primitives that had to
- *  check the return type.
+ * The statistic reports that group specific [Statistic]s collected by the
+ * runtime.
  *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @property title
- *  The title of the StatisticReport.
+ *  The title of the [StatisticReport].
  * @property unit
  *   The units which the contained reports use.
  * @constructor
  * Create the enumeration value.
  *
  * @param title
- * The title of the statistic report.
+ *   The title of the statistic report.
+ * @param unit
+ *   The [ReportingUnit] used to measure statistics within this report.
  */
 enum class StatisticReport constructor(
-	val title: String, val unit: ReportingUnit)
+	val title: String,
+	val unit: ReportingUnit)
 {
 	/** Statistics for executing parsing instructions. */
 	RUNNING_PARSING_INSTRUCTIONS("Running Parsing Operations", NANOSECONDS),

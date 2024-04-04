@@ -70,6 +70,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.WrappedAdd
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -198,7 +199,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		argumentTypes,
 		ifOutputIsInt = {
 			generator.addInstruction(
-				L2_BIT_LOGIC_OP.wrappedAdd, intA, intB, intWrite)
+				L2_BIT_LOGIC_OP(WrappedAdd, intA, intB, intWrite))
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(
@@ -306,14 +307,15 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			result.semanticValues().map(::L2SemanticUnboxedInt).toSet(),
 			resultRestriction.forUnboxedInt())
 		regenerator.addInstruction(
-			L2_BIT_LOGIC_OP.wrappedAdd,
-			regenerator.readInt(
-				L2SemanticUnboxedInt(arg1.semanticValue()),
-				unreachable),
-			regenerator.readInt(
-				L2SemanticUnboxedInt(arg2.semanticValue()),
-				unreachable),
-			intWrite)
+			L2_BIT_LOGIC_OP(
+				WrappedAdd,
+				regenerator.readInt(
+					L2SemanticUnboxedInt(arg1.semanticValue()),
+					unreachable),
+				regenerator.readInt(
+					L2SemanticUnboxedInt(arg2.semanticValue()),
+					unreachable),
+				intWrite))
 		// Unbox it, in case something needs it unboxed downstream.
 		regenerator.addInstruction(
 			L2_BOX_INT(

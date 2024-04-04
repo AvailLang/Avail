@@ -48,7 +48,7 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.WritesHiddenVariable
 
 /**

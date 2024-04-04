@@ -34,13 +34,8 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinalMethod
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.TypeTag
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2Operand
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
@@ -57,19 +52,17 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_EXTRACT_TAG_ORDINAL : L2Operation(
-	READ_BOXED.named("value"),
-	WRITE_INT.named("type tag ordinal"))
+class L2_EXTRACT_TAG_ORDINAL(
+	var value: L2ReadBoxedOperand,
+	var tagOrdinal: L2WriteIntOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder
 			.append(' ')
 			.append(tagOrdinal.registerString())
@@ -78,13 +71,8 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 			.append(")")
 	}
 
-	override fun interestingSplitConditions(
-		instruction: L2Instruction
-	): List<L2SplitCondition?>
+	override fun interestingConditions(): List<L2SplitCondition?>
 	{
-		//val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
-
 		return listOf(unboxedIntCondition(listOf(tagOrdinal.register())))
 	}
 
@@ -98,12 +86,8 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 	}
 
 	override fun generateReplacement(
-		instruction: L2Instruction,
 		regenerator: L2Regenerator)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
-
 		// If the tag is statically deducible at this point, use the constant.
 		val type = value.type()
 		val baseTag = type.instanceTag
@@ -142,16 +126,12 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 			}
 			return
 		}
-		super.generateReplacement(instruction, regenerator)
+		super.generateReplacement(regenerator)
 	}
 
 	override fun emitTransformedInstruction(
-		transformedOperands: Array<L2Operand>,
 		regenerator: L2Regenerator)
 	{
-		val value = transformedOperands[0] as L2ReadBoxedOperand
-		val tagOrdinal = transformedOperands[1] as L2WriteIntOperand
-
 		// If the tag is statically deducible at this point, use the constant.
 		val type = value.type()
 		val baseTag = type.instanceTag
@@ -189,17 +169,13 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 			}
 			return
 		}
-		super.emitTransformedInstruction(transformedOperands, regenerator)
+		super.emitTransformedInstruction(regenerator)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
-
 		// :: tagOrdinal = value.staticTypeTagOrdinal();
 		translator.load(method, value.register())
 		staticTypeTagOrdinalMethod.generateCall(method)

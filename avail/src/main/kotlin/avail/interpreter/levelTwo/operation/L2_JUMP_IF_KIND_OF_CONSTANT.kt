@@ -43,7 +43,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -71,7 +71,7 @@ class L2_JUMP_IF_KIND_OF_CONSTANT(
 	var constantType: L2ConstantOperand,
 	@On(SUCCESS) var ifKind: L2PcOperand,
 	@On(FAILURE) var ifNotKind: L2PcOperand
-): L2NewConditionalJump()
+): L2ConditionalJump()
 {
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
@@ -90,9 +90,9 @@ class L2_JUMP_IF_KIND_OF_CONSTANT(
 	}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

@@ -34,9 +34,9 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -56,12 +56,12 @@ class L2_MOVE_OUTER_VARIABLE(
 	var outerIndex: L2IntImmediateOperand,
 	var function: L2ReadBoxedOperand,
 	var destination: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

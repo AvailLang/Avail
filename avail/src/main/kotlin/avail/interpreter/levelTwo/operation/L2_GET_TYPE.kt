@@ -37,12 +37,8 @@ import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.InstanceTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -57,19 +53,17 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_GET_TYPE : L2Operation(
-	READ_BOXED.named("value"),
-	WRITE_BOXED.named("value's type"))
+class L2_GET_TYPE(
+	var value: L2ReadBoxedOperand,
+	var type: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val type = instruction.operand<L2WriteBoxedOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(type.registerString())
 		builder.append(" ← ")
@@ -78,11 +72,8 @@ object L2_GET_TYPE : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val type = instruction.operand<L2WriteBoxedOperand>(1)
 		translator.load(method, value.register())
 		// [value]
 		when
@@ -112,20 +103,5 @@ object L2_GET_TYPE : L2Operation(
 		}
 		// [type]
 		translator.store(method, type.register())
-	}
-
-	/**
-	 * Extract the register providing the value whose type is to be produced.
-	 *
-	 * @param instruction
-	 *   The instruction to examine.
-	 * @return
-	 *   The [L2ReadBoxedOperand] supplying the value.
-	 */
-	@JvmStatic
-	fun sourceValueOf(
-		instruction: L2Instruction): L2ReadBoxedOperand
-	{
-		return instruction.operand(0)
 	}
 }

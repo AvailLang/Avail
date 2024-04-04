@@ -34,9 +34,9 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -53,12 +53,12 @@ import org.objectweb.asm.Type
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
 class L2_GET_RETURNING_FUNCTION(
 	var returningFunction: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

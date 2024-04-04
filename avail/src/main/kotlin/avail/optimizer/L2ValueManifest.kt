@@ -47,7 +47,6 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -1275,8 +1274,8 @@ class L2ValueManifest
 	 * the given [L2WriteOperand].  Since this is the introduction of a new
 	 * [L2SemanticValue], it must not yet be in this manifest.
 	 *
-	 * [L2Operation]s that move values between semantic values should customize
-	 * their [L2Operation.instructionWasAdded] method to use
+	 * [L2Instruction]s that move values between semantic values should
+	 * customize their [L2Instruction.instructionWasAdded] method to use
 	 * [recordDefinitionForMove].
 	 *
 	 * @param writer
@@ -1293,8 +1292,8 @@ class L2ValueManifest
 	 * the given [L2WriteOperand].  Since this is the introduction of a new
 	 * [L2SemanticValue], it must not yet be in this manifest.
 	 *
-	 * [L2Operation]s that move values between semantic values should customize
-	 * their [L2Operation.instructionWasAdded] method to use
+	 * [L2Instruction]s that move values between semantic values should
+	 * customize their [L2Instruction.instructionWasAdded] method to use
 	 * [recordDefinitionForMove].
 	 *
 	 * This form does not check consistency of the L2ValueManifest, to allow phi

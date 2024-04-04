@@ -205,10 +205,10 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			boxedRestrictionForType(typeGuarantee)
 				.intersectionWithObjectVariant(variant))
 		generator.addInstruction(
-			L2_CREATE_OBJECT,
-			L2ArbitraryConstantOperand(variant),
-			L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
-			write)
+			L2_CREATE_OBJECT(
+				L2ArbitraryConstantOperand(variant),
+				L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
+				write))
 		callSiteHelper.useAnswer(generator.readBoxed(write))
 		return true
 	}

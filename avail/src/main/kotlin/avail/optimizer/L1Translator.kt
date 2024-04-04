@@ -130,12 +130,10 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -567,20 +565,6 @@ class L1Translator private constructor(
 			boxedRestrictionForType(guaranteedType))
 		addInstruction(L2_GET_LATEST_RETURN_VALUE(writer))
 		return readBoxed(writer)
-	}
-
-	/**
-	 * Create and add an [L2Instruction] with the given [L2Operation] and
-	 * variable number of [L2Operand]s.
-	 *
-	 * @param operation
-	 *   The operation to invoke.
-	 * @param operands
-	 *   The operands of the instruction.
-	 */
-	fun addInstruction(operation: L2Operation, vararg operands: L2Operand)
-	{
-		generator.addInstruction(operation, *operands)
 	}
 
 	/**
@@ -1908,7 +1892,7 @@ class L1Translator private constructor(
 						if (superUnionElementType.isBottom)
 						{
 							// Only this argument's actual type matters.
-							addInstruction(L2_GET_TYPE, argReg, argTypeWrite)
+							addInstruction(L2_GET_TYPE(argReg, argTypeWrite))
 						}
 						else
 						{
@@ -1922,7 +1906,7 @@ class L1Translator private constructor(
 									boxedRestrictionForType(
 										instanceMeta(typeBound)))
 							addInstruction(
-								L2_GET_TYPE, argReg, originalArgTypeWrite)
+								L2_GET_TYPE(argReg, originalArgTypeWrite))
 							addInstruction(
 								L2_TYPE_UNION(
 									readBoxed(originalArgTypeWrite),
@@ -2016,9 +2000,9 @@ class L1Translator private constructor(
 		val argumentsTupleWrite = generator.boxedWriteTemp(
 			boxedRestrictionForType(tupleTypeForTypesList(argTypes)))
 		addInstruction(
-			L2_CREATE_TUPLE,
-			L2ReadBoxedVectorOperand(argumentReads),
-			argumentsTupleWrite)
+			L2_CREATE_TUPLE(
+				L2ReadBoxedVectorOperand(argumentReads),
+				argumentsTupleWrite))
 		val onReificationDuringFailure =
 			generator.createBasicBlock(
 				"reify in method lookup failure handler for" +
@@ -2207,9 +2191,9 @@ class L1Translator private constructor(
 			boxedRestrictionForType(
 				tupleTypeForTypes(variable.type(), newValue.type())))
 		addInstruction(
-			L2_CREATE_TUPLE,
-			L2ReadBoxedVectorOperand(listOf(variable, newValue)),
-			variableAndValueTupleReg)
+			L2_CREATE_TUPLE(
+				L2ReadBoxedVectorOperand(listOf(variable, newValue)),
+				variableAndValueTupleReg))
 		// Note: the handler block's value is discarded; also, since it's not a
 		// method definition, it can't have a semantic restriction.
 		addInstruction(
@@ -2327,12 +2311,12 @@ class L1Translator private constructor(
 		{
 			val localType = code.localTypeAt(local)
 			addInstruction(
-				L2_CREATE_VARIABLE,
-				L2ConstantOperand(localType),
-				writeSlot(
-					numArgs + local,
-					pc,
-					boxedRestrictionForType(localType)))
+				L2_CREATE_VARIABLE(
+					L2ConstantOperand(localType),
+					writeSlot(
+						numArgs + local,
+						pc,
+						boxedRestrictionForType(localType))))
 		}
 
 		// Capture the primitive failure value in the first local if applicable.
@@ -2401,8 +2385,8 @@ class L1Translator private constructor(
 			generator.startBlock(unreachableBlock)
 			addInstruction(L2_UNREACHABLE_CODE())
 			// Now make it a loop head, just so code generated later from
-			// placeholders (L2Operation#isPlaceholder) can still connect to
-			// it, as long as it uses a back-edge.
+			// placeholder instructions can still connect to it, as long as it
+			// uses a back-edge.
 			unreachableBlock.isLoopHead = true
 		}
 	}

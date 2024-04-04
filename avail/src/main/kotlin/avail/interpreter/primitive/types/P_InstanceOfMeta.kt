@@ -87,7 +87,7 @@ object P_InstanceOfMeta : Primitive(1, Private, CannotFail, CanFold, CanInline)
 		val returnType = argumentTypes[0].instance
 		val restriction = boxedRestrictionForType(returnType)
 		val writer = generator.boxedWriteTemp(restriction)
-		generator.addInstruction(L2_INSTANCE_OF_META, metaReg, writer)
+		generator.addInstruction(L2_INSTANCE_OF_META(metaReg, writer))
 		callSiteHelper.useAnswer(
 			generator.readBoxed(writer.onlySemanticValue()))
 		return true

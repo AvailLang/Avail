@@ -461,9 +461,9 @@ constructor(
 				// Assume the base type is sufficient to limit the possible tag
 				// ordinals.
 				addInstruction(
-					L2_EXTRACT_TAG_ORDINAL,
-					readBoxed(semanticSource),
-					intWrite(setOf(semanticTag), ordinalRestriction))
+					L2_EXTRACT_TAG_ORDINAL(
+						readBoxed(semanticSource),
+						intWrite(setOf(semanticTag), ordinalRestriction)))
 			}
 			val edges = reducedSpans.mapIndexed {
 					index, (low, high, subtree, _, restriction) ->

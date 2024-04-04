@@ -46,9 +46,6 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
@@ -87,9 +84,7 @@ object P_GetFiberPriority : Primitive(
 		val priorityIntWrite = translator.generator.intWriteTemp(
 			intRestrictionForType(u8))
 		translator.addInstruction(
-			L2_GET_FIBER_PRIORITY_INT,
-			fiberRead,
-			priorityIntWrite)
+			L2_GET_FIBER_PRIORITY_INT(fiberRead, priorityIntWrite))
 		// Now box it in case someone needs it.  If nobody does, this will
 		// evaporate later.
 		val prioritySemanticIntValue = priorityIntWrite.pickSemanticValue()
@@ -106,18 +101,15 @@ object P_GetFiberPriority : Primitive(
 	 * translate that into a comparison of the unboxed versions, allowing the
 	 * boxing operation to be omitted.
 	 */
-	object L2_GET_FIBER_PRIORITY_INT : L2Operation(
-		READ_BOXED.named("fiber"),
-		WRITE_INT.named("fiber priority int"))
+	class L2_GET_FIBER_PRIORITY_INT(
+		var fiber: L2ReadBoxedOperand,
+		var priority: L2WriteIntOperand
+	): L2Instruction()
 	{
 		override fun translateToJVM(
 			translator: JVMTranslator,
-			method: MethodVisitor,
-			instruction: L2Instruction)
+			method: MethodVisitor)
 		{
-			val fiber = instruction.operand<L2ReadBoxedOperand>(0)
-			val priority = instruction.operand<L2WriteIntOperand>(1)
-
 			translator.load(method, fiber.register())
 			A_Fiber.getFiberPriorityMethod.generateCall(method)
 			translator.store(method, priority.register())

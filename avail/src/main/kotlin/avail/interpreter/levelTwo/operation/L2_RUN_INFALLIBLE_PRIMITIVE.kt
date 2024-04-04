@@ -33,15 +33,14 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -75,7 +74,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 	var primitive: L2PrimitiveOperand,
 	var arguments: L2ReadBoxedVectorOperand,
 	var result: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	/** The subclass for primitives that have no global dependency. */
 	@WritesHiddenVariable(
@@ -144,9 +143,9 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		//val rawFunction = instruction.operand<L2ConstantOperand>(0)
 		renderPreamble(builder)

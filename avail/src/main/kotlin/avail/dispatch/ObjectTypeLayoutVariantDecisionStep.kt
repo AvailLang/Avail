@@ -309,11 +309,11 @@ constructor(
 			.positiveGroup.objectTypeVariants?.single()?.variantId)
 		{
 			null -> generator.addInstruction(
-				L2_EXTRACT_OBJECT_TYPE_VARIANT_ID,
-				generator.readBoxed(semanticSource),
-				generator.intWrite(
-					setOf(semanticVariantId),
-					intRestrictionForType(i31)))
+				L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
+					generator.readBoxed(semanticSource),
+					generator.intWrite(
+						setOf(semanticVariantId),
+						intRestrictionForType(i31))))
 			// The exact variant is known, which can make dispatching
 			// particularly fast.
 			else -> generator.addInstruction(

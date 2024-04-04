@@ -60,7 +60,7 @@ import org.objectweb.asm.Opcodes
 
 /**
  * A [NumericComparator] represents the effect of comparing two numbers, whether
- * boxed or unboxed.  The [L2NewConditionalJump] subclasses
+ * boxed or unboxed.  The [L2ConditionalJump] subclasses
  * [L2_JUMP_IF_COMPARE_BOXED] and [L2_JUMP_IF_COMPARE_INT], and related
  * variations, handle the specifics of boxed and int values, respectively.
  *

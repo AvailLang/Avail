@@ -1,5 +1,5 @@
 /*
- * On.kt
+ * HiddenVariable.kt
  * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,17 +30,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.levelTwo.new
-
-import avail.interpreter.levelTwo.L2NamedOperandType
+package avail.interpreter.levelTwo
 
 /**
- * This annotation can be applied to fields of an [L2NewInstruction] that
- * contains an [L2Operand].  For instructions that branch, an [L2WriteOperand]
- * may have a [Purpose], indicating it is only assigned a value when a branch
- * with the same [Purpose] is taken.  That's the only way that registers can be
- * conditionally assigned in L2.
+ * A brief hierarchy of classes for sensibly parameterizing the
+ * [ReadsHiddenVariable] and [WritesHiddenVariable] annotations on an
+ * [L2Instruction] subclass.
  */
-@Target(AnnotationTarget.FIELD)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class On constructor(val purpose: L2NamedOperandType.Purpose)
+sealed class HiddenVariable
+{
+	/** How the current continuation field is affected. */
+	@HiddenVariableShift(0)
+	class CURRENT_CONTINUATION : HiddenVariable()
+
+	/** How the current function field is affected. */
+	@HiddenVariableShift(1)
+	class CURRENT_FUNCTION : HiddenVariable()
+
+	/** How the latest return value field is affected. */
+	@HiddenVariableShift(2)
+	class LATEST_RETURN_VALUE : HiddenVariable()
+
+	/** How the current stack reifier field is affected. */
+	@HiddenVariableShift(3)
+	class STACK_REIFIER : HiddenVariable()
+
+	/**
+	 * How any other global variables are affected.  This includes things
+	 * like the global exception reporter, the stringification function,
+	 * observerless setup, etc.
+	 *
+	 * [Primitive]s are annotated with the [Flag.ReadsFromHiddenGlobalState]
+	 * and [Flag.WritesToHiddenGlobalState] flags in their constructors to
+	 * indicate that `GLOBAL_STATE` is affected.
+	 */
+	@HiddenVariableShift(4)
+	class GLOBAL_STATE : HiddenVariable()
+}

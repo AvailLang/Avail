@@ -37,7 +37,7 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportUnassignedVariableReadMethod
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -61,7 +61,7 @@ class L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION(
 	var pc: L2IntImmediateOperand,
 	var stackp: L2IntImmediateOperand,
 	var frameValues: L2ReadBoxedVectorOperand
-) : L2NewControlFlowInstruction()
+) : L2ControlFlowInstruction()
 {
 	override val isCold get() = true
 
@@ -69,9 +69,9 @@ class L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION(
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(" pc: ")

@@ -39,7 +39,7 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -116,14 +116,14 @@ class L2_VIRTUAL_CREATE_LABEL(
 	var function: L2ReadBoxedOperand,
 	var arguments: L2ReadBoxedVectorOperand,
 	var frameSize: L2IntImmediateOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override val isPlaceholder get() = true
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(" ").append(outputLabel)

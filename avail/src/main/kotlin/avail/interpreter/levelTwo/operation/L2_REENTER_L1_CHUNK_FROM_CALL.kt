@@ -42,7 +42,6 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.new.L2NewInstruction
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -73,7 +72,7 @@ import java.util.logging.Level
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_REENTER_L1_CHUNK_FROM_CALL(
-): L2NewInstruction()
+): L2Instruction()
 {
 	override val hasSideEffect get() = true
 

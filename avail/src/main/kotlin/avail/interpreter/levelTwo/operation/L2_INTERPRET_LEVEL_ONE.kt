@@ -35,7 +35,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
@@ -59,7 +59,7 @@ import org.objectweb.asm.Opcodes
 class L2_INTERPRET_LEVEL_ONE(
 	@On(ON_RAMP) var callReentryPoint: L2PcOperand,
 	@On(ON_RAMP) var interruptReentryPoint: L2PcOperand
-): L2NewControlFlowInstruction()
+): L2ControlFlowInstruction()
 {
 	// Keep this instruction from being removed, since it's only used by the
 	// default chunk.

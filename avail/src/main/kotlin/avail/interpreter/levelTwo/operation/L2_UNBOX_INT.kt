@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -53,12 +53,12 @@ import org.objectweb.asm.MethodVisitor
 class L2_UNBOX_INT(
 	var source: L2ReadBoxedOperand,
 	var destination: L2WriteIntOperand
-) : L2NewInstruction()
+) : L2Instruction()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

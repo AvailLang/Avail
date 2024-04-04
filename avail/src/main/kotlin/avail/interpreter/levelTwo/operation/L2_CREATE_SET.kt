@@ -33,12 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -50,21 +46,19 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_CREATE_SET : L2Operation(
-	READ_BOXED_VECTOR.named("values"),
-	WRITE_BOXED.named("new set"))
+class L2_CREATE_SET(
+	var values: L2ReadBoxedVectorOperand,
+	var newSet: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
+		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val set = instruction.operand<L2WriteBoxedOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(set.registerString())
+		builder.append(newSet.registerString())
 		builder.append(" ← {")
 		values.elements.joinTo(builder, ", ")
 		builder.append('}')
@@ -72,12 +66,8 @@ object L2_CREATE_SET : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val set = instruction.operand<L2WriteBoxedOperand>(1)
-
 		// :: set = SetDescriptor.emptySet;
 		SetDescriptor.emptySetMethod.generateCall(method)
 		for (operand in values.elements)
@@ -87,6 +77,6 @@ object L2_CREATE_SET : L2Operation(
 			A_Set.setWithElementMethod.generateCall(method)
 		}
 		// :: destinationSet = set;
-		translator.store(method, set.register())
+		translator.store(method, newSet.register())
 	}
 }

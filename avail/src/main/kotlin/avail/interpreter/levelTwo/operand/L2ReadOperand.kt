@@ -181,7 +181,8 @@ protected constructor(
 	abstract fun copyForRegister(newRegister: L2Register<K>): L2ReadOperand<K>
 
 	override fun instructionWasInserted(
-		newInstruction: L2Instruction)
+		newInstruction: L2Instruction
+	)
 	{
 		super.instructionWasInserted(newInstruction)
 		register().addUse(this)
@@ -195,7 +196,8 @@ protected constructor(
 
 	override fun replaceRegisters(
 		registerRemap: Map<L2Register<*>, L2Register<*>>,
-		theInstruction: L2Instruction)
+		theInstruction: L2Instruction
+	)
 	{
 		val replacement: L2Register<K>? = registerRemap[register].cast()
 		if (replacement === null || replacement === register)

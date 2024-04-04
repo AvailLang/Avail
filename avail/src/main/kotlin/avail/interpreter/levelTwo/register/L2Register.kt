@@ -33,7 +33,6 @@ package avail.interpreter.levelTwo.register
 
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.optimizer.L2ControlFlowGraph
@@ -42,8 +41,8 @@ import avail.optimizer.L2Generator
 import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
- * `L2Register` models the conceptual use of a register by a [level&#32;two Avail
- * operation][L2Operation] in the [L2Generator].
+ * [L2Register] models the conceptual use of a register by an [L2Instruction]
+ * in the [L2Generator].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;

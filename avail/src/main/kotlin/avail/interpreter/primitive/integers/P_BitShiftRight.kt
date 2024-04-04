@@ -65,6 +65,8 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.ShiftLeft
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.SignedShiftRight
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L1Translator
 import avail.utility.notNullAnd
@@ -225,21 +227,19 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 					// The shift is in [0..31], so the JVM can directly handle
 					// it.
 					generator.addInstruction(
-						L2_BIT_LOGIC_OP.bitwiseSignedShiftRight,
-						intA,
-						intB,
-						intWrite)
+						L2_BIT_LOGIC_OP(SignedShiftRight, intA, intB, intWrite))
 				}
 				intB.constantOrNull().notNullAnd { extractInt in -31..0 } ->
 				{
 					// The shift is a constant in [-31..0], so we can convert it
 					// to a constant left shift that the JVM can handle.
 					generator.addInstruction(
-						L2_BIT_LOGIC_OP.bitwiseShiftLeft,
-						intA,
-						generator.unboxedIntConstant(
-							0 - intB.constantOrNull()!!.extractInt),
-						intWrite)
+						L2_BIT_LOGIC_OP(
+							ShiftLeft,
+							intA,
+							generator.unboxedIntConstant(
+								0 - intB.constantOrNull()!!.extractInt),
+							intWrite))
 				}
 				else ->
 				{

@@ -38,10 +38,10 @@ import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -74,14 +74,14 @@ class L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK(
 	@On(SUCCESS) var ifSwapSucceeded: L2PcOperand,
 	@On(FAILURE) var ifSwapFailed: L2PcOperand,
 	@On(FAILURE) var ifVariableSetException: L2PcOperand
-): L2NewControlFlowInstruction()
+): L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(" ↓")

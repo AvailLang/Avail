@@ -262,9 +262,10 @@ constructor(
 		val instanceRestriction =
 			boxedRestrictionForType(baseRestriction.type.instance)
 		generator.addInstruction(
-			L2_INSTANCE_OF_META,
-			generator.readBoxed(baseSemanticValue),
-			generator.boxedWrite(instanceSemanticValue, instanceRestriction))
+			L2_INSTANCE_OF_META(
+				generator.readBoxed(baseSemanticValue),
+				generator.boxedWrite(
+					instanceSemanticValue, instanceRestriction)))
 		val target = L2BasicBlock("after extracting meta's instance")
 		generator.jumpTo(target)
 		return listOf(

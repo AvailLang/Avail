@@ -80,8 +80,8 @@ constructor(
 	val canHavePurpose: Boolean = false)
 {
 	/**
-	 * Create a [L2NamedOperandType] from the receiver and a [String] naming its
-	 * role within some [L2Operation].
+	 * Create an [L2NamedOperandType] from the receiver and a [String] naming
+	 * its role within some [L2Instruction].
 	 *
 	 * @param roleName
 	 *   The name of this operand.
@@ -94,10 +94,9 @@ constructor(
 
 	/**
 	 * Create a [L2NamedOperandType] from the receiver, a [String] naming its
-	 * role within some [L2Operation], and a designator of its
-	 * [purpose][Purpose].  The purpose is used to designate branch edges, and
-	 * correlate them to register writes that only happen if the corresponding
-	 * edge is taken.
+	 * role within some [L2Instruction], and a designator of its [Purpose].
+	 * The purpose is used to designate branch edges, and correlate them to
+	 * register writes that only happen if the corresponding edge is taken.
 	 *
 	 * @param roleName
 	 *   The name of this operand.

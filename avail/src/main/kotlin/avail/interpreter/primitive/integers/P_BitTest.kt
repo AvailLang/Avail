@@ -68,6 +68,8 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.SignedShiftRight
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
@@ -195,10 +197,11 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 			val shiftedWrite = generator.intWriteTemp(
 				intRestrictionForType(i32))
 			generator.addInstruction(
-				L2_BIT_LOGIC_OP.bitwiseSignedShiftRight,
-				aInt,
-				bInt,
-				shiftedWrite)
+				L2_BIT_LOGIC_OP(
+					SignedShiftRight,
+					aInt,
+					bInt,
+					shiftedWrite))
 			L2ReadIntOperand(
 				shiftedWrite.pickSemanticValue(),
 				shiftedWrite.restriction(),
@@ -207,10 +210,11 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 		val maskedWrite = generator.intWriteTemp(
 			intRestrictionForType(u1))
 		generator.addInstruction(
-			L2_BIT_LOGIC_OP.bitwiseAnd,
-			shifted,
-			generator.unboxedIntConstant(1),
-			maskedWrite)
+			L2_BIT_LOGIC_OP(
+				And,
+				shifted,
+				generator.unboxedIntConstant(1),
+				maskedWrite))
 		val isZeroLabel = generator.createBasicBlock("bit is zero")
 		val isOneLabel = generator.createBasicBlock("bit is one")
 		NumericComparator.Equal.compareAndBranchInt(

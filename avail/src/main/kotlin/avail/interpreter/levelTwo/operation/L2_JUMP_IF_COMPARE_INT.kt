@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -60,7 +60,7 @@ class L2_JUMP_IF_COMPARE_INT(
 	var int2: L2ReadIntOperand,
 	@On(SUCCESS) var ifTrue: L2PcOperand,
 	@On(FAILURE) var ifFalse: L2PcOperand
-): L2NewConditionalJump()
+): L2ConditionalJump()
 {
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
@@ -92,9 +92,9 @@ class L2_JUMP_IF_COMPARE_INT(
 	}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

@@ -36,11 +36,11 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.attemptTheInlinePrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.attemptTheNonInlinePrimitiveMethod
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -65,7 +65,7 @@ import org.objectweb.asm.Opcodes
 	LATEST_RETURN_VALUE::class)
 class L2_TRY_PRIMITIVE(
 	var primitive: L2PrimitiveOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override val isEntryPoint get() = true
 

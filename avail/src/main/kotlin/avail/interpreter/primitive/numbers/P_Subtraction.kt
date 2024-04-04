@@ -62,6 +62,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.WrappedSubtract
 import avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -180,7 +181,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		argumentTypes,
 		ifOutputIsInt = {
 			generator.addInstruction(
-				L2_BIT_LOGIC_OP.wrappedSubtract, intA, intB, intWrite)
+				L2_BIT_LOGIC_OP(WrappedSubtract, intA, intB, intWrite))
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(

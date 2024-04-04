@@ -77,12 +77,10 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2NamedOperandType
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -116,7 +114,7 @@ import avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
-import avail.interpreter.levelTwo.operation.L2_GET_TYPE.sourceValueOf
+import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
@@ -761,9 +759,7 @@ class L2Generator internal constructor(
 					boxedRestrictionForType(
 						tupleTypeForTypesList(elements.map { it.type() })))
 				addInstruction(
-					L2_CREATE_TUPLE,
-					L2ReadBoxedVectorOperand(elements),
-					write)
+					L2_CREATE_TUPLE(L2ReadBoxedVectorOperand(elements), write))
 				return readBoxed(write)
 			}
 			else ->
@@ -836,10 +832,8 @@ class L2Generator internal constructor(
 			// The graph is not in SSA, so just emit the default tuple element
 			// extraction instruction.
 			addInstruction(
-				L2_TUPLE_AT_CONSTANT,
-				tupleRead,
-				L2IntImmediateOperand(index),
-				write)
+				L2_TUPLE_AT_CONSTANT(
+					tupleRead, L2IntImmediateOperand(index), write))
 		}
 	}
 
@@ -949,10 +943,10 @@ class L2Generator internal constructor(
 		val parameterTypeWrite = boxedWriteTemp(
 			boxedRestrictionForType(anyMeta).minusValue(bottom))
 		addInstruction(
-			L2_FUNCTION_PARAMETER_TYPE,
-			functionRead,
-			L2IntImmediateOperand(parameterIndex),
-			parameterTypeWrite)
+			L2_FUNCTION_PARAMETER_TYPE(
+				functionRead,
+				L2IntImmediateOperand(parameterIndex),
+				parameterTypeWrite))
 		return readBoxed(parameterTypeWrite)
 	}
 
@@ -1051,18 +1045,6 @@ class L2Generator internal constructor(
 
 	override fun currentlyReachable(): Boolean =
 		currentBlock.notNullAnd(L2BasicBlock::currentlyReachable)
-
-	//TODO Remove after migrating instruction representation
-	override fun addInstruction(
-		operation: L2Operation,
-		vararg operands: L2Operand)
-	{
-		currentBlock?.let { block ->
-			block.addInstruction(
-				L2OldInstruction(operation, *operands).cloneFor(block),
-				currentManifest)
-		}
-	}
 
 	override fun addInstruction(instruction: L2Instruction)
 	{
@@ -1170,18 +1152,18 @@ class L2Generator internal constructor(
 						boolSource.operand<L2ConstantOperand>(1)
 					val firstTypeSource =
 						firstTypeOperand.definitionSkippingMoves()
-					if (firstTypeSource.isGetType)
+					if (firstTypeSource is L2_GET_TYPE)
 					{
 						// There's a get-type followed by an is-subtype
 						// followed by a compare-and-branch of the result
 						// against a constant boolean.  Replace with a
 						// branch-if-kind.
-						val valueSource = sourceValueOf(firstTypeSource)
 						jumpIfKindOfConstant(
-							valueSource,
+							firstTypeSource.value,
 							secondConstantOperand.constant,
 							if (constantBool) passBlock else failBlock,
-							if (constantBool) failBlock else passBlock)
+							if (constantBool) failBlock else passBlock
+						)
 						return
 					}
 					// Perform a branch-if-is-subtype-of instead of checking
@@ -1205,16 +1187,14 @@ class L2Generator internal constructor(
 						boolSource.operand<L2ReadBoxedOperand>(0)
 					val firstTypeSource =
 						firstTypeOperand.definitionSkippingMoves()
-					if (firstTypeSource.isGetType)
+					if (firstTypeSource is L2_GET_TYPE)
 					{
-						// There's a get-type followed by an is-subtype
-						// followed by a compare-and-branch of the result
-						// against a constant boolean.  Replace with a
-						// branch-if-kind.
-						val valueSource = sourceValueOf(firstTypeSource)
+						// There's a get-type followed by an is-subtype followed
+						// by a compare-and-branch of the result against a
+						// constant boolean.  Replace with a branch-if-kind.
 						addInstruction(
 							L2_JUMP_IF_KIND_OF_OBJECT(
-								valueSource,
+								firstTypeSource.value,
 								secondTypeOperand,
 								edgeTo(
 									if (constantBool) passBlock
@@ -1563,8 +1543,10 @@ class L2Generator internal constructor(
 		 *   The target [L2BasicBlock].
 		 * @param optionalName
 		 *   An optional name for this edge.  If omitted or null, the name that
-		 *   will be presented for this edge will depend on the [L2Operation]'s
-		 *   list of [L2NamedOperandType]s.
+		 *   will be presented for this edge will depend on the
+		 *   [L2Instruction]'s list of [L2NamedOperandType]s, generated from
+		 *   that subclass's var field declarations that use a subtype of
+		 *   [L2Operand].
 		 * @return
 		 *   The new [L2PcOperand].
 		 */

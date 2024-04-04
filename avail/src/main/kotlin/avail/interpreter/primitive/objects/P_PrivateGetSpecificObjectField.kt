@@ -132,10 +132,10 @@ object P_PrivateGetSpecificObjectField : Primitive(
 				val write = translator.generator.boxedWriteTemp(
 					boxedRestrictionForType(fieldType))
 				translator.addInstruction(
-					L2_GET_OBJECT_FIELD,
-					objectReg,
-					L2ConstantOperand(fieldAtom),
-					write)
+					L2_GET_OBJECT_FIELD(
+						objectReg,
+						L2ConstantOperand(fieldAtom),
+						write))
 				callSiteHelper.useAnswer(translator.readBoxed(write))
 				// TODO - Generate L2 code to collect statistics on the variants
 				// that are encountered, then at the next reoptimization, inline

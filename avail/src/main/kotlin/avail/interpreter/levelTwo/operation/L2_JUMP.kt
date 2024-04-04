@@ -32,7 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -45,7 +45,7 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_JUMP(
 	@On(SUCCESS) var target: L2PcOperand
-): L2NewControlFlowInstruction()
+): L2ControlFlowInstruction()
 {
 	// It jumps, which counts as a side effect.
 	override val hasSideEffect: Boolean get() = true

@@ -31,16 +31,14 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.L2BasicBlock
 
 /**
- * An [L2Operation] that alters control flow, and therefore does not fall
+ * An [L2Instruction] that alters control flow, and therefore does not fall
  * through to the next instruction.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -53,7 +51,7 @@ import avail.optimizer.L2BasicBlock
  *   The vararg array of [L2NamedOperandType]s that defines the layout of
  *   operands for [L2Instruction]s this use this operation.
  */
-abstract class L2NewControlFlowInstruction : L2NewInstruction()
+abstract class L2ControlFlowInstruction : L2Instruction()
 {
 	override val altersControlFlow get() = true
 

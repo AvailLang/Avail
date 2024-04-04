@@ -38,9 +38,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -64,7 +63,7 @@ class L2_CREATE_FUNCTION(
 	var code: L2ConstantOperand,
 	var capturedVariables: L2ReadBoxedVectorOperand,
 	var newFunction: L2WriteBoxedOperand
-) : L2NewInstruction()
+) : L2Instruction()
 {
 	override fun extractFunctionOuter(
 		functionRegister: L2ReadBoxedOperand,
@@ -119,9 +118,9 @@ class L2_CREATE_FUNCTION(
 	override val constantCode: A_RawFunction get() = code.constant
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

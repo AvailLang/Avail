@@ -31,7 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
@@ -78,7 +78,7 @@ import org.objectweb.asm.MethodVisitor
 class L2_STRIP_MANIFEST(
 	var inputs: L2ReadBoxedVectorOperand,
 	var outputs: L2WriteBoxedVectorOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	/**
 	 * Prevent this instruction from being removed, because it constrains the

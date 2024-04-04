@@ -35,7 +35,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -62,7 +62,7 @@ import org.objectweb.asm.Opcodes
 class L2_JUMP_IF_ALREADY_REIFIED(
 	@On(SUCCESS) var ifAlreadyReified: L2PcOperand,
 	@On(FAILURE) var ifNotAlreadyReified: L2PcOperand
-): L2NewConditionalJump()
+): L2ConditionalJump()
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,

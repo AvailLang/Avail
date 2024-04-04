@@ -37,7 +37,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToRe
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.CheckedMethod
@@ -60,7 +60,7 @@ import org.objectweb.asm.Opcodes
 class L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO(
 	var newOptimizationLevel: L2IntImmediateOperand,
 	var isEntryPointFlag: L2IntImmediateOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override val hasSideEffect: Boolean get() = true
 

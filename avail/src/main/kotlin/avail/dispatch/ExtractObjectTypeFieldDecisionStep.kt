@@ -294,10 +294,10 @@ constructor(
 		val fieldSemanticValue =
 			newSemanticValue(semanticArguments, extraSemanticArguments)
 		generator.addInstruction(
-			L2_GET_OBJECT_TYPE_FIELD,
-			generator.readBoxed(baseSemanticValue),
-			L2ConstantOperand(field),
-			generator.boxedWrite(fieldSemanticValue, fieldRestriction))
+			L2_GET_OBJECT_TYPE_FIELD(
+				generator.readBoxed(baseSemanticValue),
+				L2ConstantOperand(field),
+				generator.boxedWrite(fieldSemanticValue, fieldRestriction)))
 		val target = L2BasicBlock("after extracting object type's field")
 		generator.jumpTo(target)
 		return listOf(

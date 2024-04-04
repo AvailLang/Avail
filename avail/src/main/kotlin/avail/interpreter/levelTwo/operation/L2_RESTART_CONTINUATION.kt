@@ -55,14 +55,14 @@ import org.objectweb.asm.Opcodes
  */
 class L2_RESTART_CONTINUATION(
 	var continuationToRestart: L2ReadBoxedOperand
-): L2NewControlFlowInstruction()
+): L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

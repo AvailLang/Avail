@@ -30,16 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.levelTwo.new
+package avail.interpreter.levelTwo
 
-import avail.interpreter.levelTwo.HiddenVariableShift
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable
-import avail.interpreter.levelTwo.OperandTypeMap
-import avail.interpreter.levelTwo.ReadsHiddenVariable
-import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -56,32 +49,32 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.javaField
 
 /**
- * A helper class that an [L2NewInstruction] uses to access its operands in a
+ * A helper class that an [L2Instruction] uses to access its operands in a
  * simple, mostly typesafe way.
  *
  * @property instructionClass
- *   The Kotlin [KClass] for the [L2NewInstruction] subclass that this layout
+ *   The Kotlin [KClass] for the [L2Instruction] subclass that this layout
  *   describes.
  *
  * @constructor
  *   Create an [InstructionLayout] for navigating the [L2Operand]s of the given
- *   [KClass] (on some [L2NewInstruction]).
+ *   [KClass] (on some [L2Instruction]).
  */
-class InstructionLayout<I : L2NewInstruction>
+class InstructionLayout<I : L2Instruction>
 internal constructor(private val instructionClass: KClass<out I>)
 {
 	/**
 	 * An instance of [OperandField] is created for each field of an
-	 * [L2NewInstruction] that contains an [L2Operand].
+	 * [L2Instruction] that contains an [L2Operand].
 	 *
 	 * @param O
 	 *   The subclass of [L2Operand] that occurs in the corresponding field.
 	 *
 	 * @constructor
 	 *   Create an [OperandField] for use in an [InstructionLayout] used by all
-	 *   instances of ome [L2NewInstruction].
+	 *   instances of ome [L2Instruction].
 	 * @param property
-	 *   The Kotlin `var` property of the [L2NewInstruction] in which the
+	 *   The Kotlin `var` property of the [L2Instruction] in which the
 	 *   [L2Operand] is stored.
 	 */
 	private inner class OperandField<O: L2Operand>
@@ -94,13 +87,13 @@ internal constructor(private val instructionClass: KClass<out I>)
 		val name: String = property.name
 
 		/**
-		 * The getter for reading the field from a provided [L2NewInstruction]
+		 * The getter for reading the field from a provided [L2Instruction]
 		 * of the appropriate subtype ([I]).
 		 */
 		private val getter = property.getter
 
 		/**
-		 * The setter for writing the field into a provided [L2NewInstruction]
+		 * The setter for writing the field into a provided [L2Instruction]
 		 * of the appropriate subtype ([I]).
 		 */
 		private val setter = property.setter
@@ -119,21 +112,21 @@ internal constructor(private val instructionClass: KClass<out I>)
 			property.javaField!!.getAnnotation(On::class.java)?.purpose)
 
 		/**
-		 * Read the field from an [L2NewInstruction] of the required type.
+		 * Read the field from an [L2Instruction] of the required type.
 		 */
-		fun get(instruction: L2NewInstruction): O = getter(instruction.cast())
+		fun get(instruction: L2Instruction): O = getter(instruction.cast())
 
 		/**
-		 * Write the field in an [L2NewInstruction] of the required type.
+		 * Write the field in an [L2Instruction] of the required type.
 		 */
-		fun set(instruction: L2NewInstruction, operand: O) =
+		fun set(instruction: L2Instruction, operand: O) =
 			setter(instruction.cast(), operand)
 
 		/**
 		 * Write the field, but allowing the [operand]'s type to be checked at
 		 * runtime.
 		 */
-		fun setUnchecked(instruction: L2NewInstruction, operand: L2Operand) =
+		fun setUnchecked(instruction: L2Instruction, operand: L2Operand) =
 			setter(instruction.cast(), operand.cast())
 
 		/**
@@ -141,7 +134,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 		 * [transformation], and write it back into the instruction.
 		 */
 		fun update(
-			instruction: L2NewInstruction,
+			instruction: L2Instruction,
 			transformation: (L2Operand)->L2Operand
 		) = set(instruction, transformation(get(instruction)).cast())
 
@@ -151,7 +144,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 	/**
 	 * The name to present as the basic instruction name.
 	 */
-	val name = instructionClass.simpleName!!
+	val name = instructionClass.simpleName!!.removePrefix("L2_")
 
 	/** The list of [OperandField]s, in declaration order. */
 	private val operandFields: List<OperandField<out L2Operand>>
@@ -189,7 +182,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 	}
 
 	fun updateOperands(
-		instruction: L2NewInstruction,
+		instruction: L2Instruction,
 		transform: (L2Operand) -> L2Operand)
 	{
 		operandFields.forEach { field ->
@@ -246,7 +239,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 * field and the corresponding [L2NamedOperandType].
 	 */
 	fun operandsWithNamedTypesDo(
-		instruction: L2NewInstruction,
+		instruction: L2Instruction,
 		consumer: (L2Operand, L2NamedOperandType) -> Unit)
 	{
 		operandFields.forEach { field ->
@@ -257,14 +250,14 @@ internal constructor(private val instructionClass: KClass<out I>)
 	/**
 	 * Extract the [Array] of [L2Operand]s from the instruction.
 	 */
-	fun operands(instruction: L2NewInstruction): Array<L2Operand> =
+	fun operands(instruction: L2Instruction): Array<L2Operand> =
 		operandFields.map { it.get(instruction.cast()) }.toTypedArray()
 
 	/**
 	 * Extract a list of all [L2ReadOperand]s, even those inside vectors.
 	 */
 	fun readOperands(
-		instruction: L2NewInstruction
+		instruction: L2Instruction
 	): List<L2ReadOperand<*>> = when
 	{
 		vectorReadOperandFields.isEmpty() ->
@@ -283,7 +276,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 * Extract a list of all [L2WriteOperand]s, even those inside vectors.
 	 */
 	fun writeOperands(
-		instruction: L2NewInstruction
+		instruction: L2Instruction
 	): List<L2WriteOperand<*>> = when
 	{
 		vectorWriteOperandFields.isEmpty() ->
@@ -302,7 +295,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 * Extract a list of all [L2PcOperand]s, even those inside vectors.
 	 */
 	fun pcOperands(
-		instruction: L2NewInstruction
+		instruction: L2Instruction
 	): List<L2PcOperand> = when
 	{
 		vectorPcOperandFields.isEmpty() ->
@@ -330,7 +323,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 *   same [Class].
 	 */
 	fun transformOperands(
-		instruction: L2NewInstruction,
+		instruction: L2Instruction,
 		transform: (L2Operand) -> L2Operand)
 	{
 		operandFields.forEach { operandField ->

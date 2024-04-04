@@ -301,7 +301,7 @@ constructor(
 		val argMeta = instanceMeta(argRestriction.type)
 		val argTypeWrite =
 			generator.boxedWriteTemp(argRestriction.metaRestriction())
-		generator.addInstruction(L2_GET_TYPE, argRead, argTypeWrite)
+		generator.addInstruction(L2_GET_TYPE(argRead, argTypeWrite))
 		val superUnionReg = generator.boxedConstant(superUnionElementType)
 		val unionReg = generator.boxedWriteTemp(
 			boxedRestrictionForType(argMeta.typeUnion(superUnionReg.type())))

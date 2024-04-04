@@ -36,12 +36,12 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -66,7 +66,7 @@ import org.objectweb.asm.Opcodes
 @WritesHiddenVariable(
 	LATEST_RETURN_VALUE::class)
 class L2_TRY_OPTIONAL_PRIMITIVE(
-): L2NewInstruction()
+): L2Instruction()
 {
 	override val isEntryPoint get() = true
 

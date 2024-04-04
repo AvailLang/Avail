@@ -34,12 +34,8 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.staticObjectTypeVariantIdMethod
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -53,37 +49,31 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_EXTRACT_OBJECT_TYPE_VARIANT_ID : L2Operation(
-	READ_BOXED.named("object type"),
-	WRITE_INT.named("variantId"))
+class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
+	var objectType: L2ReadBoxedOperand,
+	var variantId: L2WriteIntOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder
 			.append(' ')
 			.append(variantId.registerString())
 			.append(" ← OBJECT TYPE VARIANT_ID(")
-			.append(value.registerString())
+			.append(objectType.registerString())
 			.append(")")
 	}
 
 	override fun generateReplacement(
-		instruction: L2Instruction,
 		regenerator: L2Regenerator)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
-
 		// If the variantId is statically deducible at this point, use the
 		// constant.
-		val restriction = regenerator.restrictionFor(value.semanticValue())
+		val restriction = regenerator.restrictionFor(objectType.semanticValue())
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectTypeVariant
@@ -94,30 +84,15 @@ object L2_EXTRACT_OBJECT_TYPE_VARIANT_ID : L2Operation(
 				variantId.semanticValues())
 			return
 		}
-		super.generateReplacement(instruction, regenerator)
-	}
-
-	/**
-	 * Extract the [L2ReadBoxedOperand] that provided the object type whose
-	 * variant is being extracted.
-	 */
-	fun sourceOfObjectTypeVariant(
-		instruction: L2Instruction
-	): L2ReadBoxedOperand
-	{
-		return instruction.operand(0)
+		super.generateReplacement(regenerator)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
-
 		// :: variantId = staticObjectVariantId(value);
-		translator.load(method, value.register())
+		translator.load(method, objectType.register())
 		staticObjectTypeVariantIdMethod.generateCall(method)
 		translator.store(method, variantId.register())
 	}

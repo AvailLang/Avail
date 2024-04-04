@@ -31,11 +31,10 @@
  */
 package avail.interpreter.levelTwo.operand
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
 import avail.utility.cast
@@ -49,7 +48,7 @@ import avail.utility.cast
  * @constructor
  * Construct a new [L2PcVectorOperand] with the specified [List] of
  * [L2PcOperand]s. The order of the elements should be understood by the
- * [L2Operation] of the [L2Instruction] in which this vector occurs.
+ * [L2Instruction] in which this vector occurs.
  *
  * @param edges
  *   The list of [L2PcOperand]s.

@@ -52,6 +52,8 @@ import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.UnsignedShiftRight
 import avail.interpreter.levelTwo.operation.L2_HASH
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.ShiftedHashSplitter
@@ -503,9 +505,10 @@ constructor(
 		if (!generator.currentManifest.hasSemanticValue(semanticHashInt))
 		{
 			generator.addInstruction(
-				L2_HASH,
-				generator.readBoxed(semanticSource),
-				generator.intWrite(setOf(semanticHashInt), int32Restriction))
+				L2_HASH(
+					generator.readBoxed(semanticSource),
+					generator.intWrite(
+						setOf(semanticHashInt), int32Restriction)))
 		}
 		// Now extract the relevant bits.  Pretend the hash was masked with the
 		// value 0xFFFF_FFFFL, so that we can right shift it in a way that's
@@ -535,27 +538,29 @@ constructor(
 					// Neither the semantic value representing the shifted hash nor
 					// an equivalent semantic value exist.  Do the shift.
 					generator.addInstruction(
-						L2_BIT_LOGIC_OP.bitwiseUnsignedShiftRight,
-						L2ReadIntOperand(
-							semanticHashInt,
-							int32Restriction,
-							generator.currentManifest),
-						generator.unboxedIntConstant(bestShift),
-						generator.intWrite(
-							setOf(semanticShiftedInt),
-							preMaskRestriction))
+						L2_BIT_LOGIC_OP(
+							UnsignedShiftRight,
+							L2ReadIntOperand(
+								semanticHashInt,
+								int32Restriction,
+								generator.currentManifest),
+							generator.unboxedIntConstant(bestShift),
+							generator.intWrite(
+								setOf(semanticShiftedInt),
+								preMaskRestriction)))
 					semanticShiftedInt
 				}
 		}
 		val indexWrite = generator.intWriteTemp(indexRestriction)
 		generator.addInstruction(
-			L2_BIT_LOGIC_OP.bitwiseAnd,
-			L2ReadIntOperand(
-				inputForMasking,
-				preMaskRestriction,
-				generator.currentManifest),
-			generator.unboxedIntConstant(mask),
-			indexWrite)
+			L2_BIT_LOGIC_OP(
+				And,
+				L2ReadIntOperand(
+					inputForMasking,
+					preMaskRestriction,
+					generator.currentManifest),
+				generator.unboxedIntConstant(mask),
+				indexWrite))
 		// indexWrite's register now contains the shifted, masked value with
 		// which to dispatch.
 		val triples = mutableListOf(

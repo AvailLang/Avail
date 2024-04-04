@@ -58,12 +58,8 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -81,23 +77,21 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_CREATE_TUPLE : L2Operation(
-	READ_BOXED_VECTOR.named("elements"),
-	WRITE_BOXED.named("tuple"))
+class L2_CREATE_TUPLE(
+	var elements: L2ReadBoxedVectorOperand,
+	var tuple: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val tuple = instruction.operand<L2WriteBoxedOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(tuple.registerString())
 		builder.append(" ← ")
-		builder.append(values.elements)
+		builder.append(elements.elements)
 	}
 
 	/**
@@ -114,14 +108,9 @@ object L2_CREATE_TUPLE : L2Operation(
 	 */
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val tuple = instruction.operand<L2WriteBoxedOperand>(1)
-
-		val elements = values.elements
-		val size = elements.size
+		val size = elements.elements.size
 
 		// Special cases for small tuples
 		assert(size > 0) {
@@ -129,7 +118,7 @@ object L2_CREATE_TUPLE : L2Operation(
 		}
 
 		// Special cases for characters and integers
-		val unionType = elements.fold(bottom) { t, read ->
+		val unionType = elements.elements.fold(bottom) { t, read ->
 			t.typeUnion(read.type())
 		}
 		when
@@ -138,7 +127,7 @@ object L2_CREATE_TUPLE : L2Operation(
 			{
 				translator.intConstant(method, size)
 				// :: size
-				if (elements.any { read ->
+				if (elements.elements.any { read ->
 						read.type().run {
 							isEnumeration &&
 								instances.any { c -> c.codePoint > 255 }
@@ -185,7 +174,9 @@ object L2_CREATE_TUPLE : L2Operation(
 				// Build a general object tuple.  First, push the elements.
 				if (size <= 5)
 				{
-					elements.forEach { translator.load(method, it.register()) }
+					elements.elements.forEach {
+						translator.load(method, it.register())
+					}
 					// :: element1... elementN
 				}
 				when (size)
@@ -199,7 +190,9 @@ object L2_CREATE_TUPLE : L2Operation(
 					{
 						// The elements are NOT already pushed.
 						translator.objectArray(
-							method, elements, A_BasicObject::class.java)
+							method,
+							elements.elements,
+							A_BasicObject::class.java)
 						// :: initialized_array
 						tupleFromArrayMethod.generateCall(method)
 					}
@@ -214,7 +207,7 @@ object L2_CREATE_TUPLE : L2Operation(
 			}
 		}
 		// :: an-uninitialized-tuple
-		elements.forEachIndexed { zeroIndex, read ->
+		elements.elements.forEachIndexed { zeroIndex, read ->
 			translator.intConstant(method, zeroIndex + 1)
 			translator.load(method, read.register())
 			tupleAtPuttingMethod.generateCall(method)

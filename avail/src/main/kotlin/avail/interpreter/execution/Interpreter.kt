@@ -133,7 +133,6 @@ import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operation.L2_INVOKE

@@ -33,9 +33,6 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceOfMetaMethod
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -47,20 +44,17 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_INSTANCE_OF_META : L2Operation(
-	READ_BOXED.named("meta"),
-	WRITE_BOXED.named("meta's instance"))
+class L2_INSTANCE_OF_META(
+	var meta: L2ReadBoxedOperand,
+	var instanceOfMeta: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val meta = instruction.operand<L2ReadBoxedOperand>(0)
-		val instance = instruction.operand<L2WriteBoxedOperand>(1)
-
 		translator.load(method, meta.register())
 		instanceOfMetaMethod.generateCall(method)
-		translator.store(method, instance.register())
+		translator.store(method, instanceOfMeta.register())
 	}
 }

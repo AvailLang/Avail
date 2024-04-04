@@ -69,6 +69,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.WrappedMultiply
 import avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -293,7 +294,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		argumentTypes,
 		ifOutputIsInt = {
 			generator.addInstruction(
-				L2_BIT_LOGIC_OP.wrappedMultiply, intA, intB, intWrite)
+				L2_BIT_LOGIC_OP(WrappedMultiply, intA, intB, intWrite))
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(

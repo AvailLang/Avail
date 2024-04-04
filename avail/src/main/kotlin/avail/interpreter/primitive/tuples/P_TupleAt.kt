@@ -173,10 +173,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			{
 				val sizeWriter = generator.intWrite(
 					setOf(unboxedSemanticSize), intSizeRestriction)
-				translator.addInstruction(
-					L2_TUPLE_SIZE,
-					tupleReg,
-					sizeWriter)
+				translator.addInstruction(L2_TUPLE_SIZE(tupleReg, sizeWriter))
 			}
 			val readSubscript = generator.readInt(
 				L2SemanticUnboxedInt(subscriptReg.semanticValue()),
@@ -212,10 +209,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				val writeResult =
 					generator.boxedWrite(semanticResult, resultRestriction)
 				generator.addInstruction(
-					L2_TUPLE_AT_NO_FAIL,
-					tupleReg,
-					readSubscript,
-					writeResult)
+					L2_TUPLE_AT_NO_FAIL(tupleReg, readSubscript, writeResult))
 				callSiteHelper.useAnswer(translator.readBoxed(writeResult))
 			}
 			generator.startBlock(outOfBounds)
@@ -245,10 +239,8 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			// The subscript is a constant (and it's within range).
 			val subscriptInt = lower.extractInt
 			translator.addInstruction(
-				L2_TUPLE_AT_CONSTANT,
-				tupleReg,
-				L2IntImmediateOperand(subscriptInt),
-				writer)
+				L2_TUPLE_AT_CONSTANT(
+					tupleReg, L2IntImmediateOperand(subscriptInt), writer))
 			callSiteHelper.useAnswer(translator.readBoxed(writer))
 			return true
 		}
@@ -260,10 +252,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			subscriptConversionFailure)
 		assert(subscriptConversionFailure.predecessorEdges().isEmpty())
 		translator.addInstruction(
-			L2_TUPLE_AT_NO_FAIL,
-			tupleReg,
-			subscriptIntReg,
-			writer)
+			L2_TUPLE_AT_NO_FAIL(tupleReg, subscriptIntReg, writer))
 		callSiteHelper.useAnswer(translator.readBoxed(writer))
 		return true
 	}

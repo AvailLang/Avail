@@ -31,12 +31,10 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.new.InstructionLayout
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.InstructionLayout
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
@@ -95,7 +93,7 @@ import org.objectweb.asm.MethodVisitor
 abstract class L2_PHI<K: RegisterKind<K>>
 protected constructor(
 	val kind: K,
-) : L2NewInstruction()
+) : L2Instruction()
 {
 	/**
 	 * The sources of this phi move.  This is a member function instead of a
@@ -144,7 +142,7 @@ protected constructor(
 	 */
 	fun phiWithoutIndex(
 		inputIndex: Int
-	): L2NewInstruction
+	): L2Instruction
 	{
 		val newSources = sources().elements.toMutableList()
 		newSources.removeAt(inputIndex)
@@ -219,7 +217,7 @@ protected constructor(
 	}
 
 	/**
-	 * Write the given [L2Operation]'s equivalent effect through the given
+	 * Write the given [L2Instruction]'s equivalent effect through the given
 	 * [L2Regenerator], with the given already-transformed [L2Operand]s.
 	 *
 	 * Don't reproduce phi instructions like this one, since suitable ones will
@@ -256,9 +254,9 @@ protected constructor(
 	}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		builder.append("ϕ ")
 		builder.append(destination())

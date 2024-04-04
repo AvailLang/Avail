@@ -35,7 +35,6 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED

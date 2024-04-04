@@ -144,12 +144,12 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val ifNotSubtype = translator.generator.createBasicBlock("not subtype")
 
 		val xDef = xTypeReg.definitionSkippingMoves()
-		if (xDef.isGetType)
+		if (xDef is L2_GET_TYPE)
 		{
 			// X is an L2_GET_TYPE of some other register.
 			// Convert this into an L2_JUMP_IF_KIND_OF_OBJECT/CONSTANT, but
 			// use the value that was provided to L2_GET_TYPE.
-			val xInstanceRead = L2_GET_TYPE.sourceValueOf(xDef)
+			val xInstanceRead = xDef.value
 			if (constantYType !== null)
 			{
 				translator.generator.jumpIfKindOfConstant(

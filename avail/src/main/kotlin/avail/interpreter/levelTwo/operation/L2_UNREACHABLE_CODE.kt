@@ -47,7 +47,7 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_UNREACHABLE_CODE(
-): L2NewControlFlowInstruction()
+): L2ControlFlowInstruction()
 {
 	override val isCold get() = true
 

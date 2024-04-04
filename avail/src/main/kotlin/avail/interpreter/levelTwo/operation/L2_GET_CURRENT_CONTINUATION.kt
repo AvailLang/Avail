@@ -33,9 +33,9 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -53,12 +53,12 @@ import org.objectweb.asm.MethodVisitor
 @ReadsHiddenVariable(CURRENT_CONTINUATION::class)
 class L2_GET_CURRENT_CONTINUATION(
 	var currentContinuation: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

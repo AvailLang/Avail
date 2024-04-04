@@ -32,7 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
@@ -52,7 +52,7 @@ import org.objectweb.asm.MethodVisitor
 class L2_JUMP_BACK(
 	@On(SUCCESS) var target: L2PcOperand,
 	var registersToKeep: L2ReadBoxedVectorOperand
-): L2NewControlFlowInstruction()
+): L2ControlFlowInstruction()
 {
 	// It jumps, which counts as a side effect.
 	override val hasSideEffect get() = true

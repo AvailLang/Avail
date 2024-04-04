@@ -157,10 +157,10 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 		val objectType = objectRead.type()
 		assert(objectType.fieldTypeAtOrNull(fieldAtom) !== null)
 		regenerator.addInstruction(
-			L2_GET_OBJECT_FIELD,
-			objectRead,
-			L2ConstantOperand(fieldAtom),
-			result)
+			L2_GET_OBJECT_FIELD(
+				objectRead,
+				L2ConstantOperand(fieldAtom),
+				result))
 	}
 
 	override fun privateFailureVariableType(): A_Type =

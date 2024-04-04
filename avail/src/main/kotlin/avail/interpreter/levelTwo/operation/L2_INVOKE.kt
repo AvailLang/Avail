@@ -41,10 +41,10 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -85,7 +85,7 @@ class L2_INVOKE(
 	@On(SUCCESS) var result: L2WriteBoxedOperand,
 	@On(SUCCESS) var ifReturn: L2PcOperand,
 	@On(OFF_RAMP) var ifReification: L2PcOperand
-): L2NewControlFlowInstruction()
+): L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
 
@@ -123,9 +123,9 @@ class L2_INVOKE(
 	}
 
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

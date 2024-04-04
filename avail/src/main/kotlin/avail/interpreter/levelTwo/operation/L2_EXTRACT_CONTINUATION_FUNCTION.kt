@@ -35,7 +35,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.L2NewInstruction
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -49,12 +49,12 @@ import org.objectweb.asm.MethodVisitor
 class L2_EXTRACT_CONTINUATION_FUNCTION(
 	var continuation: L2ReadBoxedOperand,
 	var extractedFunction: L2WriteBoxedOperand
-): L2NewInstruction()
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder.append(' ')

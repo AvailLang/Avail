@@ -219,9 +219,9 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 					translator.generator.boxedWriteTemp(
 						restriction(guaranteedType, null))
 				translator.addInstruction(
-					L2_CONCATENATE_TUPLES,
-					L2ReadBoxedVectorOperand(adjustedSources),
-					writer)
+					L2_CONCATENATE_TUPLES(
+						L2ReadBoxedVectorOperand(adjustedSources),
+						writer))
 				callSiteHelper.useAnswer(translator.readBoxed(writer))
 			}
 		}

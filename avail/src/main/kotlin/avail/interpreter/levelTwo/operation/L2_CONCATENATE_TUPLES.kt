@@ -37,12 +37,8 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.concatenateTupleMethod
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OldInstruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -59,21 +55,19 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_CONCATENATE_TUPLES : L2Operation(
-	READ_BOXED_VECTOR.named("tuples to concatenate"),
-	WRITE_BOXED.named("concatenated tuple"))
+class L2_CONCATENATE_TUPLES(
+	var tuples: L2ReadBoxedVectorOperand,
+	var concatenatedTuple: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2OldInstruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
+		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val output = instruction.operand<L2WriteBoxedOperand>(1)
-		instruction.renderPreamble(builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(output.registerString())
+		builder.append(concatenatedTuple.registerString())
 		builder.append(" ← ")
 		tuples.elements.joinTo(builder, " ++ ") { it.registerString() }
 	}
@@ -87,12 +81,8 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		// If we can tell (1) which subtuple we're getting the value from, and
 		// (2) the index within that subtuple, then extract the value from the
 		// subtuple instead of the concatenation.
-		val instruction = tupleReg.definition().instruction
-		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		// val tuple = instruction.operand<L2WriteBoxedOperand>(1)
-
 		var residualIndex = index
-		for (elementRead in values.elements)
+		for (elementRead in tuples.elements)
 		{
 			assert(residualIndex >= 1)
 			val sizeRange = elementRead.type()
@@ -123,11 +113,8 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val output = instruction.operand<L2WriteBoxedOperand>(1)
 		val elements = tuples.elements
 		val tupleCount = elements.size
 		assert(tupleCount > 0)
@@ -141,6 +128,6 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 		method.visitTypeInsn(
 			Opcodes.CHECKCAST,
 			Type.getInternalName(AvailObject::class.java))
-		translator.store(method, output.register())
+		translator.store(method, concatenatedTuple.register())
 	}
 }

@@ -76,6 +76,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.WrappedDivide
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
@@ -298,7 +299,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		// At this point the result will not throw division-by-zero or overflow
 		// an int32.
 		translator.addInstruction(
-			L2_BIT_LOGIC_OP.wrappedDivide, intA, intB, quotientWriter)
+			L2_BIT_LOGIC_OP(WrappedDivide, intA, intB, quotientWriter))
 		// Even though we're just using the boxed value again, the unboxed
 		// form is also still available for use by subsequent primitives,
 		// which could allow the boxing instruction to evaporate.

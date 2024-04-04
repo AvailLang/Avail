@@ -57,7 +57,7 @@ import avail.dispatch.LookupTree
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.new.On
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -69,6 +69,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.UnsignedShiftRight
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2GeneratorInterface
@@ -101,12 +103,12 @@ class L2_MULTIWAY_JUMP(
 	var value: L2ReadIntOperand,
 	var splitter: L2ArbitraryConstantOperand,
 	@On(SUCCESS) var branchEdges: L2PcVectorOperand
-): L2NewConditionalJump()
+): L2ConditionalJump()
 {
 	override fun appendToWithWarnings(
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
 		renderPreamble(builder)
 		builder
@@ -436,9 +438,8 @@ abstract class AbstractMultiWaySplitter(
 		val sourceExtraction = readInt.definition().instruction
 		return when
 		{
-			sourceExtraction.isExtractTagOrdinal ->
-				L2_EXTRACT_TAG_ORDINAL.sourceOfExtractTag(sourceExtraction)
-					.semanticValue()
+			sourceExtraction is L2_EXTRACT_TAG_ORDINAL ->
+				sourceExtraction.value.semanticValue()
 			else -> null
 		}
 	}
@@ -492,10 +493,9 @@ class TagSplitter(
 		val sourceInstructionOfInt = read.definitionSkippingMoves()
 		val conditions =
 			super.interestingConditions(read, edges).toMutableList()
-		if (sourceInstructionOfInt.isExtractTagOrdinal)
+		if (sourceInstructionOfInt is L2_EXTRACT_TAG_ORDINAL)
 		{
-			val originalSource = L2_EXTRACT_TAG_ORDINAL
-				.sourceOfExtractTag(sourceInstructionOfInt)
+			val originalSource = sourceInstructionOfInt.value
 			val originalSourceRegister = originalSource.register()
 			val intSemanticValue = read.semanticValue()
 			edges.forEach { edge ->
@@ -553,9 +553,8 @@ class TagSplitter(
 		val sourceInstruction = readInt.definitionSkippingMoves()
 		val sourceValue = when
 		{
-			sourceInstruction.isExtractTagOrdinal ->
-				L2_EXTRACT_TAG_ORDINAL.sourceOfExtractTag(sourceInstruction)
-					.semanticValue()
+			sourceInstruction is L2_EXTRACT_TAG_ORDINAL ->
+				sourceInstruction.value.semanticValue()
 			sourceInstruction is L2_MOVE_CONSTANT<*, *> -> null
 			else -> return
 		}
@@ -716,14 +715,12 @@ class VariantSplitter(
 		}
 		when
 		{
-			sourceInstructionOfInt.isExtractObjectVariantId ->
+			sourceInstructionOfInt is L2_EXTRACT_OBJECT_VARIANT_ID ->
 			{
 				// It's a variant dispatch on an object instance.
 				assert(isInstance)
-				val originalSource =
-					L2_EXTRACT_OBJECT_VARIANT_ID.sourceOfObjectVariant(
-						sourceInstructionOfInt)
-				val originalSourceRegister = originalSource.register()
+				val originalSourceRegister =
+					sourceInstructionOfInt.sourceObject.register()
 				val baseRestriction =
 					boxedRestrictionForType(mostGeneralObjectType)
 				edgeVariants.filterNotNull().forEach { variant ->
@@ -734,24 +731,26 @@ class VariantSplitter(
 						typeRestrictionCondition(
 							listOf(originalSourceRegister),
 							baseRestriction
-								.intersectionWithObjectVariant(variant)))
+								.intersectionWithObjectVariant(variant)
+						)
+					)
 					// Allow splitting if there's an upstream point that
 					// can guarantee that the most general type for this
 					// variant is *not* satisfied.
 					conditions.add(
 						typeRestrictionCondition(
 							listOf(originalSourceRegister),
-							baseRestriction.minusObjectVariant(variant)))
+							baseRestriction.minusObjectVariant(variant)
+						)
+					)
 				}
 			}
-			sourceInstructionOfInt.isExtractObjectTypeVariantId ->
+			sourceInstructionOfInt is L2_EXTRACT_OBJECT_TYPE_VARIANT_ID ->
 			{
 				// It's a variant dispatch on an object *type*.
 				assert(!isInstance)
-				val originalSource =
-					L2_EXTRACT_OBJECT_TYPE_VARIANT_ID.sourceOfObjectTypeVariant(
-						sourceInstructionOfInt)
-				val originalSourceRegister = originalSource.register()
+				val originalSourceRegister =
+					sourceInstructionOfInt.objectType.register()
 				val baseRestriction =
 					boxedRestrictionForType(mostGeneralObjectMeta)
 				edgeVariants.filterNotNull().forEach { variant ->
@@ -762,14 +761,18 @@ class VariantSplitter(
 						typeRestrictionCondition(
 							listOf(originalSourceRegister),
 							baseRestriction
-								.intersectionWithObjectTypeVariant(variant)))
+								.intersectionWithObjectTypeVariant(variant)
+						)
+					)
 					// Allow splitting if there's an upstream point that can
 					// guarantee that the most general meta for this variant is
 					// *not* satisfied.
 					conditions.add(
 						typeRestrictionCondition(
 							listOf(originalSourceRegister),
-							baseRestriction.minusObjectTypeVariant(variant)))
+							baseRestriction.minusObjectTypeVariant(variant)
+						)
+					)
 				}
 			}
 		}
@@ -812,14 +815,11 @@ class VariantSplitter(
 		val sourceInstruction = readInt.definitionSkippingMoves()
 		when
 		{
-			sourceInstruction.isExtractObjectVariantId ->
+			sourceInstruction is L2_EXTRACT_OBJECT_VARIANT_ID ->
 			{
 				// It's a variant dispatch on an object instance.
 				assert(isInstance)
-				val sourceValue =
-					L2_EXTRACT_OBJECT_VARIANT_ID.sourceOfObjectVariant(
-						sourceInstruction
-					).semanticValue()
+				val sourceValue = sourceInstruction.sourceObject.semanticValue()
 				(edges zip edgeVariants).forEach { (edge, variant) ->
 					if (variant === null) return@forEach
 					edge.manifest().updateRestriction(sourceValue)
@@ -828,14 +828,11 @@ class VariantSplitter(
 					}
 				}
 			}
-			sourceInstruction.isExtractObjectTypeVariantId ->
+			sourceInstruction is L2_EXTRACT_OBJECT_TYPE_VARIANT_ID ->
 			{
 				// It's a variant dispatch on an object *type*.
 				assert(!isInstance)
-				val sourceValue =
-					L2_EXTRACT_OBJECT_TYPE_VARIANT_ID.sourceOfObjectTypeVariant(
-						sourceInstruction
-					).semanticValue()
+				val sourceValue = sourceInstruction.objectType.semanticValue()
 				(edges zip edgeVariants).forEach { (edge, variant) ->
 					if (variant === null) return@forEach
 					edge.manifest().updateRestriction(sourceValue)
@@ -944,16 +941,17 @@ class ShiftedHashSplitter constructor(
 	): L2ReadBoxedOperand?
 	{
 		val sourceInstructionOfMasked = read.definitionSkippingMoves()
-		if (sourceInstructionOfMasked.isBitLogicOperation(
-				L2_BIT_LOGIC_OP.bitwiseAnd))
+		if (sourceInstructionOfMasked.isBitLogicOperation(And))
+		{
 			return null
+		}
 		val sourceInstructionOfShifted = sourceInstructionOfMasked
 			.readOperands.first()  // value & mask
 			.definitionSkippingMoves()
 		val sourceInstructionOfHash: L2Instruction = when
 		{
 			sourceInstructionOfShifted.isBitLogicOperation(
-				L2_BIT_LOGIC_OP.bitwiseUnsignedShiftRight) ->
+				UnsignedShiftRight) ->
 			{
 				sourceInstructionOfShifted
 					.readOperands.first() // value >>> shift
@@ -962,7 +960,7 @@ class ShiftedHashSplitter constructor(
 			// No shift was needed in this case.
 			else -> sourceInstructionOfShifted
 		}
-		if (sourceInstructionOfHash.isHash)
+		if (sourceInstructionOfHash is L2_HASH)
 			return null
 		return sourceInstructionOfHash.readOperands.single().cast()
 	}

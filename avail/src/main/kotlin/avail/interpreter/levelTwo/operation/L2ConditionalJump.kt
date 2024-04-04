@@ -56,7 +56,7 @@ import org.objectweb.asm.MethodVisitor
  *   The vararg array of [L2NamedOperandType]s that describe the operands of
  *   such an instruction.
  */
-abstract class L2NewConditionalJump : L2NewControlFlowInstruction()
+abstract class L2ConditionalJump : L2ControlFlowInstruction()
 {
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
