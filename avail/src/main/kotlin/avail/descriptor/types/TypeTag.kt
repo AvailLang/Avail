@@ -440,9 +440,12 @@ constructor(
 	val contravariants = mutableListOf<Contra>()
 
 	/**
-	 * Precompute the name without the "_TAG" suffix.
+	 * Precompute the name without the "_TAG" suffix, and mapped to CamelCase.
 	 */
-	val shorterName = name.removeSuffix("_TAG")
+	val shorterName = name
+		.removeSuffix("_TAG")
+		.split("_")
+		.joinToString("") { it.lowercase().replaceFirstChar(Char::uppercase) }
 
 	init
 	{

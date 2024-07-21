@@ -48,6 +48,7 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
@@ -58,6 +59,8 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 
 /**
  * **Primitive:** Compare two extended integers and answer a
@@ -79,7 +82,7 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(tuple(NUMBER.o, NUMBER.o), booleanType)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val (type1, type2) = argumentTypes
 		val possible = possibleOrdersWhenComparingInstancesOf(type1, type2)
@@ -95,6 +98,23 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			falseType
 		}
+	}
+
+	override fun interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>,
+		rawFunction: A_RawFunction
+	): List<L2SplitCondition?>
+	{
+		val arg1 = readBoxedOperands[0]
+		val arg2 = readBoxedOperands[0]
+		if (arg1.restriction().intersectsType(i32)
+			&& arg2.restriction().intersectsType(i32))
+		{
+			return listOf(
+				unboxedIntCondition(listOf(arg1.register())),
+				unboxedIntCondition(listOf(arg2.register())))
+		}
+		return emptyList()
 	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
@@ -138,4 +158,6 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 		callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
 		return true
 	}
+
+	override val canDestroyArguments get() = false
 }

@@ -76,4 +76,6 @@ object P_AtomIssuingModule : Primitive(1, CanFold, CanInline)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))
+
+	override val canDestroyArguments get() = false
 }

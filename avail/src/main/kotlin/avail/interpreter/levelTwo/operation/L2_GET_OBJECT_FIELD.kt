@@ -31,12 +31,18 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2OperandType
+import avail.descriptor.types.A_Type.Companion.instance
+import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.mapToSet
@@ -72,18 +78,59 @@ class L2_GET_OBJECT_FIELD(
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
-		// Strengthen the field value's type in case the incoming object type
-		// is now stronger, perhaps due to code splitting.
+		val originalWrite = sourceObject.originalBoxedWriteSkippingMoves()
+		val originalWriteInstruction = originalWrite.instruction
+		if (originalWriteInstruction is L2_CREATE_OBJECT)
+		{
+			val variant = originalWriteInstruction.variant.constant
+			val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+			if (fieldIndex == 0)
+			{
+				// A zero indicates the field is an atom that maps to itself.
+				regenerator.addInstruction(
+					L2_MOVE_CONSTANT_BOXED(
+						L2ConstantOperand(fieldAtom.constant), fieldValue))
+				return
+			}
+			val fieldSource =
+				originalWriteInstruction.fieldValues.elements[fieldIndex - 1]
+			regenerator.addInstruction(L2_MOVE_BOXED(fieldSource, fieldValue))
+			return
+		}
+		if (originalWriteInstruction is L2_MOVE_CONSTANT_BOXED)
+		{
+			// We can't just fall through to the code below that checks if the
+			// field's type is an instance type, because the value might itself
+			// be a type (and by metacovariance, it might be that type or any
+			// subtype).
+			val constantObject = originalWriteInstruction.constant().constant
+			assert(constantObject.isInstanceOf(mostGeneralObjectType))
+			val objectFieldValue = constantObject.fieldAt(fieldAtom.constant)
+			regenerator.addInstruction(
+				L2_MOVE_CONSTANT_BOXED(
+					L2ConstantOperand(objectFieldValue), fieldValue))
+			return
+		}
+		// Strengthen the field value's type in case the incoming object type is
+		// now stronger, perhaps due to code splitting.
 		val manifest = regenerator.currentManifest
 		val objectRestriction = sourceObject.restriction().intersection(
 			manifest.restrictionFor(sourceObject.semanticValue()))
 		val objectType = objectRestriction.type
 		val fieldType = objectType.fieldTypeAt(fieldAtom.constant)
-		val newFieldRestriction =
+		val fieldRestriction =
 			fieldValue.restriction().intersectionWithType(fieldType)
+		if (fieldType.instanceCount.equalsInt(1) && !fieldType.isInstanceMeta)
+		{
+			// The field holds a known (non-type) constant.
+			regenerator.addInstruction(
+				L2_MOVE_CONSTANT_BOXED(
+					L2ConstantOperand(fieldType.instance), fieldValue))
+			return
+		}
 		val newFieldWrite = L2WriteBoxedOperand(
 			fieldValue.semanticValues(),
-			newFieldRestriction,
+			fieldRestriction,
 			fieldValue.register())
 		regenerator.addInstruction(
 			L2_GET_OBJECT_FIELD(sourceObject, fieldAtom, newFieldWrite))

@@ -62,4 +62,6 @@ object P_ContinuationStackPointer : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralContinuationType), naturalNumbers)
+
+	override val canDestroyArguments get() = false
 }

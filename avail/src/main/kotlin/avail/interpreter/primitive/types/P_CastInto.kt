@@ -107,7 +107,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 	// fail, and that the function was a primitive, we could ask the
 	// primitive what it would produce.
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type = argumentTypes[1].returnType
 
@@ -150,9 +150,11 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val castBlock = generator.createBasicBlock("cast type matched")
-		val elseBlock = generator.createBasicBlock("cast type did not match")
+		val elseBlock = generator.createBasicBlock(
+			"cast type did not match",
+			isCold = true)
 
-		val constantValue = valueRead.constantOrNull()
+		val constantValue = valueRead.constantOrNull
 		val typeTest = castFunctionRead.exactSoleArgumentType()
 		val passedTest: Boolean? = typeTest?.run{
 			when {

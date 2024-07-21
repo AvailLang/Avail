@@ -31,6 +31,7 @@
  */
 package avail.optimizer.values
 
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
@@ -65,6 +66,11 @@ constructor(
 		semanticValueTransformer(base).let {
 			if (it == base) this else L2SemanticUnboxedInt(it)
 		}
+
+	override val isConstant: Boolean get() = base.isConstant
+
+	override val constantRestrictionOrNull: TypeRestriction
+		get() = base.constantRestrictionOrNull!!.forUnboxedInt()
 
 	override fun toString(): String = "Int($base)"
 }

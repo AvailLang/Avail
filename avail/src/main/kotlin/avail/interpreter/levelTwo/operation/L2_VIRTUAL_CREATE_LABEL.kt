@@ -37,14 +37,15 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
@@ -53,6 +54,7 @@ import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator
 import avail.optimizer.L2Generator.Companion.backEdgeTo
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2GeneratorInterface.SpecialBlock
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -188,6 +190,7 @@ class L2_VIRTUAL_CREATE_LABEL(
 				boxedRestrictionForType(Types.ANY.o))
 			addInstruction(
 				L2_SAVE_ALL_AND_PC_TO_INT(
+					L2ReadBoxedVectorOperand(emptyList()),
 					edgeTo(afterReification),
 					tempOffset,
 					tempRegisterDump,
@@ -246,17 +249,14 @@ class L2_VIRTUAL_CREATE_LABEL(
 			boxedWriteTemp(boxedRestrictionForType(Types.ANY.o))
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT(
-				backEdgeTo(specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!),
+				// Force there to be nothing considered live in the edge
+				// leading to the label's entry point.
+				L2ReadBoxedVectorOperand(emptyList()),
+				backEdgeTo(
+					specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!, mutableSetOf()),
 				writeOffset,
 				writeRegisterDump,
 				edgeTo(fallThrough)))
-
-		// Force there to be nothing considered live in the edge leading to the
-		// label's entry point.
-		val saveInstruction =
-			currentBlock().instructions().last() as L2_SAVE_ALL_AND_PC_TO_INT
-		val referenceEdge = saveInstruction.reference
-		referenceEdge.forcedClampedEntities = mutableSetOf()
 
 		startBlock(fallThrough)
 		val frameSizeInt = frameSize.value
@@ -271,9 +271,10 @@ class L2_VIRTUAL_CREATE_LABEL(
 				L2IntImmediateOperand(frameSizeInt + 1),  // empty stack
 				L2ReadBoxedVectorOperand(slots),  // each immutable
 				outputLabel,
-				readInt(
+				L2ReadIntOperand(
 					writeOffset.onlySemanticValue(),
-					unreachablePcOperand().targetBlock()),
+					intRestrictionForType(i32),
+					currentManifest),
 				readBoxed(writeRegisterDump),
 				L2CommentOperand("Create label.")))
 	}

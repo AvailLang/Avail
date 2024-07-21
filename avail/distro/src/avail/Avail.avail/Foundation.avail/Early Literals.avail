@@ -68,15 +68,15 @@ Method "“_”" is
 [
 	value : any
 |
-	primitive description of value
+	Primitive ToString;
 ] : string;
 
 Method "“_”" is
 [
 	value : ⊥'s type
 |
-	primitive description of value
-] : string;
+	"⊥"
+] : "⊥"'s type;
 
 
 stringifierType ::= function accepting <any> and returning string;

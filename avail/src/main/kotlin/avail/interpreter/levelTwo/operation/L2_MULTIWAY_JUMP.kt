@@ -59,7 +59,6 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -70,12 +69,12 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.UnsignedShiftRight
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Ushr
 import avail.optimizer.L2ControlFlowGraph.Zone
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -101,7 +100,7 @@ import kotlin.math.min
  */
 class L2_MULTIWAY_JUMP(
 	var value: L2ReadIntOperand,
-	var splitter: L2ArbitraryConstantOperand,
+	var splitter: L2ArbitraryConstantOperand<AbstractMultiWaySplitter>,
 	@On(SUCCESS) var branchEdges: L2PcVectorOperand
 ): L2ConditionalJump()
 {
@@ -115,8 +114,9 @@ class L2_MULTIWAY_JUMP(
 			.append(" ")
 			.append(value.registerString())
 			.append(" in ")
-			.append(extractSplitter(splitter))
-		renderOperandsExcludingFields(builder, ::value, ::splitter)
+			.append(splitter.constant)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::value, ::splitter)
 	}
 
 	override fun instructionWasAdded(
@@ -127,34 +127,26 @@ class L2_MULTIWAY_JUMP(
 		value.instructionWasAdded(manifest)
 		splitter.instructionWasAdded(manifest)
 		branchEdges.edges.forEach { edge ->
-			// Feed the edge its own manifest.
-			edge.instructionWasAdded(edge.manifest())
+			// Feed each edge the base manifest, but allow the splitter to fix
+			// them up later with more specific restrictions.
+			edge.instructionWasAdded(manifest)
 		}
+		splitter.constant.adjustEdgeManifests(value, branchEdges.edges)
 	}
 
 	override val isPlaceholder get() = true
-
-	/**
-	 * Extract the [AbstractMultiWaySplitter] from the given
-	 * [L2ConstantOperand].
-	 */
-	private fun extractSplitter(
-		constantOperand: L2ArbitraryConstantOperand
-	) = constantOperand.constant as AbstractMultiWaySplitter
 
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
 		// Delegate to the MultiWaySplitter.
-		extractSplitter(splitter)
-			.emitInstruction(value, branchEdges.edges, regenerator)
+		splitter.constant.emitInstruction(value, branchEdges.edges, regenerator)
 	}
 
 	override fun interestingConditions(): List<L2SplitCondition?>
 	{
 		// Delegate to the MultiWaySplitter.
-		return extractSplitter(splitter)
-			.interestingConditions(value, branchEdges.edges)
+		return splitter.constant.interestingConditions(value, branchEdges.edges)
 	}
 
 	override fun generateReplacement(
@@ -164,7 +156,7 @@ class L2_MULTIWAY_JUMP(
 		// search mechanism, we could just do a super call to leave this
 		// instruction intact, and then alter translateToJVM to generate the
 		// lookupswitch instruction.
-		val splitterInstance = extractSplitter(splitter)
+		val splitterInstance = splitter.constant
 		generateSubtree(
 			regenerator,
 			value,
@@ -176,15 +168,6 @@ class L2_MULTIWAY_JUMP(
 			ZoneType.MULTI_WAY_EXPANSION.createZone(
 				"multi-way branch:\n" +
 					"\tsplits = ${splitterInstance.splitPoints}"))
-	}
-
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
-	{
-		throw UnsupportedOperationException(
-			"${javaClass.simpleName} should " +
-				"have been replaced during optimization")
 	}
 
 	/**
@@ -277,6 +260,17 @@ class L2_MULTIWAY_JUMP(
 			lastSplit,
 			zone)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
+
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor)
+	{
+		throw UnsupportedOperationException(
+			"${javaClass.simpleName} should " +
+				"have been replaced during optimization")
+	}
 }
 
 /**
@@ -340,7 +334,7 @@ abstract class AbstractMultiWaySplitter(
 	 * @param edges
 	 *   The [List] of [L2PcOperand]s separated by the [splitPoints].
 	 * @param generator
-	 *   The [L2RegeneratorInterface] on which to write the instruction.
+	 *   The [L2GeneratorInterface] on which to write the instruction.
 	 */
 	fun emitInstruction(
 		readValue: L2ReadIntOperand,
@@ -950,8 +944,7 @@ class ShiftedHashSplitter constructor(
 			.definitionSkippingMoves()
 		val sourceInstructionOfHash: L2Instruction = when
 		{
-			sourceInstructionOfShifted.isBitLogicOperation(
-				UnsignedShiftRight) ->
+			sourceInstructionOfShifted.isBitLogicOperation(Ushr) ->
 			{
 				sourceInstructionOfShifted
 					.readOperands.first() // value >>> shift
@@ -962,7 +955,14 @@ class ShiftedHashSplitter constructor(
 		}
 		if (sourceInstructionOfHash is L2_HASH)
 			return null
+//TODO Remove catch
+try{
 		return sourceInstructionOfHash.readOperands.single().cast()
+} catch(e: Exception) {
+	println("BOOM")
+	return null
+}
+
 	}
 
 	override fun cloneForReducedEdges(

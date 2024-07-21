@@ -449,7 +449,13 @@ class MethodDescriptor private constructor(
 		}
 		append(" of ")
 		self.bundles
-			.sortedBy { it.message.issuingModule.allAncestors.setSize }
+			.sortedBy {
+				when (val ancestors = it.message.issuingModule.allAncestors)
+				{
+					nil -> Int.MAX_VALUE
+					else -> ancestors.setSize
+				}
+			}
 			.joinTo(this, " a.k.a. ") { it.message.toString() }
 	}
 

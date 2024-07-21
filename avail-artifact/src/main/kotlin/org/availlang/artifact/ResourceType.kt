@@ -23,7 +23,7 @@ enum class ResourceType
 	/** Represents an Avail root. */
 	ROOT,
 
-	/** Represents an arbitrary directory. */
+	/** Represents an arCbitrary directory. */
 	DIRECTORY,
 
 	/** Represents an arbitrary resource. */

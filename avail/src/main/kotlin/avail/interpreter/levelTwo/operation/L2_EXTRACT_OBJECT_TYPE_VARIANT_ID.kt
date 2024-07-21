@@ -77,8 +77,7 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectTypeVariant
-			regenerator.moveRegister(
-				INTEGER_KIND,
+			regenerator.moveIntRegister(
 				regenerator.unboxedIntConstant(variant.variantId)
 					.semanticValue(),
 				variantId.semanticValues())
@@ -86,6 +85,8 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 		}
 		super.generateReplacement(regenerator)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

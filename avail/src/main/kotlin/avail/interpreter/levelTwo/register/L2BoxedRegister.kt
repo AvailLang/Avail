@@ -51,8 +51,9 @@ import avail.optimizer.reoptimizer.L2Regenerator
  */
 class L2BoxedRegister
 constructor(
-	debugValue: Int
-) : L2Register<BOXED_KIND>(debugValue)
+	debugValue: Int,
+	constant: AvailObject? = null
+) : L2Register<BOXED_KIND>(debugValue, constant)
 {
 	override val kind get() = BOXED_KIND
 
@@ -61,8 +62,8 @@ constructor(
 
 	override fun copyAfterColoring(): L2BoxedRegister
 	{
-		val result = L2BoxedRegister(finalIndex())
-		result.setFinalIndex(finalIndex())
+		val result = L2BoxedRegister(finalIndex)
+		result.finalIndex = finalIndex
 		return result
 	}
 

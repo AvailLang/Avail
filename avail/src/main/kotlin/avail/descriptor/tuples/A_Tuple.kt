@@ -624,6 +624,14 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
+		 * Answer an immutable value that could replace an element of this tuple
+		 * without changing its descriptor to something less efficient, if
+		 * possible.
+		 */
+		val A_Tuple.dummyElement: AvailObject
+			get() = dispatch { o_DummyElement(it) }
+
+		/**
 		 * Extract the specified element from the tuple.  The element must be an
 		 * integer in the range [0..15], and is returned as a Java `byte`.
 		 *

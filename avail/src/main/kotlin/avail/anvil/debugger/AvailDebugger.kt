@@ -284,7 +284,7 @@ class AvailDebugger internal constructor (
 			value.isCharacter -> value.toString()
 			value.isInstanceOf(mostGeneralVariableType) ->
 				"var(${stringIfSimple(value.getValueForDebugger(), depth + 1)})"
-			!value.isType -> "(${value.typeTag.name.removeSuffix("_TAG")})"
+			!value.isType -> "(${value.typeTag.shorterName})"
 			value.isTop -> value.toString()
 			value.isBottom -> value.toString()
 			value.traversed().descriptor() is PrimitiveTypeDescriptor ->

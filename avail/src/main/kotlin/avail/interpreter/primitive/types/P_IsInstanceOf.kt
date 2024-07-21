@@ -108,7 +108,7 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val ifInstance = generator.createBasicBlock("if instance")
 		val ifNotInstance = generator.createBasicBlock("not instance")
 
-		val constantYType = yTypeReg.constantOrNull()
+		val constantYType = yTypeReg.constantOrNull
 		if (constantYType !== null)
 		{
 			generator.jumpIfKindOfConstant(
@@ -138,4 +138,6 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		return true
 	}
+
+	override val canDestroyArguments get() = false
 }

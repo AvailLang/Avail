@@ -77,10 +77,10 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandDispatcher
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -89,14 +89,12 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
-import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -107,9 +105,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
+import avail.interpreter.levelTwo.operation.L2ConditionalJump
 import avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
@@ -130,7 +127,6 @@ import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_IN
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
-import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_UPDATE
@@ -146,14 +142,19 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
+import avail.interpreter.primitive.functions.P_ParamTypeAt
 import avail.interpreter.primitive.general.P_Equality
+import avail.interpreter.primitive.tuples.P_TupleAt
 import avail.optimizer.L2GeneratorInterface.SpecialBlock
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
-import avail.optimizer.L2GeneratorInterface.SpecialBlock.UNREACHABLE
+import avail.optimizer.L2Optimizer.GenerationMode
+import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
@@ -188,11 +189,20 @@ import avail.utility.structures.EnumMap.Companion.enumMap
  * @param topFrame
  *   The topmost [Frame] for code generation.
  */
-class L2Generator internal constructor(
+class L2Generator
+constructor(
 	val optimizationLevel: OptimizationLevel,
 	override val topFrame: Frame
 ): L2GeneratorInterface
 {
+	/**
+	 * By default we automatically generate [L2_PHI] instructions.  In later
+	 * optimization passes, the [L2ControlFlowGraph] is held together by
+	 * [L2Register]s instead of [L2SemanticValue]s, so we override this with
+	 * [ByRegister] in the [L2Regenerator] subclass.
+	 */
+	override val mode: GenerationMode get() = BySemanticValue
+
 	override val specialBlocks = enumMap<SpecialBlock, L2BasicBlock>()
 
 	/**
@@ -218,7 +228,7 @@ class L2Generator internal constructor(
 	/** The [L2BasicBlock] that code is currently being generated into. */
 	private var currentBlock: L2BasicBlock? = null
 
-	override var currentManifest = L2ValueManifest()
+	override var currentManifest = L2ValueManifest(BySemanticValue)
 
 	override fun restrictionFor(
 		semanticValue: L2SemanticValue<*>
@@ -229,24 +239,6 @@ class L2Generator internal constructor(
 	val controlFlowGraph = L2ControlFlowGraph()
 
 	override fun addUnreachableCode() = addInstruction(L2_UNREACHABLE_CODE())
-
-	override fun unreachablePcOperand(): L2PcOperand
-	{
-		var unreachableBlock = specialBlocks.getOrNull(UNREACHABLE)
-		if (unreachableBlock === null)
-		{
-			// Create it as a normal node, so L1 translation can produce simple
-			// edges to it, then switch it to be a loop head so that placeholder
-			// instructions can still connect to it with back-edges when they
-			// generate their replacement code.
-			unreachableBlock = createBasicBlock("UNREACHABLE")
-			specialBlocks[UNREACHABLE] = unreachableBlock
-		}
-		return unreachableBlock.let {
-			if (it.isLoopHead) backEdgeTo(it)
-			else edgeTo(it)
-		}
-	}
 
 	/**
 	 * Create a new [L2SemanticValue] to use as a temporary value.
@@ -386,7 +378,7 @@ class L2Generator internal constructor(
 	 * @return
 	 *   The [L2ReadFloatOperand] that retrieves the value.
 	 */
-	private fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
+	override fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
 	{
 		val boxedValue: A_Number = fromDouble(value)
 		val semanticConstant = constant(boxedValue)
@@ -491,10 +483,7 @@ class L2Generator internal constructor(
 					L2SemanticUnboxedInt(equivalentBoxedSemanticValue)
 				if (currentManifest.hasSemanticValue(equivalentUnboxed))
 				{
-					moveRegister(
-						INTEGER_KIND,
-						equivalentUnboxed,
-						setOf(semanticUnboxed))
+					moveIntRegister(equivalentUnboxed, setOf(semanticUnboxed))
 					return currentManifest.readInt(semanticUnboxed)
 				}
 			}
@@ -536,6 +525,62 @@ class L2Generator internal constructor(
 					edgeTo(onSuccess)))
 			startBlock(onSuccess)
 		}
+		return currentManifest.readInt(semanticUnboxed)
+	}
+
+	override fun readIntNoFail(
+		semanticUnboxed: L2SemanticUnboxedInt
+	): L2ReadIntOperand
+	{
+		val restriction = currentManifest.restrictionFor(semanticUnboxed)
+		assert(restrictionFor(semanticUnboxed).containedByType(i32))
+
+		if (currentManifest.hasSemanticValue(semanticUnboxed))
+		{
+			// It already exists in an unboxed int register.
+			return currentManifest.readInt(semanticUnboxed)
+		}
+		// Check for constant.  It can be infallibly converted.
+		restriction.constantOrNull?.let { constant ->
+			// Make it available as a constant in an int register.
+			return unboxedIntConstant(constant.extractInt)
+		}
+		// Synonyms of ints are tricky, so check if there's an int version of a
+		// synonym available.
+		for (otherBoxed in
+			currentManifest.semanticValueToSynonym(semanticUnboxed.base)
+				.semanticValues())
+		{
+			val otherUnboxed = L2SemanticUnboxedInt(otherBoxed)
+			if (currentManifest.hasSemanticValue(otherUnboxed))
+			{
+				return currentManifest.readInt(otherUnboxed)
+			}
+		}
+		// Because of the way synonyms work, the boxed form might have
+		// synonymous boxed semantic values, without the unboxed form having all
+		// the same corresponding unboxed values.  Do a slower check for this
+		// case.
+		val semanticBoxed = semanticUnboxed.base
+		currentManifest.semanticValueToSynonym(semanticBoxed).semanticValues()
+			.forEach { equivalentBoxedSemanticValue ->
+				val equivalentUnboxed =
+					L2SemanticUnboxedInt(equivalentBoxedSemanticValue)
+				if (currentManifest.hasSemanticValue(equivalentUnboxed))
+				{
+					moveIntRegister(equivalentUnboxed, setOf(semanticUnboxed))
+					return currentManifest.readInt(semanticUnboxed)
+				}
+			}
+
+		// It's not available as an unboxed int, so generate code to unbox it.
+		// Extract it to a new int register.
+		val intWrite = L2WriteIntOperand(
+			setOf(semanticUnboxed),
+			restriction.forUnboxedInt(),
+			L2IntRegister(nextUnique()))
+		val boxedRead = currentManifest.readBoxed(semanticBoxed)
+		addInstruction(L2_UNBOX_INT(boxedRead, intWrite))
 		return currentManifest.readInt(semanticUnboxed)
 	}
 
@@ -622,7 +667,6 @@ class L2Generator internal constructor(
 		sourceSemanticValue: L2SemanticValue<K>,
 		targetSemanticValues: Iterable<L2SemanticValue<K>>)
 	{
-		assert(targetSemanticValues.none(currentManifest::hasSemanticValue))
 		val block = currentBlock()
 		val sourceRegisters =
 			currentManifest.getDefinitions(sourceSemanticValue)
@@ -661,10 +705,20 @@ class L2Generator internal constructor(
 						targetSemanticValues.forEach { targetSemanticValue ->
 							latestWrite.retroactivelyIncludeSemanticValue(
 								targetSemanticValue)
-							currentManifest.extendSynonym(
-								currentManifest.semanticValueToSynonym(
-									pickedSemanticValue),
-								targetSemanticValue)
+							if (currentManifest
+								.hasSemanticValue(targetSemanticValue))
+							{
+								currentManifest.mergeExistingSemanticValues(
+									pickedSemanticValue,
+									targetSemanticValue)
+							}
+							else
+							{
+								currentManifest.extendSynonym(
+									currentManifest.semanticValueToSynonym(
+										pickedSemanticValue),
+									targetSemanticValue)
+							}
 						}
 						return
 					}
@@ -687,6 +741,16 @@ class L2Generator internal constructor(
 					targetSemanticValues.toSet(),
 					restriction)))
 	}
+
+	override fun moveBoxedRegister(
+		sourceSemanticValue: L2SemanticBoxedValue,
+		targetSemanticValues: Iterable<L2SemanticBoxedValue>
+	) = moveRegister(BOXED_KIND, sourceSemanticValue, targetSemanticValues)
+
+	override fun moveIntRegister(
+		sourceSemanticValue: L2SemanticUnboxedInt,
+		targetSemanticValues: Iterable<L2SemanticUnboxedInt>
+	) = moveRegister(INTEGER_KIND, sourceSemanticValue, targetSemanticValues)
 
 	/**
 	 * Cause a tuple to be constructed from the given [L2ReadBoxedOperand]s.
@@ -717,7 +781,7 @@ class L2Generator internal constructor(
 				// the basis for the string that will be built, only editing the
 				// necessary parts.
 				generateStringFromCodePoints(size) { oneBasedIndex ->
-					elements[oneBasedIndex - 1].constantOrNull().let {
+					elements[oneBasedIndex - 1].constantOrNull.let {
 						if (it === null) '?'.code else it.codePoint
 					}
 				}
@@ -728,7 +792,7 @@ class L2Generator internal constructor(
 				// template of suitable representation to copy, with constants
 				// included.
 				val constantsWithZeros = elements.map {
-					it.constantOrNull() ?: zero
+					it.constantOrNull ?: zero
 				}
 				when
 				{
@@ -750,7 +814,7 @@ class L2Generator internal constructor(
 						}
 				}
 			}
-			elements.all { it.constantOrNull() === null } ->
+			elements.all { it.constantOrNull === null } ->
 			{
 				// We expect the tuple to use [ObjectTupleDescriptor], but there
 				// are no constant values in it.  Build it all at once at
@@ -768,7 +832,7 @@ class L2Generator internal constructor(
 				// is at least one constant value.  Build a template tuple with
 				// 'false' in the unknown fields as an eye-catcher.
 				generateObjectTupleFrom(size) { oneIndex ->
-					elements[oneIndex - 1].constantOrNull() ?: falseObject
+					elements[oneIndex - 1].constantOrNull ?: falseObject
 				}
 			}
 		}.makeShared()
@@ -777,7 +841,7 @@ class L2Generator internal constructor(
 		val typesList = template.map(::instanceTypeOrMetaOn).toMutableList()
 		// Generate the updates for the non-constant parts (if any).
 		elements.forEachIndexed { zeroIndex, read ->
-			if (read.constantOrNull() === null)
+			if (read.constantOrNull === null)
 			{
 				typesList[zeroIndex] = read.type()
 				val newWrite = boxedWriteTemp(
@@ -794,47 +858,28 @@ class L2Generator internal constructor(
 		return latestRead
 	}
 
-	/**
-	 * Given an [L2ReadBoxedOperand] that will hold a tuple and a fixed index
-	 * that is known to be in range, generate code to populate the [write] with
-	 * that element.
-	 *
-	 * Depending on the source of the tuple, this may cause the creation of the
-	 * tuple to be entirely elided.
-	 *
-	 * This is only effective if the [controlFlowGraph] is still in SSA form, or
-	 * if the register providing the tuple happened to have a single defining
-	 * write, otherwise a simple tuple extraction instruction will be emitted.
-	 *
-	 * @param tupleRead
-	 *   The [L2BoxedRegister] containing the tuple.
-	 * @param index
-	 *   The one-based subscript into the tuple.
-	 * @param write
-	 *   Where to ensure the tuple element will be written.
-	 */
 	override fun extractTupleElement(
 		tupleRead: L2ReadBoxedOperand,
 		index: Int,
-		write: L2WriteBoxedOperand)
+		destinationSemanticValues: Set<L2SemanticBoxedValue>)
 	{
 		val tupleDefinitions = tupleRead.register().definitions()
 		if (tupleDefinitions.size == 1)
 		{
 			// Either the graph is still SSA or at least this particular
 			// register has one defining write.
-			tupleDefinitions.single()
-				.instruction
-				.extractTupleElement(tupleRead, index, write, this)
+			tupleDefinitions.single().instruction.extractTupleElement(
+				tupleRead, index, destinationSemanticValues, this)
+			return
 		}
-		else
-		{
-			// The graph is not in SSA, so just emit the default tuple element
-			// extraction instruction.
-			addInstruction(
-				L2_TUPLE_AT_CONSTANT(
-					tupleRead, L2IntImmediateOperand(index), write))
-		}
+		// The graph is not in SSA, so just emit the default tuple element
+		// extraction instruction.
+		val elementType = tupleRead.type().typeAtIndex(index)
+		val write = boxedWrite(
+			destinationSemanticValues, boxedRestrictionForType(elementType))
+		addInstruction(
+			L2_TUPLE_AT_CONSTANT(
+				tupleRead, L2IntImmediateOperand(index), write))
 	}
 
 	/**
@@ -847,8 +892,8 @@ class L2Generator internal constructor(
 	 * Depending on the source of the tuple, this may cause the creation of
 	 * the tuple to be entirely elided.
 	 *
-	 * @param tupleReg
-	 *   The [L2BoxedRegister] containing the tuple.
+	 * @param tupleRead
+	 *   The [L2ReadBoxedOperand] providing the tuple.
 	 * @param requiredTypes
 	 *   The required [types][A_Type] against which to check the tuple's own
 	 *   type.
@@ -858,13 +903,13 @@ class L2Generator internal constructor(
 	 *   required shape and type.
 	 */
 	fun explodeTupleIfPossible(
-		tupleReg: L2ReadBoxedOperand,
+		tupleRead: L2ReadBoxedOperand,
 		requiredTypes: List<A_Type>
 	): List<L2ReadBoxedOperand>?
 	{
 		// First see if there's enough type information available about the
 		// tuple.
-		val tupleType = tupleReg.type()
+		val tupleType = tupleRead.type()
 		val tupleTypeSizes = tupleType.sizeRange
 		if (!tupleTypeSizes.upperBound.isInt
 			|| !tupleTypeSizes.lowerBound.equals(tupleTypeSizes.upperBound))
@@ -893,9 +938,14 @@ class L2Generator internal constructor(
 		// element, using registers originally provided to the tuple's creation
 		// if possible.
 		return (1 .. tupleSize).map { i ->
-			val write = boxedWriteTemp(
-				restrictionForType(tupleType.typeAtIndex(i), BOXED_FLAG))
-			extractTupleElement(tupleReg, i, write)
+			val writeValue = L2SemanticValue.primitiveInvocation(
+				P_TupleAt,
+				listOf(
+					tupleRead.semanticValue(),
+					L2SemanticConstant(fromInt(i))))
+			val write = boxedWrite(
+				writeValue, boxedRestrictionForType(tupleType.typeAtIndex(i)))
+			extractTupleElement(tupleRead, i, write.semanticValues())
 			readBoxed(write)
 		}
 	}
@@ -940,7 +990,18 @@ class L2Generator internal constructor(
 		}
 		// Extract it at runtime instead.  Note that an actual function's
 		// argument type can't be bottom, so we specifically exclude it.
-		val parameterTypeWrite = boxedWriteTemp(
+		val semanticParamaterType = L2SemanticPrimitiveInvocation(
+			P_ParamTypeAt,
+			listOf(
+				functionRead.semanticValue(),
+				constant(fromInt(parameterIndex))))
+		currentManifest.equivalentSemanticValue(semanticParamaterType)?.let {
+			// Use the already extracted parameter type.
+			moveRegister(BOXED_KIND, it, listOf(semanticParamaterType))
+			return readBoxed(semanticParamaterType)
+		}
+		val parameterTypeWrite = boxedWrite(
+			semanticParamaterType,
 			boxedRestrictionForType(anyMeta).minusValue(bottom))
 		addInstruction(
 			L2_FUNCTION_PARAMETER_TYPE(
@@ -975,22 +1036,17 @@ class L2Generator internal constructor(
 	 * loop head, ensure all predecessor blocks have already finished
 	 * generation.
 	 *
-	 * If [generatePhis] is `true` (the default), reconcile the live
+	 * If [mode] is [L2SemanticValue] (the default), reconcile the live
 	 * [L2SemanticValue]s and how they're grouped into [L2Synonym]s in each
 	 * predecessor edge, creating [L2_PHI]s as needed.
 	 *
 	 * @param block
 	 *   The [L2BasicBlock] beginning code generation.
-	 * @param generatePhis
-	 *   Whether to automatically generate [L2_PHI]s if there
-	 *   are multiple incoming edges with different [L2Register]s associated
-	 *   with the same [L2SemanticValue]s.
 	 * @param regenerator
 	 *   The optional [L2Regenerator] to use.
 	 */
 	fun startBlock(
 		block: L2BasicBlock,
-		generatePhis: Boolean = true,
 		regenerator: L2Regenerator? = null)
 	{
 		currentBlock?.instructions()?.run {
@@ -1024,10 +1080,8 @@ class L2Generator internal constructor(
 					currentManifest.clear()
 					currentManifest.populateFromIntersection(
 						listOf(predecessorEdge.manifest()),
-						this,
-						false,
-						false,
-						regenerator)
+						regenerator ?: this,
+						false)
 					predecessorBlock.instructions().removeAt(
 						predecessorBlock.instructions().size - 1)
 					jump.justRemoved()
@@ -1038,7 +1092,7 @@ class L2Generator internal constructor(
 		}
 		currentBlock = block
 		controlFlowGraph.startBlock(block)
-		block.startIn(this, generatePhis, regenerator)
+		block.startIn(regenerator ?: this)
 	}
 
 	override fun currentBlock(): L2BasicBlock = currentBlock!!
@@ -1051,6 +1105,31 @@ class L2Generator internal constructor(
 		currentBlock?.let { block ->
 			block.addInstruction(instruction.cloneFor(block), currentManifest)
 		}
+	}
+
+	override fun addInstruction(instruction: L2ConditionalJump)
+	{
+		val block = currentBlock
+		if (block == null) return
+		block.addInstruction(instruction.cloneFor(block), currentManifest)
+		// Now that the instruction has been added, and at the same time has had
+		// a chance to narrow values in the new edges' manifests, check for
+		// impossible edges due to impossible restrictions.
+		val edges = block.successorEdges()
+		assert(edges.size > 1) { "Should not emit one-way branches." }
+		val possibleEdges = edges.filterNot {
+			it.manifest().hasImpossibleRestriction
+		}
+		if (possibleEdges.size != 1) return
+		val possibleEdge = possibleEdges.single()
+		// Replace the branch with an unconditional jump.  Seed the jump with
+		// the possibleEdge's manifest, in case there was a useful restriction
+		// applied to it in this happy path.
+		val finalInstruction = block.instructions().removeLast()
+		finalInstruction.justRemoved()
+		block.addInstruction(
+			L2_JUMP(possibleEdge).cloneFor(block),
+			possibleEdge.manifest())
 	}
 
 	override fun jumpTo(
@@ -1107,16 +1186,16 @@ class L2Generator internal constructor(
 				boolSource !is L2_RUN_INFALLIBLE_PRIMITIVE ->
 				{
 				}
-				primitiveOf(boolSource) === P_Equality ->
+				boolSource.primitive.constant === P_Equality ->
 				{
 					val (read1, read2) = argsOf(boolSource)
 					// If either operand of P_Equality is a constant, recurse to
 					// allow deeper replacement.
-					var previousConstant = read1.constantOrNull()
+					var previousConstant = read1.constantOrNull
 					var previousRegister = read2
 					if (previousConstant === null)
 					{
-						previousConstant = read2.constantOrNull()
+						previousConstant = read2.constantOrNull
 						previousRegister = read1
 					}
 					if (previousConstant !== null)
@@ -1253,10 +1332,8 @@ class L2Generator internal constructor(
 		val semanticConstant = L2SemanticConstant(constantValue)
 		if (!currentManifest.hasSemanticValue(semanticConstant))
 		{
-			moveRegister(
-				BOXED_KIND,
-				registerToTest.semanticValue(),
-				setOf(semanticConstant))
+			moveBoxedRegister(
+				registerToTest.semanticValue(), setOf(semanticConstant))
 		}
 		jumpTo(passBlock)
 	}
@@ -1323,7 +1400,7 @@ class L2Generator internal constructor(
 		functionToCallReg: L2ReadBoxedOperand): A_RawFunction?
 	{
 		val functionIfKnown: A_Function? =
-			functionToCallReg.constantOrNull()
+			functionToCallReg.constantOrNull
 		if (functionIfKnown !== null)
 		{
 			// The exact function is known.
@@ -1438,7 +1515,7 @@ class L2Generator internal constructor(
 		/** The highest numbered float register encountered so far. */
 		private var floatMax = -1
 
-		override fun doOperand(operand: L2ArbitraryConstantOperand) = Unit
+		override fun doOperand(operand: L2ArbitraryConstantOperand<*>) = Unit
 
 		override fun doOperand(operand: L2CommentOperand) = Unit
 
@@ -1449,8 +1526,6 @@ class L2Generator internal constructor(
 		override fun doOperand(operand: L2FloatImmediateOperand) = Unit
 
 		override fun doOperand(operand: L2PcOperand) = Unit
-
-		override fun doOperand(operand: L2PrimitiveOperand) = Unit
 
 		override fun doOperand(operand: L2ReadIntOperand)
 		{
@@ -1490,8 +1565,6 @@ class L2Generator internal constructor(
 				floatMax = floatMax.coerceAtLeast(register.finalIndex())
 			}
 		}
-
-		override fun doOperand(operand: L2SelectorOperand) = Unit
 
 		override fun doOperand(operand: L2WriteIntOperand)
 		{
@@ -1567,13 +1640,21 @@ class L2Generator internal constructor(
 		 *
 		 * @param targetBlock
 		 *   The target [L2BasicBlock].
+		 * @param forcedClamped
+		 *   A [MutableSet] of [L2Entity] that limit the information that can
+		 *   propagate arcoss the new back-edge.
 		 * @return
 		 *   The new [L2PcOperand].
 		 */
-		fun backEdgeTo(targetBlock: L2BasicBlock): L2PcOperand
+		fun backEdgeTo(
+			targetBlock: L2BasicBlock,
+			forcedClamped: MutableSet<L2Entity<*>>
+		): L2PcOperand
 		{
 			assert(targetBlock.isLoopHead)
-			return L2PcOperand(targetBlock, true)
+			val backEdge = L2PcOperand(targetBlock, true)
+			backEdge.forcedClampedEntities = forcedClamped
+			return backEdge
 		}
 
 		/**

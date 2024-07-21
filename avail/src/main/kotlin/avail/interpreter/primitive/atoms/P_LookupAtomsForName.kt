@@ -80,4 +80,7 @@ object P_LookupAtomsForName : Primitive(
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))
+
+	/** Atoms registered to a module (i.e., the current one) are shared. */
+	override val canDestroyArguments get() = false
 }

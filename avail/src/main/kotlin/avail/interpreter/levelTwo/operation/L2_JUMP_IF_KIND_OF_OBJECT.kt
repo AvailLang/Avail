@@ -62,13 +62,10 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-
 		// Restrict the value to the type along the ifKind branch, but because
 		// the provided type can be more specific at runtime, we can't restrict
 		// the ifNotKind branch.
-		ifKind.manifest().intersectType(
-			value.semanticValue(),
-			type.type().instance)
+		ifKind.manifest().intersectType(value, type.type().instance)
 	}
 
 	override fun emitTransformedInstruction(
@@ -82,9 +79,7 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 				ifNotKind.targetBlock())
 			return
 		}
-		ifKind.manifest().intersectType(
-			value.semanticValue(),
-			type.type().instance)
+		ifKind.manifest().intersectType(value, type.type().instance)
 		super.emitTransformedInstruction(regenerator)
 	}
 
@@ -98,8 +93,11 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 		builder.append(value.registerString())
 		builder.append(" ∈ ")
 		builder.append(type.registerString())
-		renderOperandsExcludingFields(builder, ::value, ::type)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::value, ::type)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

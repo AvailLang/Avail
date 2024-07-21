@@ -49,9 +49,8 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
@@ -76,7 +75,7 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 			topMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (meta1, meta2) = argumentTypes
@@ -133,10 +132,8 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 			}
 		}
 		moveSource?.let { source ->
-			regenerator.moveRegister(
-				BOXED_KIND,
-				source.semanticValue(),
-				result.semanticValues())
+			regenerator.moveBoxedRegister(
+				source.semanticValue(), result.semanticValues())
 		}
 		super.emitTransformedInfalliblePrimitive(
 			rawFunction, arguments, result, regenerator)

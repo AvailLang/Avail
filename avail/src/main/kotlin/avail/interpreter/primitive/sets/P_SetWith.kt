@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor
@@ -49,9 +50,9 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -86,7 +87,7 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 				ANY.o))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (setType, newElementType) = argumentTypes
@@ -94,11 +95,13 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 		val mightBePresent =
 			!setContentType.typeIntersection(newElementType).isBottom
 		val sizes = setType.sizeRange
+		var lowerBound =
+			if (mightBePresent) sizes.lowerBound
+			else sizes.lowerBound.plusCanDestroy(one, false)
+		// After adding an element, at least one thing will be in the set.
+		if (lowerBound.equals(zero)) lowerBound = one
 		val unionSize = integerRangeType(
-			if (mightBePresent)
-				sizes.lowerBound
-			else
-				sizes.lowerBound.plusCanDestroy(one, false),
+			lowerBound,
 			true,
 			sizes.upperBound.plusCanDestroy(two, false),
 			false)

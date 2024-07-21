@@ -34,13 +34,13 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.objects.ObjectDescriptor.Companion.staticObjectVariantIdMethod
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -83,9 +83,8 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 			// written.
 			if (unpopulated.isNotEmpty())
 			{
-				regenerator.moveRegister(
-					INTEGER_KIND,
-					equivalentVariantId,
+				regenerator.moveIntRegister(
+					equivalentVariantId.cast(),
 					variantId.semanticValues())
 			}
 			return
@@ -103,8 +102,7 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectVariant
-			regenerator.moveRegister(
-				INTEGER_KIND,
+			regenerator.moveIntRegister(
 				regenerator.unboxedIntConstant(variant.variantId)
 					.semanticValue(),
 				variantId.semanticValues())
@@ -112,6 +110,8 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		}
 		super.generateReplacement(regenerator)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

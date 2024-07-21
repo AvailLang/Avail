@@ -64,4 +64,6 @@ object P_CurrentTimeNanoseconds
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(emptyTuple, wholeNumbers)
+
+	override val canDestroyArguments get() = false
 }

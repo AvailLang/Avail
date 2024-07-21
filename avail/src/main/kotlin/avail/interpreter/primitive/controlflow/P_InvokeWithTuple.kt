@@ -140,77 +140,76 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (functionType, argTupleType) = argumentTypes
 		val paramsType = functionType.argsTupleType
 		val argCountRange = argTupleType.sizeRange
 		val argCount = argCountRange.upperBound
-		if (argCount.equals(argCountRange.lowerBound)
-			&& paramsType.sizeRange.equals(argCountRange)
-			&& argTupleType.isSubtypeOf(paramsType))
+		if (!argCount.equals(argCountRange.lowerBound)
+			|| !paramsType.sizeRange.equals(argCountRange)
+			|| !argTupleType.isSubtypeOf(paramsType))
 		{
-			// The argument types are hereby guaranteed to be compatible.
-			// Therefore the invoke itself will succeed, so we can rely on the
-			// invoked function's return type at least.  See if we can do even
-			// better if we know the exact function being invoked.
-			if (functionType.instanceCount.equalsInt(1))
-			{
-				// The actual function being invoked is known.
-				val function = functionType.instance
-				val code = function.code()
-				val primitive = code.codePrimitive()
-				if (primitive !== null)
-				{
-					// The function being invoked is itself a primitive. Dig
-					// deeper to find out whether that primitive would itself
-					// always succeed, and if so, what type it guarantees.
-					val primArgCount = primitive.argCount
-					if (argCountRange.lowerBound.equalsInt(primArgCount)
-						&& argCountRange.upperBound.equalsInt(primArgCount))
-					{
-						val innerArgTypes = (1 .. primArgCount).map {
-							argTupleType.typeAtIndex(it)
-						}
-						val fallibility = primitive.fallibilityForArgumentTypes(
-							innerArgTypes)
-						return when (fallibility)
-						{
-							CallSiteCannotFail ->
-							{
-								// The inner invocation of the primitive
-								// function will always succeed. Ask the
-								// primitive what type it guarantees to return.
-								primitive.returnTypeGuaranteedByVM(
-									code, innerArgTypes)
-							}
-							CallSiteMustFail ->
-							{
-								code.returnTypeIfPrimitiveFails
-							}
-							else ->
-							{
-								code.returnTypeIfPrimitiveFails.typeUnion(
-									primitive.returnTypeGuaranteedByVM(
-										code, innerArgTypes))
-							}
-						}
-						// The inner primitive might fail, and its failure code
-						// can return something as general as the primitive
-						// function's return type.
-					}
-					// The invocation of the inner function might not have the
-					// right number of arguments. Fall through.
-				}
-				// The invoked inner function is not a primitive. Fall through.
-			}
-			// The exact function being invoked is not known. Fall through.
+			// The arguments that will be supplied to the inner function might
+			// not have the right count, or might have the wrong types.
+			return functionType.returnType.typeUnion(
+				rawFunction!!.returnTypeIfPrimitiveFails)
 		}
-		// The arguments that will be supplied to the inner function might not
-		// have the right count.
-		return functionType.returnType.typeUnion(
-			rawFunction.returnTypeIfPrimitiveFails)
+		// The argument types are hereby guaranteed to be compatible. Therefore
+		// the invoke itself will succeed, so we can rely on the invoked
+		// function's return type at least.  See if we can do even better if we
+		// know the exact function being invoked.
+		if (!functionType.instanceCount.equalsInt(1))
+		{
+			// The exact function being invoked isn't known.
+			return functionType.returnType.typeUnion(
+				rawFunction!!.returnTypeIfPrimitiveFails)
+		}
+		// The actual function being invoked is known.
+		val function = functionType.instance
+		val code = function.code()
+		val primitive = code.codePrimitive()
+		if (primitive === null)
+		{
+			// The function being invoked isn't a primitive, so fall back.
+			return functionType.returnType.typeUnion(
+				rawFunction!!.returnTypeIfPrimitiveFails)
+		}
+		// The function being invoked is itself a primitive. Dig deeper to find
+		// out whether that primitive would itself always succeed, and if so,
+		// what type it guarantees.
+		val primArgCount = primitive.argCount
+		if (!argCountRange.lowerBound.equalsInt(primArgCount)
+			|| !argCountRange.upperBound.equalsInt(primArgCount))
+		{
+			// The invocation of the inner function might not have the
+			// right number of arguments. Fall back.
+			return functionType.returnType.typeUnion(
+				rawFunction!!.returnTypeIfPrimitiveFails)
+		}
+		val innerArgTypes = (1 .. primArgCount).map {
+			argTupleType.typeAtIndex(it)
+		}
+		val fallibility = primitive.fallibilityForArgumentTypes(innerArgTypes)
+		return when (fallibility)
+		{
+			CallSiteCannotFail ->
+			{
+				// The inner invocation of the primitive function will always
+				// succeed. Ask the primitive what type it guarantees to return.
+				primitive.returnTypeGuaranteedByVM(code, innerArgTypes)
+			}
+			CallSiteMustFail ->
+			{
+				code.returnTypeIfPrimitiveFails
+			}
+			else ->
+			{
+				code.returnTypeIfPrimitiveFails.typeUnion(
+					primitive.returnTypeGuaranteedByVM(code, innerArgTypes))
+			}
+		}
 	}
 
 	/**
@@ -272,7 +271,8 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		// Fall back if the count will always be wrong.
 		if (functionArgTypes.tupleSize != argsSize) return false
 		val failurePath = generator.createBasicBlock(
-			"Failed dynamic type check for P_InvokeWithTuple")
+			"Failed dynamic type check for P_InvokeWithTuple",
+			isCold = true)
 		for (i in 1..argsSize)
 		{
 			val argReg = explodedArgumentRegisters[i - 1]

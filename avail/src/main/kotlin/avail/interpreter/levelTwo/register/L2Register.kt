@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.register
 
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadOperand
@@ -58,37 +59,28 @@ import avail.optimizer.reoptimizer.L2Regenerator
  */
 abstract class L2Register<K: RegisterKind<K>>
 constructor (
-	val uniqueValue: Int
+	val uniqueValue: Int,
+	val constant: AvailObject? = null
 ) : L2Entity<K>
 {
 	/**
 	 * A coloring number to be used by the [interpreter][Interpreter] at runtime
 	 * to identify the storage location of a [register][L2Register].
 	 */
-	private var finalIndex = -1
+	var finalIndex = -1
+		set(value)
+		{
+			assert(finalIndex == -1) {
+				"Only set the finalIndex of an L2RegisterIdentity once"
+			}
+			field = value
+		}
 
 	/**
-	 * Answer the coloring number to be used by the [interpreter][Interpreter]
-	 * at runtime to identify the storage location of a [register][L2Register].
-	 *
-	 * @return
-	 * An `L2Register` coloring number.
+	 * Answer true if this is a pseudo-register that simply provides a constant
+	 * when read, and cannot be written.
 	 */
-	fun finalIndex(): Int = finalIndex
-
-	/**
-	 * Set the coloring number to be used by the [interpreter][Interpreter] at
-	 * runtime to identify the storage location of an `L2Register`.
-	 *
-	 * @param theFinalIndex
-	 *   An `L2Register` coloring number.
-	 */
-	fun setFinalIndex(theFinalIndex: Int)
-	{
-		assert(finalIndex == -1)
-		{ "Only set the finalIndex of an L2RegisterIdentity once" }
-		finalIndex = theFinalIndex
-	}
+	val isConstant get() = constant !== null
 
 	/**
 	 * The [L2WriteOperand]s that assign to this register.  While the
@@ -215,7 +207,11 @@ constructor (
 
 	override fun toString() = buildString {
 		append(kind.prefix)
-		if (finalIndex() != -1) append(finalIndex())
-		else append(uniqueValue)
+		when (finalIndex)
+		{
+			-1 -> append(uniqueValue)
+			uniqueValue -> append(uniqueValue)
+			else -> append("$uniqueValue($finalIndex)")
+		}
 	}
 }

@@ -125,4 +125,6 @@ object P_Deserialize : Primitive(2, CanInline)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_DESERIALIZATION_FAILED))
+
+	override val canDestroyArguments get() = false
 }

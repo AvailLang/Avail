@@ -63,6 +63,11 @@ constructor(
 		semanticValues.toSet().also { assert(semanticValues.isNotEmpty()) }
 
 	/**
+	 * Answer this synonym's [RegisterKind] ([K]).
+	 */
+	val kind: K get() = semanticValues.first().kind
+
+	/**
 	 * The eagerly computed, permanent hash value of this synonym.  Note that it
 	 * must produce the same value even if the set of semantic values is
 	 * traversed in a different order.

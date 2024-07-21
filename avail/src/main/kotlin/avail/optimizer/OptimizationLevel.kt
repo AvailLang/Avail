@@ -34,10 +34,7 @@ package avail.optimizer
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
-import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2SimpleChunk
-import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 
 /**
  * [OptimizationLevel] is an enum class indicating the possible degrees of
@@ -65,27 +62,27 @@ constructor(val countdown: Long)
 	 * The [countdown] is very small to encourage early translation of any
 	 * function that is executed even a small number of times.
 	 */
-	UNOPTIMIZED(10)
+	UNOPTIMIZED(2) //TODO 10
 	{
 		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
 		{
 			throw AssertionError("Should not use as target optimization level")
 		}
 	},
-
-	/**
-	 * Translate the nybblecodes quickly into an [L2SimpleChunk].
-	 */
-	SIMPLE_TRANSLATION(10_000)
-	{
-		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
-		{
-			code.setStartingChunkAndReoptimizationCountdown(
-				L2SimpleTranslator.translateToLevelTwoSimple(
-					code, FIRST_JVM_TRANSLATION, interpreter),
-				countdown)
-		}
-	},
+//TODO Restore
+//	/**
+//	 * Translate the nybblecodes quickly into an [L2SimpleChunk].
+//	 */
+//	SIMPLE_TRANSLATION(1) //TODO 10_000)
+//	{
+//		override fun optimize(code: A_RawFunction, interpreter: Interpreter)
+//		{
+//			code.setStartingChunkAndReoptimizationCountdown(
+//				L2SimpleTranslator.translateToLevelTwoSimple(
+//					code, FIRST_JVM_TRANSLATION, interpreter),
+//				countdown)
+//		}
+//	},
 
 	/**
 	 * The initial translation into Level Two instructions customized to a

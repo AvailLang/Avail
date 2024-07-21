@@ -32,8 +32,10 @@
 package avail.descriptor.tuples
 
 import avail.annotations.ThreadSafe
+import avail.descriptor.character.CharacterDescriptor.Companion.fromByteCodePoint
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.character.CharacterDescriptor.Companion.maxCodePointInt
+import avail.descriptor.character.CharacterDescriptor.Companion.nullCharacter
 import avail.descriptor.representation.AbstractDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -86,6 +88,8 @@ abstract class StringDescriptor protected constructor(
 	: TupleDescriptor(mutability, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	override fun o_IsString(self: AvailObject): Boolean = true
+
+	override fun o_DummyElement(self: AvailObject) = nullCharacter
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation

@@ -41,7 +41,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -81,7 +81,8 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		builder.append(first.registerString())
 		builder.append(" = ")
 		builder.append(second.registerString())
-		renderOperandsExcludingFields(builder, ::first, ::second)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::first, ::second)
 	}
 
 	override fun translateToJVM(
@@ -149,6 +150,8 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 			L2PcOperand(ifNotEqual.targetBlock(), ifNotEqual.isBackward))
 		assert(!unreachable.currentlyReachable())
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun interestingConditions(): List<L2SplitCondition?>
 	{

@@ -64,9 +64,9 @@ import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
 import avail.optimizer.L2ValueManifest
@@ -90,7 +90,7 @@ import java.util.logging.Level
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_LOOKUP_BY_VALUES(
-	var messageBundle: L2SelectorOperand,
+	var messageBundle: L2ConstantOperand,
 	var arguments: L2ReadBoxedVectorOperand,
 	@On(SUCCESS) var lookedUpFunction: L2WriteBoxedOperand,
 	@On(FAILURE) var errorCode: L2WriteBoxedOperand,
@@ -134,7 +134,8 @@ class L2_LOOKUP_BY_VALUES(
 			for (i in 1 .. numArgs)
 			{
 				val argumentUnion = argumentTupleUnionType.typeAtIndex(i)
-				val semanticValue = arguments[i - 1].semanticValue()
+				val argument = arguments[i - 1]
+				val semanticValue = argument.semanticValue()
 				val intersection =
 					successManifest.restrictionFor(semanticValue)
 						.intersectionWithType(argumentUnion)
@@ -144,7 +145,7 @@ class L2_LOOKUP_BY_VALUES(
 					// actually succeed.  Simply don't strengthen the argument,
 					// and continue generating code that's not really reachable.
 				}
-				else
+				else if (!argument.isConstantRead)
 				{
 					successManifest.setRestriction(semanticValue, intersection)
 				}
@@ -171,7 +172,7 @@ class L2_LOOKUP_BY_VALUES(
 		method.visitLabel(tryStart)
 		// ::    function = lookup(interpreter, bundle, types);
 		translator.loadInterpreter(method)
-		translator.literal(method, messageBundle.bundle)
+		translator.literal(method, messageBundle.constant)
 		translator.objectArray(
 			method, arguments.elements, AvailObject::class.java)
 		lookupMethod.generateCall(method)

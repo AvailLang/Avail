@@ -70,7 +70,7 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val trueBlockType = argumentTypes[1]

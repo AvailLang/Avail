@@ -71,7 +71,8 @@ class L2_SET_VARIABLE(
 		builder.append(variable.registerString())
 		builder.append(" ← ")
 		builder.append(valueToWrite.registerString())
-		renderOperandsExcludingFields(builder, ::variable, ::valueToWrite)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::variable, ::valueToWrite)
 	}
 
 	override fun translateToJVM(

@@ -106,7 +106,7 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 			mostGeneralTupleType)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (originalTupleType, indexRange1, indexRange2) = argumentTypes

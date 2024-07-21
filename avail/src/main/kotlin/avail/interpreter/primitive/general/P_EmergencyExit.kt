@@ -135,4 +135,6 @@ object P_EmergencyExit : Primitive(
 		// Never inline.  Ensure the caller reifies the stack before calling it.
 		return false
 	}
+
+	override val canDestroyArguments get() = false
 }

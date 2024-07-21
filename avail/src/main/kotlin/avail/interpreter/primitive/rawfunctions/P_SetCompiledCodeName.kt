@@ -78,4 +78,6 @@ object P_SetCompiledCodeName : Primitive(
 				mostGeneralCompiledCodeType(),
 				nonemptyStringType),
 			Types.TOP.o)
+
+	override val canDestroyArguments get() = false
 }

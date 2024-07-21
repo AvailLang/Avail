@@ -70,4 +70,6 @@ object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
 				ANY.o,
 				mostGeneralSetType()),
 			booleanType)
+
+	override val canDestroyArguments get() = false
 }

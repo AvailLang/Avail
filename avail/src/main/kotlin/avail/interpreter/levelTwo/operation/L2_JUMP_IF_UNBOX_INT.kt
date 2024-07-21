@@ -44,10 +44,9 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -80,25 +79,17 @@ constructor(
 		builder.append(destination.registerString())
 		builder.append(" ←? ")
 		builder.append(source.registerString())
-		renderOperandsExcludingFields(builder, ::source, ::destination)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::source, ::destination)
 	}
 
-	override fun instructionWasAdded(manifest: L2ValueManifest)
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
-		source.instructionWasAdded(manifest)
-		val semanticSource = source.semanticValue()
-		// Don't add the destination along the failure edge.
-		ifNotUnboxed.instructionWasAdded(
-			L2ValueManifest(manifest).apply {
-				subtractType(semanticSource, i32)
-			})
-		// Ensure the value is available along the success edge.
-		manifest.intersectType(source.semanticValue(), i32)
-		destination.instructionWasAdded(manifest)
-		ifUnboxed.instructionWasAdded(
-			L2ValueManifest(manifest).apply {
-				intersectType(destination.pickSemanticValue(), i32)
-			})
+		destination.restrict { source.restriction().forUnboxedInt() }
+		super.instructionWasAdded(manifest)
+		ifUnboxed.manifest().intersectType(source, i32)
+		ifNotUnboxed.manifest().subtractType(source, i32)
 	}
 
 	override fun translateToJVM(
@@ -108,8 +99,7 @@ constructor(
 		// :: if (!source.isInt()) goto ifNotUnboxed;
 		translator.load(method, source.register())
 		A_Number.isIntMethod.generateCall(method)
-		method.visitJumpInsn(
-			Opcodes.IFEQ, translator.labelFor(ifNotUnboxed.offset()))
+		translator.jumpIf(method, Opcodes.IFEQ, ifNotUnboxed)
 		// :: else {
 		// ::    destination = source.extractInt();
 		// ::    goto ifUnboxed;
@@ -142,6 +132,8 @@ constructor(
 		}
 		return conditions
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
@@ -177,8 +169,7 @@ constructor(
 				// semantic values have been written.
 				destination.semanticValues().forEach { dest ->
 					if (!manifest.hasSemanticValue(dest))
-						regenerator.moveRegister(
-							INTEGER_KIND, sourceInt, setOf(dest))
+						regenerator.moveIntRegister(sourceInt, setOf(dest))
 				}
 				tagSemanticValue?.let {
 					manifest.updateRestriction(it) {

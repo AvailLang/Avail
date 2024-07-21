@@ -404,7 +404,7 @@ open class PhraseTypeDescriptor protected constructor(
 		MACRO_SUBSTITUTION_PHRASE(
 			"macro substitution phrase type",
 			PARSE_PHRASE,
-			TypeTag.UNKNOWN_TAG);
+			TypeTag.MACRO_SUBSTITUTION_PHRASE_TAG);
 
 		override val fieldName get() = name
 
@@ -762,8 +762,8 @@ open class PhraseTypeDescriptor protected constructor(
 
 	override fun o_PhraseKindIsUnder(
 		self: AvailObject,
-		expectedPhraseKind: PhraseKind): Boolean =
-			kind.isSubkindOf(expectedPhraseKind)
+		expectedPhraseKind: PhraseKind
+	): Boolean = kind.isSubkindOf(expectedPhraseKind)
 
 	override fun o_SerializerOperation(
 		self: AvailObject): SerializerOperation =

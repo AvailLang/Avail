@@ -547,7 +547,7 @@ class TreeTupleDescriptor internal constructor(
 	{
 		assert(index >= 1 && index <= self.tupleSize)
 		var result = self
-		if (!(canDestroy && isMutable))
+		if (!canDestroy || !isMutable)
 		{
 			result = newLike(mutable(), self, 0, 0)
 		}

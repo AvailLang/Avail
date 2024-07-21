@@ -35,13 +35,13 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.variables.A_Variable
 import avail.exceptions.VariableSetException
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -91,7 +91,11 @@ class L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK(
 		builder.append(" only if it was ")
 		builder.append(reference.registerString())
 		renderOperandsExcludingFields(
-			builder, ::variable, ::reference, ::valueToWrite)
+			builder,
+			desiredOperandTypes,
+			::variable,
+			::reference,
+			::valueToWrite)
 	}
 
 	override fun translateToJVM(

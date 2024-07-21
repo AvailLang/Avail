@@ -75,11 +75,13 @@ constructor(
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
 
+	override fun semanticValues(): Set<L2SemanticUnboxedInt> =
+		super.semanticValues().cast()
+
+	override fun register(): L2IntRegister = super.register().cast()
+
 	init
 	{
 		assert(restriction.isUnboxedInt)
 	}
-
-	override fun semanticValues(): Set<L2SemanticUnboxedInt> =
-		super.semanticValues().cast()
 }

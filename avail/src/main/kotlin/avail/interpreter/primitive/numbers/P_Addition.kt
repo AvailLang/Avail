@@ -70,10 +70,8 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.WrappedAdd
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Add
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -109,7 +107,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		enumerationWith(set(E_CANNOT_ADD_UNLIKE_INFINITIES))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
@@ -199,7 +197,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		argumentTypes,
 		ifOutputIsInt = {
 			generator.addInstruction(
-				L2_BIT_LOGIC_OP(WrappedAdd, intA, intB, intWrite))
+				L2_BIT_LOGIC_OP(Add, intA, intB, intWrite))
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(
@@ -238,16 +236,14 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			try
 			{
 				val sum = resultType.lowerBound
-				regenerator.moveRegister(
-					BOXED_KIND,
+				regenerator.moveBoxedRegister(
 					regenerator.boxedConstant(sum).semanticValue(),
 					result.semanticValues())
 				if (sum.isInt)
 				{
 					// It's an i32, so put it in the int semantic value, so that
 					// code downstream may use it without unboxing.
-					regenerator.moveRegister(
-						INTEGER_KIND,
+					regenerator.moveIntRegister(
 						regenerator.unboxedIntConstant(sum.extractInt)
 							.semanticValue(),
 						result.semanticValues().map(::L2SemanticUnboxedInt))
@@ -271,19 +267,15 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			if (const1.notNullAnd { equalsInt(0) })
 			{
 				// 0 + x = x  (since x is an extended integer).
-				regenerator.moveRegister(
-            		BOXED_KIND,
-					arg2.semanticValue(),
-					result.semanticValues())
+				regenerator.moveBoxedRegister(
+					arg2.semanticValue(), result.semanticValues())
 				return
 			}
 			if (const2.notNullAnd { equalsInt(0) })
 			{
 				// x + 0 = x  (since x is an extended integer).
-				regenerator.moveRegister(
-					BOXED_KIND,
-					arg1.semanticValue(),
-					result.semanticValues())
+				regenerator.moveBoxedRegister(
+					arg1.semanticValue(), result.semanticValues())
 				return
 			}
 			// TODO We could look for chains of additions and subtractions where
@@ -308,7 +300,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			resultRestriction.forUnboxedInt())
 		regenerator.addInstruction(
 			L2_BIT_LOGIC_OP(
-				WrappedAdd,
+				Add,
 				regenerator.readInt(
 					L2SemanticUnboxedInt(arg1.semanticValue()),
 					unreachable),

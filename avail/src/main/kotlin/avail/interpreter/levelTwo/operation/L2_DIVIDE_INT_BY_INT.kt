@@ -95,7 +95,12 @@ class L2_DIVIDE_INT_BY_INT(
 		builder.append(" ÷ ")
 		builder.append(divisor.registerString())
 		renderOperandsExcludingFields(
-			builder, ::dividend, ::divisor, ::quotient, ::remainder)
+			builder,
+			desiredOperandTypes,
+			::dividend,
+			::divisor,
+			::quotient,
+			::remainder)
 	}
 
 	override fun translateToJVM(

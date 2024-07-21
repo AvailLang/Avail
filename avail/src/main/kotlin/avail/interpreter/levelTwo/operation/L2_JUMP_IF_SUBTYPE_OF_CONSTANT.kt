@@ -67,8 +67,11 @@ class L2_JUMP_IF_SUBTYPE_OF_CONSTANT(
 		builder.append(typeToCheck.registerString())
 		builder.append(" ⊆ ")
 		builder.append(constantType.constant)
-		renderOperandsExcludingFields(builder, ::typeToCheck, ::constantType)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::typeToCheck, ::constantType)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

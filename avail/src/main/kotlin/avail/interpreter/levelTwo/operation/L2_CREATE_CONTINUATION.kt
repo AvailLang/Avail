@@ -35,8 +35,8 @@ import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinu
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -89,20 +89,22 @@ class L2_CREATE_CONTINUATION(
 			}
 			first = false
 			builder.append("\n\t\t")
-			builder.append(slot)
+			builder.append(slot.registerString())
 		}
-		builder.append("]\n\t[stackp=")
+		builder.append("]\n\tstackp=")
 		builder.append(levelOneStackp)
-		builder.append("]\n\tcaller=")
+		builder.append("\n\tcaller=")
 		builder.append(caller)
 		renderOperandsExcludingFields(
 			builder,
+			desiredOperandTypes,
 			::function,
 			::caller,
 			::levelOnePc,
 			::levelOneStackp,
 			::slotValues,
-			::destination)
+			::destination,
+			::comment)
 	}
 
 	override fun translateToJVM(
@@ -131,7 +133,7 @@ class L2_CREATE_CONTINUATION(
 		for (i in 0 until slotCount)
 		{
 			val regRead = slotValues.elements[i]
-			val constant: A_BasicObject? = regRead.constantOrNull()
+			val constant: A_BasicObject? = regRead.constantOrNull
 			// Skip if it's always nil, since the continuation was already
 			// initialized with nils.
 			if (constant === null || constant.notNil)

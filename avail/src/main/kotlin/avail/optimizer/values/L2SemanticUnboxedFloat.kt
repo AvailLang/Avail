@@ -31,6 +31,7 @@
  */
 package avail.optimizer.values
 
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
@@ -65,6 +66,11 @@ constructor(
 		semanticValueTransformer(base).let {
 			if (it == base) this else L2SemanticUnboxedFloat(it)
 		}
+
+	override val isConstant: Boolean get() = base.isConstant
+
+	override val constantRestrictionOrNull: TypeRestriction
+		get() = base.constantRestrictionOrNull!!.forUnboxedFloat()
 
 	override fun toString(): String = "Float($base)"
 }

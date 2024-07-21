@@ -98,4 +98,6 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 					tupleFromIntegerList(listOf(1, 256, 384, 512)).asSet),
 				zeroOrMoreOf(u8)),
 			oneOrMoreOf(u8))
+
+	override val canDestroyArguments get() = false
 }

@@ -68,4 +68,5 @@ object P_ToString : Primitive(1, CanInline, CannotFail)
 			stringType)
 	}
 
+	override val canDestroyArguments get() = false
 }

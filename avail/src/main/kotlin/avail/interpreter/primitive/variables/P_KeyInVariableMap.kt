@@ -88,4 +88,6 @@ object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_READ_UNASSIGNED_VARIABLE))
+
+	override val canDestroyArguments get() = false
 }

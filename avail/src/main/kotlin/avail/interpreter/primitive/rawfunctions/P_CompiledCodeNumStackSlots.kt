@@ -64,4 +64,6 @@ object P_CompiledCodeNumStackSlots : Primitive(
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			wholeNumbers)
+
+	override val canDestroyArguments get() = false
 }

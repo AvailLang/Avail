@@ -59,7 +59,6 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
@@ -85,7 +84,7 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 		functionType(tuple(mostGeneralObjectType, ATOM.o), ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val (objectType, fieldType) = argumentTypes
 
@@ -146,10 +145,9 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 				rawFunction, arguments, result, regenerator)
 			return
 		}
-		objectRead.constantOrNull()?.let { exactObject ->
+		objectRead.constantOrNull?.let { exactObject ->
 			val fieldValue = exactObject.fieldAt(fieldAtom)
-			regenerator.moveRegister(
-				BOXED_KIND,
+			regenerator.moveBoxedRegister(
 				regenerator.boxedConstant(fieldValue).semanticValue(),
 				result.semanticValues())
 			return

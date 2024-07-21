@@ -83,3 +83,21 @@ Test "non-local Exit_if_ didn't clear JVM stack" in optimizer test suite is
 		Shouldn't happen
 	] 10001 times;
 ];
+
+/* TODO Add comment. */
+Test "Two equal unused constant arguments" in optimizer test suite is
+[
+	Repeat
+	[
+		Ignore: [x : {1}ᵀ, y : {1}ᵀ, z : ℕ | z + 1](1, 1, 10);
+	] 10001 times;
+];
+
+/* TODO Add a comment. */
+Test "Two unequal unused constant arguments" in optimizer test suite is
+[
+	Repeat
+	[
+		Ignore: [x : {1}ᵀ, y : {2}ᵀ, z : ℕ | z + 1](1, 2, 10);
+	] 10001 times;
+];

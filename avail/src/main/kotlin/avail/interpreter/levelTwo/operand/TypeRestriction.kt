@@ -1203,11 +1203,11 @@ class TypeRestriction private constructor(
 		val constant = constantOrNull
 		if (constant !== null)
 		{
-			return "=" + constant.typeTag.name.replace("_TAG", "")
+			return "=" + constant.typeTag.shorterName
 		}
 		return if (!type.equals(TOP.o))
 		{
-			":" + (type as AvailObject).typeTag.name.replace("_TAG", "")
+			":" + (type as AvailObject).typeTag.shorterName
 		}
 		else ""
 	}
@@ -1291,7 +1291,7 @@ class TypeRestriction private constructor(
 		 * The [TypeRestriction] for a register that has any value whatsoever,
 		 * including [nil], and is not known to be immutable.
 		 */
-		private val topRestriction = TypeRestriction(
+		val topRestriction = TypeRestriction(
 			positiveGroup = RestrictionGroup(
 				constants = null,
 				types = setOf(TOP.o),
@@ -1520,8 +1520,9 @@ class TypeRestriction private constructor(
 					if (!excludedValue.isType
 						|| (excludedValue as A_Type).isBottom)
 					{
-						type = type.trimType(
-							instanceTypeOrMetaOn(excludedValue)).makeImmutable()
+						type = type
+							.trimType(instanceTypeOrMetaOn(excludedValue))
+							.makeImmutable()
 					}
 				}
 				val anyTrimsThisPass = !type.equals(typeBefore)
@@ -1548,106 +1549,94 @@ class TypeRestriction private constructor(
 				// main type constraint and isn't specifically excluded,
 				// otherwise use the bottomRestriction, which is the
 				// impossible restriction.
-				givenConstantOrNull !== null -> when
+				givenConstantOrNull !== null && givenConstantOrNull.isNil ->
+					nilRestriction
+				givenConstantOrNull !== null ->
 				{
-					givenConstantOrNull.isNil -> nilRestriction
-					else ->
-					{
-						assert(givenConstantOrNull.isInstanceOf(type))
-						assert(givenConstantOrNull !in givenExcludedValues)
-						assert(
-							givenExcludedTypes.none(
-								givenConstantOrNull::isInstanceOf))
-						// No reason to exclude it, so use the constant.  We can
-						// safely omit the excluded types and values as part of
-						// canonicalization.
-						TypeRestriction(
-							positiveGroup = RestrictionGroup(
-								constants = setOf(givenConstantOrNull),
-								types = setOf(
-									instanceTypeOrMetaOn(givenConstantOrNull)),
-								objectVariants = possibleVariants,
-								objectTypeVariants = possibleTypeVariants,
-								tags = givenTag?.let(::setOf)),
-							negativeGroup = RestrictionGroup(
-								constants = emptySet(),
-								types = emptySet(),
-								objectVariants = excludedVariants,
-								objectTypeVariants = excludedTypeVariants,
-								tags = excludedTags),
-							flags)
-					}
+					assert(givenConstantOrNull.isInstanceOf(type))
+					assert(givenConstantOrNull !in givenExcludedValues)
+					assert(
+						givenExcludedTypes.none(
+							givenConstantOrNull::isInstanceOf))
+					// No reason to exclude it, so use the constant.  We can
+					// safely omit the excluded types and values as part of
+					// canonicalization.
+					TypeRestriction(
+						positiveGroup = RestrictionGroup(
+							constants = setOf(givenConstantOrNull),
+							types = setOf(
+								instanceTypeOrMetaOn(givenConstantOrNull)),
+							objectVariants = possibleVariants,
+							objectTypeVariants = possibleTypeVariants,
+							tags = givenTag?.let(::setOf)),
+						negativeGroup = RestrictionGroup(
+							constants = emptySet(),
+							types = emptySet(),
+							objectVariants = excludedVariants,
+							objectTypeVariants = excludedTypeVariants,
+							tags = excludedTags),
+						flags)
 				}
 				// Not a known constant.
-				givenExcludedTypes.isEmpty() && givenExcludedValues.isEmpty() ->
-					when
-					{
-						!anyVariantsMentioned && type.equals(TOP.o) -> when
-						{
-							flags and IMMUTABLE_FLAG.mask != 0 ->
-								topRestrictionImmutable
-							else -> topRestriction
-						}
-						!anyVariantsMentioned && type.equals(ANY.o) -> when
-						{
-							flags and IMMUTABLE_FLAG.mask != 0 ->
-								anyRestrictionImmutable
-							else -> anyRestriction
-						}
-						type.instanceCount.equalsInt(1)
-							&& !type.isInstanceMeta ->
-						{
-							// This is a non-meta instance type, which should be
-							// treated as a constant restriction.
-							val instance = type.instance
-							when
-							{
-								// Special case: bottom's type has one instance,
-								// bottom.
-								instance.isBottom -> bottomTypeRestriction
-								else -> TypeRestriction(
-									positiveGroup = RestrictionGroup(
-										constants = setOf(instance),
-										types = setOf(type),
-										objectVariants = possibleVariants,
-										objectTypeVariants =
-											possibleTypeVariants,
-										tags = givenTag?.let(::setOf)),
-									negativeGroup = RestrictionGroup(
-										constants = emptySet(),
-										types = emptySet(),
-										objectVariants = excludedVariants,
-										objectTypeVariants =
-											excludedTypeVariants,
-										tags = excludedTags),
-									flags)
-							}
-						}
-						else -> TypeRestriction(
-							positiveGroup = RestrictionGroup(
-								constants = null,
-								types = setOf(type),
-								objectVariants = possibleVariants,
-								objectTypeVariants = possibleTypeVariants,
-								tags = givenTag?.let(::setOf)),
-							negativeGroup = RestrictionGroup(
-								constants = givenExcludedValues,
-								types = givenExcludedTypes,
-								objectVariants = excludedVariants,
-								objectTypeVariants = excludedTypeVariants,
-								tags = excludedTags),
-							flags)
-					}
+				givenExcludedTypes.isNotEmpty()
+					|| givenExcludedValues.isNotEmpty() ->
+				{
+					TypeRestriction(
+						positiveGroup = RestrictionGroup(
+							constants = null,
+							types = setOf(type),
+							objectVariants = possibleVariants,
+							objectTypeVariants = possibleTypeVariants,
+							tags = givenTag?.let(::setOf)),
+						negativeGroup = RestrictionGroup(
+							constants = givenExcludedValues,
+							types = givenExcludedTypes,
+							objectVariants = excludedVariants,
+							objectTypeVariants = excludedTypeVariants,
+							tags = excludedTags),
+						flags)
+				}
+				!anyVariantsMentioned && type.equals(TOP.o) -> when
+				{
+					flags and IMMUTABLE_FLAG.mask != 0 ->
+						topRestrictionImmutable
+					else -> topRestriction
+				}
+				!anyVariantsMentioned && type.equals(ANY.o) -> when
+				{
+					flags and IMMUTABLE_FLAG.mask != 0 ->
+						anyRestrictionImmutable
+					else -> anyRestriction
+				}
+				!type.instanceCount.equalsInt(1) || type.isInstanceMeta ->
+					TypeRestriction(
+						positiveGroup = RestrictionGroup(
+							constants = null,
+							types = setOf(type),
+							objectVariants = possibleVariants,
+							objectTypeVariants = possibleTypeVariants,
+							tags = givenTag?.let(::setOf)),
+						negativeGroup = RestrictionGroup(
+							constants = givenExcludedValues,
+							types = givenExcludedTypes,
+							objectVariants = excludedVariants,
+							objectTypeVariants = excludedTypeVariants,
+							tags = excludedTags),
+						flags)
+				// Special case: bottom's type has one instance, bottom.
+				type.instance.isBottom -> bottomTypeRestriction
+				// This is a non-meta instance type, which should be treated as
+				// a constant restriction.
 				else -> TypeRestriction(
 					positiveGroup = RestrictionGroup(
-						constants = null,
+						constants = setOf(type.instance),
 						types = setOf(type),
 						objectVariants = possibleVariants,
 						objectTypeVariants = possibleTypeVariants,
 						tags = givenTag?.let(::setOf)),
 					negativeGroup = RestrictionGroup(
-						constants = givenExcludedValues,
-						types = givenExcludedTypes,
+						constants = emptySet(),
+						types = emptySet(),
 						objectVariants = excludedVariants,
 						objectTypeVariants = excludedTypeVariants,
 						tags = excludedTags),

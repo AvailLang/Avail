@@ -43,8 +43,8 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -109,7 +109,8 @@ class L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
 		append(" $(")
 		append(constant.constant)
 		append(')')
-		renderOperandsExcludingFields(builder, ::value, ::constant)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::value, ::constant)
 	}
 
 	override val name: String
@@ -170,6 +171,8 @@ class L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
 			ifTrue,
 			ifFalse)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

@@ -62,7 +62,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.WrappedSubtract
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Sub
 import avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -95,7 +95,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		enumerationWith(set(E_CANNOT_SUBTRACT_LIKE_INFINITIES))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val (aType, bType) = argumentTypes
 		try
@@ -181,7 +181,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		argumentTypes,
 		ifOutputIsInt = {
 			generator.addInstruction(
-				L2_BIT_LOGIC_OP(WrappedSubtract, intA, intB, intWrite))
+				L2_BIT_LOGIC_OP(Sub, intA, intB, intWrite))
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(

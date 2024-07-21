@@ -53,7 +53,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.UnsignedShiftRight
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Ushr
 import avail.interpreter.levelTwo.operation.L2_HASH
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.ShiftedHashSplitter
@@ -539,7 +539,7 @@ constructor(
 					// an equivalent semantic value exist.  Do the shift.
 					generator.addInstruction(
 						L2_BIT_LOGIC_OP(
-							UnsignedShiftRight,
+							Ushr,
 							L2ReadIntOperand(
 								semanticHashInt,
 								int32Restriction,

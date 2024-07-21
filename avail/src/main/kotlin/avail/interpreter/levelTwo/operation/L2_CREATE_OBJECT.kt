@@ -33,8 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -50,7 +50,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_CREATE_OBJECT(
-	var variant: L2ArbitraryConstantOperand,
+	var variant: L2ArbitraryConstantOperand<ObjectLayoutVariant>,
 	var fieldValues: L2ReadBoxedVectorOperand,
 	var newObject: L2WriteBoxedOperand
 ) : L2Instruction()
@@ -69,15 +69,16 @@ class L2_CREATE_OBJECT(
 		val fieldSources = fieldValues.elements
 		assert(realSlots.size == fieldSources.size)
 		var i = 0
-		realSlots.joinTo(builder, ",")
-		{ key -> "$key: ${fieldSources[i++].registerString()}" }
+		realSlots.joinTo(builder, ",") { key ->
+			"$key: ${fieldSources[i++].registerString()}"
+		}
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		val theVariant: ObjectLayoutVariant = variant.constant.cast()
+		val theVariant = variant.constant
 		translator.literal(method, theVariant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
 		val fieldSources = fieldValues.elements

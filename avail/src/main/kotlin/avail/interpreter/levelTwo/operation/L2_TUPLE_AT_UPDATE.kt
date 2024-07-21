@@ -32,14 +32,14 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticBoxedValue
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -74,20 +74,20 @@ class L2_TUPLE_AT_UPDATE(
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
+		tupleRead: L2ReadBoxedOperand,
 		index: Int,
-		write: L2WriteBoxedOperand,
+		destinationSemanticValues: Set<L2SemanticBoxedValue>,
 		generator: L2Generator)
 	{
-		if (index == updateIndex.value)
+		when (index)
 		{
 			// Use the value that was used to update that element.
-			generator.addInstruction(L2_MOVE_BOXED(newElement, write))
-		}
-		else
-		{
+			updateIndex.value -> generator.moveBoxedRegister(
+				newElement.semanticValue(),
+				destinationSemanticValues)
 			// It wasn't affected by this tuple update.
-			generator.extractTupleElement(inputTuple, index, write)
+			else -> generator.extractTupleElement(
+				inputTuple, index, destinationSemanticValues)
 		}
 	}
 

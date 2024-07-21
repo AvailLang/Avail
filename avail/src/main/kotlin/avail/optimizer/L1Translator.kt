@@ -134,10 +134,9 @@ import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2SelectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -199,7 +198,6 @@ import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.RESTART_LOOP_HEAD
 import avail.optimizer.L2GeneratorInterface.SpecialBlock.START
-import avail.optimizer.L2GeneratorInterface.SpecialBlock.UNREACHABLE
 import avail.optimizer.OptimizationLevel.UNOPTIMIZED
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
@@ -271,6 +269,19 @@ class L1Translator private constructor(
 		// Omit the label, since it gets its own subclass of L2SemanticValue.
 		slotNames = allNames
 			.subList(0, code.numArgs() + code.numLocals + code.numConstants)
+			.withIndex()
+			.groupBy(IndexedValue<String>::value, IndexedValue<*>::index)
+			// Generated phrases can contain duplicate names, so disambiguate
+			// them here.
+			.flatMap { (name, indices) ->
+				when (indices.size)
+				{
+					1 -> listOf(IndexedValue(indices[0], name))
+					else -> indices.map { IndexedValue(it, "$name/${it+1}") }
+				}
+			}
+			.sortedBy(IndexedValue<String>::index)
+			.map(IndexedValue<String>::value)
 			.toTypedArray()
 		outerNames = allNames
 			.subList(allNames.size - code.numOuters, allNames.size)
@@ -443,8 +454,7 @@ class L1Translator private constructor(
 		// newly written value.
 		val slotSemanticValue = createSemanticSlot(slotIndex, effectivePc)
 		semanticSlots[slotIndex - 1] = slotSemanticValue
-		generator.moveRegister(
-			BOXED_KIND,
+		generator.moveBoxedRegister(
 			sourceSemanticValue,
 			setOf(slotSemanticValue))
 		currentManifest.setRestriction(slotSemanticValue, restriction)
@@ -545,6 +555,7 @@ class L1Translator private constructor(
 		addInstruction(
 			L2_MOVE_OUTER_VARIABLE(
 				L2IntImmediateOperand(outerIndex),
+				L2CommentOperand(outerName ?: ""),
 				functionRead,
 				outerWrite))
 		return readBoxed(outerWrite)
@@ -652,6 +663,7 @@ class L1Translator private constructor(
 		val fallThrough = generator.createBasicBlock("Off-ramp", zone)
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT(
+				L2ReadBoxedVectorOperand(emptyList()),
 				edgeTo(onReturnIntoReified),
 				writeOffset,
 				writeRegisterDump,
@@ -664,7 +676,6 @@ class L1Translator private constructor(
 			boxedRestrictionForType(mostGeneralContinuationType))
 		addInstruction(
 			L2_GET_CURRENT_CONTINUATION(writeReifiedCaller))
-		val unreachable = L2BasicBlock("unreachable")
 		if (typeOfEntryPoint === ChunkEntryPoint.TRANSIENT)
 		{
 			// L1 can never see this continuation, so it can be minimal.
@@ -676,8 +687,10 @@ class L1Translator private constructor(
 					L2IntImmediateOperand(Int.MAX_VALUE),
 					L2ReadBoxedVectorOperand(emptyList()),
 					newContinuationWrite,
-					generator.readInt(
-						writeOffset.onlySemanticValue(), unreachable),
+					L2ReadIntOperand(
+						writeOffset.onlySemanticValue(),
+						intRestrictionForType(i32),
+						currentManifest),
 					generator.readBoxed(writeRegisterDump),
 					L2CommentOperand(
 						"Create a dummy reification continuation.")))
@@ -695,8 +708,10 @@ class L1Translator private constructor(
 					L2IntImmediateOperand(stackp),
 					L2ReadBoxedVectorOperand(readSlotsBefore.toList()),
 					newContinuationWrite,
-					generator.readInt(
-						writeOffset.onlySemanticValue(), unreachable),
+					L2ReadIntOperand(
+						writeOffset.onlySemanticValue(),
+						intRestrictionForType(i32),
+						currentManifest),
 					generator.readBoxed(writeRegisterDump),
 					L2CommentOperand("Create a reification continuation.")))
 		}
@@ -705,9 +720,6 @@ class L1Translator private constructor(
 
 		// Right after creating the continuation.
 		addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER())
-
-		generator.startBlock(unreachable)
-		generator.addInstruction(L2_UNREACHABLE_CODE())
 
 		// Here it's returning into the reified continuation.
 		generator.startBlock(onReturnIntoReified)
@@ -763,23 +775,17 @@ class L1Translator private constructor(
 		liveEntities.addAll(finalSlots)
 		finalWrites.mapTo(liveEntities, L2WriteBoxedOperand::register)
 
-		// Jump back to the RESTART_LOOP_HEAD, where the n@1 semantic slots will
-		// be added to the phis.
+		// Jump back to the RESTART_LOOP_HEAD, where only the n@1 semantic slots
+		// and registers will be live and added to the phis.
 		generator.addInstruction(
 			L2_JUMP_BACK(
-				backEdgeTo(generator.specialBlocks[RESTART_LOOP_HEAD]!!),
+				backEdgeTo(
+					generator.specialBlocks[RESTART_LOOP_HEAD]!!,
+					liveEntities.toMutableSet()),
 				L2ReadBoxedVectorOperand(
 					indices.map {
 						generator.readBoxed(createSemanticSlot(it + 1, 1))
 					})))
-
-		// Ensure only the n@1 slots and registers are considered live, both
-		// before and after the trampoline.
-		//TODO it might not be necessary to have a forcedClampedEntities
-		// mechanism any more, sincce the L2_STRIP_MANIFEST will reproduce
-		// the effeccts of a stripped manifest upon regeneration.
-		generator.currentBlock().successorEdges().single()
-			.forcedClampedEntities = liveEntities.toMutableSet()
 	}
 
 	/**
@@ -1105,10 +1111,11 @@ class L1Translator private constructor(
 				val function = definition.bodyBlock()
 				val rawFunction = function.code()
 				val primitive = rawFunction.codePrimitive()
+				val functionType = rawFunction.functionType()
+				val functionResultType = functionType.returnType
 				val returnType: A_Type = if (primitive !== null)
 				{
-					val signatureTupleType =
-						rawFunction.functionType().argsTupleType
+					val signatureTupleType = functionType.argsTupleType
 					val intersectedArgumentTypes = mutableListOf<A_Type>()
 					for (i in argumentRestrictions.indices)
 					{
@@ -1117,12 +1124,21 @@ class L1Translator private constructor(
 								signatureTupleType.typeAtIndex(i + 1))
 						intersectedArgumentTypes.add(intersection.type)
 					}
-					primitive.returnTypeGuaranteedByVM(
+					val failedFunctionType =
+						rawFunction.returnTypeIfPrimitiveFails
+					val primResultType = primitive.returnTypeGuaranteedByVM(
 						rawFunction, intersectedArgumentTypes)
+					when (primitive.fallibilityForArgumentTypes(
+						intersectedArgumentTypes))
+					{
+						CallSiteCannotFail -> primResultType
+						CallSiteMustFail -> failedFunctionType
+						else -> primResultType.typeUnion(failedFunctionType)
+					}
 				}
 				else
 				{
-					rawFunction.functionType().returnType
+					functionResultType
 				}
 				tempUnion = tempUnion.typeUnion(returnType)
 			}
@@ -1419,6 +1435,22 @@ class L1Translator private constructor(
 						argSemanticValue, strongRestriction, manifest)
 				}
 				argumentTypes = strongArguments.map { it.type() }
+				if (primitive.hasFlag(Flag.CanFold))
+				{
+					// See if there's an equivalent semantic value already in
+					// the manifest, and just reuse that if possible.
+					val semanticPrimitive = primitiveInvocation(
+						primitive,
+						arguments.map(L2ReadBoxedOperand::semanticValue))
+					manifest.equivalentSemanticValue(semanticPrimitive)?.let {
+							equivalent ->
+						generator.moveRegister(
+							BOXED_KIND, equivalent, listOf(semanticPrimitive))
+						callSiteHelper.useAnswer(
+							generator.readBoxed(semanticPrimitive))
+						return
+					}
+				}
 				generated = tryToGenerateSpecialInvocation(
 					functionToCallReg,
 					rawFunction,
@@ -1460,7 +1492,7 @@ class L1Translator private constructor(
 					addInstruction(
 						L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
 							L2ConstantOperand(rawFunction),
-							L2PrimitiveOperand(primitive),
+							L2ArbitraryConstantOperand(primitive),
 							L2ReadBoxedVectorOperand(arguments),
 							writer))
 					if (willAlwaysFailPrimitive &&
@@ -1497,16 +1529,15 @@ class L1Translator private constructor(
 				willAlwaysFailPrimitive -> CallSiteMustFail
 				else -> primitive.fallibilityForArgumentTypes(argumentTypes)
 			}
-			guaranteedResultType =
-				when (fallibility)
-				{
-					CallSiteCannotFail -> primitive.returnTypeGuaranteedByVM(
-						rawFunction, argumentTypes)
-					CallSiteMustFail -> rawFunction.returnTypeIfPrimitiveFails
-					else -> rawFunction.returnTypeIfPrimitiveFails.typeUnion(
-						primitive.returnTypeGuaranteedByVM(
-							rawFunction, argumentTypes))
-				}
+			guaranteedResultType = when (fallibility)
+			{
+				CallSiteCannotFail -> primitive.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
+				CallSiteMustFail -> rawFunction.returnTypeIfPrimitiveFails
+				else -> rawFunction.returnTypeIfPrimitiveFails.typeUnion(
+					primitive.returnTypeGuaranteedByVM(
+						rawFunction, argumentTypes))
+			}
 		}
 		else
 		{
@@ -1519,7 +1550,7 @@ class L1Translator private constructor(
 		// invoke it like a non-primitive.
 		val skipCheck =
 			guaranteedResultType.isSubtypeOf(callSiteHelper.expectedType)
-		val constantFunction: A_Function? = functionToCallReg.constantOrNull()
+		val constantFunction: A_Function? = functionToCallReg.constantOrNull
 		val canReturn = !guaranteedResultType.isVacuousType
 		val successBlock = generator.createBasicBlock("successful invocation")
 		val targetBlock =
@@ -1710,7 +1741,7 @@ class L1Translator private constructor(
 			val constants = mutableListOf<AvailObject>()
 			for (regRead in arguments)
 			{
-				val constant = regRead.constantOrNull() ?: break
+				val constant = regRead.constantOrNull ?: break
 				constants.add(constant)
 			}
 			if (constants.size == argumentCount)
@@ -1858,7 +1889,7 @@ class L1Translator private constructor(
 			// Not a super-call.
 			addInstruction(
 				L2_LOOKUP_BY_VALUES(
-					L2SelectorOperand(bundle),
+					L2ConstantOperand(bundle),
 					L2ReadBoxedVectorOperand(argumentReads),
 					functionWrite,
 					errorCodeWrite,
@@ -1920,7 +1951,7 @@ class L1Translator private constructor(
 			}
 			addInstruction(
 				L2_LOOKUP_BY_TYPES(
-					L2SelectorOperand(bundle),
+					L2ConstantOperand(bundle),
 					L2ReadBoxedVectorOperand(argTypeRegs),
 					functionWrite,
 					errorCodeWrite,
@@ -2245,7 +2276,7 @@ class L1Translator private constructor(
 		{
 			// Try the primitive, automatically returning if successful.
 			addInstruction(
-				L2_TRY_PRIMITIVE(L2PrimitiveOperand(primitive)))
+				L2_TRY_PRIMITIVE(L2ArbitraryConstantOperand(primitive)))
 			if (primitive.hasFlag(Flag.CannotFail))
 			{
 				// Infallible primitives don't need any other L2 code.
@@ -2267,7 +2298,8 @@ class L1Translator private constructor(
 		// it can fall back gracefully to L1 (the default chunk) by entering it
 		// at the TO_RESTART entry point.  Note that there can't be a primitive
 		// for such continuations.
-		// Capture the arguments.
+		// Capture the arguments, but don't consume them, in case the
+		// decrement-and-reoptimize has to create and run a different chunk.
 		val numArgs = code.numArgs()
 		val tupleType = code.functionType().argsTupleType
 		addInstruction(
@@ -2280,6 +2312,18 @@ class L1Translator private constructor(
 							semanticSlot(i),
 							boxedRestrictionForType(tupleType.typeAtIndex(i)))
 					})))
+		// Insulate the jump to the loop head, so that the original registers
+		// won't be used.  Note that the same semantic values are being written,
+		// but strip-manifest clears the whole manifest before adding them, so
+		// they won't interfere with the ones populated above.
+		generator.addInstruction(
+			L2_STRIP_MANIFEST(
+				L2ReadBoxedVectorOperand((1..numArgs).map(::readSlot)),
+				L2WriteBoxedVectorOperand((1..numArgs).map { i ->
+					generator.boxedWrite(
+						semanticSlot(i),
+						boxedRestrictionForType(tupleType.typeAtIndex(i)))
+				})))
 
 		// Do any reoptimization before capturing arguments.
 		val optimization = generator.optimizationLevel
@@ -2376,18 +2420,6 @@ class L1Translator private constructor(
 			addInstruction(L2_RETURN(readResult))
 			assert(stackp == numSlots)
 			stackp = Int.MIN_VALUE
-		}
-		val unreachableBlock = generator.specialBlocks[UNREACHABLE]
-		if (unreachableBlock !== null
-			&& unreachableBlock.predecessorEdges().isNotEmpty())
-		{
-			// Generate the unreachable block.
-			generator.startBlock(unreachableBlock)
-			addInstruction(L2_UNREACHABLE_CODE())
-			// Now make it a loop head, just so code generated later from
-			// placeholder instructions can still connect to it, as long as it
-			// uses a back-edge.
-			unreachableBlock.isLoopHead = true
 		}
 	}
 
@@ -2728,7 +2760,7 @@ class L1Translator private constructor(
 		{
 			val source = semanticSlot(stackp + size - i)
 			val temp = generator.newTemp()
-			generator.moveRegister(BOXED_KIND, source, setOf(temp))
+			generator.moveBoxedRegister(source, setOf(temp))
 			temps[permutation.tupleIntAt(i) - 1] = temp
 		}
 		for (i in size downTo 1)
@@ -2866,12 +2898,14 @@ class L1Translator private constructor(
 			// 4,5. If reified, calls return here.
 			generator.startBlock(reenterFromCallBlock)
 			generator.addInstruction(L2_REENTER_L1_CHUNK_FROM_CALL())
-			generator.addInstruction(L2_JUMP(backEdgeTo(loopBlock)))
+			generator.addInstruction(
+				L2_JUMP(backEdgeTo(loopBlock, mutableSetOf())))
 
 			// 6,7. If reified, interrupts return here.
 			generator.startBlock(reenterFromInterruptBlock)
 			generator.addInstruction(L2_REENTER_L1_CHUNK_FROM_INTERRUPT())
-			generator.addInstruction(L2_JUMP(backEdgeTo(loopBlock)))
+			generator.addInstruction(
+				L2_JUMP(backEdgeTo(loopBlock, mutableSetOf())))
 
 			// 8. Unreachable.
 			generator.startBlock(unreachableBlock)

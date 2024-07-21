@@ -60,3 +60,73 @@ inline fun <reified C : Comparable<C>> Int.ifZero(
 	// this intrinsically.
 	return if (this != 0) this else (minor1().compareTo(minor2()))
 }
+
+class ChainedComparator<E, C1: Comparable<C1>, C2: Comparable<C2>>
+constructor(
+	val extractor1: E.()->C1,
+	val extractor2: E.()->C2
+): Comparator<E>
+{
+	override fun compare(a: E, b: E): Int =
+		a.extractor1().compareTo(b.extractor1())
+			.ifZero {
+				a.extractor2().compareTo(b.extractor2())
+			}
+}
+
+/**
+ * Given the receiver function and another function, each of which can extract
+ * comparable objects, answer a two-argument function that will first use the
+ * receiver to extract comparables from its argument, compare them, and if
+ * equal, use the other extractor to produce a pair of comparables which are
+ * used instead.
+ *
+ * An example would helpful here.  Say we have a list of sets:
+ * ```
+ *    val aList = listOf<Set<Long>>()
+ *    aList.sortedWith(Set<*>::size thenBy Any::toString)
+ * ```
+ *
+ * This sorts a list by ascending size of each set, breaking ties by
+ * alphabetizing by the textual representations.
+ */
+infix fun <E, C1: Comparable<C1>, C2: Comparable<C2>> ((E)->C1).thenBy(
+	otherExtractor: (E)->C2
+): (E, E)->Int =
+	{ a: E, b: E ->
+		this(a).compareTo(this(b)).ifZero {
+			otherExtractor(a).compareTo(otherExtractor(b))
+		}
+	}
+
+/**
+ * Similar to the infix [thenBy], this non-infix form takes a vararg of
+ * extractors as arguments.
+ *
+ * Due to limitations in fixed-arity genericity, the extractors are allowed to
+ * be any functions that produce a [Comparable], even of different type.  Since
+ * only values produced by *the same* extractor will be compared, we just cast
+ * without too much worry.
+ *
+ * An example would helpful here.  Say we have a list of sets:
+ * ```
+ * val aList = listOf<Set<Long>>()
+ * val sorted =
+ *     aList.sortedWith(
+ *         compareChained({it.size}, {it.toString()}, {it.max()}))
+ * ```
+ *
+ * This sorts a list by ascending size of each set, breaking ties by
+ * alphabetizing by the textual representations.
+ */
+fun <E> compareChained(
+	vararg extractors: (E)->Comparable<*>
+): (E, E)->Int =
+	function@ { a: E, b: E ->
+		for (e in extractors)
+		{
+			val comparison = e(a)::compareTo.call(e(b))
+			if (comparison != 0) return@function comparison
+		}
+		0
+	}

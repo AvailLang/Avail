@@ -60,7 +60,7 @@ object P_PushArgument1 : Primitive(
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.isNotEmpty())

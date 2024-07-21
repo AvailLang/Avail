@@ -182,6 +182,9 @@ Private stable method "format sites for_" is
 		[
 			metachar : format metacharacters
 		|
+			/* TODO Remove line. */
+			debugTemp ::= metachar;
+
 			Choose metachar from format metacharacters where
 				¢‘ is [ addSite(¢’, text); ],
 				¢“ is [ addSite(¢”, description); ],

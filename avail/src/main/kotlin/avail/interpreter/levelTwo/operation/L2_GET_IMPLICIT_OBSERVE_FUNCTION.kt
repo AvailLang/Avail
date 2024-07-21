@@ -35,13 +35,14 @@ import avail.AvailRuntime
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Store the
+ * Extract the
  * [implicit&#32;observe&#32;function][AvailRuntime.implicitObserveFunction]
  * into the supplied [object&#32;register][L2BoxedRegister].
  *
@@ -63,6 +64,8 @@ class L2_GET_IMPLICIT_OBSERVE_FUNCTION(
 		builder.append(' ')
 		builder.append(implicitObserveFunction.registerString())
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

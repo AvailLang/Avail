@@ -89,8 +89,7 @@ internal class DeadCodeAnalyzer constructor(
 					val needs = mutableSetOf<L2Entity<*>>()
 					if (dataCouplingMode.considersSemanticValues)
 					{
-						clamped
-							.filterIsInstance<L2SemanticValue<*>>()
+						clamped.filterIsInstance<L2SemanticValue<*>>()
 							.toCollection(needs)
 					}
 					if (dataCouplingMode.considersRegisters)

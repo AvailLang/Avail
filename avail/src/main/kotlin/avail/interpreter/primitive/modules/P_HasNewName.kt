@@ -74,4 +74,6 @@ object P_HasNewName : Primitive(
 				MODULE.o,
 				stringType),
 			booleanType)
+
+	override val canDestroyArguments get() = false
 }

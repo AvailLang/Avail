@@ -33,6 +33,7 @@ package avail.optimizer.values
 
 import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.Primitive
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Entity
@@ -81,7 +82,7 @@ protected constructor(
 	override fun hashCode(): Int = hash
 
 	override fun equals(other: Any?): Boolean =
-		(other is L2SemanticValue<*> && equalsSemanticValue(other))
+		other is L2SemanticValue<*> && equalsSemanticValue(other)
 
 	open fun equalsSemanticValue(other: L2SemanticValue<*>) = this === other
 
@@ -94,6 +95,14 @@ protected constructor(
 	 */
 	open val isConstant: Boolean
 		get() = false
+
+	/**
+	 * If this semantic value represents a constant, answer the constant-valued
+	 * [TypeRestriction], otherwise `null`.  The restriction will have the
+	 * appropriate flags set for the [RegisterKind] of this semantic value.
+	 */
+	open val constantRestrictionOrNull: TypeRestriction?
+		get() = null
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with

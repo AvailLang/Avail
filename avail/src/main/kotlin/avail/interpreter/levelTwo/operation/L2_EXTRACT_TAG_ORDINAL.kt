@@ -34,14 +34,13 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinalMethod
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.TypeTag
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
@@ -105,8 +104,7 @@ class L2_EXTRACT_TAG_ORDINAL(
 				when (existingValue)
 				{
 					null ->
-						regenerator.moveRegister(
-							INTEGER_KIND,
+						regenerator.moveIntRegister(
 							regenerator.unboxedIntConstant(baseTag.ordinal)
 								.semanticValue(),
 							intWrite(
@@ -116,10 +114,7 @@ class L2_EXTRACT_TAG_ORDINAL(
 					else -> tagOrdinal.semanticValues().forEach { otherValue ->
 						if (!currentManifest.hasSemanticValue(otherValue))
 						{
-							moveRegister(
-								INTEGER_KIND,
-								existingValue,
-								setOf(otherValue))
+							moveIntRegister(existingValue, setOf(otherValue))
 						}
 					}
 				}
@@ -148,8 +143,7 @@ class L2_EXTRACT_TAG_ORDINAL(
 					}
 				when (existingValue)
 				{
-					null -> moveRegister(
-						INTEGER_KIND,
+					null -> moveIntRegister(
 						regenerator.unboxedIntConstant(baseTag.ordinal)
 							.semanticValue(),
 						intWrite(
@@ -159,10 +153,7 @@ class L2_EXTRACT_TAG_ORDINAL(
 					else -> tagOrdinal.semanticValues().forEach { otherValue ->
 						if (!currentManifest.hasSemanticValue(otherValue))
 						{
-							moveRegister(
-								INTEGER_KIND,
-								existingValue,
-								setOf(otherValue))
+							moveIntRegister(existingValue, setOf(otherValue))
 						}
 					}
 				}
@@ -171,6 +162,8 @@ class L2_EXTRACT_TAG_ORDINAL(
 		}
 		super.emitTransformedInstruction(regenerator)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

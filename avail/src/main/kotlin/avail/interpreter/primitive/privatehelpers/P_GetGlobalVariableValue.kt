@@ -73,10 +73,9 @@ object P_GetGlobalVariableValue : Primitive(
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type =
-		rawFunction.literalAt(1).kind().readType
+	): A_Type = rawFunction!!.literalAt(1).kind().readType
 
 	/**
 	 * This primitive is suitable for any function with any as the return type.
@@ -94,7 +93,7 @@ object P_GetGlobalVariableValue : Primitive(
 		// We have to know the specific function to know what variable to read
 		// from, since it's the first literal.
 		val translator = callSiteHelper.translator
-		val function = functionToCallReg.constantOrNull() ?: return false
+		val function = functionToCallReg.constantOrNull ?: return false
 		val variable = function.code().literalAt(1)
 		// Avoid generating a constant move if the value wasn't stably computed.
 		// While it would be the correct value, it wouldn't trigger the fast

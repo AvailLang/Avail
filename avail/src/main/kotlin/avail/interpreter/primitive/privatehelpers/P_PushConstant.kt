@@ -78,10 +78,10 @@ object P_PushConstant : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val value = rawFunction.literalAt(1)
+		val value = rawFunction!!.literalAt(1)
 		return if (value.isNil) TOP.o else instanceTypeOrMetaOn(value)
 	}
 

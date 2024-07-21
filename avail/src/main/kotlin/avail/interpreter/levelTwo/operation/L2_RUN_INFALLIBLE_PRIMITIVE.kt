@@ -33,21 +33,23 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.constantConditions
+import avail.optimizer.L2SplitCondition.Companion.existsCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.utility.cast
@@ -71,7 +73,7 @@ import org.objectweb.asm.MethodVisitor
  */
 sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 	var rawFunction: L2ConstantOperand,
-	var primitive: L2PrimitiveOperand,
+	var primitive: L2ArbitraryConstantOperand<Primitive>,
 	var arguments: L2ReadBoxedVectorOperand,
 	var result: L2WriteBoxedOperand
 ): L2Instruction()
@@ -81,7 +83,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		LATEST_RETURN_VALUE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency(
 		rawFunction: L2ConstantOperand,
-		primitive: L2PrimitiveOperand,
+		primitive: L2ArbitraryConstantOperand<Primitive>,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand
 	): L2_RUN_INFALLIBLE_PRIMITIVE(rawFunction, primitive, arguments, result)
@@ -95,7 +97,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		LATEST_RETURN_VALUE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency(
 		rawFunction: L2ConstantOperand,
-		primitive: L2PrimitiveOperand,
+		primitive: L2ArbitraryConstantOperand<Primitive>,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand
 	): L2_RUN_INFALLIBLE_PRIMITIVE(rawFunction, primitive, arguments, result)
@@ -108,7 +110,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		GLOBAL_STATE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency(
 		rawFunction: L2ConstantOperand,
-		primitive: L2PrimitiveOperand,
+		primitive: L2ArbitraryConstantOperand<Primitive>,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand
 	): L2_RUN_INFALLIBLE_PRIMITIVE(rawFunction, primitive, arguments, result)
@@ -123,7 +125,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		GLOBAL_STATE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency(
 		rawFunction: L2ConstantOperand,
-		primitive: L2PrimitiveOperand,
+		primitive: L2ArbitraryConstantOperand<Primitive>,
 		arguments: L2ReadBoxedVectorOperand,
 		result: L2WriteBoxedOperand
 	): L2_RUN_INFALLIBLE_PRIMITIVE(rawFunction, primitive, arguments, result)
@@ -132,7 +134,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 	override val hasSideEffect: Boolean
 		get()
 		{
-			val prim = primitive.primitive
+			val prim = primitive.constant
 			return (prim.hasFlag(Flag.HasSideEffect)
 				|| prim.hasFlag(Flag.CatchException)
 				|| prim.hasFlag(Flag.Invokes)
@@ -166,7 +168,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		regenerator: L2Regenerator)
 	{
 		val strongerResultType =
-			primitive.primitive.returnTypeGuaranteedByVM(
+			primitive.constant.returnTypeGuaranteedByVM(
 				rawFunction.constant,
 				arguments.elements.map(L2ReadBoxedOperand::type))
 		val strongerRestriction =
@@ -176,35 +178,71 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 			strongerRestriction,
 			result.register())
 		strongerRestriction.constantOrNull?.let { constant ->
-			if (primitive.primitive.hasFlag(Flag.CanFold))
+			if (primitive.constant.hasFlag(CanFold))
 			{
 				// This invocation is now known to produce a constant that can
 				// be folded.  Generate a constant move instead.
-				regenerator.moveRegister(
-					BOXED_KIND,
+				regenerator.moveBoxedRegister(
 					regenerator.boxedConstant(constant).semanticValue(),
 					strongerResult.semanticValues())
 				return
 			}
 		}
-		primitive.primitive.emitTransformedInfalliblePrimitive(
+		primitive.constant.emitTransformedInfalliblePrimitive(
 			rawFunction.constant, arguments, strongerResult, regenerator)
 	}
 
 	override fun interestingConditions(): List<L2SplitCondition?>
 	{
-		return primitive.primitive.interestingSplitConditions(
+		val conditions = primitive.constant.interestingSplitConditions(
 			arguments.elements,
-			rawFunction.constant)
+			rawFunction.constant
+		).toMutableList()
+		// Split based on whether a value for an equivalent primitive invocation
+		// already exists in some history.
+		conditions.add(existsCondition(result.semanticValues()))
+		// We can't quite split based on whether *all* inputs to the primitive
+		// are simultaneously true, so we check if each argument *could* be
+		// constant, and if the product of the argument constant counts is
+		// acceptably low.  If so, we split on each argument constant
+		// individually, hoping that sometimes the combination will allow
+		// folding along some split paths.
+		val constantConditionsByArgument = arguments.elements.map { argRead ->
+			constantConditions(setOf(argRead.register()))
+		}
+		if (primitive.constant.hasFlag(CanFold))
+		{
+			// See how many distinct *combinations* of constants might occur.
+			val explosion = constantConditionsByArgument
+				.map { it.size.toLong() }
+				.fold(1L, Long::times)
+			if (explosion > 0 && explosion <= 20)
+			{
+				// This seems like an acceptable number of code splits, since
+				// they will *probably* lead to folded primitives, and hopefully
+				// not lead to too much nearby code being duplicated.
+				constantConditionsByArgument.forEach { argConditions ->
+					conditions.addAll(argConditions)
+				}
+			}
+		}
+		return conditions
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		primitive.primitive.generateJvmCode(
+		primitive.constant.generateJvmCode(
 			translator, method, arguments, result)
 	}
+
+	override val readsThatMightDestroy: List<L2ReadBoxedOperand>
+		get() = when (primitive.constant.canDestroyArguments)
+		{
+			true -> super.readsThatMightDestroy
+			else -> emptyList()
+		}
 
 	companion object
 	{
@@ -220,7 +258,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 		@JvmStatic
 		fun createInstruction(
 			rawFunction: L2ConstantOperand,
-			primitive: L2PrimitiveOperand,
+			primitive: L2ArbitraryConstantOperand<Primitive>,
 			arguments: L2ReadBoxedVectorOperand,
 			result: L2WriteBoxedOperand
 		): L2_RUN_INFALLIBLE_PRIMITIVE
@@ -228,7 +266,7 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 			// Until we have all primitives annotated with global read/write
 			// flags, pay attention to other flags that we expect to prevent
 			// commutation of invocations.
-			val prim = primitive.primitive
+			val prim = primitive.constant
 			if (prim.hasFlag(Flag.HasSideEffect)
 				|| prim.hasFlag(Flag.Unknown))
 			{
@@ -249,21 +287,6 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 				else -> L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency(
 					rawFunction, primitive, arguments, result)
 			}
-		}
-
-		/**
-		 * Extract the [Primitive] from the provided instruction.
-		 *
-		 * @param instruction
-		 *   The [L2Instruction] from which to extract the [Primitive].
-		 * @return
-		 *   The [Primitive] invoked by this instruction.
-		 */
-		@JvmStatic
-		fun primitiveOf(instruction: L2Instruction): Primitive
-		{
-			val primitive = instruction.operand<L2PrimitiveOperand>(1)
-			return primitive.primitive
 		}
 
 		/**

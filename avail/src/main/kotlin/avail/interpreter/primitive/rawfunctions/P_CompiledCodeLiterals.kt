@@ -72,4 +72,7 @@ object P_CompiledCodeLiterals : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			zeroOrMoreOf(ANY.o))
+
+	/** Raw functions are always shared. */
+	override val canDestroyArguments get() = false
 }

@@ -37,6 +37,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_INVOKE
 import avail.interpreter.levelTwo.operation.L2_INVOKE_CONSTANT_FUNCTION
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
@@ -73,14 +74,12 @@ class L2ControlFlowGraph
 		 * that no edge both leads from a node with multiple successor edges and
 		 * leads to a node with multiple predecessor edges.
 		 */
-		@Suppress("unused")
 		object IS_EDGE_SPLIT : StateFlag()
 
 		/**
 		 * Indicates that every [L2_PHI] has been replaced by
 		 * moves to the same [L2Register] along each (split) incoming edge.
 		 */
-		@Suppress("unused")
 		object HAS_ELIMINATED_PHIS : StateFlag()
 	}
 
@@ -133,6 +132,14 @@ class L2ControlFlowGraph
 	{
 		assert(Collections.disjoint(state, flags))
 	}
+
+	/**
+	 * Answer whether this graph is in a [state] that indicates that [L2_PHI]s
+	 * have been eliminated, replaced with multiple [L2_MOVE]s into the same
+	 * [L2Register], thus breaking from [IS_SSA] form.
+	 */
+	val hasEliminatedPhis: Boolean
+		get() = StateFlag.HAS_ELIMINATED_PHIS::class in state
 
 	/**
 	 * [L2BasicBlock]s can be grouped into zones for better visualization of the
@@ -311,7 +318,9 @@ class L2ControlFlowGraph
 
 	/**
 	 * Collect the list of all distinct [L2Register]s assigned anywhere within
-	 * this control flow graph.
+	 * this control flow graph.  Note that this does not include dummy registers
+	 * used as constant sources (introduced by the
+	 * [OptimizationPhase.REPLACE_CONSTANT_REGISTERS] phase).
 	 *
 	 * @return
 	 *   A [List] of [L2Register]s without repetitions.
@@ -371,6 +380,27 @@ class L2ControlFlowGraph
 		for (block in basicBlockOrder)
 		{
 			block.generateOn(instructions)
+		}
+		var counter = 0
+		for (block in basicBlockOrder)
+		{
+			for (instruction in block.instructions())
+			{
+				// Number every instruction in the order they were listed in the
+				// blocks, but only increment the counter when we reach an
+				// instruction having that index.  That allows the previous loop
+				// to do jump optimizations and other elisions without having to
+				// worry about the numbering getting skewed.  Before separating
+				// this into two passes, there was actually a case where
+				// multiple jumps were removed, causing previously numbered (but
+				// elided) instructions to have too high an index.
+				instruction.offset = counter
+				if (counter < instructions.size &&
+					instruction == instructions[counter])
+				{
+					counter++
+				}
+			}
 		}
 	}
 

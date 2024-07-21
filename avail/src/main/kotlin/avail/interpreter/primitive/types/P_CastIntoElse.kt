@@ -87,7 +87,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		// Keep it simple.
@@ -137,7 +137,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			// simply a function closure.  First see if we can eliminate the
 			// runtime test entirely.
 			var bypassTesting = true
-			val constant = valueRead.constantOrNull()
+			val constant = valueRead.constantOrNull
 			val passedTest: Boolean = when {
 				constant !== null -> constant.isInstanceOf(typeTest)
 				valueRead.type().isSubtypeOf(typeTest) -> true

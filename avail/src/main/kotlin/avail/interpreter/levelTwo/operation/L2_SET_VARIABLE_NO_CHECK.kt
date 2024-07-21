@@ -34,12 +34,12 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.VariableSetException
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
-import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -75,7 +75,8 @@ class L2_SET_VARIABLE_NO_CHECK(
 		builder.append(variable.registerString())
 		builder.append(" ← ")
 		builder.append(valueToWrite.registerString())
-		renderOperandsExcludingFields(builder, ::variable, ::valueToWrite)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::variable, ::valueToWrite)
 	}
 
 	override fun translateToJVM(

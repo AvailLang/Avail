@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.register
 
+import avail.descriptor.representation.AvailObject
 import avail.optimizer.L2Generator
 import avail.optimizer.reoptimizer.L2Regenerator
 
@@ -49,8 +50,9 @@ import avail.optimizer.reoptimizer.L2Regenerator
  */
 class L2IntRegister
 constructor(
-	debugValue: Int
-) : L2Register<INTEGER_KIND>(debugValue)
+	debugValue: Int,
+	constant: AvailObject? = null
+) : L2Register<INTEGER_KIND>(debugValue, constant)
 {
 	override val kind get() = INTEGER_KIND
 
@@ -59,8 +61,8 @@ constructor(
 
 	override fun copyAfterColoring(): L2IntRegister
 	{
-		val result = L2IntRegister(finalIndex())
-		result.setFinalIndex(finalIndex())
+		val result = L2IntRegister(finalIndex)
+		result.finalIndex = finalIndex
 		return result
 	}
 

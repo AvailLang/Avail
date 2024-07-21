@@ -32,6 +32,7 @@
 
 package avail.project
 
+import avail.anvil.AvailWorkbench
 import avail.anvil.manager.AvailProjectManager
 import avail.anvil.environment.GlobalEnvironmentSettings
 import avail.anvil.environment.setupEnvironment
@@ -77,19 +78,22 @@ object AvailProjectManagerRunner
 			//   - "NSAppearanceNameDarkAqua": use dark appearance
 			System.setProperty("apple.awt.application.appearance", "system")
 		}
-		thread(name = "Set up LAF") {
-			try
-			{
-				FlatDarculaLaf.setup()
+		if (AvailWorkbench.darkMode)
+		{
+			thread(name = "Set up LAF") {
+				try
+				{
+					FlatDarculaLaf.setup()
+				}
+				catch (ex: Exception)
+				{
+					System.err.println("Failed to initialize LaF")
+				}
+				UIManager.put("ScrollPane.smoothScrolling", false)
+				swingReady.release()
 			}
-			catch (ex: Exception)
-			{
-				System.err.println("Failed to initialize LaF")
-			}
-			UIManager.put("ScrollPane.smoothScrolling", false)
-			swingReady.release()
+			swingReady.acquire()
 		}
-		swingReady.acquire()
 		setupEnvironment()
 		AvailProjectManager(GlobalEnvironmentSettings.getGlobalSettings())
 	}

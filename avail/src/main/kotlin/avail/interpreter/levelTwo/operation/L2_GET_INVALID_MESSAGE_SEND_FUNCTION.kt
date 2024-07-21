@@ -37,13 +37,14 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Store the
+ * Extract the
  * [invalid&#32;message&#32;send&#32;function][AvailRuntime.invalidMessageSendFunction]
  * into the supplied [object&#32;register][L2BoxedRegister].
  *
@@ -72,6 +73,8 @@ class L2_GET_INVALID_MESSAGE_SEND_FUNCTION(
 		builder.append(' ')
 		builder.append(invalidMessageSendFunction.registerString())
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

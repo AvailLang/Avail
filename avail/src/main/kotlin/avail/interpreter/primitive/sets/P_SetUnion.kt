@@ -77,7 +77,7 @@ object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
 			mostGeneralSetType())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (setType1, setType2) = argumentTypes

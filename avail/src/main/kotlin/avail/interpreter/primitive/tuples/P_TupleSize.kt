@@ -75,7 +75,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 			wholeNumbers)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type = argumentTypes[0].sizeRange.typeIntersection(i31)
 
@@ -114,4 +114,6 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		return true
 	}
+
+	override val canDestroyArguments get() = false
 }

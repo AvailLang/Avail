@@ -85,13 +85,13 @@ object P_PrivateGetSpecificObjectField : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
 		// We don't have the function closure, so we don't have the field atom,
 		// so we simply use the raw function's function type's return type.
-		return rawFunction.functionType().returnType
+		return rawFunction!!.functionType().returnType
 	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
@@ -104,7 +104,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 		// This primitive is private, and the function *should* only have been
 		// constructed by P_CreateObjectFieldGetter.  Play it safe if the
 		// function appears to have been created some other way.
-		val function = functionToCallReg.constantOrNull() ?: return false
+		val function = functionToCallReg.constantOrNull ?: return false
 
 		val objectReg = arguments[0]
 		val objectType = argumentTypes[0]

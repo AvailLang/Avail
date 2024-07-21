@@ -31,8 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+;import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
@@ -51,14 +50,11 @@ import org.objectweb.asm.MethodVisitor
  *
  * By convention, there are always 2 [targetEdges], the first of which is the
  * "taken" branch, and the second of which is the "not taken" branch.
- *
- * @param theNamedOperandTypes
- *   The vararg array of [L2NamedOperandType]s that describe the operands of
- *   such an instruction.
  */
 abstract class L2ConditionalJump : L2ControlFlowInstruction()
 {
-	override fun instructionWasAdded(manifest: L2ValueManifest)
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
  		targetEdges.forEach(L2PcOperand::installCounter)

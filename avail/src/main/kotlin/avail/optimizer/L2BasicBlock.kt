@@ -35,7 +35,7 @@ import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_PHI
-import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.removeLast
 import java.lang.Integer.toHexString
 
 /**
@@ -105,12 +105,6 @@ constructor(
 	private val predecessorEdges = mutableListOf<L2PcOperand>()
 
 	/**
-	 * The L2 offset at which the block starts.  Only populated after code
-	 * generation has completed.
-	 */
-	private var offset = -1
-
-	/**
 	 * Whether this block must be tracked until final code generation. Set for
 	 * blocks that must not be removed. Such a block may be referenced for
 	 * tracking entry points, and must therefore exist through final code
@@ -154,7 +148,7 @@ constructor(
 	 * @return
 	 *   The offset of the start of the block.
 	 */
-	fun offset(): Int = offset
+	fun offset(): Int = instructions.firstOrNull()?.offset ?: -1
 
 	/**
 	 * Answer this block's [List] of [L2Instruction]. They consist of a sequence
@@ -234,7 +228,6 @@ constructor(
 					// Phi functions are always at the start of a block.
 					break
 				}
-				//TODO - Will this sometimes insert a move before a phi?
 				val replacement = instruction.phiWithoutIndex(index)
 				instruction.justRemoved()
 				instructions[i] = replacement
@@ -291,18 +284,10 @@ constructor(
 	 * the appropriate slotRegisters of the provided [L1Translator].
 	 *
 	 * @param generator
-	 *   The [L2Generator] generating instructions.
-	 * @param generatePhis
-	 *   Whether to automatically generate phi instructions if there are
-	 *   multiple incoming edges with different registers associated with the
-	 *   same semantic values.
-	 * @param regenerator
-	 *   The optional [L2Regenerator] to use.
+	 *   The [L2GeneratorInterface] generating instructions.
 	 */
 	fun startIn(
-		generator: L2Generator,
-		generatePhis: Boolean = true,
-		regenerator: L2Regenerator? = null)
+		generator: L2GeneratorInterface)
 	{
 		generator.currentManifest.clear()
 		if (isIrremovable)
@@ -317,9 +302,7 @@ constructor(
 		generator.currentManifest.populateFromIntersection(
 			predecessorEdges.map(L2PcOperand::manifest),
 			generator,
-			generatePhis,
-			isLoopHead,
-			regenerator)
+			isLoopHead)
 	}
 
 	/**
@@ -333,7 +316,9 @@ constructor(
 	 *   The [L2ValueManifest] that is active where this instruction was just
 	 *   added to its `L2BasicBlock`.
 	 */
-	fun addInstruction(instruction: L2Instruction, manifest: L2ValueManifest)
+	fun addInstruction(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
 		assert(isIrremovable || predecessorEdges().isNotEmpty())
 		justAddInstruction(instruction)
@@ -471,25 +456,22 @@ constructor(
 			changed = false
 			if (output.isNotEmpty())
 			{
-				val previousInstruction = output[output.size - 1]
+				val previousInstruction = output.last()
 				if (previousInstruction is L2_JUMP)
 				{
 					if (previousInstruction.target.targetBlock() == this)
 					{
-						output.removeAt(output.size - 1)
+						output.removeLast()
 						changed = true
 					}
 				}
 			}
 		}
 		while (changed)
-		var counter = output.size
-		offset = counter
 		for (instruction in instructions)
 		{
 			if (instruction.shouldEmit)
 			{
-				instruction.offset = counter++
 				output.add(instruction)
 			}
 		}

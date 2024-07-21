@@ -39,10 +39,9 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor.Companion.brief
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.L2NamedOperandType
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.InstructionLayout
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -52,7 +51,6 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -61,6 +59,7 @@ import avail.optimizer.L2Generator
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
@@ -85,12 +84,6 @@ import org.objectweb.asm.MethodVisitor
  *
  * @constructor
  * Construct an `L2_MOVE_CONSTANT` operation.
- *
- * @param pushConstant
- *   A function to invoke to generate JVM code to push the constant value.
- * @param theNamedOperandTypes
- *   An array of [L2NamedOperandType]s that describe this particular
- *   instruction, allowing it to be specialized by [RegisterKind].
  */
 abstract class L2_MOVE_CONSTANT<C: L2Operand, K: RegisterKind<K>>
 private constructor(
@@ -130,21 +123,11 @@ private constructor(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
-		// Ensure the new write ends up in the same synonym as the source.
 		constant().instructionWasAdded(manifest)
-		val semanticValue = destination().pickSemanticValue()
-		if (manifest.hasSemanticValue(semanticValue))
-		{
-			// The constant semantic value exists, but for another register
-			// kind.
-			destination().instructionWasAddedForMove(semanticValue, manifest)
-		}
-		else
-		{
-			// The constant semantic value has not been encountered for any
-			// register kinds yet.
-			destination().instructionWasAdded(manifest)
-		}
+		destination().instructionWasAddedForMoveConstant(
+			getConstantSemanticValue(),
+			destination().restriction(),
+			manifest)
 	}
 
 	override fun emitTransformedInstruction(
@@ -225,17 +208,16 @@ private constructor(
 		}
 
 		override fun extractTupleElement(
-			tupleReg: L2ReadBoxedOperand,
+			tupleRead: L2ReadBoxedOperand,
 			index: Int,
-			write: L2WriteBoxedOperand,
+			destinationSemanticValues: Set<L2SemanticBoxedValue>,
 			generator: L2Generator)
 		{
 			// Extract the element from the constant right now.
 			val tupleElement = constant().constant.tupleAt(index)
-			generator.addInstruction(
-				L2_MOVE_BOXED(
-					generator.boxedConstant(tupleElement),
-					write))
+			generator.moveBoxedRegister(
+				generator.boxedConstant(tupleElement).semanticValue(),
+				destinationSemanticValues)
 		}
 
 		/** The constant must be a function at this point. */

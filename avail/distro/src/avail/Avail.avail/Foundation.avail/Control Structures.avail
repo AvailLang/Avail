@@ -2200,7 +2200,7 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 	|
 		$loop : whole number;
 		Exit loop with 0 if index > end;
-		matched ::= innerTuple[index][1] = value;
+		matched ::= innerTuple[index][1] = innerValue;
 		Exit loop with index if matched;
 		Restart loop with <index + 1, end, innerTuple, innerValue>
 	](1, |caseTuple|, caseTuple, value);

@@ -39,9 +39,9 @@ import avail.interpreter.execution.Interpreter.Companion.attemptTheNonInlinePrim
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
-import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -64,7 +64,7 @@ import org.objectweb.asm.Opcodes
 	CURRENT_FUNCTION::class,
 	LATEST_RETURN_VALUE::class)
 class L2_TRY_PRIMITIVE(
-	var primitive: L2PrimitiveOperand
+	var primitive: L2ArbitraryConstantOperand<Primitive>
 ): L2Instruction()
 {
 	override val isEntryPoint get() = true
@@ -82,9 +82,9 @@ class L2_TRY_PRIMITIVE(
 		// interpreter, interpreter
 		Interpreter.interpreterFunctionField.generateRead(method)
 		// interpreter, fn
-		translator.literal(method, primitive.primitive)
+		translator.literal(method, primitive.constant)
 		// interpreter, fn, prim
-		if (primitive.primitive.hasFlag(Primitive.Flag.CanInline))
+		if (primitive.constant.hasFlag(Primitive.Flag.CanInline))
 		{
 			// :: return interpreter.attemptInlinePrimitive(function, primitive)
 			attemptTheInlinePrimitiveMethod.generateCall(method)

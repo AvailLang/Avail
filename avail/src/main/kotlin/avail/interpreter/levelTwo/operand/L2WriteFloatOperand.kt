@@ -44,6 +44,7 @@ import avail.utility.cast
  * An `L2WriteFloatOperand` is an operand of type [L2OperandType.WRITE_FLOAT].
  * It holds the actual [L2FloatRegister] that is to be accessed.
  *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -74,11 +75,13 @@ constructor(
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
 
+	override fun semanticValues(): Set<L2SemanticUnboxedFloat> =
+		super.semanticValues().cast()
+
+	override fun register(): L2FloatRegister = super.register().cast()
+
 	init
 	{
 		assert(restriction.isUnboxedFloat)
 	}
-
-	override fun semanticValues(): Set<L2SemanticUnboxedFloat> =
-		super.semanticValues().cast()
 }

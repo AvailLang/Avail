@@ -39,7 +39,7 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -107,7 +107,8 @@ class L2_JUMP_IF_COMPARE_BOXED(
 		builder.append(numericComparator.comparatorName)
 		builder.append(" ")
 		builder.append(number2.registerString())
-		renderOperandsExcludingFields(builder, ::number1, ::number2)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::number1, ::number2)
 	}
 
 	override val name: String
@@ -134,6 +135,8 @@ class L2_JUMP_IF_COMPARE_BOXED(
 			ifTrue,
 			ifFalse)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

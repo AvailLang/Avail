@@ -31,10 +31,9 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2NamedOperandType
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.InstructionLayout
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
@@ -77,18 +76,12 @@ import org.objectweb.asm.MethodVisitor
  *
  * @property K
  *   The [RegisterKind] that says what kind of data is being processed.
- *
- * @property moveOperation
- *   The [L2_MOVE] operation to substitute for this instruction on incoming
- *   split edges.
+ * @property kind
+ *   The instance of [RegisterKind] indicating the kind of data that this
+ *   [L2_PHI] operates on.  Must agree with [K].
  *
  * @constructor
  *   Construct an `L2_PHI`.
- *
- * @param readOperandType
- *   The [L2NamedOperandType] that describes the read source of this move.
- * @param writeOperandType
- *   The [L2NamedOperandType] that describes the write destination of this move.
  */
 abstract class L2_PHI<K: RegisterKind<K>>
 protected constructor(
@@ -120,6 +113,7 @@ protected constructor(
 		// The reads in the input vector are from the positionally corresponding
 		// incoming edges, which carry the manifests that should be used to
 		// look up the best source semantic values.
+		assert(!manifest.hasEliminatedPhis)
 		sources().instructionWasAddedForPhi(basicBlock().predecessorEdges())
 		destination().instructionWasAdded(manifest)
 	}
@@ -170,8 +164,6 @@ protected constructor(
 	 * correspond with the inputs.  Do not attempt to normalize the phi to a
 	 * move.
 	 *
-	 * @param instruction
-	 *   The phi instruction to augment.
 	 * @param updater
 	 *   What to do to a copied mutable [List] of read operands that starts out
 	 *   having all of the vector operand's elements.
@@ -188,8 +180,7 @@ protected constructor(
 		var clone = clone()
 		val cloneSources = clone.sources()
 		clone.layout.transformOperands(clone) { operand ->
-			if (operand == cloneSources)
-				cloneSources.clone(newElements)
+			if (operand == cloneSources) cloneSources.clone(newElements)
 			else operand
 		}
 		clone = clone.cloneFor(block)
@@ -202,8 +193,6 @@ protected constructor(
 	 *
 	 * @param predecessorManifest
 	 *   The [L2ValueManifest] in some predecessor edge.
-	 * @param instruction
-	 *   The phi instruction itself.
 	 */
 	fun updateLoopHeadPhi(
 		predecessorManifest: L2ValueManifest)
@@ -225,9 +214,6 @@ protected constructor(
 	 * make sure synonyms are updated to conform to the old phi, by attempting
 	 * to generate a move.
 	 *
-	 * @param transformedOperands
-	 *   The operands of the instruction, already transformed for the
-	 *   regenerator.
 	 * @param regenerator
 	 *   The [L2Regenerator] through which to write the instruction's equivalent
 	 *   effect.

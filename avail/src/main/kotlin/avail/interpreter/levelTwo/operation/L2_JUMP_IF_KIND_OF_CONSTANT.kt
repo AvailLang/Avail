@@ -51,8 +51,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -79,14 +79,8 @@ class L2_JUMP_IF_KIND_OF_CONSTANT(
 		super.instructionWasAdded(manifest)
 		// Restrict to the intersection along the ifKind branch, and exclude the
 		// type along the ifNotKind branch.
-		val oldRestriction = value.restriction().intersection(
-			manifest.restrictionFor(value.semanticValue()))
-		ifKind.manifest().setRestriction(
-			value.semanticValue(),
-			oldRestriction.intersectionWithType(constantType.constant))
-		ifNotKind.manifest().setRestriction(
-			value.semanticValue(),
-			oldRestriction.minusType(constantType.constant))
+		ifKind.manifest().intersectType(value, constantType.constant)
+		ifNotKind.manifest().subtractType(value, constantType.constant)
 	}
 
 	override fun appendToWithWarnings(
@@ -99,7 +93,8 @@ class L2_JUMP_IF_KIND_OF_CONSTANT(
 		builder.append(value.registerString())
 		builder.append(" ∈ ")
 		builder.append(constantType.constant)
-		renderOperandsExcludingFields(builder, ::value, ::constantType)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::value, ::constantType)
 	}
 
 	override fun emitTransformedInstruction(
@@ -190,6 +185,7 @@ class L2_JUMP_IF_KIND_OF_CONSTANT(
 		}
 		return conditions
 	}
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

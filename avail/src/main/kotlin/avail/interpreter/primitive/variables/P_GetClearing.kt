@@ -84,7 +84,7 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 			ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val varType = argumentTypes[0]

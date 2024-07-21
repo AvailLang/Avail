@@ -53,7 +53,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.optimizer.L1Translator
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 
 /**
  * **Primitive:** Answer the type union of the specified
@@ -77,7 +77,7 @@ object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
 			topMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (meta1, meta2) = argumentTypes

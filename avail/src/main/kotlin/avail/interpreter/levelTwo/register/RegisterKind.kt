@@ -31,6 +31,8 @@
  */
 package avail.interpreter.levelTwo.register
 
+import avail.descriptor.numbers.A_Number.Companion.extractDouble
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -53,18 +55,20 @@ import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_FLOAT
 import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_PHI_BOXED
 import avail.interpreter.levelTwo.operation.L2_PHI_FLOAT
 import avail.interpreter.levelTwo.operation.L2_PHI_INT
-import avail.optimizer.L2Generator
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.cast
 import avail.utility.mapToSet
 import org.objectweb.asm.Opcodes
@@ -200,18 +204,34 @@ constructor (
 		destination: L2WriteOperand<Self>
 	): L2_MOVE<Self>
 
+	/**
+	 * Synthesize a suitable [L2_MOVE_CONSTANT] if the value is not already in a
+	 * register of this kind, and answer an [L2ReadOperand] that extracts it.
+	 *
+	 * @param generator
+	 *   The [L2GeneratorInterface] on which to write instructions.
+	 * @param boxedValue
+	 *   An [AvailObject] supplying the boxed version of the value to move.
+	 * @return
+	 *   An [L2ReadOperand] that retrieves the constant value.
+	 */
+	abstract fun readConstant(
+		generator: L2GeneratorInterface,
+		boxedValue: AvailObject
+	): L2ReadOperand<Self>
+
 	abstract fun createPhi(
 		sources: L2ReadVectorOperand<L2ReadOperand<Self>>,
 		destination: L2WriteOperand<Self>
 	): L2_PHI<Self>
 
 	/**
-	 * Generate an [L2_PHI] and any additional moves to
-	 * ensure the given set of related [L2SemanticValue]s are populated with
-	 * values from the given sources.
+	 * Generate an [L2_PHI] and any additional moves to ensure the given set of
+	 * related [L2SemanticValue]s are populated with values from the given
+	 * sources.
 	 *
 	 * @param generator
-	 *   The [L2Generator] on which to write instructions.
+	 *   The [L2GeneratorInterface] on which to write instructions.
 	 * @param relatedSemanticValues
 	 *   The [List] of [L2SemanticValue]s that should constitute a synonym
 	 *   in the current manifest, due to their being mutually connected to a
@@ -228,31 +248,22 @@ constructor (
 	 *   A [List] of [L2ValueManifest]s, one for each incoming edge.
 	 */
 	fun generatePhi(
-		generator: L2Generator,
+		generator: L2GeneratorInterface,
 		relatedSemanticValues: List<L2SemanticValue<Self>>,
 		forcePhiCreation: Boolean,
 		typeRestriction: TypeRestriction,
 		sourceManifests: List<L2ValueManifest>)
 	{
-		// Check if there's a register common to all incoming edges, whose
-		// definitions each cover the relatedSemanticValues.  If so, use that
-		// register directly.  Otherwise generate a phi move into a temp, then
-		// move it to another register representing the relatedSemanticValues
-		// for the current register kind.
+		// Keep registers that are common to all incoming manifests.  Register
+		// coloring will shorten chains of moves, and besides, they'll all be
+		// under the same synonym anyhow.
 		val relatedSemanticValuesSet = relatedSemanticValues.toSet()
-		val manifest = generator.currentManifest
 		val pickSemanticValue = relatedSemanticValues[0]
-		val completeRegistersBySource = sourceManifests.map { m ->
-			m.getDefinitions(pickSemanticValue).filter { r ->
-				r.definitions().all { w ->
-					w.semanticValues().containsAll(relatedSemanticValues)
-				}
-			}
-		}
-		val completeRegisters = completeRegistersBySource[0].toMutableList()
-		completeRegistersBySource.forEach(completeRegisters::retainAll)
+		val registers = sourceManifests
+			.map { m -> m.getDefinitions(pickSemanticValue).toSet() }
+			.reduce(Set<L2Register<Self>>::intersect)
 		val restriction = sourceManifests
-			.map { it.restrictionFor(pickSemanticValue) }
+			.map { m -> m.restrictionFor(pickSemanticValue) }
 			.reduce(TypeRestriction::union)
 			.intersection(typeRestriction)
 		// We've already done all the synonym extensions for moves as they were
@@ -261,6 +272,7 @@ constructor (
 		// turn into an extension of the latest write if it's in the same block,
 		// but we couldn't do that for postponed instructions, because we don't
 		// know what block(s) they'll end up in.
+		val manifest = generator.currentManifest
 		val (inSynonym, notInSynonym) =
 			relatedSemanticValuesSet.partition(manifest::hasSemanticValue)
 		val existingSynonyms =
@@ -288,23 +300,20 @@ constructor (
 		}
 		when
 		{
-			completeRegisters.isNotEmpty() && !forcePhiCreation ->
+			registers.isNotEmpty() && !forcePhiCreation ->
 			{
-				// At least one register covers the complete set of semantic
-				// values in each of the predecessors.  Expose one of the
-				// existing registers directly.  The updateConstraint() works
-				// whether the synonym exists yet or not.
+				// At least one register is common to all predecessors.  Expose
+				// them all directly.  The updateConstraint() works whether the
+				// synonym exists yet or not.
 				manifest.updateDefinitions(pickSemanticValue) {
-					// No need to keep multiple registers around for the same
-					// purpose.
-					append(completeRegisters[0])
+					this@updateDefinitions + registers
 				}
 			}
 			else ->
 			{
-				// None of the registers covers all of the required semantic
-				// values from all of the incoming edges.  Use a phi function to
-				// get it into a new register for the required synonym.
+				// None of the registers was present in all incoming edges.
+				// Introduce a phi function to get it into a new register for
+				// the required synonym.
 				val sources = sourceManifests.map {
 					createRead(pickSemanticValue, it)
 				}
@@ -319,6 +328,23 @@ constructor (
 		}
 		manifest.check()
 	}
+
+	/**
+	 * Create an [L2SemanticConstant] or a wrapped version if unboxed.
+	 */
+	abstract fun createSemanticConstant(
+		value: AvailObject
+	): L2SemanticValue<Self>
+
+	/**
+	 * Create an [L2SemanticDummy] or a wrapped version if unboxed.
+	 *
+	 * @param generator
+	 *   The [L2GeneratorInterface] that's used to generate unique ids.
+	 */
+	abstract fun createSemanticDummy(
+		generator: L2GeneratorInterface
+	): L2SemanticValue<Self>
 
 	companion object
 	{
@@ -378,10 +404,23 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 		destination: L2WriteOperand<BOXED_KIND>
 	) = L2_MOVE_BOXED(source.cast(), destination.cast())
 
+	override fun readConstant(
+		generator: L2GeneratorInterface,
+		boxedValue: AvailObject
+	): L2ReadBoxedOperand = generator.boxedConstant(boxedValue)
+
 	override fun createPhi(
 		sources: L2ReadVectorOperand<L2ReadOperand<BOXED_KIND>>,
 		destination: L2WriteOperand<BOXED_KIND>
 	) = L2_PHI_BOXED(sources.cast(), destination.cast())
+
+	override fun createSemanticConstant(
+		value: AvailObject
+	): L2SemanticBoxedValue = L2SemanticValue.constant(value)
+
+	override fun createSemanticDummy(
+		generator: L2GeneratorInterface
+	) = L2SemanticDummy(generator.nextUnique())
 }
 
 /**
@@ -435,10 +474,24 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 		destination: L2WriteOperand<INTEGER_KIND>
 	) = L2_MOVE_INT(source.cast(), destination.cast())
 
+	override fun readConstant(
+		generator: L2GeneratorInterface,
+		boxedValue: AvailObject
+	): L2ReadIntOperand = generator.unboxedIntConstant(boxedValue.extractInt)
+
 	override fun createPhi(
 		sources: L2ReadVectorOperand<L2ReadOperand<INTEGER_KIND>>,
 		destination: L2WriteOperand<INTEGER_KIND>
 	) = L2_PHI_INT(sources.cast(), destination.cast())
+
+	override fun createSemanticConstant(
+		value: AvailObject
+	): L2SemanticUnboxedInt =
+		L2SemanticUnboxedInt(L2SemanticValue.constant(value))
+
+	override fun createSemanticDummy(
+		generator: L2GeneratorInterface
+	) = L2SemanticUnboxedInt(L2SemanticDummy(generator.nextUnique()))
 }
 
 /**
@@ -493,10 +546,25 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		destination: L2WriteOperand<FLOAT_KIND>
 	) = L2_MOVE_FLOAT(source.cast(), destination.cast())
 
+	override fun readConstant(
+		generator: L2GeneratorInterface,
+		boxedValue: AvailObject
+	): L2ReadFloatOperand =
+		generator.unboxedFloatConstant(boxedValue.extractDouble)
+
 	override fun createPhi(
 		sources: L2ReadVectorOperand<L2ReadOperand<FLOAT_KIND>>,
 		destination: L2WriteOperand<FLOAT_KIND>
 	) = L2_PHI_FLOAT(sources.cast(), destination.cast())
+
+	override fun createSemanticConstant(
+		value: AvailObject
+	): L2SemanticUnboxedFloat =
+		L2SemanticUnboxedFloat(L2SemanticValue.constant(value))
+
+	override fun createSemanticDummy(
+		generator: L2GeneratorInterface
+	) = L2SemanticUnboxedFloat(L2SemanticDummy(generator.nextUnique()))
 }
 
 //		/**

@@ -62,6 +62,8 @@ class L2_TUPLE_SIZE(
 		builder.append(tuple.registerString())
 	}
 
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)

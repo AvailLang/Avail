@@ -60,6 +60,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.ListPhraseTypeDescriptor
+import avail.exceptions.AvailException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -1152,6 +1153,31 @@ interface A_BasicObject : JSONFriendly
 	fun makeSharedInternal(
 		queueToProcess: MutableList<AvailObject>,
 		fixups: MutableList<()->Unit>)
+
+	/**
+	 * Use the iterator of [indices] to follow a path through a nested structure
+	 * of [A_Tuple]s and [A_Map]s.  When the final value is reached, run the
+	 * [update] function to produce a replacement value, then reassemble a new
+	 * structure with only that value at that path replaced.  If possible,
+	 * mutate the objects along that path.  Answer the new structure.
+	 *
+	 * @receiver
+	 *   The [A_Tuple] to update.
+	 * @param indices
+	 *   The [Iterator] producing a sequence of subscripts and keys through
+	 *   this structure to the object to be replaced.
+	 * @param update
+	 *   A function that produces a replacement for the final object in the
+	 *   path.
+	 * @return
+	 *   This structure or a suitable copy, with the object at the end of
+	 *   the path replaced.
+	 */
+	@Throws(AvailException::class)
+	fun recursivelyUpdate(
+		indices: Iterator<AvailObject>,
+		update: (AvailObject)->A_BasicObject
+	): A_BasicObject = dispatch { o_RecursivelyUpdate(it, indices, update) }
 
 	companion object
 	{

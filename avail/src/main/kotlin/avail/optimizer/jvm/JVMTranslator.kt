@@ -40,6 +40,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.numbers.A_Number.Companion.extractDouble
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -69,14 +71,12 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
-import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -87,6 +87,8 @@ import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.interpreter.levelTwo.register.L2FloatRegister
+import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2ControlFlowGraph
@@ -166,6 +168,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.IdentityHashMap
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.LongAdder
 import java.util.function.Consumer
 import java.util.logging.Level
@@ -522,7 +526,7 @@ class JVMTranslator constructor(
 	 *   Its position in the JVM frame.
 	 */
 	fun localNumberFromRegister(register: L2Register<*>): Int =
-		locals[register.kind]!![register.finalIndex()]!!
+		locals[register.kind]!![register.finalIndex]!!
 
 	/**
 	 * Generate a load of the local associated with the specified [L2Register].
@@ -535,9 +539,23 @@ class JVMTranslator constructor(
 	 */
 	fun load(method: MethodVisitor, register: L2Register<*>)
 	{
-		method.visitVarInsn(
-			register.kind.loadInstruction,
-			localNumberFromRegister(register))
+		if (register.isConstant)
+		{
+			val constant = register.constant!!
+			when (register)
+			{
+				is L2BoxedRegister -> literal(method, constant)
+				is L2IntRegister -> intConstant(method, constant.extractInt)
+				is L2FloatRegister ->
+					doubleConstant(method, constant.extractDouble)
+			}
+		}
+		else
+		{
+			method.visitVarInsn(
+				register.kind.loadInstruction,
+				localNumberFromRegister(register))
+		}
 	}
 
 	/**
@@ -574,7 +592,7 @@ class JVMTranslator constructor(
 		 */
 		private var nextClassLoaderIndex = 0
 
-		override fun doOperand(operand: L2ArbitraryConstantOperand)
+		override fun doOperand(operand: L2ArbitraryConstantOperand<*>)
 		{
 			recordLiteralObject(operand.constant)
 		}
@@ -619,28 +637,31 @@ class JVMTranslator constructor(
 			labels.computeIfAbsent(operand.offset()) { Label() }
 		}
 
-		override fun doOperand(operand: L2PrimitiveOperand)
-		{
-			recordLiteralObject(operand.primitive)
-		}
-
 		override fun doOperand(operand: L2ReadIntOperand)
 		{
+			if (operand.isConstantRead)
 			locals[INTEGER_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex()) { nextLocal(Type.INT_TYPE) }
+				operand.register().finalIndex) { nextLocal(Type.INT_TYPE) }
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
 		{
 			locals[FLOAT_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex()) { nextLocal(Type.DOUBLE_TYPE) }
+				operand.register().finalIndex) { nextLocal(Type.DOUBLE_TYPE) }
 		}
 
 		override fun doOperand(operand: L2ReadBoxedOperand)
 		{
-			locals[BOXED_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex())
-				{ nextLocal(Type.getType(AvailObject::class.java)) }
+			if (operand.isConstantRead)
+			{
+				recordLiteralObject(operand.constantOrNull!!)
+			}
+			else
+			{
+				locals[BOXED_KIND]!!.computeIfAbsent(
+					operand.register().finalIndex
+				) { nextLocal(Type.getType(AvailObject::class.java)) }
+			}
 		}
 
 		override fun doOperand(vector: L2ReadBoxedVectorOperand)
@@ -658,30 +679,25 @@ class JVMTranslator constructor(
 			vector.elements.forEach { doOperand(it) }
 		}
 
-		override fun doOperand(operand: L2SelectorOperand)
-		{
-			recordLiteralObject(operand.bundle)
-		}
-
 		override fun doOperand(operand: L2WriteIntOperand)
 		{
 			locals[INTEGER_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex())
-				{ nextLocal(Type.INT_TYPE) }
+				operand.register().finalIndex)
+			{ nextLocal(Type.INT_TYPE) }
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
 		{
 			locals[FLOAT_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex())
-				{ nextLocal(Type.DOUBLE_TYPE) }
+				operand.register().finalIndex)
+			{ nextLocal(Type.DOUBLE_TYPE) }
 		}
 
 		override fun doOperand(operand: L2WriteBoxedOperand)
 		{
 			locals[BOXED_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex())
-				{ nextLocal(Type.getType(AvailObject::class.java)) }
+				operand.register().finalIndex)
+			{ nextLocal(Type.getType(AvailObject::class.java)) }
 		}
 
 		override fun doOperand(vector: L2WriteBoxedVectorOperand)
@@ -752,10 +768,7 @@ class JVMTranslator constructor(
 						"FUNCTION_${tidy(value.code().methodName)}"
 					value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
 						"CODE_${tidy(value.methodName)}"
-					else ->
-						"literal_" + tagEndPattern
-							.matcher(value.makeShared().typeTag.name)
-							.replaceAll("")
+					else -> "literal_" + value.makeShared().typeTag.shorterName
 				}
 				name += "_$index"
 				val type: Class<*> = constant.javaClass
@@ -1191,7 +1204,7 @@ class JVMTranslator constructor(
 	/**
 	 * Emit code to unconditionally branch to the specified
 	 * [program&#32;counter][L2PcOperand].  Skip if the edge indicates it
-	 * follows the given [instruction].
+	 * follows the operand's owning instruction.
 	 *
 	 * @param method
 	 *   The [method][MethodVisitor] into which the generated JVM instructions
@@ -1532,7 +1545,7 @@ class JVMTranslator constructor(
 			if (baseFileName.length > 100)
 			{
 				// Protect against overly long filenames.
-				baseFileName = baseFileName.substring(0, 100) + "…"
+				baseFileName = baseFileName.take(100) + "…"
 			}
 
 			// Note that we have to break the sources up if they are too large
@@ -1567,7 +1580,9 @@ class JVMTranslator constructor(
 				val block = instruction.basicBlock()
 				if (instruction == block.instructions()[0])
 				{
-					builder.append("// ")
+					builder.append("// #")
+					builder.append(instruction.offset)
+					builder.append(": ")
 					block.zone?.let { z ->
 						builder.append("[ZONE: ${z.zoneName}] ")
 					}
@@ -1960,6 +1975,13 @@ class JVMTranslator constructor(
 		private val classNameForbiddenCharacters =
 			Pattern.compile("[\\[\\]\\\\/.:;\"'\\p{Cntrl}]+")
 
+		/**
+		 * A regex [Pattern] to locate things that should be replaced with an
+		 * underscore, after other replacements have happened.
+		 */
+		private val classNameSpaceReplacement =
+			Pattern.compile("\\s")
+
 		/** A regex [Pattern] to strip the prefix of a module name. */
 		private val moduleNameStripper =
 			Pattern.compile("^.*/([^/]+)$")
@@ -1999,7 +2021,13 @@ class JVMTranslator constructor(
 		 * generated JVM code dumps verbose information just prior to each L2
 		 * instruction.
 		 */
-		var debugJVM = false
+		var debugJVM = true //DEBUG false
+
+		/**
+		 * Counters for the class prefix names, to avoid name collisions.
+		 */
+		val nameCounters: MutableMap<String, AtomicInteger> =
+			ConcurrentHashMap()
 	}
 
 	init
@@ -2021,14 +2049,21 @@ class JVMTranslator constructor(
 		cleanFunctionName =
 			classNameForbiddenCharacters.matcher(cleanFunctionName)
 				.replaceAll("\\%")
-		if (cleanFunctionName.length > 100)
+		cleanFunctionName =
+			classNameSpaceReplacement.matcher(cleanFunctionName).replaceAll("_")
+		if (cleanFunctionName.length > 30)
 		{
-			cleanFunctionName = cleanFunctionName.substring(0, 100) + "%%%"
+			cleanFunctionName = cleanFunctionName.take(15) + "%%%" +
+				cleanFunctionName.takeLast(15)
 		}
-		val safeUID = UUID.randomUUID().toString().replace('-', '_')
-		className = (
+		val classDirPrefix =
 			"avail.optimizer.jvm.generated.$moduleName.$cleanFunctionName"
-				+ " - $safeUID.$moduleName - $cleanFunctionName")
+		val counter = nameCounters
+			.computeIfAbsent(classDirPrefix) { AtomicInteger(1) }
+		val counterValue = counter.getAndIncrement()
+		val counterString = " ($counterValue)"
+		className = "avail.optimizer.jvm.generated." +
+			"$moduleName.$cleanFunctionName$counterString.$cleanFunctionName"
 		classInternalName = className.replace('.', '/')
 	}
 }
