@@ -33,9 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.InstructionLayout
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -54,6 +53,7 @@ import avail.optimizer.L2Generator
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticBoxedValue
 import avail.utility.Strings.truncateTo
 import avail.utility.cast
 import avail.utility.notNullAnd
@@ -88,16 +88,15 @@ constructor(
 ) : L2Instruction()
 {
 	/**
-	 * The source of this move.  This is a member function instead of a field,
-	 * to simplify the reflection logic in [InstructionLayout].
+	 * The source of this move.  Subclasses further strengthen this property.
 	 */
-	abstract fun source(): L2ReadOperand<K>
+	abstract val source: L2ReadOperand<K>
 
 	/**
-	 * The destination of this move.  This is a member function instead of a
-	 * field, to simplify the reflection logic in [InstructionLayout].
+	 * The destination of this move.  Subclassse further strengthen this
+	 * property.
 	 */
-	abstract fun destination(): L2WriteOperand<K>
+	abstract val destination: L2WriteOperand<K>
 
 	override fun cloneFor(block: L2BasicBlock): L2_MOVE<K> =
 		super.cloneFor(block).cast()
@@ -106,9 +105,8 @@ constructor(
 		manifest: L2ValueManifest)
 	{
 		// Ensure the new write ends up in the same synonym as the source.
-		source().instructionWasAdded(manifest)
-		destination().instructionWasAddedForMove(
-			source().semanticValue(), manifest)
+		source.instructionWasAdded(manifest)
+		destination.instructionWasAddedForMove(source, manifest)
 	}
 
 	/**
@@ -116,15 +114,13 @@ constructor(
 	 * color (finalIndex).
 	 */
 	override val shouldEmit: Boolean get() =
-		source().finalIndex() != destination().finalIndex()
+		source.finalIndex() != destination.finalIndex()
 
 	override fun appendToWithWarnings(
 		builder: StringBuilder,
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		val source = source()
-		val destination = destination()
 		renderPreamble(builder)
 		builder.append(' ')
 		if (destination.restriction().constantOrNull.notNullAnd { isNil })
@@ -147,22 +143,9 @@ constructor(
 		}
 	}
 
-	override fun toString(): String = name
-
-	override fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
-		index: Int,
-		write: L2WriteBoxedOperand,
-		generator: L2Generator)
-	{
-		generator.extractTupleElement(source().cast(), index, write)
-	}
-
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
-		val source = source()
-		val destination = destination()
 		val manifest = regenerator.currentManifest
 		val restriction = manifest.restrictionFor(source.semanticValue())
 		val newDestination = kind.createWrite(
@@ -182,47 +165,55 @@ constructor(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		assert(source().register() != destination().register()) {
+		assert(source.register() != destination.register()) {
 			"vacuous move should have been skipped by shouldEmit."
 		}
 		// :: destination = source;
-		translator.load(method, source().register())
-		translator.store(method, destination().register())
+		translator.load(method, source.register())
+		translator.store(method, destination.register())
 	}
 
 	class L2_MOVE_BOXED
 	constructor(
-		var source: L2ReadBoxedOperand,
-		var destination: L2WriteBoxedOperand
+		var moveSource: L2ReadBoxedOperand,
+		var moveDestination: L2WriteBoxedOperand
 	): L2_MOVE<BOXED_KIND>(BOXED_KIND)
 	{
-		override fun source(): L2ReadBoxedOperand = source
+		override val source: L2ReadBoxedOperand get() = moveSource
 
-		override fun destination(): L2WriteBoxedOperand = destination
+		override val destination: L2WriteBoxedOperand get() = moveDestination
 
 		override val constantCode: A_RawFunction?
-			get() = source().definition().instruction.constantCode
+			get() = source.definition().instruction.constantCode
+
+		override fun extractTupleElement(
+			tupleRead: L2ReadBoxedOperand,
+			index: Int,
+			destinationSemanticValues: Set<L2SemanticBoxedValue>,
+			generator: L2Generator
+		): Unit = generator.extractTupleElement(
+			source, index, destinationSemanticValues)
 	}
 
 	class L2_MOVE_INT
 	constructor(
-		var source: L2ReadIntOperand,
-		var destination: L2WriteIntOperand
+		var moveSource: L2ReadIntOperand,
+		var moveDestination: L2WriteIntOperand
 	): L2_MOVE<INTEGER_KIND>(INTEGER_KIND)
 	{
-		override fun source(): L2ReadIntOperand = source
+		override val source: L2ReadIntOperand get() = moveSource
 
-		override fun destination(): L2WriteIntOperand = destination
+		override val destination: L2WriteIntOperand get() = moveDestination
 	}
 
 	class L2_MOVE_FLOAT
 	constructor(
-		var source: L2ReadFloatOperand,
-		var destination: L2WriteFloatOperand
+		var moveSource: L2ReadFloatOperand,
+		var moveDestination: L2WriteFloatOperand
 	): L2_MOVE<FLOAT_KIND>(FLOAT_KIND)
 	{
-		override fun source(): L2ReadFloatOperand = source
+		override val source: L2ReadFloatOperand get() = moveSource
 
-		override fun destination(): L2WriteFloatOperand = destination
+		override val destination: L2WriteFloatOperand get() = moveDestination
 	}
 }

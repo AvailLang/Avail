@@ -73,7 +73,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
@@ -154,8 +154,8 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		translator.generator.run {
 			val ifEqual = createBasicBlock("equal")
 			val ifNotEqual = createBasicBlock("not equal")
-			val c1 = firstReg.constantOrNull()
-			val c2 = secondReg.constantOrNull()
+			val c1 = firstReg.constantOrNull
+			val c2 = secondReg.constantOrNull
 			when
 			{
 				c1 !== null -> jumpIfEqualsConstant(
@@ -188,4 +188,6 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		return true
 	}
+
+	override val canDestroyArguments get() = false
 }

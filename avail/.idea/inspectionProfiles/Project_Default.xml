@@ -1014,7 +1014,6 @@
     <inspection_tool class="JsonStandardCompliance" enabled="false" level="ERROR" enabled_by_default="false" />
     <inspection_tool class="Junit4Converter" enabled="false" level="INFORMATION" enabled_by_default="false" />
     <inspection_tool class="JvmCoverageInspection" enabled="false" level="WARNING" enabled_by_default="false" />
-    <inspection_tool class="KDocUnresolvedReference" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinCatchMayIgnoreException" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinConstantConditions" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="KotlinCovariantEquals" enabled="false" level="WARNING" enabled_by_default="false" />

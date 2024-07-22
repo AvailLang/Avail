@@ -41,11 +41,16 @@ import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.utility.cast
+import avail.utility.compareChained
+import avail.utility.ifZero
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaField
 
 /**
@@ -61,7 +66,9 @@ import kotlin.reflect.jvm.javaField
  *   [KClass] (on some [L2Instruction]).
  */
 class InstructionLayout<I : L2Instruction>
-internal constructor(private val instructionClass: KClass<out I>)
+internal constructor(
+	private val instructionClass: KClass<out I>,
+	parentLayout: InstructionLayout<*>?)
 {
 	/**
 	 * An instance of [OperandField] is created for each field of an
@@ -78,7 +85,9 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 *   [L2Operand] is stored.
 	 */
 	private inner class OperandField<O: L2Operand>
-	constructor(private val property: KMutableProperty1<I, O>)
+	constructor(
+		private val property: KMutableProperty1<I, O>
+	): Comparable<OperandField<*>>
 	{
 		/** The Java [Class] for the field's type, [O] (an [L2Operand]). */
 		val type: Class<O> get() = property.javaField!!.type.cast()
@@ -138,13 +147,36 @@ internal constructor(private val instructionClass: KClass<out I>)
 			transformation: (L2Operand)->L2Operand
 		) = set(instruction, transformation(get(instruction)).cast())
 
+		/**
+		 * Sort fields as
+		 *   1. no-[Purpose], ordered by the operand type, then
+		 *   2. [Purpose]ful, ordered by operand type.
+		 * Break ties by field name.
+		 */
+		override fun compareTo(other: OperandField<*>): Int
+		{
+			return (namedOperandType.purpose == null)
+				.compareTo(other.namedOperandType.purpose == null)
+				.ifZero {
+					namedOperandType.operandType.ordinal
+						.compareTo(other.namedOperandType.operandType.ordinal)
+						.ifZero {
+							name.compareTo(other.name)
+						}
+				}
+
+		}
+
 		override fun toString(): String = "${type.simpleName}.$name"
 	}
 
 	/**
 	 * The name to present as the basic instruction name.
 	 */
-	val name = instructionClass.simpleName!!.removePrefix("L2_")
+	val name = instructionClass.simpleName!!
+		.removePrefix("L2_")
+		.split("_")
+		.joinToString("") { it.lowercase().replaceFirstChar(Char::uppercase) }
 
 	/** The list of [OperandField]s, in declaration order. */
 	private val operandFields: List<OperandField<out L2Operand>>
@@ -166,19 +198,22 @@ internal constructor(private val instructionClass: KClass<out I>)
 			"Found val fields (${valFields.map { it.name }}) in " +
 				"instruction class ($instructionClass).  They must be var."
 		}
-		// In Kotlin/JVM, `fields` seems to produce the fields in declaration
-		// order (grouped by hierarchy), so this is a handy sorting index for
-		// preserving that when starting with the declared properties.`
-		val fieldNumbering = instructionClass.java.fields
+		// In Kotlin/JVM, `declaredFields` seems to produce the fields in
+		// declaration order, so this is a handy sorting index for preserving
+		// that when starting with the declared properties.
+		val parentOperandFields = parentLayout?.operandFields ?: emptyList()
+		val fieldNumbering = instructionClass.java.declaredFields
 			.withIndex()
 			.associate { (i, field) -> field to i }
-		operandFields = instructionClass.memberProperties
+		val localFields = instructionClass.declaredMemberProperties
 			.filterIsInstance<KMutableProperty1<I, out L2Operand>>()
 			.filter {
 				L2Operand::class.java.isAssignableFrom(it.javaField!!.type)
 			}
 			.sortedBy { fieldNumbering[it.javaField] }
 			.map { OperandField(it) }
+		operandFields = (parentOperandFields + localFields)
+			.sortedWith(operandComparator).cast()
 	}
 
 	fun updateOperands(
@@ -192,47 +227,38 @@ internal constructor(private val instructionClass: KClass<out I>)
 		}
 	}
 
+	/**
+	 * Create an Array of [OperandField]s metting the reified [L2Operand]
+	 * subtype.
+	 */
+	private inline fun <reified OperandClass: L2Operand> filterOperands(
+		operandType: KClass<OperandClass>
+	): Array<OperandField<OperandClass>>
+	{
+		return operandFields
+			.filter { operandType.java.isAssignableFrom(it.type) }
+			.toTypedArray<OperandField<*>>().cast()!!
+	}
+
 	/** Operands of type [L2ReadOperand]. */
-	private val scalarReadOperandFields:
-			List<OperandField<L2ReadOperand<*>>> =
-		operandFields
-			.filter { L2ReadOperand::class.java.isAssignableFrom(it.type) }
-			.cast()
+	private val scalarReadOperandFields = filterOperands(L2ReadOperand::class)
 
 	/** Operands of type [L2ReadVectorOperand]. */
-	private val vectorReadOperandFields:
-			List<OperandField<L2ReadVectorOperand<*>>> =
-		operandFields
-			.filter {
-				L2ReadVectorOperand::class.java.isAssignableFrom(it.type)
-			}.cast()
+	private val vectorReadOperandFields =
+		filterOperands(L2ReadVectorOperand::class)
 
 	/** Operands of type [L2WriteOperand]. */
-	private val scalarWriteOperandFields:
-			List<OperandField<L2WriteOperand<*>>> =
-		operandFields
-			.filter { L2WriteOperand::class.java.isAssignableFrom(it.type) }
-			.cast()
+	private val scalarWriteOperandFields = filterOperands(L2WriteOperand::class)
 
 	/** Operands of type [L2WriteBoxedVectorOperand]. */
-	private val vectorWriteOperandFields:
-			List<OperandField<L2WriteBoxedVectorOperand>> =
-		operandFields
-			.filter {
-				L2WriteBoxedVectorOperand::class.java.isAssignableFrom(it.type)
-			}.cast()
+	private val vectorWriteOperandFields =
+		filterOperands(L2WriteBoxedVectorOperand::class)
 
 	/** Operands of type [L2PcOperand]. */
-	private val scalarPcOperandFields: List<OperandField<L2PcOperand>> =
-		operandFields
-			.filter { L2PcOperand::class.java.isAssignableFrom(it.type) }
-			.cast()
+	private val scalarPcOperandFields = filterOperands(L2PcOperand::class)
 
 	/** Operands of type [L2PcVectorOperand]. */
-	private val vectorPcOperandFields: List<OperandField<L2PcVectorOperand>> =
-		operandFields
-			.filter { L2PcVectorOperand::class.java.isAssignableFrom(it.type) }
-			.cast()
+	private val vectorPcOperandFields = filterOperands(L2PcVectorOperand::class)
 
 	/**
 	 * Iterate over all operand fields, providing both the [L2Operand] in that
@@ -243,7 +269,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 		consumer: (L2Operand, L2NamedOperandType) -> Unit)
 	{
 		operandFields.forEach { field ->
-    		consumer(field.get(instruction.cast()), field.namedOperandType)
+    		consumer(field.get(instruction), field.namedOperandType)
     	}
 	}
 
@@ -251,7 +277,7 @@ internal constructor(private val instructionClass: KClass<out I>)
 	 * Extract the [Array] of [L2Operand]s from the instruction.
 	 */
 	fun operands(instruction: L2Instruction): Array<L2Operand> =
-		operandFields.map { it.get(instruction.cast()) }.toTypedArray()
+		operandFields.map { it.get(instruction) }.toTypedArray()
 
 	/**
 	 * Extract a list of all [L2ReadOperand]s, even those inside vectors.
@@ -261,13 +287,10 @@ internal constructor(private val instructionClass: KClass<out I>)
 	): List<L2ReadOperand<*>> = when
 	{
 		vectorReadOperandFields.isEmpty() ->
-			scalarReadOperandFields.map { it.get(instruction.cast()) }
-		else -> mutableListOf<L2ReadOperand<*>>().let { list ->
-			scalarReadOperandFields.mapTo(list) { read ->
-				read.get(instruction.cast())
-			}
-			vectorReadOperandFields.flatMapTo(list) { vector ->
-				vector.get(instruction.cast()).elements
+			scalarReadOperandFields.map { it.get(instruction) }
+		else -> mutableListOf<L2ReadOperand<*>>().also { list ->
+			operandFields.forEach { operandField ->
+				operandField.get(instruction).addReadsTo(list)
 			}
 		}
 	}
@@ -280,13 +303,10 @@ internal constructor(private val instructionClass: KClass<out I>)
 	): List<L2WriteOperand<*>> = when
 	{
 		vectorWriteOperandFields.isEmpty() ->
-			scalarWriteOperandFields.map { it.get(instruction.cast()) }
-		else -> mutableListOf<L2WriteOperand<*>>().let { list ->
-			scalarWriteOperandFields.mapTo(list) { write ->
-				write.get(instruction.cast())
-			}
-			vectorWriteOperandFields.flatMapTo(list) { vector ->
-				vector.get(instruction.cast()).elements
+			scalarWriteOperandFields.map { it.get(instruction) }
+		else -> mutableListOf<L2WriteOperand<*>>().also { list ->
+			operandFields.forEach { operandField ->
+				operandField.get(instruction).addWritesTo(list)
 			}
 		}
 	}
@@ -299,13 +319,10 @@ internal constructor(private val instructionClass: KClass<out I>)
 	): List<L2PcOperand> = when
 	{
 		vectorPcOperandFields.isEmpty() ->
-			scalarPcOperandFields.map { it.get(instruction.cast()) }
-		else -> mutableListOf<L2PcOperand>().let { list ->
-			scalarPcOperandFields.mapTo(list) { edgeField ->
-				edgeField.get(instruction.cast())
-			}
-			vectorPcOperandFields.flatMapTo(list) { edgeVectorField ->
-				edgeVectorField.get(instruction.cast()).edges
+			scalarPcOperandFields.map { it.get(instruction) }
+		else -> mutableListOf<L2PcOperand>().also { list ->
+			operandFields.forEach { operandField ->
+				operandField.get(instruction).addEdgesTo(list)
 			}
 		}
 	}
@@ -377,5 +394,38 @@ internal constructor(private val instructionClass: KClass<out I>)
 			}
 		}
 		writesHiddenVariablesMask = writeMask
+	}
+
+	companion object
+	{
+		/** A map from [L2Instruction] subclass to its [InstructionLayout]. */
+		private val layoutsByClass:
+				MutableMap<KClass<out L2Instruction>, InstructionLayout<*>> =
+			ConcurrentHashMap(100)
+
+		/**
+		 * Look up or create and cache the [InstructionLayout] for the given
+		 * [KClass] of an [L2Instruction] subclass.
+		 */
+		fun layoutForClass(
+			instructionClass: KClass<out L2Instruction>
+		): InstructionLayout<*>?
+		{
+			if (instructionClass == L2Instruction::class) return null
+			val parentLayout = layoutForClass(
+				instructionClass.superclasses.single().cast())
+			return layoutsByClass.computeIfAbsent(instructionClass) { cls ->
+				InstructionLayout(cls, parentLayout)
+			}
+		}
+
+		/**
+		 * A [Comparator] suitable for ordering the [OperandField]s within an
+		 * [InstructionLayout].
+		 */
+		private val operandComparator =
+			compareChained<InstructionLayout<*>.OperandField<*>>(
+				{ it.namedOperandType.purpose !== null },
+				{ it.namedOperandType.operandType.ordinal })
 	}
 }

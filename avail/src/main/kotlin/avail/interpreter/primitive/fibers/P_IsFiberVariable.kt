@@ -86,4 +86,6 @@ object P_IsFiberVariable : Primitive(1, CanInline)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))
+
+	override val canDestroyArguments get() = false
 }

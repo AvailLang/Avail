@@ -47,14 +47,17 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IndirectionDescriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.bitsPerEntry
 import avail.descriptor.tuples.A_Tuple.Companion.computeHashFromTo
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
+import avail.descriptor.tuples.A_Tuple.Companion.dummyElement
 import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
@@ -81,6 +84,9 @@ import avail.descriptor.types.BottomTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TypeTag
+import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
+import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
+import avail.exceptions.AvailException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -668,6 +674,8 @@ protected constructor(
 		return SubrangeTupleDescriptor.createSubrange(self, start, size)
 	}
 
+	override fun o_DummyElement(self: AvailObject) = nil
+
 	override fun o_ExtractNybbleFromTupleAt(
 		self: AvailObject, index: Int): Byte
 	{
@@ -730,6 +738,31 @@ protected constructor(
 			if (self.tupleAt(i).equals(value)) return i
 		}
 		return 0
+	}
+
+	@Throws(AvailException::class)
+	override fun o_RecursivelyUpdate(
+		self: AvailObject,
+		indices: Iterator<AvailObject>,
+		update: (AvailObject)->A_BasicObject
+	): A_BasicObject
+	{
+		if (!indices.hasNext()) return update(self)
+		val indexObject = indices.next()
+		if (!indexObject.isInt)
+			throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
+		val index = indexObject.extractInt
+		if (index !in 1..self.tupleSize)
+			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
+		val oldElement = self.tupleAt(index)
+		val tupleToUpdate = when
+		{
+			isMutable -> self.tupleAtPuttingCanDestroy(
+				index, self.dummyElement, true)
+			else -> self
+		}
+		val replacement = oldElement.recursivelyUpdate(indices, update)
+		return tupleToUpdate.tupleAtPuttingCanDestroy(index, replacement, true)
 	}
 
 	abstract override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
@@ -1472,6 +1505,32 @@ protected constructor(
 			map?.set(string.tupleSize + 1, length)
 			appendCodePoint('"'.code)
 		}
+
+		/**
+		 * Append a value to an [A_Tuple]s, allowing it to be destroyed if it's
+		 * mutable.
+		 *
+		 * @param inputTuple
+		 *   The first tuple to concatenate.
+		 * @param elementToAppend
+		 *   The value to append.
+		 * @return
+		 *   The extended tuple.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticAppendToTuple(
+			inputTuple: A_Tuple,
+			elementToAppend: A_BasicObject
+		): A_Tuple = inputTuple.appendCanDestroy(elementToAppend, true)
+
+		/** The [CheckedMethod] for [staticAppendToTuple]. */
+		val appendToTupleMethod = staticMethod(
+			TupleDescriptor::class.java,
+			::staticAppendToTuple.name,
+			A_Tuple::class.java,
+			A_Tuple::class.java,
+			A_BasicObject::class.java)
 
 		/**
 		 * Concatenate two [A_Tuple]s, allowing either to be destroyed if it's

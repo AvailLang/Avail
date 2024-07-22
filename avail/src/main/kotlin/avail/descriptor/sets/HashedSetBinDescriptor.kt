@@ -83,7 +83,7 @@ import java.util.ArrayDeque
  * vector where a 1 bit indicates that the corresponding index (0..63) extracted
  * from the hash value has a pointer to the corresponding sub-bin.  If the bit
  * is 0 then that pointer is elided entirely.  By suitable use of bit shifting,
- * masking, and [counting][Integer.bitCount], one is able to extract the 6
+ * masking, and [counting][Long.countOneBits], one is able to extract the 6
  * appropriate dispatch bits and access the Nth sub-bin or determine that it's
  * not already present.  This mechanism produces a hash tree no deeper than
  * about 6 levels, even for a huge number of entries.
@@ -241,7 +241,7 @@ class HashedSetBinDescriptor private constructor(
 		val logicalBitValue = 1L shl logicalIndex
 		val vector = self[BIT_VECTOR]
 		val masked = vector and logicalBitValue - 1
-		val physicalIndex = java.lang.Long.bitCount(masked) + 1
+		val physicalIndex = masked.countOneBits() + 1
 		val objectToModify: AvailObject
 		var typeUnion: A_Type
 		if (vector and logicalBitValue != 0L) {
@@ -341,7 +341,7 @@ class HashedSetBinDescriptor private constructor(
 		val mask1 = self[BIT_VECTOR]
 		val mask2 = hashedBin[BIT_VECTOR]
 		var mergedMask = mask1 or mask2
-		val newSize = java.lang.Long.bitCount(mergedMask)
+		val newSize = mergedMask.countOneBits()
 		val out = when
 		{
 			mask1 == mergedMask && isMutable -> self
@@ -394,7 +394,7 @@ class HashedSetBinDescriptor private constructor(
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
 		val masked = vector and logicalBitValue - 1
-		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
+		val physicalIndex = masked.countOneBits() + 1
 		val subBin: A_SetBin = self[BIN_ELEMENT_AT_, physicalIndex]
 		return subBin.binHasElementWithHash(elementObject, elementObjectHash)
 	}
@@ -423,7 +423,7 @@ class HashedSetBinDescriptor private constructor(
 			return self
 		}
 		val masked = vector and logicalBitValue - 1
-		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
+		val physicalIndex = masked.countOneBits() + 1
 		val oldEntry: A_SetBin = self[BIN_ELEMENT_AT_, physicalIndex]
 		val oldEntryHash = oldEntry.setBinHash
 		val oldEntrySize = oldEntry.setBinSize
@@ -651,7 +651,7 @@ class HashedSetBinDescriptor private constructor(
 			bitVector: Long,
 			unionKindOrNil: A_Type
 		): AvailObject {
-			assert(java.lang.Long.bitCount(bitVector) == localSize)
+			assert(bitVector.countOneBits() == localSize)
 			val descriptor = descriptorFor(Mutability.MUTABLE, level)
 			return descriptor.create(localSize) {
 				setSlot(BIN_HASH, hash)

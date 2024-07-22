@@ -67,6 +67,8 @@ object P_MapSize : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(tuple(mostGeneralMapType()), wholeNumbers)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type =
 			argumentTypes[0].sizeRange.typeIntersection(i32)
+
+	override val canDestroyArguments get() = false
 }

@@ -105,11 +105,8 @@ inline fun <A: Iterable<B>, B, C > A.deepForEach (
  * Given an [Iterable] receiver, run the normal `forEach` operation to produce
  * a series of values, apply the [extractor1] extension function to each of
  * those values to produce an `Iterable` for each of them, run the [extractor2]
- * extension function to produce an `Iterable` to run `forEach` on, with the
- * [body] function.
- *
- * and run `forEach` on those
- * `Iterables`, in order.
+ * extension function to produce an `Iterable` to run `forEach` on, and run the
+ * [body] function with each of those, in order.
  *
  * @receiver
  *   The outer [Iterable] to visit.

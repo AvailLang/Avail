@@ -42,9 +42,9 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
@@ -80,4 +80,7 @@ object P_LookupAtomsForName : Primitive(
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))
+
+	/** Atoms registered to a module (i.e., the current one) are shared. */
+	override val canDestroyArguments get() = false
 }

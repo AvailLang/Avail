@@ -69,27 +69,20 @@ class L2_JUMP_IF_UNBOX_FLOAT(
 		builder.append(destination.registerString())
 		builder.append(" ←? ")
 		builder.append(source.registerString())
-		renderOperandsExcludingFields(builder, ::source, ::destination)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::source, ::destination)
 	}
 
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
-		source.instructionWasAdded(manifest)
-		val semanticSource = source.semanticValue()
-		// Don't add the destination along the failure edge.
-		ifNotUnboxed.instructionWasAdded(
-			L2ValueManifest(manifest).apply {
-				subtractType(semanticSource, DOUBLE.o)
-			})
-		// Ensure the value is available along the success edge.
-		manifest.intersectType(source.semanticValue(), DOUBLE.o)
-		destination.instructionWasAdded(manifest)
-		ifUnboxed.instructionWasAdded(
-			L2ValueManifest(manifest).apply {
-				intersectType(destination.pickSemanticValue(), DOUBLE.o)
-			})
+		destination.restrict { source.restriction().forUnboxedFloat() }
+		super.instructionWasAdded(manifest)
+		ifUnboxed.manifest().intersectType(source, DOUBLE.o)
+		ifNotUnboxed.manifest().subtractType(source, DOUBLE.o)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
@@ -98,8 +91,7 @@ class L2_JUMP_IF_UNBOX_FLOAT(
 		// :: if (!source.isDouble()) goto ifNotUnboxed;
 		translator.load(method, source.register())
 		A_Number.isDoubleMethod.generateCall(method)
-		method.visitJumpInsn(
-			Opcodes.IFEQ, translator.labelFor(ifNotUnboxed.offset()))
+		translator.jumpIf(method, Opcodes.IFEQ, ifNotUnboxed)
 		// :: else {
 		// ::    destination = source.extractDouble();
 		// ::    goto ifUnboxed;

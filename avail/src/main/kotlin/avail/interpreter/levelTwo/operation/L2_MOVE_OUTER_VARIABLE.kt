@@ -33,10 +33,11 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -52,8 +53,10 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
-class L2_MOVE_OUTER_VARIABLE(
+class
+L2_MOVE_OUTER_VARIABLE(
 	var outerIndex: L2IntImmediateOperand,
+	var outerName: L2CommentOperand,
 	var function: L2ReadBoxedOperand,
 	var destination: L2WriteBoxedOperand
 ): L2Instruction()
@@ -70,6 +73,11 @@ class L2_MOVE_OUTER_VARIABLE(
 		builder.append(function.registerString())
 		builder.append('[')
 		builder.append(outerIndex.value)
+		if (outerName.comment.isNotEmpty())
+		{
+			builder.append('=')
+			builder.append(outerName.comment)
+		}
 		builder.append(']')
 	}
 

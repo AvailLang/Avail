@@ -82,4 +82,6 @@ object P_IsUnambiguousName : Primitive(
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))
+
+	override val canDestroyArguments get() = false
 }

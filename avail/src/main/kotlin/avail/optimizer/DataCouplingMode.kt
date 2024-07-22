@@ -78,6 +78,10 @@ enum class DataCouplingMode constructor(
 	/**
 	 * [L2SemanticValue]s can be ignored, and only [L2Register]s should be
 	 * considered for the liveness analysis.
+	 *
+	 * Additionally, this mode is used after constant substitution, so we should
+	 * exclude any registers that are constant reads (which will have no
+	 * definitions anyhow).
 	 */
 	FOLLOW_REGISTERS(true, false)
 	{
@@ -85,7 +89,10 @@ enum class DataCouplingMode constructor(
 			readOperand: L2ReadOperand<*>,
 			accumulatingSet: MutableSet<L2Entity<*>>)
 		{
-			accumulatingSet.add(readOperand.register())
+			if (!readOperand.isConstantRead)
+			{
+				accumulatingSet.add(readOperand.register())
+			}
 		}
 
 		override fun addEntitiesFromWrite(
@@ -105,8 +112,11 @@ enum class DataCouplingMode constructor(
 			readOperand: L2ReadOperand<*>,
 			accumulatingSet: MutableSet<L2Entity<*>>)
 		{
-			accumulatingSet.add(readOperand.semanticValue())
-			accumulatingSet.add(readOperand.register())
+			if (!readOperand.isConstantRead)
+			{
+				accumulatingSet.add(readOperand.semanticValue())
+				accumulatingSet.add(readOperand.register())
+			}
 		}
 
 		override fun addEntitiesFromWrite(
@@ -189,20 +199,19 @@ enum class DataCouplingMode constructor(
 	fun readEntitiesOf(instruction: L2Instruction): Set<L2Entity<*>>
 	{
 		val entitiesRead = mutableSetOf<L2Entity<*>>()
-		instruction.readOperands
-			.forEach { addEntitiesFromRead(it, entitiesRead) }
+		instruction.readOperands.forEach {
+			addEntitiesFromRead(it, entitiesRead) }
 		return entitiesRead
 	}
 
 	/**
-	 * Extract each relevant [L2EntityAndKind] produced by the given
-	 * [L2Instruction].
+	 * Extract each relevant [L2Entity] produced by the given [L2Instruction].
 	 *
 	 * @param instruction
 	 *   The [L2Instruction] to examine.
 	 * @return
-	 *   Each [L2EntityAndKind] written by the instruction, and which the policy
-	 *   deems relevant.
+	 *   Each [L2Entity] written by the instruction, and which the policy deems
+	 *   relevant.
 	 */
 	fun writeEntitiesOf(instruction: L2Instruction): Set<L2Entity<*>>
 	{

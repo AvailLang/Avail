@@ -34,6 +34,7 @@ package avail.interpreter.primitive.integers
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.bitwiseXor
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
 import avail.descriptor.numbers.A_Number.Companion.lessThan
@@ -58,8 +59,13 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Xor
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.optimizer.L1Translator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.notNullAnd
 import kotlin.math.min
 
 /**
@@ -83,7 +89,7 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(tuple(integers, integers), integers)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
@@ -133,6 +139,34 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 			false)
 	}
 
+	override fun emitTransformedInfalliblePrimitive(
+		rawFunction: A_RawFunction,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand,
+		regenerator: L2Regenerator)
+	{
+		val (x, y) = arguments.elements
+		when
+		{
+			// x ⊕ 0 = x
+			(y.constantOrNull.notNullAnd { equalsInt(0) }) ->
+				regenerator.moveBoxedRegister(
+					x.semanticValue(), result.semanticValues())
+			// 0 ⊕ y = y
+			(x.constantOrNull.notNullAnd { equalsInt(0) }) ->
+				regenerator.moveBoxedRegister(
+					y.semanticValue(), result.semanticValues())
+			// x ⊕ x = 0
+			regenerator.currentManifest.isEquivalentSemanticValue(
+				x.semanticValue(), y.semanticValue()
+			) -> regenerator.addInstruction(
+				L2_MOVE.L2_MOVE_BOXED(
+					regenerator.boxedConstant(zero), result))
+			else -> super.emitTransformedInfalliblePrimitive(
+				rawFunction, arguments, result, regenerator)
+		}
+	}
+
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
@@ -140,6 +174,7 @@ object P_BitwiseXor : Primitive(2, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean = Xor.generateBinaryIntOperation(
+		this,
 		arguments,
 		argumentTypes,
 		callSiteHelper,

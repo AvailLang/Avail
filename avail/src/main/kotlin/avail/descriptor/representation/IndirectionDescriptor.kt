@@ -494,6 +494,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableIntTuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableLongTuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableObjectTuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.dummyElement
 import avail.descriptor.tuples.A_Tuple.Companion.extractNybbleFromTupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOf
 import avail.descriptor.tuples.A_Tuple.Companion.firstIndexOfOr
@@ -1205,6 +1206,8 @@ class IndirectionDescriptor private constructor(
 	): A_Number = self .. {
 		divideIntoIntegerCanDestroy(anInteger, canDestroy)
 	}
+
+	override fun o_DummyElement(self: AvailObject) = self .. { dummyElement }
 
 	override fun o_Equals(
 		self: AvailObject,
@@ -4073,4 +4076,10 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_NamesIndexRecord(self: AvailObject): NamesIndex =
 		self .. { namesIndexRecord() }
+
+	override fun o_RecursivelyUpdate(
+		self: AvailObject,
+		indices: Iterator<AvailObject>,
+		update: (AvailObject)->A_BasicObject
+	): A_BasicObject = self .. { recursivelyUpdate(indices, update) }
 }

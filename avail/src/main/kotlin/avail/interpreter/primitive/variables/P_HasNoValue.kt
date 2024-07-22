@@ -63,4 +63,6 @@ object P_HasNoValue : Primitive(1, CanInline, CannotFail)
 		functionType(
 			tuple(mostGeneralVariableType),
 			booleanType)
+
+	override val canDestroyArguments get() = false
 }

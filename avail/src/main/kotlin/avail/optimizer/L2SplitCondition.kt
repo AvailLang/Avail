@@ -34,6 +34,7 @@ package avail.optimizer
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
@@ -41,14 +42,15 @@ import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
 import avail.interpreter.levelTwo.operation.L2_HASH
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
+import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.RegisterKind.*
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticConstant
@@ -84,11 +86,39 @@ sealed class L2SplitCondition
 
 	final override fun hashCode(): Int = hash
 
+	/** Answer whether this would hold whenever the argument would hold. */
+	abstract fun impliedBy(otherCondition: L2SplitCondition): Boolean
+
+	/**
+	 * A condition that holds if some register backs at least one of the given
+	 * [L2SemanticValue]s.
+	 */
+	private class L2ExistsCondition constructor (
+		private val semanticValues: Set<L2SemanticValue<*>>
+	): L2SplitCondition()
+	{
+		override fun equals(other: Any?): Boolean =
+			other is L2ExistsCondition &&
+				other.semanticValues == semanticValues
+
+		override val hash = semanticValues.hashCode() + 0x7F38A734
+
+		override fun holdsFor(manifest: L2ValueManifest): Boolean =
+			semanticValues.any { manifest.hasSemanticValue(it) }
+
+		override fun toString(): String =
+			"Exists: ${semanticValues.sorted()}}"
+
+		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
+			otherCondition is L2ExistsCondition &&
+				semanticValues.containsAll(otherCondition.semanticValues)
+	}
+
 	/**
 	 * A condition that holds if some register (an [L2IntRegister]) holds the
 	 * unboxed [Int] form of some value.
 	 */
-	class L2IsUnboxedIntCondition private constructor (
+	private class L2IsUnboxedIntCondition constructor (
 		private val semanticValues: Set<L2SemanticUnboxedInt>
 	) : L2SplitCondition()
 	{
@@ -104,48 +134,16 @@ sealed class L2SplitCondition
 		override fun toString(): String =
 			"Unboxed int: ${semanticValues.sorted()}}"
 
-		companion object
-		{
-			/**
-			 * Create an [L2IsUnboxedIntCondition] that is true when any of the
-			 * ancestors of the given registers was in an unboxed form.
-			 *
-			 * If all the semantic values associated with these registers are
-			 * constant, answer `null`.
-			 *
-			 * @param startingRegisters
-			 *   The list of registers from which to search for ancestors.
-			 * @return
-			 *   The [L2IsUnboxedIntCondition], or `null` if only semantic
-			 *   constants were provided.
-			 */
-			fun unboxedIntCondition(
-				startingRegisters: List<L2Register<*>>
-			): L2IsUnboxedIntCondition?
-			{
-				val intValues = ancestorsOf(startingRegisters)
-					.mapNotNull { value ->
-						when (value)
-						{
-							is L2SemanticConstant -> null
-							is L2SemanticBoxedValue ->
-								L2SemanticUnboxedInt(value)
-							is L2SemanticUnboxedInt ->
-								if (value.isConstant) null else value
-							else -> null
-						}
-					}.toSet()
-				if (intValues.isEmpty()) return null
-				return L2IsUnboxedIntCondition(intValues)
-			}
-		}
+		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
+			otherCondition is L2IsUnboxedIntCondition &&
+				semanticValues.containsAll(otherCondition.semanticValues)
 	}
 
 	/**
 	 * A condition that holds if a register having one of the given
 	 * [semanticValues] is guaranteed to satisfy the provided [TypeRestriction].
 	 */
-	class L2MeetsRestrictionCondition private constructor (
+	private class L2MeetsRestrictionCondition constructor (
 		private val semanticValues: Set<L2SemanticValue<*>>,
 		requiredRestrictionRaw: TypeRestriction
 	) : L2SplitCondition()
@@ -183,44 +181,14 @@ sealed class L2SplitCondition
 		override fun toString(): String =
 			"Restrict: $requiredRestriction for ${semanticValues.sorted()}"
 
-		companion object
-		{
-			/**
-			 * Create an [L2MeetsRestrictionCondition] that is true when any of
-			 * the ancestors of the given registers satisfies the given
-			 * [TypeRestriction].
-			 *
-			 * @param startingRegisters
-			 *   The registers from which to search for ancestors.
-			 * @param requiredRestriction
-			 *   The [TypeRestriction] that will be applied to the ancestor
-			 *   [L2SemanticValue]s when determining if the condition holds at
-			 *   some point in the [L2ControlFlowGraph].
-			 * @return
-			 *   The [L2MeetsRestrictionCondition], or `null` if only constant
-			 *   semantic values were present.
-			 */
-			fun typeRestrictionCondition(
-				startingRegisters: Iterable<L2Register<*>>,
-				requiredRestriction: TypeRestriction
-			): L2MeetsRestrictionCondition?
-			{
-				val ancestorValues = ancestorsOf(startingRegisters)
-					.mapNotNull { value ->
-						when (value)
-						{
-							is L2SemanticUnboxedInt -> value.base
-							is L2SemanticUnboxedFloat -> value.base
-							is L2SemanticBoxedValue -> value
-							else -> null
-						}
-					}.filterNotTo(mutableSetOf()) { it.isConstant }
-				if (ancestorValues.isEmpty()) return null
-				return L2MeetsRestrictionCondition(
-					ancestorValues, requiredRestriction)
-			}
-		}
+
+		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
+			otherCondition is L2MeetsRestrictionCondition &&
+				otherCondition.requiredRestriction
+					.isStrongerThan(requiredRestriction) &&
+				semanticValues.containsAll(otherCondition.semanticValues)
 	}
+
 	/**
 	 * A condition that is used only to ensure entry point blocks don't end up
 	 * being the target of multiple reification paths.  Instead, these fake
@@ -228,7 +196,7 @@ sealed class L2SplitCondition
 	 * allow multiple versions of the target (entry point) block to exist, one
 	 * per incoming edge.
 	 */
-	class L2FakeCondition private constructor (
+	private class L2FakeCondition constructor (
 		val debugId: Int
 	) : L2SplitCondition()
 	{
@@ -242,50 +210,33 @@ sealed class L2SplitCondition
 
 		override fun toString(): String = "Forced split #$debugId"
 
-		companion object
-		{
-			/**
-			 * Create an [L2FakeCondition] with the given [debugId].  It's never
-			 * actually satisfied, but is used as a key in the submap during
-			 * code splitting when a basic block acting as an entry point has
-			 * more than one incoming edge.
-			 *
-			 * @param debugId
-			 *   The unique number that might make debugging easier.
-			 * @return
-			 *   The [L2FakeCondition].
-			 */
-			fun fakeCondition(
-				debugId: Int
-			): L2FakeCondition = L2FakeCondition(debugId)
-		}
+		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
+			this == otherCondition
 	}
 
 	companion object
 	{
 		/**
-		 * Computes all ancestors of the given registers, following phis, moves,
-		 * boxes, and unboxes.
+		 * Computes all ancestors registers of the given registers, following
+		 * phis, moves, boxes, and unboxes.
 		 *
 		 * @param startingRegisters
-		 *   The registers from which to search for ancestors.
+		 *   The registers from which to search for ancestor registers.
 		 * @return
-		 *   The set of ancestor [L2SemanticValue]s of the given registers.
+		 *   The set of ancestor [L2Register]s of the given registers.
 		 */
-		private fun ancestorsOf(
+		private fun ancestorRegistersOf(
 			startingRegisters: Iterable<L2Register<*>>
-		): Set<L2SemanticValue<*>>
+		): Set<L2Register<*>>
 		{
-			// We're not just interested in whether the source or destination
-			// register ever satisfied the type restriction, we also care
-			// whether any register that led to these through a series of
-			// phis/moves/boxes/unboxes/make_immutables was ever unboxed.
-			val allRegisters = mutableListOf<L2Register<*>>()
+			val allRegisters = mutableSetOf<L2Register<*>>()
 			val moreRegisters = startingRegisters.toMutableSet()
-			while (moreRegisters.isNotEmpty())
+			while (true)
 			{
-				allRegisters.addAll(moreRegisters)
+				moreRegisters.removeAll(allRegisters)
+				if (moreRegisters.isEmpty()) break
 				val moreRegistersCopy = moreRegisters.toList()
+				allRegisters.addAll(moreRegisters)
 				moreRegisters.clear()
 				moreRegistersCopy.forEach { reg ->
 					reg.definitions().forEach { defWrite ->
@@ -299,6 +250,7 @@ sealed class L2SplitCondition
 							def is L2_UNBOX_INT ||
 							def is L2_UNBOX_FLOAT ||
 							def is L2_JUMP_IF_UNBOX_INT ||
+							def is L2_JUMP_IF_UNBOX_FLOAT ||
 							def is L2_HASH ||
 							def is L2_EXTRACT_TAG_ORDINAL ||
 							def is L2_EXTRACT_OBJECT_VARIANT_ID ||
@@ -309,13 +261,178 @@ sealed class L2SplitCondition
 						readOperands.mapTo(moreRegisters) { it.register() }
 					}
 				}
-				// Ignore ones we've already visited.
-				moreRegisters.removeAll(allRegisters)
 			}
-			val allValues = allRegisters.map {
+			return allRegisters
+		}
+
+		/**
+		 * Computes all ancestors of the given registers, following phis, moves,
+		 * boxes, and unboxes.
+		 *
+		 * @param startingRegisters
+		 *   The registers from which to search for ancestors.
+		 * @return
+		 *   The set of ancestor [L2SemanticValue]s of the given registers.
+		 */
+		private fun ancestorsOf(
+			startingRegisters: Iterable<L2Register<*>>
+		): Set<L2SemanticValue<*>> = ancestorRegistersOf(startingRegisters)
+			.flatMapTo(mutableSetOf()) {
 				it.definition().semanticValues()
-			}.fold(emptySet(), Set<L2SemanticValue<*>>::union)
-			return allValues
+			}
+
+		/**
+		 * Create an [L2ExistsCondition] that is true at a point where any of
+		 * the ancestors of the given registers was in an unboxed [Int] form.
+		 *
+		 * If all the semantic values associated with these registers are
+		 * constant, answer `null`.
+		 *
+		 * @param startingRegisters
+		 *   The list of registers from which to search for ancestors.
+		 * @return
+		 *   The [L2ExistsCondition], or `null` if only semantic constants were
+		 *   provided.
+		 */
+		fun unboxedIntCondition(
+			startingRegisters: List<L2Register<*>>
+		): L2SplitCondition?
+		{
+			val intValues = L2SplitCondition.ancestorsOf(startingRegisters)
+				.mapNotNull { value ->
+					when (value)
+					{
+						is L2SemanticConstant -> null
+						is L2SemanticBoxedValue -> L2SemanticUnboxedInt(value)
+						is L2SemanticUnboxedInt ->
+							if (value.isConstant) null else value
+						else -> null
+					}
+				}.toSet()
+			if (intValues.isEmpty()) return null
+			return L2ExistsCondition(intValues)
+		}
+
+		/**
+		 * Create an [L2ExistsCondition] that is true at a point where any of
+		 * the given [L2SemanticValue]s is backed by a register.
+		 *
+		 * If all the semantic values associated with these registers are
+		 * constant, answer `null`.
+		 *
+		 * @param semanticValues
+		 *   The list of [L2SemanticValue]s, any of which should be detected.
+		 * @return
+		 *   The [L2ExistsCondition], or `null` if only semantic constants were
+		 *   provided.
+		 */
+		fun existsCondition(
+			semanticValues: Iterable<L2SemanticValue<*>>
+		): L2SplitCondition?
+		{
+			val nonConstants = semanticValues.filterNot {
+				it.isConstant
+					|| (it is L2SemanticUnboxedInt && it.base.isConstant)
+					|| (it is L2SemanticUnboxedFloat && it.base.isConstant)
+			}
+			if (nonConstants.isEmpty()) return null
+			return L2ExistsCondition(nonConstants.toSet())
+		}
+
+		/**
+		 * Create a [Set] of [L2MeetsRestrictionCondition]s that are true
+		 * whenever any of the ancestors of the given registers happens to be
+		 * restricted to one of the constants that an ancestor knew it to be.
+		 *
+		 * If no ancestor [L2Register] was known to be a constant, answer the
+		 * empty set.
+		 *
+		 * @param startingRegisters
+		 *   The registers from which to search for ancestors.
+		 * @return
+		 *   The [Set] of relevant [L2MeetsRestrictionCondition]s, which may be
+		 *   empty.
+		 */
+		fun constantConditions(
+			startingRegisters: Iterable<L2Register<*>>
+		): Set<L2SplitCondition>
+		{
+			val ancestorValues = ancestorsOf(startingRegisters)
+			return ancestorRegistersOf(startingRegisters)
+				.mapNotNull { reg ->
+					reg.definition().restriction().constantOrNull?.let { it }
+				}
+				.mapTo(mutableSetOf()) { constant ->
+					L2MeetsRestrictionCondition(
+						ancestorValues, boxedRestrictionForConstant(constant))
+				}
+		}
+
+		/**
+		 * Create an [L2MeetsRestrictionCondition] that is true when any of
+		 * the ancestors of the given registers satisfies the given
+		 * [TypeRestriction].
+		 *
+		 * @param startingRegisters
+		 *   The registers from which to search for ancestors.
+		 * @param requiredRestriction
+		 *   The [TypeRestriction] that will be applied to the ancestor
+		 *   [L2SemanticValue]s when determining if the condition holds at
+		 *   some point in the [L2ControlFlowGraph].
+		 * @return
+		 *   The [L2MeetsRestrictionCondition], or `null` if only constant
+		 *   semantic values were present.
+		 */
+		fun typeRestrictionCondition(
+			startingRegisters: Iterable<L2Register<*>>,
+			requiredRestriction: TypeRestriction
+		): L2SplitCondition?
+		{
+			val ancestorValues = ancestorsOf(startingRegisters)
+				.mapNotNull { value ->
+					when (value)
+					{
+						is L2SemanticUnboxedInt -> value.base
+						is L2SemanticUnboxedFloat -> value.base
+						is L2SemanticBoxedValue -> value
+						else -> null
+					}
+				}.filterNotTo(mutableSetOf()) { it.isConstant }
+			if (ancestorValues.isEmpty()) return null
+			return L2MeetsRestrictionCondition(
+				ancestorValues, requiredRestriction)
+		}
+
+		/**
+		 * Create an [L2FakeCondition] with the given [debugId].  It's never
+		 * actually satisfied, but is used as a key in the submap during
+		 * code splitting when a basic block acting as an entry point has
+		 * more than one incoming edge.
+		 *
+		 * @param debugId
+		 *   The unique number that might make debugging easier.
+		 * @return
+		 *   The [L2FakeCondition].
+		 */
+		fun fakeCondition(
+			debugId: Int
+		): L2SplitCondition = L2FakeCondition(debugId)
+
+		/**
+		 * Given some [L2SplitCondition]s, return a list containing the ones
+		 * that aren't implied by others in the list.
+		 */
+		fun reducedConditions(
+			conditions: Iterable<L2SplitCondition>
+		): Set<L2SplitCondition>
+		{
+			// Get rid of all conditioss implied by other ones.  This is
+			// currently quadratic, but the number of split conditions should be
+			// limited for other reasons anyhow (e.g., to avoid overexpansion
+			// of split code paths).
+			return conditions.filterTo(mutableSetOf()) { c1 ->
+				conditions.none { c2 -> c1 !== c2 && c1.impliedBy(c2) }
+			}
 		}
 	}
 }

@@ -33,10 +33,11 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -60,6 +61,12 @@ class L2_BOX_INT(
 		builder.append(destination.registerString())
 		builder.append(" ← ")
 		builder.append(source.registerString())
+	}
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		destination.restrict { source.restriction().forBoxed() }
+		super.instructionWasAdded(manifest)
 	}
 
 	override fun translateToJVM(

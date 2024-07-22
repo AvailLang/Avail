@@ -66,8 +66,11 @@ class L2_JUMP_IF_SUBTYPE_OF_OBJECT(
 		builder.append(firstType.registerString())
 		builder.append(" ⊆ ")
 		builder.append(seccondType.registerString())
-		renderOperandsExcludingFields(builder, ::firstType, ::seccondType)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::firstType, ::seccondType)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

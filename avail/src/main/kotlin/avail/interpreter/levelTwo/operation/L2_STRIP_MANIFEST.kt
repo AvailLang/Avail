@@ -40,7 +40,6 @@ import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArgument
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.mapToSet
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -89,26 +88,12 @@ class L2_STRIP_MANIFEST(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(manifest)
-
 		// Clear the manifest, other than the semantic values and registers that
 		// are written by this instruction.
-		val liveSemanticValues =
-			outputs.elements.mapToSet { it.onlySemanticValue() }
-		val liveRegisters = outputs.elements.mapToSet { it.register() }
-		// After stripping the manifest down to the block arguments needed for a
-		// P_RestartWithArguments, we *must not* allow any additional postponed
-		// instructions to run.  There was a rare case (2022.07.07) in which an
-		// L2_MAKE_IMMUTABLE was still present in the postponed instructions map
-		// [MvG 2024.01.15 - immutability is now handled differently], and was
-		// getting its input from other instructions that got their value from
-		// semantic values already stripped from the manifest.  So we clear
-		// postponed instructions, since after this L2_STRIP_MANIFEST there is
-		// no valid thing that can be done except moves from those registers,
-		// another strip-manifest for safety, and an L2_JUMP_BACK.
+		inputs.instructionWasAdded(manifest)
+		manifest.clear()
 		manifest.clearPostponedInstructions()
-		manifest.retainSemanticValues(liveSemanticValues)
-		manifest.retainRegisters(liveRegisters)
+		outputs.instructionWasAdded(manifest)
 	}
 
 	override fun translateToJVM(
@@ -118,13 +103,19 @@ class L2_STRIP_MANIFEST(
 		// Transfer from the sources to the corresponding destinations.  Most of
 		// these pairs will have been assigned to the same register, and can be
 		// elided.
-		(inputs.elements zip outputs.elements).forEach { (read, write) ->
-			if (read.register().finalIndex() != write.register().finalIndex())
-			{
-				// That pair didn't get eliminated during coloring, so emit an
-				// actual move.
-				translator.load(method, read.register())
-				translator.store(method, write.register())
+		val transferPairs = (inputs.registers() zip outputs.registers())
+			.filter { (read, write) -> read.finalIndex != write.finalIndex }
+		// It's possible that the read registers and write registers overlap
+		// with each other, so use the JVM operand stack as temp storage.
+		if (transferPairs.isNotEmpty())
+		{
+			// First push each (non-elided) read.
+			transferPairs.forEach { (read, _) ->
+				translator.load(method, read)
+			}
+			// Now pop into each corresponding write register in reverse order.
+			transferPairs.reversed().forEach { (_,  write) ->
+				translator.store(method, write)
 			}
 		}
 	}

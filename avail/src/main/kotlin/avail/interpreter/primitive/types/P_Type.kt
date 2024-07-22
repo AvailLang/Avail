@@ -67,7 +67,7 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 			anyMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type = instanceMeta(argumentTypes[0])
 

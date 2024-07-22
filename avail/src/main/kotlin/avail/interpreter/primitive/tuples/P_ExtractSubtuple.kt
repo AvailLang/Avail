@@ -172,7 +172,7 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (tupleType, startIndexType, endIndexType) = argumentTypes

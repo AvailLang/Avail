@@ -39,7 +39,9 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
@@ -65,13 +67,8 @@ class L2_ADD_INT_TO_INT(
 	override fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
-		augend.instructionWasAdded(manifest)
-		addend.instructionWasAdded(manifest)
-		outOfRange.instructionWasAdded(manifest)
-		// The remaining changes only affect the inRange case.
-		sum.instructionWasAdded(manifest)
-		manifest.intersectType(sum.pickSemanticValue(), i32)
-		inRange.instructionWasAdded(manifest)
+		sum.restrict { intRestrictionForType(i32) }
+		super.instructionWasAdded(manifest)
 	}
 
 	// It jumps if the result doesn't fit in an int.
@@ -89,13 +86,13 @@ class L2_ADD_INT_TO_INT(
 		builder.append(augend.registerString())
 		builder.append(" + ")
 		builder.append(addend.registerString())
-		renderOperandsExcludingFields(builder, ::augend, ::addend, ::sum)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::augend, ::addend, ::sum)
 	}
 
 	override fun interestingConditions(): List<L2SplitCondition?> =
 		listOf(
-			L2SplitCondition.L2IsUnboxedIntCondition.unboxedIntCondition(
-				listOf(sum.register())))
+			unboxedIntCondition(listOf(sum.register())))
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

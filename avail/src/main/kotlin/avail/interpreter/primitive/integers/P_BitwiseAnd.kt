@@ -75,7 +75,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
@@ -142,6 +142,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			return true
 		}
 		return And.generateBinaryIntOperation(
+			this,
 			arguments,
 			argumentTypes,
 			callSiteHelper,
@@ -149,12 +150,8 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 				returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
 			},
 			fallbackBody = {
-				tryToGenerateGeneralPrimitiveInvocation(
-					rawFunction,
-					arguments,
-					argumentTypes,
-					translator,
-					callSiteHelper)
+				generateGeneralFunctionInvocation(
+					functionToCallReg, arguments, false, callSiteHelper)
 			})
 	}
 

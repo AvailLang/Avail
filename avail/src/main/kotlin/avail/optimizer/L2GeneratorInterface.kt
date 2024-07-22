@@ -35,40 +35,61 @@ package avail.optimizer
 import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operation.L2ConditionalJump
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
+import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
+import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
+import avail.optimizer.L2Optimizer.GenerationMode
+import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.structures.EnumMap
 
+/**
+ * The interface for objects that can act as the target of L2 code generation.
+ */
 interface L2GeneratorInterface
 {
+	/**
+	 * By default we automatically generate phi instructions.  In later
+	 * optimization passes, the [L2ControlFlowGraph] is held together by
+	 * [L2Register]s instead of [L2SemanticValue]s, so at some phase we switch
+	 * this from [BySemanticValue] to [ByRegister] in the [L2Regenerator]
+	 * subclass.
+	 */
+	val mode: GenerationMode
+
 	/** The topmost [Frame] for translation. */
 	val topFrame: Frame
 
 	/**
-	 * An enumeration of symbolic names of key blocks of the [controlFlowGraph].
-	 * These are associated with optional [L2BasicBlock]s within the generator's
-	 * [specialBlocks].
+	 * An enumeration of symbolic names of key blocks of the
+	 * [L2ControlFlowGraph]. These are associated with optional [L2BasicBlock]s
+	 * within the generator's [specialBlocks].
 	 */
 	enum class SpecialBlock
 	{
@@ -86,12 +107,7 @@ interface L2GeneratorInterface
 		 * The head of the loop formed when a [P_RestartContinuation] is invoked
 		 * on a label created for the current frame.
 		 */
-		RESTART_LOOP_HEAD,
-
-		/**
-		 * An [L2BasicBlock] that shouldn't actually be dynamically reachable.
-		 */
-		UNREACHABLE
+		RESTART_LOOP_HEAD
 	}
 
 	/**
@@ -136,15 +152,6 @@ interface L2GeneratorInterface
 	): L2BasicBlock
 
 	/**
-	 * Answer an L2PcOperand that targets an [L2BasicBlock] which should never
-	 * actually be dynamically reached.
-	 *
-	 * @return
-	 * An [L2PcOperand] that should never be traversed.
-	 */
-	fun unreachablePcOperand(): L2PcOperand
-
-	/**
 	 * Answer the restriction for the given [L2SemanticValue] at the current
 	 * code generation position.
 	 */
@@ -157,6 +164,17 @@ interface L2GeneratorInterface
 	 *   The instruction to add.
 	 */
 	fun addInstruction(instruction: L2Instruction)
+
+	/**
+	 * Add an [L2ConditionalJump] instruction, but if all but one of the edges
+	 * contains an impossible restriction, replace it imeediately with an
+	 * unconditional jump along the remaining edge.
+	 *
+	 * Note that this is an overload of the version taking an arbitrary
+	 * [L2Instruction], so use an up or down cast at a call site if you want to
+	 * override the behavior.
+	 */
+	fun addInstruction(instruction: L2ConditionalJump)
 
 	/** Add an instruction that's not supposed to be reachable at runtime. */
 	fun addUnreachableCode()
@@ -181,8 +199,41 @@ interface L2GeneratorInterface
 	fun <K : RegisterKind<K>> moveRegister(
 		kind: K,
 		sourceSemanticValue: L2SemanticValue<K>,
-		targetSemanticValues: Iterable<L2SemanticValue<K>>
-	)
+		targetSemanticValues: Iterable<L2SemanticValue<K>>)
+
+	/**
+	 * Generate instructions to arrange for the boxed value in the given
+	 * [L2ReadBoxedOperand] to end up in an [L2BoxedRegister] associated in the
+	 * [L2ValueManifest] with the new [L2SemanticBoxedValue].  After the move,
+	 * the synonyms for the source and destination are effectively merged, which
+	 * is justified by virtue of SSA (static-single-assignment) being in effect.
+	 *
+	 * @param sourceSemanticValue
+	 *   Which [L2SemanticBoxedValue] to read.
+	 * @param targetSemanticValues
+	 *   Which [L2SemanticBoxedValue]s will have the same value as the source
+	 *   semantic value.
+	 */
+	fun moveBoxedRegister(
+		sourceSemanticValue: L2SemanticBoxedValue,
+		targetSemanticValues: Iterable<L2SemanticBoxedValue>)
+
+	/**
+	 * Generate instructions to arrange for the unboxed [Int] value in the given
+	 * [L2ReadIntOperand] to end up in an [L2IntRegister] associated in the
+	 * [L2ValueManifest] with the new [L2SemanticUnboxedInt].  After the move,
+	 * the synonyms for the source and destination are effectively merged, which
+	 * is justified by virtue of SSA (static-single-assignment) being in effect.
+	 *
+	 * @param sourceSemanticValue
+	 *   Which [L2SemanticUnboxedInt] to read.
+	 * @param targetSemanticValues
+	 *   Which [L2SemanticUnboxedInt]s will have the same value as the source
+	 *   semantic value.
+	 */
+	fun moveIntRegister(
+		sourceSemanticValue: L2SemanticUnboxedInt,
+		targetSemanticValues: Iterable<L2SemanticUnboxedInt>)
 
 	/**
 	 * Allocate a new [L2IntRegister].  Answer an [L2WriteIntOperand] that
@@ -242,7 +293,7 @@ interface L2GeneratorInterface
 	fun boxedConstant(value: A_BasicObject): L2ReadBoxedOperand
 
 	/**
-	 * Generate code to move the given `int` constant into an [L2IntRegister],
+	 * Generate code to move the given [Int] constant into an [L2IntRegister],
 	 * if it's not already known to be in such a register.  Answer an
 	 * [L2ReadIntOperand] to retrieve this value.
 	 *
@@ -252,6 +303,18 @@ interface L2GeneratorInterface
 	 *   The [L2ReadIntOperand] that retrieves the value.
 	 */
 	fun unboxedIntConstant(value: Int): L2ReadIntOperand
+
+	/**
+	 * Generate code to move the given [Double] constant into an
+	 * [L2FloatRegister], if it's not already known to be in such a register.
+	 * Answer an [L2ReadFloatOperand] to retrieve this value.
+	 *
+	 * @param value
+	 *   The constant [Double] to write to an [L2FloatRegister].
+	 * @return
+	 *   The [L2ReadFloatOperand] that retrieves the value.
+	 */
+	fun unboxedFloatConstant(value: Double): L2ReadFloatOperand
 
 	/**
 	 * Answer an [L2ReadBoxedOperand] for the given [L2SemanticValue],
@@ -294,6 +357,23 @@ interface L2GeneratorInterface
 	fun readInt(
 		semanticUnboxed: L2SemanticUnboxedInt,
 		onFailure: L2BasicBlock
+	): L2ReadIntOperand
+
+	/**
+	 * Return an [L2ReadIntOperand] for the given [L2SemanticUnboxedInt]. The
+	 * [TypeRestriction] must have been proven by the VM.  If the semantic value
+	 * only has a boxed form, generate code to unbox it.
+	 *
+	 * If the unboxing could fail due to the [TypeRestriction] not guaranteeing
+	 * an [i32], use the [readInt] generation method instead.
+	 *
+	 * @param semanticUnboxed
+	 *   The [L2SemanticUnboxedInt] to read as an unboxed int.
+	 * @return
+	 *   The unboxed [L2ReadIntOperand].
+	 */
+	fun readIntNoFail(
+		semanticUnboxed: L2SemanticUnboxedInt
 	): L2ReadIntOperand
 
 	/**
@@ -386,7 +466,7 @@ interface L2GeneratorInterface
 	 *   The numeric comparator to use for comparison.
 	 * @param number1Reg
 	 *   The first boxed numeric value.
-	 * @param int2Reg
+	 * @param number2Reg
 	 *   The second boxed numeric value.
 	 * @param ifTrue
 	 *   The target program counter operand if the comparison is true.
@@ -451,26 +531,28 @@ interface L2GeneratorInterface
 
 	/**
 	 * Given an [L2ReadBoxedOperand] that will hold a tuple and a fixed index
-	 * that is known to be in range, generate code to ensure the given
-	 * [L2WriteBoxedOperand], or the equivalent semantic values, will get that
-	 * element.
+	 * that is known to be in range, generate code to populate the given
+	 * [L2SemanticBoxedValue]s with that element.
 	 *
 	 * Depending on the source of the tuple, this may cause the creation of the
 	 * tuple to be entirely elided.
 	 *
-	 * This must only be used while the [controlFlowGraph] is still in SSA form.
+	 * This is only effective if the control flow graph is still in SSA form, or
+	 * if the register providing the tuple happened to have a single defining
+	 * write, otherwise a simple [L2_TUPLE_AT_CONSTANT] instruction will be
+	 * emitted.
 	 *
 	 * @param tupleRead
 	 *   The [L2BoxedRegister] containing the tuple.
 	 * @param index
 	 *   The one-based subscript into the tuple.
-	 * @param elementWrite
-	 *   The [L2WriteOperand] whose semantic value will be populated.
+	 * @param destinationSemanticValues
+	 *   The [L2SemanticBoxedValue]s that will containing the element.
 	 */
 	fun extractTupleElement(
 		tupleRead: L2ReadBoxedOperand,
 		index: Int,
-		write: L2WriteBoxedOperand)
+		destinationSemanticValues: Set<L2SemanticBoxedValue>)
 
 	/**
 	 * Pass-through to [L2ControlFlowGraph].  This can be used in the debugger

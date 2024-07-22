@@ -1494,6 +1494,8 @@ abstract class AbstractDescriptor protected constructor (
 		anInteger: AvailObject,
 		canDestroy: Boolean): A_Number
 
+	abstract fun o_DummyElement(self: AvailObject): AvailObject
+
 	abstract fun o_SetExecutionState (self: AvailObject, value: ExecutionState)
 
 	abstract fun o_ExtractNybbleFromTupleAt (
@@ -4126,6 +4128,13 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_NamesIndexRecord(
 		self: AvailObject
 	): NamesIndex
+
+	@Throws(AvailException::class)
+	abstract fun o_RecursivelyUpdate(
+		self: AvailObject,
+		indices: Iterator<AvailObject>,
+		update: (AvailObject)->A_BasicObject
+	): A_BasicObject
 
 	companion object
 	{

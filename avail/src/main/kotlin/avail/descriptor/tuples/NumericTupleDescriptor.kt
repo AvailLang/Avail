@@ -31,6 +31,7 @@
  */
 package avail.descriptor.tuples
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -64,4 +65,6 @@ protected constructor(
 	abstract override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 
 	abstract override fun o_TupleLongAt(self: AvailObject, index: Int): Long
+
+	override fun o_DummyElement(self: AvailObject): AvailObject = zero
 }

@@ -64,7 +64,7 @@ object P_CreateLiteralExpression : Primitive(1, CannotFail, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val tokenType = argumentTypes[0]

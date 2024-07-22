@@ -96,7 +96,8 @@ constructor(
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
 
-	override fun instructionWasAdded(manifest: L2ValueManifest)
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
 		elements.forEach{ it.instructionWasAdded(manifest) }
@@ -112,13 +113,6 @@ constructor(
 	{
 		super.instructionWasRemoved()
 		elements.forEach { it.instructionWasRemoved() }
-	}
-
-	override fun replaceRegisters(
-		registerRemap: Map<L2Register<*>, L2Register<*>>,
-		theInstruction: L2Instruction)
-	{
-		elements.forEach { it.replaceRegisters(registerRemap, theInstruction) }
 	}
 
 	override fun addWritesTo(writeOperands: MutableList<L2WriteOperand<*>>)

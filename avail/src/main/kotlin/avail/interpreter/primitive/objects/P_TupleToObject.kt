@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.objects
 
+import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map.Companion.hasKey
@@ -101,7 +102,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			mostGeneralObjectType)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
 		val tupleSizes = tupleType.sizeRange
@@ -163,7 +164,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		val size = sizeRange.lowerBound.extractInt
 		if (!sizeRange.upperBound.equalsInt(size)) return false
 		// The tuple size is known.  See if the order of field atoms is known.
-		val atoms = (1..size).map {
+		val atoms: List<A_Atom> = (1..size).map {
 			val keyType = pairsType.typeAtIndex(it).typeAtIndex(1)
 			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
 			{
@@ -191,11 +192,11 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 				if (index != 0)
 				{
 					val valueType = pairSource.type().typeAtIndex(2)
-					val fieldWrite = generator.boxedWriteTemp(
-						boxedRestrictionForType(valueType))
-					generator.extractTupleElement(pairSource, 2, fieldWrite)
+					val valueTemp = generator.newTemp()
+					generator.extractTupleElement(
+						pairSource, 2, setOf(valueTemp))
 					sourcesByFieldIndex[index - 1] =
-						generator.readBoxed(fieldWrite)
+						generator.readBoxed(valueTemp)
 					fieldTypePairs.add(tuple(atom, valueType))
 				}
 			}

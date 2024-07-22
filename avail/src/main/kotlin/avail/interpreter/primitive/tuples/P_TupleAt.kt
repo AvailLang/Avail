@@ -65,11 +65,11 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_INT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
 import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import avail.interpreter.levelTwo.operation.NumericComparator
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -108,7 +108,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (tupleType, subscripts) = argumentTypes
@@ -160,19 +160,18 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			val intSizeRestriction = intRestrictionForType(
 				tupleReg.type().sizeRange.typeIntersection(i31))
 			val intSizeType = intSizeRestriction.type
+			val sizeWriter = generator.intWrite(
+				setOf(unboxedSemanticSize), intSizeRestriction)
 			if (intSizeType.lowerBound.equals(intSizeType.upperBound))
 			{
-				val sizeRead = generator.unboxedIntConstant(
-					intSizeType.lowerBound.extractInt)
-				generator.moveRegister(
-					INTEGER_KIND,
-					sizeRead.semanticValue(),
-					setOf(unboxedSemanticSize))
+				generator.addInstruction(
+					L2_MOVE_INT(
+						generator.unboxedIntConstant(
+							intSizeType.lowerBound.extractInt),
+						sizeWriter))
 			}
 			else
 			{
-				val sizeWriter = generator.intWrite(
-					setOf(unboxedSemanticSize), intSizeRestriction)
 				translator.addInstruction(L2_TUPLE_SIZE(tupleReg, sizeWriter))
 			}
 			val readSubscript = generator.readInt(

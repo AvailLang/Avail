@@ -31,6 +31,7 @@
  */
 package avail.optimizer
 
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
@@ -71,7 +72,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			set(value)
 			{
 				field = value
-				registers.forEach { it.setFinalIndex(value) }
+				registers.forEach { it.finalIndex = value }
 			}
 
 		override fun toString(): String = buildString {
@@ -251,8 +252,8 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 						assert(instruction.destinationRegisters.single()
 							== destinationReg)
 						coalesceNoninterferingMove(
-							instruction.source().register(),
-							instruction.destination().register())
+							instruction.source.register(),
+							instruction.destination.register())
 					}
 					// An L2_STRIP_MANIFEST has a vector of inputs that map to a
 					// vector of outputs.  Map the particular one we're working
@@ -280,6 +281,8 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		sourceRegister: L2Register<*>,
 		destinationRegister: L2Register<*>)
 	{
+		// If the source is a constant, just ignore it.
+		if (sourceRegister.isConstant) return
 		// The source and destination registers shouldn't be
 		// considered interfering if they'll hold the same value.
 		val group1 = group(destinationRegister)
@@ -386,7 +389,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		}
 		for (register in registerGroups.keys)
 		{
-			assert(register.finalIndex() != -1)
+			assert(register.finalIndex != -1)
 		}
 	}
 

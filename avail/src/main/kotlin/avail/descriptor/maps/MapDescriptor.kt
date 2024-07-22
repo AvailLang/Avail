@@ -62,6 +62,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.IMMUTABLE
 import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.Mutability.SHARED
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
@@ -91,6 +92,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
+import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
+import avail.exceptions.AvailException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -506,6 +509,26 @@ class MapDescriptor private constructor(
 		object : Iterable<Entry> {
 			override fun iterator() = rootBin(self).mapBinIterator
 		}
+
+	@Throws(AvailException::class)
+	override fun o_RecursivelyUpdate(
+		self: AvailObject,
+		indices: Iterator<AvailObject>,
+		update: (AvailObject)->A_BasicObject
+	): A_BasicObject
+	{
+		if (!indices.hasNext()) return update(self)
+		val key = indices.next()
+		if (!self.hasKey(key)) throw AvailException(E_KEY_NOT_FOUND)
+		val oldElement = self.mapAt(key)
+		val tupleToUpdate = when
+		{
+			isMutable -> self.mapAtPuttingCanDestroy(key, nil, true)
+			else -> self
+		}
+		val replacement = oldElement.recursivelyUpdate(indices, update)
+		return tupleToUpdate.mapAtPuttingCanDestroy(key, replacement, true)
+	}
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =

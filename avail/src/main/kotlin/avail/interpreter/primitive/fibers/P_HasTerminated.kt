@@ -67,4 +67,6 @@ object P_HasTerminated : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralFiberType()), booleanType)
+
+	override val canDestroyArguments get() = false
 }

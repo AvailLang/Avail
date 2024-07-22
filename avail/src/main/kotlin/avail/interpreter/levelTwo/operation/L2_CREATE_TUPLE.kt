@@ -58,14 +58,14 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticBoxedValue
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -98,11 +98,7 @@ class L2_CREATE_TUPLE(
 	 * Generated code uses:
 	 *
 	 *  * [TupleDescriptor.emptyTuple] (zero arguments)
-	 *  * [ObjectTupleDescriptor.tuple] (one argument)
-	 *  * [ObjectTupleDescriptor.tuple] (two arguments)
-	 *  * [ObjectTupleDescriptor.tuple] (three arguments)
-	 *  * [ObjectTupleDescriptor.tuple] (four arguments)
-	 *  * [ObjectTupleDescriptor.tuple] (five arguments)
+	 *  * [ObjectTupleDescriptor.tuple] (1..5 arguments)
 	 *  * [ObjectTupleDescriptor.tupleFromArray] (>5 arguments)
 	 *
 	 */
@@ -217,16 +213,15 @@ class L2_CREATE_TUPLE(
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
+		tupleRead: L2ReadBoxedOperand,
 		index: Int,
-		write: L2WriteBoxedOperand,
+		destinationSemanticValues: Set<L2SemanticBoxedValue>,
 		generator: L2Generator)
 	{
-		val instruction = tupleReg.definition().instruction
+		val instruction = tupleRead.definition().instruction
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		// val tuple = instruction.operand<L2WriteBoxedOperand>(1)
-
-		generator.addInstruction(
-			L2_MOVE_BOXED(values.elements[index - 1], write))
+		generator.moveBoxedRegister(
+			values.elements[index - 1].semanticValue(),
+			destinationSemanticValues)
 	}
 }

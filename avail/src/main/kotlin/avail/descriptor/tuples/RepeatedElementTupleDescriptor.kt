@@ -427,10 +427,8 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		}
 		// Otherwise, a flat tuple would be unacceptably large, so use append
 		// and concatenate to construct what will probably be a tree tuple.
-		val left = self.copyTupleFromToCanDestroy(
-			1, index - 1, false)
-		val right = self.copyTupleFromToCanDestroy(
-			index + 1, size, false)
+		val left = self.copyTupleFromToCanDestroy(1, index - 1, false)
+		val right = self.copyTupleFromToCanDestroy(index + 1, size, false)
 		return left.appendCanDestroy(newValueObject, true).concatenateWith(
 			right, true)
 	}

@@ -72,7 +72,7 @@ import avail.utility.cast
  * @param register
  *   The [L2Register] being read by this operand.
  */
-abstract class L2ReadOperand<K: RegisterKind<K>>
+abstract class L2ReadOperand<K : RegisterKind<K>>
 protected constructor(
 	private var semanticValue: L2SemanticValue<K>,
 	private var restriction: TypeRestriction,
@@ -104,12 +104,29 @@ protected constructor(
 	fun register(): L2Register<K> = register
 
 	/**
+	 * Answer whether this [L2ReadOperand] supplies a constant directly, rather
+	 * than consuming it from a prior point of definition (write).
+	 */
+	val isConstantRead get() = register.isConstant
+
+	/**
 	 * Answer a String that describes this operand for debugging.
 	 *
 	 * @return
 	 *   A [String].
 	 */
-	fun registerString(): String = "$register[$semanticValue]"
+	fun registerString(): String =
+		if (isConstantRead)
+		{
+			// The register has been replaced by a fresh one with no definition,
+			// which later passes recognize as being a constant read at the
+			// point of usage.
+			"const[${register.constant}]"
+		}
+		else
+		{
+			"$register[$semanticValue]"
+		}
 
 	/**
 	 * Answer the [L2Register]'s [finalIndex][L2Register.finalIndex].
@@ -117,7 +134,7 @@ protected constructor(
 	 * @return
 	 *   The index of the register, computed during register coloring.
 	 */
-	fun finalIndex(): Int = register().finalIndex()
+	fun finalIndex(): Int = register().finalIndex
 
 	/**
 	 * Answer the type restriction for this register read.
@@ -126,6 +143,23 @@ protected constructor(
 	 *   A [TypeRestriction].
 	 */
 	fun restriction(): TypeRestriction = restriction
+
+	/**
+	 * Alter this read's [restriction].
+	 *
+	 * @param transformer
+	 *   An extension lambda to produce a new [TypeRestriction] from the
+	 *   existing one.
+	 */
+	fun restrict(transformer: TypeRestriction.()->TypeRestriction)
+	{
+		// Try to preserve the restriction's identity if unchanged.
+		val newRestriction = restriction.transformer().intersection(restriction)
+		if (newRestriction != restriction)
+		{
+			restriction = newRestriction
+		}
+	}
 
 	/**
 	 * Answer this read's type restriction's basic type.
@@ -144,7 +178,7 @@ protected constructor(
 	 *   The exact [A_BasicObject] that's known to be in this register, or else
 	 *   `null`.
 	 */
-	fun constantOrNull(): AvailObject? = restriction.constantOrNull
+	val constantOrNull: AvailObject? get() = restriction.constantOrNull
 
 	/**
 	 * Answer the [L2WriteOperand] that provided the value that this operand is
@@ -159,12 +193,16 @@ protected constructor(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-		val manifestRestriction = manifest.restrictionFor(semanticValue)
-		if (manifestRestriction != restriction)
+		if (!isConstantRead)
 		{
-			val intersection = restriction.intersection(manifestRestriction)
-			restriction = intersection
-			manifest.setRestriction(semanticValue, intersection)
+			// After phi move insertion and constant substitution, there may be
+			// reads of unavailable semantic values, even though the register is
+			// definitely available.
+			if (manifest.hasSemanticValue(semanticValue))
+			{
+				restrict { manifest.restrictionFor(this@L2ReadOperand) }
+				manifest.setRestriction(semanticValue(), restriction)
+			}
 		}
 		register().addUse(this)
 	}
@@ -194,24 +232,9 @@ protected constructor(
 		register().removeUse(this)
 	}
 
-	override fun replaceRegisters(
-		registerRemap: Map<L2Register<*>, L2Register<*>>,
-		theInstruction: L2Instruction
-	)
-	{
-		val replacement: L2Register<K>? = registerRemap[register].cast()
-		if (replacement === null || replacement === register)
-		{
-			return
-		}
-		register().removeUse(this)
-		replacement.addUse(this)
-		register = replacement
-	}
-
 	override fun transformEachRead(
-		transformer: (L2ReadOperand<*>) -> L2ReadOperand<*>
-	) : L2ReadOperand<K> = transformer(this).cast()
+		transformer: (L2ReadOperand<*>)->L2ReadOperand<*>
+	): L2ReadOperand<K> = transformer(this).cast()
 
 	override fun addReadsTo(readOperands: MutableList<L2ReadOperand<*>>)
 	{
@@ -249,7 +272,7 @@ protected constructor(
 		{
 			other = when
 			{
-				other is L2_MOVE<*> -> other.source().definition().instruction
+				other is L2_MOVE<*> -> other.source.definition().instruction
 				else -> return other
 			}
 		}
@@ -347,7 +370,7 @@ protected constructor(
 			val instruction = def.instruction
 			if (instruction is L2_MOVE<*>)
 			{
-				def = instruction.source().definition()
+				def = instruction.source.definition()
 				continue
 			}
 			//TODO: Trace back through L2_[BOX|UNBOX]_[INT|FLOAT], etc.
@@ -356,12 +379,36 @@ protected constructor(
 	}
 
 	/**
-	 * Create a new register of a suitable type for this read.
-	 *
-	 * @return
-	 *   A new [L2Register] of the appropriate [RegisterKind] (i.e., [K]).
+	 * Create a new *consstant* pseudo-register, using the restriction to
+	 * determine the constant value.
 	 */
-	abstract fun createNewRegister(): L2Register<K>
+	abstract fun createConstantRegister(): L2Register<K>
+
+	/**
+	 * Create a new *consstant* pseudo-register, using the restriction to
+	 * determine the constant value.
+	 */
+	abstract fun createSemanticConstant(): L2SemanticValue<K>
+
+	/**
+	 * This [L2ReadOperand] produces a constant value.  Replace its register
+	 * with a fresh one that has no definition, to break dependency chains from
+	 * its defining writes, allowing fewer registers to be live at the same
+	 * time.
+	 */
+	fun replaceConstantRead()
+	{
+		instruction.sourceRegisters.remove(register)
+		register.removeUse(this)
+		register = createConstantRegister()
+		semanticValue = createSemanticConstant()
+		register.addUse(this)
+		// Simply rebuild the sourceRegisters.
+		instruction.sourceRegisters.clear()
+		instruction.readOperands.forEach { read ->
+			instruction.sourceRegisters.add(read.register)
+		}
+	}
 
 	override fun postOptimizationCleanup()
 	{

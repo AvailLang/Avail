@@ -65,9 +65,8 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.ShiftLeft
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.SignedShiftRight
-import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shl
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shr
 import avail.optimizer.L1Translator
 import avail.utility.notNullAnd
 
@@ -118,7 +117,7 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
@@ -203,8 +202,7 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 				outputType.lowerBound.equals(outputType.upperBound) ->
 				{
 					// The resulting value is known precisely.
-					generator.moveRegister(
-						INTEGER_KIND,
+					generator.moveIntRegister(
 						generator.unboxedIntConstant(
 							outputType.lowerBound.extractInt
 						).semanticValue(),
@@ -217,28 +215,26 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 					//   1. The base is always in [-1, 0], so the shift, whether
 					//      left or right, has no effect, or
 					//   2. The shift is always zero, likewise having no effect.
-					generator.moveRegister(
-						INTEGER_KIND,
-						intA.semanticValue(),
-						intWrite.semanticValues())
+					generator.moveIntRegister(
+						intA.semanticValue(), intWrite.semanticValues())
 				}
 				intB.type().isSubtypeOf(inclusive(0, 31)) ->
 				{
 					// The shift is in [0..31], so the JVM can directly handle
 					// it.
 					generator.addInstruction(
-						L2_BIT_LOGIC_OP(SignedShiftRight, intA, intB, intWrite))
+						L2_BIT_LOGIC_OP(Shr, intA, intB, intWrite))
 				}
-				intB.constantOrNull().notNullAnd { extractInt in -31..0 } ->
+				intB.constantOrNull.notNullAnd { extractInt in -31..0 } ->
 				{
 					// The shift is a constant in [-31..0], so we can convert it
 					// to a constant left shift that the JVM can handle.
 					generator.addInstruction(
 						L2_BIT_LOGIC_OP(
-							ShiftLeft,
+							Shl,
 							intA,
 							generator.unboxedIntConstant(
-								0 - intB.constantOrNull()!!.extractInt),
+								0 - intB.constantOrNull!!.extractInt),
 							intWrite))
 				}
 				else ->

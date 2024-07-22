@@ -354,6 +354,11 @@ class ContinuationDescriptor private constructor(
 		}
 
 		val disassembled = L1Disassembler(code).disassembledAsSlots(pcBefore)
+		val primString = when (val prim = code.codePrimitive())
+		{
+			null -> ""
+			else -> " ($prim)"
+		}
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
@@ -361,7 +366,7 @@ class ContinuationDescriptor private constructor(
 				-1,
 				null,
 				slotName = "Disassembly",
-				forcedName = "L1 Disassembly ($moduleName)",
+				forcedName = "L1 Disassembly ($moduleName)$primString",
 				forcedChildren = disassembled.toTypedArray()))
 		return fields.toTypedArray()
 	}

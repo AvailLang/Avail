@@ -34,9 +34,11 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue
@@ -63,15 +65,32 @@ class L2_JUMP_BACK(
 		// Play the reads against the old manifest, which is then filtered.
 		registersToKeep.instructionWasAdded(manifest)
 		val semanticValuesToKeep = mutableSetOf<L2SemanticValue<*>>()
-		val toKeep = mutableSetOf<L2Register<*>>()
-		registersToKeep.elements.forEach {
-			semanticValuesToKeep.add(it.semanticValue())
-			toKeep.add(it.register())
+		val registersToKeep = mutableSetOf<L2Register<*>>()
+		this.registersToKeep.elements.forEach { read: L2ReadBoxedOperand ->
+			semanticValuesToKeep.add(read.semanticValue())
+			read.restriction().constantOrNull?.let { constant ->
+				// Also include any associated semantic constant, to ensure the
+				// invariant of the manifest is maintained – i.e., that any
+				// synonym of boxed values constrained to a constant must
+				// include a semantic constant.
+				semanticValuesToKeep.add(L2SemanticValue.constant(constant))
+			}
+			registersToKeep.add(read.register())
 		}
 		manifest.clearPostponedInstructions()
 		manifest.retainSemanticValues(semanticValuesToKeep)
-		manifest.retainRegisters(toKeep)
+		manifest.retainRegisters(registersToKeep)
 		target.instructionWasAdded(manifest)
+		target.forcedClampedEntities =
+			(semanticValuesToKeep + registersToKeep).toMutableSet()
+	}
+
+	override fun replaceConstantReads(
+		generator: L2GeneratorInterface,
+		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
+	{
+		// Don't replace my registersToKeep with constants, since that makes it
+		// too confusing to process backward jumps and doesn't add any value.
 	}
 
 	override fun translateToJVM(

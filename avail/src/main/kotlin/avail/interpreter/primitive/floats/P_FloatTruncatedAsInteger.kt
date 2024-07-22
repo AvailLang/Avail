@@ -77,4 +77,6 @@ object P_FloatTruncatedAsInteger : Primitive(1, CanFold, CanInline)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER))
+
+	override val canDestroyArguments get() = false
 }

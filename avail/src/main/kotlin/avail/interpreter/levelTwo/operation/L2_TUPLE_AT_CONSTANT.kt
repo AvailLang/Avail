@@ -33,8 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -73,8 +73,8 @@ class L2_TUPLE_AT_CONSTANT(
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
-		val subscript = subscript.value
-		regenerator.extractTupleElement(tuple, subscript, destination)
+		regenerator.extractTupleElement(
+			tuple, subscript.value, destination.semanticValues())
 	}
 
 	override fun translateToJVM(

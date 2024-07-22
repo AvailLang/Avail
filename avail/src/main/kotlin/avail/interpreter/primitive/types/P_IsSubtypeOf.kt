@@ -100,7 +100,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val yType = yTypeReg.type().instance
 
 		val translator = callSiteHelper.translator
-		val constantYType = yTypeReg.constantOrNull()
+		val constantYType = yTypeReg.constantOrNull
 		if (constantYType !== null)
 		{
 			assert(constantYType.isSubtypeOf(yType))
@@ -114,7 +114,7 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			}
 		}
 
-		val constantXType = xTypeReg.constantOrNull()
+		val constantXType = xTypeReg.constantOrNull
 		if (constantXType !== null)
 		{
 			assert(constantXType.isSubtypeOf(xType))
@@ -191,4 +191,6 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 			translator.generator.boxedConstant(falseObject))
 		return true
 	}
+
+	override val canDestroyArguments get() = false
 }

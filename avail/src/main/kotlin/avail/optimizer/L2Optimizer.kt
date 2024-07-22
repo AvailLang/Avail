@@ -32,22 +32,29 @@
 package avail.optimizer
 
 import avail.AvailRuntimeSupport
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.debugAvailableSplits
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
+import avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_JUMP
 import avail.interpreter.levelTwo.operation.L2_JUMP_BACK
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -55,6 +62,9 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2ControlFlowGraph.StateFlag
 import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
+import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticValue
 import avail.performance.Statistic
@@ -67,6 +77,7 @@ import java.util.BitSet
 import java.util.Deque
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
+import kotlin.streams.toList
 
 /**
  * An `L2Optimizer` optimizes its [L2ControlFlowGraph]. This is a control graph.
@@ -196,24 +207,25 @@ class L2Optimizer internal constructor(
 	 *
 	 * @param dataCouplingMode
 	 *   The [DataCouplingMode] that chooses how to trace liveness.
-	 * @param generatePhis
-	 *   Whether to produce [L2_PHI]s automatically.
+	 * @param mode
+	 *   How to connect values in the new graph.  This primarily controls
+	 *   whether to produce [L2_PHI]s automatically, based on [L2SemanticValue]
+	 *   matching.
 	 */
 	private fun removeDeadInstructions(
 		dataCouplingMode: DataCouplingMode,
-		generatePhis: Boolean)
+		mode: GenerationMode)
 	{
 		val analyzer = DeadCodeAnalyzer(dataCouplingMode, controlFlowGraph)
 		analyzer.analyzeReads()
 		val liveInstructions = analyzer.liveInstructions()
 		regenerateGraph(
-			generatePhis = generatePhis,
+			mode = mode,
 			isRemovingDeadCode = true
 		) { sourceInstruction ->
 			if (sourceInstruction in liveInstructions)
 			{
-				basicTransformInstruction(sourceInstruction)
-					.emitTransformedInstruction(this)
+				addInstruction(basicTransformInstruction(sourceInstruction))
 			}
 		}
 	}
@@ -233,7 +245,12 @@ class L2Optimizer internal constructor(
 		// Removing instructions won't cause blocks to be inaccessible, so just
 		// clean up unreachable blocks once at the start.
 		removeUnreachableBlocks()
-		removeDeadInstructions(dataCouplingMode, generatePhis)
+		val mode = when
+		{
+			generatePhis -> BySemanticValue
+			else -> ByRegister
+		}
+		removeDeadInstructions(dataCouplingMode, mode)
 	}
 
 	/**
@@ -448,7 +465,7 @@ class L2Optimizer internal constructor(
 		// prior to regeneration.
 
 		regenerateGraph(
-			generatePhis = true,
+			mode = BySemanticValue,
 			interestingConditionsByOldBlock = splitConditions)
 		{ sourceInstruction ->
 			if (sourceInstruction !is L2_PHI<*>)
@@ -548,12 +565,16 @@ class L2Optimizer internal constructor(
 					lastPhiIndex = i
 					break
 				}
+				val writes = instruction.destinationRegisters
+				// Ignore constant pseudo-registers.
+				val reads = instruction.sourceRegisters
+					.filterNot(L2Register<*>::isConstant)
 				@Suppress("ConvertArgumentToSet")
-				sometimesLive.removeAll(instruction.destinationRegisters)
-				sometimesLive.addAll(instruction.sourceRegisters)
+				sometimesLive.removeAll(writes)
+				sometimesLive.addAll(reads)
 				@Suppress("ConvertArgumentToSet")
-				alwaysLive.removeAll(instruction.destinationRegisters)
-				alwaysLive.addAll(instruction.sourceRegisters)
+				alwaysLive.removeAll(writes)
+				alwaysLive.addAll(reads)
 			}
 
 			// Add in the predecessor-specific live-in information for each edge
@@ -600,17 +621,6 @@ class L2Optimizer internal constructor(
 	}
 
 	/**
-	 * Replace constant-valued registers with fresh registers that have no
-	 * definitions.  The JVM code generator will recognize that these are
-	 * constants, and produce code to produce them on the JVM stack by reading
-	 * the constants pool or via special instructions for int/double constants.
-	 */
-	fun replaceConstantRegisters()
-	{
-		//TODO Not yet implemented.
-	}
-
-	/**
 	 * Regenerate the edge-split SSA graph, postponing emission of
 	 * side-effectless instructions until just before they're needed.
 	 *
@@ -644,8 +654,8 @@ class L2Optimizer internal constructor(
 		computeLivenessAtEachEdge()
 		// Emit the transformation of the given instruction, emitting any
 		// necessary postponed instructions first.
-		regenerateGraph(true) { sourceInstruction ->
-			if (sourceInstruction.goesMultipleWays)
+		regenerateGraph(BySemanticValue) { sourceInstruction ->
+			if (sourceInstruction is L2_SAVE_ALL_AND_PC_TO_INT)
 			{
 				// Don't allow instructions to be delayed across an instruction
 				// that goes both ways, since that would make the computation in
@@ -685,24 +695,100 @@ class L2Optimizer internal constructor(
 				}
 				else ->
 				{
-					// Postpone the translation.  The same instruction may be
-					// translated multiple times, in different basic blocks.
-					currentManifest
-						.recordPostponedSourceInstruction(sourceInstruction)
+					// At least one output is a constant.  Emit a constant move
+					// for each constant output, then postpone the instruction
+					// if any outputs were non-constant.
+					var anyNonconstant = false
+					for (write in sourceInstruction.writeOperands)
+					{
+						val constant = write.restriction().constantOrNull
+						when (constant)
+						{
+							null -> anyNonconstant = true
+							else -> moveConstantForWrite(constant, write)
+						}
+					}
+					if (anyNonconstant)
+					{
+						// At least one output was non-constant.  Postpone the
+						// instruction.
+						currentManifest.recordPostponedSourceInstruction(
+							sourceInstruction)
+					}
 				}
 			}
 		}
 	}
 
+	/**
+	 * Ensure the given constant is written to each of the [L2SemanticValue]s
+	 * of the given [L2WriteOperand].
+	 */
+	private fun <K: RegisterKind<K>> moveConstantForWrite(
+		constant: AvailObject,
+		write: L2WriteOperand<K>)
+	{
+		val kind = write.kind
+		val read = kind.readConstant(generator, constant)
+		// Populate the rest of the semantic values.
+		val (old, new) = write.semanticValues().partition(
+			generator.currentManifest::hasSemanticValue)
+		if (new.isNotEmpty())
+		{
+			generator.addInstruction(
+				kind.move(
+					read,
+					kind.createWrite(
+						generator::nextUnique,
+						new.toSet(),
+						restrictionForConstant(
+							constant, kind.restrictionFlag))))
+		}
+		// Ensure already-populated semantic values end up in the same synonym
+		// as the semantic constant.
+		for (oldValue in old)
+		{
+			generator.currentManifest.mergeExistingSemanticValues(
+				read.semanticValue(), oldValue)
+		}
+	}
+
+	/**
+	 * An [L2ControlFlowGraph] can have different invariants in different phases
+	 * of code [generation][L2GeneratorInterface].  [GenerationMode] subclasses
+	 * indicate how reads and writes are connected in a particular graph.
+	 */
+	sealed class GenerationMode
+	{
+		/** The graph is connected by [L2SemanticValue]. */
+		object BySemanticValue : GenerationMode()
+
+		/** The graph is connected by [L2Register]. */
+		object ByRegister : GenerationMode()
+
+		/**
+		 * The graph is being regenerated with a specific register and semantic
+		 * value remapping.
+		 *
+		 * @property registerMap
+		 *   A mutable map from old graph registers to new graph registers.
+		 */
+		class WithFixedRegisterMap(
+			val registerMap: MutableMap<L2Register<*>, L2Register<*>>
+		) : GenerationMode()
+	}
 
 	/**
 	 * Regenerate the [controlFlowGraph], using the given instruction
 	 * transformer function.
 	 *
-	 * @param generatePhis
-	 *   Whether to produce phi instructions automatically based on semantic
-	 *   values that are in common among incoming edges at merge points.  This
-	 *   is false when phis have already been replaced with non-SSA moves.
+	 * @param mode
+	 *   A [GenerationMode] that primarily controls whether to produce phi
+	 *   instructions automatically based on semantic values that are in common
+	 *   among incoming edges at merge points.  In early passes, we expect this
+	 *   to be [BySemanticValue], which constructs phis for matching
+	 *   [L2SemanticValue]s, but for later passes (after leaving SSA form),
+	 *   we'll match by [ByRegister], which only considers [L2Register]s.
 	 * @param interestingConditionsByOldBlock
 	 *   A map that contains information about which conditions should be
 	 *   preserved through splitting of which original blocks (because the
@@ -712,7 +798,7 @@ class L2Optimizer internal constructor(
 	 *   What to do with each [L2Instruction] encountered in the old graph.
 	 */
 	private fun regenerateGraph(
-		generatePhis: Boolean,
+		mode: GenerationMode,
 		isRemovingDeadCode: Boolean = false,
 		interestingConditionsByOldBlock:
 			Map<L2BasicBlock, Set<L2SplitCondition>> = emptyMap(),
@@ -726,9 +812,7 @@ class L2Optimizer internal constructor(
 		val inverseSpecialBlockMap =
 			generator.specialBlocks.entries.associate { (s, b) -> b to s }
 		val regenerator = object : L2Regenerator(
-			generator,
-			generatePhis = generatePhis,
-			isRegeneratingDeadCode = isRemovingDeadCode)
+			generator, mode, isRemovingDeadCode)
 		{
 			/**
 			 * Collapsing unconditional jumps wouldn't preserve all blocks that
@@ -761,14 +845,6 @@ class L2Optimizer internal constructor(
 								unpopulated.add(it)
 							}
 						}
-					assert(unpopulated.isEmpty()) {
-						buildString {
-							append("Regeneration (")
-							append(sourceInstruction)
-							append(") failed to populate values: ")
-							append(unpopulated)
-						}
-					}
 				}
 			}
 		}
@@ -794,7 +870,7 @@ class L2Optimizer internal constructor(
 			return
 		}
 		// Use an L2Regenerator to do the substitution.
-		regenerateGraph(true) { sourceInstruction ->
+		regenerateGraph(BySemanticValue) { sourceInstruction ->
 			basicTransformInstruction(sourceInstruction)
 				.generateReplacement(this)
 		}
@@ -810,62 +886,75 @@ class L2Optimizer internal constructor(
 	 */
 	fun insertPhiMoves()
 	{
-		for (block in blocks)
-		{
-			val instructionIterator = block.instructions().iterator()
-			while (instructionIterator.hasNext())
+		// First, collect move instruction to insert before the jumps that lead
+		// to phi instructions.
+		val inserts = mutableMapOf<L2Instruction, MutableList<L2_MOVE<*>>>()
+		blocks.forEach { block ->
+			block.instructions().forEach { phi ->
+				if (phi is L2_PHI<*>)
+				{
+					block.predecessorEdges().forEachIndexed { i, edge ->
+						val predBlock = edge.instruction.basicBlock()
+						inserts.computeIfAbsent(edge.instruction) {
+							mutableListOf()
+						}.add(phi.replacementMoveForIndex(i, predBlock))
+					}
+				}
+			}
+		}
+		// Now insert those instructions and remove the phis, while copying the
+		// graph.  Count this as removing dead code.
+		regenerateGraph(ByRegister, true) { sourceInstruction ->
+			assert (sourceInstruction !is L2_PHI<*>)
+			val movesToInsert = inserts[sourceInstruction]
+			if (movesToInsert != null)
 			{
-				val instruction = instructionIterator.next()
-				if (instruction !is L2_PHI<*>)
-				{
-					// Phi functions are always at the start, so we must be past
-					// them, if any.
-					break
+				movesToInsert.forEach { newMove ->
+					addInstruction(basicTransformInstruction(newMove))
 				}
-				val phiSources = instruction.sources().elements
-				val fanIn = block.predecessorEdges().size
-				assert(fanIn == phiSources.size)
-				val targetWriter = instruction.destination()
-				// Insert a non-SSA move in each predecessor block.
-				for (i in 0 until fanIn)
+				if (sourceInstruction is L2_JUMP_BACK)
 				{
-					val edge = block.predecessorEdges()[i]
-					val predecessor = edge.sourceBlock()
-					val instructions = predecessor.instructions()
-					assert(predecessor.finalInstruction().let {
-						it is L2_JUMP || it is L2_JUMP_BACK
-					})
-					val move =
-						instruction.replacementMoveForIndex(i, predecessor)
-					predecessor.insertInstruction(instructions.size - 1, move)
-					if (edge.isBackward)
-					{
-						edge.manifest().replaceDefinitions(
-							move.destination())
-					}
-					else
-					{
-						edge.manifest().recordDefinitionNoCheck(
-							move.destination())
-					}
-					if (edge.forcedClampedEntities !== null)
-					{
-						// Replace the semantic value(s) and register in the
-						// clamped set of entities, if present.
-						val clamped = edge.forcedClampedEntities!!
-						if (clamped.remove(move.source().semanticValue()))
-						{
-							clamped.addAll(targetWriter.semanticValues())
-						}
-						if (clamped.remove(move.source().register()))
-						{
-							clamped.add(targetWriter.register())
+					// We have to update which registers are to be kept along
+					// the back-edge.
+					val reads = movesToInsert.map { move ->
+						// Only boxed values are currently supported in the
+						// backward jump.  This will need to be addressed when
+						// we specialize loops, or maybe even just hoist
+						// invariant int values.
+						(move as L2_MOVE_BOXED).destination.run {
+							L2ReadBoxedOperand(
+								pickSemanticValue(),
+								restriction(),
+								register())
 						}
 					}
+					val replacement = L2_JUMP_BACK(
+						sourceInstruction.target,
+						L2ReadBoxedVectorOperand(reads))
+					addInstruction(basicTransformInstruction(replacement))
+					return@regenerateGraph
 				}
-				// Eliminate the phi function itself.
-				instructionIterator.remove()
-				instruction.justRemoved()
+			}
+			addInstruction(basicTransformInstruction(sourceInstruction))
+		}
+	}
+
+	/**
+	 * Replace constant-valued registers with fresh registers that have no
+	 * definitions.  The JVM code generator will recognize that these are
+	 * constants, and produce code to produce them on the JVM stack by reading
+	 * the constants pool or via special instructions for int/double constants.
+	 *
+	 * The graph has already had its phis replaced with moves at this point, and
+	 * is therefore not in SSA form.
+	 */
+	fun replaceConstantRegisters()
+	{
+		val registerToValueMap =
+			mutableMapOf<L2Register<*>, L2SemanticValue<*>>()
+		blocks.forEach { block ->
+			block.instructions().forEach { instruction ->
+				instruction.replaceConstantReads(generator, registerToValueMap)
 			}
 		}
 	}
@@ -915,50 +1004,51 @@ class L2Optimizer internal constructor(
 	{
 		// Create new registers for each <kind, finalIndex> in the existing
 		// registers.
-		val byKindAndIndex: Map<RegisterKind<*>, MutableMap<Int, L2Register<*>>> =
-			RegisterKind.all.associateWithTo(mutableMapOf()) { mutableMapOf() }
-		val remap: MutableMap<L2Register<*>, L2Register<*>> = mutableMapOf()
-		// Also collect all the old registers.
-		val oldRegisters = mutableSetOf<L2Register<*>>()
-		val action: (L2Register<*>)->Unit = { reg: L2Register<*> ->
-			remap[reg] = byKindAndIndex[reg.kind]!!
-				.computeIfAbsent(reg.finalIndex()) { reg.copyAfterColoring() }
-			oldRegisters.add(reg)
+		val byKindAndIndex = RegisterKind.all.associateWith {
+			mutableMapOf<Int, L2Register<*>>()
 		}
-		blocks.deepForEach({ instructions() }) { instruction ->
+		val remap: MutableMap<L2Register<*>, L2Register<*>> = mutableMapOf()
+		val action = { reg: L2Register<*> ->
+			// Exclude analysis of constant pseudo-registers (which have no
+			// definitions).
+			if (!reg.isConstant)
+			{
+				remap[reg] = byKindAndIndex[reg.kind]!!
+					.computeIfAbsent(reg.finalIndex) {
+						reg.copyAfterColoring()
+					}
+			}
+		}
+		blocks.deepForEach(L2BasicBlock::instructions) { instruction ->
 			instruction.sourceRegisters.forEach(action)
 			instruction.destinationRegisters.forEach(action)
 		}
-		// Actually remap every register.
-		blocks.deepForEach({ instructions() }) { it.replaceRegisters(remap) }
-		// Check that the obsolete registers have no uses or definitions.
-		oldRegisters.forEach { r ->
-			assert(r.uses().isEmpty() && r.definitions().isEmpty()) {
-				"OBSOLETE register still refers to instructions"
+		val mode = WithFixedRegisterMap(remap)
+		generator.currentManifest.mode = mode
+		// Rebuild the graph with the new registers.  Also drop any same-color
+		// moves.
+		regenerateGraph(mode, true) { sourceInstruction ->
+			val remapped = basicTransformInstruction(sourceInstruction)
+			// Drop it if it's a same-color move that doesn't introduce any new
+			// semantic values.
+			val keep = remapped.run {
+				// Keep if it's not a move.
+				if (this !is L2_MOVE<*>) return@run true
+				// Keep if it's not a same-color move.
+				if (source.register() != destination.register())
+					return@run true
+				val sourceSynonym = currentManifest.semanticValueToSynonym(
+					source.semanticValue())
+				// Keep if it doesn't introduce a new semantic value.
+				if (!sourceSynonym.semanticValues().containsAll(
+						destination.semanticValues()))
+					return@run true
+				// Eliminate this same-color non-introducing move.
+				false
 			}
-		}
-	}
-
-	/**
-	 * Eliminate any [L2_MOVE]s between registers of the same color. The graph
-	 * must have been colored already, and is not expected to be in SSA form,
-	 * and is certainly not after this, since removed moves are the SSA
-	 * definition points for their target registers.
-	 */
-	fun removeSameColorMoves()
-	{
-		for (block in blocks)
-		{
-			val iterator = block.instructions().iterator()
-			for (instruction in iterator)
+			if (keep)
 			{
-				if (instruction is L2_MOVE<*>
-					&& instruction.sourceRegisters[0].finalIndex()
-					== instruction.destinationRegisters[0].finalIndex())
-				{
-					iterator.remove()
-					instruction.justRemoved()
-				}
+				addInstruction(remapped)
 			}
 		}
 	}
@@ -1198,28 +1288,26 @@ class L2Optimizer internal constructor(
 				{
 					return@forEachIndexed
 				}
-				instruction.readOperands
-					.filterIsInstance<L2ReadBoxedOperand>()
-					.forEach { read ->
-						val readReg = read.register() as L2BoxedRegister
-						val pair = firstUses[readReg]
-						when
+				instruction.readsThatMightDestroy.forEach { read ->
+					val readReg = read.register() as L2BoxedRegister
+					val pair = firstUses[readReg]
+					when
+					{
+						pair !== null ->
 						{
-							pair !== null ->
-							{
-								// We just hit the second use within the block.
-								insertions[pair.first].add(pair.second)
-								// It's no longer mutable.
-								mutables.remove(readReg)
-								firstUses.remove(readReg)
-							}
-							readReg in mutables ->
-							{
-								// Record this first use of a mutable.
-								firstUses[readReg] = i to read
-							}
+							// We just hit the second use within the block.
+							insertions[pair.first].add(pair.second)
+							// It's no longer mutable.
+							mutables.remove(readReg)
+							firstUses.remove(readReg)
+						}
+						readReg in mutables ->
+						{
+							// Record this first use of a mutable.
+							firstUses[readReg] = i to read
 						}
 					}
+				}
 				// Deal with the register writes.
 				instruction.destinationRegisters
 					.filterIsInstance<L2BoxedRegister>()
@@ -1232,13 +1320,18 @@ class L2Optimizer internal constructor(
 							{
 								// Constants are always immutable.
 							}
-							// Note: Rely on register coloring's L2_MOVE
-							// elimination to minimize spurious make-immutables.
-							//is L2_MOVE<*> -> { ??? }
-							else ->
+							instruction is L2_GET_VARIABLE &&
+								instruction.variable.isConstantRead ->
 							{
-								mutables.add(writeReg)
+								// It's reading from a statically known
+								// (constant) variable, which must be shared, so
+								// the value is definitely already immutable.
 							}
+							// Note: Rely on register coloring's L2_MOVE
+							// elimination to minimize spurious make-immutables
+							// due to treating moves like a potentially
+							// destructive use of the value.
+							else -> mutables.add(writeReg)
 						}
 					}
 			}
@@ -1341,8 +1434,9 @@ class L2Optimizer internal constructor(
 			registerIdFunction: (L2Register<*>)->Int)
 		{
 			assert(
-				liveRegistersByKind[register.kind.ordinal]
-					.get(registerIdFunction(register)))
+				register.isConstant
+					|| liveRegistersByKind[register.kind.ordinal]
+						.get(registerIdFunction(register)))
 		}
 
 		/**
@@ -1357,6 +1451,7 @@ class L2Optimizer internal constructor(
 			register: L2Register<*>,
 			registerIdFunction: (L2Register<*>)->Int)
 		{
+			assert(!register.isConstant)
 			liveRegistersByKind[register.kind.ordinal]
 				.set(registerIdFunction(register))
 		}
@@ -1371,6 +1466,22 @@ class L2Optimizer internal constructor(
 			{
 				liveRegistersByKind[i].clear()
 			}
+		}
+
+		override fun toString() = buildString {
+			var any = false
+			RegisterKind.all.forEach { kind ->
+				val bitSet = liveRegistersByKind[kind.ordinal]
+				if (!bitSet.isEmpty)
+				{
+					if (any) append("+")
+					append(kind.prefix)
+					bitSet.stream().toList().joinTo(
+						this@buildString, ",", "[", "]")
+					any = true
+				}
+			}
+			if (!any) append("(no registers)")
 		}
 
 		/** Create an instance with no tracking information. */
@@ -1412,10 +1523,9 @@ class L2Optimizer internal constructor(
 
 	/**
 	 * Check that each instruction of each block has that block set for its
-	 * [L2Instruction.basicBlock] field.  Also check that every
-	 * instruction's applicable operands are listed as uses or definitions of
-	 * the register that they access, and that there are no other uses or
-	 * definitions.
+	 * [L2Instruction.basicBlock] field.  Also check that every instruction's
+	 * applicable operands are listed as uses or definitions of the register
+	 * that they access, and that there are no other uses or definitions.
 	 */
 	private fun checkBlocksAndInstructions()
 	{
@@ -1429,13 +1539,16 @@ class L2Optimizer internal constructor(
 			assert(block.instructions().last().altersControlFlow)
 			block.instructions().forEach { instruction ->
 				instruction.assertHasBeenEmitted()
+				assert(instruction.readOperands.map(L2ReadOperand<*>::register)
+					== instruction.sourceRegisters)
 				instruction.readOperands.forEach {
 					uses.getOrPut(it.register(), ::mutableSetOf).add(it)
 				}
+				assert(
+					instruction.writeOperands.map(L2WriteOperand<*>::register)
+						== instruction.destinationRegisters)
 				instruction.writeOperands.forEach {
-					definitions
-						.getOrPut(it.register(), ::mutableSetOf)
-						.add(it)
+					definitions.getOrPut(it.register(), ::mutableSetOf).add(it)
 				}
 			}
 			// Ensure the successorEdges of the block agree with the edges of
@@ -1459,8 +1572,11 @@ class L2Optimizer internal constructor(
 		val myEmptySet = setOf<L2ReadOperand<*>>()
 		for (reg in mentionedRegs)
 		{
-			assert((uses[reg] ?: myEmptySet) == reg.uses())
-			assert((definitions[reg] ?: myEmptySet) == reg.definitions())
+			if (!reg.isConstant)
+			{
+				assert((uses[reg] ?: myEmptySet) == reg.uses())
+				assert((definitions[reg] ?: myEmptySet) == reg.definitions())
+			}
 		}
 	}
 
@@ -1494,28 +1610,123 @@ class L2Optimizer internal constructor(
 	{
 		for (block in blocks)
 		{
-			val allEdgesFromBlock = mutableListOf<L2PcOperand>()
-			for (instruction in block.instructions())
+			// Keep track of the visible semantic values and regissters as we
+			// navigate through edges, reads, writes, and phis.
+			val values = mutableSetOf<L2SemanticValue<*>>()
+			val registers = mutableSetOf<L2Register<*>>()
+			val manifests = block.predecessorEdges().map(L2PcOperand::manifest)
+			if (manifests.isNotEmpty())
 			{
+				val manifestsIterator = manifests.iterator()
+				val firstManifest = manifestsIterator.next()
+				values.addAll(firstManifest.allSemanticValuesForChecking)
+				registers.addAll(firstManifest.allRegistersForChecking)
+				manifestsIterator.forEachRemaining { nextManifest ->
+					values.retainAll(nextManifest.allSemanticValuesForChecking)
+					registers.retainAll(nextManifest.allRegistersForChecking)
+				}
+			}
+			val allEdgesFromBlock = mutableListOf<L2PcOperand>()
+			block.instructions().forEach { instruction ->
 				if (instruction is L2_PHI<*>)
 				{
 					assert(
 						instruction.sourceRegisters.size
 							== block.predecessorEdges().size)
+					// Make sure each phi source is present in the corresponding
+					// incoming edge.
+					instruction.sources().elements.zip(block.predecessorEdges())
+						.forEach { (read, edge) ->
+							assert(
+								edge.manifest().synonymsForRegister(
+									read.register()
+								).isNotEmpty())
+							assert(edge.manifest().hasSemanticValue(
+								read.semanticValue()))
+						}
+					// Special case: If we forced phi creation at the loop head
+					// so that we could later insert a backward jump to it, we
+					// must treat that 1-way phi as preventing its sole
+					// predeccessor edge's semantic value and register from
+					// being propagated (otherwise the wrong ssemantic value and
+					// register could be accessed downstream, after a backward
+					// jump is inserted).
+					if (instruction.sources().elements.size == 1)
+					{
+						val soleRead = instruction.sources().elements[0]
+						values.remove(soleRead.semanticValue())
+						registers.remove(soleRead.register())
+					}
+				}
+				else
+				{
+					// Check that the register and semantic value required by
+					// each read has been populated.
+					instruction.readOperands.forEach { read ->
+						if (!read.isConstantRead)
+						{
+							assert(read.register() in registers)
+							if (StateFlag.HAS_ELIMINATED_PHIS::class
+								!in controlFlowGraph.state)
+							{
+								assert(read.semanticValue() in values)
+							}
+						}
+					}
+				}
+				if (instruction is L2_STRIP_MANIFEST)
+				{
+					values.clear()
+					registers.clear()
+				}
+				// Record the writes, being careful for the last instruction to
+				// populate only the writes that correspond with the edge to be
+				// taken (i.e., they have the same Purpose).  Start with writes
+				// that don't have a Purpose.
+				instruction.writesAndPurposesDo { write, purpose ->
+					if (purpose === null)
+					{
+						registers.add(write.register())
+						values.addAll(write.semanticValues())
+					}
+				}
+				assert(instruction.altersControlFlow ==
+					(instruction == block.instructions().last()))
+				if (instruction.altersControlFlow)
+				{
+					val valueCopiesByPurpose =
+						mutableMapOf<Purpose, MutableSet<L2SemanticValue<*>>>()
+					val registerCopiesByPurpose =
+						mutableMapOf<Purpose, MutableSet<L2Register<*>>>()
+					instruction.writesAndPurposesDo{ write, purpose ->
+						if (purpose !== null)
+						{
+							valueCopiesByPurpose.computeIfAbsent(purpose) {
+								values.toMutableSet()
+							}.addAll(write.semanticValues())
+							registerCopiesByPurpose.computeIfAbsent(purpose) {
+								registers.toMutableSet()
+							}.add(write.register())
+						}
+					}
 				}
 				allEdgesFromBlock.addAll(instruction.targetEdges)
 			}
 			assert(block.successorEdges() == allEdgesFromBlock)
 			assert(allEdgesFromBlock.toSet() == block.successorEdges().toSet())
-			block.successorEdges().forEach { edge: L2PcOperand ->
+			block.successorEdges().forEach { edge ->
 				assert(edge.sourceBlock() == block)
 				val targetBlock = edge.targetBlock()
 				assert(!edge.isBackward || targetBlock.isLoopHead)
 				assert(blocks.contains(targetBlock))
 				assert(targetBlock.predecessorEdges().contains(edge))
+				if (edge.isBackward)
+				{
+					assert(edge.forcedClampedEntities !== null)
+				}
 			}
 			// Also check incoming edges.
-			block.predecessorEdges().forEach { inEdge: L2PcOperand ->
+			block.predecessorEdges().forEach { inEdge ->
 				assert(inEdge.targetBlock() == block)
 				val predecessorBlock = inEdge.sourceBlock()
 				assert(blocks.contains(predecessorBlock))
@@ -1538,33 +1749,40 @@ class L2Optimizer internal constructor(
 	private fun checkRegistersAreInitialized(
 		registerIdFunction: (L2Register<*>)->Int)
 	{
-		val blocksToCheck: Deque<Pair<L2BasicBlock, UsedRegisters>> =
-			ArrayDeque()
-		blocksToCheck.add(blocks[0] to UsedRegisters())
-		val inSets: MutableMap<L2BasicBlock, UsedRegisters> = HashMap()
-		while (!blocksToCheck.isEmpty())
-		{
-			val (block, newUsed) = blocksToCheck.removeLast()
-			var checked = inSets[block]
-			if (checked === null)
+		var edgeSets = mutableMapOf<L2PcOperand, UsedRegisters>()
+		generator.controlFlowGraph.forwardVisit { block ->
+			val sets = block.predecessorEdges()
+				.filterNot(L2PcOperand::isBackward)
+				.map { edgeSets[it]!! }
+			val workingSet = when
 			{
-				checked = UsedRegisters(newUsed)
-				inSets[block] = checked
-			}
-			else
-			{
-				if (!checked.restrictTo(newUsed))
-				{
-					// We've already checked this block with this restricted set
-					// of registers.  Ignore this path.
-					continue
+				sets.isEmpty() -> UsedRegisters()
+				else -> UsedRegisters(sets[0]).apply {
+					sets.subList(1, sets.size).forEach(::restrictTo)
 				}
 			}
-			// Check the block (or check it again with fewer valid registers)
-			val workingSet = UsedRegisters(checked)
+			val workingSetByPurpose = mutableMapOf<Purpose, UsedRegisters>()
+			// Check the block.
 			for (instruction in block.instructions())
 			{
-				if (instruction is L2_PHI<*>) continue
+				if (instruction is L2_PHI<*>)
+				{
+					assert(instruction.sources().elements.size
+						== block.predecessorEdges().size)
+					instruction.sources().elements.zip(block.predecessorEdges())
+						.forEach { (source, edge) ->
+							// Just ignore the back-edges for now.
+							if (!edge.isBackward)
+							{
+								edgeSets[edge]!!.readRegister(
+									source.register(), registerIdFunction)
+							}
+						}
+					workingSet.writeRegister(
+						instruction.destination().register(),
+						registerIdFunction)
+					continue
+				}
 				if (instruction is L2_STRIP_MANIFEST)
 				{
 					for (register in instruction.sourceRegisters)
@@ -1581,45 +1799,67 @@ class L2Optimizer internal constructor(
 					}
 					continue
 				}
-				// It's an ordinary instruction.
-				for (register in instruction.sourceRegisters)
-				{
+				// It's an ordinary instruction (possibly the last).
+				instruction.sourceRegisters.forEach { register ->
 					workingSet.readRegister(register, registerIdFunction)
 				}
-				for (register in instruction.destinationRegisters)
+				if (instruction.altersControlFlow)
 				{
-					workingSet.writeRegister(register, registerIdFunction)
-				}
-			}
-			block.successorEdges().forEach { edge ->
-				// Handle the phi instructions of the target here.  Create a
-				// workingCopy for each edge.
-				val workingCopy = UsedRegisters(workingSet)
-				val targetBlock = edge.targetBlock()
-				val predecessorIndex =
-					targetBlock.predecessorEdges().indexOf(edge)
-				if (predecessorIndex == -1)
-				{
-					System.err.println("Phi predecessor not found")
-					throw AssertionError("Phi predecessor not found")
-				}
-				for (phiInTarget in targetBlock.instructions())
-				{
-					if (phiInTarget !is L2_PHI<*>)
-					{
-						// All the phis are at the start of the block.
-						break
+					// It's the last instruction of the block.  First apply the
+					// writes that don't specify a Purpose...
+					instruction.operandsWithNamedTypesDo { operand, namedType ->
+						if (operand is L2WriteOperand<*> &&
+							namedType.purpose === null)
+						{
+							workingSet.writeRegister(
+								operand.register(), registerIdFunction)
+						}
 					}
-					val phiSource =
-						phiInTarget.sourceRegisters[predecessorIndex]
-					workingCopy.readRegister(phiSource, registerIdFunction)
-					workingCopy.writeRegister(
-						phiInTarget.destinationRegisters[0],
-						registerIdFunction)
+					// Now produce variants for each mentioned purpose, if any.
+					instruction.operandsWithNamedTypesDo { operand, namedType ->
+						if (operand is L2WriteOperand<*> &&
+							namedType.purpose !== null)
+						{
+							val purposeWorkingSet = workingSetByPurpose
+								.computeIfAbsent(namedType.purpose) {
+									UsedRegisters(workingSet)
+								}
+							purposeWorkingSet.writeRegister(
+								operand.register(), registerIdFunction)
+						}
+					}
 				}
-				blocksToCheck.add(targetBlock to workingCopy)
+				else
+				{
+					// It's not the end of the block, so no purposes should be
+					// present.
+					instruction.destinationRegisters.forEach { register ->
+						workingSet.writeRegister(register, registerIdFunction)
+					}
+				}
+				instruction.edgesAndPurposesDo { edge, purpose ->
+					assert(edgeSets[edge] === null)
+					edgeSets[edge] = workingSetByPurpose[purpose] ?: workingSet
+				}
 			}
 		}
+	}
+
+	/**
+	 * Ensure that within each [L2ValueManifest], if an [L2Synonym] is
+	 * restricted to a constant, no other [L2Synonym] is restricted to the same
+	 * constant.
+	 */
+	private fun checkUniqueConstantSynonyms()
+	{
+		for (block in blocks)
+		{
+			for (edge in block.successorEdges())
+			{
+				edge.manifest().checkUniqueConstantSynonyms()
+			}
+		}
+
 	}
 
 	/**
@@ -1684,6 +1924,7 @@ class L2Optimizer internal constructor(
 			checkUniqueOperands()
 			checkEdgesAndPhis()
 			checkRegistersAreInitialized(L2Register<*>::uniqueValue)
+			checkUniqueConstantSynonyms()
 			if (IS_SSA::class in generator.controlFlowGraph.state)
 			{
 				checkUniqueRegisterDefinitions()
@@ -1728,7 +1969,7 @@ class L2Optimizer internal constructor(
 	companion object
 	{
 		/** Whether to sanity-check the graph between optimization steps. */
-		var shouldSanityCheck = false
+		var shouldSanityCheck = true //TODO false
 
 		/** Statistic for tracking the cost of sanity checks. */
 		private val sanityCheckStat = Statistic(

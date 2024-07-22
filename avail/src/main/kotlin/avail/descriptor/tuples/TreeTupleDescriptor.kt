@@ -547,7 +547,7 @@ class TreeTupleDescriptor internal constructor(
 	{
 		assert(index >= 1 && index <= self.tupleSize)
 		var result = self
-		if (!(canDestroy && isMutable))
+		if (!canDestroy || !isMutable)
 		{
 			result = newLike(mutable(), self, 0, 0)
 		}
@@ -560,7 +560,8 @@ class TreeTupleDescriptor internal constructor(
 		{
 			// Maintain the already-computed hash.
 			val oldValue: A_BasicObject = oldSubtuple.tupleAt(index - delta)
-			val adjustment = newValueObject.hash() - oldValue.hash()
+			val adjustment = ((newValueObject.hash() xor preToggle)
+				- (oldValue.hash() xor preToggle))
 			val scaledAdjustment = adjustment * multiplierRaisedTo(index)
 			result[HASH_OR_ZERO] = oldHash + scaledAdjustment
 		}

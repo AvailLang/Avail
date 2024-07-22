@@ -63,4 +63,6 @@ object P_CompiledCodeFunctionType : Primitive(1, CannotFail, CanFold, CanInline)
 			tuple(
 				mostGeneralCompiledCodeType()),
 			functionMeta())
+
+	override val canDestroyArguments get() = false
 }

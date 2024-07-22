@@ -34,12 +34,12 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.listGetMethod
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -81,7 +81,7 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 			builder.append("\n\t")
 			builder.append(write.registerString())
 			builder.append(" = arg #")
-			builder.append(i)
+			builder.append(i + 1)
 		}
 	}
 

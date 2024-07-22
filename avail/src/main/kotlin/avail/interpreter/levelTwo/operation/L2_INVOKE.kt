@@ -37,14 +37,14 @@ import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
-import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
-import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -136,7 +136,11 @@ class L2_INVOKE(
 		builder.append(arguments.elements)
 		builder.append(")")
 		renderOperandsExcludingFields(
-			builder, ::result, ::calledFunction, ::arguments)
+			builder,
+			desiredOperandTypes,
+			::result,
+			::calledFunction,
+			::arguments)
 	}
 
 	override fun translateToJVM(

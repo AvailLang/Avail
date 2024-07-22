@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_FLOAT
@@ -38,6 +39,7 @@ import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
@@ -108,7 +110,11 @@ class L2ReadFloatOperand : L2ReadOperand<FLOAT_KIND>
 		L2ReadFloatOperand(
 			semanticValue(), restriction(), newRegister as L2FloatRegister)
 
-	override fun createNewRegister() = L2FloatRegister(-1)
+	override fun createConstantRegister() =
+		L2FloatRegister(-999, restriction().constantOrNull!!)
+
+	override fun createSemanticConstant(): L2SemanticUnboxedFloat =
+		L2SemanticUnboxedFloat(L2SemanticConstant(register().constant!!))
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

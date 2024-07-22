@@ -52,10 +52,10 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
-import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.utility.cast
 import org.objectweb.asm.Opcodes
 
 /**
@@ -218,31 +218,30 @@ enum class NumericComparator(
 	 */
 	fun compareAndBranchBoxed(
 		generator: L2Generator,
-		number1Reg: L2ReadBoxedOperand,
-		number2Reg: L2ReadBoxedOperand,
+		number1Read: L2ReadBoxedOperand,
+		number2Read: L2ReadBoxedOperand,
 		ifTrue: L2PcOperand,
 		ifFalse: L2PcOperand)
 	{
-		val restriction1 = number1Reg.restriction()
-		val restriction2 = number2Reg.restriction()
+		val restriction1 = number1Read.restriction()
+		val restriction2 = number2Read.restriction()
 
 		val manifest = generator.currentManifest
-		val int1SemanticValue = L2SemanticUnboxedInt(number1Reg.semanticValue())
-		val int2SemanticValue = L2SemanticUnboxedInt(number2Reg.semanticValue())
-		if (manifest.hasSemanticValue(int1SemanticValue)
-			&& manifest.hasSemanticValue(int2SemanticValue))
+		val int1SemanticValue = manifest.equivalentSemanticValue(
+			L2SemanticUnboxedInt(number1Read.semanticValue()))
+		val int2SemanticValue = manifest.equivalentSemanticValue(
+			L2SemanticUnboxedInt(number2Read.semanticValue()))
+		if (int1SemanticValue !== null && int2SemanticValue !== null)
 		{
 			// We can compare the int registers instead.
 			assert(restriction1.containedByType(i32))
 			assert(restriction2.containedByType(i32))
-			val unreachable = L2BasicBlock("Should not reach")
 			compareAndBranchInt(
 				generator,
-				generator.readInt(int1SemanticValue, unreachable),
-				generator.readInt(int2SemanticValue, unreachable),
+				generator.readIntNoFail(int1SemanticValue.cast()),
+				generator.readIntNoFail(int2SemanticValue.cast()),
 				ifTrue,
 				ifFalse)
-			assert(unreachable.currentlyReachable())
 			return
 		}
 		if (!restriction1.containedByType(integers)
@@ -255,8 +254,8 @@ enum class NumericComparator(
 			generator.addInstruction(
 				L2_JUMP_IF_COMPARE_BOXED(
 					this,
-					number1Reg,
-					number2Reg,
+					number1Read,
+					number2Read,
 					ifTrue,
 					ifFalse))
 			return
@@ -273,10 +272,10 @@ enum class NumericComparator(
 				// One of the registers would have an impossible value if the
 				// ifTrue branch is taken, so always jump to the ifFalse case.
 				generator.currentManifest.setRestriction(
-					number1Reg.semanticValue(),
+					number1Read.semanticValue(),
 					restriction1.intersection(rest3))
 				generator.currentManifest.setRestriction(
-					number2Reg.semanticValue(),
+					number2Read.semanticValue(),
 					restriction2.intersection(rest4))
 				generator.jumpTo(ifFalse.targetBlock())
 			}
@@ -285,10 +284,10 @@ enum class NumericComparator(
 				// One of the registers would have an impossible value if the
 				// ifFalse branch is taken, so always jump to the ifTrue case.
 				generator.currentManifest.setRestriction(
-					number1Reg.semanticValue(),
+					number1Read.semanticValue(),
 					restriction1.intersection(rest1))
 				generator.currentManifest.setRestriction(
-					number2Reg.semanticValue(),
+					number2Read.semanticValue(),
 					restriction2.intersection(rest2))
 				generator.jumpTo(ifTrue.targetBlock())
 			}
@@ -298,7 +297,7 @@ enum class NumericComparator(
 				generator.addInstruction(
 					L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
 						this,
-						number1Reg,
+						number1Read,
 						L2ConstantOperand(restriction2.constantOrNull!!),
 						ifTrue,
 						ifFalse))
@@ -309,14 +308,14 @@ enum class NumericComparator(
 				generator.addInstruction(
 					L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
 						reversed(),
-						number2Reg,
+						number2Read,
 						L2ConstantOperand(restriction1.constantOrNull!!),
 						ifTrue,
 						ifFalse))
 			}
 			else -> generator.addInstruction(
 				L2_JUMP_IF_COMPARE_BOXED(
-					this, number1Reg, number2Reg, ifTrue, ifFalse))
+					this, number1Read, number2Read, ifTrue, ifFalse))
 		}
 	}
 

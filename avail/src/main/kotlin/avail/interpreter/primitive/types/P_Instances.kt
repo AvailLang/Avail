@@ -56,18 +56,17 @@ import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticPrimitiveInvocation
+import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Obtain the instances of the specified
@@ -116,17 +115,15 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 		val argument = arguments.elements[0]
 
 		val manifest = regenerator.currentManifest
-		val countSemanticValue = L2SemanticPrimitiveInvocation(
-			P_InstanceCount,
-			listOf(argument.semanticValue()))
+		val countSemanticValue = primitiveInvocation(
+			P_InstanceCount, listOf(argument.semanticValue()))
 		manifest.equivalentSemanticValue(countSemanticValue)?.let {
 				equivalentCount ->
 			val countRange = manifest.restrictionFor(equivalentCount).type
 			if (countRange.isSubtypeOf(inclusive(zero, zero)))
 			{
 				// The input must be bottom, so the output should be ∅.
-				regenerator.moveRegister(
-					BOXED_KIND,
+				regenerator.moveBoxedRegister(
 					regenerator.boxedConstant(emptySet).semanticValue(),
 					result.semanticValues())
 				return
@@ -138,7 +135,7 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 				regenerator.addInstruction(
 					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
 						L2ConstantOperand(rawFunction),
-						L2PrimitiveOperand(this),
+						L2ArbitraryConstantOperand(this),
 						arguments,
 						regenerator.boxedWrite(
 							result.semanticValues(),

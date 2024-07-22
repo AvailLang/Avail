@@ -68,4 +68,6 @@ object P_ContinuationPC : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(mostGeneralContinuationType),
 			naturalNumbers)
+
+	override val canDestroyArguments get() = false
 }

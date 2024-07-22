@@ -35,10 +35,10 @@ import avail.descriptor.functions.ContinuationRegisterDumpDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.bitCastDoubleToLongMethod
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
 import avail.interpreter.levelTwo.operation.L2_JUMP
@@ -138,10 +138,16 @@ class L2PcOperand constructor (
 	override fun adjustCloneForInstruction(theInstruction: L2Instruction)
 	{
 		super.adjustCloneForInstruction(theInstruction)
+		manifest = null
 		counter = null
 	}
 
 	override val operandType: L2OperandType get() = PC
+
+	override fun addEdgesTo(list: MutableList<L2PcOperand>)
+	{
+		list.add(this)
+	}
 
 	/**
 	 * Answer the [L2ValueManifest] for this edge, which describes which
@@ -164,7 +170,8 @@ class L2PcOperand constructor (
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
 
-	override fun instructionWasAdded(manifest: L2ValueManifest)
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
 		instruction.basicBlock().addSuccessorEdge(this)
@@ -173,8 +180,7 @@ class L2PcOperand constructor (
 	}
 
 	override fun instructionWasInserted(
-		newInstruction: L2Instruction
-	)
+		newInstruction: L2Instruction)
 	{
 		super.instructionWasInserted(newInstruction)
 		newInstruction.basicBlock().addSuccessorEdge(this)
@@ -192,22 +198,6 @@ class L2PcOperand constructor (
 			sourceBlock.removedControlFlowInstruction()
 		}
 		super.instructionWasRemoved()
-	}
-
-	override fun replaceRegisters(
-		registerRemap: Map<L2Register<*>, L2Register<*>>,
-		theInstruction: L2Instruction)
-	{
-		forcedClampedEntities?.run {
-			toList().forEach { entity ->
-				if (registerRemap.containsKey(entity))
-				{
-					remove(entity)
-					add(registerRemap[entity]!!)
-				}
-			}
-		}
-		super.replaceRegisters(registerRemap, theInstruction)
 	}
 
 	/**
@@ -242,6 +232,7 @@ class L2PcOperand constructor (
 		{
 			builder.append("pc ").append(offset()).append(": ")
 		}
+		builder.append("--> ")
 		builder.append(targetBlock.name())
 	}
 
@@ -273,12 +264,14 @@ class L2PcOperand constructor (
 			isCold = targetBlock().isCold)
 		controlFlowGraph.startBlock(newBlock)
 		val manifestCopy = L2ValueManifest(manifest())
-		newBlock.insertInstruction(
-			0,
+		val jumpToInsert =
 			L2_JUMP(L2PcOperand(newBlock, isBackward, manifestCopy))
-				.cloneFor(newBlock))
-		val newJump = newBlock.instructions()[0] as L2_JUMP
-		val jumpEdge = newJump.target
+				.cloneFor(newBlock)
+				as L2_JUMP
+		jumpToInsert.target.manifest = manifestCopy
+		newBlock.insertInstruction(0, jumpToInsert)
+		assert(newBlock.instructions()[0] == jumpToInsert)
+		val jumpEdge = jumpToInsert.target
 
 		// Now swap my target with the new jump's target.  I'll end up pointing
 		// to the new block, which will contain a jump pointing to the block I

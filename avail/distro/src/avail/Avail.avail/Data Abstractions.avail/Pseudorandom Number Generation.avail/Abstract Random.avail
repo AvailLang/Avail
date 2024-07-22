@@ -112,8 +112,8 @@ Public method "_'s⁇next«value in»⁇_" is
 	 */
 	rangeSize : natural number := ⌈range⌉ - ⌊range⌋ + 1 ?→ natural number;
 
-	rngSize ::= cast ⌈rng's element type⌉ - ⌊rng's element type⌋ + 1
-		into [n : natural number | n];
+	rngSize ::=
+		⌈rng's element type⌉ - ⌊rng's element type⌋ + 1 ?→ natural number;
 
 	bitCount : whole number:= cast (log 2 of rngSize) → extended integer
 		into [w: whole number | w];

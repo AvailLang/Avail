@@ -1561,7 +1561,7 @@ class IntegerDescriptor private constructor(
 			if (theInt != 0) break
 			nonZeroIndex++  // We ensured they can't all be zero.
 		}
-		if (Integer.bitCount(theInt) > 1) return -1
+		if (theInt.countOneBits() > 1) return -1
 		// Check that the rest of the ints are zero.
 		if ((nonZeroIndex + 1 .. intCount(self))
 				.any { self.rawSignedIntegerAt(it) != 0 })

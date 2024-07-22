@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
@@ -44,12 +43,8 @@ import avail.optimizer.L2BasicBlock
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- * Protect the constructor so the subclasses can maintain a fly-weight
- * pattern (or arguably a singleton).
- *
- * @param theNamedOperandTypes
- *   The vararg array of [L2NamedOperandType]s that defines the layout of
- *   operands for [L2Instruction]s this use this operation.
+ *   Protect the constructor so the subclasses can maintain a fly-weight
+ *   pattern (or arguably a singleton).
  */
 abstract class L2ControlFlowInstruction : L2Instruction()
 {
@@ -60,8 +55,6 @@ abstract class L2ControlFlowInstruction : L2Instruction()
 	 * other [L2BasicBlock]s.  They also carry an edge-specific array of slots,
 	 * and edge-specific [TypeRestriction]s for registers.
 	 *
-	 * @param instruction
-	 *   The [L2Instruction] to examine.
 	 * @return
 	 *   The [List] of target [L2PcOperand]s that are operands of the given
 	 *   instruction.  These may be reachable directly via a control flow

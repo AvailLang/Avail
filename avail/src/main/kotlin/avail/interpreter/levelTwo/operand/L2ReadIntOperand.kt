@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_INT
@@ -38,6 +39,7 @@ import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
@@ -108,7 +110,11 @@ class L2ReadIntOperand : L2ReadOperand<INTEGER_KIND>
 		L2ReadIntOperand(
 			semanticValue(), restriction(), newRegister as L2IntRegister)
 
-	override fun createNewRegister() = L2IntRegister(-1)
+	override fun createConstantRegister() =
+		L2IntRegister(-999, restriction().constantOrNull!!)
+
+	override fun createSemanticConstant(): L2SemanticUnboxedInt =
+		L2SemanticUnboxedInt(L2SemanticConstant(register().constant!!))
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

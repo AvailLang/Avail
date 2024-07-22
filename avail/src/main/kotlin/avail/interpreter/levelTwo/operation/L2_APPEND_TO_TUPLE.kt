@@ -1,6 +1,6 @@
 /*
- * L2_TUPLE_AT_UPDATE.kt
- * Copyright © 1993-2019, The Avail Foundation, LLC.
+ * L2_APPEND_TO_TUPLE.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,29 +31,31 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.AvailObject
+import avail.descriptor.tuples.TupleDescriptor.Companion.appendToTupleMethod
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticBoxedValue
 import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
+import org.objectweb.asm.Type
 
 /**
- * Given a tuple, an immediate index, and a new value to write, create the tuple
- * with that element replaced by the new value.  Destroy or recycle the original
- * if it's mutable.  Write the output to the specified output register.
+ * Append an element to a tuple, producing a longer tuple.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_TUPLE_AT_UPDATE(
+class L2_APPEND_TO_TUPLE(
 	var inputTuple: L2ReadBoxedOperand,
-	var updateIndex: L2IntImmediateOperand,
-	var newElement: L2ReadBoxedOperand,
+	var elementToAppend: L2ReadBoxedOperand,
 	var outputTuple: L2WriteBoxedOperand
 ): L2Instruction()
 {
@@ -67,10 +69,8 @@ class L2_TUPLE_AT_UPDATE(
 		builder.append(outputTuple.registerString())
 		builder.append(" ← ")
 		builder.append(inputTuple.registerString())
-		builder.append(" [ ")
-		builder.append(updateIndex.value)
-		builder.append(" ] ::= ")
-		builder.append(newElement.registerString())
+		builder.append(" + ")
+		builder.append(elementToAppend.registerString())
 	}
 
 	override fun extractTupleElement(
@@ -79,16 +79,35 @@ class L2_TUPLE_AT_UPDATE(
 		destinationSemanticValues: Set<L2SemanticBoxedValue>,
 		generator: L2Generator)
 	{
-		when (index)
+		// If the index is between 1 and the lower bound of the inputTuple's
+		// size, we can just extract the element from the inputTuple.  If the
+		// inputTuple is fixed size and the index is just beyond the end, just
+		// use the elementToAppend.
+		val sizeRange = inputTuple.type()
+		val lowerBound = sizeRange.lowerBound
+		if (lowerBound.isInt)
 		{
-			// Use the value that was used to update that element.
-			updateIndex.value -> generator.moveBoxedRegister(
-				newElement.semanticValue(),
-				destinationSemanticValues)
-			// It wasn't affected by this tuple update.
-			else -> generator.extractTupleElement(
-				inputTuple, index, destinationSemanticValues)
+			val lowerBoundInt = lowerBound.extractInt
+			if (index <= lowerBoundInt)
+			{
+				// It's definitely in the inputTuple.
+				generator.extractTupleElement(
+					inputTuple, index, destinationSemanticValues)
+				return
+			}
+			if (lowerBound.equals(sizeRange.upperBound)
+				&& index == lowerBoundInt + 1)
+			{
+				// It's definitely the elementToAppend.
+				generator.moveBoxedRegister(
+					elementToAppend.semanticValue(),
+					destinationSemanticValues)
+				return
+			}
 		}
+		// Fall back to the default tuple element extraction.
+		super.extractTupleElement(
+			tupleRead, index, destinationSemanticValues, generator)
 	}
 
 	override fun translateToJVM(
@@ -96,9 +115,12 @@ class L2_TUPLE_AT_UPDATE(
 		method: MethodVisitor)
 	{
 		translator.load(method, inputTuple.register())
-		translator.intConstant(method, updateIndex.value)
-		translator.load(method, newElement.register())
-		tupleAtPuttingMethod.generateCall(method)
+		translator.load(method, elementToAppend.register())
+		appendToTupleMethod.generateCall(method)
+		// Strengthen the final result to AvailObject.
+		method.visitTypeInsn(
+			Opcodes.CHECKCAST,
+			Type.getInternalName(AvailObject::class.java))
 		translator.store(method, outputTuple.register())
 	}
 }

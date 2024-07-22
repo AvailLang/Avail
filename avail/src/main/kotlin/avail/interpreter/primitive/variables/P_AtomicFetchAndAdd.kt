@@ -102,7 +102,7 @@ object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 			extendedIntegers)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type =
 		argumentTypes[0].readType

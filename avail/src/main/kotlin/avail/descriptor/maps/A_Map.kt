@@ -154,6 +154,38 @@ interface A_Map : A_BasicObject
 		}
 
 		/**
+		 * Given an [A_Map], [self], produce a similar map, but with [key]
+		 * mapped to [value].  The original may be destroyed or recycled if it's
+		 * mutable.
+		 *
+		 * @param self
+		 *   The initial [A_Map].
+		 * @param key
+		 *   The key to update.
+		 * @param value
+		 *   The value to add or replace at that [key].
+		 * @return
+		 *   The extended [A_Map], possibly a mutation of the original, if it
+		 *   was mutable.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun mapAtPuttingStatic(
+			self: A_Map,
+			key: A_BasicObject,
+			value: A_BasicObject
+		): AvailObject = self.mapAtPuttingCanDestroy(key, value, true).cast()
+
+		/** The [CheckedMethod] for [mapAtPuttingCanDestroy]. */
+		val mapAtPuttingStaticMethod = staticMethod(
+			A_Map::class.java,
+			::mapAtPuttingStatic.name,
+			A_Map::class.java,
+			A_Map::class.java,
+			A_BasicObject::class.java,
+			A_BasicObject::class.java)
+
+		/**
 		 * Look up the `key` in the map.  If present, use the key and the looked
 		 * up value as arguments to a call to the `transformer`. Otherwise, use
 		 * the key and the `notFoundValue` ([nil] is default for this) as
@@ -236,27 +268,5 @@ interface A_Map : A_BasicObject
 		 */
 		val A_Map.valuesAsTuple: A_Tuple
 			get() = dispatch { o_ValuesAsTuple(it) }
-
-		/**
-		 * Given an [A_Map], [self], produce a similar map, but with [key]
-		 * mapped to [value].  The original may be destroyed or recycled if it's
-		 * mutable.
-		 */
-		@ReferencedInGeneratedCode
-		@JvmStatic
-		fun mapAtPuttingStatic(
-			self: A_Map,
-			key: A_BasicObject,
-			value: A_BasicObject
-		): AvailObject = self.mapAtPuttingCanDestroy(key, value, true).cast()
-
-		/** The [CheckedMethod] for [mapAtPuttingCanDestroy]. */
-		val mapAtPuttingStaticMethod = staticMethod(
-			A_Map::class.java,
-			::mapAtPuttingStatic.name,
-			A_Map::class.java,
-			A_Map::class.java,
-			A_BasicObject::class.java,
-			A_BasicObject::class.java)
 	}
 }

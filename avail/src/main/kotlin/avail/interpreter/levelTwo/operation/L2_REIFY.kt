@@ -32,12 +32,12 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
-import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
-import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -65,7 +65,7 @@ import org.objectweb.asm.Opcodes
 class L2_REIFY(
 	var captureFrames: L2IntImmediateOperand,
 	var processInterrupt: L2IntImmediateOperand,
-	var statistic: L2ArbitraryConstantOperand,
+	var statistic: L2ArbitraryConstantOperand<Statistic>,
 	@On(OFF_RAMP) var ifReification: L2PcOperand
 ) : L2ControlFlowInstruction()
 {
@@ -124,7 +124,7 @@ class L2_REIFY(
 		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		val statistic = statistic.constant as Statistic
+		val statistic = statistic.constant
 		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(statistic.name())
@@ -163,7 +163,7 @@ class L2_REIFY(
 		translator.loadInterpreter(method)
 		translator.literal(method, captureFrames.value)
 		translator.literal(method, processInterrupt.value)
-		translator.literal(method, statistic.constant as Statistic)
+		translator.literal(method, statistic.constant)
 		Interpreter.reifyMethod.generateCall(method)
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an

@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.register
 
+import avail.descriptor.representation.AvailObject
 import avail.optimizer.L2Generator
 import avail.optimizer.reoptimizer.L2Regenerator
 
@@ -46,11 +47,15 @@ import avail.optimizer.reoptimizer.L2Regenerator
  * @param debugValue
  *   A value used to distinguish the new instance visually during debugging of
  *   L2 translations.
+ * @param constant
+ *   An optional constant, after the phase that replaces constant valued
+ *   registers with unique registers having no definitions.
  */
 class L2FloatRegister
 constructor(
-	debugValue: Int
-) : L2Register<FLOAT_KIND>(debugValue)
+	debugValue: Int,
+	constant: AvailObject? = null
+) : L2Register<FLOAT_KIND>(debugValue, constant)
 {
 	override val kind get() = FLOAT_KIND
 
@@ -62,8 +67,8 @@ constructor(
 
 	override fun copyAfterColoring(): L2FloatRegister
 	{
-		val result = L2FloatRegister(finalIndex())
-		result.setFinalIndex(finalIndex())
+		val result = L2FloatRegister(finalIndex)
+		result.finalIndex = finalIndex
 		return result
 	}
 

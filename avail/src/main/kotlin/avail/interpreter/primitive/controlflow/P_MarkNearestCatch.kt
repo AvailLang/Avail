@@ -33,7 +33,7 @@
 package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.ObjectTupleDescriptor
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -65,11 +65,13 @@ object P_MarkNearestCatch : Primitive(1, CanSuspend, Unknown)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			ObjectTupleDescriptor.tuple(enumerationWith(
+			tuple(enumerationWith(
 				set(E_HANDLER_SENTINEL, E_UNWIND_SENTINEL))),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(E_CANNOT_MARK_HANDLER_FRAME, E_NO_HANDLER_FRAME))
+
+	override val canDestroyArguments get() = false
 }

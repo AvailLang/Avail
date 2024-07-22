@@ -87,4 +87,6 @@ object P_PrintToConsole : Primitive(1, CanSuspend, Unknown)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))
+
+	override val canDestroyArguments get() = false
 }

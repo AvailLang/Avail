@@ -64,7 +64,7 @@ object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 1)
 		val mapType = argumentTypes[0]

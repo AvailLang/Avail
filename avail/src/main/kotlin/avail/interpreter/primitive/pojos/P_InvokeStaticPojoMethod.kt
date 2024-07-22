@@ -131,11 +131,11 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private, HasSideEffect)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
-		return rawFunction.functionType().returnType
+		return rawFunction!!.functionType().returnType
 	}
 
 	/**

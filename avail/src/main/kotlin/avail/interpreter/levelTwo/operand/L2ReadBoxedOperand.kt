@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
@@ -45,6 +46,7 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 
@@ -100,7 +102,7 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 	 *   The [L2BoxedRegister] being read by this operand.
 	 */
 	constructor(
-		semanticValue: L2SemanticBoxedValue,
+		semanticValue: L2SemanticValue<BOXED_KIND>,
 		restriction: TypeRestriction,
 		register: L2BoxedRegister
 	) : super(semanticValue, restriction, register)
@@ -114,7 +116,11 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 		L2ReadBoxedOperand(
 			semanticValue(), restriction(), newRegister as L2BoxedRegister)
 
-	override fun createNewRegister() = L2BoxedRegister(-1)
+	override fun createConstantRegister() =
+		L2BoxedRegister(-999, restriction().constantOrNull!!)
+
+	override fun createSemanticConstant(): L2SemanticBoxedValue =
+		L2SemanticConstant(register().constant!!)
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
@@ -130,7 +136,7 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 	 */
 	fun exactFunctionType(): A_Type?
 	{
-		val constantFunction: A_Function? = constantOrNull()
+		val constantFunction: A_Function? = constantOrNull
 		if (constantFunction !== null)
 		{
 			// Function is a constant.

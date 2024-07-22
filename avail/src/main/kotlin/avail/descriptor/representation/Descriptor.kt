@@ -93,6 +93,7 @@ import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.dispatch.LookupTree
+import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.MethodDefinitionException
@@ -468,6 +469,8 @@ protected constructor (
 		anInteger: AvailObject,
 		canDestroy: Boolean): A_Number = unsupported
 
+	override fun o_DummyElement(self: AvailObject): AvailObject = unsupported
+
 	override fun o_SetExecutionState (
 		self: AvailObject, value: ExecutionState): Unit = unsupported
 
@@ -648,6 +651,17 @@ protected constructor (
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean): A_Number = unsupported
+
+	@Throws(AvailException::class)
+	override fun o_RecursivelyUpdate(
+		self: AvailObject,
+		indices: Iterator<AvailObject>,
+		update: (AvailObject)->A_BasicObject
+	): A_BasicObject
+	{
+		if (indices.hasNext()) throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
+		return update(self)
+	}
 
 	override fun o_SetPriority (self: AvailObject, value: Int): Unit =
 		unsupported

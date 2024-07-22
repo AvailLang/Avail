@@ -89,6 +89,20 @@ class L2_JUMP_IF_COMPARE_INT(
 		ifFalse.manifest().setRestriction(
 			int2.semanticValue(),
 			restriction2.intersection(rest4))
+		if (numericComparator == NumericComparator.Equal)
+		{
+			// Along the "=" ifTrue branch, the values are now synonyms.
+			ifTrue.manifest().mergeExistingSemanticValues(
+				int1.semanticValue(),
+				int2.semanticValue())
+		}
+		else if (numericComparator == NumericComparator.NotEqual)
+		{
+			// Along the "≠" ifFalse branch, the values are now synonyms.
+			ifFalse.manifest().mergeExistingSemanticValues(
+				int1.semanticValue(),
+				int2.semanticValue())
+		}
 	}
 
 	override fun appendToWithWarnings(
@@ -103,7 +117,8 @@ class L2_JUMP_IF_COMPARE_INT(
 		builder.append(numericComparator.comparatorName)
 		builder.append(" ")
 		builder.append(int2.registerString())
-		renderOperandsExcludingFields(builder, ::int1, ::int2)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::int1, ::int2)
 	}
 
 	override val name: String

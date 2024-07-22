@@ -32,6 +32,8 @@
 package avail.optimizer.values
 
 import avail.descriptor.representation.A_BasicObject
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.register.BOXED_KIND
 
 /**
@@ -68,6 +70,9 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 
 	override val isConstant: Boolean
 		get() = true
+
+	override val constantRestrictionOrNull: TypeRestriction
+		get() = boxedRestrictionForConstant(value)
 
 	override fun toString(): String
 	{

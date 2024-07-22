@@ -31,11 +31,10 @@
  */
 package avail.interpreter.levelTwo.operand
 
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
 import avail.utility.cast
 
@@ -69,6 +68,11 @@ class L2PcVectorOperand constructor(
 
 	override val operandType: L2OperandType get() = PC_VECTOR
 
+	override fun addEdgesTo(list: MutableList<L2PcOperand>)
+	{
+		list.addAll(edges)
+	}
+
 	override fun setInstruction(theInstruction: L2Instruction?)
 	{
 		super.setInstruction(theInstruction)
@@ -79,7 +83,8 @@ class L2PcVectorOperand constructor(
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
 
-	override fun instructionWasAdded(manifest: L2ValueManifest)
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
 		edges.forEach { it.instructionWasAdded(manifest) }
@@ -96,14 +101,6 @@ class L2PcVectorOperand constructor(
 	{
 		edges.forEach { it.instructionWasRemoved() }
 		super.instructionWasRemoved()
-	}
-
-	override fun replaceRegisters(
-		registerRemap: Map<L2Register<*>, L2Register<*>>,
-		theInstruction: L2Instruction)
-	{
-		edges.forEach { it.replaceRegisters(registerRemap, theInstruction) }
-		super.replaceRegisters(registerRemap, theInstruction)
 	}
 
 	override fun appendTo(builder: StringBuilder): Unit = with(builder)

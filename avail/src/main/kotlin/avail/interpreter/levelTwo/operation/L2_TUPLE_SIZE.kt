@@ -33,8 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleSizeMethod
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -61,6 +61,8 @@ class L2_TUPLE_SIZE(
 		builder.append(" ← ")
 		builder.append(tuple.registerString())
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

@@ -33,13 +33,13 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticUnboxedInt
@@ -65,6 +65,12 @@ class L2_UNBOX_INT(
 		builder.append(destination.registerString())
 		builder.append(" ← ")
 		builder.append(source.registerString())
+	}
+
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		destination.restrict { source.restriction().forUnboxedInt() }
+		super.instructionWasAdded(manifest)
 	}
 
 	override fun translateToJVM(
@@ -102,8 +108,8 @@ class L2_UNBOX_INT(
 				{
 					if (!manifest.hasSemanticValue(destInt))
 					{
-						regenerator.moveRegister(
-							INTEGER_KIND, otherUnboxed, setOf(destInt))
+						regenerator.moveIntRegister(
+							otherUnboxed, setOf(destInt))
 					}
 				}
 				return

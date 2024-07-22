@@ -75,7 +75,8 @@ class L2_GET_VARIABLE(
 		builder.append(extractedValue.registerString())
 		builder.append(" ← ↓")
 		builder.append(variable.registerString())
-		renderOperandsExcludingFields(builder, ::variable, ::extractedValue)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::variable, ::extractedValue)
 	}
 
 	override fun translateToJVM(

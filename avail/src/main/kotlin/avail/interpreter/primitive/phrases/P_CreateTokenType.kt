@@ -81,7 +81,7 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val atomType = argumentTypes[0]

@@ -71,6 +71,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.primitive
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.representation.A_BasicObject
@@ -709,6 +710,11 @@ open class CompiledCodeDescriptor protected constructor(
 				if (isNil) "No module"
 				else shortModuleNameNative
 			}
+			val primString = when (primitive)
+			{
+				null -> ""
+				else -> " ($primitive)"
+			}
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
@@ -716,7 +722,7 @@ open class CompiledCodeDescriptor protected constructor(
 					-1,
 					null,
 					slotName = "Disassembly",
-					forcedName = "L1 Disassembly ($moduleName)",
+					forcedName = "L1 Disassembly ($moduleName)$primString",
 					forcedChildren = disassembled.toTypedArray()))
 		}
 		val literalFields = mutableListOf<AvailObjectFieldHelper>()

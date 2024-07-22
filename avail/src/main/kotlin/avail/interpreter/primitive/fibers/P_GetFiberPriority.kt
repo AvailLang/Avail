@@ -118,4 +118,6 @@ object P_GetFiberPriority : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralFiberType()), u8)
+
+	override val canDestroyArguments get() = false
 }

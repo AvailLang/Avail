@@ -75,7 +75,7 @@ class L2_SUBTRACT_INT_MINUS_INT(
 		builder.append(" - ")
 		builder.append(subtrahend.registerString())
 		renderOperandsExcludingFields(
-			builder, ::minuend, ::subtrahend, ::difference)
+			builder, desiredOperandTypes, ::minuend, ::subtrahend, ::difference)
 	}
 
 	override fun translateToJVM(

@@ -292,7 +292,7 @@ object P_SimpleMethodStabilityHelper : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type = topMeta
 }

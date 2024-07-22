@@ -70,4 +70,6 @@ object P_CompiledCodePrimitiveName : Primitive(1, CannotFail, CanFold, CanInline
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			stringType)
+
+	override val canDestroyArguments get() = false
 }

@@ -53,7 +53,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.optimizer.L1Translator
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 
 /**
  * **Primitive:** Answer the type union of the specified
@@ -77,7 +77,7 @@ object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
 			topMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (meta1, meta2) = argumentTypes
@@ -89,8 +89,7 @@ object P_TypeUnion : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction
 	): List<L2SplitCondition?>
 	{
-		val arg1 = readBoxedOperands[0]
-		val arg2 = readBoxedOperands[0]
+		val (arg1, arg2) = readBoxedOperands
 		// Since we can optimize based on whether or not ⊥ is possible for one
 		// or the other argument, and also whether only ⊥ is present, try to
 		// avoid merges that destroy that information.

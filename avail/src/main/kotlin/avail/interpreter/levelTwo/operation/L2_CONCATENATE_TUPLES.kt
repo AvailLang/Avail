@@ -37,13 +37,14 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.TupleDescriptor.Companion.concatenateTupleMethod
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticBoxedValue
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
@@ -73,9 +74,9 @@ class L2_CONCATENATE_TUPLES(
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
+		tupleRead: L2ReadBoxedOperand,
 		index: Int,
-		write: L2WriteBoxedOperand,
+		destinationSemanticValues: Set<L2SemanticBoxedValue>,
 		generator: L2Generator)
 	{
 		// If we can tell (1) which subtuple we're getting the value from, and
@@ -90,13 +91,15 @@ class L2_CONCATENATE_TUPLES(
 			if (!lowerBound.isInt)
 			{
 				// Should be impossible, other than abnormal intermediate types.
-				break
+				generator.addUnreachableCode()
+				return
 			}
 			val lowerBoundInt = lowerBound.extractInt
 			if (residualIndex <= lowerBoundInt)
 			{
 				// It's definitely in this subtuple.
-				generator.extractTupleElement(elementRead, residualIndex, write)
+				generator.extractTupleElement(
+					elementRead, residualIndex, destinationSemanticValues)
 				return
 			}
 			if (!lowerBound.equals(sizeRange.upperBound))
@@ -108,7 +111,8 @@ class L2_CONCATENATE_TUPLES(
 			residualIndex -= lowerBoundInt
 		}
 		// It fell back, so do the default tuple element extraction.
-		super.extractTupleElement(tupleReg, index, write, generator)
+		super.extractTupleElement(
+			tupleRead, index, destinationSemanticValues, generator)
 	}
 
 	override fun translateToJVM(

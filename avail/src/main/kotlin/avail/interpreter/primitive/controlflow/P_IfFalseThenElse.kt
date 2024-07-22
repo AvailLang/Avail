@@ -69,7 +69,7 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type =
 			argumentTypes[2].returnType
 
 	override fun privateBlockTypeRestriction(): A_Type =

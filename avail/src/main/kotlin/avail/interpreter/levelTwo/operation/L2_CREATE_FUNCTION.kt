@@ -33,13 +33,18 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -72,10 +77,11 @@ class L2_CREATE_FUNCTION(
 		generator: L2Generator): L2ReadBoxedOperand
 	{
 		val originalRead = capturedVariables.elements[outerIndex - 1]
+		val rawCode: A_RawFunction = code.constant
 		// Intersect the read's restriction, the given type, and the type that
 		// the code says the outer must have.
 		var intersection = originalRead.restriction().intersectionWithType(
-			outerType.typeIntersection(code.constant.outerTypeAt(outerIndex)))
+			outerType.typeIntersection(rawCode.outerTypeAt(outerIndex)))
 		assert(!intersection.type.isBottom)
 		val manifest = generator.currentManifest
 		val semanticValue = originalRead.semanticValue()
@@ -98,9 +104,17 @@ class L2_CREATE_FUNCTION(
 			intersection = intersection.withFlag(IMMUTABLE_FLAG)
 		}
 		val tempWrite = generator.boxedWriteTemp(intersection)
+		val allNames = rawCode.declarationNames
+		val nameIndex = allNames.tupleSize - rawCode.numOuters + outerIndex
+		val outerName = when (nameIndex <= allNames.tupleSize)
+		{
+			true -> allNames.tupleAt(nameIndex).asNativeString()
+			else -> ""
+		}
 		generator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE(
 				L2IntImmediateOperand(outerIndex),
+				L2CommentOperand(outerName),
 				functionRegister,
 				tempWrite))
 		return generator.readBoxed(tempWrite)
@@ -110,8 +124,6 @@ class L2_CREATE_FUNCTION(
 	 * Extract the constant [A_RawFunction] from the given [L2Instruction],
 	 * which must have `L2_CREATE_FUNCTION` as its operation.
 	 *
-	 * @param instruction
-	 *   The instruction to examine.
 	 * @return
 	 *   The constant [A_RawFunction] extracted from the instruction.
 	 */

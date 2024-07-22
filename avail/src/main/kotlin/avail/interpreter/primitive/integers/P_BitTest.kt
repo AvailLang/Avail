@@ -69,7 +69,7 @@ import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.SignedShiftRight
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shr
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
@@ -105,7 +105,7 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
@@ -198,7 +198,7 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 				intRestrictionForType(i32))
 			generator.addInstruction(
 				L2_BIT_LOGIC_OP(
-					SignedShiftRight,
+					Shr,
 					aInt,
 					bInt,
 					shiftedWrite))
@@ -207,8 +207,7 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 				shiftedWrite.restriction(),
 				generator.currentManifest)
 		}
-		val maskedWrite = generator.intWriteTemp(
-			intRestrictionForType(u1))
+		val maskedWrite = generator.intWriteTemp(intRestrictionForType(u1))
 		generator.addInstruction(
 			L2_BIT_LOGIC_OP(
 				And,

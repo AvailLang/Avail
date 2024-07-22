@@ -59,7 +59,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwo.operation.L2_MOVE.L2_MOVE_BOXED
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
@@ -77,7 +77,7 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
@@ -181,4 +181,6 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(topMeta),
 			inclusive(zero, positiveInfinity))
+
+	override val canDestroyArguments get() = false
 }

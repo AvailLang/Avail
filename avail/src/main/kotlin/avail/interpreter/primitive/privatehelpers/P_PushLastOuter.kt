@@ -65,9 +65,9 @@ object P_PushLastOuter : Primitive(
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type = rawFunction.outerTypeAt(1)
+	): A_Type = rawFunction!!.outerTypeAt(1)
 
 	/**
 	 * This primitive is suitable for any block signature, although really the
@@ -82,7 +82,7 @@ object P_PushLastOuter : Primitive(
 		argumentTypes: List<A_Type>,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val constantFunction = functionToCallReg.constantOrNull()
+		val constantFunction = functionToCallReg.constantOrNull
 
 		// Check for the rare case that the exact function is known (noting that
 		// it has an outer).

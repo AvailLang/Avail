@@ -69,7 +69,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.WrappedMultiply
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Mul
 import avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -102,7 +102,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>): A_Type
 	{
 		val (aType, bType) = argumentTypes
 
@@ -294,7 +295,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		argumentTypes,
 		ifOutputIsInt = {
 			generator.addInstruction(
-				L2_BIT_LOGIC_OP(WrappedMultiply, intA, intB, intWrite))
+				L2_BIT_LOGIC_OP(Mul, intA, intB, intWrite))
 		},
 		ifOutputIsPossiblyInt = {
 			generator.addInstruction(

@@ -46,7 +46,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -103,7 +103,8 @@ class L2_JUMP_IF_COMPARE_INT_CONSTANT(
 		append(numericComparator.comparatorName)
 		append(" #")
 		append(constant.value.toString())
-		renderOperandsExcludingFields(builder, ::intValue, ::constant)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::intValue, ::constant)
 	}
 
 	override val name: String

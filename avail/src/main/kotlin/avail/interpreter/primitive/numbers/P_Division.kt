@@ -76,7 +76,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.WrappedDivide
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Div
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
@@ -117,7 +117,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 			set(E_CANNOT_DIVIDE_BY_ZERO, E_CANNOT_DIVIDE_INFINITIES))
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
@@ -246,9 +246,9 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		}
 
 		// If either of the argument types does not intersect with the
-		// non-negative range int31, then fall back to boxed division, since
-		// Java does division of negatives differently than Avail.  Also fall
-		// back if the denominator can't be strictly positive.
+		// non-negative range i31, then fall back to boxed division, since Java
+		// does division of negatives differently than Avail.  Also fall back if
+		// the denominator can't be strictly positive.
 		val aIntersectInt31 = aType.typeIntersection(i31)
 		val bIntersectPos31 = bType.typeIntersection(
 			inclusive(1, Int.MAX_VALUE))
@@ -299,7 +299,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		// At this point the result will not throw division-by-zero or overflow
 		// an int32.
 		translator.addInstruction(
-			L2_BIT_LOGIC_OP(WrappedDivide, intA, intB, quotientWriter))
+			L2_BIT_LOGIC_OP(Div, intA, intB, quotientWriter))
 		// Even though we're just using the boxed value again, the unboxed
 		// form is also still available for use by subsequent primitives,
 		// which could allow the boxing instruction to evaporate.

@@ -49,8 +49,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.optimizer.L2SplitCondition
-import avail.optimizer.L2SplitCondition.L2IsUnboxedIntCondition.Companion.unboxedIntCondition
-import avail.optimizer.L2SplitCondition.L2MeetsRestrictionCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -79,7 +79,6 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-
 		// Restrict the value to the constant along the ifEqual branch, and
 		// exclude the constant along the ifNotEqual branch.
 		val oldRestriction = value.restriction()
@@ -101,7 +100,8 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 		builder.append(value.registerString())
 		builder.append(" = ")
 		builder.append(constant.constant)
-		renderOperandsExcludingFields(builder, ::value, ::constant)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::value, ::constant)
 	}
 
 	override fun generateReplacement(
@@ -158,30 +158,6 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 		super.emitTransformedInstruction(regenerator)
 	}
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor)
-	{
-		if (constant.constant.isInstanceOf(i32))
-		{
-			// Even though the value might not be an i32, we can use the
-			// A_Number.equalsIntStatic(i32) method.
-			translator.load(method, value.register())
-			translator.intConstant(method, constant.constant.extractInt)
-			A_Number.equalsIntMethod.generateCall(method)
-		}
-		else
-		{
-			// :: if (value.equals(constant)) goto ifEqual;
-			// :: else goto ifUnequal;
-			translator.load(method, value.register())
-			translator.literal(method, constant.constant)
-			A_BasicObject.equalsMethod.generateCall(method)
-		}
-		emitBranch(
-			translator, method, this, Opcodes.IFNE, ifEqual, ifNotEqual)
-	}
-
 	override fun interestingConditions(): List<L2SplitCondition?>
 	{
 		val conditions = mutableListOf<L2SplitCondition?>()
@@ -214,5 +190,31 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 						.minusValue(constant.constant)))
 		}
 		return conditions
+	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
+
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor)
+	{
+		if (constant.constant.isInstanceOf(i32))
+		{
+			// Even though the value might not be an i32, we can use the
+			// A_Number.equalsIntStatic(i32) method.
+			translator.load(method, value.register())
+			translator.intConstant(method, constant.constant.extractInt)
+			A_Number.equalsIntMethod.generateCall(method)
+		}
+		else
+		{
+			// :: if (value.equals(constant)) goto ifEqual;
+			// :: else goto ifUnequal;
+			translator.load(method, value.register())
+			translator.literal(method, constant.constant)
+			A_BasicObject.equalsMethod.generateCall(method)
+		}
+		emitBranch(
+			translator, method, this, Opcodes.IFNE, ifEqual, ifNotEqual)
 	}
 }

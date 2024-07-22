@@ -70,7 +70,7 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type =
 			argumentTypes[1].returnType
 
 	override fun privateBlockTypeRestriction(): A_Type =

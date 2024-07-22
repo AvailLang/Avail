@@ -299,6 +299,9 @@ class CharacterDescriptor private constructor(
 			}
 		}
 
+		/** The character for codepoint 0. */
+		val nullCharacter = byteCharacters[0]
+
 		/** The hashes of the first 256 Unicode characters. */
 		private val hashesOfByteCharacters =
 			IntArray(256, ::computeHashOfCharacterWithCodePoint)

@@ -74,6 +74,7 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean = Or.generateBinaryIntOperation(
+		this,
 		arguments,
 		argumentTypes,
 		callSiteHelper,

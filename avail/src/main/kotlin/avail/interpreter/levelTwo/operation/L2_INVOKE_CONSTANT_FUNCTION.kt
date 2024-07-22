@@ -40,16 +40,16 @@ import avail.interpreter.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
-import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -117,7 +117,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 			append(arguments.elements)
 			append(")")
 			renderOperandsExcludingFields(
-				builder, ::constantFunction, ::arguments)
+				builder, desiredOperandTypes, ::constantFunction, ::arguments)
 		}
 	}
 
@@ -127,11 +127,11 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		// See if the new situation has become specialized enough to invoke a
 		// primitive that's infallible for these arguments.
 		val rawFunction = constantFunction.constant.code()
-		val primitive = rawFunction.codePrimitive()
-			?: return super.emitTransformedInstruction(regenerator)
 		val argumentTypes = arguments.elements.map(L2ReadBoxedOperand::type)
+		val primitive = rawFunction.codePrimitive()
 		when
 		{
+			primitive === null -> { }
 			!primitive.hasFlag(CanInline) -> { }
 			primitive.hasFlag(CanSwitchContinuations) -> { }
 			primitive.hasFlag(Invokes) -> { }
@@ -144,7 +144,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 				regenerator.addInstruction(
 					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
 						L2ConstantOperand(rawFunction),
-						L2PrimitiveOperand(primitive),
+						L2ArbitraryConstantOperand(primitive),
 						arguments,
 						regenerator.boxedWrite(
 							result.semanticValues(),

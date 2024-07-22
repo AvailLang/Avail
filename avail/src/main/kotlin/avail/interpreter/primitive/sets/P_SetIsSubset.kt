@@ -67,4 +67,6 @@ object P_SetIsSubset : Primitive(2, CannotFail, CanFold, CanInline)
 				mostGeneralSetType(),
 				mostGeneralSetType()),
 			booleanType)
+
+	override val canDestroyArguments get() = false
 }
