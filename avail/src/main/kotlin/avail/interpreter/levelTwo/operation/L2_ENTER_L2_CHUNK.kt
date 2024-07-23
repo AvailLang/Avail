@@ -36,19 +36,17 @@ import avail.descriptor.functions.A_RegisterDump.Companion.extractDumpedObjectAt
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.JavaLibrary.bitCastLongToDoubleMethod
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.COMMENT
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.FLOAT_KIND
+import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -65,44 +63,35 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(CURRENT_CONTINUATION::class)
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
-object L2_ENTER_L2_CHUNK : L2Operation(
-	INT_IMMEDIATE.named("entry point offset in default chunk"),
-	COMMENT.named("chunk entry point name"))
+class L2_ENTER_L2_CHUNK(
+	var entryPointOffsetInDefaultChunk: L2IntImmediateOperand,
+	var chunkEntryPointName: L2CommentOperand
+): L2Instruction()
 {
-	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
+	override val isEntryPoint get() = true
 
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		//		final L2IntImmediateOperand offsetInDefaultChunk =
-//			instruction.operand(0);
-//		final L2CommentOperand comment = instruction.operand(1);
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val offsetInDefaultChunk =
-			instruction.operand<L2IntImmediateOperand>(0)
-		//		final L2CommentOperand comment = instruction.operand(1);
-
 		// Skip the validity check for transient entry points, which can't
 		// become invalid during their lifetimes.
-		if (offsetInDefaultChunk.value !=
+		if (entryPointOffsetInDefaultChunk.value !=
 			ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk)
 		{
 			// :: if (!checkValidity()) {
 			translator.loadInterpreter(method)
-			translator.literal(method, offsetInDefaultChunk.value)
+			translator.literal(method, entryPointOffsetInDefaultChunk.value)
 			Interpreter.checkValidityMethod.generateCall(method)
 			val isValidLabel = Label()
 			method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
@@ -118,7 +107,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 		// up for us the lists of registers that were saved.  The interpreter
 		// should have extracted the registerDump for us already.
 		val localNumberLists =
-			translator.liveLocalNumbersByKindPerEntryPoint[instruction]
+			translator.liveLocalNumbersByKindPerEntryPoint[this]
 		if (localNumberLists !== null)
 		{
 			val boxedList = localNumberLists[BOXED_KIND]!!

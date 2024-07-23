@@ -33,23 +33,35 @@
 package avail.interpreter.primitive.tuples
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.sizeRange
+import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.ConcatenatedTupleTypeDescriptor.Companion.concatenatingAnd
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
+import avail.interpreter.levelTwo.operation.L2_APPEND_TO_TUPLE
+import avail.optimizer.L1Translator
+import avail.utility.PrefixSharingList.Companion.append
 
 /**
  * **Primitive:** Answer a new [tuple][TupleDescriptor] like the argument but
@@ -69,13 +81,57 @@ object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (aTupleType, anElementType) = argumentTypes
 		val anElementTupleType = tupleTypeForSizesTypesDefaultType(
 			singleInt(1), emptyTuple, anElementType)
 		return concatenatingAnd(aTupleType, anElementTupleType)
+	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+	{
+		assert(arguments.size == 2)
+		val tupleRead = arguments[0]
+		val newElementRead = arguments[1]
+
+		val translator = callSiteHelper.translator
+		val generator = translator.generator
+		val tupleType = argumentTypes[0]
+		val range = tupleType.sizeRange
+		val size = range.lowerBound
+		val explodedTupleElements =
+			if (size.isInt && size.equals(range.upperBound))
+			{
+				generator.explodeTupleIfPossible(
+					tupleRead,
+					tupleRead.type().tupleOfTypesFromTo(1, size.extractInt)
+						.toList())
+			}
+			else null
+		if (explodedTupleElements !== null)
+		{
+			callSiteHelper.useAnswer(
+				generator.createTuple(
+					explodedTupleElements.append(newElementRead)))
+		}
+		else
+		{
+			val resultType = concatenatingAnd(
+				tupleType, tupleTypeForTypes(newElementRead.type()))
+			val tempWrite =
+				generator.boxedWriteTemp(restriction(resultType, null))
+			generator.addInstruction(
+				L2_APPEND_TO_TUPLE(tupleRead, newElementRead, tempWrite))
+			callSiteHelper.useAnswer(translator.readBoxed(tempWrite))
+		}
+		return true
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

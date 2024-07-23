@@ -41,7 +41,6 @@ import avail.descriptor.numbers.A_Number.Companion.bitTest
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.intCount
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -55,11 +54,11 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u1
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -67,10 +66,11 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.And
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shr
+import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -105,7 +105,7 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
 		val (aRange, bRange) = argumentTypes
@@ -158,7 +158,6 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean
 	{
@@ -167,12 +166,13 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 
 		// Only bother with specialized code if we know the values are int32's.
 		if (aType.typeIntersection(i32).isBottom
-			|| bType.typeIntersection(inclusive(zero, fromInt(31))).isBottom)
+			|| bType.typeIntersection(inclusive(0, 31)).isBottom)
 		{
 			// One of the arguments is never within range, so fall back.
 			return false
 		}
-		val generator = callSiteHelper.generator()
+		val translator = callSiteHelper.translator
+		val generator = callSiteHelper.generator
 		val fallback = L2BasicBlock("fallback for bit test")
 		val aInt = generator.readInt(
 			L2SemanticUnboxedInt(a.semanticValue()), fallback)
@@ -180,7 +180,7 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 			L2SemanticUnboxedInt(b.semanticValue()), fallback)
 		// Fall back if bInt is > 31.  We already know it's non-negative.
 		val inRange = L2BasicBlock("bit position is in 0..31")
-		L2_JUMP_IF_COMPARE_INT.lessOrEqual.compareAndBranch(
+		NumericComparator.LessOrEqual.compareAndBranchInt(
 			generator,
 			bInt,
 			generator.unboxedIntConstant(31),
@@ -195,27 +195,28 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 		else
 		{
 			val shiftedWrite = generator.intWriteTemp(
-				restrictionForType(i32, UNBOXED_INT_FLAG))
+				intRestrictionForType(i32))
 			generator.addInstruction(
-				L2_BIT_LOGIC_OP.bitwiseSignedShiftRight,
-				aInt,
-				bInt,
-				shiftedWrite)
+				L2_BIT_LOGIC_OP(
+					Shr,
+					aInt,
+					bInt,
+					shiftedWrite))
 			L2ReadIntOperand(
 				shiftedWrite.pickSemanticValue(),
 				shiftedWrite.restriction(),
 				generator.currentManifest)
 		}
-		val maskedWrite = generator.intWriteTemp(
-			restrictionForType(u1, UNBOXED_INT_FLAG))
+		val maskedWrite = generator.intWriteTemp(intRestrictionForType(u1))
 		generator.addInstruction(
-			L2_BIT_LOGIC_OP.bitwiseAnd,
-			shifted,
-			generator.unboxedIntConstant(1),
-			maskedWrite)
+			L2_BIT_LOGIC_OP(
+				And,
+				shifted,
+				generator.unboxedIntConstant(1),
+				maskedWrite))
 		val isZeroLabel = generator.createBasicBlock("bit is zero")
 		val isOneLabel = generator.createBasicBlock("bit is one")
-		L2_JUMP_IF_COMPARE_INT.equal.compareAndBranch(
+		NumericComparator.Equal.compareAndBranchInt(
 			generator,
 			L2ReadIntOperand(
 				maskedWrite.pickSemanticValue(),

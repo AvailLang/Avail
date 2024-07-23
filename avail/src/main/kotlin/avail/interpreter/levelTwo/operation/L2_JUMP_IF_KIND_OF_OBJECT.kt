@@ -33,16 +33,15 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type.Companion.instance
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -52,65 +51,63 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_KIND_OF_OBJECT : L2ConditionalJump(
-	READ_BOXED.named("value"),
-	READ_BOXED.named("type"),
-	PC.named("is kind", SUCCESS),
-	PC.named("if not kind", FAILURE))
+class L2_JUMP_IF_KIND_OF_OBJECT(
+	var value: L2ReadBoxedOperand,
+	var type: L2ReadBoxedOperand,
+	@On(SUCCESS) var ifKind: L2PcOperand,
+	@On(FAILURE) var ifNotKind: L2PcOperand
+): L2ConditionalJump()
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val type = instruction.operand<L2ReadBoxedOperand>(1)
-		val ifKind = instruction.operand<L2PcOperand>(2)
-		//		final L2PcOperand ifNotKind = instruction.operand(3);
-		super.instructionWasAdded(instruction, manifest)
-
+		super.instructionWasAdded(manifest)
 		// Restrict the value to the type along the ifKind branch, but because
 		// the provided type can be more specific at runtime, we can't restrict
 		// the ifNotKind branch.
-		ifKind.manifest().intersectType(
-			value.semanticValue(),
-			type.type().instance)
+		ifKind.manifest().intersectType(value, type.type().instance)
+	}
+
+	override fun emitTransformedInstruction(
+		regenerator: L2Regenerator)
+	{
+		type.restriction().constantOrNull?.let { constantType ->
+			regenerator.jumpIfKindOfConstant(
+				value,
+				constantType,
+				ifKind.targetBlock(),
+				ifNotKind.targetBlock())
+			return
+		}
+		ifKind.manifest().intersectType(value, type.type().instance)
+		super.emitTransformedInstruction(regenerator)
 	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val type = instruction.operand<L2ReadBoxedOperand>(1)
-		//		final L2PcOperand ifKind = instruction.operand(2);
-//		final L2PcOperand ifNotKind = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(value.registerString())
 		builder.append(" ∈ ")
 		builder.append(type.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::value, ::type)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val type = instruction.operand<L2ReadBoxedOperand>(1)
-		val ifKind = instruction.operand<L2PcOperand>(2)
-		val ifNotKind = instruction.operand<L2PcOperand>(3)
-
 		// :: if (value.isInstanceOf(type)) goto isKind;
 		// :: else goto isNotKind;
 		translator.load(method, value.register())
 		translator.load(method, type.register())
 		A_BasicObject.isInstanceOfMethod.generateCall(method)
-		emitBranch(translator, method, instruction, Opcodes.IFNE, ifKind, ifNotKind)
+		emitBranch(translator, method, this, Opcodes.IFNE, ifKind, ifNotKind)
 	}
 }

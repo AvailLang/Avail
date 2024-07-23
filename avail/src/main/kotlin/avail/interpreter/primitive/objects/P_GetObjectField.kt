@@ -55,6 +55,11 @@ import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
+import avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * **Primitive:** Extract the specified [field][AtomDescriptor] from the
@@ -79,7 +84,7 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 		functionType(tuple(mostGeneralObjectType, ATOM.o), ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val (objectType, fieldType) = argumentTypes
 
@@ -121,6 +126,39 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 			return CallSiteCannotFail
 		}
 		return CallSiteCanFail
+	}
+
+	override fun emitTransformedInfalliblePrimitive(
+		rawFunction: A_RawFunction,
+		arguments: L2ReadBoxedVectorOperand,
+		result: L2WriteBoxedOperand,
+		regenerator: L2Regenerator)
+	{
+		val (objectRead, fieldTypeRead) = arguments.elements
+		val fieldAtom = fieldTypeRead.restriction().constantOrNull
+		if (fieldAtom === null)
+		{
+			// It can't be an arbitrary atom that may or may not be a field, but
+			// it could be a choice between multiple atoms that are known to be
+			// fields of the object.  Fall back.
+			super.emitTransformedInfalliblePrimitive(
+				rawFunction, arguments, result, regenerator)
+			return
+		}
+		objectRead.constantOrNull?.let { exactObject ->
+			val fieldValue = exactObject.fieldAt(fieldAtom)
+			regenerator.moveBoxedRegister(
+				regenerator.boxedConstant(fieldValue).semanticValue(),
+				result.semanticValues())
+			return
+		}
+		val objectType = objectRead.type()
+		assert(objectType.fieldTypeAtOrNull(fieldAtom) !== null)
+		regenerator.addInstruction(
+			L2_GET_OBJECT_FIELD(
+				objectRead,
+				L2ConstantOperand(fieldAtom),
+				result))
 	}
 
 	override fun privateFailureVariableType(): A_Type =

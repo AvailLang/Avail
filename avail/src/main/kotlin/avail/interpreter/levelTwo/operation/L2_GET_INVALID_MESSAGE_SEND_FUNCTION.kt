@@ -33,19 +33,18 @@ package avail.interpreter.levelTwo.operation
 
 import avail.AvailRuntime
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Store the
+ * Extract the
  * [invalid&#32;message&#32;send&#32;function][AvailRuntime.invalidMessageSendFunction]
  * into the supplied [object&#32;register][L2BoxedRegister].
  *
@@ -53,34 +52,38 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @ReadsHiddenVariable(GLOBAL_STATE::class)
-object L2_GET_INVALID_MESSAGE_SEND_FUNCTION : L2Operation(
-	WRITE_BOXED.named("invalid message send function"))
+class L2_GET_INVALID_MESSAGE_SEND_FUNCTION(
+	var invalidMessageSendFunction: L2WriteBoxedOperand
+): L2Instruction()
 {
-	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
-		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
-	{
-		assert(this == instruction.operation)
-		val function = instruction.operand<L2WriteBoxedOperand>(0)
+	/**
+	 * Fetching this hook function is sufficient to disable code splitting along
+	 * this path.  It's highly unlikely that this hookable function is going to
+	 * be accessed in a tight loop anyhow, let alone benefit from code
+	 * splitting.
+	 */
+	override val isCold get() = true
 
-		renderPreamble(instruction, builder)
+	override fun appendToWithWarnings(
+		builder: StringBuilder,
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
+	{
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(function.registerString())
+		builder.append(invalidMessageSendFunction.registerString())
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val function = instruction.operand<L2WriteBoxedOperand>(0)
-
 		// :: destination = interpreter.runtime().invalidMessageSendFunction();
 		translator.loadInterpreter(method)
 		Interpreter.runtimeField.generateRead(method)
 		AvailRuntime.invalidMessageSendFunctionMethod.generateCall(method)
-		translator.store(method, function.register())
+		translator.store(method, invalidMessageSendFunction.register())
 	}
 }

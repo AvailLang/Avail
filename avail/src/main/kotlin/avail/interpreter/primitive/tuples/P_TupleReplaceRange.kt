@@ -176,7 +176,7 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (tupleType, startType, endType, replacementType) = argumentTypes

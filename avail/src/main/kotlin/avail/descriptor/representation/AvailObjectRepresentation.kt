@@ -687,7 +687,8 @@ sealed class AvailObjectRepresentation constructor(
 						longSlots,
 						bitField.integerSlotIndex,
 						oldFieldValue,
-						newFieldValue))
+						newFieldValue)
+					&& run { Thread.onSpinWait(); true })
 			else ->
 			{
 				var value = longSlots[bitField.integerSlotIndex]
@@ -893,7 +894,8 @@ sealed class AvailObjectRepresentation constructor(
 					val oldValue = longSlots[arrayIndex]
 					newValue = updater(oldValue)
 				} while (!VolatileSlotHelper.compareAndSet(
-					longSlots, arrayIndex, oldValue, newValue))
+						longSlots, arrayIndex, oldValue, newValue)
+					&& run { Thread.onSpinWait(); true })
 				return newValue
 			}
 			else ->

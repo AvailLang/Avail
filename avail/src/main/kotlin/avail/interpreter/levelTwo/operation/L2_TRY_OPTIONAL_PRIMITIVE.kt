@@ -35,15 +35,13 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.L2Instruction
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -64,13 +62,13 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(
 	CURRENT_CONTINUATION::class,
-	CURRENT_FUNCTION::class,
-	CURRENT_ARGUMENTS::class)
+	CURRENT_FUNCTION::class)
 @WritesHiddenVariable(
 	LATEST_RETURN_VALUE::class)
-object L2_TRY_OPTIONAL_PRIMITIVE : L2Operation()
+class L2_TRY_OPTIONAL_PRIMITIVE(
+): L2Instruction()
 {
-	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
+	override val isEntryPoint get() = true
 
 	/**
 	 * It could fail and jump.
@@ -79,8 +77,7 @@ object L2_TRY_OPTIONAL_PRIMITIVE : L2Operation()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		// if (interpreter.function.code().primitive() === null)
 		//     goto noPrimitive;

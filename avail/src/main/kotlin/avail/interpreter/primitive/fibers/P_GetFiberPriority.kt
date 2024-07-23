@@ -31,7 +31,9 @@
  */
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.priority
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -43,6 +45,14 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
+import avail.optimizer.L1Translator
+import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticUnboxedInt
+import org.objectweb.asm.MethodVisitor
 
 /**
  * **Primitive:** Get the priority of a fiber.
@@ -60,6 +70,54 @@ object P_GetFiberPriority : Primitive(
 		return interpreter.primitiveSuccess(fromUnsignedByte(priority.toShort()))
 	}
 
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		callSiteHelper: L1Translator.CallSiteHelper
+	): Boolean
+	{
+		// First generate the specialized instruction to fill an int register.
+		val fiberRead = arguments[0]
+		val translator = callSiteHelper.translator
+		val priorityIntWrite = translator.generator.intWriteTemp(
+			intRestrictionForType(u8))
+		translator.addInstruction(
+			L2_GET_FIBER_PRIORITY_INT(fiberRead, priorityIntWrite))
+		// Now box it in case someone needs it.  If nobody does, this will
+		// evaporate later.
+		val prioritySemanticIntValue = priorityIntWrite.pickSemanticValue()
+			as L2SemanticUnboxedInt
+		val boxedPriority = translator.generator.readBoxed(
+			prioritySemanticIntValue.base)
+		callSiteHelper.useAnswer(boxedPriority)
+		return true
+	}
+
+	/**
+	 * Extract the priority into an int.  A separate instruction will box it.
+	 * Then when an L2 comparison between two priorities is discovered, we can
+	 * translate that into a comparison of the unboxed versions, allowing the
+	 * boxing operation to be omitted.
+	 */
+	class L2_GET_FIBER_PRIORITY_INT(
+		var fiber: L2ReadBoxedOperand,
+		var priority: L2WriteIntOperand
+	): L2Instruction()
+	{
+		override fun translateToJVM(
+			translator: JVMTranslator,
+			method: MethodVisitor)
+		{
+			translator.load(method, fiber.register())
+			A_Fiber.getFiberPriorityMethod.generateCall(method)
+			translator.store(method, priority.register())
+		}
+	}
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralFiberType()), u8)
+
+	override val canDestroyArguments get() = false
 }

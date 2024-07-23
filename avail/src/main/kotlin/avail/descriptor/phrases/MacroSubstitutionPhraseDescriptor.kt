@@ -448,4 +448,3 @@ class MacroSubstitutionPhraseDescriptor(
 			MacroSubstitutionPhraseDescriptor(Mutability.SHARED)
 	}
 }
-

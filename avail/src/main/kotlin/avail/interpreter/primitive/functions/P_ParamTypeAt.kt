@@ -99,7 +99,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 			tuple(
 				functionMeta(),
 				naturalNumbers),
-			anyMeta())
+			anyMeta)
 
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility
@@ -129,7 +129,6 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean
 	{
@@ -144,13 +143,11 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		val minArgs = argsRange.lowerBound
 		if (!minArgs.isInt || exactIndex.greaterThan(minArgs)) return false
 		// The exact index will always be in range.
-		if (functionTypeDefinition.operation !is L2_GET_TYPE) return false
+		if (functionTypeDefinition !is L2_GET_TYPE) return false
 		// This is the pattern "x's type [y]".  Since x is some actual
 		// function, the resulting argument type can't be top or bottom.
-		val function = L2_GET_TYPE.sourceValueOf(functionTypeDefinition)
-		val generator = translator.generator
-		val read = generator.extractParameterTypeFromFunction(
-			function, exactIndex.extractInt)
+		val read = callSiteHelper.generator.extractParameterTypeFromFunction(
+			functionTypeDefinition.value, exactIndex.extractInt)
 		callSiteHelper.useAnswer(read)
 		return true
 	}

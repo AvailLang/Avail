@@ -31,6 +31,8 @@
  */
 package avail.optimizer.values
 
+import avail.interpreter.levelTwo.register.BOXED_KIND
+
 /**
  * A semantic value which holds a temporary value in a [Frame].  The scope
  * of this value is usually local to a section of Java code that both produces
@@ -51,24 +53,32 @@ package avail.optimizer.values
  *   An integer which should be unique across all other instances of this class
  *   created for this [Frame].
  */
-internal class L2SemanticTemp constructor(frame: Frame, val uniqueId: Int)
-	: L2FrameSpecificSemanticValue(frame, uniqueId xor -0x5d6360e4)
+internal class L2SemanticTemp
+constructor(
+	frame: Frame,
+	val uniqueId: Int
+) : L2FrameSpecificSemanticValue(frame, uniqueId xor -0x5d6360e4)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		(other is L2SemanticTemp
 			&& super.equalsSemanticValue(other)
 			&& uniqueId == other.uniqueId)
 
 	override fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer(frame).let {
-				if (it == frame) this else L2SemanticTemp(it, uniqueId)
-			}
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticBoxedValue =
+		frameTransformer(frame).let {
+			if (it == frame) this else L2SemanticTemp(it, uniqueId)
+		}
 
 
 	override fun primaryVisualSortKey() = PrimaryVisualSortKey.TEMP
 
-	override fun toString(): String =
-		"Temp#$uniqueId${if (frame.depth() == 1) "" else "Temp#$uniqueId in $frame"}"
+	override fun toString() = buildString {
+			append("T")
+			append(uniqueId)
+			if (frame.depth() > 1) append("in $frame")
+		}
 }

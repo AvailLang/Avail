@@ -100,7 +100,7 @@ class PerInterpreterStatistic internal constructor(
 	 */
 	private inline fun <A> spinLockWhile(body: () -> A): A
 	{
-		while (!lock.compareAndSet(0, 1)) Thread.yield()
+		while (!lock.compareAndSet(0, 1)) Thread.onSpinWait()
 		return try
 		{
 			body()

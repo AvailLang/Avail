@@ -177,7 +177,7 @@ class LinearSetBinDescriptor private constructor(
 			bitPosition = element.hash() ushr shift and 63
 			bitVector = bitVector or (1L shl bitPosition)
 		}
-		val newLocalSize: Int = java.lang.Long.bitCount(bitVector)
+		val newLocalSize = bitVector.countOneBits()
 		result = createInitializedHashSetBin(myLevel, newLocalSize, bitVector)
 		result.setBinAddingElementHashLevelCanDestroy(
 			elementObject, elementObjectHash, myLevel, true)

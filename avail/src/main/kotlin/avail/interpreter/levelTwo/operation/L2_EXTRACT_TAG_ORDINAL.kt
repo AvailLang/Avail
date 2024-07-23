@@ -36,12 +36,11 @@ import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
@@ -52,20 +51,17 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_EXTRACT_TAG_ORDINAL : L2Operation(
-	READ_BOXED.named("value"),
-	WRITE_INT.named("metatag ordinal"))
+class L2_EXTRACT_TAG_ORDINAL(
+	var value: L2ReadBoxedOperand,
+	var tagOrdinal: L2WriteIntOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder
 			.append(' ')
 			.append(tagOrdinal.registerString())
@@ -74,13 +70,23 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 			.append(")")
 	}
 
+	override fun interestingConditions(): List<L2SplitCondition?>
+	{
+		return listOf(unboxedIntCondition(listOf(tagOrdinal.register())))
+	}
+
+	/**
+	 * Extract the [L2ReadBoxedOperand] that provided the object whose [TypeTag]
+	 * is being extracted.
+	 */
+	fun sourceOfExtractTag(instruction: L2Instruction): L2ReadBoxedOperand
+	{
+		return instruction.operand(0)
+	}
+
 	override fun generateReplacement(
-		instruction: L2Instruction,
 		regenerator: L2Regenerator)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
-
 		// If the tag is statically deducible at this point, use the constant.
 		val type = value.type()
 		val baseTag = type.instanceTag
@@ -90,23 +96,79 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 		{
 			// This tag always applies, and it has no children, not even the
 			// bottom type (which is special in the TypeTag hierarchy).
-			regenerator.targetGenerator.addInstruction(
-				L2_MOVE_CONSTANT.unboxedInt,
-				L2IntImmediateOperand(baseTag.ordinal),
-				tagOrdinal)
+			regenerator.run {
+				val existingValue =
+					tagOrdinal.semanticValues().firstOrNull {
+						currentManifest.hasSemanticValue(it)
+					}
+				when (existingValue)
+				{
+					null ->
+						regenerator.moveIntRegister(
+							regenerator.unboxedIntConstant(baseTag.ordinal)
+								.semanticValue(),
+							intWrite(
+								tagOrdinal.semanticValues(),
+								intRestrictionForConstant(baseTag.ordinal)
+							).semanticValues())
+					else -> tagOrdinal.semanticValues().forEach { otherValue ->
+						if (!currentManifest.hasSemanticValue(otherValue))
+						{
+							moveIntRegister(existingValue, setOf(otherValue))
+						}
+					}
+				}
+			}
 			return
 		}
-		super.generateReplacement(instruction, regenerator)
+		super.generateReplacement(regenerator)
 	}
+
+	override fun emitTransformedInstruction(
+		regenerator: L2Regenerator)
+	{
+		// If the tag is statically deducible at this point, use the constant.
+		val type = value.type()
+		val baseTag = type.instanceTag
+		if (baseTag.ordinal == baseTag.highOrdinal
+			&& (!baseTag.isSubtagOf(TypeTag.TOP_TYPE_TAG)
+				|| baseTag == TypeTag.BOTTOM_TYPE_TAG))
+		{
+			// This tag always applies, and it has no children, not even the
+			// bottom type (which is special in the TypeTag hierarchy).
+			regenerator.run {
+				val existingValue =
+					tagOrdinal.semanticValues().firstOrNull {
+						currentManifest.hasSemanticValue(it)
+					}
+				when (existingValue)
+				{
+					null -> moveIntRegister(
+						regenerator.unboxedIntConstant(baseTag.ordinal)
+							.semanticValue(),
+						intWrite(
+							tagOrdinal.semanticValues(),
+							intRestrictionForConstant(baseTag.ordinal)
+						).semanticValues())
+					else -> tagOrdinal.semanticValues().forEach { otherValue ->
+						if (!currentManifest.hasSemanticValue(otherValue))
+						{
+							moveIntRegister(existingValue, setOf(otherValue))
+						}
+					}
+				}
+			}
+			return
+		}
+		super.emitTransformedInstruction(regenerator)
+	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
-
 		// :: tagOrdinal = value.staticTypeTagOrdinal();
 		translator.load(method, value.register())
 		staticTypeTagOrdinalMethod.generateCall(method)

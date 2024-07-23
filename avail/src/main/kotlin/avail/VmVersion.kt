@@ -1,6 +1,6 @@
 /*
  * VmVersion.kt
- * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,4 +37,4 @@ package avail
 ////////////////////////////////////////////////////////////////////////////////
 
 /** The version of this Avail VM. */
-const val vmVersion = "2.0.0.alpha27"
+const val vmVersion = "2.0.0.alpha28"

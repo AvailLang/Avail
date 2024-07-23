@@ -35,8 +35,8 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 
 /**
- * An `L2NamedOperandType` is used to specify both an [L2OperandType] and a
- * [String] naming its purpose with respect to some [L2Operation].  This
+ * An [L2NamedOperandType] is used to specify both an [L2OperandType] and a
+ * [String] naming its [Purpose] with respect to some [L2Instruction].  This
  * effectively allows operations to declare named operands, increasing the
  * descriptiveness of the level two instruction set. The names are not used in
  * any way at runtime.
@@ -47,7 +47,7 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
  * @property operandType
  *   The [L2OperandType] that the receiver decorates.
  * @property name
- *   The [String] that names the receiver within an [L2Operation].
+ *   The [String] that names the receiver within an [L2Instruction].
  * @property purpose
  *   The [Purpose] that best describes the [L2NamedOperandType], if any.
  *
@@ -127,22 +127,9 @@ class L2NamedOperandType internal constructor(
 		REFERENCED_AS_INT
 	}
 
-	/**
-	 * Answer the [Purpose] that best describes the [L2NamedOperandType], if
-	 * any.
-	 *
-	 * @return
-	 *   The receiver's purpose, or `null` if nothing additional is known about
-	 *   its purpose.
-	 */
-	fun purpose(): Purpose?
-	{
-		return purpose
-	}
-
 	override fun toString(): String
 	{
-		return operandType.name + "(" + name + ")"
+		return operandType::class.simpleName + "(" + name + ")"
 	}
 
 	init

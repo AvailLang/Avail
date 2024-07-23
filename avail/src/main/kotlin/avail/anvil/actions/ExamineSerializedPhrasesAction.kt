@@ -102,7 +102,7 @@ class ExamineSerializedPhrasesAction constructor (
 						}
 						workbench.writeText(report, REPORT)
 					}
-					is Any -> assert(false) { "Unknown type selected" }
+					is Any -> throw AssertionError("Unknown type selected")
 				}
 			}
 		}

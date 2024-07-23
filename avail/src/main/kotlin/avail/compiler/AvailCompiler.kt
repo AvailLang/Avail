@@ -296,8 +296,7 @@ import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.AvailLoader.Phase.STYLING_HEADER
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.primitive.compiler.P_RejectParsing
 import avail.io.TextInterface
 import avail.performance.Statistic
@@ -313,8 +312,8 @@ import avail.utility.evaluation.FormattingDescriber
 import avail.utility.parallelDoThen
 import avail.utility.safeWrite
 import avail.utility.stackToString
-import java.util.*
 import java.util.Collections.emptyList
+import java.util.Formatter
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -1186,9 +1185,8 @@ class AvailCompiler constructor(
 					onSuccess()
 				}
 			}
-			else -> assert(false) {
-				"Expected top-level declaration to have been parsed as local"
-			}
+			else -> throw AssertionError(
+				"Expected top-level declaration to have been parsed as local")
 		}
 	}
 
@@ -2407,7 +2405,7 @@ class AvailCompiler constructor(
 				// Some macro definitions are not visible.  Search the hard (but
 				// hopefully infrequent) way.
 				val phraseRestrictions = argumentsListNode.expressionsTuple
-					.map { restrictionForConstant(it, BOXED_FLAG) }
+					.map(::boxedRestrictionForConstant)
 				val filtered = visibleDefinitions.filter { macroDefinition ->
 					macroDefinition.bodySignature()
 						.couldEverBeInvokedWith(phraseRestrictions)

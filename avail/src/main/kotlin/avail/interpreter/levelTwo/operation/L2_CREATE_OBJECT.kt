@@ -35,10 +35,6 @@ import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.ARBITRARY_CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -53,47 +49,39 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_CREATE_OBJECT : L2Operation(
-	ARBITRARY_CONSTANT.named("variant"),
-	READ_BOXED_VECTOR.named("field values"),
-	WRITE_BOXED.named("new object"))
+class L2_CREATE_OBJECT(
+	var variant: L2ArbitraryConstantOperand<ObjectLayoutVariant>,
+	var fieldValues: L2ReadBoxedVectorOperand,
+	var newObject: L2WriteBoxedOperand
+) : L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
+		desiredOperandTypes: Set<L2OperandType>,
 		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val variantOperand = instruction.operand<L2ArbitraryConstantOperand>(0)
-		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val newObject = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(newObject.registerString())
 		builder.append(" ← {")
-		val variant: ObjectLayoutVariant = variantOperand.constant.cast()
+		val variant: ObjectLayoutVariant = variant.constant.cast()
 		val realSlots = variant.realSlots
-		val fieldSources = fieldsVector.elements
+		val fieldSources = fieldValues.elements
 		assert(realSlots.size == fieldSources.size)
 		var i = 0
-		realSlots.joinTo(builder, ",")
-		{ key -> "$key: ${fieldSources[i++].registerString()}" }
+		realSlots.joinTo(builder, ",") { key ->
+			"$key: ${fieldSources[i++].registerString()}"
+		}
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		assert(this == instruction.operation)
-		val variantOperand = instruction.operand<L2ArbitraryConstantOperand>(0)
-		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val newObject = instruction.operand<L2WriteBoxedOperand>(2)
-		val variant: ObjectLayoutVariant = variantOperand.constant.cast()
-		translator.literal(method, variant)
+		val theVariant = variant.constant
+		translator.literal(method, theVariant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
-		val fieldSources = fieldsVector.elements
+		val fieldSources = fieldValues.elements
 		val limit = fieldSources.size
 		for (i in 0 until limit)
 		{

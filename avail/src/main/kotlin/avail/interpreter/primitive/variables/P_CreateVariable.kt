@@ -60,6 +60,6 @@ object P_CreateVariable : Primitive(1, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(anyMeta()),
+			tuple(anyMeta),
 			mostGeneralVariableType)
 }

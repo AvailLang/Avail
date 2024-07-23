@@ -236,8 +236,12 @@ internal class BuildLoader constructor(
 				false,
 				{ digest ->
 					val versionKey = ModuleVersionKey(moduleName, digest)
-					val version = archive.getVersion(versionKey) ?: error(
-						"Version should have been populated during tracing")
+					val version = archive.getVersion(versionKey)
+					if (version === null)
+					{
+						// Version should have been populated during tracing.
+						throw MalformedSerialStreamException(null)
+					}
 					val imports = version.imports
 					val resolver = availBuilder.runtime.moduleNameResolver
 					val loadedModulesByName = mutableMapOf<String, LoadedModule>()

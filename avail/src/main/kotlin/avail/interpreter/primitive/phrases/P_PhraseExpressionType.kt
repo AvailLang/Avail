@@ -66,10 +66,10 @@ object P_PhraseExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				PARSE_PHRASE.mostGeneralType),
-			topMeta())
+			topMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val phraseType = argumentTypes[0]

@@ -101,10 +101,9 @@ internal class CompletelyOptional constructor(
 
 	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
-		assert(false) {
+		throw AssertionError(
 			"checkType() should not be called for CompletelyOptional " +
-				"expressions"
-		}
+				"expressions")
 	}
 
 	@Suppress("LocalVariableName")

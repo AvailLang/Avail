@@ -69,8 +69,7 @@ class BuildOutputStream constructor(
 		}
 		catch (e: UnsupportedEncodingException)
 		{
-			assert(false) { "Somehow Java doesn't support characters" }
-			throw RuntimeException(e)
+			throw AssertionError("Somehow Java doesn't support characters")
 		}
 
 		if (text.isEmpty())
@@ -91,21 +90,19 @@ class BuildOutputStream constructor(
 
 	@Synchronized
 	@Throws(IOException::class)
-	override fun write(b: ByteArray?)
+	override fun write(b: ByteArray)
 	{
-		assert(b !== null)
-		super.write(b!!)
+		super.write(b)
 		queueForTranscript()
 	}
 
 	@Synchronized
 	override fun write(
-		b: ByteArray?,
+		b: ByteArray,
 		off: Int,
 		len: Int)
 	{
-		assert(b !== null)
-		super.write(b!!, off, len)
+		super.write(b, off, len)
 		queueForTranscript()
 	}
 }

@@ -89,7 +89,7 @@ object P_CreateSuperCastExpression : Primitive(2, CanInline)
 		functionType(
 			tuple(
 				EXPRESSION_PHRASE.create(ANY.o),
-				anyMeta()),
+				anyMeta),
 			SUPER_CAST_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =

@@ -33,7 +33,6 @@ package avail.optimizer.reoptimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -42,39 +41,54 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
-import avail.interpreter.levelTwo.operand.L2SelectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ControlFlowGraph
-import avail.optimizer.L2EntityAndKind
 import avail.optimizer.L2Generator
-import avail.optimizer.L2Generator.SpecialBlock
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2GeneratorInterface.SpecialBlock
+import avail.optimizer.L2Optimizer.Companion.shouldSanityCheck
+import avail.optimizer.L2Optimizer.GenerationMode
+import avail.optimizer.L2Optimizer.GenerationMode.ByRegister
+import avail.optimizer.L2Optimizer.GenerationMode.BySemanticValue
+import avail.optimizer.L2Optimizer.GenerationMode.WithFixedRegisterMap
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.fakeCondition
+import avail.optimizer.L2SplitCondition.Companion.reducedConditions
+import avail.optimizer.L2Synonym
+import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.Graph
 import avail.utility.cast
+import avail.utility.isNullOr
 import avail.utility.mapToSet
-import java.util.ArrayDeque
 
 /**
  * This is used to transform and embed a called function's chunk's control flow
@@ -105,17 +119,25 @@ import java.util.ArrayDeque
  *
  * @property targetGenerator
  *   The [L2Generator] on which to output the transformed L2 code.
- * @property generatePhis
- *   Whether to produce phi instructions automatically based on semantic values
- *   that are in common among incoming edges at merge points.  This is false
- *   when phis have already been replaced with non-SSA moves.
+ * @property mode
+ *   Controls whether to produce phi instructions automatically based on
+ *   [L2SemanticValue]s that are in common among incoming edges at merge points.
+ *   This is generally [ByRegister] when phis have already been replaced with
+ *   non-SSA moves.
+ * @property isRemovingDeadCode
+ *   True iff this regenerator is being used to strip dead code from the
+ *   graph, in which case even if [shouldSanityCheck] is true, we shouldn't
+ *   attempt to check that synonyms have been reconstituted completely.
  *
  * @constructor
  *   Construct a new `L2Regenerator`.
  */
-abstract class L2Regenerator internal constructor(
-	val targetGenerator: L2Generator,
-	private val generatePhis: Boolean)
+abstract class L2Regenerator
+constructor(
+	private val targetGenerator: L2Generator,
+	override val mode: GenerationMode,
+	private val isRemovingDeadCode: Boolean
+) : L2GeneratorInterface by targetGenerator
 {
 	/**
 	 * An [AbstractOperandTransformer] is an [L2OperandDispatcher] suitable for
@@ -132,46 +154,78 @@ abstract class L2Regenerator internal constructor(
 		var currentOperand: L2Operand? = null
 
 		/**
-		 * The mapping from the [L2BasicBlock]s in the source graph to the
-		 * corresponding `L2BasicBlock` in the target graph.
-		 */
-		private val blockMap = mutableMapOf<L2BasicBlock, L2BasicBlock>()
-
-		/**
 		 * Transform the given [L2BasicBlock].  Use the [blockMap], adding an
-		 * entry if necessary.
+		 * entry if necessary.  Always produce the block representing the
+		 * default code splitting path, the one with no conditions.
 		 *
 		 * @param block
 		 *   The basic block to look up.
 		 * @return
 		 *   The looked up or created-and-stored basic block.
 		 */
-		open fun mapBlock(block: L2BasicBlock) =
-			blockMap.computeIfAbsent(block) { oldBlock: L2BasicBlock ->
+		open fun mapBlock(block: L2BasicBlock): L2BasicBlock
+		{
+			val special = inverseSpecialBlockMap[block]
+			val submap = blockMap.computeIfAbsent(block) { mutableMapOf() }
+			// Here we always select the block representing the unconstrained
+			// path.  The optimizer will tweak this after the whole instruction
+			// has been translated, so that the manifests will be available on
+			// the outgoing edges.
+			return submap.computeIfAbsent(emptySet()) {
 				val newBlock = L2BasicBlock(
-					oldBlock.name(), oldBlock.isLoopHead, oldBlock.zone)
-				if (oldBlock.isIrremovable) newBlock.makeIrremovable()
-				inverseSpecialBlockMap[oldBlock]?.let { special ->
+					name = block.name(),
+					zone = block.zone,
+					isLoopHead = block.isLoopHead,
+					isCold = block.isCold)
+				if (block.debugNote.isNotEmpty())
+				{
+					newBlock.debugNote.append(block.debugNote)
+				}
+				if (block.isIrremovable) newBlock.makeIrremovable()
+				if (special !== null)
+				{
+					// Don't split special blocks.
+					assert(targetGenerator.specialBlocks[special] == null)
 					targetGenerator.specialBlocks[special] = newBlock
 				}
 				newBlock
 			}
+		}
 
 		/**
-		 * Transform the given [L2SemanticValue] into another.  By default this
-		 * does nothing, but for a subclass that performs inlining, this can be
-		 * useful for indicating that a semantic value is for the inlined frame
-		 * rather than outer frame.
+		 * Transform the given [L2SemanticValue] into another.  This is a
+		 * semantic value that is being used for reading, not writing.  By
+		 * default this just looks for an equivalent (e.g., a
+		 * [L2SemanticPrimitiveInvocation] whose arguments are in the same
+		 * mutual synonyms), but for a subclass that performs inlining, this can
+		 * be useful for indicating that a semantic value is for the inlined
+		 * frame rather than outer frame.
 		 *
 		 * @param oldSemanticValue
 		 *   The original [L2SemanticValue] from the source graph.
 		 * @return
 		 *   The replacement [L2SemanticValue].
 		 */
-		open fun mapSemanticValue(oldSemanticValue: L2SemanticValue) =
-			oldSemanticValue
+		open fun <K: RegisterKind<K>> mapReadSemanticValue(
+			oldSemanticValue: L2SemanticValue<K>
+		): L2SemanticValue<K> = oldSemanticValue
 
-		override fun doOperand(operand: L2ArbitraryConstantOperand) = Unit
+		/**
+		 * Transform the given [L2SemanticValue] into another, for the purpose
+		 * of writing to it.  By default this does nothing, but for a subclass
+		 * that performs inlining, this can be useful for indicating that a
+		 * semantic value is for the inlined frame rather than outer frame.
+		 *
+		 * @param oldSemanticValue
+		 *   The original [L2SemanticValue] from the source graph.
+		 * @return
+		 *   The replacement [L2SemanticValue].
+		 */
+		open fun <K: RegisterKind<K>> mapWriteSemanticValue(
+			oldSemanticValue: L2SemanticValue<K>
+		): L2SemanticValue<K> = oldSemanticValue
+
+		override fun doOperand(operand: L2ArbitraryConstantOperand<*>) = Unit
 
 		override fun doOperand(operand: L2CommentOperand) = Unit
 
@@ -183,67 +237,76 @@ abstract class L2Regenerator internal constructor(
 
 		override fun doOperand(operand: L2PcOperand)
 		{
-			// Add the source edge to the appropriate queue.
-			when
+			// Note: Even during code splitting, always produce an edge to the
+			// no-conditions version of the replacement block.  The splitter has
+			// the opportunity to generate new code in the no-conditions block
+			// before any of the has-conditions variants, so just prior to that
+			// we adjust the target of any *predecessors* of the no-conditions
+			// block.  We can't make that selection here, because we don't have
+			// complete manifest information for the edge yet.
+			val manifestInOldGraph = operand.manifest()
+			val manifestCopy = L2ValueManifest(currentManifest)
+			fun <K: RegisterKind<K>> local(relatedRead: L2ReadOperand<K>)
 			{
-				operand.isBackward -> backEdgeVisitQueue.add(operand)
-				else -> edgeVisitQueue.add(operand)
+				val equivalentInOldGraph = manifestInOldGraph
+					.equivalentSemanticValue(relatedRead.semanticValue())
+				equivalentInOldGraph ?: return
+				val synonymInOldGraph = manifestInOldGraph
+					.semanticValueToSynonym(equivalentInOldGraph)
+				val semanticValuesInNewGraph = synonymInOldGraph
+					.semanticValues()
+					.filter(manifestCopy::hasSemanticValue)
+				if (semanticValuesInNewGraph.isEmpty()) return
+				// Merge the synonyms as indicated in the old edge's manifest.
+				semanticValuesInNewGraph.zipWithNext(
+					manifestCopy::mergeExistingSemanticValues)
+				val equivalentInNewGraph = manifestCopy.equivalentSemanticValue(
+					semanticValuesInNewGraph.first())!!
+				// Restrict the new edge's manifest the same way.
+				manifestCopy.updateRestriction(equivalentInNewGraph) {
+					intersection(
+						manifestInOldGraph.restrictionFor(equivalentInOldGraph))
+				}
 			}
-			// Note: ignore the manifest of the source edge.
+			operand.instruction.readOperands
+				.forEach { readOperand -> local(readOperand) }
 			val edge = L2PcOperand(
 				mapBlock(operand.targetBlock()),
 				operand.isBackward,
-				targetGenerator.currentManifest,
+				L2ValueManifest(manifestCopy),
 				operand.optionalName)
-			// Generate clamped entities based on the originals.
-			operand.forcedClampedEntities?.let { oldClamped ->
-				val manifest = targetGenerator.currentManifest
-				val newClamped = mutableSetOf<L2EntityAndKind>()
-				oldClamped.forEach { entityAndKind ->
-					val (entity, kind) = entityAndKind
-					when (entity)
-					{
-						is L2SemanticValue ->
-						{
-							// Clamp the same L2SemanticValue in the target as
-							// was clamped in the source.
-							newClamped.add(entityAndKind)
-							newClamped.add(
-								L2EntityAndKind(
-									manifest.getDefinition(entity, kind),
-									kind))
-						}
-					}
-				}
-				edge.forcedClampedEntities = newClamped
-			}
+			// Leave it up to the instruction's instructionWasAdded() to set up
+			// the correct clamped values.
 			currentOperand = edge
 		}
-
-		override fun doOperand(operand: L2PrimitiveOperand) = Unit
 
 		override fun doOperand(operand: L2ReadBoxedVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadBoxedVectorOperand(
-				operand.elements.map(this@L2Regenerator::transformOperand))
+				operand.elements.map(::transformOperand).cast())
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadIntVectorOperand(
-				operand.elements.map(this@L2Regenerator::transformOperand))
+				operand.elements.map(::transformOperand).cast())
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
 			currentOperand = L2ReadFloatVectorOperand(
-				operand.elements.map(this@L2Regenerator::transformOperand))
+				operand.elements.map(::transformOperand).cast())
 		}
 
-		override fun doOperand(operand: L2SelectorOperand) = Unit
+		override fun doOperand(operand: L2WriteBoxedVectorOperand)
+		{
+			// Note: this clobbers currentOperand, but we'll set it later.
+			currentOperand = L2WriteBoxedVectorOperand(
+				operand.elements.map(::transformOperand).cast())
+		}
 
 		override fun doOperand(operand: L2PcVectorOperand)
 		{
@@ -255,131 +318,188 @@ abstract class L2Regenerator internal constructor(
 	/**
 	 * An [OperandSemanticTransformer] is an [L2OperandDispatcher] suitable for
 	 * copying operands for the enclosing [L2Regenerator], when operand
-	 * equivalency is via [L2SemanticValue]s (i.e., when [generatePhis] is
-	 * `true`).
+	 * equivalency is via [L2SemanticValue]s (i.e., when [mode] is
+	 * [BySemanticValue]).
 	 */
 	inner class OperandSemanticTransformer : AbstractOperandTransformer()
 	{
+		override fun <K: RegisterKind<K>> mapReadSemanticValue(
+			oldSemanticValue: L2SemanticValue<K>
+		): L2SemanticValue<K>
+		{
+			return currentManifest
+				.equivalentPopulatedSemanticValue(oldSemanticValue)!!
+		}
+
 		override fun doOperand(operand: L2ReadIntOperand)
 		{
+			val equivalent = mapReadSemanticValue(operand.semanticValue())
 			currentOperand = L2ReadIntOperand(
-				mapSemanticValue(operand.semanticValue()),
-				targetGenerator.currentManifest.restrictionFor(
-					operand.semanticValue()),
-				targetGenerator.currentManifest)
+				equivalent,
+				currentManifest
+					.restrictionFor(equivalent)
+					.intersection(operand.restriction()),
+				currentManifest)
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
 		{
+			val equivalent = mapReadSemanticValue(operand.semanticValue())
 			currentOperand = L2ReadFloatOperand(
-				mapSemanticValue(operand.semanticValue()),
-				targetGenerator.currentManifest.restrictionFor(
-					operand.semanticValue()),
-				targetGenerator.currentManifest)
+				equivalent,
+				currentManifest
+					.restrictionFor(equivalent)
+					.intersection(operand.restriction()),
+				currentManifest)
 		}
 
 		override fun doOperand(operand: L2ReadBoxedOperand)
 		{
+			val equivalent = mapReadSemanticValue(operand.semanticValue())
 			currentOperand = L2ReadBoxedOperand(
-				mapSemanticValue(operand.semanticValue()),
-				targetGenerator.currentManifest.restrictionFor(
-					operand.semanticValue()),
-				targetGenerator.currentManifest)
+				equivalent,
+				currentManifest
+					.restrictionFor(equivalent)
+					.intersection(operand.restriction()),
+				currentManifest)
 		}
 
 		override fun doOperand(operand: L2WriteIntOperand)
 		{
 			currentOperand = L2WriteIntOperand(
 				operand.semanticValues().mapToSet {
-					mapSemanticValue(it) as L2SemanticUnboxedInt
+					mapWriteSemanticValue(it) as L2SemanticUnboxedInt
 				},
 				operand.restriction().restrictingKindsTo(UNBOXED_INT_FLAG.mask),
-				L2IntRegister(targetGenerator.nextUnique()))
+				L2IntRegister(nextUnique()))
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
 		{
 			currentOperand = L2WriteFloatOperand(
 				operand.semanticValues().mapToSet {
-					mapSemanticValue(it) as L2SemanticUnboxedFloat
+					mapWriteSemanticValue(it) as L2SemanticUnboxedFloat
 				},
 				operand.restriction().restrictingKindsTo(
 					UNBOXED_FLOAT_FLAG.mask),
-				L2FloatRegister(targetGenerator.nextUnique()))
+				L2FloatRegister(nextUnique()))
 		}
 
 		override fun doOperand(operand: L2WriteBoxedOperand)
 		{
 			currentOperand = L2WriteBoxedOperand(
-				operand.semanticValues().mapToSet { mapSemanticValue(it) },
+				operand.semanticValues().mapToSet { mapWriteSemanticValue(it) },
 				operand.restriction().restrictingKindsTo(BOXED_FLAG.mask),
-				L2BoxedRegister(targetGenerator.nextUnique()))
+				L2BoxedRegister(nextUnique()))
 		}
 	}
 
 	/**
 	 * An [OperandRegisterTransformer] is an [L2OperandDispatcher] suitable for
 	 * copying operands for the enclosing [L2Regenerator], when operand
-	 * equivalency is via [L2Register] identity (i.e., when [generatePhis] is
-	 * `false`).
+	 * equivalency is via [L2Register] identity (i.e., when [mode] is
+	 * [ByRegister]).
+	 *
+	 * @constructor
+	 *   Create an [OperandRegisterTransformer] with an optional [registerMap].
+	 * @property registerMap
+	 *   An optionally provided [MutableMap] for transforming [L2Register]s.
 	 */
-	inner class OperandRegisterTransformer : AbstractOperandTransformer()
+	inner class OperandRegisterTransformer
+	constructor(
+		private val registerMap: MutableMap<L2Register<*>, L2Register<*>> =
+			mutableMapOf()
+	): AbstractOperandTransformer()
 	{
-		/**
-		 * The mapping from each [L2Register] in the source control flow graph
-		 * to the corresponding register in the target graph.
-		 */
-		private val registerMap = mutableMapOf<L2Register, L2Register>()
-
 		override fun doOperand(operand: L2ReadIntOperand)
 		{
-			currentOperand = L2ReadIntOperand(
-				operand.semanticValue(),
-				targetGenerator.currentManifest.restrictionFor(
-					operand.semanticValue()),
-				registerMap[operand.register()] as L2IntRegister)
+			when
+			{
+				operand.isConstantRead ->
+				{
+					// Reuse the same register, since it can only be used as a
+					// source of a constant read anyhow.
+					currentOperand = L2ReadIntOperand(
+						L2SemanticUnboxedInt(
+							L2SemanticConstant(operand.constantOrNull!!)),
+						operand.restriction(),
+						operand.register() as L2IntRegister)
+				}
+				else ->
+				{
+					currentOperand = L2ReadIntOperand(
+						operand.semanticValue(),
+						operand.restriction(),
+						registerMap[operand.register()] as L2IntRegister)
+				}
+			}
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
 		{
-			currentOperand = L2ReadFloatOperand(
-				operand.semanticValue(),
-				targetGenerator.currentManifest.restrictionFor(
-					operand.semanticValue()),
-				registerMap[operand.register()] as L2FloatRegister)
+			when
+			{
+				operand.isConstantRead ->
+				{
+					// Reuse the same register, since it can only be used as a
+					// source of a constant read anyhow.
+					currentOperand = L2ReadFloatOperand(
+						L2SemanticUnboxedFloat(
+							L2SemanticConstant(operand.constantOrNull!!)),
+						operand.restriction(),
+						operand.register() as L2FloatRegister)
+				}
+				else ->
+				{
+					currentOperand = L2ReadFloatOperand(
+						operand.semanticValue(),
+						operand.restriction(),
+						registerMap[operand.register()] as L2FloatRegister)
+				}
+			}
 		}
 
 		override fun doOperand(operand: L2ReadBoxedOperand)
 		{
-			currentOperand = L2ReadBoxedOperand(
-				operand.semanticValue(),
-				targetGenerator.currentManifest.restrictionFor(
-					operand.semanticValue()),
-				registerMap[operand.register()] as L2BoxedRegister)
+			when
+			{
+				operand.isConstantRead ->
+				{
+					// Reuse the same register, since it can only be used as a
+					// source of a constant read anyhow.
+					currentOperand = L2ReadBoxedOperand(
+						L2SemanticConstant(operand.constantOrNull!!),
+						operand.restriction(),
+						operand.register() as L2BoxedRegister)
+				}
+				else ->
+				{
+					currentOperand = L2ReadBoxedOperand(
+						operand.semanticValue(),
+						operand.restriction(),
+						registerMap[operand.register()] as L2BoxedRegister)
+				}
+			}
 		}
 
 		override fun doOperand(operand: L2WriteIntOperand)
 		{
-			val newRegister =
-				registerMap.computeIfAbsent(operand.register()) {
-					val unique = targetGenerator.nextUnique()
-					L2IntRegister(unique)
-				}
+			val newRegister = registerMap.computeIfAbsent(operand.register()) {
+				L2IntRegister(nextUnique())
+			}
 			currentOperand = L2WriteIntOperand(
-				operand.semanticValues().cast(),
+				operand.semanticValues(),
 				operand.restriction().restrictingKindsTo(UNBOXED_INT_FLAG.mask),
 				newRegister as L2IntRegister)
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
 		{
-			val newRegister =
-				registerMap.computeIfAbsent(operand.register()) {
-					val unique = targetGenerator.nextUnique()
-					L2FloatRegister(unique)
-				}
+			val newRegister = registerMap.computeIfAbsent(operand.register()) {
+				L2FloatRegister(nextUnique())
+			}
 			currentOperand = L2WriteFloatOperand(
-				operand.semanticValues().cast(),
+				operand.semanticValues(),
 				operand.restriction().restrictingKindsTo(
 					UNBOXED_FLOAT_FLAG.mask),
 				newRegister as L2FloatRegister)
@@ -387,11 +507,9 @@ abstract class L2Regenerator internal constructor(
 
 		override fun doOperand(operand: L2WriteBoxedOperand)
 		{
-			val newRegister =
-				registerMap.computeIfAbsent(operand.register()) {
-					val unique = targetGenerator.nextUnique()
-					L2BoxedRegister(unique)
-				}
+			val newRegister = registerMap.computeIfAbsent(operand.register()) {
+				L2BoxedRegister(nextUnique())
+			}
 			currentOperand = L2WriteBoxedOperand(
 				operand.semanticValues(),
 				operand.restriction().restrictingKindsTo(BOXED_FLAG.mask),
@@ -399,10 +517,44 @@ abstract class L2Regenerator internal constructor(
 		}
 	}
 
+	/**
+	 * Answer whether this [L2Generator] is allowed to collapse unconditional
+	 * jumps during code generation.  This is usually allowed, but the code
+	 * splitter disallows it to make the logic simpler.
+	 */
+	open val canCollapseUnconditionalJumps: Boolean get() = true
+
+	/**
+	 * Start code regeneration for the given [L2BasicBlock].  This is not a loop
+	 * head, so ensure all predecessor blocks have already finished generation.
+	 *
+	 * If [mode] is [BySemanticValue] (the default), reconcile the live
+	 * [L2SemanticValue]s and how they're grouped into [L2Synonym]s in each
+	 * predecessor edge, creating [L2_PHI]s as needed.
+	 *
+	 * @param block
+	 *   The [L2BasicBlock] beginning its code generation.
+	 */
+	fun startBlock(
+		block: L2BasicBlock
+	): Unit = targetGenerator.startBlock(block, this)
+
 	/** This regenerator's reusable [AbstractOperandTransformer]. */
-	private val operandInlineTransformer =
-		if (generatePhis) OperandSemanticTransformer()
-		else OperandRegisterTransformer()
+	private val operandInlineTransformer = when (val m = mode)
+	{
+		BySemanticValue -> OperandSemanticTransformer()
+		ByRegister -> OperandRegisterTransformer()
+		is WithFixedRegisterMap -> OperandRegisterTransformer(m.registerMap)
+	}
+
+	/**
+	 * The mapping from the [L2BasicBlock]s in the source graph to the generated
+	 * [L2BasicBlock]s in the target graph, keyed by the set of required
+	 * [L2SplitCondition]s.
+	 */
+	val blockMap = mutableMapOf<
+		L2BasicBlock,
+		MutableMap<Set<L2SplitCondition>, L2BasicBlock>>()
 
 	/**
 	 * An inverse mapping from source block to [SpecialBlock].  This is used
@@ -423,7 +575,7 @@ abstract class L2Regenerator internal constructor(
 	 * @return
 	 *   The transformed [L2Operand], also of type [O].
 	 */
-	fun <O : L2Operand> transformOperand(operand: O): O
+	open fun <O : L2Operand> transformOperand(operand: O): O
 	{
 		operandInlineTransformer.currentOperand = operand
 		operand.dispatchOperand(operandInlineTransformer)
@@ -432,114 +584,145 @@ abstract class L2Regenerator internal constructor(
 	}
 
 	/**
-	 * The set of [L2BasicBlock]s from the source graph that have already been
-	 * completely processed.  See [processSourceGraphStartingAt].
-	 */
-	private val completedSourceBlocks = mutableSetOf<L2BasicBlock>()
-
-	/**
-	 * A queue of [L2PcOperand]s from the source graph, which have not yet been
-	 * processed.  A block is translated when all of its normal (forward)
-	 * predecessor blocks have completed translation, and are therefore in the
-	 * [completedSourceBlocks].  After all forward edges have been exhausted,
-	 * the remaining backward edges are processed, which should always lead
-	 * directly to blocks that have already been processed.
+	 * Given an original [L2ControlFlowGraph], translate each [L2BasicBlock] (in
+	 * topological order), translating each instruction within that block.
+	 * Since the new graph has essentially the same shape as the original, we
+	 * don't need to do any special synchronization at merge points. There's no
+	 * way for a block of the original to be reached before one of its
+	 * predecessors, and the translation of an instruction can't suddenly jump
+	 * to a point in the target graph that corresponds with an earlier point in
+	 * the source graph.  Therefore, when we reach a block in the original, we
+	 * can safely assume that its translation(s) in the target graph have
+	 * already had their predecessors completely generated.
 	 *
-	 * See [processSourceGraphStartingAt].
-	 */
-	private val edgeVisitQueue = ArrayDeque<L2PcOperand>()
-
-	/**
-	 * A queue of *back-edge* [L2PcOperand]s from the source graph.  These are
-	 * processed only after all forward edges have completed, thereby finishing
-	 * all nodes of the source graph.
+	 * The client must set up the receiver to be generating at a reachable
+	 * state, prior to this call.
 	 *
-	 * See [processSourceGraphStartingAt].
+	 * @param oldGraph
+	 *   The [L2ControlFlowGraph] from which to start translation and code
+	 *   generation.
+	 * @param interestingConditionsByOldBlock
+	 *   A map from each [L2BasicBlock] in the [oldGraph] to a set of split
+	 *   conditions, each of which should be preserved for potential use by a
+	 *   downstream block.  Create a new [L2BasicBlock] for each encountered
+	 *   (old block, split set), where the split set is a subset of conditions
+	 *   to be preserved at this old block, and was actually ensured by some
+	 *   regenerated edge.
 	 */
-	private val backEdgeVisitQueue = ArrayDeque<L2PcOperand>()
-
-	/**
-	 * Given an [L2Instruction] from the source [L2ControlFlowGraph], start
-	 * translating and emitting to the target graph from that point, until
-	 * nothing else is reachable.  Process any encountered back-edges after all
-	 * forward edges and blocks have completed.
-	 *
-	 * The client must set up the [targetGenerator] to be generating at a
-	 * reachable state, prior to this call.
-	 *
-	 * @param startingInstruction
-	 *   The [L2Instruction] of the source control flow graph from which to
-	 *   start translation and code generation.
-	 */
-	fun processSourceGraphStartingAt(startingInstruction: L2Instruction)
+	fun processSourceGraph(
+		oldGraph: L2ControlFlowGraph,
+		interestingConditionsByOldBlock:
+			Map<L2BasicBlock, Set<L2SplitCondition>>)
 	{
-		assert(edgeVisitQueue.isEmpty())
-		assert(backEdgeVisitQueue.isEmpty())
-		assert(targetGenerator.currentlyReachable()) {
-			"Caller should have set up starting block, or other starting state"
-		}
-		val startBlock = startingInstruction.basicBlock()
-		val startIndex = startBlock.instructions().indexOf(startingInstruction)
-		assert(startIndex >= 0)
-		for (i in startIndex until startBlock.instructions().size) {
-			processInstruction(startBlock.instructions()[i])
-		}
-		completedSourceBlocks.add(startBlock)
-		blocks@while (edgeVisitQueue.isNotEmpty())
-		{
-			val block = edgeVisitQueue.remove().targetBlock()
-			if (completedSourceBlocks.contains(block))
-			{
-				// This can happen when the code splitter primes the
-				// completedSourceBlocks to indicate where the "ends" of the
-				// source subgraph that is being specialized are, and where they
-				// lead to in the target graph.
-				continue@blocks
+		val firstSourceBlock = oldGraph.basicBlockOrder[0]
+		val start = L2BasicBlock(firstSourceBlock.name())
+		start.makeIrremovable()
+		blockMap[firstSourceBlock] = mutableMapOf(
+			emptySet<L2SplitCondition>() to start)
+		oldGraph.forwardVisit { originalBlock ->
+			// All predecessors must have already been processed.
+			val submap = blockMap.computeIfAbsent(originalBlock) {
+				mutableMapOf(
+					emptySet<L2SplitCondition>() to
+						L2BasicBlock(
+							name = originalBlock.name(),
+							zone = originalBlock.zone,
+							isLoopHead = originalBlock.isLoopHead,
+							isCold = originalBlock.isCold
+						).also {
+							it.debugNote.append(originalBlock.debugNote)
+						})
 			}
-			if (block.predecessorEdges().any {
-					!it.isBackward
-						&& !completedSourceBlocks.contains(it.sourceBlock()) })
+			val noConditionBlock = submap[emptySet()]!!
+			// If true, force each incoming edge to go to a new version of the
+			// target block, even if there was no benefit to splitting.  This is
+			// only used to ensure entry point blocks have only one predecessor.
+			val forceCodeSplit = originalBlock.entryPointOrNull() !== null
+				&& noConditionBlock.predecessorEdges().size > 1
+			val interestingConditions =
+				interestingConditionsByOldBlock[originalBlock] ?: emptySet()
+			if (forceCodeSplit || interestingConditions.isNotEmpty())
 			{
-				// At least one predecessor has not been processed yet.  This
-				// block will get a chance later, once the other predecessors
-				// have been processed.
-				continue@blocks
-			}
-			// All forward-edge predecessors have already been processed.
-			targetGenerator.startBlock(
-				operandInlineTransformer.mapBlock(block),
-				generatePhis,
-				this)
-			instructions@for (instruction in block.instructions())
-			{
-				if (!targetGenerator.currentlyReachable())
-				{
-					// Abort the rest of this block, since the target position
-					// is unreachable.  Make sure to also mark it as complete,
-					// to ensure any blocks that are reachable from it in the
-					// source, but *also* from other blocks in the source, can
-					// proceed with generation if all the other blocks have been
-					// completed.  We also have to keep walking through any
-					// successor edges, since there may be a whole subgraph that
-					// has become inaccessible, and we must ensure paths that
-					// eventually join with it (i.e., where it *would* have been
-					// merging control flow) can continue code generation with
-					// only some predecessors having produced code.
-					block.successorEdges().forEach(this::transformOperand)
-					break@instructions
+				// During translation of previous blocks, they were all directed
+				// to point to the no-condition image of this block.  Do the
+				// code splitting here, *altering* the target of each
+				// predecessor if it should target something more specific than
+				// the no-condition block.  We have to do it here rather than at
+				// edge generation time, because the edge's manifest isn't fully
+				// available then.
+				// Copy the list because we'll be removing the entries that
+				// should point elsewhere.
+				val incomingEdges = noConditionBlock.predecessorEdges().toList()
+				incomingEdges.forEach { incomingEdge ->
+					val trueConditions =
+						if (forceCodeSplit)
+						{
+							setOf(fakeCondition(nextUnique()))
+						}
+						else
+						{
+							interestingConditions.filterTo(mutableSetOf()) {
+								it.holdsFor(incomingEdge.manifest())
+							}
+						}
+					val betterBlock = submap.computeIfAbsent(trueConditions) {
+						val reduced = reducedConditions(trueConditions)
+						val suffix = when (reduced.size)
+						{
+							0 -> "\n(no split)"
+							1 ->
+								"\nsplit: ${reduced.single().toString()}"
+							else -> reduced
+								.joinToString(",", "\nsplits:") { "\n\t$it" }
+						}
+						val newBlock = L2BasicBlock(
+							name = originalBlock.name() + suffix,
+							zone = originalBlock.zone,
+							isLoopHead = originalBlock.isLoopHead,
+							isCold = originalBlock.isCold)
+						if (originalBlock.isIrremovable)
+							newBlock.makeIrremovable()
+						newBlock
+					}
+					if (betterBlock !== incomingEdge.targetBlock())
+					{
+						// This also removes it from the current block's
+						// predecessors, but above we made sure to iterate over
+						// a copy.
+						incomingEdge.changeUngeneratedTarget(betterBlock)
+					}
 				}
-				processInstruction(instruction)
 			}
-			// Now consider the block to have been fully processed.
-			completedSourceBlocks.add(block)
-		}
-		// Process any encountered back-edges.
-		while (backEdgeVisitQueue.isNotEmpty())
-		{
-			val backEdge = backEdgeVisitQueue.remove()
-			val block = backEdge.targetBlock()
-			assert(completedSourceBlocks.contains(block))
-			block.addPredecessorEdge(backEdge)
+			submap.forEach { (_, targetBlock) ->
+				startBlock(targetBlock)
+				if (currentlyReachable())
+				{
+					if (shouldSanityCheck
+						&& !isRemovingDeadCode
+						&& mode == BySemanticValue)
+					{
+						// Make sure every semantic value that was present at
+						// this position in the original graph is available at
+						// this new block, which is one of the code-split
+						// versions of the old block.
+						// Since the incoming edges in the old graph are the
+						// only place where a relevant manifest still exists, we
+						// take the intersection of the sets of semantic values
+						// that were present along these edges.
+						val iterator = originalBlock.predecessorEdges()
+							.map {
+								it.manifest().liveOrPostponedSemanticValues()
+							}
+							.iterator()
+						if (iterator.hasNext())
+						{
+							val originals = iterator.next()  // It's a copy.
+							iterator.forEachRemaining(originals::retainAll)
+						}
+					}
+					originalBlock.instructions().forEach(::processInstruction)
+				}
+			}
 		}
 	}
 
@@ -557,113 +740,208 @@ abstract class L2Regenerator internal constructor(
 	 */
 	open fun processInstruction(sourceInstruction: L2Instruction)
 	{
-		basicProcessInstruction(sourceInstruction)
+		basicTransformInstruction(sourceInstruction)
+			.emitTransformedInstruction(this)
 	}
 
 	/**
 	 * Transform the instruction's operands, updating the isomorphism, and emit
-	 * the same kind of instruction to the [targetGenerator].
+	 * the same kind of instruction.
 	 *
 	 * @param sourceInstruction
 	 *   An [L2Instruction] from the source graph.
 	 */
-	fun basicProcessInstruction(sourceInstruction: L2Instruction)
+	fun <I : L2Instruction> basicTransformInstruction(sourceInstruction: I): I
 	{
 		// Never translate a phi instruction.  Either they should be produced
 		// as part of generation, or they should already have been replaced by
 		// moves.
-		assert(!sourceInstruction.operation.isPhi)
-		sourceInstruction.transformAndEmitOn(this)
+		assert(sourceInstruction !is L2_PHI<*>)
+		val transformed = sourceInstruction.transformedByRegenerator(this)
+		if (shouldSanityCheck)
+		{
+			// Special sanity check.
+			for (read in transformed.readOperands)
+			{
+				val semanticValue = read.semanticValue()
+				val register = read.register()
+				if (!register.isConstant && mode == BySemanticValue)
+				{
+					assert(currentManifest.hasSemanticValue(semanticValue))
+ 					assert(currentManifest.synonymsForRegister(register)
+						.isNotEmpty())
+				}
+			}
+		}
+		return transformed.cast()
 	}
 
 	/**
-	 * Emit an [L2Instruction] into the [L1Translator]'s current block.  Use the
-	 * given [L2Operation] and [L2Operand]s to construct the instruction.  The
-	 * operands should have been transformed by this inliner already.
+	 * A helper method for instruction postponement.  Given an [L2Instruction]
+	 * from the old graph being regenerated, emit a translated version of that
+	 * instruction.  If the instruction uses values that are not yet available
+	 * in registers due to postponement, first translate the instructions that
+	 * produce those values.
 	 *
-	 * @param operation
-	 *   The [L2Operation] of the instruction.
-	 * @param operands
-	 *   The [L2Operand]s of the instruction, having already been transformed
-	 *   for this inliner.
-	 */
-	fun emitInstruction(operation: L2Operation, vararg operands: L2Operand)
-	{
-		targetGenerator.addInstruction(operation, *operands)
-	}
-
-	/**
-	 * A helper method for instruction postponement.  Given an [L2Regenerator]
-	 * and an [L2Instruction] from the old graph being regenerated, emit a
-	 * translated version of that instruction.  If the instruction uses values
-	 * that are not yet available in registers due to postponement, first
-	 * translate the instructions that produce those values.
+	 * The instruction must not currently be in the current
+	 * `postponedInstructions` map.
 	 *
 	 * TODO Make this iterative instead of recursive.
 	 */
 	fun forcePostponedTranslationNow(sourceInstruction: L2Instruction)
 	{
-		val manifest = targetGenerator.currentManifest
-		for (read in sourceInstruction.readOperands)
+		assert(
+			!shouldSanityCheck ||
+			sourceInstruction.writeOperands
+				.flatMap(L2WriteOperand<*>::semanticValues)
+				.all { sv ->
+					currentManifest.postponedInstructions()[sv].isNullOr {
+						!contains(sourceInstruction)
+					}
+				}
+		) {
+			"instruction should have been removed from postponed map"
+		}
+		sourceInstruction.readOperands.forEach { read ->
+			forceTranslationForRead(read.semanticValue())
+		}
+		basicTransformInstruction(sourceInstruction)
+			.emitTransformedInstruction(this)
+	}
+
+	/**
+	 * Force all postponed instructions for any semantic value synonymous with
+	 * the given one.
+	 */
+	fun <K: RegisterKind<K>> forceTranslationForRead(
+		semanticValue: L2SemanticValue<K>)
+	{
+		// If there's a postponed instruction that produces the needed value,
+		// always use that, even if the value appears to be available in a
+		// register.
+		val postponedMap = currentManifest.postponedInstructions()
+		currentManifest.semanticValueToSynonym(semanticValue)
+			.semanticValues()
+			.mapNotNull(postponedMap::get)
+			.maxByOrNull(List<*>::size)
+			?.let { list ->
+				val instruction = list.last()
+				currentManifest.removePostponedSourceInstruction(instruction)
+				forcePostponedTranslationNow(instruction)
+			}
+		// At this point there must not be any other postponed instructions for
+		// the semantic value's synonym.
+		assert(
+			currentManifest.semanticValueToSynonym(semanticValue)
+				.semanticValues()
+				.none(postponedMap::contains))
 		{
-			val semanticValue = read.semanticValue()
-			// If there's a postponed instruction that produces the needed
-			// value, always use that, even if the value appears to be
-			// available in a register.  That's because a postponed instruction
-			// like L2_MAKE_IMMUTABLE can't hide the registers that hold the
-			// mutable inputs (because forcing the L2_MAKE_IMMUTABLE to be
-			// translated would still have to access the mutable inputs).
-			if (semanticValue in manifest.postponedInstructions)
+			val outstanding =
+				currentManifest.semanticValueToSynonym(semanticValue)
+					.semanticValues()
+					.filter(postponedMap::contains)
+			"There should be no postponed instructions for these semantic " +
+				"values: $outstanding"
+		}
+		// We just generated the side-effectless instruction that populated
+		// equivalentSemanticValue, so emit a move to include semanticValue, and
+		// anything else that should be populated by the same write operand.
+		val relatedSemanticValues =
+			currentManifest.getDefinitions(semanticValue)
+				.flatMapTo(mutableSetOf(), L2Register<K>::definitions)
+				.flatMapTo(mutableSetOf(), L2WriteOperand<K>::semanticValues)
+		for (otherSemanticValue in relatedSemanticValues)
+		{
+			if (!currentManifest.hasSemanticValue(otherSemanticValue))
 			{
-				// There's no register yet (or it's shadowed by a postponed
-				// instruction.  Generate (recursively) the instruction(s)
-				// needed to produce the value in a register.
-				forcePostponedTranslationNow(
-					manifest.removePostponedSourceInstruction(semanticValue))
+				currentManifest.extendSynonym(
+					currentManifest.semanticValueToSynonym(semanticValue),
+					otherSemanticValue)
 			}
 		}
-		basicProcessInstruction(sourceInstruction)
 	}
 
 	/**
 	 * Force all postponed instructions to be generated now.  Some of these may
 	 * end up being considered dead code, and will be removed by a later pass.
 	 *
-	 * Don't translate [L2_MOVE_CONSTANT] instructions unless the value is
-	 * needed by some other instruction being translated (i.e., skip them in
-	 * this loop).
+	 * If [omitConstantMoves] is true, don't translate [L2_MOVE_CONSTANT]
+	 * instructions unless the value is needed by some other instruction being
+	 * translated here.
 	 */
-	fun forceAllPostponedTranslationsExceptConstantMoves()
+	fun forceAllPostponedTranslationsExceptConstantMoves(
+		semanticValue: L2SemanticValue<*>? = null,
+		omitConstantMoves: Boolean)
 	{
-		while (true)
+		val manifest = currentManifest
+		// Copy the map but not the contained mutable lists.
+		if (semanticValue == null)
 		{
-			val postponedSet = mutableSetOf<L2Instruction>()
-			targetGenerator.currentManifest.postponedInstructions.forEach {
-					(_, instructions) ->
-				// Only produce the last element of the list of postponed
-				// instructions on each pass, to ensure instructions that
-				// feed an L2_MAKE_IMMUTABLE don't try to translate
-				// themselves before the L2_MAKE_IMMUTABLE.
-				val instruction = instructions.last()
-				if (instruction.operation !is L2_MOVE_CONSTANT<*, *, *>)
+			manifest.postponedInstructions().keys.toList().forEach { sv ->
+				// We're modifying postponedInstructions, so check if it's still
+				// present.
+				if (sv in manifest.postponedInstructions())
 				{
-					postponedSet.add(instruction)
+					forceAllPostponedTranslationsExceptConstantMoves(
+						sv, omitConstantMoves)
 				}
 			}
-			if (postponedSet.isEmpty()) return
-			postponedSet.forEach { sourceInstruction ->
-				// Check if it was already emitted as a prerequisite of another
-				// postponed instruction.
-				val someWrite = sourceInstruction.writeOperands[0]
-				val sv = someWrite.pickSemanticValue()
-				val manifest = targetGenerator.currentManifest
-				if (manifest.postponedInstructions[sv]?.isNotEmpty() == true)
-				{
-					forcePostponedTranslationNow(
-						manifest.removePostponedSourceInstruction(sv))
+			if (shouldSanityCheck)
+			{
+				manifest.postponedInstructions().values.forEach { sub ->
+					sub.forEach { instruction ->
+						assert(instruction is L2_MOVE<*> ||
+							instruction is L2_MOVE_CONSTANT<*, *>)
+					}
 				}
+			}
+			return
+		}
+		val lists = manifest.semanticValueToSynonym(semanticValue)
+			.semanticValues()
+			.mapNotNull { manifest.postponedInstructions()[it] }
+			.distinct()
+		val list: List<L2Instruction> = when (lists.size)
+		{
+			0 -> return
+			1 -> lists.single().toList()
+			else ->
+			{
+				// Combine multiple lists.  The orderings of instructions in
+				// each list must be preserved in the aggregate order, but other
+				// than that, the order doesn't matter.  None of the lists
+				// should have an ordering constraint that conflicts with
+				// another list.  Keep it simple and use a graph.
+				val graph = Graph<L2Instruction>()
+				lists.forEach { it.forEach(graph::includeVertex) }
+				lists.forEach { sub ->
+					(0 ..< sub.size - 1).forEach { i ->
+						graph.includeEdge(sub[i], sub[i + 1])
+					}
+				}
+				assert(!graph.isCyclic)
+				val order = mutableListOf<L2Instruction>()
+				graph.parallelVisit { instr, done ->
+					order.add(instr)
+					done()
+				}
+				order
 			}
 		}
+		if (omitConstantMoves && list.all { it is L2_MOVE_CONSTANT<*, *> })
+		{
+			// There are only constant moves here.  Leave them postponed for
+			// now.
+			return
+		}
+		// The list is already a copy here.  Remove all of these postponed
+		// instructions before anything else.
+		list.forEach(manifest::removePostponedSourceInstruction)
+		// The mutable list may have had instructions removed.  In fact, the
+		// original map may have had whole entries removed, but not without
+		// emptying entry's list first.
+		list.forEach(::forcePostponedTranslationNow)
+		// At this point, only move-constants may still be postponed.
 	}
 
 	/**
@@ -683,20 +961,11 @@ abstract class L2Regenerator internal constructor(
 	 */
 	fun forcePostponedTranslationBeforeEdge(
 		edge: L2PcOperand,
-		semanticValue: L2SemanticValue)
+		semanticValue: L2SemanticValue<*>)
 	{
 		targetGenerator.generateRetroactivelyBeforeEdge(edge) {
-			forcePostponedTranslationNow(
-				targetGenerator.currentManifest
-					.removePostponedSourceInstruction(semanticValue))
+			forceAllPostponedTranslationsExceptConstantMoves(
+				semanticValue, false)
 		}
 	}
-
-	/**
-	 * Generate a number unique within the [targetGenerator].
-	 *
-	 * @return
-	 *   An [Int] that the targetGenerator had not previously produced.
-	 */
-	fun nextUnique(): Int = targetGenerator.nextUnique()
 }

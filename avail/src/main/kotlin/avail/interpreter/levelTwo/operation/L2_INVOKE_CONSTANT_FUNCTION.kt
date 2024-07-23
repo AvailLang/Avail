@@ -31,25 +31,31 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.types.A_Type.Companion.returnType
+import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.CanSwitchContinuations
+import avail.interpreter.Primitive.Flag.Invokes
+import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -71,50 +77,91 @@ import org.objectweb.asm.MethodVisitor
  */
 @WritesHiddenVariable(
 	CURRENT_FUNCTION::class,
-	CURRENT_ARGUMENTS::class,
 	LATEST_RETURN_VALUE::class)
-object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
-	CONSTANT.named("constant function"),
-	READ_BOXED_VECTOR.named("arguments"),
-	WRITE_BOXED.named("result", SUCCESS),
-	PC.named("on return", SUCCESS),
-	PC.named("on reification", OFF_RAMP))
+class L2_INVOKE_CONSTANT_FUNCTION(
+	var constantFunction: L2ConstantOperand,
+	var arguments: L2ReadBoxedVectorOperand,
+	@On(SUCCESS) var result: L2WriteBoxedOperand,
+	@On(SUCCESS) var ifReturn: L2PcOperand,
+	@On(OFF_RAMP) var ifReification: L2PcOperand
+): L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
 
+	/**
+	 * If the function is bottom-valued, treat the block as cold, and don't
+	 * bother splitting paths that lead only to it and other cold blocks. The
+	 * called function will definitely have to raise an exception, exit or
+	 * restart a continuation, loop forever, or terminate the fiber, so
+	 * splitting the code is not likely to have a big impact.
+	 */
+	override val isCold: Boolean
+		get() =
+			constantFunction.constant.code().functionType().returnType.isBottom
+
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val constantFunction = instruction.operand<L2ConstantOperand>(0)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val result = instruction.operand<L2WriteBoxedOperand>(2)
-		//		final L2PcOperand onReturn = instruction.operand(3);
-		//		final L2PcOperand onReification = instruction.operand(4);
-		renderPreamble(instruction, builder)
-		builder.append(' ')
-		builder.append(result.registerString())
-		builder.append(" ← ")
-		builder.append(constantFunction.constant)
-		builder.append("(")
-		builder.append(arguments.elements)
-		builder.append(")")
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		val function = constantFunction.constant
+		with(builder) {
+			renderPreamble(builder)
+			append(' ')
+			append(result.registerString())
+			append(" ← /* ")
+			append(function.code().methodName.asNativeString())
+			append(" */\n")
+			append(function)
+			append("(")
+			append(arguments.elements)
+			append(")")
+			renderOperandsExcludingFields(
+				builder, desiredOperandTypes, ::constantFunction, ::arguments)
+		}
+	}
+
+	override fun emitTransformedInstruction(
+		regenerator: L2Regenerator)
+	{
+		// See if the new situation has become specialized enough to invoke a
+		// primitive that's infallible for these arguments.
+		val rawFunction = constantFunction.constant.code()
+		val argumentTypes = arguments.elements.map(L2ReadBoxedOperand::type)
+		val primitive = rawFunction.codePrimitive()
+		when
+		{
+			primitive === null -> { }
+			!primitive.hasFlag(CanInline) -> { }
+			primitive.hasFlag(CanSwitchContinuations) -> { }
+			primitive.hasFlag(Invokes) -> { }
+			primitive.hasFlag(Unknown) -> { }
+			primitive.fallibilityForArgumentTypes(argumentTypes)
+				== CallSiteCannotFail ->
+			{
+				val resultType = primitive.returnTypeGuaranteedByVM(
+					rawFunction, argumentTypes)
+				regenerator.addInstruction(
+					L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
+						L2ConstantOperand(rawFunction),
+						L2ArbitraryConstantOperand(primitive),
+						arguments,
+						regenerator.boxedWrite(
+							result.semanticValues(),
+							result.restriction()
+								.intersectionWithType(resultType))))
+				// Don't forget to jump to the onReturn edge's target.
+				regenerator.jumpTo(ifReturn.targetBlock())
+				return
+			}
+		}
+		super.emitTransformedInstruction(regenerator)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val constantFunction = instruction.operand<L2ConstantOperand>(0)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val result = instruction.operand<L2WriteBoxedOperand>(2)
-		val onReturn = instruction.operand<L2PcOperand>(3)
-		val onReification = instruction.operand<L2PcOperand>(4)
 		translator.loadInterpreter(method)
 		// :: [interpreter]
 		translator.loadInterpreter(method)
@@ -130,7 +177,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 			method,
 			arguments.elements,
 			result,
-			onReturn,
-			onReification)
+			ifReturn,
+			ifReification)
 	}
 }

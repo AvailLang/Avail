@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.general
 
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -100,9 +101,17 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(getEnvironmentMap())
 	}
 
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>
+	): A_Type = mapTypeForSizesKeyTypeValueType(
+		wholeNumbers, stringType, stringType)
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			emptyTuple,
 			mapTypeForSizesKeyTypeValueType(
 				wholeNumbers, stringType, stringType))
+
+	override val canDestroyArguments get() = false
 }

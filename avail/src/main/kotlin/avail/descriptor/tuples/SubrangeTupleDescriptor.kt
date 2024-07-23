@@ -165,7 +165,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			if (canDestroy && isMutable)
 			{
 				self[SIZE] = originalSize + 1
-				self[HASH_OR_ZERO] = 0 
+				self[HASH_OR_ZERO] = 0
 				return self
 			}
 			basisTuple.makeImmutable()
@@ -463,10 +463,6 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		assert(index in 1 .. tupleSize)
 		val adjustment = self[START_INDEX] - 1
 		val basis = self[BASIS_TUPLE].traversed()
-		if (!canDestroy)
-		{
-			basis.makeImmutable()
-		}
 		assert(tupleSize >= 3)
 			{ "subrange is too small; recursion won't bottom out correctly" }
 		// Freeze the basis, since there may be two references to it below.

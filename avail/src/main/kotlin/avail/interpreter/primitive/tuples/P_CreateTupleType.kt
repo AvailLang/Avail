@@ -68,8 +68,8 @@ object P_CreateTupleType : Primitive(3, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				zeroOrMoreOf(anyMeta()),
-				anyMeta(),
+				zeroOrMoreOf(anyMeta),
+				anyMeta,
 				instanceMeta(wholeNumbers)),
 			tupleMeta)
 }

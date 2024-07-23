@@ -35,10 +35,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
@@ -60,24 +57,21 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
-	READ_BOXED.named("continuation to restart"),
-	READ_BOXED_VECTOR.named("arguments"))
+class L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
+	var continuationToRestart: L2ReadBoxedOperand,
+	var arguments: L2ReadBoxedVectorOperand
+): L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(continuation.registerString())
+		builder.append(continuationToRestart.registerString())
 		builder.append("(")
 		builder.append(arguments.elements)
 		builder.append(")")
@@ -85,16 +79,12 @@ object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
-
 		// :: return interpreter.reifierToRestart(
 		// ::    continuation, argsArray);
 		translator.loadInterpreter(method)
-		translator.load(method, continuation.register())
+		translator.load(method, continuationToRestart.register())
 		translator.objectArray(
 			method,
 			arguments.elements,

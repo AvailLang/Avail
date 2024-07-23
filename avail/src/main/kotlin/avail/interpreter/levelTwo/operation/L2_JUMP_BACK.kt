@@ -31,15 +31,14 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticValue
@@ -52,60 +51,53 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_BACK : L2ControlFlowOperation(
-	PC.named("target", SUCCESS),
-	READ_BOXED_VECTOR.named("registers to keep"))
+class L2_JUMP_BACK(
+	@On(SUCCESS) var target: L2PcOperand,
+	var registersToKeep: L2ReadBoxedVectorOperand
+): L2ControlFlowInstruction()
 {
 	// It jumps, which counts as a side effect.
 	override val hasSideEffect get() = true
 
-	override val isUnconditionalJump get() = true
-
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		val target = instruction.operand<L2PcOperand>(0)
-		val preservedReads =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-
 		// Play the reads against the old manifest, which is then filtered.
-		preservedReads.instructionWasAdded(manifest)
-		val semanticValuesToKeep = mutableSetOf<L2SemanticValue>()
-		val registersToKeep = mutableSetOf<L2Register>()
-		preservedReads.elements.forEach {
-			semanticValuesToKeep.add(it.semanticValue())
-			registersToKeep.add(it.register())
+		registersToKeep.instructionWasAdded(manifest)
+		val semanticValuesToKeep = mutableSetOf<L2SemanticValue<*>>()
+		val registersToKeep = mutableSetOf<L2Register<*>>()
+		this.registersToKeep.elements.forEach { read: L2ReadBoxedOperand ->
+			semanticValuesToKeep.add(read.semanticValue())
+			read.restriction().constantOrNull?.let { constant ->
+				// Also include any associated semantic constant, to ensure the
+				// invariant of the manifest is maintained – i.e., that any
+				// synonym of boxed values constrained to a constant must
+				// include a semantic constant.
+				semanticValuesToKeep.add(L2SemanticValue.constant(constant))
+			}
+			registersToKeep.add(read.register())
 		}
+		manifest.clearPostponedInstructions()
 		manifest.retainSemanticValues(semanticValuesToKeep)
 		manifest.retainRegisters(registersToKeep)
 		target.instructionWasAdded(manifest)
+		target.forcedClampedEntities =
+			(semanticValuesToKeep + registersToKeep).toMutableSet()
+	}
+
+	override fun replaceConstantReads(
+		generator: L2GeneratorInterface,
+		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
+	{
+		// Don't replace my registersToKeep with constants, since that makes it
+		// too confusing to process backward jumps and doesn't add any value.
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val target = instruction.operand<L2PcOperand>(0)
-
 		// :: goto offset;
-		translator.jump(method, instruction, target)
-	}
-
-	/**
-	 * Extract the target of the given jump-back instruction.
-	 *
-	 * @param instruction
-	 *   The [L2Instruction] to examine.  Its [L2Operation] must be an
-	 *   `L2_JUMP_BACK`.
-	 * @return
-	 *   The [L2PcOperand] to which the instruction jumps.
-	 */
-	@JvmStatic
-	fun jumpTarget(instruction: L2Instruction): L2PcOperand
-	{
-		assert(instruction.operation === this)
-		return instruction.operand(0)
+		translator.jumpOrFallThrough(method, target)
 	}
 }

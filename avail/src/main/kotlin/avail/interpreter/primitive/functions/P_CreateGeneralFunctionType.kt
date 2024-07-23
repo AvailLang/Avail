@@ -63,5 +63,5 @@ object P_CreateGeneralFunctionType
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(topMeta()), functionMeta())
+		functionType(tuple(topMeta), functionMeta())
 }

@@ -81,8 +81,8 @@ object P_CreatePojoType : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				stringType,
-				zeroOrMoreOf(anyMeta())),
-			anyMeta())
+				zeroOrMoreOf(anyMeta)),
+			anyMeta)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

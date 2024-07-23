@@ -67,7 +67,6 @@ object P_CreateMarkerPhrase : Primitive(2, CannotFail, CanInline)
 		functionType(
 			tuple(
 				ANY.o,
-				topMeta()
-			),
+				topMeta),
 			MARKER_PHRASE.mostGeneralType)
 }

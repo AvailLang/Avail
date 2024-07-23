@@ -112,7 +112,7 @@ object P_CreateBlockExpression : Primitive(5, CanInline)
 				zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType),
 				stringType,
 				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType),
-				topMeta(),
+				topMeta,
 				setTypeForSizesContentType(wholeNumbers, exceptionType)),
 			BLOCK_PHRASE.mostGeneralType)
 

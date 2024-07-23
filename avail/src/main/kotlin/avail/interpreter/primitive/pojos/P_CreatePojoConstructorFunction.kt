@@ -142,8 +142,8 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				anyMeta(),
-				zeroOrMoreOf(anyMeta())),
+				anyMeta,
+				zeroOrMoreOf(anyMeta)),
 			functionTypeReturning(ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =

@@ -65,6 +65,6 @@ object P_CreateMapType : Primitive(3, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(anyMeta(), anyMeta(), instanceMeta(wholeNumbers)),
+			tuple(anyMeta, anyMeta, instanceMeta(wholeNumbers)),
 			mapMeta())
 }

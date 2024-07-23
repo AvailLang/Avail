@@ -34,15 +34,12 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.values.L2SemanticBoxedValue
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -53,65 +50,53 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_TUPLE_AT_UPDATE : L2Operation(
-	READ_BOXED.named("input tuple"),
-	INT_IMMEDIATE.named("index"),
-	READ_BOXED.named("new value"),
-	WRITE_BOXED.named("output tuple"))
+class L2_TUPLE_AT_UPDATE(
+	var inputTuple: L2ReadBoxedOperand,
+	var updateIndex: L2IntImmediateOperand,
+	var newElement: L2ReadBoxedOperand,
+	var outputTuple: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val inputTuple = instruction.operand<L2ReadBoxedOperand>(0)
-		val index = instruction.operand<L2IntImmediateOperand>(1)
-		val newElement = instruction.operand<L2ReadBoxedOperand>(2)
-		val outputTuple = instruction.operand<L2WriteBoxedOperand>(3)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(outputTuple.registerString())
 		builder.append(" ← ")
 		builder.append(inputTuple.registerString())
 		builder.append(" [ ")
-		builder.append(index.value)
+		builder.append(updateIndex.value)
 		builder.append(" ] ::= ")
 		builder.append(newElement.registerString())
 	}
 
 	override fun extractTupleElement(
-		tupleReg: L2ReadBoxedOperand,
+		tupleRead: L2ReadBoxedOperand,
 		index: Int,
-		generator: L2Generator
-	): L2ReadBoxedOperand
+		destinationSemanticValues: Set<L2SemanticBoxedValue>,
+		generator: L2Generator)
 	{
-		val instruction = tupleReg.definition().instruction
-		val inputTuple = instruction.operand<L2ReadBoxedOperand>(0)
-		val updateIndex = instruction.operand<L2IntImmediateOperand>(1)
-		val newElement = instruction.operand<L2ReadBoxedOperand>(2)
-		// val outputTuple = instruction.operand<L2WriteBoxedOperand>(3)
-
-		return when (index)
+		when (index)
 		{
-			updateIndex.value -> newElement
-			else -> generator.extractTupleElement(inputTuple, index)
+			// Use the value that was used to update that element.
+			updateIndex.value -> generator.moveBoxedRegister(
+				newElement.semanticValue(),
+				destinationSemanticValues)
+			// It wasn't affected by this tuple update.
+			else -> generator.extractTupleElement(
+				inputTuple, index, destinationSemanticValues)
 		}
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val inputTuple = instruction.operand<L2ReadBoxedOperand>(0)
-		val index = instruction.operand<L2IntImmediateOperand>(1)
-		val newElement = instruction.operand<L2ReadBoxedOperand>(2)
-		val outputTuple = instruction.operand<L2WriteBoxedOperand>(3)
-
 		translator.load(method, inputTuple.register())
-		translator.intConstant(method, index.value)
+		translator.intConstant(method, updateIndex.value)
 		translator.load(method, newElement.register())
 		tupleAtPuttingMethod.generateCall(method)
 		translator.store(method, outputTuple.register())

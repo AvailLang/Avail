@@ -90,7 +90,7 @@ import java.util.Deque
  * to store a 64-bit vector where a 1 bit indicates that the corresponding index
  * (0..63) extracted from the hash value has a pointer to the corresponding
  * sub-bin.  If the bit is 0 then that pointer is elided entirely.  By suitable
- * use of bit shifting, masking, and [counting][Integer.bitCount], one is able
+ * use of bit shifting, masking, and [counting][Long.countOneBits], one is able
  * to extract the 6 appropriate dispatch bits and access the Nth sub-bin or
  * determine that it's not already present.
  *
@@ -316,7 +316,7 @@ class HashedMapBinDescriptor private constructor(
 		val logicalIndex = keyHash ushr shift and 63
 		val vector = self[BIT_VECTOR]
 		val masked = vector and (1L shl logicalIndex) - 1
-		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
+		val physicalIndex = masked.countOneBits() + 1
 		val delta: Int
 		val hashDelta: Int
 		val objectToModify: AvailObject
@@ -393,7 +393,7 @@ class HashedMapBinDescriptor private constructor(
 		// There's an entry.  Count the 1-bits below it to compute its
 		// zero-relative physicalIndex.
 		val masked = vector and (1L shl logicalIndex) - 1
-		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
+		val physicalIndex = masked.countOneBits() + 1
 		val subBin = self[SUB_BINS_, physicalIndex]
 		return subBin.mapBinAtHash(key, keyHash)
 	}
@@ -424,7 +424,7 @@ class HashedMapBinDescriptor private constructor(
 		val oldSize = self[BIN_SIZE].toInt()
 		val oldKeysHash = self[KEYS_HASH]
 		val masked = vector and (1L shl logicalIndex) - 1
-		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
+		val physicalIndex = masked.countOneBits() + 1
 		val oldSubBin = self[SUB_BINS_, physicalIndex]
 		val oldSubBinKeysHash = oldSubBin.mapBinKeysHash
 		val oldSubBinSize = oldSubBin.mapBinSize
@@ -435,13 +435,13 @@ class HashedMapBinDescriptor private constructor(
 		val objectToModify: AvailObject
 		if (newSubBin.mapBinSize == 0) {
 			// The entire subBin must be removed.
-			val oldSlotCount: Int = java.lang.Long.bitCount(vector)
+			val oldSlotCount = vector.countOneBits()
 			if (oldSlotCount == 1) {
 				// ...and so must this one.
 				return emptyLinearMapBin(level)
 			}
 			objectToModify = newIndexedDescriptor(
-				java.lang.Long.bitCount(vector) - 1,
+				vector.countOneBits() - 1,
 				descriptorFor(MUTABLE, level))
 			var destination = 1
 			for (source in 1..oldSlotCount) {
@@ -512,7 +512,7 @@ class HashedMapBinDescriptor private constructor(
 		val oldSize = self[BIN_SIZE].toInt()
 		val oldKeysHash = self[KEYS_HASH]
 		val masked = vector and (1L shl logicalIndex) - 1
-		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
+		val physicalIndex: Int = masked.countOneBits() + 1
 		val oldSubBin = self[SUB_BINS_, physicalIndex]
 		val oldSubBinSize = oldSubBin.mapBinSize
 		val oldSubBinKeyHash = oldSubBin.mapBinKeysHash
@@ -670,7 +670,7 @@ class HashedMapBinDescriptor private constructor(
 			if (shouldCheck)
 			{
 				val size = self.variableObjectSlotsCount()
-				assert(java.lang.Long.bitCount(self[BIT_VECTOR]) == size)
+				assert(self[BIT_VECTOR].countOneBits() == size)
 				var keyHashSum = 0
 				var valueHashSum = 0
 				var totalCount = 0
@@ -730,7 +730,7 @@ class HashedMapBinDescriptor private constructor(
 			bitVector: Long
 		): AvailObject
 		{
-			val newSize: Int = java.lang.Long.bitCount(bitVector)
+			val newSize = bitVector.countOneBits()
 			return descriptorFor(MUTABLE, myLevel).create(newSize) {
 				setSlot(KEYS_HASH, 0)
 				setSlot(VALUES_HASH_OR_ZERO, 0)

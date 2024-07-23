@@ -572,7 +572,7 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			val loader = AvailLoader.currentLoaderOrNull() ?: return
 			if (loader.statementCanBeSummarized()
-				&& self[VALUE].notNil
+				&& self.volatileSlot(VALUE).notNil
 				&& !self.valueWasStablyComputed())
 			{
 				loader.statementCanBeSummarized(false)

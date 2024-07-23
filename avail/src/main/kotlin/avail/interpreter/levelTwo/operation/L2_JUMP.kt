@@ -31,10 +31,8 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -45,39 +43,18 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP : L2ControlFlowOperation(
-	PC.named("target", SUCCESS))
+class L2_JUMP(
+	@On(SUCCESS) var target: L2PcOperand
+): L2ControlFlowInstruction()
 {
 	// It jumps, which counts as a side effect.
-	override val hasSideEffect: Boolean
-		get() = true
-
-	override val isUnconditionalJump: Boolean
-		get() = true
+	override val hasSideEffect: Boolean get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val target = instruction.operand<L2PcOperand>(0)
-
 		// :: goto offset;
-		translator.jump(method, instruction, target)
-	}
-
-	/**
-	 * Extract the target of the given jump instruction.
-	 *
-	 * @param instruction
-	 * The [L2Instruction] to examine.  Its [L2Operation] must be an `L2_JUMP`.
-	 * @return
-	 * The [L2PcOperand] to which the instruction jumps.
-	 */
-	@JvmStatic
-	fun jumpTarget(instruction: L2Instruction): L2PcOperand
-	{
-		assert(instruction.operation === this)
-		return instruction.operand(0)
+		translator.jumpOrFallThrough(method, target)
 	}
 }

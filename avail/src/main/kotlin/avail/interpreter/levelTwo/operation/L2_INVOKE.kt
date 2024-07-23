@@ -33,26 +33,29 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.returnType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
+import avail.interpreter.levelTwo.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.WritesHiddenVariable
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.cast
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -74,52 +77,76 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @WritesHiddenVariable(
-	CURRENT_ARGUMENTS::class,
 	LATEST_RETURN_VALUE::class,
 	STACK_REIFIER::class)
-object L2_INVOKE : L2ControlFlowOperation(
-	READ_BOXED.named("called function"),
-	READ_BOXED_VECTOR.named("arguments"),
-	WRITE_BOXED.named("result", SUCCESS),
-	PC.named("on return", SUCCESS),
-	PC.named("on reification", OFF_RAMP))
+class L2_INVOKE(
+	var calledFunction: L2ReadBoxedOperand,
+	var arguments: L2ReadBoxedVectorOperand,
+	@On(SUCCESS) var result: L2WriteBoxedOperand,
+	@On(SUCCESS) var ifReturn: L2PcOperand,
+	@On(OFF_RAMP) var ifReification: L2PcOperand
+): L2ControlFlowInstruction()
 {
-	override val hasSideEffect: Boolean
-		get() = true
+	override val hasSideEffect get() = true
+
+	/**
+	 * If the function is bottom-valued, treat the block as cold, and don't
+	 * bother splitting paths that lead only to it and other cold blocks.
+	 * The called function will definitely have to raise an exception, exit
+	 * or restart a continuation, loop forever, or terminate the fiber, so
+	 * splitting the code is not likely to have a big impact.
+	 */
+	override val isCold: Boolean
+		get()
+		{
+			val functionType = calledFunction.restriction().type
+			assert(functionType.isSubtypeOf(mostGeneralFunctionType()))
+			return functionType.returnType.isBottom
+		}
+
+	override fun emitTransformedInstruction(
+		regenerator: L2Regenerator)
+	{
+		calledFunction.restriction().constantOrNull?.let { constantFunction ->
+			// Rewrite it as a constant function invocation, allowing that emit
+			// operation to do its own further optimizations.
+			L2_INVOKE_CONSTANT_FUNCTION(
+				L2ConstantOperand(constantFunction),
+				arguments,
+				result,
+				ifReturn,
+				ifReification
+			).emitTransformedInstruction(regenerator)
+			return
+		}
+		super.emitTransformedInstruction(regenerator)
+	}
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val function = instruction.operand<L2ReadBoxedOperand>(0)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val result = instruction.operand<L2WriteBoxedOperand>(2)
-		//		final L2PcOperand onReturn = instruction.operand(3);
-//		final L2PcOperand onReification = instruction.operand(4);
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(result.registerString())
 		builder.append(" ← ")
-		builder.append(function.registerString())
+		builder.append(calledFunction.registerString())
 		builder.append("(")
 		builder.append(arguments.elements)
 		builder.append(")")
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		renderOperandsExcludingFields(
+			builder,
+			desiredOperandTypes,
+			::result,
+			::calledFunction,
+			::arguments)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val function = instruction.operand<L2ReadBoxedOperand>(0)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val result = instruction.operand<L2WriteBoxedOperand>(2)
-		val onReturn = instruction.operand<L2PcOperand>(3)
-		val onReification = instruction.operand<L2PcOperand>(4)
 		translator.loadInterpreter(method)
 		// :: [interpreter]
 		translator.loadInterpreter(method)
@@ -128,94 +155,98 @@ object L2_INVOKE : L2ControlFlowOperation(
 		// :: [interpreter, callingChunk]
 		translator.loadInterpreter(method)
 		// :: [interpreter, callingChunk, interpreter]
-		translator.load(method, function.register())
+		translator.load(method, calledFunction.register())
 		// :: [interpreter, callingChunk, interpreter, function]
 		generatePushArgumentsAndInvoke(
 			translator,
 			method,
 			arguments.elements,
 			result,
-			onReturn,
-			onReification)
+			ifReturn,
+			ifReification)
 	}
-	/**
-	 * An array of [Interpreter.preinvokeMethod] variants, where the
-	 * index in the array is the number of arguments.
-	 */
-	private val preinvokeMethods = arrayOf(
-		Interpreter.preinvoke0Method,
-		Interpreter.preinvoke1Method,
-		Interpreter.preinvoke2Method,
-		Interpreter.preinvoke3Method)
 
-	/**
-	 * Generate code to push the arguments and invoke.  This expects the stack
-	 * to already contain the [Interpreter], the calling [L2Chunk],
-	 * another occurrence of the [Interpreter], and the [A_Function]
-	 * to be invoked.
-	 *
-	 * @param translator
-	 * The translator on which to generate the invocation.
-	 * @param method
-	 * The [MethodVisitor] controlling the method being written.
-	 * @param argsRegsList
-	 * The [List] of [L2ReadBoxedOperand] arguments.
-	 * @param result
-	 * Where to write the return result if the call returns without reification.
-	 * @param onNormalReturn
-	 * Where to jump if the call completes.
-	 * @param onReification
-	 * Where to jump if reification is requested during the call.
-	 */
-	fun generatePushArgumentsAndInvoke(
-		translator: JVMTranslator,
-		method: MethodVisitor,
-		argsRegsList: List<L2ReadBoxedOperand>,
-		result: L2WriteBoxedOperand,
-		onNormalReturn: L2PcOperand,
-		onReification: L2PcOperand)
+	companion object
 	{
-		// :: caller set up [interpreter, callingChunk, interpreter, function]
-		val numArgs = argsRegsList.size
-		if (numArgs < preinvokeMethods.size)
-		{
-			argsRegsList.forEach { translator.load(method, it.register()) }
-			// :: [interpreter, callingChunk, interpreter, function, [args...]]
-			preinvokeMethods[numArgs].generateCall(method)
-		}
-		else
-		{
-			translator.objectArray(
-				method, argsRegsList, AvailObject::class.java)
-			// :: [interpreter, callingChunk, interpreter, function, argsArray]
-			Interpreter.preinvokeMethod.generateCall(method)
-		}
-		// :: [interpreter, callingChunk, callingFunction]
-		translator.loadInterpreter(method)
-		// :: [interpreter, callingChunk, callingFunction, interpreter]
-		Interpreter.interpreterRunChunkMethod.generateCall(method)
-		// :: [interpreter, callingChunk, callingFunction, reifier]
-		Interpreter.postinvokeMethod.generateCall(method)
-		// :: [reifier]
-		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
-		// :: []
-		method.visitVarInsn(Opcodes.ALOAD, translator.reifierLocal())
-		// :: if (reifier !== null) goto onReificationPreamble;
-		// :: result = interpreter.getLatestResult();
-		// :: goto onNormalReturn;
-		// :: onReificationPreamble: ...
-		val onReificationPreamble = Label()
-		method.visitJumpInsn(Opcodes.IFNONNULL, onReificationPreamble)
+		/**
+		 * An array of [Interpreter.preinvokeMethod] variants, where the
+		 * index in the array is the number of arguments.
+		 */
+		private val preinvokeMethods = arrayOf(
+			Interpreter.preinvoke0Method,
+			Interpreter.preinvoke1Method,
+			Interpreter.preinvoke2Method,
+			Interpreter.preinvoke3Method)
 
-		translator.loadInterpreter(method)
-		// :: [interpreter]
-		Interpreter.getLatestResultMethod.generateCall(method)
-		// :: [latestResult]
-		translator.store(method, result.register())
-		// :: []
-		translator.jump(method, onNormalReturn)
+		/**
+		 * Generate code to push the arguments and invoke.  This expects the stack
+		 * to already contain the [Interpreter], the calling [L2Chunk],
+		 * another occurrence of the [Interpreter], and the [A_Function]
+		 * to be invoked.
+		 *
+		 * @param translator
+		 * The translator on which to generate the invocation.
+		 * @param method
+		 * The [MethodVisitor] controlling the method being written.
+		 * @param argsRegsList
+		 * The [List] of [L2ReadBoxedOperand] arguments.
+		 * @param result
+		 * Where to write the return result if the call returns without reification.
+		 * @param onNormalReturn
+		 * Where to jump if the call completes.
+		 * @param onReification
+		 * Where to jump if reification is requested during the call.
+		 */
+		fun generatePushArgumentsAndInvoke(
+			translator: JVMTranslator,
+			method: MethodVisitor,
+			argsRegsList: List<L2ReadOperand<BOXED_KIND>>,
+			result: L2WriteBoxedOperand,
+			onNormalReturn: L2PcOperand,
+			onReification: L2PcOperand)
+		{
+			// :: caller set up [interpreter, callingChunk, interpreter, function]
+			val numArgs = argsRegsList.size
+			if (numArgs < preinvokeMethods.size)
+			{
+				argsRegsList.forEach { translator.load(method, it.register()) }
+				// :: [interpreter, callingChunk, interpreter, function, [args...]]
+				preinvokeMethods[numArgs].generateCall(method)
+			}
+			else
+			{
+				translator.objectArray(
+					method, argsRegsList.cast(), AvailObject::class.java)
+				// :: [interpreter, callingChunk, interpreter, function, argsArray]
+				Interpreter.preinvokeMethod.generateCall(method)
+			}
+			// :: [interpreter, callingChunk, callingFunction]
+			translator.loadInterpreter(method)
+			// :: [interpreter, callingChunk, callingFunction, interpreter]
+			Interpreter.interpreterRunChunkMethod.generateCall(method)
+			// :: [interpreter, callingChunk, callingFunction, reifier]
+			Interpreter.postinvokeMethod.generateCall(method)
+			// :: [reifier]
+			method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
+			// :: []
+			method.visitVarInsn(Opcodes.ALOAD, translator.reifierLocal())
+			// :: if (reifier !== null) goto onReificationPreamble;
+			// :: result = interpreter.getLatestResult();
+			// :: goto onNormalReturn;
+			// :: onReificationPreamble: ...
+			val onReificationPreamble = Label()
+			method.visitJumpInsn(Opcodes.IFNONNULL, onReificationPreamble)
 
-		method.visitLabel(onReificationPreamble)
-		translator.generateReificationPreamble(method, onReification)
+			translator.loadInterpreter(method)
+			// :: [interpreter]
+			Interpreter.getLatestResultMethod.generateCall(method)
+			// :: [latestResult]
+			translator.store(method, result.register())
+			// :: []
+			translator.jump(method, onNormalReturn)
+
+			method.visitLabel(onReificationPreamble)
+			translator.generateReificationPreamble(method, onReification)
+		}
 	}
 }

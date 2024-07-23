@@ -36,14 +36,12 @@ import avail.interpreter.Primitive
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.attemptTheInlinePrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.attemptTheNonInlinePrimitiveMethod
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.PRIMITIVE
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import avail.interpreter.levelTwo.ReadsHiddenVariable
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -64,32 +62,29 @@ import org.objectweb.asm.Opcodes
 @ReadsHiddenVariable(
 	CURRENT_CONTINUATION::class,
 	CURRENT_FUNCTION::class,
-	//	CURRENT_ARGUMENTS.class,
 	LATEST_RETURN_VALUE::class)
-object L2_TRY_PRIMITIVE : L2Operation(
-	PRIMITIVE.named("primitive"))
+class L2_TRY_PRIMITIVE(
+	var primitive: L2ArbitraryConstantOperand<Primitive>
+): L2Instruction()
 {
-	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
+	override val isEntryPoint get() = true
 
 	// It could fail and jump.
 	override val hasSideEffect get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val primitiveOperand = instruction.operand<L2PrimitiveOperand>(0)
-		val primitive = primitiveOperand.primitive
 		translator.loadInterpreter(method)
 		// interpreter
 		method.visitInsn(Opcodes.DUP)
 		// interpreter, interpreter
 		Interpreter.interpreterFunctionField.generateRead(method)
 		// interpreter, fn
-		translator.literal(method, primitive)
+		translator.literal(method, primitive.constant)
 		// interpreter, fn, prim
-		if (primitive.hasFlag(Primitive.Flag.CanInline))
+		if (primitive.constant.hasFlag(Primitive.Flag.CanInline))
 		{
 			// :: return interpreter.attemptInlinePrimitive(function, primitive)
 			attemptTheInlinePrimitiveMethod.generateCall(method)
@@ -102,4 +97,3 @@ object L2_TRY_PRIMITIVE : L2Operation(
 		method.visitInsn(Opcodes.ARETURN)
 	}
 }
-

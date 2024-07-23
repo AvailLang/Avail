@@ -167,7 +167,6 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean {
 		// TODO - Generate L2 code to collect statistics on the variants that

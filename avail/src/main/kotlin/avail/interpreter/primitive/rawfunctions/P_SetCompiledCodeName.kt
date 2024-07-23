@@ -40,15 +40,15 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
+import avail.interpreter.levelTwo.HiddenVariable.GLOBAL_STATE
 import avail.interpreter.levelTwo.WritesHiddenVariable
 
 /**
@@ -78,4 +78,6 @@ object P_SetCompiledCodeName : Primitive(
 				mostGeneralCompiledCodeType(),
 				nonemptyStringType),
 			Types.TOP.o)
+
+	override val canDestroyArguments get() = false
 }

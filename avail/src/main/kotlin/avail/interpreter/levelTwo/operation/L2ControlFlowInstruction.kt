@@ -1,5 +1,5 @@
 /*
- * L2_INT_TO_FLOAT.kt
+ * L2NewControlFlowInstruction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,52 +32,34 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2ReadIntOperand
-import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
-import avail.optimizer.jvm.JVMTranslator
-import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
+import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.optimizer.L2BasicBlock
 
 /**
- * Convert an `int` to a `double`.
+ * An [L2Instruction] that alters control flow, and therefore does not fall
+ * through to the next instruction.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *   Protect the constructor so the subclasses can maintain a fly-weight
+ *   pattern (or arguably a singleton).
  */
-object L2_INT_TO_FLOAT : L2Operation(
-	READ_INT.named("source"),
-	WRITE_FLOAT.named("destination"))
+abstract class L2ControlFlowInstruction : L2Instruction()
 {
-	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
-		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
-	{
-		assert(this == instruction.operation)
-		val source = instruction.operand<L2ReadIntOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		renderPreamble(instruction, builder)
-		builder.append(' ')
-		builder.append(source.registerString())
-		builder.append(" ← ")
-		builder.append(destination.registerString())
-	}
+	override val altersControlFlow get() = true
 
-	override fun translateToJVM(
-		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
-	{
-		val source = instruction.operand<L2ReadIntOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-
-		// :: destination = (double) source;
-		translator.load(method, source.register())
-		method.visitInsn(Opcodes.I2D)
-		translator.store(method, destination.register())
-	}
+	/**
+	 * Extract the operands which are [L2PcOperand]s.  These are what lead to
+	 * other [L2BasicBlock]s.  They also carry an edge-specific array of slots,
+	 * and edge-specific [TypeRestriction]s for registers.
+	 *
+	 * @return
+	 *   The [List] of target [L2PcOperand]s that are operands of the given
+	 *   instruction.  These may be reachable directly via a control flow
+	 *   change, or reachable only from some other mechanism like continuation
+	 *   reification and later resumption of a continuation.
+	 */
+	override val targetEdges: List<L2PcOperand> get() = layout.pcOperands(this)
 }

@@ -35,14 +35,11 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -52,22 +49,18 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_TUPLE_AT_CONSTANT : L2Operation(
-	READ_BOXED.named("tuple"),
-	INT_IMMEDIATE.named("immediate subscript"),
-	WRITE_BOXED.named("destination"))
+class L2_TUPLE_AT_CONSTANT(
+	var tuple: L2ReadBoxedOperand,
+	var subscript: L2IntImmediateOperand,
+	var destination: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
-		val subscript = instruction.operand<L2IntImmediateOperand>(1)
-		val destination = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")
@@ -77,18 +70,17 @@ object L2_TUPLE_AT_CONSTANT : L2Operation(
 		builder.append(']')
 	}
 
+	override fun emitTransformedInstruction(
+		regenerator: L2Regenerator)
+	{
+		regenerator.extractTupleElement(
+			tuple, subscript.value, destination.semanticValues())
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val tuple =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val subscript =
-			instruction.operand<L2IntImmediateOperand>(1)
-		val destination =
-			instruction.operand<L2WriteBoxedOperand>(2)
-
 		// :: destination = tuple.tupleAt(subscript);
 		translator.load(method, tuple.register())
 		translator.literal(method, subscript.value)

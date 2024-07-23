@@ -56,10 +56,10 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TypeDescriptor
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -86,11 +86,11 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM.o, anyMeta()))),
+			tuple(zeroOrMoreOf(tupleTypeForTypes(ATOM.o, anyMeta))),
 			mostGeneralObjectMeta)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
 		val tupleSizes = tupleType.sizeRange

@@ -34,9 +34,9 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_Continuation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP
-import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -56,24 +56,21 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_INTERPRET_LEVEL_ONE : L2ControlFlowOperation(
-	PC.named("call reentry point", ON_RAMP),
-	PC.named("interrupt reentry point", ON_RAMP))
+class L2_INTERPRET_LEVEL_ONE(
+	@On(ON_RAMP) var callReentryPoint: L2PcOperand,
+	@On(ON_RAMP) var interruptReentryPoint: L2PcOperand
+): L2ControlFlowInstruction()
 {
 	// Keep this instruction from being removed, since it's only used by the
 	// default chunk.
 	override val hasSideEffect get() = true
 
-	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
+	override val isEntryPoint get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		//val callReentryOffset = instruction.operand<L2PcOperand>(0);
-		//val interruptReentryOffset = instruction.operand<L2PcOperand>(1);
-
 		// :: return interpreter.levelOneStepper.run();
 		translator.loadInterpreter(method)
 		Interpreter.levelOneStepperField.generateRead(method)

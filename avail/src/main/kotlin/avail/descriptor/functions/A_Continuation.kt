@@ -38,7 +38,6 @@ import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
@@ -258,5 +257,3 @@ interface A_Continuation : A_BasicObject
 			dispatch { o_HighlightPc(it, isTopFrame) }
 	}
 }
-
-

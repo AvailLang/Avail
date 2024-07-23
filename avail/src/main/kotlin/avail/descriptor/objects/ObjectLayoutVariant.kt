@@ -109,7 +109,8 @@ class ObjectLayoutVariant private constructor(
 	 */
 	val fieldToSlotIndex: Map<A_Atom, Int>
 
-	init {
+	init
+	{
 		val explicitSubclassingKey = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom
 		// Alphabetize the fields to make debugging nice.  Note that field names
 		// don't have to be lexicographically unique.
@@ -184,6 +185,21 @@ class ObjectLayoutVariant private constructor(
 	companion object {
 		/**
 		 * The collection of all variants, indexed by the set of field atoms.
+		 * The key is weak, but it's the canonical, shared set of fields for the
+		 * variant.  The variant also holds a strong reference to this set, so
+		 * it won't be removed while the variant is reachable.  The value of the
+		 * map is a soft reference to the variant, allowing old variants to be
+		 * garbage collected when neither the variant nor the canonical set of
+		 * fields is referenced from outside this map.
+		 *
+		 * In theory this structure could thrash, if no object types (or object
+		 * instances) for a particular combination of fields is kept around, but
+		 * is periodically reconstructed from a list of field atoms.  This is
+		 * not only unlikely, but also still correct.  Also, the soft references
+		 * should significantly slow down the rate of thrash, preventing the
+		 * [variantsCounter] from reaching [Int.MAX_VALUE] in all but the most
+		 * pathological abuses.  When we switch to 64-bit int registers in L2,
+		 * this counter will be astronomically safer.
 		 */
 		@GuardedBy("variantsLock")
 		private val allVariants =
@@ -196,6 +212,10 @@ class ObjectLayoutVariant private constructor(
 		 * A monotonically increasing counter for allocating a unique
 		 * [variantId] for each variant.  Should only be accessed while holding
 		 * the [variantsLock]'s [writeLock][ReentrantReadWriteLock.writeLock].
+		 *
+		 * It isn't currently protected against overflows, but we'll switch to
+		 * 64-bit unboxed L2 registers before this becomes even remotely a
+		 * problem.
 		 */
 		@GuardedBy("variantsLock")
 		private var variantsCounter = 0

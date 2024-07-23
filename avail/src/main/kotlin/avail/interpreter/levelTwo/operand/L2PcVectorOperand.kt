@@ -34,8 +34,7 @@ package avail.interpreter.levelTwo.operand
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
 import avail.optimizer.L2ValueManifest
 import avail.utility.cast
 
@@ -48,7 +47,7 @@ import avail.utility.cast
  * @constructor
  * Construct a new [L2PcVectorOperand] with the specified [List] of
  * [L2PcOperand]s. The order of the elements should be understood by the
- * [L2Operation] of the [L2Instruction] in which this vector occurs.
+ * [L2Instruction] in which this vector occurs.
  *
  * @param edges
  *   The list of [L2PcOperand]s.
@@ -67,8 +66,12 @@ class L2PcVectorOperand constructor(
 		edges.forEach { it.adjustCloneForInstruction(theInstruction) }
 	}
 
-	override val operandType: L2OperandType
-		get() = L2OperandType.PC_VECTOR
+	override val operandType: L2OperandType get() = PC_VECTOR
+
+	override fun addEdgesTo(list: MutableList<L2PcOperand>)
+	{
+		list.addAll(edges)
+	}
 
 	override fun setInstruction(theInstruction: L2Instruction?)
 	{
@@ -77,12 +80,11 @@ class L2PcVectorOperand constructor(
 		edges.forEach { it.setInstruction(theInstruction) }
 	}
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
-	override fun instructionWasAdded(manifest: L2ValueManifest)
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
 		edges.forEach { it.instructionWasAdded(manifest) }
@@ -101,20 +103,14 @@ class L2PcVectorOperand constructor(
 		super.instructionWasRemoved()
 	}
 
-	override fun replaceRegisters(
-		registerRemap: Map<L2Register, L2Register>,
-		theInstruction: L2Instruction)
-	{
-		edges.forEach { it.replaceRegisters(registerRemap, theInstruction) }
-		super.replaceRegisters(registerRemap, theInstruction)
-	}
-
 	override fun appendTo(builder: StringBuilder): Unit = with(builder)
 	{
 		append("→ <")
 		edges.forEachIndexed { zeroIndex, edge ->
 			append("\n\t(#").append(zeroIndex + 1).append("): ")
-			edge.appendTo(builder)
+			val entryBuilder = StringBuilder()
+			edge.appendTo(entryBuilder)
+			builder.append(entryBuilder.toString().replace("\n", "\n\t\t"))
 		}
 		append("\n>")
 	}

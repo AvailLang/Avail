@@ -775,18 +775,15 @@ class IntTupleDescriptor private constructor(
 		}
 	}
 
-	override fun mutable(): IntTupleDescriptor
-	{
-		return descriptors[(unusedIntsOfLastLong and 1) * 3 + Mutability.MUTABLE.ordinal]!!
-	}
+	override fun mutable(): IntTupleDescriptor =
+		descriptors[
+			(unusedIntsOfLastLong and 1) * 3 + Mutability.MUTABLE.ordinal]!!
 
-	override fun immutable(): IntTupleDescriptor
-	{
-		return descriptors[(unusedIntsOfLastLong and 1) * 3 + Mutability.IMMUTABLE.ordinal]!!
-	}
+	override fun immutable(): IntTupleDescriptor =
+		descriptors[
+			(unusedIntsOfLastLong and 1) * 3 + Mutability.IMMUTABLE.ordinal]!!
 
-	override fun shared(): IntTupleDescriptor
-	{
-		return descriptors[(unusedIntsOfLastLong and 1) * 3 + Mutability.SHARED.ordinal]!!
-	}
+	override fun shared(): IntTupleDescriptor =
+		descriptors[
+			(unusedIntsOfLastLong and 1) * 3 + Mutability.SHARED.ordinal]!!
 }

@@ -33,11 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.MapDescriptor
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -50,27 +47,20 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_CREATE_MAP : L2Operation(
-	READ_BOXED_VECTOR.named("keys"),
-	READ_BOXED_VECTOR.named("values"),
-	WRITE_BOXED.named("new map"))
+class L2_CREATE_MAP(
+	var keys: L2ReadBoxedVectorOperand,
+	var values: L2ReadBoxedVectorOperand,
+	var newMap: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val keys =
-			instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val values =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val map =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(map.registerString())
+		builder.append(newMap.registerString())
 		builder.append(" ← {")
 		var i = 0
 		val limit = keys.elements.size
@@ -92,13 +82,8 @@ object L2_CREATE_MAP : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val keys = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val values = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val map = instruction.operand<L2WriteBoxedOperand>(2)
-
 		// :: map = MapDescriptor.emptyMap;
 		MapDescriptor.emptyMapMethod.generateCall(method)
 		val limit = keys.elements.size
@@ -112,6 +97,6 @@ object L2_CREATE_MAP : L2Operation(
 			A_Map.mapAtPuttingStaticMethod.generateCall(method)
 		}
 		// :: destinationMap = map;
-		translator.store(method, map.register())
+		translator.store(method, newMap.register())
 	}
 }

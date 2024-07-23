@@ -38,15 +38,17 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.READ_BOXED
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
-import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION.constantRawFunctionOf
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.Companion.constantOf
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.L2_MOVE_CONSTANT_BOXED
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
+import avail.utility.cast
 
 /**
  * An `L2ReadBoxedOperand` is an operand of type [L2OperandType.READ_BOXED]. It
@@ -55,10 +57,9 @@ import avail.optimizer.values.L2SemanticValue
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
+class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.READ_BOXED
+	override val operandType: L2OperandType get() = READ_BOXED
 
 	/**
 	 * Construct a new `L2ReadBoxedOperand` for the specified [L2SemanticValue]
@@ -77,13 +78,13 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 	 *   instruction.
 	 */
 	constructor(
-		semanticValue: L2SemanticValue,
+		semanticValue: L2SemanticValue<BOXED_KIND>,
 		restriction: TypeRestriction,
 		manifest: L2ValueManifest
 	) : super(
 		semanticValue,
 		restriction,
-		manifest.getDefinition<L2BoxedRegister>(semanticValue, BOXED_KIND))
+		manifest.getDefinition(semanticValue))
 	{
 		assert(restriction.isBoxed)
 	}
@@ -101,23 +102,30 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 	 *   The [L2BoxedRegister] being read by this operand.
 	 */
 	constructor(
-		semanticValue: L2SemanticValue,
+		semanticValue: L2SemanticValue<BOXED_KIND>,
 		restriction: TypeRestriction,
 		register: L2BoxedRegister
 	) : super(semanticValue, restriction, register)
 
-	override fun copyForRegister(newRegister: L2Register): L2ReadBoxedOperand =
+	override fun semanticValue(): L2SemanticBoxedValue =
+		super.semanticValue().cast()
+
+	override fun copyForRegister(
+		newRegister: L2Register<BOXED_KIND>
+	): L2ReadBoxedOperand =
 		L2ReadBoxedOperand(
 			semanticValue(), restriction(), newRegister as L2BoxedRegister)
 
-	override fun createNewRegister() = L2BoxedRegister(-1)
+	override fun createConstantRegister() =
+		L2BoxedRegister(-999, restriction().constantOrNull!!)
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun createSemanticConstant(): L2SemanticBoxedValue =
+		L2SemanticConstant(register().constant!!)
+
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
-	override val registerKind get() = BOXED_KIND
+	override val kind get() = BOXED_KIND
 
 	/**
 	 * See if we can determine the exact type of this register, which holds a
@@ -128,24 +136,24 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 	 */
 	fun exactFunctionType(): A_Type?
 	{
-		val constantFunction: A_Function? = constantOrNull()
+		val constantFunction: A_Function? = constantOrNull
 		if (constantFunction !== null)
 		{
 			// Function is a constant.
 			return constantFunction.code().functionType()
 		}
-		val originOfFunction = definitionSkippingMoves(true)
-		if (originOfFunction.operation === L2_MOVE_CONSTANT.boxed)
+		val originOfFunction = definitionSkippingMoves()
+		if (originOfFunction is L2_MOVE_CONSTANT_BOXED)
 		{
 			// Function came from a constant (although the TypeRestriction
 			// should have ensured the clause above caught it).
-			return constantOf(originOfFunction).code().functionType()
+			return originOfFunction.constant().constant.code().functionType()
 		}
-		if (originOfFunction.operation === L2_CREATE_FUNCTION)
+		if (originOfFunction is L2_CREATE_FUNCTION)
 		{
 			// We found where the function was closed from a raw function,
 			// which knows the exact function type that it'll be.  Use that.
-			return constantRawFunctionOf(originOfFunction).functionType()
+			return originOfFunction.code.constant.functionType()
 		}
 		return null
 	}

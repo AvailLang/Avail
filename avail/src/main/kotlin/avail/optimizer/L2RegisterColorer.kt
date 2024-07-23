@@ -33,10 +33,11 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import avail.interpreter.levelTwo.operation.L2_MOVE
+import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.register.L2Register
 import avail.utility.Graph
-import avail.utility.cast
 import java.util.ArrayDeque
 import java.util.BitSet
 import java.util.Deque
@@ -64,14 +65,14 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		 * The [Set] of [L2Register]s that may have the same color because they
 		 * don't carry values at the same time.
 		 */
-		val registers = mutableSetOf<L2Register?>()
+		val registers = mutableSetOf<L2Register<*>>()
 
 		/** This group's final coloring, or -1 during calculation. */
 		var finalIndex = -1
 			set(value)
 			{
 				field = value
-				registers.forEach { it!!.setFinalIndex(value) }
+				registers.forEach { it.finalIndex = value }
 			}
 
 		override fun toString(): String = buildString {
@@ -83,13 +84,14 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	/**
 	 * The [List] of all [L2Register]s that occur in the control flow graph.
 	 */
-	private val allRegisters: List<L2Register> = controlFlowGraph.allRegisters()
+	private val allRegisters: List<L2Register<*>> =
+		controlFlowGraph.allRegisters()
 
 	/**
 	 * The unique number of the register being traced from its uses back to its
 	 * definition(s).
 	 */
-	private var registerBeingTraced: L2Register? = null
+	private var registerBeingTraced: L2Register<*>? = null
 
 	/**
 	 * A map from registers to sets of registers that can be colored the same
@@ -101,7 +103,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	 * interference graph first.  We populate the registerSets with singleton
 	 * sets before this.
 	 */
-	private val registerGroups = mutableMapOf<L2Register, RegisterGroup>()
+	private val registerGroups = mutableMapOf<L2Register<*>, RegisterGroup>()
 
 	/**
 	 * The set of blocks that so far have been reached, but not necessarily
@@ -138,26 +140,11 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			for (read in reg.uses())
 			{
 				val instruction = read.instruction
-				if (instruction.operation.isPhi)
-				{
-					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
-						instruction.operation.cast()
-					for (predBlock in phiOperation.predecessorBlocksForUseOf(
-						instruction, reg))
-					{
-						if (reachedBlocks.add(predBlock))
-						{
-							blocksToTrace.add(predBlock)
-						}
-					}
-				}
-				else
-				{
-					processLiveInAtStatement(
-						instruction.basicBlock(),
-						instruction.basicBlock().instructions().indexOf(
-							instruction))
-				}
+				assert(instruction !is L2_PHI<*>)
+				processLiveInAtStatement(
+					instruction.basicBlock(),
+					instruction.basicBlock().instructions().indexOf(
+						instruction))
 				// Process the queue until empty.
 				while (!blocksToTrace.isEmpty())
 				{
@@ -204,15 +191,14 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 					definesCurrentRegister = true
 					continue
 				}
-				if (registerGroups[registerBeingTraced]!!.registers.contains(
-						written))
+				if (written in group(registerBeingTraced!!).registers)
 				{
 					continue
 				}
 				// Register banks are numbered independently, so the notion
 				// of interference between registers in different banks is
 				// moot (i.e., they don't interfere).
-				if (registerBeingTraced!!.registerKind !== written.registerKind)
+				if (registerBeingTraced!!.kind !== written.kind)
 				{
 					continue
 				}
@@ -220,13 +206,13 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				// interest (registerBeingTraced) and the destination of the
 				// move, but only if the live-out variable isn't also the source
 				// of the move.
-				if (instruction.operation.isMove
+				if (instruction is L2_MOVE<*>
 					&& instruction.sourceRegisters[0] === registerBeingTraced)
 				{
 					continue
 				}
-				val group1 = registerGroups[registerBeingTraced]!!
-				val group2 = registerGroups[written]!!
+				val group1 = group(registerBeingTraced!!)
+				val group2 = group(written)
 				interferences.includeEdge(group1, group2)
 				interferences.includeEdge(group2, group1)
 			}
@@ -254,58 +240,85 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 	 */
 	fun coalesceNoninterferingMoves()
 	{
-		for (reg in allRegisters)
+		for (destinationReg in allRegisters)
 		{
-			for (write in reg.definitions())
+			for (write in destinationReg.definitions())
 			{
 				val instruction = write.instruction
-				if (instruction.operation.isMove)
+				when
 				{
-					// The source and destination registers shouldn't be
-					// considered interfering if they'll hold the same value.
-					val group1 = registerGroups[reg]
-					val group2 =
-						registerGroups[instruction.sourceRegisters[0]]
-					if (group1 !== group2)
+					instruction is L2_MOVE<*> ->
 					{
-						if (!interferences.includesEdge(group1!!, group2!!))
-						{
-							// Merge the non-interfering move-related register
-							// sets.
-							val smallSet: RegisterGroup?
-							val largeSet: RegisterGroup?
-							if (group1.registers.size < group2.registers.size)
-							{
-								smallSet = group1
-								largeSet = group2
-							}
-							else
-							{
-								smallSet = group2
-								largeSet = group1
-							}
-							for (neighborOfSmall in
-								interferences.successorsOf(smallSet))
-							{
-								assert(neighborOfSmall !== largeSet)
-								interferences.includeEdge(
-									largeSet, neighborOfSmall)
-								interferences.includeEdge(
-									neighborOfSmall, largeSet)
-							}
-							interferences.exciseVertex(smallSet)
-							// Merge the smallSet elements into the largeSet.
-							for (r in smallSet.registers)
-							{
-								registerGroups[r!!] = largeSet
-							}
-							largeSet.registers.addAll(smallSet.registers)
-						}
+						assert(instruction.destinationRegisters.single()
+							== destinationReg)
+						coalesceNoninterferingMove(
+							instruction.source.register(),
+							instruction.destination.register())
+					}
+					// An L2_STRIP_MANIFEST has a vector of inputs that map to a
+					// vector of outputs.  Map the particular one we're working
+					// on to its corresponding output.
+					instruction is L2_STRIP_MANIFEST ->
+					{
+						val index = instruction.destinationRegisters
+							.indexOf(destinationReg)
+						val sourceReg = instruction.sourceRegisters[index]
+						coalesceNoninterferingMove(sourceReg, destinationReg)
 					}
 				}
 			}
 		}
 	}
+
+	/**
+	 * Having identified a move from the [sourceRegister] to the
+	 * [destinationRegister],see if the groups that the two registers are in can
+	 * be merged.  If so, do it, and add interference edges between each
+	 * register in the source group and each register in the destination group.
+	 * Otherwise, we've already captured the interference between these groups.
+	 */
+	private fun coalesceNoninterferingMove(
+		sourceRegister: L2Register<*>,
+		destinationRegister: L2Register<*>)
+	{
+		// If the source is a constant, just ignore it.
+		if (sourceRegister.isConstant) return
+		// The source and destination registers shouldn't be
+		// considered interfering if they'll hold the same value.
+		val group1 = group(destinationRegister)
+		val group2 = group(sourceRegister)
+		if (group1 !== group2)
+		{
+			if (!interferences.includesEdge(group1, group2))
+			{
+				// Merge the non-interfering move-related register sets.
+				val (smallSet, largeSet) =
+					if (group1.registers.size < group2.registers.size)
+						group1 to group2
+					else group2 to group1
+				for (neighborOfSmall in interferences.successorsOf(smallSet))
+				{
+					assert(neighborOfSmall !== largeSet)
+					interferences.includeEdge(largeSet, neighborOfSmall)
+					interferences.includeEdge(neighborOfSmall, largeSet)
+				}
+				interferences.exciseVertex(smallSet)
+				// Merge the smallSet elements into the largeSet.
+				for (r in smallSet.registers)
+				{
+					registerGroups[r] = largeSet
+				}
+				largeSet.registers.addAll(smallSet.registers)
+			}
+		}
+	}
+
+	/**
+	 * Look up the given [L2Register], answering the [RegisterGroup] that
+	 * contains it.  Fail if it's not present in a group.
+	 */
+	private fun group(written: L2Register<*>): RegisterGroup =
+		registerGroups[written]!!
 
 	/**
 	 * Determine colors for all registers.  We use a simple coloring algorithm
@@ -376,7 +389,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		}
 		for (register in registerGroups.keys)
 		{
-			assert(register.finalIndex() != -1)
+			assert(register.finalIndex != -1)
 		}
 	}
 
@@ -391,8 +404,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		append("\n\tInterferences:")
 		for (group in interferences.vertices)
 		{
-			val neighbors =
-				interferences.successorsOf(group)
+			val neighbors = interferences.successorsOf(group)
 			if (neighbors.isNotEmpty())
 			{
 				append("\n\t\t")

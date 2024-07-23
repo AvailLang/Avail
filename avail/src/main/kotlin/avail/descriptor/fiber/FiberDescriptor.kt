@@ -95,6 +95,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
@@ -1004,7 +1005,10 @@ class FiberDescriptor private constructor(
 		assert(!helper.getFlag(Flag.TRACE_VARIABLE_WRITES))
 		val map = helper.tracedVariables
 		return synchronized(map) {
-			val set = setFromCollection(map.keys)
+			// Collect the keys strongly, because setFromCollection() doesn't
+			// work with weak sets (it expects the size to be stable).
+			val strongList = map.keys.toList()
+			val set = setFromCollection(strongList)
 			map.clear()
 			set
 		}

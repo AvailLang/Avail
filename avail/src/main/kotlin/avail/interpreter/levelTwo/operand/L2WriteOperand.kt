@@ -32,11 +32,15 @@
 package avail.interpreter.levelTwo.operand
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
+import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import avail.interpreter.levelTwo.register.RegisterKind
+import avail.optimizer.L2ControlFlowGraph
+import avail.optimizer.L2GeneratorInterface
+import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
+import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
 
@@ -44,8 +48,8 @@ import avail.utility.cast
  * `L2WriteOperand` abstracts the capabilities of actual register write
  * operands.
  *
- * @param R
- * The subclass of [L2Register] that this writes to.
+ * @param K
+ * The subclass of [RegisterKind] that this operates on.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -68,20 +72,29 @@ import avail.utility.cast
  * @param register
  *   The [L2Register] to write.
  */
-abstract class L2WriteOperand<R : L2Register>
+abstract class L2WriteOperand<K : RegisterKind<K>>
 constructor(
-	private var semanticValues: Set<L2SemanticValue>,
-	private val restriction: TypeRestriction,
-	protected var register: R
+	private var semanticValues: Set<L2SemanticValue<K>>,
+	private var restriction: TypeRestriction,
+	protected var register: L2Register<K>
 ) : L2Operand()
 {
+	/**
+	 * Answer the [RegisterKind] of register that is written by this
+	 * `L2WriteOperand`.
+	 *
+	 * @return
+	 *   The [RegisterKind].
+	 */
+	abstract val kind: K
+
 	/**
 	 * Answer this write's immutable set of [L2SemanticValue]s.
 	 *
 	 * @return
 	 *   The semantic value being written.
 	 */
-	fun semanticValues(): Set<L2SemanticValue> = semanticValues
+	open fun semanticValues(): Set<L2SemanticValue<K>> = semanticValues
 
 	/**
 	 * Answer this write's sole [L2SemanticValue], failing if there isn't
@@ -90,7 +103,7 @@ constructor(
 	 * @return
 	 *   The write operand's [L2SemanticValue].
 	 */
-	open fun onlySemanticValue(): L2SemanticValue
+	open fun onlySemanticValue(): L2SemanticValue<K>
 	{
 		assert(semanticValues.size == 1)
 		return semanticValues.single()
@@ -103,8 +116,7 @@ constructor(
 	 * @return
 	 *   The write operand's [L2SemanticValue].
 	 */
-	fun pickSemanticValue(): L2SemanticValue =
-		semanticValues.first()
+	fun pickSemanticValue(): L2SemanticValue<K> = semanticValues.first()
 
 	/**
 	 * Answer this write's [TypeRestriction].
@@ -115,13 +127,21 @@ constructor(
 	fun restriction(): TypeRestriction = restriction
 
 	/**
-	 * Answer the [RegisterKind] of register that is written by this
-	 * `L2WriteOperand`.
+	 * Alter this write's [restriction].
 	 *
-	 * @return
-	 *   The [RegisterKind].
+	 * @param transformer
+	 *   An extension lambda to produce a new [TypeRestriction] from the
+	 *   existing one.
 	 */
-	abstract val registerKind: RegisterKind
+	fun restrict(transformer: TypeRestriction.()->TypeRestriction)
+	{
+		// Try to preserve the restriction's identity if unchanged.
+		val newRestriction = restriction.transformer().intersection(restriction)
+		if (newRestriction != restriction)
+		{
+			restriction = newRestriction
+		}
+	}
 
 	/**
 	 * Answer the [L2Register]'s [finalIndex][L2Register.finalIndex].
@@ -129,7 +149,7 @@ constructor(
 	 * @return
 	 *   The index of the register, computed during register coloring.
 	 */
-	fun finalIndex(): Int = register.finalIndex()
+	fun finalIndex(): Int = register.finalIndex
 
 	/**
 	 * Answer the register that is to be written.
@@ -137,7 +157,7 @@ constructor(
 	 * @return
 	 *   An [L2IntRegister].
 	 */
-	fun register(): R = register
+	open fun register(): L2Register<K> = register
 
 	/**
 	 * Answer a String that describes this operand for debugging.
@@ -149,8 +169,8 @@ constructor(
 		if (semanticValues.isNotEmpty()) register.toString() + semanticValues
 		else register.toString()
 
-
-	override fun instructionWasAdded(manifest: L2ValueManifest)
+	override fun instructionWasAdded(
+		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
 		register.addDefinition(this)
@@ -158,43 +178,52 @@ constructor(
 	}
 
 	/**
-	 * This operand is a write of an [L2_MAKE_IMMUTABLE] operation.  The
-	 * manifest has already had boxed definitions for the synonym removed from
-	 * it, even if it left the definition list empty.
-	 *
-	 * @param sourceSemanticValue
-	 *   The [L2SemanticValue] that already holds the value.
-	 * @param manifest
-	 *   The [L2ValueManifest] in which to capture the synonymy of the source
-	 *   and destination.
-	 */
-	fun instructionWasAddedForMakeImmutable(
-		sourceSemanticValue: L2SemanticValue,
-		manifest: L2ValueManifest)
-	{
-		super.instructionWasAdded(manifest)
-		register.addDefinition(this)
-		assert(manifest.hasSemanticValue(sourceSemanticValue))
-		manifest.recordDefinitionForMakeImmutable(this, sourceSemanticValue)
-	}
-
-	/**
 	 * This operand is a write of a move-like operation.  Make the semantic
 	 * value a synonym of the given [L2ReadOperand]'s semantic value.
 	 *
-	 * @param sourceSemanticValue
-	 *   The [L2SemanticValue] that already holds the value.
+	 * @param source
+	 *   The [L2ReadOperand] that provides the value.
 	 * @param manifest
 	 *   The [L2ValueManifest] in which to capture the synonymy of the source
 	 *   and destination.
 	 */
 	fun instructionWasAddedForMove(
-		sourceSemanticValue: L2SemanticValue,
+		source: L2ReadOperand<K>,
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
 		register.addDefinition(this)
-		manifest.recordDefinitionForMove(this, sourceSemanticValue)
+		manifest.recordDefinitionForMove(this, source.semanticValue())
+	}
+
+	/**
+	 * An [L2_MOVE_CONSTANT] has been generated, so update the provided current
+	 * [L2ValueManifest] to reflect that change.
+	 *
+	 * @param semanticConstant
+	 *   The semanticc constant that was moved.
+	 * @param manifest
+	 *   The [L2ValueManifest] to update with the fact of this move.
+	 */
+	fun instructionWasAddedForMoveConstant(
+		semanticConstant: L2SemanticValue<K>,
+		restriction: TypeRestriction,
+		manifest: L2ValueManifest)
+	{
+		assert(semanticConstant.isConstant)
+		super.instructionWasAdded(manifest)
+		register.addDefinition(this)
+		val (old, new) = (semanticValues() + semanticConstant)
+			.partition(manifest::hasSemanticValue)
+		if (new.isNotEmpty())
+		{
+			manifest.introduceSynonym(L2Synonym(new), restriction)
+			if (old.isNotEmpty())
+			{
+				manifest.mergeExistingSemanticValues(old.first(), new.first())
+			}
+		}
+		manifest.recordDefinitionForMove(this, semanticConstant)
 	}
 
 	override fun instructionWasInserted(newInstruction: L2Instruction)
@@ -218,24 +247,9 @@ constructor(
 	 *   The new [L2SemanticValue] to add to the write operand's set of semantic
 	 *   values.
 	 */
-	fun retroactivelyIncludeSemanticValue(newSemanticValue: L2SemanticValue)
+	fun retroactivelyIncludeSemanticValue(newSemanticValue: L2SemanticValue<K>)
 	{
-		semanticValues =
-			semanticValues.toMutableSet().apply { add(newSemanticValue) }
-	}
-
-	override fun replaceRegisters(
-		registerRemap: Map<L2Register, L2Register>,
-		theInstruction: L2Instruction)
-	{
-		val replacement = registerRemap[register]
-		if (replacement === null || replacement === register)
-		{
-			return
-		}
-		register().removeDefinition(this)
-		replacement.addDefinition(this)
-		register = replacement.cast()
+		semanticValues += newSemanticValue
 	}
 
 	override fun addWritesTo(writeOperands: MutableList<L2WriteOperand<*>>)
@@ -244,7 +258,7 @@ constructor(
 	}
 
 	override fun addDestinationRegistersTo(
-		destinationRegisters: MutableList<L2Register>)
+		destinationRegisters: MutableList<L2Register<*>>)
 	{
 		destinationRegisters.add(register)
 	}
@@ -252,6 +266,28 @@ constructor(
 	override fun appendTo(builder: StringBuilder)
 	{
 		builder.append("→").append(registerString())
+	}
+
+	/**
+	 * The [L2SemanticValue]s associated with this write are no longer relevant
+	 * to the [L2ControlFlowGraph].  Replace them with a single dummy value
+	 * associated with the [L2Register] being written.
+	 *
+	 * @param generator
+	 *   The [L2GeneratorInterface] that's used to generate unique ids.
+	 * @param registerToValueMap
+	 *   A map from each encountered [L2Register] to an [L2SemanticDummy] that
+	 *   is generated for it as needed.
+	 */
+	@Deprecated("TODO Remove")
+	fun clearSemanticValues(
+		generator: L2GeneratorInterface,
+		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
+	{
+		semanticValues = setOf(
+			registerToValueMap.computeIfAbsent(register) {
+				kind.createSemanticDummy(generator)
+			}.cast())
 	}
 
 	override fun postOptimizationCleanup()

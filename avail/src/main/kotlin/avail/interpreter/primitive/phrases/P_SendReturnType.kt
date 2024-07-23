@@ -66,5 +66,5 @@ object P_SendReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				SEND_PHRASE.mostGeneralType),
-			topMeta())
+			topMeta)
 }

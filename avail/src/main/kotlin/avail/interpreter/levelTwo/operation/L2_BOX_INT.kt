@@ -35,11 +35,9 @@ import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_INT
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -48,34 +46,33 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_BOX_INT : L2Operation(
-	READ_INT.named("source"),
-	WRITE_BOXED.named("destination"))
+class L2_BOX_INT(
+	var source: L2ReadIntOperand,
+	var destination: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val source = instruction.operand<L2ReadIntOperand>(0)
-		val destination = instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ← ")
 		builder.append(source.registerString())
 	}
 
+	override fun instructionWasAdded(manifest: L2ValueManifest)
+	{
+		destination.restrict { source.restriction().forBoxed() }
+		super.instructionWasAdded(manifest)
+	}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val source = instruction.operand<L2ReadIntOperand>(0)
-		val destination = instruction.operand<L2WriteBoxedOperand>(1)
-
 		// :: destination = IntegerDescriptor.fromInt(source);
 		translator.load(method, source.register())
 		IntegerDescriptor.fromIntMethod.generateCall(method)

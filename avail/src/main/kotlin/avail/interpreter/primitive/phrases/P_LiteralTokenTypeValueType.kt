@@ -70,5 +70,5 @@ object P_LiteralTokenTypeValueType : Primitive(
 			tuple(
 				instanceMeta(
 					mostGeneralLiteralTokenType())),
-			anyMeta())
+			anyMeta)
 }

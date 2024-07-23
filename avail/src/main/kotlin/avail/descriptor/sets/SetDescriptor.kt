@@ -429,7 +429,7 @@ private constructor(
 			if (!canDestroy) self.makeImmutable()
 			return self
 		}
-		val result = if (canDestroy && isMutable) self else mutable().create()
+		val result = if (canDestroy && isMutable) self else mutable.create()
 		setRootBin(result, newRootBin)
 		return result
 	}
@@ -461,7 +461,7 @@ private constructor(
 		val result = when
 		{
 			canDestroy && isMutable -> self
-			else -> mutable().create()
+			else -> mutable.create()
 		}
 		setRootBin(result, newRootBin)
 		return result

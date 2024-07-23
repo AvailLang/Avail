@@ -56,4 +56,6 @@ object P_CurrentFiber : Primitive(0, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(emptyTuple, mostGeneralFiberType())
+
+	override val canDestroyArguments get() = false
 }

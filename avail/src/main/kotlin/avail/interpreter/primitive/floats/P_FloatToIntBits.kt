@@ -67,4 +67,6 @@ object P_FloatToIntBits : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(FLOAT.o), i32)
+
+	override val canDestroyArguments get() = false
 }

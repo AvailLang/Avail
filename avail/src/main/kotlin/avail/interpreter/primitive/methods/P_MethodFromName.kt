@@ -34,7 +34,9 @@ package avail.interpreter.primitive.methods
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -44,15 +46,19 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Answer the [method][MethodDescriptor] associated with the
- * given [true&#32;name][AtomDescriptor].
+ * given [true&#32;name][AtomDescriptor].  This primitive is flagged as
+ * [CanFold] because once the [A_Bundle] (and its [A_Method]) have been set,
+ * they are permanent for the session, but before that point the primitive will
+ * simply fail.
  */
 @Suppress("unused")
-object P_MethodFromName : Primitive(1, CanInline)
+object P_MethodFromName : Primitive(1, CanInline, CanFold)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

@@ -75,12 +75,10 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		catch (e: NoSuchAlgorithmException)
 		{
-			assert(false)
-			{
-				"these are standard digest algorithm available in all " +
-					"Java implementations"
-			}
-			throw RuntimeException(e)
+			throw AssertionError(
+				"These are standard digest algorithm available in all " +
+					"Java implementations",
+				e)
 		}
 
 		val size = bytes.tupleSize
@@ -100,4 +98,6 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 					tupleFromIntegerList(listOf(1, 256, 384, 512)).asSet),
 				zeroOrMoreOf(u8)),
 			oneOrMoreOf(u8))
+
+	override val canDestroyArguments get() = false
 }

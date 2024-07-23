@@ -37,7 +37,6 @@ import avail.descriptor.numbers.A_Number.Companion.bitShift
 import avail.descriptor.numbers.A_Number.Companion.bitwiseXor
 import avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
-import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.equalsInteger
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -1538,12 +1537,13 @@ class IntegerDescriptor private constructor(
 
 	override fun o_IsNumericallyIntegral(self: AvailObject): Boolean = true
 
-	override fun o_ComputeTypeTag(self: AvailObject): TypeTag = when
-	{
-		self.greaterThan(zero) -> TypeTag.NATURAL_NUMBER_TAG
-		self.equalsInt(0) -> TypeTag.WHOLE_NUMBER_TAG
-		else -> TypeTag.INTEGER_TAG
-	}
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
+		when (self.numericCompareToInteger(zero))
+		{
+			Order.MORE -> TypeTag.NATURAL_NUMBER_TAG
+			Order.EQUAL -> TypeTag.WHOLE_NUMBER_TAG
+			else -> TypeTag.INTEGER_TAG
+		}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) = when {
 		self.isLong -> writer.write(self.extractLong)
@@ -1561,7 +1561,7 @@ class IntegerDescriptor private constructor(
 			if (theInt != 0) break
 			nonZeroIndex++  // We ensured they can't all be zero.
 		}
-		if (Integer.bitCount(theInt) > 1) return -1
+		if (theInt.countOneBits() > 1) return -1
 		// Check that the rest of the ints are zero.
 		if ((nonZeroIndex + 1 .. intCount(self))
 				.any { self.rawSignedIntegerAt(it) != 0 })
@@ -2110,7 +2110,8 @@ class IntegerDescriptor private constructor(
 		}
 	}
 
-	override fun mutable() = descriptors[MUTABLE]!![unusedIntsOfLastLong.toInt()]
+	override fun mutable() =
+		descriptors[MUTABLE]!![unusedIntsOfLastLong.toInt()]
 
 	override fun immutable() =
 		descriptors[IMMUTABLE]!![unusedIntsOfLastLong.toInt()]

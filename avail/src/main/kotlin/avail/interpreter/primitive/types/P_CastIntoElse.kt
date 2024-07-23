@@ -53,7 +53,6 @@ import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
@@ -88,7 +87,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		// Keep it simple.
@@ -116,7 +115,6 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// Inline the invocation of this P_CastIntoElse primitive, such that it
@@ -124,6 +122,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		// first block with the value being cast or the second block with no
 		// arguments.
 		val (valueRead, castFunctionRead, elseFunctionRead) = arguments
+		val translator = callSiteHelper.translator
 		val castBlock =
 			translator.generator.createBasicBlock("cast type matched")
 		val elseBlock =
@@ -138,7 +137,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 			// simply a function closure.  First see if we can eliminate the
 			// runtime test entirely.
 			var bypassTesting = true
-			val constant = valueRead.constantOrNull()
+			val constant = valueRead.constantOrNull
 			val passedTest: Boolean = when {
 				constant !== null -> constant.isInstanceOf(typeTest)
 				valueRead.type().isSubtypeOf(typeTest) -> true
@@ -181,11 +180,11 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 				translator.generator.extractParameterTypeFromFunction(
 					castFunctionRead, 1)
 			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT,
-				valueRead,
-				parameterTypeRead,
-				edgeTo(castBlock),
-				edgeTo(elseBlock))
+				L2_JUMP_IF_KIND_OF_OBJECT(
+					valueRead,
+					parameterTypeRead,
+					edgeTo(castBlock),
+					edgeTo(elseBlock)))
 		}
 
 		// We couldn't skip the runtime type check, which takes us to either

@@ -107,8 +107,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * basic block.  Its instruction was just set.
 	 *
 	 * @param manifest
-	 *   The [L2ValueManifest] that is active where this [L2Instruction] was
-	 *   just added to its [L2BasicBlock].
+	 *   The [L2ValueManifest] to use and update.
 	 */
 	@OverridingMethodsMustInvokeSuper
 	open fun instructionWasAdded(
@@ -141,24 +140,6 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	{
 		// Nothing by default.  The L2Instruction already set my instruction
 		// field in a previous pass.
-	}
-
-	/**
-	 * Replace occurrences in this operand of each register that is a key of
-	 * this map with the register that is the corresponding value.  Do nothing
-	 * to registers that are not keys of the map.  Update all secondary
-	 * structures, such as the instruction's source/destination collections.
-	 *
-	 * @param registerRemap
-	 *   A mapping to transform registers in-place.
-	 * @param theInstruction
-	 *   The instruction containing this operand.
-	 */
-	open fun replaceRegisters(
-		registerRemap: Map<L2Register, L2Register>,
-		theInstruction: L2Instruction)
-	{
-		// By default do nothing.
 	}
 
 	/**
@@ -204,7 +185,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * @param sourceRegisters
 	 *   The [MutableList] to update.
 	 */
-	open fun addSourceRegistersTo(sourceRegisters: MutableList<L2Register>)
+	open fun addSourceRegistersTo(sourceRegisters: MutableList<L2Register<*>>)
 	{
 		// Do nothing by default.
 	}
@@ -216,10 +197,16 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 *   The [MutableList] to update.
 	 */
 	open fun addDestinationRegistersTo(
-		destinationRegisters: MutableList<L2Register>)
+		destinationRegisters: MutableList<L2Register<*>>)
 	{
 		// Do nothing by default.
 	}
+
+	/**
+	 * Add any edges in this operand to the list.  Do nothing unless this is
+	 * an edge ([L2PcOperand]) or a vector of edges ([L2PcVectorOperand]).
+	 */
+	open fun addEdgesTo(list: MutableList<L2PcOperand>) { }
 
 	override fun toString(): String
 	{
@@ -263,7 +250,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 		val temp = StringBuilder()
 		appendTo(temp)
 		builder.append(increaseIndentation(temp.toString(), indent))
-	}// Operand wasn't found inside the instruction.
+	}
 
 	/**
 	 * Answer whether this operand is misconnected to its [L2Instruction].
@@ -291,7 +278,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 							return false
 						}
 					}
-					is L2ReadVectorOperand<*, *> ->
+					is L2ReadVectorOperand<*> ->
 					{
 						if (operand.elements.contains(this))
 						{

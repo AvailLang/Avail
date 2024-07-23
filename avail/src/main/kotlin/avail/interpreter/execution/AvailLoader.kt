@@ -807,7 +807,7 @@ constructor(
 							// can't be a malformed escape.
 							else ->
 							{
-								assert(false) { "Unreachable" }
+								throw AssertionError("Unreachable")
 							}
 						}
 					}
@@ -1234,8 +1234,7 @@ constructor(
 				}
 				catch (e: SignatureException)
 				{
-					assert(false) { "Signature was already vetted" }
-					return@lock
+					throw AssertionError("Signature was already vetted")
 				}
 				recordEffect(
 					LoadingEffectToAddDefinition(
@@ -1874,8 +1873,7 @@ constructor(
 			}
 			catch (e: MalformedMessageException)
 			{
-				assert(false) { "Malformed module header method name" }
-				throw RuntimeException(e)
+				throw AssertionError("Malformed module header method name")
 			}
 			val headerPlan: A_DefinitionParsingPlan =
 				headerMethodBundle.definitionParsingPlans.mapIterable
@@ -1955,8 +1953,7 @@ constructor(
 			}
 			catch (e: MalformedMessageException)
 			{
-				assert(false) { "Invalid special lexer name: $atomName" }
-				throw RuntimeException(e)
+				throw AssertionError("Invalid special lexer name: $atomName")
 			}
 			val lexer = newLexer(
 				lexerFilter, lexerBody, bundle.bundleMethod, nil)
@@ -2150,7 +2147,7 @@ constructor(
 
 										else ->
 										{
-											assert(false) { "Unreachable" }
+											throw AssertionError("Unreachable")
 										}
 									}
 								}
@@ -2184,7 +2181,7 @@ constructor(
 							// can't be a malformed escape.
 							else ->
 							{
-								assert(false) { "Unreachable" }
+								throw AssertionError("Unreachable")
 							}
 						}
 					}

@@ -36,13 +36,8 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportWrongReturnTypeMethod
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -65,26 +60,25 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
 @WritesHiddenVariable(CURRENT_FUNCTION::class)
-object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
-	READ_BOXED.named("returned value"),
-	CONSTANT.named("expected type"),
-	INT_IMMEDIATE.named("pc"),
-	INT_IMMEDIATE.named("stackp"),
-	READ_BOXED_VECTOR.named("frame values"))
+class L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
+	var returnedValue: L2ReadBoxedOperand,
+	var expectedType: L2ConstantOperand,
+	var pc: L2IntImmediateOperand,
+	var stackp: L2IntImmediateOperand,
+	var frameValues: L2ReadBoxedVectorOperand
+) : L2ControlFlowInstruction()
 {
+	override val isCold: Boolean get() = true
+
+	// Never remove this.
+	override val hasSideEffect get() = true
+
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val returnedValue = instruction.operand<L2ReadBoxedOperand>(0)
-		val expectedType = instruction.operand<L2ConstantOperand>(1)
-		val pc = instruction.operand<L2IntImmediateOperand>(2)
-		val stackp = instruction.operand<L2IntImmediateOperand>(3)
-		val frameValues = instruction.operand<L2ReadBoxedVectorOperand>(4)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(" got: ")
 		builder.append(returnedValue.registerString())
 		builder.append(", expected: ")
@@ -94,23 +88,13 @@ object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
 		builder.append(", stackp: ")
 		builder.append(stackp.value)
 		builder.append("\n\tframe data: ")
-		frameValues.elements.joinTo(builder) { it.registerString() }
+		frameValues.elements.joinTo(builder, limit = 5) { it.registerString() }
 	}
-
-	// Never remove this.
-	override val hasSideEffect get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val returnedValue = instruction.operand<L2ReadBoxedOperand>(0)
-		val expectedType = instruction.operand<L2ConstantOperand>(1)
-		val pc = instruction.operand<L2IntImmediateOperand>(2)
-		val stackp = instruction.operand<L2IntImmediateOperand>(3)
-		val frameValues = instruction.operand<L2ReadBoxedVectorOperand>(4)
-
 		translator.loadInterpreter(method)
 		// :: interpreter
 		translator.load(method, returnedValue.register())

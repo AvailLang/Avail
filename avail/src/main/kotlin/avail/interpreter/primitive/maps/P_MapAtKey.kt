@@ -73,7 +73,7 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 		functionType(tuple(mostGeneralMapType(), ANY.o), ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val (mapType, keyType) = argumentTypes
 		if (mapType.isEnumeration && keyType.isEnumeration)

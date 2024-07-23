@@ -93,12 +93,14 @@ import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.dispatch.LookupTree
+import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.SignatureException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.LexicalScanner
@@ -110,6 +112,7 @@ import avail.persistence.cache.record.NamesIndex
 import avail.persistence.cache.record.PhrasePathRecord
 import avail.persistence.cache.record.StylingRecord
 import avail.serialization.SerializerOperation
+import avail.utility.Strings.truncateTo
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -466,6 +469,8 @@ protected constructor (
 		anInteger: AvailObject,
 		canDestroy: Boolean): A_Number = unsupported
 
+	override fun o_DummyElement(self: AvailObject): AvailObject = unsupported
+
 	override fun o_SetExecutionState (
 		self: AvailObject, value: ExecutionState): Unit = unsupported
 
@@ -646,6 +651,17 @@ protected constructor (
 		self: AvailObject,
 		aNumber: A_Number,
 		canDestroy: Boolean): A_Number = unsupported
+
+	@Throws(AvailException::class)
+	override fun o_RecursivelyUpdate(
+		self: AvailObject,
+		indices: Iterator<AvailObject>,
+		update: (AvailObject)->A_BasicObject
+	): A_BasicObject
+	{
+		if (indices.hasNext()) throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
+		return update(self)
+	}
 
 	override fun o_SetPriority (self: AvailObject, value: Int): Unit =
 		unsupported
@@ -2847,7 +2863,7 @@ protected constructor (
 		 *
 		 * @see printObjectOnAvoidingIndent
 		 */
-		val compressionRegex = """\n\t*""".toRegex()
+		val compressionRegex = """(\n[ \t]*)+""".toRegex()
 
 		/**
 		 * The maximum length of the concise primitive description. Values whose
@@ -2871,17 +2887,17 @@ protected constructor (
 		 */
 		inline fun StringBuilder.brief(
 			printer: StringBuilder.() -> Unit
-		) = StringBuilder().let { builder ->
-			builder.printer()
-			if (builder.length <= maxBrief)
+		): Unit = StringBuilder().let { newBuilder ->
+			newBuilder.printer()
+			if (newBuilder.length > maxBrief)
 			{
-				append(builder.replace(compressionRegex, " "))
+				val oneLine = newBuilder.replace(compressionRegex, " ")
+				append(oneLine.truncateTo(maxBrief))
 			}
 			else
 			{
-				append(builder)
+				append(newBuilder)
 			}
-			Unit
 		}
 	}
 }

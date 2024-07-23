@@ -33,11 +33,9 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
-import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_JUMP
-import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
-import avail.optimizer.reoptimizer.L2Regenerator
-import avail.utility.cast
+import avail.interpreter.levelTwo.operation.L2_PHI
+import avail.utility.removeLast
 import java.lang.Integer.toHexString
 
 /**
@@ -60,17 +58,35 @@ import java.lang.Integer.toHexString
  *
  * @param name
  *   A descriptive name for the block.
+ * @param zone
+ *   A mechanism to visually group blocks in the [L2ControlFlowGraphVisualizer],
+ *   indicating the purpose of that group.
  * @param isLoopHead
  *   Whether this block is the head of a loop. Default is `false`.
- * @param zone
- *   A mechanism to visually group blocks in the
- *   [L2ControlFlowGraphVisualizer], indicating the purpose of that group.
+ * @param isCold
+ *   A flag indiccating that this reaching this block at runtime is relatively
+ *   rare and not worth optimizing with code splitting.
+ *
+ *   Any block that only leads to cold blocks (and doesn't itself return) should
+ *   be considered cold as well, since it can't be reached more often than its
+ *   successors, and is equally unworthy of code splitting effort.
+ *
+ *   Also, a branching instruction (at the end of this block) that leads to a
+ *   mix of hot and cold targets should not propose split conditions whose only
+ *   purpose is to allow a cold target block to be reached unconditionally in a
+ *   split version of this block.  Split conditions that allow an unconditional
+ *   jump to a *hot* target should still be proposed.
  */
-class L2BasicBlock constructor(
+class L2BasicBlock
+constructor(
 	private val name: String,
+	var zone: L2ControlFlowGraph.Zone? = null,
 	var isLoopHead: Boolean = false,
-	var zone: L2ControlFlowGraph.Zone? = null)
+	var isCold: Boolean = false)
 {
+	/** A place to write notes for marking up a graph. */
+	val debugNote = StringBuilder()
+
 	/** The sequence of instructions within this basic block. */
 	private val instructions = mutableListOf<L2Instruction>()
 
@@ -89,12 +105,6 @@ class L2BasicBlock constructor(
 	private val predecessorEdges = mutableListOf<L2PcOperand>()
 
 	/**
-	 * The L2 offset at which the block starts.  Only populated after code
-	 * generation has completed.
-	 */
-	private var offset = -1
-
-	/**
 	 * Whether this block must be tracked until final code generation. Set for
 	 * blocks that must not be removed. Such a block may be referenced for
 	 * tracking entry points, and must therefore exist through final code
@@ -104,14 +114,15 @@ class L2BasicBlock constructor(
 		private set
 
 	/** Whether we've started adding instructions to this basic block. */
-	private var hasStartedCodeGeneration = false
+	var hasStartedCodeGeneration = false
+		private set
 
 	/**
 	 * Keeps track whether a control-flow altering instruction has been added
 	 * yet.  There must be one, and it must be the last instruction in the
 	 * block.
 	 */
-	private var hasControlFlowAtEnd = false
+	var hasControlFlowAtEnd = false
 
 	/**
 	 * Answer the descriptive name of this basic block.
@@ -137,7 +148,7 @@ class L2BasicBlock constructor(
 	 * @return
 	 *   The offset of the start of the block.
 	 */
-	fun offset(): Int = offset
+	fun offset(): Int = instructions.firstOrNull()?.offset ?: -1
 
 	/**
 	 * Answer this block's [List] of [L2Instruction]. They consist of a sequence
@@ -177,7 +188,6 @@ class L2BasicBlock constructor(
 	 */
 	fun addPredecessorEdge(predecessorEdge: L2PcOperand)
 	{
-		assert(predecessorEdge.sourceBlock().hasStartedCodeGeneration)
 		predecessorEdges.add(predecessorEdge)
 		if (hasStartedCodeGeneration)
 		{
@@ -185,19 +195,15 @@ class L2BasicBlock constructor(
 			for (i in instructions.indices)
 			{
 				val instruction = instructions[i]
-				val operation = instruction.operation
-				if (!operation.isPhi)
+				if (instruction !is L2_PHI<*>)
 				{
 					// All the phi instructions are at the start, so we've
 					// exhausted them.
 					break
 				}
-				val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
-					operation.cast()
-
 				// The body of the loop is required to still have available
 				// every semantic value mentioned in the original phis.
-				phiOperation.updateLoopHeadPhi(predecessorManifest, instruction)
+				instruction.updateLoopHeadPhi(predecessorManifest)
 			}
 		}
 	}
@@ -210,7 +216,6 @@ class L2BasicBlock constructor(
 	 */
 	fun removePredecessorEdge(predecessorEdge: L2PcOperand)
 	{
-		assert(predecessorEdge.sourceBlock().hasStartedCodeGeneration)
 		if (hasStartedCodeGeneration)
 		{
 			val index = predecessorEdges.indexOf(predecessorEdge)
@@ -218,14 +223,12 @@ class L2BasicBlock constructor(
 			for (i in instructions.indices)
 			{
 				val instruction = instructions[i]
-				if (!instruction.operation.isPhi)
+				if (instruction !is L2_PHI<*>)
 				{
 					// Phi functions are always at the start of a block.
 					break
 				}
-				val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
-					instruction.operation.cast()
-				val replacement = phiOperation.withoutIndex(instruction, index)
+				val replacement = instruction.phiWithoutIndex(index)
 				instruction.justRemoved()
 				instructions[i] = replacement
 				replacement.justInserted()
@@ -281,18 +284,10 @@ class L2BasicBlock constructor(
 	 * the appropriate slotRegisters of the provided [L1Translator].
 	 *
 	 * @param generator
-	 *   The [L2Generator] generating instructions.
-	 * @param generatePhis
-	 *   Whether to automatically generate phi instructions if there are
-	 *   multiple incoming edges with different registers associated with the
-	 *   same semantic values.
-	 * @param regenerator
-	 *   The optional [L2Regenerator] to use.
+	 *   The [L2GeneratorInterface] generating instructions.
 	 */
 	fun startIn(
-		generator: L2Generator,
-		generatePhis: Boolean = true,
-		regenerator: L2Regenerator? = null)
+		generator: L2GeneratorInterface)
 	{
 		generator.currentManifest.clear()
 		if (isIrremovable)
@@ -307,9 +302,7 @@ class L2BasicBlock constructor(
 		generator.currentManifest.populateFromIntersection(
 			predecessorEdges.map(L2PcOperand::manifest),
 			generator,
-			generatePhis,
-			isLoopHead,
-			regenerator)
+			isLoopHead)
 	}
 
 	/**
@@ -323,7 +316,9 @@ class L2BasicBlock constructor(
 	 *   The [L2ValueManifest] that is active where this instruction was just
 	 *   added to its `L2BasicBlock`.
 	 */
-	fun addInstruction(instruction: L2Instruction, manifest: L2ValueManifest)
+	fun addInstruction(
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
 		assert(isIrremovable || predecessorEdges().isNotEmpty())
 		justAddInstruction(instruction)
@@ -342,7 +337,8 @@ class L2BasicBlock constructor(
 	{
 		assert(!hasControlFlowAtEnd)
 		assert(instruction.basicBlock() == this)
-		if (instruction.operation.isPhi)
+
+		if (instruction is L2_PHI<*>)
 		{
 			// For simplicity, phi functions are routed to the *start* of the
 			// block.
@@ -357,22 +353,21 @@ class L2BasicBlock constructor(
 	}
 
 	/**
-	 * Answer the zero-based index of the first index beyond any
-	 * [L2_ENTER_L2_CHUNK] or [L2_PHI_PSEUDO_OPERATION]s.  It might be just past
-	 * the last valid index (i.e., equal to the size).
+	 * Returns the first instruction in the list of instructions that is an
+	 * entry point, or null if no such instruction exists.  Note that if
+	 * present, an entry point instruction must occur immediately after the phi
+	 * instructions, if any.
 	 *
-	 * @return
-	 *   The index of the first instruction that isn't an entry point or phi.
+	 * @return The entry point instruction, or null if absent.
 	 */
-	fun indexAfterEntryPointAndPhis(): Int
+	fun entryPointOrNull(): L2Instruction?
 	{
-		instructions.forEachIndexed { i, instruction ->
-			if (!instruction.isEntryPoint && !instruction.operation.isPhi)
-			{
-				return i
-			}
+		for (instruction in instructions)
+		{
+			if (instruction.isEntryPoint) return instruction
+			if (instruction !is L2_PHI<*>) return null
 		}
-		return instructions.size - 1
+		return null
 	}
 
 	/**
@@ -461,26 +456,22 @@ class L2BasicBlock constructor(
 			changed = false
 			if (output.isNotEmpty())
 			{
-				val previousInstruction = output[output.size - 1]
-				if (previousInstruction.operation === L2_JUMP)
+				val previousInstruction = output.last()
+				if (previousInstruction is L2_JUMP)
 				{
-					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
-						== this)
+					if (previousInstruction.target.targetBlock() == this)
 					{
-						output.removeAt(output.size - 1)
+						output.removeLast()
 						changed = true
 					}
 				}
 			}
 		}
 		while (changed)
-		var counter = output.size
-		offset = counter
 		for (instruction in instructions)
 		{
 			if (instruction.shouldEmit)
 			{
-				instruction.offset = counter++
 				output.add(instruction)
 			}
 		}

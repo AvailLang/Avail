@@ -59,7 +59,6 @@ import avail.interpreter.Primitive.Flag.Invokes
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
@@ -108,7 +107,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 	// fail, and that the function was a primitive, we could ask the
 	// primitive what it would produce.
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type = argumentTypes[1].returnType
 
@@ -140,7 +139,6 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// Inline the invocation of this P_CastInto primitive, such that it
@@ -149,11 +147,14 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		// arguments.
 		val (valueRead, castFunctionRead) = arguments
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val castBlock = generator.createBasicBlock("cast type matched")
-		val elseBlock = generator.createBasicBlock("cast type did not match")
+		val elseBlock = generator.createBasicBlock(
+			"cast type did not match",
+			isCold = true)
 
-		val constantValue = valueRead.constantOrNull()
+		val constantValue = valueRead.constantOrNull
 		val typeTest = castFunctionRead.exactSoleArgumentType()
 		val passedTest: Boolean? = typeTest?.run{
 			when {
@@ -174,11 +175,11 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 					translator.generator.extractParameterTypeFromFunction(
 						castFunctionRead, 1)
 				translator.addInstruction(
-					L2_JUMP_IF_KIND_OF_OBJECT,
-					valueRead,
-					parameterTypeRead,
-					edgeTo(castBlock),
-					edgeTo(elseBlock))
+					L2_JUMP_IF_KIND_OF_OBJECT(
+						valueRead,
+						parameterTypeRead,
+						edgeTo(castBlock),
+						edgeTo(elseBlock)))
 			}
 			passedTest === null ->
 				// Couldn't prove or disprove type test, but we know statically
@@ -203,7 +204,11 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		generator.startBlock(elseBlock)
 		if (generator.currentlyReachable()) {
 			translator.generateGeneralFunctionInvocation(
-				functionToCallReg, arguments, false, callSiteHelper)
+				functionToCallReg,
+				arguments,
+				false,
+				callSiteHelper,
+				willAlwaysFailPrimitive = true)
 		}
 		return true
 	}

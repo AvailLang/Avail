@@ -1135,30 +1135,32 @@ Method "map and filter_by_" is
 	aTuple : tuple,
 	accumulator : [⊥, ⊥]→⊤
 |
-	index : natural number := 1;
-	end ::= |aTuple|;
 	result : tuple := <>;
 	[
-		$loop : ⊤;
-		Exit loop if end < index;
+		index : natural number,
+		end : whole number,
+		theTuple : tuple,
+		theAccumulator : [⊥, ⊥]→⊤,
+		theResult : ↑tuple
+	|
+		$loop : tuple;
+		Exit loop with ↓theResult if end < index;
 		hasAlreadyKept : boolean := false;
-		accumulator
+		theAccumulator
 		(
-			aTuple[index],
+			theTuple[index],
 			[
 				transformed : any
 			|
 				If ¬hasAlreadyKept then
 				[
-					result := eject result ++ <transformed>;
+					theResult ?= eject theResult ++ <transformed>;
 					hasAlreadyKept := true;
 				];
 			]
 		);
-		index++;
-		Restart loop
-	]();
-	result
+		Restart loop with <index + 1, end, theTuple, theAccumulator, theResult>
+	](1, |aTuple|, aTuple, accumulator, ↑result)
 ] : tuple
 styled by loop styler;
 

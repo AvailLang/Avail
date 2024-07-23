@@ -32,20 +32,9 @@
 
 package avail.interpreter.primitive.tuples
 
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.maps.MapDescriptor
-import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -80,123 +69,15 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 		val tuple = interpreter.argument(0)
 		val pathTuple = interpreter.argument(1)
 		val newValue = interpreter.argument(2)
-		return try
+		val result = try
 		{
-			interpreter.primitiveSuccess(
-				recursivelyUpdateTuple(tuple, pathTuple, 1, newValue))
+			tuple.recursivelyUpdate(pathTuple.iterator()) { newValue }
 		}
 		catch (e: AvailException)
 		{
-			interpreter.primitiveFailure(e)
+			return interpreter.primitiveFailure(e)
 		}
-	}
-
-	/**
-	 * Recursively traverses the target [tuple][TupleDescriptor],
-	 * ultimately updating the value at the final index of the pathIndex.
-	 *
-	 * @param targetTuple
-	 *   The [tuple][TupleDescriptor] to traverse
-	 * @param pathTuple
-	 *   The [tuple][TupleDescriptor] of indices to traverse.
-	 * @param pathIndex
-	 *   The current position of pathTuple being accessed.
-	 * @param newValue
-	 *   The updating value
-	 * @return
-	 *   The outermost tuple with the update applied.
-	 * @throws AvailException
-	 *   If a problem occurs.
-	 */
-	@Throws(AvailException::class)
-	private fun recursivelyUpdateTuple(
-		targetTuple: A_Tuple,
-		pathTuple: A_Tuple,
-		pathIndex: Int,
-		newValue: A_BasicObject): A_Tuple
-	{
-		val targetIndexObject = pathTuple.tupleAt(pathIndex)
-		if (!targetIndexObject.isInt)
-		{
-			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
-		}
-		val targetIndex = targetIndexObject.extractInt
-		if (targetIndex > targetTuple.tupleSize)
-		{
-			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
-		}
-		if (pathIndex == pathTuple.tupleSize)
-		{
-			return targetTuple.tupleAtPuttingCanDestroy(
-				targetIndex, newValue, true)
-		}
-
-		val subtuple = targetTuple.tupleAt(targetIndex)
-		return when {
-			subtuple.isTuple -> {
-				val newTuple = recursivelyUpdateTuple(
-					subtuple, pathTuple, pathIndex + 1, newValue)
-				targetTuple.tupleAtPuttingCanDestroy(
-					targetIndex, newTuple, true)
-			}
-			subtuple.isMap -> {
-				val newMap = recursivelyUpdateMap(
-					subtuple, pathTuple, pathIndex + 1, newValue)
-				targetTuple.tupleAtPuttingCanDestroy(
-					targetIndex, newMap, true)
-			}
-			else -> throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
-		}
-	}
-
-	/**
-	 * Recursively traverses the target [map][MapDescriptor]
-	 * ultimately updating the value at the final index of the pathIndex.
-	 *
-	 * @param targetMap
-	 * the [map][MapDescriptor] to traverse
-	 * @param pathTuple
-	 * [tuple][TupleDescriptor] containing the path of indices
-	 * to traverse to
-	 * @param pathIndex
-	 * the current position of pathTuple being accessed
-	 * @param newValue
-	 * the updating value
-	 * @return
-	 * The outermost [map][A_Map] with the update applied.
-	 * @throws AvailException E_INCORRECT_ARGUMENT_TYPE
-	 * @throws AvailException E_KEY_NOT_FOUND
-	 */
-	@Throws(AvailException::class)
-	private fun recursivelyUpdateMap(
-		targetMap: A_Map,
-		pathTuple: A_Tuple,
-		pathIndex: Int,
-		newValue: A_BasicObject): A_Map
-	{
-		val targetIndex = pathTuple.tupleAt(pathIndex)
-		val targetElement = targetMap.mapAtOrNull(targetIndex) ?:
-			throw AvailException(E_KEY_NOT_FOUND)
-		if (pathIndex == pathTuple.tupleSize)
-		{
-			return targetMap.mapAtPuttingCanDestroy(
-				targetIndex, newValue, true)
-		}
-		return when {
-			targetElement.isTuple -> {
-				val newTuple = recursivelyUpdateTuple(
-					targetElement, pathTuple, pathIndex + 1, newValue)
-				targetMap.mapAtPuttingCanDestroy(
-					targetIndex, newTuple, true)
-			}
-			targetElement.isMap -> {
-				val newMap = recursivelyUpdateMap(
-					targetElement, pathTuple, pathIndex + 1, newValue)
-				targetMap.mapAtPuttingCanDestroy(
-					targetIndex, newMap, true)
-			}
-			else -> throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
-		}
+		return interpreter.primitiveSuccess(result)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

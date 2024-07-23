@@ -62,5 +62,5 @@ object P_Seals : Primitive(1, CanInline, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(METHOD.o), zeroOrMoreOf(zeroOrMoreOf(anyMeta())))
+		functionType(tuple(METHOD.o), zeroOrMoreOf(zeroOrMoreOf(anyMeta)))
 }

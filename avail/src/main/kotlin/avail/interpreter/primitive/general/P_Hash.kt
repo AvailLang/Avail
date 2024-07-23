@@ -50,8 +50,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_HASH
 import avail.optimizer.L1Translator
 
@@ -72,7 +71,7 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type = argumentTypes[0].run {
 		when
@@ -91,15 +90,15 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper): Boolean
 	{
 		val valueReg = arguments[0]
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		val restriction = restrictionForType(returnType, UNBOXED_INT_FLAG)
+		val restriction = intRestrictionForType(returnType)
 		val writer = generator.intWriteTemp(restriction)
-		generator.addInstruction(L2_HASH, valueReg, writer)
+		generator.addInstruction(L2_HASH(valueReg, writer))
 		callSiteHelper.useAnswer(
 			generator.readBoxed(writer.onlySemanticValue().base))
 		return true
@@ -107,4 +106,6 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(ANY.o), i32)
+
+	override val canDestroyArguments get() = false
 }

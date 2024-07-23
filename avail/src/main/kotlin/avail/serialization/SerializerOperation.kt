@@ -1781,7 +1781,8 @@ enum class SerializerOperation constructor(
 			for ((moduleName, atomName) in pairs)
 			{
 				if (moduleName.notNil &&
-					deserializer.loadedModules.hasKey(moduleName))
+					(moduleName.equals(deserializer.currentModule.moduleName)
+						|| deserializer.loadedModules.hasKey(moduleName)))
 				{
 					val atom = lookupAtom(atomName, moduleName, deserializer)
 					val bundle = atom.bundleOrNil
@@ -2216,14 +2217,9 @@ enum class SerializerOperation constructor(
 				"char" -> javaClass = Character.TYPE
 				"float" -> javaClass = java.lang.Float.TYPE
 				"double" -> javaClass = java.lang.Double.TYPE
-				else ->
-				{
-					assert(false) {
-						("There are only nine primitive types " +
-							"(and $className is not one of them)!")
-					}
-					throw RuntimeException()
-				}
+				else -> throw AssertionError(
+					"There are only nine primitive types " +
+						"(and $className is not one of them)!")
 			}
 			return equalityPojo(javaClass)
 		}

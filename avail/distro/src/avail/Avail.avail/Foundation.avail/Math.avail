@@ -415,9 +415,9 @@ Public macro "_`|_" is
 		seq «
 			⟦
 				[
-					dividend1 ::= ⦊dividend⦉;
-					divisor1 ::= ⦊divisor⦉;
-					dividend1 ÷ divisor1 × divisor1 = dividend1
+					dividendTemp ::= ⦊dividend⦉;
+					divisorTemp ::= ⦊divisor⦉;
+					dividendTemp ÷ divisorTemp × divisorTemp = dividendTemp
 				]
 			⟧'s statements
 		»

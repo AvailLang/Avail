@@ -71,6 +71,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.primitive
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.representation.A_BasicObject
@@ -109,6 +110,7 @@ import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import avail.descriptor.types.TypeTag
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1OperandType
@@ -185,6 +187,9 @@ import kotlin.math.max
  *   it can be reconstructed by asking the [module] to look up the phrase it has
  *   stored under the [originatingPhraseIndex], which may then be cached in this
  *   field.
+ * @param packedDeclarationNames
+ *   A packed [A_String] containing the names of the block's arguments, locals,
+ *   constants, optional label, and outers.
  * @param lineNumber
  *   The starting [lineNumber] of this function, if known, otherwise `0`.
  * @param lineNumberEncodedDeltas
@@ -705,6 +710,11 @@ open class CompiledCodeDescriptor protected constructor(
 				if (isNil) "No module"
 				else shortModuleNameNative
 			}
+			val primString = when (primitive)
+			{
+				null -> ""
+				else -> " ($primitive)"
+			}
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
@@ -712,7 +722,7 @@ open class CompiledCodeDescriptor protected constructor(
 					-1,
 					null,
 					slotName = "Disassembly",
-					forcedName = "L1 Disassembly ($moduleName)",
+					forcedName = "L1 Disassembly ($moduleName)$primString",
 					forcedChildren = disassembled.toTypedArray()))
 		}
 		val literalFields = mutableListOf<AvailObjectFieldHelper>()
@@ -1275,7 +1285,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 *   or [nil] if such a phrase does not exist.
 		 * @param packedDeclarationNames
 		 *   A packed [A_String] containing the names of the block's arguments,
-		 *   locals, and constants.
+		 *   locals, constants, optional label, and outers.
 		 * @return
 		 *   The new compiled code object.
 		 */

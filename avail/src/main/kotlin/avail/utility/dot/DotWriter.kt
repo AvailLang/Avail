@@ -440,7 +440,8 @@ class DotWriter constructor(
 
 		/**
 		 * Answer an adjusted rhs (right hand side), taking into account which
-		 * format the rhs takes, and whether dark mode is active.
+		 * format the rhs takes, and whether dark mode is active.  The input may
+		 * have the form "#xxxxxx/xxxxxx", which is light/dark, respectively.
 		 */
 		fun adjust(rhs: String): String {
 			// Look for #xxxxxx/xxxxxx (light/dark) notation first.
@@ -961,12 +962,10 @@ class DotWriter constructor(
 					}
 					else
 					{
-						assert(false) {
+						throw AssertionError(
 							"""allowed node types are String, DecoratedNode
 							and CheckedConsumer<GraphWriter>, but
-							${o.javaClass.name} is none of these""".trim()
-						}
-						throw RuntimeException()
+							${o.javaClass.name} is none of these""".trim())
 					}
 					if (i < limit - 1)
 					{

@@ -1,5 +1,5 @@
 /*
- * L2PrimitiveOperand.kt
+ * L2SemanticBoxedValue.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,40 +29,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.levelTwo.operand
+package avail.optimizer.values
 
-import avail.interpreter.Primitive
-import avail.interpreter.levelTwo.L2OperandDispatcher
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.L2BoxedRegister
 
 /**
- * An `L2PrimitiveOperand` is an operand of type [L2OperandType.PRIMITIVE].  The
- * specific [Primitive] is captured.
+ * A semantic value representing boxed values in [L2BoxedRegister]s.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
- * @property primitive
- *   The actual [Primitive].
- *
  * @constructor
- * Construct a new `L2PrimitiveOperand` for the specified
- * [primitive][Primitive].
- *
- * @param primitive
- *   The primitive to invoke.
+ *   Create a new `L2SemanticBoxedValue` semantic value.
  */
-class L2PrimitiveOperand constructor(val primitive: Primitive) : L2Operand()
+abstract class L2SemanticBoxedValue
+constructor(
+	hash: Int
+) : L2SemanticValue<BOXED_KIND>(hash)
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.PRIMITIVE
-
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
-		dispatcher.doOperand(this)
-	}
-
-	override fun appendTo(builder: StringBuilder)
-	{
-		builder.append("*").append(primitive.name)
-	}
+	override val kind get() = BOXED_KIND
 }

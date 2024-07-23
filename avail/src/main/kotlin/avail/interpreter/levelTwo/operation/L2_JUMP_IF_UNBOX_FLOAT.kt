@@ -33,13 +33,11 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.levelTwo.L2Instruction
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -54,62 +52,46 @@ import org.objectweb.asm.Opcodes
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
-	READ_BOXED.named("source"),
-	WRITE_FLOAT.named("destination", SUCCESS),
-	PC.named("if not unboxed", FAILURE),
-	PC.named("if unboxed", SUCCESS))
+class L2_JUMP_IF_UNBOX_FLOAT(
+	var source: L2ReadBoxedOperand,
+	@On(SUCCESS) var destination: L2WriteFloatOperand,
+	@On(FAILURE) var ifNotUnboxed: L2PcOperand,
+	@On(SUCCESS) var ifUnboxed: L2PcOperand
+): L2ConditionalJump()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
-//		final L2PcOperand ifUnboxed = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
 		builder.append(" ←? ")
 		builder.append(source.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::source, ::destination)
 	}
 
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
-		val ifUnboxed = instruction.operand<L2PcOperand>(3)
-		source.instructionWasAdded(manifest)
-		ifNotUnboxed.instructionWasAdded(manifest)
-		// Ensure the value is available along the success edge.
-		destination.instructionWasAdded(manifest)
-		ifUnboxed.instructionWasAdded(manifest)
+		destination.restrict { source.restriction().forUnboxedFloat() }
+		super.instructionWasAdded(manifest)
+		ifUnboxed.manifest().intersectType(source, DOUBLE.o)
+		ifNotUnboxed.manifest().subtractType(source, DOUBLE.o)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val source = instruction.operand<L2ReadBoxedOperand>(0)
-		val destination = instruction.operand<L2WriteFloatOperand>(1)
-		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
-		val ifUnboxed = instruction.operand<L2PcOperand>(3)
-
 		// :: if (!source.isDouble()) goto ifNotUnboxed;
 		translator.load(method, source.register())
 		A_Number.isDoubleMethod.generateCall(method)
-		method.visitJumpInsn(
-			Opcodes.IFEQ, translator.labelFor(ifNotUnboxed.offset()))
+		translator.jumpIf(method, Opcodes.IFEQ, ifNotUnboxed)
 		// :: else {
 		// ::    destination = source.extractDouble();
 		// ::    goto ifUnboxed;
@@ -117,6 +99,6 @@ object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
 		translator.load(method, source.register())
 		A_Number.extractDoubleMethod.generateCall(method)
 		translator.store(method, destination.register())
-		translator.jump(method, instruction, ifUnboxed)
+		translator.jumpOrFallThrough(method, ifUnboxed)
 	}
 }

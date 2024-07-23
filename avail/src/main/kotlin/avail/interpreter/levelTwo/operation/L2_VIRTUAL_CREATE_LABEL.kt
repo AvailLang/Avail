@@ -6,7 +6,7 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
+ * * Redistributions of source code must reain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
  * * Redistributions in binary form must reproduce the above copyright notice,
@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
@@ -39,28 +40,22 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator
 import avail.optimizer.L2Generator.Companion.backEdgeTo
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.L2Generator.SpecialBlock
-import avail.optimizer.L2Generator.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
+import avail.optimizer.L2GeneratorInterface.SpecialBlock
+import avail.optimizer.L2GeneratorInterface.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.performance.Statistic
@@ -88,9 +83,7 @@ import org.objectweb.asm.MethodVisitor
  * - [L2_SAVE_ALL_AND_PC_TO_INT], falling through to
  * - [L2_GET_CURRENT_FUNCTION] (or [L2_MOVE_CONSTANT]), if the current
  *     function isn't already visible,
- * - [L2_MAKE_IMMUTABLE] for the current function,
  * - [L2_GET_CURRENT_CONTINUATION]
- * - [L2_MAKE_IMMUTABLE] for the current caller,
  * - [L2_CREATE_CONTINUATION].
  * - The target of the [L2_SAVE_ALL_AND_PC_TO_INT] is in another block, which
  *   contains an unconditional [L2_JUMP_BACK] to the
@@ -107,28 +100,34 @@ import org.objectweb.asm.MethodVisitor
  * are recorded – for level one.  For level two, it also captures the register
  * dump and the level two offset of the entry point above.
  *
+ * @property outputLabel
+ *   Where to write the new continuation.
+ * @property function
+ *   The [A_Function] to use for the continuation.  Must be immutable.
+ * @property arguments
+ *   The [vector][L2ReadBoxedVectorOperand] of arguments that the [function]
+ *   received when it was invoked.
+ * @property frameSize
+ *   The number of slots to allocate in the continuation, where only the
+ *   [arguments] will be populated.  The rest will be [nil].
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_VIRTUAL_CREATE_LABEL : L2Operation(
-	WRITE_BOXED.named("output label"),
-	READ_BOXED.named("immutable function"),
-	READ_BOXED_VECTOR.named("arguments"),
-	INT_IMMEDIATE.named("frame size"))
+class L2_VIRTUAL_CREATE_LABEL(
+	var outputLabel: L2WriteBoxedOperand,
+	var function: L2ReadBoxedOperand,
+	var arguments: L2ReadBoxedVectorOperand,
+	var frameSize: L2IntImmediateOperand
+): L2Instruction()
 {
 	override val isPlaceholder get() = true
 
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val outputLabel = instruction.operand<L2WriteBoxedOperand>(0)
-		val function = instruction.operand<L2ReadBoxedOperand>(1)
-		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
-		val frameSize = instruction.operand<L2IntImmediateOperand>(3)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(" ").append(outputLabel)
 		builder.append("\n\tfunction = ").append(function)
 		builder.append("\n\targuments = ").append(arguments)
@@ -136,19 +135,9 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 	}
 
 	override fun generateReplacement(
-		instruction: L2Instruction,
-		regenerator: L2Regenerator)
-	{
-		assert(this == instruction.operation)
-		val generator = regenerator.targetGenerator
-		val labelOutput = regenerator.transformOperand(
-			instruction.operand<L2WriteBoxedOperand>(0))
-		val function = regenerator.transformOperand(
-			instruction.operand<L2ReadBoxedOperand>(1))
-		val arguments = regenerator.transformOperand(
-			instruction.operand<L2ReadBoxedVectorOperand>(2))
-		val frameSize = instruction.operand<L2IntImmediateOperand>(3)
-		if (generator.currentBlock().zone == null)
+		regenerator: L2Regenerator
+	): Unit = regenerator.run {
+		if (currentBlock().zone == null)
 		{
 			// Force the caller to be reified.  Use a dummy continuation
 			// that only captures L2 state, since it can't become invalid or
@@ -156,152 +145,143 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 			val zone = ZoneType.BEGIN_REIFICATION_FOR_LABEL.createZone(
 				"Reify caller for label")
 			val alreadyReifiedEdgeSplit =
-				generator.createBasicBlock("already reified (edge split)")
+				createBasicBlock("already reified (edge split)")
 			val startReification =
-				generator.createBasicBlock("start reification")
+				createBasicBlock("start reification")
 			val onReification =
-				generator.createBasicBlock("on reification", zone)
+				createBasicBlock("on reification", zone)
 			val reificationOfframp =
-				generator.createBasicBlock("reification off-ramp", zone)
+				createBasicBlock("reification off-ramp", zone)
 			val afterReification =
-				generator.createBasicBlock("after reification")
+				createBasicBlock("after reification")
 			val callerIsReified =
-				generator.createBasicBlock("caller is reified")
+				createBasicBlock("caller is reified")
 			val unreachable =
-				generator.createBasicBlock("unreachable")
-			generator.addInstruction(
-				L2_JUMP_IF_ALREADY_REIFIED,
-				edgeTo(alreadyReifiedEdgeSplit),
-				edgeTo(startReification))
+				createBasicBlock("unreachable")
+			addInstruction(
+				L2_JUMP_IF_ALREADY_REIFIED(
+					edgeTo(alreadyReifiedEdgeSplit),
+					edgeTo(startReification)))
 
-			generator.startBlock(alreadyReifiedEdgeSplit)
-			generator.jumpTo(callerIsReified)
+			startBlock(alreadyReifiedEdgeSplit)
+			jumpTo(callerIsReified)
 
-			generator.startBlock(startReification)
-			generator.addInstruction(
-				L2_REIFY,
-				L2IntImmediateOperand(1),
-				L2IntImmediateOperand(0),
-				L2ArbitraryConstantOperand(
-					Statistic(
-						REIFICATIONS,
-						"Reification for label creation in L2: "
-							+ generator.codeName.replace('\n', ' '))),
-				edgeTo(onReification))
+			startBlock(startReification)
+			addInstruction(
+				L2_REIFY(
+					L2IntImmediateOperand(1),
+					L2IntImmediateOperand(0),
+					L2ArbitraryConstantOperand(
+						Statistic(
+							REIFICATIONS,
+							"Reification for label creation in L2: "
+								+ topFrame.codeName.replace('\n', ' '))),
+					edgeTo(onReification)))
 
-			generator.startBlock(onReification)
-			generator.addInstruction(
-				L2_ENTER_L2_CHUNK,
-				L2IntImmediateOperand(
-					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-				L2CommentOperand("Transient, cannot be invalid."))
-			val tempOffset = generator.intWriteTemp(
-				restrictionForType(i32, UNBOXED_INT_FLAG))
-			val tempRegisterDump = generator.boxedWriteTemp(
-				restrictionForType(Types.ANY.o, BOXED_FLAG))
-			generator.addInstruction(
-				L2_SAVE_ALL_AND_PC_TO_INT,
-				edgeTo(afterReification),
-				tempOffset,
-				tempRegisterDump,
-				edgeTo(reificationOfframp))
+			startBlock(onReification)
+			addInstruction(
+				L2_ENTER_L2_CHUNK(
+					L2IntImmediateOperand(
+						ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+					L2CommentOperand("Transient, cannot be invalid.")))
+			val tempOffset = intWriteTemp(
+				intRestrictionForType(i32))
+			val tempRegisterDump = boxedWriteTemp(
+				boxedRestrictionForType(Types.ANY.o))
+			addInstruction(
+				L2_SAVE_ALL_AND_PC_TO_INT(
+					L2ReadBoxedVectorOperand(emptyList()),
+					edgeTo(afterReification),
+					tempOffset,
+					tempRegisterDump,
+					edgeTo(reificationOfframp)))
 
-			generator.startBlock(reificationOfframp)
-			val tempCaller = generator.boxedWrite(
-				generator.topFrame.reifiedCaller(),
-				restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
-			val tempFunction = generator.boxedWrite(
-				generator.topFrame.function(),
-				restrictionForType(mostGeneralFunctionType(), BOXED_FLAG))
-			val dummyContinuation = generator.boxedWriteTemp(
-				restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
-			generator.addInstruction(
-				L2_GET_CURRENT_CONTINUATION,
-				tempCaller)
-			generator.addInstruction(
-				L2_GET_CURRENT_FUNCTION,
-				tempFunction)
-			generator.addInstruction(
-				L2_CREATE_CONTINUATION,
-				generator.readBoxed(tempFunction),
-				generator.readBoxed(tempCaller),
-				L2IntImmediateOperand(Int.MAX_VALUE),
-				L2IntImmediateOperand(Int.MAX_VALUE),
-				L2ReadBoxedVectorOperand(emptyList()),
-				dummyContinuation,
-				generator.readInt(tempOffset.onlySemanticValue(), unreachable),
-				generator.readBoxed(tempRegisterDump),
-				L2CommentOperand("Dummy reification continuation."))
-			generator.addInstruction(
-				L2_SET_CONTINUATION,
-				generator.readBoxed(dummyContinuation))
-			generator.addInstruction(
-				L2_RETURN_FROM_REIFICATION_HANDLER)
+			startBlock(reificationOfframp)
+			val tempCaller = boxedWrite(
+				setOf(topFrame.reifiedCaller()),
+				boxedRestrictionForType(mostGeneralContinuationType))
+			val tempFunction = boxedWrite(
+				setOf(topFrame.function()),
+				boxedRestrictionForType(mostGeneralFunctionType()))
+			val dummyContinuation = boxedWriteTemp(
+				boxedRestrictionForType(mostGeneralContinuationType))
+			addInstruction(
+				L2_GET_CURRENT_CONTINUATION(tempCaller))
+			addInstruction(
+				L2_GET_CURRENT_FUNCTION(tempFunction))
+			addInstruction(
+				L2_CREATE_CONTINUATION(
+					readBoxed(tempFunction),
+					readBoxed(tempCaller),
+					L2IntImmediateOperand(Int.MAX_VALUE),
+					L2IntImmediateOperand(Int.MAX_VALUE),
+					L2ReadBoxedVectorOperand(emptyList()),
+					dummyContinuation,
+					readInt(tempOffset.onlySemanticValue(), unreachable),
+					readBoxed(tempRegisterDump),
+					L2CommentOperand("Dummy reification continuation.")))
+			addInstruction(L2_SET_CONTINUATION(readBoxed(dummyContinuation)))
+			addInstruction(L2_RETURN_FROM_REIFICATION_HANDLER())
 
-			generator.startBlock(unreachable)
-			generator.addInstruction(L2_UNREACHABLE_CODE)
+			startBlock(unreachable)
+			addInstruction(L2_UNREACHABLE_CODE())
 
-			generator.startBlock(afterReification)
-			generator.addInstruction(
-				L2_ENTER_L2_CHUNK,
-				L2IntImmediateOperand(
-					ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-				L2CommentOperand("Transient, cannot be invalid."))
-			generator.jumpTo(callerIsReified)
+			startBlock(afterReification)
+			addInstruction(
+				L2_ENTER_L2_CHUNK(
+					L2IntImmediateOperand(
+						ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
+					L2CommentOperand("Transient, cannot be invalid.")))
+			jumpTo(callerIsReified)
 
-			generator.startBlock(callerIsReified)
+			startBlock(callerIsReified)
 		}
 		// Caller has been reified, or is known to already be reified.
-		val tempCallerWrite = generator.boxedWriteTemp(
-			restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
-		generator.addInstruction(L2_GET_CURRENT_CONTINUATION, tempCallerWrite)
+		val tempCallerWrite = boxedWriteTemp(
+			boxedRestrictionForType(mostGeneralContinuationType))
+		addInstruction(L2_GET_CURRENT_CONTINUATION(tempCallerWrite))
 
-		val fallThrough = generator.createBasicBlock(
+		val fallThrough = createBasicBlock(
 			"Fall-through for label creation",
-			generator.currentBlock().zone)
-		val writeOffset = generator.intWriteTemp(
-			restrictionForType(i32, UNBOXED_INT_FLAG))
+			currentBlock().zone)
+		val writeOffset = intWriteTemp(intRestrictionForType(i32))
 		val writeRegisterDump =
-			generator.boxedWriteTemp(
-				restrictionForType(Types.ANY.o, BOXED_FLAG))
-		generator.addInstruction(
-			L2_SAVE_ALL_AND_PC_TO_INT,
-			backEdgeTo(generator.specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!),
-			writeOffset,
-			writeRegisterDump,
-			edgeTo(fallThrough))
+			boxedWriteTemp(boxedRestrictionForType(Types.ANY.o))
+		addInstruction(
+			L2_SAVE_ALL_AND_PC_TO_INT(
+				// Force there to be nothing considered live in the edge
+				// leading to the label's entry point.
+				L2ReadBoxedVectorOperand(emptyList()),
+				backEdgeTo(
+					specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!, mutableSetOf()),
+				writeOffset,
+				writeRegisterDump,
+				edgeTo(fallThrough)))
 
-		// Force there to be nothing considered live in the edge leading to the
-		// label's entry point.
-		val saveInstruction = generator.currentBlock().instructions().last()
-		val referenceEdge: L2PcOperand =
-			L2_SAVE_ALL_AND_PC_TO_INT.referenceOf(saveInstruction)
-		referenceEdge.forcedClampedEntities = mutableSetOf()
-
-		generator.startBlock(fallThrough)
+		startBlock(fallThrough)
 		val frameSizeInt = frameSize.value
 		val slots = arguments.elements.toMutableList()
-		val nilRead = generator.boxedConstant(nil)
+		val nilRead = boxedConstant(nil)
 		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }
-		generator.addInstruction(
-			L2_CREATE_CONTINUATION,
-			generator.makeImmutable(function),
-			generator.makeImmutable(generator.readBoxed(tempCallerWrite)),
-			L2IntImmediateOperand(0),  // indicates a label.
-			L2IntImmediateOperand(frameSizeInt + 1),  // empty stack
-			L2ReadBoxedVectorOperand(slots),  // each immutable
-			labelOutput,
-			generator.readInt(
-				writeOffset.onlySemanticValue(),
-				generator.unreachablePcOperand().targetBlock()),
-			generator.readBoxed(writeRegisterDump),
-			L2CommentOperand("Create label."))
+		addInstruction(
+			L2_CREATE_CONTINUATION(
+				function,
+				readBoxed(tempCallerWrite),
+				L2IntImmediateOperand(0),  // indicates a label.
+				L2IntImmediateOperand(frameSizeInt + 1),  // empty stack
+				L2ReadBoxedVectorOperand(slots),  // each immutable
+				outputLabel,
+				L2ReadIntOperand(
+					writeOffset.onlySemanticValue(),
+					intRestrictionForType(i32),
+					currentManifest),
+				readBoxed(writeRegisterDump),
+				L2CommentOperand("Create label.")))
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
 		throw UnsupportedOperationException(
 			"${javaClass.simpleName} should " +

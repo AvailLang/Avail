@@ -134,7 +134,7 @@ import kotlin.reflect.full.memberProperties
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-sealed class L2SimpleInstruction : L2AbstractInstruction()
+sealed class L2SimpleInstruction : L2AbstractInstruction
 {
 	/**
 	 * Perform this instruction, a single step of an [L2SimpleChunk].  The
@@ -1045,7 +1045,7 @@ constructor(
 		registers: Array<AvailObject>
 	): StackReifier?
 	{
-		// The variable had no value.
+		// The variable had an observer attached.
 		assert(e.numericCode.equals(
 			E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED.numericCode()))
 		val thisChunk = interpreter.chunk!!

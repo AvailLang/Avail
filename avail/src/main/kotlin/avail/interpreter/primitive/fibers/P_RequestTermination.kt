@@ -117,4 +117,6 @@ object P_RequestTermination : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(mostGeneralFiberType()), TOP.o)
+
+	override val canDestroyArguments get() = false
 }

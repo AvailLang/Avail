@@ -77,7 +77,7 @@ object P_CreatePojoArray : Primitive(2, CannotFail, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				anyMeta(),
+				anyMeta,
 				wholeNumbers),
 			mostGeneralPojoArrayType())
 }

@@ -36,14 +36,11 @@ import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -52,62 +49,76 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
-	READ_BOXED.named("object"),
-	WRITE_INT.named("variantId"))
+class L2_EXTRACT_OBJECT_VARIANT_ID(
+	var sourceObject: L2ReadBoxedOperand,
+	var variantId: L2WriteIntOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder
 			.append(' ')
 			.append(variantId.registerString())
 			.append(" ← VARIANT_ID(")
-			.append(value.registerString())
+			.append(sourceObject.registerString())
 			.append(")")
 	}
 
-	override fun generateReplacement(
-		instruction: L2Instruction,
+	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
+		val manifest = regenerator.currentManifest
+		val equivalentVariantId = variantId.semanticValues()
+			.firstNotNullOfOrNull(manifest::equivalentPopulatedSemanticValue)
+		if (equivalentVariantId !== null)
+		{
+			// We already have an equivalent register holding the variant id.
+			val unpopulated = variantId.semanticValues()
+				.filterNot(manifest::hasSemanticValue)
+			// Emit a move if there are any unpopulated semantic values to be
+			// written.
+			if (unpopulated.isNotEmpty())
+			{
+				regenerator.moveIntRegister(
+					equivalentVariantId.cast(),
+					variantId.semanticValues())
+			}
+			return
+		}
+		super.emitTransformedInstruction(regenerator)
+	}
 
+	override fun generateReplacement(
+		regenerator: L2Regenerator)
+	{
 		// If the variantId is statically deducible at this point, use the
 		// constant.
-		val generator = regenerator.targetGenerator
-		val restriction =
-			generator.currentManifest.restrictionFor(value.semanticValue())
+		val restriction = regenerator.currentManifest.restrictionFor(
+			sourceObject.semanticValue())
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
 			val variant = constant.objectVariant
-			generator.addInstruction(
-				L2_MOVE_CONSTANT.unboxedInt,
-				L2IntImmediateOperand(variant.variantId),
-				variantId)
+			regenerator.moveIntRegister(
+				regenerator.unboxedIntConstant(variant.variantId)
+					.semanticValue(),
+				variantId.semanticValues())
 			return
 		}
-		super.generateReplacement(instruction, regenerator)
+		super.generateReplacement(regenerator)
 	}
+
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
-
 		// :: variantId = staticObjectVariantId(value);
-		translator.load(method, value.register())
+		translator.load(method, sourceObject.register())
 		staticObjectVariantIdMethod.generateCall(method)
 		translator.store(method, variantId.register())
 	}

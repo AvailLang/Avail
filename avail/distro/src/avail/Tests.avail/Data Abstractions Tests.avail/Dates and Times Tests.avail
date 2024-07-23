@@ -49,10 +49,10 @@ Test "time marches on (now)" in dates and times test suite is
 
 Test "timestamp creation" in dates and times test suite is
 [
-	Require: timestamp March 29, 1985 = timestamp March 29, 1985 0:0:0.0;
-	Require: timestamp 1985/3/29 = timestamp March 29, 1985 0:0:0.0;
-	Require: timestamp 1985/3/29 23:23:23.55 =
-		timestamp March 29, 1985 23:23:23.55;
+	Require: timestamp March 29, 1985 = timestamp March 29, 1985 00:00:00.000;
+	Require: timestamp 1985/3/29 = timestamp March 29, 1985 00:00:00.000;
+	Require: timestamp 1985/3/29 23:23:23.155 =
+		timestamp March 29, 1985 23:23:23.155;
 
 ];
 
@@ -190,7 +190,7 @@ Test "timestamp days of week" in dates and times test suite is
 
 Test "timestamp fields" in dates and times test suite is
 [
-	theOneTrueDate ::= timestamp March 29, 1979 11:25:42.13;
+	theOneTrueDate ::= timestamp March 29, 1979 11:25:42.013;
 
 	Require: theOneTrueDate's year = 1979;
 	Require: theOneTrueDate's month = March;
@@ -205,11 +205,11 @@ Test "timestamp fields" in dates and times test suite is
 
 Test "timestamp comparison" in dates and times test suite is
 [
-	Require: timestamp March 29, 1979 11:25:42.13 < now;
-	Require: timestamp March 29, 1979 11:25:42.13 ≤ now;
-	Require: now > timestamp March 29, 1979 11:25:42.13;
-	Require: now ≥ timestamp March 29, 1979 11:25:42.13;
-	Require: timestamp March 29, 1979 11:25:42.13 < now < now + 50;
+	Require: timestamp March 29, 1979 11:25:42.013 < now;
+	Require: timestamp March 29, 1979 11:25:42.013 ≤ now;
+	Require: now > timestamp March 29, 1979 11:25:42.013;
+	Require: now ≥ timestamp March 29, 1979 11:25:42.013;
+	Require: timestamp March 29, 1979 11:25:42.013 < now < now + 50;
 	Require: now - 50 < now ≤ now;
 	Require: now + 1000 > now + 300 ≥ now;
 ];

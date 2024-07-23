@@ -46,12 +46,9 @@ import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operation.L2_GET_VARIABLE
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.levelTwoSimple.L2Simple_MoveConstant
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -71,16 +68,14 @@ object P_GetGlobalVariableValue : Primitive(
 		}
 		catch (e: VariableGetException)
 		{
-			assert(false) { "A write-only variable must be assigned!" }
-			throw RuntimeException(e)
+			throw AssertionError("A write-only variable must be assigned!", e)
 		}
 	}
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
-	): A_Type =
-		rawFunction.literalAt(1).kind().readType
+	): A_Type = rawFunction!!.literalAt(1).kind().readType
 
 	/**
 	 * This primitive is suitable for any function with any as the return type.
@@ -93,12 +88,12 @@ object P_GetGlobalVariableValue : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// We have to know the specific function to know what variable to read
 		// from, since it's the first literal.
-		val function = functionToCallReg.constantOrNull() ?: return false
+		val translator = callSiteHelper.translator
+		val function = functionToCallReg.constantOrNull ?: return false
 		val variable = function.code().literalAt(1)
 		// Avoid generating a constant move if the value wasn't stably computed.
 		// While it would be the correct value, it wouldn't trigger the fast
@@ -114,10 +109,9 @@ object P_GetGlobalVariableValue : Primitive(
 			return true
 		}
 		val valueReg = translator.emitGetVariableOffRamp(
-			L2_GET_VARIABLE,
+			false,
 			translator.generator.boxedConstant(variable),
-			translator.generator.newTemp(),
-			false)
+			translator.generator.newTemp())
 		callSiteHelper.useAnswer(valueReg)
 		return true
 	}
@@ -155,6 +149,6 @@ object P_GetGlobalVariableValue : Primitive(
 		}
 		simpleTranslator.add(
 			L2Simple_MoveConstant(constant, simpleTranslator.stackp))
-		return restrictionForConstant(constant, BOXED_FLAG)
+		return boxedRestrictionForConstant(constant)
 	}
 }

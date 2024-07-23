@@ -64,6 +64,6 @@ object P_UnionOfTupleOfTypes : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(zeroOrMoreOf(topMeta())),
-			topMeta())
+			tuple(zeroOrMoreOf(topMeta)),
+			topMeta)
 }

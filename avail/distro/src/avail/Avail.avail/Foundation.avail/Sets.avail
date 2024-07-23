@@ -388,13 +388,17 @@ Method "map_through_" is
 	[
 		index : natural number,
 		end : whole number,
-		outputSet : set
+		accumulator : set,
+		innerTuple : tuple,
+		innerTransformer : [⊥]→any
 	|
 		$loop : set;
-		Exit loop with outputSet if index > end;
-		transformed ::= transformer(aTuple[index]);
-		Restart loop with <index + 1, end, outputSet + transformed>
-	](1, |aSet|, ∅)
+		Exit loop with accumulator if index > end;
+		transformed ::= innerTransformer(innerTuple[index]);
+		newAccumulator ::= accumulator + transformed;
+		Restart loop
+			with <index + 1, end, newAccumulator, innerTuple, innerTransformer>
+	](1, |aTuple|, ∅, aTuple, transformer)
 ] : set
 styled by loop styler;
 

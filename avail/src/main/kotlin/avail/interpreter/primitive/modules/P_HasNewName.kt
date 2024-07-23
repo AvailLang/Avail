@@ -42,8 +42,8 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
@@ -74,4 +74,6 @@ object P_HasNewName : Primitive(
 				MODULE.o,
 				stringType),
 			booleanType)
+
+	override val canDestroyArguments get() = false
 }

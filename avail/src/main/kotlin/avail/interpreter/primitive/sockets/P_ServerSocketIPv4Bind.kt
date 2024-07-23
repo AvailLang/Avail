@@ -116,7 +116,6 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 		{
 			// This shouldn't actually happen, since we carefully enforce the
 			// range of addresses.
-			assert(false)
 			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 		catch (e: IOException)

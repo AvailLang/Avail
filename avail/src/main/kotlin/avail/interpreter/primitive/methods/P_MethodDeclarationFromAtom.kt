@@ -50,7 +50,6 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -107,9 +106,8 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 			{
 				loader.addMethodBody(atom, function)
 				// Quote the string to make the method name.
-				val atomName = atom.atomName
 				val code = function.code()
-				code.methodName = stringFrom(atomName.toString())
+				code.methodName = atom.atomName
 				// Only explicitly define the stability helper during
 				// compilation.  Fast-loader will just deserialize it.
 				if (loader.phase == EXECUTING_FOR_COMPILE)

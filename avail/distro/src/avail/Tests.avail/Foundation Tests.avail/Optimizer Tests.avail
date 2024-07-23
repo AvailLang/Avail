@@ -83,3 +83,25 @@ Test "non-local Exit_if_ didn't clear JVM stack" in optimizer test suite is
 		Shouldn't happen
 	] 10001 times;
 ];
+
+/* Detect a regression where there are two equal *constant* arguments. */
+Test "Two equal unused constant arguments" in optimizer test suite is
+[
+	Repeat
+	[
+		Ignore: [x : {1}ᵀ, y : {1}ᵀ, z : ℕ | z + 1](1, 1, 10);
+	] 10001 times;
+];
+
+/*
+ * Isolate the positive case of a regression related to two equal *constant*
+ * arguments.  This test has two *unequal* constant arguments, and shouldn't
+ * exhibit the problem.
+ */
+Test "Two unequal unused constant arguments" in optimizer test suite is
+[
+	Repeat
+	[
+		Ignore: [x : {1}ᵀ, y : {2}ᵀ, z : ℕ | z + 1](1, 2, 10);
+	] 10001 times;
+];

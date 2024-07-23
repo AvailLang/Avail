@@ -36,6 +36,7 @@ import avail.AvailRuntimeSupport
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import avail.descriptor.functions.CompiledCodeDescriptor
@@ -320,7 +321,8 @@ abstract class L2Chunk protected constructor(
 	@Suppress("LeakingThis")
 	val chunkPojo: AvailObject = identityPojo(this).makeShared()
 
-	fun name(): String = name(code)
+	/** The name to use for this chunk. */
+	val name = name(code)
 
 	override fun toString(): String
 	{
@@ -358,7 +360,7 @@ abstract class L2Chunk protected constructor(
 				Interpreter.loggerDebugL2,
 				Level.INFO,
 				"Running chunk {0} at offset {1}.",
-				name(),
+				name,
 				offset)
 		}
 	}
@@ -470,8 +472,22 @@ abstract class L2Chunk protected constructor(
 		 * @return
 		 *   The effective name of the function.
 		 */
-		fun name(code: A_RawFunction?): String =
-			code?.methodName?.asNativeString() ?: "«default»"
+		fun name(code: A_RawFunction?): String = buildString {
+			when
+			{
+				code === null -> append("«default»")
+				else ->
+				{
+					val line = code.codeStartingLineNumber
+					if (line != 0)
+					{
+						// Pad line number to 4 digits, although it can be more.
+						append(String.format("%04d: ", line))
+					}
+					append(code.methodName.asNativeString())
+				}
+			}
+		}
 
 		/**
 		 * Each time an [A_RawFunction] is found to be the running code for some

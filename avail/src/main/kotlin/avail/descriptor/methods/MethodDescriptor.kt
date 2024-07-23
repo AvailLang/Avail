@@ -133,6 +133,7 @@ import avail.exceptions.MalformedMessageException
 import avail.exceptions.MethodDefinitionException
 import avail.exceptions.MethodDefinitionException.Companion.extractUniqueMethod
 import avail.exceptions.SignatureException
+import avail.exceptions.unsupported
 import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.DEPENDENCY_CHANGED
@@ -448,7 +449,13 @@ class MethodDescriptor private constructor(
 		}
 		append(" of ")
 		self.bundles
-			.sortedBy { it.message.issuingModule.allAncestors.setSize }
+			.sortedBy {
+				when (val ancestors = it.message.issuingModule.allAncestors)
+				{
+					nil -> Int.MAX_VALUE
+					else -> ancestors.setSize
+				}
+			}
 			.joinTo(this, " a.k.a. ") { it.message.toString() }
 	}
 
@@ -1130,15 +1137,15 @@ class MethodDescriptor private constructor(
 											newPrimitiveRawFunction(
 												prefixPrim, nil, 0),
 											emptyTuple())
-									})),
+									}
+								).makeShared()
+							),
 							true)
 					}
 				}
 				catch (e: SignatureException)
 				{
-					assert(false) { "This should not happen!" }
-					throw RuntimeException(
-						"VM method name is invalid: $name", e)
+					throw AssertionError("VM method name is invalid: $name", e)
 				}
 			}
 			assert(atom.descriptor().isShared)
@@ -1181,7 +1188,7 @@ class MethodDescriptor private constructor(
 				override fun constructResult(
 					elements: List<A_Definition>,
 					memento: Unit
-				) = tupleFromList(elements)
+				) = tupleFromList(elements).makeShared()
 
 				override fun compareTypes(
 					argumentRestrictions: List<TypeRestriction>,

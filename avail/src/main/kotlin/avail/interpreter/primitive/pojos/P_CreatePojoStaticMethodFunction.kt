@@ -149,9 +149,9 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				anyMeta(),
+				anyMeta,
 				stringType,
-				zeroOrMoreOf(anyMeta())),
+				zeroOrMoreOf(anyMeta)),
 			functionTypeReturning(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

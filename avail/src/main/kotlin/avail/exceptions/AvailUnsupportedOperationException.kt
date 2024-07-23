@@ -52,8 +52,46 @@ import avail.descriptor.representation.Descriptor
  *   The name of the unsupported operation.
  */
 class AvailUnsupportedOperationException constructor(
-	descriptorClass: Class<out AbstractDescriptor>,
+	descriptorClass: Class<*>,
 	messageName: String
 ) : RuntimeException(
 	"${descriptorClass.simpleName} does not meaningfully implement " +
 		messageName)
+
+
+/**
+ * Throw an [AvailUnsupportedOperationException] suitable to be thrown by
+ * the sender.
+ *
+ * The exception indicates that the receiver does not meaningfully implement
+ * the method that immediately invoked this.  This is a strong indication
+ * that the wrong kind of object is being used somewhere.
+ *
+ * @throws AvailUnsupportedOperationException
+ */
+private fun unsupportedOperation (problemClass: Class<*>): Nothing
+{
+	val callerName =
+		try
+		{
+			throw Exception("just want the caller's frame")
+		}
+		catch (e: Exception)
+		{
+			var name = e.stackTrace[1].methodName
+			if (name == "getUnsupported")  // property name
+			{
+				name = e.stackTrace[2].methodName
+			}
+			name
+		}
+	throw AvailUnsupportedOperationException(problemClass, callerName)
+}
+
+/**
+ * This read-only property can be used in place of [unsupportedOperation].
+ * Using the getter produces almost the same diagnostic stack trace when
+ * executed, but is a much shorter expression.
+ */
+val Any.unsupported: Nothing
+	get() = unsupportedOperation(this::class.java)

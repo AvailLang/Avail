@@ -72,6 +72,7 @@ import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContent
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
+import avail.exceptions.unsupported
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 

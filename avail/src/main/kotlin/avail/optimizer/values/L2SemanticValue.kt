@@ -33,7 +33,9 @@ package avail.optimizer.values
 
 import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.Primitive
-import avail.interpreter.levelTwo.register.L2Register
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Synonym
 import avail.utility.ifZero
@@ -54,8 +56,10 @@ import avail.utility.ifZero
  * @param hash
  *   The pre-computed hash value to use for this semantic value.
  */
-abstract class L2SemanticValue protected constructor(val hash: Int)
-	: L2Entity, Comparable<L2SemanticValue>
+abstract class L2SemanticValue<K: RegisterKind<K>>
+protected constructor(
+	val hash: Int
+) : L2Entity<K>, Comparable<L2SemanticValue<*>>
 {
 	/**
 	 * The major ordering of semantic values when printing an [L2Synonym].
@@ -78,10 +82,9 @@ abstract class L2SemanticValue protected constructor(val hash: Int)
 	override fun hashCode(): Int = hash
 
 	override fun equals(other: Any?): Boolean =
-		(other is L2SemanticValue
-			&& equalsSemanticValue(other))
+		other is L2SemanticValue<*> && equalsSemanticValue(other)
 
-	open fun equalsSemanticValue(other: L2SemanticValue) = this === other
+	open fun equalsSemanticValue(other: L2SemanticValue<*>) = this === other
 
 	/**
 	 * Answer whether this semantic value corresponds with the notion of a
@@ -92,6 +95,14 @@ abstract class L2SemanticValue protected constructor(val hash: Int)
 	 */
 	open val isConstant: Boolean
 		get() = false
+
+	/**
+	 * If this semantic value represents a constant, answer the constant-valued
+	 * [TypeRestriction], otherwise `null`.  The restriction will have the
+	 * appropriate flags set for the [RegisterKind] of this semantic value.
+	 */
+	open val constantRestrictionOrNull: TypeRestriction?
+		get() = null
 
 	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with
@@ -107,10 +118,12 @@ abstract class L2SemanticValue protected constructor(val hash: Int)
 	 *   of the transformation would have been an equal value.
 	 */
 	abstract fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticValue<K>
 
-	override fun compareTo(other: L2SemanticValue) =
+	override fun compareTo(other: L2SemanticValue<*>) =
 		primaryVisualSortKey().ordinal.compareTo(
 				other.primaryVisualSortKey().ordinal)
 			.ifZero {
@@ -133,8 +146,6 @@ abstract class L2SemanticValue protected constructor(val hash: Int)
 	 */
 	open fun toStringForSynonym(): String = toString()
 
-	open val kind = L2Register.RegisterKind.BOXED_KIND
-
 	companion object
 	{
 		/**
@@ -145,7 +156,7 @@ abstract class L2SemanticValue protected constructor(val hash: Int)
 		 * @return
 		 *   A [L2SemanticConstant] representing the constant.
 		 */
-		fun constant(value: A_BasicObject): L2SemanticValue =
+		fun constant(value: A_BasicObject): L2SemanticBoxedValue =
 			L2SemanticConstant(value.makeImmutable())
 
 		/**
@@ -160,9 +171,9 @@ abstract class L2SemanticValue protected constructor(val hash: Int)
 		 *   The semantic value representing the primitive result.
 		 */
 		fun primitiveInvocation(
-				primitive: Primitive,
-				argumentSemanticValues: List<L2SemanticValue>)
-			: L2SemanticPrimitiveInvocation =
-				L2SemanticPrimitiveInvocation(primitive, argumentSemanticValues)
+			primitive: Primitive,
+			argumentSemanticValues: List<L2SemanticBoxedValue>
+		): L2SemanticPrimitiveInvocation =
+			L2SemanticPrimitiveInvocation(primitive, argumentSemanticValues)
 	}
 }

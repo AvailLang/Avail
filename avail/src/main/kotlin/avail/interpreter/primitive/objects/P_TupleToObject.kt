@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.objects
 
+import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map.Companion.hasKey
@@ -73,10 +74,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
@@ -103,7 +102,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			mostGeneralObjectType)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
 		val tupleSizes = tupleType.sizeRange
@@ -148,7 +147,6 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// If we know the exact keys, we can statically determine the
@@ -159,19 +157,20 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		val pairsType = argumentTypes[0]
 		val sizeRange = pairsType.sizeRange
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 
 		if (!sizeRange.lowerBound.isInt) return false
 		val size = sizeRange.lowerBound.extractInt
 		if (!sizeRange.upperBound.equalsInt(size)) return false
 		// The tuple size is known.  See if the order of field atoms is known.
-		val atoms = (1..size).map {
+		val atoms: List<A_Atom> = (1..size).map {
 			val keyType = pairsType.typeAtIndex(it).typeAtIndex(1)
 			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
 			{
 				return false
 			}
-			// It's at known to be a particular atom, and not instanceMeta.
+			// It's known to be a particular atom, and not instanceMeta.
 			keyType.instance
 		}
 		// Check that the atoms are unique.
@@ -192,21 +191,25 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			fieldMap[atom]?.let { index ->
 				if (index != 0)
 				{
-					val fieldRead = generator.extractTupleElement(pairSource, 2)
-					sourcesByFieldIndex[index - 1] = fieldRead
-					fieldTypePairs.add(tuple(atom, fieldRead.type()))
+					val valueType = pairSource.type().typeAtIndex(2)
+					val valueTemp = generator.newTemp()
+					generator.extractTupleElement(
+						pairSource, 2, setOf(valueTemp))
+					sourcesByFieldIndex[index - 1] =
+						generator.readBoxed(valueTemp)
+					fieldTypePairs.add(tuple(atom, valueType))
 				}
 			}
 		}
 		val typeGuarantee = objectTypeFromTuple(tupleFromList(fieldTypePairs))
 		val write = generator.boxedWriteTemp(
-			restrictionForType(typeGuarantee, BOXED_FLAG)
+			boxedRestrictionForType(typeGuarantee)
 				.intersectionWithObjectVariant(variant))
 		generator.addInstruction(
-			L2_CREATE_OBJECT,
-			L2ArbitraryConstantOperand(variant),
-			L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
-			write)
+			L2_CREATE_OBJECT(
+				L2ArbitraryConstantOperand(variant),
+				L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
+				write))
 		callSiteHelper.useAnswer(generator.readBoxed(write))
 		return true
 	}

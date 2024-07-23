@@ -37,7 +37,8 @@ import avail.resolver.ResolverReference
 import org.availlang.artifact.ResourceType
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.*
+import java.util.Stack
+import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger

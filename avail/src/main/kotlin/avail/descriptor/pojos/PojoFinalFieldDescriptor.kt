@@ -54,6 +54,7 @@ import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.lang.reflect.Field
@@ -148,7 +149,7 @@ class PojoFinalFieldDescriptor(
 		{
 			return SerializerOperation.STATIC_POJO_FIELD
 		}
-		unsupportedOperation()
+		unsupported
 	}
 
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject): Unit =

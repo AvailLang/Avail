@@ -371,9 +371,8 @@ class AvailCodeGenerator private constructor(
 					unusedOuterDeclarations.add(key)
 				}
 			}
-			assert(false) {
-				"Some outers were unused: $unusedOuterDeclarations"
-			}
+			throw AssertionError(
+				"Some outers were unused: $unusedOuterDeclarations")
 		}
 		val nybblesArray = nybbles.toNybbleArray()
 		val nybbleTuple = generateNybbleTupleFrom(nybblesArray.size) {
@@ -638,7 +637,7 @@ class AvailCodeGenerator private constructor(
 		assert(!labelInstructions.containsKey(localOrOuter)) {
 			"This case should have been handled a different way!"
 		}
-		assert(false) { "Consistency error - unknown variable." }
+		throw AssertionError("Consistency error - unknown variable.")
 	}
 
 	/**
@@ -784,7 +783,7 @@ class AvailCodeGenerator private constructor(
 		assert(!labelInstructions.containsKey(localOrOuter)) {
 			"You can't assign to a label!"
 		}
-		assert(false) { "Consistency error - unknown variable." }
+		throw AssertionError("Consistency error - unknown variable.")
 	}
 
 	/**

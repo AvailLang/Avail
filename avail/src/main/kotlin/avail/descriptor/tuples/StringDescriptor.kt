@@ -34,6 +34,7 @@ package avail.descriptor.tuples
 import avail.annotations.ThreadSafe
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.character.CharacterDescriptor.Companion.maxCodePointInt
+import avail.descriptor.character.CharacterDescriptor.Companion.nullCharacter
 import avail.descriptor.representation.AbstractDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -53,6 +54,7 @@ import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableObjectFr
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import kotlin.math.max
@@ -86,6 +88,8 @@ abstract class StringDescriptor protected constructor(
 {
 	override fun o_IsString(self: AvailObject): Boolean = true
 
+	override fun o_DummyElement(self: AvailObject) = nullCharacter
+
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
 	{
@@ -116,15 +120,10 @@ abstract class StringDescriptor protected constructor(
 			|| super.o_TupleElementsInRangeAreInstancesOf(
 				self, startIndex, endIndex, type))
 
-	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
-	{
-		unsupportedOperation()
-	}
+	override fun o_TupleIntAt(self: AvailObject, index: Int): Int = unsupported
 
-	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
-	{
-		unsupportedOperation()
-	}
+	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
+		unsupported
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{

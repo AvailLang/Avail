@@ -34,9 +34,10 @@ package avail.interpreter.levelTwo.operand
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.Companion.ARBITRARY_CONSTANT
 
 /**
- * An `L2ArbitraryConstantOperand` is an operand of type
+ * An [L2ArbitraryConstantOperand] is an operand of type
  * [L2OperandType.ARBITRARY_CONSTANT].  It also holds the actual Java object
  * that is the constant.  The object should not generally be an [AvailObject],
  * since that's supposed to be handled by an [L2ConstantOperand].
@@ -47,29 +48,25 @@ import avail.interpreter.levelTwo.L2OperandType
  * Construct a new [L2ArbitraryConstantOperand] with the specified constant
  * [Object].
  *
+ * @property T
+ *   The type constraining the [constant].
  * @property constant
  *   The constant value.
  */
-class L2ArbitraryConstantOperand(val constant: Any) : L2Operand()
+class L2ArbitraryConstantOperand<T: Any>(val constant: T) : L2Operand()
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.ARBITRARY_CONSTANT
+	override val operandType: L2OperandType get() = ARBITRARY_CONSTANT
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
-	{
+	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)
-	}
 
-	override fun appendTo(builder: StringBuilder) = with(builder)
+	override fun appendTo(builder: StringBuilder): Unit = with(builder)
 	{
-		append("Java Object(")
 		var string = constant.toString()
 		if (string.length > 40)
 		{
 			string = string.take(40) + "…"
 		}
 		append(string)
-		append(")")
-		Unit
 	}
 }

@@ -31,9 +31,7 @@
  */
 package avail.interpreter.levelTwo
 
-import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.representation.AvailObject
-import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -41,15 +39,14 @@ import avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
-import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
-import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -71,7 +68,7 @@ interface L2OperandDispatcher
 	 * @param operand
 	 *   An [L2ArbitraryConstantOperand].
 	 */
-	fun doOperand(operand: L2ArbitraryConstantOperand)
+	fun doOperand(operand: L2ArbitraryConstantOperand<*>)
 
 	/**
 	 * Process an operand which is merely a comment.
@@ -113,14 +110,6 @@ interface L2OperandDispatcher
 	 *   An [L2PcOperand].
 	 */
 	fun doOperand(operand: L2PcOperand)
-
-	/**
-	 * Process an operand which is a [Primitive] number.
-	 *
-	 * @param operand
-	 *   An [L2PrimitiveOperand].
-	 */
-	fun doOperand(operand: L2PrimitiveOperand)
 
 	/**
 	 * Process an operand which is a read of an [Int] register.
@@ -171,15 +160,6 @@ interface L2OperandDispatcher
 	fun doOperand(operand: L2ReadFloatVectorOperand)
 
 	/**
-	 * Process an operand which is a literal [A_Bundle] which the resulting
-	 * [L2Chunk] should be dependent upon for invalidation.
-	 *
-	 * @param operand
-	 *   An [L2SelectorOperand].
-	 */
-	fun doOperand(operand: L2SelectorOperand)
-
-	/**
 	 * Process an operand which is a write of an [Int] register.
 	 *
 	 * @param operand
@@ -203,6 +183,14 @@ interface L2OperandDispatcher
 	 */
 	fun doOperand(operand: L2WriteBoxedOperand)
 
+	/**
+	 * Process an operand which is a write of a vector of [AvailObject]
+	 * registers.
+	 *
+	 * @param operand
+	 *   An [L2WriteBoxedVectorOperand].
+	 */
+	fun doOperand(operand: L2WriteBoxedVectorOperand)
 
 	/**
 	 * Process an operand which is a vector of [L2PcOperand]s.

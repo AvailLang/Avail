@@ -45,7 +45,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Or
 import avail.optimizer.L1Translator
 
 /**
@@ -72,9 +72,9 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
-	): Boolean = L2_BIT_LOGIC_OP.bitwiseOr.generateBinaryIntOperation(
+	): Boolean = Or.generateBinaryIntOperation(
+		this,
 		arguments,
 		argumentTypes,
 		callSiteHelper,

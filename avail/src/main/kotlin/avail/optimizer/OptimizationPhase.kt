@@ -31,12 +31,20 @@
  */
 package avail.optimizer
 
+import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.optimizer.DataCouplingMode.FOLLOW_REGISTERS
 import avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
 import avail.optimizer.L2ControlFlowGraph.StateFlag
+import avail.optimizer.L2ControlFlowGraph.StateFlag.HAS_ELIMINATED_PHIS
+import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_EDGE_SPLIT
+import avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import avail.optimizer.annotations.Clears
 import avail.optimizer.annotations.Requires
 import avail.optimizer.annotations.RequiresNot
@@ -67,13 +75,46 @@ internal enum class OptimizationPhase constructor(
 	 * Start by eliminating debris created during the initial L1 → L2
 	 * translation.
 	 */
-	REMOVE_DEAD_CODE_1({ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS) }),
+	@Requires(IS_SSA::class)
+	REMOVE_DEAD_CODE_1(
+		{ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS) }),
 
 	/**
 	 * Transform into SSA edge-split form, to avoid inserting redundant
 	 * phi-moves.
 	 */
-	BECOME_EDGE_SPLIT_SSA({ transformToEdgeSplitSSA() }),
+	@Requires(IS_SSA::class)
+	@Sets(IS_EDGE_SPLIT::class)
+	BECOME_EDGE_SPLIT_SSA(L2Optimizer::transformToEdgeSplitSSA),
+
+	/**
+	 * Find places where control flow diverges due to a condition that was known
+	 * at some point earlier in the chain of phis leading to it.  Find all
+	 * vertices from the phi where control flow merged and the knowledge of the
+	 * condition was lost, up to the point where the condition is being tested
+	 * again.
+	 *
+	 * Do this for every such control-flow branch point, accumulating the
+	 * estimated profitability of each split.
+	 *
+	 * Then regenerate the instruction graph, but instead of merging and losing
+	 * information at the affected phis, produce a duplicate for each reached
+	 * profitable combination of conditions, allowing the code regeneration to
+	 * take advantage of the stronger condition along that path... at the
+	 * expense of producing more code.
+	 */
+	@Requires(IS_SSA::class, IS_EDGE_SPLIT::class)
+	@Clears(IS_EDGE_SPLIT::class)
+	DO_CODE_SPLITTING(L2Optimizer::doCodeSplitting),
+
+	/**
+	 * Code splitting preserves SSA, but can lose the edge-split property.
+	 * Restore it by explicitly splitting the appropriate edges.
+	 */
+	@Requires(IS_SSA::class)
+	@Sets(IS_EDGE_SPLIT::class)
+	BECOME_EDGE_SPLIT_SSA_AFTER_CODE_SPLITTING(
+		L2Optimizer::transformToEdgeSplitSSA),
 
 	/**
 	 * Try to move any side-effect-less instructions to later points in the
@@ -87,7 +128,8 @@ internal enum class OptimizationPhase constructor(
 	 * It also always recomputes liveness after each change, so there's no
 	 * need to recompute it after this phase.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_1({ postponeConditionallyUsedValues() }),
+	POSTPONE_CONDITIONALLY_USED_VALUES_1(
+		L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * Postponing conditionally used values can introduce idempotent
@@ -105,7 +147,8 @@ internal enum class OptimizationPhase constructor(
 	 * There are other placeholder instructions that get transformed here as
 	 * well, such as [L2_MULTIWAY_JUMP].
 	 */
-	REPLACE_PLACEHOLDER_INSTRUCTIONS({ replacePlaceholderInstructions() }),
+	REPLACE_PLACEHOLDER_INSTRUCTIONS(
+		L2Optimizer::replacePlaceholderInstructions),
 
 	/**
 	 * Placeholder instructions may have been replaced with new subgraphs of
@@ -120,33 +163,45 @@ internal enum class OptimizationPhase constructor(
 	 * If [REPLACE_PLACEHOLDER_INSTRUCTIONS] made any changes, give one more try
 	 * at pushing conditionally used values.  Otherwise do nothing.
 	 */
-	POSTPONE_CONDITIONALLY_USED_VALUES_2({ postponeConditionallyUsedValues() }),
-
-	/**
-	 * Replace every use of a constant register with a fresh register with no
-	 * defining write.  The code generator will notice these are constants, and
-	 * will fetch the constant itself at each place it is read.
-	 */
-	REPLACE_CONSTANT_REGISTERS({ replaceConstantRegisters() }),
+	POSTPONE_CONDITIONALLY_USED_VALUES_2(
+		L2Optimizer::postponeConditionallyUsedValues),
 
 	/**
 	 * Insert phi moves along preceding edges.  This requires the CFG to be in
 	 * edge-split form, although strict SSA isn't required.
 	 */
-	INSERT_PHI_MOVES({ insertPhiMoves() }),
+	@Requires(IS_SSA::class)
+	@Clears(IS_SSA::class)
+	@Sets(HAS_ELIMINATED_PHIS::class)
+	INSERT_PHI_MOVES(L2Optimizer::insertPhiMoves),
 
 	/**
 	 * Remove constant moves made unnecessary by the introduction of new
 	 * constant moves after phis (the ones that are constant-valued).
 	 */
 	REMOVE_DEAD_CODE_AFTER_PHI_MOVES(
-		{ removeDeadCode(FOLLOW_SEMANTIC_VALUES_AND_REGISTERS, false) }),
+		{ removeDeadCode(FOLLOW_REGISTERS, false) }),
+
+	/**
+	 * Replace every use of a constant register with a fresh register with no
+	 * defining write.  The code generator will notice these are constants, and
+	 * will fetch the constant itself at each place it is read.
+	 */
+	@RequiresNot(IS_SSA::class)
+	REPLACE_CONSTANT_REGISTERS(L2Optimizer::replaceConstantRegisters),
+
+	/**
+	 * Remove constant moves made unnecessary by the introduction of new
+	 * constant reads.
+	 */
+	REMOVE_DEAD_CODE_AFTER_REPLACE_CONSTANT_REGISTERS(
+		{ removeDeadCode(FOLLOW_REGISTERS, false) }),
 
 	/**
 	 * Compute the register-coloring interference graph while we're just out of
 	 * SSA form – phis have been replaced by moves on incoming edges.
 	 */
-	COMPUTE_INTERFERENCE_GRAPH({ computeInterferenceGraph() }),
+	COMPUTE_INTERFERENCE_GRAPH(L2Optimizer::computeInterferenceGraph),
 
 	/**
 	 * Color all registers, using the previously computed interference graph.
@@ -155,44 +210,33 @@ internal enum class OptimizationPhase constructor(
 	 * time will have the same number.
 	 */
 	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(
-		{ coalesceNoninterferingMoves() }),
+		L2Optimizer::coalesceNoninterferingMoves),
 
 	/** Compute and assign final register colors. */
-	ASSIGN_REGISTER_COLORS({ computeColors() }),
+	ASSIGN_REGISTER_COLORS(L2Optimizer::computeColors),
 
 	/**
 	 * Create a replacement register for each used color (of each kind).
 	 * Transform each reference to an old register into a reference to the
 	 * replacement, updating structures as needed.
+	 *
+	 * Also remove any moves between the same register.
 	 */
-	REPLACE_REGISTERS_BY_COLOR({ replaceRegistersByColor() }),
+	REPLACE_REGISTERS_BY_COLOR(L2Optimizer::replaceRegistersByColor),
 
 	/**
-	 * Remove any remaining moves between two registers of the same color.
-	 */
-	REMOVE_SAME_COLOR_MOVES({ removeSameColorMoves() }),
-
-	/**
-	 * Every L2PcOperand that leads to an L2_JUMP should now be redirected
+	 * Every [L2PcOperand] that leads to an [L2_JUMP] should now be redirected
 	 * to the target of the jump (transitively, if the jump leads to another
 	 * jump).  We specifically do this after inserting phi moves to ensure
 	 * we don't jump past irremovable phi moves.
 	 */
-	ADJUST_EDGES_LEADING_TO_JUMPS({ adjustEdgesLeadingToJumps() }),
+	ADJUST_EDGES_LEADING_TO_JUMPS(L2Optimizer::adjustEdgesLeadingToJumps),
 
 	/**
-	 * Having adjusted edges to avoid landing on L2_JUMPs, some blocks may
+	 * Having adjusted edges to avoid landing on [L2_JUMP]s, some blocks may
 	 * have become unreachable.
 	 */
-	REMOVE_UNREACHABLE_BLOCKS({ removeUnreachableBlocks() }),
-
-	/**
-	 * Choose an order for the blocks.  This isn't important while we're
-	 * interpreting L2Chunks, but it will ultimately affect the quality of
-	 * JVM translation.  Prefer to have the target block of an unconditional
-	 * jump to follow the jump, since final code generation elides the jump.
-	 */
-	ORDER_BLOCKS({ orderBlocks() }),
+	REMOVE_UNREACHABLE_BLOCKS(L2Optimizer::removeUnreachableBlocks),
 
 	/**
 	 * Recompute liveness information about all registers on each edge.  This
@@ -203,21 +247,22 @@ internal enum class OptimizationPhase constructor(
 	 * [L2ControlFlowGraph], since this information is not preserved across such
 	 * a regeneration.
 	 */
-	COMPUTE_LIVENESS_AT_EDGES_2({ computeLivenessAtEachEdge() });
+	COMPUTE_LIVENESS_AT_EDGES_2(L2Optimizer::computeLivenessAtEachEdge),
 
-	// Additional optimization ideas:
-	//		-Strengthen the types of all registers and register uses.
-	//		-Ask instructions to regenerate if they want.
-	//		-When optimizing, keep track of when a TypeRestriction on a phi
-	//		  register is too weak to qualify, but the types of some of the phi
-	//		  source registers would qualify it for a reasonable expectation of
-	//		  better performance.  Write a hint into such phis.  If we have a
-	//		  high enough requested optimization level, apply code-splitting.
-	//		  The block that defines that phi can be duplicated for each
-	//		  interesting incoming edge.  That way the duplicated blocks will
-	//		  get more specific types to work with.
-	//		-Splitting for int32s.
-	//		-Leverage more inter-primitive identities.
+	/**
+	 * Insert an [L2_MAKE_IMMUTABLE] instruction just prior to any use of a
+	 * register is not already provably immutable and may be used again later.
+	 */
+	INSERT_MAKE_IMMUTABLES(L2Optimizer::insertMakeImmutable),
+
+	/**
+	 * Choose an order for the blocks.  This isn't important while we're
+	 * interpreting [L2Chunk]s, but it will ultimately affect the quality of
+	 * JVM translation.  Prefer to have the target block of an unconditional
+	 * jump to follow the jump, since final code generation elides the jump.
+	 */
+	ORDER_BLOCKS(L2Optimizer::orderBlocks);
+
 
 	/** The [Statistic] for tracking this pass's cost. */
 	val stat: Statistic = Statistic(L2_OPTIMIZATION_TIME, name)

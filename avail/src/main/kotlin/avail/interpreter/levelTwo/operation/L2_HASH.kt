@@ -34,9 +34,6 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.hashMethod
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -47,18 +44,15 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_HASH : L2Operation(
-	READ_BOXED.named("value"),
-	WRITE_INT.named("hash"))
+class L2_HASH(
+	var value: L2ReadBoxedOperand,
+	var hash: L2WriteIntOperand
+): L2Instruction()
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val hash = instruction.operand<L2WriteIntOperand>(1)
-
 		// :: hash = tuple.hash();
 		translator.load(method, value.register())
 		hashMethod.generateCall(method)

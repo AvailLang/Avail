@@ -65,6 +65,7 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String
 import avail.descriptor.types.TypeTag
 import avail.exceptions.MalformedMessageException
+import avail.exceptions.unsupported
 import avail.serialization.Serializer
 import avail.serialization.SerializerOperation
 import avail.utility.ifZero
@@ -211,7 +212,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 	override fun o_ExtractBoolean (self: AvailObject): Boolean = when (this) {
 		sharedForTrue -> true
 		sharedForFalse -> false
-		else -> error("Atom is not a boolean")
+		else -> throw AssertionError("Atom is not a boolean")
 	}
 
 	override fun o_GetAtomProperty(

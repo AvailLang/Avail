@@ -49,8 +49,8 @@ import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeUnion
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
@@ -63,16 +63,12 @@ import avail.exceptions.MethodDefinitionException.Companion.abstractMethod
 import avail.exceptions.MethodDefinitionException.Companion.forwardMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2OperandType.SELECTOR
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.On
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
-import avail.interpreter.levelTwo.operand.L2SelectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
 import avail.optimizer.L2ValueManifest
@@ -95,52 +91,39 @@ import java.util.logging.Level
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
-	SELECTOR.named("message bundle"),
-	READ_BOXED_VECTOR.named("argument types"),
-	WRITE_BOXED.named("looked up function", SUCCESS),
-	WRITE_BOXED.named("error code", FAILURE),
-	PC.named("lookup succeeded", SUCCESS),
-	PC.named("lookup failed", FAILURE))
+class L2_LOOKUP_BY_TYPES(
+	var messageBundle: L2ConstantOperand,
+	var argumentTypes: L2ReadBoxedVectorOperand,
+	@On(SUCCESS) var lookedUpFunction: L2WriteBoxedOperand,
+	@On(FAILURE) var errorCode: L2WriteBoxedOperand,
+	@On(SUCCESS) var ifLookupSucceeded: L2PcOperand,
+	@On(FAILURE) var ifLookupFailed: L2PcOperand
+) : L2ControlFlowInstruction()
 {
-	/** The type of failure codes that a failed lookup can produce. */
-	private val failureCodesType =
-		enumerationWith(set(
-			E_NO_METHOD,
-			E_NO_METHOD_DEFINITION,
-			E_AMBIGUOUS_METHOD_DEFINITION,
-			E_FORWARD_METHOD_DEFINITION,
-			E_ABSTRACT_METHOD_DEFINITION))
+	override val hasSideEffect get() = true
 
 	override fun instructionWasAdded(
-		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation)
 		//		final L2SelectorOperand bundle = instruction.operand(0);
-		val argTypeRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val functionReg = instruction.operand<L2WriteBoxedOperand>(2)
-		val errorCodeReg = instruction.operand<L2WriteBoxedOperand>(3)
-		val lookupSucceeded = instruction.operand<L2PcOperand>(4)
-		val lookupFailed = instruction.operand<L2PcOperand>(5)
-		super.instructionWasAdded(instruction, manifest)
+		super.instructionWasAdded(manifest)
 
 		// If the lookup failed, it supplies the reason to the errorCodeReg.
-		lookupFailed.manifest().setRestriction(
-			errorCodeReg.pickSemanticValue(),
-			errorCodeReg.restriction())
+		ifLookupFailed.manifest().setRestriction(
+			errorCode.pickSemanticValue(),
+			errorCode.restriction())
 
 		// If the lookup succeeds, the functionReg will be set, and we can also
 		// conclude that the arguments satisfied at least one of the found
 		// function types.
-		lookupSucceeded.manifest().setRestriction(
-			functionReg.pickSemanticValue(),
-			functionReg.restriction())
+		ifLookupSucceeded.manifest().setRestriction(
+			lookedUpFunction.pickSemanticValue(),
+			lookedUpFunction.restriction())
 		// The function type should be an enumeration, so we know that each
 		// argument type satisfied at least one of the functions' corresponding
 		// argument types.
-		val argumentTypeRegs = argTypeRegs.elements
-		val functionType = functionReg.restriction().type
+		val argumentTypeRegs = argumentTypes.elements
+		val functionType = lookedUpFunction.restriction().type
 		if (functionType.isEnumeration)
 		{
 			val numArgs = argumentTypeRegs.size
@@ -153,28 +136,17 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 			for (i in 1 .. numArgs)
 			{
 				val argumentUnion = argumentTupleUnionType.typeAtIndex(i)
-				lookupSucceeded.manifest().intersectType(
-					argumentTypeRegs[i - 1].semanticValue(),
-					AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(
-						argumentUnion))
+				ifLookupSucceeded.manifest().intersectType(
+					argumentTypeRegs[i - 1],
+					instanceTypeOrMetaOn(argumentUnion))
 			}
 		}
 	}
 
-	override val hasSideEffect get() = true
-
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val bundleOperand = instruction.operand<L2SelectorOperand>(0)
-		val argTypeRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val functionReg = instruction.operand<L2WriteBoxedOperand>(2)
-		val errorCodeReg = instruction.operand<L2WriteBoxedOperand>(3)
-		val lookupSucceeded = instruction.operand<L2PcOperand>(4)
-		val lookupFailed = instruction.operand<L2PcOperand>(5)
-
 		// :: try {
 		val tryStart = Label()
 		val catchStart = Label()
@@ -186,17 +158,17 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		method.visitLabel(tryStart)
 		// ::    function = lookup(interpreter, bundle, types);
 		translator.loadInterpreter(method)
-		translator.literal(method, bundleOperand.bundle)
+		translator.literal(method, messageBundle.constant)
 		translator.objectArray(
-			method, argTypeRegs.elements, AvailObject::class.java)
+			method, argumentTypes.elements, AvailObject::class.java)
 		lookupMethod.generateCall(method)
-		translator.store(method, functionReg.register())
+		translator.store(method, lookedUpFunction.register())
 		// ::    goto lookupSucceeded;
 		// Note that we cannot potentially eliminate this branch with a
 		// fall through, because the next instruction expects a
 		// MethodDefinitionException to be pushed onto the stack. So always do
 		// the jump.
-		translator.jump(method, lookupSucceeded)
+		translator.jump(method, ifLookupSucceeded)
 		// :: } catch (MethodDefinitionException e) {
 		method.visitLabel(catchStart)
 		// ::    errorCode = e.numericCode();
@@ -204,61 +176,74 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		method.visitTypeInsn(
 			Opcodes.CHECKCAST,
 			Type.getInternalName(AvailObject::class.java))
-		translator.store(method, errorCodeReg.register())
+		translator.store(method, errorCode.register())
 		// ::    goto lookupFailed;
-		translator.jump(method, instruction, lookupFailed)
+		translator.jumpOrFallThrough(method, ifLookupFailed)
 		// :: }
 	}
-
-	/**
-	 * Perform the lookup.
-	 *
-	 * @param interpreter
-	 *   The [Interpreter].
-	 * @param bundle
-	 *   The [A_Bundle].
-	 * @param types
-	 *   The [types][A_Type] for the lookup.
-	 * @return
-	 *   The unique [function][A_Function].
-	 * @throws MethodDefinitionException
-	 *   If the lookup did not resolve to a unique executable function.
-	 */
-	@ReferencedInGeneratedCode
-	@JvmStatic
-	@Throws(MethodDefinitionException::class)
-	fun lookup(
-		interpreter: Interpreter,
-		bundle: A_Bundle,
-		types: Array<AvailObject>): A_Function
+	companion object
 	{
-		if (Interpreter.debugL2)
-		{
-			log(
-				Interpreter.loggerDebugL2,
-				Level.FINER,
-				"{0}Lookup-by-types {1}",
-				interpreter.debugModeString,
-				bundle.message.atomName)
-		}
-		val definitionToCall =
-			bundle.bundleMethod.lookupByTypesFromTuple(tupleFromArray(*types))
-		when
-		{
-			definitionToCall.isAbstractDefinition() -> throw abstractMethod()
-			definitionToCall.isForwardDefinition() -> throw forwardMethod()
-			else -> return definitionToCall.bodyBlock()
-		}
-	}
+		/** The type of failure codes that a failed lookup can produce. */
+		private val failureCodesType =
+			enumerationWith(set(
+				E_NO_METHOD,
+				E_NO_METHOD_DEFINITION,
+				E_AMBIGUOUS_METHOD_DEFINITION,
+				E_FORWARD_METHOD_DEFINITION,
+				E_ABSTRACT_METHOD_DEFINITION))
 
-	/**
-	 * The [CheckedMethod] for [lookup].
-	 */
-	private val lookupMethod = staticMethod(
-		L2_LOOKUP_BY_TYPES::class.java,
-		::lookup.name,
-		A_Function::class.java,
-		Interpreter::class.java,
-		A_Bundle::class.java,
-		Array<AvailObject>::class.java)
+		/**
+		 * Perform the lookup.
+		 *
+		 * @param interpreter
+		 *   The [Interpreter].
+		 * @param bundle
+		 *   The [A_Bundle].
+		 * @param types
+		 *   The [types][A_Type] for the lookup.
+		 * @return
+		 *   The unique [function][A_Function].
+		 * @throws MethodDefinitionException
+		 *   If the lookup did not resolve to a unique executable function.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		@Throws(MethodDefinitionException::class)
+		fun lookup(
+			interpreter: Interpreter,
+			bundle: A_Bundle,
+			types: Array<AvailObject>): A_Function
+		{
+			if (Interpreter.debugL2)
+			{
+				log(
+					Interpreter.loggerDebugL2,
+					Level.FINER,
+					"{0}Lookup-by-types {1}",
+					interpreter.debugModeString,
+					bundle.message.atomName)
+			}
+			val definitionToCall = bundle.bundleMethod.lookupByTypesFromTuple(
+				tupleFromArray(*types))
+			when
+			{
+				definitionToCall.isAbstractDefinition() ->
+					throw abstractMethod()
+				definitionToCall.isForwardDefinition() ->
+					throw forwardMethod()
+				else -> return definitionToCall.bodyBlock()
+			}
+		}
+
+		/**
+		 * The [CheckedMethod] for [lookup].
+		 */
+		private val lookupMethod = staticMethod(
+			L2_LOOKUP_BY_TYPES::class.java,
+			::lookup.name,
+			A_Function::class.java,
+			Interpreter::class.java,
+			A_Bundle::class.java,
+			Array<AvailObject>::class.java)
+	}
 }

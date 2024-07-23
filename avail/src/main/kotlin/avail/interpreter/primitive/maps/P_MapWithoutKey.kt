@@ -79,7 +79,7 @@ object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(tuple(mostGeneralMapType(), ANY.o), mostGeneralMapType())
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val (mapType, keyType) = argumentTypes

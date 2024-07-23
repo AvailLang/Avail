@@ -1,5 +1,5 @@
 /*
- * L2ConditionalJump.kt
+ * L2NewConditionalJump.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,8 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+;import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
@@ -51,25 +50,17 @@ import org.objectweb.asm.MethodVisitor
  *
  * By convention, there are always 2 [targetEdges], the first of which is the
  * "taken" branch, and the second of which is the "not taken" branch.
- *
- * @param theNamedOperandTypes
- *   The vararg array of [L2NamedOperandType]s that describe the operands of
- *   such an instruction.
  */
-abstract class L2ConditionalJump protected constructor(
-		vararg theNamedOperandTypes: L2NamedOperandType)
-	: L2ControlFlowOperation(*theNamedOperandTypes)
+abstract class L2ConditionalJump : L2ControlFlowInstruction()
 {
 	override fun instructionWasAdded(
-		instruction: L2Instruction, manifest: L2ValueManifest)
+		manifest: L2ValueManifest)
 	{
-		super.instructionWasAdded(instruction, manifest)
-		targetEdges(instruction).forEach {
-			it.installCounter()
-		}
+		super.instructionWasAdded(manifest)
+ 		targetEdges.forEach(L2PcOperand::installCounter)
 	}
 
-	// It jumps, which counts as a side effect.
+	/** This instruction jumps, which counts as a side effect. */
 	override val hasSideEffect: Boolean get() = true
 
 	companion object

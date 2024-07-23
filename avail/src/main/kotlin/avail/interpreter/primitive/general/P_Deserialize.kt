@@ -46,9 +46,9 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode.E_DESERIALIZATION_FAILED
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
@@ -125,4 +125,6 @@ object P_Deserialize : Primitive(2, CanInline)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_DESERIALIZATION_FAILED))
+
+	override val canDestroyArguments get() = false
 }

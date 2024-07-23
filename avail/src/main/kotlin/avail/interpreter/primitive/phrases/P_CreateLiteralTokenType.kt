@@ -66,6 +66,6 @@ object P_CreateLiteralTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				anyMeta()),
+				anyMeta),
 			instanceMeta(mostGeneralLiteralTokenType()))
 }

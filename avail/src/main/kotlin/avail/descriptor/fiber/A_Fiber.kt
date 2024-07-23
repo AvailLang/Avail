@@ -45,6 +45,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
+import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -59,6 +60,8 @@ import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.execution.AvailLoader
 import avail.io.TextInterface
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.notNullAnd
 import java.util.TimerTask
 
@@ -392,6 +395,26 @@ interface A_Fiber : A_BasicObject
 
 		val A_Fiber.currentLexer: A_Lexer
 			get() = dispatch { o_CurrentLexer(it) }
+
+		/**
+		 * Extract a fiber's priority.
+		 *
+		 * @param aDouble
+		 *   The Kotlin [Double] to box.
+		 * @return
+		 *   The boxed Avail [double][DoubleDescriptor]-precision floating point
+		 *   object.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun getFiberPriority(aFiber: A_Fiber): Int = aFiber.priority
+
+		/** The [CheckedMethod] for [getFiberPriority]. */
+		val getFiberPriorityMethod = CheckedMethod.staticMethod(
+			A_Fiber::class.java,
+			::getFiberPriority.name,
+			Int::class.javaPrimitiveType!!,
+			A_Fiber::class.java)
 
 
 		/**

@@ -97,7 +97,7 @@ object P_BindPojoStaticField : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				anyMeta(),
+				anyMeta,
 				stringType),
 			mostGeneralVariableType)
 

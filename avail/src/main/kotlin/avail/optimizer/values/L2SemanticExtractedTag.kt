@@ -32,6 +32,7 @@
 package avail.optimizer.values
 
 import avail.descriptor.types.TypeTag
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 
 /**
@@ -49,17 +50,19 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
  *   The semantic value holding the value for which a [TypeTag] has been
  *   extracted.
  */
-class L2SemanticExtractedTag constructor(val base: L2SemanticValue)
-	: L2SemanticValue(base.hash + 0x53408C24)
+class L2SemanticExtractedTag constructor(val base: L2SemanticValue<BOXED_KIND>)
+	: L2SemanticBoxedValue(base.hash + 0x53408C24)
 {
-	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		other is L2SemanticExtractedTag && base.equalsSemanticValue(other.base)
 
 	override fun transform(
-		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			semanticValueTransformer(base).let {
-				if (it == base) this else L2SemanticExtractedTag(it)
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticBoxedValue =
+		semanticValueTransformer(base).let {
+			if (it == base) this else L2SemanticExtractedTag(it)
 		}
 
 	override fun toString(): String = "Tag($base)"

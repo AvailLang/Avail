@@ -48,20 +48,19 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_GREATER_THAN_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_LESS_THAN_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_LESS_THAN_OBJECT
-import avail.optimizer.L1Translator
+import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 
 /**
  * **Primitive:** Compare two extended integers and answer a
@@ -82,7 +81,7 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(tuple(NUMBER.o, NUMBER.o), booleanType)
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
+		rawFunction: A_RawFunction?, argumentTypes: List<A_Type>): A_Type
 	{
 		val (type1, type2) = argumentTypes
 		val possible = possibleOrdersWhenComparingInstancesOf(type1, type2)
@@ -102,17 +101,34 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 	}
 
+	override fun interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>,
+		rawFunction: A_RawFunction
+	): List<L2SplitCondition?>
+	{
+		val (arg1, arg2) = readBoxedOperands
+		if (arg1.restriction().intersectsType(i32)
+			&& arg2.restriction().intersectsType(i32))
+		{
+			return listOf(
+				unboxedIntCondition(listOf(arg1.register())),
+				unboxedIntCondition(listOf(arg2.register())))
+		}
+		return emptyList()
+	}
+
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (firstReg, secondReg) = arguments
 		val firstType = firstReg.type()
 		val secondType = secondReg.type()
+
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		val possible =
 			possibleOrdersWhenComparingInstancesOf(firstType, secondType)
@@ -129,38 +145,20 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 				generator.boxedConstant(objectFromBoolean(canBeTrue)))
 			return true
 		}
-		val firstConstant = firstReg.constantOrNull()
-		val secondConstant = secondReg.constantOrNull()
 		val truePath = generator.createBasicBlock("true path")
 		val falsePath = generator.createBasicBlock("false path")
-		when
-		{
-			secondConstant !== null ->
-				generator.addInstruction(
-					L2_JUMP_IF_LESS_THAN_CONSTANT,
-					firstReg,
-					L2ConstantOperand(secondConstant),
-					edgeTo(truePath),
-					edgeTo(falsePath))
-			firstConstant !== null ->
-				generator.addInstruction(
-					L2_JUMP_IF_GREATER_THAN_CONSTANT,
-					secondReg,
-					L2ConstantOperand(firstConstant),
-					edgeTo(truePath),
-					edgeTo(falsePath))
-			else ->
-				generator.addInstruction(
-					L2_JUMP_IF_LESS_THAN_OBJECT,
-					firstReg,
-					secondReg,
-					edgeTo(truePath),
-					edgeTo(falsePath))
-		}
+		NumericComparator.Less.compareAndBranchBoxed(
+			generator,
+			firstReg,
+			secondReg,
+			edgeTo(truePath),
+			edgeTo(falsePath))
 		generator.startBlock(truePath)
 		callSiteHelper.useAnswer(generator.boxedConstant(trueObject))
 		generator.startBlock(falsePath)
 		callSiteHelper.useAnswer(generator.boxedConstant(falseObject))
 		return true
 	}
+
+	override val canDestroyArguments get() = false
 }

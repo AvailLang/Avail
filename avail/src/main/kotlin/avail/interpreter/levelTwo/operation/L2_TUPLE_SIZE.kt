@@ -32,13 +32,9 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.tuples.A_Tuple
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleSizeMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
-import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -49,37 +45,32 @@ import org.objectweb.asm.MethodVisitor
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_TUPLE_SIZE : L2Operation(
-	READ_BOXED.named("tuple"),
-	WRITE_INT.named("size of tuple"))
+class L2_TUPLE_SIZE(
+	var tuple: L2ReadBoxedOperand,
+	var tupleSize: L2WriteIntOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
-		val size = instruction.operand<L2WriteIntOperand>(1)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(size.registerString())
+		builder.append(tupleSize.registerString())
 		builder.append(" ← ")
 		builder.append(tuple.registerString())
 	}
 
+	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
-		val size = instruction.operand<L2WriteIntOperand>(1)
-
 		// :: size = tuple.tupleSize();
 		translator.load(method, tuple.register())
 		tupleSizeMethod.generateCall(method)
-		translator.store(method, size.register())
+		translator.store(method, tupleSize.register())
 	}
 }

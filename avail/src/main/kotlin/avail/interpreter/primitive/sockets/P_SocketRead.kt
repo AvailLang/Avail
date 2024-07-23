@@ -61,8 +61,8 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
@@ -75,7 +75,6 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.io.SimpleCompletionHandler
-import java.lang.Integer.MAX_VALUE
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 
@@ -170,7 +169,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				inclusive(0, MAX_VALUE.toLong()),
+				inclusive(0, Int.MAX_VALUE),
 				ATOM.o,
 				functionType(
 					tuple(

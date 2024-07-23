@@ -39,8 +39,8 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -70,4 +70,6 @@ object P_ElementInSet : Primitive(2, CannotFail, CanFold, CanInline)
 				ANY.o,
 				mostGeneralSetType()),
 			booleanType)
+
+	override val canDestroyArguments get() = false
 }

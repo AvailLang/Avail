@@ -36,10 +36,8 @@ import avail.AvailRuntime.HookType
 import avail.descriptor.functions.A_Function
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.optimizer.jvm.JVMTranslator
@@ -53,35 +51,30 @@ import org.objectweb.asm.Type
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION : L2Operation(
-	WRITE_BOXED.named("unassigned variable read function"))
+class L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION(
+	var unassignedVariableReadFunction: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val function = instruction.operand<L2WriteBoxedOperand>(0)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(function.registerString())
+		builder.append(unassignedVariableReadFunction.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val function = instruction.operand<L2WriteBoxedOperand>(0)
-
 		// :: register = interpreter.runtime().unassignedVariableReadFunction();
 		translator.loadInterpreter(method)
 		Interpreter.runtimeField.generateRead(method)
 		AvailRuntime.unassignedVariableReadFunctionMethod.generateCall(method)
 		method.visitTypeInsn(
 			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
-		translator.store(method, function.register())
+		translator.store(method, unassignedVariableReadFunction.register())
 	}
 }

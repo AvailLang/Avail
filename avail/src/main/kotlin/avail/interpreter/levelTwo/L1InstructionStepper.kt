@@ -546,7 +546,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				}
 				L1_doExtension.ordinal ->
 				{
-					assert(false) { "Illegal dispatch nybblecode" }
+					throw AssertionError("Illegal dispatch nybblecode")
 				}
 				L1Ext_doPushLabel.ordinal ->
 				{

@@ -32,12 +32,10 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -53,34 +51,27 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @ReadsHiddenVariable(CURRENT_CONTINUATION::class)
-object L2_GET_CURRENT_CONTINUATION : L2Operation(
-	WRITE_BOXED.named("current continuation"))
+class L2_GET_CURRENT_CONTINUATION(
+	var currentContinuation: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val continuation =
-			instruction.operand<L2WriteBoxedOperand>(0)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(continuation.registerString())
+		builder.append(currentContinuation.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val continuation =
-			instruction.operand<L2WriteBoxedOperand>(0)
-
 		// :: target = interpreter.getReifiedContinuation();
 		translator.loadInterpreter(method)
 		Interpreter.getReifiedContinuationMethod.generateCall(method)
-		translator.store(method, continuation.register())
+		translator.store(method, currentContinuation.register())
 	}
 }

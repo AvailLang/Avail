@@ -1,5 +1,5 @@
 /*
- * ToggleDebugJVMCodeGeneration.kt
+ * L2SemanticDummy.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,45 +29,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.optimizer.values
 
-package avail.anvil.actions
-
-import avail.anvil.AvailWorkbench
-import avail.optimizer.jvm.JVMTranslator
-import java.awt.event.ActionEvent
-import javax.swing.Action
+import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.interpreter.levelTwo.register.L2Register
 
 /**
- * A `ToggleDebugJVMCodeGeneration` toggles the flag that indicates whether
- * enable deep code generation debugging support for JVM translation.
+ * An [L2SemanticValue] which should only be present after the control flow
+ * graph has been transformed to only respect the connections of [L2Register]s.
+ * There should be no writes of a dummy semantic value, and each read should be
+ * of a distinct one, although that's not important.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * For unboxed registers, use the usual technique of wrapping it in an
+ * [L2SemanticUnboxedInt] or [L2SemanticUnboxedFloat].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- * Construct a new `ToggleDebugJVMCodeGeneration`.
- *
- * @param workbench
- *   The owning [AvailWorkbench].
+ *   Create a new [L2SemanticDummy].
  */
-class ToggleDebugJVMCodeGeneration constructor(
-	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(workbench, "Debug JVM code generation")
+class L2SemanticDummy
+internal constructor(
+	val index: Int
+) : L2SemanticBoxedValue(index.hashCode())
 {
-	// Do nothing
-	override fun updateIsEnabled(busy: Boolean) {}
+	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
+		other === this
 
-	override fun actionPerformed(event: ActionEvent)
-	{
+	override fun toString(): String = "Dummy#$index"
 
-		JVMTranslator.debugJVMCodeGeneration =
-			JVMTranslator.debugJVMCodeGeneration xor true
-	}
+	override fun transform(
+		semanticValueTransformer:
+			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticBoxedValue = this
 
-	init
-	{
-		putValue(
-			Action.SHORT_DESCRIPTION,
-			"Toggle debugging support for JVM code generation.")
-		putValue(Action.SELECTED_KEY, JVMTranslator.debugJVMCodeGeneration)
-	}
+	/**
+	 * It shouldn't mix in the same graph with anything else, but for safety
+	 * put it at the topdoes.
+	 */
+	override fun primaryVisualSortKey() =
+		PrimaryVisualSortKey.CONSTANT_NIL
 }

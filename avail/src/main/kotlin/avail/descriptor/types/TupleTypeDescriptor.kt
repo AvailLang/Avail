@@ -74,6 +74,7 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
@@ -486,6 +487,13 @@ private constructor(
 			// by the removed type.  Therefore, the only actual tuples that
 			// could be in the receiver but not in the removed type are those
 			// with a size that the removed type doesn't have.
+			val reducedSize = sizeRange.trimType(removedSizeRange)
+			if (reducedSize.upperBound.equalsInt(0))
+			{
+				// Special case: strengthen this to a simple enumeration
+				// containing the empty tuple as the sole instance.
+				return instanceType(emptyTuple)
+			}
 			return tupleTypeForSizesTypesDefaultType(
 				sizeRange.trimType(removedSizeRange), leadingTypes, defaultType)
 		}

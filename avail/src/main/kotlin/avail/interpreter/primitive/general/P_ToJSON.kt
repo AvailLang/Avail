@@ -37,8 +37,8 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
@@ -65,4 +65,6 @@ object P_ToJSON : Primitive(1, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(ANY.o), stringType)
+
+	override val canDestroyArguments get() = false
 }

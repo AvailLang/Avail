@@ -33,11 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -51,20 +48,17 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_CREATE_VARIABLE : L2Operation(
-	CONSTANT.named("outerType"),
-	WRITE_BOXED.named("variable"))
+class L2_CREATE_VARIABLE(
+	var outerType: L2ConstantOperand,
+	var variable: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val outerType = instruction.operand<L2ConstantOperand>(0)
-		val variable = instruction.operand<L2WriteBoxedOperand>(1)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(variable.registerString())
 		builder.append(" ← new ")
@@ -73,12 +67,8 @@ object L2_CREATE_VARIABLE : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val outerType = instruction.operand<L2ConstantOperand>(0)
-		val variable = instruction.operand<L2WriteBoxedOperand>(1)
-
 		// :: newVar = newVariableWithOuterType(outerType  [,null] );
 		translator.literal(method, outerType.constant)
 		method.visitInsn(Opcodes.ACONST_NULL)

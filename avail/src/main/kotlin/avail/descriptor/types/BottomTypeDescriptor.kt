@@ -51,8 +51,10 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -221,7 +223,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 		// unchecked exception. Or if we ever implement more precise map types
 		// containing key type -> value type pairs we might be able to change
 		// the object type interface to use one of those instead of a map.
-		unsupportedOperation()
+		unsupported
 	}
 
 	override fun o_FunctionType(self: AvailObject): A_Type = self
@@ -262,7 +264,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 		{
 			true
 		}
-		else aType.isSubtypeOf(InstanceMetaDescriptor.topMeta())
+		else aType.isSubtypeOf(topMeta)
 		// Bottom is an instance of every meta (everything that inherits
 		// from TYPE).
 	}
@@ -273,7 +275,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	{
 		assert(!aType.isBottom)
 		return (aType.isSupertypeOfPrimitiveTypeEnum(ANY)
-				|| aType.isSubtypeOf(InstanceMetaDescriptor.topMeta()))
+				|| aType.isSubtypeOf(topMeta))
 	}
 
 	// Because ⊥ is a subtype of all other types, it is considered an
@@ -322,10 +324,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
 		unsupported
 
-	override fun o_Parent(self: AvailObject): A_BasicObject
-	{
-		unsupportedOperation()
-	}
+	override fun o_Parent(self: AvailObject): A_BasicObject = unsupported
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
 		false
@@ -401,15 +400,9 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
 
-	override fun mutable(): BottomTypeDescriptor
-	{
-		unsupportedOperation()
-	}
+	override fun mutable(): BottomTypeDescriptor = unsupported
 
-	override fun immutable(): BottomTypeDescriptor
-	{
-		unsupportedOperation()
-	}
+	override fun immutable(): BottomTypeDescriptor = unsupported
 
 	override fun shared(): BottomTypeDescriptor = shared
 

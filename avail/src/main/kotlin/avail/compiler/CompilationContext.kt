@@ -1341,7 +1341,8 @@ class CompilationContext constructor(
 				is StylingAndWaiting -> throw IllegalStateException()
 			}
 		}
-		while (!stylingState.compareAndSet(oldState, newState))
+		while (!stylingState.compareAndSet(oldState, newState)
+				&& run { Thread.onSpinWait(); true })
 	}
 
 	/**

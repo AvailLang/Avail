@@ -45,4 +45,4 @@ import avail.optimizer.L2Generator
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-abstract class L2AbstractInstruction
+interface L2AbstractInstruction

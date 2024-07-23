@@ -91,7 +91,7 @@ object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 				tupleMeta,
 				naturalNumbers,
 				wholeNumbers),
-			zeroOrMoreOf(anyMeta()))
+			zeroOrMoreOf(anyMeta))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

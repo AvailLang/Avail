@@ -168,7 +168,12 @@ java/lang/Character.toChars:(I)[C
 java/lang/Character.toCodePoint:(CC)I
 java/lang/Character.valueOf:(C)Ljava/lang/Character;
 java/lang/Class.forName:(Ljava/lang/String;)Ljava/lang/Class;
-java/lang/Class.forName:(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;
+
+java/lang/Class.forName:
+(Ljava/lang/String;
+ZLjava/lang/(ClassLoader;
+)Ljava/lang/Class;
+
 java/lang/Class.getAnnotation:(Ljava/lang/Class;)Ljava/lang/annotation/Annotation;
 java/lang/Class.getCanonicalName:()Ljava/lang/String;
 java/lang/Class.getClassLoader:()Ljava/lang/ClassLoader;

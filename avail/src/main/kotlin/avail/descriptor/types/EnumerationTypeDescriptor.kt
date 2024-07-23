@@ -101,7 +101,9 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND
 import avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.INSTANCES
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -279,8 +281,8 @@ private constructor(
 
 	override fun o_EqualsEnumerationWithSet(
 		self: AvailObject,
-		aSet: A_Set): Boolean =
-			getInstances(self).equals(aSet)
+		aSet: A_Set
+	): Boolean = getInstances(self).equals(aSet)
 
 	/**
 	 * The potentialInstance is a [user-defined&#32;object][ObjectDescriptor].
@@ -290,8 +292,8 @@ private constructor(
 	 */
 	override fun o_HasObjectInstance(
 		self: AvailObject,
-		potentialInstance: AvailObject): Boolean =
-			getInstances(self).hasElement(potentialInstance)
+		potentialInstance: AvailObject
+	): Boolean = getInstances(self).hasElement(potentialInstance)
 
 	override fun o_Hash(self: AvailObject): Int =
 		combine2(getInstances(self).hash(), 0x15b5b059)
@@ -394,8 +396,8 @@ private constructor(
 			// One more thing:  The special case of another being bottom should
 			// not be treated as being a meta for our purposes, even though
 			// bottom technically is a meta.
-			if (self.isSubtypeOf(InstanceMetaDescriptor.topMeta())
-				&& another.isSubtypeOf(InstanceMetaDescriptor.topMeta())
+			if (self.isSubtypeOf(topMeta)
+				&& another.isSubtypeOf(topMeta)
 				&& !another.isBottom)
 			{
 				return bottomMeta
@@ -459,13 +461,14 @@ private constructor(
 
 	override fun o_EnumerationIncludesInstance(
 		self: AvailObject,
-		potentialInstance: AvailObject): Boolean =
-			getInstances(self).hasElement(potentialInstance)
+		potentialInstance: AvailObject
+	): Boolean = getInstances(self).hasElement(potentialInstance)
 
 
 	override fun o_TypeAtIndex(
 		self: AvailObject,
-		index: Int): A_Type
+		index: Int
+	): A_Type
 	{
 		// This is only intended for a TupleType stand-in. Answer what type the
 		// given index would have in an object instance of me. Answer
@@ -477,7 +480,8 @@ private constructor(
 	override fun o_UnionOfTypesAtThrough(
 		self: AvailObject,
 		startIndex: Int,
-		endIndex: Int): A_Type
+		endIndex: Int
+	): A_Type
 	{
 		// Answer the union of the types that object's instances could have in
 		// the given range of indices. Out-of-range indices are treated as
@@ -499,79 +503,27 @@ private constructor(
 	override fun o_TypeTuple(self: AvailObject): A_Tuple =
 		getSuperkind(self).typeTuple
 
-	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean
-	{
-		// Check if object (an enumeration) is a subtype of aType (should also
-		// be a type).  All members of me must also be instances of aType.
-		for (instance in getInstances(self))
-		{
-			if (!instance.isInstanceOf(aType))
-			{
-				return false
-			}
-		}
-		return true
-	}
+	/**
+	 * Check if object (an enumeration) is a subtype of aType (should also be a
+	 * type).  All members of me must also be instances of aType.
+	 */
+	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
+		getInstances(self).all { it.isInstanceOf(aType) }
 
-	override fun o_IsIntegerRangeType(self: AvailObject): Boolean
-	{
-		for (instance in getInstances(self))
-		{
-			if (!instance.isExtendedInteger)
-			{
-				return false
-			}
-		}
-		return true
-	}
+	override fun o_IsIntegerRangeType(self: AvailObject): Boolean =
+		getInstances(self).all(AvailObject::isExtendedInteger)
 
-	override fun o_IsLiteralTokenType(self: AvailObject): Boolean
-	{
-		for (instance in getInstances(self))
-		{
-			if (!instance.isLiteralToken())
-			{
-				return false
-			}
-		}
-		return true
-	}
+	override fun o_IsLiteralTokenType(self: AvailObject): Boolean =
+		getInstances(self).all(AvailObject::isLiteralToken)
 
-	override fun o_IsMapType(self: AvailObject): Boolean
-	{
-		for (instance in getInstances(self))
-		{
-			if (!instance.isMap)
-			{
-				return false
-			}
-		}
-		return true
-	}
+	override fun o_IsMapType(self: AvailObject): Boolean =
+		getInstances(self).all(AvailObject::isMap)
 
-	override fun o_IsSetType(self: AvailObject): Boolean
-	{
-		for (instance in getInstances(self))
-		{
-			if (!instance.isSet)
-			{
-				return false
-			}
-		}
-		return true
-	}
+	override fun o_IsSetType(self: AvailObject): Boolean =
+		getInstances(self).all { it.isSet }
 
-	override fun o_IsTupleType(self: AvailObject): Boolean
-	{
-		for (instance in getInstances(self))
-		{
-			if (!instance.isTuple)
-			{
-				return false
-			}
-		}
-		return true
-	}
+	override fun o_IsTupleType(self: AvailObject): Boolean =
+		getInstances(self).all(AvailObject::isTuple)
 
 	override fun o_AcceptsArgTypesFromFunctionType(
 		self: AvailObject,
@@ -679,15 +631,18 @@ private constructor(
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
-		val values = getInstances(self).filter { it.isInstanceOf(typeToRemove) }
+		val values = getInstances(self).filterNot {
+			it.isInstanceOf(typeToRemove)
+		}
 		return enumerationWith(setFromCollection(values))
 	}
 
 	override fun o_TupleOfTypesFromTo(
 		self: AvailObject,
 		startIndex: Int,
-		endIndex: Int): A_Tuple =
-			getSuperkind(self).tupleOfTypesFromTo(startIndex, endIndex)
+		endIndex: Int
+	): A_Tuple =
+		getSuperkind(self).tupleOfTypesFromTo(startIndex, endIndex)
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{

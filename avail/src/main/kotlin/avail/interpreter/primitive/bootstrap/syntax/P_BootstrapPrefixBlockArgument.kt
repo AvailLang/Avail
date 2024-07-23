@@ -89,7 +89,7 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 		val typePhrase = lastPair.expressionAt(2)
 
 		assert(namePhrase.isInstanceOfKind(LITERAL_PHRASE.create(TOKEN.o)))
-		assert(typePhrase.isInstanceOfKind(LITERAL_PHRASE.create(anyMeta())))
+		assert(typePhrase.isInstanceOfKind(LITERAL_PHRASE.create(anyMeta)))
 		val outerArgToken = namePhrase.token
 		val argToken = outerArgToken.literal()
 		val argName = argToken.string()
@@ -140,7 +140,7 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 								/* Argument name, a token. */
 								TOKEN.o,
 								/* Argument type. */
-								anyMeta()))))),
+								anyMeta))))),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =

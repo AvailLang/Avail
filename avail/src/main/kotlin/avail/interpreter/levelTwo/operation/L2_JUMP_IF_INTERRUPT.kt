@@ -32,10 +32,9 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
-import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -49,18 +48,15 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_JUMP_IF_INTERRUPT : L2ConditionalJump(
-	PC.named("if interrupt", OFF_RAMP),
-	PC.named("if not interrupt", SUCCESS))
+class L2_JUMP_IF_INTERRUPT(
+	@On(OFF_RAMP) var ifInterrupt: L2PcOperand,
+	@On(SUCCESS) var ifNotInterrupt: L2PcOperand
+): L2ConditionalJump()
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val ifInterrupt = instruction.operand<L2PcOperand>(0)
-		val ifNotInterrupt = instruction.operand<L2PcOperand>(1)
-
 		// :: if (interpreter.isInterruptRequested()) goto ifInterrupt;
 		// :: else goto ifNotInterrupt;
 		translator.loadInterpreter(method)
@@ -68,7 +64,7 @@ object L2_JUMP_IF_INTERRUPT : L2ConditionalJump(
 		emitBranch(
 			translator,
 			method,
-			instruction,
+			this,
 			Opcodes.IFNE,
 			ifInterrupt,
 			ifNotInterrupt)

@@ -164,12 +164,13 @@ class CheckedConstructor private constructor(
 		{
 			// Check the annotation before anything else, in case we selected
 			// the wrong constructor.
-			@Suppress("UNUSED_VARIABLE")
 			val annotation =
 				constructor.getAnnotation(ReferencedInGeneratedCode::class.java)
-					?: error(
-						"Constructor should have had ReferencedInGeneratedCode "
-							+ "annotation")
+			assert(annotation !== null)
+			{
+				"Constructor should have had ReferencedInGeneratedCode " +
+					"annotation"
+			}
 		}
 		val modifiers = constructor.modifiers
 		assert(modifiers and Modifier.PUBLIC != 0)

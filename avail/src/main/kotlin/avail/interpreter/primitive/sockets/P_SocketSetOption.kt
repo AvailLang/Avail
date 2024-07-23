@@ -134,8 +134,8 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 			tuple(
 				ATOM.o,
 				mapTypeForSizesKeyTypeValueType(
-					inclusive(0, (Options.socketOptions.size - 1).toLong()),
-					inclusive(1, (Options.socketOptions.size - 1).toLong()),
+					inclusive(0, Options.socketOptions.size - 1),
+					inclusive(1, Options.socketOptions.size - 1),
 					ANY.o)),
 			TOP.o)
 

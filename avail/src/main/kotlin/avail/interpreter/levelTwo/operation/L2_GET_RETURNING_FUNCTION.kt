@@ -33,12 +33,10 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -53,36 +51,29 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
-object L2_GET_RETURNING_FUNCTION : L2Operation(
-	WRITE_BOXED.named("returning function"))
+class L2_GET_RETURNING_FUNCTION(
+	var returningFunction: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(function.registerString())
+		builder.append(returningFunction.registerString())
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
-
 		// :: target = interpreter.returningFunction;
 		translator.loadInterpreter(method)
 		Interpreter.interpreterReturningFunctionField.generateRead(method)
 		method.visitTypeInsn(
 			Opcodes.CHECKCAST, Type.getInternalName(AvailObject::class.java))
-		translator.store(method, function.register())
+		translator.store(method, returningFunction.register())
 	}
 }

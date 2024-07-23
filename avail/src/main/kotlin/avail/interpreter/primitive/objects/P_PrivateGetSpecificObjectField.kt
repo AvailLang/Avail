@@ -48,8 +48,7 @@ import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import avail.optimizer.L1Translator
 
@@ -86,13 +85,13 @@ object P_PrivateGetSpecificObjectField : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 
 	override fun returnTypeGuaranteedByVM(
-		rawFunction: A_RawFunction,
+		rawFunction: A_RawFunction?,
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
 		// We don't have the function closure, so we don't have the field atom,
 		// so we simply use the raw function's function type's return type.
-		return rawFunction.functionType().returnType
+		return rawFunction!!.functionType().returnType
 	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
@@ -100,19 +99,20 @@ object P_PrivateGetSpecificObjectField : Primitive(
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean {
 		// This primitive is private, and the function *should* only have been
 		// constructed by P_CreateObjectFieldGetter.  Play it safe if the
 		// function appears to have been created some other way.
-		val function = functionToCallReg.constantOrNull() ?: return false
+		val function = functionToCallReg.constantOrNull ?: return false
 
 		val objectReg = arguments[0]
 		val objectType = argumentTypes[0]
 		val fieldAtom = function.outerVarAt(1)
 		val fieldType = objectType.fieldTypeAt(fieldAtom)
 		val constant = objectReg.restriction().constantOrNull
+
+		val translator = callSiteHelper.translator
 		when {
 			// Do the folding here.  If we made this primitive CanFold, it would
 			// attempt to access the interpreter.function during evaluation,
@@ -130,12 +130,12 @@ object P_PrivateGetSpecificObjectField : Primitive(
 
 			else -> {
 				val write = translator.generator.boxedWriteTemp(
-					restrictionForType(fieldType, BOXED_FLAG))
+					boxedRestrictionForType(fieldType))
 				translator.addInstruction(
-					L2_GET_OBJECT_FIELD,
-					objectReg,
-					L2ConstantOperand(fieldAtom),
-					write)
+					L2_GET_OBJECT_FIELD(
+						objectReg,
+						L2ConstantOperand(fieldAtom),
+						write))
 				callSiteHelper.useAnswer(translator.readBoxed(write))
 				// TODO - Generate L2 code to collect statistics on the variants
 				// that are encountered, then at the next reoptimization, inline

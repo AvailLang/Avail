@@ -60,6 +60,7 @@ import avail.descriptor.types.ArrayPojoTypeDescriptor.PojoArray
 import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
 import avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_CLASS
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import java.lang.reflect.Modifier
 import java.util.IdentityHashMap
@@ -211,17 +212,13 @@ constructor(
 
 	override fun o_TypeIntersectionOfPojoFusedType(
 		self: AvailObject,
-		aFusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		aFusedPojoType: A_Type
+	): A_Type = unsupported
 
 	override fun o_TypeIntersectionOfPojoUnfusedType(
 		self: AvailObject,
-		anUnfusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		anUnfusedPojoType: A_Type
+	): A_Type = unsupported
 
 	override fun o_TypeUnionOfPojoType(
 		self: AvailObject,
@@ -235,17 +232,13 @@ constructor(
 
 	override fun o_TypeUnionOfPojoFusedType(
 		self: AvailObject,
-		aFusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		aFusedPojoType: A_Type
+	): A_Type = unsupported
 
 	override fun o_TypeUnionOfPojoUnfusedType(
 		self: AvailObject,
-		anUnfusedPojoType: A_Type): A_Type
-	{
-		unsupportedOperation()
-	}
+		anUnfusedPojoType: A_Type
+	): A_Type = unsupported
 
 	override fun o_TypeVariables(self: AvailObject): A_Map = emptyMap
 

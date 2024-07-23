@@ -105,11 +105,8 @@ inline fun <A: Iterable<B>, B, C > A.deepForEach (
  * Given an [Iterable] receiver, run the normal `forEach` operation to produce
  * a series of values, apply the [extractor1] extension function to each of
  * those values to produce an `Iterable` for each of them, run the [extractor2]
- * extension function to produce an `Iterable` to run `forEach` on, with the
- * [body] function.
- *
- * and run `forEach` on those
- * `Iterables`, in order.
+ * extension function to produce an `Iterable` to run `forEach` on, and run the
+ * [body] function with each of those, in order.
  *
  * @receiver
  *   The outer [Iterable] to visit.
@@ -298,21 +295,33 @@ fun <T> MutableSet<T>.drain(): MutableSet<T>
 	return elements
 }
 
+interface Tuple
+
 /** Tuple of length 1. */
-data class Tuple1<T1> constructor (val t1: T1)
+data class Tuple1<T1> constructor (
+	val t1: T1
+) : Tuple
 
 /** Tuple of length 2. */
-typealias Tuple2<T1, T2> = Pair<T1, T2>
+data class Tuple2<T1, T2> constructor (
+	val t1: T1,
+	val t2: T2
+) : Tuple
 
 /** Tuple of length 3. */
-typealias Tuple3<T1, T2, T3> = Triple<T1, T2, T3>
+data class Tuple3<T1, T2, T3> constructor (
+	val t1: T1,
+	val t2: T2,
+	val t3: T3
+) : Tuple
 
 /** Tuple of length 4. */
 data class Tuple4<T1, T2, T3, T4> constructor (
 	val t1: T1,
 	val t2: T2,
 	val t3: T3,
-	val t4: T4)
+	val t4: T4
+) : Tuple
 
 /** Tuple of length 5. */
 data class Tuple5<T1, T2, T3, T4, T5> constructor (
@@ -320,7 +329,8 @@ data class Tuple5<T1, T2, T3, T4, T5> constructor (
 	val t2: T2,
 	val t3: T3,
 	val t4: T4,
-	val t5: T5)
+	val t5: T5
+) : Tuple
 
 /** Tuple of length 6. */
 data class Tuple6<T1, T2, T3, T4, T5, T6> constructor (
@@ -329,7 +339,8 @@ data class Tuple6<T1, T2, T3, T4, T5, T6> constructor (
 	val t3: T3,
 	val t4: T4,
 	val t5: T5,
-	val t6: T6)
+	val t6: T6
+) : Tuple
 
 /** Tuple of length 7. */
 data class Tuple7<T1, T2, T3, T4, T5, T6, T7> constructor (
@@ -339,7 +350,8 @@ data class Tuple7<T1, T2, T3, T4, T5, T6, T7> constructor (
 	val t4: T4,
 	val t5: T5,
 	val t6: T6,
-	val t7: T7)
+	val t7: T7
+) : Tuple
 
 /** Tuple of length 8. */
 data class Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> constructor (
@@ -350,7 +362,8 @@ data class Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> constructor (
 	val t5: T5,
 	val t6: T6,
 	val t7: T7,
-	val t8: T8)
+	val t8: T8
+) : Tuple
 
 /** Tuple of length 9. */
 data class Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> constructor (
@@ -362,7 +375,8 @@ data class Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> constructor (
 	val t6: T6,
 	val t7: T7,
 	val t8: T8,
-	val t9: T9)
+	val t9: T9
+) : Tuple
 
 /** Tuple of length 10. */
 data class Tuple10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> constructor (
@@ -375,7 +389,8 @@ data class Tuple10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> constructor (
 	val t7: T7,
 	val t8: T8,
 	val t9: T9,
-	val t10: T10)
+	val t10: T10
+) : Tuple
 
 /** Construct a tuple of length 1. */
 fun <T1> t(t1: T1) = Tuple1(t1)

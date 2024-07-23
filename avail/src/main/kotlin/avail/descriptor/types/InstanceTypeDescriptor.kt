@@ -46,7 +46,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
@@ -84,6 +83,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.INSTANCE
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.exceptions.unsupported
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -409,10 +409,7 @@ private constructor(
 				isSet -> singleInt(setSize)
 				isMap -> singleInt(mapSize)
 				else ->
-				{
-					assert(false) { "Unexpected instance for sizeRange" }
-					nil
-				}
+					throw AssertionError("Unexpected instance for sizeRange")
 			}
 		}
 
@@ -509,10 +506,7 @@ private constructor(
 	override fun o_ValueType(self: AvailObject): A_Type =
 		enumerationWith(getInstance(self).valuesAsTuple.asSet)
 
-	override fun o_Parent(self: AvailObject): A_BasicObject
-	{
-		unsupportedOperation()
-	}
+	override fun o_Parent(self: AvailObject): A_BasicObject = unsupported
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
 		getSuperkind(self).returnType

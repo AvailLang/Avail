@@ -36,11 +36,8 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.reportUnassignedVariableReadMethod
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
-import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
+import avail.interpreter.levelTwo.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -60,42 +57,35 @@ import org.objectweb.asm.Opcodes
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
 @WritesHiddenVariable(CURRENT_FUNCTION::class)
-object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
-	INT_IMMEDIATE.named("pc"),
-	INT_IMMEDIATE.named("stackp"),
-	READ_BOXED_VECTOR.named("frame values"))
+class L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION(
+	var pc: L2IntImmediateOperand,
+	var stackp: L2IntImmediateOperand,
+	var frameValues: L2ReadBoxedVectorOperand
+) : L2ControlFlowInstruction()
 {
+	override val isCold get() = true
+
+	// Never remove this instruction.
+	override val hasSideEffect get() = true
+
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val pc = instruction.operand<L2IntImmediateOperand>(0)
-		val stackp = instruction.operand<L2IntImmediateOperand>(1)
-		val frameValues = instruction.operand<L2ReadBoxedVectorOperand>(2)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(" pc: ")
 		builder.append(pc.value)
 		builder.append(", stackp: ")
 		builder.append(stackp.value)
 		builder.append("\n\tframe data: ")
-		frameValues.elements.joinTo(builder) { it.registerString() }
+		frameValues.elements.joinTo(builder, limit = 5) { it.registerString() }
 	}
-
-	// Never remove this.
-	override val hasSideEffect get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val pc = instruction.operand<L2IntImmediateOperand>(0)
-		val stackp = instruction.operand<L2IntImmediateOperand>(1)
-		val frameValues = instruction.operand<L2ReadBoxedVectorOperand>(2)
-
 		translator.loadInterpreter(method)
 		// :: interpreter
 		translator.intConstant(method, pc.value)

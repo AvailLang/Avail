@@ -257,8 +257,7 @@ class ModuleImport
 			}
 			catch (e: ImportValidationException)
 			{
-				assert(false) { "This shouldn't happen" }
-				throw RuntimeException(e)
+				throw AssertionError("This shouldn't happen", e)
 			}
 		}
 

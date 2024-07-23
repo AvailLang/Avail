@@ -71,6 +71,7 @@ import avail.descriptor.types.ConcatenatedTupleTypeDescriptor.IntegerSlots.Compa
 import avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.FIRST_TUPLE_TYPE
 import avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.SECOND_TUPLE_TYPE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
+import avail.exceptions.unsupported
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import kotlin.math.max
@@ -527,10 +528,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 
 	override fun immutable(): ConcatenatedTupleTypeDescriptor = immutable
 
-	override fun shared(): ConcatenatedTupleTypeDescriptor
-	{
-		unsupportedOperation()
-	}
+	override fun shared(): ConcatenatedTupleTypeDescriptor = unsupported
 
 	companion object
 	{

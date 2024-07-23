@@ -120,7 +120,8 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType, functionTypeReturning(topMeta())), TOP.o)
+			tuple(stringType, functionTypeReturning(topMeta)),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

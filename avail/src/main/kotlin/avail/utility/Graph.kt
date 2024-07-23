@@ -34,7 +34,6 @@ package avail.utility
 import avail.utility.evaluation.Combinator.recurse
 import org.jetbrains.annotations.Contract
 import java.util.ArrayDeque
-import java.util.Comparator
 import java.util.Deque
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -192,10 +191,12 @@ class Graph<Vertex> constructor ()
 		val outVertices: Set<Vertex>? = outEdges[vertex]
 		if (outVertices !== null)
 		{
-			val inVertices: Set<Vertex> = inEdges[vertex]
-				?: error("Inconsistent edge information in graph")
+			val inVertices = inEdges[vertex]
+			ensure(
+				inVertices !== null,
+				"Inconsistent edge information in graph")
 			ensure(outVertices.isEmpty(), "vertex has outbound edges")
-			ensure(inVertices.isEmpty(), "vertex has inbound edges")
+			ensure(inVertices!!.isEmpty(), "vertex has inbound edges")
 			outEdges.remove(vertex)
 			inEdges.remove(vertex)
 		}

@@ -49,7 +49,6 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
@@ -72,7 +71,7 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(ANY.o, topMeta()),
+			tuple(ANY.o, topMeta),
 			booleanType)
 
 	/**
@@ -91,11 +90,11 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (xReg, yTypeReg) = arguments
 
+		val translator = callSiteHelper.translator
 		val generator = translator.generator
 		if (xReg.restriction().metaRestriction().intersection(
 			yTypeReg.restriction()).type.isVacuousType)
@@ -109,7 +108,7 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val ifInstance = generator.createBasicBlock("if instance")
 		val ifNotInstance = generator.createBasicBlock("not instance")
 
-		val constantYType = yTypeReg.constantOrNull()
+		val constantYType = yTypeReg.constantOrNull
 		if (constantYType !== null)
 		{
 			generator.jumpIfKindOfConstant(
@@ -121,11 +120,11 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		else
 		{
 			translator.addInstruction(
-				L2_JUMP_IF_KIND_OF_OBJECT,
-				xReg,
-				yTypeReg,
-				edgeTo(ifInstance),
-				edgeTo(ifNotInstance))
+				L2_JUMP_IF_KIND_OF_OBJECT(
+					xReg,
+					yTypeReg,
+					edgeTo(ifInstance),
+					edgeTo(ifNotInstance)))
 		}
 		generator.startBlock(ifInstance)
 		if (generator.currentlyReachable())
@@ -139,4 +138,6 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		return true
 	}
+
+	override val canDestroyArguments get() = false
 }

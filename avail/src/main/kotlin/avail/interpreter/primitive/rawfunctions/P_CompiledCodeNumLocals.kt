@@ -63,4 +63,6 @@ object P_CompiledCodeNumLocals : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
 			wholeNumbers)
+
+	override val canDestroyArguments get() = false
 }

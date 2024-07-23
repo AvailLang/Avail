@@ -84,9 +84,9 @@ object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 		}
 		catch (e: NumberFormatException)
 		{
-			assert(false)
-			{ "This shouldn't happen, since we control the numeral!" }
-			throw e
+			throw AssertionError(
+				"This shouldn't happen, since we control the numeral!",
+				e)
 		}
 
 		return interpreter.primitiveSuccess(result)

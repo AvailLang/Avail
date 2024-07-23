@@ -108,7 +108,7 @@ class ExaminePhrasePathsAction constructor (
 						}
 						workbench.writeText(report, StreamStyle.REPORT)
 					}
-					is Any -> assert(false) { "Unknown type selected" }
+					is Any -> throw AssertionError("Unknown type selected")
 				}
 			}
 		}

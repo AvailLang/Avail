@@ -39,13 +39,10 @@ import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.PC
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -63,47 +60,35 @@ import org.objectweb.asm.Type
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
-	READ_BOXED.named("variable"),
-	WRITE_BOXED.named("extracted value", SUCCESS),
-	PC.named("read succeeded", SUCCESS),
-	PC.named("read failed", OFF_RAMP))
+class L2_GET_VARIABLE_CLEARING(
+	var variable: L2ReadBoxedOperand,
+	@On(SUCCESS) var extractedValue: L2WriteBoxedOperand,
+	@On(SUCCESS) var ifReadSucceeded: L2PcOperand,
+	@On(OFF_RAMP) var ifReadFailed: L2PcOperand
+) : L2ControlFlowInstruction()
 {
 	// Subtle. Reading from a variable can fail, so don't remove this.
 	// Also it clears the variable.
 	override val hasSideEffect get() = true
 
-	override val isVariableGet: Boolean get() = true
-
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val variable = instruction.operand<L2ReadBoxedOperand>(0)
-		val value = instruction.operand<L2WriteBoxedOperand>(1)
-		//		final L2PcOperand success = instruction.operand(2);
-//		final L2PcOperand failure = instruction.operand(3);
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(value.registerString())
+		builder.append(extractedValue.registerString())
 		builder.append(" ← ↓")
 		builder.append(variable.registerString())
-		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
+		renderOperandsExcludingFields(
+			builder, desiredOperandTypes, ::variable, ::extractedValue)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val variable = instruction.operand<L2ReadBoxedOperand>(0)
-		val value = instruction.operand<L2WriteBoxedOperand>(1)
-		val success = instruction.operand<L2PcOperand>(2)
-		val failure = instruction.operand<L2PcOperand>(3)
-
 		// :: try {
 		val tryStart = Label()
 		val catchStart = Label()
@@ -121,7 +106,7 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 		// ::    dest = variable.getValue();
 		translator.load(method, variable.register())
 		A_Variable.getValueMethod.generateCall(method)
-		translator.store(method, value.register())
+		translator.store(method, extractedValue.register())
 		// ::    if (variable.traversed().descriptor().isMutable()) {
 		translator.load(method, variable.register())
 		A_BasicObject.traversedMethod.generateCall(method)
@@ -133,11 +118,11 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 		translator.load(method, variable.register())
 		VariableDescriptor.clearVariableMethod.generateCall(method)
 		// ::       goto success;
-		translator.jump(method, success)
+		translator.jump(method, ifReadSucceeded)
 		// ::    } else {
 		method.visitLabel(elseLabel)
 		// ::       dest.makeImmutable();
-		translator.load(method, value.register())
+		translator.load(method, extractedValue.register())
 		A_BasicObject.makeImmutableMethod.generateCall(method)
 		method.visitInsn(Opcodes.POP)
 		// ::       goto success;
@@ -145,12 +130,12 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 		// fall through, because the next instruction expects a
 		// VariableGetException to be pushed onto the stack. So always do the
 		// jump.
-		translator.jump(method, success)
+		translator.jump(method, ifReadSucceeded)
 		// :: } catch (VariableGetException|VariableSetException e) {
 		method.visitLabel(catchStart)
 		method.visitInsn(Opcodes.POP)
 		// ::    goto failure;
-		translator.jump(method, instruction, failure)
+		translator.jumpOrFallThrough(method, ifReadFailed)
 		// :: }
 	}
 }

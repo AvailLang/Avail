@@ -65,4 +65,6 @@ object P_TokenStart : Primitive(1, CannotFail, CanFold, CanInline)
 			tuple(
 				TOKEN.o),
 			wholeNumbers)
+
+	override val canDestroyArguments get() = false
 }

@@ -32,11 +32,8 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -49,22 +46,18 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_TYPE_UNION : L2Operation(
-	READ_BOXED.named("first type"),
-	READ_BOXED.named("second type"),
-	WRITE_BOXED.named("union type"))
+class L2_TYPE_UNION(
+	var firstType: L2ReadBoxedOperand,
+	var secondType: L2ReadBoxedOperand,
+	var outputType: L2WriteBoxedOperand
+) : L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val firstType = instruction.operand<L2ReadBoxedOperand>(0)
-		val secondType = instruction.operand<L2ReadBoxedOperand>(1)
-		val outputType = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(outputType.registerString())
 		builder.append(" ← ")
@@ -75,13 +68,8 @@ object L2_TYPE_UNION : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val firstType = instruction.operand<L2ReadBoxedOperand>(0)
-		val secondType = instruction.operand<L2ReadBoxedOperand>(1)
-		val outputType = instruction.operand<L2WriteBoxedOperand>(2)
-
 		// :: unionType = firstInputType.typeUnion(secondInputType);
 		translator.load(method, firstType.register())
 		translator.load(method, secondType.register())

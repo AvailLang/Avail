@@ -34,12 +34,8 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
-import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -53,22 +49,18 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
-	READ_BOXED.named("function"),
-	INT_IMMEDIATE.named("parameter index"),
-	WRITE_BOXED.named("parameter type"))
+class L2_FUNCTION_PARAMETER_TYPE(
+	var function: L2ReadBoxedOperand,
+	var parameterIndex: L2IntImmediateOperand,
+	var parameterType: L2WriteBoxedOperand
+): L2Instruction()
 {
 	override fun appendToWithWarnings(
-		instruction: L2Instruction,
-		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		desiredOperandTypes: Set<L2OperandType>,
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this == instruction.operation)
-		val function = instruction.operand<L2ReadBoxedOperand>(0)
-		val parameterIndex = instruction.operand<L2IntImmediateOperand>(1)
-		val parameterType = instruction.operand<L2WriteBoxedOperand>(2)
-		renderPreamble(instruction, builder)
+		renderPreamble(builder)
 		builder.append(' ')
 		builder.append(parameterType.registerString())
 		builder.append(" ← ")
@@ -80,13 +72,8 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
-		method: MethodVisitor,
-		instruction: L2Instruction)
+		method: MethodVisitor)
 	{
-		val function = instruction.operand<L2ReadBoxedOperand>(0)
-		val parameterIndex = instruction.operand<L2IntImmediateOperand>(1)
-		val parameterType = instruction.operand<L2WriteBoxedOperand>(2)
-
 		// :: paramType = function.code().functionType().argsTupleType()
 		// ::    .typeAtIndex(param)
 		translator.load(method, function.register())

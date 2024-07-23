@@ -133,7 +133,6 @@ import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operation.L2_INVOKE
@@ -146,6 +145,7 @@ import avail.interpreter.primitive.variables.P_SetValue
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator
+import avail.optimizer.L2SplitCondition
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedField
 import avail.optimizer.jvm.CheckedField.Companion.instanceField
@@ -1094,9 +1094,9 @@ class Interpreter(
 		val aFiber = fiber()
 		aFiber.lock {
 			assert(aFiber.executionState === RUNNING)
-			aFiber.executionState = state
 			aFiber.continuation = nil
 			aFiber.fiberResult = finalObject as AvailObject
+			aFiber.executionState = state
 			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
 			aFiber.fiberHelper.stopCountingCPU()
 			assert(bound)
@@ -1262,9 +1262,8 @@ class Interpreter(
 			}
 			FIBER_SUSPENDED ->
 			{
-				assert(false)
-				{ "CanInline primitive must not suspend fiber" }
-				null
+				throw AssertionError(
+					"CanInline primitive must not suspend fiber")
 			}
 		}
 	}
@@ -1309,12 +1308,12 @@ class Interpreter(
 	fun optionalReifierIfCanSwitchContinuations(
 		primitive: Primitive,
 		result: Result
-	) = when (result)
+	): StackReifier? = when (result)
 	{
 		SUCCESS -> null
 		CONTINUATION_CHANGED -> reifierForChangedContinuation(primitive)
-		else -> error("Invalid result from infallible " +
-			"CanSwitchContinuations primitive")
+		else -> throw AssertionError(
+			"Invalid result from infallible CanSwitchContinuations primitive")
 	}
 
 	/**
@@ -1400,7 +1399,8 @@ class Interpreter(
 				}
 				READY_TO_INVOKE ->
 				{
-					assert(false) { "Invoking primitives should be inlineable" }
+					throw AssertionError(
+						"Invoking primitives should be inlineable")
 				}
 				CONTINUATION_CHANGED ->
 				{
@@ -1589,7 +1589,7 @@ class Interpreter(
 							continuation.function().code().methodName
 								.toString() +
 								" (unoptimized)"
-						else -> (theChunk.name() + ", offset= " +
+						else -> (theChunk.name + ", offset= " +
 							continuation.levelTwoOffset())
 					}
 				}
@@ -1636,7 +1636,7 @@ class Interpreter(
 			}
 			else
 			{
-				builder.append(ptr.levelTwoChunk().name())
+				builder.append(ptr.levelTwoChunk().name)
 			}
 			ptr = ptr.caller()
 		}
@@ -2747,6 +2747,13 @@ class Interpreter(
 		var debugWorkUnits = false
 
 		/**
+		 * If true, annotate the control flow graph with additional information
+		 * about which [L2SplitCondition]s are available.
+		 */
+		@Volatile
+		var debugAvailableSplits = false
+
+		/**
 		 * Whether to divert logging into fibers' [A_Fiber.debugLog], which is
 		 * simply a length-bounded StringBuilder.  This is *by far* the fastest
 		 * available way to log, although message pattern substitution is still
@@ -2954,19 +2961,24 @@ class Interpreter(
 			executableChunk: ExecutableChunk,
 			offset: Int,
 			description: String,
-			firstReadOperandValue: Any)
+			firstReadOperandValue: Any?)
 		{
 			if (debugL2)
 			{
 				if (mainLogger.isLoggable(Level.SEVERE))
 				{
-					val str = ("L2 = "
-						+ offset
-						+ " of "
-						+ executableChunk.name()
-						+ " "
-						+ description
-						+ " <- " + firstReadOperandValue)
+					val str = buildString {
+						append("L2 = ")
+						append(offset)
+						append(" of ")
+						append(executableChunk.name())
+						append(" ")
+						append(description)
+						firstReadOperandValue?.let {
+							append(" <- ")
+							append(it)
+						}
+					}
 					val fiber = current().fiberOrNull()
 					log(
 						fiber,

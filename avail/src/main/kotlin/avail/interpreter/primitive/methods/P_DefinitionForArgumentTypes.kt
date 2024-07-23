@@ -99,7 +99,7 @@ object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o, zeroOrMoreOf(anyMeta())), DEFINITION.o)
+		functionType(tuple(ATOM.o, zeroOrMoreOf(anyMeta)), DEFINITION.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

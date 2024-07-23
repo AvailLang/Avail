@@ -1,5 +1,5 @@
 /*
- * L2SelectorOperand.kt
+ * ToggleAvailableSplits.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,48 +29,44 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.levelTwo.operand
 
-import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.bundles.A_Bundle
-import avail.descriptor.bundles.A_Bundle.Companion.message
-import avail.descriptor.bundles.MessageBundleDescriptor
-import avail.descriptor.methods.MethodDefinitionDescriptor
-import avail.descriptor.methods.MethodDescriptor
-import avail.interpreter.levelTwo.L2OperandDispatcher
-import avail.interpreter.levelTwo.L2OperandType
+package avail.anvil.actions
+
+import avail.anvil.AvailWorkbench
+import avail.interpreter.execution.Interpreter
+import avail.optimizer.L2SplitCondition
+import java.awt.event.ActionEvent
+import javax.swing.Action
 
 /**
- * An `L2SelectorOperand` is an operand of type [L2OperandType.SELECTOR].  It
- * holds the [message&#32;bundle][MessageBundleDescriptor] that knows the
- * [method][MethodDescriptor] to invoke.
- *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
- *
- * @property bundle
- *   The actual [method][MethodDescriptor].
+ * A [ToggleAvailableSplits] toggles the flag that indicates whether to write
+ * extra information to presented control flow graphs, outlining the
+ * [L2SplitCondition]s that are available.
  *
  * @constructor
- * Construct a new `L2SelectorOperand` with the specified
- * [message&#32;bundle][MessageBundleDescriptor].
+ * Construct a new [ToggleAvailableSplits].
  *
- * @param bundle
- *   The message bundle that holds the [method][MethodDescriptor] in which to
- *   look up the [method&#32;definition][MethodDefinitionDescriptor] to
- *   ultimately invoke.
+ * @param workbench
+ *   The owning [AvailWorkbench].
  */
-class L2SelectorOperand constructor(val bundle: A_Bundle) : L2Operand()
+class ToggleAvailableSplits constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Annotate available L2 splits")
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.SELECTOR
+	// Do nothing
+	override fun updateIsEnabled(busy: Boolean) {}
 
-	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
+	override fun actionPerformed(event: ActionEvent)
 	{
-		dispatcher.doOperand(this)
+		Interpreter.debugAvailableSplits =
+			Interpreter.debugAvailableSplits xor true
 	}
 
-	override fun appendTo(builder: StringBuilder)
+	init
 	{
-		builder.append("$").append(bundle.message.atomName)
+		putValue(
+			Action.SHORT_DESCRIPTION,
+			"Whether to show available L2 splits in control flow graphs.")
+		putValue(Action.SELECTED_KEY, Interpreter.debugAvailableSplits)
 	}
 }

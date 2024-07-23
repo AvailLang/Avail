@@ -61,5 +61,5 @@ object P_FiberTypeResultType : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(fiberMeta()), topMeta())
+		functionType(tuple(fiberMeta()), topMeta)
 }
