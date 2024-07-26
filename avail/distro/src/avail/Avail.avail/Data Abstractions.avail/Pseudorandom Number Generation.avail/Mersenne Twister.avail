@@ -49,6 +49,8 @@ Body
 "mt" is a new field atom;
 "index" is a new field atom;
 
+u32 ::= [0..1<<32);
+
 /**
  * The Mersenne Twister pseudorandom number generator.
  *
@@ -64,8 +66,8 @@ Body
  */
 Class "Mersenne Twister" extends stream
 	with fields
-		element type : [0..1<<32)'s type,
-		mt : <[0..1<<32)…|624>,
+		element type : u32's type,
+		mt : <u32…|624>,
 		index : [1..624]
 	with reconstructors
 		(mt, index);
@@ -81,17 +83,17 @@ Method "_is empty" is
  * Compute and answer the next {@type "Mersenne Twister"} state vector.
  *
  * @method "next state after_"
- * @param "vector" "<[0..1<<32)…|624>"
+ * @param "vector" "<u32…|624>"
  *        A Mersenne Twister state vector.
- * @returns "<[0..1<<32)…|624>"
+ * @returns "<u32…|624>"
  *          A refreshed Mersenne Twister state vector.
  * @category "Data Abstractions" "Random"
  */
 Private method "next state after_" is
 [
-	vector : <[0..1<<32)…|624>
+	vector : <u32…|624>
 |
-	next : <[0..1<<32)…|624> := vector;
+	next : <u32…|624> := vector;
 	For each i from 1 to 624 do
 	[
 		y ::= (next[i] bit∧ (1<<31))
@@ -101,7 +103,7 @@ Private method "next state after_" is
 			(v bit⊕ (if y is odd then [2567483615] else [0])) bit∧ ((1<<32)-1);
 	];
 	next
-] : <[0..1<<32)…|624>;
+] : <u32…|624>;
 
 Mersenne Twister's head method is
 [
@@ -112,8 +114,8 @@ Mersenne Twister's head method is
 	y := y bit⊕ ((y × (1<<7)) bit∧ 2636928640);
 	y := y bit⊕ ((y × (1<<15)) bit∧ 4022730752);
 	y := y bit⊕ (y >> 18);
-	cast y into [t : [0..1<<32) | t]
-] : [0..1<<32);
+	y ?→ u32
+] : u32;
 
 Mersenne Twister's tail method is
 [
@@ -133,7 +135,7 @@ Mersenne Twister's tail method is
  * {@type "Mersenne Twister"} pseudorandom number generator.
  *
  * @method "untwisted Mersenne Twister from_"
- * @param "seed" "[0..1<<32)"
+ * @param "seed" "u32"
  *        A seed.
  * @returns "Mersenne Twister"
  *          An untwisted Mersenne Twister pseudorandom number generator.
@@ -141,9 +143,9 @@ Mersenne Twister's tail method is
  */
 Private method "untwisted Mersenne Twister from_" is
 [
-	seed : [0..1<<32)
+	seed : u32
 |
-	vector : <[0..1<<32)…|1..> := <seed>;
+	vector : u32+ := <seed>;
 	For each i from 1 to 623 do
 	[
 		last ::= vector's last;
@@ -151,14 +153,14 @@ Private method "untwisted Mersenne Twister from_" is
 		vector := eject vector ++ <value bit∧ ((1<<32)-1)>;
 	];
 	a Mersenne Twister with
-		element type ::= [0..1<<32),
-		mt ::= cast vector into [t : <[0..1<<32)…|624> | t],
+		element type ::= u32,
+		mt ::= vector ?→ <u32…|624>,
 		index ::= 1
 ];
 
 Method "a Mersenne Twister stream from_" is
 [
-	seed : [0..1<<32)
+	seed : u32
 |
 	rng ::= untwisted Mersenne Twister from seed;
 	rng's mt ::= next state after rng's mt, index ::= 1
@@ -171,7 +173,7 @@ Method "a Mersenne Twister stream from_" is
  * Epoch" current time} is used to initialize the generator.
  *
  * @method "a Mersenne Twister«from_»"
- * @param "optionalSeed" "[0..1<<32)?"
+ * @param "optionalSeed" "u32?"
  *        An optional seed.
  * @returns "Mersenne Twister"
  *          A Mersenne Twister pseudorandom number generator.
@@ -179,19 +181,19 @@ Method "a Mersenne Twister stream from_" is
  */
 Public method "a Mersenne Twister«from_»" is
 [
-	optionalSeed : [0..1<<32)?
+	optionalSeed : u32?
 |
 	seed ::= optionalSeed[1] else
 		[(high-precision timer value mod ((1<<32) - 1)) + 1];
-	(a reader over a Mersenne Twister stream from seed) as pRNG of [0..1<<32)
-] : pRNG of [0..1<<32);
+	(a reader over a Mersenne Twister stream from seed) as pRNG of u32
+] : pRNG of u32;
 
 Method "a Mersenne Twister stream from_" is
 [
-	seed : <[0..1<<32)…|1..>
+	seed : u32+
 |
 	rng ::= untwisted Mersenne Twister from 19650218;
-	vector : <[0..1<<32)…|624> := rng's mt;
+	vector : <u32…|624> := rng's mt;
 	i : [2..∞) := 2;
 	j : natural number := 1;
 	Repeat
@@ -229,7 +231,7 @@ Method "a Mersenne Twister stream from_" is
  * generator. The argument is a seed used to initialize the generator.
  *
  * @method "a Mersenne Twister from_"
- * @param "seed" "<[0..1<<32)…|1..>"
+ * @param "seed" "u32+"
  *        A seed.
  * @returns "Mersenne Twister"
  *          A Mersenne Twister pseudorandom number generator.
@@ -237,7 +239,7 @@ Method "a Mersenne Twister stream from_" is
  */
 Public method "a Mersenne Twister from_" is
 [
-	seed : <[0..1<<32)…|1..>
+	seed : u32+
 |
-	(a reader over a Mersenne Twister stream from seed) as pRNG of [0..1<<32)
-] : pRNG of [0..1<<32);
+	(a reader over a Mersenne Twister stream from seed) as pRNG of u32
+] : pRNG of u32;

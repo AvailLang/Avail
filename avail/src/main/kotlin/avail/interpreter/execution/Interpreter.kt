@@ -133,6 +133,7 @@ import avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operation.L2_INVOKE
@@ -1198,7 +1199,8 @@ class Interpreter(
 	@ReferencedInGeneratedCode
 	fun attemptInlinePrimitive(
 		primitiveFunction: A_Function,
-		primitive: Primitive): StackReifier?
+		primitive: Primitive
+	): StackReifier?
 	{
 		// It can succeed or fail, but it can't mess with the fiber's stack.
 		if (debugL2)

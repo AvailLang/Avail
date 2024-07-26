@@ -472,6 +472,21 @@ open class VariableDescriptor protected constructor(
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_AtomicAddToMapNoCheck(
+		self: AvailObject,
+		key: A_BasicObject,
+		value: A_BasicObject)
+	{
+		handleVariableWriteTracing(self)
+		val oldMap: A_Map = self[VALUE]
+		if (oldMap.isNil)
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+		val newMap = oldMap.mapAtPuttingCanDestroy(key, value, true)
+		// Don't check the type of the new map.
+		self[VALUE] = newMap.makeShared()
+	}
+
+	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicRemoveFromMap(
 		self: AvailObject,
 		key: A_BasicObject)

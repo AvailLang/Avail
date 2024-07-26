@@ -426,6 +426,28 @@ open class VariableSharedDescriptor protected constructor(
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_AtomicAddToMapNoCheck(
+		self: AvailObject,
+		key: A_BasicObject,
+		value: A_BasicObject)
+	{
+		// Simply read, add, and compare-and-set until it succeeds.  We require
+		// that the variable holds maps of arbitrarily large size (to allow it
+		// to grow without violating the content type during the add), the key
+		// and value types are acceptable for the contained map type, and that
+		// the variable can only store maps (i.e., not `any`).  It may still
+		// fail if the variable is unassigned.
+		do
+		{
+			val oldValue = self.volatileSlot(VALUE)
+			if (oldValue.isNil)
+				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			val newMap = oldValue.mapAtPuttingCanDestroy(key, value, false)
+		}
+		while (!o_CompareAndSwapValuesNoCheck(self, oldValue, newMap))
+	}
+
+	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_AtomicRemoveFromMap(
 		self: AvailObject,
 		key: A_BasicObject)

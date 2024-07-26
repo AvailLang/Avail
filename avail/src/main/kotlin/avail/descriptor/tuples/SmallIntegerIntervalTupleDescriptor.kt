@@ -54,7 +54,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSlots.Companion.END
 import avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor.IntegerSlots.Companion.SIZE
@@ -80,9 +80,14 @@ import java.util.IdentityHashMap
  *   The mutability of the descriptor.
  */
 class SmallIntegerIntervalTupleDescriptor
-constructor(
+private constructor(
 	mutability: Mutability
-) : NumericTupleDescriptor(mutability, null, IntegerSlots::class.java)
+) : NumericTupleDescriptor(
+	mutability,
+	null,
+	IntegerSlots::class.java,
+	Int.MIN_VALUE.toLong(),
+	Int.MAX_VALUE.toLong())
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -168,8 +173,8 @@ constructor(
 		if (newElementStrong.isInt)
 		{
 			val newElementValue = newElementStrong.extractInt
-			if (newElementValue.toLong() ==
-				endValue + deltaValue && originalSize < Int.MAX_VALUE)
+			if (newElementValue.toLong() == endValue + deltaValue
+				&& originalSize < Int.MAX_VALUE)
 			{
 				// Extend the interval.
 				if (canDestroy && isMutable)
@@ -195,8 +200,7 @@ constructor(
 			// Too big; fall through and make a tree-tuple.
 		}
 		// Fall back to concatenating a singleton.
-		val singleton = tuple(newElement)
-		return self.concatenateWith(singleton, canDestroy)
+		return self.concatenateWith(optimizedTuple(newElement), canDestroy)
 	}
 
 	// Consider a billion element tuple. Since a small interval tuple

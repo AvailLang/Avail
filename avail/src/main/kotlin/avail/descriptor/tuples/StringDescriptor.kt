@@ -41,13 +41,11 @@ import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String.Companion.asNativeString
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteString
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.mutableObjectFromNativeByteString
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.generateTwentyOneBitString
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.mutableObjectFromNativeTwoByteString
@@ -270,8 +268,8 @@ abstract class StringDescriptor protected constructor(
 					else ->
 					{
 						assert(codePoint <= maxCodePointInt)
-						string = generateObjectTupleFrom(size) {
-							string.tupleAt(it)
+						string = generateTwentyOneBitString(size) {
+							string.tupleCodePointAt(it)
 						}
 						representationLimit = maxCodePointInt
 					}

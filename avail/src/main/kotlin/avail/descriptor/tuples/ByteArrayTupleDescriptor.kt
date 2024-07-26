@@ -57,7 +57,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteArrayTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
@@ -88,9 +88,15 @@ import kotlin.math.min
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
-	: NumericTupleDescriptor(
-		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
+class ByteArrayTupleDescriptor
+private constructor(
+	mutability: Mutability
+) : NumericTupleDescriptor(
+	mutability,
+	ObjectSlots::class.java,
+	IntegerSlots::class.java,
+	0L,
+	255L)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -162,7 +168,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			}
 		}
 		// Transition to a tree tuple.
-		return self.concatenateWith(tuple(newElement), canDestroy)
+		return self.concatenateWith(optimizedTuple(newElement), canDestroy)
 	}
 
 	// Answer approximately how many bits per entry are taken up by this

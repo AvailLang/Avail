@@ -77,9 +77,15 @@ import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i64
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u4
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
 import avail.interpreter.Primitive.Flag.CanFold
+import avail.interpreter.Primitive.Result
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1OperationDispatcher
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
@@ -268,7 +274,8 @@ constructor(
 	 * Answer the [TypeRestriction] that is guaranteed to hold for the return
 	 * value *after* it has been checked successfully against the expectedType.
 	 */
-	private fun generateGeneralInvocation(
+	fun generateGeneralInvocation(
+		nilpotentAttempt: ((Interpreter)->Result)?,
 		calledFunction: A_Function,
 		expectedType: A_Type
 	): TypeRestriction
@@ -313,15 +320,31 @@ constructor(
 			}
 			else -> calledCode.functionType().returnType
 		}
-		instructions.add(
-			L2Simple_Invoke(
-				stackp,
-				pc,
-				instructions.size + 1,
-				registerIndices,
-				expectedType,
-				!guaranteedReturnType.isSubtypeOf(expectedType),
-				calledFunction))
+		if (nilpotentAttempt !== null)
+		{
+			instructions.add(
+				L2Simple_InvokeIfNilpotentAttemptFails(
+					stackp,
+					pc,
+					instructions.size + 1,
+					registerIndices,
+					expectedType,
+					!guaranteedReturnType.isSubtypeOf(expectedType),
+					calledFunction,
+					nilpotentAttempt))
+		}
+		else
+		{
+			instructions.add(
+				L2Simple_Invoke(
+					stackp,
+					pc,
+					instructions.size + 1,
+					registerIndices,
+					expectedType,
+					!guaranteedReturnType.isSubtypeOf(expectedType),
+					calledFunction))
+		}
 		return boxedRestrictionForType(
 			guaranteedReturnType.typeIntersection(expectedType))
 	}
@@ -387,7 +410,7 @@ constructor(
 		{
 			// Nothing was generated, so fall back.
 			outputRestriction =
-				generateGeneralInvocation(calledFunction, expectedType)
+				generateGeneralInvocation(null, calledFunction, expectedType)
 		}
 		for (i in stackp - numArgs + 1 until stackp)
 		{
@@ -579,18 +602,31 @@ constructor(
 			restrictions[stackp] = boxedRestrictionForConstant(tuple)
 			return
 		}
-		add(
-			when (size)
-			{
-				0 -> L2Simple_MoveConstant(emptyTuple, stackp)
-				1 -> L2Simple_MakeTuple1(stackp)
-				2 -> L2Simple_MakeTuple2(stackp)
-				3 -> L2Simple_MakeTuple3(stackp)
-				else -> L2Simple_MakeTupleN(size, stackp)
-			})
 		val types = (stackp downTo  oldStackp).map {
 			restrictions[it].type
 		}
+		val elementType = types.fold(bottom) { a, b -> a.typeUnion(b) }
+		add(
+			when
+			{
+				size == 0 -> L2Simple_MoveConstant(emptyTuple, stackp)
+				elementType.isSubtypeOf(i64) -> when
+				{
+					elementType.isSubtypeOf(u4) ->
+						L2Simple_MakeNybbleTupleN(size, stackp)
+					elementType.isSubtypeOf(u8) ->
+						L2Simple_MakeByteTupleN(size, stackp)
+					elementType.isSubtypeOf(i32) ->
+						L2Simple_MakeIntTupleN(size, stackp)
+					else -> L2Simple_MakeLongTupleN(size, stackp)
+				}
+				elementType.isSubtypeOf(Types.CHARACTER.o) ->
+					L2Simple_MakeCharacterTupleN(size, stackp)
+				size == 1 -> L2Simple_MakeTuple1(stackp)
+				size == 2 -> L2Simple_MakeTuple2(stackp)
+				size == 3 -> L2Simple_MakeTuple3(stackp)
+				else -> L2Simple_MakeTupleN(size, stackp)
+			})
 		for (i in oldStackp until stackp)
 			restrictions[i] = nilRestriction
 		restrictions[stackp] =

@@ -1969,7 +1969,7 @@ class L2Optimizer internal constructor(
 	companion object
 	{
 		/** Whether to sanity-check the graph between optimization steps. */
-		var shouldSanityCheck = true //TODO false
+		var shouldSanityCheck = false
 
 		/** Statistic for tracking the cost of sanity checks. */
 		private val sanityCheckStat = Statistic(

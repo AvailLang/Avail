@@ -80,6 +80,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateReversedFrom
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -530,7 +531,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					when (val size = instructionDecoder.getOperand())
 					{
 						0 -> push(emptyTuple)
-						1 -> push(tuple(pop()))
+						1 -> push(optimizedTuple(pop()))
 						else -> push(generateReversedFrom(size) { pop() })
 					}
 				}

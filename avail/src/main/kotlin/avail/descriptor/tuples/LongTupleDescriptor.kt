@@ -58,7 +58,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.LongTupleDescriptor.IntegerSlots.LONG_AT_
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
@@ -94,7 +94,12 @@ import kotlin.math.min
 class LongTupleDescriptor
 private constructor(
 	mutability: Mutability
-) : NumericTupleDescriptor(mutability, null, IntegerSlots::class.java)
+) : NumericTupleDescriptor(
+	mutability,
+	null,
+	IntegerSlots::class.java,
+	Long.MIN_VALUE,
+	Long.MAX_VALUE)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -141,21 +146,15 @@ private constructor(
 	{
 		val newElementStrong = newElement as AvailObject
 		val originalSize = self.tupleSize
-		if (!newElementStrong.isLong)
+		if (!newElementStrong.isLong || originalSize >= maximumCopySize)
 		{
-			// Transition to a tree tuple because it's not a long.
-			val singleton = tuple(newElement)
-			return self.concatenateWith(singleton, canDestroy)
+			// Transition to a tree tuple because it's not a long or the tuple
+			// is too big.
+			return self.concatenateWith(optimizedTuple(newElement), canDestroy)
 		}
 		val longValue = newElementStrong.extractLong
-		if (originalSize >= maximumCopySize)
-		{
-			// Transition to a tree tuple because it's too big.
-			val singleton: A_Tuple = generateLongTupleFrom(1) { longValue }
-			return self.concatenateWith(singleton, canDestroy)
-		}
 		val newSize = originalSize + 1
-		// Copy to a larger LongTupleDescriptor.
+		// always copy to a larger LongTupleDescriptor.
 		val result = newLike(mutable, self, 0, 1)
 		result[LONG_AT_, newSize] = longValue
 		result[HASH_OR_ZERO] = 0

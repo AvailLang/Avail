@@ -71,6 +71,8 @@ import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.Primitive.PrimitiveHolder
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByClassName
+import avail.interpreter.Primitive.Result.FAILURE
+import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.afterAttemptPrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.argsBufferField
@@ -81,7 +83,6 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -995,18 +996,14 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	/**
 	 * Attempt to generate a simplified, faster invocation of the given constant
 	 * function, with the given argument restrictions.  The arguments will be on
-	 * the stack, the last-pushed one at stackp.  If this code generation
-	 * attempt is successful, code will be generated to invoke the given
-	 * function, and if it completes without reification, to check the return
-	 * result if it's not already guaranteed correct.  The unchecked value will
-	 * be written into the semantic value for the stack slot for when the pc is
-	 * the next instruction minus one, to distinguish it from the checked value
-	 * (same slot, but for when the pc is the next instruction).
+	 * the stack, the last-pushed one at stackp.  Return null to fall back
+	 * statically to a regular invocation if the primitive can't guarantee to
+	 * meet the strengthened type at this call site.  Likewise fall back if the
+	 * primitive might fail or suspend.
 	 *
-	 * If reification happens, the continuation that will be produced at runtime
-	 * should be of the simple L1 form, using the [unoptimizedChunk].  It should
-	 * have the expected type pushed on the stack in preparation for checking
-	 * against the return type, once the continuation is "returned into".
+	 * If this code generation attempt is successful, return a
+	 * [TypeRestriction], indicating the guaranteed result type for the call.
+	 * An invocation will be emitted to the [L2SimpleTranslator] in this case.
 	 */
 	open fun attemptToGenerateSimpleInvocation(
 		simpleTranslator: L2SimpleTranslator,
@@ -1026,25 +1023,90 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			|| hasFlag(CanSwitchContinuations)
 			|| hasFlag(CanSuspend)
 			|| hasFlag(Invokes)
-			|| hasFlag(Unknown)
-			|| fallibilityForArgumentTypes(argTypes) != CallSiteCannotFail)
+			|| hasFlag(Unknown))
 		{
-			// The primitive might fail.
+			// The primitive might suspend or invoke.  Fall back to a general
+			// invocation.
 			return null
 		}
-		// The primitive cannot fail here.
 		val guaranteedType = returnTypeGuaranteedByVM(rawFunction, argTypes)
 		if (!guaranteedType.isSubtypeOf(expectedType))
 		{
 			// The result isn't strong enough to satisfy the expectedType.
 			return null
 		}
-		simpleTranslator.add(
-			L2Simple_RunInfalliblePrimitiveNoCheck(
-				simpleTranslator.stackp,
-				functionIfKnown,
-				rawFunction))
-		return boxedRestrictionForType(guaranteedType)
+		when (fallibilityForArgumentTypes(argTypes))
+		{
+			CallSiteCanFail ->
+			{
+				// This primitive invocation might fail.  However, this might be
+				// a very rare situation.  If the primitive has no side-effect
+				// on failure, it may be beneficial to just try it, falling back
+				// to a general invocation dynamically – which re-attempts the
+				// primitive.
+				val nilpotentAttempt = simplePrimitiveNilpotentInvocation(
+					simpleTranslator,
+					functionIfKnown,
+					rawFunction,
+					argRestrictions,
+					expectedType)
+				if (nilpotentAttempt !== null)
+				{
+					return simpleTranslator.generateGeneralInvocation(
+						nilpotentAttempt,
+						functionIfKnown,
+						expectedType)
+				}
+				// It can fail, but there's no nilpotent function to invoke.
+				// Fall back to a general invocation.
+				return null
+			}
+			CallSiteCannotFail ->
+			{
+				// The primitive cannot fail.
+				simpleTranslator.add(
+					L2Simple_RunInfalliblePrimitiveNoCheck(
+						simpleTranslator.stackp,
+						functionIfKnown,
+						rawFunction))
+				return boxedRestrictionForType(guaranteedType)
+			}
+			else ->
+			{
+				// Fall back to a general invocation.
+				return null
+			}
+		}
+	}
+
+	/**
+	 * This call site may fail.  The result type must have been verified strong
+	 * enough for this call site.  Answer a function that will attempt to run a
+	 * specialized version of the fallible primitive, answering the [Result].
+	 * This will be plugged into the L2Simple code in such a way that if the
+	 * primitive fails, a full invocation will take place instead.
+	 *
+	 * Answer null if the fallible primitive invocation should not happen this
+	 * way, which will cause a regular function invocation to occur instead.
+	 */
+	open fun simplePrimitiveNilpotentInvocation(
+		simpleTranslator: L2SimpleTranslator,
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): ((Interpreter)->Result)?
+	{
+		functionIfKnown ?: return null
+		return { interpreter ->
+			// At this point, the arguments have been pushed in the interpreter.
+			val result = interpreter.afterAttemptPrimitive(
+				this@Primitive,
+				interpreter.beforeAttemptPrimitive(this@Primitive),
+				attempt(interpreter))
+			assert(result == SUCCESS || result == FAILURE)
+			result
+		}
 	}
 
 	/**

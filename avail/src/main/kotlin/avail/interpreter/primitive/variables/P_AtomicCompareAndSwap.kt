@@ -35,6 +35,7 @@ package avail.interpreter.primitive.variables
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -60,7 +61,9 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator.Companion.edgeTo
 
@@ -139,6 +142,48 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 			functionToCallReg, arguments, false, callSiteHelper)
 
 		return true
+	}
+
+	/**
+	 * Override to produce special code for this primitive, if it can be shown
+	 * statically that the value being written is of the correct type.
+	 */
+	override fun simplePrimitiveNilpotentInvocation(
+		simpleTranslator: L2SimpleTranslator,
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): ((Interpreter)->Result)?
+	{
+		val variableType = argRestrictions[0].type
+		//val referenceType = argRestrictions[1].type
+		val newValueType = argRestrictions[2].type
+
+		assert(variableType.isSubtypeOf(mostGeneralVariableType))
+		val contentType = variableType.writeType
+		if (!newValueType.isSubtypeOf(contentType))
+		{
+			return null
+		}
+		// The value being written doesn't need to be type checked at runtime.
+		return { interpreter ->
+			val (variable, reference, newValue) = interpreter.argsBuffer
+			try {
+				interpreter.primitiveSuccess(
+					objectFromBoolean(
+						variable.compareAndSwapValuesNoCheck(
+							reference, newValue)))
+			}
+			catch (e: VariableGetException)
+			{
+				interpreter.primitiveFailure(e)
+			}
+			catch (e: VariableSetException)
+			{
+				interpreter.primitiveFailure(e)
+			}
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -2121,6 +2121,12 @@ abstract class AbstractDescriptor protected constructor (
 		value: A_BasicObject)
 
 	@Throws(VariableGetException::class, VariableSetException::class)
+	abstract fun o_AtomicAddToMapNoCheck (
+		self: AvailObject,
+		key: A_BasicObject,
+		value: A_BasicObject)
+
+	@Throws(VariableGetException::class, VariableSetException::class)
 	abstract fun o_AtomicRemoveFromMap (
 		self: AvailObject,
 		key: A_BasicObject)

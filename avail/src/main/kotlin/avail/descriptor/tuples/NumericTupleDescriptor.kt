@@ -32,10 +32,20 @@
 package avail.descriptor.tuples
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
+import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
+import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
+import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
+import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * `NumericTupleDescriptor` has Avail tuples of integers as its instances. The
@@ -54,17 +64,76 @@ import avail.descriptor.representation.ObjectSlotsEnum
  * @param integerSlotsEnumClass
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
  *   object's object slots
+ * @param minimumSupportedValue
+ *   The smallest [Long] that can be stored in an object using this descriptor.
+ * @param maximumSupportedValue
+ *   The largest [Long] that can be stored in an object using this descriptor.
  */
 abstract class NumericTupleDescriptor
 protected constructor(
 	mutability: Mutability,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum>
-) : TupleDescriptor(mutability, objectSlotsEnumClass, integerSlotsEnumClass)
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>,
+	val minimumSupportedValue: Long,
+	val maximumSupportedValue: Long
+) : TupleDescriptor(
+	mutability,
+	objectSlotsEnumClass,
+	integerSlotsEnumClass)
 {
 	abstract override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 
 	abstract override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 
 	override fun o_DummyElement(self: AvailObject): AvailObject = zero
+
+	/** Subclasses need to implement this. */
+	abstract override fun o_AppendCanDestroy(
+		self: AvailObject,
+		newElement: A_BasicObject,
+		canDestroy: Boolean): A_Tuple
+
+	/**
+	 * This is the fallback mechanism for appending a long to a numeric tuple.
+	 * The subclass has already failed to extend `self` while maintaining the
+	 * same representation because the value is out of range, so broaden it to
+	 * use a descriptor that allows the new value as well.
+	 *
+	 * @param self
+	 *   The numeric tuple whose descriptor is the receiver.
+	 * @param newLong
+	 *   The [Long] to be append to the tuple.
+	 * @return
+	 *   A tuple with suitable representation, containing the original elements
+	 *   of [self] and one additional element, [newLong].
+	 */
+	protected fun appendLongByBroadening(
+		self: AvailObject,
+		newLong: Long
+	): A_Tuple
+	{
+		val min = min(minimumSupportedValue, newLong)
+		val max = max(maximumSupportedValue, newLong)
+		val newSize = self.tupleSize + 1
+		return when
+		{
+			min >= 0 && max <= 0xF -> generateNybbleTupleFrom(newSize) {
+				if (it == newSize) newLong.toInt()
+				else self.tupleIntAt(it)
+			}
+			min >= 0 && max <= 0xFF -> generateByteTupleFrom(newSize) {
+				if (it == newSize) newLong.toInt()
+				else self.tupleIntAt(it)
+			}
+			min >= -0x8000_0000 && max <= 0x7FFF_FFFF ->
+				generateIntTupleFrom(newSize) {
+					if (it == newSize) newLong.toInt()
+					else self.tupleIntAt(it)
+				}
+			else -> generateLongTupleFrom(newSize) {
+				if (it == newSize) newLong
+				else self.tupleLongAt(it)
+			}
+		}
+	}
 }

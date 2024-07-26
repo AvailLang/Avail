@@ -61,6 +61,9 @@ import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTu
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.TwentyOneBitStringDescriptor.IntegerSlots.RAW_LONGS_
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 import kotlin.math.max
 import kotlin.math.min
 
@@ -538,8 +541,18 @@ class TwentyOneBitStringDescriptor private constructor(
 		 * @return
 		 *   The new tuple, initialized to null characters (code point 0).
 		 */
-		private fun mutableTwentyOneBitStringOfSize(size: Int): AvailObject =
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun mutableTwentyOneBitStringOfSize(size: Int): AvailObject =
 			descriptorFor(MUTABLE, size).create((size + 2).div3)
+
+		/** The [CheckedMethod] for [mutableTwentyOneBitStringOfSize]. */
+		val createUninitializedTwentyOneBitStringMethod =
+			staticMethod(
+				TwentyOneBitStringDescriptor::class.java,
+				::mutableTwentyOneBitStringOfSize.name,
+				AvailObject::class.java,
+				Int::class.javaPrimitiveType!!)
 
 		/**
 		 * Answer the descriptor that has the specified mutability flag and is
@@ -636,7 +649,8 @@ class TwentyOneBitStringDescriptor private constructor(
 		}
 
 		/**
-		 * Answer a mutable copy of object that also only holds 21-bit characters.
+		 * Answer a mutable copy of object that also only holds 21-bit
+		 * characters.
 		 *
 		 * @param self
 		 *   A string to copy, in any representation.

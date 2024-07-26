@@ -36,13 +36,9 @@ import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
-import avail.optimizer.L2ControlFlowGraph
-import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.cast
 
 /**
  * `L2WriteOperand` abstracts the capabilities of actual register write
@@ -266,28 +262,6 @@ constructor(
 	override fun appendTo(builder: StringBuilder)
 	{
 		builder.append("→").append(registerString())
-	}
-
-	/**
-	 * The [L2SemanticValue]s associated with this write are no longer relevant
-	 * to the [L2ControlFlowGraph].  Replace them with a single dummy value
-	 * associated with the [L2Register] being written.
-	 *
-	 * @param generator
-	 *   The [L2GeneratorInterface] that's used to generate unique ids.
-	 * @param registerToValueMap
-	 *   A map from each encountered [L2Register] to an [L2SemanticDummy] that
-	 *   is generated for it as needed.
-	 */
-	@Deprecated("TODO Remove")
-	fun clearSemanticValues(
-		generator: L2GeneratorInterface,
-		registerToValueMap: MutableMap<L2Register<*>, L2SemanticValue<*>>)
-	{
-		semanticValues = setOf(
-			registerToValueMap.computeIfAbsent(register) {
-				kind.createSemanticDummy(generator)
-			}.cast())
 	}
 
 	override fun postOptimizationCleanup()

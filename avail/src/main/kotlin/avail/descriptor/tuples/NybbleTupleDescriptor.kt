@@ -32,10 +32,7 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.character.A_Character.Companion.codePoint
-import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.functions.CompiledCodeDescriptor
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.extractNybble
 import avail.descriptor.numbers.A_Number.Companion.isInt
@@ -62,17 +59,13 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
-import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
-import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
 import avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots
 import avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.NybbleTupleDescriptor.IntegerSlots.RAW_LONG_AT_
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
-import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.defaultType
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -113,10 +106,16 @@ import kotlin.math.min
  *   The number of nybbles of the last `long` [integer
  *   slot][IntegerSlots.RAW_LONG_AT_] that are not considered part of the tuple.
  */
-class NybbleTupleDescriptor private constructor(
+class NybbleTupleDescriptor
+private constructor(
 	mutability: Mutability,
-	private val unusedNybblesOfLastLong: Int) : NumericTupleDescriptor(
-		mutability, null, IntegerSlots::class.java)
+	private val unusedNybblesOfLastLong: Int
+) : NumericTupleDescriptor(
+	mutability,
+	null,
+	IntegerSlots::class.java,
+	0L,
+	15L)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -205,41 +204,20 @@ class NybbleTupleDescriptor private constructor(
 			// of which kind of tuple to create.  It'll probably be a good
 			// guess, and at worst we switch to a more general form when the
 			// second element shows up.
-			when
-			{
-				strongNewElement.isCharacter ->
-					return when (val codePoint = strongNewElement.codePoint)
-					{
-						in 0 .. 0xFF -> generateByteString(1) { codePoint }
-						in 0 .. 0xFFFF ->
-							generateTwoByteString(1) { codePoint.toUShort() }
-						else -> tuple(strongNewElement)
-					}
-				strongNewElement.isLong ->
-					return when (val longValue = strongNewElement.extractLong)
-					{
-						in 0..0xF -> generateNybbleTupleFrom(1) {
-							longValue.toInt()
-						}
-						in 0 .. 0xFF -> generateByteTupleFrom(1) {
-							longValue.toInt()
-						}
-						in -0x8000_0000 .. 0x7FFF_FFFF ->
-							generateIntTupleFrom(1) { longValue.toInt() }
-						else -> generateLongTupleFrom(1) { longValue }
-					}
-			}
+			return optimizedTuple(strongNewElement)
 		}
-		if (originalSize < maximumCopySize && strongNewElement.isInt)
+		if (originalSize < maximumCopySize && strongNewElement.isLong)
 		{
-			val intValue = strongNewElement.extractInt
-			if (intValue and 15.inv() != 0)
-			{
-				// Transition to a tree tuple.
-				val singleton = tuple(strongNewElement)
-				return self.concatenateWith(singleton, canDestroy)
-			}
+			val longValue = strongNewElement.extractLong
 			val newSize = originalSize + 1
+			if (longValue and 15.inv() != 0L)
+			{
+				// The result can't stay a nybble tuple, but it's still small
+				// enough that we can upgrade it.
+				return appendLongByBroadening(
+					self, strongNewElement.extractLong)
+			}
+			// Extend the nybble tuple.
 			val result: AvailObject
 			if (isMutable && canDestroy && originalSize and 15 != 0)
 			{
@@ -255,13 +233,13 @@ class NybbleTupleDescriptor private constructor(
 					0,
 					if (originalSize and 15 == 0) 1 else 0)
 			}
-			setNybble(result, newSize, intValue.toByte())
+			setNybble(result, newSize, longValue.toByte())
 			result[HASH_OR_ZERO] = 0
 			return result
 		}
 		// Transition to a tree tuple.
-		val singleton = tuple(strongNewElement)
-		return self.concatenateWith(singleton, canDestroy)
+		return self.concatenateWith(
+			optimizedTuple(strongNewElement), canDestroy)
 	}
 
 	// Answer approximately how many bits per entry are taken up by this
