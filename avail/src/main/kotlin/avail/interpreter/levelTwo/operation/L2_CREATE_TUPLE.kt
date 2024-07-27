@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.character.A_Character.Companion.codePoint
+import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.createUninitializedByteStringMethod
@@ -46,9 +47,14 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple3Method
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple4Method
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple5Method
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArrayMethod
+import avail.descriptor.tuples.StringDescriptor.Companion.generateStringFromCodePoints
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtPuttingMethod
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.createUninitializedTwentyOneBitStringMethod
 import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.createUninitializedTwoByteStringMethod
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instance
+import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeUnion
@@ -121,27 +127,66 @@ class L2_CREATE_TUPLE(
 		{
 			unionType.isSubtypeOf(Types.CHARACTER.o) ->
 			{
+				val maxCodepoint = elements.elements
+					.map(L2ReadBoxedOperand::type)
+					.filter(A_Type::isEnumeration)
+					.maxOfOrNull { it.instances.maxOf { c -> c.codePoint} }
+				val constantEntries = elements.elements.map { read ->
+					read.type().run {
+						if (instanceCount.equals(one)) instance
+						else null
+					}
+				}
+				if (constantEntries.any { it !== null })
+				{
+					// Some of the elements are constant.  Pre-build a constant
+					// string with those values filled in, and dummy characters
+					// for the rest, then generate code to push that string and
+					// perform necessary updates on it (the first update will
+					// clone it as mutable).
+					val template = generateStringFromCodePoints(size) {
+						constantEntries[it]?.codePoint ?: 0
+					}.makeShared()
+					translator.literal(method, template)
+					// :: template-string
+					elements.elements.forEachIndexed { zeroIndex, read ->
+						if (constantEntries[zeroIndex] === null)
+						{
+							// Replace the dummy character, cloning the template
+							// and even changing its representation if needed.
+							translator.intConstant(method, zeroIndex + 1)
+							translator.load(method, read.register())
+							tupleAtPuttingMethod.generateCall(method)
+						}
+					}
+					// :: string
+					translator.store(method, tuple.register())
+					return
+				}
+				// There weren't any literal character elements.
 				translator.intConstant(method, size)
 				// :: size
-				if (elements.elements.any { read ->
-						read.type().run {
-							isEnumeration &&
-								instances.any { c -> c.codePoint > 255 }
-						}
-					})
+				if (maxCodepoint === null || maxCodepoint <= 0xFF)
 				{
-					// At least one element type is an enumeration that contains
-					// a non-Latin-1 character.  Not a perfect indicator by a
-					// long shot, but probably a pretty good predictor that this
-					// should start out as a two-byte-string.
+					// There are no enumeration character types present, or
+					// they're all single-bytes. Guess that we're creating a
+					// byte string, although it may have to be upgraded.
+					createUninitializedByteStringMethod.generateCall(method)
+					// :: uninitiaalized-byte-string
+				}
+				else if (maxCodepoint <= 0xFFFF)
+				{
+					// A two-byte character may be present.
 					createUninitializedTwoByteStringMethod.generateCall(method)
 					// :: uninitialized-two-byte-string
 				}
 				else
 				{
-					// Otherwise, just guess that it'll stay a byte-string.
-					createUninitializedByteStringMethod.generateCall(method)
-					// :: uninitialized-byte-string
+					// One of the enumerations for an element indicated a
+					// possible value beyond the 16-bit range.
+					createUninitializedTwentyOneBitStringMethod.generateCall(
+						method)
+					// :: uninitialized-21-bit-string
 				}
 			}
 			unionType.isSubtypeOf(i64) ->

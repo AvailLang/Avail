@@ -40,6 +40,7 @@ import avail.AvailRuntime.HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.numArgs
+import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
@@ -63,12 +64,19 @@ import avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
+import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
+import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
+import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import avail.descriptor.tuples.StringDescriptor.Companion.generateStringFromCodePoints
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeUnion
@@ -89,6 +97,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
+import avail.interpreter.Primitive.Result.FAILURE
 import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
@@ -728,9 +737,118 @@ class L2Simple_MakeTupleN(
 	): StackReifier?
 	{
 		registers[to] = generateObjectTupleFrom(tupleSize) { i ->
-			val value = registers[to - i + 1]
-			value
+			registers[to - i + 1]
 		}
+		return null
+	}
+}
+
+/**
+ * Create an N-element tuple from `registers[to]`, `registers[to-1]`,...
+ * `registers[to-N+1]`, and write it back to `registers[to]`.  The registers are
+ * known to contain only nybbles.
+ */
+class L2Simple_MakeNybbleTupleN(
+	val tupleSize: Int,
+	val to: Int
+) : L2SimpleInstruction()
+{
+	override fun step(
+		registers: Array<AvailObject>,
+		interpreter: Interpreter
+	): StackReifier?
+	{
+		registers[to] = generateNybbleTupleFrom(tupleSize) { i ->
+			registers[to - i + 1].extractInt
+		}
+		return null
+	}
+}
+
+/**
+ * Create an N-element tuple from `registers[to]`, `registers[to-1]`,...
+ * `registers[to-N+1]`, and write it back to `registers[to]`.  The registers are
+ * known to contain only bytes.
+ */
+class L2Simple_MakeByteTupleN(
+	val tupleSize: Int,
+	val to: Int
+) : L2SimpleInstruction()
+{
+	override fun step(
+		registers: Array<AvailObject>,
+		interpreter: Interpreter
+	): StackReifier?
+	{
+		registers[to] = generateByteTupleFrom(tupleSize) { i ->
+			registers[to - i + 1].extractInt
+		}
+		return null
+	}
+}
+
+/**
+ * Create an N-element tuple from `registers[to]`, `registers[to-1]`,...
+ * `registers[to-N+1]`, and write it back to `registers[to]`.  The registers are
+ * known to contain only [Int]s.
+ */
+class L2Simple_MakeIntTupleN(
+	val tupleSize: Int,
+	val to: Int
+) : L2SimpleInstruction()
+{
+	override fun step(
+		registers: Array<AvailObject>,
+		interpreter: Interpreter
+	): StackReifier?
+	{
+		registers[to] = generateIntTupleFrom(tupleSize) { i ->
+			registers[to - i + 1].extractInt
+		}
+		return null
+	}
+}
+
+/**
+ * Create an N-element tuple from `registers[to]`, `registers[to-1]`,...
+ * `registers[to-N+1]`, and write it back to `registers[to]`.  The registers are
+ * known to contain only longs.
+ */
+class L2Simple_MakeLongTupleN(
+	val tupleSize: Int,
+	val to: Int
+) : L2SimpleInstruction()
+{
+	override fun step(
+		registers: Array<AvailObject>,
+		interpreter: Interpreter
+	): StackReifier?
+	{
+		registers[to] = generateLongTupleFrom(tupleSize) { i ->
+			registers[to - i + 1].extractLong
+		}
+		return null
+	}
+}
+
+/**
+ * Create an N-element tuple from `registers[to]`, `registers[to-1]`,...
+ * `registers[to-N+1]`, and write it back to `registers[to]`.  The registers are
+ * known to contain only characters.
+ */
+class L2Simple_MakeCharacterTupleN(
+	val tupleSize: Int,
+	val to: Int
+) : L2SimpleInstruction()
+{
+	override fun step(
+		registers: Array<AvailObject>,
+		interpreter: Interpreter
+	): StackReifier?
+	{
+		registers[to] = generateStringFromCodePoints(tupleSize) { i ->
+			registers[to - i + 1].codePoint
+		} as AvailObject
 		return null
 	}
 }
@@ -1266,7 +1384,7 @@ constructor(
  * Invoke a constant [A_Function], perhaps the result of a lookup that was
  * proven at translation time to be monomorphic.
  */
-class L2Simple_Invoke
+open class L2Simple_Invoke
 constructor(
 	stackp: Int,
 	pc: Int,
@@ -1300,6 +1418,70 @@ constructor(
 			args.add(registers[i])
 		}
 		return invocationHelper(interpreter, registers, function)
+	}
+}
+
+
+/**
+ * Execute an arbitrary Kotlin function that was provided by a [Primitive] for a
+ * particular call site.  The primitive may have chosen to bypass type checks
+ * that are known to statically hold, for example.  The function supplied by the
+ * primitive should either set the latestResult of the interpreter and return
+ * SUCCESS, or have no side-effect and return FAILURE.
+ *
+ * When the instruction is executed, first the function is invoked, and if it
+ * succeeds, the latestResult is written to the register at stackp, and the step
+ * is done.  Otherwise the function failed, so we do a general invocation, and
+ * assume the failed operation had no side-effect, so the general invocation's
+ * reattempt of the primitive shouldn't be harmful.  If a failed primitive would
+ * have a non-nilpotent side-effect, the primitive should answer a suitable
+ * Kotlin function that avoids that, or just null.
+ */
+class L2Simple_InvokeIfNilpotentAttemptFails
+constructor(
+	stackp: Int,
+	pc: Int,
+	nextOffset: Int,
+	liveIndices: Array<Int>,
+	expectedType: A_Type,
+	mustCheck: Boolean,
+	function: A_Function,
+	val nilpotentAttempt: (Interpreter)->Primitive.Result
+) : L2Simple_Invoke(
+	stackp,
+	pc,
+	nextOffset,
+	liveIndices,
+	expectedType,
+	mustCheck,
+	function)
+{
+	override fun step(
+		registers: Array<AvailObject>,
+		interpreter: Interpreter
+	): StackReifier?
+	{
+		val args = interpreter.argsBuffer
+		args.clear()
+		for (i in stackp downTo lastArgumentPosition)
+		{
+			args.add(registers[i])
+		}
+		interpreter.function = function
+		// First try the nilpotent function supplied by the primitive.
+		val result = nilpotentAttempt(interpreter)
+		interpreter.function = registers[0]
+		if (result === SUCCESS)
+		{
+			// By far the most common case: Fast path succeeded.  Record the
+			// returned value.
+			registers[stackp] = interpreter.getLatestResult()
+			return null
+		}
+		// Slower path: The primitive failed.  Fall back to L2Simple_Invoke's
+		// behavior, including retrying the primitive.
+		assert(result === FAILURE)
+		return super.step(registers, interpreter)
 	}
 }
 

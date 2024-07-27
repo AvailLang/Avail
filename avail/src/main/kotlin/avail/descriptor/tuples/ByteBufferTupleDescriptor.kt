@@ -58,7 +58,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteBufferTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteBufferTupleDescriptor.ObjectSlots.BYTE_BUFFER
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.defaultType
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -86,9 +86,15 @@ import kotlin.experimental.and
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class ByteBufferTupleDescriptor constructor(mutability: Mutability)
-	: NumericTupleDescriptor(
-		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
+class ByteBufferTupleDescriptor
+private constructor(
+	mutability: Mutability
+) : NumericTupleDescriptor(
+	mutability,
+	ObjectSlots::class.java,
+	IntegerSlots::class.java,
+	0L,
+	255L)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -161,8 +167,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 			}
 		}
 		// Transition to a tree tuple.
-		val singleton = tuple(newElement)
-		return self.concatenateWith(singleton, canDestroy)
+		return self.concatenateWith(optimizedTuple(newElement), canDestroy)
 	}
 
 	override fun o_ByteBuffer(self: AvailObject): ByteBuffer =

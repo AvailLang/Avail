@@ -32,17 +32,26 @@
 
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.keyType
+import avail.descriptor.types.A_Type.Companion.sizeRange
+import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.A_Type.Companion.valueType
+import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.variables.A_Variable
 import avail.exceptions.AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE
@@ -54,6 +63,8 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.effects.LoadingEffectToRunPrimitive
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 
 /**
  * **Primitive:** Atomically read and update the map in the specified
@@ -85,6 +96,46 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.ADD_TO_MAP_VARIABLE, variable, key, value))
 		return interpreter.primitiveSuccess(nil)
+	}
+
+	/**
+	 * Override to produce special code for this primitive, if it can be shown
+	 * statically that the value being written is of the correct type.
+	 */
+	override fun simplePrimitiveNilpotentInvocation(
+		simpleTranslator: L2SimpleTranslator,
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): ((Interpreter)->Result)?
+	{
+		val variableType = argRestrictions[0].type
+		val keyType = argRestrictions[1].type
+		val valueType = argRestrictions[2].type
+
+		assert(variableType.isSubtypeOf(mostGeneralVariableType))
+		val contentType = variableType.writeType
+		if (!contentType.isMapType) return null
+		if (!keyType.isSubtypeOf(contentType.keyType)) return null
+		if (!valueType.isSubtypeOf(contentType.valueType)) return null
+		if (contentType.sizeRange.upperBound.isFinite) return null
+		// The value being written doesn't need to be type checked at runtime.
+		return { interpreter ->
+			val (variable, newKey, newValue) = interpreter.argsBuffer
+			try {
+				variable.atomicAddToMapNoCheck(newKey, newValue)
+				interpreter.primitiveSuccess(nil)
+			}
+			catch (e: VariableGetException)
+			{
+				interpreter.primitiveFailure(e)
+			}
+			catch (e: VariableSetException)
+			{
+				interpreter.primitiveFailure(e)
+			}
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

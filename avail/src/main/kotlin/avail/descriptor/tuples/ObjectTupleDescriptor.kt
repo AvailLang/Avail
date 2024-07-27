@@ -32,6 +32,9 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
+import avail.descriptor.character.A_Character.Companion.codePoint
+import avail.descriptor.character.A_Character.Companion.isCharacter
+import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.representation.A_BasicObject
@@ -48,8 +51,15 @@ import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
+import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
+import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
+import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
+import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_
+import avail.descriptor.tuples.TwentyOneBitStringDescriptor.Companion.generateTwentyOneBitString
+import avail.descriptor.tuples.TwoByteStringDescriptor.Companion.generateTwoByteString
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -632,6 +642,39 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			"tuple",
 			A_Tuple::class.java,
 			A_BasicObject::class.java)
+
+		/**
+		 * Given a single element, create a tuple using a fully optimized
+		 * descriptor, based on the element's value.
+		 */
+		fun optimizedTuple(element1: AvailObject): A_Tuple
+		{
+			return when
+			{
+				element1.isCharacter ->
+					when (val codePoint = element1.codePoint)
+					{
+						in 0 .. 0xFF -> generateByteString(1) { codePoint }
+						in 0 .. 0xFFFF ->
+							generateTwoByteString(1) { codePoint.toUShort() }
+						else -> generateTwentyOneBitString(1) { codePoint }
+					}
+				element1.isLong ->
+					when (val longValue = element1.extractLong)
+					{
+						in 0..0xF -> generateNybbleTupleFrom(1) {
+							longValue.toInt()
+						}
+						in 0 .. 0xFF -> generateByteTupleFrom(1) {
+							longValue.toInt()
+						}
+						in -0x8000_0000 .. 0x7FFF_FFFF ->
+							generateIntTupleFrom(1) { longValue.toInt() }
+						else -> generateLongTupleFrom(1) { longValue }
+					}
+				else -> tuple(element1)
+			}
+		}
 
 		/**
 		 * Create a tuple with the specified two elements. The elements are not

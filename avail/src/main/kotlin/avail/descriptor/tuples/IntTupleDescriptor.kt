@@ -33,8 +33,10 @@ package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -59,7 +61,7 @@ import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.Companion.HASH_OR
 import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
@@ -100,10 +102,16 @@ import kotlin.math.min
  *   The number of ints of the last `long` that do not participate in the
  *   representation of the [tuple][IntTupleDescriptor]. Must be 0 or 1.
  */
-class IntTupleDescriptor private constructor(
+class IntTupleDescriptor
+private constructor(
 	mutability: Mutability,
-	private val unusedIntsOfLastLong: Int) : NumericTupleDescriptor(
-		mutability, null, IntegerSlots::class.java)
+	private val unusedIntsOfLastLong: Int
+) : NumericTupleDescriptor(
+	mutability,
+	null,
+	IntegerSlots::class.java,
+	Int.MIN_VALUE.toLong(),
+	Int.MAX_VALUE.toLong())
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -150,18 +158,19 @@ class IntTupleDescriptor private constructor(
 	{
 		val originalSize = self.tupleSize
 		val newElementStrong = newElement as AvailObject
-		if (!newElementStrong.isInt)
+		if (!newElementStrong.isLong || originalSize >= maximumCopySize)
 		{
-			// Transition to a tree tuple because it's not an int.
-			val singleton = tuple(newElement)
-			return self.concatenateWith(singleton, canDestroy)
+			// Transition to a tree tuple because it's not a long or it's too
+			// big.
+			return self.concatenateWith(
+				optimizedTuple(newElementStrong), canDestroy)
 		}
-		val intValue = newElementStrong.extractInt
-		if (originalSize >= maximumCopySize)
+		val longValue = newElementStrong.extractLong
+		val intValue = longValue.toInt()
+		if (intValue.toLong() != longValue)
 		{
-			// Transition to a tree tuple because it's too big.
-			val singleton: A_Tuple = generateIntTupleFrom(1) { intValue }
-			return self.concatenateWith(singleton, canDestroy)
+			// It doesn't fit in an int, so broaden it.
+			return appendLongByBroadening(self, longValue)
 		}
 		val newSize = originalSize + 1
 		if (isMutable && canDestroy && originalSize and 1 != 0)

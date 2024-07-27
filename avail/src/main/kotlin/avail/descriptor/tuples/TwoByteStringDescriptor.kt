@@ -52,7 +52,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
-import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
@@ -562,7 +561,7 @@ class TwoByteStringDescriptor private constructor(
 		fun mutableTwoByteStringOfSize(size: Int): AvailObject =
 			descriptorFor(Mutability.MUTABLE, size).create(size + 3 shr 2)
 
-		/** The [CheckedMethod] for [mutableObjectOfSize]. */
+		/** The [CheckedMethod] for [mutableTwoByteStringOfSize]. */
 		val createUninitializedTwoByteStringMethod =
 			staticMethod(
 				TwoByteStringDescriptor::class.java,

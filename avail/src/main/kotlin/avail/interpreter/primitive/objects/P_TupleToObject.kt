@@ -147,7 +147,8 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+	): Boolean
 	{
 		// If we know the exact keys, we can statically determine the
 		// ObjectLayoutVariant to populate, and write the fields into the fixed

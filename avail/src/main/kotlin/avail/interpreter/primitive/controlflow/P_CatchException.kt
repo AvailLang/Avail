@@ -44,8 +44,8 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.exceptions.AvailErrorCode.E_HANDLER_SENTINEL
@@ -76,9 +76,9 @@ object P_CatchException : Primitive(
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		//val bodyBlock: A_Function = interpreter.argument(0);
+		//val bodyBlock: A_Function = interpreter.argument(0)
 		val handlerBlocks: A_Tuple = interpreter.argument(1)
-		//val ensureBlock: A_Function = interpreter.argument(2);
+		//val ensureBlock: A_Function = interpreter.argument(2)
 
 		val innerVariable = newVariableWithOuterType(failureVariableType)
 

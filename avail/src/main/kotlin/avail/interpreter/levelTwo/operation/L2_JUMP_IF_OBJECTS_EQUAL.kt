@@ -113,13 +113,11 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		}
 		restriction1.constantOrNull?.let { c1 ->
 			restriction2.constantOrNull?.let { c2 ->
-				if (c1.equals(c2))
-				{
-					// The restrictions say the values are the same constant, so
-					// it's always true.  Jump unconditionally to the true case.
-					regenerator.jumpTo(ifEqual.targetBlock())
-					return
-				}
+				// The restrictions say the values are both constants, so jump
+				// unconditionally based on whether those constants are equal.
+				if (c1.equals(c2)) regenerator.jumpTo(ifEqual.targetBlock())
+				else regenerator.jumpTo(ifNotEqual.targetBlock())
+				return
 			}
 		}
 		if (!first.restriction().containedByType(i32)
@@ -159,9 +157,8 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 		if (first.restriction().intersectsType(i32)
 			&& second.restriction().intersectsType(i32))
 		{
-			conditions.add(
-				unboxedIntCondition(
-					listOf(first.register(), second.register())))
+			conditions.add(unboxedIntCondition(listOf(first.register())))
+			conditions.add(unboxedIntCondition(listOf(second.register())))
 		}
 		return conditions
 	}

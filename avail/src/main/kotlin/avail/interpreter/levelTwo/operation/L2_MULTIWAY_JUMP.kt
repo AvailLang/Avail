@@ -96,9 +96,18 @@ import kotlin.math.min
  * second entry, jump to the second target, and so on.  If the integer is
  * greater than the last entry, jump to the N+1st target.
  *
+ * @property value
+ *   The [L2ReadIntOperand] providing the [Int] being dispatched.
+ * @property splitter
+ *   The [L2ArbitraryConstantOperand] holding the [AbstractMultiWaySplitter]
+ *   that determines how to jump.
+ * @param branchEdges
+ *   The [L2PcVectorOperand] contaaining the branch targets that the [splitter]
+ *   is supposed to dispatch to.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class L2_MULTIWAY_JUMP(
+class L2_MULTIWAY_JUMP
+constructor(
 	var value: L2ReadIntOperand,
 	var splitter: L2ArbitraryConstantOperand<AbstractMultiWaySplitter>,
 	@On(SUCCESS) var branchEdges: L2PcVectorOperand
@@ -278,7 +287,8 @@ class L2_MULTIWAY_JUMP(
  * without polluting code with logic for special uses (dispatching by [TypeTag]
  * or [ObjectLayoutVariant]).
  */
-abstract class AbstractMultiWaySplitter(
+abstract class AbstractMultiWaySplitter
+constructor(
 	val splitPoints: List<Int>)
 {
 	/**

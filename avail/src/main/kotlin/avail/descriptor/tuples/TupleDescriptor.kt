@@ -33,6 +33,7 @@ package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
+import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -47,7 +48,6 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IndirectionDescriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
@@ -674,7 +674,7 @@ protected constructor(
 		return SubrangeTupleDescriptor.createSubrange(self, start, size)
 	}
 
-	override fun o_DummyElement(self: AvailObject) = nil
+	override fun o_DummyElement(self: AvailObject) = falseObject as AvailObject
 
 	override fun o_ExtractNybbleFromTupleAt(
 		self: AvailObject, index: Int): Byte

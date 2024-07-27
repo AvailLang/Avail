@@ -89,9 +89,13 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The mutability of the new descriptor.
  */
-class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
-	: NumericTupleDescriptor(
-		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
+class IntegerIntervalTupleDescriptor
+private constructor(
+	mutability: Mutability
+) : TupleDescriptor(
+	mutability,
+	ObjectSlots::class.java,
+	IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.

@@ -332,6 +332,29 @@ interface A_Variable : A_ChunkDependable
 	fun atomicAddToMap(key: A_BasicObject, value: A_BasicObject)
 
 	/**
+	 * Extract the map from this variable, add the key → value binding to it,
+	 * and write it back into the variable.  Don't check the map's type before
+	 * writing it – assume it was already guaranteed statically.  Require the
+	 * key and values be compatible with the variable's map type.  Require that
+	 * the variable contains a map (or is unassigned), and that the map type's
+	 * maximum size is ∞, to ensure it will accept the new map.
+	 *
+	 * This is an atomic operation, so the update is serialized with respect
+	 * to other operations on this variable.
+	 *
+	 * @param key
+	 *   The key to add to the map.
+	 * @param value
+	 *   The value to add to the map.
+	 * @throws VariableGetException
+	 *   If the variable does not contain a map (i.e., it's unassigned).
+	 * @throws VariableSetException
+	 *    If the updated map cannot be written back.
+	 */
+	@Throws(VariableGetException::class, VariableSetException::class)
+	fun atomicAddToMapNoCheck(key: A_BasicObject, value: A_BasicObject)
+
+	/**
 	 * Extract the map from this variable, remove the key if present, and write
 	 * it back into the variable.
 	 *

@@ -33,9 +33,10 @@ package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import avail.descriptor.representation.A_BasicObject
@@ -44,6 +45,7 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLi
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableIntTuple
@@ -56,7 +58,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteTupleDescriptor.IntegerSlots.RAW_LONG_AT_
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.defaultType
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -94,10 +96,16 @@ import java.nio.ByteBuffer
  *   representation of the [byte tuple][ByteTupleDescriptor]. Must be between 0
  *   and 7.
  */
-class ByteTupleDescriptor private constructor(
+class ByteTupleDescriptor
+private constructor(
 	mutability: Mutability,
-	private val unusedBytesOfLastLong: Int) : NumericTupleDescriptor(
-		mutability, null, IntegerSlots::class.java)
+	private val unusedBytesOfLastLong: Int
+) : NumericTupleDescriptor(
+	mutability,
+	null,
+	IntegerSlots::class.java,
+	0L,
+	255L)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -144,34 +152,34 @@ class ByteTupleDescriptor private constructor(
 	{
 		val originalSize = self.tupleSize
 		val newElementStrong = newElement as AvailObject
-		if (originalSize >= maximumCopySize || !newElementStrong.isInt)
+		if (originalSize >= maximumCopySize || !newElementStrong.isLong)
 		{
 			// Transition to a tree tuple.
-			return self.concatenateWith(tuple(newElement), canDestroy)
+			return self.concatenateWith(
+				optimizedTuple(newElementStrong), canDestroy)
 		}
-		val intValue = newElementStrong.extractInt
-		if (intValue and 255.inv() != 0)
+		val longValue = newElementStrong.extractLong
+		if (longValue and 255.inv() != 0L)
 		{
-			// Transition to a tree tuple.
-			return self.concatenateWith(tuple(newElement), canDestroy)
+			// Broaden the kind of numeric tuple.
+			return super.appendLongByBroadening(self, longValue)
 		}
 		val newSize = originalSize + 1
 		if (isMutable && canDestroy && originalSize and 7 != 0)
 		{
 			// Enlarge it in place, using more of the final partial int field.
-			self.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
-			self.setByteSlot(RAW_LONG_AT_, newSize, intValue.toShort())
+			self.setDescriptor(descriptorFor(MUTABLE, newSize))
+			self.setByteSlot(RAW_LONG_AT_, newSize, longValue.toShort())
 			self[HASH_OR_ZERO] = 0
 			return self
 		}
 		// Copy to a potentially larger ByteTupleDescriptor.
 		val result = newLike(
-			descriptorFor(Mutability.MUTABLE, newSize),
+			descriptorFor(MUTABLE, newSize),
 			self,
 			0,
 			if (originalSize and 7 == 0) 1 else 0)
-		result.setByteSlot(
-			RAW_LONG_AT_, newSize, intValue.toShort())
+		result.setByteSlot(RAW_LONG_AT_, newSize, longValue.toShort())
 		result[HASH_OR_ZERO] = 0
 		return result
 	}
@@ -266,12 +274,12 @@ class ByteTupleDescriptor private constructor(
 			{
 				// We can reuse the receiver; it has enough int slots.
 				result = self
-				result.setDescriptor(descriptorFor(Mutability.MUTABLE, newSize))
+				result.setDescriptor(descriptorFor(MUTABLE, newSize))
 			}
 			else
 			{
 				result = newLike(
-					descriptorFor(Mutability.MUTABLE, newSize), self, 0, deltaSlots)
+					descriptorFor(MUTABLE, newSize), self, 0, deltaSlots)
 			}
 			var destination = size1 + 1
 			var source = 1
@@ -558,7 +566,7 @@ class ByteTupleDescriptor private constructor(
 		@JvmStatic
 		fun mutableObjectOfSize(size: Int): AvailObject
 		{
-			val descriptor = descriptorFor(Mutability.MUTABLE, size)
+			val descriptor = descriptorFor(MUTABLE, size)
 			assert(size + descriptor.unusedBytesOfLastLong and 7 == 0)
 			return descriptor.create(size + 7 shr 3)
 		}
@@ -623,7 +631,7 @@ class ByteTupleDescriptor private constructor(
 			for (excess in intArrayOf(0, 7, 6, 5, 4, 3, 2, 1))
 			{
 				descriptors[i++] =
-					ByteTupleDescriptor(Mutability.MUTABLE, excess)
+					ByteTupleDescriptor(MUTABLE, excess)
 				descriptors[i++] =
 					ByteTupleDescriptor(Mutability.IMMUTABLE, excess)
 				descriptors[i++] =
@@ -634,7 +642,7 @@ class ByteTupleDescriptor private constructor(
 
 	override fun mutable(): ByteTupleDescriptor =
 		descriptors[(8 - unusedBytesOfLastLong and 7) * 3
-					+ Mutability.MUTABLE.ordinal]!!
+					+ MUTABLE.ordinal]!!
 
 	override fun immutable(): ByteTupleDescriptor =
 		descriptors[(8 - unusedBytesOfLastLong and 7) * 3

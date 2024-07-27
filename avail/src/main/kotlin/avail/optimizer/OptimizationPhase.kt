@@ -233,6 +233,13 @@ internal enum class OptimizationPhase constructor(
 	ADJUST_EDGES_LEADING_TO_JUMPS(L2Optimizer::adjustEdgesLeadingToJumps),
 
 	/**
+	 * Find each branch instruction that has both of its outbound edges going to
+	 * the same target block.  Replace each such branch with a jump. Repeat
+	 * until there are no more such spurious branches remaining.
+	 */
+//	REMOVE_SPURIOUS_BRANCHING(L2Optimizer::removeSpuriousBranching),
+
+	/**
 	 * Having adjusted edges to avoid landing on [L2_JUMP]s, some blocks may
 	 * have become unreachable.
 	 */
