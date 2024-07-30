@@ -40,7 +40,6 @@ import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
@@ -117,13 +116,15 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class FunctionTypeDescriptor private constructor(mutability: Mutability)
-	: TypeDescriptor(
-		mutability,
-		TypeTag.FUNCTION_TYPE_TAG,
-		TypeTag.FUNCTION_TAG,
-		ObjectSlots::class.java,
-		IntegerSlots::class.java)
+class FunctionTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.FUNCTION_TYPE_TAG,
+	TypeTag.FUNCTION_TAG,
+	ObjectSlots::class.java,
+	IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -173,7 +174,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	public override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean = e === HASH_AND_MORE
+		e: AbstractSlotsEnum
+	): Boolean = e === HASH_AND_MORE
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -243,12 +245,12 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_AcceptsArgTypesFromFunctionType(
 		self: AvailObject,
 		functionType: A_Type
-	): Boolean = functionType.argsTupleType.isSubtypeOf(
-		self[ARGS_TUPLE_TYPE])
+	) = functionType.argsTupleType.isSubtypeOf(self[ARGS_TUPLE_TYPE])
 
 	override fun o_AcceptsListOfArgTypes(
 		self: AvailObject,
-		argTypes: List<A_Type>): Boolean
+		argTypes: List<A_Type>
+	): Boolean
 	{
 		val tupleType: A_Type = self[ARGS_TUPLE_TYPE]
 		var i = 1
@@ -266,7 +268,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_AcceptsListOfArgValues(
 		self: AvailObject,
-		argValues: List<A_BasicObject>): Boolean
+		argValues: List<A_BasicObject>
+	): Boolean
 	{
 		val tupleType: A_Type = self[ARGS_TUPLE_TYPE]
 		var i = 1
@@ -285,7 +288,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_AcceptsTupleOfArgTypes(
 		self: AvailObject,
-		argTypes: A_Tuple): Boolean
+		argTypes: A_Tuple
+	): Boolean
 	{
 		val tupleType: A_Type = self[ARGS_TUPLE_TYPE]
 		var i = 1
@@ -311,7 +315,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_CouldEverBeInvokedWith(
 		self: AvailObject,
-		argRestrictions: List<TypeRestriction>): Boolean
+		argRestrictions: List<TypeRestriction>
+	): Boolean
 	{
 		val tupleType: A_Type = self[ARGS_TUPLE_TYPE]
 		return (1..argRestrictions.size).all {
@@ -327,7 +332,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_EqualsFunctionType(
 		self: AvailObject,
-		aFunctionType: A_Type): Boolean
+		aFunctionType: A_Type
+	): Boolean
 	{
 		when
 		{
@@ -354,39 +360,53 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		return true
 	}
 
-	override fun o_Hash(self: AvailObject): Int =
-		self.synchronizeIf(isShared) { hash(self) }
+	/**
+	 * The hash value is stored raw in the object's [HASH_OR_ZERO] slot if it
+	 * has been computed, otherwise that slot is zero. If a zero is detected,
+	 * compute the hash and store it in hashOrZero.  If the computation produces
+	 * 0, use another non-zero constant instead.  We don't bother with volatile
+	 * access, because the calculation in multiple threads would produce the
+	 * same answer.
+	 *
+	 * @param self
+	 *   The object.
+	 * @return
+	 *   The hash.
+	 */
+	override fun o_Hash(self: AvailObject): Int
+	{
+		var hash = self[HASH_OR_ZERO]
+		if (hash == 0)
+		{
+			hash = AvailObject.combine4(
+				self[RETURN_TYPE].hash(),
+				self[DECLARED_EXCEPTIONS].hash(),
+				self[ARGS_TUPLE_TYPE].hash(),
+				0x10447107)
+			if (hash == 0) hash = 0x0A2F44AB
+			self[HASH_OR_ZERO] = hash
+		}
+		return hash
+	}
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfFunctionType(self)
 
 	override fun o_IsSupertypeOfFunctionType(
 		self: AvailObject,
-		aFunctionType: A_Type): Boolean
+		aFunctionType: A_Type
+	): Boolean
 	{
-		if (self.equals(aFunctionType))
-		{
-			return true
-		}
+		if (self.equals(aFunctionType)) return true
 		if (!aFunctionType.returnType.isSubtypeOf(self[RETURN_TYPE]))
-		{
 			return false
-		}
+		// A ⊆ B if everything A can throw was declared by B.
 		val inners: A_Set = self[DECLARED_EXCEPTIONS]
-		// A ⊆ B if everything A can throw was declared by B
-		each_outer@ for (outer in aFunctionType.declaredExceptions)
-		{
-			for (inner in inners)
-			{
-				if (outer.isSubtypeOf(inner))
-				{
-					continue@each_outer
-				}
-			}
-			return false
+		aFunctionType.declaredExceptions.forEach { other ->
+			if (inners.none { inner -> other.isSubtypeOf(inner) }) return false
 		}
-		return self[ARGS_TUPLE_TYPE].isSubtypeOf(
-			aFunctionType.argsTupleType)
+		// Note: Contravariant argument types.
+		return self[ARGS_TUPLE_TYPE].isSubtypeOf(aFunctionType.argsTupleType)
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean
@@ -414,11 +434,9 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		aFunctionType: A_Type): A_Type
 	{
 		val tupleTypeUnion =
-			self[ARGS_TUPLE_TYPE].typeUnion(
-				aFunctionType.argsTupleType)
+			self[ARGS_TUPLE_TYPE].typeUnion(aFunctionType.argsTupleType)
 		val returnType =
-			self[RETURN_TYPE].typeIntersection(
-				aFunctionType.returnType)
+			self[RETURN_TYPE].typeIntersection(aFunctionType.returnType)
 		var exceptions = emptySet
 		for (outer in self[DECLARED_EXCEPTIONS])
 		{
@@ -460,8 +478,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 
 	@ThreadSafe
 	override fun o_SerializerOperation(
-		self: AvailObject): SerializerOperation =
-			SerializerOperation.FUNCTION_TYPE
+		self: AvailObject
+	): SerializerOperation = SerializerOperation.FUNCTION_TYPE
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter)
 	{
@@ -559,34 +577,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 					append(tempStrings[i])
 				}
 			}
-		}
-
-		/**
-		 * The hash value is stored raw in the object's
-		 * [hashOrZero][IntegerSlots.HASH_OR_ZERO] slot if it has been computed,
-		 * otherwise that slot is zero. If a zero is detected, compute the hash
-		 * and store it in hashOrZero. Note that the hash can (extremely rarely)
-		 * be zero, in which case the hash must be computed on demand every time
-		 * it is requested. Answer the raw hash value.
-		 *
-		 * @param self
-		 *   The object.
-		 * @return
-		 *   The hash.
-		 */
-		private fun hash(self: AvailObject): Int
-		{
-			var hash = self[HASH_OR_ZERO]
-			if (hash == 0)
-			{
-				hash = AvailObject.combine4(
-					self[RETURN_TYPE].hash(),
-					self[DECLARED_EXCEPTIONS].hash(),
-					self[ARGS_TUPLE_TYPE].hash(),
-					0x10447107)
-				self[HASH_OR_ZERO] = hash
-			}
-			return hash
 		}
 
 		/** The mutable [FunctionTypeDescriptor]. */
@@ -696,12 +686,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 *   [exception&#32;types][ObjectTypeDescriptor] that an instance may
 		 *   raise.
 		 * @return
-		 *  A function type.
+		 *   A function type.
 		 */
 		fun functionTypeFromArgumentTupleType(
 			argsTupleType: A_Type,
 			returnType: A_Type?,
-			exceptionSet: A_Set): A_Type
+			exceptionSet: A_Set,
+		): A_Type
 		{
 			assert(argsTupleType.isTupleType)
 			val exceptionsReduced = normalizeExceptionSet(exceptionSet)
@@ -724,13 +715,18 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 *   arguments that instances should accept.
 		 * @param returnType
 		 *  The [type][TypeDescriptor] of value that an instance should produce.
+		 * @param exceptionSet
+		 *   The [set][SetDescriptor] of checked
+		 *   [exception&#32;types][ObjectTypeDescriptor] that an instance may
+		 *   raise.
 		 * @return
 		 *   A function type.
 		 */
 		fun functionType(
 			argTypes: A_Tuple,
 			returnType: A_Type,
-			exceptionSet: A_Set = emptySet): A_Type
+			exceptionSet: A_Set = emptySet
+		): A_Type
 		{
 			val tupleType = tupleTypeForSizesTypesDefaultType(
 				singleInt(argTypes.tupleSize), argTypes, bottom)
@@ -752,8 +748,9 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		fun functionTypeReturning(returnType: A_Type): A_Type =
 			functionTypeFromArgumentTupleType(
-				bottom,
-				returnType,  // TODO: [MvG] Probably should allow any exception.
-				emptySet)
+				argsTupleType = bottom,
+				returnType = returnType,
+				// TODO: [MvG] Probably should allow any exception.
+				exceptionSet = emptySet)
 	}
 }

@@ -54,9 +54,12 @@ import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteTupleDescriptor.IntegerSlots.RAW_LONG_AT_
+import avail.descriptor.tuples.IntTupleDescriptor.Companion.generateIntTupleFrom
+import avail.descriptor.tuples.LongTupleDescriptor.Companion.generateLongTupleFrom
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.types.A_Type
@@ -294,6 +297,22 @@ private constructor(
 			}
 			result[HASH_OR_ZERO] = 0
 			return result
+		}
+		if (otherTuple.isIntTuple && newSize <= maximumCopySize)
+		{
+			// bytes ++ ints -> ints
+			return generateIntTupleFrom(newSize) {
+				if (it <= size1) self.tupleIntAt(it)
+				else otherTuple.tupleIntAt(it - size1)
+			}
+		}
+		if (otherTuple.isLongTuple && newSize <= maximumCopySize)
+		{
+			// bytes ++ longs -> longs
+			return generateLongTupleFrom(newSize) {
+				if (it <= size1) self.tupleLongAt(it)
+				else otherTuple.tupleLongAt(it - size1)
+			}
 		}
 		if (!canDestroy)
 		{

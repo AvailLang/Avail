@@ -154,7 +154,7 @@ private constructor(
 		}
 		val longValue = newElementStrong.extractLong
 		val newSize = originalSize + 1
-		// always copy to a larger LongTupleDescriptor.
+		// Always copy to a larger LongTupleDescriptor.
 		val result = newLike(mutable, self, 0, 1)
 		result[LONG_AT_, newSize] = longValue
 		result[HASH_OR_ZERO] = 0
@@ -249,7 +249,8 @@ private constructor(
 			return self
 		}
 		val newSize = size1 + size2
-		if (otherTuple.isLongTuple && newSize <= maximumCopySize)
+		if (otherTuple.traversed().descriptor() is NumericTupleDescriptor
+			&& newSize <= maximumCopySize)
 		{
 			// Copy the longs.
 			val deltaSlots = newSize - self.variableIntegerSlotsCount()

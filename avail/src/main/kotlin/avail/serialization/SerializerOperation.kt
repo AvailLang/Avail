@@ -127,7 +127,9 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
+import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
@@ -1142,9 +1144,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [map][MapDescriptor].  Convert it to a tuple (key1, value1, ...
-	 * key```[N]```, value```[N]```) and work with that, converting it back to a
-	 * map when deserializing.
+	 * An Avail [object][ObjectDescriptor], written as a map from field keys
+	 * ([A_Atom]s) to field values.
 	 */
 	OBJECT(32, GENERAL_MAP.named("field map"))
 	{
@@ -1164,9 +1165,8 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * A [map][MapDescriptor].  Convert it to a tuple (key1, value1, ...
-	 * key```[N]```, value```[N]```) and work with that, converting it back to a
-	 * map when deserializing.
+	 * An Avail [object type][ObjectTypeDescriptor], written as a map from field
+	 * keys ([A_Atom]s) to field types.
 	 */
 	OBJECT_TYPE(33, GENERAL_MAP.named("field type map"))
 	{

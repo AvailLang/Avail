@@ -48,9 +48,11 @@ import avail.descriptor.objects.ObjectDescriptor.IntegerSlots.Companion.HASH_OR_
 import avail.descriptor.objects.ObjectDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.FIELD_VALUES_
 import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.KIND
+import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.KNOWN_STATIC_OBJECT_TYPE
 import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.TYPE_VETTINGS_CACHE
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypesForObjectType
+import avail.descriptor.objects.ObjectTypeDescriptor.TestOutcome
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
@@ -82,6 +84,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.checkAgainstObjectType
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import avail.descriptor.types.A_Type.Companion.hasObjectInstance
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
@@ -182,6 +185,13 @@ class ObjectDescriptor internal constructor(
 		TYPE_VETTINGS_CACHE,
 
 		/**
+		 * The [object type][ObjectTypeDescriptor] that this object was known to
+		 * conform to at the time of construction.
+		 */
+		@HideFieldInDebugger
+		KNOWN_STATIC_OBJECT_TYPE,
+
+		/**
 		 * The values associated with keys for this object.  The assignment of
 		 * object fields to these slots is determined by the descriptor's
 		 * [variant].
@@ -262,6 +272,7 @@ class ObjectDescriptor internal constructor(
 					.equals(anObject[FIELD_VALUES_, i]))
 				return false
 		}
+		// They're equal objects.
 		val kind = self[KIND].ifNil { anObject[KIND] }
 		if (!isShared)
 		{
@@ -329,11 +340,15 @@ class ObjectDescriptor internal constructor(
 					}
 					@Suppress("MapGetWithNotNullAssertionOperator")
 					val newVariantSlotIndex = newVariantSlotMap[field]!!
-					if (newVariantSlotIndex != 0) {
+					if (newVariantSlotIndex != 0)
+					{
 						setSlot(FIELD_VALUES_, newVariantSlotIndex, value)
 					}
 					setSlot(KIND, nil)
 					setSlot(TYPE_VETTINGS_CACHE, nil)
+					setSlot(
+						KNOWN_STATIC_OBJECT_TYPE,
+						newVariant.mostGeneralObjectType)
 					setSlot(HASH_OR_ZERO, 0)
 				}
 			}
@@ -343,13 +358,16 @@ class ObjectDescriptor internal constructor(
 			}
 			else -> {
 				// Replace an existing real field.
-				return when {
+				return when
+				{
 					canDestroy && isMutable -> self
 					else -> newLike(variant.mutableObjectDescriptor, self, 0, 0)
 				}.apply {
 					setSlot(FIELD_VALUES_, slotIndex, value)
 					setSlot(KIND, nil)
 					setSlot(TYPE_VETTINGS_CACHE, nil)
+					setSlot(
+						KNOWN_STATIC_OBJECT_TYPE, variant.mostGeneralObjectType)
 					setSlot(HASH_OR_ZERO, 0)
 				}
 			}
@@ -357,7 +375,6 @@ class ObjectDescriptor internal constructor(
 	}
 
 	override fun o_FieldMap(self: AvailObject): A_Map =
-		// Warning: May be much slower than it was before ObjectLayoutVariant.
 		variant.fieldToSlotIndex.entries.fold(emptyMap) {
 			map, (field, slotIndex) ->
 			map.mapAtPuttingCanDestroy(
@@ -398,6 +415,17 @@ class ObjectDescriptor internal constructor(
 		if (typeDescriptor !is ObjectTypeDescriptor) return false
 		if (!typeDescriptor.isShared)
 			return typeTraversed.hasObjectInstance(self)
+
+		// Check with the static type captured at the creatien site.
+		val knownStaticType = self[KNOWN_STATIC_OBJECT_TYPE]
+		// The object definitely satisfies knownStaticType, so see if aType is
+		// a supertype of it or disjoint to it.
+		when (knownStaticType.checkAgainstObjectType(typeTraversed))
+		{
+			TestOutcome.SUPER -> return true
+			TestOutcome.DISJOINT -> return false
+			TestOutcome.UNDETERMINED -> {}
+		}
 
 		// At this point, either a VettingsCache already exists, or one will be
 		// needed to store the positive/negative result.
@@ -567,7 +595,8 @@ class ObjectDescriptor internal constructor(
 
 		/**
 		 * Update the field value at the specified slot index of the mutable
-		 * object.
+		 * object.  This is intended to be used during object construction, so
+		 * DO NOT clear or compute the hash, or change any other slots.
 		 *
 		 * @param self
 		 *   An object.
@@ -623,6 +652,7 @@ class ObjectDescriptor internal constructor(
 				}
 				setSlot(KIND, nil)
 				setSlot(TYPE_VETTINGS_CACHE, nil)
+				setSlot(KNOWN_STATIC_OBJECT_TYPE, variant.mostGeneralObjectType)
 				setSlot(HASH_OR_ZERO, 0)
 			}
 		}
@@ -661,17 +691,22 @@ class ObjectDescriptor internal constructor(
 		 *
 		 * @param variant
 		 *   The [ObjectLayoutVariant] to instantiate as an object.
+		 * @param guaranteedType
+		 *   An [A_Type] (using [ObjectTypeDescriptor]) that the resulting
+		 *   object is statically guarnteed to satisfy.
 		 * @return
 		 *   The new object.
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun createUninitializedObject(
-			variant: ObjectLayoutVariant
+			variant: ObjectLayoutVariant,
+			guaranteedType: A_Type,
 		): AvailObject =
 			variant.mutableObjectDescriptor.create(variant.realSlotCount) {
 				setSlot(KIND, nil)
 				setSlot(TYPE_VETTINGS_CACHE, nil)
+				setSlot(KNOWN_STATIC_OBJECT_TYPE, guaranteedType)
 				setSlot(HASH_OR_ZERO, 0)
 			}
 
@@ -682,7 +717,8 @@ class ObjectDescriptor internal constructor(
 			ObjectDescriptor::class.java,
 			::createUninitializedObject.name,
 			AvailObject::class.java,
-			ObjectLayoutVariant::class.java)
+			ObjectLayoutVariant::class.java,
+			A_Type::class.java)
 
 		/**
 		 * Produce the given object's [ObjectLayoutVariant]'s variantId.

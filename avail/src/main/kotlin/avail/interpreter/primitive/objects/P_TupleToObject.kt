@@ -72,6 +72,7 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
@@ -209,6 +210,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		generator.addInstruction(
 			L2_CREATE_OBJECT(
 				L2ArbitraryConstantOperand(variant),
+				L2ConstantOperand(typeGuarantee),
 				L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
 				write))
 		callSiteHelper.useAnswer(generator.readBoxed(write))

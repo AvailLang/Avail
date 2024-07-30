@@ -56,6 +56,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.IntTupleDescriptor.IntegerSlots.RAW_LONG_AT_
@@ -327,6 +328,14 @@ private constructor(
 			}
 			result[HASH_OR_ZERO] = 0
 			return result
+		}
+		if (otherTuple.isLongTuple && newSize <= maximumCopySize)
+		{
+			// ints ++ longs -> longs
+			return generateLongTupleFrom(newSize) {
+				if (it <= size1) self.tupleIntAt(it).toLong()
+				else otherTuple.tupleLongAt(it - size1)
+			}
 		}
 		if (!canDestroy)
 		{

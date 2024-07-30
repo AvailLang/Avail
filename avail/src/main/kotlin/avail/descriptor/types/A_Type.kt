@@ -193,6 +193,17 @@ interface A_Type : A_BasicObject
 			get() = dispatch { o_ArgsTupleType(it) }
 
 		/**
+		 * Compare two *object types* ([ObjectTypeDescriptor]).  Answer the result true if
+		 * the receiver is a subtype of [otherObjectType], answer false if the
+		 * receiver is disjoint from [otherObjectType] (i.e., their intersection
+		 * is ⊥), and otherwise answer `null`.
+		 */
+		fun A_Type.checkAgainstObjectType(
+			otherObjectType: A_Type
+		): ObjectTypeDescriptor.TestOutcome =
+			dispatch { o_CheckAgainstObjectType(it, otherObjectType) }
+
+		/**
 		 * Given an [A_Type], compute the most specific [TypeTag] that is
 		 * ensured for instances of that type.
 		 *

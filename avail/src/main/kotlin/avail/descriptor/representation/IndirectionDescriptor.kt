@@ -363,6 +363,7 @@ import avail.descriptor.numbers.A_Number.Companion.whichPowerOfTwo
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
@@ -522,6 +523,7 @@ import avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
 import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
 import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
 import avail.descriptor.types.A_Type.Companion.argsTupleType
+import avail.descriptor.types.A_Type.Companion.checkAgainstObjectType
 import avail.descriptor.types.A_Type.Companion.computeInstanceTag
 import avail.descriptor.types.A_Type.Companion.computeSuperkind
 import avail.descriptor.types.A_Type.Companion.contentType
@@ -1035,6 +1037,11 @@ class IndirectionDescriptor private constructor(
 	override fun o_BuildFilteredBundleTree(
 		self: AvailObject
 	): A_BundleTree = self .. { buildFilteredBundleTree() }
+
+	override fun o_CheckAgainstObjectType(
+		self: AvailObject,
+		otherObjectType: A_Type
+	): ObjectTypeDescriptor.TestOutcome = self .. { checkAgainstObjectType(otherObjectType) }
 
 	override fun o_CompareFromToWithStartingAt(
 		self: AvailObject,

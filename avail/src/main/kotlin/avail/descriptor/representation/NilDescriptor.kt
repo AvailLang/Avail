@@ -57,15 +57,14 @@ private constructor() : Descriptor(
 	@ThreadSafe
 	override fun o_Equals(
 		self: AvailObject, another: A_BasicObject
-	): Boolean {
-		return another.isNil
-	}
+	): Boolean = another.isNil
 
 	@ThreadSafe
 	override fun o_Hash(self: AvailObject): Int {
 		// Nil should hash to zero, because the only place it can appear in a
 		// data structure is as a placeholder object. This currently (as of July
-		// 1998) applies to sets, maps, variables, and continuations.
+		// 1998) applies to sets, maps, variables, and continuations.  [As of
+		// well before 2024, this no longer applies to map bins].
 		return 0
 	}
 
@@ -81,8 +80,8 @@ private constructor() : Descriptor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		builder.append("nil")
 	}
 
@@ -92,7 +91,8 @@ private constructor() : Descriptor(
 
 	override fun shared() = shared
 
-	companion object {
+	companion object
+	{
 		/** The shared [NilDescriptor]. */
 		private val shared = NilDescriptor()
 

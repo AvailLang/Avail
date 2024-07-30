@@ -55,6 +55,12 @@ import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
+import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.TESTING_TYPES_POJO
+import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.WEAK_REFERENCE_POJO
+import avail.descriptor.objects.ObjectTypeDescriptor.TestOutcome.DISJOINT
+import avail.descriptor.objects.ObjectTypeDescriptor.TestOutcome.SUPER
+import avail.descriptor.objects.ObjectTypeDescriptor.TestOutcome.UNDETERMINED
+import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
@@ -67,6 +73,7 @@ import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
@@ -165,7 +172,25 @@ class ObjectTypeDescriptor internal constructor(
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
+		/**
+		 * A POJO holding a reusable weak reference to this object type.  This
+		 * only gets populated when making the object type shared (and only if
+		 * it doesn't simply become an indirection to an existing equal one).
+		 */
+		WEAK_REFERENCE_POJO,
+
+		/**
+		 * A pojo holding an [Array], initially empty, of [Pair]s tying together
+		 * other object types that have been tested with the [TestOutcome]s.
+		 * This array is update with volatile semantics, which is far cheaper
+		 * than compare-and-set loops, and at most causes some test outcomes to
+		 * be dropped in the event of a conflict, requiring an additional test
+		 * in those rare cases.
+		 */
+		TESTING_TYPES_POJO,
+
 		/**
 		 * The types associated with keys for this object.  The assignment of
 		 * object fields to these slots is determined by the descriptor's
@@ -174,10 +199,34 @@ class ObjectTypeDescriptor internal constructor(
 		FIELD_TYPES_
 	}
 
+	/**
+	 * The result of a comparison of two [SHARED] object types, for use in the
+	 * first one's [TESTING_TYPES_POJO] map.  There isn't an entry for `subtype`, since
+	 * for this usage we're only interested in whether the second type
+	 * definitely is or cannot be a supertype of the first.
+	 */
+	enum class TestOutcome
+	{
+		/** The second object type is a super of the first. */
+		SUPER,
+
+		/**
+		 * The two object types are unrelated – they have a nearest common
+		 * descendent of ⊥.
+		 */
+		DISJOINT,
+
+		/**
+		 * The two object types don't have an obviouus relation to each other.
+		 */
+		UNDETERMINED
+	}
+
 	public override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
-	) =
-		e === IntegerSlots.HASH_AND_MORE
+	) = e === IntegerSlots.HASH_AND_MORE
+		|| e === ObjectSlots.WEAK_REFERENCE_POJO
+		|| e === ObjectSlots.TESTING_TYPES_POJO
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -237,6 +286,58 @@ class ObjectTypeDescriptor internal constructor(
 			}
 			append("\n#}")
 		}
+	}
+
+	override fun o_CheckAgainstObjectType(
+		self: AvailObject,
+		otherObjectType: A_Type
+	): TestOutcome
+	{
+		// First, see if we've already checked this combination of types.
+		val otherHash = otherObjectType.hash()
+		val testResults: Array<Pair<WeakObjectTypeReference, TestOutcome>> =
+			self.volatileSlot(TESTING_TYPES_POJO).javaObjectNotNull()
+		for (result in testResults)
+		{
+			if (result.first.hash == otherHash)
+			{
+				// It's almost certainly the object type we're looking for.
+				val otherTypeInPair = result.first.get()
+				if (otherTypeInPair !== null
+					&& (otherTypeInPair === otherObjectType
+						|| otherTypeInPair.equals(otherObjectType)))
+				{
+					return result.second
+				}
+			}
+		}
+		// None of the cached tests results was applicable.
+		val outcome = when
+		{
+			self.isSubtypeOf(otherObjectType) -> SUPER
+			self.typeIntersection(otherObjectType).isBottom -> DISJOINT
+			else -> UNDETERMINED
+		}
+		val otherStrong = otherObjectType.traversed()
+		val otherReference: WeakObjectTypeReference =
+			otherStrong[WEAK_REFERENCE_POJO].javaObjectNotNull()
+		val newList = testResults.filterTo(
+			mutableListOf(otherReference to outcome)
+		) { it.first.get() !== null }
+		if (newList.size > maximumTestOutcomesToKeep)
+		{
+			// Trim it down to no more than trimmedOutcomesSize elements.
+			newList.subList(trimmedOutcomesSize, newList.size).clear()
+		}
+		// This may be racing against other threads that are adding to the
+		// array, but each write is making progress relative to its own starting
+		// point.  That at least guarantees there are no duplicate values in the
+		// array, and that after all threads running this method have returned,
+		// any new threads can only extend the array (not counting the
+		// truncation).
+		self[TESTING_TYPES_POJO] =
+			identityPojo(newList.toTypedArray()).makeShared()
+		return outcome
 	}
 
 	/**
@@ -460,15 +561,23 @@ class ObjectTypeDescriptor internal constructor(
 			{
 				canonical = synchronized(sharedCanonicalTypes) {
 					sharedCanonicalTypes.getOrPut(self) {
-						WeakObjectTypeReference(self)
+						val ref = WeakObjectTypeReference(self)
+						// Note that even though the weakReference field is not
+						// volatile, it won't be accessed unless self is shared,
+						// which can only happen in this thread or after the
+						// enclosding  synchronized section completes.
+						val refPojo = identityPojo(ref)
+						refPojo.setDescriptor(refPojo.descriptor().shared())
+						queueToProcess.add(refPojo)
+						self.setVolatileSlot(WEAK_REFERENCE_POJO, refPojo)
+						ref
 					}.get()
 				}
 				// An older weak reference might have been found, then cleared
 				// by the JVM.  Just try again until we're successful (and
 				// therefore have a strong reference that prevents it from
 				// dissolving).
-			}
-			while (canonical === null)
+			} while (canonical === null)
 			if (!canonical.sameAddressAs(self))
 			{
 				// Indirect self to be the canonical value.  This is safe
@@ -520,9 +629,7 @@ class ObjectTypeDescriptor internal constructor(
 		val otherVariant = anObjectType.objectTypeVariant
 		if (otherVariant == variant) {
 			// Field slot indices agree, so blast through the slots in order.
-			return variant.mutableObjectTypeDescriptor.create(
-				variant.realSlotCount
-			) {
+			return createUninitializedObjectType(variant) {
 				(1..variant.realSlotCount).forEach {
 					val fieldIntersection =
 						self[FIELD_TYPES_, it].typeIntersection(
@@ -533,7 +640,6 @@ class ObjectTypeDescriptor internal constructor(
 					}
 					setSlot(FIELD_TYPES_, it, fieldIntersection)
 				}
-				setSlot(HASH_OR_ZERO, 0)
 			}
 		}
 		// The variants disagree, so do it the hard(er) way.
@@ -543,9 +649,7 @@ class ObjectTypeDescriptor internal constructor(
 		val mySlotMap = variant.fieldToSlotIndex
 		val otherSlotMap = otherVariant.fieldToSlotIndex
 		val resultSlotMap = resultVariant.fieldToSlotIndex
-		return resultVariant.mutableObjectTypeDescriptor.create(
-			resultVariant.realSlotCount
-		) {
+		return createUninitializedObjectType(resultVariant) {
 			resultSlotMap.forEach { (field, resultSlotIndex) ->
 				if (resultSlotIndex > 0)
 				{
@@ -569,7 +673,6 @@ class ObjectTypeDescriptor internal constructor(
 					setSlot(FIELD_TYPES_, resultSlotIndex, fieldType)
 				}
 			}
-			setSlot(HASH_OR_ZERO, 0)
 		}
 	}
 
@@ -593,15 +696,12 @@ class ObjectTypeDescriptor internal constructor(
 		val otherVariant = anObjectType.objectTypeVariant
 		if (otherVariant == variant) {
 			// Field slot indices agree, so blast through the slots in order.
-			return variant.mutableObjectTypeDescriptor.create(
-				variant.realSlotCount
-			) {
+			return createUninitializedObjectType(variant) {
 				(1..variant.realSlotCount).forEach {
 					val fieldUnion = self[FIELD_TYPES_, it].typeUnion(
 						anObjectType[FIELD_TYPES_, it])
 					setSlot(FIELD_TYPES_, it, fieldUnion)
 				}
-				setSlot(HASH_OR_ZERO, 0)
 			}
 		}
 		// The variants disagree, so do it the hard(er) way.
@@ -611,9 +711,7 @@ class ObjectTypeDescriptor internal constructor(
 		val mySlotMap = variant.fieldToSlotIndex
 		val otherSlotMap = otherVariant.fieldToSlotIndex
 		val resultSlotMap = resultVariant.fieldToSlotIndex
-		return resultVariant.mutableObjectTypeDescriptor.create(
-			resultVariant.realSlotCount
-		) {
+		return createUninitializedObjectType(resultVariant) {
 			resultSlotMap.forEach { (field, resultSlotIndex) ->
 				if (resultSlotIndex > 0)
 				{
@@ -626,7 +724,6 @@ class ObjectTypeDescriptor internal constructor(
 					setSlot(FIELD_TYPES_, resultSlotIndex, fieldType)
 				}
 			}
-			setSlot(HASH_OR_ZERO, 0)
 		}
 	}
 
@@ -663,12 +760,11 @@ class ObjectTypeDescriptor internal constructor(
 	 *   An object type.
 	 */
 	fun createFromObject(self: AvailObject): AvailObject =
-		create(variant.realSlotCount) {
+		createUninitializedObjectType(variant) {
 			(1..variant.realSlotCount).forEach {
 				val fieldValue = ObjectDescriptor.getField(self, it)
 				setSlot(FIELD_TYPES_, it, instanceTypeOrMetaOn(fieldValue))
 			}
-			setSlot(HASH_OR_ZERO, 0)
 		}
 
 	@Deprecated(
@@ -699,6 +795,35 @@ class ObjectTypeDescriptor internal constructor(
 			WeakHashMap<AvailObject, WeakObjectTypeReference>()
 
 		/**
+		 * An empty (and therefore immutable) [Array] of [Pair]s tying together
+		 * a (weak reference to an) object type and a [TestOutcome].  This is
+		 * the initial value of the [TESTING_TYPES_POJO] field, replaced with
+		 * volatile semantics with a larger array as tests take place.
+		 */
+		val emptyTestedTypesArrayPojo =
+			identityPojo(arrayOf<Pair<WeakObjectTypeReference, TestOutcome>>())
+				.makeShared()
+
+		/**
+		 * The maximum size of the [TESTING_TYPES_POJO] array in an object type.
+		 */
+		const val maximumTestOutcomesToKeep = 50
+
+		/**
+		 * The maximum number of elements of the [TESTING_TYPES_POJO] array to
+		 * keep when it would grow too large, after also removing any weak
+		 * references whose referent has been collected.  Must be less than
+		 * [maximumTestOutcomesToKeep].
+		 */
+		const val trimmedOutcomesSize = 30
+
+		init
+		{
+			assert(trimmedOutcomesSize < maximumTestOutcomesToKeep)
+		}
+
+
+		/**
 		 * Extract the field type at the specified slot index.
 		 *
 		 * @param self
@@ -725,11 +850,9 @@ class ObjectTypeDescriptor internal constructor(
 		 */
 		fun objectTypeFromMap(map: A_Map): AvailObject {
 			val variant: ObjectLayoutVariant = variantForFields(map.keysAsSet)
-			val mutableDescriptor = variant.mutableObjectTypeDescriptor
 			val slotMap = variant.fieldToSlotIndex
-			return mutableDescriptor.create(variant.realSlotCount) {
+			return createUninitializedObjectType(variant) {
 				map.forEach { key, value ->
-					@Suppress("MapGetWithNotNullAssertionOperator")
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {
 						setSlot(FIELD_TYPES_, slotIndex, value)
@@ -761,15 +884,18 @@ class ObjectTypeDescriptor internal constructor(
 		 * caller is responsible for initializing the fields before use.
 		 *
 		 * @param variant
-		 * The [ObjectLayoutVariant] to instantiate as an object type.
+		 *    The [ObjectLayoutVariant] to instantiate as an object type.
 		 * @return The new object type.
 		 */
-		@Suppress("unused")
-		fun createUninitializedObjectType(
-			variant: ObjectLayoutVariant
+		inline fun createUninitializedObjectType(
+			variant: ObjectLayoutVariant,
+			init: AvailObject.()->Unit = { }
 		): AvailObject =
 			variant.mutableObjectTypeDescriptor.create(variant.realSlotCount) {
+				setSlot(WEAK_REFERENCE_POJO, nil)
+				setSlot(TESTING_TYPES_POJO, emptyTestedTypesArrayPojo)
 				setSlot(HASH_OR_ZERO, 0)
+				init()
 			}
 
 		/** A lock for accessing information about object type names. */
