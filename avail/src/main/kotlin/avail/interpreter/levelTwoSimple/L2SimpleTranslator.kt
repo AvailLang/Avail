@@ -602,7 +602,7 @@ constructor(
 			restrictions[stackp] = boxedRestrictionForConstant(tuple)
 			return
 		}
-		val types = (stackp downTo  oldStackp).map {
+		val types = (stackp downTo oldStackp).map {
 			restrictions[it].type
 		}
 		val elementType = types.fold(bottom) { a, b -> a.typeUnion(b) }

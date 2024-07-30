@@ -274,8 +274,7 @@ abstract class StringDescriptor protected constructor(
 						representationLimit = maxCodePointInt
 					}
 				}
-				string = string.tupleAtPuttingCanDestroy(
-					i, character, true)
+				string = string.tupleAtPuttingCanDestroy(i, character, true)
 			}
 			return string as A_String
 		}

@@ -69,6 +69,7 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
@@ -345,6 +346,11 @@ protected constructor (
 
 	override fun o_BuildFilteredBundleTree (self: AvailObject): A_BundleTree =
 		unsupported
+
+	override fun o_CheckAgainstObjectType (
+		self: AvailObject,
+		otherObjectType: A_Type
+	): ObjectTypeDescriptor.TestOutcome = unsupported
 
 	override fun o_CompareFromToWithStartingAt (
 		self: AvailObject,

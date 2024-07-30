@@ -101,6 +101,7 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.numbers.InfinityDescriptor
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
@@ -1064,6 +1065,11 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_BinElementAt (self: AvailObject, index: Int): AvailObject
 
 	abstract fun o_BuildFilteredBundleTree (self: AvailObject): A_BundleTree
+
+	abstract fun o_CheckAgainstObjectType(
+		self: AvailObject,
+		otherObjectType: A_Type
+	): ObjectTypeDescriptor.TestOutcome
 
 	/**
 	 * Compare a subrange of the [receiver][AvailObject] with a subrange of

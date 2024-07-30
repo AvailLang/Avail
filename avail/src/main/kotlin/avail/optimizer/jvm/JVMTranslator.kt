@@ -1578,7 +1578,7 @@ class JVMTranslator constructor(
 			val builder = StringBuilder()
 			instructions.forEach { instruction ->
 				val block = instruction.basicBlock()
-				if (instruction == block.instructions()[0])
+				if (instruction.offset == block.instructions()[0].offset)
 				{
 					builder.append("// #")
 					builder.append(instruction.offset)

@@ -59,7 +59,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleLongAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleReverse
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.optimizedTuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.maxWidth
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.minWidthOfNonRoot
 import avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_SIZES_AREA_
@@ -156,8 +156,11 @@ class TreeTupleDescriptor internal constructor(
 	override fun o_AppendCanDestroy(
 		self: AvailObject,
 		newElement: A_BasicObject,
-		canDestroy: Boolean): A_Tuple =
-			concatenateAtLeastOneTree(self, tuple(newElement), canDestroy)
+		canDestroy: Boolean
+	): A_Tuple = concatenateAtLeastOneTree(
+		self,
+		optimizedTuple(newElement as AvailObject),
+		canDestroy)
 
 	/**
 	 * Answer approximately how many bits per entry are taken up by this object.

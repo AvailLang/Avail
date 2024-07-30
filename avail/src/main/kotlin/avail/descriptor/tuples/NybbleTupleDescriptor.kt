@@ -355,7 +355,6 @@ private constructor(
 			var src = 1
 			while (src <= size2)
 			{
-
 				// If the slots we want are nybbles then we won't have to copy
 				// into a bulkier representation.
 				result = result.tupleAtPuttingCanDestroy(

@@ -36,6 +36,7 @@ import avail.descriptor.objects.ObjectLayoutVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
+import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -51,6 +52,7 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_CREATE_OBJECT(
 	var variant: L2ArbitraryConstantOperand<ObjectLayoutVariant>,
+	var guaranteedType: L2ConstantOperand,
 	var fieldValues: L2ReadBoxedVectorOperand,
 	var newObject: L2WriteBoxedOperand
 ) : L2Instruction()
@@ -80,6 +82,7 @@ class L2_CREATE_OBJECT(
 	{
 		val theVariant = variant.constant
 		translator.literal(method, theVariant)
+		translator.literal(method, guaranteedType.constant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
 		val fieldSources = fieldValues.elements
 		val limit = fieldSources.size
@@ -87,7 +90,8 @@ class L2_CREATE_OBJECT(
 		{
 			translator.intConstant(method, i + 1)
 			translator.load(method, fieldSources[i].register())
-			ObjectDescriptor.setFieldMethod.generateCall(method) // Returns object for chaining.
+			// Note: returns the object for chaining.
+			ObjectDescriptor.setFieldMethod.generateCall(method)
 		}
 		translator.store(method, newObject.register())
 	}

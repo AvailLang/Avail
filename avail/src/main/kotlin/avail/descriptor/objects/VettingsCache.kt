@@ -84,9 +84,9 @@ class VettingsCache
 	var negativeCache2 = emptyArray
 
 	/**
-	 * Test if [theObject], which is instantiation of [ObjectDescriptor], is an
-	 * instance of [objectType], which is a [Mutability.SHARED] instantiation of
-	 * [ObjectTypeDescriptor].  The receiver is [theObject]'s vettings cache,
+	 * Test if [theObject], which is an instantiation of [ObjectDescriptor], is
+	 * an instance of [objectType], which is a [Mutability.SHARED] instantiation
+	 * of [ObjectTypeDescriptor].  The receiver is [theObject]'s vettings cache,
 	 * and may be updated by this test.
 	 */
 	fun testObjectAgainstType(
