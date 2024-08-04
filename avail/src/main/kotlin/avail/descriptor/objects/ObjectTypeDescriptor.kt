@@ -184,7 +184,7 @@ class ObjectTypeDescriptor internal constructor(
 		/**
 		 * A pojo holding an [Array], initially empty, of [Pair]s tying together
 		 * other object types that have been tested with the [TestOutcome]s.
-		 * This array is update with volatile semantics, which is far cheaper
+		 * This array is updated with volatile semantics, which is far cheaper
 		 * than compare-and-set loops, and at most causes some test outcomes to
 		 * be dropped in the event of a conflict, requiring an additional test
 		 * in those rare cases.
@@ -565,7 +565,7 @@ class ObjectTypeDescriptor internal constructor(
 						// Note that even though the weakReference field is not
 						// volatile, it won't be accessed unless self is shared,
 						// which can only happen in this thread or after the
-						// enclosding  synchronized section completes.
+						// enclosing synchronized section completes.
 						val refPojo = identityPojo(ref)
 						refPojo.setDescriptor(refPojo.descriptor().shared())
 						queueToProcess.add(refPojo)
