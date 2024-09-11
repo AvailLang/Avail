@@ -1804,7 +1804,7 @@ class L2ValueManifest
 			val firstManifest = otherManifests.removeAt(0)
 			val liveSemanticValues =
 				firstManifest.liveOrPostponedSemanticValues().toMutableSet()
-3			// For any live semantic values that are not all postponed from the
+			// For any live semantic values that are not all postponed from the
 			// same original instruction (in the previous version of the control
 			// flow graph), cause them to be generated in the incoming edges
 			// (which will be in edge-split SSA).
