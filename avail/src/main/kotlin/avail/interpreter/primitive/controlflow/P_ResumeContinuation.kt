@@ -70,8 +70,8 @@ object P_ResumeContinuation : Primitive(
 
 		interpreter.setReifiedContinuation(con)
 		interpreter.function = con.function()
-		interpreter.chunk = con.levelTwoChunk()
-		interpreter.offset = con.levelTwoOffset()
+		interpreter.chunk = con.levelTwoChunk
+		interpreter.offset = con.levelTwoOffset
 		interpreter.returnNow = false
 		interpreter.setLatestResult(null)
 		return CONTINUATION_CHANGED

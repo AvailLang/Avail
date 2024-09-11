@@ -188,7 +188,6 @@ import avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
-import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
@@ -202,7 +201,6 @@ import avail.optimizer.OptimizationLevel.UNOPTIMIZED
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L1_NAIVE_TRANSLATION_TIME
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
@@ -302,7 +300,7 @@ class L1Translator private constructor(
 	 */
 	val instructionDecoder = L1InstructionDecoder().also { decoder ->
 		code.setUpInstructionDecoder(decoder)
-		decoder.pc(1)
+		decoder.pc = 1
 	}
 
 	/**
@@ -335,7 +333,7 @@ class L1Translator private constructor(
 	/**
 	 * Get the program counter for the next instruction to be decoded.
 	 */
-	val pc: Int get() = instructionDecoder.pc()
+	val pc: Int get() = instructionDecoder.pc
 
 	/**
 	 * Create a semantic slot for the given one-based [index], representing the
@@ -554,8 +552,8 @@ class L1Translator private constructor(
 		val outerWrite = generator.boxedWrite(semanticOuter, restriction)
 		addInstruction(
 			L2_MOVE_OUTER_VARIABLE(
+				outerName ?: "",
 				L2IntImmediateOperand(outerIndex),
-				L2CommentOperand(outerName ?: ""),
 				functionRead,
 				outerWrite))
 		return readBoxed(outerWrite)
@@ -1439,13 +1437,12 @@ class L1Translator private constructor(
 				{
 					// See if there's an equivalent semantic value already in
 					// the manifest, and just reuse that if possible.
-					val semanticPrimitive = primitiveInvocation(
-						primitive,
+					val semanticPrimitive = primitive.semanticInvocation(
 						arguments.map(L2ReadBoxedOperand::semanticValue))
 					manifest.equivalentSemanticValue(semanticPrimitive)?.let {
 							equivalent ->
 						generator.moveRegister(
-							BOXED_KIND, equivalent, listOf(semanticPrimitive))
+							equivalent, listOf(semanticPrimitive))
 						callSiteHelper.useAnswer(
 							generator.readBoxed(semanticPrimitive))
 						return
@@ -1461,9 +1458,9 @@ class L1Translator private constructor(
 			else
 			{
 				// We are recursing here from a primitive override of
-				// tryToGenerateSpecialPrimitiveInvocation(), so do not
-				// recurse again; just generate the best invocation possible
-				// given what we know.
+				// tryToGenerateSpecialPrimitiveInvocation(), so do not recurse
+				// again; just generate the best invocation possible given what
+				// we know.
 				argumentTypes = arguments.mapIndexed { zeroIndex, argument ->
 					argument.type().typeIntersection(
 						argsTupleType.typeAtIndex(zeroIndex + 1))
@@ -1485,8 +1482,7 @@ class L1Translator private constructor(
 						resultType = Types.ANY.o
 					}
 					val writer = generator.boxedWrite(
-						primitiveInvocation(
-							primitive,
+						primitive.semanticInvocation(
 							arguments.map(L2ReadBoxedOperand::semanticValue)),
 						boxedRestrictionForType(resultType))
 					addInstruction(
@@ -1669,21 +1665,24 @@ class L1Translator private constructor(
 
 		// The type check failed, so report it.
 		generator.startBlock(failedCheck)
-		generator.addInstruction(
-			L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
-				uncheckedValueRead,
-				L2ConstantOperand(expectedType),
-				L2IntImmediateOperand(pc),
-				L2IntImmediateOperand(stackp),
-				L2ReadBoxedVectorOperand(
-					(1..numSlots).map {
-						when (it)
-						{
-							// Make it look like the expectedType has been pushed.
-							stackp -> generator.boxedConstant(expectedType)
-							else -> readSlot(it)
-						}
-					})))
+		if (generator.currentlyReachable())
+		{
+			generator.addInstruction(
+				L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
+					uncheckedValueRead,
+					L2ConstantOperand(expectedType),
+					L2IntImmediateOperand(pc),
+					L2IntImmediateOperand(stackp),
+					L2ReadBoxedVectorOperand(
+						(1..numSlots).map {
+							when (it)
+							{
+								// Make it look like the expectedType has been pushed.
+								stackp -> generator.boxedConstant(expectedType)
+								else -> readSlot(it)
+							}
+						})))
+		}
 		assert(!generator.currentlyReachable())
 
 		// Generate the much more likely passed-check flow.

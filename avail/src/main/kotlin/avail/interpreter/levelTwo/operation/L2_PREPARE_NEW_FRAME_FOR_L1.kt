@@ -148,7 +148,7 @@ class L2_PREPARE_NEW_FRAME_FOR_L1(
 			}
 
 			code.setUpInstructionDecoder(stepper.instructionDecoder)
-			stepper.instructionDecoder.pc(1)
+			stepper.instructionDecoder.pc = 1
 			stepper.stackp = numSlots + 1
 			val primitive = code.codePrimitive()
 			if (primitive !== null)

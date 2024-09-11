@@ -36,6 +36,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_FLOAT
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
+import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
@@ -60,9 +61,9 @@ import avail.utility.cast
  */
 class L2WriteFloatOperand
 constructor(
-	semanticValues: Set<L2SemanticUnboxedFloat>,
+	semanticValues: Set<L2SemanticValue<FLOAT_KIND>>,
 	restriction: TypeRestriction,
-	register: L2FloatRegister
+	register: L2Register<FLOAT_KIND>
 ) : L2WriteOperand<FLOAT_KIND>(semanticValues, restriction, register)
 {
 	override val operandType: L2OperandType get() = WRITE_FLOAT

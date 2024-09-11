@@ -31,8 +31,12 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * A semantic value which represents a label continuation created for the
@@ -67,7 +71,19 @@ internal class L2SemanticLabel constructor(frame: Frame)
 			return if (it == frame) this else L2SemanticLabel(it)
 		}
 
-	override fun primaryVisualSortKey() = PrimaryVisualSortKey.LABEL
+	override val defaultRestriction: TypeRestriction
+		get() = continuationRestriction
+
+	override val isUsefulForGlobalValueNumbering: Boolean = true
+
+	override val primaryVisualSortKey get() = PrimaryVisualSortKey.LABEL
 
 	override fun toString(): String = "Label for $frame"
+
+	companion object
+	{
+		/** The default restriction for continuations. */
+		private val continuationRestriction =
+			boxedRestrictionForType(mostGeneralContinuationType)
+	}
 }

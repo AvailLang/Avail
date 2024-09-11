@@ -74,7 +74,7 @@ import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import kotlin.math.min
 
 /**
@@ -175,9 +175,9 @@ object P_BitTest : Primitive(2, CannotFail, CanFold, CanInline)
 		val generator = callSiteHelper.generator
 		val fallback = L2BasicBlock("fallback for bit test")
 		val aInt = generator.readInt(
-			L2SemanticUnboxedInt(a.semanticValue()), fallback)
+			a.semanticValue().unboxedInt, fallback)
 		val bInt = generator.readInt(
-			L2SemanticUnboxedInt(b.semanticValue()), fallback)
+			b.semanticValue().unboxedInt, fallback)
 		// Fall back if bInt is > 31.  We already know it's non-negative.
 		val inRange = L2BasicBlock("bit position is in 0..31")
 		NumericComparator.LessOrEqual.compareAndBranchInt(

@@ -67,7 +67,6 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.Mutable
-import java.util.Comparator
 import java.util.EnumSet.noneOf
 
 /**
@@ -535,8 +534,7 @@ abstract class AbstractNumberDescriptor protected constructor(
 		 * Answer a [Comparable] capable of ordering [A_Number] values, at least
 		 * those which are comparable.
 		 */
-		private val numericComparator: Comparator<A_Number> = Comparator {
-				n1, n2 ->
+		val numericComparator: Comparator<A_Number> = Comparator { n1, n2 ->
 			when (n1.numericCompare(n2))
 			{
 				LESS -> -1

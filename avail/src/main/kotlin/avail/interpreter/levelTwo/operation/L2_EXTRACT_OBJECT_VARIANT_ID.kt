@@ -40,7 +40,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -72,28 +71,26 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 		regenerator: L2Regenerator)
 	{
 		val manifest = regenerator.currentManifest
-		val equivalentVariantId = variantId.semanticValues()
-			.firstNotNullOfOrNull(manifest::equivalentPopulatedSemanticValue)
-		if (equivalentVariantId !== null)
-		{
-			// We already have an equivalent register holding the variant id.
-			val unpopulated = variantId.semanticValues()
-				.filterNot(manifest::hasSemanticValue)
-			// Emit a move if there are any unpopulated semantic values to be
-			// written.
-			if (unpopulated.isNotEmpty())
-			{
-				regenerator.moveIntRegister(
-					equivalentVariantId.cast(),
-					variantId.semanticValues())
+		variantId.semanticValues()
+			.firstOrNull { regenerator.readIfAvailable(it) != null }
+			?.let { existingValue ->
+				// Found one. Populate the rest..
+				val others = variantId.semanticValues()
+					.filterNot(manifest::hasSemanticValue)
+				if (others.isNotEmpty())
+				{
+					regenerator.moveIntRegister(existingValue, others)
+					return
+				}
 			}
-			return
-		}
+		// There wasn't an equivalent register handy.  Fall back to emitting a
+		// copy of this instruction.
 		super.emitTransformedInstruction(regenerator)
 	}
 
 	override fun generateReplacement(
-		regenerator: L2Regenerator)
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction)
 	{
 		// If the variantId is statically deducible at this point, use the
 		// constant.
@@ -108,7 +105,7 @@ class L2_EXTRACT_OBJECT_VARIANT_ID(
 				variantId.semanticValues())
 			return
 		}
-		super.generateReplacement(regenerator)
+		super.generateReplacement(regenerator, originalInstruction)
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()

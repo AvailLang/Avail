@@ -39,9 +39,10 @@ import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
@@ -98,7 +99,7 @@ class L2ReadIntOperand : L2ReadOperand<INTEGER_KIND>
 	constructor(
 		semanticValue: L2SemanticValue<INTEGER_KIND>,
 		restriction: TypeRestriction,
-		register: L2IntRegister
+		register: L2Register<INTEGER_KIND>
 	) : super(semanticValue, restriction, register)
 
 	override fun semanticValue(): L2SemanticUnboxedInt =
@@ -106,15 +107,13 @@ class L2ReadIntOperand : L2ReadOperand<INTEGER_KIND>
 
 	override fun copyForRegister(
 		newRegister: L2Register<INTEGER_KIND>
-	): L2ReadIntOperand =
-		L2ReadIntOperand(
-			semanticValue(), restriction(), newRegister as L2IntRegister)
+	) = L2ReadIntOperand(semanticValue(), restriction(), newRegister)
 
 	override fun createConstantRegister() =
 		L2IntRegister(-999, restriction().constantOrNull!!)
 
 	override fun createSemanticConstant(): L2SemanticUnboxedInt =
-		L2SemanticUnboxedInt(L2SemanticConstant(register().constant!!))
+		constant(register().constant!!).unboxedInt
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

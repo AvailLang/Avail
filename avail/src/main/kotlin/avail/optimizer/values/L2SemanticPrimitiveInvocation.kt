@@ -32,8 +32,12 @@
 package avail.optimizer.values
 
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.A_Type.Companion.returnType
 import avail.interpreter.Primitive
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * An [L2SemanticValue] which represents the result produced by a [Primitive]
@@ -99,7 +103,13 @@ internal constructor(
 		return L2SemanticPrimitiveInvocation(primitive, newArguments)
 	}
 
-	override fun primaryVisualSortKey() =
+	override val defaultRestriction: TypeRestriction
+		get() = boxedRestrictionForType(
+			primitive.blockTypeRestriction().returnType)
+
+	override val isUsefulForGlobalValueNumbering: Boolean = true
+
+	override val primaryVisualSortKey get() =
 		PrimaryVisualSortKey.PRIMITIVE_INVOCATION
 
 	companion object

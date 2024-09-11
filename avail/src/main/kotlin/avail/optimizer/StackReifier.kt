@@ -157,13 +157,13 @@ class StackReifier constructor(
 	@ReferencedInGeneratedCode
 	fun pushContinuationAction(dummyContinuation: AvailObject): StackReifier
 	{
-		assert(dummyContinuation.caller().isNil)
+		assert(dummyContinuation.caller.isNil)
 		actionStack.addLast { interpreter: Interpreter ->
 			if (Interpreter.debugL2)
 			{
 				traceL2(
-					dummyContinuation.levelTwoChunk().executableChunk,
-					dummyContinuation.levelTwoOffset(),
+					dummyContinuation.levelTwoChunk.executableChunk,
+					dummyContinuation.levelTwoOffset,
 					"Starting a reifier action",
 					"")
 			}
@@ -174,9 +174,9 @@ class StackReifier constructor(
 			interpreter.setReifiedContinuation(newDummy)
 			// Now run it, which will pop itself and push anything that it
 			// is supposed to.
-			interpreter.function = newDummy.function()
-			interpreter.chunk = newDummy.levelTwoChunk()
-			interpreter.setOffset(newDummy.levelTwoOffset())
+			interpreter.function = newDummy.function
+			interpreter.chunk = newDummy.levelTwoChunk
+			interpreter.setOffset(newDummy.levelTwoOffset)
 			interpreter.chunk!!.beforeRunChunk(interpreter.offset)
 			val result =
 				interpreter.chunk!!.executableChunk.runChunk(
@@ -189,8 +189,8 @@ class StackReifier constructor(
 			if (Interpreter.debugL2)
 			{
 				traceL2(
-					dummyContinuation.levelTwoChunk().executableChunk,
-					dummyContinuation.levelTwoOffset(),
+					dummyContinuation.levelTwoChunk.executableChunk,
+					dummyContinuation.levelTwoOffset,
 					"Finished a reifier action (offset is for "
 						+ "instruction that queued it)",
 					"")

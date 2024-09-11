@@ -659,8 +659,7 @@ class DoubleDescriptor private constructor(
 		}
 
 		/**
-		 * Answer the Avail object representing
-		 * [java.lang.Double.POSITIVE_INFINITY].
+		 * Answer the Avail object representing [Double.POSITIVE_INFINITY].
 		 *
 		 * @return
 		 *   The Avail object for double-precision positive infinity.
@@ -669,8 +668,7 @@ class DoubleDescriptor private constructor(
 			Sign.POSITIVE.limitDoubleObject()
 
 		/**
-		 * Answer the Avail object representing
-		 * [java.lang.Double.NEGATIVE_INFINITY].
+		 * Answer the Avail object representing [Double.NEGATIVE_INFINITY].
 		 *
 		 * @return
 		 *   The Avail object for double-precision negative infinity.
@@ -679,7 +677,7 @@ class DoubleDescriptor private constructor(
 			Sign.NEGATIVE.limitDoubleObject()
 
 		/**
-		 * Answer the Avail object representing [java.lang.Double.NaN].
+		 * Answer the Avail object representing [Double.NaN].
 		 *
 		 * @return The Avail object for double-precision not-a-number.
 		 */

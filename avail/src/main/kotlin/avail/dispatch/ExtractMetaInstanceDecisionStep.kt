@@ -46,7 +46,6 @@ import avail.interpreter.primitive.types.P_InstanceOfMeta
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -232,9 +231,8 @@ constructor(
 	private fun newSemanticValue(
 		semanticValues: List<L2SemanticBoxedValue>,
 		extraSemanticValues: List<L2SemanticBoxedValue>
-	) = primitiveInvocation(
-		P_InstanceOfMeta,
-		listOf(sourceSemanticValue(semanticValues, extraSemanticValues)))
+	) = P_InstanceOfMeta.semanticInvocation(
+		sourceSemanticValue(semanticValues, extraSemanticValues))
 
 	override fun simplyAddChildrenTo(
 		list: MutableList<LookupTree<Element, Result>>)

@@ -405,25 +405,16 @@ open class CompiledCodeDescriptor protected constructor(
 		var shift = -1
 
 		/**
-		 * Set the pc.  This can be done independently of the call to
-		 * [AvailObject.setUpInstructionDecoder].
-		 *
-		 * @param pc
-		 *   The new one-based program counter.
+		 * Read or set the current one-based program counter.  This can be done
+		 * independently of the call to [AvailObject.setUpInstructionDecoder].
 		 */
-		fun pc(pc: Int)
-		{
-			longIndex = baseIndexInArray + (pc shr 4)
-			shift = pc and 15 shl 2
-		}
-
-		/**
-		 * Answer the current one-based program counter.
-		 *
-		 * @return
-		 *   The current one-based nybblecode index.
-		 */
-		fun pc() = (longIndex - baseIndexInArray shl 4) + (shift shr 2)
+		var pc: Int
+			get() = (longIndex - baseIndexInArray shl 4) + (shift shr 2)
+			set(value)
+			{
+				longIndex = baseIndexInArray + (value shr 4)
+				shift = value and 15 shl 2
+			}
 
 		/**
 		 * Get one nybble from the stream of nybblecodes.
@@ -504,7 +495,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 */
 		fun atEnd() = longIndex == finalLongIndex && shift == finalShift
 
-		override fun toString() = super.toString() + "(pc=${pc()})"
+		override fun toString() = super.toString() + "(pc=$pc)"
 
 		companion object
 		{
@@ -863,7 +854,7 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 		val decoder = L1InstructionDecoder()
 		self.setUpInstructionDecoder(decoder)
-		decoder.pc(1)
+		decoder.pc = 1
 		return generateNybbleTupleFrom(o_NumNybbles(self)) {
 			decoder.getNybble()
 		}

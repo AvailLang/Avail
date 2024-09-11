@@ -126,7 +126,7 @@ constructor(
 	val instructionDecoder = L1InstructionDecoder()
 
 	/** The current program counter, taken from the [instructionDecoder]. */
-	val pc: Int get() = instructionDecoder.pc()
+	val pc: Int get() = instructionDecoder.pc
 
 	/**
 	 * The [A_ChunkDependable]s which, if changed, should invalidate the chunk
@@ -158,7 +158,7 @@ constructor(
 				boxedRestrictionForType(code.localTypeAt(i))
 		}
 		code.setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc(1)
+		instructionDecoder.pc = 1
 		add(
 			L2Simple_CheckForInterrupt(
 				stackp,

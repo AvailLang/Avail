@@ -96,7 +96,9 @@ import kotlin.reflect.jvm.internal.impl.metadata.jvm.deserialization.JvmMemberSi
  * systematic things like finding every [L2ReadBoxedOperand], say, and to
  * extract these operands from the instruction.
  */
-abstract class L2Instruction : L2AbstractInstruction, PublicCloneable<L2Instruction>()
+abstract class L2Instruction :
+	L2AbstractInstruction,
+	PublicCloneable<L2Instruction>()
 {
 	/**
 	 * The [L2BasicBlock] to which the instruction belongs.  This only gets set
@@ -311,6 +313,14 @@ abstract class L2Instruction : L2AbstractInstruction, PublicCloneable<L2Instruct
 	open val hasSideEffect get() = false
 
 	/**
+	 * Answer whether this instruction produces any JVM code.  Examples of
+	 * instructions that produce no JVM code include unconditional jumps that
+	 * fall through to the next instruction, and moves between registers that
+	 * have the same color.
+	 */
+	open val producesAnyJvmCode get() = true
+
+	/**
 	 * Answer whether this instruction is an entry point, which uses the
 	 * operation [L2_ENTER_L2_CHUNK].
 	 *
@@ -435,8 +445,10 @@ abstract class L2Instruction : L2AbstractInstruction, PublicCloneable<L2Instruct
 	 *   replacement code for this instruction, which has already had its
 	 *   operands transformed for the new graph.
 	 */
-	open fun generateReplacement(regenerator: L2Regenerator) =
-		emitTransformedInstruction(regenerator)
+	open fun generateReplacement(
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction
+	) = emitTransformedInstruction(regenerator)
 
 	/**
 	 * Determine whether this instruction can commute with [another] instruction
@@ -840,7 +852,7 @@ abstract class L2Instruction : L2AbstractInstruction, PublicCloneable<L2Instruct
 	 * this instruction, would be likely to lead to a useful optimization.  If
 	 * this condition is determined to be true at some upstream edge, but will
 	 * be destroyed after merging control flow, the graph between that edge and
-	 * this instruction will be "split" into a duplicate code, allowing that
+	 * this instruction will be "split" into a duplicate subgraph, allowing that
 	 * condition to be preserved.  This eliminates extra type tests, unboxing to
 	 * int registers, recomputing stable primitives, etc.
 	 *

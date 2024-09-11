@@ -75,7 +75,6 @@ import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
-import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -454,7 +453,7 @@ class Interpreter(
 			while (frame!!.notNil)
 			{
 				frames.add(frame)
-				frame = frame.caller()
+				frame = frame.caller
 			}
 			helpers.add(
 				AvailObjectFieldHelper(
@@ -1585,14 +1584,14 @@ class Interpreter(
 				continuation.isNil -> continuation.toString()
 				else ->
 				{
-					when (val theChunk = continuation.levelTwoChunk())
+					when (val theChunk = continuation.levelTwoChunk)
 					{
 						unoptimizedChunk ->
 							continuation.function().code().methodName
 								.toString() +
 								" (unoptimized)"
 						else -> (theChunk.name + ", offset= " +
-							continuation.levelTwoOffset())
+							continuation.levelTwoOffset)
 					}
 				}
 			}
@@ -1614,7 +1613,7 @@ class Interpreter(
 		{
 			logPopContinuation()
 		}
-		setReifiedContinuation(getReifiedContinuation()!!.caller())
+		setReifiedContinuation(getReifiedContinuation()!!.caller)
 	}
 
 	/**
@@ -1628,19 +1627,19 @@ class Interpreter(
 		{
 			builder
 				.append("\n\t\toffset ")
-				.append(ptr.levelTwoOffset())
+				.append(ptr.levelTwoOffset)
 				.append(" in ")
-			val ch = ptr.levelTwoChunk()
+			val ch = ptr.levelTwoChunk
 			if (ch == unoptimizedChunk)
 			{
 				builder.append("(L1) - ")
-					.append(ptr.function().code().methodName)
+					.append(ptr.function.code().methodName)
 			}
 			else
 			{
-				builder.append(ptr.levelTwoChunk().name)
+				builder.append(ptr.levelTwoChunk.name)
 			}
-			ptr = ptr.caller()
+			ptr = ptr.caller
 		}
 		traceL2(
 			(chunk?.executableChunk ?: unoptimizedChunk.executableChunk),
@@ -1897,7 +1896,7 @@ class Interpreter(
 					}
 				}
 			}
-			continuation = continuation.caller() as AvailObject
+			continuation = continuation.caller as AvailObject
 			depth++
 		}
 		// If no handler was found, then return the unhandled exception.
@@ -1965,7 +1964,7 @@ class Interpreter(
 		var depth = 0
 		while (continuation.notNil)
 		{
-			val code = continuation.function().code()
+			val code = continuation.function.code()
 			if (code.codePrimitive() == P_CatchException)
 			{
 				assert(code.numArgs() == 3)
@@ -1997,7 +1996,7 @@ class Interpreter(
 				}
 				return primitiveSuccess(nil)
 			}
-			continuation = continuation.caller()
+			continuation = continuation.caller
 			depth++
 		}
 		return primitiveFailure(E_NO_HANDLER_FRAME)
@@ -2059,16 +2058,16 @@ class Interpreter(
 			false,
 			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic
 		) {
-			val whichFunction = continuation.function()
+			val whichFunction = continuation.function
 			val numArgs = whichFunction.code().numArgs()
 			argsBuffer.clear()
 			(1 .. numArgs).forEach {
 				argsBuffer.add(continuation.frameAt(it))
 			}
-			setReifiedContinuation(continuation.caller())
+			setReifiedContinuation(continuation.caller)
 			function = whichFunction
-			chunk = continuation.levelTwoChunk()
-			offset = continuation.levelTwoOffset()
+			chunk = continuation.levelTwoChunk
+			offset = continuation.levelTwoOffset
 			returnNow = false
 			setLatestResult(null)
 			isReifying = false
@@ -2121,8 +2120,8 @@ class Interpreter(
 			StackReifier(actuallyReify, statistic) {
 				val continuation = getReifiedContinuation()!!
 				function = savedFunction
-				chunk = continuation.levelTwoChunk()
-				offset = continuation.levelTwoOffset()
+				chunk = continuation.levelTwoChunk
+				offset = continuation.levelTwoOffset
 				returnNow = newReturnNow
 				setLatestResult(newReturnValue)
 				// Return into the Interpreter's run loop.
@@ -2153,15 +2152,15 @@ class Interpreter(
 			false,
 			StatisticCategory.ABANDON_BEFORE_RESTART_IN_L2.statistic
 		) {
-			val whichFunction = continuation.function()
+			val whichFunction = continuation.function
 			val numArgs = whichFunction.code().numArgs()
 			assert(arguments.size == numArgs)
 			argsBuffer.clear()
 			argsBuffer.addAll(arguments)
-			setReifiedContinuation(continuation.caller())
+			setReifiedContinuation(continuation.caller)
 			function = whichFunction
-			chunk = continuation.levelTwoChunk()
-			offset = continuation.levelTwoOffset()
+			chunk = continuation.levelTwoChunk
+			offset = continuation.levelTwoOffset
 			returnNow = false
 			setLatestResult(null)
 			isReifying = false
@@ -2499,9 +2498,9 @@ class Interpreter(
 			// them and explode the current reified continuation into them
 			// (popping the continuation as it does so).
 			val frame: A_Continuation? = getReifiedContinuation()
-			function = frame!!.function()
-			chunk = frame.levelTwoChunk()
-			offset = frame.levelTwoOffset()
+			function = frame!!.function
+			chunk = frame.levelTwoChunk
+			offset = frame.levelTwoOffset
 		}
 	}
 

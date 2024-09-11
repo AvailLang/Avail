@@ -39,9 +39,10 @@ import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
@@ -98,7 +99,7 @@ class L2ReadFloatOperand : L2ReadOperand<FLOAT_KIND>
 	constructor(
 		semanticValue: L2SemanticValue<FLOAT_KIND>,
 		restriction: TypeRestriction,
-		register: L2FloatRegister
+		register: L2Register<FLOAT_KIND>
 	) : super(semanticValue, restriction, register)
 
 	override fun semanticValue(): L2SemanticUnboxedFloat =
@@ -106,15 +107,13 @@ class L2ReadFloatOperand : L2ReadOperand<FLOAT_KIND>
 
 	override fun copyForRegister(
 		newRegister: L2Register<FLOAT_KIND>
-	): L2ReadFloatOperand =
-		L2ReadFloatOperand(
-			semanticValue(), restriction(), newRegister as L2FloatRegister)
+	) = L2ReadFloatOperand(semanticValue(), restriction(), newRegister)
 
 	override fun createConstantRegister() =
 		L2FloatRegister(-999, restriction().constantOrNull!!)
 
 	override fun createSemanticConstant(): L2SemanticUnboxedFloat =
-		L2SemanticUnboxedFloat(L2SemanticConstant(register().constant!!))
+		constant(register().constant!!).unboxedFloat
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

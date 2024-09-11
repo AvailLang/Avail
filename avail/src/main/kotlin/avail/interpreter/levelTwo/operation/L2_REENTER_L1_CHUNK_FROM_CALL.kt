@@ -116,10 +116,10 @@ class L2_REENTER_L1_CHUNK_FROM_CALL(
 			}
 			val continuation: A_Continuation =
 				interpreter.getReifiedContinuation()!!
-			interpreter.setReifiedContinuation(continuation.caller())
+			interpreter.setReifiedContinuation(continuation.caller)
 			val returnValue = interpreter.getLatestResult()
 			val returneeFunction = interpreter.function!!
-			assert(returneeFunction === continuation.function())
+			assert(returneeFunction === continuation.function)
 			val numSlots = continuation.numSlots()
 			// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
 			val stepper = interpreter.levelOneStepper
@@ -133,8 +133,8 @@ class L2_REENTER_L1_CHUNK_FROM_CALL(
 			}
 			returneeFunction.code().setUpInstructionDecoder(
 				stepper.instructionDecoder)
-			stepper.instructionDecoder.pc(continuation.pc())
-			val stackp = continuation.stackp()
+			stepper.instructionDecoder.pc = continuation.pc
+			val stackp = continuation.stackp
 			stepper.stackp = stackp
 			val expectedReturnType = stepper.pointerAt(stackp)
 			// Perform a redundant check, since the mechanism for handling

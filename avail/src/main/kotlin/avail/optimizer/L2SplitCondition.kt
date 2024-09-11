@@ -53,9 +53,12 @@ import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticUnboxedFloat
+import avail.optimizer.values.L2SemanticUnboxedFloat.Companion.boxed
 import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import avail.optimizer.values.L2SemanticValue
 
 /**
@@ -107,7 +110,7 @@ sealed class L2SplitCondition
 			semanticValues.any { manifest.hasSemanticValue(it) }
 
 		override fun toString(): String =
-			"Exists: ${semanticValues.sorted()}}"
+			"Exists: ${semanticValues.sorted()}}".take(50)
 
 		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
 			otherCondition is L2ExistsCondition &&
@@ -180,7 +183,7 @@ sealed class L2SplitCondition
 
 		override fun toString(): String =
 			"Restrict: $requiredRestriction for ${semanticValues.sorted()}"
-
+				.take(50)
 
 		override fun impliedBy(otherCondition: L2SplitCondition): Boolean =
 			otherCondition is L2MeetsRestrictionCondition &&
@@ -303,7 +306,7 @@ sealed class L2SplitCondition
 					when (value)
 					{
 						is L2SemanticConstant -> null
-						is L2SemanticBoxedValue -> L2SemanticUnboxedInt(value)
+						is L2SemanticBoxedValue -> value.unboxedInt
 						is L2SemanticUnboxedInt ->
 							if (value.isConstant) null else value
 						else -> null
@@ -332,8 +335,8 @@ sealed class L2SplitCondition
 		{
 			val nonConstants = semanticValues.filterNot {
 				it.isConstant
-					|| (it is L2SemanticUnboxedInt && it.base.isConstant)
-					|| (it is L2SemanticUnboxedFloat && it.base.isConstant)
+					|| (it is L2SemanticUnboxedInt && it.boxed.isConstant)
+					|| (it is L2SemanticUnboxedFloat && it.boxed.isConstant)
 			}
 			if (nonConstants.isEmpty()) return null
 			return L2ExistsCondition(nonConstants.toSet())
@@ -392,8 +395,8 @@ sealed class L2SplitCondition
 				.mapNotNull { value ->
 					when (value)
 					{
-						is L2SemanticUnboxedInt -> value.base
-						is L2SemanticUnboxedFloat -> value.base
+						is L2SemanticUnboxedInt -> value.boxed
+						is L2SemanticUnboxedFloat -> value.boxed
 						is L2SemanticBoxedValue -> value
 						else -> null
 					}

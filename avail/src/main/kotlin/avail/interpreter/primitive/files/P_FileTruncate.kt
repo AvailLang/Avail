@@ -108,7 +108,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		// Long.MAX_VALUE if the newSize is bigger than that.
 		val size =
 			if (sizeObject.isLong) sizeObject.extractLong
-			else java.lang.Long.MAX_VALUE
+			else Long.MAX_VALUE
 		val runtime = currentRuntime()
 		// Guaranteed non-negative by argument constraint.
 		assert(size >= 0L)

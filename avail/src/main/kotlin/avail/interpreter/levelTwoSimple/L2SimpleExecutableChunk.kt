@@ -222,7 +222,7 @@ constructor(
 				while (pointer.notNil)
 				{
 					depth++
-					pointer = pointer.caller()
+					pointer = pointer.caller
 				}
 				val prefix = interpreter.interpreterIndex.toString() +
 					"-" + tabs(depth) +
@@ -264,7 +264,7 @@ constructor(
 			while (pointer.notNil)
 			{
 				depth++
-				pointer = pointer.caller()
+				pointer = pointer.caller
 			}
 			val prefix = interpreter.interpreterIndex.toString() +
 				"-" + tabs(depth) +

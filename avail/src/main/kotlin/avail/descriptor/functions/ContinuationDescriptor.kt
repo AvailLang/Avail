@@ -277,11 +277,11 @@ class ContinuationDescriptor private constructor(
 		val instructionDecoder = L1InstructionDecoder()
 		code.setUpInstructionDecoder(instructionDecoder)
 		val thisPc = self.highlightPc(topFrame)
-		instructionDecoder.pc(1)
+		instructionDecoder.pc = 1
 		var lineNumber = code.codeStartingLineNumber
 		var instructionCounter = 1
 		while (!instructionDecoder.atEnd()
-			&& instructionDecoder.pc() <= thisPc)
+			&& instructionDecoder.pc <= thisPc)
 		{
 			val encodedDelta = encodedDeltas.tupleIntAt(instructionCounter++)
 			val decodedDelta =
@@ -297,7 +297,7 @@ class ContinuationDescriptor private constructor(
 
 	override fun o_DeoptimizeForDebugger(self: AvailObject)
 	{
-		if (self.levelTwoChunk() != unoptimizedChunk)
+		if (self.levelTwoChunk != unoptimizedChunk)
 		{
 			self[LEVEL_TWO_CHUNK] = unoptimizedChunk.chunkPojo
 			self[LEVEL_TWO_OFFSET] =
@@ -312,7 +312,7 @@ class ContinuationDescriptor private constructor(
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val code = self.function().code()
 		val declarationNames = code.declarationNamesWithoutOuters
-		for (i in 1..self.numSlots())
+		for (i in 1..self.numSlots)
 		{
 			var name = if (i <= declarationNames.tupleSize)
 			{
@@ -323,7 +323,7 @@ class ContinuationDescriptor private constructor(
 			{
 				"Frame[$i]"
 			}
-			if (i == self.stackp()) name = "Stackp ==> $name"
+			if (i == self.stackp) name = "Stackp ==> $name"
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
@@ -341,14 +341,14 @@ class ContinuationDescriptor private constructor(
 		// (1) calls leave the pc at the next instruction after the call, and
 		// (2) other instructions are likewise advanced past before running
 		// them.
-		val currentPc = self.pc()
+		val currentPc = self.pc
 		var pcBefore = -1
 		val decoder = L1InstructionDecoder()
 		code.setUpInstructionDecoder(decoder)
-		decoder.pc(1)
-		while (decoder.pc() < currentPc)
+		decoder.pc = 1
+		while (decoder.pc < currentPc)
 		{
-			pcBefore = decoder.pc()
+			pcBefore = decoder.pc
 			val op = decoder.getOperation()
 			repeat(op.operandTypes.size) { decoder.getOperand() }
 		}
@@ -396,15 +396,15 @@ class ContinuationDescriptor private constructor(
 			when
 			{
 				a.sameAddressAs(b) -> return true
-				!a.function().equals(b.function()) -> return false
-				a.pc() != b.pc() -> return false
-				a.stackp() != b.stackp() -> return false
+				!a.function.equals(b.function) -> return false
+				a.pc != b.pc -> return false
+				a.stackp != b.stackp -> return false
 				(1 .. a.numSlots()).any {
 					!a.frameAt(it).equals(b.frameAt(it))
 				} -> return false
 			}
-			a = a.caller()
-			b = b.caller()
+			a = a.caller
+			b = b.caller
 			when
 			{
 				a.isNil -> return b.isNil
@@ -420,7 +420,7 @@ class ContinuationDescriptor private constructor(
 	// rare case that we do need it.
 	override fun o_Hash(self: AvailObject): Int =
 		self[HASH_OR_ZERO].ifZero {
-			val caller = self.caller().traversed()
+			val caller = self.caller.traversed()
 			var callerHash = 0
 			if (caller.notNil && caller[HASH_OR_ZERO] == 0)
 			{
@@ -431,7 +431,7 @@ class ContinuationDescriptor private constructor(
 				do
 				{
 					chain.addFirst(ancestor)
-					ancestor = ancestor.caller().traversed()
+					ancestor = ancestor.caller.traversed()
 				}
 				while (ancestor.notNil && ancestor[HASH_OR_ZERO] == 0)
 				// Force the hashes to be computed, starting with the deepest.
@@ -441,14 +441,14 @@ class ContinuationDescriptor private constructor(
 					callerHash = c.hashCode()
 				}
 			}
-			val slotsHash = (1..self.numSlots()).fold(0x0593599A) { h, i ->
+			val slotsHash = (1..self.numSlots).fold(0x0593599A) { h, i ->
 				combine3(h, self.frameAt(i).hash(), -0x23cb5228)
 			}
 			var hash = combine6(
 				callerHash,
 				self.function().hash(),
-				self.pc(),
-				self.stackp(),
+				self.pc,
+				self.stackp,
 				slotsHash,
 				0x75398c87)
 			if (hash == 0) {
@@ -463,18 +463,18 @@ class ContinuationDescriptor private constructor(
 
 	override fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int
 	{
-		val pc = self.pc()
+		val pc = self.pc
 		if (topFrame) return pc
 		// Find the previous pc.
 		val code = self.function().code()
 		val instructionDecoder = L1InstructionDecoder()
 		code.setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc(1)
+		instructionDecoder.pc = 1
 		var previousPc = 1
-		while (!instructionDecoder.atEnd() && instructionDecoder.pc() < pc)
+		while (!instructionDecoder.atEnd() && instructionDecoder.pc < pc)
 		{
 			// Skip one nybblecode instruction.
-			previousPc = instructionDecoder.pc()
+			previousPc = instructionDecoder.pc
 			val op = instructionDecoder.getOperation()
 			repeat(op.operandTypes.size) { instructionDecoder.getOperand() }
 		}
@@ -738,7 +738,7 @@ class ContinuationDescriptor private constructor(
 			levelTwoOffset
 		).apply {
 			setSlotsFromList(
-				FRAME_AT_, 1, frameValues, zeroBasedStartIndex, numSlots())
+				FRAME_AT_, 1, frameValues, zeroBasedStartIndex, numSlots)
 		}
 
 		/**
@@ -847,7 +847,7 @@ class ContinuationDescriptor private constructor(
 			var c = availContinuation
 			while (c.notNil) {
 				frames.add(c)
-				c = c.caller()
+				c = c.caller
 			}
 			val lines = frames.size
 			if (lines == 0) {
@@ -855,7 +855,7 @@ class ContinuationDescriptor private constructor(
 				return
 			}
 			val allTypes = frames.flatMap { frame ->
-				val code = frame.function().code()
+				val code = frame.function.code()
 				val paramsType = code.functionType().argsTupleType
 				(1 .. code.numArgs()).map { paramsType.typeAtIndex(it) }
 			}
@@ -865,7 +865,7 @@ class ContinuationDescriptor private constructor(
 				for (frameIndex in 0 until frames.size)
 				{
 					val frame = frames[frameIndex]
-					val code = frame.function().code()
+					val code = frame.function.code()
 					val signature = (1..code.numArgs()).joinToString {
 						allTypeNames[allTypesIndex++]
 					}

@@ -38,6 +38,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -54,7 +55,7 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -104,8 +105,9 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			builder, desiredOperandTypes, ::value, ::constant)
 	}
 
-	override fun generateReplacement(
-		regenerator: L2Regenerator)
+	override fun generateConditionalReplacement(
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction)
 	{
 		regenerator.jumpIfEqualsConstant(
 			value,
@@ -118,6 +120,13 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 		regenerator: L2Regenerator)
 	{
 		assert(!regenerator.currentManifest.hasImpossibleRestriction)
+		// If optimizations have caused the branches to go to the same place,
+		// eliminate the branch entirely.
+		if (ifEqual.targetBlock() == ifNotEqual.targetBlock())
+		{
+			regenerator.jumpTo(ifEqual.targetBlock())
+			return
+		}
 		val valueRestriction =
 			regenerator.currentManifest.restrictionFor(value.semanticValue())
 		valueRestriction.constantOrNull?.let { valueValue ->
@@ -146,7 +155,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 				regenerator.compareAndBranchInt(
 					NumericComparator.Equal,
 					regenerator.currentManifest.readInt(
-						L2SemanticUnboxedInt(value.semanticValue())),
+						value.semanticValue().unboxedInt),
 					regenerator.unboxedIntConstant(
 						constant.constant.extractInt),
 					ifEqual,

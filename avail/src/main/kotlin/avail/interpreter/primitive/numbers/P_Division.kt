@@ -81,8 +81,10 @@ import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 
 /**
  * **Primitive:** Divide a number by another number.
@@ -250,8 +252,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		// does division of negatives differently than Avail.  Also fall back if
 		// the denominator can't be strictly positive.
 		val aIntersectInt31 = aType.typeIntersection(i31)
-		val bIntersectPos31 = bType.typeIntersection(
-			inclusive(1, Int.MAX_VALUE))
+		val bIntersectPos31 = bType.typeIntersection(positiveI31)
 		if (aIntersectInt31.isBottom || bIntersectPos31.isBottom)
 		{
 			return false
@@ -260,19 +261,19 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		// Extract int32s, falling back if the actual values aren't in range.
 		val fallback = generator.createBasicBlock("fall back to boxed division")
 		val intA = generator.readInt(
-			L2SemanticUnboxedInt(a.semanticValue()), fallback)
+			a.semanticValue().unboxedInt, fallback)
 		val intB = generator.readInt(
-			L2SemanticUnboxedInt(b.semanticValue()), fallback)
+			b.semanticValue().unboxedInt, fallback)
 		// We've checked that both arguments intersected int32, so now we're on
 		// the happy path where we've extracted two ints.
 		assert(generator.currentlyReachable())
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction,
 			listOf(aIntersectInt31, bIntersectPos31))
-		val semanticQuotient = L2SemanticValue.primitiveInvocation(
-			this, listOf(a.semanticValue(), b.semanticValue()))
+		val semanticQuotient = semanticInvocation(
+			a.semanticValue(), b.semanticValue())
 		val quotientWriter = generator.intWrite(
-			setOf(L2SemanticUnboxedInt(semanticQuotient)),
+			setOf(semanticQuotient.unboxedInt),
 			intRestrictionForType(returnTypeIfInts))
 
 		val nonnegativeNumerator = L2BasicBlock("nonnegative numerator")
@@ -316,4 +317,38 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		}
 		return true
 	}
+
+	override fun interestingSplitConditions(
+		readBoxedOperands: List<L2ReadBoxedOperand>,
+		rawFunction: A_RawFunction): List<L2SplitCondition?>
+	{
+		val (aRead, bRead) = readBoxedOperands
+		if (!aRead.restriction().intersectsType(i31)) return emptyList()
+		if (!bRead.restriction().intersectsType(positiveI31)) return emptyList()
+		// The division is possible in 32-bit math.
+		return buildList {
+			if (!aRead.restriction().containedByType(i31))
+			{
+				add(
+					typeRestrictionCondition(
+						setOf(aRead.register()), intRestrictionForType(i31)))
+			}
+			if (!bRead.restriction().containedByType(positiveI31))
+			{
+				add(
+					typeRestrictionCondition(
+						setOf(bRead.register()), intRestrictionForType(
+							positiveI31)))
+			}
+			// Since we've already excluded the case that the values are always
+			// out of range, we can still wish for the values to be in int
+			// registers already, since the range test will be quicker if the
+			// values are already unboxed.
+			add(unboxedIntCondition(listOf(aRead.register())))
+			add(unboxedIntCondition(listOf(bRead.register())))
+		}
+	}
+
+	/** The type for strictly positive 32-bit integers. */
+	private val positiveI31 = inclusive(1, Int.MAX_VALUE)
 }

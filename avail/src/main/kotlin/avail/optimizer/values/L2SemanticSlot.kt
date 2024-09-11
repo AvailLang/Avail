@@ -32,9 +32,10 @@
 package avail.optimizer.values
 
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.representation.AvailObject
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * A semantic value which represents a slot of some [Frame]'s effective
@@ -93,7 +94,10 @@ internal class L2SemanticSlot constructor(
 			else L2SemanticSlot(it, slotIndex, pcAfter, optionalName)
 		}
 
-	override fun primaryVisualSortKey() = PrimaryVisualSortKey.SLOT
+	override val defaultRestriction: TypeRestriction
+		get() = TypeRestriction.topRestriction
+
+	override val primaryVisualSortKey get() = PrimaryVisualSortKey.SLOT
 
 	override fun toString(): String = buildString {
 		when (optionalName)

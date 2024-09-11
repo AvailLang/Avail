@@ -60,7 +60,7 @@ object P_FloatFromIntBits : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val intObject = interpreter.argument(0)
 		val intValue = intObject.extractInt
-		val floatValue = java.lang.Float.intBitsToFloat(intValue)
+		val floatValue = Float.fromBits(intValue)
 		return interpreter.primitiveSuccess(fromFloat(floatValue))
 	}
 

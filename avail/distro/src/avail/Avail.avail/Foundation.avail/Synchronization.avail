@@ -268,27 +268,16 @@ Public method "dequeue_from_" is
 	aFiber : fiber,
 	queue : ↑parking queue
 |
-	lockReleased : boolean;
-	Until
-	[
-		basis ::= ↓queue;
-		index ::= first index of basis where [f : fiber | f = aFiber];
-		sans ::= cast index into
-		[
-			i : natural number
-		|
-			basis[i..i] → <>
-		]
-		else
-		[
-			basis
-		];
-		swapped ::= atomically compare queue to basis and,
-			if equal, store sans;
-		If swapped then [lockReleased := sans is empty;];
-		swapped
-	];
-	lockReleased
+	$body: boolean;
+	basis ::= ↓queue;
+	index ::= first index of basis where [f : fiber | f = aFiber];
+	Exit body with basis = <> if index = 0;
+	i ::= index ?→ natural number;
+	sans ::= basis[i..i] → <>;
+	swapped ::= atomically compare queue to basis and,
+		if equal, store sans;
+	Exit body with sans = <> if swapped;
+	Restart body with <aFiber, queue>
 ] : boolean;
 
 /**

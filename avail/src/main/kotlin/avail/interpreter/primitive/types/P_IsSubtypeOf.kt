@@ -47,12 +47,10 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
 
@@ -165,19 +163,10 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 						edgeTo(ifNotSubtype)))
 			}
 		}
-		else if (constantYType !== null)
-		{
-			translator.addInstruction(
-				L2_JUMP_IF_SUBTYPE_OF_CONSTANT(
-					xTypeReg,
-					L2ConstantOperand(constantYType),
-					edgeTo(ifSubtype),
-					edgeTo(ifNotSubtype)))
-		}
 		else
 		{
 			translator.addInstruction(
-				L2_JUMP_IF_SUBTYPE_OF_OBJECT(
+				L2_JUMP_IF_SUBTYPE(
 					xTypeReg,
 					yTypeReg,
 					edgeTo(ifSubtype),

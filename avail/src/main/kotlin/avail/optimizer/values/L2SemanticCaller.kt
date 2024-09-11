@@ -31,7 +31,12 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * A semantic value which represents the fully reified caller of the current
@@ -61,8 +66,25 @@ internal class L2SemanticCaller constructor(frame: Frame)
 			if (it == frame) this else L2SemanticCaller(it)
 		}
 
-	override fun primaryVisualSortKey() = PrimaryVisualSortKey.CALLER
+	/**
+	 * Even though it might actually be [nil] for the topmost continuation, we
+	 * won't be doing any code analysis that examines the caller, so it's fine.
+	 * This is more about inlining a frame within another known one.
+	 */
+	override val defaultRestriction: TypeRestriction
+		get() = continuationRestriction
+
+	override val isUsefulForGlobalValueNumbering: Boolean = true
+
+	override val primaryVisualSortKey get() = PrimaryVisualSortKey.CALLER
 
 	override fun toString(): String =
 		"ReifiedCaller${if (frame.depth() == 1) "" else "[of $frame]"}"
+
+	companion object
+	{
+		/** The default restriction for continuations. */
+		private val continuationRestriction =
+			boxedRestrictionForType(mostGeneralContinuationType)
+	}
 }

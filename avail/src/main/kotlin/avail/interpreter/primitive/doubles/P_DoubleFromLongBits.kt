@@ -60,7 +60,7 @@ object P_DoubleFromLongBits : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val longObject = interpreter.argument(0)
 		val longValue = longObject.extractLong
-		val doubleValue = java.lang.Double.longBitsToDouble(longValue)
+		val doubleValue = Double.fromBits(longValue)
 		return interpreter.primitiveSuccess(fromDouble(doubleValue))
 	}
 

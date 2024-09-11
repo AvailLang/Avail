@@ -32,8 +32,10 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
@@ -54,16 +56,14 @@ import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.Companion.Pattern.Va
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.Companion.Pattern.Variable.X
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.Companion.Pattern.Variable.Y
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.Companion.Pattern.Variable.Z
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -257,9 +257,7 @@ class L2_BIT_LOGIC_OP(
 			rule(X, X) { Shl(X, C(1)) }
 			rule(X, Mul(X, K1)) { Mul(X, C(k1 + 1)) }
 			rule(Mul(X, K1), X) { Mul(X, C(k1 + 1)) }
-			rule(Mul(X, K1), Mul(X, K2)) {
-				Mul(X, C(k1 + k2))
-			}
+			rule(Mul(X, K1), Mul(X, K2)) { Mul(X, C(k1 + k2)) }
 		}),
 
 		/**
@@ -353,6 +351,10 @@ class L2_BIT_LOGIC_OP(
 				if (k1 + k2 <= 31) Shr(X, C(k1 + k2))
 				else null
 			}
+			rule(X, Y) {
+				if (x.type().isSubtypeOf(inclusive(-1, 0))) X
+				else null
+			}
 		}),
 
 		/**
@@ -368,6 +370,10 @@ class L2_BIT_LOGIC_OP(
 			}
 			rule(Shr(X, K1), K1) { And(X, C(-1 shl k1)) }
 			rule(Ushr(X, K1), K1) { And(X, C(-1 shl k1)) }
+			rule(X, Y) {
+				if (x.type().isSubtypeOf(inclusive(-1, 0))) X
+				else null
+			}
 		});
 
 		/**
@@ -437,18 +443,15 @@ class L2_BIT_LOGIC_OP(
 			val generator = callSiteHelper.generator
 			val fallback =
 				generator.createBasicBlock("fall back to boxed logic")
-			val intA = generator.readInt(
-				L2SemanticUnboxedInt(a.semanticValue()), fallback)
-			val intB = generator.readInt(
-				L2SemanticUnboxedInt(b.semanticValue()), fallback)
+			val intA = generator.readInt(a.semanticValue().unboxedInt, fallback)
+			val intB = generator.readInt(b.semanticValue().unboxedInt, fallback)
 			if (generator.currentlyReachable())
 			{
 				// The happy path is reachable.  In this region, the output is
 				// guaranteed to be an Int.
-				val semanticPrimitive = primitiveInvocation(
-					primitive, listOf(a.semanticValue(), b.semanticValue()))
-				val intSemanticPrimitive =
-					L2SemanticUnboxedInt(semanticPrimitive)
+				val semanticPrimitive = primitive.semanticInvocation(
+					a.semanticValue(), b.semanticValue())
+				val intSemanticPrimitive = semanticPrimitive.unboxedInt
 				val typeGuarantee = typeGuaranteeFunction(
 					listOf(
 						aType.typeIntersection(i32),
@@ -457,8 +460,7 @@ class L2_BIT_LOGIC_OP(
 				// See if we've already computed an equivalent value in either
 				// the boxed or unboxed form.
 				manifest.equivalentSemanticValue(semanticPrimitive)?.let {
-					generator.moveRegister(
-						BOXED_KIND, it, listOf(semanticPrimitive))
+					generator.moveRegister(it, listOf(semanticPrimitive))
 					manifest.updateRestriction(semanticPrimitive) {
 						intersectionWithType(typeGuarantee)
 					}
@@ -467,13 +469,12 @@ class L2_BIT_LOGIC_OP(
 					return true
 				}
 				manifest.equivalentSemanticValue(intSemanticPrimitive)?.let {
-					generator.moveRegister(
-						INTEGER_KIND, it, listOf(intSemanticPrimitive))
+					generator.moveRegister(it, listOf(intSemanticPrimitive))
 					manifest.updateRestriction(intSemanticPrimitive) {
 						intersectionWithType(typeGuarantee)
 					}
 					callSiteHelper.useAnswer(
-						generator.readBoxed(intSemanticPrimitive.base))
+						generator.readBoxed(intSemanticPrimitive.boxed))
 					return true
 				}
 				val tempWriter =

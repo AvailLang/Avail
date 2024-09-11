@@ -175,7 +175,6 @@ internal constructor(elementClass: Class<ElementType>) where
 				root = element
 			}
 			val children = elements
-				.asSequence()
 				.filter { it.allowedParents.contains(element) }
 				.toSet()
 			allowedChildren[element] = children

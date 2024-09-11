@@ -85,7 +85,8 @@ class L2_EXTRACT_TAG_ORDINAL(
 	}
 
 	override fun generateReplacement(
-		regenerator: L2Regenerator)
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction)
 	{
 		// If the tag is statically deducible at this point, use the constant.
 		val type = value.type()
@@ -121,7 +122,7 @@ class L2_EXTRACT_TAG_ORDINAL(
 			}
 			return
 		}
-		super.generateReplacement(regenerator)
+		super.generateReplacement(regenerator, originalInstruction)
 	}
 
 	override fun emitTransformedInstruction(

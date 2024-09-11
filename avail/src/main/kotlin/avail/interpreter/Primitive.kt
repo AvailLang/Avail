@@ -110,8 +110,8 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
-import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.performance.Statistic
@@ -1221,16 +1221,15 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		val valueB = boxedB.semanticValue()
 		val intSuccess = generator.createBasicBlock("output is i32")
 		val intFallback = generator.createBasicBlock("fall back to boxed")
-		val intA = generator.readInt(L2SemanticUnboxedInt(valueA), intFallback)
-		val intB = generator.readInt(L2SemanticUnboxedInt(valueB), intFallback)
+		val intA = generator.readInt(valueA.unboxedInt, intFallback)
+		val intB = generator.readInt(valueB.unboxedInt, intFallback)
 		assert(generator.currentlyReachable())
 		// The happy path is reachable.  Generate the most efficient available
 		// unboxed arithmetic.
 		val returnTypeIfInts = returnTypeGuaranteedByVM(
 			rawFunction, listOf(aIntersectInt32, bIntersectInt32))
-		val semanticPrimitive =
-			primitiveInvocation(this, listOf(valueA, valueB))
-		val intSemanticPrimitive = L2SemanticUnboxedInt(semanticPrimitive)
+		val semanticPrimitive = semanticInvocation(valueA, valueB)
+		val intSemanticPrimitive = semanticPrimitive.unboxedInt
 		val intWriter = generator.intWrite(
 			setOf(intSemanticPrimitive),
 			intRestrictionForType(returnTypeIfInts.typeIntersection(i32)))
@@ -1268,7 +1267,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// jump to the fallback, so only use the int/boxed value if it exists.
 		val manifest = generator.currentManifest
 		if (manifest.hasSemanticValue(semanticPrimitive) ||
-			manifest.hasSemanticValue(L2SemanticUnboxedInt(semanticPrimitive)))
+			manifest.hasSemanticValue(semanticPrimitive.unboxedInt))
 		{
 			callSiteHelper.useAnswer(generator.readBoxed(semanticPrimitive))
 		}
@@ -1495,6 +1494,33 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		readBoxedOperands: List<L2ReadBoxedOperand>,
 		rawFunction: A_RawFunction
 	): List<L2SplitCondition?> = emptyList()
+
+	/**
+	 * Answer a semantic value representing the result of invoking this
+	 * primitive with the provided list of boxed semantic values.
+	 *
+	 * @param arguments
+	 *   [L2SemanticBoxedValue]s that supplied the arguments to the primitive.
+	 * @return
+	 *   The [L2SemanticBoxedValue] representing the primitive result.
+	 */
+	fun semanticInvocation(
+		arguments: List<L2SemanticBoxedValue>
+	): L2SemanticPrimitiveInvocation = primitiveInvocation(this, arguments)
+
+	/**
+	 * Answer a semantic value representing the result of invoking this
+	 * primitive with the provided varargs array of boxed semantic values.
+	 *
+	 * @param arguments
+	 *   [L2SemanticBoxedValue]s that supplied the arguments to the primitive.
+	 * @return
+	 *   The [L2SemanticBoxedValue] representing the primitive result.
+	 */
+	fun semanticInvocation(
+		vararg arguments: L2SemanticBoxedValue
+	): L2SemanticPrimitiveInvocation =
+		primitiveInvocation(this, arguments.toList())
 
 	override fun toString(): String
 	{

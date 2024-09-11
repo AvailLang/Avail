@@ -44,7 +44,6 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
@@ -58,8 +57,8 @@ import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticObjectVariantId
-import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -308,7 +307,7 @@ constructor(
 			return emptyList()
 		}
 		var semanticVariantId: L2SemanticValue<INTEGER_KIND> =
-			L2SemanticUnboxedInt(L2SemanticObjectVariantId(semanticSource))
+			L2SemanticObjectVariantId(semanticSource).unboxedInt
 		manifest.equivalentSemanticValue(semanticVariantId)?.let {
 			semanticVariantId = it
 		}
@@ -393,8 +392,7 @@ constructor(
 		generator.addInstruction(
 			L2_MULTIWAY_JUMP(
 				manifest.readInt(semanticVariantId),
-				L2ArbitraryConstantOperand(
-					VariantSplitter(true, splits, variants)),
+				VariantSplitter(true, splits, variants),
 				L2PcVectorOperand(graphEdges)))
 		return triples.map { (block, subtree, _) ->
 			Triple(block, subtree, extraSemanticArguments)

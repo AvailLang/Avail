@@ -4310,8 +4310,8 @@ abstract class AbstractDescriptor protected constructor (
 					{
 						val enumClass = enumAnnotation.describedBy.java
 						val enumValues = enumClass.enumConstants
-						numBits = 64 - java.lang.Long.numberOfLeadingZeros(
-							enumValues.size.toLong())
+						numBits =
+							64 - enumValues.size.toLong().countLeadingZeroBits()
 					}
 					builder.append(" = ")
 					describeIntegerField(

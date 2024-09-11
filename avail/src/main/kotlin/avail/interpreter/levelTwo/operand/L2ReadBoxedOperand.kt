@@ -46,8 +46,8 @@ import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 
 /**
@@ -104,7 +104,7 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 	constructor(
 		semanticValue: L2SemanticValue<BOXED_KIND>,
 		restriction: TypeRestriction,
-		register: L2BoxedRegister
+		register: L2Register<BOXED_KIND>
 	) : super(semanticValue, restriction, register)
 
 	override fun semanticValue(): L2SemanticBoxedValue =
@@ -112,15 +112,12 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 
 	override fun copyForRegister(
 		newRegister: L2Register<BOXED_KIND>
-	): L2ReadBoxedOperand =
-		L2ReadBoxedOperand(
-			semanticValue(), restriction(), newRegister as L2BoxedRegister)
+	) = L2ReadBoxedOperand(semanticValue(), restriction(), newRegister)
 
 	override fun createConstantRegister() =
 		L2BoxedRegister(-999, restriction().constantOrNull!!)
 
-	override fun createSemanticConstant(): L2SemanticBoxedValue =
-		L2SemanticConstant(register().constant!!)
+	override fun createSemanticConstant() = constant(register().constant!!)
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher) =
 		dispatcher.doOperand(this)

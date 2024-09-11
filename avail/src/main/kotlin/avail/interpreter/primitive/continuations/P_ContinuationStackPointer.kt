@@ -57,7 +57,7 @@ object P_ContinuationStackPointer : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fromInt(con.stackp()))
+		return interpreter.primitiveSuccess(fromInt(con.stackp))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -33,8 +33,10 @@ package avail.interpreter.levelTwo.operation
 
 ;import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -62,6 +64,65 @@ abstract class L2ConditionalJump : L2ControlFlowInstruction()
 
 	/** This instruction jumps, which counts as a side effect. */
 	override val hasSideEffect: Boolean get() = true
+
+	final override fun generateReplacement(
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction)
+	{
+		// Determine if all edges lead to the same target block through chains
+		// of jumps in blocks that have no other instructions.  If so, just emit
+		// a jump to that target.  Note that we don't have to do anything to
+		// preserve edge-split SSA, since the new fan-out will be 1.
+		//
+		// Note that this should only be done *after* code splitting, or there
+		// may be missed opportunities for leveraging the narrower restrictions.
+		val edgesToOriginalTargets = mutableMapOf<L2PcOperand, L2BasicBlock>()
+		if (originalInstruction is L2ConditionalJump)
+		{
+			originalInstruction.targetEdges.forEach { edge ->
+				var targetBlock: L2BasicBlock = edge.targetBlock()
+				while (true)
+				{
+					if (targetBlock.instructions().size != 1) break
+					val jump = targetBlock.finalInstruction()
+					if (jump !is L2_JUMP) break
+					targetBlock = jump.target.targetBlock()
+				}
+				edgesToOriginalTargets[edge] = targetBlock
+			}
+			// Just to keep it simple, only remove the multi-way jump if *all*
+			// of the edges lead to the same ultimate target block.
+			if (edgesToOriginalTargets.values.distinct().size == 1)
+			{
+				// Because the new fan-out is 1, we don't have to do anything to
+				// preserve edge-split form.  Note that we jump to one (any) of
+				// the new instruction's targets.
+				regenerator.jumpTo(targetEdges.first().targetBlock())
+				return
+			}
+		}
+		generateConditionalReplacement(regenerator, originalInstruction)
+	}
+
+	/**
+	 * In order for subclasses to always check for branches that always go to
+	 * the same ultimate target, and turn them into a jump, we make
+	 * [generateReplacement] be final in this class, but allow the herein
+	 * introduced [generateConditionalReplacement] be open and called by the
+	 * can't-collapse-to-a-jump case in [generateReplacement].  A default
+	 * implementation is provided that uses the super [generateReplacement].
+	 *
+	 * @param regenerator
+	 *   The [L2Regenerator] on which to write instructions.
+	 * @param originalInstruction
+	 *   The [L2Instruction] on which the receiver was based.
+	 */
+	open fun generateConditionalReplacement(
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction)
+	{
+		super.generateReplacement(regenerator, originalInstruction)
+	}
 
 	companion object
 	{

@@ -64,11 +64,14 @@ import avail.optimizer.L2GeneratorInterface
 import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticDummy
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 import avail.utility.mapToSet
 import org.objectweb.asm.Opcodes
@@ -233,15 +236,14 @@ constructor (
 	 * @param generator
 	 *   The [L2GeneratorInterface] on which to write instructions.
 	 * @param relatedSemanticValues
-	 *   The [List] of [L2SemanticValue]s that should constitute a synonym
-	 *   in the current manifest, due to their being mutually connected to a
-	 *   synonym in each predecessor manifest.  The synonyms may differ in
-	 *   the predecessor manifests, but within each manifest there must be a
-	 *   synonym for that manifest that contains all of these semantic
-	 *   values.
+	 *   The [List] of [L2SemanticValue]s that should constitute a synonym in
+	 *   the current manifest, due to them being mutually connected to a synonym
+	 *   in each predecessor manifest.  The synonyms may differ in the
+	 *   predecessor manifests, but within each manifest there must be a synonym
+	 *   for that manifest that contains all of these semantic values.
 	 * @param forcePhiCreation
-	 *   Whether to force creation of a phi instruction, even if all
-	 *   incoming sources of the value are the same.
+	 *   Whether to force creation of a phi instruction, even if all incoming
+	 *   sources of the value are the same.
 	 * @param typeRestriction
 	 *   The [TypeRestriction] to bound the synonym.
 	 * @param sourceManifests
@@ -322,8 +324,16 @@ constructor (
 						createVector(sources),
 						createWrite(
 							generator::nextUnique,
-							relatedSemanticValuesSet,
+							setOf(pickSemanticValue),
 							typeRestriction)))
+				if (relatedSemanticValuesSet.size > 1)
+				{
+					// Note: Subsequent phis will be inserted before moves like
+					// this.
+					generator.moveRegister(
+						pickSemanticValue,
+						relatedSemanticValuesSet - pickSemanticValue)
+				}
 			}
 		}
 		manifest.check()
@@ -382,8 +392,13 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 	override fun createRead(
 		semanticValue: L2SemanticValue<BOXED_KIND>,
 		manifest: L2ValueManifest
-	): L2ReadBoxedOperand =
-		manifest.readBoxed(semanticValue as L2SemanticBoxedValue)
+	): L2ReadBoxedOperand
+	{
+		semanticValue as L2SemanticBoxedValue
+		val restriction = manifest.restrictionFor(semanticValue)
+		assert(restriction.isBoxed)
+		return L2ReadBoxedOperand(semanticValue, restriction, manifest)
+	}
 
 	override fun createWrite(
 		uniqueGenerator: ()->Int,
@@ -416,7 +431,7 @@ object BOXED_KIND : RegisterKind<BOXED_KIND>(
 
 	override fun createSemanticConstant(
 		value: AvailObject
-	): L2SemanticBoxedValue = L2SemanticValue.constant(value)
+	): L2SemanticBoxedValue = constant(value)
 
 	override fun createSemanticDummy(
 		generator: L2GeneratorInterface
@@ -448,8 +463,13 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	override fun createRead(
 		semanticValue: L2SemanticValue<INTEGER_KIND>,
 		manifest: L2ValueManifest
-	): L2ReadIntOperand =
-		manifest.readInt(semanticValue as L2SemanticUnboxedInt)
+	): L2ReadIntOperand
+	{
+		semanticValue as L2SemanticUnboxedInt
+		val restriction = manifest.restrictionFor(semanticValue)
+		assert(restriction.isUnboxedInt)
+		return L2ReadIntOperand(semanticValue, restriction, manifest)
+	}
 
 	override fun createWrite(
 		uniqueGenerator: ()->Int,
@@ -460,9 +480,9 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 	{
 		assert(restriction.isUnboxedInt)
 		return L2WriteIntOperand(
-			semanticValues.cast(),
+			semanticValues,
 			restriction,
-			forceRegister?.cast() ?: L2IntRegister(uniqueGenerator()))
+			forceRegister ?: L2IntRegister(uniqueGenerator()))
 	}
 
 	override fun createVector(
@@ -486,12 +506,11 @@ object INTEGER_KIND : RegisterKind<INTEGER_KIND>(
 
 	override fun createSemanticConstant(
 		value: AvailObject
-	): L2SemanticUnboxedInt =
-		L2SemanticUnboxedInt(L2SemanticValue.constant(value))
+	): L2SemanticUnboxedInt = constant(value).unboxedInt
 
 	override fun createSemanticDummy(
 		generator: L2GeneratorInterface
-	) = L2SemanticUnboxedInt(L2SemanticDummy(generator.nextUnique()))
+	) = L2SemanticDummy(generator.nextUnique()).unboxedInt
 }
 
 /**
@@ -519,8 +538,13 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 	override fun createRead(
 		semanticValue: L2SemanticValue<FLOAT_KIND>,
 		manifest: L2ValueManifest
-	): L2ReadFloatOperand =
-		manifest.readFloat(semanticValue as L2SemanticUnboxedFloat)
+	): L2ReadFloatOperand
+	{
+		semanticValue as L2SemanticUnboxedFloat
+		val restriction = manifest.restrictionFor(semanticValue)
+		assert(restriction.isUnboxedFloat)
+		return L2ReadFloatOperand(semanticValue, restriction, manifest)
+	}
 
 	override fun createWrite(
 		uniqueGenerator: ()->Int,
@@ -531,10 +555,9 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 	{
 		assert(restriction.isUnboxedFloat)
 		return L2WriteFloatOperand(
-			semanticValues.cast(),
+			semanticValues,
 			restriction,
-			forceRegister.cast() ?:
-			L2FloatRegister(uniqueGenerator()))
+			forceRegister ?: L2FloatRegister(uniqueGenerator()))
 	}
 
 	override fun createVector(
@@ -559,12 +582,11 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 
 	override fun createSemanticConstant(
 		value: AvailObject
-	): L2SemanticUnboxedFloat =
-		L2SemanticUnboxedFloat(L2SemanticValue.constant(value))
+	): L2SemanticUnboxedFloat = constant(value).unboxedFloat
 
 	override fun createSemanticDummy(
 		generator: L2GeneratorInterface
-	) = L2SemanticUnboxedFloat(L2SemanticDummy(generator.nextUnique()))
+	) = L2SemanticDummy(generator.nextUnique()).unboxedFloat
 }
 
 //		/**

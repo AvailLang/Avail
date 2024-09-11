@@ -38,8 +38,8 @@ import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
-import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
  * [A_Continuation] is an interface that specifies the operations specific to
@@ -97,8 +97,8 @@ interface A_Continuation : A_BasicObject
 		 * @return
 		 *   The calling continuation or nil.
 		 */
-		@ReferencedInGeneratedCode
-		fun A_Continuation.caller(): A_Continuation = dispatch { o_Caller(it) }
+		val A_Continuation.caller: A_Continuation
+			get() = dispatch { o_Caller(it) }
 
 		/**
 		 * Answer the [function][FunctionDescriptor] for which this
@@ -109,8 +109,8 @@ interface A_Continuation : A_BasicObject
 		 * @return
 		 * The function.
 		 */
-		@ReferencedInGeneratedCode
-		fun A_Continuation.function(): A_Function = dispatch { o_Function(it) }
+		val A_Continuation.function: A_Function
+			get() = dispatch { o_Function(it) }
 
 		/**
 		 * Answer the level one program counter.  This is a one-based subscript
@@ -120,7 +120,7 @@ interface A_Continuation : A_BasicObject
 		 * @return
 		 *   The continuation's level one program counter.
 		 */
-		fun A_Continuation.pc(): Int = dispatch { o_Pc(it) }
+		val A_Continuation.pc: Int get() = dispatch { o_Pc(it) }
 
 		/**
 		 * Answer the current depth of the argument stack within this
@@ -132,7 +132,8 @@ interface A_Continuation : A_BasicObject
 		 * @return
 		 *   The current stack pointer within this continuation.
 		 */
-		fun A_Continuation.stackp(): Int = dispatch { o_Stackp(it)}
+		val A_Continuation.stackp: Int
+			get() = dispatch { o_Stackp(it) }
 
 		/**
 		 * Retrieve the stack element with the given offset.  Do not adjust the
@@ -172,9 +173,8 @@ interface A_Continuation : A_BasicObject
 		 * @return
 		 *   The L2Chunk to resume if the chunk is still valid.
 		 */
-		@ReferencedInGeneratedCode
-		fun A_Continuation.levelTwoChunk(): L2Chunk =
-			dispatch { o_LevelTwoChunk(it) }
+		val A_Continuation.levelTwoChunk: L2Chunk
+			get() = dispatch { o_LevelTwoChunk(it) }
 
 		/**
 		 * The offset within the [L2Chunk] at which to resume level two
@@ -186,9 +186,8 @@ interface A_Continuation : A_BasicObject
 		 *   The index of the [L2Instruction] at which to resume level two
 		 *   execution if the [L2Chunk] is still valid.
 		 */
-		@ReferencedInGeneratedCode
-		fun A_Continuation.levelTwoOffset(): Int =
-			dispatch { o_LevelTwoOffset(it) }
+		val A_Continuation.levelTwoOffset: Int
+			get() = dispatch { o_LevelTwoOffset(it) }
 
 		/**
 		 * Also defined in [A_RawFunction].  The total number of "frame" slots
@@ -245,8 +244,8 @@ interface A_Continuation : A_BasicObject
 		 *   A register dump object with a [ContinuationRegisterDumpDescriptor]
 		 *   descriptor.
 		 */
-		fun A_Continuation.registerDump(): AvailObject =
-			dispatch { o_RegisterDump(it) }
+		val A_Continuation.registerDump: AvailObject
+			get() = dispatch { o_RegisterDump(it) }
 
 		/**
 		 * Determine which nybblecode index is "current" for this continuation.

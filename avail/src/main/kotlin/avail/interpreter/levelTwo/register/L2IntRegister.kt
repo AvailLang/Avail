@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.register
 
 import avail.descriptor.representation.AvailObject
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.optimizer.L2Generator
 import avail.optimizer.reoptimizer.L2Regenerator
 
@@ -71,4 +72,7 @@ constructor(
 
 	override fun copyForRegenerator(regenerator: L2Regenerator) =
 		L2IntRegister(regenerator.nextUnique())
+
+	override val primaryVisualSortKey
+		get() = PrimaryVisualSortKey.UNBOXED_INT_REGISTER
 }

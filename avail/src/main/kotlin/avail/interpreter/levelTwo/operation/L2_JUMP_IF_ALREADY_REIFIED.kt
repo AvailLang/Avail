@@ -46,11 +46,9 @@ import org.objectweb.asm.Opcodes
  * and provides backtracking, exceptions, readable stack traces, and reliable
  * debugger support.  However, it's also expensive.
  *
- *
  * To avoid the cost of a null reification, this operation checks to see if
  * we're already at the bottom of the Java call stack – we track the depth of
  * unreified calls in [Interpreter.unreifiedCallDepth].
- *
  *
  * If we're already reified (depth = 0), that means the
  * [Interpreter.getReifiedContinuation] represents our caller's fully

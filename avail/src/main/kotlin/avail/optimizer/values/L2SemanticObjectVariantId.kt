@@ -34,7 +34,10 @@ package avail.optimizer.values
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i31
 import avail.descriptor.types.TypeTag
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 
@@ -73,5 +76,19 @@ constructor(
 			if (it == base) this else L2SemanticObjectVariantId(it)
 		}
 
+	override val defaultRestriction: TypeRestriction
+		get() = variantsRestriction
+
+	override val isUsefulForGlobalValueNumbering: Boolean = true
+
 	override fun toString(): String = "Variant($base)"
+
+	companion object
+	{
+		/**
+		 * The default restriction for semantic values that hold the variant id
+		 * of some object.  Note that they're non-negative.
+		 */
+		private val variantsRestriction = boxedRestrictionForType(i31)
+	}
 }

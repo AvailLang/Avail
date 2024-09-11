@@ -278,8 +278,8 @@ class PerInterpreterStatistic internal constructor(
 	{
 		spinLockWhile {
 			count = 0
-			min = java.lang.Double.POSITIVE_INFINITY
-			max = java.lang.Double.NEGATIVE_INFINITY
+			min = Double.POSITIVE_INFINITY
+			max = Double.NEGATIVE_INFINITY
 			mean = 0.0
 			sumOfDeltaSquares = 0.0
 		}

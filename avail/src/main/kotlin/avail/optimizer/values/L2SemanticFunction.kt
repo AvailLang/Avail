@@ -31,6 +31,12 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 
 /**
@@ -50,6 +56,20 @@ internal class L2SemanticFunction constructor(frame: Frame)
 {
 	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		other is L2SemanticFunction && super.equalsSemanticValue(other)
+
+	override val defaultRestriction: TypeRestriction
+		get() = constantRestrictionOrNull ?:
+			boxedRestrictionForType(frame.code.functionType())
+
+	override val isUsefulForGlobalValueNumbering: Boolean = true
+
+	override val constantRestrictionOrNull: TypeRestriction?
+		get() = when (frame.code.numOuters)
+	{
+		0 -> boxedRestrictionForConstant(
+			createFunction(frame.code, emptyTuple))
+		else -> null
+	}
 
 	override fun transform(
 		semanticValueTransformer:

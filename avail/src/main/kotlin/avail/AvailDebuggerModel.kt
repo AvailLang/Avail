@@ -141,10 +141,10 @@ class AvailDebuggerModel constructor (
 			// This probably can't happen, but assume the fiber has ended.
 			return
 		}
-		val initialFunction: A_Function = initialContinuation.function()
+		val initialFunction: A_Function = initialContinuation.function
 		// Note: initialCaller might be nil.
 		val initialCaller: A_Continuation =
-			initialContinuation.caller().traversed()
+			initialContinuation.caller.traversed()
 
 		var firstPoll = true
 		fiber.fiberHelper.debuggerRunCondition = condition@ { interpreter ->
@@ -180,7 +180,7 @@ class AvailDebuggerModel constructor (
 					// We're still within the scope of the original caller.
 					return@condition true
 				}
-				c = c.caller().traversed()
+				c = c.caller.traversed()
 			}
 			// The original continuation's caller wasn't found, or is actually
 			// nil.  Either way, treat it as a stop condition.

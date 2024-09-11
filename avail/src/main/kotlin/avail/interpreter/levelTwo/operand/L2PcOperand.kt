@@ -94,24 +94,26 @@ class L2PcOperand constructor (
 ) : L2Operand()
 {
 	/**
-	 * The [Set] of [L2Register]s that are written in all pasts, and are
+	 * The [Set] of every [L2Entity] that is written in all pasts, and is
 	 * consumed along all future paths after the start of this block.  This is
 	 * only populated during optimization, while the control flow graph is still
-	 * in SSA form.
+	 * in SSA form.  A null value should be replaced with a fresh [MutableSet]
+	 * when adding the first element.
 	 *
-	 * This is a subset of [sometimesLiveInRegisters].
+	 * This is a subset of [sometimesLiveInEntities].
 	 */
-	val alwaysLiveInRegisters = mutableSetOf<L2Register<*>>()
+	var alwaysLiveInEntities: MutableSet<L2Entity<*>>? = null
 
 	/**
-	 * The [Set] of [L2Register]s that are written in all pasts, and are
+	 * The [Set] of every [L2Entity] that is written in all pasts, and is
 	 * consumed along at least one future after the start of this block. This is
 	 * only populated during optimization, while the control flow graph is still
-	 * in SSA form.
+	 * in SSA form.  A null value should be replaced with a fresh [MutableSet]
+	 * when adding the first element.
 	 *
-	 * This is a superset of [alwaysLiveInRegisters].
+	 * This is a superset of [alwaysLiveInEntities].
 	 */
-	val sometimesLiveInRegisters = mutableSetOf<L2Register<*>>()
+	var sometimesLiveInEntities: MutableSet<L2Entity<*>>? = null
 
 	/**
 	 * Either `null`, the normal case, or a set with each [L2Entity] that is
@@ -359,7 +361,9 @@ class L2PcOperand constructor (
 		val liveMap = RegisterKind.all
 			.associateWithTo(mutableMapOf()) { mutableListOf<L2Register<*>>() }
 		val liveRegistersList =
-			(alwaysLiveInRegisters + sometimesLiveInRegisters)
+			((alwaysLiveInEntities ?: emptySet())
+					+ (sometimesLiveInEntities ?: emptySet()))
+				.filterIsInstance<L2Register<*>>()
 				.sortedBy(L2Register<*>::finalIndex)
 		liveRegistersList.forEach {
 			liveMap[it.kind]!!.add(it)
@@ -444,8 +448,8 @@ class L2PcOperand constructor (
 	override fun postOptimizationCleanup()
 	{
 		manifest = null
-		alwaysLiveInRegisters.clear()
-		sometimesLiveInRegisters.clear()
+		alwaysLiveInEntities = null
+		sometimesLiveInEntities = null
 		forcedClampedEntities?.retainAll { it is L2Register<*> }
 	}
 }

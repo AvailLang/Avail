@@ -34,17 +34,22 @@ package avail.interpreter.primitive.integers
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.bitwiseAnd
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
 import avail.descriptor.numbers.A_Number.Companion.isLong
+import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
@@ -114,7 +119,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			}
 		// At least one value is positive, so the result is positive.
 		// At least one is a long, so the result must be a long.
-		val highOneBit = java.lang.Long.highestOneBit(upper)
+		val highOneBit = upper.takeHighestOneBit()
 		if (highOneBit == 0L)
 		{
 			// One of the ranges is constrained to be exactly zero.
@@ -140,6 +145,41 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 			// Constant result.
 			callSiteHelper.useAnswer(generator.boxedConstant(bound.lowerBound))
 			return true
+		}
+		val (range1, range2) = argumentTypes
+		// Check if one value (x) is bounded to n bits and the other (y) is a
+		// mask consisting of at least those n lowest bits.  In that event, the
+		// value x will be unaffected by the bitwise and.
+		if (range2.lowerBound.run {
+			equals(range2.upperBound) &&
+				bitwiseAnd(plusCanDestroy(one, false), false).equalsInt(0)
+			})
+		{
+			// The second argument is a constant power of two.  See if it's big
+			// enough to accomodate any value that the first argument might be.
+			if (range1.isSubtypeOf(inclusive(zero, range2.upperBound)))
+			{
+				// range2 is a constant power of two big enough to include all
+				// non-zero bits of the first argument.
+				callSiteHelper.useAnswer(arguments[0])
+				return true
+			}
+		}
+		// Now check the same in reverse.
+		if (range1.lowerBound.run {
+				equals(range1.upperBound) &&
+					bitwiseAnd(plusCanDestroy(one, false), false).equalsInt(0)
+			})
+		{
+			// The first argument is a constant power of two.  See if it's big
+			// enough to accomodate any value that the second argument might be.
+			if (range2.isSubtypeOf(inclusive(zero, range1.upperBound)))
+			{
+				// range1 is a constant power of two big enough to include all
+				// non-zero bits of the second argument.
+				callSiteHelper.useAnswer(arguments[1])
+				return true
+			}
 		}
 		return And.generateBinaryIntOperation(
 			this,

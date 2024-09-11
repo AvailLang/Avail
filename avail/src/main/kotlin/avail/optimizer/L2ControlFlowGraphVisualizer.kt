@@ -469,44 +469,60 @@ class L2ControlFlowGraphVisualizer constructor(
 							) { append("CLAMPED:") }
 							append("<br/>")
 							font(bold = true) {
-								append(repeated("&nbsp;", 4))
+								append(indentString)
 								append(escape(edge.forcedClampedEntities))
 							}
 							append("<br/>")
 						}
 						if (visualizeLiveness)
 						{
-							if (edge.alwaysLiveInRegisters.isNotEmpty())
+							if (!edge.alwaysLiveInEntities.isNullOrEmpty())
 							{
+								val alwaysEscaped = edge.alwaysLiveInEntities!!
+									.sorted()
+									.map(::escape)
+								val sizeEstimate =
+									alwaysEscaped.sumOf { it.length + 2 }
 								font(italic = true) {
 									append("always live-in:")
 								}
 								append("<br/>")
 								font(bold = true) {
-									append(repeated("&nbsp;", 4))
-									edge.alwaysLiveInRegisters
-										.sortedBy(L2Register<*>::finalIndex)
-										.joinTo(this, ", ") { escape(it) }
+									append(indentString)
+									alwaysEscaped.joinTo(
+										this,
+										if (sizeEstimate > 50)
+											",<br/>" + indentString
+										else ", ")
 								}
 								append("<br/>")
 							}
-							val notAlwaysLiveInRegisters =
-								edge.sometimesLiveInRegisters.toMutableSet()
-							notAlwaysLiveInRegisters.removeAll(
-								edge.alwaysLiveInRegisters)
-							if (notAlwaysLiveInRegisters.isNotEmpty())
-							{
-								font(italic = true) {
-									append("sometimes live-in:")
+							edge.sometimesLiveInEntities?.let { sometimes ->
+								val notAlwaysLiveInRegisters =
+									sometimes.toMutableSet()
+								notAlwaysLiveInRegisters.removeAll(
+									edge.alwaysLiveInEntities ?: emptySet())
+								if (notAlwaysLiveInRegisters.isNotEmpty())
+								{
+									val someEscaped = notAlwaysLiveInRegisters
+										.sorted()
+										.map(::escape)
+									val sizeEstimate =
+										someEscaped.sumOf { it.length + 2 }
+									font(italic = true) {
+										append("sometimes live-in:")
+									}
+									append("<br/>")
+									font(bold = true) {
+										append(indentString)
+										someEscaped.joinTo(
+											this,
+											if (sizeEstimate > 50)
+												",<br/>" + indentString
+											else ", ")
+									}
+									append("<br/>")
 								}
-								append("<br/>")
-								font(bold = true) {
-									append(repeated("&nbsp;", 4))
-									notAlwaysLiveInRegisters
-										.sortedBy(L2Register<*>::finalIndex)
-										.joinTo(this, ", ") { escape(it) }
-								}
-								append("<br/>")
 							}
 						}
 						val manifest = edge.manifestOrNull()
@@ -671,7 +687,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				if (semanticValue.kind == BOXED_KIND) postponementsColor
 				else unboxedSynonymColor))
 			{
-				append(repeated("&nbsp;", 4))
+				append(indentString)
 				append(semanticValue.kind.kindName)
 				append("/")
 				append(escape(semanticValue))
@@ -685,7 +701,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					{
 						oldInstructions.forEach { instruction ->
 							append("<br/>")
-							append(repeated("&nbsp;", 8))
+							append(indent2String)
 							append(
 								escape(
 									increaseIndentation(
@@ -767,7 +783,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		append("<br/>")
 		font(color = writer.adjust(synonymColor ?: "")) {
-			append(repeated("&nbsp;", 4))
+			append(indentString)
 			// Truncate synonyms of Constant(nil), since they tend to be long
 			// and not very interesting.
 			var synonymText = synonym.toString()
@@ -779,13 +795,13 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 		append("<br/>")
 		font(color = writer.adjust(restrictionColor ?: "")) {
-			append(repeated("&nbsp;", 8))
+			append(indent2String)
 			append(":&nbsp;")
 			append(escape(restriction))
 		}
 		append("<br/>")
 		font(color = writer.adjust(definitionsColor ?: "")) {
-			append(repeated("&nbsp;", 8))
+			append(indent2String)
 			definitions.joinTo(this, ", ", "in {", "}")
 		}
 	}
@@ -976,15 +992,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		val escapeIndex = length
 		val desiredTypes = OperandTypeMap.allOperandTypes -
 			listOf(PC, PC_VECTOR, COMMENT)
-		val omitted = when (instruction)
-		{
-			is L2_JUMP -> instruction.offset != -1
-				&& instruction.target.offset() == instruction.offset
-			is L2_MOVE<*> -> instruction.source.register() ==
-				instruction.destination.register()
-			else -> false
-		}
-		if (omitted)
+		if (!instruction.producesAnyJvmCode)
 		{
 			// Show instructions that generate no code in gray.
 			font(
@@ -1070,7 +1078,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		 * A color [String] suitable for [GraphWriter.adjust], specifying what
 		 * background color to use for an [L2Generator]'s current block.
 		 */
-		private const val currentBlockBackColor = "#c08080/803030"
+		private const val currentBlockBackColor = "#f0a0a0/803030"
 
 		/**
 		 * A color [String] suitable for [GraphWriter.adjust], specifying what
@@ -1114,12 +1122,18 @@ class L2ControlFlowGraphVisualizer constructor(
 						|| cp == '>'.code || cp == '&'.code
 					-> append("&#$cp;")
 					cp == '\n'.code -> append("<br/>")
-					cp == '\t'.code -> append(repeated("&nbsp;", 4))
+					cp == '\t'.code -> append(indentString)
 					else -> appendCodePoint(cp)
 				}
 				i += Character.charCount(cp)
 			}
 		}
+
+		/** Four non-breaking spaces, escaped. */
+		private val indentString = repeated("&nbsp;", 4)
+
+		/** Eight non-breaking spaces, escaped. */
+		private val indent2String = repeated("&nbsp;", 8)
 	}
 }
 

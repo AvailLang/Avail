@@ -31,13 +31,15 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AvailObject
 import avail.interpreter.Primitive
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2Entity
-import avail.optimizer.L2Synonym
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 import avail.utility.ifZero
 
 /**
@@ -59,26 +61,8 @@ import avail.utility.ifZero
 abstract class L2SemanticValue<K: RegisterKind<K>>
 protected constructor(
 	val hash: Int
-) : L2Entity<K>, Comparable<L2SemanticValue<*>>
+) : L2Entity<K>
 {
-	/**
-	 * The major ordering of semantic values when printing an [L2Synonym].
-	 * Synonyms and value manifests' contents sort by the ordinal, so rearrange
-	 * the enum values to change this order.
-	 */
-	enum class PrimaryVisualSortKey
-	{
-		CONSTANT_NIL,
-		CONSTANT,
-		CALLER,
-		LABEL,
-		OUTER,
-		PRIMITIVE_INVOCATION,
-		TEMP,
-		OTHER,
-		SLOT;
-	}
-
 	override fun hashCode(): Int = hash
 
 	override fun equals(other: Any?): Boolean =
@@ -105,6 +89,19 @@ protected constructor(
 		get() = null
 
 	/**
+	 * Answer the restriction that this semantic value should have if nothing
+	 * else is known about it.
+	 */
+	abstract val defaultRestriction: TypeRestriction
+
+	/**
+	 * Answer whether a move that adds this to a synonym should be kept around
+	 * just to make the synonym visible for reuse, even though the register that
+	 * is written by the move is dead.
+	 */
+	open val isUsefulForGlobalValueNumbering: Boolean = false
+
+	/**
 	 * Transform the receiver.  If it's composed of parts, transform them with
 	 * the supplied [Function]s.
 	 *
@@ -123,19 +120,20 @@ protected constructor(
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticValue<K>
 
-	override fun compareTo(other: L2SemanticValue<*>) =
-		primaryVisualSortKey().ordinal.compareTo(
-				other.primaryVisualSortKey().ordinal)
+	override fun compareTo(other: L2Entity<*>) =
+		primaryVisualSortKey.ordinal.compareTo(
+				other.primaryVisualSortKey.ordinal)
 			.ifZero {
 				// Alphabetize within the category.
-				toStringForSynonym().compareTo(other.toStringForSynonym())
+				val otherStrong = other as L2SemanticValue<*>
+				toStringForSynonym().compareTo(otherStrong.toStringForSynonym())
 			}
 
 	/**
 	 * The primary criterion by which to sort (ascending) the semantic values in
 	 * a synonym when presenting them visually.
 	 */
-	open fun primaryVisualSortKey() = PrimaryVisualSortKey.OTHER
+	override val primaryVisualSortKey get() = PrimaryVisualSortKey.OTHER
 
 	/**
 	 * Produce a compact textual representation suitable for displaying within
@@ -158,6 +156,19 @@ protected constructor(
 		 */
 		fun constant(value: A_BasicObject): L2SemanticBoxedValue =
 			L2SemanticConstant(value.makeImmutable())
+
+		/**
+		 * Answer the semantic value representing a particular constant value,
+		 * first converted from an [Int] to an [AvailObject].
+		 *
+		 * @param value
+		 *   The [Int] to convert to an [AvailObject] and then a semantic
+		 *   constant.
+		 * @return
+		 *   A [L2SemanticConstant] representing the constant.
+		 */
+		fun constant(value: Int): L2SemanticBoxedValue =
+			L2SemanticConstant(fromInt(value))
 
 		/**
 		 * Answer a semantic value representing the result of invoking a

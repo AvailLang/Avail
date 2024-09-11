@@ -1,5 +1,5 @@
 /*
- * P_RestartContinuationWithArguments.kt
+ * P_RestartContinuationWithArgumentsIfkt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,22 +31,25 @@
  */
 package avail.interpreter.primitive.controlflow
 
+import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Continuation.Companion.stackp
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
-import avail.descriptor.functions.ContinuationDescriptor
-import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
@@ -58,14 +61,14 @@ import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.AlwaysSwitchesContinuation
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CanSwitchContinuations
 import avail.interpreter.Primitive.Result.CONTINUATION_CHANGED
@@ -76,29 +79,34 @@ import avail.interpreter.levelTwo.operation.L2_RESTART_CONTINUATION_WITH_ARGUMEN
 import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
- * **Primitive:** Restart the given [continuation][ContinuationDescriptor], but
- * passing in the given [tuple][TupleDescriptor] of arguments. Make sure it's a
- * label-like continuation rather than a call-like, because a call-like
+ * **Primitive:** If the given boolean condition is true, then restart the given
+ * [A_Continuation], but passing in the given [A_Tuple] of arguments. Make sure
+ * it's a label-like continuation rather than a call-like, because a call-like
  * continuation has the expected return type already pushed on the stack, and
  * requires the return value, after checking against that type, to overwrite the
  * type in the stack (without affecting the stack depth). Fail if the
- * continuation's [function][FunctionDescriptor] is not capable of accepting the
- * given arguments.
+ * continuation's [A_Function] is not capable of accepting the given arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_RestartContinuationWithArguments : Primitive(
-	2,
+object P_RestartContinuationWithArgumentsIf : Primitive(
+	3,
 	CanInline,
-	CanSwitchContinuations,
-	AlwaysSwitchesContinuation)
+	CanSwitchContinuations)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(2)
+		interpreter.checkArgumentCount(3)
 		val originalCon = interpreter.argument(0)
 		val arguments = interpreter.argument(1)
+		val condition = interpreter.argument(2)
+
+		if (!condition.extractBoolean)
+		{
+			// The condition is false, so don't restart the continuation.
+			return interpreter.primitiveSuccess(nil)
+		}
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
@@ -143,8 +151,11 @@ object P_RestartContinuationWithArguments : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType, mostGeneralTupleType),
-			bottom)
+			tuple(
+				mostGeneralContinuationType,
+				mostGeneralTupleType,
+				booleanType),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -157,7 +168,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		argumentTypes: List<A_Type>,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val (continuationReg, argumentsTupleReg) = arguments
+		val (continuationReg, argumentsTupleReg, condition) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
@@ -198,7 +209,17 @@ object P_RestartContinuationWithArguments : Primitive(
 				// some reflective mechanism, fall back to the primitive.
 				return false
 			}
-			translator.generateRestartContinuation(explodedTupleRegs)
+			val noRestartLabel = generator.createBasicBlock("Don't restart")
+			val restartLabel = generator.createBasicBlock("Do restart")
+			generator.jumpIfEqualsConstant(
+				condition, trueObject, restartLabel, noRestartLabel)
+			generator.startBlock(restartLabel)
+			if (generator.currentlyReachable())
+			{
+				translator.generateRestartContinuation(explodedTupleRegs)
+			}
+			generator.startBlock(noRestartLabel)
+			// Fall through for the not-restarting path.
 			return true
 		}
 
@@ -227,14 +248,20 @@ object P_RestartContinuationWithArguments : Primitive(
 			toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))
 		explodedArgumentRegs ?: return false
 
-		translator.addInstruction(
-			L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
-				continuationReg,
-				L2ReadBoxedVectorOperand(explodedArgumentRegs)))
-		assert(!generator.currentlyReachable())
-		generator.startBlock(
-			generator.createBasicBlock(
-				"unreachable after L2_RESTART_CONTINUATION_WITH_ARGUMENTS"))
+		val noRestartLabel = generator.createBasicBlock("Don't restart")
+		val restartLabel = generator.createBasicBlock("Do restart")
+		generator.jumpIfEqualsConstant(
+			condition, trueObject, restartLabel, noRestartLabel)
+		generator.startBlock(restartLabel)
+		if (generator.currentlyReachable())
+		{
+			translator.addInstruction(
+				L2_RESTART_CONTINUATION_WITH_ARGUMENTS(
+					continuationReg,
+					L2ReadBoxedVectorOperand(explodedArgumentRegs)))
+		}
+		generator.startBlock(noRestartLabel)
+		// Fall through for the not-restarting path.
 		return true
 	}
 }

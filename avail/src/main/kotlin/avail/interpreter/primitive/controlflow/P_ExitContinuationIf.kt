@@ -82,7 +82,7 @@ object P_ExitContinuationIf : Primitive(
 			return interpreter.primitiveSuccess(nil)
 		}
 
-		val caller = continuation.caller()
+		val caller = continuation.caller
 		interpreter.setReifiedContinuation(caller)
 		if (caller.isNil)
 		{
@@ -93,9 +93,9 @@ object P_ExitContinuationIf : Primitive(
 		}
 		else
 		{
-			interpreter.function = caller.function()
-			interpreter.chunk = caller.levelTwoChunk()
-			interpreter.offset = caller.levelTwoOffset()
+			interpreter.function = caller.function
+			interpreter.chunk = caller.levelTwoChunk
+			interpreter.offset = caller.levelTwoOffset
 			interpreter.returnNow = false
 		}
 		interpreter.setLatestResult(nil)

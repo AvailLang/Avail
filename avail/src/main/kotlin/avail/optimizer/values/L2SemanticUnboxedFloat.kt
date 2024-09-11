@@ -31,13 +31,17 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.L2FloatRegister
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
+import avail.utility.cast
 
 /**
- * A semantic value which represents the [base] semantic value, but unboxed as
+ * A semantic value which represents the [privateBoxed] semantic value, but unboxed as
  * a float (in some [L2FloatRegister].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -45,32 +49,53 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
  * @constructor
  * Create a new `L2SemanticUnboxedFloat` semantic value.
  *
- * @param base
+ * @param boxedValue
  *   The unboxed semantic value from which this unboxed value is derived.
  */
 class L2SemanticUnboxedFloat
 constructor(
-	val base: L2SemanticValue<BOXED_KIND>
-) : L2SemanticValue<FLOAT_KIND>(base.hash xor 0x27F6F766)
+	val boxedValue: L2SemanticValue<BOXED_KIND>
+) : L2SemanticValue<FLOAT_KIND>(boxedValue.hash xor 0x27F6F766)
 {
+	/** The strengthened boxed value provided by the constructor. */
+	val privateBoxed: L2SemanticBoxedValue = boxedValue.cast()
+
 	override val kind get() = FLOAT_KIND
 
 	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
-		other is L2SemanticUnboxedFloat && base.equalsSemanticValue(other.base)
+		other is L2SemanticUnboxedFloat
+			&& privateBoxed.equalsSemanticValue(other.privateBoxed)
 
 	override fun transform(
 		semanticValueTransformer:
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticUnboxedFloat =
-		semanticValueTransformer(base).let {
-			if (it == base) this else L2SemanticUnboxedFloat(it)
+		semanticValueTransformer(privateBoxed).let {
+			if (it == privateBoxed) this else it.unboxedFloat
 		}
 
-	override val isConstant: Boolean get() = base.isConstant
+	override val isConstant: Boolean get() = privateBoxed.isConstant
 
-	override val constantRestrictionOrNull: TypeRestriction
-		get() = base.constantRestrictionOrNull!!.forUnboxedFloat()
+	override val defaultRestriction: TypeRestriction
+		get() = constantRestrictionOrNull ?: floatRestriction
 
-	override fun toString(): String = "Float($base)"
+	override val isUsefulForGlobalValueNumbering: Boolean =
+		privateBoxed.isUsefulForGlobalValueNumbering
+
+	override val constantRestrictionOrNull: TypeRestriction?
+		get() = privateBoxed.constantRestrictionOrNull?.forUnboxedFloat()
+
+	override fun toString(): String = "Float($privateBoxed)"
+
+	companion object
+	{
+		/** The corresponding boxed form of this float semantic value. */
+		val L2SemanticValue<FLOAT_KIND>.boxed: L2SemanticBoxedValue
+			get() = (this as L2SemanticUnboxedFloat).privateBoxed
+
+		/** Default resstriction for float semanticc values. */
+		private val floatRestriction =
+			boxedRestrictionForType(Types.DOUBLE.o).forUnboxedFloat()
+	}
 }

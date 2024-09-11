@@ -31,7 +31,9 @@
  */
 package avail.optimizer.values
 
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * A semantic value which holds a temporary value in a [Frame].  The scope
@@ -73,8 +75,10 @@ constructor(
 			if (it == frame) this else L2SemanticTemp(it, uniqueId)
 		}
 
+	override val defaultRestriction: TypeRestriction
+		get() = TypeRestriction.topRestriction
 
-	override fun primaryVisualSortKey() = PrimaryVisualSortKey.TEMP
+	override val primaryVisualSortKey get() = PrimaryVisualSortKey.TEMP
 
 	override fun toString() = buildString {
 			append("T")

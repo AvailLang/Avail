@@ -45,7 +45,7 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -101,6 +101,14 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
+		// If optimizations have caused the branches to go to the same place,
+		// eliminate the branch entirely.
+		if (ifEqual.targetBlock() == ifNotEqual.targetBlock())
+		{
+			regenerator.jumpTo(ifEqual.targetBlock())
+			return
+		}
+
 		val manifest = regenerator.currentManifest
 		val restriction1 = manifest.restrictionFor(first.semanticValue())
 		val restriction2 = manifest.restrictionFor(second.semanticValue())
@@ -120,18 +128,27 @@ class L2_JUMP_IF_OBJECTS_EQUAL(
 				return
 			}
 		}
+		if (manifest.semanticValueToSynonym(first.semanticValue()) ==
+			manifest.semanticValueToSynonym(second.semanticValue()))
+		{
+			// The values aren't both known as static constants, but they are in
+			// the same synonym, so they are definitely equal.
+			regenerator.jumpTo(ifEqual.targetBlock())
+			return
+		}
 		if (!first.restriction().containedByType(i32)
 			|| !second.restriction().containedByType(i32))
 		{
-			return super.emitTransformedInstruction(regenerator)
+			super.emitTransformedInstruction(regenerator)
+			return
 		}
 		// The values are definitely ints, even if they're not necessarily both
 		// (or either) in int registers.
 		val unreachable = L2BasicBlock("should not reach")
 		val int1Reg = regenerator.readInt(
-			L2SemanticUnboxedInt(first.semanticValue()), unreachable)
+			first.semanticValue().unboxedInt, unreachable)
 		val int2Reg = regenerator.readInt(
-			L2SemanticUnboxedInt(second.semanticValue()), unreachable)
+			second.semanticValue().unboxedInt, unreachable)
 		// Note that we *must not* reuse the manifests in the translated edges
 		// ifTrue and ifFalse, since they might not include information about
 		// registers freshly generated for int1Reg and int2Reg, which might have

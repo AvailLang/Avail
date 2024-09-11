@@ -54,6 +54,7 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -86,19 +87,19 @@ class ArithmeticTest
 	fun testFloats(f: Float)
 	{
 		val availFloat = fromFloat(f)
-		if (!java.lang.Float.isNaN(f))
+		if (!f.isNaN())
 		{
-			Assertions.assertEquals(f, availFloat.extractFloat)
+			assertEquals(f, availFloat.extractFloat)
 			val availInt = doubleTruncatedToExtendedInteger(f.toDouble())
 			if (Long.MIN_VALUE <= f && f <= Long.MAX_VALUE)
 			{
 				Assertions.assertTrue(availInt.isLong)
-				Assertions.assertEquals(availInt.extractLong, f.toLong())
+				assertEquals(availInt.extractLong, f.toLong())
 			}
-			if (java.lang.Float.isInfinite(f))
+			if (f.isInfinite())
 			{
 				Assertions.assertFalse(availInt.isFinite)
-				Assertions.assertEquals(f > 0, availInt.isPositive)
+				assertEquals(f > 0, availInt.isPositive)
 			}
 			else
 			{
@@ -161,7 +162,7 @@ class ArithmeticTest
 		for (baseNeighborhoodString in baseNeighborhoodsForShifting)
 		{
 			val baseNeighborhood = BigInteger(baseNeighborhoodString, 16)
-			Assertions.assertEquals(
+			assertEquals(
 				baseNeighborhood.toString(16), baseNeighborhoodString)
 			for (offset in baseOffsetsForShifting)
 			{
@@ -213,14 +214,14 @@ class ArithmeticTest
 	{
 		val integerA = fromBigInteger(a)
 		val integerB = fromBigInteger(b)
-		Assertions.assertEquals(a, integerA.asBigInteger())
-		Assertions.assertEquals(a.toString(), integerA.toString())
+		assertEquals(a, integerA.asBigInteger())
+		assertEquals(a.toString(), integerA.toString())
 		val sum1 = a.add(b)
 		val sum2 = integerA.plusCanDestroy(integerB, false)
-		Assertions.assertEquals(sum1, sum2.asBigInteger())
+		assertEquals(sum1, sum2.asBigInteger())
 		val diff1 = a.subtract(b)
 		val diff2 = integerA.minusCanDestroy(integerB, false)
-		Assertions.assertEquals(diff1, diff2.asBigInteger())
+		assertEquals(diff1, diff2.asBigInteger())
 
 		// Assume the values don't overflow double's limits.
 		val doubleA: Double = a.toDouble()
@@ -232,17 +233,13 @@ class ArithmeticTest
 		// represent two nearby different integers.
 		if (integerA.equals(integerB) || doubleA != doubleB)
 		{
-			Assertions.assertEquals(orderByInteger, orderByDouble)
+			assertEquals(orderByInteger, orderByDouble)
 			// Also check it against Java double comparisons.
-			Assertions.assertEquals(doubleA < doubleB,
-									orderByDouble.isLess())
-			Assertions.assertEquals(doubleA == doubleB,
-									orderByDouble.isEqual())
-			Assertions.assertEquals(doubleA > doubleB,
-									orderByDouble.isMore())
-			Assertions.assertEquals(
-				java.lang.Double.isNaN(doubleA)
-					|| java.lang.Double.isNaN(doubleB),
+			assertEquals(doubleA < doubleB, orderByDouble.isLess())
+			assertEquals(doubleA == doubleB, orderByDouble.isEqual())
+			assertEquals(doubleA > doubleB, orderByDouble.isMore())
+			assertEquals(
+				doubleA.isNaN() || doubleB.isNaN(),
 				orderByDouble.isIncomparable())
 		}
 	} // TODO: [MvG] Write tests for doubles.
@@ -360,17 +357,12 @@ class ArithmeticTest
 		 */
 		fun assertEqualFloatsOrNan(a: Float, b: Float)
 		{
-			Assertions.assertEquals(
-				java.lang.Float.isNaN(a),
-				java.lang.Float.isNaN(b))
-			if (!java.lang.Float.isNaN(a))
+			assertEquals(a.isNaN(), b.isNaN())
+			if (!a.isNaN())
 			{
-				if (java.lang.Float.floatToRawIntBits(a) != java
-						.lang
-						.Float
-						.floatToRawIntBits(b))
+				if (a.toRawBits() != b.toRawBits())
 				{
-					Assertions.assertEquals(a, b, abs(b * FloatEpsilon))
+					assertEquals(a, b, abs(b * FloatEpsilon))
 				}
 			}
 		}
@@ -427,11 +419,11 @@ class ArithmeticTest
 		private fun checkBigIntegerHexString(bigIntHexString: String)
 		{
 			val bigInt = BigInteger(bigIntHexString, 16)
-			Assertions.assertEquals(
+			assertEquals(
 				bigIntHexString.uppercase(),
 				bigInt.toString(16).uppercase())
 			val availInt: A_BasicObject = fromBigInteger(bigInt)
-			Assertions.assertEquals(
+			assertEquals(
 				bigInt.toString().uppercase(),
 				availInt.toString().uppercase())
 		}
@@ -494,10 +486,9 @@ class ArithmeticTest
 			val shiftedAvailInt = availInt.bitShift(availShift, true)
 			val availInt2 = fromBigInteger(base)
 			val shiftedAvailInt2 = availInt2.bitShift(availShift, false)
-			Assertions.assertEquals(shiftedAvailInt, shiftedAvailInt2)
+			assertEquals(shiftedAvailInt, shiftedAvailInt2)
 			val shiftedBigInt = base.shiftLeft(leftShift)
-			Assertions.assertEquals(
-				fromBigInteger(shiftedBigInt), shiftedAvailInt)
+			assertEquals(fromBigInteger(shiftedBigInt), shiftedAvailInt)
 		}
 
 		/**

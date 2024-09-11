@@ -77,12 +77,12 @@ object P_RestartContinuation : Primitive(
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
-		assert(originalCon.stackp() == code.numSlots + 1)
+		assert(originalCon.stackp == code.numSlots + 1)
 		{
 			"Continuation should have been a label- rather than " +
 				"call-continuation"
 		}
-		assert(originalCon.pc() == 0)
+		assert(originalCon.pc == 0)
 		{
 			"Continuation should have been a label- rather than " +
 				"call-continuation"
@@ -98,7 +98,7 @@ object P_RestartContinuation : Primitive(
 		}
 		// The restart entry point expects the interpreter's reifiedContinuation
 		// to be the label continuation's *caller*.
-		interpreter.setReifiedContinuation(originalCon.caller())
+		interpreter.setReifiedContinuation(originalCon.caller)
 		interpreter.function = originalCon.function()
 		interpreter.chunk = code.startingChunk
 		interpreter.offset = 0

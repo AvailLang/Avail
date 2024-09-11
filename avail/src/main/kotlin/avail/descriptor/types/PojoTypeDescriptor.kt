@@ -967,9 +967,9 @@ protected constructor(
 		}
 
 		/**
-		 * Answer the canonical pojo type for the specified pojo type.
-		 * This marshals certain pojo types to Avail types (e.g.,
-		 * java.lang.String -> string).
+		 * Answer the canonical pojo type for the specified pojo type. This
+		 * marshals certain pojo types to Avail types (e.g., [String] ->
+		 * string).
 		 *
 		 * @param probablePojoType
 		 *   An arbitrary Avail type, but one that might be a pojo type.

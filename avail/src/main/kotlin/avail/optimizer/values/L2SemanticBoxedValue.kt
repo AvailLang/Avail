@@ -48,4 +48,15 @@ constructor(
 ) : L2SemanticValue<BOXED_KIND>(hash)
 {
 	override val kind get() = BOXED_KIND
+
+	companion object
+	{
+		/** Create an [L2SemanticUnboxedInt] from the receiver. */
+		val L2SemanticValue<BOXED_KIND>.unboxedInt: L2SemanticUnboxedInt
+			get() = L2SemanticUnboxedInt(this as L2SemanticBoxedValue)
+
+		/** Create an [L2SemanticUnboxedFloat] from the receiver. */
+		val L2SemanticValue<BOXED_KIND>.unboxedFloat: L2SemanticUnboxedFloat
+			get() = L2SemanticUnboxedFloat(this as L2SemanticBoxedValue)
+	}
 }

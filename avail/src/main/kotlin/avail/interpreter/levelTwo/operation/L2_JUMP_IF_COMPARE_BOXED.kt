@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -38,7 +39,10 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
@@ -80,18 +84,10 @@ class L2_JUMP_IF_COMPARE_BOXED(
 			val (rest1, rest2, rest3, rest4) =
 				numericComparator.computeRestrictions(
 					restriction1, restriction2)
-			ifTrue.manifest().setRestriction(
-				number1.semanticValue(),
-				restriction1.intersection(rest1))
-			ifTrue.manifest().setRestriction(
-				number2.semanticValue(),
-				restriction2.intersection(rest2))
-			ifFalse.manifest().setRestriction(
-				number1.semanticValue(),
-				restriction1.intersection(rest3))
-			ifFalse.manifest().setRestriction(
-				number2.semanticValue(),
-				restriction2.intersection(rest4))
+			ifTrue.manifest().setRestriction(number1.semanticValue(), rest1)
+			ifTrue.manifest().setRestriction(number2.semanticValue(), rest2)
+			ifFalse.manifest().setRestriction(number1.semanticValue(), rest3)
+			ifFalse.manifest().setRestriction(number2.semanticValue(), rest4)
 		}
 	}
 
@@ -116,12 +112,54 @@ class L2_JUMP_IF_COMPARE_BOXED(
 
 	override fun interestingConditions(): List<L2SplitCondition?>
 	{
-		// It would be nice if the input values were both already available in
-		// int registers.  A conjunction mechanism would be very hard to use,
-		// and harder to implement, so we split on each register instead.
-		return readOperands.map { read ->
-			unboxedIntCondition(listOf(read.register()))
+		val conditions = mutableListOf<L2SplitCondition?>()
+		if (number1.restriction().intersectsType(i32)
+			&& number2.restriction().intersectsType(i32))
+		{
+			// Both values could be in int registers at some point in the past.
+			// A conjunction mechanism would be very hard to use, and harder to
+			// implement, so we split on each register instead.
+			conditions.add(unboxedIntCondition(listOf(number1.register())))
+			conditions.add(unboxedIntCondition(listOf(number2.register())))
 		}
+		number2.restriction().constantOrNull?.let { constant ->
+			// If the constant is an integer, and if the argument is an extended
+			// integer, we can try to leverage that by keeping the code split
+			// whenever the comparison would have been always true or always
+			// false.
+			if (constant.isInstanceOf(integers)
+				&& number1.restriction().containedByType(integers))
+			{
+				// HOWEVER, don't use the current restriction for the value,
+				// since it might have been narrowed by previous comparisons.
+				// Use the broadest range (integers), to get the broadest type
+				// that can be used to split the code as early as possible.
+				val restriction1 = boxedRestrictionForType(integers)
+				val restriction2 = boxedRestrictionForConstant(constant)
+				val (rest1, _, rest3, _) =
+					numericComparator.computeRestrictions(
+						restriction1, restriction2)
+				// First, wish it was true, but only if the true path isn't
+				// cold.
+				if (!ifTrue.targetBlock().isCold)
+				{
+					conditions.add(
+						typeRestrictionCondition(
+							setOf(number1.register()),
+							rest1))
+				}
+				// Also wish it was false, but only if the false path isn't
+				// cold.
+				if (!ifFalse.targetBlock().isCold)
+				{
+					conditions.add(
+						typeRestrictionCondition(
+							setOf(number1.register()),
+							rest3))
+				}
+			}
+		}
+		return conditions
 	}
 
 	override fun emitTransformedInstruction(

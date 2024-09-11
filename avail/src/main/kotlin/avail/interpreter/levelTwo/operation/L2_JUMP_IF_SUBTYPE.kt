@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_SUBTYPE_OF_CONSTANT.kt
+ * L2_JUMP_IF_SUBTYPE_OF_OBJECT.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -36,23 +36,23 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
- * Conditionally jump, depending on whether the type to check is a subtype of
- * the constant type.
+ * Conditionally jump, depending on whether the first type is a subtype of the
+ * second type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_JUMP_IF_SUBTYPE_OF_CONSTANT(
-	var typeToCheck: L2ReadBoxedOperand,
-	var constantType: L2ConstantOperand,
+class L2_JUMP_IF_SUBTYPE(
+	var firstType: L2ReadBoxedOperand,
+	var seccondType: L2ReadBoxedOperand,
 	@On(SUCCESS) var ifSubtype: L2PcOperand,
 	@On(FAILURE) var ifNotSubtype: L2PcOperand
 ): L2ConditionalJump()
@@ -64,23 +64,36 @@ class L2_JUMP_IF_SUBTYPE_OF_CONSTANT(
 	{
 		renderPreamble(builder)
 		builder.append(' ')
-		builder.append(typeToCheck.registerString())
+		builder.append(firstType.registerString())
 		builder.append(" ⊆ ")
-		builder.append(constantType.constant)
+		builder.append(seccondType.registerString())
 		renderOperandsExcludingFields(
-			builder, desiredOperandTypes, ::typeToCheck, ::constantType)
+			builder, desiredOperandTypes, ::firstType, ::seccondType)
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()
+
+	override fun emitTransformedInstruction(
+		regenerator: L2Regenerator)
+	{
+		// If optimizations have caused the branches to go to the same place,
+		// eliminate the branch entirely.
+		if (ifSubtype.targetBlock() == ifNotSubtype.targetBlock())
+		{
+			regenerator.jumpTo(ifSubtype.targetBlock())
+			return
+		}
+		super.emitTransformedInstruction(regenerator)
+	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		// :: if (type.isSubtypeOf(constant)) goto isSubtype;
+		// :: if (first.isSubtypeOf(second)) goto isSubtype;
 		// :: else goto notSubtype;
-		translator.load(method, typeToCheck.register())
-		translator.literal(method, constantType.constant)
+		translator.load(method, firstType.register())
+		translator.load(method, seccondType.register())
 		A_Type.isSubtypeOfMethod.generateCall(method)
 		emitBranch(
 			translator, method, this, Opcodes.IFNE, ifSubtype, ifNotSubtype)

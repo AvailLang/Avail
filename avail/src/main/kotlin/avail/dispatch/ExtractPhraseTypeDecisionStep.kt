@@ -49,7 +49,6 @@ import avail.interpreter.primitive.phrases.P_PhraseExpressionType
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticValue
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -233,10 +232,8 @@ constructor(
 	private fun newSemanticValue(
 		semanticValues: List<L2SemanticBoxedValue>,
 		extraSemanticValues: List<L2SemanticBoxedValue>
-	) = L2SemanticValue.primitiveInvocation(
-		P_PhraseExpressionType,
-		listOf(
-			sourceSemanticValue(semanticValues, extraSemanticValues)))
+	) = P_PhraseExpressionType.semanticInvocation(
+		sourceSemanticValue(semanticValues, extraSemanticValues))
 
 	override fun simplyAddChildrenTo(
 		list: MutableList<LookupTree<Element, Result>>)
@@ -261,9 +258,8 @@ constructor(
 			generator.currentManifest.restrictionFor(baseSemanticValue)
 		val expressionTypeRestriction = boxedRestrictionForType(
 			instanceMeta(baseRestriction.type.phraseTypeExpressionType))
-		val expressionTypeSemanticValue = L2SemanticValue.primitiveInvocation(
-			P_PhraseExpressionType,
-			listOf(baseSemanticValue))
+		val expressionTypeSemanticValue =
+			P_PhraseExpressionType.semanticInvocation(baseSemanticValue)
 		generator.addInstruction(
 			L2_GET_PHRASE_EXPRESSION_TYPE(
 				generator.readBoxed(baseSemanticValue),

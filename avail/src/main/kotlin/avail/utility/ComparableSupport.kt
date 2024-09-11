@@ -113,11 +113,12 @@ infix fun <E, C1: Comparable<C1>, C2: Comparable<C2>> ((E)->C1).thenBy(
  * val aList = listOf<Set<Long>>()
  * val sorted =
  *     aList.sortedWith(
- *         compareChained({it.size}, {it.toString()}, {it.max()}))
+ *         compareChained({it.size}, {it.toString().take(10)}, {it.max()}))
  * ```
  *
  * This sorts a list by ascending size of each set, breaking ties by
- * alphabetizing by the textual representations.
+ * alphabetizing by the first (up to) 10 characters of the textual
+ * representations, then breaking those ties by the maximum value in the sets.
  */
 fun <E> compareChained(
 	vararg extractors: (E)->Comparable<*>

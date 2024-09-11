@@ -64,8 +64,8 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.u8
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
@@ -113,7 +113,7 @@ object P_DelayedForkOrphan : Primitive(
 		}
 		// If the sleep time is colossal, then the fiber would never actually
 		// start, so exit early.
-		if (sleepMillis.greaterThan(fromLong(java.lang.Long.MAX_VALUE)))
+		if (sleepMillis.greaterThan(fromLong(Long.MAX_VALUE)))
 		{
 			return interpreter.primitiveSuccess(nil)
 		}

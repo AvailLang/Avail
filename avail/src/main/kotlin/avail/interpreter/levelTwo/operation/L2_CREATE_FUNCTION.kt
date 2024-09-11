@@ -44,7 +44,6 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -113,8 +112,8 @@ class L2_CREATE_FUNCTION(
 		}
 		generator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE(
+				outerName,
 				L2IntImmediateOperand(outerIndex),
-				L2CommentOperand(outerName),
 				functionRegister,
 				tempWrite))
 		return generator.readBoxed(tempWrite)

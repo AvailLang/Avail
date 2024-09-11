@@ -40,11 +40,10 @@ import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_GET_TYPE
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
@@ -251,26 +250,17 @@ constructor(
 					val nextCheckOrFail = generator.createBasicBlock(
 						"test next case of enumeration")
 					generator.jumpIfEqualsConstant(
-						argRead,
-						instance,
-						passBlock,
-						nextCheckOrFail)
+						argRead, instance, passBlock, nextCheckOrFail)
 					generator.startBlock(nextCheckOrFail)
 					instance = iterator.next()
 				}
 				generator.jumpIfEqualsConstant(
-					argRead,
-					instance,
-					passBlock,
-					failBlock)
+					argRead, instance, passBlock, failBlock)
 				return result
 			}
 			// A runtime test is needed, and it's not a small enumeration.
 			generator.jumpIfKindOfConstant(
-				argRead,
-				argumentTypeToTest,
-				passBlock,
-				failBlock)
+				argRead, argumentTypeToTest, passBlock, failBlock)
 			return result
 		}
 
@@ -311,9 +301,9 @@ constructor(
 				superUnionReg,
 				unionReg))
 		generator.addInstruction(
-			L2_JUMP_IF_SUBTYPE_OF_CONSTANT(
+			L2_JUMP_IF_SUBTYPE(
 				generator.readBoxed(unionReg),
-				L2ConstantOperand(argumentTypeToTest),
+				generator.boxedConstant(argumentTypeToTest),
 				edgeTo(passBlock),
 				edgeTo(failBlock)))
 		return result

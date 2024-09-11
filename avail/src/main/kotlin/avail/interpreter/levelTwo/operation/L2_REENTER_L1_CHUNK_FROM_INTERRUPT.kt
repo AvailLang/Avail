@@ -93,7 +93,7 @@ class L2_REENTER_L1_CHUNK_FROM_INTERRUPT(
 		{
 			val continuation: A_Continuation =
 				interpreter.getReifiedContinuation()!!
-			interpreter.setReifiedContinuation(continuation.caller())
+			interpreter.setReifiedContinuation(continuation.caller)
 			if (Interpreter.debugL1)
 			{
 				log(
@@ -103,7 +103,7 @@ class L2_REENTER_L1_CHUNK_FROM_INTERRUPT(
 					interpreter.debugModeString)
 			}
 			val function = interpreter.function!!
-			assert(function === continuation.function())
+			assert(function === continuation.function)
 			val numSlots = continuation.numSlots()
 			// Should agree with L2_PREPARE_NEW_FRAME_FOR_L1.
 			val stepper = interpreter.levelOneStepper
@@ -116,8 +116,8 @@ class L2_REENTER_L1_CHUNK_FROM_INTERRUPT(
 				}
 			}
 			function.code().setUpInstructionDecoder(stepper.instructionDecoder)
-			stepper.instructionDecoder.pc(continuation.pc())
-			stepper.stackp = continuation.stackp()
+			stepper.instructionDecoder.pc = continuation.pc
+			stepper.stackp = continuation.stackp
 		}
 
 		/** The [CheckedMethod] for [reenter]. */

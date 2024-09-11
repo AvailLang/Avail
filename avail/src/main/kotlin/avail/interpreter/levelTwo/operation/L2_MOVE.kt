@@ -50,6 +50,7 @@ import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator
+import avail.optimizer.L2Optimizer.GenerationMode
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -116,6 +117,10 @@ constructor(
 	override val shouldEmit: Boolean get() =
 		source.finalIndex() != destination.finalIndex()
 
+	override val producesAnyJvmCode: Boolean
+		get() = source.finalIndex() == -1
+			|| source.finalIndex() != destination.finalIndex()
+
 	override fun appendToWithWarnings(
 		builder: StringBuilder,
 		desiredOperandTypes: Set<L2OperandType>,
@@ -153,10 +158,38 @@ constructor(
 			destination.semanticValues(),
 			restriction,
 			destination.register())
-		val clone = clone()
+		val clone: L2_MOVE<K> = clone().cast()
 		clone.layout.updateOperands(this) { operand ->
 			if (operand == source) source
 			else newDestination
+		}
+		if (regenerator.mode == GenerationMode.BySemanticValue)
+		{
+			// When regenerating the graph in such a way that instructions are
+			// couple by semantic values, we can look for a write to the source
+			// register within the current block, and if present we can simply
+			// augment the write to include one more semantic value.
+			val definingWrite = clone.source.definition()
+			val definingInstruction = definingWrite.instruction
+			if (definingInstruction.basicBlock() == regenerator.currentBlock()
+				&& definingInstruction !is L2_PHI<*>)
+			{
+				// It was defined in the current block.  Augment the write.
+				// Note that phis don't count, since regeneration ignores them
+				// in BySemanticValue mode, regenerating them afresh.
+				newDestination.semanticValues().forEach { newSemanticValue ->
+					if (!manifest.hasSemanticValue(newSemanticValue))
+					{
+						definingWrite.retroactivelyIncludeSemanticValue(
+							newSemanticValue)
+						manifest.extendSynonym(
+							manifest.semanticValueToSynonym(
+								clone.source.semanticValue()),
+							newSemanticValue)
+					}
+				}
+				return
+			}
 		}
 		regenerator.addInstruction(clone)
 	}

@@ -53,6 +53,7 @@ import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
@@ -80,12 +81,13 @@ import avail.optimizer.L2SplitCondition.Companion.fakeCondition
 import avail.optimizer.L2SplitCondition.Companion.reducedConditions
 import avail.optimizer.L2Synonym
 import avail.optimizer.L2ValueManifest
-import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
-import avail.utility.Graph
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.cast
 import avail.utility.isNullOr
 import avail.utility.mapToSet
@@ -327,8 +329,11 @@ constructor(
 			oldSemanticValue: L2SemanticValue<K>
 		): L2SemanticValue<K>
 		{
-			return currentManifest
-				.equivalentPopulatedSemanticValue(oldSemanticValue)!!
+			val equivalent = currentManifest
+				.equivalentPopulatedSemanticValue(oldSemanticValue)
+			if (equivalent === null)
+				throw NullPointerException()
+			return equivalent
 		}
 
 		override fun doOperand(operand: L2ReadIntOperand)
@@ -420,8 +425,7 @@ constructor(
 					// Reuse the same register, since it can only be used as a
 					// source of a constant read anyhow.
 					currentOperand = L2ReadIntOperand(
-						L2SemanticUnboxedInt(
-							L2SemanticConstant(operand.constantOrNull!!)),
+						constant(operand.constantOrNull!!).unboxedInt,
 						operand.restriction(),
 						operand.register() as L2IntRegister)
 				}
@@ -444,8 +448,7 @@ constructor(
 					// Reuse the same register, since it can only be used as a
 					// source of a constant read anyhow.
 					currentOperand = L2ReadFloatOperand(
-						L2SemanticUnboxedFloat(
-							L2SemanticConstant(operand.constantOrNull!!)),
+						constant(operand.constantOrNull!!).unboxedFloat,
 						operand.restriction(),
 						operand.register() as L2FloatRegister)
 				}
@@ -468,7 +471,7 @@ constructor(
 					// Reuse the same register, since it can only be used as a
 					// source of a constant read anyhow.
 					currentOperand = L2ReadBoxedOperand(
-						L2SemanticConstant(operand.constantOrNull!!),
+						constant(operand.constantOrNull!!),
 						operand.restriction(),
 						operand.register() as L2BoxedRegister)
 				}
@@ -695,33 +698,87 @@ constructor(
 			}
 			submap.forEach { (_, targetBlock) ->
 				startBlock(targetBlock)
-				if (currentlyReachable())
+				if (!currentlyReachable()) return@forEach
+				if (mode == BySemanticValue)
 				{
-					if (shouldSanityCheck
-						&& !isRemovingDeadCode
-						&& mode == BySemanticValue)
+					// Since the incoming edges in the old graph are the only
+					// place where a relevant manifest still exists, we take the
+					// intersection of the sets of semantic values that were
+					// present along these edges.
+					val allLive = mutableSetOf<L2SemanticValue<*>>()
+					currentManifest.synonymsArray()
+						.forEach { allLive.addAll(it.semanticValues()) }
+					val manifests = originalBlock.predecessorEdges()
+						.map(L2PcOperand::manifest)
+					var commonSemanticValues = when
 					{
-						// Make sure every semantic value that was present at
-						// this position in the original graph is available at
-						// this new block, which is one of the code-split
-						// versions of the old block.
-						// Since the incoming edges in the old graph are the
-						// only place where a relevant manifest still exists, we
-						// take the intersection of the sets of semantic values
-						// that were present along these edges.
-						val iterator = originalBlock.predecessorEdges()
-							.map {
-								it.manifest().liveOrPostponedSemanticValues()
-							}
-							.iterator()
-						if (iterator.hasNext())
+						manifests.isEmpty() -> emptySet()
+						else -> manifests
+							.map(L2ValueManifest::liveOrPostponedSemanticValues)
+							.reduce(Set<L2SemanticValue<*>>::intersect)
+							.intersect(allLive)
+					}
+					// In case we're removing dead code, narrow this to the
+					// semantic values that have already survived here.
+					commonSemanticValues =
+						commonSemanticValues.intersect(allLive)
+					// For each semantic value, determine all other semantic
+					// values that are in the same synonym with it in all
+					// predecessors.  We'll use that to reconstitute any
+					// synonyms that we may have missed in the new manifest.
+					val commonSynonyms = commonSemanticValues
+						.associateWithTo(mutableMapOf()) { sv ->
+							manifests
+								.map {
+									it.semanticValueToSynonym(sv)
+										.semanticValues()
+								}
+								.reduce(Set<L2SemanticValue<*>>::intersect)
+								.intersect(commonSemanticValues)
+						}
+					// Compute the union of the restrictions for each semantic
+					// value.  We'll use that to narrow the restrictions in the
+					// new manifest.
+					val commonRestrictions =
+						commonSemanticValues.associateWith { sv ->
+							manifests
+								.map { it.restrictionFor(sv) }
+								.reduce(TypeRestriction::union)
+						}
+					// To ease computation, keep only one representative of each
+					// synonymous set.  The sets are disjoint, and their members
+					// were synonymous in each predecessor, so that will cover
+					// all current synonyms.
+					val synonymRepresentatives =
+						mutableSetOf<L2SemanticValue<*>>()
+					commonSynonyms.forEach { sv, set ->
+						if (set.intersect(synonymRepresentatives).isEmpty())
 						{
-							val originals = iterator.next()  // It's a copy.
-							iterator.forEachRemaining(originals::retainAll)
+							// Only keep a candidate if it's in the current
+							// manifest, since we might be stripping dead code.
+							// Either at least one will be alive, or we don't
+							// need to preserve the synonym's information.
+							if (currentManifest.hasSemanticValue(sv))
+							{
+								synonymRepresentatives.add(sv)
+							}
 						}
 					}
-					originalBlock.instructions().forEach(::processInstruction)
+					// We now have one (live) representative from each common
+					// incoming synonym.  We can iterate over them to process
+					// the synonym merges and restrictions.
+					synonymRepresentatives.forEach { sv ->
+						assert(currentManifest.hasSemanticValue(sv))
+						commonSynonyms[sv]!!.forEach { otherSv ->
+							currentManifest.dynamicMergeExistingSemanticValues(
+								sv, otherSv)
+						}
+						currentManifest.updateRestriction(sv) {
+							intersection(commonRestrictions[sv]!!)
+						}
+					}
 				}
+				originalBlock.instructions().forEach(::processInstruction)
 			}
 		}
 	}
@@ -740,6 +797,36 @@ constructor(
 	 */
 	open fun processInstruction(sourceInstruction: L2Instruction)
 	{
+		val transformed = basicTransformInstruction(sourceInstruction)
+		if (!transformed.hasSideEffect
+			&& sourceInstruction.writeOperands.size == 1)
+		{
+			// No side-effect, and it only produces one value.  See if there is
+			// already an extant equivalent value that we can just move.  This
+			// embedded inline function is parametric on RegisterKind to allow
+			// parameterization by correlated RegisterKind.
+			fun <K: RegisterKind<K>> tryPopulate(
+				write: L2WriteOperand<K>
+			): Boolean
+			{
+				write.semanticValues()
+					.firstOrNull { readIfAvailable(it) != null }
+					?.let { existing ->
+						// Found one. Populate the rest..
+						val others = write.semanticValues()
+							.filterNot(currentManifest::hasSemanticValue)
+						if (others.isNotEmpty())
+						{
+							moveRegister(existing, others)
+							return true
+						}
+					}
+				return false
+			}
+			if (tryPopulate(sourceInstruction.writeOperands.single())) return
+			// There wasn't an equivalent register handy.  Fall back to emitting
+			// a copy of this instruction.
+		}
 		basicTransformInstruction(sourceInstruction)
 			.emitTransformedInstruction(this)
 	}
@@ -820,45 +907,16 @@ constructor(
 		// always use that, even if the value appears to be available in a
 		// register.
 		val postponedMap = currentManifest.postponedInstructions()
-		currentManifest.semanticValueToSynonym(semanticValue)
-			.semanticValues()
-			.mapNotNull(postponedMap::get)
-			.maxByOrNull(List<*>::size)
-			?.let { list ->
-				val instruction = list.last()
-				currentManifest.removePostponedSourceInstruction(instruction)
-				forcePostponedTranslationNow(instruction)
-			}
+		while (semanticValue in postponedMap)
+		{
+			val postponedInstruction = postponedMap[semanticValue]!!.last()
+			currentManifest.removePostponedSourceInstruction(
+				postponedInstruction)
+			forcePostponedTranslationNow(postponedInstruction)
+		}
 		// At this point there must not be any other postponed instructions for
-		// the semantic value's synonym.
-		assert(
-			currentManifest.semanticValueToSynonym(semanticValue)
-				.semanticValues()
-				.none(postponedMap::contains))
-		{
-			val outstanding =
-				currentManifest.semanticValueToSynonym(semanticValue)
-					.semanticValues()
-					.filter(postponedMap::contains)
-			"There should be no postponed instructions for these semantic " +
-				"values: $outstanding"
-		}
-		// We just generated the side-effectless instruction that populated
-		// equivalentSemanticValue, so emit a move to include semanticValue, and
-		// anything else that should be populated by the same write operand.
-		val relatedSemanticValues =
-			currentManifest.getDefinitions(semanticValue)
-				.flatMapTo(mutableSetOf(), L2Register<K>::definitions)
-				.flatMapTo(mutableSetOf(), L2WriteOperand<K>::semanticValues)
-		for (otherSemanticValue in relatedSemanticValues)
-		{
-			if (!currentManifest.hasSemanticValue(otherSemanticValue))
-			{
-				currentManifest.extendSynonym(
-					currentManifest.semanticValueToSynonym(semanticValue),
-					otherSemanticValue)
-			}
-		}
+		// the semantic value.
+		assert(semanticValue !in postponedMap)
 	}
 
 	/**
@@ -897,51 +955,7 @@ constructor(
 			}
 			return
 		}
-		val lists = manifest.semanticValueToSynonym(semanticValue)
-			.semanticValues()
-			.mapNotNull { manifest.postponedInstructions()[it] }
-			.distinct()
-		val list: List<L2Instruction> = when (lists.size)
-		{
-			0 -> return
-			1 -> lists.single().toList()
-			else ->
-			{
-				// Combine multiple lists.  The orderings of instructions in
-				// each list must be preserved in the aggregate order, but other
-				// than that, the order doesn't matter.  None of the lists
-				// should have an ordering constraint that conflicts with
-				// another list.  Keep it simple and use a graph.
-				val graph = Graph<L2Instruction>()
-				lists.forEach { it.forEach(graph::includeVertex) }
-				lists.forEach { sub ->
-					(0 ..< sub.size - 1).forEach { i ->
-						graph.includeEdge(sub[i], sub[i + 1])
-					}
-				}
-				assert(!graph.isCyclic)
-				val order = mutableListOf<L2Instruction>()
-				graph.parallelVisit { instr, done ->
-					order.add(instr)
-					done()
-				}
-				order
-			}
-		}
-		if (omitConstantMoves && list.all { it is L2_MOVE_CONSTANT<*, *> })
-		{
-			// There are only constant moves here.  Leave them postponed for
-			// now.
-			return
-		}
-		// The list is already a copy here.  Remove all of these postponed
-		// instructions before anything else.
-		list.forEach(manifest::removePostponedSourceInstruction)
-		// The mutable list may have had instructions removed.  In fact, the
-		// original map may have had whole entries removed, but not without
-		// emptying entry's list first.
-		list.forEach(::forcePostponedTranslationNow)
-		// At this point, only move-constants may still be postponed.
+		forceTranslationForRead(semanticValue)
 	}
 
 	/**

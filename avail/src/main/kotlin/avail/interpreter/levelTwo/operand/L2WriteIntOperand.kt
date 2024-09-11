@@ -36,6 +36,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.Companion.WRITE_INT
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
+import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
@@ -60,9 +61,9 @@ import avail.utility.cast
  */
 class L2WriteIntOperand
 constructor(
-	semanticValues: Set<L2SemanticUnboxedInt>,
+	semanticValues: Set<L2SemanticValue<INTEGER_KIND>>,
 	restriction: TypeRestriction,
-	register: L2IntRegister
+	register: L2Register<INTEGER_KIND>
 ) : L2WriteOperand<INTEGER_KIND>(semanticValues, restriction, register)
 {
 	override val operandType: L2OperandType get() = WRITE_INT

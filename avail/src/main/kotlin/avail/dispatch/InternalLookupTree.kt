@@ -76,6 +76,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestric
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
 import avail.utility.iterableWith
+import avail.utility.mapToSet
 import avail.utility.notNullAnd
 import java.lang.String.format
 import kotlin.math.max
@@ -418,8 +419,7 @@ internal constructor(
 										instanceType.isInstanceOf(
 											tupleType.typeAtIndex(argNumber))
 									}
-									.map { it.first }
-									.toSet()
+									.mapToSet { it.first }
 							}
 						return buildDispatchByEnumerationOfNontype(
 							adaptor, memento, argNumber, elementsByInstanceType)

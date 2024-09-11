@@ -58,7 +58,7 @@ object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
-		val caller = con.caller()
+		val caller = con.caller
 		val callerHolder = newVariableWithContentType(
 			mostGeneralContinuationType)
 		if (caller.notNil)

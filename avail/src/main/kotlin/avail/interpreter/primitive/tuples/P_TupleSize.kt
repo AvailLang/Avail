@@ -54,6 +54,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import avail.optimizer.L1Translator.CallSiteHelper
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
 /**
  * **Primitive:** Answer the size of the [tuple][TupleDescriptor].
@@ -109,7 +110,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 				val writer = generator.intWriteTemp(restriction)
 				generator.addInstruction(L2_TUPLE_SIZE(tupleReg, writer))
 				callSiteHelper.useAnswer(
-					generator.readBoxed(writer.onlySemanticValue().base))
+					generator.readBoxed(writer.onlySemanticValue().boxed))
 			}
 		}
 		return true

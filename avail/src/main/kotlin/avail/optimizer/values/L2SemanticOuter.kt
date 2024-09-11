@@ -31,7 +31,11 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * A semantic value which represents a numbered outer variable in the function
@@ -73,7 +77,12 @@ constructor(
 		else -> L2SemanticOuter(newFrame, outerIndex, optionalName)
 	}
 
-	override fun primaryVisualSortKey() = PrimaryVisualSortKey.OUTER
+	override val defaultRestriction: TypeRestriction
+		get() = boxedRestrictionForType(frame.code.outerTypeAt(outerIndex))
+
+	override val isUsefulForGlobalValueNumbering: Boolean = true
+
+	override val primaryVisualSortKey get() = PrimaryVisualSortKey.OUTER
 
 	override fun toString(): String = buildString {
 		when (optionalName)

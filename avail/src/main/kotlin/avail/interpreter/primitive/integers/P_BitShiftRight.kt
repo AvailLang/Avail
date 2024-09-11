@@ -46,9 +46,13 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.sets.A_Set.Companion.setSize
+import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.upperBound
@@ -122,6 +126,25 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 	): A_Type
 	{
 		val (baseIntegers: A_Type, shiftFactors: A_Type) = argumentTypes
+		if (baseIntegers.isEnumeration
+			&& shiftFactors.isEnumeration)
+		{
+			val bases = baseIntegers.instances
+			val rightShifts = shiftFactors.instances
+			// If there are sufficiently few combinations, compute them all.
+			if (bases.setSize.toLong() * rightShifts.setSize.toLong() <= 256L)
+			{
+				var results = emptySet
+				rightShifts.forEach { rightShift ->
+					val leftShift = zero.minusCanDestroy(rightShift, false)
+					bases.forEach { base ->
+						results = results.setWithElementCanDestroy(
+							base.bitShift(leftShift, false), true)
+					}
+				}
+				return enumerationWith(results)
+			}
+		}
 		val lowBase = baseIntegers.lowerBound
 		val highBase = baseIntegers.upperBound
 		val leastRightShift = shiftFactors.lowerBound
@@ -176,12 +199,6 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 		val max = bounds.reduce { a, b -> if (a.greaterThan(b)) a else b }
 		return integerRangeType(min, min.isFinite, max, max.isFinite)
 	}
-
-	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(integers, integers), integers)
-
-	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -253,4 +270,10 @@ object P_BitShiftRight : Primitive(2, CanFold, CanInline)
 			// Fall back completely if the shift could overflow an i32.
 			generator.jumpTo(intFailure)
 		})
+
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(tuple(integers, integers), integers)
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))
 }

@@ -66,7 +66,6 @@ import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.optimizer.L2SplitCondition
 import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.reoptimizer.L2Regenerator
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Obtain the instances of the specified
@@ -115,8 +114,8 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 		val argument = arguments.elements[0]
 
 		val manifest = regenerator.currentManifest
-		val countSemanticValue = primitiveInvocation(
-			P_InstanceCount, listOf(argument.semanticValue()))
+		val countSemanticValue =
+			P_InstanceCount.semanticInvocation(argument.semanticValue())
 		manifest.equivalentSemanticValue(countSemanticValue)?.let {
 				equivalentCount ->
 			val countRange = manifest.restrictionFor(equivalentCount).type

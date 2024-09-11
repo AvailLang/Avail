@@ -353,9 +353,9 @@ class L2ControlFlowGraph
 				append(edge!!.sourceBlock().name())
 				append("\n\t\t\t[")
 				append("always live-in: ")
-				append(edge.alwaysLiveInRegisters)
+				append(edge.alwaysLiveInEntities)
 				append(", sometimes live-in: ")
-				append(edge.sometimesLiveInRegisters)
+				append(edge.sometimesLiveInEntities)
 				append("]\n")
 			}
 			for (instruction in block.instructions())

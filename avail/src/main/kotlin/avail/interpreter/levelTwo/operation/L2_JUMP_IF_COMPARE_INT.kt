@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -38,6 +39,10 @@ import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -77,18 +82,10 @@ class L2_JUMP_IF_COMPARE_INT(
 			numericComparator.computeRestrictions(
 				restriction1.forBoxed(), restriction2.forBoxed()
 			).map(TypeRestriction::forUnboxedInt)
-		ifTrue.manifest().setRestriction(
-			int1.semanticValue(),
-			restriction1.intersection(rest1))
-		ifTrue.manifest().setRestriction(
-			int2.semanticValue(),
-			restriction2.intersection(rest2))
-		ifFalse.manifest().setRestriction(
-			int1.semanticValue(),
-			restriction1.intersection(rest3))
-		ifFalse.manifest().setRestriction(
-			int2.semanticValue(),
-			restriction2.intersection(rest4))
+		ifTrue.manifest().setRestriction(int1.semanticValue(), rest1)
+		ifTrue.manifest().setRestriction(int2.semanticValue(), rest2)
+		ifFalse.manifest().setRestriction(int1.semanticValue(), rest3)
+		ifFalse.manifest().setRestriction(int2.semanticValue(), rest4)
 		if (numericComparator == NumericComparator.Equal)
 		{
 			// Along the "=" ifTrue branch, the values are now synonyms.
@@ -123,6 +120,46 @@ class L2_JUMP_IF_COMPARE_INT(
 
 	override val name: String
 		get() = "${super.name} (${numericComparator.comparatorName})"
+
+	override fun interestingConditions(): List<L2SplitCondition?>
+	{
+		int2.restriction().constantOrNull?.let { constant ->
+			// We can tell from the output restrictions what condition to wish
+			// for (and its negation).  However, earlier comparisons may have
+			// made the restriction unduly restrictive, and it may fail to find
+			// a suitable split position (i.e., for v>10, when we've already
+			// narrowed v to [0..20], we should still split (for the positive
+			// case) with the test v ∈ [11..∞) instead of v ∈ [11..20], so that
+			// it can split at an earlier position where, say, v ∈ [11..1000]
+			// was known.  Wishing for v ∈ [11.20] would fail to detect that
+			// split point.
+			//
+			// Note that even though we know the value is an i32 here, we wish
+			// for [11..∞) instead of [11..MAX_INT], in case there was a point
+			// before the unboxing that detected, say, [11..10^100].
+			val restriction1 = boxedRestrictionForType(integers)
+			val restriction2 = boxedRestrictionForConstant(constant)
+			val (rest1, _, rest3, _) =
+				numericComparator
+					.computeRestrictions(restriction1, restriction2)
+					.map(TypeRestriction::forUnboxedInt)
+			// Wish it was statically true or statically false.  But only if
+			// that situation would lead to a block that isn't cold.
+			val conditions = mutableListOf<L2SplitCondition?>()
+			if (!ifTrue.targetBlock().isCold)
+			{
+				conditions.add(
+					typeRestrictionCondition(setOf(int1.register()), rest1))
+			}
+			if (!ifFalse.targetBlock().isCold)
+			{
+				conditions.add(
+					typeRestrictionCondition(setOf(int1.register()), rest3))
+			}
+			return conditions
+		}
+		return emptyList()
+	}
 
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator

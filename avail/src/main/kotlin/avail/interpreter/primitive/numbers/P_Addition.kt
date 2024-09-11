@@ -76,6 +76,7 @@ import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.utility.notNullAnd
 
@@ -302,10 +303,10 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			L2_BIT_LOGIC_OP(
 				Add,
 				regenerator.readInt(
-					L2SemanticUnboxedInt(arg1.semanticValue()),
+					arg1.semanticValue().unboxedInt,
 					unreachable),
 				regenerator.readInt(
-					L2SemanticUnboxedInt(arg2.semanticValue()),
+					arg2.semanticValue().unboxedInt,
 					unreachable),
 				intWrite))
 		// Unbox it, in case something needs it unboxed downstream.

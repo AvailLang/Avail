@@ -31,7 +31,13 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.types.A_Type.Companion.instanceTag
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.TypeTag
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForConstant
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 
@@ -56,6 +62,17 @@ class L2SemanticExtractedTag constructor(val base: L2SemanticValue<BOXED_KIND>)
 	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
 		other is L2SemanticExtractedTag && base.equalsSemanticValue(other.base)
 
+	override val defaultRestriction: TypeRestriction
+		get() = base.defaultRestriction.let { baseRestriction ->
+			baseRestriction.constantOrNull?.let { constant ->
+				return boxedRestrictionForConstant(
+					fromInt(constant.typeTag.ordinal))
+			}
+			return restrictionForTag(baseRestriction.type.instanceTag)
+		}
+
+	override val isUsefulForGlobalValueNumbering: Boolean = true
+
 	override fun transform(
 		semanticValueTransformer:
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
@@ -66,4 +83,14 @@ class L2SemanticExtractedTag constructor(val base: L2SemanticValue<BOXED_KIND>)
 		}
 
 	override fun toString(): String = "Tag($base)"
+
+	companion object
+	{
+		/**
+		 * Create a default boxed [TypeRestriction] for values having this
+		 * [TypeTag].
+		 */
+		private fun restrictionForTag(tag: TypeTag) =
+			boxedRestrictionForType(inclusive(tag.ordinal, tag.highOrdinal))
+	}
 }

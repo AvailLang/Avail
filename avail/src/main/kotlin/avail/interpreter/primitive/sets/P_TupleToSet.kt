@@ -63,7 +63,6 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_CREATE_SET
 import avail.optimizer.L1Translator
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] into a
@@ -144,8 +143,7 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		// Create the set directly from the values.  This may turn the tuple
 		// creation instruction into dead code.
 		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		val semanticResult = primitiveInvocation(
-			this, arguments.map { it.semanticValue() })
+		val semanticResult = semanticInvocation(tupleReg.semanticValue())
 		val write = generator.boxedWrite(
 			semanticResult, boxedRestrictionForType(restriction))
 		generator.addInstruction(

@@ -94,28 +94,29 @@ class L2_UNBOX_INT(
 		// Synonyms of ints are tricky, so check if there's an int version of
 		// a synonym of the source available.
 		val manifest = regenerator.currentManifest
-		for (otherBoxed in
-			manifest.semanticValueToSynonym(source.semanticValue())
-				.semanticValues())
+		val otherUnboxeds = manifest
+			.semanticValueToSynonym(source.semanticValue())
+			.semanticValues()
+			.map(::L2SemanticUnboxedInt)
+		val existingUnboxed = otherUnboxeds
+			.filter(manifest::hasSemanticValue)
+			.filter { manifest.getDefinitions(it).isNotEmpty() }
+		if (existingUnboxed.isNotEmpty())
 		{
-			val otherUnboxed = L2SemanticUnboxedInt(otherBoxed)
-			if (manifest.hasSemanticValue(otherUnboxed))
-			{
-				if (manifest.getDefinitions(otherUnboxed).isEmpty()) continue
-				// It's already unboxed in an int register.  Make sure each
-				// destination int semantic value gets written.
-				for (destInt in destination.semanticValues())
-				{
-					if (!manifest.hasSemanticValue(destInt))
-					{
-						regenerator.moveIntRegister(
-							otherUnboxed, setOf(destInt))
-					}
-				}
-				return
-			}
+			// There's already an int semantic value with the needed value.  Do
+			// a move into all the remaining int semantic values.
+			val existing = existingUnboxed.first()
+			regenerator.moveIntRegister(existing, otherUnboxeds)
 		}
-		// We have to unbox it.
-		super.emitTransformedInstruction(regenerator)
+		else
+		{
+			// We have to unbox it.
+			regenerator.addInstruction(
+				L2_UNBOX_INT(
+					source,
+					regenerator.intWrite(
+						(destination.semanticValues() + otherUnboxeds).toSet(),
+						manifest.restrictionFor(source).forUnboxedInt())))
+		}
 	}
 }

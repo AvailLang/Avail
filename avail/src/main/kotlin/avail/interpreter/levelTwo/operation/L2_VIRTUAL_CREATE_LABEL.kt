@@ -135,7 +135,8 @@ class L2_VIRTUAL_CREATE_LABEL(
 	}
 
 	override fun generateReplacement(
-		regenerator: L2Regenerator
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction
 	): Unit = regenerator.run {
 		if (currentBlock().zone == null)
 		{

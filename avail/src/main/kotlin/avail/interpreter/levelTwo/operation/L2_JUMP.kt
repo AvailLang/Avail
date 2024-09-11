@@ -50,6 +50,9 @@ class L2_JUMP(
 	// It jumps, which counts as a side effect.
 	override val hasSideEffect: Boolean get() = true
 
+	override val producesAnyJvmCode: Boolean
+		get() = offset == -1 || target.offset() != offset
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)

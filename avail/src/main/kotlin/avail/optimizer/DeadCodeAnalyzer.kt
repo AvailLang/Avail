@@ -33,12 +33,12 @@ package avail.optimizer
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.operand.L2PcOperand
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_PHI
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.values.L2SemanticValue
 import java.util.Collections
-import java.util.Collections.nCopies
 
 /**
  * A mechanism for determining which instructions are dead versus live.
@@ -113,7 +113,7 @@ internal class DeadCodeAnalyzer constructor(
 			}
 			val predecessorCount = block.predecessorEdges().size
 			val instructions = block.instructions()
-			var index: Int = instructions.size
+			var index = instructions.size
 			while (--index >= 0)
 			{
 				val instruction = instructions[index]
@@ -124,52 +124,38 @@ internal class DeadCodeAnalyzer constructor(
 				// As a simplifying assumption, pretend an altersControlFlow
 				// instruction at the end of the block populates *all* of the
 				// entities that are visible along any of its successor edges.
+				var dropInstruction = false
+				if (instruction is L2_MOVE<*>
+					&& dataCouplingMode.considersSemanticValues
+					&& instruction.destination.register() !in neededEntities)
+				{
+					// The register being written by this move isn't consumed.
+					// However, it may augment the manifest's synonym or
+					// restriction in a way that we care about.  We want to keep
+					// augmentations like semantic primitives because they can
+					// be reused by the global value number scheme that semantic
+					// values are about.  Things like stack slots don't add that
+					// same value (when they're not read later).
+					val writtenValues = instruction.destination.semanticValues()
+					val readValues = instruction.source.register().definition()
+						.semanticValues()
+					val newValues = writtenValues - readValues
+					if (newValues.none { it.isUsefulForGlobalValueNumbering })
+					{
+						dropInstruction = true
+					}
+				}
 				if (neededEntities.removeAll(
 						dataCouplingMode.writeEntitiesOf(instruction))
 					|| instruction.hasSideEffect)
 				{
-					liveInstructions.add(instruction)
-					neededEntities.addAll(
-						dataCouplingMode.readEntitiesOf(instruction))
-				}
-			}
-			val entitiesByPredecessor: List<MutableSet<L2Entity<*>>>
-			if (index >= 0)
-			{
-				// At least one phi is present in the block.  Compute a separate
-				// set of needs per predecessor.
-				entitiesByPredecessor = (0..predecessorCount)
-					.map { neededEntities.toMutableSet() }.toList()
-				while (index >= 0)
-				{
-					val phiInstruction = instructions[index]
-					phiInstruction as L2_PHI<*>
-					for (predecessorIndex in 0 until predecessorCount)
+					if (!dropInstruction)
 					{
-						val entities = entitiesByPredecessor[predecessorIndex]
-						if (entities.removeAll(
-								dataCouplingMode.writeEntitiesOf(
-									phiInstruction))
-							|| phiInstruction.hasSideEffect)
-						{
-							liveInstructions.add(phiInstruction)
-							val readOperand = phiInstruction.sources()
-								.elements[predecessorIndex]
-							dataCouplingMode.addEntitiesFromRead(
-								readOperand, entities)
-							entities.addAll(
-								dataCouplingMode.readEntitiesOf(readOperand))
-						}
+						liveInstructions.add(instruction)
+						neededEntities.addAll(
+							dataCouplingMode.readEntitiesOf(instruction))
 					}
-					index--
 				}
-			}
-			else
-			{
-				// There were no phi instructions, so we need the same thing
-				// from each predecessor.
-				entitiesByPredecessor =
-					nCopies(predecessorCount, neededEntities)
 			}
 			assert(block.predecessorEdges().isNotEmpty()
 				|| neededEntities.isEmpty())
@@ -177,17 +163,68 @@ internal class DeadCodeAnalyzer constructor(
 				("Instruction consumes $neededEntities but a preceding "
 					+ "definition was not found")
 			}
-			val entitySetIterator = entitiesByPredecessor.iterator()
-			block.predecessorEdges().forEach { predecessor: L2PcOperand ->
-				// No need to copy it, as it won't be modified again.
-				val entities = entitySetIterator.next()
-				assert(edgeNeeds.containsKey(predecessor)
-					== predecessor.isBackward)
-				if (!predecessor.isBackward)
-				{
-					edgeNeeds[predecessor] = entities
-				}
+			// Make a copy per predecessor (reusing the original for #0).
+			val entitiesByPredecessor = (0..predecessorCount).map {
+				if (it == 0) neededEntities
+				else neededEntities.toMutableSet()
 			}
+			// Customize
+			while (index >= 0)
+			{
+				val phiInstruction = instructions[index]
+				phiInstruction as L2_PHI<*>
+				for (predecessorIndex in 0 until predecessorCount)
+				{
+					val entities = entitiesByPredecessor[predecessorIndex]
+					if (entities.removeAll(
+							dataCouplingMode.writeEntitiesOf(phiInstruction))
+						|| phiInstruction.hasSideEffect)
+					{
+						liveInstructions.add(phiInstruction)
+						val readOperand = phiInstruction.sources()
+							.elements[predecessorIndex]
+						dataCouplingMode.addEntitiesFromRead(
+							readOperand, entities)
+						entities.addAll(
+							dataCouplingMode.readEntitiesOf(readOperand))
+					}
+				}
+				index--
+			}
+			block.predecessorEdges()
+				.zip(entitiesByPredecessor)
+				.forEach { (edge, needed) ->
+					// Some semantic constants get added to synonyms along edges
+					// with no instruction being the apparent cause.  That's
+					// due to a branching type test upstream.  If the downstream
+					// needs the constants, assume at least one other element of
+					// the synonym will be needed upstream to continue making it
+					// available.  Pick one, preferrably one that's needed
+					// downstream anyhow.
+					val manifest = edge.manifest()
+					needed
+						.filterIsInstance<L2SemanticValue<*>>()
+						.filter(L2SemanticValue<*>::isConstant)
+						.forEach { semanticConstant ->
+							if (manifest.getDefinitions(semanticConstant)
+									.isEmpty())
+							{
+								// The semantic constant is not listed as a
+								// target of any writes.
+								needed.remove(semanticConstant)
+							}
+						}
+				}
+			block.predecessorEdges()
+				.zip(entitiesByPredecessor)
+				.forEach { (edge, needed) ->
+					assert(edgeNeeds.containsKey(edge) == edge.isBackward)
+					if (!edge.isBackward)
+					{
+						// No need to copy it, as it won't be modified again.
+						edgeNeeds[edge] = needed
+					}
+				}
 		}
 	}
 

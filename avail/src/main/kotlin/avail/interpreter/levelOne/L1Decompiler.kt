@@ -222,7 +222,7 @@ class L1Decompiler constructor(
 	init
 	{
 		code.setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc(1)
+		instructionDecoder.pc = 1
 		val tupleType = code.functionType().argsTupleType
 		args = Array(code.numArgs()) {
 			val token = createToken("arg")
@@ -255,7 +255,7 @@ class L1Decompiler constructor(
 		// Primitive.Flag.SpecialForm.
 		if (numNybbles > 0)
 		{
-			assert(instructionDecoder.pc() == numNybbles + 1)
+			assert(instructionDecoder.pc == numNybbles + 1)
 			if (!endsWithPushNil)
 			{
 				statements.add(popExpression())
@@ -420,7 +420,7 @@ class L1Decompiler constructor(
 					// The last "statement" may just push nil. Such a statement
 					// will be re-synthesized during code generation, so don't
 					// bother reconstructing it now.
-					assert(instructionDecoder.pc() > numNybbles) {
+					assert(instructionDecoder.pc > numNybbles) {
 						"nil can only be (implicitly) pushed at the end of a " +
 							"sequence of statements"
 					}

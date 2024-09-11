@@ -53,6 +53,7 @@ import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operation.L2_HASH
 import avail.optimizer.L1Translator
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 
 /**
  * **Primitive:** Answer the [hash&#32;value][A_BasicObject.hash] of the
@@ -100,7 +101,7 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 		val writer = generator.intWriteTemp(restriction)
 		generator.addInstruction(L2_HASH(valueReg, writer))
 		callSiteHelper.useAnswer(
-			generator.readBoxed(writer.onlySemanticValue().base))
+			generator.readBoxed(writer.onlySemanticValue().boxed))
 		return true
 	}
 

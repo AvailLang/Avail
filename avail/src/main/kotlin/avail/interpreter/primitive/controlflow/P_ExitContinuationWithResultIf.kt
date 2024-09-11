@@ -91,7 +91,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE)
 		}
 
-		val caller = continuation.caller()
+		val caller = continuation.caller
 		if (caller.isNil)
 		{
 			interpreter.setReifiedContinuation(caller)
@@ -103,9 +103,9 @@ object P_ExitContinuationWithResultIf : Primitive(
 		else
 		{
 			interpreter.setReifiedContinuation(caller)
-			interpreter.function = caller.function()
-			interpreter.chunk = caller.levelTwoChunk()
-			interpreter.offset = caller.levelTwoOffset()
+			interpreter.function = caller.function
+			interpreter.chunk = caller.levelTwoChunk
+			interpreter.offset = caller.levelTwoOffset
 			interpreter.returnNow = false
 		}
 		interpreter.setLatestResult(result)

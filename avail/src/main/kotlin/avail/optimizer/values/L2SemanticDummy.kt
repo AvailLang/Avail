@@ -31,8 +31,10 @@
  */
 package avail.optimizer.values
 
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2Register
+import avail.optimizer.L2Entity.PrimaryVisualSortKey
 
 /**
  * An [L2SemanticValue] which should only be present after the control flow
@@ -64,10 +66,15 @@ internal constructor(
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticBoxedValue = this
 
+	override val defaultRestriction: TypeRestriction
+		get() = TypeRestriction.topRestriction
+
+	override val isUsefulForGlobalValueNumbering: Boolean = true
+
 	/**
 	 * It shouldn't mix in the same graph with anything else, but for safety
 	 * put it at the topdoes.
 	 */
-	override fun primaryVisualSortKey() =
+	override val primaryVisualSortKey get() =
 		PrimaryVisualSortKey.CONSTANT_NIL
 }

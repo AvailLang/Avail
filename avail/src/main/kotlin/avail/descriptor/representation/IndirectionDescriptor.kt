@@ -2029,7 +2029,7 @@ class IndirectionDescriptor private constructor(
 		self .. { bodySignature() }
 
 	override fun o_Caller(self: AvailObject): A_Continuation =
-		self .. { caller() }
+		self .. { caller }
 
 	override fun o_ClearValue(self: AvailObject) =
 		self .. { clearValue() }
@@ -2221,10 +2221,10 @@ class IndirectionDescriptor private constructor(
 		self .. { keyType }
 
 	override fun o_LevelTwoChunk(self: AvailObject): L2Chunk =
-		self .. { levelTwoChunk() }
+		self .. { levelTwoChunk }
 
 	override fun o_LevelTwoOffset(self: AvailObject): Int =
-		self .. { levelTwoOffset() }
+		self .. { levelTwoOffset }
 
 	override fun o_Literal(self: AvailObject): AvailObject =
 		self .. { literal() }
@@ -2290,7 +2290,7 @@ class IndirectionDescriptor private constructor(
 		self .. { parent }
 
 	override fun o_Pc(self: AvailObject): Int =
-		self .. { pc() }
+		self .. { pc }
 
 	override fun o_Priority(self: AvailObject): Int =
 		self .. { priority }
@@ -2324,7 +2324,7 @@ class IndirectionDescriptor private constructor(
 	): MutableMap<ParsingOperation, A_Tuple> = self .. { lazyActions }
 
 	override fun o_Stackp(self: AvailObject): Int =
-		self .. { stackp() }
+		self .. { stackp }
 
 	override fun o_Start(self: AvailObject): Int =
 		self .. { start() }
@@ -3816,7 +3816,7 @@ class IndirectionDescriptor private constructor(
 		self .. { lastExpression }
 
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
-		self .. { registerDump() }
+		self .. { registerDump }
 
 	@Throws(SignatureException::class)
 	override fun o_BundleAddMacro(

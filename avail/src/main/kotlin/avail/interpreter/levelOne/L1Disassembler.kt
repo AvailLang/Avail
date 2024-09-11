@@ -132,7 +132,7 @@ class L1Disassembler constructor(
 		var lineNumber = code.codeStartingLineNumber
 		var instructionCounter = 1
 		code.setUpInstructionDecoder(this@with)
-		pc(1)
+		pc = 1
 		while (!atEnd())
 		{
 			// Track the line number change from this operation.
@@ -142,9 +142,9 @@ class L1Disassembler constructor(
 				else -(encodedDelta shr 1)
 			lineNumber += decodedDelta
 
-			val pc = pc()
+			val pcHere = pc
 			val operation = getOperation()
-			visitor.startOperation(operation, pc, lineNumber)
+			visitor.startOperation(operation, pcHere, lineNumber)
 			operation.operandTypes.forEachIndexed { i, operandType ->
 				if (i > 0) visitor.betweenOperands()
 				operandType.dispatch(visitor, getOperand())

@@ -1711,11 +1711,11 @@ enum class SerializerOperation constructor(
 				frameSlotsList.add(obj.frameAt(i))
 			}
 			return array(
-				obj.caller(),
+				obj.caller,
 				obj.function(),
 				tupleFromList(frameSlotsList),
-				fromInt(obj.pc()),
-				fromInt(obj.stackp()))
+				fromInt(obj.pc),
+				fromInt(obj.stackp))
 		}
 
 		override fun compose(

@@ -33,7 +33,6 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
@@ -45,17 +44,15 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForConstant
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.CheckedMethod
-import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.utility.cast
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import org.objectweb.asm.Opcodes
 
 /**
@@ -201,10 +198,10 @@ enum class NumericComparator(
 		val low2 = type2.lowerBound
 		val high2 = type2.upperBound
 		return listOf(
-			ifTrue1(low1, high1, low2, high2),
-			ifTrue2(low2, high2, low1, high1),
-			ifFalse1(low1, high1, low2, high2),
-			ifFalse2(low2, high2, low1, high1))
+			ifTrue1(low1, high1, low2, high2).intersection(restriction1),
+			ifTrue2(low2, high2, low1, high1).intersection(restriction2),
+			ifFalse1(low1, high1, low2, high2).intersection(restriction1),
+			ifFalse2(low2, high2, low1, high1).intersection(restriction2))
 	}
 
 	/**
@@ -223,14 +220,22 @@ enum class NumericComparator(
 		ifTrue: L2PcOperand,
 		ifFalse: L2PcOperand)
 	{
+		// If optimizations have caused the branches to go to the same place,
+		// eliminate the branch entirely.
+		if (ifTrue.targetBlock() == ifFalse.targetBlock())
+		{
+			generator.jumpTo(ifTrue.targetBlock())
+			return
+		}
+
 		val restriction1 = number1Read.restriction()
 		val restriction2 = number2Read.restriction()
 
 		val manifest = generator.currentManifest
 		val int1SemanticValue = manifest.equivalentSemanticValue(
-			L2SemanticUnboxedInt(number1Read.semanticValue()))
+			number1Read.semanticValue().unboxedInt)
 		val int2SemanticValue = manifest.equivalentSemanticValue(
-			L2SemanticUnboxedInt(number2Read.semanticValue()))
+			number2Read.semanticValue().unboxedInt)
 		if (int1SemanticValue !== null && int2SemanticValue !== null)
 		{
 			// We can compare the int registers instead.
@@ -238,8 +243,8 @@ enum class NumericComparator(
 			assert(restriction2.containedByType(i32))
 			compareAndBranchInt(
 				generator,
-				generator.readIntNoFail(int1SemanticValue.cast()),
-				generator.readIntNoFail(int2SemanticValue.cast()),
+				generator.readIntNoFail(int1SemanticValue),
+				generator.readIntNoFail(int2SemanticValue),
 				ifTrue,
 				ifFalse)
 			return
@@ -272,8 +277,7 @@ enum class NumericComparator(
 				// One of the registers would have an impossible value if the
 				// ifTrue branch is taken, so always jump to the ifFalse case.
 				generator.currentManifest.setRestriction(
-					number1Read.semanticValue(),
-					restriction1.intersection(rest3))
+					number1Read.semanticValue(), rest3)
 				generator.currentManifest.setRestriction(
 					number2Read.semanticValue(),
 					restriction2.intersection(rest4))
@@ -291,28 +295,14 @@ enum class NumericComparator(
 					restriction2.intersection(rest2))
 				generator.jumpTo(ifTrue.targetBlock())
 			}
-			restriction2.constantOrNull !== null ->
-			{
-				// Special case where second value is constant.
-				generator.addInstruction(
-					L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
-						this,
-						number1Read,
-						L2ConstantOperand(restriction2.constantOrNull!!),
-						ifTrue,
-						ifFalse))
-			}
-			restriction1.constantOrNull !== null ->
-			{
+			restriction1.constantOrNull !== null -> generator.addInstruction(
 				// First value is constant, so reverse them.
-				generator.addInstruction(
-					L2_JUMP_IF_COMPARE_BOXED_CONSTANT(
-						reversed(),
-						number2Read,
-						L2ConstantOperand(restriction1.constantOrNull!!),
-						ifTrue,
-						ifFalse))
-			}
+				L2_JUMP_IF_COMPARE_BOXED(
+					reversed(),
+					number2Read,
+					number1Read,
+					ifTrue,
+					ifFalse))
 			else -> generator.addInstruction(
 				L2_JUMP_IF_COMPARE_BOXED(
 					this, number1Read, number2Read, ifTrue, ifFalse))
@@ -331,28 +321,58 @@ enum class NumericComparator(
 		ifTrue: L2PcOperand,
 		ifFalse: L2PcOperand)
 	{
+		// If optimizations have caused the branches to go to the same place,
+		// eliminate the branch entirely.
+		if (ifTrue.targetBlock() == ifFalse.targetBlock())
+		{
+			generator.jumpTo(ifTrue.targetBlock())
+			return
+		}
+
 		val restriction1 = int1Reg.restriction()
 		val restriction2 = int2Reg.restriction()
 
 		assert(restriction1.containedByType(i32))
 		assert(restriction2.containedByType(i32))
+		val manifest = generator.currentManifest
 		// Restrict both values along both branches.
 		val (rest1, rest2, rest3, rest4) = computeRestrictions(
 			restriction1.forBoxed(), restriction2.forBoxed()
 		).map(TypeRestriction::forUnboxedInt)
 		when
 		{
+			manifest.semanticValueToSynonym(int1Reg.semanticValue()) ==
+				manifest.semanticValueToSynonym(int2Reg.semanticValue()) ->
+			{
+				// The values aren't both known as static constants, but they
+				// are in the same synonym, so they are definitely equal.
+				// Compare two zeroes with this comparator to decide which
+				// edge would be taken when the actual values are equal.
+				val zeros = intRestrictionForConstant(0)
+				val (firstIfHolds, _, firstIfFails, _) =
+					computeRestrictions(zeros, zeros)
+				when
+				{
+					// `0 op 0 = false` would produce an impossible constraint,
+					// so it must be true.
+					firstIfFails.isImpossible ->
+						generator.jumpTo(ifTrue.targetBlock())
+					// `0 op 0 = trueu` would produce an impossible constraint,
+					// so it must be false.
+					firstIfHolds.isImpossible ->
+						generator.jumpTo(ifFalse.targetBlock())
+					else -> error("Can't determine truth of 0 op 0!")
+				}
+			}
 			rest1.type.isBottom || rest2.type.isBottom ->
 			{
 				// One of the registers would have an impossible value if the
 				// ifTrue branch is taken, so always jump to the ifFalse case.
-				generator.currentManifest.updateRestriction(
-					int1Reg.semanticValue())
+				manifest.updateRestriction(int1Reg.semanticValue())
 				{
 					intersection(restriction1).intersection(rest3)
 				}
-				generator.currentManifest.updateRestriction(
-					int2Reg.semanticValue())
+				manifest.updateRestriction(int2Reg.semanticValue())
 				{
 					intersection(restriction2).intersection(rest4)
 				}
@@ -362,42 +382,20 @@ enum class NumericComparator(
 			{
 				// One of the registers would have an impossible value if the
 				// ifFalse branch is taken, so always jump to the ifTrue case.
-				generator.currentManifest.updateRestriction(
-					int1Reg.semanticValue())
+				manifest.updateRestriction(int1Reg.semanticValue())
 				{
 					intersection(restriction1).intersection(rest1)
 				}
-				generator.currentManifest.updateRestriction(
-					int2Reg.semanticValue())
+				manifest.updateRestriction(int2Reg.semanticValue())
 				{
 					intersection(restriction2).intersection(rest2)
 				}
 				generator.jumpTo(ifTrue.targetBlock())
 			}
-			restriction2.constantOrNull !== null ->
-			{
-				// Special case where second value is constant.
-				generator.addInstruction(
-					L2_JUMP_IF_COMPARE_INT_CONSTANT(
-						this,
-						int1Reg,
-						L2IntImmediateOperand(
-							restriction2.constantOrNull!!.extractInt),
-						ifTrue,
-						ifFalse))
-			}
-			restriction1.constantOrNull !== null ->
-			{
+			restriction1.constantOrNull !== null -> generator.addInstruction(
 				// First value is constant, so reverse them.
-				generator.addInstruction(
-					L2_JUMP_IF_COMPARE_INT_CONSTANT(
-						reversed(),
-						int2Reg,
-						L2IntImmediateOperand(
-							restriction1.constantOrNull!!.extractInt),
-						ifTrue,
-						ifFalse))
-			}
+				L2_JUMP_IF_COMPARE_INT(
+					reversed(), int2Reg, int1Reg, ifTrue, ifFalse))
 			else -> generator.addInstruction(
 				L2_JUMP_IF_COMPARE_INT(this, int1Reg, int2Reg, ifTrue, ifFalse))
 		}

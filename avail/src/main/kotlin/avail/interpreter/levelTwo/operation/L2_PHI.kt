@@ -235,7 +235,7 @@ protected constructor(
 		val source = defined[0]
 		for (eachTarget in undefined)
 		{
-			regenerator.moveRegister(kind, source, setOf(eachTarget))
+			regenerator.moveRegister(source, setOf(eachTarget))
 		}
 	}
 
@@ -266,9 +266,12 @@ protected constructor(
 	 * @param regenerator
 	 *   An [L2Regenerator] that has been configured for writing arbitrary
 	 *   replacement code for this instruction.
+	 * @param originalInstruction
+	 *   The [L2Instruction] that the receiver was based on.
 	 */
 	override fun generateReplacement(
-		regenerator: L2Regenerator)
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction)
 	{
 		// Don't generate a phi here, because startBlock() handled it.
 	}

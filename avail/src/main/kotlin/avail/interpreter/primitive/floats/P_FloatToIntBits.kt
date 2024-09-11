@@ -61,7 +61,7 @@ object P_FloatToIntBits : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val floatObject = interpreter.argument(0)
 		val floatValue = floatObject.extractFloat
-		val floatBits = java.lang.Float.floatToRawIntBits(floatValue)
+		val floatBits = floatValue.toRawBits()
 		return interpreter.primitiveSuccess(fromInt(floatBits))
 	}
 

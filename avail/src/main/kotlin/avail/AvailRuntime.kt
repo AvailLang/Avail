@@ -2162,10 +2162,10 @@ class AvailRuntime constructor(
 				exitNow = false
 				returnNow = false
 				setReifiedContinuation(con)
-				function = con.function()
+				function = con.function
 				setLatestResult(null)
-				chunk = con.levelTwoChunk()
-				offset = con.levelTwoOffset()
+				chunk = con.levelTwoChunk
+				offset = con.levelTwoOffset
 				levelOneStepper.wipeRegisters()
 				aFiber.continuation = nil
 			}
@@ -2200,10 +2200,10 @@ class AvailRuntime constructor(
 			exitNow = false
 			returnNow = false
 			setReifiedContinuation(con)
-			function = con.function()
+			function = con.function
 			setLatestResult(null)
-			chunk = con.levelTwoChunk()
-			offset = con.levelTwoOffset()
+			chunk = con.levelTwoChunk
+			offset = con.levelTwoOffset
 			levelOneStepper.wipeRegisters()
 			aFiber.continuation = nil
 		}
@@ -2253,9 +2253,9 @@ class AvailRuntime constructor(
 			else
 			{
 				exitNow = false
-				function = continuation.function()
-				chunk = continuation.levelTwoChunk()
-				offset = continuation.levelTwoOffset()
+				function = continuation.function
+				chunk = continuation.levelTwoChunk
+				offset = continuation.levelTwoOffset
 				// Clear the fiber's continuation slot while it's active.
 				aFiber.continuation = nil
 			}

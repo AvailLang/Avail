@@ -80,8 +80,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncodin
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
-import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
@@ -102,7 +102,7 @@ import java.util.Objects.hashCode
  *
  * We also capture negative type and negative instance information, to leverage
  * more advantage from the failure paths of type tests like
- * [L2_JUMP_IF_KIND_OF_CONSTANT] and [L2_JUMP_IF_EQUALS_CONSTANT].
+ * [L2_JUMP_IF_KIND_OF_OBJECT] and [L2_JUMP_IF_OBJECTS_EQUAL].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -1768,7 +1768,7 @@ class TypeRestriction private constructor(
 		 * @return
 		 *   The new or existing canonical `TypeRestriction`.
 		 */
-		fun restriction(
+		private fun restriction(
 			givenType: A_Type,
 			constantOrNull: A_BasicObject?,
 			givenExcludedTypes: Set<A_Type>,
@@ -1795,12 +1795,20 @@ class TypeRestriction private constructor(
 			assert(possibleTypeVariants === null
 				|| excludedTypeVariants === null)
 			// Strengthen singular integer range types to constants.
-			val type = when
+			var type = when
 			{
 				givenType.isIntegerRangeType &&
 					givenType.lowerBound.equals(givenType.upperBound)
 				-> instanceType(givenType.lowerBound)
 				else -> givenType
+			}
+			if (flags and UNBOXED_INT_FLAG.mask != 0)
+			{
+				type = type.typeIntersection(i32)
+			}
+			if (flags and UNBOXED_FLOAT_FLAG.mask != 0)
+			{
+				type = type.typeIntersection(Types.DOUBLE.o)
 			}
 			if (constantOrNull === null && type.isEnumeration
 				&& (!type.isInstanceMeta || type.instance.isBottom))

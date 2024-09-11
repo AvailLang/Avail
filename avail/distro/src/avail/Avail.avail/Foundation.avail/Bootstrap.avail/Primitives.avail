@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/26/23, 1:29 PM
+ * * Last Generated: 9/6/24, 3:01 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -79,6 +79,7 @@ Names
 	"Reset to mark",
 	"Restart_",
 	"Restart_with_",
+	"Restart_with_if_",
 	"Seal method_at_",
 	"Seal method|methods_at existing definitions",
 	"Semantic restriction_is_",

@@ -49,6 +49,7 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operation.L2ConditionalJump
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.interpreter.levelTwo.register.BOXED_KIND
@@ -188,8 +189,6 @@ interface L2GeneratorInterface
 	 *
 	 * @param <K>
 	 *   The [RegisterKind] of [L2Register] to move.
-	 * @param kind
-	 *   The [RegisterKind] specified by type as [K].
 	 * @param sourceSemanticValue
 	 *   Which [L2SemanticValue] to read.
 	 * @param targetSemanticValues
@@ -197,7 +196,6 @@ interface L2GeneratorInterface
 	 *   semantic value.
 	 */
 	fun <K : RegisterKind<K>> moveRegister(
-		kind: K,
 		sourceSemanticValue: L2SemanticValue<K>,
 		targetSemanticValues: Iterable<L2SemanticValue<K>>)
 
@@ -232,8 +230,8 @@ interface L2GeneratorInterface
 	 *   semantic value.
 	 */
 	fun moveIntRegister(
-		sourceSemanticValue: L2SemanticUnboxedInt,
-		targetSemanticValues: Iterable<L2SemanticUnboxedInt>)
+		sourceSemanticValue: L2SemanticValue<INTEGER_KIND>,
+		targetSemanticValues: Iterable<L2SemanticValue<INTEGER_KIND>>)
 
 	/**
 	 * Allocate a new [L2IntRegister].  Answer an [L2WriteIntOperand] that
@@ -373,7 +371,7 @@ interface L2GeneratorInterface
 	 *   The unboxed [L2ReadIntOperand].
 	 */
 	fun readIntNoFail(
-		semanticUnboxed: L2SemanticUnboxedInt
+		semanticUnboxed: L2SemanticValue<INTEGER_KIND>
 	): L2ReadIntOperand
 
 	/**
@@ -416,6 +414,24 @@ interface L2GeneratorInterface
 	 *   The new boxed write operand.
 	 */
 	fun boxedWriteTemp(restriction: TypeRestriction): L2WriteBoxedOperand
+
+	/**
+	 * Attempt to read the given [L2SemanticValue], answering a suitable
+	 * [L2ReadOperand] for with the same [RegisterKind].  If the requested
+	 * [semanticValue] is not present in the [currentManifest], but an
+	 * equivalent semantic value is present, [L2_MOVE] it into the specified
+	 * [semanticValue].  If no equivalent semantic value is present, answer
+	 * `null`.
+	 *
+	 * @param semanticValue
+	 *   The [L2SemanticValue] to ensure is populated, if possible.
+	 * @return
+	 *   An [L2ReadOperand] that reads the request [semanticValue], or `null` if
+	 *   it cannot be arronged to be present with only a move.
+	 */
+	fun <K: RegisterKind<K>> readIfAvailable(
+		semanticValue: L2SemanticValue<K>
+	): L2ReadOperand<K>?
 
 	/**
 	 * Answer the current [L2BasicBlock] being generated.

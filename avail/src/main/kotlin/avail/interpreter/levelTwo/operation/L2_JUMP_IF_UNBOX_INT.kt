@@ -50,6 +50,7 @@ import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticExtractedTag
 import avail.optimizer.values.L2SemanticUnboxedInt
 import org.objectweb.asm.MethodVisitor
@@ -138,22 +139,48 @@ constructor(
 	override fun emitTransformedInstruction(
 		regenerator: L2Regenerator)
 	{
+		// If optimizations have caused the branches to go to the same place,
+		// eliminate the branch entirely.
+		if (ifUnboxed.targetBlock() == ifNotUnboxed.targetBlock())
+		{
+			regenerator.jumpTo(ifUnboxed.targetBlock())
+			return
+		}
+
 		// Regeneration can strengthen this type via code splitting, or even
-		// obviate the need to re-extract into an int register if it's
-		// already in one along this split path.
+		// obviate the need to re-extract into an int register if it's already
+		// in one along this split path.
 		val manifest = regenerator.currentManifest
 		val sourceRestriction = manifest.restrictionFor(source.semanticValue())
+		if (sourceRestriction.containedByType(i32))
+		{
+			// It has been strengthened to definitely be an int.  Let the
+			// L2_UNBOX_INT lcass handle any special cases.
+			L2_UNBOX_INT(source, destination)
+				.emitTransformedInstruction(regenerator)
+			regenerator.jumpTo(ifUnboxed.targetBlock())
+			return
+		}
 		val sourceSemanticValue = source.semanticValue()
-		// See if there's an int version of a synonym of the source.  There
-		// must be a less messy way of doing this.
+		val semanticValues = destination.semanticValues()
+		semanticValues.firstNotNullOfOrNull {
+			manifest.equivalentSemanticValue(it)
+		}?.let { equivalent ->
+			// There's an equivalent semantic value already populated, so do an
+			// int move to ensure all of the destination semantic values get
+			// populated.
+			regenerator.moveRegister(equivalent, semanticValues)
+			regenerator.jumpTo(ifUnboxed.targetBlock())
+			return
+		}
 		val sourceInt = manifest.semanticValueToSynonym(source.semanticValue())
 			.semanticValues()
 			.map(::L2SemanticUnboxedInt)
 			.firstOrNull(manifest::hasSemanticValue)
-			?: L2SemanticUnboxedInt(source.semanticValue())
+			?: source.semanticValue().unboxedInt
 		// If the value's tag has been extracted already, strengthen it.
 		val tagSemanticValue = manifest.equivalentPopulatedSemanticValue(
-			L2SemanticUnboxedInt(L2SemanticExtractedTag(sourceSemanticValue)))
+			L2SemanticExtractedTag(sourceSemanticValue).unboxedInt)
 		tagSemanticValue?.let {
 			// Narrow the tag's range if possible.
 			manifest.updateRestriction(it) {

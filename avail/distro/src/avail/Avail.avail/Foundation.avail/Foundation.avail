@@ -113,6 +113,7 @@ Extends
 		"Reset to mark",
 		"Restart_",
 		"Restart_with_",
+		"Restart_with_if_",
 		"Request termination of_",
 		"Seal method_at_",
 		"Seal method|methods_at existing definitions",

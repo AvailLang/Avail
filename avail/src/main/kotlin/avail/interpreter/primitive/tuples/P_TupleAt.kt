@@ -73,8 +73,7 @@ import avail.interpreter.levelTwo.operation.NumericComparator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator.Companion.edgeTo
-import avail.optimizer.values.L2SemanticUnboxedInt
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import java.lang.Integer.MAX_VALUE
 
 /**
@@ -154,9 +153,10 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			val outOfBounds = generator.createBasicBlock(
 				"failed bounds check",
 				ZoneType.DEAD_END.createZone("failed bounds check"))
-			val unboxedSemanticSize = L2SemanticUnboxedInt(
-				primitiveInvocation(
-					P_TupleSize, listOf(tupleReg.semanticValue())))
+			val unboxedSemanticSize =
+				P_TupleSize.semanticInvocation(
+					tupleReg.semanticValue()
+				).unboxedInt
 			val intSizeRestriction = intRestrictionForType(
 				tupleReg.type().sizeRange.typeIntersection(i31))
 			val intSizeType = intSizeRestriction.type
@@ -175,7 +175,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				translator.addInstruction(L2_TUPLE_SIZE(tupleReg, sizeWriter))
 			}
 			val readSubscript = generator.readInt(
-				L2SemanticUnboxedInt(subscriptReg.semanticValue()),
+				subscriptReg.semanticValue().unboxedInt,
 				outOfBounds)
 
 			// Check the upper bound, if necessary.
@@ -203,8 +203,9 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 							translator.currentManifest
 								.restrictionFor(subscriptReg.semanticValue())
 								.type)))
-				val semanticResult = primitiveInvocation(
-					this, arguments.map(L2ReadBoxedOperand::semanticValue))
+				val semanticResult = semanticInvocation(
+					tupleReg.semanticValue(),
+					subscriptReg.semanticValue())
 				val writeResult =
 					generator.boxedWrite(semanticResult, resultRestriction)
 				generator.addInstruction(
@@ -247,7 +248,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		val subscriptConversionFailure =
 			generator.createBasicBlock("Should be unreachable")
 		val subscriptIntReg = generator.readInt(
-			L2SemanticUnboxedInt(subscriptReg.semanticValue()),
+			subscriptReg.semanticValue().unboxedInt,
 			subscriptConversionFailure)
 		assert(subscriptConversionFailure.predecessorEdges().isEmpty())
 		translator.addInstruction(

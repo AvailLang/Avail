@@ -34,11 +34,19 @@ package avail.interpreter.primitive.integers
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.bitwiseOr
+import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -47,6 +55,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Or
 import avail.optimizer.L1Translator
+import kotlin.math.max
 
 /**
  * **Primitive:** Compute the bitwise OR of the [arguments][IntegerDescriptor].
@@ -62,6 +71,41 @@ object P_BitwiseOr : Primitive(2, CannotFail, CanFold, CanInline)
 		val a = interpreter.argument(0)
 		val b = interpreter.argument(1)
 		return interpreter.primitiveSuccess(a.bitwiseOr(b, true))
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		assert(argumentTypes.size == 2)
+		val (aRange, bRange) = argumentTypes
+
+		// If both ranges are positive, the result must be positive.
+		if (aRange.lowerBound.greaterOrEqual(zero)
+			&& bRange.lowerBound.greaterOrEqual(zero))
+		{
+			val aMax = aRange.upperBound
+			val bMax = bRange.upperBound
+			if (aMax.isFinite && bMax.isFinite)
+			{
+				// For simplicity, just figure out how many bits we're working
+				// with and assume they could each be 0 or 1.
+				if (aMax.isLong && bMax.isLong)
+				{
+					val topOneBit = max(
+						aMax.extractLong.takeHighestOneBit(),
+						bMax.extractLong.takeHighestOneBit())
+					// Top bit is at most 0x40..., so overflow will still be ok.
+					return inclusive(0, (topOneBit shl 1) - 1)
+				}
+			}
+			// We could dig into the integer representation, but it's unlikely
+			// to save us more than a rare type test amid already expensive code
+			// in L2.
+			return wholeNumbers
+		}
+		return integers
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

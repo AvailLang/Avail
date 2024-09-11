@@ -52,6 +52,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestricti
 import avail.optimizer.L1Translator
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -90,7 +91,7 @@ object P_GetFiberPriority : Primitive(
 		val prioritySemanticIntValue = priorityIntWrite.pickSemanticValue()
 			as L2SemanticUnboxedInt
 		val boxedPriority = translator.generator.readBoxed(
-			prioritySemanticIntValue.base)
+			prioritySemanticIntValue.boxed)
 		callSiteHelper.useAnswer(boxedPriority)
 		return true
 	}

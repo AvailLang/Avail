@@ -31,13 +31,17 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.interpreter.levelTwo.register.L2IntRegister
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
+import avail.utility.cast
 
 /**
- * A semantic value which represents the [base] semantic value, but unboxed as
+ * A semantic value which represents the [privateBoxed] semantic value, but unboxed as
  * an int (in some [L2IntRegister].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -45,32 +49,52 @@ import avail.interpreter.levelTwo.register.L2IntRegister
  * @constructor
  * Create a new `L2SemanticUnboxedInt` semantic value.
  *
- * @param base
+ * @param boxedValue
  *   The unboxed semantic value from which this unboxed value is derived.
  */
 class L2SemanticUnboxedInt
 constructor(
-	val base: L2SemanticValue<BOXED_KIND>
-) : L2SemanticValue<INTEGER_KIND>(base.hash xor 0x27F6F766)
+	boxedValue: L2SemanticValue<BOXED_KIND>
+) : L2SemanticValue<INTEGER_KIND>(boxedValue.hash xor 0x27F6F766)
 {
+	/** The strengthened boxed value provided by the constructor. */
+	val privateBoxed: L2SemanticBoxedValue = boxedValue.cast()
+
 	override val kind get() = INTEGER_KIND
 
 	override fun equalsSemanticValue(other: L2SemanticValue<*>) =
-		other is L2SemanticUnboxedInt && base.equalsSemanticValue(other.base)
+		other is L2SemanticUnboxedInt
+			&& privateBoxed.equalsSemanticValue(other.privateBoxed)
 
 	override fun transform(
 		semanticValueTransformer:
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
 	): L2SemanticUnboxedInt =
-		semanticValueTransformer(base).let {
-			if (it == base) this else L2SemanticUnboxedInt(it)
+		semanticValueTransformer(privateBoxed).let {
+			if (it == privateBoxed) this else it.unboxedInt
 		}
 
-	override val isConstant: Boolean get() = base.isConstant
+	override val isConstant: Boolean get() = privateBoxed.isConstant
 
-	override val constantRestrictionOrNull: TypeRestriction
-		get() = base.constantRestrictionOrNull!!.forUnboxedInt()
+	override val defaultRestriction: TypeRestriction
+		get() = constantRestrictionOrNull ?: i32Restriction
 
-	override fun toString(): String = "Int($base)"
+	override val isUsefulForGlobalValueNumbering: Boolean =
+		privateBoxed.isUsefulForGlobalValueNumbering
+
+	override val constantRestrictionOrNull: TypeRestriction?
+		get() = privateBoxed.constantRestrictionOrNull?.forUnboxedInt()
+
+	override fun toString(): String = "Int($privateBoxed)"
+
+	companion object
+	{
+		/** The corresponding boxed form of this int semantic value. */
+		val L2SemanticValue<INTEGER_KIND>.boxed: L2SemanticBoxedValue
+			get() = (this as L2SemanticUnboxedInt).privateBoxed
+
+		/** The default restriction for int semantic values. */
+		private val i32Restriction = intRestrictionForType(i32)
+	}
 }

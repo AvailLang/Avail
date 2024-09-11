@@ -1296,7 +1296,7 @@ constructor(
 		}
 		val result = interpreter.getLatestResult()
 		val con = interpreter.getReifiedContinuation()!!
-		val thisChunk = con.levelTwoChunk()
+		val thisChunk = con.levelTwoChunk
 		if (!mustCheck || result.isInstanceOf(expectedType))
 		{
 			// Passed the return check, or didn't need to check.  This is

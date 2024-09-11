@@ -62,7 +62,9 @@ import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticUnboxedInt.Companion.boxed
 import avail.utility.cast
+import avail.utility.mapToSet
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -145,13 +147,13 @@ class L2_MULTIPLY_INT_BY_INT(
 				.semanticValueToSynonym(a.semanticValue())
 				.semanticValues()
 				.filterIsInstance<L2SemanticUnboxedInt>()
-				.map(L2SemanticUnboxedInt::base)
+				.map { it.boxed }
 				.filterIsInstance<L2SemanticPrimitiveInvocation>()
 				.filter { div ->
 					div.primitive == P_Division &&
 						manifest.isEquivalentSemanticValue(
 							div.argumentSemanticValues[1], // denominator
-							b.semanticValue().base)
+							b.semanticValue().boxed)
 				}
 			for (div in divisions)
 			{
@@ -213,8 +215,7 @@ class L2_MULTIPLY_INT_BY_INT(
 							L2ConstantOperand(range.upperBound),
 							regenerator.boxedWrite(
 								product.semanticValues()
-									.map(L2SemanticUnboxedInt::base)
-									.toSet(),
+									.mapToSet { it.boxed },
 								boxedRestrictionForType(range))))
 				}
 				regenerator.jumpTo(inRange.targetBlock())

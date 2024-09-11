@@ -169,7 +169,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	/**
 	 * Get the current program counter.
 	 */
-	fun pc(): Int = instructionDecoder.pc()
+	fun pc(): Int = instructionDecoder.pc
 
 	/**
 	 * Read from the specified object register.
@@ -354,7 +354,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					interpreter.debugModeString,
 					if (operands.isEmpty()) operation
 					else "$operation $operands")
-				instructionDecoder.pc(savePc)
+				instructionDecoder.pc = savePc
 			}
 			when (operationOrdinal)
 			{
@@ -614,7 +614,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							pointers = savedPointers
 							savedFunction.code().setUpInstructionDecoder(
 								instructionDecoder)
-							instructionDecoder.pc(savedPc)
+							instructionDecoder.pc = savedPc
 							stackp = savedStackp
 
 							// Note that the locals are not present in the new
@@ -790,7 +790,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				Level.FINER,
 				logMessage,
 				interpreter.debugModeString,
-				continuation.function().code().methodName)
+				continuation.function.code().methodName)
 		}
 		reifier.pushAction { theInterpreter: Interpreter ->
 			theInterpreter.setReifiedContinuation(
@@ -834,7 +834,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			interpreter.setOffset(savedOffset)
 			interpreter.function = savedFunction
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
-			instructionDecoder.pc(savedPc)
+			instructionDecoder.pc = savedPc
 			stackp = savedStackp
 			if (reifier.actuallyReify())
 			{
@@ -893,7 +893,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			interpreter.setOffset(savedOffset)
 			interpreter.function = savedFunction
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
-			instructionDecoder.pc(savedPc)
+			instructionDecoder.pc = savedPc
 			stackp = savedStackp
 			if (reifier.actuallyReify())
 			{
@@ -950,7 +950,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			interpreter.setOffset(savedOffset)
 			interpreter.function = savedFunction
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
-			instructionDecoder.pc(savedPc)
+			instructionDecoder.pc = savedPc
 			stackp = savedStackp
 			if (reifier !== null)
 			{
@@ -1008,7 +1008,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		interpreter.setOffset(savedOffset)
 		interpreter.function = savedFunction
 		savedFunction.code().setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc(savedPc)
+		instructionDecoder.pc = savedPc
 		stackp = savedStackp
 		if (reifier !== null)
 		{
@@ -1092,7 +1092,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			interpreter.setOffset(savedOffset)
 			interpreter.function = savedFunction
 			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
-			instructionDecoder.pc(savedPc)
+			instructionDecoder.pc = savedPc
 			stackp = savedStackp
 			if (reifier.actuallyReify())
 			{
@@ -1148,7 +1148,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		interpreter.setOffset(savedOffset)
 		interpreter.function = savedFunction
 		savedFunction.code().setUpInstructionDecoder(instructionDecoder)
-		instructionDecoder.pc(savedPc)
+		instructionDecoder.pc = savedPc
 		stackp = savedStackp
 		if (reifier.actuallyReify())
 		{

@@ -40,6 +40,7 @@ import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Generator
 import avail.optimizer.reoptimizer.L2Regenerator
+import avail.utility.ifZero
 
 /**
  * [L2Register] models the conceptual use of a register by an [L2Instruction]
@@ -217,4 +218,13 @@ constructor (
 			else -> append("$uniqueValue($finalIndex)")
 		}
 	}
+
+	override fun compareTo(other: L2Entity<*>) =
+		primaryVisualSortKey.ordinal.compareTo(
+			other.primaryVisualSortKey.ordinal)
+			.ifZero {
+				// Sort by register number within the category.
+				val otherStrong = other as L2Register<*>
+				uniqueValue.compareTo(otherStrong.uniqueValue)
+			}
 }

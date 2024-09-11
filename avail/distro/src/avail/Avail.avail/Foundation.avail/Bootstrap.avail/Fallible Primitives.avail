@@ -1,6 +1,6 @@
 /*
  * Fallible Primitives.avail
- * Copyright © 1993-2023, The Avail Foundation, LLC.
+ * Copyright © 1993-2024, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/26/23, 1:29 PM
+ * * Last Generated: 9/6/24, 3:01 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -73,6 +73,7 @@ Uses
 		"Remove_[_]",
 		"Reset to mark",
 		"Restart_with_",
+		"Restart_with_if_",
 		"Seal method_at_",
 		"Seal method|methods_at existing definitions",
 		"Semantic restriction_is_",
@@ -634,6 +635,38 @@ Primitive "Restart_with_" is
 		incorrect-argument-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊥;
+
+/**
+ * If the condition is false, do nothing.  Otherwise, restart the continuation
+ * with the specified arguments. Execution proceeds as though the continuation's
+ * caller had just invoked the continuation's current function with the given
+ * arguments instead of the original arguments. The current continuation (in
+ * which this primitive was invoked) is completely replaced by the restarted
+ * continuation.
+ *
+ * @category "Primitives" "Continuations" "Control Structures"
+ * @method "Restart_with_if_"
+ * @param "aContinuation" "$[…]→⊥"
+ *        The continuation to restart.
+ * @param "arguments" "tuple"
+ *        The new arguments with which to restart {@param "aContinuation"}.
+ * @param "condition" "boolean"
+ *        Whether to restart the continuation.
+ * @returns "⊤"
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ */
+Primitive "Restart_with_if_" is
+[
+	aContinuation : continuation,
+	arguments : tuple,
+	condition : boolean
+|
+	Primitive RestartContinuationWithArgumentsIf (failureCode : {
+		incorrect-number-of-arguments code,
+		incorrect-argument-type code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
 
 /**
  * Compute and answer an `extended integer` by rounding the argument toward
@@ -2698,7 +2731,7 @@ Primitive "Close module_" is
  *
  * @category "Primitives" "Modules"
  * @method "new anonymous module importing_"
- * @param "allImports" "<string, <<boolean, character+, character+?…|3>*, boolean…|2>?…|2>+"
+ * @param "allImports" "<string, <<boolean, character+, character+?…|3>*, boolean…|…"
  *        Every module and name to be imported privately by the new module.
  * @returns "module"
  *    The new module.
@@ -4392,3 +4425,4 @@ Primitive "_∈_" is
 		cannot-read-unassigned-variable code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : boolean;
+

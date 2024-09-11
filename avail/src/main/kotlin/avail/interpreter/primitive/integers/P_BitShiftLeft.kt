@@ -33,28 +33,47 @@
 package avail.interpreter.primitive.integers
 
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.bitShift
-import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import avail.descriptor.numbers.A_Number.Companion.lessThan
+import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import avail.descriptor.numbers.AbstractNumberDescriptor.Companion.numericComparator
+import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
+import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.negativeOne
+import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.sets.A_Set.Companion.setSize
+import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instances
+import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.lowerInclusive
 import avail.descriptor.types.A_Type.Companion.upperBound
-import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.exceptions.ArithmeticException
 import avail.exceptions.AvailErrorCode.E_TOO_LARGE_TO_REPRESENT
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shl
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP.BitOperation.Shr
+import avail.optimizer.L1Translator
+import avail.utility.notNullAnd
 
 /**
  * **Primitive:** Given any integer B, and a shift factor S, compute
@@ -106,26 +125,149 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 	): A_Type
 	{
 		val (baseIntegers: A_Type, shiftFactors: A_Type) = argumentTypes
-		val leastShift = shiftFactors.lowerBound
-		return when
+		if (baseIntegers.isEnumeration
+			&& shiftFactors.isEnumeration)
 		{
-			shiftFactors.upperBound.equals(leastShift) ->
+			val bases = baseIntegers.instances
+			val leftShifts = shiftFactors.instances
+			// If there are sufficiently few combinations, compute them all.
+			if (bases.setSize.toLong() * leftShifts.setSize.toLong() <= 256L)
 			{
-				// Shifting by a constant amount is a common case.
-				integerRangeType(
-					baseIntegers.lowerBound.bitShift(leastShift, false),
-					baseIntegers.lowerInclusive,
-					baseIntegers.upperBound.bitShift(leastShift, false),
-					baseIntegers.upperInclusive)
+				var results = emptySet
+				leftShifts.forEach { leftShift ->
+					bases.forEach { base ->
+						results = results.setWithElementCanDestroy(
+							base.bitShift(leftShift, false), true)
+					}
+				}
+				return enumerationWith(results)
 			}
-			baseIntegers.lowerBound.greaterOrEqual(zero) ->
-			{
-				// Be conservative for simplicity.
-				wholeNumbers
-			}
-			else -> super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
+		val lowBase = baseIntegers.lowerBound
+		val highBase = baseIntegers.upperBound
+		val leastLeftShift = shiftFactors.lowerBound
+		val mostLeftShift = shiftFactors.upperBound
+		val mostRightShift = zero.minusCanDestroy(leastLeftShift, false)
+		//val leastRightShift = zero.minusCanDestroy(mostRightShift, false)
+		if (baseIntegers.isSubtypeOf(inclusive(negativeOne, zero)))
+		{
+			// Shifting 0 or -1 by any finite amount, left or right, should
+			// have no effect on the value.
+			return baseIntegers
+		}
+		// Shifting is monotonic, so calculate the four potential boundaries and
+		// use [min, max] of them, excluding infinities.  Also include whichever
+		// of the fixed points {0, -1} are present.
+		val bounds = mutableListOf<A_Number>()
+		if (zero.isInstanceOf(baseIntegers)) bounds.add(zero)
+		if (negativeOne.isInstanceOf(baseIntegers)) bounds.add(negativeOne)
+		// Deal with the negatives below -1.
+		if (lowBase.lessThan(negativeOne()))
+		{
+			// There are values < -1, which can grow in magnitude under shifts.
+			// If the left shift would be huge, estimate it as -∞ instead.
+			bounds.add(
+				if (mostLeftShift.greaterThan(fromInt(64))) negativeInfinity
+				else lowBase.bitShift(mostLeftShift, false))
+			// Now find the negative output with least magnitude.
+			val highBaseBelowNegativeOne =
+				if (highBase.lessThan(negativeOne())) highBase
+				else fromInt(-2)
+			bounds.add(
+				if (mostRightShift.equals(positiveInfinity)) negativeOne
+				else highBaseBelowNegativeOne.bitShift(leastLeftShift, false))
+		}
+		// Now for the strictly positives (>0).
+		if (highBase.greaterThan(zero))
+		{
+			// There are values > 0, which can grow in magnitude under shifts.
+			// If the left shift would be huge, estimate it as ∞ instead.
+			bounds.add(
+				if (mostLeftShift.greaterThan(fromInt(64))) positiveInfinity
+				else highBase.bitShift(mostLeftShift, false))
+			// Now find the positive output with least magnitude.
+			val lowBaseAboveZero =
+				if (lowBase.greaterThan(zero)) lowBase
+				else one
+			bounds.add(
+				if (mostRightShift.equals(positiveInfinity)) zero
+				else lowBaseAboveZero.bitShift(leastLeftShift, false))
+		}
+		val min = bounds.minWithOrNull(numericComparator)!!
+		val max = bounds.maxWithOrNull(numericComparator)!!
+		return integerRangeType(min, min.isFinite, max, max.isFinite)
 	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		callSiteHelper: L1Translator.CallSiteHelper
+	): Boolean = attemptToGenerateTwoIntToIntPrimitive(
+		callSiteHelper,
+		functionToCallReg,
+		rawFunction,
+		arguments,
+		argumentTypes,
+		ifOutputIsInt = {
+			val outputType = intWrite.restriction().type
+			when
+			{
+				outputType.lowerBound.equals(outputType.upperBound) ->
+				{
+					// The resulting value is known precisely.
+					generator.moveIntRegister(
+						generator.unboxedIntConstant(
+							outputType.lowerBound.extractInt
+						).semanticValue(),
+						intWrite.semanticValues())
+				}
+				intA.type().isSubtypeOf(inclusive(-1, 0)) ||
+					intB.type().isSubtypeOf(inclusive(0, 0)) ->
+				{
+					// Either:
+					//   1. The base is always in [-1, 0], so the shift, whether
+					//      left or right, has no effect, or
+					//   2. The shift is always zero, likewise having no effect.
+					generator.moveIntRegister(
+						intA.semanticValue(), intWrite.semanticValues())
+				}
+				intB.type().isSubtypeOf(inclusive(0, 31)) ->
+				{
+					// The shift is in [0..31], so the JVM can directly handle
+					// it.
+					generator.addInstruction(
+						L2_BIT_LOGIC_OP(Shl, intA, intB, intWrite))
+				}
+				intB.constantOrNull.notNullAnd { extractInt in -31..0 } ->
+				{
+					// The shift is a constant in [-31..0], so we can convert it
+					// to a constant right shift that the JVM can handle.
+					generator.addInstruction(
+						L2_BIT_LOGIC_OP(
+							Shr,
+							intA,
+							generator.unboxedIntConstant(
+								0 - intB.constantOrNull!!.extractInt),
+							intWrite))
+				}
+				else ->
+				{
+					// This is already a rare situation, so just fall back, even
+					// though we know the value would fit in an i32.  If we ever
+					// need to optimize the remaining case, we'll have to emit
+					// tests for the shift factors falling into [MIN_INT..-32],
+					// [-31..-1], [0..31], and [32..MAX_INT], and generate
+					// separate code to handle each reachable case separately.
+					generator.jumpTo(this.intFailure)
+				}
+			}
+		},
+		ifOutputIsPossiblyInt = {
+			// Fall back completely if the shift could overflow an i32.
+			generator.jumpTo(intFailure)
+		})
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

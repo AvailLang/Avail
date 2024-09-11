@@ -31,7 +31,6 @@
  */
 package avail.descriptor.functions
 
-import avail.descriptor.functions.A_Continuation.Companion.registerDump
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.IntegerSlots.INTEGER_SLOTS_
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.ObjectSlots.OBJECT_SLOTS_
 import avail.descriptor.representation.AvailObject

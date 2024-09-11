@@ -49,7 +49,6 @@ import org.objectweb.asm.Opcodes
  * still valid).  The function will start at the beginning, using the supplied
  * arguments, rather than the ones that were captured within the continuation.
  *
- *
  * This operation does the same thing as running
  * [P_RestartContinuationWithArguments], but avoids the need for a reified
  * calling continuation.

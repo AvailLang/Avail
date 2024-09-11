@@ -34,7 +34,6 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor.Companion.brief
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -60,10 +59,11 @@ import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticConstant
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedFloat
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticUnboxedFloat
-import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
 
@@ -143,7 +143,7 @@ private constructor(
 				.filterNot(manifest::hasSemanticValue)
 			if (newValues.isNotEmpty())
 			{
-				regenerator.moveRegister(kind, semanticConstant, newValues)
+				regenerator.moveRegister(semanticConstant, newValues)
 			}
 			return
 		}
@@ -184,8 +184,7 @@ private constructor(
 
 		override fun destination(): L2WriteBoxedOperand = destination
 
-		override fun getConstantSemanticValue(): L2SemanticValue<BOXED_KIND> =
-			L2SemanticConstant(source.constant)
+		override fun getConstantSemanticValue() = constant(source.constant)
 
 		override fun pushConstant(
 			translator: JVMTranslator,
@@ -234,7 +233,7 @@ private constructor(
 		override fun destination(): L2WriteIntOperand = destination
 
 		override fun getConstantSemanticValue() =
-			L2SemanticUnboxedInt(L2SemanticConstant(fromInt(source.value)))
+			constant(source.value).unboxedInt
 
 		override fun pushConstant(
 			translator: JVMTranslator,
@@ -255,7 +254,7 @@ private constructor(
 		override fun destination(): L2WriteFloatOperand = destination
 
 		override fun getConstantSemanticValue(): L2SemanticUnboxedFloat =
-			L2SemanticUnboxedFloat(L2SemanticConstant(fromDouble(source.value)))
+			constant(fromDouble(source.value)).unboxedFloat
 
 		override fun pushConstant(
 			translator: JVMTranslator,

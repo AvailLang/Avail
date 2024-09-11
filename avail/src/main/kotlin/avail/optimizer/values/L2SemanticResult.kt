@@ -31,6 +31,9 @@
  */
 package avail.optimizer.values
 
+import avail.descriptor.types.A_Type.Companion.returnType
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.register.BOXED_KIND
 
 /**
@@ -61,6 +64,9 @@ constructor(
 		frameTransformer(frame()).let {
 			if (it == frame) this else L2SemanticResult(it)
 		}
+
+	override val defaultRestriction: TypeRestriction
+		get() = boxedRestrictionForType(frame.code.functionType().returnType)
 
 	override fun toString(): String = "Result of ${frame()}"
 }

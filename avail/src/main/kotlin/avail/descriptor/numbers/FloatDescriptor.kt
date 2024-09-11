@@ -485,8 +485,7 @@ class FloatDescriptor private constructor(
 		}
 
 		/**
-		 * Answer the Avail object representing
-		 * [java.lang.Float.POSITIVE_INFINITY].
+		 * Answer the Avail object representing [Float.POSITIVE_INFINITY].
 		 *
 		 * @return
 		 *   The Avail object for float positive infinity.
@@ -494,8 +493,7 @@ class FloatDescriptor private constructor(
 		fun floatPositiveInfinity(): A_Number = Sign.POSITIVE.limitFloatObject()
 
 		/**
-		 * Answer the Avail object representing
-		 * [java.lang.Float.NEGATIVE_INFINITY].
+		 * Answer the Avail object representing [Float.NEGATIVE_INFINITY].
 		 *
 		 * @return
 		 *   The Avail object for float negative infinity.

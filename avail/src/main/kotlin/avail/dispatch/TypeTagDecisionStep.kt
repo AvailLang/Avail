@@ -57,8 +57,8 @@ import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticExtractedTag
-import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
 import avail.utility.isNullOr
@@ -453,8 +453,7 @@ constructor(
 		}
 		// Generate a multi-way branch.
 		val splits = reducedSpans.drop(1).map(Span::low)
-		val semanticTag =
-			L2SemanticUnboxedInt(L2SemanticExtractedTag(semanticSource))
+		val semanticTag = L2SemanticExtractedTag(semanticSource).unboxedInt
 		return generator.run {
 			if (!currentManifest.hasSemanticValue(semanticTag))
 			{

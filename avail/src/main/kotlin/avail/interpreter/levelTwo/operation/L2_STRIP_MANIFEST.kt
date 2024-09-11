@@ -96,6 +96,13 @@ class L2_STRIP_MANIFEST(
 		outputs.instructionWasAdded(manifest)
 	}
 
+	override val producesAnyJvmCode: Boolean
+		get() = inputs.registers()
+			.zip(outputs.registers())
+			.any { (read, write) ->
+				read.finalIndex == -1 || read.finalIndex != write.finalIndex
+			}
+
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)

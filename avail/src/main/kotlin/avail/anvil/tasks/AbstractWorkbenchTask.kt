@@ -80,8 +80,7 @@ abstract class AbstractWorkbenchTask constructor(
 			else -> "Done"
 		}
 		workbench.writeText(
-			java.lang.String.format(
-				"%s (%d.%03ds).%n",
+			"%s (%d.%03ds).%n".format(
 				status,
 				durationMillis / 1000,
 				durationMillis % 1000),

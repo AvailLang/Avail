@@ -33,7 +33,6 @@
 package avail.dispatch
 
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -46,7 +45,6 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -64,10 +62,9 @@ import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticUnboxedInt
+import avail.optimizer.values.L2SemanticBoxedValue.Companion.unboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.constant
-import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import avail.utility.cast
 import avail.utility.notNullAnd
 import avail.utility.removeLast
@@ -500,8 +497,8 @@ constructor(
 		val noMatchBlock = L2BasicBlock("None matched by equality")
 		// First, extract the hash value.
 		val int32Restriction = intRestrictionForType(i32)
-		val semanticHash = primitiveInvocation(P_Hash, listOf(semanticSource))
-		val semanticHashInt = L2SemanticUnboxedInt(semanticHash)
+		val semanticHash = P_Hash.semanticInvocation(semanticSource)
+		val semanticHashInt = semanticHash.unboxedInt
 		if (!generator.currentManifest.hasSemanticValue(semanticHashInt))
 		{
 			generator.addInstruction(
@@ -522,21 +519,17 @@ constructor(
 		}
 		else
 		{
-			val semanticShiftedInt = L2SemanticUnboxedInt(
-				primitiveInvocation(
-					P_BitShiftRight,
-					listOf(
-						primitiveInvocation(
-							P_BitwiseAnd,
-							listOf(
-								semanticHash,
-								constant(fromLong(0xFFFF_FFFFL)))),
-						constant(
-							fromInt(bestShift)))))
+			val semanticShiftedInt =
+				P_BitShiftRight.semanticInvocation(
+					P_BitwiseAnd.semanticInvocation(
+						semanticHash,
+						constant(fromLong(0xFFFF_FFFFL))),
+					constant(bestShift)
+				).unboxedInt
 			manifest.equivalentPopulatedSemanticValue(semanticShiftedInt) ?:
 				run {
-					// Neither the semantic value representing the shifted hash nor
-					// an equivalent semantic value exist.  Do the shift.
+					// Neither the semantic value representing the shifted hash
+					// nor an equivalent semantic value exist.  Do the shift.
 					generator.addInstruction(
 						L2_BIT_LOGIC_OP(
 							Ushr,
@@ -579,7 +572,7 @@ constructor(
 					indexWrite.pickSemanticValue(),
 					indexRestriction,
 					generator.currentManifest),
-				L2ArbitraryConstantOperand(splitter),
+				splitter,
 				L2PcVectorOperand(
 					(0 .. mask).map { index ->
 						val pair = targetsByShiftedHash[index]

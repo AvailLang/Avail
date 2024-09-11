@@ -32,12 +32,30 @@
 
 package avail.interpreter.primitive.integers
 
+import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.numbers.A_Number.Companion.bitShift
 import avail.descriptor.numbers.A_Number.Companion.bitShiftLeftTruncatingToBits
+import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
+import avail.descriptor.numbers.A_Number.Companion.lessThan
+import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.sets.A_Set.Companion.setSize
+import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
+import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instances
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.exceptions.ArithmeticException
@@ -46,6 +64,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import java.lang.Math.multiplyExact
 
 /**
  * **Primitive:** Given a positive integer B, a shift factor S, and a truncation
@@ -64,7 +83,7 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 		val baseInteger = interpreter.argument(0)
 		val shiftFactor = interpreter.argument(1)
 		val truncationBits = interpreter.argument(2)
-		return try
+		try
 		{
 			return interpreter.primitiveSuccess(
 				baseInteger.bitShiftLeftTruncatingToBits(
@@ -74,8 +93,82 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 		{
 			// Note: The primitive's type signature ensures both baseInteger and
 			// truncationBits are non-negative.
-			interpreter.primitiveFailure(e)
+			return interpreter.primitiveFailure(e)
 		}
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction?,
+		argumentTypes: List<A_Type>
+	): A_Type
+	{
+		val baseIntegers: A_Type = argumentTypes[0]
+		val shiftFactors: A_Type = argumentTypes[1]
+		val truncationBitsRange: A_Type = argumentTypes[2]
+		if (baseIntegers.isEnumeration
+			&& shiftFactors.isEnumeration
+			&& truncationBitsRange.isEnumeration)
+		{
+			val bases = baseIntegers.instances
+			val leftShifts = shiftFactors.instances
+			val truncationBits = truncationBitsRange.instances
+			val combinations = try
+			{
+				multiplyExact(
+					multiplyExact(bases.setSize, leftShifts.setSize),
+					truncationBits.setSize)
+			}
+			catch (e: ArithmeticException)
+			{
+				Int.MAX_VALUE
+			}
+			// If there are sufficiently few combinations, compute them all.
+			if (combinations <= 256L)
+			{
+				var results = SetDescriptor.emptySet
+				truncationBits.forEach { truncationBitCount ->
+					leftShifts.forEach { leftShift ->
+						bases.forEach { base ->
+							results = results.setWithElementCanDestroy(
+								base.bitShiftLeftTruncatingToBits(
+									leftShift, truncationBitCount, false),
+								true)
+						}
+					}
+				}
+				return enumerationWith(results)
+			}
+		}
+		val beforeTruncation = P_BitShiftLeft.returnTypeGuaranteedByVM(
+			null,
+			listOf(baseIntegers, shiftFactors))
+		// We can cop out and use 0 as the lower bound, and say the result can
+		// grow as large as the minimm of the shifted value or the largest
+		// truncation mask.
+		val biggestTruncationBitCount = truncationBitsRange.upperBound
+		if (biggestTruncationBitCount.greaterThan(fromInt(1000)))
+		{
+			// Too expensive to create giant integers.  Ignore the truncation.
+			return integerRangeType(
+				zero,
+				true,
+				beforeTruncation.upperBound,
+				beforeTruncation.upperInclusive)
+		}
+		val maxMask = one.bitShift(biggestTruncationBitCount, false)
+			.minusCanDestroy(one, true)
+		val minMask = one.bitShift(truncationBitsRange.lowerBound, false)
+			.minusCanDestroy(one, true)
+		val beforeUpper = beforeTruncation.upperBound
+		if (beforeUpper.lessOrEqual(minMask))
+		{
+			// Even the smallest mask won't alter the output.
+			return beforeTruncation
+		}
+		return inclusive(
+			zero,
+			if (beforeUpper.lessThan(maxMask)) beforeUpper
+			else maxMask)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

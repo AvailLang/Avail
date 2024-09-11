@@ -226,7 +226,7 @@ class AvailDebugger internal constructor (
 		): Component = super.getListCellRendererComponent(
 			list,
 			(frame as A_Continuation).run {
-				val code = function().code()
+				val code = function.code()
 				val module = code.module
 				String.format(
 					"%s (%s:%d) pc=%d",
@@ -234,7 +234,7 @@ class AvailDebugger internal constructor (
 					if (module.isNil) "?"
 					else module.moduleNameNative,
 					frame.currentLineNumber(index == 0),
-					frame.pc())
+					frame.pc)
 			},
 			index,
 			isSelected,
@@ -253,7 +253,7 @@ class AvailDebugger internal constructor (
 		override fun actionPerformed(e: ActionEvent)
 		{
 			stackListPane.selectedValue?.let {
-				inspect(it.function().code().toString(), it as AvailObject)
+				inspect(it.function.code().toString(), it as AvailObject)
 			}
 		}
 	}
@@ -790,7 +790,7 @@ class AvailDebugger internal constructor (
 				while (frame.notNil)
 				{
 					frames.add(frame)
-					frame = frame.caller() as AvailObject
+					frame = frame.caller as AvailObject
 				}
 				stackListPane.valueIsAdjusting = true
 				try
@@ -826,7 +826,7 @@ class AvailDebugger internal constructor (
 			}
 			else ->
 			{
-				val code = frame.function().code()
+				val code = frame.function.code()
 				disassembledWithMapThen(code) { text, map ->
 					SwingUtilities.invokeLater {
 						if (!code.equals(currentCode))
@@ -834,10 +834,10 @@ class AvailDebugger internal constructor (
 							currentCode = code
 							disassemblyPane.text = text
 						}
-						val pc = frame.pc()
+						val pc = frame.pc
 						val highlightPc = when (isTopFrame)
 						{
-							true -> frame.pc()
+							true -> pc
 							// Highlight the previous instruction, which is the
 							// call that is outstanding.
 							else -> map.keys.maxOf {
@@ -982,7 +982,7 @@ class AvailDebugger internal constructor (
 		//val oldPath = variablesPane.selectionPath
 		val entries = mutableListOf<Variable>()
 		stackListPane.selectedValue?.let { frame ->
-			val function = frame.function()
+			val function = frame.function
 			val code = function.code()
 			val numArgs = code.numArgs()
 			val numLocals = code.numLocals
@@ -1028,12 +1028,12 @@ class AvailDebugger internal constructor (
 					)
 				)
 			}
-			for (i in frame.numSlots() downTo frame.stackp())
+			for (i in frame.numSlots() downTo frame.stackp)
 			{
 				// Give the top-of-stack its own name, so that leaving it
 				// selected during stepping will continue to re-select it.
 				val name =
-					if (i == frame.stackp()) "stack top"
+					if (i == frame.stackp) "stack top"
 					else "stack [$i]"
 				entries.add(Variable(name, frame.frameAt(i)))
 			}

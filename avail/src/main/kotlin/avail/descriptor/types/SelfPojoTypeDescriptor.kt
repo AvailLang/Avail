@@ -69,10 +69,9 @@ import java.util.IdentityHashMap
  * `SelfPojoTypeDescriptor` describes the self type of a Java class or
  * interface. In the pojo implementation, any Java class or interface that
  * depends recursively on itself through type parameterization of self,
- * superclass, or superinterface uses a pojo self type. [java.lang.Enum][Enum]
- * is a famous example from the Java library: its type parameter, `E`, extends
- * `Enum`'s self type. A pojo self type is used to break the recursive
- * dependency.
+ * superclass, or superinterface uses a pojo self type. [Enum] is a famous
+ * example from the Java library: its type parameter, `E`, extends `Enum`'s self
+ * type. A pojo self type is used to break the recursive dependency.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *

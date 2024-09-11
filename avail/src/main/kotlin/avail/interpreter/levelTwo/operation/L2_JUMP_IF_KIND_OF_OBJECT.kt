@@ -33,12 +33,19 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.types.A_Type.Companion.instance
+import avail.descriptor.types.A_Type.Companion.typeIntersection
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.i32
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
+import avail.optimizer.L2SplitCondition
+import avail.optimizer.L2SplitCondition.Companion.typeRestrictionCondition
+import avail.optimizer.L2SplitCondition.Companion.unboxedIntCondition
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.reoptimizer.L2Regenerator
@@ -62,25 +69,13 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-		// Restrict the value to the type along the ifKind branch, but because
-		// the provided type can be more specific at runtime, we can't restrict
-		// the ifNotKind branch.
+		// Restrict the value to the type along the ifKind branch
 		ifKind.manifest().intersectType(value, type.type().instance)
-	}
-
-	override fun emitTransformedInstruction(
-		regenerator: L2Regenerator)
-	{
 		type.restriction().constantOrNull?.let { constantType ->
-			regenerator.jumpIfKindOfConstant(
-				value,
-				constantType,
-				ifKind.targetBlock(),
-				ifNotKind.targetBlock())
-			return
+			// The type is a constant, so we can exclude it along the ifNotkind
+			// path.
+			ifNotKind.manifest().subtractType(value, constantType)
 		}
-		ifKind.manifest().intersectType(value, type.type().instance)
-		super.emitTransformedInstruction(regenerator)
 	}
 
 	override fun appendToWithWarnings(
@@ -95,6 +90,63 @@ class L2_JUMP_IF_KIND_OF_OBJECT(
 		builder.append(type.registerString())
 		renderOperandsExcludingFields(
 			builder, desiredOperandTypes, ::value, ::type)
+	}
+
+	override fun emitTransformedInstruction(
+		regenerator: L2Regenerator)
+	{
+		// If optimizations have caused the branches to go to the same place,
+		// eliminate the branch entirely.
+		if (ifKind.targetBlock() == ifNotKind.targetBlock())
+		{
+			regenerator.jumpTo(ifKind.targetBlock())
+			return
+		}
+		type.restriction().constantOrNull?.let { constantType ->
+			regenerator.jumpIfKindOfConstant(
+				value,
+				constantType,
+				ifKind.targetBlock(),
+				ifNotKind.targetBlock())
+			return
+		}
+		ifKind.manifest().intersectType(value, type.type().instance)
+		type.restriction().constantOrNull?.let { constantType ->
+			// The type is a constant, so we can exclude it along the ifNotkind
+			// path.
+			ifNotKind.manifest().subtractType(value, constantType)
+		}
+		super.emitTransformedInstruction(regenerator)
+	}
+
+	override fun interestingConditions(): List<L2SplitCondition?>
+	{
+		val constantType = type.constantOrNull ?: return emptyList()
+		val conditions = mutableListOf<L2SplitCondition?>()
+		if (!ifKind.targetBlock().isCold)
+		{
+			// The ifKind target is warm, so allow a split back to a point where
+			// the value is known to be of the requested kind.
+			val constantTypeWhenInt = constantType.typeIntersection(i32)
+			if (!constantTypeWhenInt.isVacuousType)
+			{
+				conditions.add(unboxedIntCondition(listOf(value.register())))
+			}
+			conditions.add(
+				typeRestrictionCondition(
+					listOf(value.register()),
+					boxedRestrictionForType(constantType)))
+		}
+		if (!ifNotKind.targetBlock().isCold)
+		{
+			// The ifNotKind target is warm, so allow a split back to a point
+			// where the value is known *not* to be an instance.
+			conditions.add(
+				typeRestrictionCondition(
+					listOf(value.register()),
+					boxedRestrictionForType(ANY.o).minusType(constantType)))
+		}
+		return conditions
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()

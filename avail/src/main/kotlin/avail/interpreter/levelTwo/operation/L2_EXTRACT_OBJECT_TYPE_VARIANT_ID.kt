@@ -68,7 +68,8 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 	}
 
 	override fun generateReplacement(
-		regenerator: L2Regenerator)
+		regenerator: L2Regenerator,
+		originalInstruction: L2Instruction)
 	{
 		// If the variantId is statically deducible at this point, use the
 		// constant.
@@ -82,7 +83,7 @@ class L2_EXTRACT_OBJECT_TYPE_VARIANT_ID(
 				variantId.semanticValues())
 			return
 		}
-		super.generateReplacement(regenerator)
+		super.generateReplacement(regenerator, originalInstruction)
 	}
 
 	override val readsThatMightDestroy get() = emptyList<L2ReadBoxedOperand>()

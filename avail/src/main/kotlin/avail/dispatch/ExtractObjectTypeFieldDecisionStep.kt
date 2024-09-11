@@ -53,7 +53,7 @@ import avail.interpreter.primitive.objects.P_GetObjectTypeField
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.values.L2SemanticBoxedValue
-import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
 import avail.utility.Strings.newlineTab
@@ -262,11 +262,9 @@ constructor(
 	private fun newSemanticValue(
 		semanticValues: List<L2SemanticBoxedValue>,
 		extraSemanticValues: List<L2SemanticBoxedValue>
-	) = L2SemanticValue.primitiveInvocation(
-		P_GetObjectTypeField,
-		listOf(
-			sourceSemanticValue(semanticValues, extraSemanticValues),
-			L2SemanticValue.constant(field)))
+	) = P_GetObjectTypeField.semanticInvocation(
+		sourceSemanticValue(semanticValues, extraSemanticValues),
+		constant(field))
 
 	override fun simplyAddChildrenTo(
 		list: MutableList<LookupTree<Element, Result>>)

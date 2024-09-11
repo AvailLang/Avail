@@ -5212,22 +5212,23 @@ Public method "insertion index of|for_in_with_" is
 	aTuple : tuple,
 	comparator : [⊥, ⊥]→boolean
 |
-	low : natural number := 1;
-	high : whole number := |aTuple|;
-	Until low > high do
 	[
+		low : natural number,
+		high : whole number,
+		element1 : any,
+		aTuple1 : tuple,
+		comparator1 : [⊥, ⊥]→boolean
+	|
+		$body : natural number;
+		Exit body with low if low > high;
 		mid ::= (high + low + 1) >> 1;
-		midValue ::= aTuple[mid];
-		if comparator(midValue, element) then
-		[
-			low := mid + 1;
-		]
-		else
-		[
-			high := mid - 1;
-		];
-	];
-	low
+		comparison ::= comparator(aTuple1[mid], element);
+		Restart body
+			with <mid + 1, high, element1, aTuple1, comparator1>
+			if comparison;
+		Restart body
+			with <low, mid - 1, element1, aTuple1, comparator1>
+	](1, |aTuple|, element, aTuple, comparator)
 ] : natural number;
 
 Semantic restriction "insertion index of|for_in_with_" is

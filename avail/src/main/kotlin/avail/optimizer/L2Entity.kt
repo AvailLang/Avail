@@ -31,6 +31,7 @@
  */
 package avail.optimizer
 
+import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.register.RegisterKind
 
 /**
@@ -39,7 +40,7 @@ import avail.interpreter.levelTwo.register.RegisterKind
  *
  * @see DataCouplingMode
  */
-interface L2Entity<K: RegisterKind<K>>
+interface L2Entity<K: RegisterKind<K>>: Comparable<L2Entity<*>>
 {
 	/**
 	 * Answer the kind of register that this entity operates on. Different
@@ -49,4 +50,31 @@ interface L2Entity<K: RegisterKind<K>>
 	 * @return The [RegisterKind].
 	 */
 	val kind: K
+
+	/**
+	 * The major ordering of semantic values when printing an [L2Synonym].
+	 * Synonyms and value manifests' contents sort by the ordinal, so rearrange
+	 * the enum values to change this order.
+	 */
+	enum class PrimaryVisualSortKey
+	{
+		BOXED_REGISTER,
+		UNBOXED_INT_REGISTER,
+		UNBOXED_FLOAT_REGISTER,
+		CONSTANT_NIL,
+		CONSTANT,
+		CALLER,
+		LABEL,
+		OUTER,
+		PRIMITIVE_INVOCATION,
+		TEMP,
+		OTHER,
+		SLOT;
+	}
+
+	/**
+	 * The primary criterion by which to sort (ascending) registers and semantic
+	 * values when presenting them visually.
+	 */
+	val primaryVisualSortKey: PrimaryVisualSortKey
 }

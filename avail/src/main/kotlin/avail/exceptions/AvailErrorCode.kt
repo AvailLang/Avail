@@ -402,9 +402,9 @@ enum class AvailErrorCode constructor(val code: Int)
 	E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS(55),
 
 	/**
-	 * A [Double] value [not-a-number][java.lang.Double.NaN] or [Float] value
-	 * [not-a-number][java.lang.Float.NaN] cannot be converted to an extended
-	 * integer (neither truncation, floor, nor ceiling).
+	 * A [Double] value [not-a-number][Double.NaN] or [Float] value
+	 * [not-a-number][Float.NaN] cannot be converted to an extended integer
+	 * (neither truncation, floor, nor ceiling).
 	 */
 	E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER(56),
 
