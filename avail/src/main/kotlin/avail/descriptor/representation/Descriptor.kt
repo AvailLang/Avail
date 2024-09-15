@@ -617,6 +617,15 @@ protected constructor (
 		transformer: (AvailObject, AvailObject) -> A_BasicObject
 	): A_Map = unsupported
 
+	override fun o_MapAtEachReplacingCanDestroy (
+		self: AvailObject,
+		keys: Iterator<A_BasicObject>,
+		keyTransformer: (AvailObject)->A_BasicObject,
+		notFoundValue: A_BasicObject,
+		canDestroy: Boolean,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject
+	): A_Map = unsupported
+
 	override fun o_MapWithoutKeyCanDestroy (
 		self: AvailObject,
 		keyObject: A_BasicObject,

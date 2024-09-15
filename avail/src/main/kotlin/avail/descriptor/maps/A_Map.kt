@@ -203,8 +203,8 @@ interface A_Map : A_BasicObject
 		 * @param canDestroy
 		 *   Whether the map can be modified by this call, if it's also mutable.
 		 * @param transformer
-		 *   The binary operator that produces a replacement value to store into
-		 *   the map.
+		 *   A function that produces a replacement value to store into the map.
+		 *   It takes the key and either the found value or the [notFoundValue].
 		 * @return
 		 *   The new map, possibly the mutated original map itself, if
 		 *   canDestroy is true.
@@ -217,6 +217,50 @@ interface A_Map : A_BasicObject
 		): A_Map = dispatch {
 			o_MapAtReplacingCanDestroy(
 				it, key, notFoundValue, canDestroy, transformer)
+		}
+
+		/**
+		 * Given an [Iterator] of keys to process, look up each `key` in the
+		 * map.  If present, use the key and the looked up value as arguments to
+		 * a call to the `transformer`. Otherwise, use the key and the
+		 * `notFoundValue` ([nil] is default for this) as arguments to the
+		 * transformer.  Store the transformer's result in the map under the
+		 * key, destroying the original if [canDestroy] is true. Answer the
+		 * resulting map.
+		 *
+		 * The map must not change during evaluation of the transformer.
+		 *
+		 * @param keys
+		 *   The [Iterator] of key precursors to process.
+		 * @param keyTransformer
+		 *   A transformation from key precursor to actual key to lookup in this
+		 *   map.
+		 * @param notFoundValue
+		 *   The value to use as the second argument to the transformer when a
+		 *   key is not found.
+		 * @param canDestroy
+		 *   Whether the map can be modified by this call, if it's also mutable.
+		 * @param transformer
+		 *   A function that produces a replacement value to store into the map.
+		 *   It takes the key and either the found value or the [notFoundValue].
+		 * @return
+		 *   The new map, possibly the mutated original map itself, if
+		 *   canDestroy is true.
+		 */
+		fun A_Map.mapAtEachReplacingCanDestroy(
+			keys: Iterator<A_BasicObject>,
+			keyTransformer: (AvailObject)->A_BasicObject = { it },
+			notFoundValue: A_BasicObject = nil,
+			canDestroy: Boolean,
+			transformer: (AvailObject, AvailObject)->A_BasicObject
+		): A_Map = dispatch {
+			o_MapAtEachReplacingCanDestroy(
+				it,
+				keys,
+				keyTransformer,
+				notFoundValue,
+				canDestroy,
+				transformer)
 		}
 
 		/**

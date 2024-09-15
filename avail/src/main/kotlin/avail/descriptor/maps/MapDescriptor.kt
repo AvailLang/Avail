@@ -458,6 +458,38 @@ class MapDescriptor private constructor(
 		return createFromBin(newRoot)
 	}
 
+	override fun o_MapAtEachReplacingCanDestroy (
+		self: AvailObject,
+		keys: Iterator<A_BasicObject>,
+		keyTransformer: (AvailObject)->A_BasicObject,
+		notFoundValue: A_BasicObject,
+		canDestroy: Boolean,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject
+	): A_Map
+	{
+		var root = rootBin(self)
+		keys.forEach { keyPrecursor ->
+			val key = keyTransformer(keyPrecursor as AvailObject).traversed()
+			root = root.mapBinAtHashReplacingLevelCanDestroy(
+				key,
+				key.hash(),
+				notFoundValue.cast(),
+				0,
+				canDestroy,
+				transformer)
+		}
+		if (canDestroy && isMutable)
+		{
+			setRootBin(self, root)
+			return self
+		}
+		if (isMutable)
+		{
+			self.makeImmutable()
+		}
+		return createFromBin(root)
+	}
+
 	/**
 	 * Answer a set with all my keys.  Mark the keys as immutable because
 	 * they'll be shared with the new set.
@@ -752,11 +784,7 @@ class MapDescriptor private constructor(
 				assert(pair.tupleSize == 2)
 				val (key, value) = pair
 				root.mapBinAtHashPutLevelCanDestroy(
-					key.traversed(),
-					key.hash(),
-					value,
-					0,
-					true)
+					key.traversed(), key.hash(), value, 0, true)
 			})
 
 		/**
@@ -776,11 +804,7 @@ class MapDescriptor private constructor(
 					val key = keysAndValues[i].traversed()
 					val value = keysAndValues[i + 1]
 					root.mapBinAtHashPutLevelCanDestroy(
-						key,
-						key.hash(),
-						value,
-						0,
-						true)
+						key.traversed(), key.hash(), value, 0, true)
 				})
 		}
 

@@ -182,6 +182,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.totalInvocations
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
+import avail.descriptor.maps.A_Map.Companion.mapAtEachReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
@@ -1641,8 +1642,20 @@ class IndirectionDescriptor private constructor(
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
 		transformer: (AvailObject, AvailObject) -> A_BasicObject
-	): A_Map = self.. {
+	): A_Map = self .. {
 		mapAtReplacingCanDestroy(key, notFoundValue, canDestroy, transformer)
+	}
+
+	override fun o_MapAtEachReplacingCanDestroy (
+		self: AvailObject,
+		keys: Iterator<A_BasicObject>,
+		keyTransformer: (AvailObject)->A_BasicObject,
+		notFoundValue: A_BasicObject,
+		canDestroy: Boolean,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject
+	): A_Map = self .. {
+		mapAtEachReplacingCanDestroy(
+			keys, keyTransformer, notFoundValue, canDestroy, transformer)
 	}
 
 	override fun o_MapWithoutKeyCanDestroy(

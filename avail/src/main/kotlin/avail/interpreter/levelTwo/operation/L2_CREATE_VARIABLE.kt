@@ -33,24 +33,29 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableDescriptor
-import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
 
 /**
  * Create a new [variable&#32;object][VariableDescriptor] of the
  * specified [variable&#32;type][VariableTypeDescriptor].
+ *
+ * Note that this instruction does not have a side-effect, although it must not
+ * run twice (for the same conceptual variable), since the identity of the new
+ * variable must be preserved.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class L2_CREATE_VARIABLE(
 	var outerType: L2ConstantOperand,
-	var variable: L2WriteBoxedOperand
+	var variable: L2WriteBoxedOperand,
+	var initialValueOrNil: L2ReadBoxedOperand
 ): L2Instruction()
 {
 	override fun appendToWithWarnings(
@@ -71,7 +76,7 @@ class L2_CREATE_VARIABLE(
 	{
 		// :: newVar = newVariableWithOuterType(outerType  [,null] );
 		translator.literal(method, outerType.constant)
-		method.visitInsn(Opcodes.ACONST_NULL)
+		translator.load(method, initialValueOrNil.register())
 		VariableDescriptor.newVariableWithOuterTypeMethod.generateCall(method)
 		translator.store(method, variable.register())
 	}

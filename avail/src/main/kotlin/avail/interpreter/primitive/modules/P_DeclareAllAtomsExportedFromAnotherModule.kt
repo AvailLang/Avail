@@ -82,8 +82,7 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 		assert(module.notNil)
 		val runtime = interpreter.runtime
 		val sets = importedModuleNames.map { importedModuleName ->
-			val importedModule = runtime.moduleAt(importedModuleName)
-			importedModule.exportedNames
+			runtime.moduleAt(importedModuleName).exportedNames
 		}.sortedByDescending { it.setSize }
 		val union = sets.fold(emptySet) { union, nextSet ->
 			union.setUnionCanDestroy(nextSet, true)

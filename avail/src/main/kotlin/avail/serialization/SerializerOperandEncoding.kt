@@ -677,8 +677,8 @@ internal enum class SerializerOperandEncoding
 	companion object
 	{
 		/**
-		 * Write an [Int] in the range 0..2<sup>31</sup> - 1.  Use a
-		 * form that uses fewer bytes for small values.
+		 * Write an [Int] in the range 0..2^31 - 1.  Use a form that uses fewer
+		 * bytes for small values.
 		 *
 		 * @param value The [Int] to write.
 		 * @param serializer Where to write it.
@@ -692,8 +692,8 @@ internal enum class SerializerOperandEncoding
 		}
 
 		/**
-		 * Write an unsigned long in the range 0..2<sup>64</sup>-1.  Use a
-		 * form that uses fewer bytes for small values.
+		 * Write an unsigned long in the range 0..2^63 - 1.  Use a form that
+		 * uses fewer bytes for small values.
 		 *
 		 * @param value The [ULong] to write.
 		 * @param serializer Where to write it.

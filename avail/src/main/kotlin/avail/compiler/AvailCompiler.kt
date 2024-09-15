@@ -107,9 +107,9 @@ import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtEachReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -4221,12 +4221,10 @@ class AvailCompiler constructor(
 				compilationContext.module.privateNames
 		var namesByModule = emptyMap
 		sourceNames.forEach { _, atoms ->
-			atoms.forEach { atom ->
-				namesByModule = namesByModule.mapAtReplacingCanDestroy(
-					atom.issuingModule, emptySet, true
-				) { _, set ->
-					set.setWithElementCanDestroy(atom, true)
-				}
+			namesByModule = namesByModule.mapAtEachReplacingCanDestroy(
+				atoms.iterator(), {it}, emptySet, true
+			) { atom, set ->
+				set.setWithElementCanDestroy(atom.issuingModule, true)
 			}
 		}
 		var completeModuleNames = emptySet

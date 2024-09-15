@@ -751,12 +751,10 @@ class HashedSetBinDescriptor private constructor(
 			var hash = 0
 			var totalCount = 0
 			for (binIndex in 0..63) {
-				val group: List<A_BasicObject>? = groups[binIndex]
-				if (group !== null) {
-					val childBin =
-						generateSetBinFrom(level + 1, group.size) {
-							group[it - 1]
-						}
+				groups[binIndex]?.let { group ->
+					val childBin = generateSetBinFrom(level + 1, group.size) {
+						group[it - 1]
+					}
 					totalCount += childBin.setBinSize
 					hash += childBin.setBinHash
 					hashedBin[BIN_ELEMENT_AT_, ++written] = childBin

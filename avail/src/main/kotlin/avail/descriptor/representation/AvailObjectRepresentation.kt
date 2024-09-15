@@ -1423,6 +1423,51 @@ sealed class AvailObjectRepresentation constructor(
 	}
 
 	/**
+	 * Compare my [Long] slots for the given repeated [field] starting at
+	 * one-based index [startSubscript], for [count] successive values, with the
+	 * corresponding slots from [anotherObject], which must have the same
+	 * [field] defined.
+	 *
+	 * @param field
+	 *   The repeating [IntegerSlotsEnum] for accessing the long arrays of the
+	 *   recceiver and [anotherObject].
+	 * @param startSubscript
+	 *   The one-based first subscript of the range to be compared, relative to
+	 *   the start of the [field].
+	 * @param count
+	 *   How many consecutive [Long]s should be compared.
+	 * @param anotherObject
+	 *   Another object having a compatible [Descriptor] for the [field].
+	 * @return
+	 *   Whether the specified [Long]s are all mutually equal between the
+	 *   receiver and [anotherObject].
+	 */
+	fun compareLongSlots(
+		field: IntegerSlotsEnum,
+		startSubscript: Int,
+		count: Int,
+		anotherObject: AvailObjectRepresentation
+	): Boolean
+	{
+		checkSlot(field)
+		anotherObject.checkSlot(field)
+		assert(startSubscript >= 1)
+		assert(count > 0)
+		val startSlotIndex = field.fieldOrdinal + startSubscript - 1
+		val pastEndSlotIndex = startSlotIndex + count
+		assert(pastEndSlotIndex <= longSlots.size)
+		assert(pastEndSlotIndex <= anotherObject.longSlots.size)
+		return Arrays.compare(
+			longSlots,
+			startSlotIndex,
+			pastEndSlotIndex,
+			anotherObject.longSlots,
+			startSlotIndex,
+			pastEndSlotIndex
+		) == 0
+	}
+
+	/**
 	 * Extract the [object][AvailObject] at the specified slot of the receiver.
 	 * If the receiver is [shared][Mutability.SHARED], then acquire its monitor.
 	 *

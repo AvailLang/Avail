@@ -613,16 +613,15 @@ class ByteStringDescriptor private constructor(
 			// Aggregate eight writes at a time for the bulk of the string.
 			for (slotIndex in 1..(size ushr 3))
 			{
-				var combined: Long = 0
-				var shift = 0
-				while (shift < 64)
-				{
-					val c = generator(counter++).toLong()
-					assert(c and 255 == c)
-					combined += c shl shift
-					shift += 8
-				}
-				result[RAW_LONGS_, slotIndex] = combined
+				result[RAW_LONGS_, slotIndex] =
+					generator(counter++).toLong() +
+						(generator(counter++).toLong() shl 8) +
+						(generator(counter++).toLong() shl 16) +
+						(generator(counter++).toLong() shl 24) +
+						(generator(counter++).toLong() shl 32) +
+						(generator(counter++).toLong() shl 40) +
+						(generator(counter++).toLong() shl 48) +
+						(generator(counter++).toLong() shl 56)
 			}
 			// Do the last 0-7 writes the slow way.
 			for (index in (size and 7.inv()) + 1 .. size)

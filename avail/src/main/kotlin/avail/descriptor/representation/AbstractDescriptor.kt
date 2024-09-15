@@ -1656,6 +1656,14 @@ abstract class AbstractDescriptor protected constructor (
 		canDestroy: Boolean,
 		transformer: (AvailObject, AvailObject) -> A_BasicObject): A_Map
 
+	abstract fun o_MapAtEachReplacingCanDestroy (
+		self: AvailObject,
+		keys: Iterator<A_BasicObject>,
+		keyTransformer: (AvailObject)->A_BasicObject,
+		notFoundValue: A_BasicObject,
+		canDestroy: Boolean,
+		transformer: (AvailObject, AvailObject) -> A_BasicObject): A_Map
+
 	abstract fun o_MapWithoutKeyCanDestroy (
 		self: AvailObject,
 		keyObject: A_BasicObject,

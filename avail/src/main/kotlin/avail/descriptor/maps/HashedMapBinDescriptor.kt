@@ -64,9 +64,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_SetBin.Companion.binElementAt
-import avail.descriptor.sets.A_SetBin.Companion.isBinSubsetOf
 import avail.descriptor.sets.HashedSetBinDescriptor
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.types.A_Type
@@ -220,15 +218,6 @@ class HashedMapBinDescriptor private constructor(
 	}
 
 	override fun o_MapBinSize(self: AvailObject) = self[BIN_SIZE].toInt()
-
-	/**
-	 * Check if object, a bin, holds a subset of aSet's elements.
-	 */
-	override fun o_IsBinSubsetOf(
-		self: AvailObject,
-		potentialSuperset: A_Set
-	) = (1..self.variableObjectSlotsCount())
-		.all { self[SUB_BINS_, it].isBinSubsetOf(potentialSuperset) }
 
 	override fun o_IsHashedMapBin(self: AvailObject) = true
 

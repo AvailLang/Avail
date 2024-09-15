@@ -428,8 +428,7 @@ internal class LinearMapBinDescriptor private constructor(
 					myLevel,
 					canDestroy)
 			}
-		}
-		while (!self[BIN_SLOT_AT_, (index shl 1) - 1].equals(key))
+		} while (!self[BIN_SLOT_AT_, (index shl 1) - 1].equals(key))
 
 		// The key is present.
 		val oldValue = self[BIN_SLOT_AT_, index shl 1]

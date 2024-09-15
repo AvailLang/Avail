@@ -665,14 +665,13 @@ class ModuleDescriptor private constructor(
 
 			// Look up the strings to get existing atoms.  Don't complain
 			// about ambiguity, just export all that match.
-			var atomsToImport = emptySet
-			for (string in stringsToImport)
-			{
-				val names: A_Set = importedNamesMultimap.mapAtOrNull(string) ?:
-					return (
-						"module \"${ref.qualifiedName}\" to export $string")
-				atomsToImport = atomsToImport.setUnionCanDestroy(names, true)
-			}
+			//for (string in stringsToImport)
+			var atomsToImport = setFromCollection(
+				stringsToImport.flatMap { string ->
+					importedNamesMultimap.mapAtOrNull(string) ?:
+						return (
+							"module \"${ref.qualifiedName}\" to export $string")
+				})
 
 			// Perform renames.
 			for ((newString, oldString) in moduleImport.renames.mapIterable)
@@ -1051,20 +1050,18 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		// Add the set of atoms to the current private scope.
 		assertState(Loading)
-		var privateNames: A_Map = self[PRIVATE_NAMES]
-		var visibleNames: A_Set = self[VISIBLE_NAMES]
-		visibleNames = visibleNames.setUnionCanDestroy(trueNames, true)
-		for (trueName in trueNames)
-		{
-			val string: A_String = trueName.atomName
-			privateNames = privateNames.mapAtReplacingCanDestroy(
-				string, emptySet, true
-			) { _, set: A_Set ->
-				set.setWithElementCanDestroy(trueName, true)
-			}
+		self.updateSlot(VISIBLE_NAMES) {
+			setUnionCanDestroy(trueNames, true).makeShared()
 		}
-		self[PRIVATE_NAMES] = privateNames.makeShared()
-		self[VISIBLE_NAMES] = visibleNames.makeShared()
+		self.updateSlot(PRIVATE_NAMES) {
+			trueNames.fold(this) { map: A_Map, trueName: A_Atom ->
+				map.mapAtReplacingCanDestroy(
+					trueName.atomName, emptySet, true
+				) { _, set: A_Set ->
+					set.setWithElementCanDestroy(trueName, true)
+				}
+			}.makeShared()
+		}
 	}
 
 	override fun o_AddLexer(

@@ -245,13 +245,14 @@ class IntegerDescriptor private constructor(
 		self: AvailObject,
 		anAvailInteger: AvailObject
 	): Boolean {
-		val slotsCount = intCount(self)
+		val intCount = intCount(self)
 		// Assume integers being compared are always normalized (trimmed).
-		return slotsCount == intCount(anAvailInteger) &&
-			(1..slotsCount).all {
-				self.intSlot(RAW_LONG_SLOTS_, it) ==
-					anAvailInteger.rawSignedIntegerAt(it)
-			}
+		if (intCount != intCount(anAvailInteger)) return false
+		return self.compareLongSlots(
+			RAW_LONG_SLOTS_,
+			1,
+			self.variableIntegerSlotsCount(),
+			anAvailInteger)
 	}
 
 	/**

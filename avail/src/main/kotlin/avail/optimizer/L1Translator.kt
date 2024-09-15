@@ -2359,7 +2359,8 @@ class L1Translator private constructor(
 					writeSlot(
 						numArgs + local,
 						pc,
-						boxedRestrictionForType(localType))))
+						boxedRestrictionForType(localType)),
+					generator.boxedConstant(nil)))
 		}
 
 		// Capture the primitive failure value in the first local if applicable.
