@@ -179,6 +179,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReo
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.A_RawFunction.Companion.tallyInvocation
 import avail.descriptor.functions.A_RawFunction.Companion.totalInvocations
+import avail.descriptor.functions.A_RegisterDump.Companion.encodedElidedLocals
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
@@ -1652,7 +1653,7 @@ class IndirectionDescriptor private constructor(
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_Map = self .. {
 		mapAtEachReplacingCanDestroy(
 			keys, keyTransformer, notFoundValue, canDestroy, transformer)
@@ -1796,6 +1797,11 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		newValue: A_BasicObject
 	) = self .. { setValueNoCheck(newValue) }
+
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = self .. { setUnescapedLocalValueNoCheck(newValue) }
 
 	override fun o_SetWithElementCanDestroy(
 		self: AvailObject,
@@ -2794,15 +2800,22 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy(
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin = self.. {
 		mapBinAtHashReplacingLevelCanDestroy(
-			key, keyHash, notFoundValue, myLevel, canDestroy, transformer)
+			keyPrecursor,
+			key,
+			keyHash,
+			notFoundValue,
+			myLevel,
+			canDestroy,
+			transformer)
 	}
 
 	override fun o_MapBinSize(self: AvailObject): Int =
@@ -3855,6 +3868,9 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		self .. { returnTypeIfPrimitiveFails }
+
+	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple =
+		self .. { encodedElidedLocals }
 
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,

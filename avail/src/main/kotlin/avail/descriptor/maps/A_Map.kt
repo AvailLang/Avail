@@ -242,7 +242,8 @@ interface A_Map : A_BasicObject
 		 *   Whether the map can be modified by this call, if it's also mutable.
 		 * @param transformer
 		 *   A function that produces a replacement value to store into the map.
-		 *   It takes the key and either the found value or the [notFoundValue].
+		 *   It takes the original key, the transformed key, and either the
+		 *   found value or the [notFoundValue].
 		 * @return
 		 *   The new map, possibly the mutated original map itself, if
 		 *   canDestroy is true.
@@ -252,7 +253,7 @@ interface A_Map : A_BasicObject
 			keyTransformer: (AvailObject)->A_BasicObject = { it },
 			notFoundValue: A_BasicObject = nil,
 			canDestroy: Boolean,
-			transformer: (AvailObject, AvailObject)->A_BasicObject
+			transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 		): A_Map = dispatch {
 			o_MapAtEachReplacingCanDestroy(
 				it,

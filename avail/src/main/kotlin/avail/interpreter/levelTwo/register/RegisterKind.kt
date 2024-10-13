@@ -588,9 +588,3 @@ object FLOAT_KIND : RegisterKind<FLOAT_KIND>(
 		generator: L2GeneratorInterface
 	) = L2SemanticDummy(generator.nextUnique()).unboxedFloat
 }
-
-//		/**
-//		 * The kind of register that holds the value of some variable prior to
-//		 * the variable having escaped, if ever.  TODO Implement this.
-//		 */
-//		UNESCAPED_VARIABLE_VALUE

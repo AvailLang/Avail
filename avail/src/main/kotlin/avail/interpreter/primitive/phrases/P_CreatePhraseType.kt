@@ -70,6 +70,13 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(kind.create(intersected))
 	}
 
+	/**
+	 * The types might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

@@ -86,7 +86,7 @@ L2_MOVE_OUTER_VARIABLE(
 	{
 		// :: destination = function.outerVarAt(outerIndex);
 		translator.load(method, function.register())
-		translator.literal(method, outerIndex.value)
+		translator.intConstant(method, outerIndex.value)
 		FunctionDescriptor.outerVarAtMethod.generateCall(method)
 		translator.store(method, destination.register())
 	}

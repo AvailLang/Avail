@@ -110,6 +110,8 @@ class L2ReadBoxedOperand : L2ReadOperand<BOXED_KIND>
 	override fun semanticValue(): L2SemanticBoxedValue =
 		super.semanticValue().cast()
 
+	override fun register(): L2BoxedRegister = super.register().cast()
+
 	override fun copyForRegister(
 		newRegister: L2Register<BOXED_KIND>
 	) = L2ReadBoxedOperand(semanticValue(), restriction(), newRegister)

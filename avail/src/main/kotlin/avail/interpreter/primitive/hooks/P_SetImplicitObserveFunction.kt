@@ -76,6 +76,19 @@ object P_SetImplicitObserveFunction : Primitive(
 	/** The [A_RawFunction] that wraps the supplied observe function. */
 	private val rawFunction = createRawFunction()
 
+	override fun attempt(interpreter: Interpreter): Result
+	{
+		interpreter.checkArgumentCount(1)
+		val function = interpreter.argument(0)
+		// Produce a wrapper that will invoke the supplied function, and then
+		// specially resume the calling continuation (which won't be correctly
+		// set up for a return).
+		val wrapper = createWithOuters1(rawFunction, function.cast())
+		// Now set the wrapper as the implicit observe function.
+		interpreter.runtime[IMPLICIT_OBSERVE] = wrapper
+		return interpreter.primitiveSuccess(nil)
+	}
+
 	/**
 	 * Create an [A_RawFunction] which has an outer that'll be supplied during
 	 * function closure.  The outer is a user-supplied function which is itself
@@ -123,18 +136,13 @@ object P_SetImplicitObserveFunction : Primitive(
 		return code
 	}
 
-	override fun attempt(interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(1)
-		val function = interpreter.argument(0)
-		// Produce a wrapper that will invoke the supplied function, and then
-		// specially resume the calling continuation (which won't be correctly
-		// set up for a return).
-		val wrapper = createWithOuters1(rawFunction, function.cast())
-		// Now set the wrapper as the implicit observe function.
-		interpreter.runtime[IMPLICIT_OBSERVE] = wrapper
-		return interpreter.primitiveSuccess(nil)
-	}
+	/**
+	 * The function outers could contain an escaped variable that becomes
+	 * shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(IMPLICIT_OBSERVE.functionType), TOP.o)

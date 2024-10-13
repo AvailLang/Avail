@@ -32,6 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.phrases.A_Phrase.Companion.primitive
 import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
@@ -87,6 +88,16 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 ): L2ControlFlowInstruction()
 {
 	override val hasSideEffect get() = true
+
+
+	/** If it's primitive, defer to it, otherwise assume the worst. */
+	override fun mightMakeEscapedVariableShared(): Boolean =
+		when (val prim = constantFunction.constant.primitive)
+		{
+			null -> true
+			else -> prim.mightMakeEscapedVariableShared(
+				arguments.elements.map(L2ReadBoxedOperand::type))
+		}
 
 	/**
 	 * If the function is bottom-valued, treat the block as cold, and don't
@@ -170,7 +181,7 @@ class L2_INVOKE_CONSTANT_FUNCTION(
 		// :: [interpreter, callingChunk]
 		translator.loadInterpreter(method)
 		// :: [interpreter, callingChunk, interpreter]
-		translator.literal(method, constantFunction.constant)
+		translator.loadLiteralObject(method, constantFunction.constant)
 		// :: [interpreter, callingChunk, interpreter, function]
 		L2_INVOKE.generatePushArgumentsAndInvoke(
 			translator,

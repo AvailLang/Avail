@@ -612,6 +612,28 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	open val canDestroyArguments get() = true
 
 	/**
+	 * Answer whether this primitive could theoretically cause an escaped local
+	 * variable to become shared, or to have read/write reactors added to it.
+	 * In either case, we must not continue executing L2 code that assumes that
+	 * any local variables that may have escaped can use a register to track
+	 * what value would have been written and read.  Instead, it falls back to
+	 * L1 execution if this happens.
+	 *
+	 * Most primitives can't cause that situation, but writing into another
+	 * already shared variable could do it, as could launching a fiber with a
+	 * function outer or argument that has captured a local variable. Updating
+	 * a map from a variable and writing it back into the variable could cause
+	 * this, but only if it was updating or adding an entry, not if it's
+	 * removing one.
+	 *
+	 * @param argumentTypes
+	 *   The types of the arguments at the call site.
+	 */
+	open fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>,
+	) = false
+
+	/**
 	 * Return an Avail [type][TypeDescriptor] that a failure variable
 	 * must accept in order to be compliant with this primitive.  A more general
 	 * type is acceptable for the variable.  This type is cached upon first
@@ -1402,7 +1424,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// []
 		translator.loadInterpreter(method)
 		// [interpreter]
-		translator.literal(method, this)
+		translator.loadLiteralObject(method, this)
 		// [interpreter, prim]
 		method.visitInsn(DUP2)
 		// [interpreter, prim, interpreter, prim]
@@ -1442,7 +1464,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				// :: [success, interpreter]
 				method.visitInsn(SWAP)
 				// :: [interpreter, success]
-				translator.literal(method, this)
+				translator.loadLiteralObject(method, this)
 				// :: [interpreter, success, primitive]
 				method.visitInsn(SWAP)
 				// :: [interpreter, primitive, success]

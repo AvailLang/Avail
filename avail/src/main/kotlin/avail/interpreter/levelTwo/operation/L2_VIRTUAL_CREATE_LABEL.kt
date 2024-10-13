@@ -46,6 +46,7 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
@@ -189,13 +190,18 @@ class L2_VIRTUAL_CREATE_LABEL(
 				intRestrictionForType(i32))
 			val tempRegisterDump = boxedWriteTemp(
 				boxedRestrictionForType(Types.ANY.o))
+			// Since this is a dummy continuation being constructed, it can't
+			// become immutable or shared, so we don't have to worry about
+			// capturing any elided variable values.
 			addInstruction(
 				L2_SAVE_ALL_AND_PC_TO_INT(
 					L2ReadBoxedVectorOperand(emptyList()),
 					edgeTo(afterReification),
 					tempOffset,
 					tempRegisterDump,
-					edgeTo(reificationOfframp)))
+					edgeTo(reificationOfframp),
+					L2ReadMixedVectorOperand(emptyList()),
+					IntArray(0)))
 
 			startBlock(reificationOfframp)
 			val tempCaller = boxedWrite(
@@ -257,7 +263,10 @@ class L2_VIRTUAL_CREATE_LABEL(
 					specialBlocks[AFTER_OPTIONAL_PRIMITIVE]!!, mutableSetOf()),
 				writeOffset,
 				writeRegisterDump,
-				edgeTo(fallThrough)))
+				edgeTo(fallThrough),
+				// Local variables aren't preserved by a label.
+				L2ReadMixedVectorOperand(emptyList()),
+				IntArray(0)))
 
 		startBlock(fallThrough)
 		val frameSizeInt = frameSize.value

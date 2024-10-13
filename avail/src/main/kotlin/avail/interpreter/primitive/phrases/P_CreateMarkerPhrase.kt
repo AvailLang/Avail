@@ -63,6 +63,14 @@ object P_CreateMarkerPhrase : Primitive(2, CannotFail, CanInline)
 			newMarkerNode(value, expressionType))
 	}
 
+	/**
+	 * The value or type might contain an escaped variable, making it shared
+	 * here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

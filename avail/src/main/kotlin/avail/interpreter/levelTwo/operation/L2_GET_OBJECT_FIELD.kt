@@ -153,7 +153,7 @@ class L2_GET_OBJECT_FIELD(
 		}
 		else
 		{
-			translator.literal(method, fieldAtom.constant)
+			translator.loadLiteralObject(method, fieldAtom.constant)
 			AvailObject.fieldAtMethod.generateCall(method)
 		}
 		translator.store(method, fieldValue.register())

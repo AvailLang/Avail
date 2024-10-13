@@ -39,11 +39,12 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.utility.isNullOr
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Create a new [variable&#32;object][VariableDescriptor] of the
- * specified [variable&#32;type][VariableTypeDescriptor].
+ * Create a new [variable&#32;object][VariableDescriptor] of the specified
+ * [variable&#32;type][VariableTypeDescriptor].
  *
  * Note that this instruction does not have a side-effect, although it must not
  * run twice (for the same conceptual variable), since the identity of the new
@@ -68,6 +69,11 @@ class L2_CREATE_VARIABLE(
 		builder.append(variable.registerString())
 		builder.append(" ← new ")
 		builder.append(outerType.constant)
+		if (initialValueOrNil.constantOrNull.isNullOr { notNil })
+		{
+			builder.append(" := ")
+			builder.append(initialValueOrNil.registerString())
+		}
 	}
 
 	override fun translateToJVM(
@@ -75,7 +81,7 @@ class L2_CREATE_VARIABLE(
 		method: MethodVisitor)
 	{
 		// :: newVar = newVariableWithOuterType(outerType  [,null] );
-		translator.literal(method, outerType.constant)
+		translator.loadLiteralObject(method, outerType.constant)
 		translator.load(method, initialValueOrNil.register())
 		VariableDescriptor.newVariableWithOuterTypeMethod.generateCall(method)
 		translator.store(method, variable.register())

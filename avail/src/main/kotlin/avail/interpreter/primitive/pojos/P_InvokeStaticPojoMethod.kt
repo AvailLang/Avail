@@ -49,7 +49,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
+import avail.interpreter.primitive.PrimitiveHelper.marshalValues
 import avail.utility.Mutable
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -129,6 +129,13 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private, HasSideEffect)
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 	}
+
+	/**
+	 * An argument might capture an escaped variable and make it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction?,

@@ -77,6 +77,14 @@ object P_DeclareStringifierFunction : Primitive(
 		return interpreter.primitiveSuccess(oldFunction)
 	}
 
+	/**
+	 * The function outers could contain an escaped variable that becomes
+	 * shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(STRINGIFICATION.functionType),

@@ -101,7 +101,7 @@ protected constructor(
 	 * @return
 	 *   The register.
 	 */
-	fun register(): L2Register<K> = register
+	open fun register(): L2Register<K> = register
 
 	/**
 	 * Answer whether this [L2ReadOperand] supplies a constant directly, rather

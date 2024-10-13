@@ -49,6 +49,9 @@ import avail.optimizer.L2Entity.PrimaryVisualSortKey
  *   instruction that produced this value.  This serves to distinguish semantic
  *   slots at the same index but at different times, allowing a correct SSA
  *   graph and the reordering that it supports.
+ * @property optionalName
+ *   Either a [String] that provides a useful naming hint for this slot, or
+ *   `null`.
  *
  * @constructor
  * Create a new `L2SemanticSlot` semantic value.
@@ -68,7 +71,7 @@ internal class L2SemanticSlot constructor(
 	frame: Frame,
 	val slotIndex: Int,
 	val pcAfter: Int,
-	private val optionalName: String?
+	val optionalName: String?
 ) : L2FrameSpecificSemanticValue(
 	frame, slotIndex * AvailObject.multiplier xor pcAfter)
 {
@@ -88,10 +91,10 @@ internal class L2SemanticSlot constructor(
 		semanticValueTransformer:
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue =
-		frameTransformer(frame()).let {
-			if (it == frame()) this
-			else L2SemanticSlot(it, slotIndex, pcAfter, optionalName)
+	): L2SemanticSlot =
+		frameTransformer(frame).let { newFrame ->
+			if (newFrame == frame) this
+			else L2SemanticSlot(newFrame, slotIndex, pcAfter, optionalName)
 		}
 
 	override val defaultRestriction: TypeRestriction
@@ -109,7 +112,6 @@ internal class L2SemanticSlot constructor(
 		append(pcAfter)
 		if (frame.depth() > 1) append("[$frame]")
 	}
-
 
 	override fun toStringForSynonym(): String = buildString {
 		when (optionalName)

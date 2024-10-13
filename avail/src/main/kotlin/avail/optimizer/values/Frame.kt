@@ -32,7 +32,6 @@
 package avail.optimizer.values
 
 import avail.descriptor.functions.A_Continuation
-import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.interpreter.levelTwo.L2Chunk

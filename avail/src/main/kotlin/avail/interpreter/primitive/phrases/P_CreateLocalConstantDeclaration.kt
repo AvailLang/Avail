@@ -66,6 +66,13 @@ object P_CreateLocalConstantDeclaration : Primitive(2, CanInline, CannotFail)
 		return interpreter.primitiveSuccess(newConstant(token, initializer))
 	}
 
+	/**
+	 * The token might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

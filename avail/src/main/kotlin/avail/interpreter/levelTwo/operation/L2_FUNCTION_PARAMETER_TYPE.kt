@@ -80,7 +80,7 @@ class L2_FUNCTION_PARAMETER_TYPE(
 		FunctionDescriptor.functionCodeMethod.generateCall(method)
 		A_RawFunction.functionTypeMethod.generateCall(method)
 		A_Type.argsTupleTypeMethod.generateCall(method)
-		translator.literal(method, parameterIndex.value)
+		translator.intConstant(method, parameterIndex.value)
 		A_Type.typeAtIndexMethod.generateCall(method)
 		translator.store(method, parameterType.register())
 	}

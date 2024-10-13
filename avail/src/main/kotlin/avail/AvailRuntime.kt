@@ -34,7 +34,6 @@ package avail
 import avail.AvailRuntime.Companion.specialObject
 import avail.AvailRuntimeConfiguration.availableProcessors
 import avail.AvailRuntimeConfiguration.maxInterpreters
-import avail.AvailThread.Companion.current
 import avail.ImmutableList.Companion.length
 import avail.annotations.ThreadSafe
 import avail.builder.ModuleNameResolver
@@ -1049,7 +1048,7 @@ class AvailRuntime constructor(
 		 * @return
 		 *   The Avail runtime of the current thread.
 		 */
-		fun currentRuntime(): AvailRuntime = current().runtime
+		fun currentRuntime(): AvailRuntime = AvailThread.current.runtime
 
 		/**
 		 * The [CheckedMethod] for [implicitObserveFunction].

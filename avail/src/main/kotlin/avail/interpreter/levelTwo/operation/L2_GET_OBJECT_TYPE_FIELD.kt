@@ -88,7 +88,7 @@ class L2_GET_OBJECT_TYPE_FIELD(
 		}
 		else
 		{
-			translator.literal(method, fieldAtom.constant)
+			translator.loadLiteralObject(method, fieldAtom.constant)
 			AvailObject.fieldTypeAtMethod.generateCall(method)
 		}
 		translator.store(method, fieldType.register())

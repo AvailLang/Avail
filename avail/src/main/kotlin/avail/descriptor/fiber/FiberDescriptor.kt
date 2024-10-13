@@ -99,6 +99,7 @@ import avail.exceptions.unsupported
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.io.TextInterface
 import avail.utility.isNullOr
@@ -1414,6 +1415,6 @@ class FiberDescriptor private constructor(
 		 * @return
 		 *   A fiber.
 		 */
-		fun currentFiber(): A_Fiber = Interpreter.current().fiber()
+		fun currentFiber(): A_Fiber = currentInterpreter.fiber()
 	}
 }

@@ -100,6 +100,15 @@ object P_SealMethod : Primitive(2, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * The argument types might include instance types on variables that are
+	 * escaped, and those instance types get added to the seal, making them
+	 * immutable.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(stringType, zeroOrMoreOf(anyMeta)), TOP.o)
 

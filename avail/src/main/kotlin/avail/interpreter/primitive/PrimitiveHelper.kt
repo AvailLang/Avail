@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.interpreter.primitive.pojos
+package avail.interpreter.primitive
 
 import avail.AvailRuntime.HookType
 import avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL

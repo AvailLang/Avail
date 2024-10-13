@@ -126,7 +126,7 @@ class L2_MULTIPLY_INT_BY_INT(
 						L2WriteIntOperand(
 							product.semanticValues(),
 							intRestrictionForConstant(constantInt),
-							product.register().cast())))
+							product.register())))
 				regenerator.jumpTo(inRange.targetBlock())
 				return
 			}

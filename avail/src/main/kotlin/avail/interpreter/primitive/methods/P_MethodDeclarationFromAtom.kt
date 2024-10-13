@@ -148,6 +148,14 @@ object P_MethodDeclarationFromAtom : Primitive(3, CanSuspend, Unknown)
 		}
 	}
 
+	/**
+	 * The signature might include instance types on variables that are escaped,
+	 * and those instance types get added to the definition.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

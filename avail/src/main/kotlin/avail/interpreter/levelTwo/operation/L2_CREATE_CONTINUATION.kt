@@ -55,7 +55,8 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class L2_CREATE_CONTINUATION(
+class L2_CREATE_CONTINUATION
+constructor (
 	var function: L2ReadBoxedOperand,
 	var caller: L2ReadBoxedOperand,
 	var levelOnePc: L2IntImmediateOperand,
@@ -122,8 +123,8 @@ class L2_CREATE_CONTINUATION(
 		translator.load(method, function.register())
 		translator.load(method, caller.register())
 		translator.load(method, registerDump.register())
-		translator.literal(method, levelOnePc.value)
-		translator.literal(method, levelOneStackp.value)
+		translator.intConstant(method, levelOnePc.value)
+		translator.intConstant(method, levelOneStackp.value)
 		translator.loadInterpreter(method)
 		Interpreter.chunkField.generateRead(method)
 		translator.load(method, labelAddress.register())

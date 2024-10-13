@@ -313,6 +313,19 @@ abstract class L2Instruction :
 	open val hasSideEffect get() = false
 
 	/**
+	 * Check whether this instruction could cause any previously escaped
+	 * variables to become shared or to have a reactor installed.  Assume most
+	 * instructions can't do this, and override for instructions that can, like
+	 * invocations of general functions, or of primitives that say they can.
+	 *
+	 * @param argumentTypes
+	 *   The [A_Type]s of arguments passed to the function invoked by this
+	 *   instruction.  This method should only be called for instructions that
+	 *   invoke a function or primitive.
+	 */
+	open fun mightMakeEscapedVariableShared(): Boolean = false
+
+	/**
 	 * Answer whether this instruction produces any JVM code.  Examples of
 	 * instructions that produce no JVM code include unconditional jumps that
 	 * fall through to the next instruction, and moves between registers that
@@ -673,7 +686,7 @@ abstract class L2Instruction :
 	 */
 	override fun toString() = buildString {
 		val instruction = this@L2Instruction
-		append("${instruction::class.simpleName}:\n\t")
+		append("${instruction.name}:\n\t")
 		var pairs = mutableListOf<Pair<String, L2Operand>>()
 		operandsWithNamedTypesDo { operand, namedOperandType ->
 			pairs.add(namedOperandType.name to operand)

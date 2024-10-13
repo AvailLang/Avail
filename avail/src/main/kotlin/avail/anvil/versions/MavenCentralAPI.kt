@@ -39,6 +39,7 @@ import java.io.BufferedReader
 import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.nio.channels.Channels
 
@@ -62,8 +63,8 @@ object MavenCentralAPI
 	 */
 	@Suppress("MemberVisibilityCanBePrivate")
 	fun searchUrl (artifact: String): URL =
-		URL("https://search.maven.org/solrsearch/select?q=g:org.availlang" +
-			"%20AND%20a:${artifact}%20AND%20p:jar&rows=1&wt=json")
+		URI("https://search.maven.org/solrsearch/select?q=g:org.availlang" +
+			"%20AND%20a:${artifact}%20AND%20p:jar&rows=1&wt=json").toURL()
 
 	/**
 	 * The URL to search for the latest version of `avail-stdlib`
@@ -158,8 +159,8 @@ object MavenCentralAPI
 	private fun artifactDownloadUrl (
 		artifactId: String,
 		version: String
-	): URL = URL("https://search.maven.org/remotecontent?filepath=" +
-		"org/availlang/$artifactId/$version/$artifactId-$version.jar")
+	): URL = URI("https://search.maven.org/remotecontent?filepath=" +
+		"org/availlang/$artifactId/$version/$artifactId-$version.jar").toURL()
 
 	/**
 	 * Download the provided file [URL] to the target location.

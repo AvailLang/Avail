@@ -122,7 +122,7 @@ constructor(
 	instance: TypeTag? = null,
 	vararg modifiers: Modifier)
 {
-	UNKNOWN_TAG(null, instance = UNKNOWN_TAG, Abstract, Sup { Types.TOP.o }),
+	UNKNOWN_TAG(null, null /*UNKNOWN_TAG*/, Abstract, Sup { Types.TOP.o }),
 	TOP_TAG(null, null, Abstract, Sup { Types.TOP.o }),
 	NIL_TAG(TOP_TAG, null, Unique { nil }, Sup { Types.TOP.o }),
 	NONTYPE_TAG(TOP_TAG, null, Sup { Types.NONTYPE.o }),
@@ -625,6 +625,13 @@ constructor(
 
 		init
 		{
+			/**
+			 * Interestingly, this can't be done any more in the constructor.
+			 * It used to pass UNKNOWN_TAG as an argument to its own
+			 * constructor, which Kotlin now forbids (and detects).
+			 */
+			UNKNOWN_TAG.metaTag = UNKNOWN_TAG
+
 			all.forEach { tag ->
 				if (tag.metaTag === null && tag != UNKNOWN_TAG)
 				{

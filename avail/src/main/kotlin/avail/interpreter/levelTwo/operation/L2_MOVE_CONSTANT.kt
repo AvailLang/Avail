@@ -189,7 +189,7 @@ private constructor(
 		override fun pushConstant(
 			translator: JVMTranslator,
 			method: MethodVisitor
-		) = translator.literal(method, constant().constant)
+		) = translator.loadLiteralObject(method, constant().constant)
 
 		override fun extractFunctionOuter(
 			functionRegister: L2ReadBoxedOperand,

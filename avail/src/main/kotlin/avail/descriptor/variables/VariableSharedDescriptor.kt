@@ -291,6 +291,12 @@ open class VariableSharedDescriptor protected constructor(
 		recordWriteToSharedVariable()
 	}
 
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = throw UnsupportedOperationException(
+		"Local variable should have been disqualified because it's now shared.")
+
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
 		self: AvailObject, newValue: A_BasicObject): AvailObject

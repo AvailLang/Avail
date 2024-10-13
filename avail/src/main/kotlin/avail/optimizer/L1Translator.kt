@@ -55,6 +55,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
+import avail.descriptor.functions.A_RawFunction.Companion.shortMethodName
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
@@ -72,6 +73,7 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -110,6 +112,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.descriptor.types.TypeDescriptor
+import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.dispatch.InternalLookupTree
@@ -137,13 +140,16 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.boxedRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.intRestrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
+import avail.interpreter.levelTwo.operation.L2_CHECK_ESCAPED_LOCALS
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
@@ -151,6 +157,7 @@ import avail.interpreter.levelTwo.operation.L2_CREATE_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK_FOR_CALL
+import avail.interpreter.levelTwo.operation.L2_FALL_BACK_TO_L1
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.operation.L2_GET_CURRENT_FUNCTION
 import avail.interpreter.levelTwo.operation.L2_GET_IMPLICIT_OBSERVE_FUNCTION
@@ -181,6 +188,7 @@ import avail.interpreter.levelTwo.operation.L2_RETURN_FROM_REIFICATION_HANDLER
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_SET_CONTINUATION
+import avail.interpreter.levelTwo.operation.L2_SET_UNESCAPED_LOCAL_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_SET_VARIABLE_NO_CHECK
 import avail.interpreter.levelTwo.operation.L2_STRIP_MANIFEST
 import avail.interpreter.levelTwo.operation.L2_TRY_OPTIONAL_PRIMITIVE
@@ -188,6 +196,7 @@ import avail.interpreter.levelTwo.operation.L2_TRY_PRIMITIVE
 import avail.interpreter.levelTwo.operation.L2_TYPE_UNION
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
+import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
@@ -201,11 +210,13 @@ import avail.optimizer.OptimizationLevel.UNOPTIMIZED
 import avail.optimizer.values.Frame
 import avail.optimizer.values.L2SemanticBoxedValue
 import avail.optimizer.values.L2SemanticValue
+import avail.optimizer.values.L2SemanticValue.Companion.constant
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L1_NAIVE_TRANSLATION_TIME
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.performance.StatisticReport.L2_TRANSLATION_VALUES
-import avail.utility.removeLast
+import avail.utility.mapToSet
+import avail.utility.notNullAnd
 import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
 
@@ -230,7 +241,7 @@ import java.util.logging.Level
  * Create a new L1 naive translator for the given [L2Generator].
  *
  * @param generator
- *   The [L2Generator] for which I'm producing an initial translation from L1.
+ *   The [L2Generator] on which I'm producing an initial translation from L1.
  * @param interpreter
  *   The [Interpreter] that tripped the translation request.
  * @param code
@@ -242,6 +253,18 @@ class L1Translator private constructor(
 	val code: A_RawFunction
 ) : L1OperationDispatcher
 {
+	/**
+	 * Capture the number of arguments that is expected by the [A_RawFunction]
+	 * being translated.
+	 */
+	private val numArgs: Int = code.numArgs()
+
+	/**
+	 * Capture the number of local variables (not arguments or constants) that
+	 * the [A_RawFunction] builds.
+	 */
+	private val numLocals: Int = code.numLocals
+
 	/**
 	 * The number of slots in the virtualized continuation.  This includes the
 	 * arguments, the locals (including the optional primitive failure result),
@@ -266,7 +289,7 @@ class L1Translator private constructor(
 		val allNames = code.declarationNames.map { it.asNativeString() }
 		// Omit the label, since it gets its own subclass of L2SemanticValue.
 		slotNames = allNames
-			.subList(0, code.numArgs() + code.numLocals + code.numConstants)
+			.subList(0, numArgs + numLocals + code.numConstants)
 			.withIndex()
 			.groupBy(IndexedValue<String>::value, IndexedValue<*>::index)
 			// Generated phrases can contain duplicate names, so disambiguate
@@ -292,7 +315,7 @@ class L1Translator private constructor(
 	 * one-based.
 	 */
 	private val semanticSlots: Array<L2SemanticBoxedValue> =
-		Array(numSlots) { createSemanticSlot(it + 1, 1) }
+		Array(numSlots) { createSemanticSlot(1 + it, 1) }
 
 	/**
 	 * The current level one nybblecode position during naive translation to
@@ -395,8 +418,8 @@ class L1Translator private constructor(
 		effectivePc: Int,
 		restriction: TypeRestriction): L2WriteBoxedOperand
 	{
-		// Create a new semantic slot at the current pc, representing this
-		// newly written value.
+		// Create a new semantic slot at the current pc, representing this newly
+		// written value.
 		val semanticValue = createSemanticSlot(slotIndex, effectivePc)
 		semanticSlots[slotIndex - 1] = semanticValue
 		return generator.boxedWrite(semanticValue, restriction)
@@ -588,6 +611,191 @@ class L1Translator private constructor(
 	}
 
 	/**
+	 * Add an [L2Instruction] that invokes code outside this function (or code
+	 * in a nested function that wasn't inlined).  There may be local variables
+	 * that may or may not have escaped by this point, but they aren't shared
+	 * yet – so we can do simple gets and sets without traps for read and write
+	 * daemons.  Make sure they get their values assigned, if they could be
+	 * stale, prior to the invocation.  After the invocation, check if any of
+	 * them have become shared, and fall back to L1 if they have.
+	 *
+	 * @param instruction
+	 *   The instruction to add.
+	 */
+	fun addInvokeInstruction(instruction: L2Instruction)
+	{
+		if (!instruction.mightMakeEscapedVariableShared())
+		{
+			// It's an infallible invocation of a primitive that can't make any
+			// escaped locals become shared or add reactors.
+			// Only flush variables that occur as direct parameters, since any
+			// other use of a local would trip mightMakeEscapedVariableShared.
+			val passedEquivalents = instruction.readOperands
+				.filter { it.type().isSubtypeOf(mostGeneralVariableType) }
+				.mapToSet(mutableSetOf()) {
+					currentManifest.semanticValueToSynonym(it.semanticValue())
+				}
+				.flatMapTo(mutableSetOf()) { it.semanticValues() }
+			val affectedLocalIndices =
+				flushDirtyEscapedLocals(passedEquivalents::contains)
+			generator.addInstruction(instruction)
+			// The primitive invocation may have written to variables that were
+			// passed to it, but nothing else.
+			affectedLocalIndices.forEach { i ->
+				currentManifest.cleanLocalValues!![i] = null
+				currentManifest.dirtyLocalValues!![i] = null
+			}
+			return
+		}
+		// This invocation could make any local shared or have a reactor.  Flush
+		// them all, do the call, clear the clean cache, and check for damage.
+		val affectedLocalIndices = flushDirtyEscapedLocals { value ->
+			// Reject the constant zero that stands in for elided variables.
+			currentManifest.restrictionFor(value).constantOrNull === null
+		}
+		generator.addInstruction(instruction)
+//		TODO("Polymorphic inline has to handle worst of cases")
+		if (generator.currentlyReachable())
+		{
+			// Erase knowledge of locals' values, since the invocation may have
+			// performed writes.
+			affectedLocalIndices.forEach {
+				currentManifest.cleanLocalValues!![it] = null
+			}
+			// Check if any of the arguments that are local variables became
+			// shared or got a reactor.
+			abortChunkIfEscapedLocalsAreSharedOrHaveReactors(
+				affectedLocalIndices)
+		}
+	}
+
+	/**
+	 * Given a 1-based local index, answer whether that variable is still elided
+	 * at the current point in the translation.
+	 *
+	 * @param localIndex
+	 *   The 1-based index into the code's locals.
+	 * @return
+	 *   Whether the variable is elided.
+	 */
+	fun isElidedLocal(localIndex: Int): Boolean
+	{
+		val restriction =
+			generator.restrictionFor(semanticSlot(localIndex + numArgs))
+		return restriction.constantOrNull.notNullAnd { equals(zero) }
+	}
+
+	/**
+	 * For any locals that are dirty and have had the variable created at this
+	 * point in the code, write the dirty value to the variable.
+	 *
+	 * Only flush into variables that pass the predicate.
+	 *
+	 * @param predicate
+	 *   A predicate that says whether a semantic value referring to a local
+	 *   variable should be flushed.
+	 * @return
+	 *   The list of one-based local indices that were flushed.
+	 */
+	private fun flushDirtyEscapedLocals(
+		predicate: (L2SemanticValue<BOXED_KIND>)->Boolean
+	): List<Int>
+	{
+		// Only populate this with a mutable list if at least one local variable
+		// existed and passed the predicate.
+		var flushedIndices: MutableList<Int>? = null
+		for (localIndex in 1..numLocals)
+		{
+			val value = currentManifest.dirtyLocalValues!![localIndex]
+			if (value == null)
+			{
+				// The variable isn't dirty.
+				continue
+			}
+			// If the variable hasn't been created yet, it doesn't need to
+			// exist at this point, so ignore it.
+			if (isElidedLocal(localIndex)) continue
+			val variable = semanticSlot(localIndex + numArgs)
+			if (!predicate(variable))
+			{
+				// The predicate says we're not interested in flushing this one.
+				continue
+			}
+			// Flush the dirty write to this variable.
+			// Box the value if it isn't already.
+			addInstruction(
+				L2_SET_UNESCAPED_LOCAL_VARIABLE(
+					generator.readBoxed(variable),
+					generator.readBoxed(value.toBoxed)))
+			// It's no longer dirty, but we can cache the written value as
+			// the current clean value.
+			currentManifest.dirtyLocalValues!![localIndex] = null
+			currentManifest.cleanLocalValues!![localIndex] = value
+			flushedIndices ?: run { flushedIndices = mutableListOf() }
+			flushedIndices!!.add(localIndex)
+		}
+		return flushedIndices ?: emptyList()
+	}
+
+	/**
+	 * Flush all locals into real variables, creating any that were elided up to
+	 * this point.
+	 */
+	fun createAndFlushAllLocals()
+	{
+		for (i in 1..numLocals)
+		{
+			if (isElidedLocal(i))
+			{
+				// Create the actual variable.
+				forceLocalCreation(i)
+			}
+		}
+		// Flush all local variables.
+		flushDirtyEscapedLocals { true }
+	}
+
+	/**
+	 * Generate code to check the local variables of the top [Frame] having each
+	 * of the given one-based indices.  If any have become shared or now have a
+	 * reactor, fall out to the [unoptimizedChunk] which interprets the L1
+	 * nybblecodes.
+	 */
+	fun abortChunkIfEscapedLocalsAreSharedOrHaveReactors(
+		localIndices: List<Int>)
+	{
+		if (localIndices.isEmpty()) return
+		assert(generator.currentlyReachable())
+		val localVariables = mutableListOf<L2SemanticBoxedValue>()
+		for (localIndex in localIndices)
+		{
+			// Ensure it's not dirty, or we have a big problem.
+			assert(currentManifest.dirtyLocalValues!![localIndex] == null)
+		}
+		// NOTE: This instruction's JVM translation will create any missing
+		// local variables.
+		val ifSafe = generator.createBasicBlock("safe")
+		val ifFallBack = generator.createBasicBlock("fall back", isCold = true)
+		addInstruction(
+			L2_CHECK_ESCAPED_LOCALS(
+				L2ReadBoxedVectorOperand(
+					localVariables.map(generator::readBoxed)),
+				edgeTo(ifSafe),
+				edgeTo(ifFallBack)))
+		assert(!generator.currentlyReachable())
+
+		generator.startBlock(ifFallBack)
+		addInstruction(
+			L2_FALL_BACK_TO_L1(
+				L2IntImmediateOperand(pc),
+				L2IntImmediateOperand(stackp),
+				L2ReadBoxedVectorOperand((1..numSlots).map(::readSlot))))
+		assert(!generator.currentlyReachable())
+
+		generator.startBlock(ifSafe)
+	}
+
+	/**
 	 * Generate instruction(s) to move the given [AvailObject] into a fresh
 	 * writable slot [L2Register] with the given slot index.  The slot it
 	 * occupies is tagged with the current pc.
@@ -641,15 +849,14 @@ class L1Translator private constructor(
 		// Create readSlots for constructing the continuation.  Also create
 		// writeSemanticValues and writeRestrictions for restoring the state
 		// from the continuation when it's resumed.
-		val readSlotsBefore = (0 ..< numSlots).map { i ->
-			val semanticValue = semanticSlot(i + 1)
-			if (i + 1 == stackp && expectedValueOrNull !== null)
+		val readSlotsBefore = (1 .. numSlots).map { i ->
+			if (i == stackp && expectedValueOrNull !== null)
 			{
 				generator.boxedConstant(expectedValueOrNull)
 			}
 			else
 			{
-				generator.readBoxed(semanticValue)
+				generator.readBoxed(semanticSlot(i))
 			}
 		}
 		// Now generate the reification instructions, ensuring that when
@@ -659,13 +866,22 @@ class L1Translator private constructor(
 		val writeRegisterDump = generator.boxedWriteTemp(
 			boxedRestrictionForType(Types.ANY.o))
 		val fallThrough = generator.createBasicBlock("Off-ramp", zone)
+		val dirtyIndices = (1..numLocals).filter { i ->
+			currentManifest.dirtyLocalValues!![i] != null
+		}
+		val dirtyReads = dirtyIndices.map { localIndex ->
+			currentManifest.dirtyLocalValues!![localIndex]!!
+				.createRead(currentManifest)
+		}
 		addInstruction(
 			L2_SAVE_ALL_AND_PC_TO_INT(
 				L2ReadBoxedVectorOperand(emptyList()),
 				edgeTo(onReturnIntoReified),
 				writeOffset,
 				writeRegisterDump,
-				edgeTo(fallThrough)))
+				edgeTo(fallThrough),
+				L2ReadMixedVectorOperand(dirtyReads),
+				dirtyIndices.toIntArray()))
 		generator.startBlock(fallThrough)
 		// We're in a reification handler here, so the caller is guaranteed to
 		// contain the reified caller.
@@ -745,7 +961,6 @@ class L1Translator private constructor(
 	fun generateRestartContinuation(
 		restartArguments: List<L2ReadBoxedOperand>)
 	{
-		val numArgs = code.numArgs()
 		val indices = 0 ..< numArgs
 		val restrictions = restartArguments.map(L2ReadBoxedOperand::restriction)
 		val temps = restartArguments.map { generator.newTemp() }
@@ -784,6 +999,24 @@ class L1Translator private constructor(
 					indices.map {
 						generator.readBoxed(createSemanticSlot(it + 1, 1))
 					})))
+	}
+
+	/**
+	 * Information about one invocation site, for use by polymorphic calls.
+	 *
+	 * @property block
+	 *   The [L2BasicBlock] where code generation for the call should/did take
+	 *   place.
+	 * @property generateAction
+	 *   The action that will generate code for the invocation.  The [block]
+	 *   should be started before running the action.
+	 */
+	class InvocationSite(
+		val block: L2BasicBlock,
+		val generateAction: InvocationSite.()->Unit)
+	{
+		/** A safety check to ensure the action only runs once. */
+		var ran = 0
 	}
 
 	/**
@@ -904,7 +1137,7 @@ class L1Translator private constructor(
 		 * produce.*
 		 */
 		val invocationSitesToCreate =
-			mutableMapOf<A_Function, Pair<L2BasicBlock, ()->Unit>>()
+			mutableMapOf<A_Function, InvocationSite>()
 
 		/**
 		 * Answer the [L1Translator] that this [CallSiteHelper] is within.
@@ -961,8 +1194,8 @@ class L1Translator private constructor(
 		 */
 		fun generateAllInvocationSites()
 		{
-			invocationSitesToCreate.values.forEach {
-				(_, action) -> action()
+			invocationSitesToCreate.values.forEach { invocationSite ->
+				invocationSite.run { generateAction() }
 			}
 		}
 	}
@@ -1318,15 +1551,15 @@ class L1Translator private constructor(
 		semanticArguments: List<L2SemanticBoxedValue>,
 		callSiteHelper: CallSiteHelper)
 	{
-		val existingPair = callSiteHelper.invocationSitesToCreate[function]
-		if (existingPair === null)
+		var invocation = callSiteHelper.invocationSitesToCreate[function]
+		if (invocation === null)
 		{
-			val block = generator.createBasicBlock("successful lookup")
-			// Safety check.
-			var ran = 0
-			val newAction = {
-				assert(ran == 0)
-				ran++
+			val shortName = function.code().shortMethodName
+			invocation = InvocationSite(
+				generator.createBasicBlock("successful lookup: $shortName"))
+			{
+				// Safety check.
+				assert(ran++ == 0)
 				assert(!generator.currentlyReachable())
 				if (block.predecessorEdges().isNotEmpty())
 				{
@@ -1339,14 +1572,9 @@ class L1Translator private constructor(
 					assert(!generator.currentlyReachable())
 				}
 			}
-			callSiteHelper.invocationSitesToCreate[function] =
-				block to newAction
-			generator.jumpTo(block)
+			callSiteHelper.invocationSitesToCreate[function] = invocation
 		}
-		else
-		{
-			generator.jumpTo(existingPair.first)
-		}
+		generator.jumpTo(invocation.block)
 	}
 
 	/**
@@ -1485,7 +1713,11 @@ class L1Translator private constructor(
 						primitive.semanticInvocation(
 							arguments.map(L2ReadBoxedOperand::semanticValue)),
 						boxedRestrictionForType(resultType))
-					addInstruction(
+					//TODO If this could make a previously escaped variable
+					// become shared, we have to perform any delayed writes to
+					// all such variables and check them afterward to see if
+					// any have become shared, and if so, fall out to L1.
+					addInvokeInstruction(
 						L2_RUN_INFALLIBLE_PRIMITIVE.createInstruction(
 							L2ConstantOperand(rawFunction),
 							L2ArbitraryConstantOperand(primitive),
@@ -1567,7 +1799,7 @@ class L1Translator private constructor(
 		val unreachable = L2BasicBlock("unreachable", isCold = true)
 		if (constantFunction !== null)
 		{
-			addInstruction(
+			addInvokeInstruction(
 				L2_INVOKE_CONSTANT_FUNCTION(
 					L2ConstantOperand(constantFunction),
 					L2ReadBoxedVectorOperand(arguments),
@@ -1577,7 +1809,7 @@ class L1Translator private constructor(
 		}
 		else
 		{
-			addInstruction(
+			addInvokeInstruction(
 				L2_INVOKE(
 					functionToCallReg,
 					L2ReadBoxedVectorOperand(arguments),
@@ -1667,7 +1899,12 @@ class L1Translator private constructor(
 		generator.startBlock(failedCheck)
 		if (generator.currentlyReachable())
 		{
-			generator.addInstruction(
+			// Save the semantic slots, since flushing locals writes to them,
+			// and we don't want the success path to be affected – because we're
+			// emitting a dead end.
+			val oldSlots = semanticSlots.clone()
+			createAndFlushAllLocals()
+			addInvokeInstruction(
 				L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 					uncheckedValueRead,
 					L2ConstantOperand(expectedType),
@@ -1677,11 +1914,14 @@ class L1Translator private constructor(
 						(1..numSlots).map {
 							when (it)
 							{
-								// Make it look like the expectedType has been pushed.
+								// Make it look like the expectedType has been
+								// pushed.
 								stackp -> generator.boxedConstant(expectedType)
 								else -> readSlot(it)
 							}
 						})))
+			// Restore the semantic slots so the success path is unaffected.
+			System.arraycopy(oldSlots, 0, semanticSlots, 0, oldSlots.size)
 		}
 		assert(!generator.currentlyReachable())
 
@@ -2041,7 +2281,7 @@ class L1Translator private constructor(
 					"Continue reification during lookup failure handler"),
 				isCold = true)
 		val unreachable = L2BasicBlock("unreachable", currentZone)
-		addInstruction(
+		addInvokeInstruction(
 			L2_INVOKE(
 				readBoxed(invalidSendReg),
 				L2ReadBoxedVectorOperand(
@@ -2049,7 +2289,7 @@ class L1Translator private constructor(
 						errorCodeRead,
 						generator.boxedConstant(method),
 						readBoxed(argumentsTupleWrite))),
-				generator.boxedWriteTemp(TypeRestriction.anyRestriction),  // unreachable
+				generator.boxedWriteTemp(anyRestriction),  // unreachable
 				edgeTo(unreachable),
 				edgeTo(onReificationDuringFailure)))
 
@@ -2083,8 +2323,7 @@ class L1Translator private constructor(
 		val serviceInterrupt = generator.createBasicBlock(
 			"service interrupt",
 			isCold = true)
-		val merge =
-			generator.createBasicBlock("merge after possible interrupt")
+		val merge = generator.createBasicBlock("merge after possible interrupt")
 		addInstruction(
 			L2_JUMP_IF_INTERRUPT(
 				edgeTo(serviceInterrupt),
@@ -2166,13 +2405,21 @@ class L1Translator private constructor(
 		// this case, since it won't have been populated (by definition,
 		// otherwise we wouldn't have failed).
 		generator.startBlock(failure)
-		generator.addInstruction(
+
+		// Save the semantic slots, since flushing locals writes to them,
+		// and we don't want the success path to be affected – because we're
+		// emitting a dead end.
+		val oldSlots = semanticSlots.clone()
+		createAndFlushAllLocals()
+		addInvokeInstruction(
 			L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION(
 				L2IntImmediateOperand(pc),
 				L2IntImmediateOperand(stackp),
 				L2ReadBoxedVectorOperand(
 					(1..numSlots).map(this::readSlot))))
 		assert(!generator.currentlyReachable())
+		// Restore the semantic slots so the success path is unaffected.
+		System.arraycopy(oldSlots, 0, semanticSlots, 0, oldSlots.size)
 
 		// End with the success path.
 		generator.startBlock(success)
@@ -2226,16 +2473,15 @@ class L1Translator private constructor(
 				variableAndValueTupleReg))
 		// Note: the handler block's value is discarded; also, since it's not a
 		// method definition, it can't have a semantic restriction.
-		addInstruction(
+		addInvokeInstruction(
 			L2_INVOKE(
 				readBoxed(observeFunction),
 				L2ReadBoxedVectorOperand(
 					listOf(
-						generator
-							.boxedConstant(assignmentFunction()),
+						generator.boxedConstant(assignmentFunction()),
 						readBoxed(variableAndValueTupleReg))),
 				// Unreachable:
-				generator.boxedWriteTemp(TypeRestriction.anyRestriction),
+				generator.boxedWriteTemp(anyRestriction),
 				edgeTo(success),
 				edgeTo(onReificationDuringFailure)))
 		generator.startBlock(onReificationDuringFailure)
@@ -2251,6 +2497,40 @@ class L1Translator private constructor(
 		// End with the success block.  Note that the failure path can lead here
 		// if the implicit-observe function returns.
 		generator.startBlock(success)
+	}
+
+	/**
+	 * Create a local variable that's currently elided.
+	 *
+	 * @param localIndex
+	 *   The local index of the local variable.
+	 */
+	fun forceLocalCreation(localIndex: Int)
+	{
+		assert(localIndex in 1..numLocals)
+		assert(isElidedLocal(localIndex))
+		val localType = code.localTypeAt(localIndex)
+		val initialValue =
+			(currentManifest.dirtyLocalValues!![localIndex]
+				?: currentManifest.cleanLocalValues!![localIndex])
+				?.let { value ->
+					// Box the value if it isn't already.
+					generator.readBoxed(value.toBoxed)
+				}
+				?: generator.boxedConstant(nil)
+		addInstruction(
+			L2_CREATE_VARIABLE(
+				L2ConstantOperand(localType),
+				writeSlot(
+					localIndex + numArgs,
+					pc,
+					boxedRestrictionForType(localType)),
+				initialValue))
+		// The variable can't be dirty after creation.
+		currentManifest.dirtyLocalValues!![localIndex] = null
+		// Also, we know its current value now.
+		currentManifest.cleanLocalValues!![localIndex] =
+			initialValue.semanticValue()
 	}
 
 	/**
@@ -2288,7 +2568,6 @@ class L1Translator private constructor(
 		generator.specialBlocks[AFTER_OPTIONAL_PRIMITIVE] = afterPrimitive
 		generator.jumpTo(afterPrimitive)
 		generator.startBlock(afterPrimitive)
-		currentManifest.clear()
 		// While it's true that invalidation may only take place when no Avail
 		// code is running (even when evicting old chunks), and it's also the
 		// case that invalidation causes the chunk to be disconnected from its
@@ -2299,7 +2578,6 @@ class L1Translator private constructor(
 		// for such continuations.
 		// Capture the arguments, but don't consume them, in case the
 		// decrement-and-reoptimize has to create and run a different chunk.
-		val numArgs = code.numArgs()
 		val tupleType = code.functionType().argsTupleType
 		addInstruction(
 			L2_ENTER_L2_CHUNK_FOR_CALL(
@@ -2348,52 +2626,42 @@ class L1Translator private constructor(
 		generator.jumpTo(loopHead)
 		generator.startBlock(loopHead)
 
-		// Create the locals.
-		val numLocals = code.numLocals
-		for (local in 1 .. numLocals)
+		var firstElidableLocal = 1
+		if (primitive !== null)
 		{
-			val localType = code.localTypeAt(local)
+			// Capture the primitive failure value in the first local. Never
+			// elide this variable, since it only shows up if the primitive
+			// fails anyhow.
+			assert(!primitive.hasFlag(Flag.CannotFail))
+			val localType = code.localTypeAt(1)
 			addInstruction(
 				L2_CREATE_VARIABLE(
 					L2ConstantOperand(localType),
 					writeSlot(
-						numArgs + local,
+						numArgs + 1,
 						pc,
 						boxedRestrictionForType(localType)),
-					generator.boxedConstant(nil)))
+					getLatestReturnValue(localType.writeType)))
+			firstElidableLocal = 2
 		}
 
-		// Capture the primitive failure value in the first local if applicable.
-		if (primitive !== null)
+		// Write sentinel `0` for each elided variable.
+		val numLocals = numLocals
+		for (i in numArgs + firstElidableLocal .. numArgs + numLocals)
 		{
-			assert(!primitive.hasFlag(Flag.CannotFail))
-			// Move the primitive failure value into the first local.  This
-			// doesn't need to support implicit observation, so no off-ramp
-			// is generated.
-			val success = generator.createBasicBlock("success")
-			val unreachable = L2BasicBlock("unreachable")
-			addInstruction(
-				L2_SET_VARIABLE_NO_CHECK(
-					readSlot(numArgs + 1),
-					getLatestReturnValue(code.localTypeAt(1).writeType),
-					edgeTo(success),
-					edgeTo(unreachable)))
-
-			generator.startBlock(unreachable)
-			generator.addInstruction(L2_UNREACHABLE_CODE())
-
-			generator.startBlock(success)
+			moveConstantToSlot(zero, i)  // Sentinel `0` for elided variables.
 		}
-
-		// Nil the rest of the stack slots.
+		// Clear the rest of the stack slots.
 		for (i in numArgs + numLocals + 1 .. numSlots)
 		{
 			nilSlot(i)
 		}
 
-		// Check for interrupts. If an interrupt is discovered, then reify and
-		// process the interrupt.  When the chunk resumes, it will explode the
-		// continuation again.
+		// Check for interrupts.  If an interrupt is discovered, then reify and
+		// process the interrupt.  If the reified continuation becomes immutable
+		// or shared, all missing locals will be created and it will resume in
+		// L1, not here.  If it was still mutable, however, all registers will
+		// be restored and it will continue this chunk.
 		emitInterruptOffRamp()
 
 		// Capture the time it took to generate the whole preamble.
@@ -2440,6 +2708,13 @@ class L1Translator private constructor(
 		translateL1Stat.record(
 			AvailRuntimeSupport.captureNanos() - beforeL1Naive,
 			interpreter.interpreterIndex)
+		// It was only during translation that we wanted to track the locals.
+		// Now the L2 code already codifies that tracking with no need for
+		// tracing clean and dirty local variables.
+		generator.currentManifest.run {
+			cleanLocalValues = null
+			dirtyLocalValues = null
+		}
 		val optimizer = L2Optimizer(generator)
 		optimizer.optimize(interpreter)
 		val beforeChunkGeneration = AvailRuntimeSupport.captureNanos()
@@ -2469,20 +2744,33 @@ class L1Translator private constructor(
 
 	override fun L1_doPushLastLocal()
 	{
-		val localIndex = instructionDecoder.getOperand()
+		val slotIndex = instructionDecoder.getOperand()
 		stackp--
-		val sourceRegister = readSlot(localIndex)
-		forceSlotRegister(stackp, pc, sourceRegister)
-		nilSlot(localIndex)
+		val localIndex = slotIndex - numArgs
+		if (localIndex in 1..numLocals && isElidedLocal(localIndex))
+		{
+			// We're attempting to push a local variable, perhaps to capture in
+			// a closure or to pass by reference as an argument.  Create it.
+			forceLocalCreation(localIndex)
+		}
+		forceSlotRegister(stackp, pc, readSlot(slotIndex))
+		nilSlot(slotIndex)
 	}
 
 	override fun L1_doPushLocal()
 	{
-		val localIndex = instructionDecoder.getOperand()
+		val slotIndex = instructionDecoder.getOperand()
 		stackp--
-		val sourceRegister = readSlot(localIndex)
+		val localIndex = slotIndex - numArgs
+		if (localIndex in 1..numLocals && isElidedLocal(localIndex))
+		{
+			// We're attempting to push a local variable, perhaps to capture in
+			// a closure or to pass by reference as an argument.  Create it.
+			forceLocalCreation(localIndex)
+		}
+		val sourceRegister = readSlot(slotIndex)
 		forceSlotRegister(stackp, pc, sourceRegister)
-		forceSlotRegister(localIndex, pc, sourceRegister)
+		forceSlotRegister(slotIndex, pc, sourceRegister)
 	}
 
 	override fun L1_doPushLastOuter()
@@ -2530,26 +2818,90 @@ class L1Translator private constructor(
 
 	override fun L1_doSetLocal()
 	{
-		val localIndex = instructionDecoder.getOperand()
-		emitSetVariableOffRamp(
-			readSlot(localIndex),
-			readSlot(stackp))
-		// Now we have to nil the stack slot which held the value that we
-		// assigned.  This same slot potentially captured the expectedType in a
-		// continuation if we needed to reify during the failure path.
-		forceSlotRegister(stackp, pc, generator.boxedConstant(nil))
+		// Locals in optimized chunks are known not to have been made shared or
+		// having had reactors added to them – because we check all existing
+		// locals any time we call an arbitrary function or certain primitives,
+		// and fall out to L1 if any existing variables were altered that way.
+		// So all we have to do is alter the dirtyLocalValues with a new
+		// semantic value, and emit a move into it.
+		val slotIndex = instructionDecoder.getOperand()
+		val localIndex = slotIndex - numArgs
+		assert(localIndex in 1..numLocals)
+		// Note that L1 raw functions statically guarantee that the value will
+		// always satisfy a local variable's content type.
+		currentManifest.dirtyLocalValues!![localIndex] = semanticSlot(stackp)
+		nilSlot(stackp)
 		stackp++
 	}
 
 	override fun L1_doGetLocalClearing()
 	{
-		val index = instructionDecoder.getOperand()
+		val slotIndex = instructionDecoder.getOperand()
 		stackp--
-		val valueReg = emitGetVariableOffRamp(
-			true,
-			readSlot(index),
-			generator.newTemp())
-		forceSlotRegister(stackp, pc, valueReg)
+		getLocal(slotIndex - numArgs, clearing = true)
+	}
+
+	/**
+	 * A helper for handling a read from a local variable.  The stack pointer
+	 * has already been adjusted to accept the variable's value.
+	 *
+	 * @param localIndex
+	 *   The 1-based local number to read.
+	 * @param clearing
+	 *   Whether the variable is supposed to be cleared afterward.
+	 */
+	private fun getLocal(localIndex: Int, clearing: Boolean)
+	{
+		val slotIndex = localIndex + numArgs
+		// Locals in optimized chunks are known not to have been made shared or
+		// having had reactors added to them – because we check all existing
+		// locals any time we call an arbitrary function or certain primitives,
+		// and fall out to L1 if any existing variables were altered that way.
+		// Therefore we can use the dirty value kept in a register, or if not
+		// present, the clean value already extracted from the variable, or
+		// alternatively read the physical variable (creating it if it doesn't
+		// exist), with off-ramp code to handle a read from an unassigned
+		// variable.
+		(currentManifest.dirtyLocalValues!![localIndex]
+			?: currentManifest.cleanLocalValues!![localIndex])
+			?.let { currentValue ->
+				// The variable's value is available directly in a register.
+				// First check if it may be nil, which indicates an unassigned
+				// variable at this point, and must be dealt with by forcing
+				// creation of the actual variable.
+				val valueRestriction = generator.restrictionFor(currentValue)
+				if (valueRestriction.containedByType(Types.ANY.o))
+				{
+					// The variable is definitely assigned, so use the known
+					// value.
+					forceSlotRegister(
+						stackp, pc, generator.readBoxed(currentValue.toBoxed))
+					return
+				}
+				// The variable might be nil here, so we have to create the
+				// variable if it's still elided.  That's because reading from
+				// an unassigned (nil-valued) variable invokes the hook
+				// HookType.READ_UNASSIGNED_VARIABLE.
+				if (isElidedLocal(localIndex))
+				{
+					forceLocalCreation(localIndex)
+				}
+			}
+		// The variable exists, but its value is not yet known here.  Generate
+		// an actual read.
+		assert(!semanticSlot(slotIndex).isConstant(zero))
+		val valueRead = emitGetVariableOffRamp(
+			clearing, readSlot(slotIndex), generator.newTemp())
+		// Push the value.
+		forceSlotRegister(stackp, pc, valueRead)
+		// And now we know what the value is for next time.
+		currentManifest.cleanLocalValues!![localIndex] =
+			valueRead.semanticValue()
+		if (clearing)
+		{
+			// The clear can be lazy.
+			currentManifest.dirtyLocalValues!![localIndex] = constant(nil)
+		}
 	}
 
 	override fun L1_doPushOuter()
@@ -2601,13 +2953,9 @@ class L1Translator private constructor(
 
 	override fun L1_doGetLocal()
 	{
-		val index = instructionDecoder.getOperand()
+		val slotIndex = instructionDecoder.getOperand()
 		stackp--
-		val valueReg = emitGetVariableOffRamp(
-			false,
-			readSlot(index),
-			generator.newTemp())
-		forceSlotRegister(stackp, pc, valueReg)
+		getLocal(slotIndex - numArgs, clearing = false)
 	}
 
 	override fun L1_doMakeTuple()
@@ -2669,7 +3017,6 @@ class L1Translator private constructor(
 		}
 		else
 		{
-			val numArgs = code.numArgs()
 			val argumentsForLabel = mutableListOf<L2ReadBoxedOperand>()
 			for (i in 1..numArgs)
 			{
@@ -2743,7 +3090,6 @@ class L1Translator private constructor(
 	{
 		val source = readSlot(stackp)
 		stackp--
-		forceSlotRegister(stackp + 1, pc, source)
 		forceSlotRegister(stackp, pc, source)
 	}
 
@@ -2974,6 +3320,10 @@ class L1Translator private constructor(
 			val generator = L2Generator(
 				optimizationLevel,
 				Frame(null, code, codeName, "top frame"))
+			generator.currentManifest.run {
+				cleanLocalValues = arrayOfNulls(code.numLocals + 1)
+				dirtyLocalValues = arrayOfNulls(code.numLocals + 1)
+			}
 			val translator = L1Translator(generator, interpreter, code)
 			translator.translate()
 			val chunk = generator.chunk()

@@ -65,8 +65,8 @@ import kotlin.concurrent.withLock
 
 /**
  * **Primitive:** Link the indicated jar file, in the same module root as the
- * loading module, using a [LibraryClassLoader]. The jar must be specified using an
- * Avail root-relative qualified path.
+ * loading module, using a [LibraryClassLoader]. The jar must be specified using
+ * an Avail root-relative qualified path.
  *
  * @author Richard Arriaga
  */

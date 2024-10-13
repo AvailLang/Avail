@@ -78,18 +78,8 @@ class AvailThread internal constructor(
 		 * @return
 		 *   The current `AvailThread`.
 		 */
-		fun currentOrNull(): AvailThread?
-		{
-			val current = currentThread()
-			return if (current is AvailThread)
-			{
-				current
-			}
-			else
-			{
-				null
-			}
-		}
+		val currentOrNull: AvailThread?
+			get() = currentThread() as? AvailThread
 
 		/**
 		 * Answer the current [Thread] strengthened to an `AvailThread`, or
@@ -100,18 +90,7 @@ class AvailThread internal constructor(
 		 * @throws ClassCastException
 		 *   If the current thread isn't an `AvailThread`.
 		 */
-		@Throws(ClassCastException::class)
-		fun current(): AvailThread
-		{
-			try
-			{
-				return currentThread().cast()
-			}
-			catch (e: ClassCastException)
-			{
-				// A nice place to put a breakpoint...
-				throw e
-			}
-		}
+		@get:Throws(NullPointerException::class)
+		val current: AvailThread get() = currentOrNull!!
 	}
 }

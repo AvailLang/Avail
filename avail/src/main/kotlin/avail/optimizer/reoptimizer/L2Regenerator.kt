@@ -47,6 +47,7 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
@@ -303,6 +304,13 @@ constructor(
 				operand.elements.map(::transformOperand).cast())
 		}
 
+		override fun doOperand(operand: L2ReadMixedVectorOperand)
+		{
+			// Note: this clobbers currentOperand, but we'll set it later.
+			currentOperand = L2ReadMixedVectorOperand(
+				operand.elements.map(::transformOperand).cast())
+		}
+
 		override fun doOperand(operand: L2WriteBoxedVectorOperand)
 		{
 			// Note: this clobbers currentOperand, but we'll set it later.
@@ -427,7 +435,7 @@ constructor(
 					currentOperand = L2ReadIntOperand(
 						constant(operand.constantOrNull!!).unboxedInt,
 						operand.restriction(),
-						operand.register() as L2IntRegister)
+						operand.register())
 				}
 				else ->
 				{
@@ -450,7 +458,7 @@ constructor(
 					currentOperand = L2ReadFloatOperand(
 						constant(operand.constantOrNull!!).unboxedFloat,
 						operand.restriction(),
-						operand.register() as L2FloatRegister)
+						operand.register())
 				}
 				else ->
 				{
@@ -473,7 +481,7 @@ constructor(
 					currentOperand = L2ReadBoxedOperand(
 						constant(operand.constantOrNull!!),
 						operand.restriction(),
-						operand.register() as L2BoxedRegister)
+						operand.register())
 				}
 				else ->
 				{

@@ -75,6 +75,7 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.currentInterpreter
 import avail.persistence.cache.Repository
 import avail.persistence.cache.record.ManifestRecord
 import avail.persistence.cache.record.ModuleArchive
@@ -452,7 +453,7 @@ internal class BuildLoader constructor(
 					fiber.setSuccessAndFailure(
 						onSuccess = {
 							val after = fiber.fiberHelper.fiberTime()
-							Interpreter.current().recordTopStatementEvaluation(
+							currentInterpreter.recordTopStatementEvaluation(
 								(after - before).toDouble(), module)
 							runNext()
 						},

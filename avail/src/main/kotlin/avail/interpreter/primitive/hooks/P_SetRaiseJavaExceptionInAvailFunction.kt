@@ -67,6 +67,14 @@ object P_SetRaiseJavaExceptionInAvailFunction
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * The function outers could contain an escaped variable that becomes
+	 * shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType), TOP.o)
 }

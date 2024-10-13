@@ -355,31 +355,31 @@ class AvailProjectManager constructor(
 	init
 	{
 		draw()
-		MavenCentralAPI.searchAvailStdLib(
-		{
-			val rsp = SearchResponse.parse(it)
-			if (rsp == null)
-			{
-				System.err.println(
-					"Failed to refresh latest Avail Standard Library version from " +
-						"Maven Central, couldn't parse response:\n$it")
-				return@searchAvailStdLib
-			}
-			latestVersion = rsp.latestLibVersion
-		}
-		){ c, m, e ->
-			StringWriter().apply {
-				this.write(
-					"Failed to refresh latest Avail Standard Library version " +
-						"from Maven Central:\n\tResponse Code:$c\n\tResponse " +
-						"Message$m\n")
-				e?.let {
-					val pw = PrintWriter(this)
-					it.printStackTrace(pw)
-				}
-				System.err.println(this.toString())
-			}
-		}
+		//MavenCentralAPI.searchAvailStdLib(
+		//{
+		//	val rsp = SearchResponse.parse(it)
+		//	if (rsp == null)
+		//	{
+		//		System.err.println(
+		//			"Failed to refresh latest Avail Standard Library version from " +
+		//				"Maven Central, couldn't parse response:\n$it")
+		//		return@searchAvailStdLib
+		//	}
+		//	latestVersion = rsp.latestLibVersion
+		//}
+		//){ c, m, e ->
+		//	StringWriter().apply {
+		//		this.write(
+		//			"Failed to refresh latest Avail Standard Library version " +
+		//				"from Maven Central:\n\tResponse Code:$c\n\tResponse " +
+		//				"Message$m\n")
+		//		e?.let {
+		//			val pw = PrintWriter(this)
+		//			it.printStackTrace(pw)
+		//		}
+		//		System.err.println(this.toString())
+		//	}
+		//}
 	}
 
 	/**

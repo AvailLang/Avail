@@ -81,7 +81,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
-import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
+import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.emptyRegisterDump
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.numbers.A_Number
@@ -152,7 +152,6 @@ import avail.optimizer.jvm.CheckedField.Companion.instanceField
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
-import avail.optimizer.jvm.JVMChunk
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
@@ -1460,7 +1459,7 @@ class Interpreter(
 		}
 		returnNow = false
 		setLatestResult(null)
-		assert(current() == this)
+		assert(currentInterpreter == this)
 		return AvailRuntimeSupport.captureNanos()
 	}
 
@@ -2550,7 +2549,7 @@ class Interpreter(
 			}
 			else
 			{
-				append(formatString(" [%s]", fiber!!.fiberName))
+				append(" [%s]".format(fiber!!.fiberName.asNativeString()))
 				if (getReifiedContinuation() === null)
 				{
 					append(formatString("%n\t«null stack»"))
@@ -2624,7 +2623,7 @@ class Interpreter(
 			val continuation = createContinuationWithFrame(
 				caller,
 				it.getReifiedContinuation() ?: nil,
-				createRegisterDump(JVMChunk.noObjects, JVMChunk.noLongs),
+				emptyRegisterDump,
 				pc,
 				stackp,
 				unoptimizedChunk,
@@ -2682,7 +2681,7 @@ class Interpreter(
 			val continuation = createContinuationWithFrame(
 				currentFunction,
 				it.getReifiedContinuation() ?: nil,
-				createRegisterDump(JVMChunk.noObjects, JVMChunk.noLongs),
+				emptyRegisterDump,
 				pc,
 				stackp,
 				unoptimizedChunk,
@@ -2716,6 +2715,29 @@ class Interpreter(
 			}
 		}
 		statistic.record(sample, interpreterIndex)
+	}
+
+	/**
+	 * This function can be called by optimized L2 code, and its return
+	 * value returned again by the L2 chunk.  It will cause the Interpreter
+	 * to continue running at the specified pc and stackp and slots, but
+	 * using the [unoptimizedChunk].  Note that reification of the stack is
+	 * not necessary, as the continuation we construct for immediate
+	 * resumption uses [theReifiedContinuation] as its caller, even if there
+	 * are unreified JVM stack frames.  Any subsequent return or reification
+	 * will be handled the same as if it was never running the current L2
+	 * chunk and had always be running the unoptimized L1.
+	 */
+	@ReferencedInGeneratedCode
+	fun fallBackToL1(
+		pc: Int,
+		stackp: Int,
+		slots: Array<A_BasicObject>
+	) : StackReifier?
+	{
+		//TODO
+		println("FALLING BACK")
+		return null
 	}
 
 	/**
@@ -2844,8 +2866,7 @@ class Interpreter(
 			if (logger.isLoggable(level))
 			{
 				log(
-					if (AvailThread.currentOrNull() !== null) current().fiber
-					else null,
+					AvailThread.currentOrNull?.let { it.interpreter.fiber },
 					logger,
 					level,
 					message,
@@ -2980,7 +3001,7 @@ class Interpreter(
 							append(it)
 						}
 					}
-					val fiber = current().fiberOrNull()
+					val fiber = currentInterpreter.fiberOrNull()
 					log(
 						fiber,
 						mainLogger,
@@ -3012,7 +3033,8 @@ class Interpreter(
 		 * @return
 		 *   The current Level Two interpreter.
 		 */
-		fun current(): Interpreter = AvailThread.current().interpreter
+		val currentInterpreter: Interpreter
+			get() = AvailThread.current.interpreter
 
 		/**
 		 * Answer the unique [interpreterIndex] of the Avail interpreter
@@ -3048,7 +3070,7 @@ class Interpreter(
 		 *   is not an [AvailThread].
 		 */
 		fun currentOrNull(): Interpreter? =
-			AvailThread.currentOrNull()?.interpreter
+			AvailThread.currentOrNull?.interpreter
 
 		/** Access the [callerIsReified] method. */
 		val callerIsReifiedMethod = instanceMethod(
@@ -3339,6 +3361,17 @@ class Interpreter(
 		val reportUnassignedVariableReadMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportUnassignedVariableRead.name,
+			StackReifier::class.java,
+			Int::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType!!,
+			Array<A_BasicObject>::class.java)
+
+		/**
+		 * Access the [fallBackToL1] method.
+		 */
+		val fallBackToL1Method = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::fallBackToL1.name,
 			StackReifier::class.java,
 			Int::class.javaPrimitiveType!!,
 			Int::class.javaPrimitiveType!!,

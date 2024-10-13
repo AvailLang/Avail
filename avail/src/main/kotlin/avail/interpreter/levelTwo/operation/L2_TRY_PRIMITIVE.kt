@@ -82,7 +82,7 @@ class L2_TRY_PRIMITIVE(
 		// interpreter, interpreter
 		Interpreter.interpreterFunctionField.generateRead(method)
 		// interpreter, fn
-		translator.literal(method, primitive.constant)
+		translator.loadLiteralObject(method, primitive.constant)
 		// interpreter, fn, prim
 		if (primitive.constant.hasFlag(Primitive.Flag.CanInline))
 		{

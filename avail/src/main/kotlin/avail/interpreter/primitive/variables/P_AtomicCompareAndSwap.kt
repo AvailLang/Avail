@@ -98,6 +98,14 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		}
 	}
 
+	/**
+	 * If the variable is shared and a local variable is captured inside the
+	 * newValue, it could become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,

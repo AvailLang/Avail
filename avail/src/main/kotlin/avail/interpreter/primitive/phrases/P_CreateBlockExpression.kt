@@ -106,6 +106,13 @@ object P_CreateBlockExpression : Primitive(5, CanInline)
 		return interpreter.primitiveSuccess(block)
 	}
 
+	/**
+	 * The resultType might contain an escaped variable, making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

@@ -77,6 +77,14 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 		}
 	}
 
+	/**
+	 * If the variable had a reactor, clearing it can activate that reactor,
+	 * which might cause a variable captured in it to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

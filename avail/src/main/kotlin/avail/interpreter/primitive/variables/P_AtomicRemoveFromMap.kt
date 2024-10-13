@@ -87,6 +87,14 @@ object P_AtomicRemoveFromMap : Primitive(2, CanInline, HasSideEffect) {
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * If the variable had a reactor, adjusting it can activate that reactor,
+	 * which might cause a variable captured in it to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

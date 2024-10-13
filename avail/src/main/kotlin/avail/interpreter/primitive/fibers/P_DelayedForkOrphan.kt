@@ -165,6 +165,11 @@ object P_DelayedForkOrphan : Primitive(
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/** The function or its arguments could become shared. */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

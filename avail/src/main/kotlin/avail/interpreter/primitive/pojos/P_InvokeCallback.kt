@@ -96,6 +96,13 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend, HasSideEffect)
 		}
 	}
 
+	/**
+	 * An argument might capture an escaped variable and make it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	/** This primitive is suitable for any block signature. */
 	override fun privateBlockTypeRestriction(): A_Type = bottom
 

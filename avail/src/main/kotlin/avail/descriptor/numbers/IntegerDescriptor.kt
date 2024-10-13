@@ -145,7 +145,7 @@ import kotlin.random.Random
  */
 class IntegerDescriptor private constructor(
 	mutability: Mutability,
-	val unusedIntsOfLastLong: Byte
+	val unusedIntsOfLastLong: Int
 ) : ExtendedIntegerDescriptor(
 	mutability,
 	TypeTag.UNKNOWN_TAG,
@@ -153,7 +153,7 @@ class IntegerDescriptor private constructor(
 	IntegerSlots::class.java)
 {
 	init {
-		assert((unusedIntsOfLastLong.toInt() and 1.inv()) == 0)
+		assert((unusedIntsOfLastLong and 1.inv()) == 0)
 	}
 
 	/**
@@ -263,7 +263,9 @@ class IntegerDescriptor private constructor(
 	override fun o_EqualsInt(
 		self: AvailObject,
 		theInt: Int
-	) = self.intSlot(RAW_LONG_SLOTS_, 1) == theInt && intCount(self) == 1
+	) = unusedIntsOfLastLong == 1
+		&& self.variableIntegerSlotsCount() == 1
+		&& self.intSlot(RAW_LONG_SLOTS_, 1) == theInt
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -1989,7 +1991,7 @@ class IntegerDescriptor private constructor(
 		 */
 		private val descriptors = EnumMap.enumMap { mut: Mutability ->
 			Array(2) { unusedInts ->
-				IntegerDescriptor(mut, unusedInts.toByte())
+				IntegerDescriptor(mut, unusedInts)
 			}
 		}
 
@@ -2112,10 +2114,10 @@ class IntegerDescriptor private constructor(
 	}
 
 	override fun mutable() =
-		descriptors[MUTABLE]!![unusedIntsOfLastLong.toInt()]
+		descriptors[MUTABLE]!![unusedIntsOfLastLong]
 
 	override fun immutable() =
-		descriptors[IMMUTABLE]!![unusedIntsOfLastLong.toInt()]
+		descriptors[IMMUTABLE]!![unusedIntsOfLastLong]
 
-	override fun shared() = descriptors[SHARED]!![unusedIntsOfLastLong.toInt()]
+	override fun shared() = descriptors[SHARED]!![unusedIntsOfLastLong]
 }

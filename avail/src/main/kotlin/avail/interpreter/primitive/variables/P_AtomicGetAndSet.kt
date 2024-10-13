@@ -82,6 +82,14 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 		}
 	}
 
+	/**
+	 * If the variable is shared and a local variable is captured inside the
+	 * newValue, it could become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

@@ -147,7 +147,7 @@ class L2_CREATE_TUPLE(
 					val template = generateStringFromCodePoints(size) {
 						constantEntries[it]?.codePoint ?: 0
 					}.makeShared()
-					translator.literal(method, template)
+					translator.loadLiteralObject(method, template)
 					// :: template-string
 					elements.elements.forEachIndexed { zeroIndex, read ->
 						if (constantEntries[zeroIndex] === null)

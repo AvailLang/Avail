@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "2.0.0"
     `maven-publish`
     publishing
     signing

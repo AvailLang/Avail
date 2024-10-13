@@ -89,6 +89,13 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * If the reactorFunction captured a local variable, it will become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

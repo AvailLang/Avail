@@ -220,7 +220,7 @@ class L2_JUMP_IF_EQUALS_CONSTANT(
 			// :: if (value.equals(constant)) goto ifEqual;
 			// :: else goto ifUnequal;
 			translator.load(method, value.register())
-			translator.literal(method, constant.constant)
+			translator.loadLiteralObject(method, constant.constant)
 			A_BasicObject.equalsMethod.generateCall(method)
 		}
 		emitBranch(

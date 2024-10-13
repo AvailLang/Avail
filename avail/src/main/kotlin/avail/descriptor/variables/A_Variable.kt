@@ -147,6 +147,13 @@ interface A_Variable : A_ChunkDependable
 	fun setValueNoCheck(newValue: A_BasicObject)
 
 	/**
+	 * Write to a local variable that should be guaranteed by the VM not to have
+	 * been made shared or to have any [VariableAccessReactor] on it.
+	 */
+	@ReferencedInGeneratedCode
+	fun setUnescapedLocalValueNoCheck(newValue: A_BasicObject)
+
+	/**
 	 * Read the variable's value and set it to the new value.  Answer the old
 	 * value.  Fail if the new value is not suitable for the variable, or if the
 	 * variable had no value.  Ensure that the entire operation runs atomically
@@ -420,6 +427,23 @@ interface A_Variable : A_ChunkDependable
 	 */
 	fun getValueForDebugger(): AvailObject
 
+	/**
+	 * Examine this variable.  If it's shared or might have a reactor, answer
+	 * true.
+	 */
+	@ReferencedInGeneratedCode
+	fun checkForSharedOrReactors(): Boolean
+	{
+		val traversed = traversed()
+		val descriptor = traversed.descriptor()
+		if (descriptor.isShared) return true
+		descriptor as VariableDescriptor
+		return !descriptor.withWriteReactorsToModify(
+			traversed,
+			toModify = false,
+			body = MutableMap<*, *>?::isNullOrEmpty)
+	}
+
 	companion object
 	{
 		/** The [CheckedMethod] for [getValue]. */
@@ -442,6 +466,13 @@ interface A_Variable : A_ChunkDependable
 			Void.TYPE,
 			A_BasicObject::class.java)
 
+		/** The [CheckedMethod] for [setValueNoCheck]. */
+		val setUnescapedLocalValueNoCheckMethod = instanceMethod(
+			A_Variable::class.java,
+			A_Variable::setUnescapedLocalValueNoCheck.name,
+			Void.TYPE,
+			A_BasicObject::class.java)
+
 		/** The [CheckedMethod] for [compareAndSwapValuesNoCheck]. */
 		val compareAndSwapValuesNoCheckMethod = instanceMethod(
 			A_Variable::class.java,
@@ -449,5 +480,11 @@ interface A_Variable : A_ChunkDependable
 			Boolean::class.javaPrimitiveType!!,
 			A_BasicObject::class.java,
 			A_BasicObject::class.java)
+
+		/** The [CheckedMethod] for [checkForSharedOrReactors]. */
+		val checkForSharedOrReactorsMethod = instanceMethod(
+			A_Variable::class.java,
+			A_Variable::checkForSharedOrReactors.name,
+			Boolean::class.javaPrimitiveType!!)
 	}
 }

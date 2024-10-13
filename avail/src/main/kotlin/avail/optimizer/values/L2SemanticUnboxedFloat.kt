@@ -75,6 +75,8 @@ constructor(
 			if (it == privateBoxed) this else it.unboxedFloat
 		}
 
+	override val toBoxed: L2SemanticBoxedValue get() = boxed
+
 	override val isConstant: Boolean get() = privateBoxed.isConstant
 
 	override val defaultRestriction: TypeRestriction

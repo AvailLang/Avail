@@ -47,6 +47,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_String.Companion.asNativeString
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
@@ -77,12 +78,12 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
-import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
@@ -254,27 +255,6 @@ class JVMTranslator constructor(
 	private val entryPoints = mutableMapOf<Int, Label>()
 
 	/**
-	 * As the code is being generated and we encounter an
-	 * [L2_SAVE_ALL_AND_PC_TO_INT], we examine its corresponding target block to
-	 * figure out which registers actually have to be captured at the save, and
-	 * restored at the [L2_ENTER_L2_CHUNK].  At that point, we look up the
-	 * *local numbers* from the [JVMTranslator] and record them by
-	 * [RegisterKind] in this field.
-	 *
-	 * During optimization, an edge from an [L2_SAVE_ALL_AND_PC_TO_INT] to its
-	 * target [L2_ENTER_L2_CHUNK] is treated as though the jump happens
-	 * immediately, so that liveness information can be kept accurate. The final
-	 * code generation knows better, and simply saves and restores the locals
-	 * that back registers that are considered live across this gap.
-	 *
-	 * The key of this map is the target [L2_ENTER_L2_CHUNK] instruction, and
-	 * the value is a map from [RegisterKind] to the [List] of live *local
-	 * numbers*.
-	 */
-	val liveLocalNumbersByKindPerEntryPoint =
-		mutableMapOf<L2Instruction, Map<RegisterKind<*>, List<Int>>>()
-
-	/**
 	 * We're at a point where reification has been requested.  A [StackReifier]
 	 * has already been stashed in the [Interpreter], and already-popped calls
 	 * may have already queued actions in the reifier, to be executed in reverse
@@ -304,14 +284,14 @@ class JVMTranslator constructor(
 		loadInterpreter(method)
 		// [reifier, interpreter]
 		Interpreter.interpreterFunctionField.generateRead(method)
-		// [reifier, function]
-		onReification.createAndPushRegisterDumpArrays(this, method, false)
-		// [reifier, function, AvailObject[], long[]]
+		// [reifier, fn]
+		onReification.createAndPushRegisterDump(this, method)
+		// [reifier, fn, dump]
 		loadInterpreter(method)
 		Interpreter.chunkField.generateRead(method)
-		// [reifier, function, AvailObject[], long[], chunk]
+		// [reifier, fn, dump, chunk]
 		intConstant(method, onReification.offset())
-		// [reifier, function, AvailObject[], long[], chunk, offset]
+		// [reifier, fn, dump, chunk, offset]
 		createDummyContinuationMethod.generateCall(method)
 		// [reifier, dummyContinuation]
 		// Push an action to the current StackReifier which will run the dummy
@@ -390,52 +370,6 @@ class JVMTranslator constructor(
 	 * the translated [JVMChunk], mapped to their [accessors][LiteralAccessor].
 	 */
 	val literals = mutableMapOf<Any, LiteralAccessor>()
-
-	/**
-	 * Emit code to push the specified literal on top of the stack.
-	 *
-	 * @param method
-	 *   The [method][MethodVisitor] into which the generated JVM instructions
-	 *   will be written.
-	 * @param any
-	 *   The literal.
-	 */
-	fun literal(method: MethodVisitor, any: Any)
-	{
-		literals[any]!!.getter(method)
-	}
-
-	/**
-	 * Throw an [UnsupportedOperationException]. It is never valid to treat an
-	 * [L2Operand] as a JVM literal, so this method is marked as [Deprecated] to
-	 * protect against code cloning and refactoring errors by a programmer.
-	 *
-	 * @param method
-	 *   Unused.
-	 * @param operand
-	 *   Unused.
-	 */
-	@Deprecated("")
-	fun literal(method: MethodVisitor?, operand: L2Operand)
-	{
-		throw UnsupportedOperationException()
-	}
-
-	/**
-	 * Throw an [UnsupportedOperationException]. It is never valid to treat an
-	 * [L2Register] as a Java literal, so this method is marked as [Deprecated]
-	 * to protect against code cloning and refactoring errors by a programmer.
-	 *
-	 * @param method
-	 *   Unused.
-	 * @param reg
-	 *   Unused.
-	 */
-	@Deprecated("")
-	fun literal(method: MethodVisitor?, reg: L2Register<*>?)
-	{
-		throw UnsupportedOperationException()
-	}
 
 	/**
 	 * The start of the runChunk method, where the offset is used to jump to the
@@ -544,7 +478,7 @@ class JVMTranslator constructor(
 			val constant = register.constant!!
 			when (register)
 			{
-				is L2BoxedRegister -> literal(method, constant)
+				is L2BoxedRegister -> loadLiteralObject(method, constant)
 				is L2IntRegister -> intConstant(method, constant.extractInt)
 				is L2FloatRegister ->
 					doubleConstant(method, constant.extractDouble)
@@ -575,241 +509,155 @@ class JVMTranslator constructor(
 			register.kind.storeInstruction,
 			localNumberFromRegister(register))
 	}
+
 	/**
-	 * A `JVMTranslationPreparer` acts upon its enclosing [JVMTranslator] and an
-	 * [L2Operand] to map [L2Register]s to JVM [locals][nextLocal], map
-	 * [literals][AvailObject] to `private static final` fields, and map
-	 * [program&#32;counters][L2PcOperand] to [Label]s.
-	 *
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 * Convert the [A_String] into a suitable suffix for a symbolic static
+	 * constant name in Java decompilation and the debugger.
 	 */
-	internal inner class JVMTranslationPreparer : L2OperandDispatcher
+	private fun tidy(string: A_String): String =
+		tidy(string.asNativeString())
+
+	/**
+	 * Convert the [String] into a suitable suffix for a symbolic static
+	 * constant name in Java decompilation and the debugger.
+	 */
+	private fun tidy(string: String): String
 	{
-		/**
-		 * The next unallocated index into the [JVMChunkClassLoader]'s
-		 * [parameters][JVMChunkClassLoader.parameters] array at which a
-		 * [literal][AvailObject] will be stored.
-		 */
-		private var nextClassLoaderIndex = 0
-
-		override fun doOperand(operand: L2ArbitraryConstantOperand<*>)
-		{
-			recordLiteralObject(operand.constant)
-		}
-
-		override fun doOperand(operand: L2CommentOperand)
-		{
-			// Ignore comments; there's nowhere to put them in the translated
-			// code, and not much to do with them even if we could.
-		}
-
-		override fun doOperand(operand: L2ConstantOperand)
-		{
-			recordLiteralObject(operand.constant)
-		}
-
-		override fun doOperand(operand: L2IntImmediateOperand)
-		{
-			literals.computeIfAbsent(operand.value) {
-				LiteralAccessor(
-					invalidIndex,
-					null,
-					{ method: MethodVisitor -> intConstant(method, it as Int) },
-					null)
-			}
-		}
-
-		override fun doOperand(operand: L2FloatImmediateOperand)
-		{
-			literals.computeIfAbsent(operand.value) { constant: Any ->
-				LiteralAccessor(
-					invalidIndex,
-					null,
-					{ method: MethodVisitor ->
-						doubleConstant(method, constant as Double) },
-					null)
-			}
-		}
-
-		override fun doOperand(operand: L2PcOperand)
-		{
-			operand.counter?.let(this::recordLiteralObject)
-			labels.computeIfAbsent(operand.offset()) { Label() }
-		}
-
-		override fun doOperand(operand: L2ReadIntOperand)
-		{
-			if (operand.isConstantRead)
-			locals[INTEGER_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex) { nextLocal(Type.INT_TYPE) }
-		}
-
-		override fun doOperand(operand: L2ReadFloatOperand)
-		{
-			locals[FLOAT_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex) { nextLocal(Type.DOUBLE_TYPE) }
-		}
-
-		override fun doOperand(operand: L2ReadBoxedOperand)
-		{
-			if (operand.isConstantRead)
-			{
-				recordLiteralObject(operand.constantOrNull!!)
-			}
-			else
-			{
-				locals[BOXED_KIND]!!.computeIfAbsent(
-					operand.register().finalIndex
-				) { nextLocal(Type.getType(AvailObject::class.java)) }
-			}
-		}
-
-		override fun doOperand(vector: L2ReadBoxedVectorOperand)
-		{
-			vector.elements.forEach(this::doOperand)
-		}
-
-		override fun doOperand(vector: L2ReadIntVectorOperand)
-		{
-			vector.elements.forEach(this::doOperand)
-		}
-
-		override fun doOperand(vector: L2ReadFloatVectorOperand)
-		{
-			vector.elements.forEach { doOperand(it) }
-		}
-
-		override fun doOperand(operand: L2WriteIntOperand)
-		{
-			locals[INTEGER_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex)
-			{ nextLocal(Type.INT_TYPE) }
-		}
-
-		override fun doOperand(operand: L2WriteFloatOperand)
-		{
-			locals[FLOAT_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex)
-			{ nextLocal(Type.DOUBLE_TYPE) }
-		}
-
-		override fun doOperand(operand: L2WriteBoxedOperand)
-		{
-			locals[BOXED_KIND]!!.computeIfAbsent(
-				operand.register().finalIndex)
-			{ nextLocal(Type.getType(AvailObject::class.java)) }
-		}
-
-		override fun doOperand(vector: L2WriteBoxedVectorOperand)
-		{
-			vector.elements.forEach { doOperand(it) }
-		}
-
-		override fun doOperand(operand: L2PcVectorOperand)
-		{
-			operand.edges.forEach(this::doOperand)
-		}
-
-		/**
-		 * Convert the [A_String] into a suitable suffix for a symbolic static
-		 * constant name in Java decompilation and the debugger.
-		 */
-		private fun tidy(string: A_String): String =
-			tidy(string.asNativeString())
-
-		/**
-		 * Convert the [String] into a suitable suffix for a symbolic static
-		 * constant name in Java decompilation and the debugger.
-		 */
-		private fun tidy(string: String): String
-		{
-			val trimmed =
-				if (string.length > 30) string.take(30) + "…"
-				else string
-			return buildString {
-				trimmed.forEach { c ->
-					@Suppress("SpellCheckingInspection")
-					when (c)
-					{
-						'.' -> append("dot")
-						';' -> append("semicolon")
-						'[' -> append("opensquare")
-						'/' -> append("slash")
-						'\\' -> append("backslash")
-						in '\u0000'..'\u0020' -> append("__")
-						else -> append(c)
-					}
-				}
-			}
-		}
-
-		/**
-		 * Create a literal slot for the given arbitrary [Object].
-		 *
-		 * @param value
-		 *   The actual literal value to capture.
-		 */
-		private fun recordLiteralObject(value: Any)
-		{
-			literals.computeIfAbsent(value) { constant: Any ->
-				// Choose an index and name for the literal.
-				val index = nextClassLoaderIndex++
-				var name: String = when
+		val trimmed =
+			if (string.length > 30) string.take(30) + "…"
+			else string
+		return buildString {
+			trimmed.forEach { c ->
+				@Suppress("SpellCheckingInspection")
+				when (c)
 				{
-					value is Primitive -> value.name
-					value !is AvailObject -> value.javaClass.simpleName
-					value.isInstanceOf(stringType) ->
-						"STRING_${tidy(value.asNativeString())}"
-					value.isInstanceOfKind(Types.ATOM.o) ->
-						"ATOM_${tidy(value.atomName)}"
-					value.isInstanceOfKind(Types.MESSAGE_BUNDLE.o) ->
-						"BUNDLE_${tidy(value.message.atomName)}"
-					value.isInstanceOfKind(mostGeneralFunctionType()) ->
-						"FUNCTION_${tidy(value.code().methodName)}"
-					value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
-						"CODE_${tidy(value.methodName)}"
-					else -> "literal_" + value.makeShared().typeTag.shorterName
+					'.' -> append("dot")
+					';' -> append("semicolon")
+					'[' -> append("opensquare")
+					'/' -> append("slash")
+					'\\' -> append("backslash")
+					in '\u0000'..'\u0020' -> append("__")
+					else -> append(c)
 				}
-				name += "_$index"
-				val type: Class<*> = constant.javaClass
-				// Generate a field that will hold the literal at runtime.
-				val field = classNode.visitField(
-					ACC_PRIVATE or ACC_STATIC or ACC_FINAL,
-					name,
-					Type.getDescriptor(type),
-					null,
-					null)
-				field.visitAnnotation(
-					Type.getDescriptor(Nonnull::class.java), true)
-				field.visitEnd()
-				LiteralAccessor(
-					index,
-					name,
-					{ method: MethodVisitor ->
-						method.visitFieldInsn(
-							GETSTATIC,
-							classInternalName,
-							name,
-							Type.getDescriptor(type))
-					},
-					{ method: MethodVisitor ->
-						method.visitTypeInsn(
-							CHECKCAST,
-							Type.getInternalName(type))
-						method.visitFieldInsn(
-							PUTSTATIC,
-							classInternalName,
-							name,
-							Type.getDescriptor(type))
-					})
 			}
 		}
 	}
 
+	/**
+	 * The next unallocated index into the [JVMChunkClassLoader]'s
+	 * [parameters][JVMChunkClassLoader.parameters] array at which a
+	 * [literal][AvailObject] will be stored.
+	 */
+	private var nextClassLoaderIndex = 0
 
 	/**
-	 * Prepare for JVM translation by [visiting][JVMTranslationPreparer] each of
-	 * the [L2Instruction]s to be translated.
+	 * Emit code to load the literal onto the stack.  If this literal has not
+	 * yet been used, a static field is created, and arrangements are made to
+	 * set it up during class initialization.  This is accomplished by storing
+	 * an [Array] of objects in the [JVMChunkClassLoader] instance, and having
+	 * the class initializer read it and write to each static field.
+	 *
+	 * @param method
+	 *   The [MethodVisitor] for the JVM method being generated.
+	 * @param value
+	 *   The actual literal value to push.  Unboxed forms of [Int] and [Double]
+	 *   have their own separate methods, since objectweb provides automatic
+	 *   constant tracking for those.
+	 */
+	fun loadLiteralObject(
+		method: MethodVisitor,
+		value: Any)
+	{
+		val accessor = literals.computeIfAbsent(value) { constant: Any ->
+			// Choose an index and name for the literal.
+			val index = nextClassLoaderIndex++
+			var name: String = when
+			{
+				value is Primitive -> value.name
+				value !is AvailObject -> value.javaClass.simpleName
+				value.isInstanceOf(stringType) && value.tupleSize > 0 ->
+					"STRING_${tidy(value.asNativeString())}"
+				value.isInstanceOfKind(Types.ATOM.o) ->
+					"ATOM_${tidy(value.atomName)}"
+				value.isInstanceOfKind(Types.MESSAGE_BUNDLE.o) ->
+					"BUNDLE_${tidy(value.message.atomName)}"
+				value.isInstanceOfKind(mostGeneralFunctionType()) ->
+					"FUNCTION_${tidy(value.code().methodName)}"
+				value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
+					"CODE_${tidy(value.methodName)}"
+				else -> "literal_" + value.makeShared().typeTag.shorterName
+			}
+			name += "_$index"
+			val type: Class<*> = constant.javaClass
+			// Generate a field that will hold the literal at runtime.
+			val field = classNode.visitField(
+				ACC_PRIVATE or ACC_STATIC or ACC_FINAL,
+				name,
+				Type.getDescriptor(type),
+				null,
+				null)
+			field.visitAnnotation(
+				Type.getDescriptor(Nonnull::class.java), true)
+			field.visitEnd()
+			LiteralAccessor(
+				index,
+				name,
+				{ method: MethodVisitor ->
+					method.visitFieldInsn(
+						GETSTATIC,
+						classInternalName,
+						name,
+						Type.getDescriptor(type))
+				},
+				{ method: MethodVisitor ->
+					method.visitTypeInsn(
+						CHECKCAST,
+						Type.getInternalName(type))
+					method.visitFieldInsn(
+						PUTSTATIC,
+						classInternalName,
+						name,
+						Type.getDescriptor(type))
+				})
+		}
+		accessor.getter(method)
+	}
+
+
+	/**
+	 * Throw an [UnsupportedOperationException]. It is never valid to treat an
+	 * [L2Operand] as a JVM literal, so this method is marked as [Deprecated] to
+	 * protect against code cloning and refactoring errors by a programmer.
+	 *
+	 * @param method
+	 *   Unused.
+	 * @param operand
+	 *   Unused.
+	 */
+	@Deprecated("L2Operands should not be captured as literals")
+	fun loadLiteralObject(method: MethodVisitor?, operand: L2Operand)
+	{
+		throw UnsupportedOperationException()
+	}
+
+	/**
+	 * Throw an [UnsupportedOperationException]. It is never valid to treat an
+	 * [L2Register] as a Java literal, so this method is marked as [Deprecated]
+	 * to protect against code cloning and refactoring errors by a programmer.
+	 *
+	 * @param method
+	 *   Unused.
+	 * @param reg
+	 *   Unused.
+	 */
+	@Deprecated("L2Registers should not be captured as literals")
+	fun loadLiteralObject(method: MethodVisitor?, reg: L2Register<*>?)
+	{
+		throw UnsupportedOperationException()
+	}
+
+	/**
+	 * Prepare for JVM translation.
 	 */
 	fun prepare()
 	{
@@ -832,6 +680,113 @@ class JVMTranslator constructor(
 				labels[instruction.offset] = label
 			}
 			instruction.operands.forEach { it.dispatchOperand(preparer) }
+		}
+	}
+
+	/**
+	 * A `JVMTranslationPreparer` acts upon its enclosing [JVMTranslator] and an
+	 * [L2Operand] to map [L2Register]s to JVM [locals][nextLocal], map
+	 * [literals][AvailObject] to `private static final` fields, and map
+	 * [program&#32;counters][L2PcOperand] to [Label]s.
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 */
+	internal inner class JVMTranslationPreparer : L2OperandDispatcher
+	{
+		/**
+		 * The next unallocated index into the [JVMChunkClassLoader]'s
+		 * [parameters][JVMChunkClassLoader.parameters] array at which a
+		 * [literal][AvailObject] will be stored.
+		 */
+		private var nextClassLoaderIndex = 0
+
+		override fun doOperand(operand: L2ArbitraryConstantOperand<*>) { }
+
+		override fun doOperand(operand: L2CommentOperand) { }
+
+		override fun doOperand(operand: L2ConstantOperand) { }
+
+		override fun doOperand(operand: L2IntImmediateOperand) { }
+
+		override fun doOperand(operand: L2FloatImmediateOperand) { }
+
+		override fun doOperand(operand: L2PcOperand)
+		{
+			labels.computeIfAbsent(operand.offset()) { Label() }
+		}
+
+		override fun doOperand(operand: L2ReadIntOperand)
+		{
+			if (operand.isConstantRead) return
+			locals[INTEGER_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex) { nextLocal(Type.INT_TYPE) }
+		}
+
+		override fun doOperand(operand: L2ReadFloatOperand)
+		{
+			if (operand.isConstantRead) return
+			locals[FLOAT_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.DOUBLE_TYPE) }
+		}
+
+		override fun doOperand(operand: L2ReadBoxedOperand)
+		{
+			if (operand.isConstantRead) return
+			locals[BOXED_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.getType(AvailObject::class.java)) }
+		}
+
+		override fun doOperand(vector: L2ReadBoxedVectorOperand)
+		{
+			vector.elements.forEach(::doOperand)
+		}
+
+		override fun doOperand(vector: L2ReadIntVectorOperand)
+		{
+			vector.elements.forEach(::doOperand)
+		}
+
+		override fun doOperand(vector: L2ReadFloatVectorOperand)
+		{
+			vector.elements.forEach(::doOperand)
+		}
+
+		override fun doOperand(vector: L2ReadMixedVectorOperand)
+		{
+			vector.elements.forEach { it.dispatchOperand(this) }
+		}
+
+		override fun doOperand(operand: L2WriteIntOperand)
+		{
+			locals[INTEGER_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.INT_TYPE) }
+		}
+
+		override fun doOperand(operand: L2WriteFloatOperand)
+		{
+			locals[FLOAT_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.DOUBLE_TYPE) }
+		}
+
+		override fun doOperand(operand: L2WriteBoxedOperand)
+		{
+			locals[BOXED_KIND]!!.computeIfAbsent(
+				operand.register().finalIndex
+			) { nextLocal(Type.getType(AvailObject::class.java)) }
+		}
+
+		override fun doOperand(vector: L2WriteBoxedVectorOperand)
+		{
+			vector.elements.forEach(::doOperand)
+		}
+
+		override fun doOperand(operand: L2PcVectorOperand)
+		{
+			operand.edges.forEach(::doOperand)
 		}
 	}
 
@@ -929,8 +884,7 @@ class JVMTranslator constructor(
 			method.visitInsn(DUP)
 			JVMChunkClassLoader.parametersField.generateRead(method)
 			val limit = accessors.size
-			for ((i, accessor) in accessors.withIndex())
-			{
+			accessors.forEachIndexed { i, accessor ->
 				// :: literal_«i» = («typeof(literal_«i»)») parameters[«i»];
 				if (i < limit - 1)
 				{
@@ -1113,7 +1067,7 @@ class JVMTranslator constructor(
 	{
 		objectArrayFromRegisters(
 			method,
-			readOperands.map { it.register() as L2BoxedRegister },
+			readOperands.map(L2ReadBoxedOperand::register),
 			arrayClass)
 	}
 
@@ -1380,11 +1334,11 @@ class JVMTranslator constructor(
 	{
 		val logNotTaken = Label()
 		method.visitJumpInsn(reverseOpcode(branchOpcode), logNotTaken)
-		literal(method, takenCounter)
+		loadLiteralObject(method, takenCounter)
 		longAdderIncrement.generateCall(method)
 		jump(method, takenEdge)
 		method.visitLabel(logNotTaken)
-		literal(method, notTakenCounter)
+		loadLiteralObject(method, notTakenCounter)
 		longAdderIncrement.generateCall(method)
 	}
 
@@ -1643,19 +1597,11 @@ class JVMTranslator constructor(
 				.forEach { (kind, finalIndex, localIndex) ->
 					when (kind)
 					{
-						BOXED_KIND -> {
-							method.visitInsn(ACONST_NULL)
-							method.visitVarInsn(ASTORE, localIndex)
-						}
-						INTEGER_KIND -> {
-							intConstant(method, 0)
-							method.visitVarInsn(ISTORE, localIndex)
-						}
-						FLOAT_KIND -> {
-							doubleConstant(method, 0.0)
-							method.visitVarInsn(DSTORE, localIndex)
-						}
+						BOXED_KIND -> method.visitInsn(ACONST_NULL)
+						INTEGER_KIND -> intConstant(method, 0)
+						FLOAT_KIND -> doubleConstant(method, 0.0)
 					}
+					method.visitVarInsn(kind.storeInstruction, localIndex)
 					method.visitLocalVariable(
 						kind.prefix + finalIndex,
 						kind.jvmTypeString,
@@ -1856,9 +1802,6 @@ class JVMTranslator constructor(
 		/** Prepare to generate the JVM translation. */
 		PREPARE(JVMTranslator::prepare),
 
-		/** Create the static &lt;clinit&gt; method for capturing constants. */
-		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
-
 		/** Prepare the default constructor, invoked once via reflection. */
 		GENERATE_CONSTRUCTOR_V(JVMTranslator::generateConstructorV),
 
@@ -1867,6 +1810,13 @@ class JVMTranslator constructor(
 
 		/** Generate the runChunk() method. */
 		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
+
+		/**
+		 * Create the static &lt;clinit&gt; method for capturing constants.
+		 * This must happen after the method has created any [LiteralAccessor]
+		 * entries in the [literals] map.
+		 */
+		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
 
 		/** Indicate code emission has completed. */
 		VISIT_END(JVMTranslator::classVisitEnd),
@@ -1893,8 +1843,7 @@ class JVMTranslator constructor(
 			 */
 			fun executeAll(jvmTranslator: JVMTranslator)
 			{
-				val thread = AvailThread.currentOrNull()
-				val interpreter = thread?.interpreter
+				val interpreter = AvailThread.currentOrNull?.interpreter
 				for (phase in all)
 				{
 					val before = AvailRuntimeSupport.captureNanos()
@@ -1952,7 +1901,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = false
+		const val debugNicerJavaDecompilation = true  //TODO false
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
@@ -2021,7 +1970,7 @@ class JVMTranslator constructor(
 		 * generated JVM code dumps verbose information just prior to each L2
 		 * instruction.
 		 */
-		var debugJVM = false
+		var debugJVM = true //TODO false
 
 		/**
 		 * Counters for the class prefix names, to avoid name collisions.

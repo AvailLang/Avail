@@ -151,6 +151,39 @@ class L2ValueManifest
 	 */
 	var mode: GenerationMode
 
+
+	/**
+	 * An [Array] of nullable [L2SemanticValue]s, indexed by local index, not
+	 * slot index, that indicates known current values of locals that may have
+	 * been elided, or that have had their value read since the last point that
+	 * it could have been altered.
+	 *
+	 * This is only used by the [L1Translator], and is null at all other times.
+	 *
+	 * The elements are one-based, and the 0th item is unused.
+	 *
+	 * An entry can be present in both this array and [dirtyLocalValues].  The
+	 * dirty one, if present, is considered the current content of the variable.
+	 */
+	var cleanLocalValues: Array<L2SemanticValue<*>?>? = null
+
+	/**
+	 * An [Array] of nullable [L2SemanticValue]s, indexed by local index, not
+	 * slot index, that indicates the latest unexecuted write to that local.
+	 * These are flushed to the corresponding physical variable, if it exists,
+	 * prior to making arbitrary function calls, some primitives, or returning.
+	 *
+	 * This is only used by the [L1Translator], and is null at all other times.
+	 *
+	 * The elements are one-based, and the 0th item is unused.
+	 *
+	 * A local variable can have entries in both this and the [cleanLocalValues]
+	 * array, to optimize away A-B-A writes (i.e., skipping aa physical write to
+	 * aa variable that is known to already contain that value).  This is safe
+	 * because the variables are not shared (and have no reactors installed).
+	 */
+	var dirtyLocalValues: Array<L2SemanticValue<*>?>? = null
+
 	/**
 	 * A utility type containing a mutable list of [L2Register]s that currently
 	 * hold the same value, and a [TypeRestriction].
@@ -269,6 +302,10 @@ class L2ValueManifest
 	 * Copy an existing manifest.  Clone the maps, and also clone the mutable
 	 * [Constraint] associated with each synonym.
 	 *
+	 * In addition, during the initial control flow graph generation by the
+	 * [L1Translator], the [cleanLocalValues] and [dirtyLocalValues] arrays will
+	 * be populated, and will be copied by this copy constructor.
+	 *
 	 * @param originalManifest
 	 *   The original manifest.
 	 */
@@ -285,6 +322,8 @@ class L2ValueManifest
 				instructions.toMutableList()
 			}
 		impossibleRestrictionCount = originalManifest.impossibleRestrictionCount
+		cleanLocalValues = originalManifest.cleanLocalValues?.clone()
+		dirtyLocalValues = originalManifest.dirtyLocalValues?.clone()
 	}
 
 	/**

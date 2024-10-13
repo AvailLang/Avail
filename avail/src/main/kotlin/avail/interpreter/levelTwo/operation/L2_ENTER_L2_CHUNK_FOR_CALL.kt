@@ -42,9 +42,6 @@ import avail.interpreter.levelTwo.ReadsHiddenVariable
 import avail.interpreter.levelTwo.WritesHiddenVariable
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
-import avail.interpreter.levelTwo.register.BOXED_KIND
-import avail.interpreter.levelTwo.register.FLOAT_KIND
-import avail.interpreter.levelTwo.register.INTEGER_KIND
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -64,7 +61,7 @@ import org.objectweb.asm.Type
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 class L2_ENTER_L2_CHUNK_FOR_CALL(
 	var chunkEntryPointName: L2CommentOperand,
-	var writeArguments: L2WriteBoxedVectorOperand
+	var writeArguments: L2WriteBoxedVectorOperand,
 ) : L2Instruction()
 {
 	override val isEntryPoint get() = true
@@ -98,7 +95,7 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 
 		// :: if (!checkValidity()) {
 		translator.loadInterpreter(method)
-		translator.literal(
+		translator.intConstant(
 			method, L2JVMChunk.ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
 		Interpreter.checkValidityMethod.generateCall(method)
 		val isValidLabel = Label()
@@ -108,21 +105,6 @@ class L2_ENTER_L2_CHUNK_FOR_CALL(
 		method.visitInsn(Opcodes.ARETURN)
 		// :: }
 		method.visitLabel(isValidLabel)
-
-		// If this chunk had an L2_VIRTUAL_CREATE_LABEL that survived, producing
-		// an empty register dump, or it didn't, producing no entry at all.
-		// Either is acceptable, and should be ignored.
-		val localNumberLists =
-			translator.liveLocalNumbersByKindPerEntryPoint[this]
-		if (localNumberLists !== null)
-		{
-			val boxedList = localNumberLists[BOXED_KIND]!!
-			val intsList = localNumberLists[INTEGER_KIND]!!
-			val floatsList = localNumberLists[FLOAT_KIND]!!
-			assert(boxedList.isEmpty())
-			assert(intsList.isEmpty())
-			assert(floatsList.isEmpty())
-		}
 
 		val argWrites = writeArguments.elements
 		if (argWrites.isNotEmpty())

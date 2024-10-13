@@ -53,6 +53,9 @@ import avail.interpreter.execution.Interpreter
  * **Primitive:** Ask another fiber what it's doing.  Fail if the fiber's
  * continuation chain is empty (i.e., it is terminated).
  *
+ * Note that we don't override [mightMakeEscapedVariableShared], since only
+ * something in *the other* fiber can become shared.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")

@@ -40,7 +40,7 @@ import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2OperandType.Companion.COMMENT
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC
 import avail.interpreter.levelTwo.L2OperandType.Companion.PC_VECTOR
-import avail.interpreter.levelTwo.OperandTypeMap
+import avail.interpreter.levelTwo.L2OperandType.Companion.allOperandTypes
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
@@ -649,6 +649,22 @@ class L2ControlFlowGraphVisualizer constructor(
 				color = writer.adjust("#400000/ff0000")
 			) { append("DUPLICATE MANIFEST!!!") }
 		}
+		manifest.cleanLocalValues?.let { clean ->
+			clean.forEachIndexed { i, value ->
+				value?.let {
+					append("Clean #$i: $value")
+					append("<br/>")
+				}
+			}
+		}
+		manifest.dirtyLocalValues?.let { dirty ->
+			dirty.forEachIndexed { i, value ->
+				value?.let {
+					append("Dirty #$i: $value")
+					append("<br/>")
+				}
+			}
+		}
 		val synonyms = manifest.synonymsArray()
 		if (synonyms.isNotEmpty())
 		{
@@ -990,8 +1006,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		// Make a note of the current length of the builder. We will need to
 		// escape everything after this point.
 		val escapeIndex = length
-		val desiredTypes = OperandTypeMap.allOperandTypes -
-			listOf(PC, PC_VECTOR, COMMENT)
+		val desiredTypes = allOperandTypes - listOf(PC, PC_VECTOR, COMMENT)
 		if (!instruction.producesAnyJvmCode)
 		{
 			// Show instructions that generate no code in gray.

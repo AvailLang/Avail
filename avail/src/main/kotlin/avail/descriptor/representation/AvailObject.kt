@@ -835,6 +835,9 @@ class AvailObject private constructor(
 	override fun setValueNoCheck(newValue: A_BasicObject) =
 		descriptor().o_SetValueNoCheck(this, newValue)
 
+	override fun setUnescapedLocalValueNoCheck(newValue: A_BasicObject) =
+		descriptor().o_SetUnescapedLocalValueNoCheck(this, newValue)
+
 	override fun start() = descriptor().o_Start(this)
 
 	override fun string() = descriptor().o_String(this)

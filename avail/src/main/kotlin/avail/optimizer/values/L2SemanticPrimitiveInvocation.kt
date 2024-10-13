@@ -93,10 +93,8 @@ internal constructor(
 		val newArguments = argumentSemanticValues.mapTo(mutableListOf()) {
 			it.transform(semanticValueTransformer, frameTransformer)
 		}
-
-		if ((0 until numArgs).all {
-			newArguments[it] == argumentSemanticValues[it]
-		})
+		if ((0 until numArgs)
+				.all { newArguments[it] == argumentSemanticValues[it] })
 		{
 			return this
 		}

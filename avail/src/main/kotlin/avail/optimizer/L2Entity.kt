@@ -69,6 +69,8 @@ interface L2Entity<K: RegisterKind<K>>: Comparable<L2Entity<*>>
 		PRIMITIVE_INVOCATION,
 		TEMP,
 		OTHER,
+		DIRTY_LOCAL_VALUE,
+		CLEAN_LOCAL_VALUE,
 		SLOT;
 	}
 

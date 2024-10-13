@@ -1315,7 +1315,7 @@ class L2Optimizer internal constructor(
 					return@forEachIndexed
 				}
 				instruction.readsThatMightDestroy.forEach { read ->
-					val readReg = read.register() as L2BoxedRegister
+					val readReg = read.register()
 					val pair = firstUses[readReg]
 					when
 					{

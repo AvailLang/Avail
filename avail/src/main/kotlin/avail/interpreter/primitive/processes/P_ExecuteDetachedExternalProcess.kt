@@ -118,6 +118,13 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * An argument might capture an escaped variable and make it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(

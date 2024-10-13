@@ -144,6 +144,11 @@ sealed class L2_RUN_INFALLIBLE_PRIMITIVE(
 				|| prim.hasFlag(Flag.Unknown))
 		}
 
+	/** Defer to the primitive. */
+	override fun mightMakeEscapedVariableShared(): Boolean =
+		primitive.constant.mightMakeEscapedVariableShared(
+			arguments.elements.map(L2ReadBoxedOperand::type))
+
 	override fun appendToWithWarnings(
 		builder: StringBuilder,
 		desiredOperandTypes: Set<L2OperandType>,

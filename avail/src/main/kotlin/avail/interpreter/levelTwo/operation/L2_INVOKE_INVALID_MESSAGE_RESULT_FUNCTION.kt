@@ -98,7 +98,7 @@ class L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION(
 		translator.loadInterpreter(method)
 		// :: interpreter
 		translator.load(method, returnedValue.register())
-		translator.literal(method, expectedType.constant)
+		translator.loadLiteralObject(method, expectedType.constant)
 		translator.intConstant(method, pc.value)
 		translator.intConstant(method, stackp.value)
 		// :: interpreter, value, expected, pc, stackp

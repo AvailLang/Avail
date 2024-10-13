@@ -159,6 +159,14 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 					mostGeneralObjectType),
 				ANY.o))
 
+	/**
+	 * The objectType might contain an instance type on an escaped variables,
+	 * making it shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(AvailErrorCode.E_NO_SUCH_FIELD))
 

@@ -70,11 +70,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
-		val function = interpreter.argument(0)
-		val pc = interpreter.argument(1)
-		val stack = interpreter.argument(2)
-		val stackp = interpreter.argument(3)
-		val callerHolder = interpreter.argument(4)
+		val (function, pc, stack, stackp, callerHolder) = interpreter.argsBuffer
 
 		val rawFunction = function.code()
 		val primitive = rawFunction.codePrimitive()

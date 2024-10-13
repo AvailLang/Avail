@@ -71,11 +71,11 @@ constructor(
 		semanticValueTransformer:
 			(L2SemanticValue<BOXED_KIND>) -> L2SemanticValue<BOXED_KIND>,
 		frameTransformer: (Frame) -> Frame
-	): L2SemanticBoxedValue = when (val newFrame = frameTransformer(frame))
-	{
-		frame -> this
-		else -> L2SemanticOuter(newFrame, outerIndex, optionalName)
-	}
+	): L2SemanticBoxedValue =
+		frameTransformer(frame).let { newFrame ->
+			if (newFrame == frame) this
+			else L2SemanticOuter(newFrame, outerIndex, optionalName)
+		}
 
 	override val defaultRestriction: TypeRestriction
 		get() = boxedRestrictionForType(frame.code.outerTypeAt(outerIndex))

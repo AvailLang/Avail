@@ -229,6 +229,12 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
+	override fun o_SetUnescapedLocalValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject
+	) = throw UnsupportedOperationException(
+		"Pojo fields can't be local variables")
+
 	override fun o_Value(self: AvailObject): AvailObject
 	{
 		val receiver = self[RECEIVER].javaObjectNotNull<Any>()

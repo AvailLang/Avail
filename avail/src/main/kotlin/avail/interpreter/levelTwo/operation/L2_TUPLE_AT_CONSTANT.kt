@@ -83,7 +83,7 @@ class L2_TUPLE_AT_CONSTANT(
 	{
 		// :: destination = tuple.tupleAt(subscript);
 		translator.load(method, tuple.register())
-		translator.literal(method, subscript.value)
+		translator.intConstant(method, subscript.value)
 		tupleAtMethod.generateCall(method)
 		translator.store(method, destination.register())
 	}

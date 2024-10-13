@@ -47,6 +47,7 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.register.BOXED_KIND
 import avail.interpreter.levelTwo.register.FLOAT_KIND
 import avail.interpreter.levelTwo.register.INTEGER_KIND
+import avail.interpreter.levelTwo.register.RegisterKind
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -68,6 +69,25 @@ class L2_ENTER_L2_CHUNK(
 	var chunkEntryPointName: L2CommentOperand
 ): L2Instruction()
 {
+	/**
+	 * During optimization, an edge from an [L2_SAVE_ALL_AND_PC_TO_INT] to its
+	 * target [L2_ENTER_L2_CHUNK] is treated as though the jump happens
+	 * immediately, so that liveness information can be kept accurate. The final
+	 * code generation knows better, and simply saves and restores the locals
+	 * that back registers that are considered live across this gap.
+	 *
+	 * As the final JVM code is being generated and we encounter an
+	 * [L2_SAVE_ALL_AND_PC_TO_INT], we examine its corresponding target block
+	 * (which starts with this intruction) to figure out which registers
+	 * actually have to be captured at the save, and restored at the
+	 * [L2_ENTER_L2_CHUNK].  At that point, we look up the *local numbers* from
+	 * the [JVMTranslator] and record them by [RegisterKind] in this field.
+	 *
+	 * This map is from [RegisterKind] to the [List] of live *local numbers* in
+	 * the JVM method being generated.
+	 */
+	var liveLocalNumbersByKind: Map<RegisterKind<*>, List<Int>>? = null
+
 	override val isEntryPoint get() = true
 
 	override val hasSideEffect get() = true
@@ -91,7 +111,7 @@ class L2_ENTER_L2_CHUNK(
 		{
 			// :: if (!checkValidity()) {
 			translator.loadInterpreter(method)
-			translator.literal(method, entryPointOffsetInDefaultChunk.value)
+			translator.intConstant(method, entryPointOffsetInDefaultChunk.value)
 			Interpreter.checkValidityMethod.generateCall(method)
 			val isValidLabel = Label()
 			method.visitJumpInsn(Opcodes.IFNE, isValidLabel)
@@ -106,10 +126,7 @@ class L2_ENTER_L2_CHUNK(
 		// corresponding L2_SAVE_ALL_AND_PC_TO_INT instruction, which nicely set
 		// up for us the lists of registers that were saved.  The interpreter
 		// should have extracted the registerDump for us already.
-		val localNumberLists =
-			translator.liveLocalNumbersByKindPerEntryPoint[this]
-		if (localNumberLists !== null)
-		{
+		liveLocalNumbersByKind?.let { localNumberLists ->
 			val boxedList = localNumberLists[BOXED_KIND]!!
 			val intsList = localNumberLists[INTEGER_KIND]!!
 			val floatsList = localNumberLists[FLOAT_KIND]!!

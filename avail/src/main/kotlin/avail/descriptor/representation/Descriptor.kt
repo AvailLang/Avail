@@ -623,7 +623,7 @@ protected constructor (
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_Map = unsupported
 
 	override fun o_MapWithoutKeyCanDestroy (
@@ -752,6 +752,10 @@ protected constructor (
 		unsupported
 
 	override fun o_SetValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject): Unit = unsupported
+
+	override fun o_SetUnescapedLocalValueNoCheck (
 		self: AvailObject,
 		newValue: A_BasicObject): Unit = unsupported
 
@@ -1837,12 +1841,13 @@ protected constructor (
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy (
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin = unsupported
 
 	override fun o_MapBinKeyUnionKind (self: AvailObject): A_Type = unsupported
@@ -2656,6 +2661,8 @@ protected constructor (
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		unsupported
+
+	override fun o_EncodedElidedLocals(self: AvailObject): A_Tuple = unsupported
 
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,

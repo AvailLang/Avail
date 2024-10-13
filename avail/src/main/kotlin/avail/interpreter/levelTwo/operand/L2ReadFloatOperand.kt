@@ -105,6 +105,8 @@ class L2ReadFloatOperand : L2ReadOperand<FLOAT_KIND>
 	override fun semanticValue(): L2SemanticUnboxedFloat =
 		super.semanticValue().cast()
 
+	override fun register(): L2FloatRegister = super.register().cast()
+
 	override fun copyForRegister(
 		newRegister: L2Register<FLOAT_KIND>
 	) = L2ReadFloatOperand(semanticValue(), restriction(), newRegister)

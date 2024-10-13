@@ -76,6 +76,14 @@ object P_AddUnloadFunction : Primitive(
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * The function might contain outers that are escaped variables, but they're
+	 * made shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(functionTypeReturning(TOP.o)), TOP.o)
 

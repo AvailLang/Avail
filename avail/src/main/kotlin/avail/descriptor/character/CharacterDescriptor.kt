@@ -218,7 +218,7 @@ class CharacterDescriptor private constructor(
 		 * @param codePoint
 		 *   A Unicode code point.
 		 * @return
-		 *   THe character's hashed [Int].
+		 *   The character's hashed [Int].
 		 */
 		fun computeHashOfCharacterWithCodePoint(codePoint: Int): Int =
 			computeHashOfInt(codePoint xor -0x297166b9)

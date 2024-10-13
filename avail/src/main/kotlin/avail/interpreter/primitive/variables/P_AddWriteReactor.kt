@@ -79,6 +79,13 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		return interpreter.primitiveSuccess(nil)
 	}
 
+	/**
+	 * The variable gets a reactor here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

@@ -1662,7 +1662,8 @@ abstract class AbstractDescriptor protected constructor (
 		keyTransformer: (AvailObject)->A_BasicObject,
 		notFoundValue: A_BasicObject,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject): A_Map
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
+	): A_Map
 
 	abstract fun o_MapWithoutKeyCanDestroy (
 		self: AvailObject,
@@ -1844,6 +1845,10 @@ abstract class AbstractDescriptor protected constructor (
 		newValue: A_BasicObject)
 
 	abstract fun o_SetValueNoCheck (
+		self: AvailObject,
+		newValue: A_BasicObject)
+
+	abstract fun o_SetUnescapedLocalValueNoCheck (
 		self: AvailObject,
 		newValue: A_BasicObject)
 
@@ -3244,12 +3249,13 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_MapBinAtHashReplacingLevelCanDestroy (
 		self: AvailObject,
+		keyPrecursor: AvailObject,
 		key: AvailObject,
 		keyHash: Int,
 		notFoundValue: AvailObject,
 		myLevel: Int,
 		canDestroy: Boolean,
-		transformer: (AvailObject, AvailObject) -> A_BasicObject
+		transformer: (AvailObject, AvailObject, AvailObject)->A_BasicObject
 	): A_MapBin
 
 	abstract fun o_MapBinKeyUnionKind (self: AvailObject): A_Type
@@ -3995,6 +4001,8 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_AddBundle (self: AvailObject, bundle: A_Bundle)
 
 	abstract fun o_ReturnTypeIfPrimitiveFails (self: AvailObject): A_Type
+
+	abstract fun o_EncodedElidedLocals(self: AvailObject): A_Tuple
 
 	abstract fun o_ExtractDumpedObjectAt (
 		self: AvailObject,

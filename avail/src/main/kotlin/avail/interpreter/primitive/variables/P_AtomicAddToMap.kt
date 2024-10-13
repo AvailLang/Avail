@@ -138,6 +138,13 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 		}
 	}
 
+	/**
+	 * A variable may be part of the value, so it could become shared here.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(

@@ -104,6 +104,7 @@ import avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import avail.interpreter.levelTwo.operand.L2ReadFloatVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedVectorOperand
@@ -175,7 +176,6 @@ import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import avail.utility.isNullOr
 import avail.utility.mapToSet
 import avail.utility.notNullAnd
-import avail.utility.removeLast
 import avail.utility.structures.EnumMap.Companion.enumMap
 
 /**
@@ -1246,10 +1246,8 @@ constructor(
 			val boolSource = registerToTest.definitionSkippingMoves()
 			when
 			{
-				boolSource !is L2_RUN_INFALLIBLE_PRIMITIVE ->
-				{
-				}
-				boolSource.primitive.constant === P_Equality ->
+				boolSource is L2_RUN_INFALLIBLE_PRIMITIVE &&
+					boolSource.primitive.constant === P_Equality ->
 				{
 					val (read1, read2) = argsOf(boolSource)
 					// If either operand of P_Equality is a constant, recurse to
@@ -1476,12 +1474,8 @@ constructor(
 	fun determineRawFunction(
 		functionToCallReg: L2ReadBoxedOperand): A_RawFunction?
 	{
-		val functionIfKnown: A_Function? =
-			functionToCallReg.constantOrNull
-		if (functionIfKnown !== null)
-		{
-			// The exact function is known.
-			return functionIfKnown.code()
+		functionToCallReg.constantOrNull?.let { function ->
+			return function.code()
 		}
 		// See if we can at least find out the raw function that the function
 		// was created from.
@@ -1621,25 +1615,33 @@ constructor(
 
 		override fun doOperand(operand: L2ReadBoxedVectorOperand)
 		{
-			for (register in operand.elements)
+			for (read in operand.elements)
 			{
-				objectMax = objectMax.coerceAtLeast(register.finalIndex())
+				objectMax = objectMax.coerceAtLeast(read.finalIndex())
 			}
 		}
 
 		override fun doOperand(operand: L2ReadIntVectorOperand)
 		{
-			for (register in operand.elements)
+			for (read in operand.elements)
 			{
-				intMax = intMax.coerceAtLeast(register.finalIndex())
+				intMax = intMax.coerceAtLeast(read.finalIndex())
 			}
 		}
 
 		override fun doOperand(operand: L2ReadFloatVectorOperand)
 		{
-			for (register in operand.elements)
+			for (read in operand.elements)
 			{
-				floatMax = floatMax.coerceAtLeast(register.finalIndex())
+				floatMax = floatMax.coerceAtLeast(read.finalIndex())
+			}
+		}
+
+		override fun doOperand(operand: L2ReadMixedVectorOperand)
+		{
+			for (read in operand.elements)
+			{
+				read.dispatchOperand(this)
 			}
 		}
 
@@ -1718,14 +1720,14 @@ constructor(
 		 * @param targetBlock
 		 *   The target [L2BasicBlock].
 		 * @param forcedClamped
-		 *   A [MutableSet] of [L2Entity] that limit the information that can
-		 *   propagate arcoss the new back-edge.
+		 *   A [Set] of [L2Entity] that limit the information that can propagate
+		 *   arcoss the new back-edge.
 		 * @return
 		 *   The new [L2PcOperand].
 		 */
 		fun backEdgeTo(
 			targetBlock: L2BasicBlock,
-			forcedClamped: MutableSet<L2Entity<*>>
+			forcedClamped: Set<L2Entity<*>>
 		): L2PcOperand
 		{
 			assert(targetBlock.isLoopHead)

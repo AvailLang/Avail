@@ -31,9 +31,9 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_RegisterDump
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor
-import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDumpMethod
-import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.emptyRegisterDumpField
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
@@ -41,6 +41,7 @@ import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.On
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
+import avail.interpreter.levelTwo.operand.L2ReadMixedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import avail.interpreter.levelTwo.register.L2Register
@@ -61,13 +62,41 @@ import org.objectweb.asm.MethodVisitor
  * and the [L2_ENTER_L2_CHUNK] at the reference target will restore them.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @property preserveOnReferenceEdge
+ *   The boxed values to capture in the register dump, and restore if / when /
+ *   each time the [reference]'s target (starting with an [L2_ENTER_L2_CHUNK] is
+ *   resumed.
+ * @property dirtyLocals
+ *   Mixed vector holding the current dirty values to be written into fresh
+ *   variables if/when the continuation becomes immutable or shared.
+ * @property dirtyLocalIndices
+ *   The one-based local variable indices for which to get initialization values
+ *   from the boxed, unboxed int, and unboxed float vectors, in that order, when
+ *   creating local variables due to the continuation becoming immutable or
+ *   shared.  Unmentioned local variables are initialized to nil (unassigned).
+ * @property reference
+ *   Where control flow will resume when the reified continuation resumes, if it
+ *   hasn't been invalidated in the meanwhile.  The actual offset [Int]
+ *   associated with this edge's target is separately recorded in [l2Address]
+ *   for use in creating a continuation.
+ * @property l2Address
+ *   The [Int] version of [reference].  This is used later when constructing the
+ *   actual [A_Continuation], written to the [A_Continuation.levelTwoOffset], so
+ *   that when the continuation resumes it knows what L2 offset to jump to.
+ * @property registerDump
+ *   Where to write an [A_RegisterDump] of all live register values.
+ * @property ifFallThrough
  */
-class L2_SAVE_ALL_AND_PC_TO_INT(
+class L2_SAVE_ALL_AND_PC_TO_INT
+constructor(
 	var preserveOnReferenceEdge: L2ReadBoxedVectorOperand,
 	@On(REFERENCED_AS_INT) var reference: L2PcOperand,
 	@On(SUCCESS) var l2Address: L2WriteIntOperand,
 	@On(SUCCESS) var registerDump: L2WriteBoxedOperand,
-	@On(SUCCESS) var ifFallThrough: L2PcOperand
+	@On(SUCCESS) var ifFallThrough: L2PcOperand,
+	var dirtyLocals: L2ReadMixedVectorOperand,
+	val dirtyLocalIndices: IntArray
 ): L2Instruction()
 {
 	override val targetEdges: List<L2PcOperand> get() = layout.pcOperands(this)
@@ -93,6 +122,26 @@ class L2_SAVE_ALL_AND_PC_TO_INT(
 		}
 		builder.append(",\n\tdump registers ")
 		builder.append(registerDump)
+		val sources = dirtyLocals.elements
+		when
+		{
+			sources.isEmpty() && dirtyLocalIndices.isEmpty() -> { }
+			sources.size == dirtyLocalIndices.size ->
+			{
+				dirtyLocalIndices.zip(sources).joinTo(
+					builder, ",\n\t\t", ",\n\tDirties:\n\t\t"
+				) { (localIndex, source) -> "local#$localIndex = $source" }
+			}
+			else ->
+			{
+				warningStyleChange(true)
+				builder.append("\n\tMismatched dirty locals:\n\t\t")
+				builder.append(dirtyLocalIndices)
+				builder.append("\n\t\t")
+				builder.append(sources)
+				warningStyleChange(false)
+			}
+		}
 	}
 
 	override fun instructionWasAdded(
@@ -107,9 +156,9 @@ class L2_SAVE_ALL_AND_PC_TO_INT(
 			strippedManifest = L2ValueManifest(manifest)
 			val semanticValuesToKeep = mutableSetOf<L2SemanticValue<*>>()
 			val registersToKeep = mutableSetOf<L2Register<*>>()
-			preserveOnReferenceEdge.elements.forEach {
-				semanticValuesToKeep.add(it.semanticValue())
-				registersToKeep.add(it.register())
+			preserveOnReferenceEdge.elements.forEach { read ->
+				semanticValuesToKeep.add(read.semanticValue())
+				registersToKeep.add(read.register())
 			}
 			strippedManifest.clearPostponedInstructions()
 			strippedManifest.retainSemanticValues(semanticValuesToKeep)
@@ -117,7 +166,7 @@ class L2_SAVE_ALL_AND_PC_TO_INT(
 			// Indicate on the edge that these values are all that should be
 			// visible.
 			reference.forcedClampedEntities =
-				(semanticValuesToKeep + registersToKeep).toMutableSet()
+				(semanticValuesToKeep + registersToKeep).toSet()
 		}
 		else
 		{
@@ -132,22 +181,14 @@ class L2_SAVE_ALL_AND_PC_TO_INT(
 		l2Address.instructionWasAdded(manifest)
 		registerDump.instructionWasAdded(manifest)
 		ifFallThrough.instructionWasAdded(manifest)
+		dirtyLocals.instructionWasAdded(manifest)
 	}
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor)
 	{
-		if (reference.createAndPushRegisterDumpArrays(translator, method, true))
-		{
-			// :: [AvailObject[], long[]]
-			createRegisterDumpMethod.generateCall(method)
-		}
-		else
-		{
-			// :: []
-			emptyRegisterDumpField.generateRead(method)
-		}
+		reference.createAndPushRegisterDump(translator, method)
 		// :: [registerDump]
 		translator.store(method, registerDump.register())
 		// :: []

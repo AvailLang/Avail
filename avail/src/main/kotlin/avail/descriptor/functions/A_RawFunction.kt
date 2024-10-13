@@ -34,6 +34,8 @@ package avail.descriptor.functions
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.methods.A_Method
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -41,6 +43,7 @@ import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.Companion.asNativeString
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -428,6 +431,24 @@ interface A_RawFunction : A_BasicObject {
 		 */
 		val A_RawFunction.startingChunk: L2Chunk
 			get() = dispatch { o_StartingChunk(it) }
+
+		/**
+		 * Answer a short descriptive name of this raw function, including the
+		 * information about the method, the module, and the starting line
+		 * number.
+		 */
+		val A_RawFunction.shortMethodName: String
+			get()
+			{
+				val mod = module
+				val moduleName = when
+				{
+					mod.isNil -> "NoModule"
+					else -> mod.shortModuleNameNative
+				}
+				val baseName = methodName.asNativeString()
+				return "$baseName ($moduleName:$codeStartingLineNumber)"
+			}
 
 		/**
 		 * Atomically increment the total number of invocations of [A_Function]s

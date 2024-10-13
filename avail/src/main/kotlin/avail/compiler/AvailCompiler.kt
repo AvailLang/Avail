@@ -808,8 +808,8 @@ class AvailCompiler constructor(
 			compilationContext.loader)
 		{
 			formatString(
-				"Semantic restriction %s, in %s:%d",
-				restriction.definitionMethod().bundles.first().message,
+				"Semantic restriction %s in %s:%d",
+				restriction.definitionMethod().bundles.first().message.atomName,
 				if (mod.isNil) "no module" else mod.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
@@ -862,8 +862,8 @@ class AvailCompiler constructor(
 			val code = function.code()
 			val mod = code.module
 			formatString(
-				"Macro evaluation %s, in %s:%d",
-				macro.definitionBundle().message,
+				"Macro evaluation %s in %s:%d",
+				macro.definitionBundle().message.atomName,
 				if (mod.isNil) "no module" else mod.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
@@ -4219,12 +4219,13 @@ class AvailCompiler constructor(
 				compilationContext.module.importedNames
 			else
 				compilationContext.module.privateNames
+		// A map from module to set of atoms imported from that module.
 		var namesByModule = emptyMap
 		sourceNames.forEach { _, atoms ->
 			namesByModule = namesByModule.mapAtEachReplacingCanDestroy(
-				atoms.iterator(), {it}, emptySet, true
-			) { atom, set ->
-				set.setWithElementCanDestroy(atom.issuingModule, true)
+				atoms.iterator(), {it.issuingModule}, emptySet, true
+			) { atom, _, set ->
+				set.setWithElementCanDestroy(atom, true)
 			}
 		}
 		var completeModuleNames = emptySet
@@ -4258,9 +4259,8 @@ class AvailCompiler constructor(
 						syntheticLiteralNodeFor(
 							objectFromBoolean(isPublic)))),
 				TOP.o)
-			val function = createFunctionForPhrase(
-				send, compilationContext.module, 0)
-			privateSerializeFunction(function.makeImmutable())
+			privateSerializeFunction(
+				createFunctionForPhrase(send, compilationContext.module, 0))
 		}
 		if (leftovers.setSize > 0)
 		{
@@ -4277,10 +4277,8 @@ class AvailCompiler constructor(
 							stringFrom("(${leftovers.setSize} atoms)")),
 						syntheticLiteralNodeFor(objectFromBoolean(isPublic)))),
 				TOP.o)
-			val function = createFunctionForPhrase(
-				send, compilationContext.module, 0)
-			function.makeImmutable()
-			privateSerializeFunction(function)
+			privateSerializeFunction(
+				createFunctionForPhrase(send, compilationContext.module, 0))
 		}
 	}
 
@@ -4292,7 +4290,7 @@ class AvailCompiler constructor(
 	 */
 	@Synchronized
 	private fun privateSerializeFunction(function: A_Function) =
-		compilationContext.serializer.serialize(function)
+		compilationContext.serializer.serialize(function.makeImmutable())
 
 	companion object
 	{

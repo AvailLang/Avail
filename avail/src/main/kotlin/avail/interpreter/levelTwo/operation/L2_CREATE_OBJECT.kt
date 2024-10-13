@@ -81,8 +81,8 @@ class L2_CREATE_OBJECT(
 		method: MethodVisitor)
 	{
 		val theVariant = variant.constant
-		translator.literal(method, theVariant)
-		translator.literal(method, guaranteedType.constant)
+		translator.loadLiteralObject(method, theVariant)
+		translator.loadLiteralObject(method, guaranteedType.constant)
 		ObjectDescriptor.createUninitializedObjectMethod.generateCall(method)
 		val fieldSources = fieldValues.elements
 		val limit = fieldSources.size

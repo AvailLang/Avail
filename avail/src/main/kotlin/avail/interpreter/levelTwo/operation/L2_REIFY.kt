@@ -161,9 +161,9 @@ class L2_REIFY(
 		// :: reifier = interpreter.reify(
 		// ::    actuallyReify, processInterrupt, statistic);
 		translator.loadInterpreter(method)
-		translator.literal(method, captureFrames.value)
-		translator.literal(method, processInterrupt.value)
-		translator.literal(method, statistic.constant)
+		translator.intConstant(method, captureFrames.value)
+		translator.intConstant(method, processInterrupt.value)
+		translator.loadLiteralObject(method, statistic.constant)
 		Interpreter.reifyMethod.generateCall(method)
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an

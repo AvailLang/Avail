@@ -86,7 +86,15 @@ object P_Swap : Primitive(2, CanInline, HasSideEffect)
 		{
 			interpreter.primitiveFailure(e)
 		}
-}
+	}
+
+	/**
+	 * If either variable had a reactor, the reads or writes could activate
+	 * them, which might cause a variable captured in them to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

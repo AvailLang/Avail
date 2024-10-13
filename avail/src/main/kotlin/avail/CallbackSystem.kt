@@ -47,7 +47,7 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import avail.interpreter.primitive.pojos.P_InvokeCallback
-import avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
+import avail.interpreter.primitive.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import avail.utility.SimpleThreadFactory
 import avail.utility.safeWrite
 import java.util.WeakHashMap

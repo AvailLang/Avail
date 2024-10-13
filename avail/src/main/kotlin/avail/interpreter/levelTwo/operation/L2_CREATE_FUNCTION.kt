@@ -156,7 +156,7 @@ class L2_CREATE_FUNCTION(
 		val numOuters = capturedVariables.elements.size
 
 		assert(numOuters == code.constant.numOuters)
-		translator.literal(method, code.constant)
+		translator.loadLiteralObject(method, code.constant)
 		assert(numOuters != 0)
 		if (numOuters <= 5)
 		{

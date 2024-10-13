@@ -217,7 +217,7 @@ constructor(
 		override val destination: L2WriteBoxedOperand get() = moveDestination
 
 		override val constantCode: A_RawFunction?
-			get() = source.definition().instruction.constantCode
+			get() = source.definitionSkippingMoves().constantCode
 
 		override fun extractTupleElement(
 			tupleRead: L2ReadBoxedOperand,

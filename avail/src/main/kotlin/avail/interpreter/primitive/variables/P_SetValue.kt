@@ -84,6 +84,14 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		}
 	}
 
+	/**
+	 * If the variable had a write reactor, writing can activate that reactor,
+	 * which might cause a variable captured in it to become shared.
+	 */
+	override fun mightMakeEscapedVariableShared(
+		argumentTypes: List<A_Type>
+	): Boolean = true
+
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
